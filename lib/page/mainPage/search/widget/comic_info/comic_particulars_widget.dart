@@ -29,21 +29,14 @@ class ComicParticularsWidget extends ConsumerStatefulWidget {
 class _ComicParticularsWidgetState extends ConsumerState<ComicParticularsWidget>
     with AutomaticKeepAliveClientMixin<ComicParticularsWidget> {
   ComicInfo get comicInfo => widget.comicInfo;
-  late Future<String> _getCachePicture;
 
   @override
   bool get wantKeepAlive => true; // 这将告诉Flutter保持这个页面状态
 
-  @override
-  void initState() {
-    super.initState();
-    _getCachePicture = getCachePicture(
-      comicInfo.comic.thumb.fileServer,
-      comicInfo.comic.thumb.path,
-      comicInfo.comic.id,
-      pictureType: "cover",
-    );
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -56,69 +49,11 @@ class _ComicParticularsWidgetState extends ConsumerState<ComicParticularsWidget>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          SizedBox(
-            width: (screenWidth / 10) * 3,
-            height: 180,
-            child: FutureBuilder<String>(
-              future: _getCachePicture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  if (snapshot.hasError) {
-                    // 如果有错误，显示错误信息和一个重新加载的按钮
-                    return InkWell(
-                      onTap: () {
-                        _getCachePicture.then((value) {
-                          setState(() {
-                            // 更新UI
-                          });
-                        });
-                      },
-                      child: Center(
-                        child: Text(
-                          '加载失败，点击重新加载',
-                          style: TextStyle(
-                            color: colorNotifier.defaultTextColor,
-                          ),
-                        ),
-                      ),
-                    );
-                  } else {
-                    // 没有错误，正常显示图片
-                    return InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                FullScreenImageView(imagePath: snapshot.data!),
-                          ),
-                        );
-                      },
-                      child: Hero(
-                        tag: snapshot.data!,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10.0),
-                          child: Image.file(
-                            File(snapshot.data!),
-                            fit: BoxFit.cover,
-                            width: (screenWidth / 10) * 3,
-                            height: 180,
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-                } else {
-                  // 图片正在加载中
-                  return Center(
-                    child: LoadingAnimationWidget.waveDots(
-                      color: Colors.black,
-                      size: 50,
-                    ),
-                  );
-                }
-              },
-            ),
+          ImagerWidget(
+            fileServer: comicInfo.comic.thumb.fileServer,
+            path: comicInfo.comic.thumb.path,
+            id: comicInfo.comic.id,
+            pictureType: "cover",
           ),
           SizedBox(width: screenWidth / 60),
           Flexible(
@@ -201,6 +136,118 @@ class _ComicParticularsWidgetState extends ConsumerState<ComicParticularsWidget>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class ImagerWidget extends ConsumerStatefulWidget {
+  final String fileServer;
+  final String path;
+  final String id;
+  final String pictureType;
+
+  const ImagerWidget({
+    super.key,
+    required this.fileServer,
+    required this.path,
+    required this.id,
+    required this.pictureType,
+  });
+
+  @override
+  ConsumerState<ImagerWidget> createState() => _ImagerWidgetState();
+}
+
+class _ImagerWidgetState extends ConsumerState<ImagerWidget> {
+  get fileServer => widget.fileServer;
+
+  get path => widget.path;
+
+  get id => widget.id;
+
+  get pictureType => widget.pictureType;
+
+  late Future<String> _getCachePicture;
+
+  @override
+  void initState() {
+    super.initState();
+    _getCachePicture = getCachePicture(
+      fileServer,
+      path,
+      id,
+      pictureType: pictureType,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorNotifier = ref.watch(defaultColorProvider);
+    colorNotifier.initialize(context);
+
+    return SizedBox(
+      width: (screenWidth / 10) * 3,
+      height: 180,
+      child: FutureBuilder<String>(
+        future: _getCachePicture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            if (snapshot.hasError) {
+              // 如果有错误，显示错误信息和一个重新加载的按钮
+              return InkWell(
+                onTap: () {
+                  _getCachePicture.then((value) {
+                    setState(() {
+                      // 更新UI
+                    });
+                  });
+                },
+                child: Center(
+                  child: Text(
+                    '加载失败，点击重新加载',
+                    style: TextStyle(
+                      color: colorNotifier.defaultTextColor,
+                    ),
+                  ),
+                ),
+              );
+            } else {
+              // 没有错误，正常显示图片
+              return InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          FullScreenImageView(imagePath: snapshot.data!),
+                    ),
+                  );
+                },
+                child: Hero(
+                  tag: snapshot.data!,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10.0),
+                    child: Image.file(
+                      File(snapshot.data!),
+                      fit: BoxFit.cover,
+                      width: (screenWidth / 10) * 3,
+                      height: 180,
+                    ),
+                  ),
+                ),
+              );
+            }
+          } else {
+            // 图片正在加载中
+            return Center(
+              child: LoadingAnimationWidget.waveDots(
+                color: Colors.black,
+                size: 50,
+              ),
+            );
+          }
+        },
       ),
     );
   }

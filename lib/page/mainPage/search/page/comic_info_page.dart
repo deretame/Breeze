@@ -125,7 +125,11 @@ class _ComicInfoPageState extends State<ComicInfoPage>
               if (snapshot.data!['comic']['chineseTeam'] == null) {
                 snapshot.data!['comic']['chineseTeam'] = "";
               }
-
+              //  部分漫画没有totalComments，这里做个判断，防止报错
+              if (snapshot.data!['comic']['totalComments'] == null) {
+                snapshot.data!['comic']['totalComments'] =
+                    snapshot.data!['comic']['commentsCount'] = 0;
+              }
               comicInfo = ComicInfo.fromJson(snapshot.data!);
               return SingleChildScrollView(
                 // 添加滚动视图
@@ -140,17 +144,17 @@ class _ComicInfoPageState extends State<ComicInfoPage>
           }
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // 按钮点击事件
-          debugPrint('Floating Action Button Pressed');
-        },
-        label: Text('Action'),
-        icon: Icon(Icons.add),
-        // backgroundColor: Colors.blue, // 自定义背景颜色
-      ),
-      // floatingActionButtonLocation:
-      //     FloatingActionButtonLocation.endDocked, // 自定义位置
+      // floatingActionButton: FloatingActionButton.extended(
+      //   onPressed: () {
+      //     // 按钮点击事件
+      //     debugPrint('Floating Action Button Pressed');
+      //   },
+      //   label: Text('Action'),
+      //   icon: Icon(Icons.add),
+      //   // backgroundColor: Colors.blue, // 自定义背景颜色
+      // ),
+      // // floatingActionButtonLocation:
+      // //     FloatingActionButtonLocation.endDocked, // 自定义位置
     );
   }
 }
@@ -216,8 +220,10 @@ class _ComicInfoWidgetState extends ConsumerState<ComicInfoWidget> {
                       height: 3,
                     ),
                   ],
-                  SynopsisWidget(comicInfo: comicInfo), // 简介组件
-                  // 描述文本，左对齐
+                  if (comicInfo.comic.description != '') ...[
+                    SynopsisWidget(comicInfo: comicInfo), // 简介组件
+                    // 描述文本，左对齐
+                  ],
                   const SizedBox(
                     height: 10,
                   ),

@@ -1,6 +1,6 @@
 name: zephyr
 description: "使用flutter开发的三方哔咔应用。"
-#publish_to: 'github'
+#publish_to: ''
 
 version: 1.0.0+1
 
@@ -31,7 +31,7 @@ dependencies:
   # 动态获取系统主题色
   system_theme: ^3.1.1
   # 路由库
-  go_router: ^14.2.7
+  go_router: ^14.2.9
   # 图标库
   cupertino_icons: ^1.0.8
   # 图片查看库

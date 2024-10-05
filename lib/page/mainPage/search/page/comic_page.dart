@@ -5,12 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:zephyr/config/global.dart';
 import 'package:zephyr/network/http/http_request.dart';
-import 'package:zephyr/network/http/picture.dart';
 import 'package:zephyr/type/comic_ep_info.dart';
 
 import '../../../../json/comic/ep.dart' as ep;
 import '../../../../util/state_management.dart';
-import '../../../../widgets/full_screen_image_view.dart';
+import '../../../../widgets/image_build_widget.dart';
 
 class ComicPage extends ConsumerStatefulWidget {
   final ComicEpInfo comicEpInfo;
@@ -37,6 +36,12 @@ class _ComicPageState extends ConsumerState<ComicPage> {
     super.initState();
     _loadData();
     _scrollController.addListener(_scrollListener);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void _scrollListener() {
@@ -87,6 +92,59 @@ class _ComicPageState extends ConsumerState<ComicPage> {
     }
   }
 
+  Widget _loadingWidget() {
+    final colorNotifier = ref.watch(defaultColorProvider);
+    return SizedBox(
+      width: screenWidth,
+      height: screenWidth,
+      child: Align(
+        alignment: Alignment.center,
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: LoadingAnimationWidget.waveDots(
+            color: colorNotifier.defaultTextColor!,
+            size: 50,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorWidget() {
+    final colorNotifier = ref.watch(defaultColorProvider);
+    return SizedBox(
+      width: screenWidth,
+      height: screenWidth,
+      child: Align(
+        alignment: Alignment.center,
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Text(
+            '加载失败，点击重新加载',
+            style: TextStyle(
+              color: colorNotifier.defaultTextColor,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageFutureBuilder(ep.Doc doc) {
+    final isReloading = ValueNotifier<bool>(false);
+    return ImageBuildWidget(
+      fileServer: doc.media.fileServer,
+      path: doc.media.path,
+      pictureType: "comic",
+      comicId: comicEpInfo.comicId,
+      chapterId: comicEpInfo.order.toString(),
+      loadingWidget: _loadingWidget(),
+      buildErrorWidget: _buildErrorWidget(),
+      imageWidgetBuilder: (String data) => KeepAliveImage(data: data),
+      isReloading: isReloading,
+    );
+  }
+
   void _showErrorDialog(BuildContext context, String errorMessage) {
     showDialog(
       context: context,
@@ -118,158 +176,81 @@ class _ComicPageState extends ConsumerState<ComicPage> {
   }
 
   @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  Widget getImageWidget(File file) {
-    try {
-      return Image.file(file);
-    } catch (e) {
-      debugPrint('无法打开文件: $e');
-      return Icon(Icons.broken_image);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     final colorNotifier = ref.watch(defaultColorProvider);
     colorNotifier.initialize(context); // 显式初始化
+
+    // 加载动画
+    Widget loadingWidget = Center(
+      child: LoadingAnimationWidget.hexagonDots(
+        color: colorNotifier.defaultTextColor!,
+        size: 80,
+      ),
+    );
+
+    // 判断是否是首次加载，如果是则显示居中的加载动画
+    Widget bodyWidget;
+    if (_isLoading && _comicPages.isEmpty) {
+      // 首次加载，显示居中的加载动画
+      bodyWidget = Center(
+        child: loadingWidget,
+      );
+    } else {
+      // 非首次加载，显示ListView
+      bodyWidget = Column(
+        children: <Widget>[
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollController,
+              itemCount: _comicPages.length +
+                  (_hasMorePages ? 0 : 1), // 如果没有更多页面，则增加一个项目用于显示完成提示
+              itemBuilder: (context, index) {
+                if (!_hasMorePages && index == _comicPages.length) {
+                  // 没有更多页面可加载，可以显示一个完成提示
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20.0),
+                      // 添加垂直方向的20 padding
+                      child: Text(
+                        '章节结束',
+                        style: TextStyle(
+                          color: colorNotifier.defaultTextColor,
+                          fontSize: 18.0, // 设置字体大小为18逻辑像素
+                        ),
+                      ),
+                    ),
+                  );
+                } else if (index < _comicPages.length) {
+                  // 构建漫画页
+                  ep.Doc doc = _comicPages[index];
+                  return _buildImageFutureBuilder(doc);
+                }
+                // 如果都不满足，返回一个空的Container或者占位符
+                return Container();
+              },
+            ),
+          ),
+          if (_isLoading) loadingWidget,
+        ],
+      );
+    }
+
     return Scaffold(
       body: Localizations.override(
         context: context,
         locale: const Locale('zh', 'CN'),
-        child: InteractiveViewer(
-          boundaryMargin: EdgeInsets.all(double.infinity),
-          minScale: 1.0,
-          maxScale: 4.0,
-          child: ListView.builder(
-            controller: _scrollController,
-            itemCount: _comicPages.length +
-                (_isLoading ? 1 : 0) +
-                (_hasMorePages ? 0 : 1),
-            itemBuilder: (context, index) {
-              if (index < _comicPages.length) {
-                ep.Doc doc = _comicPages[index];
-                return FutureBuilder(
-                  future: getCachePicture(
-                      doc.media.fileServer, doc.media.path, comicEpInfo.comicId,
-                      pictureType: 'comic',
-                      chapterId: comicEpInfo.order.toString()),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return SizedBox(
-                        width: screenWidth, // 大空间的宽度
-                        height: screenWidth, // 大空间的高度
-                        child: Align(
-                          alignment: Alignment.center, // 居中对齐
-                          child: Padding(
-                            padding: const EdgeInsets.all(20.0), // 周围的额外空间
-                            child: LoadingAnimationWidget.waveDots(
-                              color: colorNotifier.defaultTextColor!,
-                              size: 50, // 加载动画的大小
-                            ),
-                          ),
-                        ),
-                      );
-                    } else if (snapshot.hasError) {
-                      // 如果有错误，显示错误信息和一个重新加载的按钮
-                      return InkWell(
-                        onTap: () {
-                          getCachePicture(doc.media.fileServer, doc.media.path,
-                                  comicEpInfo.comicId,
-                                  pictureType: 'comic',
-                                  chapterId: comicEpInfo.order.toString())
-                              .then((value) {
-                            setState(() {
-                              // 更新UI
-                            });
-                          });
-                        },
-                        child: Center(
-                          child: SizedBox(
-                            width: screenWidth, // 大空间的宽度
-                            height: screenWidth, // 大空间的高度
-                            child: Align(
-                              alignment: Alignment.center, // 居中对齐
-                              child: Padding(
-                                padding: const EdgeInsets.all(20.0), // 周围的额外空间
-                                child: Text(
-                                  '加载失败，点击重新加载',
-                                  style: TextStyle(
-                                    color: colorNotifier.defaultTextColor,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    } else if (snapshot.hasData) {
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => FullScreenImageView(
-                                imagePath: snapshot.data!,
-                              ),
-                            ),
-                          );
-                        },
-                        child: KeepAliveImage(
-                          imageFile: File(snapshot.data!),
-                          child: ClipRRect(
-                            child: InteractiveViewer(
-                              minScale: 1.0,
-                              maxScale: 3.0,
-                              child: Image.file(
-                                File(snapshot.data!),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    } else {
-                      return const SizedBox.shrink();
-                    }
-                  },
-                );
-              } else if (index == _comicPages.length && _isLoading) {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(20.0),
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              } else {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(20.0),
-                    child: Text(
-                      '章节结束',
-                      style: TextStyle(fontSize: 20.0),
-                    ),
-                  ),
-                );
-              }
-            },
-          ),
-        ),
+        child: bodyWidget,
       ),
     );
   }
 }
 
 class KeepAliveImage extends StatefulWidget {
-  final File imageFile;
-  final Widget child;
+  final String data;
 
   const KeepAliveImage({
     super.key,
-    required this.imageFile,
-    required this.child,
+    required this.data,
   });
 
   @override
@@ -281,9 +262,15 @@ class _KeepAliveImageState extends State<KeepAliveImage>
   @override
   bool get wantKeepAlive => true;
 
+  String get data => widget.data;
+
   @override
   Widget build(BuildContext context) {
     super.build(context); // 确保调用 super.build
-    return widget.child;
+    return Image.file(
+      File(data),
+      // width: screenWidth, // 图片宽度为屏幕宽度
+      // fit: BoxFit.cover,
+    );
   }
 }

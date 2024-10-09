@@ -3,10 +3,13 @@ import 'package:cherry_toast/resources/arrays.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:realm/realm.dart';
+import 'package:zephyr/config/global.dart';
 import 'package:zephyr/network/http/http_request.dart';
 
 import '../config/authorization.dart';
 import '../config/setting.dart';
+import '../realm/shield_categories.dart';
 import '../util/router.dart';
 import '../util/state_management.dart';
 
@@ -21,6 +24,19 @@ class InitPage extends ConsumerStatefulWidget {
 
 class _InitPageState extends ConsumerState<InitPage> {
   bool needLogin = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) async {
+        await isFirstInit();
+        await getAuthorizationStatus();
+        await getLoginStatus();
+        await initRealm();
+      },
+    );
+  }
 
   Future<void> isFirstInit() async {
     if (getFirstInit() == true) {
@@ -41,6 +57,7 @@ class _InitPageState extends ConsumerState<InitPage> {
             style: TextStyle(color: colorNotifier.defaultTextColor)),
         animationType: AnimationType.fromTop,
         animationDuration: const Duration(milliseconds: 3000),
+        toastDuration: const Duration(milliseconds: 1500),
         autoDismiss: true,
         backgroundColor: colorNotifier.defaultBackgroundColor,
       ).show(context);
@@ -66,6 +83,7 @@ class _InitPageState extends ConsumerState<InitPage> {
       ),
       animationType: AnimationType.fromTop,
       animationDuration: const Duration(milliseconds: 3000),
+      toastDuration: const Duration(milliseconds: 1500),
       autoDismiss: true,
       backgroundColor: colorNotifier.defaultBackgroundColor,
     ).show(context);
@@ -84,6 +102,7 @@ class _InitPageState extends ConsumerState<InitPage> {
               ),
               animationType: AnimationType.fromTop,
               animationDuration: const Duration(milliseconds: 3000),
+              toastDuration: const Duration(milliseconds: 1500),
               autoDismiss: true,
               backgroundColor: colorNotifier.defaultBackgroundColor,
             ).show(context);
@@ -95,6 +114,7 @@ class _InitPageState extends ConsumerState<InitPage> {
                 ),
                 animationType: AnimationType.fromTop,
                 animationDuration: const Duration(milliseconds: 3000),
+                toastDuration: const Duration(milliseconds: 1500),
                 autoDismiss: true,
                 backgroundColor: colorNotifier.defaultBackgroundColor,
               ).show(context);
@@ -113,6 +133,7 @@ class _InitPageState extends ConsumerState<InitPage> {
             ),
             animationType: AnimationType.fromTop,
             animationDuration: const Duration(milliseconds: 3000),
+            toastDuration: const Duration(milliseconds: 1500),
             autoDismiss: true,
             backgroundColor: colorNotifier.defaultBackgroundColor,
           ).show(context);
@@ -128,6 +149,7 @@ class _InitPageState extends ConsumerState<InitPage> {
           ),
           animationType: AnimationType.fromTop,
           animationDuration: const Duration(milliseconds: 3000),
+          toastDuration: const Duration(milliseconds: 1500),
           autoDismiss: true,
           backgroundColor: colorNotifier.defaultBackgroundColor,
         ).show(context);
@@ -137,16 +159,35 @@ class _InitPageState extends ConsumerState<InitPage> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) async {
-        await isFirstInit();
-        await getAuthorizationStatus();
-        await getLoginStatus();
-      },
-    );
+  Future<void> initRealm() async {
+    final shieldedCategories = Configuration.local([ShieldedCategories.schema]);
+    final realm = Realm(shieldedCategories);
+    debugPrint("schemaVersion: ${shieldedCategories.schemaVersion}");
+
+    final shieldedCategoriesList = realm.all<ShieldedCategories>();
+
+    if (shieldedCategoriesList.isEmpty) {
+      debugPrint("Realm is empty");
+      final temp =
+          ShieldedCategories("ShieldedCategories", map: shieldCategoryMapRealm);
+      realm.write(() => realm.add(temp));
+      final shieldedCategoriesListAfterAdd = realm.all<ShieldedCategories>();
+      debugPrint(
+          "Init Realm: ${shieldedCategoriesListAfterAdd.map((e) => e.toString()).toList()}");
+
+      final getPrimitiveMap = temp.dynamic.getMap('map');
+      debugPrint("Get Map: $getPrimitiveMap");
+    } else {
+      debugPrint("Realm is not empty");
+      for (var category in shieldedCategoriesList) {
+        debugPrint("ShieldedCategory: ${category.toString()}");
+
+        final map = category.dynamic.getMap('map');
+        debugPrint("Map: $map");
+      }
+    }
+
+    realm.close();
   }
 
   @override

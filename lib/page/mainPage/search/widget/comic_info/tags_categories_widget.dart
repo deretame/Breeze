@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:zephyr/util/dialog.dart';
+import 'package:zephyr/util/router.dart';
 
 import '../../../../../config/global.dart';
 import '../../../../../json/comic/comic_info.dart';
+import '../../../../../type/search_enter.dart';
 import '../../../../../util/state_management.dart';
 
 // 通用的标签/分类 Widget
@@ -88,7 +89,13 @@ class _TagsAndCategoriesWidgetState
                 (index) {
                   return ElevatedButton(
                     onPressed: () {
-                      nothingDialog(context);
+                      var enter = SearchEnter();
+                      if (widget.type == 'categories') {
+                        enter.categories = [items[index]];
+                      } else {
+                        enter.keyword = items[index];
+                      }
+                      navigateTo(context, '/search', extra: enter);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorNotifier.defaultBackgroundColor,
@@ -104,7 +111,7 @@ class _TagsAndCategoriesWidgetState
                       ),
                     ),
                     child: Text(
-                      items[index],
+                      processText(items[index]),
                       // style: TextStyle(
                       //   color: defaultTextColor,
                       // ),
@@ -118,4 +125,12 @@ class _TagsAndCategoriesWidgetState
       ),
     );
   }
+}
+
+String processText(String text) {
+  if (text.contains('\r')) {
+    text = text.replaceAll('\r', '');
+  }
+
+  return text;
 }

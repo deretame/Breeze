@@ -23,21 +23,9 @@ class CreatorInfoWidget extends ConsumerStatefulWidget {
 class _CreatorInfoWidgetState extends ConsumerState<CreatorInfoWidget>
     with AutomaticKeepAliveClientMixin<CreatorInfoWidget> {
   ComicInfo get comicInfo => widget.comicInfo;
-  late Future<String> _getCachePicture;
 
   @override
   bool get wantKeepAlive => true; // 这将告诉Flutter保持这个页面状态
-
-  @override
-  void initState() {
-    super.initState();
-    _getCachePicture = getCachePicture(
-      comicInfo.comic.creator.avatar.fileServer,
-      comicInfo.comic.creator.avatar.path,
-      comicInfo.comic.id,
-      chapterId: "creator",
-    );
-  }
 
   String timeDecode(DateTime originalTime) {
     // 加上8个小时
@@ -77,59 +65,11 @@ class _CreatorInfoWidgetState extends ConsumerState<CreatorInfoWidget>
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          SizedBox(
-            height: 75,
-            width: 75,
-            child: FutureBuilder<String>(
-              future: _getCachePicture,
-              builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: LoadingAnimationWidget.waveDots(
-                      color: Colors.black,
-                      size: 25,
-                    ),
-                  );
-                } else if (snapshot.hasError) {
-                  return const Text('Error');
-                } else if (snapshot.hasData) {
-                  return Center(
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                FullScreenImageView(imagePath: snapshot.data!),
-                          ),
-                        );
-                      },
-                      child: Hero(
-                        tag: snapshot.data!,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(25),
-                          child: SizedBox(
-                            width: 50,
-                            height: 50,
-                            child: Image.file(
-                              File(snapshot.data!),
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                debugPrint('Error loading image: $error');
-                                return const Icon(Icons.error,
-                                    color: Colors.red);
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                } else {
-                  return const Text('No data');
-                }
-              },
-            ),
+          ImagerWidget(
+            fileServer: comicInfo.comic.creator.avatar.fileServer,
+            path: comicInfo.comic.creator.avatar.path,
+            id: comicInfo.comic.id,
+            pictureType: "creator",
           ),
           const SizedBox(width: 15),
           Flexible(
@@ -184,6 +124,18 @@ class _ImagerWidgetState extends ConsumerState<ImagerWidget> {
 
   late Future<String> _getCachePicture;
 
+  void _reloadImage() {
+    // 重置 Future，以便重新加载图片
+    setState(() {
+      _getCachePicture = getCachePicture(
+        fileServer,
+        path,
+        id,
+        pictureType: pictureType,
+      );
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -191,7 +143,7 @@ class _ImagerWidgetState extends ConsumerState<ImagerWidget> {
       fileServer,
       path,
       id,
-      chapterId: pictureType,
+      pictureType: pictureType,
     );
   }
 
@@ -208,22 +160,23 @@ class _ImagerWidgetState extends ConsumerState<ImagerWidget> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.hasError) {
-              // 如果有错误，显示错误信息和一个重新加载的按钮
-              return InkWell(
-                onTap: () {
-                  _getCachePicture.then((value) {
-                    setState(() {
-                      // 更新UI
-                    });
-                  });
-                },
-                child: Center(
-                  child: Icon(
-                    Icons.refresh,
-                    size: 25,
+              if (snapshot.error.toString().contains('404')) {
+                return Image.asset('asset/image/error_image/404.png');
+              } else {
+                // 如果有错误，显示错误信息和一个重新加载的按钮
+                return InkWell(
+                  onTap: () {
+                    _reloadImage(); // 调用 _reloadImage 方法重新加载图片
+                  },
+                  child: Center(
+                    child: Icon(
+                      Icons.refresh,
+                      size: 25,
+                      color: colorNotifier.defaultTextColor,
+                    ),
                   ),
-                ),
-              );
+                );
+              }
             } else {
               // 没有错误，正常显示图片
               return Center(
@@ -247,10 +200,6 @@ class _ImagerWidgetState extends ConsumerState<ImagerWidget> {
                         child: Image.file(
                           File(snapshot.data!),
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            debugPrint('Error loading image: $error');
-                            return const Icon(Icons.error, color: Colors.red);
-                          },
                         ),
                       ),
                     ),
@@ -262,7 +211,7 @@ class _ImagerWidgetState extends ConsumerState<ImagerWidget> {
             // 图片正在加载中
             return Center(
               child: LoadingAnimationWidget.waveDots(
-                color: Colors.black,
+                color: colorNotifier.defaultTextColor!,
                 size: 25,
               ),
             );

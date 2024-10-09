@@ -49,53 +49,53 @@ class PersonInfoRealm extends _PersonInfoRealm
   @override
   String get id => RealmObjectBase.get<String>(this, 'id') as String;
   @override
-  set id(String value) => throw RealmUnsupportedSetError();
+  set id(String value) => RealmObjectBase.set(this, 'id', value);
 
   @override
   DateTime get birthday =>
       RealmObjectBase.get<DateTime>(this, 'birthday') as DateTime;
   @override
-  set birthday(DateTime value) => throw RealmUnsupportedSetError();
+  set birthday(DateTime value) => RealmObjectBase.set(this, 'birthday', value);
 
   @override
   String get email => RealmObjectBase.get<String>(this, 'email') as String;
   @override
-  set email(String value) => throw RealmUnsupportedSetError();
+  set email(String value) => RealmObjectBase.set(this, 'email', value);
 
   @override
   String get gender => RealmObjectBase.get<String>(this, 'gender') as String;
   @override
-  set gender(String value) => throw RealmUnsupportedSetError();
+  set gender(String value) => RealmObjectBase.set(this, 'gender', value);
 
   @override
   String get name => RealmObjectBase.get<String>(this, 'name') as String;
   @override
-  set name(String value) => throw RealmUnsupportedSetError();
+  set name(String value) => RealmObjectBase.set(this, 'name', value);
 
   @override
   String get slogan => RealmObjectBase.get<String>(this, 'slogan') as String;
   @override
-  set slogan(String value) => throw RealmUnsupportedSetError();
+  set slogan(String value) => RealmObjectBase.set(this, 'slogan', value);
 
   @override
   String get title => RealmObjectBase.get<String>(this, 'title') as String;
   @override
-  set title(String value) => throw RealmUnsupportedSetError();
+  set title(String value) => RealmObjectBase.set(this, 'title', value);
 
   @override
   bool get verified => RealmObjectBase.get<bool>(this, 'verified') as bool;
   @override
-  set verified(bool value) => throw RealmUnsupportedSetError();
+  set verified(bool value) => RealmObjectBase.set(this, 'verified', value);
 
   @override
   int get exp => RealmObjectBase.get<int>(this, 'exp') as int;
   @override
-  set exp(int value) => throw RealmUnsupportedSetError();
+  set exp(int value) => RealmObjectBase.set(this, 'exp', value);
 
   @override
   int get level => RealmObjectBase.get<int>(this, 'level') as int;
   @override
-  set level(int value) => throw RealmUnsupportedSetError();
+  set level(int value) => RealmObjectBase.set(this, 'level', value);
 
   @override
   RealmList<String> get characters =>
@@ -108,23 +108,25 @@ class PersonInfoRealm extends _PersonInfoRealm
   DateTime get createdAt =>
       RealmObjectBase.get<DateTime>(this, 'createdAt') as DateTime;
   @override
-  set createdAt(DateTime value) => throw RealmUnsupportedSetError();
+  set createdAt(DateTime value) =>
+      RealmObjectBase.set(this, 'createdAt', value);
 
   @override
   Avatar? get avatar => RealmObjectBase.get<Avatar>(this, 'avatar') as Avatar?;
   @override
-  set avatar(covariant Avatar? value) => throw RealmUnsupportedSetError();
+  set avatar(covariant Avatar? value) =>
+      RealmObjectBase.set(this, 'avatar', value);
 
   @override
   bool get isPunched => RealmObjectBase.get<bool>(this, 'isPunched') as bool;
   @override
-  set isPunched(bool value) => throw RealmUnsupportedSetError();
+  set isPunched(bool value) => RealmObjectBase.set(this, 'isPunched', value);
 
   @override
   String get character =>
       RealmObjectBase.get<String>(this, 'character') as String;
   @override
-  set character(String value) => throw RealmUnsupportedSetError();
+  set character(String value) => RealmObjectBase.set(this, 'character', value);
 
   @override
   Stream<RealmObjectChanges<PersonInfoRealm>> get changes =>
@@ -245,18 +247,20 @@ class Avatar extends _Avatar with RealmEntity, RealmObjectBase, RealmObject {
   String get originalName =>
       RealmObjectBase.get<String>(this, 'originalName') as String;
   @override
-  set originalName(String value) => throw RealmUnsupportedSetError();
+  set originalName(String value) =>
+      RealmObjectBase.set(this, 'originalName', value);
 
   @override
   String get path => RealmObjectBase.get<String>(this, 'path') as String;
   @override
-  set path(String value) => throw RealmUnsupportedSetError();
+  set path(String value) => RealmObjectBase.set(this, 'path', value);
 
   @override
   String get fileServer =>
       RealmObjectBase.get<String>(this, 'fileServer') as String;
   @override
-  set fileServer(String value) => throw RealmUnsupportedSetError();
+  set fileServer(String value) =>
+      RealmObjectBase.set(this, 'fileServer', value);
 
   @override
   Stream<RealmObjectChanges<Avatar>> get changes =>

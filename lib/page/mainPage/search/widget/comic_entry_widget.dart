@@ -79,7 +79,7 @@ class _ComicEntryWidgetState extends ConsumerState<ComicEntryWidget> {
             ),
             child: Row(
               children: <Widget>[
-                ImagerWidget(
+                ImageWidget(
                   fileServer: doc.thumb.fileServer,
                   path: doc.thumb.path,
                   id: doc.id,
@@ -156,13 +156,13 @@ class _ComicEntryWidgetState extends ConsumerState<ComicEntryWidget> {
   }
 }
 
-class ImagerWidget extends ConsumerStatefulWidget {
+class ImageWidget extends ConsumerStatefulWidget {
   final String fileServer;
   final String path;
   final String id;
   final String pictureType;
 
-  const ImagerWidget({
+  const ImageWidget({
     super.key,
     required this.fileServer,
     required this.path,
@@ -171,29 +171,28 @@ class ImagerWidget extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ImagerWidget> createState() => _ImagerWidgetState();
+  ConsumerState<ImageWidget> createState() => _ImageWidgetState();
 }
 
-class _ImagerWidgetState extends ConsumerState<ImagerWidget> {
-  get fileServer => widget.fileServer;
-
-  get path => widget.path;
-
-  get id => widget.id;
-
-  get pictureType => widget.pictureType;
-
+class _ImageWidgetState extends ConsumerState<ImageWidget> {
   late Future<String> _getCachePicture;
 
   @override
   void initState() {
     super.initState();
-    _getCachePicture = getCachePicture(
-      fileServer,
-      path,
-      id,
-      pictureType: pictureType,
-    );
+    _refreshCachePicture();
+  }
+
+  void _refreshCachePicture() {
+    // 重新初始化 _getCachePicture，以触发 FutureBuilder 重建
+    setState(() {
+      _getCachePicture = getCachePicture(
+        widget.fileServer,
+        widget.path,
+        widget.id,
+        pictureType: widget.pictureType,
+      );
+    });
   }
 
   @override
@@ -210,23 +209,22 @@ class _ImagerWidgetState extends ConsumerState<ImagerWidget> {
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.hasError) {
               // 如果有错误，显示错误信息和一个重新加载的按钮
-              return InkWell(
-                onTap: () {
-                  _getCachePicture.then((value) {
-                    setState(() {
-                      // 更新UI
-                    });
-                  });
-                },
-                child: Center(
-                  child: Text(
-                    '加载失败，点击重新加载',
-                    style: TextStyle(
-                      color: colorNotifier.defaultTextColor,
+              // 部分图片在服务器上可能已经不存在，所以显示一个404图片
+              if (snapshot.error.toString().contains('404')) {
+                return Image.asset('asset/image/error_image/404.png');
+              } else {
+                return InkWell(
+                  onTap: _refreshCachePicture, // 直接调用 _refreshCachePicture
+                  child: Center(
+                    child: Text(
+                      '加载图片失败\n点击重新加载',
+                      style: TextStyle(
+                        color: colorNotifier.defaultTextColor,
+                      ),
                     ),
                   ),
-                ),
-              );
+                );
+              }
             } else {
               // 没有错误，正常显示图片
               return InkWell(
@@ -249,6 +247,8 @@ class _ImagerWidgetState extends ConsumerState<ImagerWidget> {
                     child: Image.file(
                       File(snapshot.data!),
                       fit: BoxFit.cover,
+                      width: (screenWidth / 10) * 3,
+                      height: 180,
                     ),
                   ),
                 ),

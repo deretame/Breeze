@@ -5,60 +5,58 @@ part 'comic_realm.realm.dart';
 @RealmModel()
 class _ComicRealm {
   @PrimaryKey()
-  late final String id;
+  late String id;
 
-  late final _Creator? creator;
-  late final String title;
-  late final String description;
-  late final _Thumb? thumb;
-  late final String author;
-  late final String chineseTeam;
-  late final List<String> categories;
-  late final List<String> tags;
-  late final int pagesCount;
-  late final int epsCount;
-  late final bool finished;
-  late final DateTime updatedAt;
-  late final DateTime createdAt;
-  late final bool allowDownload;
-  late final bool allowComment;
-  late final int totalLikes;
-  late final int totalViews;
-  late final int totalComments;
-  late final int viewsCount;
-  late final int likesCount;
-  late final int commentsCount;
-  late final bool isFavourite;
-  late final bool isLiked;
+  late _Creator? creator;
+  late String title;
+  late String description;
+  late _Thumb? thumb;
+  late String author;
+  late String chineseTeam;
+  late List<String> categories;
+  late List<String> tags;
+  late int pagesCount;
+  late int epsCount;
+  late bool finished;
+  late DateTime updatedAt;
+  late DateTime createdAt;
+  late bool allowDownload;
+  late bool allowComment;
+  late int totalLikes;
+  late int totalViews;
+  late int totalComments;
+  late int viewsCount;
+  late int likesCount;
+  late int commentsCount;
+  late bool isFavourite;
+  late bool isLiked;
 }
 
 @RealmModel()
 class _Creator {
-  @PrimaryKey()
-  late final String id;
-
-  late final String gender;
-  late final String name;
-  late final bool verified;
-  late final int exp;
-  late final int level;
-  late final String role;
-  late final List<String> characters;
-  late final String title;
-  late final _Avatar? avatar;
-  late final String slogan;
+  late String id;
+  late String gender;
+  late String name;
+  late bool verified;
+  late int exp;
+  late int level;
+  late String role;
+  late List<String> characters;
+  late String title;
+  late _Avatar? avatar;
+  late String slogan;
 }
 
 @RealmModel()
 class _Avatar {
-  late final String originalName;
-  late final String path;
-  late final String fileServer;
+  late String originalName;
+  late String path;
+  late String fileServer;
 }
 
 @RealmModel()
 class _Thumb {
-  late final String originalName;
-  late final String path;
-  late final String fileServer;
+  late String originalName;
+  late String path;
+  late String fileServer;
 }

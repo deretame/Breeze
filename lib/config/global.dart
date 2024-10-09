@@ -13,6 +13,9 @@ bool inited = false;
 // 分流设置
 int shunt = 3;
 
+// realm数据库版本号
+int shieldedCategoriesVersion = 0;
+
 class Global {
   final BuildContext context;
 
@@ -22,3 +25,79 @@ class Global {
     screenHeight = MediaQuery.of(context).size.height;
   }
 }
+
+Map<String, bool> categoryMap = {
+  "嗶咔漢化": false,
+  "全彩": false,
+  "長篇": false,
+  "同人": false,
+  "短篇": false,
+  "圓神領域": false,
+  "碧藍幻想": false,
+  "CG雜圖": false,
+  "英語 ENG": false,
+  "生肉": false,
+  "純愛": false,
+  "百合花園": false,
+  "後宮閃光": false,
+  "耽美花園": false,
+  "偽娘哲學": false,
+  "單行本": false,
+  "姐姐系": false,
+  "妹妹系": false,
+  "性轉換": false,
+  "SM": false,
+  "足の恋": false,
+  "人妻": false,
+  "NTR": false,
+  "強暴": false,
+  "非人類": false,
+  "艦隊收藏": false,
+  "Love Live": false,
+  "SAO 刀劍神域": false,
+  "Fate": false,
+  "東方": false,
+  "WEBTOON": false,
+  "禁書目錄": false,
+  "歐美": false,
+  "Cosplay": false,
+  "重口地帶": false,
+};
+
+Map<String, bool> shieldCategoryMapRealm = {
+  "嗶咔漢化": false,
+  "全彩": false,
+  "長篇": false,
+  "同人": false,
+  "短篇": false,
+  "圓神領域": false,
+  "碧藍幻想": false,
+  "CG雜圖": false,
+  "英語 ENG": false,
+  "生肉": false,
+  "純愛": false,
+  "百合花園": false,
+  "後宮閃光": false,
+  "耽美花園": false,
+  "偽娘哲學": false,
+  "單行本": false,
+  "姐姐系": false,
+  "妹妹系": false,
+  "性轉換": false,
+  "SM": false,
+  "足の恋": false,
+  "人妻": false,
+  "NTR": false,
+  "強暴": false,
+  "非人類": false,
+  "艦隊收藏": false,
+  "Love Live": false,
+  "SAO 刀劍神域": false,
+  "Fate": false,
+  "東方": false,
+  "WEBTOON": false,
+  "禁書目錄": false,
+  "歐美": false,
+  "Cosplay": false,
+  "重口地帶": false,
+};

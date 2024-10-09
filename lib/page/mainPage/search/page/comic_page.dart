@@ -180,66 +180,49 @@ class _ComicPageState extends ConsumerState<ComicPage> {
     final colorNotifier = ref.watch(defaultColorProvider);
     colorNotifier.initialize(context); // 显式初始化
 
-    // 加载动画
-    Widget loadingWidget = Center(
-      child: LoadingAnimationWidget.hexagonDots(
-        color: colorNotifier.defaultTextColor!,
-        size: 80,
-      ),
-    );
-
-    // 判断是否是首次加载，如果是则显示居中的加载动画
-    Widget bodyWidget;
-    if (_isLoading && _comicPages.isEmpty) {
-      // 首次加载，显示居中的加载动画
-      bodyWidget = Center(
-        child: loadingWidget,
-      );
-    } else {
-      // 非首次加载，显示ListView
-      bodyWidget = Column(
-        children: <Widget>[
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              itemCount: _comicPages.length +
-                  (_hasMorePages ? 0 : 1), // 如果没有更多页面，则增加一个项目用于显示完成提示
-              itemBuilder: (context, index) {
-                if (!_hasMorePages && index == _comicPages.length) {
-                  // 没有更多页面可加载，可以显示一个完成提示
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20.0),
-                      // 添加垂直方向的20 padding
-                      child: Text(
-                        '章节结束',
-                        style: TextStyle(
-                          color: colorNotifier.defaultTextColor,
-                          fontSize: 18.0, // 设置字体大小为18逻辑像素
-                        ),
-                      ),
-                    ),
-                  );
-                } else if (index < _comicPages.length) {
-                  // 构建漫画页
-                  ep.Doc doc = _comicPages[index];
-                  return _buildImageFutureBuilder(doc);
-                }
-                // 如果都不满足，返回一个空的Container或者占位符
-                return Container();
-              },
-            ),
-          ),
-          if (_isLoading) loadingWidget,
-        ],
-      );
-    }
-
     return Scaffold(
       body: Localizations.override(
         context: context,
         locale: const Locale('zh', 'CN'),
-        child: bodyWidget,
+        child: Column(
+          children: <Widget>[
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                itemCount: _comicPages.length +
+                    (_isLoading ? 1 : 0) + // 加载动画
+                    (!_hasMorePages ? 1 : 0), // 完成消息
+                itemBuilder: (context, index) {
+                  if (index < _comicPages.length) {
+                    // 显示图片
+                    return _buildImageFutureBuilder(_comicPages[index]);
+                  } else if (index == _comicPages.length && _isLoading) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  } else {
+                    // 显示“没有更多了”的消息
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20.0),
+                        child: Text(
+                          '章节结束',
+                          style: TextStyle(
+                            color: colorNotifier.defaultTextColor,
+                            fontSize: 18.0,
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

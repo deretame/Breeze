@@ -5,27 +5,27 @@ part 'person_info_realm.realm.dart';
 @RealmModel()
 class _PersonInfoRealm {
   @PrimaryKey()
-  late final String id;
+  late String id;
 
-  late final DateTime birthday;
-  late final String email;
-  late final String gender;
-  late final String name;
-  late final String slogan;
-  late final String title;
-  late final bool verified;
-  late final int exp;
-  late final int level;
-  late final List<String> characters;
-  late final DateTime createdAt;
-  late final _Avatar? avatar;
-  late final bool isPunched;
-  late final String character;
+  late DateTime birthday;
+  late String email;
+  late String gender;
+  late String name;
+  late String slogan;
+  late String title;
+  late bool verified;
+  late int exp;
+  late int level;
+  late List<String> characters;
+  late DateTime createdAt;
+  late _Avatar? avatar;
+  late bool isPunched;
+  late String character;
 }
 
 @RealmModel()
 class _Avatar {
-  late final String originalName;
-  late final String path;
-  late final String fileServer;
+  late String originalName;
+  late String path;
+  late String fileServer;
 }

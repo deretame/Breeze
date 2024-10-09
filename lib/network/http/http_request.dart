@@ -217,16 +217,25 @@ Future<Map<String, dynamic>> getPersonalInfo() async {
   }
 }
 
-Future<void> punchIn() async {
+Future<Map<String, dynamic>> punchIn() async {
   final Map<String, dynamic> data =
       await request('https://picaapi.picacomic.com/users/punch-in', 'POST');
   debugPrint(data.toString());
 
-  if (data['code'] != 200) {
-    // #TODO
+  String limitString(String str, int maxLength) {
+    return str.substring(0, min(str.length, maxLength));
   }
-  if (data['data']['res']['status'] != 'ok') {
-    // #TODO
-    debugPrint('Punch-in failed');
+
+  debugPrint(limitString(data.toString(), 150));
+
+  if (data['code'] != 200) {
+    return data;
+  }
+
+  if (data['message'] == 'success' && data['data']['res']['status'] == 'fail') {
+    return {"success": "已签到"};
+  } else {
+    debugPrint('Search result is null');
+    return ({"error": '未知错误'});
   }
 }

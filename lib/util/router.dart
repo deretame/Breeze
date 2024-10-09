@@ -5,10 +5,11 @@ import 'package:zephyr/page/shunt_page.dart';
 
 import '../page/init_page.dart';
 import '../page/login_page.dart';
-import '../page/mainPage/main.dart';
+import '../page/main.dart';
 import '../page/mainPage/search/page/comic_info_page.dart';
 import '../page/mainPage/search/page/comic_search_page.dart';
 import '../type/comic_ep_info.dart';
+import '../type/search_enter.dart';
 
 final goRouter = GoRouter(
   initialLocation: '/shunt',
@@ -31,7 +32,9 @@ final goRouter = GoRouter(
     ),
     GoRoute(
       path: '/search',
-      builder: (context, state) => const ComicSearchPage(),
+      builder: (context, state) => ComicSearchPage(
+        enter: state.extra! as SearchEnter,
+      ),
     ),
     GoRoute(
       path: '/comicInfo',
@@ -66,14 +69,20 @@ class ErrorPage extends StatelessWidget {
 
 // 导航到命名路由
 void navigateTo(BuildContext context, String path, {Object? extra}) {
-  GoRouter.of(context).push(path, extra: extra);
+  context.push(path, extra: extra);
 }
 
 // 导航到命名路由
 // 不显示返回按钮
 // 并移除之前的所有路由
 void navigateToNoReturn(BuildContext context, String path, {Object? extra}) {
-  GoRouter.of(context).go(path, extra: extra);
+  context.go(path, extra: extra);
+}
+
+// 导航到命名路由
+// 但是是替换当前路由
+void navigateReplace(BuildContext context, String path, {Object? extra}) {
+  context.replace(path, extra: extra);
 }
 
 void navigateToLogin(BuildContext context) {
@@ -81,5 +90,5 @@ void navigateToLogin(BuildContext context) {
 }
 
 void navigatePop(BuildContext context) {
-  GoRouter.of(context).pop();
+  context.pop();
 }

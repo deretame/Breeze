@@ -13,15 +13,18 @@ Future<String> getCachePicture(String url, String path, String cartoonId,
   // 先统一处理路径中的非法字符
   String sanitizedPath = path.replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_');
   String cachePath = await getCachePath();
+  String appPath = await getAppDirectory();
   String filePath = "";
   String imageQuality = getImageQuality()!;
 
-  if (pictureType == '') {
+  if (pictureType == 'comic') {
     filePath =
         "$cachePath/comic/$imageQuality/$cartoonId/$pictureType/$sanitizedPath";
-  } else {
+  } else if (pictureType == 'cover') {
     filePath =
         "$cachePath/comic/$imageQuality/$cartoonId/$pictureType/$chapterId/$sanitizedPath";
+  } else if (pictureType == 'creator') {
+    filePath = "$appPath/creator/$sanitizedPath";
   }
 
   // 构造网络请求地址
@@ -72,7 +75,7 @@ Future<String> getCachePicture(String url, String path, String cartoonId,
     }
   } else if (url == "https://storage-b.picacomic.com") {
     if (pictureType == "creator") {
-      url = "https://img.picacomic.com";
+      url = "https://storage-b.picacomic.com";
     } else if (pictureType == "cover") {
       url = "https://img.picacomic.com";
     } else if (getImageQuality() == "original") {
@@ -140,6 +143,8 @@ Future<String> getCachePicture(String url, String path, String cartoonId,
       }
 
       debugPrint('图片已保存到：$filePath');
+    } else if (response.statusCode == 404) {
+      throw Exception('404 Not Found');
     } else {
       debugPrint('请求失败，状态码：${response.statusCode}');
       // 先检查缓存目录中是否存在

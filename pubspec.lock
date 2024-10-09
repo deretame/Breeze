@@ -22,6 +22,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.7.0"
+  animated_search_bar:
+    dependency: "direct main"
+    description:
+      name: animated_search_bar
+      sha256: "86bd5e22a92dd87a48f123b6965d798884d12c365aa7f94acb59ff97a2d2cb95"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.7.2"
   args:
     dependency: transitive
     description:
@@ -167,7 +175,7 @@ packages:
     source: hosted
     version: "4.10.0"
   collection:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: collection
       sha256: ee67cb0715911d28db6bf4af1026078bd6f0128b07a5f66fb2ed94ec6783c09a
@@ -746,6 +754,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "20.0.0"
+  redux:
+    dependency: "direct main"
+    description:
+      name: redux
+      sha256: "1e86ed5b1a9a717922d0a0ca41f9bf49c1a587d50050e9426fc65b14e85ec4d7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.0.0"
   riverpod:
     dependency: transitive
     description:
@@ -859,10 +875,10 @@ packages:
     dependency: "direct main"
     description:
       name: system_theme
-      sha256: "9396b69e74cdd1524daf26c0c33f4968d5ada1ff948a31f031cf6398869b589f"
+      sha256: "5f93485401689601d4636a695f99f7c70a30873ee68c1d95025d908a3386be7e"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.1"
+    version: "3.1.2"
   system_theme_web:
     dependency: transitive
     description:

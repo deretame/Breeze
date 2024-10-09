@@ -22,6 +22,12 @@ class _EpWidgetState extends State<EpsWidget> {
   ComicInfo get comicInfo => widget.comicInfo;
   late Future<List<Doc>> _fetchEp;
 
+  @override
+  void initState() {
+    super.initState();
+    _fetchEp = fetchEp();
+  }
+
   // 获取章节列表并正序
   Future<List<Doc>> fetchEp() async {
     List<Doc> eps = [];
@@ -61,12 +67,6 @@ class _EpWidgetState extends State<EpsWidget> {
     }
 
     return eps;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchEp = fetchEp();
   }
 
   @override

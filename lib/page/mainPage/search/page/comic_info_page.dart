@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zephyr/network/http/http_request.dart';
 
 import '../../../../config/global.dart';
@@ -159,17 +158,16 @@ class _ComicInfoPageState extends State<ComicInfoPage>
   }
 }
 
-class ComicInfoWidget extends ConsumerStatefulWidget {
+class ComicInfoWidget extends StatefulWidget {
   final ComicInfo comicInfo;
 
   const ComicInfoWidget({super.key, required this.comicInfo});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() =>
-      _ComicInfoWidgetState();
+  State<StatefulWidget> createState() => _ComicInfoWidgetState();
 }
 
-class _ComicInfoWidgetState extends ConsumerState<ComicInfoWidget> {
+class _ComicInfoWidgetState extends State<ComicInfoWidget> {
   ComicInfo get comicInfo => widget.comicInfo;
 
   @override

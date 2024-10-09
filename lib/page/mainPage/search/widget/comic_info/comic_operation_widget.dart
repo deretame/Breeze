@@ -2,6 +2,7 @@ import 'package:cherry_toast/cherry_toast.dart';
 import 'package:cherry_toast/resources/arrays.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:zephyr/config/global.dart';
 
 import '../../../../../json/comic/comic_info.dart';
 import '../../../../../network/http/http_request.dart';
@@ -119,7 +120,7 @@ class _ComicOperationWidgetState extends ConsumerState<ComicOperationWidget> {
     colorNotifier.initialize(context);
 
     return LimitedBox(
-      maxWidth: colorNotifier.screenWidth * (48 / 50),
+      maxWidth: screenWidth * (48 / 50),
       maxHeight: 50,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,

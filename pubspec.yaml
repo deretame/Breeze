@@ -2,7 +2,7 @@ name: zephyr
 description: "使用flutter开发的三方哔咔应用。"
 #publish_to: ''
 
-version: 1.0.1+2
+version: 1.1.0+3
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -50,6 +50,12 @@ dependencies:
   freezed: ^2.5.7
   # 代码生成器
   freezed_annotation: ^2.4.4
+  # 动画搜索栏
+  animated_search_bar: ^2.7.2
+  # 状态管理库
+  redux: ^5.0.0
+  # 算法库
+  collection: ^1.18.0
 
 dev_dependencies:
   flutter_test:
@@ -58,12 +64,13 @@ dev_dependencies:
   json_serializable: ^6.8.0
   # 代码生成器
   build_runner: ^2.4.13
-
+  # flutter代码检查工具
   flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
   assets:
+    - asset/image/error_image/404.png
     - asset/info/person_info.json
 
 

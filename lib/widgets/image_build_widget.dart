@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../network/http/picture.dart';
-import '../util/state_management.dart';
 
-class ImageBuildWidget extends ConsumerStatefulWidget {
+class ImageBuildWidget extends StatefulWidget {
   final String fileServer;
   final String path;
   final String comicId;
@@ -29,10 +27,10 @@ class ImageBuildWidget extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ImageBuildWidget> createState() => _ImageBuildWidgetState();
+  State<ImageBuildWidget> createState() => _ImageBuildWidgetState();
 }
 
-class _ImageBuildWidgetState extends ConsumerState<ImageBuildWidget> {
+class _ImageBuildWidgetState extends State<ImageBuildWidget> {
   String get fileServer => widget.fileServer;
 
   String get path => widget.path;
@@ -90,8 +88,6 @@ class _ImageBuildWidgetState extends ConsumerState<ImageBuildWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final colorNotifier = ref.watch(defaultColorProvider);
-    colorNotifier.initialize(context);
     final future = getCachePicture(fileServer, path, comicId,
         pictureType: localPictureType, chapterId: localChapterId);
 
@@ -107,7 +103,11 @@ class _ImageBuildWidgetState extends ConsumerState<ImageBuildWidget> {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return loadingWidget;
             } else if (snapshot.hasError) {
-              return _buildErrorWidget(context);
+              if (snapshot.error.toString().contains('404')) {
+                return Image.asset('asset/image/error_image/404.png');
+              } else {
+                return _buildErrorWidget(context);
+              }
             } else if (snapshot.hasData) {
               return imageWidgetBuilder(snapshot.data!);
             } else {

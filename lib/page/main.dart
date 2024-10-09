@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zephyr/page/mainPage/person/person_page.dart';
 
-import '../../util/provider.dart';
-import 'search/search_page.dart';
-import 'setting/setting_page.dart';
+import '../util/provider.dart';
+import 'mainPage/search/search_page.dart';
+import 'mainPage/setting/setting_page.dart';
 
 class MainPage extends ConsumerWidget {
   const MainPage({super.key});

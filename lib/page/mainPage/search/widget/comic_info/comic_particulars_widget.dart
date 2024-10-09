@@ -10,7 +10,8 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../../../../config/global.dart';
 import '../../../../../json/comic/comic_info.dart';
 import '../../../../../network/http/picture.dart';
-import '../../../../../util/dialog.dart';
+import '../../../../../type/search_enter.dart';
+import '../../../../../util/router.dart';
 import '../../../../../util/state_management.dart';
 import '../../../../../widgets/full_screen_image_view.dart';
 
@@ -49,7 +50,7 @@ class _ComicParticularsWidgetState extends ConsumerState<ComicParticularsWidget>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          ImagerWidget(
+          ImageWidget(
             fileServer: comicInfo.comic.thumb.fileServer,
             path: comicInfo.comic.thumb.path,
             id: comicInfo.comic.id,
@@ -71,7 +72,9 @@ class _ComicParticularsWidgetState extends ConsumerState<ComicParticularsWidget>
                 InkWell(
                   onTap: () {
                     // 点击时触发的事件
-                    nothingDialog(context);
+                    var enter = SearchEnter();
+                    enter.keyword = comicInfo.comic.author;
+                    navigateTo(context, '/search', extra: enter);
                   },
                   onLongPress: () {
                     // 长按时触发的事件
@@ -83,7 +86,7 @@ class _ComicParticularsWidgetState extends ConsumerState<ComicParticularsWidget>
                         style: TextStyle(color: colorNotifier.defaultTextColor),
                       ),
                       animationType: AnimationType.fromTop,
-                      animationDuration: const Duration(milliseconds: 3000),
+                      toastDuration: const Duration(seconds: 2),
                       autoDismiss: true,
                       backgroundColor: colorNotifier.defaultBackgroundColor,
                     ).show(context);
@@ -101,7 +104,9 @@ class _ComicParticularsWidgetState extends ConsumerState<ComicParticularsWidget>
                   InkWell(
                     onTap: () {
                       // 点击时触发的事件
-                      nothingDialog(context);
+                      var enter = SearchEnter();
+                      enter.keyword = comicInfo.comic.chineseTeam;
+                      navigateTo(context, '/search', extra: enter);
                     },
                     onLongPress: () {
                       // 长按时触发的事件
@@ -114,7 +119,7 @@ class _ComicParticularsWidgetState extends ConsumerState<ComicParticularsWidget>
                               TextStyle(color: colorNotifier.defaultTextColor),
                         ),
                         animationType: AnimationType.fromTop,
-                        animationDuration: const Duration(milliseconds: 3000),
+                        toastDuration: const Duration(seconds: 2),
                         autoDismiss: true,
                         backgroundColor: colorNotifier.defaultBackgroundColor,
                       ).show(context);
@@ -141,13 +146,13 @@ class _ComicParticularsWidgetState extends ConsumerState<ComicParticularsWidget>
   }
 }
 
-class ImagerWidget extends ConsumerStatefulWidget {
+class ImageWidget extends ConsumerStatefulWidget {
   final String fileServer;
   final String path;
   final String id;
   final String pictureType;
 
-  const ImagerWidget({
+  const ImageWidget({
     super.key,
     required this.fileServer,
     required this.path,
@@ -156,28 +161,24 @@ class ImagerWidget extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ImagerWidget> createState() => _ImagerWidgetState();
+  ConsumerState<ImageWidget> createState() => _ImageWidgetState();
 }
 
-class _ImagerWidgetState extends ConsumerState<ImagerWidget> {
-  get fileServer => widget.fileServer;
-
-  get path => widget.path;
-
-  get id => widget.id;
-
-  get pictureType => widget.pictureType;
-
+class _ImageWidgetState extends ConsumerState<ImageWidget> {
   late Future<String> _getCachePicture;
 
   @override
   void initState() {
     super.initState();
+    _refreshCachePicture();
+  }
+
+  void _refreshCachePicture() {
     _getCachePicture = getCachePicture(
-      fileServer,
-      path,
-      id,
-      pictureType: pictureType,
+      widget.fileServer,
+      widget.path,
+      widget.id,
+      pictureType: widget.pictureType,
     );
   }
 
@@ -193,25 +194,27 @@ class _ImagerWidgetState extends ConsumerState<ImagerWidget> {
         future: _getCachePicture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
+            // 部分图片在服务器上可能已经不存在，所以显示一个404图片
             if (snapshot.hasError) {
               // 如果有错误，显示错误信息和一个重新加载的按钮
-              return InkWell(
-                onTap: () {
-                  _getCachePicture.then((value) {
-                    setState(() {
-                      // 更新UI
-                    });
-                  });
-                },
-                child: Center(
-                  child: Text(
-                    '加载失败，点击重新加载',
-                    style: TextStyle(
-                      color: colorNotifier.defaultTextColor,
+              if (snapshot.error.toString().contains('404')) {
+                return Image.asset('asset/image/error_image/404.png');
+              } else {
+                return InkWell(
+                  onTap: () {
+                    _refreshCachePicture(); // 重新初始化图片加载
+                    setState(() {}); // 触发重新构建
+                  },
+                  child: Center(
+                    child: Text(
+                      '加载图片失败\n点击重新加载',
+                      style: TextStyle(
+                        color: colorNotifier.defaultTextColor,
+                      ),
                     ),
                   ),
-                ),
-              );
+                );
+              }
             } else {
               // 没有错误，正常显示图片
               return InkWell(

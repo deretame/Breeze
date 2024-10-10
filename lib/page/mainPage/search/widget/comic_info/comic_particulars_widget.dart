@@ -68,37 +68,41 @@ class _ComicParticularsWidgetState extends ConsumerState<ComicParticularsWidget>
                     fontSize: 18,
                   ),
                 ),
-                const SizedBox(height: 2),
-                InkWell(
-                  onTap: () {
-                    // 点击时触发的事件
-                    var enter = SearchEnter();
-                    enter.keyword = comicInfo.comic.author;
-                    navigateTo(context, '/search', extra: enter);
-                  },
-                  onLongPress: () {
-                    // 长按时触发的事件
-                    Clipboard.setData(
-                        ClipboardData(text: comicInfo.comic.author));
-                    CherryToast.success(
-                      description: Text(
-                        "已将${comicInfo.comic.author}复制到剪贴板",
-                        style: TextStyle(color: colorNotifier.defaultTextColor),
+                if (comicInfo.comic.author != '') ...[
+                  const SizedBox(height: 2),
+                  InkWell(
+                    onTap: () {
+                      // 点击时触发的事件
+                      var enter = SearchEnter();
+                      enter.keyword = comicInfo.comic.author;
+                      navigateTo(context, '/search', extra: enter);
+                    },
+                    onLongPress: () {
+                      // 长按时触发的事件
+                      Clipboard.setData(
+                          ClipboardData(text: comicInfo.comic.author));
+                      CherryToast.success(
+                        description: Text(
+                          "已将${comicInfo.comic.author}复制到剪贴板",
+                          style:
+                              TextStyle(color: colorNotifier.defaultTextColor),
+                        ),
+                        animationType: AnimationType.fromTop,
+                        toastDuration: const Duration(seconds: 2),
+                        autoDismiss: true,
+                        backgroundColor: colorNotifier.defaultBackgroundColor,
+                      ).show(context);
+                    },
+                    child: Text(
+                      '作者：${comicInfo.comic.author}',
+                      style: TextStyle(
+                        color: colorNotifier.themeType
+                            ? Colors.red
+                            : Colors.yellow,
                       ),
-                      animationType: AnimationType.fromTop,
-                      toastDuration: const Duration(seconds: 2),
-                      autoDismiss: true,
-                      backgroundColor: colorNotifier.defaultBackgroundColor,
-                    ).show(context);
-                  },
-                  child: Text(
-                    '作者：${comicInfo.comic.author}',
-                    style: TextStyle(
-                      color:
-                          colorNotifier.themeType ? Colors.red : Colors.yellow,
                     ),
                   ),
-                ),
+                ],
                 const SizedBox(height: 2),
                 if (comicInfo.comic.chineseTeam != "") ...[
                   InkWell(

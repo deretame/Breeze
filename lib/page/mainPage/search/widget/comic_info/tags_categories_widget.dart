@@ -132,5 +132,9 @@ String processText(String text) {
     text = text.replaceAll('\r', '');
   }
 
+  if (text.contains(' ')) {
+    text = text.replaceAll(' ', '');
+  }
+
   return text;
 }

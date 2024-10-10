@@ -116,6 +116,10 @@ class _ComicInfoPageState extends State<ComicInfoPage>
               if (snapshot.data!['comic']['_creator']['slogan'] == null) {
                 snapshot.data!['comic']['_creator']['slogan'] = "";
               }
+              // title，这里做个判断，防止报错
+              if (snapshot.data!['comic']['_creator']['title'] == null) {
+                snapshot.data!['comic']['_creator']['title'] = '';
+              }
               // 部分上传者没有verified，这里做个判断，防止报错
               if (snapshot.data!['comic']['_creator']['verified'] == null) {
                 snapshot.data!['comic']['_creator']['verified'] = false;
@@ -129,7 +133,15 @@ class _ComicInfoPageState extends State<ComicInfoPage>
                 snapshot.data!['comic']['totalComments'] =
                     snapshot.data!['comic']['commentsCount'] = 0;
               }
-              comicInfo = ComicInfo.fromJson(snapshot.data!);
+              //  部分漫画没有totalComments，这里做个判断，防止报错
+              if (snapshot.data!['comic']['author'] == null) {
+                snapshot.data!['comic']['author'] = '';
+              }
+              try {
+                comicInfo = ComicInfo.fromJson(snapshot.data!);
+              } catch (e) {
+                debugPrint(e.toString());
+              }
               return SingleChildScrollView(
                 // 添加滚动视图
                 physics: const ClampingScrollPhysics(), // 滚动物理，根据需要可以调整

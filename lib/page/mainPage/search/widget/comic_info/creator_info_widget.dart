@@ -161,7 +161,17 @@ class _ImagerWidgetState extends ConsumerState<ImagerWidget> {
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.hasError) {
               if (snapshot.error.toString().contains('404')) {
-                return Image.asset('asset/image/error_image/404.png');
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(25),
+                  child: SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: Image.asset(
+                      'asset/image/error_image/404.png',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                );
               } else {
                 // 如果有错误，显示错误信息和一个重新加载的按钮
                 return InkWell(

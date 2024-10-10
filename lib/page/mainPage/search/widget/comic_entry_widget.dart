@@ -27,12 +27,18 @@ class _ComicEntryWidgetState extends ConsumerState<ComicEntryWidget> {
   Doc get doc => widget.doc;
 
   String _getCategories(List<String>? categories) {
+    int count = 0;
+    int mainCount = 8;
     if (categories == null) {
       return "";
     } else {
       String temp = "";
       for (var category in categories) {
         temp += "$category ";
+        count++;
+        if (count == mainCount) {
+          break;
+        }
       }
       return "分类: $temp";
     }
@@ -112,15 +118,17 @@ class _ComicEntryWidgetState extends ConsumerState<ComicEntryWidget> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 5),
-                      Text(
-                        doc.author.toString(),
-                        style: TextStyle(
-                          color: colorNotifier.themeType
-                              ? Colors.red
-                              : Colors.yellow,
+                      if (doc.author.toString() != '') ...[
+                        const SizedBox(height: 5),
+                        Text(
+                          _getLimitedTitle(doc.author.toString(), 40),
+                          style: TextStyle(
+                            color: colorNotifier.themeType
+                                ? Colors.red
+                                : Colors.yellow,
+                          ),
                         ),
-                      ),
+                      ],
                       const SizedBox(height: 5),
                       Text(
                         _getCategories(doc.categories),

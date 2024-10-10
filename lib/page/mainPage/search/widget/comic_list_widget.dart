@@ -187,6 +187,9 @@ class _ComicListWidgetState extends State<ComicListWidget> {
         if (doc['chineseTeam'] == null) {
           doc['chineseTeam'] = "";
         }
+        if (doc['author'] == null) {
+          doc['author'] = "";
+        }
         if (doc['likesCount'] is String) {
           doc['likesCount'] = int.parse(doc['likesCount']);
         }

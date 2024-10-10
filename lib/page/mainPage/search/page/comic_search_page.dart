@@ -46,11 +46,16 @@ class _ComicSearchPageState extends ConsumerState<ComicSearchPage> {
   final ValueNotifier<int> _totalCountNotifier = ValueNotifier<int>(0);
   int totalCount = 0;
 
+  late TextEditingController inputController;
+  late FocusNode focusNode;
+  late FocusScopeNode focusScopeNode;
+
   // 仅作为跳页使用
   int pageSkip = 0;
 
   @override
   void initState() {
+    super.initState();
     _localEnter = enter;
     _keyword = enter.keyword;
     _sort = enter.sort;
@@ -95,14 +100,19 @@ class _ComicSearchPageState extends ConsumerState<ComicSearchPage> {
       debugPrint("Dart Map: $_shieldCategoriesMap");
     }
 
-    super.initState();
+    inputController = TextEditingController();
+    focusNode = FocusNode();
+    focusScopeNode = FocusScopeNode();
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    super.dispose();
     _realm.close();
+    inputController.dispose();
+    focusNode.dispose();
+    focusScopeNode.dispose();
+    super.dispose();
   }
 
   Future<void> _showCategoryDialog(BuildContext context) {
@@ -259,44 +269,63 @@ class _ComicSearchPageState extends ConsumerState<ComicSearchPage> {
   }
 
   Future<void> _showNumberInputDialog() async {
-    TextEditingController inputController = TextEditingController(); // 创建控制器实例
+    bool isDialogOpen = true;
+    // 在显示对话框之前清空输入控制器的内容
+    inputController.clear();
 
-    return showDialog(
+    return showDialog<void>(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext innerContext) {
+        // 在AlertDialog构建时立即请求焦点
+        FocusScope.of(innerContext).requestFocus(focusNode);
+
         return AlertDialog(
           title: Text('输入页数'),
           content: TextField(
+            focusNode: focusNode,
             keyboardType: TextInputType.number,
             inputFormatters: <TextInputFormatter>[
               FilteringTextInputFormatter.digitsOnly
-            ], // 只允许输入数字
+            ],
             decoration: InputDecoration(hintText: '请输入页数（仅支持数字）'),
-            controller: inputController, // 将控制器与文本字段关联
+            controller: inputController,
+            onSubmitted: (value) {
+              if (value.isNotEmpty) {
+                String number = inputController.text;
+                pageSkip = int.parse(number);
+                debugPrint('输入的数字是: $number');
+              }
+              isDialogOpen = false;
+              Navigator.of(innerContext).pop();
+            },
           ),
           actions: <Widget>[
             TextButton(
               child: Text('取消'),
               onPressed: () {
-                Navigator.of(context).pop();
+                isDialogOpen = false;
+                pageSkip = 0;
+                Navigator.of(innerContext).pop();
               },
             ),
             TextButton(
               child: Text('确定'),
               onPressed: () {
-                // 获取输入框的值
                 String number = inputController.text;
-                pageSkip = int.parse(number);
-                debugPrint('输入的数字是: $number');
-                Navigator.of(context).pop();
+                if (number.isNotEmpty) {
+                  pageSkip = int.parse(number);
+                  debugPrint('输入的数字是: $number');
+                }
+                isDialogOpen = false;
+                Navigator.of(innerContext).pop();
               },
             ),
           ],
         );
       },
-    ).then((value) {
-      if (value != null) {
-        debugPrint('Checkbox values: $value');
+    ).then((_) {
+      if (isDialogOpen) {
+        focusNode.dispose();
       }
     });
   }
@@ -580,16 +609,18 @@ class _ComicSearchPageState extends ConsumerState<ComicSearchPage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           _showNumberInputDialog().then((_) {
-            setState(
-              () {
-                _localEnter = SearchEnter(
-                  keyword: _keyword,
-                  sort: _sort,
-                  pageCount: pageSkip,
-                  categories: _categories,
-                );
-              },
-            );
+            if (_pageCount != pageSkip && pageSkip != 0) {
+              setState(
+                () {
+                  _localEnter = SearchEnter(
+                    keyword: _keyword,
+                    sort: _sort,
+                    pageCount: pageSkip,
+                    categories: _categories,
+                  );
+                },
+              );
+            }
           });
         },
         label: Text('跳页'),

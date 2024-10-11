@@ -137,6 +137,14 @@ class _ComicInfoPageState extends State<ComicInfoPage>
               if (snapshot.data!['comic']['author'] == null) {
                 snapshot.data!['comic']['author'] = '';
               }
+              // 部分漫画没有avatar，这里做个判断，防止报错
+              if (snapshot.data!['comic']['_creator']['avatar'] == null) {
+                snapshot.data!['comic']['_creator']['avatar'] = {
+                  "fileServer": "",
+                  "path": "",
+                  "originalName": ""
+                };
+              }
               try {
                 comicInfo = ComicInfo.fromJson(snapshot.data!);
               } catch (e) {

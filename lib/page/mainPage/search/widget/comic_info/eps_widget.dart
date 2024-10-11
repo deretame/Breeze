@@ -179,10 +179,21 @@ class _EpButtonWidgetState extends ConsumerState<EpButtonWidget> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 4),
-            Text(
-              timeDecode(doc.updatedAt),
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            )
+            Row(
+              children: <Widget>[
+                Text(
+                  timeDecode(doc.updatedAt),
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+                Expanded(
+                  child: Container(),
+                ),
+                Text(
+                  ' 第${doc.order}话',
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ],
+            ),
           ],
         ),
       ),

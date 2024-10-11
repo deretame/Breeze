@@ -2,7 +2,7 @@ name: zephyr
 description: "使用flutter开发的三方哔咔应用。"
 #publish_to: ''
 
-version: 1.1.1+4
+version: 1.1.2+4
 
 environment:
   sdk: ">=3.0.0 <4.0.0"

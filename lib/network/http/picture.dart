@@ -9,6 +9,10 @@ import '../../util/get_path.dart';
 
 Future<String> getCachePicture(String url, String path, String cartoonId,
     {String pictureType = '', String chapterId = ''}) async {
+  if (url == '') {
+    throw Exception('404');
+  }
+
   // 处理图片的路径
   // 先统一处理路径中的非法字符
   String sanitizedPath = path.replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_');

@@ -8,6 +8,7 @@ import '../page/login_page.dart';
 import '../page/main.dart';
 import '../page/mainPage/search/page/comic_info_page.dart';
 import '../page/mainPage/search/page/comic_search_page.dart';
+import '../page/register_page.dart';
 import '../type/comic_ep_info.dart';
 import '../type/search_enter.dart';
 
@@ -25,6 +26,10 @@ final goRouter = GoRouter(
     GoRoute(
       path: '/login',
       builder: (context, state) => const LoginPage(),
+    ),
+    GoRoute(
+      path: '/register',
+      builder: (context, state) => const RegisterPage(),
     ),
     GoRoute(
       path: '/main',

@@ -14,15 +14,15 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _account = TextEditingController();
+  final TextEditingController _password = TextEditingController();
   final ButtonStyle style =
       ElevatedButton.styleFrom(minimumSize: const Size(200, 40));
 
   @override
   void dispose() {
-    _usernameController.dispose();
-    _passwordController.dispose();
+    _account.dispose();
+    _password.dispose();
     super.dispose();
   }
 
@@ -80,9 +80,7 @@ class _LoginPageState extends State<LoginPage> {
       },
     );
 
-    // 在这里处理登录逻辑
-    final result =
-        await login(_usernameController.text, _passwordController.text);
+    final result = await login(_account.text, _password.text);
 
     // 当登录逻辑完成后，关闭加载动画
     if (!mounted) return;
@@ -91,8 +89,8 @@ class _LoginPageState extends State<LoginPage> {
     debugPrint(result);
 
     if (result == "true") {
-      setAccount(_usernameController.text);
-      setPassword(_passwordController.text);
+      setAccount(_account.text);
+      setPassword(_password.text);
       _showDialog("登录成功", "正在跳转...");
       Future.delayed(const Duration(seconds: 2), () {
         // 检查State是否仍然挂载
@@ -121,17 +119,16 @@ class _LoginPageState extends State<LoginPage> {
           children: <Widget>[
             // 账号输入框
             TextField(
-              controller: _usernameController,
+              controller: _account,
               decoration: const InputDecoration(
                 labelText: '账号',
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 20), // 用于添加空间
-
             // 密码输入框
             TextField(
-              controller: _passwordController,
+              controller: _password,
               decoration: const InputDecoration(
                 labelText: '密码',
                 border: OutlineInputBorder(),
@@ -139,7 +136,6 @@ class _LoginPageState extends State<LoginPage> {
               obscureText: true, // 隐藏输入内容
             ),
             const SizedBox(height: 10), // 用于添加空间
-
             Row(
               mainAxisAlignment: MainAxisAlignment.center, // 设置Row中的内容水平居中
               children: [
@@ -151,7 +147,6 @@ class _LoginPageState extends State<LoginPage> {
               ],
             ),
             const SizedBox(height: 10), // 用于添加空间
-
             Expanded(
               child: Container(), // 占据剩余空间
             ),
@@ -163,13 +158,17 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   TextButton(
                     onPressed: () {
-                      nothingDialog(context);
+                      navigateTo(context, '/register');
                     },
                     child: const Text('注册账号'),
                   ),
                   TextButton(
                     onPressed: () {
-                      nothingDialog(context);
+                      commonDialog(
+                        context,
+                        "找回密码",
+                        "哔咔实际上已经无法找回密码，所以这个功能实际上不存在。",
+                      );
                     },
                     child: const Text('找回密码'),
                   ),

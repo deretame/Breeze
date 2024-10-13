@@ -67,7 +67,9 @@ Map<String, String> _getRequestHeaders(String url, String method,
     }
   }
 
-  if (authorization != null && !url.contains('/auth/sign-in')) {
+  if (authorization != null &&
+      !url.contains('/auth/sign-in') &&
+      !url.contains('/auth/register')) {
     headers['authorization'] = authorization;
   }
 

@@ -28,6 +28,36 @@ Future<String> login(String username, String password) async {
   }
 }
 
+Future<Map<String, dynamic>> register(
+  String birthday,
+  String email,
+  String gender,
+  String name,
+  String password,
+) async {
+  final Map<String, dynamic> jsonMap = {
+    "answer1": "4",
+    "answer2": "5",
+    "answer3": "6",
+    "birthday": birthday,
+    "email": email,
+    "gender": gender,
+    "name": name,
+    "password": password,
+    "question1": "1",
+    "question2": "2",
+    "question3": "3"
+  };
+
+  final Map<String, dynamic> data = await request(
+      'https://picaapi.picacomic.com/auth/register',
+      'POST',
+      json.encode(jsonMap));
+  debugPrint(data.toString());
+
+  return data;
+}
+
 Future<Map<String, dynamic>> search(
     {String keyword = '',
     String sort = 'dd',

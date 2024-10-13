@@ -21,14 +21,12 @@ class ShieldedCategories extends _ShieldedCategories
 
   @override
   String get id => RealmObjectBase.get<String>(this, 'id') as String;
-
   @override
   set id(String value) => RealmObjectBase.set(this, 'id', value);
 
   @override
   RealmMap<bool> get map =>
       RealmObjectBase.get<bool>(this, 'map') as RealmMap<bool>;
-
   @override
   set map(covariant RealmMap<bool> value) => throw RealmUnsupportedSetError();
 
@@ -53,7 +51,6 @@ class ShieldedCategories extends _ShieldedCategories
   }
 
   static EJsonValue _toEJson(ShieldedCategories value) => value.toEJson();
-
   static ShieldedCategories _fromEJson(EJsonValue ejson) {
     if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
     return switch (ejson) {

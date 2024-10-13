@@ -30,7 +30,10 @@ Future<void> nothingDialog(BuildContext context) async {
 // 通用对话框
 // 只用来提示信息
 Future<void> commonDialog(
-    BuildContext context, String title, String content) async {
+  BuildContext context,
+  String title,
+  String content,
+) async {
   return showDialog<void>(
     context: context,
     barrierDismissible: false, // user must tap button!

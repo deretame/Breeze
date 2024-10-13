@@ -51,7 +51,8 @@ class _InitPageState extends ConsumerState<InitPage> {
   Future<void> getAuthorizationStatus() async {
     final colorNotifier = ref.read(defaultColorProvider);
     needLogin = false;
-    if (getAuthorization() == null) {
+    if (getAuthorization() == null &&
+        (getAccount() == null || getPassword() == null)) {
       CherryToast.warning(
         description: Text("没有获取到登录状态哦，请先登录呢~",
             style: TextStyle(color: colorNotifier.defaultTextColor)),
@@ -71,7 +72,8 @@ class _InitPageState extends ConsumerState<InitPage> {
   }
 
   Future<void> getLoginStatus() async {
-    if (getAuthorization() == null) {
+    if (getAuthorization() == null &&
+        (getAccount() == null || getPassword() == null)) {
       return;
     }
 
@@ -119,7 +121,38 @@ class _InitPageState extends ConsumerState<InitPage> {
                 backgroundColor: colorNotifier.defaultBackgroundColor,
               ).show(context);
               navigateToNoReturn(context, "/login");
-              return;
+            } else {
+              final result = await login(getAccount()!, getPassword()!);
+
+              if (!mounted) return;
+
+              if (result == "true") {
+                CherryToast.success(
+                  description: Text(
+                    "登录成功！",
+                    style: TextStyle(color: colorNotifier.defaultTextColor),
+                  ),
+                  animationType: AnimationType.fromTop,
+                  animationDuration: const Duration(milliseconds: 3000),
+                  toastDuration: const Duration(milliseconds: 1500),
+                  autoDismiss: true,
+                  backgroundColor: colorNotifier.defaultBackgroundColor,
+                ).show(context);
+                continue;
+              } else {
+                CherryToast.warning(
+                  description: Text(
+                    "登录失败，正在重试...",
+                    style: TextStyle(color: colorNotifier.defaultTextColor),
+                  ),
+                  animationType: AnimationType.fromTop,
+                  animationDuration: const Duration(milliseconds: 3000),
+                  toastDuration: const Duration(milliseconds: 1500),
+                  autoDismiss: true,
+                  backgroundColor: colorNotifier.defaultBackgroundColor,
+                ).show(context);
+                continue;
+              }
             }
           } else {
             continue; // Retry on other errors

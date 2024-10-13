@@ -231,7 +231,7 @@ class _ComicListWidgetState extends State<ComicListWidget> {
           enter.pageCount = _page;
         });
       }
-      while (_docInfos.length <= 10 &&
+      while (_docInfos.length <= 6 &&
           results.comics.page.toInt() < results.comics.pages.toInt()) {
         _page++;
         enter.pageCount = _page;

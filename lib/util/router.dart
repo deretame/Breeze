@@ -9,6 +9,7 @@ import '../page/main.dart';
 import '../page/mainPage/search/page/comic_info_page.dart';
 import '../page/mainPage/search/page/comic_search_page.dart';
 import '../page/register_page.dart';
+import '../page/webview_page.dart';
 import '../type/comic_ep_info.dart';
 import '../type/search_enter.dart';
 
@@ -39,6 +40,12 @@ final goRouter = GoRouter(
       path: '/search',
       builder: (context, state) => ComicSearchPage(
         enter: state.extra! as SearchEnter,
+      ),
+    ),
+    GoRoute(
+      path: '/webview',
+      builder: (context, state) => WebViewPage(
+        info: state.extra! as List<String>,
       ),
     ),
     GoRoute(

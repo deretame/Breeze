@@ -26,7 +26,6 @@ class _ComicInfoPageState extends State<ComicInfoPage>
 
   String get comicId => widget.comicId;
   late ComicInfo comicInfo;
-  late Map<String, dynamic> result;
   bool isLoading = true; // 用于显示加载状态的标志
 
   Future<Map<String, dynamic>> _loadComicInfo() async {

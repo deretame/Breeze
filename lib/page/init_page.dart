@@ -31,9 +31,9 @@ class _InitPageState extends ConsumerState<InitPage> {
     WidgetsBinding.instance.addPostFrameCallback(
       (_) async {
         await isFirstInit();
+        await initRealm();
         await getAuthorizationStatus();
         await getLoginStatus();
-        await initRealm();
       },
     );
   }

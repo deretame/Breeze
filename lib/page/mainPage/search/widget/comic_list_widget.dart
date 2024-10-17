@@ -165,6 +165,7 @@ class _ComicListWidgetState extends State<ComicListWidget> {
     });
     try {
       var result = await search(
+        url: enter.url,
         keyword: enter.keyword,
         sort: enter.sort,
         categories: enter.categories,
@@ -179,6 +180,48 @@ class _ComicListWidgetState extends State<ComicListWidget> {
         });
         return;
       }
+
+      // 这里是给部分特殊搜索做的适配，部分特殊搜索里面有的字段没有，这里加上去，增加通用性
+      if (result['comics'] is List) {
+        Map<String, dynamic> newStructure = {
+          "comics": {"docs": result["comics"]}
+        };
+        result = newStructure;
+      }
+
+      if (result['comics']['limit'] == null) {
+        result['comics']['limit'] = 20;
+      }
+      if (result['comics']['page'] == null) {
+        result['comics']['page'] = 1;
+      }
+      if (result['comics']['pages'] == null) {
+        result['comics']['pages'] = 1;
+      }
+      if (result['comics']['total'] == null) {
+        result['comics']['total'] = 40;
+      }
+      for (var doc in result['comics']['docs']) {
+        if (doc['id'] == null) {
+          doc['id'] = doc['_id'];
+        }
+        if (doc['updated_at'] == null) {
+          doc['updated_at'] = '1970-01-01T00:00:00.000Z';
+        }
+        if (doc['created_at'] == null) {
+          doc['created_at'] = '1970-01-01T00:00:00.000Z';
+        }
+        if (doc['description'] == null) {
+          doc['description'] = '';
+        }
+        if (doc['chineseTeam'] == null) {
+          doc['chineseTeam'] = '';
+        }
+        if (doc['tags'] == null) {
+          doc['tags'] = [];
+        }
+      }
+
       // 部分漫画的部分内容可能为空，这里做一下处理
       for (var doc in result['comics']['docs']) {
         if (doc['description'] == null) {

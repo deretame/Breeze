@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 class SearchEnter {
+  String url;
   String keyword;
   String sort;
   List<String> categories;
@@ -8,6 +9,7 @@ class SearchEnter {
   int refresh;
 
   SearchEnter({
+    this.url = '',
     this.keyword = '',
     this.sort = 'dd',
     this.categories = const [],

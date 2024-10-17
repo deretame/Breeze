@@ -37,6 +37,7 @@ class _ComicSearchPageState extends ConsumerState<ComicSearchPage> {
   late List<String> _categories;
   late Map<String, bool> _categoriesMap;
   late Realm _realm;
+  late bool _isRealmInitialized = false;
   late Map<String, bool> _shieldCategoriesMap;
 
   // 这个是用来通知刷新的，所以值其实不重要，用int只是为了方便改变值而已
@@ -82,6 +83,7 @@ class _ComicSearchPageState extends ConsumerState<ComicSearchPage> {
 
     final shieldedCategories = Configuration.local([ShieldedCategories.schema]);
     _realm = Realm(shieldedCategories);
+    _isRealmInitialized = true;
     debugPrint("schemaVersion: ${shieldedCategories.schemaVersion}");
     final shieldedCategoriesList = _realm.all<ShieldedCategories>();
 
@@ -108,7 +110,9 @@ class _ComicSearchPageState extends ConsumerState<ComicSearchPage> {
   @override
   void dispose() {
     _controller.dispose();
-    _realm.close();
+    if (_isRealmInitialized) {
+      _realm.close();
+    }
     inputController.dispose();
     focusNode.dispose();
     focusScopeNode.dispose();

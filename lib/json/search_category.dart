@@ -1,38 +1,27 @@
 // To parse this JSON data, do
 //
-//     final searchPage = searchPageFromJson(jsonString);
+//     final searchCategory = searchCategoryFromJson(jsonString);
 
 import 'dart:convert';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'search_page.freezed.dart';
-part 'search_page.g.dart';
+part 'search_category.freezed.dart';
+part 'search_category.g.dart';
 
-SearchPage searchPageFromJson(String str) =>
-    SearchPage.fromJson(json.decode(str));
+SearchCategory searchCategoryFromJson(String str) =>
+    SearchCategory.fromJson(json.decode(str));
 
-String searchPageToJson(SearchPage data) => json.encode(data.toJson());
-
-@freezed
-class SearchPage with _$SearchPage {
-  const factory SearchPage({
-    @JsonKey(name: "code") required int code,
-    @JsonKey(name: "message") required String message,
-    @JsonKey(name: "data") required Data data,
-  }) = _SearchPage;
-
-  factory SearchPage.fromJson(Map<String, dynamic> json) =>
-      _$SearchPageFromJson(json);
-}
+String searchCategoryToJson(SearchCategory data) => json.encode(data.toJson());
 
 @freezed
-class Data with _$Data {
-  const factory Data({
+class SearchCategory with _$SearchCategory {
+  const factory SearchCategory({
     @JsonKey(name: "categories") required List<Category> categories,
-  }) = _Data;
+  }) = _SearchCategory;
 
-  factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
+  factory SearchCategory.fromJson(Map<String, dynamic> json) =>
+      _$SearchCategoryFromJson(json);
 }
 
 @freezed

@@ -19,10 +19,44 @@ int shieldedCategoriesVersion = 0;
 class Global {
   final BuildContext context;
 
+  // 搜索界面信息
+  CategoriesGlobal categories = CategoriesGlobal();
+
   Global(this.context) {
     // 在构造函数中初始化屏幕宽度和高度
     screenWidth = MediaQuery.of(context).size.width;
     screenHeight = MediaQuery.of(context).size.height;
+
+    // 因为部分分类不在返回值中，所以需要在这里添加
+    CategoryGlobal temp = CategoryGlobal(
+      title: '哔咔排行榜',
+      thumb: ThumbGlobal(originalName: '', path: '', fileServer: ''),
+      isWeb: false,
+      active: true,
+      link: 'asset/image/bika_image/cat_leaderboard.jpg',
+    );
+
+    categories.categoriesGlobal.add(temp);
+
+    temp = CategoryGlobal(
+      title: '最近更新',
+      thumb: ThumbGlobal(originalName: '', path: '', fileServer: ''),
+      isWeb: false,
+      active: true,
+      link: 'asset/image/bika_image/cat_latest.jpg',
+    );
+
+    categories.categoriesGlobal.add(temp);
+
+    temp = CategoryGlobal(
+      title: '随机本子',
+      thumb: ThumbGlobal(originalName: '', path: '', fileServer: ''),
+      isWeb: false,
+      active: true,
+      link: 'asset/image/bika_image/cat_random.jpg',
+    );
+
+    categories.categoriesGlobal.add(temp);
   }
 }
 
@@ -64,6 +98,7 @@ Map<String, bool> categoryMap = {
   "重口地帶": false,
 };
 
+// 存储屏蔽分类
 Map<String, bool> shieldCategoryMapRealm = {
   "嗶咔漢化": false,
   "全彩": false,
@@ -101,3 +136,49 @@ Map<String, bool> shieldCategoryMapRealm = {
   "Cosplay": false,
   "重口地帶": false,
 };
+
+// 分类信息
+class CategoriesGlobal {
+  late List<CategoryGlobal> categoriesGlobal;
+
+  CategoriesGlobal() {
+    categoriesGlobal = [];
+  }
+
+  // 排序方法，将isWeb为true的CategoryGlobal对象放在前面
+  void sortCategoriesByIsWeb() {
+    categoriesGlobal.sort((a, b) {
+      if (b.isWeb && !a.isWeb) return 1; // 如果b是Web而a不是，b排在前面
+      if (!b.isWeb && a.isWeb) return -1; // 如果a是Web而b不是，a排在前面
+      return 0; // 如果两者都是Web或者都不是，保持原来的顺序
+    });
+  }
+}
+
+class CategoryGlobal {
+  late String title;
+  late ThumbGlobal thumb;
+  late bool isWeb;
+  late bool active;
+  late String link;
+
+  CategoryGlobal({
+    required this.title,
+    required this.thumb,
+    required this.isWeb,
+    required this.active,
+    required this.link,
+  });
+}
+
+class ThumbGlobal {
+  late String originalName;
+  late String path;
+  late String fileServer;
+
+  ThumbGlobal({
+    required this.originalName,
+    required this.path,
+    required this.fileServer,
+  });
+}

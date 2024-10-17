@@ -17,7 +17,7 @@ Future<String> getCachePicture(String url, String path, String cartoonId,
   // 先统一处理路径中的非法字符
   String sanitizedPath = path.replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_');
   String cachePath = await getCachePath();
-  String appPath = await getAppDirectory();
+  // String appPath = await getAppDirectory();
   String filePath = "";
   String imageQuality = getImageQuality()!;
 
@@ -28,7 +28,9 @@ Future<String> getCachePicture(String url, String path, String cartoonId,
     filePath =
         "$cachePath/comic/$imageQuality/$cartoonId/$pictureType/$chapterId/$sanitizedPath";
   } else if (pictureType == 'creator') {
-    filePath = "$appPath/creator/$sanitizedPath";
+    filePath = "$cachePath/creator/$sanitizedPath";
+  } else if (pictureType == 'category') {
+    filePath = "$cachePath/category/$sanitizedPath";
   }
 
   // 构造网络请求地址
@@ -36,7 +38,7 @@ Future<String> getCachePicture(String url, String path, String cartoonId,
     path = path.replaceAll("tobeimg/", "");
   } else if (path.contains("tobs/")) {
     path = "static/${path.replaceAll("tobs/", "")}";
-  } else if (!path.contains("/")) {
+  } else if (!path.contains("/") && !url.contains("static")) {
     path = "static/$path";
   }
 
@@ -89,6 +91,14 @@ Future<String> getCachePicture(String url, String path, String cartoonId,
     }
   }
 
+  // 本子搜索界面这两个比较特殊，需要特殊处理
+  if (path.contains("picacomic-paint.jpg") ||
+      path.contains("picacomic-gift.jpg")) {
+    url = shunt == 1
+        ? "https://storage.diwodiwo.xyz/static"
+        : "https://s3.picacomic.com/static";
+  }
+
   // 构造请求头
   String host = Uri.parse(url).host;
   var headers = {
@@ -100,7 +110,8 @@ Future<String> getCachePicture(String url, String path, String cartoonId,
 
   // 发送GET请求
   var dio = Dio();
-  final lastUrl = '$url/$path';
+  var lastUrl = '$url/$path';
+  lastUrl = replaceSubsequentDoubleSlashes(lastUrl);
   debugPrint('请求地址：$lastUrl');
   debugPrint('请求头：$headers');
 
@@ -279,4 +290,24 @@ Future<String> downloadPicture(
   }
 
   return filePath;
+}
+
+String replaceSubsequentDoubleSlashes(String input) {
+  String target = '//';
+  String replacement = '/';
+
+  // 找到第一个'//'的位置
+  int firstDoubleSlashIndex = input.indexOf(target);
+
+  // 如果存在第一个'//'，则从其后开始替换所有'//'为'/'
+  if (firstDoubleSlashIndex != -1) {
+    String firstPart =
+        input.substring(0, firstDoubleSlashIndex + target.length);
+    String secondPart = input.substring(firstDoubleSlashIndex + target.length);
+    String replacedSecondPart = secondPart.replaceAll(target, replacement);
+    return '$firstPart$replacedSecondPart';
+  } else {
+    // 如果没有'//'，则返回原始字符串
+    return input;
+  }
 }

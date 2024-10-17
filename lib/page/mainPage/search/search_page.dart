@@ -23,14 +23,10 @@ class SearchPage extends ConsumerStatefulWidget {
   ConsumerState<SearchPage> createState() => _SearchPageState();
 }
 
-class _SearchPageState extends ConsumerState<SearchPage>
-    with AutomaticKeepAliveClientMixin {
+class _SearchPageState extends ConsumerState<SearchPage> {
   late SearchEnter _localEnter;
   late Future<Map<String, dynamic>> _searchCategoryFuture;
   bool isLoading = true; // 用于显示加载状态的标志
-
-  @override
-  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -45,7 +41,6 @@ class _SearchPageState extends ConsumerState<SearchPage>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     final colorNotifier = ref.watch(defaultColorProvider);
     colorNotifier.initialize(context); // 显式初始化
     Global globalInstance = Global(context);

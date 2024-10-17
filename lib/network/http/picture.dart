@@ -10,7 +10,7 @@ import '../../util/get_path.dart';
 Future<String> getCachePicture(String url, String path, String cartoonId,
     {String pictureType = '', String chapterId = ''}) async {
   if (url == '') {
-    throw Exception('404');
+    return '404';
   }
 
   // 处理图片的路径

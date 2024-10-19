@@ -9,7 +9,6 @@ import '../../../json/search_category.dart';
 import '../../../network/http/http_request.dart';
 import '../../../network/http/picture.dart';
 import '../../../type/search_enter.dart';
-import '../../../util/dialog.dart';
 import '../../../util/router.dart';
 import '../../../util/state_management.dart';
 
@@ -108,21 +107,11 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               // 值里面缺胳膊少腿的比较多，需要处理一下
               var temp = snapshot.data!['categories'];
               for (var category in temp) {
-                if (category['isWeb'] == null) {
-                  category['isWeb'] = false;
-                }
-                if (category['active'] == null) {
-                  category['active'] = false;
-                }
-                if (category['link'] == null) {
-                  category['link'] = '';
-                }
-                if (category['description'] == null) {
-                  category['description'] = '';
-                }
-                if (category['_id'] == null) {
-                  category['_id'] = '';
-                }
+                category['isWeb'] = category['isWeb'] ?? false;
+                category['active'] = category['active'] ?? false;
+                category['link'] = category['link'] ?? '';
+                category['description'] = category['description'] ?? '';
+                category['_id'] = category['_id'] ?? '';
               }
               snapshot.data!['categories'] = temp;
               try {
@@ -265,7 +254,7 @@ class _CategoryWidgetState extends ConsumerState<CategoryWidget> {
           highlightColor: Colors.transparent, // 移除按下时的高亮效果
           splashColor: Colors.transparent, // 移除水波纹效果
           onTap: () {
-            nothingDialog(context);
+            navigateTo(context, '/rankingList');
           },
           child: Column(
             children: <Widget>[

@@ -76,6 +76,37 @@ Future<Map<String, dynamic>> getCategories() async {
   }
 }
 
+Future<Map<String, dynamic>> getRankingList(
+  String type, {
+  String days = "H24",
+}) async {
+  String url = '';
+
+  if (type == 'creator') {
+    url = 'https://picaapi.picacomic.com/comics/knight-leaderboard';
+  } else if (type == 'comic') {
+    url = 'https://picaapi.picacomic.com/comics/leaderboard?tt=$days&ct=VC';
+  } else {
+    throw Exception('未知类型');
+  }
+
+  final Map<String, dynamic> data = await request(
+    url,
+    'GET',
+  );
+
+  if (data['code'] != 200) {
+    return data;
+  }
+
+  if (data['data'] != null) {
+    return data['data'];
+  } else {
+    debugPrint('Search result is null');
+    throw Exception('未知错误');
+  }
+}
+
 Future<Map<String, dynamic>> search({
   String url = '',
   String keyword = '',
@@ -97,7 +128,15 @@ Future<Map<String, dynamic>> search({
   late Map<String, dynamic> data;
 
   if (url.isNotEmpty) {
-    if (url == 'https://picaapi.picacomic.com/comics/random') {
+    // 用来判断是不是根据作者来搜索
+    if (url.contains('comics?ca=')) {
+      url =
+          "https://picaapi.picacomic.com/comics?ca=$keyword&s=$sort&page=$pageCount";
+      data = await request(
+        url,
+        'GET',
+      );
+    } else if (url == 'https://picaapi.picacomic.com/comics/random') {
       data = await request(
         url,
         'GET',

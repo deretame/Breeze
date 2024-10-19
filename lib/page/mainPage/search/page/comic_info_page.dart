@@ -111,39 +111,19 @@ class _ComicInfoPageState extends State<ComicInfoPage>
             } else {
               // 如果数据正确，显示漫画信息
               // 打补丁
-              // 部分作者可能没有 slogan，这里做个判断，防止报错
-              if (snapshot.data!['comic']['_creator']['slogan'] == null) {
-                snapshot.data!['comic']['_creator']['slogan'] = "";
-              }
-              // title，这里做个判断，防止报错
-              if (snapshot.data!['comic']['_creator']['title'] == null) {
-                snapshot.data!['comic']['_creator']['title'] = '';
-              }
-              // 部分上传者没有verified，这里做个判断，防止报错
-              if (snapshot.data!['comic']['_creator']['verified'] == null) {
-                snapshot.data!['comic']['_creator']['verified'] = false;
-              }
-              // 部分漫画没有chineseTeam，这里做个判断，防止报错
-              if (snapshot.data!['comic']['chineseTeam'] == null) {
-                snapshot.data!['comic']['chineseTeam'] = "";
-              }
-              //  部分漫画没有totalComments，这里做个判断，防止报错
-              if (snapshot.data!['comic']['totalComments'] == null) {
-                snapshot.data!['comic']['totalComments'] =
-                    snapshot.data!['comic']['commentsCount'] = 0;
-              }
-              //  部分漫画没有totalComments，这里做个判断，防止报错
-              if (snapshot.data!['comic']['author'] == null) {
-                snapshot.data!['comic']['author'] = '';
-              }
-              // 部分漫画没有avatar，这里做个判断，防止报错
-              if (snapshot.data!['comic']['_creator']['avatar'] == null) {
-                snapshot.data!['comic']['_creator']['avatar'] = {
-                  "fileServer": "",
-                  "path": "",
-                  "originalName": ""
-                };
-              }
+              snapshot.data!['comic']['_creator']['slogan'] ??= "";
+              snapshot.data!['comic']['_creator']['title'] ??= '';
+              snapshot.data!['comic']['_creator']['verified'] ??= false;
+              snapshot.data!['comic']['chineseTeam'] ??= "";
+              snapshot.data!['comic']['totalComments'] ??=
+                  snapshot.data!['comic']['commentsCount'] ?? 0;
+              snapshot.data!['comic']['author'] ??= '';
+              snapshot.data!['comic']['_creator']['avatar'] ??= {
+                "fileServer": "",
+                "path": "",
+                "originalName": ""
+              };
+
               try {
                 comicInfo = ComicInfo.fromJson(snapshot.data!);
               } catch (e) {

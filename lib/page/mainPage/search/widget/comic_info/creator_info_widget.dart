@@ -7,6 +7,8 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../../../../config/global.dart';
 import '../../../../../json/comic/comic_info.dart';
 import '../../../../../network/http/picture.dart';
+import '../../../../../type/search_enter.dart';
+import '../../../../../util/router.dart';
 import '../../../../../util/state_management.dart';
 import '../../../../../widgets/full_screen_image_view.dart';
 
@@ -44,54 +46,65 @@ class _CreatorInfoWidgetState extends ConsumerState<CreatorInfoWidget>
     final colorNotifier = ref.watch(defaultColorProvider);
     colorNotifier.initialize(context); // 显式初始化
 
-    return Container(
-      height: 75,
-      width: screenWidth * (48 / 50),
-      decoration: BoxDecoration(
-        color: colorNotifier.defaultBackgroundColor,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: colorNotifier.themeType
-                ? Colors.black.withOpacity(0.2)
-                : Colors.white.withOpacity(0.2),
-            spreadRadius: 2,
-            blurRadius: 2,
+    return InkWell(
+        onTap: () {
+          navigateTo(
+            context,
+            '/search',
+            extra: SearchEnter(
+                url:
+                    "https://picaapi.picacomic.com/comics?ca=58f649a80a48790773c7017c&s=ld&page=1",
+                keyword: comicInfo.comic.creator.id.toString()),
+          );
+        },
+        child: Container(
+          height: 75,
+          width: screenWidth * (48 / 50),
+          decoration: BoxDecoration(
+            color: colorNotifier.defaultBackgroundColor,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: colorNotifier.themeType
+                    ? Colors.black.withOpacity(0.2)
+                    : Colors.white.withOpacity(0.2),
+                spreadRadius: 2,
+                blurRadius: 2,
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          ImagerWidget(
-            fileServer: comicInfo.comic.creator.avatar.fileServer,
-            path: comicInfo.comic.creator.avatar.path,
-            id: comicInfo.comic.id,
-            pictureType: "creator",
-          ),
-          const SizedBox(width: 15),
-          Flexible(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  comicInfo.comic.creator.title,
-                  style: const TextStyle(
-                    color: Colors.red,
-                  ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              ImagerWidget(
+                fileServer: comicInfo.comic.creator.avatar.fileServer,
+                path: comicInfo.comic.creator.avatar.path,
+                id: comicInfo.comic.id,
+                pictureType: "creator",
+              ),
+              const SizedBox(width: 15),
+              Flexible(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      comicInfo.comic.creator.title,
+                      style: const TextStyle(
+                        color: Colors.red,
+                      ),
+                    ),
+                    Text(
+                      timeDecode(comicInfo.comic.updatedAt),
+                    ),
+                  ],
                 ),
-                Text(
-                  timeDecode(comicInfo.comic.updatedAt),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
+        ));
   }
 }
 

@@ -43,7 +43,6 @@ class _ComicListWidgetState extends State<ComicListWidget> {
   final ScrollController _scrollController = ScrollController();
   final List<DocInfo> _docInfos = [];
   bool _isLoading = false;
-  bool _isAppending = false; // 控制追加数据时的加载动画
   int _page = 1;
   bool _hasMorePages = true;
   late Timer _throttleTimer;
@@ -178,15 +177,11 @@ class _ComicListWidgetState extends State<ComicListWidget> {
 
       // 如果处理后的结果少于6个项目，继续加载下一页
       if (processedResult.newDocInfos.length < 6 && _hasMorePages) {
-        setState(() {
-          _isAppending = true; // 开始追加数据，显示加载动画
-        });
+        setState(() {});
         _page++;
         _loadData(enter);
       } else {
-        setState(() {
-          _isAppending = false; // 完成追加数据，隐藏加载动画
-        });
+        setState(() {});
       }
     } catch (e) {
       if (!mounted) return;
@@ -232,27 +227,32 @@ class _ComicListWidgetState extends State<ComicListWidget> {
 
   @override
   Widget build(BuildContext context) {
+    // 确保在列表末尾总是有一个额外的项目用于显示加载指示器或结束文本
+    int itemCount = _docInfos.length + 1;
     return ListView.builder(
       controller: _scrollController,
-      itemCount: _docInfos.length + ((_isLoading || _isAppending) ? 1 : 0),
+      itemCount: itemCount,
       itemBuilder: (context, index) {
         if (index < _docInfos.length) {
           return ComicEntryWidget(doc: _docInfos[index].doc);
-        } else if (index == _docInfos.length && (_isLoading || _isAppending)) {
+        } else {
+          // 当没有更多数据加载时，显示结束文本
+          if (!_isLoading && !_hasMorePages) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(30.0),
+                child: Text(
+                  '你来到了未知领域呢~',
+                  style: TextStyle(fontSize: 20.0),
+                ),
+              ),
+            );
+          }
+          // 否则显示加载指示器
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(20.0),
               child: CircularProgressIndicator(),
-            ),
-          );
-        } else {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(30.0),
-              child: Text(
-                '你来到了未知领域呢~',
-                style: TextStyle(fontSize: 20.0),
-              ),
             ),
           );
         }

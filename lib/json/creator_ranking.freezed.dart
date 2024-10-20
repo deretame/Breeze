@@ -38,7 +38,6 @@ abstract class $CreatorRankingCopyWith<$Res> {
   factory $CreatorRankingCopyWith(
           CreatorRanking value, $Res Function(CreatorRanking) then) =
       _$CreatorRankingCopyWithImpl<$Res, CreatorRanking>;
-
   @useResult
   $Res call({@JsonKey(name: "users") List<User> users});
 }
@@ -50,7 +49,6 @@ class _$CreatorRankingCopyWithImpl<$Res, $Val extends CreatorRanking>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -76,7 +74,6 @@ abstract class _$$CreatorRankingImplCopyWith<$Res>
   factory _$$CreatorRankingImplCopyWith(_$CreatorRankingImpl value,
           $Res Function(_$CreatorRankingImpl) then) =
       __$$CreatorRankingImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call({@JsonKey(name: "users") List<User> users});
@@ -117,7 +114,6 @@ class _$CreatorRankingImpl implements _CreatorRanking {
       _$$CreatorRankingImplFromJson(json);
 
   final List<User> _users;
-
   @override
   @JsonKey(name: "users")
   List<User> get users {
@@ -189,40 +185,28 @@ User _$UserFromJson(Map<String, dynamic> json) {
 mixin _$User {
   @JsonKey(name: "_id")
   String get id => throw _privateConstructorUsedError;
-
   @JsonKey(name: "gender")
   Gender get gender => throw _privateConstructorUsedError;
-
   @JsonKey(name: "name")
   String get name => throw _privateConstructorUsedError;
-
   @JsonKey(name: "slogan")
   String? get slogan => throw _privateConstructorUsedError;
-
   @JsonKey(name: "title")
   String get title => throw _privateConstructorUsedError;
-
   @JsonKey(name: "verified")
   bool get verified => throw _privateConstructorUsedError;
-
   @JsonKey(name: "exp")
   int get exp => throw _privateConstructorUsedError;
-
   @JsonKey(name: "level")
   int get level => throw _privateConstructorUsedError;
-
   @JsonKey(name: "characters")
   List<String> get characters => throw _privateConstructorUsedError;
-
   @JsonKey(name: "role")
   Role get role => throw _privateConstructorUsedError;
-
   @JsonKey(name: "avatar")
   Avatar get avatar => throw _privateConstructorUsedError;
-
   @JsonKey(name: "comicsUploaded")
   int get comicsUploaded => throw _privateConstructorUsedError;
-
   @JsonKey(name: "character")
   String? get character => throw _privateConstructorUsedError;
 
@@ -239,7 +223,6 @@ mixin _$User {
 abstract class $UserCopyWith<$Res> {
   factory $UserCopyWith(User value, $Res Function(User) then) =
       _$UserCopyWithImpl<$Res, User>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "_id") String id,
@@ -266,7 +249,6 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -361,7 +343,6 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
   factory _$$UserImplCopyWith(
           _$UserImpl value, $Res Function(_$UserImpl) then) =
       __$$UserImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -513,7 +494,6 @@ class _$UserImpl implements _User {
   @JsonKey(name: "level")
   final int level;
   final List<String> _characters;
-
   @override
   @JsonKey(name: "characters")
   List<String> get characters {
@@ -619,51 +599,39 @@ abstract class _User implements User {
   @override
   @JsonKey(name: "_id")
   String get id;
-
   @override
   @JsonKey(name: "gender")
   Gender get gender;
-
   @override
   @JsonKey(name: "name")
   String get name;
-
   @override
   @JsonKey(name: "slogan")
   String? get slogan;
-
   @override
   @JsonKey(name: "title")
   String get title;
-
   @override
   @JsonKey(name: "verified")
   bool get verified;
-
   @override
   @JsonKey(name: "exp")
   int get exp;
-
   @override
   @JsonKey(name: "level")
   int get level;
-
   @override
   @JsonKey(name: "characters")
   List<String> get characters;
-
   @override
   @JsonKey(name: "role")
   Role get role;
-
   @override
   @JsonKey(name: "avatar")
   Avatar get avatar;
-
   @override
   @JsonKey(name: "comicsUploaded")
   int get comicsUploaded;
-
   @override
   @JsonKey(name: "character")
   String? get character;
@@ -684,10 +652,8 @@ Avatar _$AvatarFromJson(Map<String, dynamic> json) {
 mixin _$Avatar {
   @JsonKey(name: "originalName")
   OriginalName get originalName => throw _privateConstructorUsedError;
-
   @JsonKey(name: "path")
   String get path => throw _privateConstructorUsedError;
-
   @JsonKey(name: "fileServer")
   String get fileServer => throw _privateConstructorUsedError;
 
@@ -704,7 +670,6 @@ mixin _$Avatar {
 abstract class $AvatarCopyWith<$Res> {
   factory $AvatarCopyWith(Avatar value, $Res Function(Avatar) then) =
       _$AvatarCopyWithImpl<$Res, Avatar>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "originalName") OriginalName originalName,
@@ -719,7 +684,6 @@ class _$AvatarCopyWithImpl<$Res, $Val extends Avatar>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -754,7 +718,6 @@ abstract class _$$AvatarImplCopyWith<$Res> implements $AvatarCopyWith<$Res> {
   factory _$$AvatarImplCopyWith(
           _$AvatarImpl value, $Res Function(_$AvatarImpl) then) =
       __$$AvatarImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -867,11 +830,9 @@ abstract class _Avatar implements Avatar {
   @override
   @JsonKey(name: "originalName")
   OriginalName get originalName;
-
   @override
   @JsonKey(name: "path")
   String get path;
-
   @override
   @JsonKey(name: "fileServer")
   String get fileServer;

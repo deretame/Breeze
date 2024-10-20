@@ -218,6 +218,19 @@ class _InitPageState extends ConsumerState<InitPage> {
         final map = category.dynamic.getMap('map');
         debugPrint("Map: $map");
       }
+      // 重新查询以确保获取最新的对象
+      var temp = realm.find<ShieldedCategories>("ShieldedCategories");
+
+      // 将RealmMap转换为Dart Map
+      Map<String, bool> dartMap = {
+        for (var key in temp!.map.keys) key: temp.map[key] as bool
+      };
+
+      // 打印Dart Map
+      debugPrint("Dart Map: $dartMap");
+
+      // 更新全局变量
+      shieldCategoryMapRealm = dartMap;
     }
 
     realm.close();

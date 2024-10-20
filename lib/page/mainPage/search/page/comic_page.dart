@@ -1,17 +1,15 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:zephyr/config/global.dart';
 import 'package:zephyr/network/http/http_request.dart';
 import 'package:zephyr/type/comic_ep_info.dart';
 
 import '../../../../json/comic/ep.dart' as ep;
-import '../../../../util/state_management.dart';
 import '../../../../widgets/image_build_widget.dart';
 
-class ComicPage extends ConsumerStatefulWidget {
+class ComicPage extends StatefulWidget {
   final ComicEpInfo comicEpInfo;
 
   const ComicPage({
@@ -20,10 +18,10 @@ class ComicPage extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ComicPage> createState() => _ComicPageState();
+  State<StatefulWidget> createState() => _ComicPageState();
 }
 
-class _ComicPageState extends ConsumerState<ComicPage> {
+class _ComicPageState extends State<ComicPage> {
   ComicEpInfo get comicEpInfo => widget.comicEpInfo;
   final ScrollController _scrollController = ScrollController();
   final List<ep.Doc> _comicPages = [];
@@ -93,7 +91,6 @@ class _ComicPageState extends ConsumerState<ComicPage> {
   }
 
   Widget _loadingWidget() {
-    final colorNotifier = ref.watch(defaultColorProvider);
     return SizedBox(
       width: screenWidth,
       height: screenWidth,
@@ -102,8 +99,8 @@ class _ComicPageState extends ConsumerState<ComicPage> {
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: LoadingAnimationWidget.waveDots(
-            color: colorNotifier.defaultTextColor!,
             size: 50,
+            color: Colors.blue,
           ),
         ),
       ),
@@ -111,7 +108,6 @@ class _ComicPageState extends ConsumerState<ComicPage> {
   }
 
   Widget _buildErrorWidget() {
-    final colorNotifier = ref.watch(defaultColorProvider);
     return SizedBox(
       width: screenWidth,
       height: screenWidth,
@@ -121,9 +117,6 @@ class _ComicPageState extends ConsumerState<ComicPage> {
           padding: const EdgeInsets.all(20.0),
           child: Text(
             '加载失败，点击重新加载',
-            style: TextStyle(
-              color: colorNotifier.defaultTextColor,
-            ),
           ),
         ),
       ),
@@ -177,9 +170,6 @@ class _ComicPageState extends ConsumerState<ComicPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorNotifier = ref.watch(defaultColorProvider);
-    colorNotifier.initialize(context); // 显式初始化
-
     return Scaffold(
       body: Localizations.override(
         context: context,
@@ -211,7 +201,6 @@ class _ComicPageState extends ConsumerState<ComicPage> {
                         child: Text(
                           '章节结束',
                           style: TextStyle(
-                            color: colorNotifier.defaultTextColor,
                             fontSize: 18.0,
                           ),
                         ),

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
@@ -56,147 +57,157 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           ),
         ],
       ),
-      body: FutureBuilder<Map<String, dynamic>>(
-        future: _searchCategoryFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            if (snapshot.hasError) {
-              // 如果有错误，显示错误信息和重新加载按钮
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Error: ${snapshot.error}'),
-                    ElevatedButton(
-                      onPressed: () async {
-                        // 重新加载数据
-                        setState(() {
-                          isLoading = true;
-                          _searchCategoryFuture =
-                              _loadSearchCategory(); // 重新调用异步函数
-                        });
-                      },
-                      child: const Text('重新加载'),
-                    ),
-                  ],
-                ),
-              );
-            } else if (snapshot.data != null &&
-                snapshot.data!['error'] != null) {
-              // 如果返回的数据中包含错误信息
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Error: ${snapshot.data}'),
-                    ElevatedButton(
-                      onPressed: () async {
-                        // 重新加载数据
-                        setState(() {
-                          isLoading = true;
-                          _searchCategoryFuture =
-                              _loadSearchCategory(); // 重新调用异步函数
-                        });
-                      },
-                      child: const Text('重新加载'),
-                    ),
-                  ],
-                ),
-              );
-            } else {
-              // 值里面缺胳膊少腿的比较多，需要处理一下
-              var temp = snapshot.data!['categories'];
-              for (var category in temp) {
-                category['isWeb'] = category['isWeb'] ?? false;
-                category['active'] = category['active'] ?? false;
-                category['link'] = category['link'] ?? '';
-                category['description'] = category['description'] ?? '';
-                category['_id'] = category['_id'] ?? '';
-              }
-              snapshot.data!['categories'] = temp;
-              try {
-                var temp = SearchCategory.fromJson(snapshot.data!);
-                debugPrint(temp.toString());
-                for (var category in temp.categories) {
-                  var temp = CategoryGlobal(
-                    title: category.title,
-                    thumb: ThumbGlobal(
-                      originalName: category.thumb.originalName,
-                      path: category.thumb.path,
-                      fileServer: category.thumb.fileServer,
-                    ),
-                    isWeb: category.isWeb!,
-                    active: category.active!,
-                    link: category.link!,
-                  );
-                  globalInstance.categories.categoriesGlobal.add(temp);
-                }
-                // globalInstance.categories.sortCategoriesByIsWeb(); // 把网页放在前面
-                // 创建一个包含50个组件的列表
-                List<Widget> widgets = List.generate(
-                  globalInstance.categories.categoriesGlobal.length,
-                  (index) => SizedBox(
-                    width: screenWidth / 4,
-                    height: screenWidth / 4 + 50,
-                    // padding: EdgeInsets.all(10.0),
-                    // color: Colors.blue[100 * (index % 9)],
-                    child: CategoryWidget(
-                        category:
-                            globalInstance.categories.categoriesGlobal[index]),
-                  ),
-                );
-
-                // 确定需要多少行，以及最后一行是否需要填充
-                int rowsCount = (widgets.length / 3).ceil();
-                int remainingItems = widgets.length % 3;
-
-                // 如果最后一行不足三个组件，则添加占位符
-                if (remainingItems != 0) {
-                  int placeholdersToAdd = 3 - remainingItems;
-                  widgets.addAll(
-                    List.generate(
-                      placeholdersToAdd,
-                      (index) => SizedBox(
-                        width: screenWidth / 4,
-                        height: screenWidth / 4,
-                      ),
-                    ),
-                  );
-                }
-
-                // 将列表分成每三个一组
-                List<Widget> rows = [];
-                for (var i = 0; i < rowsCount; i++) {
-                  rows.add(
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      body: Observer(
+        builder: (_) {
+          return FutureBuilder<Map<String, dynamic>>(
+            future: _searchCategoryFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.hasError) {
+                  // 如果有错误，显示错误信息和重新加载按钮
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        widgets[i * 3],
-                        widgets[i * 3 + 1],
-                        widgets[i * 3 + 2],
+                        Text('Error: ${snapshot.error}'),
+                        ElevatedButton(
+                          onPressed: () async {
+                            // 重新加载数据
+                            setState(() {
+                              isLoading = true;
+                              _searchCategoryFuture =
+                                  _loadSearchCategory(); // 重新调用异步函数
+                            });
+                          },
+                          child: const Text('重新加载'),
+                        ),
                       ],
                     ),
                   );
+                } else if (snapshot.data != null &&
+                    snapshot.data!['error'] != null) {
+                  // 如果返回的数据中包含错误信息
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('Error: ${snapshot.data}'),
+                        ElevatedButton(
+                          onPressed: () async {
+                            // 重新加载数据
+                            setState(() {
+                              isLoading = true;
+                              _searchCategoryFuture =
+                                  _loadSearchCategory(); // 重新调用异步函数
+                            });
+                          },
+                          child: const Text('重新加载'),
+                        ),
+                      ],
+                    ),
+                  );
+                } else {
+                  // 值里面缺胳膊少腿的比较多，需要处理一下
+                  var temp = snapshot.data!['categories'];
+                  for (var category in temp) {
+                    category['isWeb'] = category['isWeb'] ?? false;
+                    category['active'] = category['active'] ?? false;
+                    category['link'] = category['link'] ?? '';
+                    category['description'] = category['description'] ?? '';
+                    category['_id'] = category['_id'] ?? '';
+                  }
+                  snapshot.data!['categories'] = temp;
+                  try {
+                    List<String> shieldList = shieldCategoryMapRealm.keys
+                        .where((key) => shieldCategoryMapRealm[key] == true)
+                        .toList();
+                    var temp = SearchCategory.fromJson(snapshot.data!);
+                    debugPrint(temp.toString());
+                    for (var category in temp.categories) {
+                      var temp = CategoryGlobal(
+                        title: category.title,
+                        thumb: ThumbGlobal(
+                          originalName: category.thumb.originalName,
+                          path: category.thumb.path,
+                          fileServer: category.thumb.fileServer,
+                        ),
+                        isWeb: category.isWeb!,
+                        active: category.active!,
+                        link: category.link!,
+                      );
+                      if (!shieldList
+                          .any((string) => string.contains(temp.title))) {
+                        globalInstance.categories.categoriesGlobal.add(temp);
+                      }
+                    }
+                    // globalInstance.categories.sortCategoriesByIsWeb(); // 把网页放在前面
+
+                    List<Widget> widgets = List.generate(
+                      globalInstance.categories.categoriesGlobal.length,
+                      (index) => SizedBox(
+                        width: screenWidth / 4,
+                        height: screenWidth / 4 + 50,
+                        // padding: EdgeInsets.all(10.0),
+                        // color: Colors.blue[100 * (index % 9)],
+                        child: CategoryWidget(
+                            category: globalInstance
+                                .categories.categoriesGlobal[index]),
+                      ),
+                    );
+
+                    // 确定需要多少行，以及最后一行是否需要填充
+                    int rowsCount = (widgets.length / 3).ceil();
+                    int remainingItems = widgets.length % 3;
+
+                    // 如果最后一行不足三个组件，则添加占位符
+                    if (remainingItems != 0) {
+                      int placeholdersToAdd = 3 - remainingItems;
+                      widgets.addAll(
+                        List.generate(
+                          placeholdersToAdd,
+                          (index) => SizedBox(
+                            width: screenWidth / 4,
+                            height: screenWidth / 4,
+                          ),
+                        ),
+                      );
+                    }
+
+                    // 将列表分成每三个一组
+                    List<Widget> rows = [];
+                    for (var i = 0; i < rowsCount; i++) {
+                      rows.add(
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            widgets[i * 3],
+                            widgets[i * 3 + 1],
+                            widgets[i * 3 + 2],
+                          ],
+                        ),
+                      );
+                    }
+                    return SingleChildScrollView(
+                      child: Column(
+                        children: rows,
+                      ),
+                    );
+                  } catch (e) {
+                    debugPrint(e.toString());
+                  }
+                  return SingleChildScrollView(
+                    // 添加滚动视图
+                    physics: const ClampingScrollPhysics(), // 滚动物理，根据需要可以调整
+                    // child: ComicInfoWidget(comicInfo: comicInfo),
+                  );
                 }
-                return SingleChildScrollView(
-                  child: Column(
-                    children: rows,
-                  ),
+              } else {
+                return const Center(
+                  child: CircularProgressIndicator(),
                 );
-              } catch (e) {
-                debugPrint(e.toString());
               }
-              return SingleChildScrollView(
-                // 添加滚动视图
-                physics: const ClampingScrollPhysics(), // 滚动物理，根据需要可以调整
-                // child: ComicInfoWidget(comicInfo: comicInfo),
-              );
-            }
-          } else {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+            },
+          );
         },
       ),
     );

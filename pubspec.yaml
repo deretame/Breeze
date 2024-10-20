@@ -1,8 +1,6 @@
 name: zephyr
-description: "使用flutter开发的三方哔咔应用。"
-#publish_to: ''
-
-version: 1.4.0+7
+description: "使用Flutter开发的三方哔咔应用。"
+version: 1.4.1+8
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -12,73 +10,55 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  # 底部导航栏
-  flutter_riverpod: ^2.5.1
-  # 加密库
-  crypto: ^3.0.6
-  # uuid生成库
-  uuid: ^4.4.2
-  # mmkv本地存储库（键值对）
-  mmkv: ^1.3.9
-  # 路径获取库
-  path_provider: ^2.1.4
-  # 网络请求库
-  dio: ^5.6.0
-  # NoSQL数据库库
-  realm: ^20.0.0
-  # json注解库
-  json_annotation: ^4.9.0
-  # 动态获取系统主题色
-  system_theme: ^3.1.1
-  # 路由库
-  go_router: ^14.3.0
-  # 图标库
-  cupertino_icons: ^1.0.8
-  # 图片查看库
-  photo_view: ^0.15.0
-  # 图片保存库
-  image_gallery_saver_plus: ^3.0.5
-  # 加载动画库
-  loading_animation_widget: ^1.2.1
-  # 动态取色库
-  dynamic_color: ^1.7.0
-  # 弹出提示框库
-  cherry_toast: ^1.11.0
-  # 状态管理库
-  provider: ^6.1.2
-  # 代码生成器
-  freezed: ^2.5.7
-  # 代码生成器
-  freezed_annotation: ^2.4.4
-  # 动画搜索栏
-  animated_search_bar: ^2.7.2
-  # 状态管理库
-  redux: ^5.0.0
-  # 算法库
-  collection: ^1.18.0
-  # 监听并自动重建UI库
-  mobx: ^2.3.3+2
-  flutter_mobx: ^2.2.1+1
-  # 无限滚动分页库
-  infinite_scroll_pagination: ^4.0.0
-  # 开关小部件库
-  toggle_switch: ^2.3.0
-  # webview库
-  webview_flutter: ^4.10.0
-  # 在系统浏览器内打开链接库
-  url_launcher: ^6.3.1
+
+  # --------------- UI 相关库 ---------------
+  cupertino_icons: ^1.0.8     # Cupertino 图标库
+  loading_animation_widget: ^1.2.1  # 加载动画
+  cherry_toast: ^1.11.0       # 弹出提示框
+  toggle_switch: ^2.3.0       # 开关小部件
+  animated_search_bar: ^2.7.2  # 动画搜索栏
+  photo_view: ^0.15.0         # 图片查看库
+  image_gallery_saver_plus: ^3.0.5  # 图片保存库
+
+  # --------------- 状态管理与网络库 ---------------
+  dio: ^5.6.0                 # 网络请求库
+  provider: ^6.1.2            # 状态管理库
+  flutter_mobx: ^2.2.1+1      # MobX 支持库
+  mobx: ^2.3.3+2              # MobX 状态管理库
+  redux: ^5.0.0               # Redux 状态管理库
+  flutter_riverpod: ^2.5.1    # Riverpod 状态管理库
+  get: ^4.6.6                 # GetX 状态管理库
+
+  # --------------- 数据存储与处理库 ---------------
+  mmkv: ^1.3.9                # MMKV 本地存储库（键值对）
+  realm: ^20.0.0              # NoSQL 数据库库
+  json_annotation: ^4.9.0      # JSON 注解库
+  json_serializable: ^6.8.0    # JSON 代码生成器
+  freezed: ^2.5.7              # 数据类生成器
+  freezed_annotation: ^2.4.4    # Freezed 注解库
+  build_runner: ^2.4.13        # Dart 代码生成工具
+
+  # --------------- 功能库 ---------------
+  path_provider: ^2.1.4        # 文件路径获取
+  system_theme: ^3.1.1         # 动态获取系统主题色
+  go_router: ^14.3.0           # 路由库
+  dynamic_color: ^1.7.0        # 动态取色库
+  infinite_scroll_pagination: ^4.0.0  # 无限滚动分页
+
+  # --------------- Web 相关库 ---------------
+  webview_flutter: ^4.10.0      # WebView 插件
+  url_launcher: ^6.3.1          # 链接打开器库
+
+  # --------------- 图形与算法库 ---------------
+  crypto: ^3.0.6               # 加密库
+  uuid: ^4.4.2                  # UUID 生成库
+  collection: ^1.18.0           # 数据结构和算法库
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  # json代码生成器
-  json_serializable: ^6.8.0
-  # 代码生成器
-  build_runner: ^2.4.13
-  # flutter代码检查工具
-  flutter_lints: ^5.0.0
-  # mbox代码生成器
-  mobx_codegen: ^2.6.1
+  flutter_lints: ^5.0.0         # Flutter 代码静态检查工具
+  mobx_codegen: ^2.6.1           # MobX 代码生成器
 
 flutter:
   uses-material-design: true
@@ -89,6 +69,3 @@ flutter:
     - asset/image/bika_image/cat_leaderboard.jpg
     - asset/image/bika_image/cat_random.jpg
     - asset/info/person_info.json
-
-
-

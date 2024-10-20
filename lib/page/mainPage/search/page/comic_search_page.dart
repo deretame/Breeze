@@ -537,6 +537,10 @@ class _ComicSearchPageState extends ConsumerState<ComicSearchPage> {
 
                             // 打印Dart Map
                             debugPrint("Dart Map: $dartMap");
+
+                            // 更新全局变量
+                            shieldCategoryMapRealm = dartMap;
+
                             setState(
                               () {
                                 debugPrint("点击屏蔽分类");

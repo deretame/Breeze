@@ -1,7 +1,10 @@
 import 'package:flutter/foundation.dart';
 
+// 这个用来更新搜索的关键词
 class SearchEnter {
   String url;
+  String title;
+  String type;
   String keyword;
   String sort;
   List<String> categories;
@@ -10,6 +13,8 @@ class SearchEnter {
 
   SearchEnter({
     this.url = '',
+    this.title = '',
+    this.type = '',
     this.keyword = '',
     this.sort = 'dd',
     this.categories = const [],
@@ -21,6 +26,9 @@ class SearchEnter {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is SearchEnter &&
+        other.url == url &&
+        other.title == title &&
+        other.type == type &&
         other.keyword == keyword &&
         other.sort == sort &&
         listEquals(other.categories, categories) &&
@@ -31,6 +39,14 @@ class SearchEnter {
   @override
   int get hashCode {
     return Object.hash(
-        keyword, sort, Object.hashAll(categories), pageCount, refresh);
+      url,
+      title,
+      type,
+      keyword,
+      sort,
+      Object.hashAll(categories),
+      pageCount,
+      refresh,
+    );
   }
 }

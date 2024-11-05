@@ -4,7 +4,6 @@ import 'package:zephyr/page/mainPage/search/page/comic_page.dart';
 import 'package:zephyr/page/ranking_list.dart';
 import 'package:zephyr/page/shunt_page.dart';
 
-import '../page/init_page.dart';
 import '../page/login_page.dart';
 import '../page/main.dart';
 import '../page/mainPage/search/page/comic_info_page.dart';
@@ -15,12 +14,12 @@ import '../type/comic_ep_info.dart';
 import '../type/search_enter.dart';
 
 final goRouter = GoRouter(
-  initialLocation: '/shunt',
+  initialLocation: '/main',
   routes: [
-    GoRoute(
-      path: '/init',
-      builder: (context, state) => const InitPage(),
-    ),
+    // GoRoute(
+    //   path: '/init',
+    //   builder: (context, state) => const InitPage(),
+    // ),
     GoRoute(
       path: '/shunt',
       builder: (context, state) => const ShuntPage(),

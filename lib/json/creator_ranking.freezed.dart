@@ -20,8 +20,14 @@ CreatorRanking _$CreatorRankingFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$CreatorRanking {
-  @JsonKey(name: "users")
-  List<User> get users => throw _privateConstructorUsedError;
+  @JsonKey(name: "code")
+  int get code => throw _privateConstructorUsedError;
+
+  @JsonKey(name: "message")
+  String get message => throw _privateConstructorUsedError;
+
+  @JsonKey(name: "data")
+  Data get data => throw _privateConstructorUsedError;
 
   /// Serializes this CreatorRanking to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -38,8 +44,14 @@ abstract class $CreatorRankingCopyWith<$Res> {
   factory $CreatorRankingCopyWith(
           CreatorRanking value, $Res Function(CreatorRanking) then) =
       _$CreatorRankingCopyWithImpl<$Res, CreatorRanking>;
+
   @useResult
-  $Res call({@JsonKey(name: "users") List<User> users});
+  $Res call(
+      {@JsonKey(name: "code") int code,
+      @JsonKey(name: "message") String message,
+      @JsonKey(name: "data") Data data});
+
+  $DataCopyWith<$Res> get data;
 }
 
 /// @nodoc
@@ -49,6 +61,7 @@ class _$CreatorRankingCopyWithImpl<$Res, $Val extends CreatorRanking>
 
   // ignore: unused_field
   final $Val _value;
+
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -57,14 +70,34 @@ class _$CreatorRankingCopyWithImpl<$Res, $Val extends CreatorRanking>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? users = null,
+    Object? code = null,
+    Object? message = null,
+    Object? data = null,
   }) {
     return _then(_value.copyWith(
-      users: null == users
-          ? _value.users
-          : users // ignore: cast_nullable_to_non_nullable
-              as List<User>,
+      code: null == code
+          ? _value.code
+          : code // ignore: cast_nullable_to_non_nullable
+              as int,
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+      data: null == data
+          ? _value.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Data,
     ) as $Val);
+  }
+
+  /// Create a copy of CreatorRanking
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $DataCopyWith<$Res> get data {
+    return $DataCopyWith<$Res>(_value.data, (value) {
+      return _then(_value.copyWith(data: value) as $Val);
+    });
   }
 }
 
@@ -74,9 +107,16 @@ abstract class _$$CreatorRankingImplCopyWith<$Res>
   factory _$$CreatorRankingImplCopyWith(_$CreatorRankingImpl value,
           $Res Function(_$CreatorRankingImpl) then) =
       __$$CreatorRankingImplCopyWithImpl<$Res>;
+
   @override
   @useResult
-  $Res call({@JsonKey(name: "users") List<User> users});
+  $Res call(
+      {@JsonKey(name: "code") int code,
+      @JsonKey(name: "message") String message,
+      @JsonKey(name: "data") Data data});
+
+  @override
+  $DataCopyWith<$Res> get data;
 }
 
 /// @nodoc
@@ -92,13 +132,23 @@ class __$$CreatorRankingImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? users = null,
+    Object? code = null,
+    Object? message = null,
+    Object? data = null,
   }) {
     return _then(_$CreatorRankingImpl(
-      users: null == users
-          ? _value._users
-          : users // ignore: cast_nullable_to_non_nullable
-              as List<User>,
+      code: null == code
+          ? _value.code
+          : code // ignore: cast_nullable_to_non_nullable
+              as int,
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+      data: null == data
+          ? _value.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Data,
     ));
   }
 }
@@ -107,24 +157,26 @@ class __$$CreatorRankingImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$CreatorRankingImpl implements _CreatorRanking {
   const _$CreatorRankingImpl(
-      {@JsonKey(name: "users") required final List<User> users})
-      : _users = users;
+      {@JsonKey(name: "code") required this.code,
+      @JsonKey(name: "message") required this.message,
+      @JsonKey(name: "data") required this.data});
 
   factory _$CreatorRankingImpl.fromJson(Map<String, dynamic> json) =>
       _$$CreatorRankingImplFromJson(json);
 
-  final List<User> _users;
   @override
-  @JsonKey(name: "users")
-  List<User> get users {
-    if (_users is EqualUnmodifiableListView) return _users;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_users);
-  }
+  @JsonKey(name: "code")
+  final int code;
+  @override
+  @JsonKey(name: "message")
+  final String message;
+  @override
+  @JsonKey(name: "data")
+  final Data data;
 
   @override
   String toString() {
-    return 'CreatorRanking(users: $users)';
+    return 'CreatorRanking(code: $code, message: $message, data: $data)';
   }
 
   @override
@@ -132,13 +184,14 @@ class _$CreatorRankingImpl implements _CreatorRanking {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$CreatorRankingImpl &&
-            const DeepCollectionEquality().equals(other._users, _users));
+            (identical(other.code, code) || other.code == code) &&
+            (identical(other.message, message) || other.message == message) &&
+            (identical(other.data, data) || other.data == data));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, const DeepCollectionEquality().hash(_users));
+  int get hashCode => Object.hash(runtimeType, code, message, data);
 
   /// Create a copy of CreatorRanking
   /// with the given fields replaced by the non-null parameter values.
@@ -159,21 +212,189 @@ class _$CreatorRankingImpl implements _CreatorRanking {
 
 abstract class _CreatorRanking implements CreatorRanking {
   const factory _CreatorRanking(
-          {@JsonKey(name: "users") required final List<User> users}) =
-      _$CreatorRankingImpl;
+      {@JsonKey(name: "code") required final int code,
+      @JsonKey(name: "message") required final String message,
+      @JsonKey(name: "data") required final Data data}) = _$CreatorRankingImpl;
 
   factory _CreatorRanking.fromJson(Map<String, dynamic> json) =
       _$CreatorRankingImpl.fromJson;
 
   @override
-  @JsonKey(name: "users")
-  List<User> get users;
+  @JsonKey(name: "code")
+  int get code;
+
+  @override
+  @JsonKey(name: "message")
+  String get message;
+
+  @override
+  @JsonKey(name: "data")
+  Data get data;
 
   /// Create a copy of CreatorRanking
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$CreatorRankingImplCopyWith<_$CreatorRankingImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+Data _$DataFromJson(Map<String, dynamic> json) {
+  return _Data.fromJson(json);
+}
+
+/// @nodoc
+mixin _$Data {
+  @JsonKey(name: "users")
+  List<User> get users => throw _privateConstructorUsedError;
+
+  /// Serializes this Data to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of Data
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $DataCopyWith<Data> get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $DataCopyWith<$Res> {
+  factory $DataCopyWith(Data value, $Res Function(Data) then) =
+      _$DataCopyWithImpl<$Res, Data>;
+
+  @useResult
+  $Res call({@JsonKey(name: "users") List<User> users});
+}
+
+/// @nodoc
+class _$DataCopyWithImpl<$Res, $Val extends Data>
+    implements $DataCopyWith<$Res> {
+  _$DataCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of Data
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? users = null,
+  }) {
+    return _then(_value.copyWith(
+      users: null == users
+          ? _value.users
+          : users // ignore: cast_nullable_to_non_nullable
+              as List<User>,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$DataImplCopyWith<$Res> implements $DataCopyWith<$Res> {
+  factory _$$DataImplCopyWith(
+          _$DataImpl value, $Res Function(_$DataImpl) then) =
+      __$$DataImplCopyWithImpl<$Res>;
+
+  @override
+  @useResult
+  $Res call({@JsonKey(name: "users") List<User> users});
+}
+
+/// @nodoc
+class __$$DataImplCopyWithImpl<$Res>
+    extends _$DataCopyWithImpl<$Res, _$DataImpl>
+    implements _$$DataImplCopyWith<$Res> {
+  __$$DataImplCopyWithImpl(_$DataImpl _value, $Res Function(_$DataImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of Data
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? users = null,
+  }) {
+    return _then(_$DataImpl(
+      users: null == users
+          ? _value._users
+          : users // ignore: cast_nullable_to_non_nullable
+              as List<User>,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$DataImpl implements _Data {
+  const _$DataImpl({@JsonKey(name: "users") required final List<User> users})
+      : _users = users;
+
+  factory _$DataImpl.fromJson(Map<String, dynamic> json) =>
+      _$$DataImplFromJson(json);
+
+  final List<User> _users;
+
+  @override
+  @JsonKey(name: "users")
+  List<User> get users {
+    if (_users is EqualUnmodifiableListView) return _users;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_users);
+  }
+
+  @override
+  String toString() {
+    return 'Data(users: $users)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$DataImpl &&
+            const DeepCollectionEquality().equals(other._users, _users));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, const DeepCollectionEquality().hash(_users));
+
+  /// Create a copy of Data
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$DataImplCopyWith<_$DataImpl> get copyWith =>
+      __$$DataImplCopyWithImpl<_$DataImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$DataImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _Data implements Data {
+  const factory _Data(
+      {@JsonKey(name: "users") required final List<User> users}) = _$DataImpl;
+
+  factory _Data.fromJson(Map<String, dynamic> json) = _$DataImpl.fromJson;
+
+  @override
+  @JsonKey(name: "users")
+  List<User> get users;
+
+  /// Create a copy of Data
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$DataImplCopyWith<_$DataImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -185,28 +406,40 @@ User _$UserFromJson(Map<String, dynamic> json) {
 mixin _$User {
   @JsonKey(name: "_id")
   String get id => throw _privateConstructorUsedError;
+
   @JsonKey(name: "gender")
   Gender get gender => throw _privateConstructorUsedError;
+
   @JsonKey(name: "name")
   String get name => throw _privateConstructorUsedError;
+
   @JsonKey(name: "slogan")
   String? get slogan => throw _privateConstructorUsedError;
+
   @JsonKey(name: "title")
   String get title => throw _privateConstructorUsedError;
+
   @JsonKey(name: "verified")
   bool get verified => throw _privateConstructorUsedError;
+
   @JsonKey(name: "exp")
   int get exp => throw _privateConstructorUsedError;
+
   @JsonKey(name: "level")
   int get level => throw _privateConstructorUsedError;
+
   @JsonKey(name: "characters")
   List<String> get characters => throw _privateConstructorUsedError;
+
   @JsonKey(name: "role")
   Role get role => throw _privateConstructorUsedError;
+
   @JsonKey(name: "avatar")
   Avatar get avatar => throw _privateConstructorUsedError;
+
   @JsonKey(name: "comicsUploaded")
   int get comicsUploaded => throw _privateConstructorUsedError;
+
   @JsonKey(name: "character")
   String? get character => throw _privateConstructorUsedError;
 
@@ -223,6 +456,7 @@ mixin _$User {
 abstract class $UserCopyWith<$Res> {
   factory $UserCopyWith(User value, $Res Function(User) then) =
       _$UserCopyWithImpl<$Res, User>;
+
   @useResult
   $Res call(
       {@JsonKey(name: "_id") String id,
@@ -249,6 +483,7 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
 
   // ignore: unused_field
   final $Val _value;
+
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -343,6 +578,7 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
   factory _$$UserImplCopyWith(
           _$UserImpl value, $Res Function(_$UserImpl) then) =
       __$$UserImplCopyWithImpl<$Res>;
+
   @override
   @useResult
   $Res call(
@@ -494,6 +730,7 @@ class _$UserImpl implements _User {
   @JsonKey(name: "level")
   final int level;
   final List<String> _characters;
+
   @override
   @JsonKey(name: "characters")
   List<String> get characters {
@@ -599,39 +836,51 @@ abstract class _User implements User {
   @override
   @JsonKey(name: "_id")
   String get id;
+
   @override
   @JsonKey(name: "gender")
   Gender get gender;
+
   @override
   @JsonKey(name: "name")
   String get name;
+
   @override
   @JsonKey(name: "slogan")
   String? get slogan;
+
   @override
   @JsonKey(name: "title")
   String get title;
+
   @override
   @JsonKey(name: "verified")
   bool get verified;
+
   @override
   @JsonKey(name: "exp")
   int get exp;
+
   @override
   @JsonKey(name: "level")
   int get level;
+
   @override
   @JsonKey(name: "characters")
   List<String> get characters;
+
   @override
   @JsonKey(name: "role")
   Role get role;
+
   @override
   @JsonKey(name: "avatar")
   Avatar get avatar;
+
   @override
   @JsonKey(name: "comicsUploaded")
   int get comicsUploaded;
+
   @override
   @JsonKey(name: "character")
   String? get character;
@@ -652,8 +901,10 @@ Avatar _$AvatarFromJson(Map<String, dynamic> json) {
 mixin _$Avatar {
   @JsonKey(name: "originalName")
   OriginalName get originalName => throw _privateConstructorUsedError;
+
   @JsonKey(name: "path")
   String get path => throw _privateConstructorUsedError;
+
   @JsonKey(name: "fileServer")
   String get fileServer => throw _privateConstructorUsedError;
 
@@ -670,6 +921,7 @@ mixin _$Avatar {
 abstract class $AvatarCopyWith<$Res> {
   factory $AvatarCopyWith(Avatar value, $Res Function(Avatar) then) =
       _$AvatarCopyWithImpl<$Res, Avatar>;
+
   @useResult
   $Res call(
       {@JsonKey(name: "originalName") OriginalName originalName,
@@ -684,6 +936,7 @@ class _$AvatarCopyWithImpl<$Res, $Val extends Avatar>
 
   // ignore: unused_field
   final $Val _value;
+
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -718,6 +971,7 @@ abstract class _$$AvatarImplCopyWith<$Res> implements $AvatarCopyWith<$Res> {
   factory _$$AvatarImplCopyWith(
           _$AvatarImpl value, $Res Function(_$AvatarImpl) then) =
       __$$AvatarImplCopyWithImpl<$Res>;
+
   @override
   @useResult
   $Res call(
@@ -830,9 +1084,11 @@ abstract class _Avatar implements Avatar {
   @override
   @JsonKey(name: "originalName")
   OriginalName get originalName;
+
   @override
   @JsonKey(name: "path")
   String get path;
+
   @override
   @JsonKey(name: "fileServer")
   String get fileServer;

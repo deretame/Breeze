@@ -1,96 +1,182 @@
+import 'dart:io';
+
+import 'package:catcher_2/catcher_2.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:dio/dio.dart';
+import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:dynamic_color/dynamic_color.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mmkv/mmkv.dart';
-import 'package:system_theme/system_theme.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:get_it/get_it.dart';
+import 'package:hive_flutter/adapters.dart';
+import 'package:zephyr/config/bika/bika_setting.dart';
+import 'package:zephyr/util/constants.dart';
+import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/router.dart';
 
 import 'config/global.dart';
+import 'config/global_setting.dart';
+import 'mobx/fullscreen_store.dart';
+
+final globalSetting = GlobalSetting();
+final bikaSetting = BikaSetting();
+final fullScreenStore = FullScreenStore();
+final getIt = GetIt.instance;
+
+// 定义全局Dio实例
+final dio = Dio();
+// 定义缓存拦截器
+final cacheInterceptor = DioCacheInterceptor(
+  options: CacheOptions(
+    store: MemCacheStore(), // 使用内存缓存
+    policy: CachePolicy.forceCache, // 根据请求决定是否使用缓存
+    maxStale: const Duration(minutes: 5), // 设置缓存最大有效时长为5分钟
+  ),
+);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // must wait for MMKV to finish initialization
-  if (kDebugMode) {
-    await MMKV.initialize();
-  } else {
-    await MMKV.initialize(logLevel: MMKVLogLevel.None);
+
+  // 告诉系统应该用竖屏
+  await SystemChrome.setPreferredOrientations(
+      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+
+  // 初始化Hive
+  await Hive.initFlutter();
+  // 注册 Color 适配器
+  Hive.registerAdapter(ColorAdapter());
+  await globalSetting.initBox();
+  await bikaSetting.initBox();
+
+  // 异常捕获 logo记录
+  final Catcher2Options releaseConfig = Catcher2Options(
+    SilentReportMode(),
+    [FileHandler(await getLogPath())],
+  );
+
+  // 小白条、导航栏沉浸设置，仅当平台为Android时
+  if (Platform.isAndroid) {
+    final androidInfo = await DeviceInfoPlugin().androidInfo;
+    if (androidInfo.version.sdkInt >= 29) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    }
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+      statusBarColor: Colors.transparent,
+    ));
   }
-  SystemTheme.fallbackColor = const Color(0xFF64B5F6);
-  await SystemTheme.accentColor.load();
-  runApp(const ProviderScope(child: MyApp()));
+
+  // 初始化Catcher2并运行应用
+  Catcher2(
+    releaseConfig: releaseConfig,
+    runAppFunction: () {
+      runApp(const MyApp());
+    },
+  );
 }
 
-class MyApp extends ConsumerStatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
-  ConsumerState<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends ConsumerState<MyApp> {
-  // 默认主题色种子
-  static const _defaultColorSeed = Colors.blueAccent;
-
-  // 根组件
-  @override
   Widget build(BuildContext context) {
-    // 初始化全局变量
     Global(context);
+    return Constants.isFluent
+        ? buildFluentUI(context)
+        : _buildMaterial(context);
+  }
+
+  Widget _buildMaterial(BuildContext context) {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+      statusBarColor: Colors.transparent,
+    ));
 
     return DynamicColorBuilder(
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-        ColorScheme lightColorScheme;
-        ColorScheme darkColorScheme;
+        return Observer(
+          builder: (context) {
+            ColorScheme lightColorScheme;
+            ColorScheme darkColorScheme;
 
-        if (lightDynamic != null && darkDynamic != null) {
-          // 亮色模式 Monet 取色
-          lightColorScheme = lightDynamic.harmonized();
-          // 暗色模式 Monet 取色
-          darkColorScheme = darkDynamic.harmonized();
-        } else {
-          // Fallback 颜色，当不支持 Monet 取色的时候使用
-          lightColorScheme = ColorScheme.fromSeed(
-            seedColor: _defaultColorSeed,
-          );
-          darkColorScheme = ColorScheme.fromSeed(
-            seedColor: _defaultColorSeed,
-            brightness: Brightness.dark,
-          );
-        }
+            // 首先确定当前使用的 ColorScheme
+            if (globalSetting.dynamicColor &&
+                lightDynamic != null &&
+                darkDynamic != null) {
+              lightColorScheme = lightDynamic.harmonized();
+              darkColorScheme = darkDynamic.harmonized();
+            } else {
+              Color primary = globalSetting.seedColor;
+              lightColorScheme = ColorScheme.fromSeed(
+                seedColor: primary,
+              );
+              darkColorScheme = ColorScheme.fromSeed(
+                seedColor: primary,
+                brightness: Brightness.dark,
+              );
+            }
 
-        return MaterialApp.router(
-          locale: Locale('zh'),
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: [
-            //此处设置
-            const Locale('zh', 'CH'),
-            const Locale('en', 'US'),
-          ],
-          routerConfig: goRouter,
-          // 亮色模式主题，直接调用获取到的 ColorScheme
-          theme: ThemeData(
-            useMaterial3: true,
-            colorScheme: lightColorScheme,
-            // ...
-          ),
-          // 暗色模式主题，同上
-          darkTheme: ThemeData(
-            useMaterial3: true,
-            brightness: Brightness.dark,
-            colorScheme: darkColorScheme,
-            // ...
-          ),
-          // 设置主题跟随系统
-          themeMode: ThemeMode.system,
-          // ...
+            // 根据当前主题模式选择对应的 ColorScheme
+            final currentColorScheme = globalSetting.themeMode == ThemeMode.dark
+                ? darkColorScheme
+                : lightColorScheme;
+
+            // 更新设置时使用确定的 ColorScheme
+            bool isDarkMode =
+                MediaQuery.of(context).platformBrightness == Brightness.dark;
+            Color textColor = isDarkMode ? Colors.white : Colors.black;
+            globalSetting.setThemeType(isDarkMode ? false : true);
+            globalSetting.setBackgroundColor(currentColorScheme.surface);
+            globalSetting.setTextColor(textColor);
+
+            debugPrint("isDynamic: ${globalSetting.dynamicColor}");
+            debugPrint("lightDynamic: $lightDynamic");
+            debugPrint("darkDynamic: $darkDynamic");
+            debugPrint("backgroundColor: ${globalSetting.backgroundColor}");
+            debugPrint("current theme: ${globalSetting.themeMode}");
+
+            return MaterialApp.router(
+              routerConfig: goRouter,
+              locale: globalSetting.locale,
+              title: 'Breeze',
+              themeMode: globalSetting.themeMode,
+              theme: ThemeData.light().copyWith(
+                  primaryColor: lightColorScheme.primary,
+                  colorScheme: lightColorScheme,
+                  scaffoldBackgroundColor: lightColorScheme.surface,
+                  cardColor: lightColorScheme.surfaceContainer,
+                  dialogBackgroundColor: lightColorScheme.surfaceContainer,
+                  chipTheme: ChipThemeData(
+                    backgroundColor: lightColorScheme.surface,
+                  ),
+                  canvasColor: lightColorScheme.surfaceContainer),
+              darkTheme: ThemeData.dark().copyWith(
+                  scaffoldBackgroundColor: globalSetting.isAMOLED
+                      ? Colors.black
+                      : darkColorScheme.surface,
+                  tabBarTheme: TabBarTheme(dividerColor: Colors.transparent),
+                  colorScheme: darkColorScheme),
+            );
+          },
         );
       },
     );
+  }
+
+  // Leave for future implementation
+  buildFluentUI(BuildContext context) {}
+
+  void updateSettings(BuildContext context) {
+    bool isDarkMode =
+        MediaQuery.of(context).platformBrightness == Brightness.dark;
+    Color textColor = isDarkMode ? Colors.white : Colors.black;
+    globalSetting.setThemeType(isDarkMode ? false : true);
+    globalSetting.setBackgroundColor(Theme.of(context).scaffoldBackgroundColor);
+    globalSetting.setTextColor(textColor);
+    debugPrint("backgroundColor: ${globalSetting.backgroundColor}");
   }
 }

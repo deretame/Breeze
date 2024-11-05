@@ -2,25 +2,22 @@ import 'package:animated_search_bar/animated_search_bar.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:realm/realm.dart';
+import 'package:zephyr/main.dart';
 
 import '../../../../config/global.dart';
-import '../../../../realm/shield_categories.dart';
 import '../../../../type/search_enter.dart';
-import '../../../../util/state_management.dart';
 import '../widget/comic_list_widget.dart';
 
-class ComicSearchPage extends ConsumerStatefulWidget {
+class ComicSearchPage extends StatefulWidget {
   final SearchEnter enter;
 
   const ComicSearchPage({super.key, required this.enter});
 
   @override
-  ConsumerState<ComicSearchPage> createState() => _ComicSearchPageState();
+  State<ComicSearchPage> createState() => _ComicSearchPageState();
 }
 
-class _ComicSearchPageState extends ConsumerState<ComicSearchPage> {
+class _ComicSearchPageState extends State<ComicSearchPage> {
   SearchEnter get enter => widget.enter;
   final TextEditingController _controller = TextEditingController(text: '');
   late SearchEnter _localEnter;
@@ -36,8 +33,6 @@ class _ComicSearchPageState extends ConsumerState<ComicSearchPage> {
   late int _pageCount;
   late List<String> _categories;
   late Map<String, bool> _categoriesMap;
-  late Realm _realm;
-  late bool _isRealmInitialized = false;
   late Map<String, bool> _shieldCategoriesMap;
 
   // 这个是用来通知刷新的，所以值其实不重要，用int只是为了方便改变值而已
@@ -62,7 +57,6 @@ class _ComicSearchPageState extends ConsumerState<ComicSearchPage> {
     _sort = enter.sort;
     _pageCount = enter.pageCount;
     _controller.text = _keyword;
-    _categoriesMap = Map.from(categoryMap);
     // 如果列表中有值，则将其设置为true
     for (var categories in enter.categories) {
       if (_categoriesMap.containsKey(categories)) {
@@ -80,27 +74,7 @@ class _ComicSearchPageState extends ConsumerState<ComicSearchPage> {
     _pageCountNotifier.value = _pageCount;
 
     _shieldCategoriesMap = {};
-
-    final shieldedCategories = Configuration.local([ShieldedCategories.schema]);
-    _realm = Realm(shieldedCategories);
-    _isRealmInitialized = true;
-    debugPrint("schemaVersion: ${shieldedCategories.schemaVersion}");
-    final shieldedCategoriesList = _realm.all<ShieldedCategories>();
-
-    for (var category in shieldedCategoriesList) {
-      debugPrint("ShieldedCategory: ${category.toString()}");
-
-      // 获取RealmMap
-      final realmMap = category.map;
-
-      // 将RealmMap转换为Dart Map
-      realmMap.forEach((key, value) {
-        _shieldCategoriesMap[key] = value;
-      });
-
-      // 打印Dart Map
-      debugPrint("Dart Map: $_shieldCategoriesMap");
-    }
+    _shieldCategoriesMap = bikaSetting.getShieldCategoryMap();
 
     inputController = TextEditingController();
     focusNode = FocusNode();
@@ -110,9 +84,6 @@ class _ComicSearchPageState extends ConsumerState<ComicSearchPage> {
   @override
   void dispose() {
     _controller.dispose();
-    if (_isRealmInitialized) {
-      _realm.close();
-    }
     inputController.dispose();
     focusNode.dispose();
     focusScopeNode.dispose();
@@ -182,23 +153,8 @@ class _ComicSearchPageState extends ConsumerState<ComicSearchPage> {
   }
 
   Future<void> _showShieldCategoryDialog(BuildContext context) {
-    // 从realm中读取最新的值
-    final shieldedCategoriesList = _realm.all<ShieldedCategories>();
     _shieldCategoriesMap = {};
-    for (var category in shieldedCategoriesList) {
-      debugPrint("ShieldedCategory: ${category.toString()}");
-
-      // 获取RealmMap
-      final realmMap = category.map;
-
-      // 将RealmMap转换为Dart Map
-      realmMap.forEach((key, value) {
-        _shieldCategoriesMap[key] = value;
-      });
-
-      // 打印Dart Map
-      debugPrint("Dart Map: $_shieldCategoriesMap");
-    }
+    _shieldCategoriesMap = bikaSetting.getShieldCategoryMap();
 
     // 在弹出对话框之前保存原始的_categoriesMap副本
     final Map<String, bool> originalCategoriesMap =
@@ -336,8 +292,6 @@ class _ComicSearchPageState extends ConsumerState<ComicSearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorNotifier = ref.watch(defaultColorProvider);
-    colorNotifier.initialize(context); // 显式初始化
     String label = "搜索本子";
 
     if (_categories.isNotEmpty) {
@@ -358,11 +312,11 @@ class _ComicSearchPageState extends ConsumerState<ComicSearchPage> {
           label: label,
           controller: _controller,
           labelStyle: TextStyle(
-            color: colorNotifier.defaultTextColor,
+            color: globalSetting.textColor,
             fontWeight: FontWeight.normal,
           ),
-          searchStyle: TextStyle(color: colorNotifier.defaultTextColor),
-          cursorColor: colorNotifier.defaultTextColor,
+          searchStyle: TextStyle(color: globalSetting.textColor),
+          cursorColor: globalSetting.textColor,
           searchDecoration: InputDecoration(
             labelText: '搜索本子',
             alignLabelWithHint: true,
@@ -413,10 +367,10 @@ class _ComicSearchPageState extends ConsumerState<ComicSearchPage> {
             child: Container(
               height: 35,
               decoration: BoxDecoration(
-                color: colorNotifier.defaultBackgroundColor,
+                color: globalSetting.backgroundColor,
                 boxShadow: [
                   BoxShadow(
-                    color: colorNotifier.themeType
+                    color: globalSetting.themeType
                         ? Colors.black.withOpacity(0.2)
                         : Colors.white.withOpacity(0.3),
                     spreadRadius: 2,
@@ -513,33 +467,8 @@ class _ComicSearchPageState extends ConsumerState<ComicSearchPage> {
                           // 这个回调会在对话框关闭后执行
                           if (!const MapEquality()
                               .equals(_shieldCategoriesMap, oldCategoriesMap)) {
-                            debugPrint("屏蔽分类：$_shieldCategoriesMap");
-                            debugPrint("屏蔽分类：$oldCategoriesMap");
-
-                            var temp = _realm
-                                .find<ShieldedCategories>("ShieldedCategories");
-
-                            _realm.write(() {
-                              _shieldCategoriesMap.forEach((key, value) {
-                                temp?.map[key] = value;
-                              });
-                            });
-
-                            // 重新查询以确保获取最新的对象
-                            temp = _realm
-                                .find<ShieldedCategories>("ShieldedCategories");
-
-                            // 将RealmMap转换为Dart Map
-                            Map<String, bool> dartMap = {
-                              for (var key in temp!.map.keys)
-                                key: temp.map[key] as bool
-                            };
-
-                            // 打印Dart Map
-                            debugPrint("Dart Map: $dartMap");
-
-                            // 更新全局变量
-                            shieldCategoryMapRealm = dartMap;
+                            bikaSetting
+                                .setShieldCategoryMap(_shieldCategoriesMap);
 
                             setState(
                               () {

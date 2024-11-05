@@ -17,11 +17,22 @@ String searchCategoryToJson(SearchCategory data) => json.encode(data.toJson());
 @freezed
 class SearchCategory with _$SearchCategory {
   const factory SearchCategory({
-    @JsonKey(name: "categories") required List<Category> categories,
+    @JsonKey(name: "code") required int code,
+    @JsonKey(name: "message") required String message,
+    @JsonKey(name: "data") required Data data,
   }) = _SearchCategory;
 
   factory SearchCategory.fromJson(Map<String, dynamic> json) =>
       _$SearchCategoryFromJson(json);
+}
+
+@freezed
+class Data with _$Data {
+  const factory Data({
+    @JsonKey(name: "categories") required List<Category> categories,
+  }) = _Data;
+
+  factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 }
 
 @freezed

@@ -8,12 +8,25 @@ part of 'hot_list.dart';
 
 _$HotListImpl _$$HotListImplFromJson(Map<String, dynamic> json) =>
     _$HotListImpl(
+      code: (json['code'] as num).toInt(),
+      message: json['message'] as String,
+      data: Data.fromJson(json['data'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$$HotListImplToJson(_$HotListImpl instance) =>
+    <String, dynamic>{
+      'code': instance.code,
+      'message': instance.message,
+      'data': instance.data,
+    };
+
+_$DataImpl _$$DataImplFromJson(Map<String, dynamic> json) => _$DataImpl(
       comics: (json['comics'] as List<dynamic>)
           .map((e) => Comic.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
-Map<String, dynamic> _$$HotListImplToJson(_$HotListImpl instance) =>
+Map<String, dynamic> _$$DataImplToJson(_$DataImpl instance) =>
     <String, dynamic>{
       'comics': instance.comics,
     };
@@ -52,14 +65,14 @@ Map<String, dynamic> _$$ComicImplToJson(_$ComicImpl instance) =>
     };
 
 _$ThumbImpl _$$ThumbImplFromJson(Map<String, dynamic> json) => _$ThumbImpl(
-      fileServer: json['fileServer'] as String,
-      path: json['path'] as String,
       originalName: json['originalName'] as String,
+      path: json['path'] as String,
+      fileServer: json['fileServer'] as String,
     );
 
 Map<String, dynamic> _$$ThumbImplToJson(_$ThumbImpl instance) =>
     <String, dynamic>{
-      'fileServer': instance.fileServer,
-      'path': instance.path,
       'originalName': instance.originalName,
+      'path': instance.path,
+      'fileServer': instance.fileServer,
     };

@@ -16,11 +16,22 @@ String hotListToJson(HotList data) => json.encode(data.toJson());
 @freezed
 class HotList with _$HotList {
   const factory HotList({
-    @JsonKey(name: "comics") required List<Comic> comics,
+    @JsonKey(name: "code") required int code,
+    @JsonKey(name: "message") required String message,
+    @JsonKey(name: "data") required Data data,
   }) = _HotList;
 
   factory HotList.fromJson(Map<String, dynamic> json) =>
       _$HotListFromJson(json);
+}
+
+@freezed
+class Data with _$Data {
+  const factory Data({
+    @JsonKey(name: "comics") required List<Comic> comics,
+  }) = _Data;
+
+  factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 }
 
 @freezed
@@ -46,9 +57,9 @@ class Comic with _$Comic {
 @freezed
 class Thumb with _$Thumb {
   const factory Thumb({
-    @JsonKey(name: "fileServer") required String fileServer,
-    @JsonKey(name: "path") required String path,
     @JsonKey(name: "originalName") required String originalName,
+    @JsonKey(name: "path") required String path,
+    @JsonKey(name: "fileServer") required String fileServer,
   }) = _Thumb;
 
   factory Thumb.fromJson(Map<String, dynamic> json) => _$ThumbFromJson(json);

@@ -8,13 +8,26 @@ part of 'creator_ranking.dart';
 
 _$CreatorRankingImpl _$$CreatorRankingImplFromJson(Map<String, dynamic> json) =>
     _$CreatorRankingImpl(
+      code: (json['code'] as num).toInt(),
+      message: json['message'] as String,
+      data: Data.fromJson(json['data'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$$CreatorRankingImplToJson(
+        _$CreatorRankingImpl instance) =>
+    <String, dynamic>{
+      'code': instance.code,
+      'message': instance.message,
+      'data': instance.data,
+    };
+
+_$DataImpl _$$DataImplFromJson(Map<String, dynamic> json) => _$DataImpl(
       users: (json['users'] as List<dynamic>)
           .map((e) => User.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
-Map<String, dynamic> _$$CreatorRankingImplToJson(
-        _$CreatorRankingImpl instance) =>
+Map<String, dynamic> _$$DataImplToJson(_$DataImpl instance) =>
     <String, dynamic>{
       'users': instance.users,
     };

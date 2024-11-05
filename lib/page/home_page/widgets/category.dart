@@ -1,0 +1,207 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:zephyr/widgets/picture_bloc/bloc/picture_bloc.dart';
+
+import '../../../config/global.dart';
+import '../../../main.dart';
+import '../../../type/search_enter.dart';
+import '../../../util/router.dart';
+import '../../../widgets/picture_bloc/models/picture_info.dart';
+import '../models/category.dart';
+
+List<Widget> buildCategoriesWidget(List<HomeCategory> data) {
+  List<Widget> widgets = List.generate(
+    data.length,
+    (index) => SizedBox(
+      width: screenWidth / 4,
+      height: screenWidth / 4 + 50,
+      child: CategoryWidget(category: data[index]),
+    ),
+  );
+
+  // 确定需要多少行，以及最后一行是否需要填充
+  int rowsCount = (widgets.length / 3).ceil();
+  int remainingItems = widgets.length % 3;
+
+  // 如果最后一行不足三个组件，则添加占位符
+  if (remainingItems != 0) {
+    int placeholdersToAdd = 3 - remainingItems;
+    widgets.addAll(
+      List.generate(
+        placeholdersToAdd,
+        (index) => SizedBox(
+          width: screenWidth / 4,
+          height: screenWidth / 4,
+        ),
+      ),
+    );
+  }
+
+  // 将列表分成每三个一组
+  List<Widget> rows = [];
+  for (var i = 0; i < rowsCount; i++) {
+    rows.add(
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          widgets[i * 3],
+          widgets[i * 3 + 1],
+          widgets[i * 3 + 2],
+        ],
+      ),
+    );
+  }
+
+  return rows;
+}
+
+class CategoryWidget extends StatelessWidget {
+  final HomeCategory category;
+
+  const CategoryWidget({super.key, required this.category});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => PictureBloc()
+        ..add(PictureImage(
+          PictureInfo(
+            from: "bika",
+            url: category.homeThumb.fileServer,
+            path: category.homeThumb.path,
+            pictureType: "category",
+          ),
+        )),
+      child: BlocBuilder<PictureBloc, PictureLoadState>(
+        builder: (context, state) {
+          if (category.homeThumb.path.isEmpty) {
+            return _buildDefaultImage(context);
+          }
+          if (state.status == PictureLoadStatus.initial) {
+            return Observer(
+              builder: (context) {
+                return Center(
+                  child: LoadingAnimationWidget.waveDots(
+                    color: globalSetting.textColor,
+                    size: 25,
+                  ),
+                );
+              },
+            );
+          } else if (state.status == PictureLoadStatus.success) {
+            return InkWell(
+              onTap: () => _navigateBasedOnTitle(context),
+              child: Column(
+                children: <Widget>[
+                  _buildImage(state.imagePath!),
+                  SizedBox(height: 5),
+                  Text(
+                    category.title,
+                    style: TextStyle(
+                      color: globalSetting.textColor,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          } else if (state.status == PictureLoadStatus.failure) {
+            return InkWell(
+              onTap: () {
+                context.read<PictureBloc>().add(
+                      PictureImage(
+                        PictureInfo(
+                          from: "bika",
+                          url: category.homeThumb.fileServer,
+                          path: category.homeThumb.path,
+                          pictureType: "category",
+                        ),
+                      ),
+                    );
+              },
+              child: Icon(Icons.refresh),
+            );
+          }
+          return SizedBox.shrink(); // 避免状态未定义导致的错误
+        },
+      ),
+    );
+  }
+
+  Widget _buildDefaultImage(BuildContext context) {
+    return InkWell(
+      highlightColor: Colors.transparent,
+      splashColor: Colors.transparent,
+      onTap: () {
+        // 根据类别处理点击事件
+        if (category.title == '最近更新') {
+          navigateTo(context, '/search', extra: SearchEnter());
+        } else if (category.title == '随机本子') {
+          navigateTo(context, '/search',
+              extra: SearchEnter(
+                  url: "https://picaapi.picacomic.com/comics/random"));
+        }
+      },
+      child: Column(
+        children: <Widget>[
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10.0),
+            child: SizedBox(
+              width: screenWidth / 4,
+              height: screenWidth / 4,
+              child: Image.asset(category.link, fit: BoxFit.cover),
+            ),
+          ),
+          SizedBox(height: 5),
+          Text(category.title),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImage(String imagePath) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10.0),
+      child: SizedBox(
+        width: screenWidth / 4,
+        height: screenWidth / 4,
+        child: Image.file(File(imagePath), fit: BoxFit.cover),
+      ),
+    );
+  }
+
+  void _navigateBasedOnTitle(BuildContext context) {
+    // 处理不同标题的导航操作
+    if (category.title == '大家都在看') {
+      navigateTo(context, '/search',
+          extra: SearchEnter(
+              url:
+                  "https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E5%AE%B6%E9%83%BD%E5%9C%A8%E7%9C%8B&s=dd"));
+    } else if (category.title == '大濕推薦') {
+      navigateTo(context, '/search',
+          extra: SearchEnter(
+              url:
+                  "https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E6%BF%95%E6%8E%A8%E8%96%A6&s=dd"));
+    } else if (category.title == '那年今天') {
+      navigateTo(context, '/search',
+          extra: SearchEnter(
+              url:
+                  "https://picaapi.picacomic.com/comics?page=1&c=%E9%82%A3%E5%B9%B4%E4%BB%8A%E5%A4%A9&s=dd"));
+    } else if (category.title == '官方都在看') {
+      navigateTo(context, '/search',
+          extra: SearchEnter(
+              url:
+                  "https://picaapi.picacomic.com/comics?page=1&c=%E5%AE%98%E6%96%B9%E9%83%BD%E5%9C%A8%E7%9C%8B&s=dd"));
+    } else if (category.isWeb) {
+      List<String> info = [category.title, category.link];
+      navigateTo(context, '/webview', extra: info);
+    } else {
+      navigateTo(context, '/search',
+          extra: SearchEnter(categories: [category.title]));
+    }
+  }
+}

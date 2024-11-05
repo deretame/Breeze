@@ -31,3 +31,14 @@ Future<String> getDownloadPath() async {
   final downloadsDir = "${await getFilePath()}/downloads";
   return downloadsDir; // 返回空字符串或者合适的错误信息
 }
+
+// 获取日志目录
+Future<File> getLogPath() async {
+  String dir = (await getApplicationDocumentsDirectory()).path;
+  final String filename = "$dir/breeze.log";
+  final file = File(filename);
+  if (!await file.exists()) {
+    await file.create();
+  }
+  return file;
+}

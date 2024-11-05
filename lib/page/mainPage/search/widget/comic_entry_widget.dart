@@ -1,17 +1,16 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:zephyr/config/global.dart';
 import 'package:zephyr/json/search_bar/search_result.dart';
 import 'package:zephyr/util/router.dart';
 
+import '../../../../main.dart';
 import '../../../../network/http/picture.dart';
-import '../../../../util/state_management.dart';
 import '../../../../widgets/full_screen_image_view.dart';
 
-class ComicEntryWidget extends ConsumerStatefulWidget {
+class ComicEntryWidget extends StatefulWidget {
   final Doc doc;
 
   const ComicEntryWidget({
@@ -20,10 +19,10 @@ class ComicEntryWidget extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ComicEntryWidget> createState() => _ComicEntryWidgetState();
+  State<ComicEntryWidget> createState() => _ComicEntryWidgetState();
 }
 
-class _ComicEntryWidgetState extends ConsumerState<ComicEntryWidget> {
+class _ComicEntryWidgetState extends State<ComicEntryWidget> {
   Doc get doc => widget.doc;
 
   String _getCategories(List<String>? categories) {
@@ -54,9 +53,6 @@ class _ComicEntryWidgetState extends ConsumerState<ComicEntryWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final colorNotifier = ref.watch(defaultColorProvider);
-    colorNotifier.initialize(context);
-
     return InkWell(
       onTap: () {
         // 跳转到漫画详情页
@@ -70,11 +66,11 @@ class _ComicEntryWidgetState extends ConsumerState<ComicEntryWidget> {
             width: ((screenWidth / 10) * 9.5),
             margin: EdgeInsets.symmetric(horizontal: (screenWidth / 10) * 0.25),
             decoration: BoxDecoration(
-              color: colorNotifier.defaultBackgroundColor,
+              color: globalSetting.backgroundColor,
               borderRadius: BorderRadius.circular(10.0),
               boxShadow: [
                 BoxShadow(
-                  color: colorNotifier.themeType
+                  color: globalSetting.themeType
                       ? Colors.black.withOpacity(0.2)
                       : Colors.white.withOpacity(0.3),
                   spreadRadius: 1,
@@ -103,14 +99,14 @@ class _ComicEntryWidgetState extends ConsumerState<ComicEntryWidget> {
                             TextSpan(
                               text: _getLimitedTitle(doc.title, 30),
                               style: TextStyle(
-                                color: colorNotifier.defaultTextColor,
+                                color: globalSetting.textColor,
                                 fontSize: 18,
                               ),
                             ),
                             TextSpan(
                               text: doc.finished ? "(完)" : "",
                               style: TextStyle(
-                                color: colorNotifier.themeType
+                                color: globalSetting.themeType
                                     ? Colors.red
                                     : Colors.yellow,
                               ),
@@ -123,7 +119,7 @@ class _ComicEntryWidgetState extends ConsumerState<ComicEntryWidget> {
                         Text(
                           _getLimitedTitle(doc.author.toString(), 40),
                           style: TextStyle(
-                            color: colorNotifier.themeType
+                            color: globalSetting.themeType
                                 ? Colors.red
                                 : Colors.yellow,
                           ),
@@ -133,7 +129,7 @@ class _ComicEntryWidgetState extends ConsumerState<ComicEntryWidget> {
                       Text(
                         _getCategories(doc.categories),
                         style: TextStyle(
-                          color: colorNotifier.defaultTextColor,
+                          color: globalSetting.textColor,
                         ),
                       ),
                       Spacer(),
@@ -164,7 +160,7 @@ class _ComicEntryWidgetState extends ConsumerState<ComicEntryWidget> {
   }
 }
 
-class ImageWidget extends ConsumerStatefulWidget {
+class ImageWidget extends StatefulWidget {
   final String fileServer;
   final String path;
   final String id;
@@ -179,10 +175,10 @@ class ImageWidget extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ImageWidget> createState() => _ImageWidgetState();
+  State<ImageWidget> createState() => _ImageWidgetState();
 }
 
-class _ImageWidgetState extends ConsumerState<ImageWidget> {
+class _ImageWidgetState extends State<ImageWidget> {
   late Future<String> _getCachePicture;
 
   @override
@@ -195,9 +191,9 @@ class _ImageWidgetState extends ConsumerState<ImageWidget> {
     // 重新初始化 _getCachePicture，以触发 FutureBuilder 重建
     setState(() {
       _getCachePicture = getCachePicture(
-        widget.fileServer,
-        widget.path,
-        widget.id,
+        url: widget.fileServer,
+        path: widget.path,
+        cartoonId: widget.id,
         pictureType: widget.pictureType,
       );
     });
@@ -205,9 +201,6 @@ class _ImageWidgetState extends ConsumerState<ImageWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final colorNotifier = ref.watch(defaultColorProvider);
-    colorNotifier.initialize(context);
-
     return SizedBox(
       width: (screenWidth / 10) * 3,
       height: 180,
@@ -227,7 +220,7 @@ class _ImageWidgetState extends ConsumerState<ImageWidget> {
                     child: Text(
                       '加载图片失败\n点击重新加载',
                       style: TextStyle(
-                        color: colorNotifier.defaultTextColor,
+                        color: globalSetting.textColor,
                       ),
                     ),
                   ),

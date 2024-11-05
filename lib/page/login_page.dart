@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zephyr/config/authorization.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/util/dialog.dart';
 import 'package:zephyr/util/router.dart';
 
@@ -86,23 +86,24 @@ class _LoginPageState extends State<LoginPage> {
     if (!mounted) return;
     Navigator.of(context).pop(); // 关闭加载对话框
 
-    debugPrint(result);
+    debugPrint(result.toString());
 
-    if (result == "true") {
-      setAccount(_account.text);
-      setPassword(_password.text);
+    if (result['message'] == "success") {
+      bikaSetting.setAccount(_account.text);
+      bikaSetting.setPassword(_password.text);
+      bikaSetting.setAuthorization(result['data']['token']);
       _showDialog("登录成功", "正在跳转...");
       Future.delayed(const Duration(seconds: 2), () {
         // 检查State是否仍然挂载
         if (!mounted) return;
         if (inited == false) {
-          navigateToNoReturn(context, "/init");
+          navigateToNoReturn(context, "/main");
         } else {
           navigateToNoReturn(context, "/main");
         }
       });
     } else {
-      _showDialog("登录失败", result);
+      _showDialog("登录失败", result.toString());
     }
   }
 

@@ -1,7 +1,8 @@
 plugins {
-    id 'com.android.application'
-    id 'kotlin-android'
-    id 'dev.flutter.flutter-gradle-plugin'
+    id "com.android.application"
+    id "kotlin-android"
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id "dev.flutter.flutter-gradle-plugin"
 }
 
 def keystoreProperties = new Properties()
@@ -11,17 +12,17 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace "com.zephyr.breeze"
-    compileSdk flutter.compileSdkVersion
-    ndkVersion flutter.ndkVersion
+    namespace = "com.zephyr.breeze"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = JavaVersion.VERSION_1_8
     }
 
     java {
@@ -51,14 +52,15 @@ android {
             signingConfig signingConfigs.release
         }
     }
-
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
-        kotlinOptions {
-            jvmTarget = "1.8"
-        }
-    }
 }
 
 flutter {
-    source '../..'
+    source = "../.."
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'androidx.core:core:1.6.0'
+        force 'androidx.core:core-ktx:1.6.0'
+    }
 }

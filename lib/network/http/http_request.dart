@@ -3,29 +3,24 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 
-import '../../config/authorization.dart';
 import 'http_request_build.dart';
 
-Future<String> login(String username, String password) async {
+Future<Map<String, dynamic>> login(
+  String username,
+  String password,
+) async {
   final Map<String, dynamic> data = await request(
-      'https://picaapi.picacomic.com/auth/sign-in',
-      'POST',
-      json.encode({'email': username, 'password': password}));
+    'https://picaapi.picacomic.com/auth/sign-in',
+    'POST',
+    body: json.encode({'email': username, 'password': password}),
+  );
   debugPrint(data.toString());
 
   if (data['code'] != 200) {
-    return data.toString();
+    throw data;
   }
 
-  if (data['data'] != null && data['data']['token'] != null) {
-    final String token = data['data']['token'];
-    setAuthorization(token);
-    debugPrint('Authorization is set to $token');
-    return "true";
-  } else {
-    debugPrint('Authorization is not set');
-    throw Exception('未知错误');
-  }
+  return data;
 }
 
 Future<Map<String, dynamic>> register(
@@ -50,10 +45,15 @@ Future<Map<String, dynamic>> register(
   };
 
   final Map<String, dynamic> data = await request(
-      'https://picaapi.picacomic.com/auth/register',
-      'POST',
-      json.encode(jsonMap));
+    'https://picaapi.picacomic.com/auth/register',
+    'POST',
+    body: json.encode(jsonMap),
+  );
   debugPrint(data.toString());
+
+  if (data['code'] != 200) {
+    throw data;
+  }
 
   return data;
 }
@@ -62,18 +62,14 @@ Future<Map<String, dynamic>> getCategories() async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/categories',
     'GET',
+    cache: false,
   );
 
   if (data['code'] != 200) {
-    return data;
+    throw data;
   }
 
-  if (data['data'] != null) {
-    return data['data'];
-  } else {
-    debugPrint('Search result is null');
-    throw Exception('未知错误');
-  }
+  return data;
 }
 
 Future<Map<String, dynamic>> getRankingList(
@@ -93,18 +89,14 @@ Future<Map<String, dynamic>> getRankingList(
   final Map<String, dynamic> data = await request(
     url,
     'GET',
+    cache: true,
   );
 
   if (data['code'] != 200) {
-    return data;
+    throw data;
   }
 
-  if (data['data'] != null) {
-    return data['data'];
-  } else {
-    debugPrint('Search result is null');
-    throw Exception('未知错误');
-  }
+  return data;
 }
 
 Future<Map<String, dynamic>> search({
@@ -173,7 +165,7 @@ Future<Map<String, dynamic>> search({
     data = await request(
       'https://picaapi.picacomic.com/comics/advanced-search?page=$pageCount',
       'POST',
-      json.encode(jsonMap),
+      body: json.encode(jsonMap),
     );
   }
 
@@ -184,22 +176,20 @@ Future<Map<String, dynamic>> search({
   debugPrint(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
-    return data;
+    throw data;
   }
 
-  if (data['data'] != null) {
-    return data['data'];
-  } else {
-    debugPrint('Search result is null');
-    throw Exception('未知错误');
-  }
+  return data;
 }
 
 Future<Map<String, dynamic>> getComicInfo(
   String comicId,
 ) async {
-  final Map<String, dynamic> data =
-      await request('https://picaapi.picacomic.com/comics/$comicId', 'GET');
+  final Map<String, dynamic> data = await request(
+    'https://picaapi.picacomic.com/comics/$comicId',
+    'GET',
+    cache: true,
+  );
 
   String limitString(String str, int maxLength) {
     return str.substring(0, min(str.length, maxLength));
@@ -208,15 +198,10 @@ Future<Map<String, dynamic>> getComicInfo(
   debugPrint(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
-    return data;
+    throw data;
   }
 
-  if (data['data'] != null) {
-    return data['data'];
-  } else {
-    debugPrint('Search result is null');
-    throw Exception('未知错误');
-  }
+  return data;
 }
 
 Future<Map<String, dynamic>> collect(
@@ -232,15 +217,10 @@ Future<Map<String, dynamic>> collect(
   debugPrint(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
-    return data;
+    throw data;
   }
 
-  if (data['data'] != null) {
-    return data['data'];
-  } else {
-    debugPrint('Search result is null');
-    throw Exception('未知错误');
-  }
+  return data;
 }
 
 Future<Map<String, dynamic>> like(
@@ -256,15 +236,10 @@ Future<Map<String, dynamic>> like(
   debugPrint(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
-    return data;
+    throw data;
   }
 
-  if (data['data'] != null) {
-    return data['data'];
-  } else {
-    debugPrint('Search result is null');
-    throw Exception('未知错误');
-  }
+  return data;
 }
 
 Future<Map<String, dynamic>> getEps(
@@ -272,8 +247,10 @@ Future<Map<String, dynamic>> getEps(
   int pageCount,
 ) async {
   final Map<String, dynamic> data = await request(
-      'https://picaapi.picacomic.com/comics/$comicId/eps?page=$pageCount',
-      'GET');
+    'https://picaapi.picacomic.com/comics/$comicId/eps?page=$pageCount',
+    'GET',
+    cache: true,
+  );
 
   String limitString(String str, int maxLength) {
     return str.substring(0, min(str.length, maxLength));
@@ -282,15 +259,10 @@ Future<Map<String, dynamic>> getEps(
   debugPrint(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
-    return data;
+    throw data;
   }
 
-  if (data['data'] != null) {
-    return data['data'];
-  } else {
-    debugPrint('Search result is null');
-    throw Exception('未知错误');
-  }
+  return data;
 }
 
 Future<Map<String, dynamic>> getComic(
@@ -299,8 +271,10 @@ Future<Map<String, dynamic>> getComic(
   int pageCount,
 ) async {
   final Map<String, dynamic> data = await request(
-      'https://picaapi.picacomic.com/comics/$comicId/order/$epId/pages?page=$pageCount',
-      'GET');
+    'https://picaapi.picacomic.com/comics/$comicId/order/$epId/pages?page=$pageCount',
+    'GET',
+    cache: true,
+  );
 
   String limitString(String str, int maxLength) {
     return str.substring(0, min(str.length, maxLength));
@@ -309,15 +283,10 @@ Future<Map<String, dynamic>> getComic(
   debugPrint(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
-    return data;
+    throw data;
   }
 
-  if (data['data'] != null) {
-    return data['data'];
-  } else {
-    debugPrint('Search result is null');
-    throw Exception('未知错误');
-  }
+  return data;
 }
 
 Future<Map<String, dynamic>> getPersonalInfo() async {
@@ -340,11 +309,11 @@ Future<Map<String, dynamic>> getPersonalInfo() async {
     return data['data'];
   } else {
     debugPrint('Search result is null');
-    return ({"error": '未知错误'});
+    throw '未知错误';
   }
 }
 
-Future<Map<String, dynamic>> punchIn() async {
+Future<Map<String, dynamic>> signIn() async {
   final Map<String, dynamic> data =
       await request('https://picaapi.picacomic.com/users/punch-in', 'POST');
   debugPrint(data.toString());
@@ -359,10 +328,11 @@ Future<Map<String, dynamic>> punchIn() async {
     return data;
   }
 
-  if (data['message'] == 'success' && data['data']['res']['status'] == 'fail') {
+  if (data['data']['message'] == 'success' &&
+      data['data']['res']['status'] == 'fail') {
     return {"success": "已签到"};
   } else {
     debugPrint('Search result is null');
-    return ({"error": '未知错误'});
+    throw '未知错误';
   }
 }

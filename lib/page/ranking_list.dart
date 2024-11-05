@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:zephyr/json/creator_ranking.dart';
+import 'package:zephyr/main.dart';
 
 import '../config/global.dart';
 import '../json/search_bar/hot_list.dart';
@@ -11,17 +11,16 @@ import '../network/http/http_request.dart';
 import '../network/http/picture.dart';
 import '../type/search_enter.dart';
 import '../util/router.dart';
-import '../util/state_management.dart';
 import '../widgets/full_screen_image_view.dart';
 
-class RankingListPage extends ConsumerStatefulWidget {
+class RankingListPage extends StatefulWidget {
   const RankingListPage({super.key});
 
   @override
-  ConsumerState<RankingListPage> createState() => _RankingListPageState();
+  State<RankingListPage> createState() => _RankingListPageState();
 }
 
-class _RankingListPageState extends ConsumerState<RankingListPage> {
+class _RankingListPageState extends State<RankingListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,7 +91,7 @@ class _HotTabBarState extends State<HotTabBar> with TickerProviderStateMixin {
   }
 }
 
-class RankingListWidget extends ConsumerStatefulWidget {
+class RankingListWidget extends StatefulWidget {
   final String type;
 
   const RankingListWidget({
@@ -101,10 +100,10 @@ class RankingListWidget extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<RankingListWidget> createState() => _RankingListWidgetState();
+  State<RankingListWidget> createState() => _RankingListWidgetState();
 }
 
-class _RankingListWidgetState extends ConsumerState<RankingListWidget> {
+class _RankingListWidgetState extends State<RankingListWidget> {
   String get type => widget.type;
 
   late Future<List<Comic>> _fetchRankings;
@@ -118,15 +117,10 @@ class _RankingListWidgetState extends ConsumerState<RankingListWidget> {
   // 获取章节列表并正序
   Future<List<Comic>> fetchRankings() async {
     var result = await getRankingList(days: type, 'comic');
-    if (result['error'] != null) {
-      throw Exception(result);
-    }
-    if (result['code'] != null) {
-      throw Exception(result);
-    }
+
     var temp = HotList.fromJson(result);
     List<Comic> comicList = [];
-    for (var item in temp.comics) {
+    for (var item in temp.data.comics) {
       comicList.add(item);
     }
 
@@ -194,7 +188,7 @@ class _RankingListWidgetState extends ConsumerState<RankingListWidget> {
   }
 }
 
-class _ComicEntryWidget extends ConsumerStatefulWidget {
+class _ComicEntryWidget extends StatefulWidget {
   final String type;
   final Comic comic;
 
@@ -204,10 +198,10 @@ class _ComicEntryWidget extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<_ComicEntryWidget> createState() => _ComicEntryWidgetState();
+  State<_ComicEntryWidget> createState() => _ComicEntryWidgetState();
 }
 
-class _ComicEntryWidgetState extends ConsumerState<_ComicEntryWidget> {
+class _ComicEntryWidgetState extends State<_ComicEntryWidget> {
   String get type => widget.type;
 
   late String _type;
@@ -254,9 +248,6 @@ class _ComicEntryWidgetState extends ConsumerState<_ComicEntryWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final colorNotifier = ref.watch(defaultColorProvider);
-    colorNotifier.initialize(context);
-
     return InkWell(
       onTap: () {
         // 跳转到漫画详情页
@@ -270,11 +261,11 @@ class _ComicEntryWidgetState extends ConsumerState<_ComicEntryWidget> {
             width: ((screenWidth / 10) * 9.5),
             margin: EdgeInsets.symmetric(horizontal: (screenWidth / 10) * 0.25),
             decoration: BoxDecoration(
-              color: colorNotifier.defaultBackgroundColor,
+              color: globalSetting.backgroundColor,
               borderRadius: BorderRadius.circular(10.0),
               boxShadow: [
                 BoxShadow(
-                  color: colorNotifier.themeType
+                  color: globalSetting.themeType
                       ? Colors.black.withOpacity(0.2)
                       : Colors.white.withOpacity(0.3),
                   spreadRadius: 1,
@@ -303,14 +294,14 @@ class _ComicEntryWidgetState extends ConsumerState<_ComicEntryWidget> {
                             TextSpan(
                               text: _getLimitedTitle(comic.title, 30),
                               style: TextStyle(
-                                color: colorNotifier.defaultTextColor,
+                                color: globalSetting.textColor,
                                 fontSize: 18,
                               ),
                             ),
                             TextSpan(
                               text: comic.finished ? "(完)" : "",
                               style: TextStyle(
-                                color: colorNotifier.themeType
+                                color: globalSetting.themeType
                                     ? Colors.red
                                     : Colors.yellow,
                               ),
@@ -323,7 +314,7 @@ class _ComicEntryWidgetState extends ConsumerState<_ComicEntryWidget> {
                         Text(
                           _getLimitedTitle(comic.author.toString(), 40),
                           style: TextStyle(
-                            color: colorNotifier.themeType
+                            color: globalSetting.themeType
                                 ? Colors.red
                                 : Colors.yellow,
                           ),
@@ -333,7 +324,7 @@ class _ComicEntryWidgetState extends ConsumerState<_ComicEntryWidget> {
                       Text(
                         _getCategories(comic.categories),
                         style: TextStyle(
-                          color: colorNotifier.defaultTextColor,
+                          color: globalSetting.textColor,
                         ),
                       ),
                       Spacer(),
@@ -364,7 +355,7 @@ class _ComicEntryWidgetState extends ConsumerState<_ComicEntryWidget> {
   }
 }
 
-class _ImageWidget extends ConsumerStatefulWidget {
+class _ImageWidget extends StatefulWidget {
   final String fileServer;
   final String path;
   final String id;
@@ -378,10 +369,10 @@ class _ImageWidget extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<_ImageWidget> createState() => _ImageWidgetState();
+  State<_ImageWidget> createState() => _ImageWidgetState();
 }
 
-class _ImageWidgetState extends ConsumerState<_ImageWidget> {
+class _ImageWidgetState extends State<_ImageWidget> {
   late Future<String> _getCachePicture;
 
   @override
@@ -394,9 +385,9 @@ class _ImageWidgetState extends ConsumerState<_ImageWidget> {
     // 重新初始化 _getCachePicture，以触发 FutureBuilder 重建
     setState(() {
       _getCachePicture = getCachePicture(
-        widget.fileServer,
-        widget.path,
-        widget.id,
+        url: widget.fileServer,
+        path: widget.path,
+        cartoonId: widget.id,
         pictureType: widget.pictureType,
       );
     });
@@ -404,9 +395,6 @@ class _ImageWidgetState extends ConsumerState<_ImageWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final colorNotifier = ref.watch(defaultColorProvider);
-    colorNotifier.initialize(context);
-
     return SizedBox(
       width: (screenWidth / 10) * 3,
       height: 180,
@@ -426,7 +414,7 @@ class _ImageWidgetState extends ConsumerState<_ImageWidget> {
                     child: Text(
                       '加载图片失败\n点击重新加载',
                       style: TextStyle(
-                        color: colorNotifier.defaultTextColor,
+                        color: globalSetting.textColor,
                       ),
                     ),
                   ),
@@ -476,14 +464,12 @@ class _ImageWidgetState extends ConsumerState<_ImageWidget> {
   }
 }
 
-class _CreatorRankingsWidget extends ConsumerStatefulWidget {
+class _CreatorRankingsWidget extends StatefulWidget {
   @override
-  ConsumerState<_CreatorRankingsWidget> createState() =>
-      _CreatorRankingsWidgetState();
+  State<_CreatorRankingsWidget> createState() => _CreatorRankingsWidgetState();
 }
 
-class _CreatorRankingsWidgetState
-    extends ConsumerState<_CreatorRankingsWidget> {
+class _CreatorRankingsWidgetState extends State<_CreatorRankingsWidget> {
   late Future<List<User>> _fetchRankings;
 
   @override
@@ -495,15 +481,9 @@ class _CreatorRankingsWidgetState
   // 获取章节列表并正序
   Future<List<User>> fetchRankings() async {
     var result = await getRankingList('creator');
-    if (result['error'] != null) {
-      throw Exception(result);
-    }
-    if (result['code'] != null) {
-      throw Exception(result);
-    }
     var temp = CreatorRanking.fromJson(result);
     List<User> creatorList = [];
-    for (var item in temp.users) {
+    for (var item in temp.data.users) {
       creatorList.add(item);
     }
 
@@ -570,16 +550,16 @@ class _CreatorRankingsWidgetState
   }
 }
 
-class _CreatorInfoWidget extends ConsumerStatefulWidget {
+class _CreatorInfoWidget extends StatefulWidget {
   final User user;
 
   const _CreatorInfoWidget({required this.user});
 
   @override
-  ConsumerState<_CreatorInfoWidget> createState() => _CreatorInfoWidgetState();
+  State<_CreatorInfoWidget> createState() => _CreatorInfoWidgetState();
 }
 
-class _CreatorInfoWidgetState extends ConsumerState<_CreatorInfoWidget>
+class _CreatorInfoWidgetState extends State<_CreatorInfoWidget>
     with AutomaticKeepAliveClientMixin<_CreatorInfoWidget> {
   User get user => widget.user;
 
@@ -589,8 +569,6 @@ class _CreatorInfoWidgetState extends ConsumerState<_CreatorInfoWidget>
   @override
   Widget build(BuildContext context) {
     super.build(context); // 确保调用super.build
-    final colorNotifier = ref.watch(defaultColorProvider);
-    colorNotifier.initialize(context); // 显式初始化
 
     return Column(
       children: <Widget>[
@@ -612,11 +590,11 @@ class _CreatorInfoWidgetState extends ConsumerState<_CreatorInfoWidget>
             height: 75,
             width: screenWidth * (48 / 50),
             decoration: BoxDecoration(
-              color: colorNotifier.defaultBackgroundColor,
+              color: globalSetting.backgroundColor,
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
-                  color: colorNotifier.themeType
+                  color: globalSetting.themeType
                       ? Colors.black.withOpacity(0.2)
                       : Colors.white.withOpacity(0.2),
                   spreadRadius: 2,
@@ -666,7 +644,7 @@ class _CreatorInfoWidgetState extends ConsumerState<_CreatorInfoWidget>
   }
 }
 
-class _CreatorImagerWidget extends ConsumerStatefulWidget {
+class _CreatorImagerWidget extends StatefulWidget {
   final String fileServer;
   final String path;
   final String id;
@@ -680,10 +658,10 @@ class _CreatorImagerWidget extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<_CreatorImagerWidget> createState() => _ImagerWidgetState();
+  State<_CreatorImagerWidget> createState() => _ImagerWidgetState();
 }
 
-class _ImagerWidgetState extends ConsumerState<_CreatorImagerWidget> {
+class _ImagerWidgetState extends State<_CreatorImagerWidget> {
   get fileServer => widget.fileServer;
 
   get path => widget.path;
@@ -698,9 +676,9 @@ class _ImagerWidgetState extends ConsumerState<_CreatorImagerWidget> {
     // 重置 Future，以便重新加载图片
     setState(() {
       _getCachePicture = getCachePicture(
-        fileServer,
-        path,
-        id,
+        url: widget.fileServer,
+        path: widget.path,
+        cartoonId: widget.id,
         pictureType: pictureType,
       );
     });
@@ -710,18 +688,15 @@ class _ImagerWidgetState extends ConsumerState<_CreatorImagerWidget> {
   void initState() {
     super.initState();
     _getCachePicture = getCachePicture(
-      fileServer,
-      path,
-      id,
+      url: widget.fileServer,
+      path: widget.path,
+      cartoonId: widget.id,
       pictureType: pictureType,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorNotifier = ref.watch(defaultColorProvider);
-    colorNotifier.initialize(context);
-
     return SizedBox(
       height: 75,
       width: 75,
@@ -752,7 +727,7 @@ class _ImagerWidgetState extends ConsumerState<_CreatorImagerWidget> {
                     child: Icon(
                       Icons.refresh,
                       size: 25,
-                      color: colorNotifier.defaultTextColor,
+                      color: globalSetting.textColor,
                     ),
                   ),
                 );
@@ -791,7 +766,7 @@ class _ImagerWidgetState extends ConsumerState<_CreatorImagerWidget> {
             // 图片正在加载中
             return Center(
               child: LoadingAnimationWidget.waveDots(
-                color: colorNotifier.defaultTextColor!,
+                color: globalSetting.textColor,
                 size: 25,
               ),
             );

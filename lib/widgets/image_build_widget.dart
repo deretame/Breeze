@@ -64,8 +64,13 @@ class _ImageBuildWidgetState extends State<ImageBuildWidget> {
     isReloading.value = true;
     String data = ''; // 初始化一个字符串来保存图片数据
     try {
-      data = await getCachePicture(fileServer, path, comicId,
-          pictureType: localPictureType, chapterId: localChapterId);
+      data = await getCachePicture(
+        url: fileServer,
+        path: path,
+        cartoonId: comicId,
+        pictureType: localPictureType,
+        chapterId: localChapterId,
+      );
     } catch (e) {
       // Handle error if needed
     } finally {
@@ -88,8 +93,13 @@ class _ImageBuildWidgetState extends State<ImageBuildWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final future = getCachePicture(fileServer, path, comicId,
-        pictureType: localPictureType, chapterId: localChapterId);
+    final future = getCachePicture(
+      url: fileServer,
+      path: path,
+      cartoonId: comicId,
+      pictureType: localPictureType,
+      chapterId: localChapterId,
+    );
 
     return ValueListenableBuilder<bool>(
       valueListenable: isReloading,

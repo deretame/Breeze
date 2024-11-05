@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:toggle_switch/toggle_switch.dart';
-import 'package:zephyr/config/authorization.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/mobx/string_select.dart';
 
 import '../network/http/http_request.dart';
 import '../util/dialog.dart';
 import '../util/router.dart';
-import '../util/state_management.dart';
 
-class RegisterPage extends ConsumerStatefulWidget {
+class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
   @override
-  ConsumerState<RegisterPage> createState() => _RegisterPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends ConsumerState<RegisterPage> {
+class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _username = TextEditingController();
   final TextEditingController _account = TextEditingController();
   final TextEditingController _password = TextEditingController();
@@ -107,8 +105,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       debugPrint(_username.text);
       debugPrint(_account.text);
       debugPrint(_password.text);
-      setAccount(_account.text);
-      setPassword(_password.text);
+      bikaSetting.setAccount(_account.text);
+      bikaSetting.setPassword(_password.text);
       _showDialog("注册成功", "正在跳转...");
       Future.delayed(const Duration(seconds: 2), () {
         // 检查State是否仍然挂载
@@ -122,9 +120,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorNotifier = ref.watch(defaultColorProvider);
-    colorNotifier.initialize(context); // 显式初始化
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('注册账号'),

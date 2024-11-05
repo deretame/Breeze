@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:zephyr/main.dart';
 
-import '../../../config/authorization.dart';
 import '../../../util/router.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -14,7 +14,7 @@ class SettingsPage extends StatelessWidget {
         child: ElevatedButton(
           onPressed: () {
             // 按钮被点击时的回调函数
-            deleteAuthorization(); // 调用删除授权的方法
+            bikaSetting.deleteAuthorization(); // 调用删除授权的方法
             navigateToLogin(context);
           },
           child: const Text('退出登录'), // 按钮显示的文本

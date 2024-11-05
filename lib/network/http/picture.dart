@@ -2,13 +2,20 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:zephyr/config/global.dart';
+import 'package:zephyr/main.dart';
 
-import '../../config/setting.dart';
+// ignore: unused_import
+import '../../config/global_setting.dart';
 import '../../util/get_path.dart';
 
-Future<String> getCachePicture(String url, String path, String cartoonId,
-    {String pictureType = '', String chapterId = ''}) async {
+Future<String> getCachePicture({
+  String from = '',
+  String url = '',
+  String path = '',
+  String cartoonId = '',
+  String pictureType = '',
+  String chapterId = '',
+}) async {
   if (url == '') {
     return '404';
   }
@@ -19,18 +26,19 @@ Future<String> getCachePicture(String url, String path, String cartoonId,
   String cachePath = await getCachePath();
   // String appPath = await getAppDirectory();
   String filePath = "";
-  String imageQuality = getImageQuality()!;
+  String imageQuality = bikaSetting.imageQuality;
+  int proxy = bikaSetting.proxy;
 
   if (pictureType == 'comic') {
     filePath =
-        "$cachePath/comic/$imageQuality/$cartoonId/$pictureType/$sanitizedPath";
+        "$cachePath/$from/comic/$imageQuality/$cartoonId/$pictureType/$sanitizedPath";
   } else if (pictureType == 'cover') {
     filePath =
-        "$cachePath/comic/$imageQuality/$cartoonId/$pictureType/$chapterId/$sanitizedPath";
+        "$cachePath/$from/comic/$imageQuality/$cartoonId/$pictureType/$chapterId/$sanitizedPath";
   } else if (pictureType == 'creator') {
-    filePath = "$cachePath/creator/$sanitizedPath";
+    filePath = "$cachePath/$from/creator/$sanitizedPath";
   } else if (pictureType == 'category') {
-    filePath = "$cachePath/category/$sanitizedPath";
+    filePath = "$cachePath/$from/category/$sanitizedPath";
   }
 
   // 构造网络请求地址
@@ -67,14 +75,14 @@ Future<String> getCachePicture(String url, String path, String cartoonId,
     if (pictureType == "cover") {
       url = "https://img.picacomic.com";
     } else if (pictureType == "creator") {
-      url = shunt == 1
+      url = proxy == 1
           ? "https://storage.diwodiwo.xyz"
           : "https://s3.picacomic.com";
     } else {
-      if (getImageQuality() != "original") {
+      if (imageQuality != "original") {
         url = "https://img.picacomic.com";
       } else {
-        url = shunt == 1
+        url = proxy == 1
             ? "https://storage.diwodiwo.xyz"
             : "https://s3.picacomic.com";
       }
@@ -84,9 +92,9 @@ Future<String> getCachePicture(String url, String path, String cartoonId,
       url = "https://storage-b.picacomic.com";
     } else if (pictureType == "cover") {
       url = "https://img.picacomic.com";
-    } else if (getImageQuality() == "original") {
+    } else if (imageQuality == "original") {
       url = "https://storage-b.diwodiwo.xyz";
-    } else if (getImageQuality() != "original") {
+    } else if (imageQuality != "original") {
       url = "https://img.picacomic.com";
     }
   }
@@ -94,7 +102,7 @@ Future<String> getCachePicture(String url, String path, String cartoonId,
   // 本子搜索界面这两个比较特殊，需要特殊处理
   if (path.contains("picacomic-paint.jpg") ||
       path.contains("picacomic-gift.jpg")) {
-    url = shunt == 1
+    url = proxy == 1
         ? "https://storage.diwodiwo.xyz/static"
         : "https://s3.picacomic.com/static";
   }
@@ -112,8 +120,8 @@ Future<String> getCachePicture(String url, String path, String cartoonId,
   var dio = Dio();
   var lastUrl = '$url/$path';
   lastUrl = replaceSubsequentDoubleSlashes(lastUrl);
-  debugPrint('请求地址：$lastUrl');
-  debugPrint('请求头：$headers');
+  // debugPrint('请求地址：$lastUrl');
+  // debugPrint('请求头：$headers');
 
   try {
     Response response = await dio.get(
@@ -181,116 +189,116 @@ Future<String> getCachePicture(String url, String path, String cartoonId,
   return filePath;
 }
 
-// 因为哔咔的部分本子不让下载，所以我直接重写了一套逻辑，实际上就是上面的修改版，只是把缓存目录换成了下载目录。
-Future<String> downloadPicture(
-    String url, String path, String cartoonId, String chapterId) async {
-  // 处理图片的路径
-  // 先统一处理路径中的非法字符
-  String sanitizedPath = path.replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_');
-  String downloadPath = await getDownloadPath();
-  String filePath = "";
-  String imageQuality = getImageQuality()!;
-
-  filePath =
-      "$downloadPath/comic/$imageQuality/$cartoonId/$chapterId/$sanitizedPath";
-
-  // 构造文件存储路径和网络请求地址
-  if (path.contains("tobeimg/")) {
-    path = path.replaceAll("tobeimg/", "");
-  } else if (path.contains("tobs/")) {
-    path = "static/${path.replaceAll("tobs/", "")}";
-  } else if (!path.contains("/")) {
-    path = "static/$path";
-  }
-
-  debugPrint('构造的图片路径：$filePath');
-  // 检查文件是否存在
-  final file = File(filePath);
-
-  // 先检查缓存目录中是否存在
-  if (await file.exists()) {
-    return filePath;
-  }
-
-  // 再次检查缓存目录是否存在文件
-  final cachePath = await getCachePath();
-  debugPrint('缓存目录：$cachePath');
-  String cacheFilePath =
-      "$cachePath/comic/$imageQuality/$cartoonId/$chapterId/$sanitizedPath";
-  final cacheFile = File(cacheFilePath);
-  if (await cacheFile.exists()) {
-    final file = File(filePath);
-    if (!await file.exists()) {
-      await file.create(recursive: true);
-    }
-    await file.writeAsBytes(await cacheFile.readAsBytes());
-    debugPrint('图片已从缓存目录复制到下载目录：$filePath');
-    return filePath;
-  }
-
-  // 如果不在
-  // 处理url
-  if (url == "https://storage1.picacomic.com") {
-    if (getImageQuality() != "origin") {
-      url = "https://img.picacomic.com";
-    } else if (shunt == 1) {
-      url = "https://storage.diwodiwo.xyz";
-    } else {
-      url = "https://s3.picacomic.com";
-    }
-  } else if (url == "https://storage-b.picacomic.com") {
-    url = "https://storage-b.diwodiwo.xyz";
-  }
-
-  // 构造请求头
-  String host = Uri.parse(url).host;
-  var headers = {
-    'User-Agent': "#",
-    'Host': host,
-    'Connection': "Keep-Alive",
-    'Accept-Encoding': "gzip",
-  };
-
-  // 发送GET请求
-  var dio = Dio();
-  final lastUrl = '$url/$path';
-  debugPrint('请求地址：$lastUrl');
-  debugPrint('请求头：$headers');
-
-  try {
-    Response response = await dio.get(
-      lastUrl,
-      options: Options(
-        headers: headers,
-        responseType: ResponseType.bytes, // 确保返回二进制数据
-      ),
-    );
-
-    // 检查响应状态码
-    if (response.statusCode == 200) {
-      // 获取响应体（图片数据）
-      String? contentType = response.headers.value('content-type');
-      debugPrint(contentType); // 例如: "image/jpeg"
-      Uint8List imageData = response.data as Uint8List;
-
-      // 如果文件不存在，则创建文件
-      if (!await file.exists()) {
-        await file.create(recursive: true);
-      }
-
-      await file.writeAsBytes(imageData);
-
-      debugPrint('图片已保存到：$filePath');
-    } else {
-      debugPrint('请求失败，状态码：${response.statusCode}');
-    }
-  } catch (e) {
-    debugPrint('请求过程中发生错误：$e');
-    return "error";
-  }
-
-  return filePath;
-}
+// // 因为哔咔的部分本子不让下载，所以我直接重写了一套逻辑，实际上就是上面的修改版，只是把缓存目录换成了下载目录。
+// Future<String> downloadPicture(
+//     String url, String path, String cartoonId, String chapterId) async {
+//   // 处理图片的路径
+//   // 先统一处理路径中的非法字符
+//   String sanitizedPath = path.replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_');
+//   String downloadPath = await getDownloadPath();
+//   String filePath = "";
+//   String imageQuality = bikaSetting.imageQuality;
+//
+//   filePath =
+//       "$downloadPath/comic/$imageQuality/$cartoonId/$chapterId/$sanitizedPath";
+//
+//   // 构造文件存储路径和网络请求地址
+//   if (path.contains("tobeimg/")) {
+//     path = path.replaceAll("tobeimg/", "");
+//   } else if (path.contains("tobs/")) {
+//     path = "static/${path.replaceAll("tobs/", "")}";
+//   } else if (!path.contains("/")) {
+//     path = "static/$path";
+//   }
+//
+//   debugPrint('构造的图片路径：$filePath');
+//   // 检查文件是否存在
+//   final file = File(filePath);
+//
+//   // 先检查缓存目录中是否存在
+//   if (await file.exists()) {
+//     return filePath;
+//   }
+//
+//   // 再次检查缓存目录是否存在文件
+//   final cachePath = await getCachePath();
+//   debugPrint('缓存目录：$cachePath');
+//   String cacheFilePath =
+//       "$cachePath/comic/$imageQuality/$cartoonId/$chapterId/$sanitizedPath";
+//   final cacheFile = File(cacheFilePath);
+//   if (await cacheFile.exists()) {
+//     final file = File(filePath);
+//     if (!await file.exists()) {
+//       await file.create(recursive: true);
+//     }
+//     await file.writeAsBytes(await cacheFile.readAsBytes());
+//     debugPrint('图片已从缓存目录复制到下载目录：$filePath');
+//     return filePath;
+//   }
+//
+//   // 如果不在
+//   // 处理url
+//   if (url == "https://storage1.picacomic.com") {
+//     if (imageQuality != "origin") {
+//       url = "https://img.picacomic.com";
+//     } else if (shunt == 1) {
+//       url = "https://storage.diwodiwo.xyz";
+//     } else {
+//       url = "https://s3.picacomic.com";
+//     }
+//   } else if (url == "https://storage-b.picacomic.com") {
+//     url = "https://storage-b.diwodiwo.xyz";
+//   }
+//
+//   // 构造请求头
+//   String host = Uri.parse(url).host;
+//   var headers = {
+//     'User-Agent': "#",
+//     'Host': host,
+//     'Connection': "Keep-Alive",
+//     'Accept-Encoding': "gzip",
+//   };
+//
+//   // 发送GET请求
+//   var dio = Dio();
+//   final lastUrl = '$url/$path';
+//   debugPrint('请求地址：$lastUrl');
+//   debugPrint('请求头：$headers');
+//
+//   try {
+//     Response response = await dio.get(
+//       lastUrl,
+//       options: Options(
+//         headers: headers,
+//         responseType: ResponseType.bytes, // 确保返回二进制数据
+//       ),
+//     );
+//
+//     // 检查响应状态码
+//     if (response.statusCode == 200) {
+//       // 获取响应体（图片数据）
+//       String? contentType = response.headers.value('content-type');
+//       debugPrint(contentType); // 例如: "image/jpeg"
+//       Uint8List imageData = response.data as Uint8List;
+//
+//       // 如果文件不存在，则创建文件
+//       if (!await file.exists()) {
+//         await file.create(recursive: true);
+//       }
+//
+//       await file.writeAsBytes(imageData);
+//
+//       debugPrint('图片已保存到：$filePath');
+//     } else {
+//       debugPrint('请求失败，状态码：${response.statusCode}');
+//     }
+//   } catch (e) {
+//     debugPrint('请求过程中发生错误：$e');
+//     return "error";
+//   }
+//
+//   return filePath;
+// }
 
 String replaceSubsequentDoubleSlashes(String input) {
   String target = '//';

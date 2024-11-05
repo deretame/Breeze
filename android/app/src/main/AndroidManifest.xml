@@ -1,12 +1,13 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.zephyr.breeze">
 
     <uses-permission android:name="android.permission.INTERNET"/>
-
 
     <application
             android:label="Breeze"
             android:name="${applicationName}"
-            android:icon="@mipmap/ic_launcher">
+            android:icon="@mipmap/ic_launcher"
+            android:enableOnBackInvokedCallback="true">
         <activity
                 android:name=".MainActivity"
                 android:exported="true"

@@ -8,13 +8,26 @@ part of 'search_category.dart';
 
 _$SearchCategoryImpl _$$SearchCategoryImplFromJson(Map<String, dynamic> json) =>
     _$SearchCategoryImpl(
+      code: (json['code'] as num).toInt(),
+      message: json['message'] as String,
+      data: Data.fromJson(json['data'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$$SearchCategoryImplToJson(
+        _$SearchCategoryImpl instance) =>
+    <String, dynamic>{
+      'code': instance.code,
+      'message': instance.message,
+      'data': instance.data,
+    };
+
+_$DataImpl _$$DataImplFromJson(Map<String, dynamic> json) => _$DataImpl(
       categories: (json['categories'] as List<dynamic>)
           .map((e) => Category.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
-Map<String, dynamic> _$$SearchCategoryImplToJson(
-        _$SearchCategoryImpl instance) =>
+Map<String, dynamic> _$$DataImplToJson(_$DataImpl instance) =>
     <String, dynamic>{
       'categories': instance.categories,
     };

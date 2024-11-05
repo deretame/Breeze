@@ -3,12 +3,11 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/main.dart';
 
-import '../../config/authorization.dart';
 import '../../config/global.dart';
-import '../../config/setting.dart';
 
 String _getNonce() {
   return const Uuid().v4().replaceAll('-', '');
@@ -35,9 +34,13 @@ String _getSignature(
   return digest.toString();
 }
 
-Map<String, String> _getRequestHeaders(String url, String method,
-    [String imageQuality = "", String body = ""]) {
-  String? authorization = getAuthorization();
+Map<String, String> _getRequestHeaders(
+  String url,
+  String method, {
+  String imageQuality = "",
+  String body = "",
+}) {
+  String? authorization = bikaSetting.authorization;
   String nonce = _getNonce();
   int timestamp = _getCurrentTimestamp();
   String signature = _getSignature(
@@ -67,7 +70,7 @@ Map<String, String> _getRequestHeaders(String url, String method,
     }
   }
 
-  if (authorization != null &&
+  if (authorization.isNotEmpty &&
       !url.contains('/auth/sign-in') &&
       !url.contains('/auth/register')) {
     headers['authorization'] = authorization;
@@ -80,11 +83,22 @@ Map<String, String> _getRequestHeaders(String url, String method,
   return headers;
 }
 
-Future<Map<String, dynamic>> request(String url, String method,
-    [String body = ""]) async {
-  final headers = _getRequestHeaders(url, method, getImageQuality()!, body);
-  final dio = Dio();
+Future<Map<String, dynamic>> request(
+  String url,
+  String method, {
+  String body = "",
+  bool cache = false,
+}) async {
+  final headers = _getRequestHeaders(url, method,
+      imageQuality: bikaSetting.imageQuality, body: body);
 
+  // 根据useCache决定是否添加缓存拦截器
+  if (cache) {
+    dio.interceptors.add(cacheInterceptor);
+  } else {
+    // 如果不需要缓存，确保移除缓存拦截器
+    dio.interceptors.removeWhere((Interceptor i) => i == cacheInterceptor);
+  }
   try {
     final cancelToken = CancelToken();
     Timer(const Duration(seconds: 10), () {
@@ -110,17 +124,14 @@ Future<Map<String, dynamic>> request(String url, String method,
     // 检查错误是否有响应体
     if (error.response != null) {
       // 返回错误信息和响应体
-      return {
-        'error': error.toString(),
-        'data': error.response?.data,
-      };
+      throw error.response!.data.toString();
     } else {
       // 如果没有响应体，只返回错误信息
-      return {'error': error.toString()};
+      throw error.toString();
     }
   } catch (error) {
     // 捕获非DioException的错误
     debugPrint(error.toString());
-    return {'error': error.toString()};
+    throw error.toString();
   }
 }

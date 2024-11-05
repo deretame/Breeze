@@ -1,28 +1,27 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../../../../../config/global.dart';
 import '../../../../../json/comic/comic_info.dart';
+import '../../../../../main.dart';
 import '../../../../../network/http/picture.dart';
 import '../../../../../type/search_enter.dart';
 import '../../../../../util/router.dart';
-import '../../../../../util/state_management.dart';
 import '../../../../../widgets/full_screen_image_view.dart';
 
 // 显示上传者信息
-class CreatorInfoWidget extends ConsumerStatefulWidget {
+class CreatorInfoWidget extends StatefulWidget {
   final ComicInfo comicInfo;
 
   const CreatorInfoWidget({super.key, required this.comicInfo});
 
   @override
-  ConsumerState<CreatorInfoWidget> createState() => _CreatorInfoWidgetState();
+  State<CreatorInfoWidget> createState() => _CreatorInfoWidgetState();
 }
 
-class _CreatorInfoWidgetState extends ConsumerState<CreatorInfoWidget>
+class _CreatorInfoWidgetState extends State<CreatorInfoWidget>
     with AutomaticKeepAliveClientMixin<CreatorInfoWidget> {
   ComicInfo get comicInfo => widget.comicInfo;
 
@@ -43,8 +42,6 @@ class _CreatorInfoWidgetState extends ConsumerState<CreatorInfoWidget>
   @override
   Widget build(BuildContext context) {
     super.build(context); // 确保调用super.build
-    final colorNotifier = ref.watch(defaultColorProvider);
-    colorNotifier.initialize(context); // 显式初始化
 
     return InkWell(
         onTap: () {
@@ -61,11 +58,11 @@ class _CreatorInfoWidgetState extends ConsumerState<CreatorInfoWidget>
           height: 75,
           width: screenWidth * (48 / 50),
           decoration: BoxDecoration(
-            color: colorNotifier.defaultBackgroundColor,
+            color: globalSetting.backgroundColor,
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
-                color: colorNotifier.themeType
+                color: globalSetting.themeType
                     ? Colors.black.withOpacity(0.2)
                     : Colors.white.withOpacity(0.2),
                 spreadRadius: 2,
@@ -108,7 +105,7 @@ class _CreatorInfoWidgetState extends ConsumerState<CreatorInfoWidget>
   }
 }
 
-class ImagerWidget extends ConsumerStatefulWidget {
+class ImagerWidget extends StatefulWidget {
   final String fileServer;
   final String path;
   final String id;
@@ -123,10 +120,10 @@ class ImagerWidget extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ImagerWidget> createState() => _ImagerWidgetState();
+  State<ImagerWidget> createState() => _ImagerWidgetState();
 }
 
-class _ImagerWidgetState extends ConsumerState<ImagerWidget> {
+class _ImagerWidgetState extends State<ImagerWidget> {
   get fileServer => widget.fileServer;
 
   get path => widget.path;
@@ -141,9 +138,9 @@ class _ImagerWidgetState extends ConsumerState<ImagerWidget> {
     // 重置 Future，以便重新加载图片
     setState(() {
       _getCachePicture = getCachePicture(
-        fileServer,
-        path,
-        id,
+        url: widget.fileServer,
+        path: widget.path,
+        cartoonId: widget.id,
         pictureType: pictureType,
       );
     });
@@ -153,18 +150,15 @@ class _ImagerWidgetState extends ConsumerState<ImagerWidget> {
   void initState() {
     super.initState();
     _getCachePicture = getCachePicture(
-      fileServer,
-      path,
-      id,
+      url: widget.fileServer,
+      path: widget.path,
+      cartoonId: widget.id,
       pictureType: pictureType,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorNotifier = ref.watch(defaultColorProvider);
-    colorNotifier.initialize(context);
-
     return SizedBox(
       height: 75,
       width: 75,
@@ -195,7 +189,7 @@ class _ImagerWidgetState extends ConsumerState<ImagerWidget> {
                     child: Icon(
                       Icons.refresh,
                       size: 25,
-                      color: colorNotifier.defaultTextColor,
+                      color: globalSetting.textColor,
                     ),
                   ),
                 );
@@ -234,7 +228,7 @@ class _ImagerWidgetState extends ConsumerState<ImagerWidget> {
             // 图片正在加载中
             return Center(
               child: LoadingAnimationWidget.waveDots(
-                color: colorNotifier.defaultTextColor!,
+                color: globalSetting.textColor,
                 size: 25,
               ),
             );

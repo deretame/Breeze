@@ -2,12 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:realm/realm.dart';
 import 'package:zephyr/json/search_bar/search_result.dart';
+import 'package:zephyr/main.dart';
 
 import '../../../../config/global.dart';
 import '../../../../network/http/http_request.dart';
-import '../../../../realm/shield_categories.dart';
 import '../../../../type/search_enter.dart';
 import 'comic_entry_widget.dart';
 
@@ -49,7 +48,6 @@ class _ComicListWidgetState extends State<ComicListWidget> {
 
   SearchEnter get enter => widget.enter;
 
-  late Realm _realm;
   Map<String, bool> _shieldedCategories = {};
 
   int _oldPage = 1;
@@ -63,13 +61,7 @@ class _ComicListWidgetState extends State<ComicListWidget> {
     _throttleTimer = Timer(Duration(milliseconds: 0), () {});
     _throttleTimer.cancel();
     _page = enter.pageCount;
-    final shieldedCategories = Configuration.local([ShieldedCategories.schema]);
-    _realm = Realm(shieldedCategories);
-
-    var temp = _realm.find<ShieldedCategories>("ShieldedCategories");
-    _shieldedCategories = {
-      for (var key in temp!.map.keys) key: temp.map[key] as bool
-    };
+    _shieldedCategories = bikaSetting.getShieldCategoryMap();
 
     pageCountInfo = [0, enter.pageCount];
   }
@@ -85,10 +77,7 @@ class _ComicListWidgetState extends State<ComicListWidget> {
       });
       _loadData(widget.enter);
     }
-    var temp = _realm.find<ShieldedCategories>("ShieldedCategories");
-    _shieldedCategories = {
-      for (var key in temp!.map.keys) key: temp.map[key] as bool
-    };
+    _shieldedCategories = bikaSetting.getShieldCategoryMap();
     pageCountInfo[1] = enter.pageCount;
     widget.updatePageCount(pageCountInfo);
   }
@@ -97,7 +86,6 @@ class _ComicListWidgetState extends State<ComicListWidget> {
   void dispose() {
     _scrollController.dispose();
     _throttleTimer.cancel();
-    _realm.close();
     super.dispose();
   }
 

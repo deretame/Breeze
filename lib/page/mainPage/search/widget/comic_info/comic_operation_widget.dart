@@ -1,25 +1,23 @@
 import 'package:cherry_toast/cherry_toast.dart';
 import 'package:cherry_toast/resources/arrays.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zephyr/config/global.dart';
+import 'package:zephyr/main.dart';
 
 import '../../../../../json/comic/comic_info.dart';
 import '../../../../../network/http/http_request.dart';
 import '../../../../../util/dialog.dart';
-import '../../../../../util/state_management.dart';
 
-class ComicOperationWidget extends ConsumerStatefulWidget {
+class ComicOperationWidget extends StatefulWidget {
   final ComicInfo comicInfo;
 
   const ComicOperationWidget({super.key, required this.comicInfo});
 
   @override
-  ConsumerState<ComicOperationWidget> createState() =>
-      _ComicOperationWidgetState();
+  State<ComicOperationWidget> createState() => _ComicOperationWidgetState();
 }
 
-class _ComicOperationWidgetState extends ConsumerState<ComicOperationWidget> {
+class _ComicOperationWidgetState extends State<ComicOperationWidget> {
   ComicInfo get comicInfo => widget.comicInfo;
   bool isCollected = false;
   bool isLiked = false;
@@ -32,7 +30,6 @@ class _ComicOperationWidgetState extends ConsumerState<ComicOperationWidget> {
   }
 
   void toggleAction(String actionType) {
-    final colorNotifier = ref.read(defaultColorProvider);
     late Future<Map<String, dynamic>> result;
     late bool isCurrentlyActive;
     late String actionVerb;
@@ -57,11 +54,11 @@ class _ComicOperationWidgetState extends ConsumerState<ComicOperationWidget> {
     CherryToast.info(
       description: Text(
           isCurrentlyActive ? '正在取消$actionVerb...' : '正在$actionVerb...',
-          style: TextStyle(color: colorNotifier.defaultTextColor)),
+          style: TextStyle(color: globalSetting.textColor)),
       animationType: AnimationType.fromTop,
       animationDuration: const Duration(milliseconds: 3000),
       autoDismiss: true,
-      backgroundColor: colorNotifier.defaultBackgroundColor,
+      backgroundColor: globalSetting.backgroundColor,
     ).show(context);
 
     result.then((Map<String, dynamic> data) {
@@ -73,11 +70,11 @@ class _ComicOperationWidgetState extends ConsumerState<ComicOperationWidget> {
             : (isCurrentlyActive ? '取消$actionVerb失败' : '$actionVerb失败');
         CherryToast.error(
           description: Text(failureMessage,
-              style: TextStyle(color: colorNotifier.defaultTextColor)),
+              style: TextStyle(color: globalSetting.textColor)),
           animationType: AnimationType.fromTop,
           animationDuration: const Duration(milliseconds: 3000),
           autoDismiss: true,
-          backgroundColor: colorNotifier.defaultBackgroundColor,
+          backgroundColor: globalSetting.backgroundColor,
         ).show(context);
       } else {
         debugPrint('$actionVerb成功: $data');
@@ -94,31 +91,28 @@ class _ComicOperationWidgetState extends ConsumerState<ComicOperationWidget> {
             isCurrentlyActive ? '取消$actionVerb成功' : '$actionVerb成功';
         CherryToast.success(
           description: Text(successMessage,
-              style: TextStyle(color: colorNotifier.defaultTextColor)),
+              style: TextStyle(color: globalSetting.textColor)),
           animationType: AnimationType.fromTop,
           animationDuration: const Duration(milliseconds: 3000),
           autoDismiss: true,
-          backgroundColor: colorNotifier.defaultBackgroundColor,
+          backgroundColor: globalSetting.backgroundColor,
         ).show(context);
       }
     }).catchError((error) {
       if (!mounted) return;
       CherryToast.error(
-        description: Text('请求过程中发生错误',
-            style: TextStyle(color: colorNotifier.defaultTextColor)),
+        description:
+            Text('请求过程中发生错误', style: TextStyle(color: globalSetting.textColor)),
         animationType: AnimationType.fromTop,
         animationDuration: const Duration(milliseconds: 3000),
         autoDismiss: true,
-        backgroundColor: colorNotifier.defaultBackgroundColor,
+        backgroundColor: globalSetting.backgroundColor,
       ).show(context);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorNotifier = ref.watch(defaultColorProvider);
-    colorNotifier.initialize(context);
-
     return LimitedBox(
       maxWidth: screenWidth * (48 / 50),
       maxHeight: 50,
@@ -146,7 +140,7 @@ class _ComicOperationWidgetState extends ConsumerState<ComicOperationWidget> {
                 },
                 child: Icon(
                   isLiked ? Icons.favorite : Icons.favorite_border,
-                  color: isLiked ? Colors.red : colorNotifier.defaultTextColor,
+                  color: isLiked ? Colors.red : globalSetting.textColor,
                   size: 24.0,
                 ),
               ),
@@ -171,7 +165,7 @@ class _ComicOperationWidgetState extends ConsumerState<ComicOperationWidget> {
               const SizedBox(height: 2),
               Text(
                 '${comicInfo.comic.commentsCount}',
-                // style: TextStyle(color: defaultTextColor),
+                // style: TextStyle(color: textColor),
               ),
             ],
           ),
@@ -183,16 +177,14 @@ class _ComicOperationWidgetState extends ConsumerState<ComicOperationWidget> {
                 },
                 child: Icon(
                   isCollected ? Icons.star : Icons.star_border,
-                  color: isCollected
-                      ? Colors.yellow
-                      : colorNotifier.defaultTextColor,
+                  color: isCollected ? Colors.yellow : globalSetting.textColor,
                   size: 24.0, // 设置图标大小
                 ),
               ),
               const SizedBox(height: 2),
               const Text(
                 '收藏',
-                // style: TextStyle(color: defaultTextColor),
+                // style: TextStyle(color: textColor),
               ),
             ],
           ),

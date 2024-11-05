@@ -2,33 +2,27 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        jcenter()
     }
 }
 
 rootProject.buildDir = "../build"
-
 subprojects {
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
-
     afterEvaluate { project ->
-        if (project.hasProperty("kotlin")) {
-            project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-                kotlinOptions {
-                    jvmTarget = "1.8"
-                }
-            }
-        }
-
-        if (project.hasProperty("android")) {
+        if (project.plugins.hasPlugin("com.android.application") || project.plugins.hasPlugin("com.android.library")) {
             project.android {
-                compileSdkVersion = 34
+                compileSdkVersion 34
+                buildToolsVersion "34.0.0"
             }
         }
     }
-
-    project.evaluationDependsOn(":app")
 }
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(':app')
+}
+
 
 tasks.register("clean", Delete) {
     delete rootProject.buildDir

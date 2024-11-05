@@ -4,30 +4,28 @@ import 'package:cherry_toast/cherry_toast.dart';
 import 'package:cherry_toast/resources/arrays.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:zephyr/main.dart';
 
 import '../../../../../config/global.dart';
 import '../../../../../json/comic/comic_info.dart';
 import '../../../../../network/http/picture.dart';
 import '../../../../../type/search_enter.dart';
 import '../../../../../util/router.dart';
-import '../../../../../util/state_management.dart';
 import '../../../../../widgets/full_screen_image_view.dart';
 
 // 显示漫画的一些信息
 // 封面，名字，作家，汉化组，收藏人数，章节信息
-class ComicParticularsWidget extends ConsumerStatefulWidget {
+class ComicParticularsWidget extends StatefulWidget {
   final ComicInfo comicInfo;
 
   const ComicParticularsWidget({super.key, required this.comicInfo});
 
   @override
-  ConsumerState<ComicParticularsWidget> createState() =>
-      _ComicParticularsWidgetState();
+  State<ComicParticularsWidget> createState() => _ComicParticularsWidgetState();
 }
 
-class _ComicParticularsWidgetState extends ConsumerState<ComicParticularsWidget>
+class _ComicParticularsWidgetState extends State<ComicParticularsWidget>
     with AutomaticKeepAliveClientMixin<ComicParticularsWidget> {
   ComicInfo get comicInfo => widget.comicInfo;
 
@@ -42,8 +40,6 @@ class _ComicParticularsWidgetState extends ConsumerState<ComicParticularsWidget>
   @override
   Widget build(BuildContext context) {
     super.build(context); // 确保调用super.build
-    final colorNotifier = ref.watch(defaultColorProvider);
-    colorNotifier.initialize(context);
 
     return SizedBox(
       width: screenWidth * (48 / 50),
@@ -64,7 +60,7 @@ class _ComicParticularsWidgetState extends ConsumerState<ComicParticularsWidget>
                 SelectableText(
                   comicInfo.comic.title,
                   style: TextStyle(
-                    color: colorNotifier.defaultTextColor,
+                    color: globalSetting.textColor,
                     fontSize: 18,
                   ),
                 ),
@@ -84,19 +80,18 @@ class _ComicParticularsWidgetState extends ConsumerState<ComicParticularsWidget>
                       CherryToast.success(
                         description: Text(
                           "已将${comicInfo.comic.author}复制到剪贴板",
-                          style:
-                              TextStyle(color: colorNotifier.defaultTextColor),
+                          style: TextStyle(color: globalSetting.textColor),
                         ),
                         animationType: AnimationType.fromTop,
                         toastDuration: const Duration(seconds: 2),
                         autoDismiss: true,
-                        backgroundColor: colorNotifier.defaultBackgroundColor,
+                        backgroundColor: globalSetting.backgroundColor,
                       ).show(context);
                     },
                     child: Text(
                       '作者：${comicInfo.comic.author}',
                       style: TextStyle(
-                        color: colorNotifier.themeType
+                        color: globalSetting.themeType
                             ? Colors.red
                             : Colors.yellow,
                       ),
@@ -119,19 +114,18 @@ class _ComicParticularsWidgetState extends ConsumerState<ComicParticularsWidget>
                       CherryToast.success(
                         description: Text(
                           "已将${comicInfo.comic.chineseTeam}复制到剪贴板",
-                          style:
-                              TextStyle(color: colorNotifier.defaultTextColor),
+                          style: TextStyle(color: globalSetting.textColor),
                         ),
                         animationType: AnimationType.fromTop,
                         toastDuration: const Duration(seconds: 2),
                         autoDismiss: true,
-                        backgroundColor: colorNotifier.defaultBackgroundColor,
+                        backgroundColor: globalSetting.backgroundColor,
                       ).show(context);
                     },
                     child: Text(
                       '汉化组：${comicInfo.comic.chineseTeam}',
                       style: TextStyle(
-                        color: colorNotifier.themeType
+                        color: globalSetting.themeType
                             ? Colors.blue.shade300
                             : Colors.blue.shade800,
                       ),
@@ -150,7 +144,7 @@ class _ComicParticularsWidgetState extends ConsumerState<ComicParticularsWidget>
   }
 }
 
-class ImageWidget extends ConsumerStatefulWidget {
+class ImageWidget extends StatefulWidget {
   final String fileServer;
   final String path;
   final String id;
@@ -165,10 +159,10 @@ class ImageWidget extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ImageWidget> createState() => _ImageWidgetState();
+  State<ImageWidget> createState() => _ImageWidgetState();
 }
 
-class _ImageWidgetState extends ConsumerState<ImageWidget> {
+class _ImageWidgetState extends State<ImageWidget> {
   late Future<String> _getCachePicture;
 
   @override
@@ -179,18 +173,15 @@ class _ImageWidgetState extends ConsumerState<ImageWidget> {
 
   void _refreshCachePicture() {
     _getCachePicture = getCachePicture(
-      widget.fileServer,
-      widget.path,
-      widget.id,
+      url: widget.fileServer,
+      path: widget.path,
+      cartoonId: widget.id,
       pictureType: widget.pictureType,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorNotifier = ref.watch(defaultColorProvider);
-    colorNotifier.initialize(context);
-
     return SizedBox(
       width: (screenWidth / 10) * 3,
       height: 180,
@@ -213,7 +204,7 @@ class _ImageWidgetState extends ConsumerState<ImageWidget> {
                     child: Text(
                       '加载图片失败\n点击重新加载',
                       style: TextStyle(
-                        color: colorNotifier.defaultTextColor,
+                        color: globalSetting.textColor,
                       ),
                     ),
                   ),

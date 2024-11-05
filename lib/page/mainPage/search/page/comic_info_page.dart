@@ -7,7 +7,7 @@ import '../../../../util/router.dart';
 import '../widget/comic_info/comic_operation_widget.dart';
 import '../widget/comic_info/comic_particulars_widget.dart';
 import '../widget/comic_info/creator_info_widget.dart';
-import '../widget/comic_info/eps_widget.dart';
+import '../widget/comic_info/eps_widget/view.dart';
 import '../widget/comic_info/synopsis_widget.dart';
 import '../widget/comic_info/tags_categories_widget.dart';
 

@@ -17,11 +17,22 @@ String creatorRankingToJson(CreatorRanking data) => json.encode(data.toJson());
 @freezed
 class CreatorRanking with _$CreatorRanking {
   const factory CreatorRanking({
-    @JsonKey(name: "users") required List<User> users,
+    @JsonKey(name: "code") required int code,
+    @JsonKey(name: "message") required String message,
+    @JsonKey(name: "data") required Data data,
   }) = _CreatorRanking;
 
   factory CreatorRanking.fromJson(Map<String, dynamic> json) =>
       _$CreatorRankingFromJson(json);
+}
+
+@freezed
+class Data with _$Data {
+  const factory Data({
+    @JsonKey(name: "users") required List<User> users,
+  }) = _Data;
+
+  factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 }
 
 @freezed

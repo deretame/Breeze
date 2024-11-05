@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/util/router.dart';
 
 import '../../../../../config/global.dart';
 import '../../../../../json/comic/comic_info.dart';
 import '../../../../../type/search_enter.dart';
-import '../../../../../util/state_management.dart';
 
 // 通用的标签/分类 Widget
-class TagsAndCategoriesWidget extends ConsumerStatefulWidget {
+class TagsAndCategoriesWidget extends StatefulWidget {
   final ComicInfo comicInfo;
   final String type; // "categories" 或 "tags"
 
@@ -19,12 +18,11 @@ class TagsAndCategoriesWidget extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<TagsAndCategoriesWidget> createState() =>
+  State<TagsAndCategoriesWidget> createState() =>
       _TagsAndCategoriesWidgetState();
 }
 
-class _TagsAndCategoriesWidgetState
-    extends ConsumerState<TagsAndCategoriesWidget> {
+class _TagsAndCategoriesWidgetState extends State<TagsAndCategoriesWidget> {
   ComicInfo get comicInfo => widget.comicInfo;
 
   List<String> get items => widget.type == 'categories'
@@ -35,9 +33,6 @@ class _TagsAndCategoriesWidgetState
 
   @override
   Widget build(BuildContext context) {
-    final colorNotifier = ref.watch(defaultColorProvider);
-    colorNotifier.initialize(context);
-
     return SizedBox(
       width: screenWidth * (48 / 50),
       child: Column(
@@ -53,7 +48,7 @@ class _TagsAndCategoriesWidgetState
                   decoration: BoxDecoration(
                     border: Border(
                       top: BorderSide(
-                        color: colorNotifier.defaultTextColor!,
+                        color: globalSetting.textColor,
                         width: 1.0, // 颜色条的宽度
                       ),
                     ),
@@ -70,7 +65,7 @@ class _TagsAndCategoriesWidgetState
                   decoration: BoxDecoration(
                     border: Border(
                       top: BorderSide(
-                        color: colorNotifier.defaultTextColor!,
+                        color: globalSetting.textColor,
                         width: 1.0, // 颜色条的宽度
                       ),
                     ),
@@ -98,13 +93,13 @@ class _TagsAndCategoriesWidgetState
                       navigateTo(context, '/search', extra: enter);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: colorNotifier.defaultBackgroundColor,
+                      backgroundColor: globalSetting.backgroundColor,
                       // 背景颜色
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       minimumSize: const Size(0, 10),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       side: BorderSide(
-                        color: colorNotifier.themeType
+                        color: globalSetting.themeType
                             ? Colors.grey[350]!
                             : Colors.grey[800]!,
                         width: 1, // 描边颜色和宽度

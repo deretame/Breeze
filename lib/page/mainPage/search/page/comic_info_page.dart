@@ -87,38 +87,17 @@ class _ComicInfoPageState extends State<ComicInfoPage>
                   ],
                 ),
               );
-            } else if (snapshot.data != null &&
-                snapshot.data!['error'] != null) {
-              // 如果返回的数据中包含错误信息
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Error: ${snapshot.data}'),
-                    ElevatedButton(
-                      onPressed: () async {
-                        // 重新加载数据
-                        setState(() {
-                          isLoading = true;
-                          _comicInfoFuture = _loadComicInfo(); // 重新调用异步函数
-                        });
-                      },
-                      child: const Text('重新加载'),
-                    ),
-                  ],
-                ),
-              );
             } else {
               // 如果数据正确，显示漫画信息
               // 打补丁
-              snapshot.data!['comic']['_creator']['slogan'] ??= "";
-              snapshot.data!['comic']['_creator']['title'] ??= '';
-              snapshot.data!['comic']['_creator']['verified'] ??= false;
-              snapshot.data!['comic']['chineseTeam'] ??= "";
-              snapshot.data!['comic']['totalComments'] ??=
-                  snapshot.data!['comic']['commentsCount'] ?? 0;
-              snapshot.data!['comic']['author'] ??= '';
-              snapshot.data!['comic']['_creator']['avatar'] ??= {
+              snapshot.data!['data']['comic']['_creator']['slogan'] ??= "";
+              snapshot.data!['data']['comic']['_creator']['title'] ??= '';
+              snapshot.data!['data']['comic']['_creator']['verified'] ??= false;
+              snapshot.data!['data']['comic']['chineseTeam'] ??= "";
+              snapshot.data!['data']['comic']['totalComments'] ??=
+                  snapshot.data!['data']['comic']['commentsCount'] ?? 0;
+              snapshot.data!['data']['comic']['author'] ??= '';
+              snapshot.data!['data']['comic']['_creator']['avatar'] ??= {
                 "fileServer": "",
                 "path": "",
                 "originalName": ""
@@ -207,7 +186,7 @@ class _ComicInfoWidgetState extends State<ComicInfoWidget> {
                   const SizedBox(
                     height: 3,
                   ),
-                  if (comicInfo.comic.tags.isNotEmpty) ...[
+                  if (comicInfo.data.comic.tags.isNotEmpty) ...[
                     TagsAndCategoriesWidget(
                       comicInfo: comicInfo,
                       type: 'tags',
@@ -217,7 +196,7 @@ class _ComicInfoWidgetState extends State<ComicInfoWidget> {
                       height: 3,
                     ),
                   ],
-                  if (comicInfo.comic.description != '') ...[
+                  if (comicInfo.data.comic.description != '') ...[
                     SynopsisWidget(comicInfo: comicInfo), // 简介组件
                     // 描述文本，左对齐
                   ],

@@ -7,10 +7,23 @@ part of 'eps.dart';
 // **************************************************************************
 
 _$EpsImpl _$$EpsImplFromJson(Map<String, dynamic> json) => _$EpsImpl(
-      eps: EpsClass.fromJson(json['eps'] as Map<String, dynamic>),
+      code: (json['code'] as num).toInt(),
+      message: json['message'] as String,
+      data: Data.fromJson(json['data'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$$EpsImplToJson(_$EpsImpl instance) => <String, dynamic>{
+      'code': instance.code,
+      'message': instance.message,
+      'data': instance.data,
+    };
+
+_$DataImpl _$$DataImplFromJson(Map<String, dynamic> json) => _$DataImpl(
+      eps: EpsClass.fromJson(json['eps'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$$DataImplToJson(_$DataImpl instance) =>
+    <String, dynamic>{
       'eps': instance.eps,
     };
 

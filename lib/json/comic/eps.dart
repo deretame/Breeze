@@ -16,10 +16,21 @@ String epsToJson(Eps data) => json.encode(data.toJson());
 @freezed
 class Eps with _$Eps {
   const factory Eps({
-    @JsonKey(name: "eps") required EpsClass eps,
+    @JsonKey(name: "code") required int code,
+    @JsonKey(name: "message") required String message,
+    @JsonKey(name: "data") required Data data,
   }) = _Eps;
 
   factory Eps.fromJson(Map<String, dynamic> json) => _$EpsFromJson(json);
+}
+
+@freezed
+class Data with _$Data {
+  const factory Data({
+    @JsonKey(name: "eps") required EpsClass eps,
+  }) = _Data;
+
+  factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 }
 
 @freezed

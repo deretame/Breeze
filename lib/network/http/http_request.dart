@@ -72,9 +72,9 @@ Future<Map<String, dynamic>> getCategories() async {
   return data;
 }
 
-Future<Map<String, dynamic>> getRankingList(
-  String type, {
+Future<Map<String, dynamic>> getRankingList({
   String days = "H24",
+  String type = '',
 }) async {
   String url = '';
 

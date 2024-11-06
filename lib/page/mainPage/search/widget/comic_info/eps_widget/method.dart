@@ -43,13 +43,9 @@ class EpsBloc extends Bloc<EpsEvent, EpsState> {
   Future<List<Doc>> fetchEp() async {
     List<Doc> eps = [];
     StackList epsStack = StackList();
-    for (int i = 1; i <= (comicInfo.comic.epsCount / 40 + 1); i++) {
-      var result = await getEps(comicInfo.comic.id, i);
-      if (result['error'] != null) {
-        throw Exception(result);
-      } else {
-        epsStack.push(Eps.fromJson(result));
-      }
+    for (int i = 1; i <= (comicInfo.data.comic.epsCount / 40 + 1); i++) {
+      var result = await getEps(comicInfo.data.comic.id, i);
+      epsStack.push(Eps.fromJson(result).data);
     }
 
     if (epsStack.isEmpty) {
@@ -66,14 +62,14 @@ class EpsBloc extends Bloc<EpsEvent, EpsState> {
     }
 
     while (epsList.isNotEmpty) {
-      Eps ep = epsList.removeAt(0);
+      var ep = epsList.removeAt(0);
       StackList epStackList = StackList();
-      for (int i = 0; i < ep.eps.docs.length; i++) {
-        epStackList.push(ep.eps.docs[i]);
+      for (int i = 0; i < ep.data.eps.docs.length; i++) {
+        epStackList.push(ep.data.eps.docs[i]);
       }
 
       while (epStackList.isNotEmpty) {
-        eps.add(epStackList.pop());
+        add(epStackList.pop());
       }
     }
 

@@ -25,8 +25,8 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
   @override
   void initState() {
     super.initState();
-    isCollected = comicInfo.comic.isFavourite;
-    isLiked = comicInfo.comic.isLiked;
+    isCollected = comicInfo.data.comic.isFavourite;
+    isLiked = comicInfo.data.comic.isLiked;
   }
 
   void toggleAction(String actionType) {
@@ -38,12 +38,12 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
 
     switch (actionType) {
       case 'like':
-        result = like(comicInfo.comic.id);
+        result = like(comicInfo.data.comic.id);
         isCurrentlyActive = isLiked;
         actionVerb = '点赞';
         break;
       case 'favorite':
-        result = collect(comicInfo.comic.id);
+        result = collect(comicInfo.data.comic.id);
         isCurrentlyActive = isCollected;
         actionVerb = '收藏';
         break;
@@ -128,7 +128,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
               ),
               const SizedBox(height: 2),
               Text(
-                '${comicInfo.comic.viewsCount}',
+                '${comicInfo.data.comic.viewsCount}',
               ),
             ],
           ),
@@ -146,7 +146,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
               ),
               const SizedBox(height: 2),
               Text(
-                '${comicInfo.comic.totalLikes}',
+                '${comicInfo.data.comic.totalLikes}',
               ),
             ],
           ),
@@ -164,7 +164,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
               ),
               const SizedBox(height: 2),
               Text(
-                '${comicInfo.comic.commentsCount}',
+                '${comicInfo.data.comic.commentsCount}',
                 // style: TextStyle(color: textColor),
               ),
             ],

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:zephyr/page/mainPage/search/page/comic_page.dart';
-import 'package:zephyr/page/ranking_list.dart';
+import 'package:zephyr/page/ranking_list/ranking_list.dart';
 import 'package:zephyr/page/shunt_page.dart';
 
 import '../page/login_page.dart';

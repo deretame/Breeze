@@ -60,7 +60,7 @@ class _SynopsisWidgetState extends State<SynopsisWidget> {
             ),
           ],
         ),
-        Text(comicInfo.comic.description),
+        Text(comicInfo.data.comic.description),
       ],
     );
   }

@@ -68,7 +68,7 @@ class CategoryWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => PictureBloc()
-        ..add(PictureImage(
+        ..add(GetPicture(
           PictureInfo(
             from: "bika",
             url: category.homeThumb.fileServer,
@@ -81,52 +81,55 @@ class CategoryWidget extends StatelessWidget {
           if (category.homeThumb.path.isEmpty) {
             return _buildDefaultImage(context);
           }
-          if (state.status == PictureLoadStatus.initial) {
-            return Observer(
-              builder: (context) {
-                return Center(
-                  child: LoadingAnimationWidget.waveDots(
-                    color: globalSetting.textColor,
-                    size: 25,
-                  ),
-                );
-              },
-            );
-          } else if (state.status == PictureLoadStatus.success) {
-            return InkWell(
-              onTap: () => _navigateBasedOnTitle(context),
-              child: Column(
-                children: <Widget>[
-                  _buildImage(state.imagePath!),
-                  SizedBox(height: 5),
-                  Text(
-                    category.title,
-                    style: TextStyle(
-                      color: globalSetting.textColor,
-                      fontSize: 14,
+
+          switch (state.status) {
+            case PictureLoadStatus.initial:
+              return Center(
+                child: LoadingAnimationWidget.waveDots(
+                  color: globalSetting.textColor,
+                  size: 25,
+                ),
+              );
+            case PictureLoadStatus.success:
+              return InkWell(
+                onTap: () => _navigateBasedOnTitle(context),
+                child: Column(
+                  children: <Widget>[
+                    _buildImage(state.imagePath!),
+                    SizedBox(height: 5),
+                    Observer(
+                      builder: (context) {
+                        return Text(
+                          category.title,
+                          style: TextStyle(
+                            color: globalSetting.textColor,
+                            fontSize: 14,
+                          ),
+                        );
+                      },
                     ),
-                  ),
-                ],
-              ),
-            );
-          } else if (state.status == PictureLoadStatus.failure) {
-            return InkWell(
-              onTap: () {
-                context.read<PictureBloc>().add(
-                      PictureImage(
-                        PictureInfo(
-                          from: "bika",
-                          url: category.homeThumb.fileServer,
-                          path: category.homeThumb.path,
-                          pictureType: "category",
+                  ],
+                ),
+              );
+            case PictureLoadStatus.failure:
+              return InkWell(
+                onTap: () {
+                  context.read<PictureBloc>().add(
+                        GetPicture(
+                          PictureInfo(
+                            from: "bika",
+                            url: category.homeThumb.fileServer,
+                            path: category.homeThumb.path,
+                            pictureType: "category",
+                          ),
                         ),
-                      ),
-                    );
-              },
-              child: Icon(Icons.refresh),
-            );
+                      );
+                },
+                child: Icon(Icons.refresh),
+              );
+            default:
+              return SizedBox.shrink(); // 避免状态未定义导致的错误
           }
-          return SizedBox.shrink(); // 避免状态未定义导致的错误
         },
       ),
     );
@@ -157,7 +160,17 @@ class CategoryWidget extends StatelessWidget {
             ),
           ),
           SizedBox(height: 5),
-          Text(category.title),
+          Observer(
+            builder: (context) {
+              return Text(
+                category.title,
+                style: TextStyle(
+                  color: globalSetting.textColor,
+                  fontSize: 14,
+                ),
+              );
+            },
+          ),
         ],
       ),
     );

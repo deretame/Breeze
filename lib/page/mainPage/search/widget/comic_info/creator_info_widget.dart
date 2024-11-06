@@ -51,7 +51,7 @@ class _CreatorInfoWidgetState extends State<CreatorInfoWidget>
             extra: SearchEnter(
                 url:
                     "https://picaapi.picacomic.com/comics?ca=58f649a80a48790773c7017c&s=ld&page=1",
-                keyword: comicInfo.comic.creator.id.toString()),
+                keyword: comicInfo.data.comic.creator.id.toString()),
           );
         },
         child: Container(
@@ -76,9 +76,9 @@ class _CreatorInfoWidgetState extends State<CreatorInfoWidget>
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               ImagerWidget(
-                fileServer: comicInfo.comic.creator.avatar.fileServer,
-                path: comicInfo.comic.creator.avatar.path,
-                id: comicInfo.comic.id,
+                fileServer: comicInfo.data.comic.creator.avatar.fileServer,
+                path: comicInfo.data.comic.creator.avatar.path,
+                id: comicInfo.data.comic.id,
                 pictureType: "creator",
               ),
               const SizedBox(width: 15),
@@ -88,13 +88,13 @@ class _CreatorInfoWidgetState extends State<CreatorInfoWidget>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      comicInfo.comic.creator.title,
+                      comicInfo.data.comic.creator.title,
                       style: const TextStyle(
                         color: Colors.red,
                       ),
                     ),
                     Text(
-                      timeDecode(comicInfo.comic.updatedAt),
+                      timeDecode(comicInfo.data.comic.updatedAt),
                     ),
                   ],
                 ),

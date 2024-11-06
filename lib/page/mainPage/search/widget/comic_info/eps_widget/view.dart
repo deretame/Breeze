@@ -1,87 +1,149 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/type/comic_ep_info.dart';
 import 'package:zephyr/util/router.dart';
 
 import '../../../../../../json/comic/comic_info.dart';
 import '../../../../../../json/comic/eps.dart';
-import 'method.dart';
+import '../../../../../../network/http/http_request.dart';
+import '../../../../../../type/stack.dart';
 
-class EpsWidget extends StatelessWidget {
+class EpsWidget extends StatefulWidget {
   final ComicInfo comicInfo;
 
   const EpsWidget({super.key, required this.comicInfo});
 
   @override
+  State<EpsWidget> createState() => _EpWidgetState();
+}
+
+class _EpWidgetState extends State<EpsWidget> {
+  ComicInfo get comicInfo => widget.comicInfo;
+  late Future<List<Doc>> _fetchEp;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchEp = fetchEp();
+  }
+
+  // 获取章节列表并正序
+  Future<List<Doc>> fetchEp() async {
+    try {
+      List<Doc> eps = [];
+      StackList epsStack = StackList();
+      for (int i = 1; i <= (comicInfo.data.comic.epsCount / 40 + 1); i++) {
+        var result = await getEps(comicInfo.data.comic.id, i);
+        epsStack.push(Eps.fromJson(result).data.eps);
+      }
+
+      if (epsStack.isEmpty) {
+        throw Exception("No Episodes Found");
+      }
+
+      List<EpsClass> epsList = [];
+      while (epsStack.isNotEmpty) {
+        epsList.add(epsStack.pop());
+      }
+
+      if (epsList.isEmpty) {
+        throw Exception("No Episodes Found");
+      }
+
+      while (epsList.isNotEmpty) {
+        EpsClass ep = epsList.removeAt(0);
+        StackList epStackList = StackList();
+        for (int i = 0; i < ep.docs.length; i++) {
+          epStackList.push(ep.docs[i]);
+        }
+
+        while (epStackList.isNotEmpty) {
+          eps.add(epStackList.pop());
+        }
+      }
+      return eps;
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    return [];
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => EpsBloc(comicInfo: comicInfo),
-      child: BlocBuilder<EpsBloc, EpsState>(
-        builder: (context, state) {
-          if (state.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state.error != null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Error: ${state.error}'),
-                  ElevatedButton(
-                    onPressed: () {
-                      context.read<EpsBloc>().add(FetchEpsEvent());
-                    },
-                    child: const Text('重新加载'),
-                  ),
-                ],
-              ),
-            );
-          } else if (state.eps.isNotEmpty) {
-            return Column(
+    return FutureBuilder<List<Doc>>(
+      future: _fetchEp,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ...state.eps.map(
-                  (doc) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5.0),
-                    child: EpButtonWidget(doc: doc, comicInfo: comicInfo),
-                  ),
+                Text('Error: ${snapshot.error}'),
+                ElevatedButton(
+                  onPressed: () async {
+                    setState(() {
+                      _fetchEp =
+                          fetchEp(); // 更新 _fetchEp 变量以触发 FutureBuilder 重建
+                    });
+                  },
+                  child: const Text('重新加载'),
                 ),
               ],
-            );
-          } else {
-            return const Center(child: Text('No Episodes Found'));
-          }
-        },
-      ),
+            ),
+          );
+        } else if (snapshot.hasData) {
+          List<Doc> docs = snapshot.data!;
+          return Column(
+            children: [
+              // 使用 map 和 Padding 创建 EpButton 列表
+              ...docs.map(
+                (doc) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 5.0),
+                  child: EpButtonWidget(doc: doc, comicInfo: comicInfo),
+                ),
+              ),
+            ],
+          );
+        } else {
+          return const Center(child: Text('No Episodes Found'));
+        }
+      },
     );
   }
 }
 
-class EpButtonWidget extends StatelessWidget {
+class EpButtonWidget extends StatefulWidget {
   final Doc doc;
   final ComicInfo comicInfo;
 
-  const EpButtonWidget({
-    super.key,
-    required this.doc,
-    required this.comicInfo,
-  });
+  const EpButtonWidget({super.key, required this.doc, required this.comicInfo});
+
+  @override
+  State<EpButtonWidget> createState() => _EpButtonWidgetState();
+}
+
+class _EpButtonWidgetState extends State<EpButtonWidget> {
+  Doc get doc => widget.doc;
+
+  ComicInfo get comicInfo => widget.comicInfo;
 
   String timeDecode(DateTime originalTime) {
     DateTime newDateTime = originalTime.add(const Duration(hours: 8));
     String formattedTime =
-        '${newDateTime.year}年${newDateTime.month}月${newDateTime.day}日${newDateTime.hour.toString().padLeft(2, '0')}:${newDateTime.minute.toString().padLeft(2, '0')}:${newDateTime.second.toString().padLeft(2, '0')}';
+        '${newDateTime.year}年${newDateTime.month}月${newDateTime.day}日 ${newDateTime.hour.toString().padLeft(2, '0')}:${newDateTime.minute.toString().padLeft(2, '0')}:${newDateTime.second.toString().padLeft(2, '0')}';
     return "$formattedTime 更新";
   }
 
   @override
   Widget build(BuildContext context) {
     var comicInfoPage = ComicEpInfo(
-      comicId: comicInfo.comic.id,
-      title: doc.title,
-      order: doc.order,
-      updatedAt: doc.updatedAt,
-      id: doc.id,
-    );
+        comicId: comicInfo.data.comic.id,
+        title: doc.title,
+        order: doc.order,
+        updatedAt: doc.updatedAt,
+        id: doc.id);
 
     return InkWell(
       onTap: () {
@@ -90,6 +152,7 @@ class EpButtonWidget extends StatelessWidget {
       child: Container(
         width: double.infinity,
         margin: EdgeInsets.symmetric(horizontal: 0),
+        // Add horizontal margin
         padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: globalSetting.backgroundColor,
@@ -118,9 +181,11 @@ class EpButtonWidget extends StatelessWidget {
                   timeDecode(doc.updatedAt),
                   style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
-                Spacer(), // 使用 Spacer 来代替 Expanded 和 Container
+                Expanded(
+                  child: Container(),
+                ),
                 Text(
-                  doc.order.toString(),
+                  ' 第${doc.order}话',
                   style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ],

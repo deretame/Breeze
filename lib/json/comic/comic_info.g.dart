@@ -8,10 +8,23 @@ part of 'comic_info.dart';
 
 _$ComicInfoImpl _$$ComicInfoImplFromJson(Map<String, dynamic> json) =>
     _$ComicInfoImpl(
-      comic: Comic.fromJson(json['comic'] as Map<String, dynamic>),
+      code: (json['code'] as num).toInt(),
+      message: json['message'] as String,
+      data: Data.fromJson(json['data'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$$ComicInfoImplToJson(_$ComicInfoImpl instance) =>
+    <String, dynamic>{
+      'code': instance.code,
+      'message': instance.message,
+      'data': instance.data,
+    };
+
+_$DataImpl _$$DataImplFromJson(Map<String, dynamic> json) => _$DataImpl(
+      comic: Comic.fromJson(json['comic'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$$DataImplToJson(_$DataImpl instance) =>
     <String, dynamic>{
       'comic': instance.comic,
     };
@@ -81,12 +94,12 @@ _$CreatorImpl _$$CreatorImplFromJson(Map<String, dynamic> json) =>
       verified: json['verified'] as bool,
       exp: (json['exp'] as num).toInt(),
       level: (json['level'] as num).toInt(),
-      role: json['role'] as String,
       characters: (json['characters'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
-      avatar: Thumb.fromJson(json['avatar'] as Map<String, dynamic>),
+      role: json['role'] as String,
       title: json['title'] as String,
+      avatar: Thumb.fromJson(json['avatar'] as Map<String, dynamic>),
       slogan: json['slogan'] as String,
     );
 
@@ -98,22 +111,22 @@ Map<String, dynamic> _$$CreatorImplToJson(_$CreatorImpl instance) =>
       'verified': instance.verified,
       'exp': instance.exp,
       'level': instance.level,
-      'role': instance.role,
       'characters': instance.characters,
-      'avatar': instance.avatar,
+      'role': instance.role,
       'title': instance.title,
+      'avatar': instance.avatar,
       'slogan': instance.slogan,
     };
 
 _$ThumbImpl _$$ThumbImplFromJson(Map<String, dynamic> json) => _$ThumbImpl(
-      fileServer: json['fileServer'] as String,
-      path: json['path'] as String,
       originalName: json['originalName'] as String,
+      path: json['path'] as String,
+      fileServer: json['fileServer'] as String,
     );
 
 Map<String, dynamic> _$$ThumbImplToJson(_$ThumbImpl instance) =>
     <String, dynamic>{
-      'fileServer': instance.fileServer,
-      'path': instance.path,
       'originalName': instance.originalName,
+      'path': instance.path,
+      'fileServer': instance.fileServer,
     };

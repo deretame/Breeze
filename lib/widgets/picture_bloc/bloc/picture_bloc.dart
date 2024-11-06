@@ -17,16 +17,16 @@ EventTransformer<E> throttleDroppable<E>(Duration duration) {
   };
 }
 
-class PictureBloc extends Bloc<PictureImage, PictureLoadState> {
+class PictureBloc extends Bloc<GetPicture, PictureLoadState> {
   PictureBloc() : super(PictureLoadState()) {
-    on<PictureImage>(
+    on<GetPicture>(
       _fetchImage,
       transformer: throttleDroppable(throttleDuration),
     );
   }
 
   Future<void> _fetchImage(
-    PictureImage event,
+    GetPicture event,
     Emitter<PictureLoadState> emit,
   ) async {
     emit(

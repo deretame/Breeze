@@ -4,14 +4,12 @@ import 'package:catcher_2/catcher_2.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
-import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
-import 'package:zephyr/util/constants.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/router.dart';
 
@@ -77,18 +75,60 @@ Future<void> main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    Global(context);
-    return Constants.isFluent
-        ? buildFluentUI(context)
-        : _buildMaterial(context);
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    // 在初始化时不进行基于上下文的设置
   }
 
-  Widget _buildMaterial(BuildContext context) {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 在这里进行基于上下文的设置
+    _updateThemeSettings();
+  }
+
+  void _updateThemeSettings() {
+    final isDarkMode =
+        MediaQuery.of(context).platformBrightness == Brightness.dark;
+    final primary = globalSetting.seedColor;
+
+    // 使用种子颜色创建颜色方案
+    final lightColorScheme = ColorScheme.fromSeed(
+      seedColor: primary,
+    );
+    final darkColorScheme = ColorScheme.fromSeed(
+      seedColor: primary,
+      brightness: Brightness.dark,
+    );
+
+    // 根据当前主题模式选择对应的 ColorScheme
+    final currentColorScheme = globalSetting.themeMode == ThemeMode.dark
+        ? darkColorScheme
+        : lightColorScheme;
+
+    // 更新设置
+    globalSetting.setThemeType(!isDarkMode);
+    globalSetting.setBackgroundColor(currentColorScheme.surface);
+    globalSetting.setTextColor(isDarkMode ? Colors.white : Colors.black);
+
+    // Debug 信息
+    debugPrint("backgroundColor: ${globalSetting.backgroundColor}");
+    debugPrint("current theme: ${globalSetting.themeMode}");
+    debugPrint("textColor: ${globalSetting.textColor}");
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Global(context); // 保持原有的 Global 逻辑
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       systemNavigationBarColor: Colors.transparent,
@@ -96,87 +136,51 @@ class MyApp extends StatelessWidget {
       statusBarColor: Colors.transparent,
     ));
 
-    return DynamicColorBuilder(
-      builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-        return Observer(
-          builder: (context) {
-            ColorScheme lightColorScheme;
-            ColorScheme darkColorScheme;
+    return Observer(
+      builder: (context) {
+        final primary = globalSetting.seedColor;
 
-            // 首先确定当前使用的 ColorScheme
-            if (globalSetting.dynamicColor &&
-                lightDynamic != null &&
-                darkDynamic != null) {
-              lightColorScheme = lightDynamic.harmonized();
-              darkColorScheme = darkDynamic.harmonized();
-            } else {
-              Color primary = globalSetting.seedColor;
-              lightColorScheme = ColorScheme.fromSeed(
-                seedColor: primary,
-              );
-              darkColorScheme = ColorScheme.fromSeed(
-                seedColor: primary,
-                brightness: Brightness.dark,
-              );
-            }
+        // 使用种子颜色创建颜色方案
+        final lightColorScheme = ColorScheme.fromSeed(
+          seedColor: primary,
+        );
+        final darkColorScheme = ColorScheme.fromSeed(
+          seedColor: primary,
+          brightness: Brightness.dark,
+        );
 
-            // 根据当前主题模式选择对应的 ColorScheme
-            final currentColorScheme = globalSetting.themeMode == ThemeMode.dark
-                ? darkColorScheme
-                : lightColorScheme;
+        // 根据当前主题模式选择对应的 ColorScheme
+        globalSetting.themeMode == ThemeMode.dark
+            ? darkColorScheme
+            : lightColorScheme;
 
-            // 更新设置时使用确定的 ColorScheme
-            bool isDarkMode =
-                MediaQuery.of(context).platformBrightness == Brightness.dark;
-            Color textColor = isDarkMode ? Colors.white : Colors.black;
-            globalSetting.setThemeType(isDarkMode ? false : true);
-            globalSetting.setBackgroundColor(currentColorScheme.surface);
-            globalSetting.setTextColor(textColor);
-
-            debugPrint("isDynamic: ${globalSetting.dynamicColor}");
-            debugPrint("lightDynamic: $lightDynamic");
-            debugPrint("darkDynamic: $darkDynamic");
-            debugPrint("backgroundColor: ${globalSetting.backgroundColor}");
-            debugPrint("current theme: ${globalSetting.themeMode}");
-
-            return MaterialApp.router(
-              routerConfig: goRouter,
-              locale: globalSetting.locale,
-              title: 'Breeze',
-              themeMode: globalSetting.themeMode,
-              theme: ThemeData.light().copyWith(
-                  primaryColor: lightColorScheme.primary,
-                  colorScheme: lightColorScheme,
-                  scaffoldBackgroundColor: lightColorScheme.surface,
-                  cardColor: lightColorScheme.surfaceContainer,
-                  dialogBackgroundColor: lightColorScheme.surfaceContainer,
-                  chipTheme: ChipThemeData(
-                    backgroundColor: lightColorScheme.surface,
-                  ),
-                  canvasColor: lightColorScheme.surfaceContainer),
-              darkTheme: ThemeData.dark().copyWith(
-                  scaffoldBackgroundColor: globalSetting.isAMOLED
-                      ? Colors.black
-                      : darkColorScheme.surface,
-                  tabBarTheme: TabBarTheme(dividerColor: Colors.transparent),
-                  colorScheme: darkColorScheme),
-            );
-          },
+        return MaterialApp.router(
+          routerConfig: goRouter,
+          locale: globalSetting.locale,
+          title: 'Breeze',
+          themeMode: globalSetting.themeMode,
+          theme: ThemeData.light().copyWith(
+            primaryColor: lightColorScheme.primary,
+            colorScheme: lightColorScheme,
+            scaffoldBackgroundColor: lightColorScheme.surface,
+            cardColor: lightColorScheme.surfaceContainer,
+            dialogBackgroundColor: lightColorScheme.surfaceContainer,
+            chipTheme: ChipThemeData(
+              backgroundColor: lightColorScheme.surface,
+            ),
+            canvasColor: lightColorScheme.surfaceContainer,
+          ),
+          darkTheme: ThemeData.dark().copyWith(
+            scaffoldBackgroundColor:
+                globalSetting.isAMOLED ? Colors.black : darkColorScheme.surface,
+            tabBarTheme: TabBarTheme(dividerColor: Colors.transparent),
+            colorScheme: darkColorScheme,
+          ),
         );
       },
     );
   }
 
-  // Leave for future implementation
+  // 留待将来实现
   buildFluentUI(BuildContext context) {}
-
-  void updateSettings(BuildContext context) {
-    bool isDarkMode =
-        MediaQuery.of(context).platformBrightness == Brightness.dark;
-    Color textColor = isDarkMode ? Colors.white : Colors.black;
-    globalSetting.setThemeType(isDarkMode ? false : true);
-    globalSetting.setBackgroundColor(Theme.of(context).scaffoldBackgroundColor);
-    globalSetting.setTextColor(textColor);
-    debugPrint("backgroundColor: ${globalSetting.backgroundColor}");
-  }
 }

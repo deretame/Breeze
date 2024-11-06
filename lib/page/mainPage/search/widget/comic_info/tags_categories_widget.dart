@@ -26,8 +26,8 @@ class _TagsAndCategoriesWidgetState extends State<TagsAndCategoriesWidget> {
   ComicInfo get comicInfo => widget.comicInfo;
 
   List<String> get items => widget.type == 'categories'
-      ? comicInfo.comic.categories
-      : comicInfo.comic.tags;
+      ? comicInfo.data.comic.categories
+      : comicInfo.data.comic.tags;
 
   String get title => widget.type == 'categories' ? '分类' : '标签';
 

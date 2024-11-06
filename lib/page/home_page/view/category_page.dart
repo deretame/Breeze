@@ -47,7 +47,7 @@ class _CategoryPageState extends State<CategoryPage>
                 ),
               );
             case GetCategoryStatus.success:
-              var rows = buildCategoriesWidget(state.categories);
+              var rows = buildCategoriesWidget(state.categories!);
               return SingleChildScrollView(
                 child: Column(
                   children: [

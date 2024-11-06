@@ -6,11 +6,11 @@ final class GetCategoryState extends Equatable {
   const GetCategoryState({
     this.status = GetCategoryStatus.initial,
     this.categories = const <HomeCategory>[],
-    this.result,
+    this.result = '',
   });
 
   final GetCategoryStatus status;
-  final List<HomeCategory> categories;
+  final List<HomeCategory>? categories;
   final String? result;
 
   GetCategoryState copyWith({
@@ -21,7 +21,7 @@ final class GetCategoryState extends Equatable {
     return GetCategoryState(
       status: status ?? this.status,
       categories: categories ?? this.categories,
-      result: result,
+      result: result ?? this.result,
     );
   }
 

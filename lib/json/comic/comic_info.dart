@@ -16,11 +16,22 @@ String comicInfoToJson(ComicInfo data) => json.encode(data.toJson());
 @freezed
 class ComicInfo with _$ComicInfo {
   const factory ComicInfo({
-    @JsonKey(name: "comic") required Comic comic,
+    @JsonKey(name: "code") required int code,
+    @JsonKey(name: "message") required String message,
+    @JsonKey(name: "data") required Data data,
   }) = _ComicInfo;
 
   factory ComicInfo.fromJson(Map<String, dynamic> json) =>
       _$ComicInfoFromJson(json);
+}
+
+@freezed
+class Data with _$Data {
+  const factory Data({
+    @JsonKey(name: "comic") required Comic comic,
+  }) = _Data;
+
+  factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 }
 
 @freezed
@@ -64,10 +75,10 @@ class Creator with _$Creator {
     @JsonKey(name: "verified") required bool verified,
     @JsonKey(name: "exp") required int exp,
     @JsonKey(name: "level") required int level,
-    @JsonKey(name: "role") required String role,
     @JsonKey(name: "characters") required List<String> characters,
-    @JsonKey(name: "avatar") required Thumb avatar,
+    @JsonKey(name: "role") required String role,
     @JsonKey(name: "title") required String title,
+    @JsonKey(name: "avatar") required Thumb avatar,
     @JsonKey(name: "slogan") required String slogan,
   }) = _Creator;
 
@@ -78,9 +89,9 @@ class Creator with _$Creator {
 @freezed
 class Thumb with _$Thumb {
   const factory Thumb({
-    @JsonKey(name: "fileServer") required String fileServer,
-    @JsonKey(name: "path") required String path,
     @JsonKey(name: "originalName") required String originalName,
+    @JsonKey(name: "path") required String path,
+    @JsonKey(name: "fileServer") required String fileServer,
   }) = _Thumb;
 
   factory Thumb.fromJson(Map<String, dynamic> json) => _$ThumbFromJson(json);

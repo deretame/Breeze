@@ -7,10 +7,10 @@ sealed class PictureEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class PictureImage extends PictureEvent {
+class GetPicture extends PictureEvent {
   final PictureInfo pictureInfo;
 
-  const PictureImage(this.pictureInfo);
+  const GetPicture(this.pictureInfo);
 
   @override
   List<Object> get props => [pictureInfo];

@@ -7,7 +7,7 @@ import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/page/mainPage/person/person_page.dart';
 import 'package:zephyr/page/mainPage/search_page/view.dart';
 import 'package:zephyr/page/mainPage/setting/setting_page.dart';
-import 'package:zephyr/page/ranking_list.dart';
+import 'package:zephyr/page/ranking_list/ranking_list.dart';
 
 import '../main.dart';
 import 'home_page/view/home_page.dart';

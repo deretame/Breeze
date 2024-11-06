@@ -47,9 +47,9 @@ class _ComicParticularsWidgetState extends State<ComicParticularsWidget>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           ImageWidget(
-            fileServer: comicInfo.comic.thumb.fileServer,
-            path: comicInfo.comic.thumb.path,
-            id: comicInfo.comic.id,
+            fileServer: comicInfo.data.comic.thumb.fileServer,
+            path: comicInfo.data.comic.thumb.path,
+            id: comicInfo.data.comic.id,
             pictureType: "cover",
           ),
           SizedBox(width: screenWidth / 60),
@@ -58,28 +58,28 @@ class _ComicParticularsWidgetState extends State<ComicParticularsWidget>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 SelectableText(
-                  comicInfo.comic.title,
+                  comicInfo.data.comic.title,
                   style: TextStyle(
                     color: globalSetting.textColor,
                     fontSize: 18,
                   ),
                 ),
-                if (comicInfo.comic.author != '') ...[
+                if (comicInfo.data.comic.author != '') ...[
                   const SizedBox(height: 2),
                   InkWell(
                     onTap: () {
                       // 点击时触发的事件
                       var enter = SearchEnter();
-                      enter.keyword = comicInfo.comic.author;
+                      enter.keyword = comicInfo.data.comic.author;
                       navigateTo(context, '/search', extra: enter);
                     },
                     onLongPress: () {
                       // 长按时触发的事件
                       Clipboard.setData(
-                          ClipboardData(text: comicInfo.comic.author));
+                          ClipboardData(text: comicInfo.data.comic.author));
                       CherryToast.success(
                         description: Text(
-                          "已将${comicInfo.comic.author}复制到剪贴板",
+                          "已将${comicInfo.data.comic.author}复制到剪贴板",
                           style: TextStyle(color: globalSetting.textColor),
                         ),
                         animationType: AnimationType.fromTop,
@@ -89,7 +89,7 @@ class _ComicParticularsWidgetState extends State<ComicParticularsWidget>
                       ).show(context);
                     },
                     child: Text(
-                      '作者：${comicInfo.comic.author}',
+                      '作者：${comicInfo.data.comic.author}',
                       style: TextStyle(
                         color: globalSetting.themeType
                             ? Colors.red
@@ -99,21 +99,21 @@ class _ComicParticularsWidgetState extends State<ComicParticularsWidget>
                   ),
                 ],
                 const SizedBox(height: 2),
-                if (comicInfo.comic.chineseTeam != "") ...[
+                if (comicInfo.data.comic.chineseTeam != "") ...[
                   InkWell(
                     onTap: () {
                       // 点击时触发的事件
                       var enter = SearchEnter();
-                      enter.keyword = comicInfo.comic.chineseTeam;
+                      enter.keyword = comicInfo.data.comic.chineseTeam;
                       navigateTo(context, '/search', extra: enter);
                     },
                     onLongPress: () {
                       // 长按时触发的事件
-                      Clipboard.setData(
-                          ClipboardData(text: comicInfo.comic.chineseTeam));
+                      Clipboard.setData(ClipboardData(
+                          text: comicInfo.data.comic.chineseTeam));
                       CherryToast.success(
                         description: Text(
-                          "已将${comicInfo.comic.chineseTeam}复制到剪贴板",
+                          "已将${comicInfo.data.comic.chineseTeam}复制到剪贴板",
                           style: TextStyle(color: globalSetting.textColor),
                         ),
                         animationType: AnimationType.fromTop,
@@ -123,7 +123,7 @@ class _ComicParticularsWidgetState extends State<ComicParticularsWidget>
                       ).show(context);
                     },
                     child: Text(
-                      '汉化组：${comicInfo.comic.chineseTeam}',
+                      '汉化组：${comicInfo.data.comic.chineseTeam}',
                       style: TextStyle(
                         color: globalSetting.themeType
                             ? Colors.blue.shade300
@@ -132,9 +132,9 @@ class _ComicParticularsWidgetState extends State<ComicParticularsWidget>
                     ),
                   ),
                 ],
-                Text("页数：${comicInfo.comic.pagesCount}"),
+                Text("页数：${comicInfo.data.comic.pagesCount}"),
                 const SizedBox(height: 2),
-                Text("章节数：${comicInfo.comic.epsCount}"),
+                Text("章节数：${comicInfo.data.comic.epsCount}"),
               ],
             ),
           ),

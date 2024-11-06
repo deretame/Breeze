@@ -23,7 +23,7 @@ abstract class _GlobalSetting with Store {
   @observable
   bool isAMOLED = true; // 是否是AMOLED屏幕
   @observable
-  Color seedColor = Colors.blue[400]!; // 种子颜色
+  Color seedColor = Colors.red[400]!; // 种子颜色
   @observable
   Color backgroundColor = Colors.white; // 背景颜色
   @observable

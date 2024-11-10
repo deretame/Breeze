@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../config/global.dart';
-import '../../../json/creator_ranking.dart';
 import '../../../main.dart';
 import '../../../type/search_enter.dart';
 import '../../../util/router.dart';
-import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
-import '../../../widgets/picture_bloc/models/picture_info.dart';
+import '../json/knight_leaderboard.dart';
 import 'creator_picture.dart';
 
 class CreatorEntryWidget extends StatefulWidget {
@@ -68,23 +65,10 @@ class _CreatorEntryWidgetState extends State<CreatorEntryWidget>
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 const SizedBox(width: 15),
-                BlocProvider(
-                  create: (_) => PictureBloc()
-                    ..add(
-                      GetPicture(
-                        PictureInfo(
-                          from: "bika",
-                          url: user.avatar.fileServer,
-                          path: user.avatar.path,
-                          pictureType: "cover",
-                        ),
-                      ),
-                    ),
-                  child: CreatorPictureWidget(
-                    fileServer: user.avatar.fileServer,
-                    path: user.avatar.path,
-                    pictureType: "creator",
-                  ),
+                CreatorPictureWidget(
+                  fileServer: user.avatar.fileServer,
+                  path: user.avatar.path,
+                  pictureType: "creator",
                 ),
                 const SizedBox(width: 15),
                 Flexible(

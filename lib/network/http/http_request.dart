@@ -101,6 +101,7 @@ Future<Map<String, dynamic>> getRankingList({
 
 Future<Map<String, dynamic>> search({
   String url = '',
+  String from = '',
   String keyword = '',
   String sort = 'dd',
   List<String> categories = const [],

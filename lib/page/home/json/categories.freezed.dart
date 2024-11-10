@@ -3,7 +3,7 @@
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
-part of 'hot_list.dart';
+part of 'categories.dart';
 
 // **************************************************************************
 // FreezedGenerator
@@ -14,12 +14,12 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-HotList _$HotListFromJson(Map<String, dynamic> json) {
-  return _HotList.fromJson(json);
+Categories _$CategoriesFromJson(Map<String, dynamic> json) {
+  return _Categories.fromJson(json);
 }
 
 /// @nodoc
-mixin _$HotList {
+mixin _$Categories {
   @JsonKey(name: "code")
   int get code => throw _privateConstructorUsedError;
 
@@ -29,19 +29,21 @@ mixin _$HotList {
   @JsonKey(name: "data")
   Data get data => throw _privateConstructorUsedError;
 
-  /// Serializes this HotList to a JSON map.
+  /// Serializes this Categories to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
-  /// Create a copy of HotList
+  /// Create a copy of Categories
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $HotListCopyWith<HotList> get copyWith => throw _privateConstructorUsedError;
+  $CategoriesCopyWith<Categories> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $HotListCopyWith<$Res> {
-  factory $HotListCopyWith(HotList value, $Res Function(HotList) then) =
-      _$HotListCopyWithImpl<$Res, HotList>;
+abstract class $CategoriesCopyWith<$Res> {
+  factory $CategoriesCopyWith(
+          Categories value, $Res Function(Categories) then) =
+      _$CategoriesCopyWithImpl<$Res, Categories>;
 
   @useResult
   $Res call(
@@ -53,9 +55,9 @@ abstract class $HotListCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$HotListCopyWithImpl<$Res, $Val extends HotList>
-    implements $HotListCopyWith<$Res> {
-  _$HotListCopyWithImpl(this._value, this._then);
+class _$CategoriesCopyWithImpl<$Res, $Val extends Categories>
+    implements $CategoriesCopyWith<$Res> {
+  _$CategoriesCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
@@ -63,7 +65,7 @@ class _$HotListCopyWithImpl<$Res, $Val extends HotList>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of HotList
+  /// Create a copy of Categories
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -88,7 +90,7 @@ class _$HotListCopyWithImpl<$Res, $Val extends HotList>
     ) as $Val);
   }
 
-  /// Create a copy of HotList
+  /// Create a copy of Categories
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
@@ -100,10 +102,11 @@ class _$HotListCopyWithImpl<$Res, $Val extends HotList>
 }
 
 /// @nodoc
-abstract class _$$HotListImplCopyWith<$Res> implements $HotListCopyWith<$Res> {
-  factory _$$HotListImplCopyWith(
-          _$HotListImpl value, $Res Function(_$HotListImpl) then) =
-      __$$HotListImplCopyWithImpl<$Res>;
+abstract class _$$CategoriesImplCopyWith<$Res>
+    implements $CategoriesCopyWith<$Res> {
+  factory _$$CategoriesImplCopyWith(
+          _$CategoriesImpl value, $Res Function(_$CategoriesImpl) then) =
+      __$$CategoriesImplCopyWithImpl<$Res>;
 
   @override
   @useResult
@@ -117,14 +120,14 @@ abstract class _$$HotListImplCopyWith<$Res> implements $HotListCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$HotListImplCopyWithImpl<$Res>
-    extends _$HotListCopyWithImpl<$Res, _$HotListImpl>
-    implements _$$HotListImplCopyWith<$Res> {
-  __$$HotListImplCopyWithImpl(
-      _$HotListImpl _value, $Res Function(_$HotListImpl) _then)
+class __$$CategoriesImplCopyWithImpl<$Res>
+    extends _$CategoriesCopyWithImpl<$Res, _$CategoriesImpl>
+    implements _$$CategoriesImplCopyWith<$Res> {
+  __$$CategoriesImplCopyWithImpl(
+      _$CategoriesImpl _value, $Res Function(_$CategoriesImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of HotList
+  /// Create a copy of Categories
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -133,7 +136,7 @@ class __$$HotListImplCopyWithImpl<$Res>
     Object? message = null,
     Object? data = null,
   }) {
-    return _then(_$HotListImpl(
+    return _then(_$CategoriesImpl(
       code: null == code
           ? _value.code
           : code // ignore: cast_nullable_to_non_nullable
@@ -152,14 +155,14 @@ class __$$HotListImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$HotListImpl implements _HotList {
-  const _$HotListImpl(
+class _$CategoriesImpl implements _Categories {
+  const _$CategoriesImpl(
       {@JsonKey(name: "code") required this.code,
       @JsonKey(name: "message") required this.message,
       @JsonKey(name: "data") required this.data});
 
-  factory _$HotListImpl.fromJson(Map<String, dynamic> json) =>
-      _$$HotListImplFromJson(json);
+  factory _$CategoriesImpl.fromJson(Map<String, dynamic> json) =>
+      _$$CategoriesImplFromJson(json);
 
   @override
   @JsonKey(name: "code")
@@ -173,14 +176,14 @@ class _$HotListImpl implements _HotList {
 
   @override
   String toString() {
-    return 'HotList(code: $code, message: $message, data: $data)';
+    return 'Categories(code: $code, message: $message, data: $data)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$HotListImpl &&
+            other is _$CategoriesImpl &&
             (identical(other.code, code) || other.code == code) &&
             (identical(other.message, message) || other.message == message) &&
             (identical(other.data, data) || other.data == data));
@@ -190,29 +193,30 @@ class _$HotListImpl implements _HotList {
   @override
   int get hashCode => Object.hash(runtimeType, code, message, data);
 
-  /// Create a copy of HotList
+  /// Create a copy of Categories
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$HotListImplCopyWith<_$HotListImpl> get copyWith =>
-      __$$HotListImplCopyWithImpl<_$HotListImpl>(this, _$identity);
+  _$$CategoriesImplCopyWith<_$CategoriesImpl> get copyWith =>
+      __$$CategoriesImplCopyWithImpl<_$CategoriesImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$HotListImplToJson(
+    return _$$CategoriesImplToJson(
       this,
     );
   }
 }
 
-abstract class _HotList implements HotList {
-  const factory _HotList(
+abstract class _Categories implements Categories {
+  const factory _Categories(
       {@JsonKey(name: "code") required final int code,
       @JsonKey(name: "message") required final String message,
-      @JsonKey(name: "data") required final Data data}) = _$HotListImpl;
+      @JsonKey(name: "data") required final Data data}) = _$CategoriesImpl;
 
-  factory _HotList.fromJson(Map<String, dynamic> json) = _$HotListImpl.fromJson;
+  factory _Categories.fromJson(Map<String, dynamic> json) =
+      _$CategoriesImpl.fromJson;
 
   @override
   @JsonKey(name: "code")
@@ -226,11 +230,11 @@ abstract class _HotList implements HotList {
   @JsonKey(name: "data")
   Data get data;
 
-  /// Create a copy of HotList
+  /// Create a copy of Categories
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$HotListImplCopyWith<_$HotListImpl> get copyWith =>
+  _$$CategoriesImplCopyWith<_$CategoriesImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -240,8 +244,8 @@ Data _$DataFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$Data {
-  @JsonKey(name: "comics")
-  List<Comic> get comics => throw _privateConstructorUsedError;
+  @JsonKey(name: "categories")
+  List<Category> get categories => throw _privateConstructorUsedError;
 
   /// Serializes this Data to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -258,7 +262,7 @@ abstract class $DataCopyWith<$Res> {
       _$DataCopyWithImpl<$Res, Data>;
 
   @useResult
-  $Res call({@JsonKey(name: "comics") List<Comic> comics});
+  $Res call({@JsonKey(name: "categories") List<Category> categories});
 }
 
 /// @nodoc
@@ -277,13 +281,13 @@ class _$DataCopyWithImpl<$Res, $Val extends Data>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? comics = null,
+    Object? categories = null,
   }) {
     return _then(_value.copyWith(
-      comics: null == comics
-          ? _value.comics
-          : comics // ignore: cast_nullable_to_non_nullable
-              as List<Comic>,
+      categories: null == categories
+          ? _value.categories
+          : categories // ignore: cast_nullable_to_non_nullable
+              as List<Category>,
     ) as $Val);
   }
 }
@@ -296,7 +300,7 @@ abstract class _$$DataImplCopyWith<$Res> implements $DataCopyWith<$Res> {
 
   @override
   @useResult
-  $Res call({@JsonKey(name: "comics") List<Comic> comics});
+  $Res call({@JsonKey(name: "categories") List<Category> categories});
 }
 
 /// @nodoc
@@ -311,13 +315,13 @@ class __$$DataImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? comics = null,
+    Object? categories = null,
   }) {
     return _then(_$DataImpl(
-      comics: null == comics
-          ? _value._comics
-          : comics // ignore: cast_nullable_to_non_nullable
-              as List<Comic>,
+      categories: null == categories
+          ? _value._categories
+          : categories // ignore: cast_nullable_to_non_nullable
+              as List<Category>,
     ));
   }
 }
@@ -325,25 +329,26 @@ class __$$DataImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$DataImpl implements _Data {
-  const _$DataImpl({@JsonKey(name: "comics") required final List<Comic> comics})
-      : _comics = comics;
+  const _$DataImpl(
+      {@JsonKey(name: "categories") required final List<Category> categories})
+      : _categories = categories;
 
   factory _$DataImpl.fromJson(Map<String, dynamic> json) =>
       _$$DataImplFromJson(json);
 
-  final List<Comic> _comics;
+  final List<Category> _categories;
 
   @override
-  @JsonKey(name: "comics")
-  List<Comic> get comics {
-    if (_comics is EqualUnmodifiableListView) return _comics;
+  @JsonKey(name: "categories")
+  List<Category> get categories {
+    if (_categories is EqualUnmodifiableListView) return _categories;
     // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_comics);
+    return EqualUnmodifiableListView(_categories);
   }
 
   @override
   String toString() {
-    return 'Data(comics: $comics)';
+    return 'Data(categories: $categories)';
   }
 
   @override
@@ -351,13 +356,14 @@ class _$DataImpl implements _Data {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$DataImpl &&
-            const DeepCollectionEquality().equals(other._comics, _comics));
+            const DeepCollectionEquality()
+                .equals(other._categories, _categories));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, const DeepCollectionEquality().hash(_comics));
+  int get hashCode => Object.hash(
+      runtimeType, const DeepCollectionEquality().hash(_categories));
 
   /// Create a copy of Data
   /// with the given fields replaced by the non-null parameter values.
@@ -377,14 +383,14 @@ class _$DataImpl implements _Data {
 
 abstract class _Data implements Data {
   const factory _Data(
-          {@JsonKey(name: "comics") required final List<Comic> comics}) =
-      _$DataImpl;
+      {@JsonKey(name: "categories")
+      required final List<Category> categories}) = _$DataImpl;
 
   factory _Data.fromJson(Map<String, dynamic> json) = _$DataImpl.fromJson;
 
   @override
-  @JsonKey(name: "comics")
-  List<Comic> get comics;
+  @JsonKey(name: "categories")
+  List<Category> get categories;
 
   /// Create a copy of Data
   /// with the given fields replaced by the non-null parameter values.
@@ -394,84 +400,65 @@ abstract class _Data implements Data {
       throw _privateConstructorUsedError;
 }
 
-Comic _$ComicFromJson(Map<String, dynamic> json) {
-  return _Comic.fromJson(json);
+Category _$CategoryFromJson(Map<String, dynamic> json) {
+  return _Category.fromJson(json);
 }
 
 /// @nodoc
-mixin _$Comic {
-  @JsonKey(name: "_id")
-  String get id => throw _privateConstructorUsedError;
-
+mixin _$Category {
   @JsonKey(name: "title")
   String get title => throw _privateConstructorUsedError;
-
-  @JsonKey(name: "author")
-  String get author => throw _privateConstructorUsedError;
-
-  @JsonKey(name: "totalViews")
-  int get totalViews => throw _privateConstructorUsedError;
-
-  @JsonKey(name: "totalLikes")
-  int get totalLikes => throw _privateConstructorUsedError;
-
-  @JsonKey(name: "pagesCount")
-  int get pagesCount => throw _privateConstructorUsedError;
-
-  @JsonKey(name: "epsCount")
-  int get epsCount => throw _privateConstructorUsedError;
-
-  @JsonKey(name: "finished")
-  bool get finished => throw _privateConstructorUsedError;
-
-  @JsonKey(name: "categories")
-  List<String> get categories => throw _privateConstructorUsedError;
 
   @JsonKey(name: "thumb")
   Thumb get thumb => throw _privateConstructorUsedError;
 
-  @JsonKey(name: "viewsCount")
-  int get viewsCount => throw _privateConstructorUsedError;
+  @JsonKey(name: "isWeb")
+  bool? get isWeb => throw _privateConstructorUsedError;
 
-  @JsonKey(name: "leaderboardCount")
-  int get leaderboardCount => throw _privateConstructorUsedError;
+  @JsonKey(name: "active")
+  bool? get active => throw _privateConstructorUsedError;
 
-  /// Serializes this Comic to a JSON map.
+  @JsonKey(name: "link")
+  String? get link => throw _privateConstructorUsedError;
+
+  @JsonKey(name: "_id")
+  String? get id => throw _privateConstructorUsedError;
+
+  @JsonKey(name: "description")
+  String? get description => throw _privateConstructorUsedError;
+
+  /// Serializes this Category to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
-  /// Create a copy of Comic
+  /// Create a copy of Category
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $ComicCopyWith<Comic> get copyWith => throw _privateConstructorUsedError;
+  $CategoryCopyWith<Category> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $ComicCopyWith<$Res> {
-  factory $ComicCopyWith(Comic value, $Res Function(Comic) then) =
-      _$ComicCopyWithImpl<$Res, Comic>;
+abstract class $CategoryCopyWith<$Res> {
+  factory $CategoryCopyWith(Category value, $Res Function(Category) then) =
+      _$CategoryCopyWithImpl<$Res, Category>;
 
   @useResult
   $Res call(
-      {@JsonKey(name: "_id") String id,
-      @JsonKey(name: "title") String title,
-      @JsonKey(name: "author") String author,
-      @JsonKey(name: "totalViews") int totalViews,
-      @JsonKey(name: "totalLikes") int totalLikes,
-      @JsonKey(name: "pagesCount") int pagesCount,
-      @JsonKey(name: "epsCount") int epsCount,
-      @JsonKey(name: "finished") bool finished,
-      @JsonKey(name: "categories") List<String> categories,
+      {@JsonKey(name: "title") String title,
       @JsonKey(name: "thumb") Thumb thumb,
-      @JsonKey(name: "viewsCount") int viewsCount,
-      @JsonKey(name: "leaderboardCount") int leaderboardCount});
+      @JsonKey(name: "isWeb") bool? isWeb,
+      @JsonKey(name: "active") bool? active,
+      @JsonKey(name: "link") String? link,
+      @JsonKey(name: "_id") String? id,
+      @JsonKey(name: "description") String? description});
 
   $ThumbCopyWith<$Res> get thumb;
 }
 
 /// @nodoc
-class _$ComicCopyWithImpl<$Res, $Val extends Comic>
-    implements $ComicCopyWith<$Res> {
-  _$ComicCopyWithImpl(this._value, this._then);
+class _$CategoryCopyWithImpl<$Res, $Val extends Category>
+    implements $CategoryCopyWith<$Res> {
+  _$CategoryCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
@@ -479,77 +466,52 @@ class _$ComicCopyWithImpl<$Res, $Val extends Comic>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Comic
+  /// Create a copy of Category
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? title = null,
-    Object? author = null,
-    Object? totalViews = null,
-    Object? totalLikes = null,
-    Object? pagesCount = null,
-    Object? epsCount = null,
-    Object? finished = null,
-    Object? categories = null,
     Object? thumb = null,
-    Object? viewsCount = null,
-    Object? leaderboardCount = null,
+    Object? isWeb = freezed,
+    Object? active = freezed,
+    Object? link = freezed,
+    Object? id = freezed,
+    Object? description = freezed,
   }) {
     return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
               as String,
-      author: null == author
-          ? _value.author
-          : author // ignore: cast_nullable_to_non_nullable
-              as String,
-      totalViews: null == totalViews
-          ? _value.totalViews
-          : totalViews // ignore: cast_nullable_to_non_nullable
-              as int,
-      totalLikes: null == totalLikes
-          ? _value.totalLikes
-          : totalLikes // ignore: cast_nullable_to_non_nullable
-              as int,
-      pagesCount: null == pagesCount
-          ? _value.pagesCount
-          : pagesCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      epsCount: null == epsCount
-          ? _value.epsCount
-          : epsCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      finished: null == finished
-          ? _value.finished
-          : finished // ignore: cast_nullable_to_non_nullable
-              as bool,
-      categories: null == categories
-          ? _value.categories
-          : categories // ignore: cast_nullable_to_non_nullable
-              as List<String>,
       thumb: null == thumb
           ? _value.thumb
           : thumb // ignore: cast_nullable_to_non_nullable
               as Thumb,
-      viewsCount: null == viewsCount
-          ? _value.viewsCount
-          : viewsCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      leaderboardCount: null == leaderboardCount
-          ? _value.leaderboardCount
-          : leaderboardCount // ignore: cast_nullable_to_non_nullable
-              as int,
+      isWeb: freezed == isWeb
+          ? _value.isWeb
+          : isWeb // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      active: freezed == active
+          ? _value.active
+          : active // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      link: freezed == link
+          ? _value.link
+          : link // ignore: cast_nullable_to_non_nullable
+              as String?,
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String?,
+      description: freezed == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 
-  /// Create a copy of Comic
+  /// Create a copy of Category
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
@@ -561,311 +523,206 @@ class _$ComicCopyWithImpl<$Res, $Val extends Comic>
 }
 
 /// @nodoc
-abstract class _$$ComicImplCopyWith<$Res> implements $ComicCopyWith<$Res> {
-  factory _$$ComicImplCopyWith(
-          _$ComicImpl value, $Res Function(_$ComicImpl) then) =
-      __$$ComicImplCopyWithImpl<$Res>;
+abstract class _$$CategoryImplCopyWith<$Res>
+    implements $CategoryCopyWith<$Res> {
+  factory _$$CategoryImplCopyWith(
+          _$CategoryImpl value, $Res Function(_$CategoryImpl) then) =
+      __$$CategoryImplCopyWithImpl<$Res>;
 
   @override
   @useResult
   $Res call(
-      {@JsonKey(name: "_id") String id,
-      @JsonKey(name: "title") String title,
-      @JsonKey(name: "author") String author,
-      @JsonKey(name: "totalViews") int totalViews,
-      @JsonKey(name: "totalLikes") int totalLikes,
-      @JsonKey(name: "pagesCount") int pagesCount,
-      @JsonKey(name: "epsCount") int epsCount,
-      @JsonKey(name: "finished") bool finished,
-      @JsonKey(name: "categories") List<String> categories,
+      {@JsonKey(name: "title") String title,
       @JsonKey(name: "thumb") Thumb thumb,
-      @JsonKey(name: "viewsCount") int viewsCount,
-      @JsonKey(name: "leaderboardCount") int leaderboardCount});
+      @JsonKey(name: "isWeb") bool? isWeb,
+      @JsonKey(name: "active") bool? active,
+      @JsonKey(name: "link") String? link,
+      @JsonKey(name: "_id") String? id,
+      @JsonKey(name: "description") String? description});
 
   @override
   $ThumbCopyWith<$Res> get thumb;
 }
 
 /// @nodoc
-class __$$ComicImplCopyWithImpl<$Res>
-    extends _$ComicCopyWithImpl<$Res, _$ComicImpl>
-    implements _$$ComicImplCopyWith<$Res> {
-  __$$ComicImplCopyWithImpl(
-      _$ComicImpl _value, $Res Function(_$ComicImpl) _then)
+class __$$CategoryImplCopyWithImpl<$Res>
+    extends _$CategoryCopyWithImpl<$Res, _$CategoryImpl>
+    implements _$$CategoryImplCopyWith<$Res> {
+  __$$CategoryImplCopyWithImpl(
+      _$CategoryImpl _value, $Res Function(_$CategoryImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of Comic
+  /// Create a copy of Category
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? title = null,
-    Object? author = null,
-    Object? totalViews = null,
-    Object? totalLikes = null,
-    Object? pagesCount = null,
-    Object? epsCount = null,
-    Object? finished = null,
-    Object? categories = null,
     Object? thumb = null,
-    Object? viewsCount = null,
-    Object? leaderboardCount = null,
+    Object? isWeb = freezed,
+    Object? active = freezed,
+    Object? link = freezed,
+    Object? id = freezed,
+    Object? description = freezed,
   }) {
-    return _then(_$ComicImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
+    return _then(_$CategoryImpl(
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
               as String,
-      author: null == author
-          ? _value.author
-          : author // ignore: cast_nullable_to_non_nullable
-              as String,
-      totalViews: null == totalViews
-          ? _value.totalViews
-          : totalViews // ignore: cast_nullable_to_non_nullable
-              as int,
-      totalLikes: null == totalLikes
-          ? _value.totalLikes
-          : totalLikes // ignore: cast_nullable_to_non_nullable
-              as int,
-      pagesCount: null == pagesCount
-          ? _value.pagesCount
-          : pagesCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      epsCount: null == epsCount
-          ? _value.epsCount
-          : epsCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      finished: null == finished
-          ? _value.finished
-          : finished // ignore: cast_nullable_to_non_nullable
-              as bool,
-      categories: null == categories
-          ? _value._categories
-          : categories // ignore: cast_nullable_to_non_nullable
-              as List<String>,
       thumb: null == thumb
           ? _value.thumb
           : thumb // ignore: cast_nullable_to_non_nullable
               as Thumb,
-      viewsCount: null == viewsCount
-          ? _value.viewsCount
-          : viewsCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      leaderboardCount: null == leaderboardCount
-          ? _value.leaderboardCount
-          : leaderboardCount // ignore: cast_nullable_to_non_nullable
-              as int,
+      isWeb: freezed == isWeb
+          ? _value.isWeb
+          : isWeb // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      active: freezed == active
+          ? _value.active
+          : active // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      link: freezed == link
+          ? _value.link
+          : link // ignore: cast_nullable_to_non_nullable
+              as String?,
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String?,
+      description: freezed == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$ComicImpl implements _Comic {
-  const _$ComicImpl(
-      {@JsonKey(name: "_id") required this.id,
-      @JsonKey(name: "title") required this.title,
-      @JsonKey(name: "author") required this.author,
-      @JsonKey(name: "totalViews") required this.totalViews,
-      @JsonKey(name: "totalLikes") required this.totalLikes,
-      @JsonKey(name: "pagesCount") required this.pagesCount,
-      @JsonKey(name: "epsCount") required this.epsCount,
-      @JsonKey(name: "finished") required this.finished,
-      @JsonKey(name: "categories") required final List<String> categories,
+class _$CategoryImpl implements _Category {
+  const _$CategoryImpl(
+      {@JsonKey(name: "title") required this.title,
       @JsonKey(name: "thumb") required this.thumb,
-      @JsonKey(name: "viewsCount") required this.viewsCount,
-      @JsonKey(name: "leaderboardCount") required this.leaderboardCount})
-      : _categories = categories;
+      @JsonKey(name: "isWeb") this.isWeb,
+      @JsonKey(name: "active") this.active,
+      @JsonKey(name: "link") this.link,
+      @JsonKey(name: "_id") this.id,
+      @JsonKey(name: "description") this.description});
 
-  factory _$ComicImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ComicImplFromJson(json);
+  factory _$CategoryImpl.fromJson(Map<String, dynamic> json) =>
+      _$$CategoryImplFromJson(json);
 
-  @override
-  @JsonKey(name: "_id")
-  final String id;
   @override
   @JsonKey(name: "title")
   final String title;
   @override
-  @JsonKey(name: "author")
-  final String author;
-  @override
-  @JsonKey(name: "totalViews")
-  final int totalViews;
-  @override
-  @JsonKey(name: "totalLikes")
-  final int totalLikes;
-  @override
-  @JsonKey(name: "pagesCount")
-  final int pagesCount;
-  @override
-  @JsonKey(name: "epsCount")
-  final int epsCount;
-  @override
-  @JsonKey(name: "finished")
-  final bool finished;
-  final List<String> _categories;
-
-  @override
-  @JsonKey(name: "categories")
-  List<String> get categories {
-    if (_categories is EqualUnmodifiableListView) return _categories;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_categories);
-  }
-
-  @override
   @JsonKey(name: "thumb")
   final Thumb thumb;
   @override
-  @JsonKey(name: "viewsCount")
-  final int viewsCount;
+  @JsonKey(name: "isWeb")
+  final bool? isWeb;
   @override
-  @JsonKey(name: "leaderboardCount")
-  final int leaderboardCount;
+  @JsonKey(name: "active")
+  final bool? active;
+  @override
+  @JsonKey(name: "link")
+  final String? link;
+  @override
+  @JsonKey(name: "_id")
+  final String? id;
+  @override
+  @JsonKey(name: "description")
+  final String? description;
 
   @override
   String toString() {
-    return 'Comic(id: $id, title: $title, author: $author, totalViews: $totalViews, totalLikes: $totalLikes, pagesCount: $pagesCount, epsCount: $epsCount, finished: $finished, categories: $categories, thumb: $thumb, viewsCount: $viewsCount, leaderboardCount: $leaderboardCount)';
+    return 'Category(title: $title, thumb: $thumb, isWeb: $isWeb, active: $active, link: $link, id: $id, description: $description)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ComicImpl &&
-            (identical(other.id, id) || other.id == id) &&
+            other is _$CategoryImpl &&
             (identical(other.title, title) || other.title == title) &&
-            (identical(other.author, author) || other.author == author) &&
-            (identical(other.totalViews, totalViews) ||
-                other.totalViews == totalViews) &&
-            (identical(other.totalLikes, totalLikes) ||
-                other.totalLikes == totalLikes) &&
-            (identical(other.pagesCount, pagesCount) ||
-                other.pagesCount == pagesCount) &&
-            (identical(other.epsCount, epsCount) ||
-                other.epsCount == epsCount) &&
-            (identical(other.finished, finished) ||
-                other.finished == finished) &&
-            const DeepCollectionEquality()
-                .equals(other._categories, _categories) &&
             (identical(other.thumb, thumb) || other.thumb == thumb) &&
-            (identical(other.viewsCount, viewsCount) ||
-                other.viewsCount == viewsCount) &&
-            (identical(other.leaderboardCount, leaderboardCount) ||
-                other.leaderboardCount == leaderboardCount));
+            (identical(other.isWeb, isWeb) || other.isWeb == isWeb) &&
+            (identical(other.active, active) || other.active == active) &&
+            (identical(other.link, link) || other.link == link) &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.description, description) ||
+                other.description == description));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      title,
-      author,
-      totalViews,
-      totalLikes,
-      pagesCount,
-      epsCount,
-      finished,
-      const DeepCollectionEquality().hash(_categories),
-      thumb,
-      viewsCount,
-      leaderboardCount);
+      runtimeType, title, thumb, isWeb, active, link, id, description);
 
-  /// Create a copy of Comic
+  /// Create a copy of Category
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$ComicImplCopyWith<_$ComicImpl> get copyWith =>
-      __$$ComicImplCopyWithImpl<_$ComicImpl>(this, _$identity);
+  _$$CategoryImplCopyWith<_$CategoryImpl> get copyWith =>
+      __$$CategoryImplCopyWithImpl<_$CategoryImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ComicImplToJson(
+    return _$$CategoryImplToJson(
       this,
     );
   }
 }
 
-abstract class _Comic implements Comic {
-  const factory _Comic(
-      {@JsonKey(name: "_id") required final String id,
-      @JsonKey(name: "title") required final String title,
-      @JsonKey(name: "author") required final String author,
-      @JsonKey(name: "totalViews") required final int totalViews,
-      @JsonKey(name: "totalLikes") required final int totalLikes,
-      @JsonKey(name: "pagesCount") required final int pagesCount,
-      @JsonKey(name: "epsCount") required final int epsCount,
-      @JsonKey(name: "finished") required final bool finished,
-      @JsonKey(name: "categories") required final List<String> categories,
-      @JsonKey(name: "thumb") required final Thumb thumb,
-      @JsonKey(name: "viewsCount") required final int viewsCount,
-      @JsonKey(name: "leaderboardCount")
-      required final int leaderboardCount}) = _$ComicImpl;
+abstract class _Category implements Category {
+  const factory _Category(
+          {@JsonKey(name: "title") required final String title,
+          @JsonKey(name: "thumb") required final Thumb thumb,
+          @JsonKey(name: "isWeb") final bool? isWeb,
+          @JsonKey(name: "active") final bool? active,
+          @JsonKey(name: "link") final String? link,
+          @JsonKey(name: "_id") final String? id,
+          @JsonKey(name: "description") final String? description}) =
+      _$CategoryImpl;
 
-  factory _Comic.fromJson(Map<String, dynamic> json) = _$ComicImpl.fromJson;
-
-  @override
-  @JsonKey(name: "_id")
-  String get id;
+  factory _Category.fromJson(Map<String, dynamic> json) =
+      _$CategoryImpl.fromJson;
 
   @override
   @JsonKey(name: "title")
   String get title;
 
   @override
-  @JsonKey(name: "author")
-  String get author;
-
-  @override
-  @JsonKey(name: "totalViews")
-  int get totalViews;
-
-  @override
-  @JsonKey(name: "totalLikes")
-  int get totalLikes;
-
-  @override
-  @JsonKey(name: "pagesCount")
-  int get pagesCount;
-
-  @override
-  @JsonKey(name: "epsCount")
-  int get epsCount;
-
-  @override
-  @JsonKey(name: "finished")
-  bool get finished;
-
-  @override
-  @JsonKey(name: "categories")
-  List<String> get categories;
-
-  @override
   @JsonKey(name: "thumb")
   Thumb get thumb;
 
   @override
-  @JsonKey(name: "viewsCount")
-  int get viewsCount;
+  @JsonKey(name: "isWeb")
+  bool? get isWeb;
 
   @override
-  @JsonKey(name: "leaderboardCount")
-  int get leaderboardCount;
+  @JsonKey(name: "active")
+  bool? get active;
 
-  /// Create a copy of Comic
+  @override
+  @JsonKey(name: "link")
+  String? get link;
+
+  @override
+  @JsonKey(name: "_id")
+  String? get id;
+
+  @override
+  @JsonKey(name: "description")
+  String? get description;
+
+  /// Create a copy of Category
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ComicImplCopyWith<_$ComicImpl> get copyWith =>
+  _$$CategoryImplCopyWith<_$CategoryImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 

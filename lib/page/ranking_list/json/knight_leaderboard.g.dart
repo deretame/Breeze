@@ -1,19 +1,34 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'users_list.dart';
+part of 'knight_leaderboard.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$UsersListImpl _$$UsersListImplFromJson(Map<String, dynamic> json) =>
-    _$UsersListImpl(
+_$KnightLeaderboardImpl _$$KnightLeaderboardImplFromJson(
+        Map<String, dynamic> json) =>
+    _$KnightLeaderboardImpl(
+      code: (json['code'] as num).toInt(),
+      message: json['message'] as String,
+      data: Data.fromJson(json['data'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$$KnightLeaderboardImplToJson(
+        _$KnightLeaderboardImpl instance) =>
+    <String, dynamic>{
+      'code': instance.code,
+      'message': instance.message,
+      'data': instance.data,
+    };
+
+_$DataImpl _$$DataImplFromJson(Map<String, dynamic> json) => _$DataImpl(
       users: (json['users'] as List<dynamic>)
           .map((e) => User.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
-Map<String, dynamic> _$$UsersListImplToJson(_$UsersListImpl instance) =>
+Map<String, dynamic> _$$DataImplToJson(_$DataImpl instance) =>
     <String, dynamic>{
       'users': instance.users,
     };

@@ -1,19 +1,19 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'hot_list.dart';
+part of 'leaderboard.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$HotListImpl _$$HotListImplFromJson(Map<String, dynamic> json) =>
-    _$HotListImpl(
+_$LeaderboardImpl _$$LeaderboardImplFromJson(Map<String, dynamic> json) =>
+    _$LeaderboardImpl(
       code: (json['code'] as num).toInt(),
       message: json['message'] as String,
       data: Data.fromJson(json['data'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$HotListImplToJson(_$HotListImpl instance) =>
+Map<String, dynamic> _$$LeaderboardImplToJson(_$LeaderboardImpl instance) =>
     <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
@@ -65,14 +65,14 @@ Map<String, dynamic> _$$ComicImplToJson(_$ComicImpl instance) =>
     };
 
 _$ThumbImpl _$$ThumbImplFromJson(Map<String, dynamic> json) => _$ThumbImpl(
-      originalName: json['originalName'] as String,
-      path: json['path'] as String,
       fileServer: json['fileServer'] as String,
+      path: json['path'] as String,
+      originalName: json['originalName'] as String,
     );
 
 Map<String, dynamic> _$$ThumbImplToJson(_$ThumbImpl instance) =>
     <String, dynamic>{
-      'originalName': instance.originalName,
-      'path': instance.path,
       'fileServer': instance.fileServer,
+      'path': instance.path,
+      'originalName': instance.originalName,
     };

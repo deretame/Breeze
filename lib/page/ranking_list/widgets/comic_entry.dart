@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/ranking_list/widgets/comic_picture.dart';
-import 'package:zephyr/widgets/picture_bloc/picture_bloc.dart';
 
 import '../../../config/global.dart';
-import '../../../json/search_bar/hot_list.dart';
 import '../../../main.dart';
 import '../../../util/router.dart';
+import '../json/leaderboard.dart';
 
 class ComicEntryWidget extends StatefulWidget {
   final String type;
@@ -71,25 +69,11 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
             ),
             child: Row(
               children: <Widget>[
-                BlocProvider(
-                  create: (_) => PictureBloc()
-                    ..add(
-                      GetPicture(
-                        PictureInfo(
-                          from: "bika",
-                          url: comic.thumb.fileServer,
-                          path: comic.thumb.path,
-                          cartoonId: comic.id,
-                          pictureType: "cover",
-                        ),
-                      ),
-                    ),
-                  child: ComicPictureWidget(
-                    fileServer: comic.thumb.fileServer,
-                    path: comic.thumb.path,
-                    id: comic.id,
-                    pictureType: "cover",
-                  ),
+                ComicPictureWidget(
+                  fileServer: comic.thumb.fileServer,
+                  path: comic.thumb.path,
+                  id: comic.id,
+                  pictureType: "cover",
                 ),
                 SizedBox(width: screenWidth / 60),
                 Expanded(

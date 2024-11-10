@@ -1,29 +1,30 @@
 // To parse this JSON data, do
 //
-//     final creatorRanking = creatorRankingFromJson(jsonString);
+//     final knightLeaderboard = knightLeaderboardFromJson(jsonString);
 
 import 'dart:convert';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'creator_ranking.freezed.dart';
-part 'creator_ranking.g.dart';
+part 'knight_leaderboard.freezed.dart';
+part 'knight_leaderboard.g.dart';
 
-CreatorRanking creatorRankingFromJson(String str) =>
-    CreatorRanking.fromJson(json.decode(str));
+KnightLeaderboard knightLeaderboardFromJson(String str) =>
+    KnightLeaderboard.fromJson(json.decode(str));
 
-String creatorRankingToJson(CreatorRanking data) => json.encode(data.toJson());
+String knightLeaderboardToJson(KnightLeaderboard data) =>
+    json.encode(data.toJson());
 
 @freezed
-class CreatorRanking with _$CreatorRanking {
-  const factory CreatorRanking({
+class KnightLeaderboard with _$KnightLeaderboard {
+  const factory KnightLeaderboard({
     @JsonKey(name: "code") required int code,
     @JsonKey(name: "message") required String message,
     @JsonKey(name: "data") required Data data,
-  }) = _CreatorRanking;
+  }) = _KnightLeaderboard;
 
-  factory CreatorRanking.fromJson(Map<String, dynamic> json) =>
-      _$CreatorRankingFromJson(json);
+  factory KnightLeaderboard.fromJson(Map<String, dynamic> json) =>
+      _$KnightLeaderboardFromJson(json);
 }
 
 @freezed

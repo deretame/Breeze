@@ -2,16 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:zephyr/page/mainPage/search/page/comic_page.dart';
 import 'package:zephyr/page/ranking_list/ranking_list.dart';
+import 'package:zephyr/page/search_result/search_result.dart';
 import 'package:zephyr/page/shunt_page.dart';
 
 import '../page/login_page.dart';
 import '../page/main.dart';
 import '../page/mainPage/search/page/comic_info_page.dart';
-import '../page/mainPage/search/page/comic_search_page.dart';
 import '../page/register_page.dart';
 import '../page/webview_page.dart';
 import '../type/comic_ep_info.dart';
-import '../type/search_enter.dart';
 
 final goRouter = GoRouter(
   initialLocation: '/main',
@@ -37,9 +36,9 @@ final goRouter = GoRouter(
       builder: (context, state) => const MainPage(),
     ),
     GoRoute(
-      path: '/search',
-      builder: (context, state) => ComicSearchPage(
-        enter: state.extra! as SearchEnter,
+      path: '/searchResult',
+      builder: (context, state) => SearchResultPage(
+        searchEnterConst: state.extra! as SearchEnterConst,
       ),
     ),
     GoRoute(

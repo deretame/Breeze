@@ -180,20 +180,21 @@ abstract class _BikaSetting with Store {
 
   @action
   Map<String, bool> getShieldCategoryMap() {
-    shieldCategoryMap = _box.get(BikaSettingBoxKeys.shieldCategoryMap,
+    var map = _box.get(BikaSettingBoxKeys.shieldCategoryMap,
         defaultValue: Map.of(categoryMap));
+    shieldCategoryMap = Map<String, bool>.from(map); // 转换为 Map<String, bool>
     return shieldCategoryMap;
   }
 
   @action
   void setShieldCategoryMap(Map<String, bool> value) {
-    categoryMap = Map.of(value);
+    shieldCategoryMap = Map<String, bool>.of(value);
     _box.put(BikaSettingBoxKeys.shieldCategoryMap, value);
   }
 
   @action
   void deleteShieldCategoryMap() {
-    categoryMap = Map.of(categoryMap);
+    shieldCategoryMap = Map<String, bool>.of(categoryMap);
     _box.delete(BikaSettingBoxKeys.shieldCategoryMap);
   }
 }

@@ -4,7 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/network/http/http_request.dart';
 
-import '../../../../json/search_bar/hot_list.dart';
+import '../../json/leaderboard.dart';
 import '../../models/models.dart';
 
 part 'comic_list_event.dart';
@@ -42,7 +42,7 @@ class ComicListBloc extends Bloc<FetchComicList, ComicListState> {
         type: event.getInfo.type,
       );
 
-      var result = HotList.fromJson(temp);
+      var result = Leaderboard.fromJson(temp);
 
       emit(
         state.copyWith(

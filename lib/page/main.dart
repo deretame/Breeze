@@ -10,7 +10,7 @@ import 'package:zephyr/page/mainPage/setting/setting_page.dart';
 import 'package:zephyr/page/ranking_list/ranking_list.dart';
 
 import '../main.dart';
-import 'home_page/view/home_page.dart';
+import 'home/view/home.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -41,8 +41,6 @@ class _MainPageState extends State<MainPage> {
     index = globalSetting.welcomePageNum;
     _pageController = PageController(initialPage: index);
     super.initState();
-    initPlatformState();
-    initPlatform();
   }
 
   @override
@@ -208,45 +206,6 @@ class _MainPageState extends State<MainPage> {
       ),
       const VerticalDivider(thickness: 1, width: 1),
     ];
-  }
-
-  initPlatformState() async {
-    return;
-    initPermission();
-  }
-
-  initPermission() async {}
-
-  _showPermissionDenied() async {
-    // if (globalSetting.permissionDenied == true) return;
-    // BotToast.showCustomText(
-    //   toastBuilder: (cancelFunc) => AlertDialog(
-    //     title: const Text('获取存储权限被拒绝'),
-    //     content: const Text('是否不再提示？'),
-    //     actions: <Widget>[
-    //       TextButton(
-    //         onPressed: () {
-    //           cancelFunc();
-    //         },
-    //         child: const Text(
-    //           '取消',
-    //         ),
-    //       ),
-    //       TextButton(
-    //         onPressed: () {
-    //           cancelFunc();
-    //         },
-    //         child: const Text(
-    //           '不再提示',
-    //         ),
-    //       ),
-    //     ],
-    //   ),
-    // );
-  }
-
-  initPlatform() async {
-    return;
   }
 
   void toggleFullscreen() {

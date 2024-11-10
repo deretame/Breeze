@@ -4,9 +4,9 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:stream_transform/stream_transform.dart';
 
-import '../../../json/search_category.dart';
 import '../../../main.dart';
 import '../../../network/http/http_request.dart';
+import '../json/categories.dart';
 import '../models/category.dart';
 
 part 'get_category_event.dart';
@@ -78,7 +78,7 @@ class GetCategoryBloc extends Bloc<GetCategoryStarted, GetCategoryState> {
         .where((key) => bikaSetting.shieldCategoryMap[key] == true)
         .toList();
     try {
-      var temp = SearchCategory.fromJson(result);
+      var temp = Categories.fromJson(result);
       debugPrint(temp.toString());
       // 下面两个不会出现在请求结果中，所以直接添加进去
       categoriesGlobal.add(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:zephyr/page/search_result/models/search_enter.dart';
 
-import '../../../type/search_enter.dart';
 import '../../../util/router.dart';
 
 class SearchPage extends StatelessWidget {
@@ -15,7 +15,7 @@ class SearchPage extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.search),
             onPressed: () {
-              navigateTo(context, '/search', extra: SearchEnter());
+              navigateTo(context, '/searchResult', extra: SearchEnterConst());
             },
           ),
         ],

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/main.dart';
 
 import '../bloc/get_category_bloc.dart';
+import '../models/category.dart';
 import '../widgets/category.dart';
 
 class CategoryPage extends StatefulWidget {
@@ -47,7 +49,15 @@ class _CategoryPageState extends State<CategoryPage>
                 ),
               );
             case GetCategoryStatus.success:
-              var rows = buildCategoriesWidget(state.categories!);
+              final Map<String, bool> shieldCategoryMap =
+                  bikaSetting.shieldCategoryMap;
+
+              List<HomeCategory> homeCategories = state.categories!
+                  .where(
+                      (category) => !(shieldCategoryMap[category.id] ?? false))
+                  .toList();
+              // 构建并返回组件
+              var rows = buildCategoriesWidget(homeCategories);
               return SingleChildScrollView(
                 child: Column(
                   children: [
@@ -58,6 +68,7 @@ class _CategoryPageState extends State<CategoryPage>
                   ],
                 ),
               );
+
             case GetCategoryStatus.initial:
               return const Center(child: CircularProgressIndicator());
           }

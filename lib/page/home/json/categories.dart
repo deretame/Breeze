@@ -1,29 +1,29 @@
 // To parse this JSON data, do
 //
-//     final searchCategory = searchCategoryFromJson(jsonString);
+//     final categories = categoriesFromJson(jsonString);
 
 import 'dart:convert';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'search_category.freezed.dart';
-part 'search_category.g.dart';
+part 'categories.freezed.dart';
+part 'categories.g.dart';
 
-SearchCategory searchCategoryFromJson(String str) =>
-    SearchCategory.fromJson(json.decode(str));
+Categories categoriesFromJson(String str) =>
+    Categories.fromJson(json.decode(str));
 
-String searchCategoryToJson(SearchCategory data) => json.encode(data.toJson());
+String categoriesToJson(Categories data) => json.encode(data.toJson());
 
 @freezed
-class SearchCategory with _$SearchCategory {
-  const factory SearchCategory({
+class Categories with _$Categories {
+  const factory Categories({
     @JsonKey(name: "code") required int code,
     @JsonKey(name: "message") required String message,
     @JsonKey(name: "data") required Data data,
-  }) = _SearchCategory;
+  }) = _Categories;
 
-  factory SearchCategory.fromJson(Map<String, dynamic> json) =>
-      _$SearchCategoryFromJson(json);
+  factory Categories.fromJson(Map<String, dynamic> json) =>
+      _$CategoriesFromJson(json);
 }
 
 @freezed

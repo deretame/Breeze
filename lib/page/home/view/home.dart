@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/page/home_page/bloc/get_category_bloc.dart';
+import 'package:zephyr/page/home/bloc/get_category_bloc.dart';
 
 import 'category_page.dart';
 

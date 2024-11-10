@@ -4,7 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/network/http/http_request.dart';
 
-import '../../../../json/creator_ranking.dart';
+import '../../json/knight_leaderboard.dart';
 import '../../models/models.dart';
 
 part 'creator_list_event.dart';
@@ -42,7 +42,7 @@ class CreatorListBloc extends Bloc<FetchCreatorList, CreatorListState> {
         type: event.getInfo.type,
       );
 
-      var result = CreatorRanking.fromJson(temp);
+      var result = KnightLeaderboard.fromJson(temp);
 
       emit(
         state.copyWith(

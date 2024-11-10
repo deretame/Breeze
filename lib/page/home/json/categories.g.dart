@@ -1,20 +1,19 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'search_category.dart';
+part of 'categories.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SearchCategoryImpl _$$SearchCategoryImplFromJson(Map<String, dynamic> json) =>
-    _$SearchCategoryImpl(
+_$CategoriesImpl _$$CategoriesImplFromJson(Map<String, dynamic> json) =>
+    _$CategoriesImpl(
       code: (json['code'] as num).toInt(),
       message: json['message'] as String,
       data: Data.fromJson(json['data'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$SearchCategoryImplToJson(
-        _$SearchCategoryImpl instance) =>
+Map<String, dynamic> _$$CategoriesImplToJson(_$CategoriesImpl instance) =>
     <String, dynamic>{
       'code': instance.code,
       'message': instance.message,

@@ -3,7 +3,7 @@
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
-part of 'creator_ranking.dart';
+part of 'knight_leaderboard.dart';
 
 // **************************************************************************
 // FreezedGenerator
@@ -14,12 +14,12 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-CreatorRanking _$CreatorRankingFromJson(Map<String, dynamic> json) {
-  return _CreatorRanking.fromJson(json);
+KnightLeaderboard _$KnightLeaderboardFromJson(Map<String, dynamic> json) {
+  return _KnightLeaderboard.fromJson(json);
 }
 
 /// @nodoc
-mixin _$CreatorRanking {
+mixin _$KnightLeaderboard {
   @JsonKey(name: "code")
   int get code => throw _privateConstructorUsedError;
 
@@ -29,21 +29,21 @@ mixin _$CreatorRanking {
   @JsonKey(name: "data")
   Data get data => throw _privateConstructorUsedError;
 
-  /// Serializes this CreatorRanking to a JSON map.
+  /// Serializes this KnightLeaderboard to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
-  /// Create a copy of CreatorRanking
+  /// Create a copy of KnightLeaderboard
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $CreatorRankingCopyWith<CreatorRanking> get copyWith =>
+  $KnightLeaderboardCopyWith<KnightLeaderboard> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $CreatorRankingCopyWith<$Res> {
-  factory $CreatorRankingCopyWith(
-          CreatorRanking value, $Res Function(CreatorRanking) then) =
-      _$CreatorRankingCopyWithImpl<$Res, CreatorRanking>;
+abstract class $KnightLeaderboardCopyWith<$Res> {
+  factory $KnightLeaderboardCopyWith(
+          KnightLeaderboard value, $Res Function(KnightLeaderboard) then) =
+      _$KnightLeaderboardCopyWithImpl<$Res, KnightLeaderboard>;
 
   @useResult
   $Res call(
@@ -55,9 +55,9 @@ abstract class $CreatorRankingCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$CreatorRankingCopyWithImpl<$Res, $Val extends CreatorRanking>
-    implements $CreatorRankingCopyWith<$Res> {
-  _$CreatorRankingCopyWithImpl(this._value, this._then);
+class _$KnightLeaderboardCopyWithImpl<$Res, $Val extends KnightLeaderboard>
+    implements $KnightLeaderboardCopyWith<$Res> {
+  _$KnightLeaderboardCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
@@ -65,7 +65,7 @@ class _$CreatorRankingCopyWithImpl<$Res, $Val extends CreatorRanking>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of CreatorRanking
+  /// Create a copy of KnightLeaderboard
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -90,7 +90,7 @@ class _$CreatorRankingCopyWithImpl<$Res, $Val extends CreatorRanking>
     ) as $Val);
   }
 
-  /// Create a copy of CreatorRanking
+  /// Create a copy of KnightLeaderboard
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
@@ -102,11 +102,11 @@ class _$CreatorRankingCopyWithImpl<$Res, $Val extends CreatorRanking>
 }
 
 /// @nodoc
-abstract class _$$CreatorRankingImplCopyWith<$Res>
-    implements $CreatorRankingCopyWith<$Res> {
-  factory _$$CreatorRankingImplCopyWith(_$CreatorRankingImpl value,
-          $Res Function(_$CreatorRankingImpl) then) =
-      __$$CreatorRankingImplCopyWithImpl<$Res>;
+abstract class _$$KnightLeaderboardImplCopyWith<$Res>
+    implements $KnightLeaderboardCopyWith<$Res> {
+  factory _$$KnightLeaderboardImplCopyWith(_$KnightLeaderboardImpl value,
+          $Res Function(_$KnightLeaderboardImpl) then) =
+      __$$KnightLeaderboardImplCopyWithImpl<$Res>;
 
   @override
   @useResult
@@ -120,14 +120,14 @@ abstract class _$$CreatorRankingImplCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$CreatorRankingImplCopyWithImpl<$Res>
-    extends _$CreatorRankingCopyWithImpl<$Res, _$CreatorRankingImpl>
-    implements _$$CreatorRankingImplCopyWith<$Res> {
-  __$$CreatorRankingImplCopyWithImpl(
-      _$CreatorRankingImpl _value, $Res Function(_$CreatorRankingImpl) _then)
+class __$$KnightLeaderboardImplCopyWithImpl<$Res>
+    extends _$KnightLeaderboardCopyWithImpl<$Res, _$KnightLeaderboardImpl>
+    implements _$$KnightLeaderboardImplCopyWith<$Res> {
+  __$$KnightLeaderboardImplCopyWithImpl(_$KnightLeaderboardImpl _value,
+      $Res Function(_$KnightLeaderboardImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of CreatorRanking
+  /// Create a copy of KnightLeaderboard
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -136,7 +136,7 @@ class __$$CreatorRankingImplCopyWithImpl<$Res>
     Object? message = null,
     Object? data = null,
   }) {
-    return _then(_$CreatorRankingImpl(
+    return _then(_$KnightLeaderboardImpl(
       code: null == code
           ? _value.code
           : code // ignore: cast_nullable_to_non_nullable
@@ -155,14 +155,14 @@ class __$$CreatorRankingImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$CreatorRankingImpl implements _CreatorRanking {
-  const _$CreatorRankingImpl(
+class _$KnightLeaderboardImpl implements _KnightLeaderboard {
+  const _$KnightLeaderboardImpl(
       {@JsonKey(name: "code") required this.code,
       @JsonKey(name: "message") required this.message,
       @JsonKey(name: "data") required this.data});
 
-  factory _$CreatorRankingImpl.fromJson(Map<String, dynamic> json) =>
-      _$$CreatorRankingImplFromJson(json);
+  factory _$KnightLeaderboardImpl.fromJson(Map<String, dynamic> json) =>
+      _$$KnightLeaderboardImplFromJson(json);
 
   @override
   @JsonKey(name: "code")
@@ -176,14 +176,14 @@ class _$CreatorRankingImpl implements _CreatorRanking {
 
   @override
   String toString() {
-    return 'CreatorRanking(code: $code, message: $message, data: $data)';
+    return 'KnightLeaderboard(code: $code, message: $message, data: $data)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$CreatorRankingImpl &&
+            other is _$KnightLeaderboardImpl &&
             (identical(other.code, code) || other.code == code) &&
             (identical(other.message, message) || other.message == message) &&
             (identical(other.data, data) || other.data == data));
@@ -193,31 +193,32 @@ class _$CreatorRankingImpl implements _CreatorRanking {
   @override
   int get hashCode => Object.hash(runtimeType, code, message, data);
 
-  /// Create a copy of CreatorRanking
+  /// Create a copy of KnightLeaderboard
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$CreatorRankingImplCopyWith<_$CreatorRankingImpl> get copyWith =>
-      __$$CreatorRankingImplCopyWithImpl<_$CreatorRankingImpl>(
+  _$$KnightLeaderboardImplCopyWith<_$KnightLeaderboardImpl> get copyWith =>
+      __$$KnightLeaderboardImplCopyWithImpl<_$KnightLeaderboardImpl>(
           this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$CreatorRankingImplToJson(
+    return _$$KnightLeaderboardImplToJson(
       this,
     );
   }
 }
 
-abstract class _CreatorRanking implements CreatorRanking {
-  const factory _CreatorRanking(
-      {@JsonKey(name: "code") required final int code,
-      @JsonKey(name: "message") required final String message,
-      @JsonKey(name: "data") required final Data data}) = _$CreatorRankingImpl;
+abstract class _KnightLeaderboard implements KnightLeaderboard {
+  const factory _KnightLeaderboard(
+          {@JsonKey(name: "code") required final int code,
+          @JsonKey(name: "message") required final String message,
+          @JsonKey(name: "data") required final Data data}) =
+      _$KnightLeaderboardImpl;
 
-  factory _CreatorRanking.fromJson(Map<String, dynamic> json) =
-      _$CreatorRankingImpl.fromJson;
+  factory _KnightLeaderboard.fromJson(Map<String, dynamic> json) =
+      _$KnightLeaderboardImpl.fromJson;
 
   @override
   @JsonKey(name: "code")
@@ -231,11 +232,11 @@ abstract class _CreatorRanking implements CreatorRanking {
   @JsonKey(name: "data")
   Data get data;
 
-  /// Create a copy of CreatorRanking
+  /// Create a copy of KnightLeaderboard
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$CreatorRankingImplCopyWith<_$CreatorRankingImpl> get copyWith =>
+  _$$KnightLeaderboardImplCopyWith<_$KnightLeaderboardImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 

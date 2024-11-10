@@ -1,28 +1,29 @@
 // To parse this JSON data, do
 //
-//     final hotList = hotListFromJson(jsonString);
+//     final leaderboard = leaderboardFromJson(jsonString);
 
 import 'dart:convert';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'hot_list.freezed.dart';
-part 'hot_list.g.dart';
+part 'leaderboard.freezed.dart';
+part 'leaderboard.g.dart';
 
-HotList hotListFromJson(String str) => HotList.fromJson(json.decode(str));
+Leaderboard leaderboardFromJson(String str) =>
+    Leaderboard.fromJson(json.decode(str));
 
-String hotListToJson(HotList data) => json.encode(data.toJson());
+String leaderboardToJson(Leaderboard data) => json.encode(data.toJson());
 
 @freezed
-class HotList with _$HotList {
-  const factory HotList({
+class Leaderboard with _$Leaderboard {
+  const factory Leaderboard({
     @JsonKey(name: "code") required int code,
     @JsonKey(name: "message") required String message,
     @JsonKey(name: "data") required Data data,
-  }) = _HotList;
+  }) = _Leaderboard;
 
-  factory HotList.fromJson(Map<String, dynamic> json) =>
-      _$HotListFromJson(json);
+  factory Leaderboard.fromJson(Map<String, dynamic> json) =>
+      _$LeaderboardFromJson(json);
 }
 
 @freezed
@@ -57,9 +58,9 @@ class Comic with _$Comic {
 @freezed
 class Thumb with _$Thumb {
   const factory Thumb({
-    @JsonKey(name: "originalName") required String originalName,
-    @JsonKey(name: "path") required String path,
     @JsonKey(name: "fileServer") required String fileServer,
+    @JsonKey(name: "path") required String path,
+    @JsonKey(name: "originalName") required String originalName,
   }) = _Thumb;
 
   factory Thumb.fromJson(Map<String, dynamic> json) => _$ThumbFromJson(json);

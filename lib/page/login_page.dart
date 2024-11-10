@@ -46,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
               onPressed: () {
                 if (title == "登录成功") {
                   if (inited == false) {
-                    navigateToNoReturn(context, "/init");
+                    navigateToNoReturn(context, "/main");
                   } else {
                     navigateToNoReturn(context, "/main");
                   }

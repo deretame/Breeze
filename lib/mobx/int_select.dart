@@ -7,7 +7,7 @@ class IntSelectStore = _IntSelectStore with _$IntSelectStore;
 
 abstract class _IntSelectStore with Store {
   @observable
-  int date = 0; //MobX 管理的日期字符串
+  int date = 0;
 
   @action
   void setDate(int newDate) {

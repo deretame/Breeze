@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -156,6 +157,7 @@ class _MyAppState extends State<MyApp> {
 
         return MaterialApp.router(
           routerConfig: goRouter,
+          builder: EasyLoading.init(),
           locale: globalSetting.locale,
           title: 'Breeze',
           themeMode: globalSetting.themeMode,

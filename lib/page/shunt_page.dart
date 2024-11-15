@@ -1,13 +1,16 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:zephyr/util/router.dart';
+import 'package:zephyr/util/router/router.gr.dart';
 
 import '../config/global.dart';
 
+@RoutePage()
 class ShuntPage extends StatelessWidget {
   const ShuntPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final router = AutoRouter.of(context); // 获取 router 实例
     return Scaffold(
       appBar: AppBar(
         title: const Text('分流设置'),
@@ -33,7 +36,12 @@ class ShuntPage extends StatelessWidget {
               ),
               onPressed: () {
                 shunt = 1;
-                navigateToNoReturn(context, "/init");
+                router.pushAndPopUntil(
+                  MainRoute(),
+                  predicate: (Route<dynamic> route) {
+                    return false;
+                  },
+                );
               },
               child: const Text('分流1'),
             ),
@@ -44,7 +52,12 @@ class ShuntPage extends StatelessWidget {
               ),
               onPressed: () {
                 shunt = 2;
-                navigateToNoReturn(context, "/init");
+                router.pushAndPopUntil(
+                  MainRoute(),
+                  predicate: (Route<dynamic> route) {
+                    return false;
+                  },
+                );
               },
               child: const Text('分流2'),
             ),
@@ -55,7 +68,12 @@ class ShuntPage extends StatelessWidget {
               ),
               onPressed: () {
                 shunt = 3;
-                navigateToNoReturn(context, "/init");
+                router.pushAndPopUntil(
+                  MainRoute(),
+                  predicate: (Route<dynamic> route) {
+                    return false;
+                  },
+                );
               },
               child: const Text('分流3'),
             ),

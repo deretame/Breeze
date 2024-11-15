@@ -1,15 +1,16 @@
 import 'dart:io';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:zephyr/page/search_result/models/models.dart';
+import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/picture_bloc/bloc/picture_bloc.dart';
 
 import '../../../config/global.dart';
 import '../../../main.dart';
-import '../../../type/search_enter.dart';
-import '../../../util/router.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 import '../models/category.dart';
 
@@ -136,17 +137,18 @@ class CategoryWidget extends StatelessWidget {
   }
 
   Widget _buildDefaultImage(BuildContext context) {
+    final router = AutoRouter.of(context);
     return InkWell(
       highlightColor: Colors.transparent,
       splashColor: Colors.transparent,
       onTap: () {
         // 根据类别处理点击事件
         if (category.title == '最近更新') {
-          navigateTo(context, '/search', extra: SearchEnter());
+          router.push(SearchResultRoute(searchEnterConst: SearchEnterConst()));
         } else if (category.title == '随机本子') {
-          navigateTo(context, '/search',
-              extra: SearchEnter(
-                  url: "https://picaapi.picacomic.com/comics/random"));
+          router.push(SearchResultRoute(
+              searchEnterConst: SearchEnterConst(
+                  url: "https://picaapi.picacomic.com/comics/random")));
         }
       },
       child: Column(
@@ -188,33 +190,46 @@ class CategoryWidget extends StatelessWidget {
   }
 
   void _navigateBasedOnTitle(BuildContext context) {
+    final router = AutoRouter.of(context);
     // 处理不同标题的导航操作
     if (category.title == '大家都在看') {
-      navigateTo(context, '/search',
-          extra: SearchEnter(
+      router.push(
+        SearchResultRoute(
+          searchEnterConst: SearchEnterConst(
               url:
-                  "https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E5%AE%B6%E9%83%BD%E5%9C%A8%E7%9C%8B&s=dd"));
+                  "https://picaapi.picacomic.com/comics?page=1&c=%E5%A5%BD%E7%94%9F%E7%9A%84%E5%8F%91%E5%B8%83&s=dd"),
+        ),
+      );
     } else if (category.title == '大濕推薦') {
-      navigateTo(context, '/search',
-          extra: SearchEnter(
+      router.push(
+        SearchResultRoute(
+          searchEnterConst: SearchEnterConst(
               url:
-                  "https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E6%BF%95%E6%8E%A8%E8%96%A6&s=dd"));
+                  "https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E6%BF%95%E6%8E%A8%E8%96%A6&s=dd"),
+        ),
+      );
     } else if (category.title == '那年今天') {
-      navigateTo(context, '/search',
-          extra: SearchEnter(
+      router.push(
+        SearchResultRoute(
+          searchEnterConst: SearchEnterConst(
               url:
-                  "https://picaapi.picacomic.com/comics?page=1&c=%E9%82%A3%E5%B9%B4%E4%BB%8A%E5%A4%A9&s=dd"));
+                  "https://picaapi.picacomic.com/comics?page=1&c=%E9%82%A3%E5%B9%B4%E4%BB%8A%E5%A4%A9&s=dd"),
+        ),
+      );
     } else if (category.title == '官方都在看') {
-      navigateTo(context, '/search',
-          extra: SearchEnter(
+      router.push(
+        SearchResultRoute(
+          searchEnterConst: SearchEnterConst(
               url:
-                  "https://picaapi.picacomic.com/comics?page=1&c=%E5%AE%98%E6%96%B9%E9%83%BD%E5%9C%A8%E7%9C%8B&s=dd"));
+                  "https://picaapi.picacomic.com/comics?page=1&c=%E5%AE%98%E6%96%B9%E9%83%BD%E5%9C%A8%E7%9C%8B&s=dd"),
+        ),
+      );
     } else if (category.isWeb) {
       List<String> info = [category.title, category.link];
-      navigateTo(context, '/webview', extra: info);
+      router.push(WebViewRoute(info: info));
     } else {
-      navigateTo(context, '/search',
-          extra: SearchEnter(categories: [category.title]));
+      router.push(SearchResultRoute(
+          searchEnterConst: SearchEnterConst(categories: [category.title])));
     }
   }
 }

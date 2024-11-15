@@ -19,7 +19,6 @@ dependencies:
   toggle_switch: ^2.3.0            # 开关切换组件
   animated_search_bar: ^2.7.2      # 动画搜索栏组件
   photo_view: ^0.15.0              # 图片查看器，支持缩放、平移
-  #  bot_toast: ^4.1.3                # 全功能的提示框实现
   dynamic_color: ^1.7.0            # Material You动态主题支持
 
   # --------------- 状态管理 ---------------
@@ -38,7 +37,6 @@ dependencies:
   # 数据库与存储
   hive: ^2.2.3                  # 轻量级键值对数据库
   hive_flutter: ^1.1.0          # Hive的Flutter支持
-  sqflite:
 
   # 数据序列化
   json_annotation: ^4.9.0       # JSON序列化注解
@@ -65,7 +63,6 @@ dependencies:
   crypto: ^3.0.6                     # 加密算法
   uuid: ^4.4.2                       # UUID生成
   catcher_2: ^2.0.1                  # 异常捕获与处理
-  go_router: ^14.4.1                 # 声明式路由导航
   get_it: ^8.0.2                     # 依赖注入
 
   # --------------- 平台接口 ---------------
@@ -77,13 +74,17 @@ dependencies:
   meta: ^1.15.0
   auto_route:
   flutter_easyloading:
+  objectbox: ^4.0.3
+  objectbox_flutter_libs: any
 
 dev_dependencies:
+  auto_route_generator:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0     # 代码规范检查
   build_runner: ^2.4.13     # 代码生成器运行工具
   hive_generator: ^2.0.1    # Hive代码生成器
+  objectbox_generator: any
 
 # Flutter配置
 flutter:

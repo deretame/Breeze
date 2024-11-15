@@ -1,8 +1,9 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/util/router/router.gr.dart';
 
-import '../../../util/router.dart';
-
+@RoutePage()
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
@@ -15,7 +16,12 @@ class SettingsPage extends StatelessWidget {
           onPressed: () {
             // 按钮被点击时的回调函数
             bikaSetting.deleteAuthorization(); // 调用删除授权的方法
-            navigateToLogin(context);
+            AutoRouter.of(context).pushAndPopUntil(
+              LoginRoute(),
+              predicate: (Route<dynamic> route) {
+                return false;
+              },
+            );
           },
           child: const Text('退出登录'), // 按钮显示的文本
         ),

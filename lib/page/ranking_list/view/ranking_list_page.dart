@@ -1,3 +1,4 @@
+import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/ranking_list/models/get_info.dart';
@@ -6,6 +7,7 @@ import '../bloc/bloc.dart';
 import 'comic_ranking.dart';
 import 'creator_ranking.dart';
 
+@RoutePage()
 class RankingListPage extends StatefulWidget {
   const RankingListPage({super.key});
 

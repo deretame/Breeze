@@ -1,13 +1,14 @@
 import 'dart:io';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../config/global.dart';
 import '../../main.dart';
-import '../../util/router.dart';
 import '../full_screen_image_view.dart';
 import '../picture_bloc/bloc/picture_bloc.dart';
 import '../picture_bloc/models/picture_info.dart';
@@ -49,10 +50,11 @@ class ComicEntryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final router = AutoRouter.of(context); // 获取 router 实例
     return InkWell(
       onTap: () {
         // 跳转到漫画详情页
-        navigateTo(context, '/comicInfo', extra: comicEntryInfo.id);
+        router.push(ComicInfoRoute(comicId: comicEntryInfo.id));
       },
       child: Column(
         children: <Widget>[

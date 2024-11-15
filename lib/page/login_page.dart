@@ -1,11 +1,13 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/dialog.dart';
-import 'package:zephyr/util/router.dart';
 
 import '../config/global.dart';
 import '../network/http/http_request.dart';
+import '../util/router/router.gr.dart';
 
+@RoutePage()
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -46,9 +48,19 @@ class _LoginPageState extends State<LoginPage> {
               onPressed: () {
                 if (title == "登录成功") {
                   if (inited == false) {
-                    navigateToNoReturn(context, "/main");
+                    AutoRouter.of(context).pushAndPopUntil(
+                      MainRoute(),
+                      predicate: (Route<dynamic> route) {
+                        return false;
+                      },
+                    );
                   } else {
-                    navigateToNoReturn(context, "/main");
+                    AutoRouter.of(context).pushAndPopUntil(
+                      MainRoute(),
+                      predicate: (Route<dynamic> route) {
+                        return false;
+                      },
+                    );
                   }
                 } else {
                   Navigator.of(context).pop();
@@ -97,9 +109,19 @@ class _LoginPageState extends State<LoginPage> {
         // 检查State是否仍然挂载
         if (!mounted) return;
         if (inited == false) {
-          navigateToNoReturn(context, "/main");
+          AutoRouter.of(context).pushAndPopUntil(
+            MainRoute(),
+            predicate: (Route<dynamic> route) {
+              return false;
+            },
+          );
         } else {
-          navigateToNoReturn(context, "/main");
+          AutoRouter.of(context).pushAndPopUntil(
+            MainRoute(),
+            predicate: (Route<dynamic> route) {
+              return false;
+            },
+          );
         }
       });
     } else {
@@ -159,7 +181,9 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   TextButton(
                     onPressed: () {
-                      navigateTo(context, '/register');
+                      AutoRouter.of(context).push(
+                        RegisterRoute(),
+                      );
                     },
                     child: const Text('注册账号'),
                   ),

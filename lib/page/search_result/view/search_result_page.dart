@@ -1,3 +1,4 @@
+import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,6 +13,7 @@ import '../../../widgets/comic_entry/comic_entry.dart';
 import '../models/models.dart';
 import '../widgets/page_skip.dart';
 
+@RoutePage()
 class SearchResultPage extends StatelessWidget {
   final SearchEnterConst searchEnterConst;
 

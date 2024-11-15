@@ -1,9 +1,10 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/page/ranking_list/widgets/comic_picture.dart';
+import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../../config/global.dart';
 import '../../../main.dart';
-import '../../../util/router.dart';
 import '../json/leaderboard.dart';
 
 class ComicEntryWidget extends StatefulWidget {
@@ -44,7 +45,9 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
     return InkWell(
       onTap: () {
         // 跳转到漫画详情页
-        navigateTo(context, '/comicInfo', extra: comic.id);
+        AutoRouter.of(context).push(
+          ComicInfoRoute(comicId: comic.id),
+        );
       },
       child: Column(
         children: <Widget>[

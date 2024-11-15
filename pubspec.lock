@@ -54,6 +54,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.2.2"
+  auto_route_generator:
+    dependency: "direct dev"
+    description:
+      name: auto_route_generator
+      sha256: c9086eb07271e51b44071ad5cff34e889f3156710b964a308c2ab590769e79e6
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.0.0"
   bloc:
     dependency: "direct main"
     description:
@@ -350,6 +358,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
+  flat_buffers:
+    dependency: transitive
+    description:
+      name: flat_buffers
+      sha256: "380bdcba5664a718bfd4ea20a45d39e13684f5318fcd8883066a55e21f37f4c3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "23.5.26"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -482,14 +498,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
-  go_router:
-    dependency: "direct main"
-    description:
-      name: go_router
-      sha256: ce89c5a993ca5eea74535f798478502c30a625ecb10a1de4d7fef5cd1bcac2a4
-      url: "https://pub.dev"
-    source: hosted
-    version: "14.4.1"
   graphs:
     dependency: transitive
     description:
@@ -746,6 +754,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.2"
+  objectbox:
+    dependency: "direct main"
+    description:
+      name: objectbox
+      sha256: ea823f4bf1d0a636e7aa50b43daabb64dd0fbd80b85a033016ccc1bc4f76f432
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.3"
+  objectbox_flutter_libs:
+    dependency: "direct main"
+    description:
+      name: objectbox_flutter_libs
+      sha256: c91350bbbce5e6c2038255760b5be988faead004c814f833c2cd137445c6ae70
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.3"
+  objectbox_generator:
+    dependency: "direct dev"
+    description:
+      name: objectbox_generator
+      sha256: "96da521f2cef455cd524f8854e31d64495c50711ad5f1e2cf3142a8e527bc75f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.3"
   package_config:
     dependency: transitive
     description:
@@ -874,6 +906,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.1"
+  petitparser:
+    dependency: transitive
+    description:
+      name: petitparser
+      sha256: c15605cd28af66339f8eb6fbe0e541bfe2d1b72d5825efc6598f3e0a31b9ad27
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.0.2"
   photo_view:
     dependency: "direct main"
     description:
@@ -898,6 +938,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.8"
+  pointycastle:
+    dependency: transitive
+    description:
+      name: pointycastle
+      sha256: "4be0097fcf3fd3e8449e53730c631200ebc7b88016acecab2b0da2f0149222fe"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.9.1"
   pool:
     dependency: transitive
     description:
@@ -1039,46 +1087,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.0.0"
-  sqflite:
-    dependency: "direct main"
-    description:
-      name: sqflite
-      sha256: "2d7299468485dca85efeeadf5d38986909c5eb0cd71fd3db2c2f000e6c9454bb"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.4.1"
-  sqflite_android:
-    dependency: transitive
-    description:
-      name: sqflite_android
-      sha256: "78f489aab276260cdd26676d2169446c7ecd3484bbd5fead4ca14f3ed4dd9ee3"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.4.0"
-  sqflite_common:
-    dependency: transitive
-    description:
-      name: sqflite_common
-      sha256: "4468b24876d673418a7b7147e5a08a715b4998a7ae69227acafaab762e0e5490"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.5.4+5"
-  sqflite_darwin:
-    dependency: transitive
-    description:
-      name: sqflite_darwin
-      sha256: "96a698e2bc82bd770a4d6aab00b42396a7c63d9e33513a56945cbccb594c2474"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.4.1"
-  sqflite_platform_interface:
-    dependency: transitive
-    description:
-      name: sqflite_platform_interface
-      sha256: "8dd4515c7bdcae0a785b0062859336de775e8c65db81ae33dd5445f35be61920"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.4.0"
   stack_trace:
     dependency: transitive
     description:
@@ -1367,6 +1375,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  xml:
+    dependency: transitive
+    description:
+      name: xml
+      sha256: b015a8ad1c488f66851d762d3090a21c600e479dc75e68328c52774040cf9226
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.5.0"
   yaml:
     dependency: transitive
     description:

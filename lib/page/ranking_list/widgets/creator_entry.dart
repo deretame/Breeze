@@ -1,9 +1,10 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:zephyr/page/search_result/models/models.dart';
+import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../../config/global.dart';
 import '../../../main.dart';
-import '../../../type/search_enter.dart';
-import '../../../util/router.dart';
 import '../json/knight_leaderboard.dart';
 import 'creator_picture.dart';
 
@@ -34,13 +35,16 @@ class _CreatorEntryWidgetState extends State<CreatorEntryWidget>
         ),
         InkWell(
           onTap: () {
-            navigateTo(
-              context,
-              '/search',
-              extra: SearchEnter(
+            AutoRouter.of(context).push(
+              SearchResultRoute(
+                searchEnterConst: SearchEnterConst(
+                  from: "bika",
                   url:
                       "https://picaapi.picacomic.com/comics?ca=58f649a80a48790773c7017c&s=ld&page=1",
-                  keyword: user.id.toString()),
+                  type: "creator",
+                  keyword: user.id.toString(),
+                ),
+              ),
             );
           },
           child: Container(

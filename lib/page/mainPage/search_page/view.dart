@@ -1,8 +1,10 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/page/search_result/models/search_enter.dart';
 
-import '../../../util/router.dart';
+import '../../../util/router/router.gr.dart';
 
+@RoutePage()
 class SearchPage extends StatelessWidget {
   const SearchPage({super.key});
 
@@ -15,7 +17,11 @@ class SearchPage extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.search),
             onPressed: () {
-              navigateTo(context, '/searchResult', extra: SearchEnterConst());
+              AutoRouter.of(context).push(
+                SearchResultRoute(
+                  searchEnterConst: SearchEnterConst(),
+                ),
+              );
             },
           ),
         ],

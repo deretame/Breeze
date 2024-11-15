@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:toggle_switch/toggle_switch.dart';
@@ -6,8 +7,9 @@ import 'package:zephyr/mobx/string_select.dart';
 
 import '../network/http/http_request.dart';
 import '../util/dialog.dart';
-import '../util/router.dart';
+import '../util/router/router.gr.dart';
 
+@RoutePage()
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -52,7 +54,12 @@ class _RegisterPageState extends State<RegisterPage> {
               child: const Text('确定'),
               onPressed: () {
                 if (title == "注册成功") {
-                  navigateToNoReturn(context, "/init");
+                  AutoRouter.of(context).pushAndPopUntil(
+                    MainRoute(),
+                    predicate: (Route<dynamic> route) {
+                      return false;
+                    },
+                  );
                 } else {
                   Navigator.of(context).pop();
                 }
@@ -111,7 +118,12 @@ class _RegisterPageState extends State<RegisterPage> {
       Future.delayed(const Duration(seconds: 2), () {
         // 检查State是否仍然挂载
         if (!mounted) return;
-        navigateToNoReturn(context, "/init");
+        AutoRouter.of(context).pushAndPopUntil(
+          MainRoute(),
+          predicate: (Route<dynamic> route) {
+            return false;
+          },
+        );
       });
     } else {
       commonDialog(context, "注册失败", "未知错误");

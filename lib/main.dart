@@ -12,7 +12,7 @@ import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/util/get_path.dart';
-import 'package:zephyr/util/router.dart';
+import 'package:zephyr/util/router/router.dart';
 
 import 'config/global.dart';
 import 'config/global_setting.dart';
@@ -33,6 +33,7 @@ final cacheInterceptor = DioCacheInterceptor(
     maxStale: const Duration(minutes: 5), // 设置缓存最大有效时长为5分钟
   ),
 );
+final appRouter = AppRouter();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -80,7 +81,7 @@ class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
-  _MyAppState createState() => _MyAppState();
+  State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
@@ -156,7 +157,7 @@ class _MyAppState extends State<MyApp> {
             : lightColorScheme;
 
         return MaterialApp.router(
-          routerConfig: goRouter,
+          routerConfig: appRouter.config(),
           builder: EasyLoading.init(),
           locale: globalSetting.locale,
           title: 'Breeze',

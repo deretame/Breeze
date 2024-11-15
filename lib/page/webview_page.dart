@@ -1,9 +1,11 @@
+import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../main.dart';
 
+@RoutePage()
 class WebViewPage extends StatelessWidget {
   final List<String> info;
 

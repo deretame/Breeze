@@ -59,7 +59,7 @@ class GetComicEpsBloc extends Bloc<GetComicEps, GetComicEpsState> {
   Future<List<Doc>> _getEps(Comic comic) async {
     List<Doc> eps = [];
     StackList epsStack = StackList();
-    for (int i = 1; i <= (comic.pagesCount / 40 + 1); i++) {
+    for (int i = 1; i <= (comic.epsCount / 40 + 1); i++) {
       var result = await getEps(comic.id, i);
       epsStack.push(Eps.fromJson(result).data.eps);
     }

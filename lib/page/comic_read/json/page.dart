@@ -1,37 +1,47 @@
 // To parse this JSON data, do
 //
-//     final ep = epFromJson(jsonString);
+//     final page = pageFromJson(jsonString);
 
 import 'dart:convert';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'ep.freezed.dart';
-part 'ep.g.dart';
+part 'page.freezed.dart';
+part 'page.g.dart';
 
-Ep epFromJson(String str) => Ep.fromJson(json.decode(str));
+Page pageFromJson(String str) => Page.fromJson(json.decode(str));
 
-String epToJson(Ep data) => json.encode(data.toJson());
+String pageToJson(Page data) => json.encode(data.toJson());
+
+@freezed
+class Page with _$Page {
+  const factory Page({
+    @JsonKey(name: "code") required int code,
+    @JsonKey(name: "message") required String message,
+    @JsonKey(name: "data") required Data data,
+  }) = _Page;
+
+  factory Page.fromJson(Map<String, dynamic> json) => _$PageFromJson(json);
+}
+
+@freezed
+class Data with _$Data {
+  const factory Data({
+    @JsonKey(name: "pages") required Pages pages,
+    @JsonKey(name: "ep") required Ep ep,
+  }) = _Data;
+
+  factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
+}
 
 @freezed
 class Ep with _$Ep {
   const factory Ep({
-    @JsonKey(name: "pages") required Pages pages,
-    @JsonKey(name: "ep") required EpClass ep,
+    @JsonKey(name: "_id") required String id,
+    @JsonKey(name: "title") required String title,
   }) = _Ep;
 
   factory Ep.fromJson(Map<String, dynamic> json) => _$EpFromJson(json);
-}
-
-@freezed
-class EpClass with _$EpClass {
-  const factory EpClass({
-    @JsonKey(name: "_id") required String id,
-    @JsonKey(name: "title") required String title,
-  }) = _EpClass;
-
-  factory EpClass.fromJson(Map<String, dynamic> json) =>
-      _$EpClassFromJson(json);
 }
 
 @freezed

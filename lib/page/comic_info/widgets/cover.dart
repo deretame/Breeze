@@ -40,7 +40,7 @@ class Cover extends StatelessWidget {
             switch (state.status) {
               case PictureLoadStatus.initial:
                 return LoadingAnimationWidget.waveDots(
-                  color: Colors.black,
+                  color: Colors.blue,
                   size: 50,
                 );
               case PictureLoadStatus.success:

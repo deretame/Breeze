@@ -1,29 +1,41 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'ep.dart';
+part of 'page.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$EpImpl _$$EpImplFromJson(Map<String, dynamic> json) => _$EpImpl(
-      pages: Pages.fromJson(json['pages'] as Map<String, dynamic>),
-      ep: EpClass.fromJson(json['ep'] as Map<String, dynamic>),
+_$PageImpl _$$PageImplFromJson(Map<String, dynamic> json) => _$PageImpl(
+      code: (json['code'] as num).toInt(),
+      message: json['message'] as String,
+      data: Data.fromJson(json['data'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$EpImplToJson(_$EpImpl instance) => <String, dynamic>{
+Map<String, dynamic> _$$PageImplToJson(_$PageImpl instance) =>
+    <String, dynamic>{
+      'code': instance.code,
+      'message': instance.message,
+      'data': instance.data,
+    };
+
+_$DataImpl _$$DataImplFromJson(Map<String, dynamic> json) => _$DataImpl(
+      pages: Pages.fromJson(json['pages'] as Map<String, dynamic>),
+      ep: Ep.fromJson(json['ep'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$$DataImplToJson(_$DataImpl instance) =>
+    <String, dynamic>{
       'pages': instance.pages,
       'ep': instance.ep,
     };
 
-_$EpClassImpl _$$EpClassImplFromJson(Map<String, dynamic> json) =>
-    _$EpClassImpl(
+_$EpImpl _$$EpImplFromJson(Map<String, dynamic> json) => _$EpImpl(
       id: json['_id'] as String,
       title: json['title'] as String,
     );
 
-Map<String, dynamic> _$$EpClassImplToJson(_$EpClassImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$$EpImplToJson(_$EpImpl instance) => <String, dynamic>{
       '_id': instance.id,
       'title': instance.title,
     };

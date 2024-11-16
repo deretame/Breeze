@@ -89,6 +89,10 @@ dev_dependencies:
 # Flutter配置
 flutter:
   uses-material-design: true
+  fonts:
+    - family: Pacifico-Regular
+      fonts:
+        - asset: asset/fonts/Pacifico-Regular.ttf
 
   # 资源文件配置
   assets:

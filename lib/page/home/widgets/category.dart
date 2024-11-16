@@ -197,7 +197,7 @@ class CategoryWidget extends StatelessWidget {
         SearchResultRoute(
           searchEnterConst: SearchEnterConst(
               url:
-                  "https://picaapi.picacomic.com/comics?page=1&c=%E5%A5%BD%E7%94%9F%E7%9A%84%E5%8F%91%E5%B8%83&s=dd"),
+                  "https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E5%AE%B6%E9%83%BD%E5%9C%A8%E7%9C%8B&s=dd"),
         ),
       );
     } else if (category.title == '大濕推薦') {

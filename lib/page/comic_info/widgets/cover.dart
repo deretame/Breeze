@@ -39,9 +39,12 @@ class Cover extends StatelessWidget {
           builder: (context, state) {
             switch (state.status) {
               case PictureLoadStatus.initial:
-                return LoadingAnimationWidget.waveDots(
-                  color: Colors.blue,
-                  size: 50,
+                return Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: LoadingAnimationWidget.waveDots(
+                    color: Colors.blue,
+                    size: 50,
+                  ),
                 );
               case PictureLoadStatus.success:
                 return InkWell(

@@ -56,6 +56,29 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
 
     if (event.searchEnterConst.pageCount == 1 ||
         event.searchEnterConst.state == "page skip") {
+      if (event.searchEnterConst.pageCount > pagesCount && pagesCount != 0) {
+        // 避免状态污染
+        var cleanSearchEnterConst = SearchEnterConst(
+          url: event.searchEnterConst.url,
+          from: event.searchEnterConst.from,
+          keyword: event.searchEnterConst.keyword,
+          type: event.searchEnterConst.type,
+          state: "",
+          sort: event.searchEnterConst.sort,
+          categories: event.searchEnterConst.categories,
+          pageCount: event.searchEnterConst.pageCount,
+          refresh: event.searchEnterConst.refresh,
+        );
+        emit(
+          state.copyWith(
+            status: SearchStatus.success,
+            comics: comics,
+            searchEnterConst: cleanSearchEnterConst,
+            pagesCount: pagesCount,
+          ),
+        );
+        return;
+      }
       comics = [];
       emit(
         state.copyWith(
@@ -66,7 +89,7 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
 
     page = event.searchEnterConst.pageCount;
 
-    if (state.hasReachedMax) return;
+    if (state.hasReachedMax && event.searchEnterConst.pageCount != 1) return;
 
     try {
       if (event.searchEnterConst.pageCount != 1 &&

@@ -123,8 +123,9 @@ Future<Map<String, dynamic>> search({
   if (url.isNotEmpty) {
     // 用来判断是不是根据作者来搜索
     if (url.contains('comics?ca=')) {
-      url =
-          "https://picaapi.picacomic.com/comics?ca=$keyword&s=$sort&page=$pageCount";
+      var temp = url.split("&s")[0];
+      url = "$temp&s=$sort&page=$pageCount";
+
       data = await request(
         url,
         'GET',

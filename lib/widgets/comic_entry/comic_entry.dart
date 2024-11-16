@@ -94,27 +94,32 @@ class ComicEntryWidget extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           SizedBox(height: screenWidth / 200),
-                          RichText(
-                            text: TextSpan(
-                              children: <TextSpan>[
-                                TextSpan(
-                                  text: _getLimitedTitle(
-                                      comicEntryInfo.title, 30),
-                                  style: TextStyle(
-                                    color: globalSetting.textColor,
-                                    fontSize: 18,
-                                  ),
+                          Observer(
+                            builder: (context) {
+                              return RichText(
+                                text: TextSpan(
+                                  children: <TextSpan>[
+                                    TextSpan(
+                                      text: _getLimitedTitle(
+                                          comicEntryInfo.title, 30),
+                                      style: TextStyle(
+                                        color: globalSetting.textColor,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text:
+                                          comicEntryInfo.finished ? "(完)" : "",
+                                      style: TextStyle(
+                                        color: globalSetting.themeType
+                                            ? Colors.red
+                                            : Colors.yellow,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                TextSpan(
-                                  text: comicEntryInfo.finished ? "(完)" : "",
-                                  style: TextStyle(
-                                    color: globalSetting.themeType
-                                        ? Colors.red
-                                        : Colors.yellow,
-                                  ),
-                                ),
-                              ],
-                            ),
+                              );
+                            },
                           ),
                           if (comicEntryInfo.author.toString() != '') ...[
                             const SizedBox(height: 5),
@@ -200,9 +205,12 @@ class _ImageWidget extends StatelessWidget {
               return Center(
                 child: SizedBox(
                   width: (screenWidth / 10) * 3,
-                  child: LoadingAnimationWidget.waveDots(
-                    color: globalSetting.textColor,
-                    size: 25,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 20, right: 20),
+                    child: LoadingAnimationWidget.waveDots(
+                      color: Colors.blue,
+                      size: 25,
+                    ),
                   ),
                 ),
               );
@@ -236,27 +244,33 @@ class _ImageWidget extends StatelessWidget {
               );
             case PictureLoadStatus.failure:
               if (state.result.toString().contains('404')) {
-                return Image.asset('asset/image/error_image/404.png');
+                return SizedBox(
+                  width: (screenWidth / 10) * 3,
+                  child: Image.asset('asset/image/error_image/404.png'),
+                );
               } else {
-                return InkWell(
-                  onTap: () {
-                    context.read<PictureBloc>().add(
-                          GetPicture(
-                            PictureInfo(
-                              from: "bika",
-                              url: fileServer,
-                              path: path,
-                              cartoonId: id,
-                              pictureType: pictureType,
+                return SizedBox(
+                  width: (screenWidth / 10) * 3,
+                  child: InkWell(
+                    onTap: () {
+                      context.read<PictureBloc>().add(
+                            GetPicture(
+                              PictureInfo(
+                                from: "bika",
+                                url: fileServer,
+                                path: path,
+                                cartoonId: id,
+                                pictureType: pictureType,
+                              ),
                             ),
-                          ),
-                        );
-                  },
-                  child: Center(
-                    child: Text(
-                      '加载图片失败\n点击重新加载',
-                      style: TextStyle(
-                        color: globalSetting.textColor,
+                          );
+                    },
+                    child: Center(
+                      child: Text(
+                        '加载图片失败\n点击重新加载',
+                        style: TextStyle(
+                          color: globalSetting.textColor,
+                        ),
                       ),
                     ),
                   ),

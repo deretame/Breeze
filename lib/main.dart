@@ -99,23 +99,29 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _updateThemeSettings() {
-    final isDarkMode =
+    var isDarkMode =
         MediaQuery.of(context).platformBrightness == Brightness.dark;
-    final primary = globalSetting.seedColor;
+    var primary = globalSetting.seedColor;
 
     // 使用种子颜色创建颜色方案
-    final lightColorScheme = ColorScheme.fromSeed(
+    var lightColorScheme = ColorScheme.fromSeed(
       seedColor: primary,
     );
-    final darkColorScheme = ColorScheme.fromSeed(
+    var darkColorScheme = ColorScheme.fromSeed(
       seedColor: primary,
       brightness: Brightness.dark,
     );
 
     // 根据当前主题模式选择对应的 ColorScheme
-    final currentColorScheme = globalSetting.themeMode == ThemeMode.dark
-        ? darkColorScheme
-        : lightColorScheme;
+    var currentColorScheme;
+    if (globalSetting.themeMode == ThemeMode.dark) {
+      currentColorScheme = darkColorScheme;
+    } else if (globalSetting.themeMode == ThemeMode.light) {
+      currentColorScheme = lightColorScheme;
+    } else {
+      // ThemeMode.system
+      currentColorScheme = isDarkMode ? darkColorScheme : lightColorScheme;
+    }
 
     // 更新设置
     globalSetting.setThemeType(!isDarkMode);

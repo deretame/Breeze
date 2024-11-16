@@ -70,7 +70,7 @@ class _ComicInfoState extends State<_ComicInfo> {
               AutoRouter.of(context).pushAndPopUntil(
                 MainRoute(),
                 predicate: (Route<dynamic> route) {
-                  return false;
+                  return false; // 只要不是 MainRoute，就会被移除
                 },
               );
             },

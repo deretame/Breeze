@@ -97,11 +97,13 @@ class _SearchResultPageState extends State<_SearchResultPage>
                       builder: (context, state) {
                         switch (state.status) {
                           case SearchStatus.failure:
-                            _showErrorDialog(
-                              context,
-                              "漫画加载失败:\n${state.result}",
-                              state.searchEnterConst,
-                            );
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              _showErrorDialog(
+                                context,
+                                "漫画加载失败:\n${state.result}",
+                                state.searchEnterConst,
+                              );
+                            });
                             // 因为必须要返回一个 Widget，所以这里返回一个空白的 SizedBox
                             return SizedBox.shrink();
                           case SearchStatus.success:

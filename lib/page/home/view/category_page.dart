@@ -1,6 +1,8 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/util/router/router.gr.dart';
 
 import '../bloc/get_category_bloc.dart';
 import '../models/category.dart';
@@ -32,6 +34,29 @@ class _CategoryPageState extends State<CategoryPage>
         builder: (context, state) {
           switch (state.status) {
             case GetCategoryStatus.failure:
+              if (state.result!.contains("1005") ||
+                  state.result!.contains("401") ||
+                  state.result!.contains("unauthorized") ||
+                  bikaSetting.authorization == '') {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '登录状态无效，请重新登录',
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      SizedBox(height: 10), // 添加间距
+                      ElevatedButton(
+                        onPressed: () {
+                          AutoRouter.of(context).push(LoginRoute());
+                        },
+                        child: Text('前往登录'),
+                      ),
+                    ],
+                  ),
+                );
+              }
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,

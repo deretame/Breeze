@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../../../config/global.dart';
 import '../../../main.dart';
@@ -33,97 +34,102 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
     return LimitedBox(
       maxWidth: screenWidth * (48 / 50),
       maxHeight: 50,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          Column(
+      child: Observer(
+        builder: (context) {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              const Icon(
-                Icons.remove_red_eye,
-                // color: Colors.red,
-                size: 24.0, // 设置图标大小
+              Column(
+                children: <Widget>[
+                  const Icon(
+                    Icons.remove_red_eye,
+                    // color: Colors.red,
+                    size: 24.0, // 设置图标大小
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${comicInfo.viewsCount}',
+                  ),
+                ],
               ),
-              const SizedBox(height: 2),
-              Text(
-                '${comicInfo.viewsCount}',
+              Column(
+                children: <Widget>[
+                  InkWell(
+                    onTap: () {
+                      toggleAction('like');
+                    },
+                    child: Icon(
+                      isLiked ? Icons.favorite : Icons.favorite_border,
+                      color: isLiked ? Colors.red : globalSetting.textColor,
+                      size: 24.0,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${comicInfo.totalLikes}',
+                  ),
+                ],
+              ),
+              Column(
+                children: <Widget>[
+                  InkWell(
+                    onTap: () {
+                      nothingDialog(context);
+                    },
+                    child: const Icon(
+                      Icons.comment_sharp,
+                      // color: Colors.red,
+                      size: 24.0, // 设置图标大小
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${comicInfo.commentsCount}',
+                    // style: TextStyle(color: textColor),
+                  ),
+                ],
+              ),
+              Column(
+                children: <Widget>[
+                  InkWell(
+                    onTap: () {
+                      toggleAction('favorite');
+                    },
+                    child: Icon(
+                      isCollected ? Icons.star : Icons.star_border,
+                      color:
+                          isCollected ? Colors.yellow : globalSetting.textColor,
+                      size: 24.0, // 设置图标大小
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    '收藏',
+                    // style: TextStyle(color: textColor),
+                  ),
+                ],
+              ),
+              Column(
+                children: <Widget>[
+                  InkWell(
+                    onTap: () {
+                      nothingDialog(context);
+                    },
+                    child: const Icon(
+                      Icons.cloud_download_outlined,
+                      // color: Colors.red,
+                      size: 24.0, // 设置图标大小
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    '下载',
+                  ),
+                ],
               ),
             ],
-          ),
-          Column(
-            children: <Widget>[
-              InkWell(
-                onTap: () {
-                  toggleAction('like');
-                },
-                child: Icon(
-                  isLiked ? Icons.favorite : Icons.favorite_border,
-                  color: isLiked ? Colors.red : globalSetting.textColor,
-                  size: 24.0,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                '${comicInfo.totalLikes}',
-              ),
-            ],
-          ),
-          Column(
-            children: <Widget>[
-              InkWell(
-                onTap: () {
-                  nothingDialog(context);
-                },
-                child: const Icon(
-                  Icons.comment_sharp,
-                  // color: Colors.red,
-                  size: 24.0, // 设置图标大小
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                '${comicInfo.commentsCount}',
-                // style: TextStyle(color: textColor),
-              ),
-            ],
-          ),
-          Column(
-            children: <Widget>[
-              InkWell(
-                onTap: () {
-                  toggleAction('favorite');
-                },
-                child: Icon(
-                  isCollected ? Icons.star : Icons.star_border,
-                  color: isCollected ? Colors.yellow : globalSetting.textColor,
-                  size: 24.0, // 设置图标大小
-                ),
-              ),
-              const SizedBox(height: 2),
-              const Text(
-                '收藏',
-                // style: TextStyle(color: textColor),
-              ),
-            ],
-          ),
-          Column(
-            children: <Widget>[
-              InkWell(
-                onTap: () {
-                  nothingDialog(context);
-                },
-                child: const Icon(
-                  Icons.cloud_download_outlined,
-                  // color: Colors.red,
-                  size: 24.0, // 设置图标大小
-                ),
-              ),
-              const SizedBox(height: 2),
-              const Text(
-                '下载',
-              ),
-            ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }

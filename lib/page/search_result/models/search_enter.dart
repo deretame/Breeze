@@ -78,7 +78,7 @@ class SearchEnterConst extends Equatable {
   final String url; // 用来对应特殊情况
   final String from; // 用来判断是从哪里进行的搜索
   final String keyword; // 关键词，用来放入搜索的关键词或者作者的名字之类的
-  final String type; // 用来判断是搜索书籍还是作者
+  final String type; // 用来判断是搜索书籍还是作者，或者说分类还是标签啥的
   final String state; // 更新状态
   final String sort; // 排序方式
   final List<String> categories; // 分类

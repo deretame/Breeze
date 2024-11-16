@@ -53,14 +53,6 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Observer(
-      builder: (context) {
-        return _buildScaffold(context);
-      },
-    );
-  }
-
-  Widget _buildScaffold(BuildContext context) {
     bottomNavigatorHeight ??= MediaQuery.of(context).padding.bottom + 80;
     return LayoutBuilder(
       builder: (context, constraints) {

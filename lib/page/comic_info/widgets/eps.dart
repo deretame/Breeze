@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/page/comic_info/bloc/bloc.dart';
 
 import '../../../main.dart';
@@ -81,49 +82,57 @@ class EpButtonWidget extends StatelessWidget {
           ),
         );
       },
-      child: Container(
-        width: double.infinity,
-        margin: EdgeInsets.symmetric(horizontal: 0),
-        // Add horizontal margin
-        padding: EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: globalSetting.backgroundColor,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: globalSetting.themeType
-                  ? Colors.black.withOpacity(0.2)
-                  : Colors.white.withOpacity(0.2),
-              spreadRadius: 2,
-              blurRadius: 2,
+      child: Observer(
+        builder: (context) {
+          return Container(
+            width: double.infinity,
+            margin: EdgeInsets.symmetric(horizontal: 0),
+            // Add horizontal margin
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: globalSetting.backgroundColor,
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: globalSetting.themeType
+                      ? Colors.black.withOpacity(0.2)
+                      : Colors.white.withOpacity(0.2),
+                  spreadRadius: 2,
+                  blurRadius: 2,
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              doc.title,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 4),
-            Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Text(
+                      doc.title,
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    Expanded(
+                      child: Container(),
+                    ),
+                    Text(
+                      "number : ${doc.order.toString()}",
+                      style: TextStyle(
+                        fontFamily: "Pacifico-Regular",
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4),
                 Text(
                   timeDecode(doc.updatedAt),
                   style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
-                Expanded(
-                  child: Container(),
-                ),
-                Text(
-                  doc.order.toString(),
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
-                ),
               ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

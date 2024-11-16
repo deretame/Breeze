@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../../../config/global.dart';
@@ -34,70 +35,76 @@ class CreatorInfoWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-        onTap: () {
-          AutoRouter.of(context).push(
-            SearchResultRoute(
-              searchEnterConst: SearchEnterConst(
-                from: "bika",
-                url:
-                    "https://picaapi.picacomic.com/comics?ca=58f649a80a48790773c7017c&s=ld&page=1",
-                keyword: comicInfo.creator.id.toString(),
-              ),
+      onTap: () {
+        AutoRouter.of(context).push(
+          SearchResultRoute(
+            searchEnterConst: SearchEnterConst(
+              from: "bika",
+              url:
+                  "https://picaapi.picacomic.com/comics?ca=${comicInfo.creator.id}&s=ld&page=1",
+              type: "creator",
+              keyword: comicInfo.creator.name,
+            ),
+          ),
+        );
+      },
+      child: Observer(
+        builder: (context) {
+          return Container(
+            height: 75,
+            width: screenWidth * (48 / 50),
+            decoration: BoxDecoration(
+              color: globalSetting.backgroundColor,
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: globalSetting.themeType
+                      ? Colors.black.withOpacity(0.2)
+                      : Colors.white.withOpacity(0.2),
+                  spreadRadius: 2,
+                  blurRadius: 2,
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                _ImagerWidget(
+                  pictureInfo: PictureInfo(
+                    url: comicInfo.creator.avatar.fileServer,
+                    path: comicInfo.creator.avatar.path,
+                    cartoonId: comicInfo.id,
+                    pictureType: "creator",
+                    chapterId: comicInfo.id,
+                    from: "bika",
+                  ),
+                ),
+                const SizedBox(width: 15),
+                Flexible(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        comicInfo.creator.name,
+                        style: const TextStyle(
+                          color: Colors.red,
+                        ),
+                      ),
+                      Text(
+                        timeDecode(comicInfo.updatedAt),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           );
         },
-        child: Container(
-          height: 75,
-          width: screenWidth * (48 / 50),
-          decoration: BoxDecoration(
-            color: globalSetting.backgroundColor,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: globalSetting.themeType
-                    ? Colors.black.withOpacity(0.2)
-                    : Colors.white.withOpacity(0.2),
-                spreadRadius: 2,
-                blurRadius: 2,
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              _ImagerWidget(
-                pictureInfo: PictureInfo(
-                  url: comicInfo.creator.avatar.fileServer,
-                  path: comicInfo.creator.avatar.path,
-                  cartoonId: comicInfo.id,
-                  pictureType: "creator",
-                  chapterId: comicInfo.id,
-                  from: "bika",
-                ),
-              ),
-              const SizedBox(width: 15),
-              Flexible(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      comicInfo.creator.title,
-                      style: const TextStyle(
-                        color: Colors.red,
-                      ),
-                    ),
-                    Text(
-                      timeDecode(comicInfo.updatedAt),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ));
+      ),
+    );
   }
 }
 

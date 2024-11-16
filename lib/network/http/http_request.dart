@@ -266,7 +266,7 @@ Future<Map<String, dynamic>> getEps(
   return data;
 }
 
-Future<Map<String, dynamic>> getComic(
+Future<Map<String, dynamic>> getPages(
   String comicId,
   int epId,
   int pageCount,

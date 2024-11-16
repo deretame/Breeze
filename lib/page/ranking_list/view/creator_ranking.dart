@@ -51,7 +51,7 @@ class _CreatorRankingsWidgetState extends State<CreatorRankingsWidget>
                   ),
                 ),
                 SizedBox(
-                  height: 20,
+                  height: 80,
                 ),
               ],
             );

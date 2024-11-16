@@ -56,7 +56,7 @@ class _ComicRankingState extends State<ComicRanking>
                   ),
                 ),
                 SizedBox(
-                  height: 20,
+                  height: 80,
                 ),
               ],
             );

@@ -3,7 +3,7 @@
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
-part of 'ep.dart';
+part of 'page.dart';
 
 // **************************************************************************
 // FreezedGenerator
@@ -14,48 +14,271 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-Ep _$EpFromJson(Map<String, dynamic> json) {
-  return _Ep.fromJson(json);
+Page _$PageFromJson(Map<String, dynamic> json) {
+  return _Page.fromJson(json);
 }
 
 /// @nodoc
-mixin _$Ep {
-  @JsonKey(name: "pages")
-  Pages get pages => throw _privateConstructorUsedError;
-  @JsonKey(name: "ep")
-  EpClass get ep => throw _privateConstructorUsedError;
+mixin _$Page {
+  @JsonKey(name: "code")
+  int get code => throw _privateConstructorUsedError;
 
-  /// Serializes this Ep to a JSON map.
+  @JsonKey(name: "message")
+  String get message => throw _privateConstructorUsedError;
+
+  @JsonKey(name: "data")
+  Data get data => throw _privateConstructorUsedError;
+
+  /// Serializes this Page to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
-  /// Create a copy of Ep
+  /// Create a copy of Page
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $EpCopyWith<Ep> get copyWith => throw _privateConstructorUsedError;
+  $PageCopyWith<Page> get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $EpCopyWith<$Res> {
-  factory $EpCopyWith(Ep value, $Res Function(Ep) then) =
-      _$EpCopyWithImpl<$Res, Ep>;
+abstract class $PageCopyWith<$Res> {
+  factory $PageCopyWith(Page value, $Res Function(Page) then) =
+      _$PageCopyWithImpl<$Res, Page>;
+
   @useResult
   $Res call(
-      {@JsonKey(name: "pages") Pages pages, @JsonKey(name: "ep") EpClass ep});
+      {@JsonKey(name: "code") int code,
+      @JsonKey(name: "message") String message,
+      @JsonKey(name: "data") Data data});
 
-  $PagesCopyWith<$Res> get pages;
-  $EpClassCopyWith<$Res> get ep;
+  $DataCopyWith<$Res> get data;
 }
 
 /// @nodoc
-class _$EpCopyWithImpl<$Res, $Val extends Ep> implements $EpCopyWith<$Res> {
-  _$EpCopyWithImpl(this._value, this._then);
+class _$PageCopyWithImpl<$Res, $Val extends Page>
+    implements $PageCopyWith<$Res> {
+  _$PageCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
+
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Ep
+  /// Create a copy of Page
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? code = null,
+    Object? message = null,
+    Object? data = null,
+  }) {
+    return _then(_value.copyWith(
+      code: null == code
+          ? _value.code
+          : code // ignore: cast_nullable_to_non_nullable
+              as int,
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+      data: null == data
+          ? _value.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Data,
+    ) as $Val);
+  }
+
+  /// Create a copy of Page
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $DataCopyWith<$Res> get data {
+    return $DataCopyWith<$Res>(_value.data, (value) {
+      return _then(_value.copyWith(data: value) as $Val);
+    });
+  }
+}
+
+/// @nodoc
+abstract class _$$PageImplCopyWith<$Res> implements $PageCopyWith<$Res> {
+  factory _$$PageImplCopyWith(
+          _$PageImpl value, $Res Function(_$PageImpl) then) =
+      __$$PageImplCopyWithImpl<$Res>;
+
+  @override
+  @useResult
+  $Res call(
+      {@JsonKey(name: "code") int code,
+      @JsonKey(name: "message") String message,
+      @JsonKey(name: "data") Data data});
+
+  @override
+  $DataCopyWith<$Res> get data;
+}
+
+/// @nodoc
+class __$$PageImplCopyWithImpl<$Res>
+    extends _$PageCopyWithImpl<$Res, _$PageImpl>
+    implements _$$PageImplCopyWith<$Res> {
+  __$$PageImplCopyWithImpl(_$PageImpl _value, $Res Function(_$PageImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of Page
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? code = null,
+    Object? message = null,
+    Object? data = null,
+  }) {
+    return _then(_$PageImpl(
+      code: null == code
+          ? _value.code
+          : code // ignore: cast_nullable_to_non_nullable
+              as int,
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+      data: null == data
+          ? _value.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Data,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$PageImpl implements _Page {
+  const _$PageImpl(
+      {@JsonKey(name: "code") required this.code,
+      @JsonKey(name: "message") required this.message,
+      @JsonKey(name: "data") required this.data});
+
+  factory _$PageImpl.fromJson(Map<String, dynamic> json) =>
+      _$$PageImplFromJson(json);
+
+  @override
+  @JsonKey(name: "code")
+  final int code;
+  @override
+  @JsonKey(name: "message")
+  final String message;
+  @override
+  @JsonKey(name: "data")
+  final Data data;
+
+  @override
+  String toString() {
+    return 'Page(code: $code, message: $message, data: $data)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$PageImpl &&
+            (identical(other.code, code) || other.code == code) &&
+            (identical(other.message, message) || other.message == message) &&
+            (identical(other.data, data) || other.data == data));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, code, message, data);
+
+  /// Create a copy of Page
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$PageImplCopyWith<_$PageImpl> get copyWith =>
+      __$$PageImplCopyWithImpl<_$PageImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$PageImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _Page implements Page {
+  const factory _Page(
+      {@JsonKey(name: "code") required final int code,
+      @JsonKey(name: "message") required final String message,
+      @JsonKey(name: "data") required final Data data}) = _$PageImpl;
+
+  factory _Page.fromJson(Map<String, dynamic> json) = _$PageImpl.fromJson;
+
+  @override
+  @JsonKey(name: "code")
+  int get code;
+
+  @override
+  @JsonKey(name: "message")
+  String get message;
+
+  @override
+  @JsonKey(name: "data")
+  Data get data;
+
+  /// Create a copy of Page
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$PageImplCopyWith<_$PageImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+Data _$DataFromJson(Map<String, dynamic> json) {
+  return _Data.fromJson(json);
+}
+
+/// @nodoc
+mixin _$Data {
+  @JsonKey(name: "pages")
+  Pages get pages => throw _privateConstructorUsedError;
+
+  @JsonKey(name: "ep")
+  Ep get ep => throw _privateConstructorUsedError;
+
+  /// Serializes this Data to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of Data
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $DataCopyWith<Data> get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $DataCopyWith<$Res> {
+  factory $DataCopyWith(Data value, $Res Function(Data) then) =
+      _$DataCopyWithImpl<$Res, Data>;
+
+  @useResult
+  $Res call({@JsonKey(name: "pages") Pages pages, @JsonKey(name: "ep") Ep ep});
+
+  $PagesCopyWith<$Res> get pages;
+
+  $EpCopyWith<$Res> get ep;
+}
+
+/// @nodoc
+class _$DataCopyWithImpl<$Res, $Val extends Data>
+    implements $DataCopyWith<$Res> {
+  _$DataCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of Data
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
@@ -71,11 +294,11 @@ class _$EpCopyWithImpl<$Res, $Val extends Ep> implements $EpCopyWith<$Res> {
       ep: null == ep
           ? _value.ep
           : ep // ignore: cast_nullable_to_non_nullable
-              as EpClass,
+              as Ep,
     ) as $Val);
   }
 
-  /// Create a copy of Ep
+  /// Create a copy of Data
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
@@ -85,14 +308,195 @@ class _$EpCopyWithImpl<$Res, $Val extends Ep> implements $EpCopyWith<$Res> {
     });
   }
 
-  /// Create a copy of Ep
+  /// Create a copy of Data
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $EpClassCopyWith<$Res> get ep {
-    return $EpClassCopyWith<$Res>(_value.ep, (value) {
+  $EpCopyWith<$Res> get ep {
+    return $EpCopyWith<$Res>(_value.ep, (value) {
       return _then(_value.copyWith(ep: value) as $Val);
     });
+  }
+}
+
+/// @nodoc
+abstract class _$$DataImplCopyWith<$Res> implements $DataCopyWith<$Res> {
+  factory _$$DataImplCopyWith(
+          _$DataImpl value, $Res Function(_$DataImpl) then) =
+      __$$DataImplCopyWithImpl<$Res>;
+
+  @override
+  @useResult
+  $Res call({@JsonKey(name: "pages") Pages pages, @JsonKey(name: "ep") Ep ep});
+
+  @override
+  $PagesCopyWith<$Res> get pages;
+
+  @override
+  $EpCopyWith<$Res> get ep;
+}
+
+/// @nodoc
+class __$$DataImplCopyWithImpl<$Res>
+    extends _$DataCopyWithImpl<$Res, _$DataImpl>
+    implements _$$DataImplCopyWith<$Res> {
+  __$$DataImplCopyWithImpl(_$DataImpl _value, $Res Function(_$DataImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of Data
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? pages = null,
+    Object? ep = null,
+  }) {
+    return _then(_$DataImpl(
+      pages: null == pages
+          ? _value.pages
+          : pages // ignore: cast_nullable_to_non_nullable
+              as Pages,
+      ep: null == ep
+          ? _value.ep
+          : ep // ignore: cast_nullable_to_non_nullable
+              as Ep,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$DataImpl implements _Data {
+  const _$DataImpl(
+      {@JsonKey(name: "pages") required this.pages,
+      @JsonKey(name: "ep") required this.ep});
+
+  factory _$DataImpl.fromJson(Map<String, dynamic> json) =>
+      _$$DataImplFromJson(json);
+
+  @override
+  @JsonKey(name: "pages")
+  final Pages pages;
+  @override
+  @JsonKey(name: "ep")
+  final Ep ep;
+
+  @override
+  String toString() {
+    return 'Data(pages: $pages, ep: $ep)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$DataImpl &&
+            (identical(other.pages, pages) || other.pages == pages) &&
+            (identical(other.ep, ep) || other.ep == ep));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, pages, ep);
+
+  /// Create a copy of Data
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$DataImplCopyWith<_$DataImpl> get copyWith =>
+      __$$DataImplCopyWithImpl<_$DataImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$DataImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _Data implements Data {
+  const factory _Data(
+      {@JsonKey(name: "pages") required final Pages pages,
+      @JsonKey(name: "ep") required final Ep ep}) = _$DataImpl;
+
+  factory _Data.fromJson(Map<String, dynamic> json) = _$DataImpl.fromJson;
+
+  @override
+  @JsonKey(name: "pages")
+  Pages get pages;
+
+  @override
+  @JsonKey(name: "ep")
+  Ep get ep;
+
+  /// Create a copy of Data
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$DataImplCopyWith<_$DataImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+Ep _$EpFromJson(Map<String, dynamic> json) {
+  return _Ep.fromJson(json);
+}
+
+/// @nodoc
+mixin _$Ep {
+  @JsonKey(name: "_id")
+  String get id => throw _privateConstructorUsedError;
+
+  @JsonKey(name: "title")
+  String get title => throw _privateConstructorUsedError;
+
+  /// Serializes this Ep to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of Ep
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $EpCopyWith<Ep> get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $EpCopyWith<$Res> {
+  factory $EpCopyWith(Ep value, $Res Function(Ep) then) =
+      _$EpCopyWithImpl<$Res, Ep>;
+
+  @useResult
+  $Res call(
+      {@JsonKey(name: "_id") String id, @JsonKey(name: "title") String title});
+}
+
+/// @nodoc
+class _$EpCopyWithImpl<$Res, $Val extends Ep> implements $EpCopyWith<$Res> {
+  _$EpCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of Ep
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? title = null,
+  }) {
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      title: null == title
+          ? _value.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String,
+    ) as $Val);
   }
 }
 
@@ -100,15 +504,11 @@ class _$EpCopyWithImpl<$Res, $Val extends Ep> implements $EpCopyWith<$Res> {
 abstract class _$$EpImplCopyWith<$Res> implements $EpCopyWith<$Res> {
   factory _$$EpImplCopyWith(_$EpImpl value, $Res Function(_$EpImpl) then) =
       __$$EpImplCopyWithImpl<$Res>;
+
   @override
   @useResult
   $Res call(
-      {@JsonKey(name: "pages") Pages pages, @JsonKey(name: "ep") EpClass ep});
-
-  @override
-  $PagesCopyWith<$Res> get pages;
-  @override
-  $EpClassCopyWith<$Res> get ep;
+      {@JsonKey(name: "_id") String id, @JsonKey(name: "title") String title});
 }
 
 /// @nodoc
@@ -122,18 +522,18 @@ class __$$EpImplCopyWithImpl<$Res> extends _$EpCopyWithImpl<$Res, _$EpImpl>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? pages = null,
-    Object? ep = null,
+    Object? id = null,
+    Object? title = null,
   }) {
     return _then(_$EpImpl(
-      pages: null == pages
-          ? _value.pages
-          : pages // ignore: cast_nullable_to_non_nullable
-              as Pages,
-      ep: null == ep
-          ? _value.ep
-          : ep // ignore: cast_nullable_to_non_nullable
-              as EpClass,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      title: null == title
+          ? _value.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -142,22 +542,22 @@ class __$$EpImplCopyWithImpl<$Res> extends _$EpCopyWithImpl<$Res, _$EpImpl>
 @JsonSerializable()
 class _$EpImpl implements _Ep {
   const _$EpImpl(
-      {@JsonKey(name: "pages") required this.pages,
-      @JsonKey(name: "ep") required this.ep});
+      {@JsonKey(name: "_id") required this.id,
+      @JsonKey(name: "title") required this.title});
 
   factory _$EpImpl.fromJson(Map<String, dynamic> json) =>
       _$$EpImplFromJson(json);
 
   @override
-  @JsonKey(name: "pages")
-  final Pages pages;
+  @JsonKey(name: "_id")
+  final String id;
   @override
-  @JsonKey(name: "ep")
-  final EpClass ep;
+  @JsonKey(name: "title")
+  final String title;
 
   @override
   String toString() {
-    return 'Ep(pages: $pages, ep: $ep)';
+    return 'Ep(id: $id, title: $title)';
   }
 
   @override
@@ -165,13 +565,13 @@ class _$EpImpl implements _Ep {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$EpImpl &&
-            (identical(other.pages, pages) || other.pages == pages) &&
-            (identical(other.ep, ep) || other.ep == ep));
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.title, title) || other.title == title));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, pages, ep);
+  int get hashCode => Object.hash(runtimeType, id, title);
 
   /// Create a copy of Ep
   /// with the given fields replaced by the non-null parameter values.
@@ -191,196 +591,24 @@ class _$EpImpl implements _Ep {
 
 abstract class _Ep implements Ep {
   const factory _Ep(
-      {@JsonKey(name: "pages") required final Pages pages,
-      @JsonKey(name: "ep") required final EpClass ep}) = _$EpImpl;
+      {@JsonKey(name: "_id") required final String id,
+      @JsonKey(name: "title") required final String title}) = _$EpImpl;
 
   factory _Ep.fromJson(Map<String, dynamic> json) = _$EpImpl.fromJson;
 
   @override
-  @JsonKey(name: "pages")
-  Pages get pages;
+  @JsonKey(name: "_id")
+  String get id;
+
   @override
-  @JsonKey(name: "ep")
-  EpClass get ep;
+  @JsonKey(name: "title")
+  String get title;
 
   /// Create a copy of Ep
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$EpImplCopyWith<_$EpImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-EpClass _$EpClassFromJson(Map<String, dynamic> json) {
-  return _EpClass.fromJson(json);
-}
-
-/// @nodoc
-mixin _$EpClass {
-  @JsonKey(name: "_id")
-  String get id => throw _privateConstructorUsedError;
-  @JsonKey(name: "title")
-  String get title => throw _privateConstructorUsedError;
-
-  /// Serializes this EpClass to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of EpClass
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $EpClassCopyWith<EpClass> get copyWith => throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $EpClassCopyWith<$Res> {
-  factory $EpClassCopyWith(EpClass value, $Res Function(EpClass) then) =
-      _$EpClassCopyWithImpl<$Res, EpClass>;
-  @useResult
-  $Res call(
-      {@JsonKey(name: "_id") String id, @JsonKey(name: "title") String title});
-}
-
-/// @nodoc
-class _$EpClassCopyWithImpl<$Res, $Val extends EpClass>
-    implements $EpClassCopyWith<$Res> {
-  _$EpClassCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of EpClass
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? title = null,
-  }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-    ) as $Val);
-  }
-}
-
-/// @nodoc
-abstract class _$$EpClassImplCopyWith<$Res> implements $EpClassCopyWith<$Res> {
-  factory _$$EpClassImplCopyWith(
-          _$EpClassImpl value, $Res Function(_$EpClassImpl) then) =
-      __$$EpClassImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {@JsonKey(name: "_id") String id, @JsonKey(name: "title") String title});
-}
-
-/// @nodoc
-class __$$EpClassImplCopyWithImpl<$Res>
-    extends _$EpClassCopyWithImpl<$Res, _$EpClassImpl>
-    implements _$$EpClassImplCopyWith<$Res> {
-  __$$EpClassImplCopyWithImpl(
-      _$EpClassImpl _value, $Res Function(_$EpClassImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of EpClass
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? title = null,
-  }) {
-    return _then(_$EpClassImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
-  }
-}
-
-/// @nodoc
-@JsonSerializable()
-class _$EpClassImpl implements _EpClass {
-  const _$EpClassImpl(
-      {@JsonKey(name: "_id") required this.id,
-      @JsonKey(name: "title") required this.title});
-
-  factory _$EpClassImpl.fromJson(Map<String, dynamic> json) =>
-      _$$EpClassImplFromJson(json);
-
-  @override
-  @JsonKey(name: "_id")
-  final String id;
-  @override
-  @JsonKey(name: "title")
-  final String title;
-
-  @override
-  String toString() {
-    return 'EpClass(id: $id, title: $title)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$EpClassImpl &&
-            (identical(other.id, id) || other.id == id) &&
-            (identical(other.title, title) || other.title == title));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, id, title);
-
-  /// Create a copy of EpClass
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$EpClassImplCopyWith<_$EpClassImpl> get copyWith =>
-      __$$EpClassImplCopyWithImpl<_$EpClassImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$EpClassImplToJson(
-      this,
-    );
-  }
-}
-
-abstract class _EpClass implements EpClass {
-  const factory _EpClass(
-      {@JsonKey(name: "_id") required final String id,
-      @JsonKey(name: "title") required final String title}) = _$EpClassImpl;
-
-  factory _EpClass.fromJson(Map<String, dynamic> json) = _$EpClassImpl.fromJson;
-
-  @override
-  @JsonKey(name: "_id")
-  String get id;
-  @override
-  @JsonKey(name: "title")
-  String get title;
-
-  /// Create a copy of EpClass
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$EpClassImplCopyWith<_$EpClassImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -392,12 +620,16 @@ Pages _$PagesFromJson(Map<String, dynamic> json) {
 mixin _$Pages {
   @JsonKey(name: "docs")
   List<Doc> get docs => throw _privateConstructorUsedError;
+
   @JsonKey(name: "total")
   int get total => throw _privateConstructorUsedError;
+
   @JsonKey(name: "limit")
   int get limit => throw _privateConstructorUsedError;
+
   @JsonKey(name: "page")
   int get page => throw _privateConstructorUsedError;
+
   @JsonKey(name: "pages")
   int get pages => throw _privateConstructorUsedError;
 
@@ -414,6 +646,7 @@ mixin _$Pages {
 abstract class $PagesCopyWith<$Res> {
   factory $PagesCopyWith(Pages value, $Res Function(Pages) then) =
       _$PagesCopyWithImpl<$Res, Pages>;
+
   @useResult
   $Res call(
       {@JsonKey(name: "docs") List<Doc> docs,
@@ -430,6 +663,7 @@ class _$PagesCopyWithImpl<$Res, $Val extends Pages>
 
   // ignore: unused_field
   final $Val _value;
+
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -474,6 +708,7 @@ abstract class _$$PagesImplCopyWith<$Res> implements $PagesCopyWith<$Res> {
   factory _$$PagesImplCopyWith(
           _$PagesImpl value, $Res Function(_$PagesImpl) then) =
       __$$PagesImplCopyWithImpl<$Res>;
+
   @override
   @useResult
   $Res call(
@@ -543,6 +778,7 @@ class _$PagesImpl implements _Pages {
       _$$PagesImplFromJson(json);
 
   final List<Doc> _docs;
+
   @override
   @JsonKey(name: "docs")
   List<Doc> get docs {
@@ -615,15 +851,19 @@ abstract class _Pages implements Pages {
   @override
   @JsonKey(name: "docs")
   List<Doc> get docs;
+
   @override
   @JsonKey(name: "total")
   int get total;
+
   @override
   @JsonKey(name: "limit")
   int get limit;
+
   @override
   @JsonKey(name: "page")
   int get page;
+
   @override
   @JsonKey(name: "pages")
   int get pages;
@@ -644,8 +884,10 @@ Doc _$DocFromJson(Map<String, dynamic> json) {
 mixin _$Doc {
   @JsonKey(name: "_id")
   String get id => throw _privateConstructorUsedError;
+
   @JsonKey(name: "media")
   Media get media => throw _privateConstructorUsedError;
+
   @JsonKey(name: "id")
   String get docId => throw _privateConstructorUsedError;
 
@@ -662,6 +904,7 @@ mixin _$Doc {
 abstract class $DocCopyWith<$Res> {
   factory $DocCopyWith(Doc value, $Res Function(Doc) then) =
       _$DocCopyWithImpl<$Res, Doc>;
+
   @useResult
   $Res call(
       {@JsonKey(name: "_id") String id,
@@ -677,6 +920,7 @@ class _$DocCopyWithImpl<$Res, $Val extends Doc> implements $DocCopyWith<$Res> {
 
   // ignore: unused_field
   final $Val _value;
+
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -720,6 +964,7 @@ class _$DocCopyWithImpl<$Res, $Val extends Doc> implements $DocCopyWith<$Res> {
 abstract class _$$DocImplCopyWith<$Res> implements $DocCopyWith<$Res> {
   factory _$$DocImplCopyWith(_$DocImpl value, $Res Function(_$DocImpl) then) =
       __$$DocImplCopyWithImpl<$Res>;
+
   @override
   @useResult
   $Res call(
@@ -830,9 +1075,11 @@ abstract class _Doc implements Doc {
   @override
   @JsonKey(name: "_id")
   String get id;
+
   @override
   @JsonKey(name: "media")
   Media get media;
+
   @override
   @JsonKey(name: "id")
   String get docId;
@@ -853,8 +1100,10 @@ Media _$MediaFromJson(Map<String, dynamic> json) {
 mixin _$Media {
   @JsonKey(name: "originalName")
   String get originalName => throw _privateConstructorUsedError;
+
   @JsonKey(name: "path")
   String get path => throw _privateConstructorUsedError;
+
   @JsonKey(name: "fileServer")
   String get fileServer => throw _privateConstructorUsedError;
 
@@ -871,6 +1120,7 @@ mixin _$Media {
 abstract class $MediaCopyWith<$Res> {
   factory $MediaCopyWith(Media value, $Res Function(Media) then) =
       _$MediaCopyWithImpl<$Res, Media>;
+
   @useResult
   $Res call(
       {@JsonKey(name: "originalName") String originalName,
@@ -885,6 +1135,7 @@ class _$MediaCopyWithImpl<$Res, $Val extends Media>
 
   // ignore: unused_field
   final $Val _value;
+
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -919,6 +1170,7 @@ abstract class _$$MediaImplCopyWith<$Res> implements $MediaCopyWith<$Res> {
   factory _$$MediaImplCopyWith(
           _$MediaImpl value, $Res Function(_$MediaImpl) then) =
       __$$MediaImplCopyWithImpl<$Res>;
+
   @override
   @useResult
   $Res call(
@@ -1031,9 +1283,11 @@ abstract class _Media implements Media {
   @override
   @JsonKey(name: "originalName")
   String get originalName;
+
   @override
   @JsonKey(name: "path")
   String get path;
+
   @override
   @JsonKey(name: "fileServer")
   String get fileServer;

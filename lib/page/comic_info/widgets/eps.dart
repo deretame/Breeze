@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/comic_info/bloc/bloc.dart';
 
 import '../../../main.dart';
-import '../../../type/comic_ep_info.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/error_view.dart';
 import '../json/comic_info/comic_info.dart';
@@ -42,7 +41,11 @@ class EpsWidget extends StatelessWidget {
                   ...docs.map(
                     (doc) => Padding(
                       padding: const EdgeInsets.symmetric(vertical: 5.0),
-                      child: EpButtonWidget(doc: doc, comicInfo: comicInfo),
+                      child: EpButtonWidget(
+                        doc: doc,
+                        comicInfo: comicInfo,
+                        epsInfo: docs,
+                      ),
                     ),
                   ),
                 ],
@@ -57,28 +60,26 @@ class EpsWidget extends StatelessWidget {
 class EpButtonWidget extends StatelessWidget {
   final Doc doc;
   final Comic comicInfo;
+  final List<Doc> epsInfo;
 
   const EpButtonWidget({
     super.key,
     required this.doc,
     required this.comicInfo,
+    required this.epsInfo,
   });
 
   @override
   Widget build(BuildContext context) {
-    var comicInfoPage = ComicEpInfo(
-        comicId: comicInfo.id,
-        title: doc.title,
-        order: doc.order,
-        updatedAt: doc.updatedAt,
-        id: doc.id);
-
     return InkWell(
       onTap: () {
         AutoRouter.of(context).push(
-          ComicInfoRoute(comicId: comicInfoPage.id),
+          ComicReadRoute(
+            epsInfo: epsInfo,
+            epsId: doc.order,
+            comicId: comicInfo.id,
+          ),
         );
-        // navigateTo(context, '/comic', extra: comicInfoPage);
       },
       child: Container(
         width: double.infinity,

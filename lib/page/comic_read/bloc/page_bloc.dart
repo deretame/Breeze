@@ -65,7 +65,7 @@ class PageBloc extends Bloc<GetPage, PageState> {
       for (var doc in temp.data.pages.docs) {
         mediaList.add(doc.media);
       }
-    } while (page < pages);
+    } while (page <= pages);
 
     return mediaList;
   }

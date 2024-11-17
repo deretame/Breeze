@@ -19,3 +19,7 @@ v1.1.1
  │  
  └──大版本更新
 ```
+
+# 联系方式
+
+[telegram(电报)](https://t.me/breeze_zh_cn)

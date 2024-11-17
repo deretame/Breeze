@@ -1,6 +1,6 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
-version: 1.5.2+11
+version: 1.5.3+12
 
 environment:
   sdk: ">=3.0.0"
@@ -15,7 +15,6 @@ dependencies:
   # 基础UI组件
   cupertino_icons: ^1.0.8          # iOS风格的图标库
   loading_animation_widget: ^1.2.1 # 各种加载动画组件
-  cherry_toast: ^1.11.0            # 轻量级的提示框组件
   toggle_switch: ^2.3.0            # 开关切换组件
   animated_search_bar: ^2.7.2      # 动画搜索栏组件
   photo_view: ^0.15.0              # 图片查看器，支持缩放、平移
@@ -25,7 +24,6 @@ dependencies:
   mobx: ^2.4.0                # 响应式状态管理
   mobx_codegen: ^2.6.2        # MobX代码生成器
   flutter_mobx: ^2.2.1+1        # MobX的Flutter绑定库
-  flutter_hooks: ^0.20.5        # React风格的状态管理Hooks
   bloc: ^8.1.4                  # BLoC核心库
   bloc_concurrency: ^0.2.5      # BLoC并发控制
   bloc_test: ^9.1.7             # BLoC测试工具
@@ -76,12 +74,14 @@ dependencies:
   flutter_easyloading:
   objectbox: ^4.0.3
   objectbox_flutter_libs: any
+  super_sliver_list: ^0.4.1
+  scrollable_positioned_list: ^0.3.8
 
 dev_dependencies:
-  auto_route_generator:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0     # 代码规范检查
+  auto_route_generator:
   build_runner: ^2.4.13     # 代码生成器运行工具
   hive_generator: ^2.0.1    # Hive代码生成器
   objectbox_generator: any

@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:zephyr/page/comic_info/json/eps/eps.dart' as eps;
 import 'package:zephyr/page/comic_read/comic_read.dart';
 
 import '../../../config/global.dart';
-import '../../../widgets/full_screen_image_view.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 
@@ -80,32 +80,36 @@ class _ComicReadPageState extends State<_ComicReadPage>
               });
               return const SizedBox.shrink();
             case PageStatus.success:
-              return ListView.builder(
-                itemCount: state.medias!.length + 1, // 增加 1 以显示额外的 Container
-                itemBuilder: (context, index) {
-                  if (index < state.medias!.length) {
-                    // 返回正常的 _ImageWidget
-                    return _ImageWidget(
-                      media: state.medias![index],
-                      comicId: comicId,
-                      epsId: epsId,
-                      index: index,
-                    );
-                  } else {
-                    // 返回加载完毕后的 Container
-                    return Container(
-                      padding: EdgeInsets.all(16.0),
-                      alignment: Alignment.center,
-                      child: Padding(
+              return InteractiveViewer(
+                minScale: 1.0, // 最小缩放比例
+                maxScale: 3.0, // 最大缩放比例
+                child: SuperListView.builder(
+                  itemCount: state.medias!.length + 1, // 增加 1 以显示额外的 Container
+                  itemBuilder: (context, index) {
+                    if (index < state.medias!.length) {
+                      // 返回正常的 _ImageWidget
+                      return _ImageWidget(
+                        media: state.medias![index],
+                        comicId: comicId,
+                        epsId: epsId,
+                        index: index,
+                      );
+                    } else {
+                      // 返回加载完毕后的 Container
+                      return Container(
                         padding: EdgeInsets.all(16.0),
-                        child: Text(
-                          "章节结束",
-                          style: TextStyle(fontSize: 20),
+                        alignment: Alignment.center,
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Text(
+                            "章节结束",
+                            style: TextStyle(fontSize: 20),
+                          ),
                         ),
-                      ),
-                    );
-                  }
-                },
+                      );
+                    }
+                  },
+                ),
               );
           }
         },
@@ -213,25 +217,7 @@ class _ImageWidgetState extends State<_ImageWidget>
               case PictureLoadStatus.success:
                 return SizedBox(
                   width: screenWidth,
-                  child: InkWell(
-                    onLongPress: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              FullScreenImageView(imagePath: state.imagePath!),
-                        ),
-                      );
-                    },
-                    child: Hero(
-                      tag: state.imagePath!,
-                      child: ClipRRect(
-                        child: Image.file(
-                          File(state.imagePath!),
-                        ),
-                      ),
-                    ),
-                  ),
+                  child: Image.file(File(state.imagePath!)),
                 );
               case PictureLoadStatus.failure:
                 if (state.result.toString().contains('404')) {

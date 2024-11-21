@@ -35,10 +35,8 @@ Future<String> getCachePicture({
   } else if (pictureType == 'cover') {
     filePath =
         "$cachePath/$from/comic/$imageQuality/$cartoonId/$pictureType/$chapterId/$sanitizedPath";
-  } else if (pictureType == 'creator') {
-    filePath = "$cachePath/$from/creator/$sanitizedPath";
-  } else if (pictureType == 'category') {
-    filePath = "$cachePath/$from/category/$sanitizedPath";
+  } else {
+    filePath = "$cachePath/$from/$pictureType/$sanitizedPath";
   }
 
   // 构造网络请求地址
@@ -74,7 +72,7 @@ Future<String> getCachePicture({
   if (url == "https://storage1.picacomic.com") {
     if (pictureType == "cover") {
       url = "https://img.picacomic.com";
-    } else if (pictureType == "creator") {
+    } else if (pictureType == "creator" || pictureType == "favourite") {
       url = proxy == 1
           ? "https://storage.diwodiwo.xyz"
           : "https://s3.picacomic.com";

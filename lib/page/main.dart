@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
-import 'package:zephyr/page/mainPage/person/person_page.dart';
 import 'package:zephyr/page/mainPage/search_page/view.dart';
 import 'package:zephyr/page/mainPage/setting/setting_page.dart';
 import 'package:zephyr/page/ranking_list/ranking_list.dart';
+import 'package:zephyr/page/user_profile/view/view.dart';
 
 import '../main.dart';
 import 'home/view/home.dart';
@@ -37,7 +37,7 @@ class _MainPageState extends State<MainPage> {
       HomePage(),
       RankingListPage(),
       SearchPage(),
-      PersonPage(),
+      UserInfoPage(),
       SettingsPage(),
     ];
     index = globalSetting.welcomePageNum;
@@ -155,8 +155,8 @@ class _MainPageState extends State<MainPage> {
             NavigationDestination(icon: Icon(Icons.home), label: "首页"),
             NavigationDestination(icon: Icon(Icons.leaderboard), label: "排行"),
             NavigationDestination(icon: Icon(Icons.search), label: "搜索"),
-            NavigationDestination(icon: Icon(Icons.history), label: "历史"),
-            NavigationDestination(icon: Icon(Icons.more_horiz), label: "更多")
+            NavigationDestination(icon: Icon(Icons.person), label: "个人"),
+            NavigationDestination(icon: Icon(Icons.settings), label: "设置")
           ],
           selectedIndex: index,
           onDestinationSelected: (index) {
@@ -189,11 +189,11 @@ class _MainPageState extends State<MainPage> {
               NavigationRailDestination(
                   icon: Icon(Icons.leaderboard), label: Text("排行")),
               NavigationRailDestination(
-                  icon: Icon(Icons.history), label: Text("历史")),
-              NavigationRailDestination(
                   icon: Icon(Icons.search), label: Text("搜索")),
               NavigationRailDestination(
-                  icon: Icon(Icons.more_horiz), label: Text("更多")),
+                  icon: Icon(Icons.person), label: Text("个人")),
+              NavigationRailDestination(
+                  icon: Icon(Icons.settings), label: Text("设置")),
             ],
           ),
         ],

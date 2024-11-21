@@ -292,7 +292,7 @@ Future<Map<String, dynamic>> getPages(
   return data;
 }
 
-Future<Map<String, dynamic>> getPersonalInfo() async {
+Future<Map<String, dynamic>> getUserProfile() async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/users/profile',
     'GET',
@@ -305,15 +305,31 @@ Future<Map<String, dynamic>> getPersonalInfo() async {
   debugPrint(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
-    return data;
+    throw data;
   }
 
-  if (data['data'] != null) {
-    return data['data'];
-  } else {
-    debugPrint('Search result is null');
-    throw '未知错误';
+  return data;
+}
+
+Future<Map<String, dynamic>> getFavorites(
+  int pageCount,
+) async {
+  final Map<String, dynamic> data = await request(
+    'https://picaapi.picacomic.com/users/favourite?s=dd&page=$pageCount',
+    'GET',
+  );
+
+  String limitString(String str, int maxLength) {
+    return str.substring(0, min(str.length, maxLength));
   }
+
+  debugPrint(limitString(data.toString(), 150));
+
+  if (data['code'] != 200) {
+    throw data;
+  }
+
+  return data;
 }
 
 Future<Map<String, dynamic>> signIn() async {

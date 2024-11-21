@@ -22,10 +22,8 @@ Page _$PageFromJson(Map<String, dynamic> json) {
 mixin _$Page {
   @JsonKey(name: "code")
   int get code => throw _privateConstructorUsedError;
-
   @JsonKey(name: "message")
   String get message => throw _privateConstructorUsedError;
-
   @JsonKey(name: "data")
   Data get data => throw _privateConstructorUsedError;
 
@@ -42,7 +40,6 @@ mixin _$Page {
 abstract class $PageCopyWith<$Res> {
   factory $PageCopyWith(Page value, $Res Function(Page) then) =
       _$PageCopyWithImpl<$Res, Page>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "code") int code,
@@ -59,7 +56,6 @@ class _$PageCopyWithImpl<$Res, $Val extends Page>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -104,7 +100,6 @@ abstract class _$$PageImplCopyWith<$Res> implements $PageCopyWith<$Res> {
   factory _$$PageImplCopyWith(
           _$PageImpl value, $Res Function(_$PageImpl) then) =
       __$$PageImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -216,11 +211,9 @@ abstract class _Page implements Page {
   @override
   @JsonKey(name: "code")
   int get code;
-
   @override
   @JsonKey(name: "message")
   String get message;
-
   @override
   @JsonKey(name: "data")
   Data get data;
@@ -241,7 +234,6 @@ Data _$DataFromJson(Map<String, dynamic> json) {
 mixin _$Data {
   @JsonKey(name: "pages")
   Pages get pages => throw _privateConstructorUsedError;
-
   @JsonKey(name: "ep")
   Ep get ep => throw _privateConstructorUsedError;
 
@@ -258,12 +250,10 @@ mixin _$Data {
 abstract class $DataCopyWith<$Res> {
   factory $DataCopyWith(Data value, $Res Function(Data) then) =
       _$DataCopyWithImpl<$Res, Data>;
-
   @useResult
   $Res call({@JsonKey(name: "pages") Pages pages, @JsonKey(name: "ep") Ep ep});
 
   $PagesCopyWith<$Res> get pages;
-
   $EpCopyWith<$Res> get ep;
 }
 
@@ -274,7 +264,6 @@ class _$DataCopyWithImpl<$Res, $Val extends Data>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -324,14 +313,12 @@ abstract class _$$DataImplCopyWith<$Res> implements $DataCopyWith<$Res> {
   factory _$$DataImplCopyWith(
           _$DataImpl value, $Res Function(_$DataImpl) then) =
       __$$DataImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call({@JsonKey(name: "pages") Pages pages, @JsonKey(name: "ep") Ep ep});
 
   @override
   $PagesCopyWith<$Res> get pages;
-
   @override
   $EpCopyWith<$Res> get ep;
 }
@@ -425,7 +412,6 @@ abstract class _Data implements Data {
   @override
   @JsonKey(name: "pages")
   Pages get pages;
-
   @override
   @JsonKey(name: "ep")
   Ep get ep;
@@ -446,7 +432,6 @@ Ep _$EpFromJson(Map<String, dynamic> json) {
 mixin _$Ep {
   @JsonKey(name: "_id")
   String get id => throw _privateConstructorUsedError;
-
   @JsonKey(name: "title")
   String get title => throw _privateConstructorUsedError;
 
@@ -463,7 +448,6 @@ mixin _$Ep {
 abstract class $EpCopyWith<$Res> {
   factory $EpCopyWith(Ep value, $Res Function(Ep) then) =
       _$EpCopyWithImpl<$Res, Ep>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "_id") String id, @JsonKey(name: "title") String title});
@@ -475,7 +459,6 @@ class _$EpCopyWithImpl<$Res, $Val extends Ep> implements $EpCopyWith<$Res> {
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -504,7 +487,6 @@ class _$EpCopyWithImpl<$Res, $Val extends Ep> implements $EpCopyWith<$Res> {
 abstract class _$$EpImplCopyWith<$Res> implements $EpCopyWith<$Res> {
   factory _$$EpImplCopyWith(_$EpImpl value, $Res Function(_$EpImpl) then) =
       __$$EpImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -599,7 +581,6 @@ abstract class _Ep implements Ep {
   @override
   @JsonKey(name: "_id")
   String get id;
-
   @override
   @JsonKey(name: "title")
   String get title;
@@ -620,16 +601,12 @@ Pages _$PagesFromJson(Map<String, dynamic> json) {
 mixin _$Pages {
   @JsonKey(name: "docs")
   List<Doc> get docs => throw _privateConstructorUsedError;
-
   @JsonKey(name: "total")
   int get total => throw _privateConstructorUsedError;
-
   @JsonKey(name: "limit")
   int get limit => throw _privateConstructorUsedError;
-
   @JsonKey(name: "page")
   int get page => throw _privateConstructorUsedError;
-
   @JsonKey(name: "pages")
   int get pages => throw _privateConstructorUsedError;
 
@@ -646,7 +623,6 @@ mixin _$Pages {
 abstract class $PagesCopyWith<$Res> {
   factory $PagesCopyWith(Pages value, $Res Function(Pages) then) =
       _$PagesCopyWithImpl<$Res, Pages>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "docs") List<Doc> docs,
@@ -663,7 +639,6 @@ class _$PagesCopyWithImpl<$Res, $Val extends Pages>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -708,7 +683,6 @@ abstract class _$$PagesImplCopyWith<$Res> implements $PagesCopyWith<$Res> {
   factory _$$PagesImplCopyWith(
           _$PagesImpl value, $Res Function(_$PagesImpl) then) =
       __$$PagesImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -778,7 +752,6 @@ class _$PagesImpl implements _Pages {
       _$$PagesImplFromJson(json);
 
   final List<Doc> _docs;
-
   @override
   @JsonKey(name: "docs")
   List<Doc> get docs {
@@ -851,19 +824,15 @@ abstract class _Pages implements Pages {
   @override
   @JsonKey(name: "docs")
   List<Doc> get docs;
-
   @override
   @JsonKey(name: "total")
   int get total;
-
   @override
   @JsonKey(name: "limit")
   int get limit;
-
   @override
   @JsonKey(name: "page")
   int get page;
-
   @override
   @JsonKey(name: "pages")
   int get pages;
@@ -884,10 +853,8 @@ Doc _$DocFromJson(Map<String, dynamic> json) {
 mixin _$Doc {
   @JsonKey(name: "_id")
   String get id => throw _privateConstructorUsedError;
-
   @JsonKey(name: "media")
   Media get media => throw _privateConstructorUsedError;
-
   @JsonKey(name: "id")
   String get docId => throw _privateConstructorUsedError;
 
@@ -904,7 +871,6 @@ mixin _$Doc {
 abstract class $DocCopyWith<$Res> {
   factory $DocCopyWith(Doc value, $Res Function(Doc) then) =
       _$DocCopyWithImpl<$Res, Doc>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "_id") String id,
@@ -920,7 +886,6 @@ class _$DocCopyWithImpl<$Res, $Val extends Doc> implements $DocCopyWith<$Res> {
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -964,7 +929,6 @@ class _$DocCopyWithImpl<$Res, $Val extends Doc> implements $DocCopyWith<$Res> {
 abstract class _$$DocImplCopyWith<$Res> implements $DocCopyWith<$Res> {
   factory _$$DocImplCopyWith(_$DocImpl value, $Res Function(_$DocImpl) then) =
       __$$DocImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -1075,11 +1039,9 @@ abstract class _Doc implements Doc {
   @override
   @JsonKey(name: "_id")
   String get id;
-
   @override
   @JsonKey(name: "media")
   Media get media;
-
   @override
   @JsonKey(name: "id")
   String get docId;
@@ -1100,10 +1062,8 @@ Media _$MediaFromJson(Map<String, dynamic> json) {
 mixin _$Media {
   @JsonKey(name: "originalName")
   String get originalName => throw _privateConstructorUsedError;
-
   @JsonKey(name: "path")
   String get path => throw _privateConstructorUsedError;
-
   @JsonKey(name: "fileServer")
   String get fileServer => throw _privateConstructorUsedError;
 
@@ -1120,7 +1080,6 @@ mixin _$Media {
 abstract class $MediaCopyWith<$Res> {
   factory $MediaCopyWith(Media value, $Res Function(Media) then) =
       _$MediaCopyWithImpl<$Res, Media>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "originalName") String originalName,
@@ -1135,7 +1094,6 @@ class _$MediaCopyWithImpl<$Res, $Val extends Media>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -1170,7 +1128,6 @@ abstract class _$$MediaImplCopyWith<$Res> implements $MediaCopyWith<$Res> {
   factory _$$MediaImplCopyWith(
           _$MediaImpl value, $Res Function(_$MediaImpl) then) =
       __$$MediaImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -1283,11 +1240,9 @@ abstract class _Media implements Media {
   @override
   @JsonKey(name: "originalName")
   String get originalName;
-
   @override
   @JsonKey(name: "path")
   String get path;
-
   @override
   @JsonKey(name: "fileServer")
   String get fileServer;

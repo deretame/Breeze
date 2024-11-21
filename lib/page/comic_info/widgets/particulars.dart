@@ -86,8 +86,8 @@ class ComicParticularsWidget extends StatelessWidget {
                           enter.keyword = comicInfo.chineseTeam;
                           AutoRouter.of(context).push(
                             SearchResultRoute(
-                              searchEnterConst:
-                                  SearchEnterConst(keyword: comicInfo.author),
+                              searchEnterConst: SearchEnterConst(
+                                  keyword: comicInfo.chineseTeam),
                             ),
                           );
                         },

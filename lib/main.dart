@@ -17,11 +17,13 @@ import 'package:zephyr/util/router/router.dart';
 import 'config/global.dart';
 import 'config/global_setting.dart';
 import 'mobx/fullscreen_store.dart';
+import 'object_box/object_box.dart';
 
 final globalSetting = GlobalSetting();
 final bikaSetting = BikaSetting();
 final fullScreenStore = FullScreenStore();
 final getIt = GetIt.instance;
+late final ObjectBox objectbox;
 
 // 定义全局Dio实例
 final dio = Dio();
@@ -37,6 +39,8 @@ final appRouter = AppRouter();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  objectbox = await ObjectBox.create();
 
   // 告诉系统应该用竖屏
   await SystemChrome.setPreferredOrientations(
@@ -113,7 +117,7 @@ class _MyAppState extends State<MyApp> {
     );
 
     // 根据当前主题模式选择对应的 ColorScheme
-    var currentColorScheme;
+    ColorScheme currentColorScheme;
     if (globalSetting.themeMode == ThemeMode.dark) {
       currentColorScheme = darkColorScheme;
     } else if (globalSetting.themeMode == ThemeMode.light) {
@@ -136,6 +140,10 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    // 设置 ImageCache 的最大字节数为 500MB
+    // 设置这个的目的是为了避免图片重载
+    PaintingBinding.instance.imageCache.maximumSizeBytes = 500 * 1024 * 1024;
+
     Global(context); // 保持原有的 Global 逻辑
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(

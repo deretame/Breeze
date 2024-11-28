@@ -10,6 +10,7 @@ import '../../../../util/dialog.dart';
 import '../../../../widgets/full_screen_image_view.dart';
 import '../../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../../widgets/picture_bloc/models/picture_info.dart';
+import '../../../history/models/search_enter.dart';
 
 class BikaUserInfoWidget extends StatelessWidget {
   const BikaUserInfoWidget({super.key});
@@ -41,7 +42,7 @@ class BikaUserInfoWidget extends StatelessWidget {
                       onPressed: () {
                         context.read<UserProfileBloc>().add(UserProfileEvent());
                       },
-                      child: Text('前往登录'),
+                      child: Text('点击重试'),
                     ),
                   ],
                 ),
@@ -91,7 +92,8 @@ class _BikaWidget extends StatelessWidget {
                         "level: ${profile.data.user.level.toString()}  (${profile.data.user.title})",
                       ),
                       Text(
-                          "经验值: ${profile.data.user.exp.toString()} (${profile.data.user.verified ? "已签到" : "未签到"})"),
+                        "经验值: ${profile.data.user.exp.toString()} (${profile.data.user.verified ? "已签到" : "未签到"})",
+                      ),
                       // InkWell(
                       //   onTap: () {
                       //     debugPrint("文本按钮被点击了！");
@@ -132,7 +134,11 @@ class _BikaWidget extends StatelessWidget {
                 children: <Widget>[
                   InkWell(
                     onTap: () {
-                      nothingDialog(context);
+                      router.push(
+                        HistoryRoute(
+                          searchEnterConst: SearchEnterConst(),
+                        ),
+                      );
                     },
                     child: const Icon(
                       Icons.history,

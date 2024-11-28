@@ -54,7 +54,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
               ),
               Column(
                 children: <Widget>[
-                  InkWell(
+                  GestureDetector(
                     onTap: () {
                       toggleAction('like');
                     },
@@ -72,7 +72,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
               ),
               Column(
                 children: <Widget>[
-                  InkWell(
+                  GestureDetector(
                     onTap: () {
                       nothingDialog(context);
                     },
@@ -91,7 +91,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
               ),
               Column(
                 children: <Widget>[
-                  InkWell(
+                  GestureDetector(
                     onTap: () {
                       toggleAction('favorite');
                     },
@@ -111,7 +111,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
               ),
               Column(
                 children: <Widget>[
-                  InkWell(
+                  GestureDetector(
                     onTap: () {
                       nothingDialog(context);
                     },

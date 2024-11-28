@@ -1,0 +1,275 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "2:8710207830109802731",
+      "lastPropertyId": "46:7447827015123359149",
+      "name": "BikaComicHistory",
+      "properties": [
+        {
+          "id": "1:6191446573453917054",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2182086599548230054",
+          "name": "updatedAt",
+          "type": 10
+        },
+        {
+          "id": "3:6674187257320077474",
+          "name": "thumbOriginalName",
+          "type": 9
+        },
+        {
+          "id": "4:7302227207805863856",
+          "name": "thumbPath",
+          "type": 9
+        },
+        {
+          "id": "5:6071258523564324970",
+          "name": "thumbFileServer",
+          "type": 9
+        },
+        {
+          "id": "6:6033300142026774766",
+          "name": "author",
+          "type": 9
+        },
+        {
+          "id": "7:5924220529948865693",
+          "name": "description",
+          "type": 9
+        },
+        {
+          "id": "8:3250540109216664266",
+          "name": "chineseTeam",
+          "type": 9
+        },
+        {
+          "id": "9:1746763527143669749",
+          "name": "createdAt",
+          "type": 10
+        },
+        {
+          "id": "10:4787285707011061467",
+          "name": "finished",
+          "type": 1
+        },
+        {
+          "id": "11:7996426827321305722",
+          "name": "categories",
+          "type": 30
+        },
+        {
+          "id": "12:6423702761440706906",
+          "name": "title",
+          "type": 9
+        },
+        {
+          "id": "13:5678471940366440575",
+          "name": "tags",
+          "type": 30
+        },
+        {
+          "id": "14:4488370369732020728",
+          "name": "comicId",
+          "type": 9
+        },
+        {
+          "id": "15:5901265100428652114",
+          "name": "likesCount",
+          "type": 6
+        },
+        {
+          "id": "16:2976387199063785145",
+          "name": "history",
+          "type": 10
+        },
+        {
+          "id": "17:4401910177588291657",
+          "name": "creatorId",
+          "type": 9
+        },
+        {
+          "id": "18:733700689521830606",
+          "name": "creatorGender",
+          "type": 9
+        },
+        {
+          "id": "19:6848307210291859572",
+          "name": "creatorName",
+          "type": 9
+        },
+        {
+          "id": "20:3517247351892275960",
+          "name": "creatorVerified",
+          "type": 1
+        },
+        {
+          "id": "21:1385623280250688057",
+          "name": "creatorExp",
+          "type": 6
+        },
+        {
+          "id": "22:4241052944092825033",
+          "name": "creatorLevel",
+          "type": 6
+        },
+        {
+          "id": "23:8672504858344544221",
+          "name": "creatorCharacters",
+          "type": 30
+        },
+        {
+          "id": "24:9057056398492574482",
+          "name": "creatorRole",
+          "type": 9
+        },
+        {
+          "id": "25:5647221646140970235",
+          "name": "creatorTitle",
+          "type": 9
+        },
+        {
+          "id": "26:6040225825072746727",
+          "name": "creatorAvatarOriginalName",
+          "type": 9
+        },
+        {
+          "id": "27:2366179158354470340",
+          "name": "creatorAvatarPath",
+          "type": 9
+        },
+        {
+          "id": "28:1803720720346892416",
+          "name": "creatorAvatarFileServer",
+          "type": 9
+        },
+        {
+          "id": "29:467167215958313822",
+          "name": "creatorSlogan",
+          "type": 9
+        },
+        {
+          "id": "30:7924648718802569079",
+          "name": "pagesCount",
+          "type": 6
+        },
+        {
+          "id": "31:6146832761297985849",
+          "name": "epsCount",
+          "type": 6
+        },
+        {
+          "id": "32:3425435180451398947",
+          "name": "allowDownload",
+          "type": 1
+        },
+        {
+          "id": "33:7416285345243990137",
+          "name": "allowComment",
+          "type": 1
+        },
+        {
+          "id": "34:7831478313879299377",
+          "name": "totalLikes",
+          "type": 6
+        },
+        {
+          "id": "35:877427148219289186",
+          "name": "totalViews",
+          "type": 6
+        },
+        {
+          "id": "36:1316448368165965030",
+          "name": "totalComments",
+          "type": 6
+        },
+        {
+          "id": "37:6251538892888465156",
+          "name": "viewsCount",
+          "type": 6
+        },
+        {
+          "id": "38:5266327858093523704",
+          "name": "commentsCount",
+          "type": 6
+        },
+        {
+          "id": "39:2830796574887469948",
+          "name": "isFavourite",
+          "type": 1
+        },
+        {
+          "id": "40:5466305422341457644",
+          "name": "isLiked",
+          "type": 1
+        },
+        {
+          "id": "41:7082337437513529027",
+          "name": "order",
+          "type": 6
+        },
+        {
+          "id": "42:3307136336435032539",
+          "name": "epPageCount",
+          "type": 6
+        },
+        {
+          "id": "43:3814165355241507460",
+          "name": "epTitle",
+          "type": 9
+        },
+        {
+          "id": "44:3104066710896043979",
+          "name": "creatorCharactersString",
+          "type": 9
+        },
+        {
+          "id": "45:1499132244532371418",
+          "name": "categoriesString",
+          "type": 9
+        },
+        {
+          "id": "46:7447827015123359149",
+          "name": "tagsString",
+          "type": 9
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "2:8710207830109802731",
+  "lastIndexId": "0:0",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [
+    264467845223121709
+  ],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [
+    4194924827811470754,
+    6505186057625373131,
+    5374789324828727813,
+    1054162181380551272,
+    2896163363204723467,
+    5314630672081303451,
+    7161366739866587625,
+    3562954288251869060,
+    1846971637524668998,
+    1373373800349924605,
+    2572755466111395975,
+    1706497498737540219,
+    1696934028246340355,
+    7810620125690386167,
+    1240031663584546645
+  ],
+  "retiredRelationUids": [],
+  "version": 1
+}

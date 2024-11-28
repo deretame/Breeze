@@ -191,7 +191,6 @@ Future<Map<String, dynamic>> getComicInfo(
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comics/$comicId',
     'GET',
-    cache: true,
   );
 
   String limitString(String str, int maxLength) {

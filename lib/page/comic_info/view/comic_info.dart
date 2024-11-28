@@ -2,9 +2,11 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../../config/global.dart';
+import '../../../main.dart';
+import '../../../object_box/model.dart';
+import '../../../object_box/objectbox.g.dart';
 import '../../../widgets/error_view.dart';
 import '../comic_info.dart';
 import '../json/comic_info/comic_info.dart';
@@ -40,20 +42,26 @@ class _ComicInfo extends StatefulWidget {
   _ComicInfoState createState() => _ComicInfoState();
 }
 
-class _ComicInfoState extends State<_ComicInfo> {
+class _ComicInfoState extends State<_ComicInfo>
+    with AutomaticKeepAliveClientMixin {
   @override
-  void initState() {
-    EasyLoading.instance.animationStyle = EasyLoadingAnimationStyle.offset;
-    super.initState();
-  }
+  bool get wantKeepAlive => true;
+
+  late BikaComicHistory? comicHistory;
 
   @override
-  void dispose() {
-    super.dispose();
+  void initState() {
+    super.initState();
+    EasyLoading.instance.animationStyle = EasyLoadingAnimationStyle.offset;
+    // 首先查询一下有没有记录
+    final query = objectbox.bikaBox
+        .query(BikaComicHistory_.comicId.equals(widget.comicId));
+    comicHistory = query.build().findFirst();
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -67,12 +75,7 @@ class _ComicInfoState extends State<_ComicInfo> {
           IconButton(
             icon: const Icon(Icons.home),
             onPressed: () {
-              AutoRouter.of(context).pushAndPopUntil(
-                MainRoute(),
-                predicate: (Route<dynamic> route) {
-                  return false; // 只要不是 MainRoute，就会被移除
-                },
-              );
+              context.router.popUntilRoot();
             },
           ),
           Expanded(child: Container()),
@@ -93,7 +96,10 @@ class _ComicInfoState extends State<_ComicInfo> {
                 },
               );
             case GetComicInfoStatus.success:
-              return _InfoView(comicInfo: state.comicInfo!);
+              return _InfoView(
+                comicInfo: state.comicInfo!,
+                comicHistory: comicHistory,
+              );
           }
         },
       ),
@@ -103,8 +109,9 @@ class _ComicInfoState extends State<_ComicInfo> {
 
 class _InfoView extends StatelessWidget {
   final Comic comicInfo;
+  final BikaComicHistory? comicHistory;
 
-  const _InfoView({required this.comicInfo});
+  const _InfoView({required this.comicInfo, required this.comicHistory});
 
   @override
   Widget build(BuildContext context) {
@@ -146,7 +153,7 @@ class _InfoView extends StatelessWidget {
                   const SizedBox(height: 10),
                   ComicOperationWidget(comicInfo: comicInfo),
                   const SizedBox(height: 10),
-                  EpsWidget(comicInfo: comicInfo),
+                  EpsWidget(comicInfo: comicInfo, comicHistory: comicHistory),
                   const SizedBox(height: 85),
                 ],
               ),

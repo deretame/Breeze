@@ -5,18 +5,36 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/page/comic_info/bloc/bloc.dart';
 
 import '../../../main.dart';
+import '../../../object_box/model.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/error_view.dart';
 import '../json/comic_info/comic_info.dart';
 import '../json/eps/eps.dart';
 
-class EpsWidget extends StatelessWidget {
+class EpsWidget extends StatefulWidget {
   final Comic comicInfo;
+  final BikaComicHistory? comicHistory;
 
   const EpsWidget({
     super.key,
     required this.comicInfo,
+    required this.comicHistory,
   });
+
+  @override
+  State<EpsWidget> createState() => _EpsWidgetState();
+}
+
+class _EpsWidgetState extends State<EpsWidget> {
+  late Comic comicInfo;
+  late BikaComicHistory? comicHistory;
+
+  @override
+  void initState() {
+    super.initState();
+    comicInfo = widget.comicInfo;
+    comicHistory = widget.comicHistory;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +56,24 @@ class EpsWidget extends StatelessWidget {
               List<Doc> docs = state.eps;
               return Column(
                 children: [
+                  // 历史记录按钮
+                  if (comicHistory != null) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 5.0),
+                      child: EpButtonWidget(
+                        doc: Doc(
+                          id: "history",
+                          title: comicHistory!.epTitle,
+                          order: comicHistory!.order,
+                          updatedAt: comicHistory!.history,
+                          docId: comicHistory!.epPageCount.toString(),
+                        ),
+                        comicInfo: comicInfo,
+                        epsInfo: docs,
+                        isHistory: true,
+                      ),
+                    ),
+                  ],
                   // 使用 map 和 Padding 创建 EpButton 列表
                   ...docs.map(
                     (doc) => Padding(
@@ -46,6 +82,7 @@ class EpsWidget extends StatelessWidget {
                         doc: doc,
                         comicInfo: comicInfo,
                         epsInfo: docs,
+                        isHistory: false,
                       ),
                     ),
                   ),
@@ -62,12 +99,14 @@ class EpButtonWidget extends StatelessWidget {
   final Doc doc;
   final Comic comicInfo;
   final List<Doc> epsInfo;
+  final bool? isHistory;
 
   const EpButtonWidget({
     super.key,
     required this.doc,
     required this.comicInfo,
     required this.epsInfo,
+    required this.isHistory,
   });
 
   @override
@@ -76,9 +115,11 @@ class EpButtonWidget extends StatelessWidget {
       onTap: () {
         AutoRouter.of(context).push(
           ComicReadRoute(
+            comicInfo: comicInfo,
             epsInfo: epsInfo,
-            epsId: doc.order,
+            doc: doc,
             comicId: comicInfo.id,
+            isHistory: isHistory,
           ),
         );
       },
@@ -105,29 +146,34 @@ class EpButtonWidget extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
+                Text(
+                  doc.id == 'history'
+                      ? "${doc.title}（${doc.docId}）"
+                      : doc.title,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 4),
                 Row(
                   children: <Widget>[
                     Text(
-                      doc.title,
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      doc.id == 'history'
+                          ? timeDecode(doc.updatedAt, history: true)
+                          : timeDecode(doc.updatedAt),
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                     Expanded(
                       child: Container(),
                     ),
-                    Text(
-                      "number : ${doc.order.toString()}",
-                      style: TextStyle(
-                        fontFamily: "Pacifico-Regular",
-                        fontSize: 16,
-                      ),
-                    ),
+                    doc.id == 'history'
+                        ? Text("观看历史", style: TextStyle(fontSize: 14))
+                        : Text(
+                            "number : ${doc.order.toString()}",
+                            style: TextStyle(
+                              fontFamily: "Pacifico-Regular",
+                              fontSize: 14,
+                            ),
+                          ),
                   ],
-                ),
-                SizedBox(height: 4),
-                Text(
-                  timeDecode(doc.updatedAt),
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ],
             ),
@@ -137,10 +183,13 @@ class EpButtonWidget extends StatelessWidget {
     );
   }
 
-  String timeDecode(DateTime originalTime) {
-    DateTime newDateTime = originalTime.add(const Duration(hours: 8));
+  String timeDecode(DateTime originalTime, {bool history = false}) {
+    DateTime newDateTime;
+    history
+        ? newDateTime = originalTime
+        : newDateTime = originalTime.add(const Duration(hours: 8));
     String formattedTime =
         '${newDateTime.year}年${newDateTime.month}月${newDateTime.day}日 ${newDateTime.hour.toString().padLeft(2, '0')}:${newDateTime.minute.toString().padLeft(2, '0')}:${newDateTime.second.toString().padLeft(2, '0')}';
-    return "$formattedTime 更新";
+    return history ? "$formattedTime 观看" : "$formattedTime 更新";
   }
 }

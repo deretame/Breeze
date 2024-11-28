@@ -13,16 +13,24 @@ class SearchPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('搜索本子'),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () {
-              AutoRouter.of(context).push(
-                SearchResultRoute(
-                  searchEnterConst: SearchEnterConst(),
-                ),
-              );
-            },
+      ),
+      body: Stack(
+        children: [
+          // 其他内容可以放在这里
+          // Center(child: Text('主内容')),
+          Positioned(
+            bottom: 80, // 调整这个值以设置 FloatingActionButton 距离底部的距离
+            right: 16,
+            child: FloatingActionButton(
+              child: const Icon(Icons.search),
+              onPressed: () {
+                AutoRouter.of(context).push(
+                  SearchResultRoute(
+                    searchEnterConst: SearchEnterConst(),
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),

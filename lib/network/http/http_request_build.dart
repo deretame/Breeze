@@ -96,13 +96,12 @@ Future<Map<String, dynamic>> request(
   if (cache) {
     dio.interceptors.add(cacheInterceptor);
   } else {
-    // 如果不需要缓存，确保移除缓存拦截器
     dio.interceptors.removeWhere((Interceptor i) => i == cacheInterceptor);
   }
   try {
     final cancelToken = CancelToken();
     Timer(const Duration(seconds: 10), () {
-      cancelToken.cancel('Request cancelled due to timeout');
+      cancelToken.cancel('请求超时');
     });
 
     final response = await dio.request(
@@ -121,17 +120,31 @@ Future<Map<String, dynamic>> request(
   } on DioException catch (error) {
     debugPrint(error.toString());
 
+    // 定义基础错误信息
+    String errorMessage = 'DioError: ${error.toString()}';
+
     // 检查错误是否有响应体
     if (error.response != null) {
-      // 返回错误信息和响应体
-      throw error.response!.data.toString();
-    } else {
-      // 如果没有响应体，只返回错误信息
-      throw error.toString();
+      // 如果有响应体，尝试解析错误信息
+      String responseBody =
+          error.response?.data?.toString() ?? 'No response body';
+      errorMessage += '\nBody: $responseBody';
     }
+
+    // 如果是掉登录了
+    if (error.response?.data?['code'] == 401 &&
+            error.response?.data?['message'] == 'unauthorized'
+        // && bikaSetting.account.isNotEmpty &&
+        // bikaSetting.password.isNotEmpty
+        ) {
+      errorMessage += '\n登录状态失效，请重新登录哔咔';
+      // var temp = await login(bikaSetting.account, bikaSetting.password);
+    }
+
+    // 抛出封装后的错误信息
+    throw Exception(errorMessage);
   } catch (error) {
-    // 捕获非DioException的错误
     debugPrint(error.toString());
-    throw error.toString();
+    throw Exception('General Error: ${error.toString()}');
   }
 }

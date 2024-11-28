@@ -33,7 +33,7 @@ class WebViewPage extends StatelessWidget {
               if (await canLaunchUrl(url)) {
                 await launchUrl(url);
               } else {
-                throw 'Could not launch $url';
+                throw Exception('Could not launch $url');
               }
             },
           ),

@@ -21,6 +21,7 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: ComicReadRoute.page),
         AutoRoute(page: WebViewRoute.page),
         AutoRoute(page: FavoriteRoute.page),
+        AutoRoute(page: HistoryRoute.page),
       ];
 
   @override

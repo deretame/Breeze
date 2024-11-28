@@ -1,4 +1,4 @@
-import '../../../widgets/comic_entry/comic_entry_info.dart' as ComicEntryInfo;
+import '../../../widgets/comic_entry/comic_entry_info.dart' as comic_entry_info;
 import '../json/advanced_search.dart';
 
 class ComicNumber {
@@ -11,10 +11,10 @@ class ComicNumber {
   });
 }
 
-ComicEntryInfo.ComicEntryInfo docToComicEntryInfo(Doc doc) {
-  return ComicEntryInfo.ComicEntryInfo(
+comic_entry_info.ComicEntryInfo docToComicEntryInfo(Doc doc) {
+  return comic_entry_info.ComicEntryInfo(
     updatedAt: doc.updatedAt,
-    thumb: ComicEntryInfo.Thumb(
+    thumb: comic_entry_info.Thumb(
       originalName: doc.thumb.originalName,
       path: doc.thumb.path,
       fileServer: doc.thumb.fileServer,

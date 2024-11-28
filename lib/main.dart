@@ -12,6 +12,7 @@ import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/util/get_path.dart';
+import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/router/router.dart';
 
 import 'config/global.dart';
@@ -41,6 +42,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   objectbox = await ObjectBox.create();
+
+  await manageCacheSize();
 
   // 告诉系统应该用竖屏
   await SystemChrome.setPreferredOrientations(
@@ -140,9 +143,9 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    // 设置 ImageCache 的最大字节数为 500MB
+    // 设置 ImageCache 的最大字节数为 1G
     // 设置这个的目的是为了避免图片重载
-    PaintingBinding.instance.imageCache.maximumSizeBytes = 500 * 1024 * 1024;
+    PaintingBinding.instance.imageCache.maximumSizeBytes = 1000 << 20;
 
     Global(context); // 保持原有的 Global 逻辑
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);

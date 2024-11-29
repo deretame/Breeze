@@ -136,7 +136,7 @@ class _BikaWidget extends StatelessWidget {
                     onTap: () {
                       router.push(
                         HistoryRoute(
-                          searchEnterConst: SearchEnterConst(),
+                          searchEnterConst: SearchEnterConst(sort: "dd"),
                         ),
                       );
                     },

@@ -66,32 +66,6 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
 
       comicList = _filterShieldedComics(comicList);
 
-      // 如果是初始值的话就直接返回空列表
-      if (event.searchEnterConst.refresh.isEmpty &&
-          event.searchEnterConst.keyword.isEmpty &&
-          event.searchEnterConst.categories.isEmpty &&
-          event.searchEnterConst.sort == "dd") {
-        // 计算耗时
-        final elapsedTime = DateTime.now().difference(startTime).inMilliseconds;
-
-        // 计算需要额外延迟的时间
-        final remainingDelay = 500 - elapsedTime;
-
-        if (remainingDelay > 0) {
-          await Future.delayed(Duration(milliseconds: remainingDelay));
-        }
-
-        emit(
-          state.copyWith(
-            status: HistoryStatus.success,
-            comics: comicList,
-            searchEnterConst: event.searchEnterConst,
-          ),
-        );
-        initial = false;
-        return;
-      }
-
       comicList = _fetchOfSort(comicList, event.searchEnterConst.sort);
 
       if (event.searchEnterConst.categories.isNotEmpty) {
@@ -146,10 +120,10 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
   List<BikaComicHistory> _fetchOfSort(
       List<BikaComicHistory> comicList, String sort) {
     if (sort == "dd") {
-      comicList.sort((a, b) => a.history.compareTo(b.history));
+      comicList.sort((a, b) => b.history.compareTo(a.history));
     }
     if (sort == "da") {
-      comicList.sort((a, b) => b.history.compareTo(a.history));
+      comicList.sort((a, b) => a.history.compareTo(b.history));
     }
     if (sort == "ld") {
       comicList.sort((a, b) => b.likesCount.compareTo(a.likesCount));

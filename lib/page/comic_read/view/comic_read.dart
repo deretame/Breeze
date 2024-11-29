@@ -90,7 +90,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
   bool _isInserting = false; // 检测数据插入状态
   int index = 0;
   bool _hasScrolled = false; // 跳转标志
-  late Timer _timer; // 定时器
+  late Timer? _timer;
   bool _isTimerFinished = false; // 定时器是否完成的标志
 
   @override
@@ -128,62 +128,13 @@ class _ComicReadPageState extends State<_ComicReadPage>
 
   @override
   void dispose() {
-    _timer.cancel(); // 确保在 dispose 时取消定时器
+    // 在 dispose 中先检查 _timer 是否为 null 然后取消
+    if (_timer != null) {
+      _timer!.cancel();
+    }
     _itemPositionsListener.itemPositions
         .removeListener(() => getTopThirdItemIndex());
     super.dispose();
-  }
-
-  Future<void> getTopThirdItemIndex() async {
-    // 如果定时器还没完成，直接返回
-    if (!_isTimerFinished) {
-      return;
-    }
-
-    // 检查时间间隔
-    if (_lastUpdateTime != null &&
-        DateTime.now().difference(_lastUpdateTime!).inMilliseconds < 100) {
-      return; // 如果还没到100毫秒，直接返回
-    }
-    if (_isInserting) {
-      return; // 如果正在插入数据，直接返回
-    }
-
-    final positions = _itemPositionsListener.itemPositions.value;
-    if (positions.isEmpty) return;
-
-    final viewportHeight = MediaQuery.of(context).size.height;
-    final topThird = viewportHeight / 3;
-
-    ItemPosition? closestPosition;
-    double minDistance = double.infinity;
-    for (final position in positions) {
-      final itemMiddle =
-          (position.itemLeadingEdge + position.itemTrailingEdge) / 2;
-      final distance = (topThird - itemMiddle).abs(); // 使用 bottomThird
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestPosition = position;
-      }
-    }
-
-    debugPrint('Top third item index: ${closestPosition?.index}');
-
-    if (closestPosition != null) {
-      // 更新记录
-      index = closestPosition.index;
-      // 检查数据插入是否完成
-      _isInserting = true; // 开始插入
-      comicHistory!.history = DateTime.now().toUtc();
-      comicHistory!.order = doc.order;
-      comicHistory!.epPageCount = closestPosition.index;
-      comicHistory!.epTitle = doc.title;
-      await objectbox.bikaBox.putAsync(comicHistory!); // 异步写入
-
-      // 设置状态为插入完成
-      _isInserting = false;
-      _lastUpdateTime = DateTime.now(); // 更新最后更新时间
-    }
   }
 
   @override
@@ -196,10 +147,26 @@ class _ComicReadPageState extends State<_ComicReadPage>
             case PageStatus.initial:
               return const Center(child: CircularProgressIndicator());
             case PageStatus.failure:
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                _showErrorDialog(context, state.result.toString());
-              });
-              return const SizedBox.shrink();
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${state.result.toString()}\n加载失败',
+                      style: TextStyle(fontSize: 20),
+                    ),
+                    SizedBox(height: 10), // 添加间距
+                    ElevatedButton(
+                      onPressed: () {
+                        context
+                            .read<PageBloc>()
+                            .add(GetPage(comicId, doc.order));
+                      },
+                      child: Text('点击重试'),
+                    ),
+                  ],
+                ),
+              );
             case PageStatus.success: // 确保只执行一次跳转
               // 启动定时器，1秒后设置 _isTimerFinished 为 true
               _timer = Timer(const Duration(seconds: 1), () {
@@ -253,46 +220,59 @@ class _ComicReadPageState extends State<_ComicReadPage>
           }
         },
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   child: const Icon(Icons.arrow_upward),
-      //   onPressed: () {
-      //     _itemScrollController.scrollTo(
-      //       index: 300,
-      //       alignment: 0.0,
-      //       duration: const Duration(milliseconds: 500),
-      //     );
-      //   },
-      // ),
     );
   }
 
-  void _showErrorDialog(BuildContext context, String errorMessage) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('加载失败'),
-          content: SingleChildScrollView(
-            child: Text(errorMessage),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('重新加载'),
-              onPressed: () {
-                context.read<PageBloc>().add(GetPage(comicId, doc.order));
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('取消'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
+  Future<void> getTopThirdItemIndex() async {
+    // 如果定时器还没完成，直接返回
+    if (!_isTimerFinished) {
+      return;
+    }
+
+    // 检查时间间隔
+    if (_lastUpdateTime != null &&
+        DateTime.now().difference(_lastUpdateTime!).inMilliseconds < 100) {
+      return; // 如果还没到100毫秒，直接返回
+    }
+    if (_isInserting) {
+      return; // 如果正在插入数据，直接返回
+    }
+
+    final positions = _itemPositionsListener.itemPositions.value;
+    if (positions.isEmpty) return;
+
+    final viewportHeight = MediaQuery.of(context).size.height;
+    final topThird = viewportHeight / 3;
+
+    ItemPosition? closestPosition;
+    double minDistance = double.infinity;
+    for (final position in positions) {
+      final itemMiddle =
+          (position.itemLeadingEdge + position.itemTrailingEdge) / 2;
+      final distance = (topThird - itemMiddle).abs(); // 使用 bottomThird
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestPosition = position;
+      }
+    }
+
+    debugPrint('Top third item index: ${closestPosition?.index}');
+
+    if (closestPosition != null) {
+      // 更新记录
+      index = closestPosition.index;
+      // 检查数据插入是否完成
+      _isInserting = true; // 开始插入
+      comicHistory!.history = DateTime.now().toUtc();
+      comicHistory!.order = doc.order;
+      comicHistory!.epPageCount = closestPosition.index;
+      comicHistory!.epTitle = doc.title;
+      await objectbox.bikaBox.putAsync(comicHistory!); // 异步写入
+
+      // 设置状态为插入完成
+      _isInserting = false;
+      _lastUpdateTime = DateTime.now(); // 更新最后更新时间
+    }
   }
 }
 

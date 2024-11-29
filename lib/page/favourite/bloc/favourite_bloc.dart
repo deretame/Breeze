@@ -30,14 +30,18 @@ class FavouriteBloc extends Bloc<FavouriteEvent, FavouriteState> {
   bool hasReachedMax = false;
   List<ComicNumber> comics = [];
 
+  // 这个的作用是用来记录收藏页面实际上有几页
+  int pageCont = 0;
+
   Future<void> _fetchComicList(
     FavouriteEvent event,
     Emitter<FavouriteState> emit,
   ) async {
     // 一样的话就直接返回，啥都不做
     if (event.refresh == state.refresh &&
-        event.pageCount == state.pageCount &&
-        initial == false) {
+        event.pageCount >= pageCont &&
+        initial == false &&
+        hasReachedMax) {
       return;
     }
 
@@ -75,7 +79,9 @@ class FavouriteBloc extends Bloc<FavouriteEvent, FavouriteState> {
       var temp = await getFavorites(event.pageCount);
       var result = FavouriteJson.fromJson(temp);
 
-      if (result.data.comics.page >= (result.data.comics.total ~/ 20 + 1)) {
+      pageCont = result.data.comics.total ~/ 20 + 1;
+
+      if (result.data.comics.page >= pageCont) {
         hasReachedMax = true;
       }
 
@@ -119,6 +125,7 @@ class FavouriteBloc extends Bloc<FavouriteEvent, FavouriteState> {
             result: e.toString(),
           ),
         );
+        return;
       }
 
       emit(

@@ -16,7 +16,7 @@ class BikaSearchBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final searchEnter = SearchEnterProvider.of(context)!.searchEnter;
     late TextEditingController controller = TextEditingController(text: '');
-    late String label = '搜索本子';
+    late String label = '历史记录';
 
     if (searchEnter.categories.isNotEmpty) {
       String temp = searchEnter.categories.join('、');

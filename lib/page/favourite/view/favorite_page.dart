@@ -83,15 +83,29 @@ class _FavoritePageState extends State<_FavoritePage>
                   child: BlocBuilder<FavouriteBloc, FavouriteState>(
                     builder: (context, state) {
                       switch (state.status) {
+                        case FavouriteStatus.initial:
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
                         case FavouriteStatus.failure:
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            _showErrorDialog(
-                              context,
-                              "漫画加载失败:\n${state.result}",
-                            );
-                          });
-                          // 因为必须要返回一个 Widget，所以这里返回一个空白的 SizedBox
-                          return SizedBox.shrink();
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  '${state.result.toString()}\n加载失败',
+                                  style: TextStyle(fontSize: 20),
+                                ),
+                                SizedBox(height: 10), // 添加间距
+                                ElevatedButton(
+                                  onPressed: () {
+                                    _refresh();
+                                  },
+                                  child: Text('点击重试'),
+                                ),
+                              ],
+                            ),
+                          );
                         case FavouriteStatus.success:
                           comics = state.comics;
                           pageCount = state.pageCount;
@@ -122,53 +136,50 @@ class _FavoritePageState extends State<_FavoritePage>
                                     ),
                                   ),
                                 );
+                              } else {
+                                return ComicEntryWidget(
+                                  comicEntryInfo: state.comics[index].doc,
+                                );
                               }
-
-                              // 返回正在加载的项目或者漫画条目
-                              return index >= state.comics.length
-                                  ? const BottomLoader()
-                                  : ComicEntryWidget(
-                                      comicEntryInfo: state.comics[index].doc,
-                                    );
                             },
                             itemCount: state.hasReachedMax
                                 ? state.comics.length + 1 // 添加用于提示的文本
                                 : state.comics.length,
                             controller: _scrollController,
                           );
-                        case FavouriteStatus.initial:
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
                         case FavouriteStatus.loadingMore:
                           return ListView.builder(
                             itemBuilder: (BuildContext context, int index) {
-                              if (index < state.comics.length) {
+                              if (index == state.comics.length) {
+                                return const BottomLoader(); // 显示加载动画
+                              } else {
                                 return ComicEntryWidget(
                                   comicEntryInfo: state.comics[index].doc,
                                 );
-                              } else {
-                                return const BottomLoader(); // 显示加载动画
                               }
                             },
-                            itemCount: state.hasReachedMax
-                                ? state.comics.length
-                                : state.comics.length + 1,
+                            itemCount: state.comics.length + 1,
                             controller: _scrollController,
                           );
                         case FavouriteStatus.getMoreFailure:
-                          // 弹出对话框
-                          _showErrorDialog(
-                            context,
-                            "漫画加载失败:\n${state.result}",
-                          );
                           return ListView.builder(
                             itemBuilder: (BuildContext context, int index) {
-                              return ComicEntryWidget(
-                                comicEntryInfo: state.comics[index].doc,
-                              );
+                              if (index == state.comics.length) {
+                                return Center(
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      _refresh();
+                                    },
+                                    child: Text('点击重试'),
+                                  ),
+                                );
+                              } else {
+                                return ComicEntryWidget(
+                                  comicEntryInfo: state.comics[index].doc,
+                                );
+                              }
                             },
-                            itemCount: state.comics.length,
+                            itemCount: state.comics.length + 1,
                             controller: _scrollController,
                           );
                       }
@@ -227,38 +238,6 @@ class _FavoritePageState extends State<_FavoritePage>
           pagesCount: pagesCount,
         ),
       ),
-    );
-  }
-
-  void _showErrorDialog(
-    BuildContext context,
-    String errorMessage,
-  ) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('加载失败'),
-          content: SingleChildScrollView(
-            child: Text(errorMessage),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('重新加载'),
-              onPressed: () {
-                _refresh();
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('取消'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
     );
   }
 

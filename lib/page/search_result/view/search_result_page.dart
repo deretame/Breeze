@@ -96,16 +96,29 @@ class _SearchResultPageState extends State<_SearchResultPage>
                     child: BlocBuilder<SearchBloc, SearchState>(
                       builder: (context, state) {
                         switch (state.status) {
+                          case SearchStatus.initial:
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
                           case SearchStatus.failure:
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              _showErrorDialog(
-                                context,
-                                "漫画加载失败:\n${state.result}",
-                                state.searchEnterConst,
-                              );
-                            });
-                            // 因为必须要返回一个 Widget，所以这里返回一个空白的 SizedBox
-                            return SizedBox.shrink();
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    '${state.result.toString()}\n加载失败',
+                                    style: TextStyle(fontSize: 20),
+                                  ),
+                                  SizedBox(height: 10), // 添加间距
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      _refresh(searchEnterConst);
+                                    },
+                                    child: Text('点击重试'),
+                                  ),
+                                ],
+                              ),
+                            );
                           case SearchStatus.success:
                             comics = state.comics;
                             pagesCount = state.pagesCount;
@@ -151,10 +164,6 @@ class _SearchResultPageState extends State<_SearchResultPage>
                                   : state.comics.length,
                               controller: _scrollController,
                             );
-                          case SearchStatus.initial:
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
                           case SearchStatus.loadingMore:
                             return ListView.builder(
                               itemBuilder: (BuildContext context, int index) {
@@ -168,27 +177,32 @@ class _SearchResultPageState extends State<_SearchResultPage>
                                   return const BottomLoader(); // 显示加载动画
                                 }
                               },
-                              itemCount: state.hasReachedMax
-                                  ? state.comics.length
-                                  : state.comics.length + 1,
+                              itemCount: state.comics.length + 1,
                               controller: _scrollController,
                             );
                           case SearchStatus.getMoreFailure:
-                            // 弹出对话框
-                            _showErrorDialog(
-                              context,
-                              "漫画加载失败:\n${state.result}",
-                              state.searchEnterConst,
-                            );
                             return ListView.builder(
                               itemBuilder: (BuildContext context, int index) {
-                                return ComicEntryWidget(
-                                  comicEntryInfo: docToComicEntryInfo(
-                                    state.comics[index].doc,
-                                  ),
-                                );
+                                if (index == state.comics.length) {
+                                  return Center(
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        _refresh(searchEnterConst);
+                                      },
+                                      child: Text('点击重试'),
+                                    ),
+                                  );
+                                }
+
+                                return index >= state.comics.length
+                                    ? const BottomLoader()
+                                    : ComicEntryWidget(
+                                        comicEntryInfo: docToComicEntryInfo(
+                                          state.comics[index].doc,
+                                        ),
+                                      );
                               },
-                              itemCount: state.comics.length,
+                              itemCount: state.comics.length + 1,
                               controller: _scrollController,
                             );
                         }
@@ -252,39 +266,6 @@ class _SearchResultPageState extends State<_SearchResultPage>
           ),
         ),
       ),
-    );
-  }
-
-  void _showErrorDialog(
-    BuildContext context,
-    String errorMessage,
-    SearchEnterConst searchEnterConst,
-  ) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('加载失败'),
-          content: SingleChildScrollView(
-            child: Text(errorMessage),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('重新加载'),
-              onPressed: () {
-                _refresh(searchEnterConst);
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('取消'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
     );
   }
 

@@ -151,6 +151,7 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
             result: e.toString(),
           ),
         );
+        return;
       }
 
       emit(

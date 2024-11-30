@@ -18,20 +18,6 @@ EventTransformer<E> throttleDroppable<E>(Duration duration) {
   };
 }
 
-class FetchArgs {
-  final String keyword;
-  final List<BikaComicHistory> comicList;
-
-  FetchArgs(this.keyword, this.comicList);
-}
-
-class FetchListArgs {
-  final List<String> listKeyword;
-  final List<BikaComicHistory> comicList;
-
-  FetchListArgs(this.listKeyword, this.comicList);
-}
-
 class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
   HistoryBloc() : super(HistoryState()) {
     on<HistoryEvent>(

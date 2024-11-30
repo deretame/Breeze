@@ -5,13 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
-import 'package:zephyr/page/mainPage/search_page/view.dart';
 import 'package:zephyr/page/mainPage/setting/setting_page.dart';
 import 'package:zephyr/page/ranking_list/ranking_list.dart';
 import 'package:zephyr/page/user_profile/view/view.dart';
 
 import '../main.dart';
 import 'home/view/home.dart';
+import 'search/search_page.dart';
 
 @RoutePage()
 class MainPage extends StatefulWidget {

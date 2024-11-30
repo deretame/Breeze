@@ -13,6 +13,10 @@ class BikaComicHistory {
   int creatorExp;
   int creatorLevel;
   List<String> creatorCharacters;
+
+  // 为啥要写这个玩意儿呢？
+  // 因为List<String>使用contain的话，太耗时间了，所以用String拼接起来
+  // 这样会提高很多速度
   String creatorCharactersString;
   String creatorRole;
   String creatorTitle;

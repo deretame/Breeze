@@ -103,6 +103,17 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
         );
       }
 
+      if (event.searchEnterConst.pageCount == 1) {
+        emit(
+          state.copyWith(
+            status: SearchStatus.initial,
+            comics: [],
+            pagesCount: pagesCount,
+          ),
+        );
+        comics = [];
+      }
+
       final result = await search(
         url: event.searchEnterConst.url,
         from: event.searchEnterConst.from,
@@ -114,7 +125,7 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
 
       final comicList = await _processSearchResult(result);
       final hasReachedMax =
-          result['data']['comics']['page'] == result['data']['comics']['pages'];
+          result['data']['comics']['page'] >= result['data']['comics']['pages'];
 
       comics = [...comics, ...comicList];
 

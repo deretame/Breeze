@@ -127,7 +127,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
                               _fetchSearchResult();
                             }
                             _update(state.searchEnterConst);
-                            if (state.comics.isEmpty) {
+                            if (state.comics.isEmpty && state.hasReachedMax) {
                               return const Center(
                                 child: Text(
                                   '啥都没有',

@@ -185,6 +185,26 @@ Future<Map<String, dynamic>> search({
   return data;
 }
 
+Future<Map<String, dynamic>> getSearchKeywords() async {
+  final Map<String, dynamic> data = await request(
+    'https://picaapi.picacomic.com/keywords',
+    'GET',
+    cache: true,
+  );
+
+  String limitString(String str, int maxLength) {
+    return str.substring(0, min(str.length, maxLength));
+  }
+
+  debugPrint(limitString(data.toString(), 150));
+
+  if (data['code'] != 200) {
+    throw data;
+  }
+
+  return data;
+}
+
 Future<Map<String, dynamic>> getComicInfo(
   String comicId,
 ) async {
@@ -350,7 +370,6 @@ Future<Map<String, dynamic>> signIn() async {
       data['data']['res']['status'] == 'fail') {
     return {"success": "已签到"};
   } else {
-    debugPrint('Search result is null');
     throw '未知错误';
   }
 }

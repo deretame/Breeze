@@ -162,6 +162,9 @@ class _FavoritePageState extends State<_FavoritePage>
                             controller: _scrollController,
                           );
                         case FavouriteStatus.getMoreFailure:
+                          comics = state.comics;
+                          pageCount = state.pageCount;
+                          refresh = state.refresh;
                           return ListView.builder(
                             itemBuilder: (BuildContext context, int index) {
                               if (index == state.comics.length) {
@@ -242,11 +245,17 @@ class _FavoritePageState extends State<_FavoritePage>
   }
 
   void _refresh() {
+    String temp;
+    if (pageCount != 1) {
+      temp = "addMore";
+    } else {
+      temp = Uuid().v4().toString();
+    }
     // 使用原本输入参数进行重新搜索
     context.read<FavouriteBloc>().add(
           FavouriteEvent(
             pageCount,
-            Uuid().v4(),
+            temp,
           ),
         );
   }

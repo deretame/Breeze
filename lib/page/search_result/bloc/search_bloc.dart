@@ -54,8 +54,7 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
       return; // 如果状态相同，直接返回，避免再次请求
     }
 
-    if (event.searchEnterConst.pageCount == 1 ||
-        event.searchEnterConst.state == "page skip") {
+    if (event.searchEnterConst.state == "page skip") {
       if (event.searchEnterConst.pageCount > pagesCount && pagesCount != 0) {
         // 避免状态污染
         var cleanSearchEnterConst = SearchEnterConst(
@@ -99,6 +98,7 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
           state.copyWith(
             status: SearchStatus.loadingMore,
             comics: comics,
+            pagesCount: pagesCount,
           ),
         );
       }
@@ -148,6 +148,7 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
             status: SearchStatus.getMoreFailure,
             comics: comics,
             searchEnterConst: event.searchEnterConst,
+            pagesCount: pagesCount,
             result: e.toString(),
           ),
         );

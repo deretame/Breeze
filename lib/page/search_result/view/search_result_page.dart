@@ -151,13 +151,11 @@ class _SearchResultPageState extends State<_SearchResultPage>
                                   );
                                 }
 
-                                return index >= state.comics.length
-                                    ? const BottomLoader()
-                                    : ComicEntryWidget(
-                                        comicEntryInfo: docToComicEntryInfo(
-                                          state.comics[index].doc,
-                                        ),
-                                      );
+                                return ComicEntryWidget(
+                                  comicEntryInfo: docToComicEntryInfo(
+                                    state.comics[index].doc,
+                                  ),
+                                );
                               },
                               itemCount: state.hasReachedMax
                                   ? state.comics.length + 1
@@ -167,15 +165,15 @@ class _SearchResultPageState extends State<_SearchResultPage>
                           case SearchStatus.loadingMore:
                             return ListView.builder(
                               itemBuilder: (BuildContext context, int index) {
-                                if (index < state.comics.length) {
-                                  return ComicEntryWidget(
-                                    comicEntryInfo: docToComicEntryInfo(
-                                      state.comics[index].doc,
-                                    ),
-                                  );
-                                } else {
+                                if (index == state.comics.length) {
                                   return const BottomLoader(); // 显示加载动画
                                 }
+
+                                return ComicEntryWidget(
+                                  comicEntryInfo: docToComicEntryInfo(
+                                    state.comics[index].doc,
+                                  ),
+                                );
                               },
                               itemCount: state.comics.length + 1,
                               controller: _scrollController,
@@ -185,22 +183,25 @@ class _SearchResultPageState extends State<_SearchResultPage>
                               itemBuilder: (BuildContext context, int index) {
                                 if (index == state.comics.length) {
                                   return Center(
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        _refresh(searchEnterConst);
-                                      },
-                                      child: Text('点击重试'),
+                                    child: Column(
+                                      children: [
+                                        SizedBox(height: 10),
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            _refresh(searchEnterConst);
+                                          },
+                                          child: Text('点击重试'),
+                                        )
+                                      ],
                                     ),
                                   );
                                 }
 
-                                return index >= state.comics.length
-                                    ? const BottomLoader()
-                                    : ComicEntryWidget(
-                                        comicEntryInfo: docToComicEntryInfo(
-                                          state.comics[index].doc,
-                                        ),
-                                      );
+                                return ComicEntryWidget(
+                                  comicEntryInfo: docToComicEntryInfo(
+                                    state.comics[index].doc,
+                                  ),
+                                );
                               },
                               itemCount: state.comics.length + 1,
                               controller: _scrollController,

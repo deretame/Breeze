@@ -46,8 +46,7 @@ class FavouriteBloc extends Bloc<FavouriteEvent, FavouriteState> {
     }
 
     // 如果强制刷新状态不变那么就是加载更多漫画的意思
-    if (event.refresh == state.refresh &&
-        event.pageCount != state.pageCount &&
+    if ((event.refresh == state.refresh || event.refresh == "addMore") &&
         initial == false) {
       emit(
         state.copyWith(
@@ -56,10 +55,8 @@ class FavouriteBloc extends Bloc<FavouriteEvent, FavouriteState> {
           refresh: event.refresh,
         ),
       );
-    }
-
-    // 如果刷新状态改变，那么就重新加载漫画列表（因为首次的时候状态的refresh为空，所以首次传来一个不为空的值就行了，所以不额外做一次首次加载判断
-    if (event.refresh != state.refresh) {
+    } else {
+      // 如果刷新状态改变，那么就重新加载漫画列表（因为首次的时候状态的refresh为空，所以首次传来一个不为空的值就行了，所以不额外做一次首次加载判断
       comics = [];
       emit(
         state.copyWith(
@@ -122,6 +119,7 @@ class FavouriteBloc extends Bloc<FavouriteEvent, FavouriteState> {
             status: FavouriteStatus.getMoreFailure,
             comics: comics,
             refresh: event.refresh,
+            pageCount: event.pageCount,
             result: e.toString(),
           ),
         );

@@ -92,6 +92,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
   bool _hasScrolled = false; // 跳转标志
   late Timer? _timer;
   bool _isTimerFinished = false; // 定时器是否完成的标志
+  String epPages = ""; // 章节总页数
 
   @override
   void initState() {
@@ -141,84 +142,109 @@ class _ComicReadPageState extends State<_ComicReadPage>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      body: BlocBuilder<PageBloc, PageState>(
-        builder: (context, state) {
-          switch (state.status) {
-            case PageStatus.initial:
-              return const Center(child: CircularProgressIndicator());
-            case PageStatus.failure:
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '${state.result.toString()}\n加载失败',
-                      style: TextStyle(fontSize: 20),
-                    ),
-                    SizedBox(height: 10), // 添加间距
-                    ElevatedButton(
-                      onPressed: () {
-                        context
-                            .read<PageBloc>()
-                            .add(GetPage(comicId, doc.order));
-                      },
-                      child: Text('点击重试'),
-                    ),
-                  ],
-                ),
-              );
-            case PageStatus.success: // 确保只执行一次跳转
-              // 启动定时器，1秒后设置 _isTimerFinished 为 true
-              _timer = Timer(const Duration(seconds: 1), () {
-                setState(() {
-                  _isTimerFinished = true; // 设置定时器完成
-                });
-              });
-              if (!_hasScrolled &&
-                  widget.isHistory == true &&
-                  (comicHistory!.epPageCount - 1 != 0)) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _itemScrollController.scrollTo(
-                    index: comicHistory!.epPageCount - 1,
-                    alignment: 0.0,
-                    duration: const Duration(milliseconds: 500),
-                  );
-                  _hasScrolled = true; // 设置标志为已跳转
-                });
-              }
-              return InteractiveViewer(
-                minScale: 1.0,
-                maxScale: 3.0,
-                child: ScrollablePositionedList.builder(
-                  itemCount: state.medias!.length + 1,
-                  itemBuilder: (context, index) {
-                    if (index < state.medias!.length) {
-                      return _ImageWidget(
-                        media: state.medias![index],
-                        comicId: comicId,
-                        epsId: doc.order,
-                        index: index,
-                      );
-                    } else {
-                      return Container(
-                        padding: EdgeInsets.all(16.0),
-                        alignment: Alignment.center,
-                        child: Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: Text(
-                            "章节结束",
-                            style: TextStyle(fontSize: 20),
-                          ),
+      body: Stack(
+        children: [
+          BlocBuilder<PageBloc, PageState>(
+            builder: (context, state) {
+              switch (state.status) {
+                case PageStatus.initial:
+                  return const Center(child: CircularProgressIndicator());
+                case PageStatus.failure:
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '${state.result.toString()}\n加载失败',
+                          style: TextStyle(fontSize: 20),
                         ),
+                        SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: () {
+                            context
+                                .read<PageBloc>()
+                                .add(GetPage(comicId, doc.order));
+                          },
+                          child: Text('点击重试'),
+                        ),
+                      ],
+                    ),
+                  );
+                case PageStatus.success:
+                  epPages = state.result!;
+                  // 启动定时器，1秒后设置 _isTimerFinished 为 true
+                  _timer = Timer(const Duration(seconds: 1), () {
+                    setState(() {
+                      _isTimerFinished = true;
+                    });
+                  });
+
+                  // 处理滚动到历史记录
+                  if (!_hasScrolled &&
+                      widget.isHistory == true &&
+                      (comicHistory!.epPageCount - 1 != 0)) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _itemScrollController.scrollTo(
+                        index: comicHistory!.epPageCount - 1,
+                        alignment: 0.0,
+                        duration: const Duration(milliseconds: 500),
                       );
-                    }
-                  },
-                  itemScrollController: _itemScrollController,
-                  itemPositionsListener: _itemPositionsListener,
+                      _hasScrolled = true;
+                    });
+                  }
+
+                  return ScrollablePositionedList.builder(
+                    itemCount: state.medias!.length + 1,
+                    itemBuilder: (context, index) {
+                      if (index < state.medias!.length) {
+                        return _ImageWidget(
+                          media: state.medias![index],
+                          comicId: comicId,
+                          epsId: doc.order,
+                          index: index,
+                        );
+                      } else {
+                        return Container(
+                          padding: EdgeInsets.all(16.0),
+                          alignment: Alignment.center,
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Text(
+                              "章节结束",
+                              style: TextStyle(fontSize: 20),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    itemScrollController: _itemScrollController,
+                    itemPositionsListener: _itemPositionsListener,
+                  );
+              }
+            },
+          ),
+          // 页数信息放置在 Stack 中
+          Positioned(
+            bottom: 0, // 离底部的间距
+            left: 0, // 离右边的间距
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(0), // 左上角保持直角
+                  topRight: Radius.circular(10), // 右上角设置圆角
+                  bottomLeft: Radius.circular(0), // 左下角保持直角
+                  bottomRight: Radius.circular(0), // 右下角保持直角
                 ),
-              );
-          }
-        },
+              ),
+              child: Text(
+                "$index/$epPages", // 显示当前页数
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

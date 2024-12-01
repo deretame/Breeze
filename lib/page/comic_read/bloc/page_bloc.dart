@@ -25,6 +25,8 @@ class PageBloc extends Bloc<GetPage, PageState> {
     );
   }
 
+  int epPages = 0;
+
   Future<void> _fetchPages(
     GetPage event,
     Emitter<PageState> emit,
@@ -40,9 +42,9 @@ class PageBloc extends Bloc<GetPage, PageState> {
 
       emit(
         state.copyWith(
-          status: PageStatus.success,
-          medias: result,
-        ),
+            status: PageStatus.success,
+            medias: result,
+            result: epPages.toString()),
       );
     } catch (e) {
       emit(
@@ -65,6 +67,7 @@ class PageBloc extends Bloc<GetPage, PageState> {
       for (var doc in temp.data.pages.docs) {
         mediaList.add(doc.media);
       }
+      epPages = temp.data.pages.total;
     } while (page <= pages);
 
     return mediaList;

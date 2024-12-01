@@ -20,9 +20,20 @@ class SearchPage extends StatelessWidget {
   }
 }
 
-class _SearchPage extends StatelessWidget {
+class _SearchPage extends StatefulWidget {
+  @override
+  State<_SearchPage> createState() => _SearchPageState();
+}
+
+class _SearchPageState extends State<_SearchPage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('搜索本子'),

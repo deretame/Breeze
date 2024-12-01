@@ -22,10 +22,8 @@ KeywordsJson _$KeywordsJsonFromJson(Map<String, dynamic> json) {
 mixin _$KeywordsJson {
   @JsonKey(name: "code")
   int get code => throw _privateConstructorUsedError;
-
   @JsonKey(name: "message")
   String get message => throw _privateConstructorUsedError;
-
   @JsonKey(name: "data")
   Data get data => throw _privateConstructorUsedError;
 
@@ -44,7 +42,6 @@ abstract class $KeywordsJsonCopyWith<$Res> {
   factory $KeywordsJsonCopyWith(
           KeywordsJson value, $Res Function(KeywordsJson) then) =
       _$KeywordsJsonCopyWithImpl<$Res, KeywordsJson>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "code") int code,
@@ -61,7 +58,6 @@ class _$KeywordsJsonCopyWithImpl<$Res, $Val extends KeywordsJson>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -107,7 +103,6 @@ abstract class _$$KeywordsJsonImplCopyWith<$Res>
   factory _$$KeywordsJsonImplCopyWith(
           _$KeywordsJsonImpl value, $Res Function(_$KeywordsJsonImpl) then) =
       __$$KeywordsJsonImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -221,11 +216,9 @@ abstract class _KeywordsJson implements KeywordsJson {
   @override
   @JsonKey(name: "code")
   int get code;
-
   @override
   @JsonKey(name: "message")
   String get message;
-
   @override
   @JsonKey(name: "data")
   Data get data;
@@ -260,7 +253,6 @@ mixin _$Data {
 abstract class $DataCopyWith<$Res> {
   factory $DataCopyWith(Data value, $Res Function(Data) then) =
       _$DataCopyWithImpl<$Res, Data>;
-
   @useResult
   $Res call({@JsonKey(name: "keywords") List<String> keywords});
 }
@@ -272,7 +264,6 @@ class _$DataCopyWithImpl<$Res, $Val extends Data>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -297,7 +288,6 @@ abstract class _$$DataImplCopyWith<$Res> implements $DataCopyWith<$Res> {
   factory _$$DataImplCopyWith(
           _$DataImpl value, $Res Function(_$DataImpl) then) =
       __$$DataImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call({@JsonKey(name: "keywords") List<String> keywords});
@@ -337,7 +327,6 @@ class _$DataImpl implements _Data {
       _$$DataImplFromJson(json);
 
   final List<String> _keywords;
-
   @override
   @JsonKey(name: "keywords")
   List<String> get keywords {

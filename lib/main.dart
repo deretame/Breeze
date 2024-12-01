@@ -43,7 +43,7 @@ Future<void> main() async {
 
   objectbox = await ObjectBox.create();
 
-  await manageCacheSize();
+  manageCacheSize();
 
   // 告诉系统应该用竖屏
   await SystemChrome.setPreferredOrientations(
@@ -143,9 +143,8 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    // 设置 ImageCache 的最大字节数为 1G
-    // 设置这个的目的是为了避免图片重载
-    PaintingBinding.instance.imageCache.maximumSizeBytes = 1000 << 20;
+    // 设置这个的目的是为了缓解图片重载
+    PaintingBinding.instance.imageCache.maximumSizeBytes = 500 * 1024 * 1024;
 
     Global(context); // 保持原有的 Global 逻辑
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);

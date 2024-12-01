@@ -3,15 +3,17 @@ import 'dart:ui';
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
-import 'package:zephyr/page/mainPage/setting/setting_page.dart';
 import 'package:zephyr/page/ranking_list/ranking_list.dart';
 import 'package:zephyr/page/user_profile/view/view.dart';
 
 import '../main.dart';
+import '../network/http/http_request.dart';
 import 'home/view/home.dart';
 import 'search/search_page.dart';
+import 'setting/setting_page.dart';
 
 @RoutePage()
 class MainPage extends StatefulWidget {
@@ -33,6 +35,8 @@ class _MainPageState extends State<MainPage> {
 
   @override
   void initState() {
+    super.initState();
+
     _pageList = [
       HomePage(),
       RankingListPage(),
@@ -42,7 +46,7 @@ class _MainPageState extends State<MainPage> {
     ];
     index = globalSetting.welcomePageNum;
     _pageController = PageController(initialPage: index);
-    super.initState();
+    _signIn();
   }
 
   @override
@@ -67,8 +71,7 @@ class _MainPageState extends State<MainPage> {
                         const Duration(seconds: 2))) {
               currentBackPressTime = now;
               // 显示对话框提醒用户
-              // _showExitDialog();
-              // BotToast.showText(text: '再按一次退出应用');
+              EasyLoading.showInfo("再按一次返回退出应用");
               setState(() {
                 canPopNow = false;
               });
@@ -269,5 +272,38 @@ class _AnimatedToggleFullscreenFABState
         ),
       ),
     );
+  }
+}
+
+Future<void> _signIn() async {
+  // 获取当前时间
+  DateTime now = DateTime.now();
+
+  // 获取今天的日期
+  DateTime today = DateTime(now.year, now.month, now.day, 16); // 今天4点的时间
+
+  try {
+    if (!bikaSetting.getSignInTime().isBefore(today)) {
+      debugPrint("自动签到成功！");
+      return;
+    }
+  } catch (e) {
+    debugPrint(e.toString());
+  }
+
+  while (true) {
+    try {
+      var result = await signIn();
+      if (result.toString().contains("success")) {
+        bikaSetting.setSignInTime(DateTime.now());
+        bikaSetting.setSignIn(true);
+        EasyLoading.showSuccess("自动签到成功！");
+        debugPrint("自动签到成功！");
+        break;
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+      continue;
+    }
   }
 }

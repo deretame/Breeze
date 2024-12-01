@@ -366,7 +366,7 @@ Future<Map<String, dynamic>> signIn() async {
     return data;
   }
 
-  if (data['data']['message'] == 'success' &&
+  if (data['data']['message'] == 'success' ||
       data['data']['res']['status'] == 'fail') {
     return {"success": "已签到"};
   } else {

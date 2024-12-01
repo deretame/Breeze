@@ -34,6 +34,12 @@ abstract class _BikaSetting with Store {
   @observable
   Map<String, bool> shieldCategoryMap = Map.of(categoryMap); // 分类设置
 
+  @observable
+  bool signIn = false; // 签到状态
+
+  @observable
+  DateTime signInTime = DateTime.now().subtract(Duration(hours: 24)); // 签到时间
+
   // _BikaSetting() {
   //   _init();
   // }
@@ -48,6 +54,8 @@ abstract class _BikaSetting with Store {
     proxy = getProxy();
     imageQuality = getImageQuality();
     shieldCategoryMap = getShieldCategoryMap();
+    signIn = getSignIn();
+    signInTime = getSignInTime();
   }
 
   @action
@@ -197,6 +205,44 @@ abstract class _BikaSetting with Store {
     shieldCategoryMap = Map<String, bool>.of(categoryMap);
     _box.delete(BikaSettingBoxKeys.shieldCategoryMap);
   }
+
+  @action
+  bool getSignIn() {
+    signIn = _box.get(BikaSettingBoxKeys.signIn, defaultValue: false);
+    return signIn;
+  }
+
+  @action
+  void deleteSignIn() {
+    signIn = false;
+    _box.delete(BikaSettingBoxKeys.signIn);
+  }
+
+  @action
+  void setSignIn(bool value) {
+    signIn = value;
+    _box.put(BikaSettingBoxKeys.signIn, value);
+  }
+
+  @action
+  DateTime getSignInTime() {
+    var dateTime = _box.get(BikaSettingBoxKeys.signInTime,
+        defaultValue: DateTime.now().subtract(Duration(hours: 24)));
+    signInTime = dateTime;
+    return signInTime;
+  }
+
+  @action
+  void setSignInTime(DateTime value) {
+    signInTime = value;
+    _box.put(BikaSettingBoxKeys.signInTime, value);
+  }
+
+  @action
+  void deleteSignInTime() {
+    signInTime = DateTime.utc(1970, 1, 1);
+    _box.delete(BikaSettingBoxKeys.signInTime);
+  }
 }
 
 class BikaSettingBoxKeys {
@@ -210,6 +256,8 @@ class BikaSettingBoxKeys {
   static const String proxy = 'proxy'; // 分流设置
   static const String imageQuality = 'imageQuality'; // 图片质量
   static const String shieldCategoryMap = 'shieldCategoryMap'; // 屏蔽分类
+  static const String signIn = 'signIn'; // 签到状态
+  static const String signInTime = 'signInTime'; // 签到时间
 }
 
 // 哔咔的漫画分类

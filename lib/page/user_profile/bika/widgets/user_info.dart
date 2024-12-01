@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/page/user_profile/bika/bika.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
@@ -91,18 +93,13 @@ class _BikaWidget extends StatelessWidget {
                       Text(
                         "level: ${profile.data.user.level.toString()}  (${profile.data.user.title})",
                       ),
-                      Text(
-                        "经验值: ${profile.data.user.exp.toString()} (${profile.data.user.verified ? "已签到" : "未签到"})",
+                      Observer(
+                        builder: (context) {
+                          return Text(
+                            "经验值: ${profile.data.user.exp.toString()} (${bikaSetting.getSignIn() ? "已签到" : "未签到"})",
+                          );
+                        },
                       ),
-                      // InkWell(
-                      //   onTap: () {
-                      //     debugPrint("文本按钮被点击了！");
-                      //   },
-                      //   child: Text(
-                      //     "签到",
-                      //     style: TextStyle(color: Colors.blue),
-                      //   ),
-                      // ),
                     ],
                   ),
                 ),

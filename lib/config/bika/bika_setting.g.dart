@@ -135,6 +135,37 @@ mixin _$BikaSetting on _BikaSetting, Store {
     });
   }
 
+  late final _$signInAtom = Atom(name: '_BikaSetting.signIn', context: context);
+
+  @override
+  bool get signIn {
+    _$signInAtom.reportRead();
+    return super.signIn;
+  }
+
+  @override
+  set signIn(bool value) {
+    _$signInAtom.reportWrite(value, super.signIn, () {
+      super.signIn = value;
+    });
+  }
+
+  late final _$signInTimeAtom =
+      Atom(name: '_BikaSetting.signInTime', context: context);
+
+  @override
+  DateTime get signInTime {
+    _$signInTimeAtom.reportRead();
+    return super.signInTime;
+  }
+
+  @override
+  set signInTime(DateTime value) {
+    _$signInTimeAtom.reportWrite(value, super.signInTime, () {
+      super.signInTime = value;
+    });
+  }
+
   late final _$_BikaSettingActionController =
       ActionController(name: '_BikaSetting', context: context);
 
@@ -403,6 +434,72 @@ mixin _$BikaSetting on _BikaSetting, Store {
   }
 
   @override
+  bool getSignIn() {
+    final _$actionInfo = _$_BikaSettingActionController.startAction(
+        name: '_BikaSetting.getSignIn');
+    try {
+      return super.getSignIn();
+    } finally {
+      _$_BikaSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void deleteSignIn() {
+    final _$actionInfo = _$_BikaSettingActionController.startAction(
+        name: '_BikaSetting.deleteSignIn');
+    try {
+      return super.deleteSignIn();
+    } finally {
+      _$_BikaSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void setSignIn(bool value) {
+    final _$actionInfo = _$_BikaSettingActionController.startAction(
+        name: '_BikaSetting.setSignIn');
+    try {
+      return super.setSignIn(value);
+    } finally {
+      _$_BikaSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  DateTime getSignInTime() {
+    final _$actionInfo = _$_BikaSettingActionController.startAction(
+        name: '_BikaSetting.getSignInTime');
+    try {
+      return super.getSignInTime();
+    } finally {
+      _$_BikaSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void setSignInTime(DateTime value) {
+    final _$actionInfo = _$_BikaSettingActionController.startAction(
+        name: '_BikaSetting.setSignInTime');
+    try {
+      return super.setSignInTime(value);
+    } finally {
+      _$_BikaSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void deleteSignInTime() {
+    final _$actionInfo = _$_BikaSettingActionController.startAction(
+        name: '_BikaSetting.deleteSignInTime');
+    try {
+      return super.deleteSignInTime();
+    } finally {
+      _$_BikaSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     return '''
 account: ${account},
@@ -412,7 +509,9 @@ level: ${level},
 checkIn: ${checkIn},
 proxy: ${proxy},
 imageQuality: ${imageQuality},
-shieldCategoryMap: ${shieldCategoryMap}
+shieldCategoryMap: ${shieldCategoryMap},
+signIn: ${signIn},
+signInTime: ${signInTime}
     ''';
   }
 }

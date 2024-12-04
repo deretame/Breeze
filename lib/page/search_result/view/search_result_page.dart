@@ -112,7 +112,8 @@ class _SearchResultPageState extends State<_SearchResultPage>
                                   SizedBox(height: 10), // 添加间距
                                   ElevatedButton(
                                     onPressed: () {
-                                      _refresh(searchEnterConst);
+                                      _refresh(
+                                          SearchEnterConst.from(_searchEnter));
                                     },
                                     child: Text('点击重试'),
                                   ),
@@ -179,6 +180,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
                               controller: _scrollController,
                             );
                           case SearchStatus.getMoreFailure:
+                            _update(state.searchEnterConst);
                             return ListView.builder(
                               itemBuilder: (BuildContext context, int index) {
                                 if (index == state.comics.length) {
@@ -188,7 +190,8 @@ class _SearchResultPageState extends State<_SearchResultPage>
                                         SizedBox(height: 10),
                                         ElevatedButton(
                                           onPressed: () {
-                                            _refresh(searchEnterConst);
+                                            _refresh(SearchEnterConst.from(
+                                                _searchEnter));
                                           },
                                           child: Text('点击重试'),
                                         )

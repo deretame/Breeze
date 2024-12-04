@@ -87,11 +87,12 @@ class _ComicReadPageState extends State<_ComicReadPage>
   late BikaComicHistory? comicHistory;
   late final int? comicHistoryId;
   DateTime? _lastUpdateTime; // 记录上次更新时间
+  late Timer? _writingTimer; // 用于控制写入间隔的定时器
   bool _isInserting = false; // 检测数据插入状态
   int index = 0;
   bool _hasScrolled = false; // 跳转标志
   late Timer? _timer;
-  bool _isTimerFinished = false; // 定时器是否完成的标志
+  bool isTimerFinished = false; // 定时器是否完成的标志
   String epPages = ""; // 章节总页数
 
   @override
@@ -133,6 +134,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
     if (_timer != null) {
       _timer!.cancel();
     }
+    _writingTimer?.cancel();
     _itemPositionsListener.itemPositions
         .removeListener(() => getTopThirdItemIndex());
     super.dispose();
@@ -175,7 +177,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                   // 启动定时器，1秒后设置 _isTimerFinished 为 true
                   _timer = Timer(const Duration(seconds: 1), () {
                     setState(() {
-                      _isTimerFinished = true;
+                      isTimerFinished = true;
                     });
                   });
 
@@ -239,7 +241,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                 ),
               ),
               child: Text(
-                "$index/$epPages", // 显示当前页数
+                "  $index/$epPages", // 显示当前页数
                 style: TextStyle(color: Colors.white),
               ),
             ),
@@ -249,21 +251,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
     );
   }
 
-  Future<void> getTopThirdItemIndex() async {
-    // 如果定时器还没完成，直接返回
-    if (!_isTimerFinished) {
-      return;
-    }
-
-    // 检查时间间隔
-    if (_lastUpdateTime != null &&
-        DateTime.now().difference(_lastUpdateTime!).inMilliseconds < 100) {
-      return; // 如果还没到100毫秒，直接返回
-    }
-    if (_isInserting) {
-      return; // 如果正在插入数据，直接返回
-    }
-
+  Future<void> updateIndex() async {
     final positions = _itemPositionsListener.itemPositions.value;
     if (positions.isEmpty) return;
 
@@ -275,30 +263,38 @@ class _ComicReadPageState extends State<_ComicReadPage>
     for (final position in positions) {
       final itemMiddle =
           (position.itemLeadingEdge + position.itemTrailingEdge) / 2;
-      final distance = (topThird - itemMiddle).abs(); // 使用 bottomThird
+      final distance = (topThird - itemMiddle).abs();
       if (distance < minDistance) {
         minDistance = distance;
         closestPosition = position;
       }
     }
 
-    debugPrint('Top third item index: ${closestPosition?.index}');
-
     if (closestPosition != null) {
-      // 更新记录
       index = closestPosition.index;
-      // 检查数据插入是否完成
-      _isInserting = true; // 开始插入
-      comicHistory!.history = DateTime.now().toUtc();
-      comicHistory!.order = doc.order;
-      comicHistory!.epPageCount = closestPosition.index;
-      comicHistory!.epTitle = doc.title;
-      await objectbox.bikaBox.putAsync(comicHistory!); // 异步写入
-
-      // 设置状态为插入完成
-      _isInserting = false;
-      _lastUpdateTime = DateTime.now(); // 更新最后更新时间
     }
+  }
+
+  Future<void> writeToDatabase() async {
+    if (_isInserting ||
+        _lastUpdateTime != null &&
+            DateTime.now().difference(_lastUpdateTime!).inMilliseconds < 100) {
+      return;
+    }
+    // 更新记录
+    _isInserting = true;
+    comicHistory!.history = DateTime.now().toUtc();
+    comicHistory!.order = doc.order;
+    comicHistory!.epPageCount = index;
+    comicHistory!.epTitle = doc.title;
+    await objectbox.bikaBox.putAsync(comicHistory!);
+    _isInserting = false;
+    _lastUpdateTime = DateTime.now();
+  }
+
+  Future<void> getTopThirdItemIndex() async {
+    await updateIndex();
+    await writeToDatabase();
   }
 }
 

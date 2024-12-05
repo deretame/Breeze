@@ -226,7 +226,7 @@ Future<Map<String, dynamic>> getComicInfo(
   return data;
 }
 
-Future<Map<String, dynamic>> collect(
+Future<Map<String, dynamic>> favourite(
   String comicId,
 ) async {
   final Map<String, dynamic> data = await request(

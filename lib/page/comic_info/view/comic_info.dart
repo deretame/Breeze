@@ -87,8 +87,29 @@ class _ComicInfoState extends State<_ComicInfo>
             case GetComicInfoStatus.initial:
               return Center(child: CircularProgressIndicator());
             case GetComicInfoStatus.failure:
+              if (state.result.contains("under review") &&
+                  state.result.contains("1014")) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '此漫画已下架',
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      SizedBox(height: 10),
+                      ElevatedButton(
+                        onPressed: () {
+                          AutoRouter.of(context).maybePopTop();
+                        },
+                        child: Text('返回'),
+                      ),
+                    ],
+                  ),
+                );
+              }
               return ErrorView(
-                errorMessage: '加载失败，请重试。',
+                errorMessage: '${state.result.toString()}\n加载失败，请重试。',
                 onRetry: () {
                   context
                       .read<GetComicInfoBloc>()

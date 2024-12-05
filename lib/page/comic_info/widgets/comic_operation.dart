@@ -148,7 +148,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         actionVerb = '点赞';
         break;
       case 'favorite':
-        result = collect(comicInfo.id);
+        result = favourite(comicInfo.id);
         isCurrentlyActive = isCollected;
         actionVerb = '收藏';
         break;

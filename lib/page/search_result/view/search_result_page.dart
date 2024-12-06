@@ -53,6 +53,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
   int pagesCount = 0;
   late AnimationController _animationController;
   late Animation<Offset> _slideAnimation;
+  int _lastExecutedTime = 0; // 上次执行的时间
 
   @override
   void initState() {
@@ -311,17 +312,25 @@ class _SearchResultPageState extends State<_SearchResultPage>
   }
 
   void _onScroll() {
-    double itemHeight = 180.0 + ((screenHeight / 10) * 0.1);
-    double currentScrollPosition = _scrollController.position.pixels;
-    double middlePosition = currentScrollPosition + (screenHeight / 3);
-    double listViewStartOffset = 0.0;
-    int itemIndex =
-        ((middlePosition - listViewStartOffset) / itemHeight).floor();
+    var currentTime = DateTime.now().millisecondsSinceEpoch;
 
-    if (itemIndex >= 0 && itemIndex < comics.length) {
-      int buildNumber = comics[itemIndex].buildNumber;
-      debugPrint(comics[itemIndex].doc.title);
-      pageStore.setDate("$buildNumber/$pagesCount");
+    // 只有当距离上一次执行超过10ms时，才执行
+    if (currentTime - _lastExecutedTime > 10) {
+      double itemHeight = 180.0 + ((screenHeight / 10) * 0.1);
+      double currentScrollPosition = _scrollController.position.pixels;
+      double middlePosition = currentScrollPosition + (screenHeight / 3);
+      double listViewStartOffset = 0.0;
+      int itemIndex =
+          ((middlePosition - listViewStartOffset) / itemHeight).floor();
+
+      if (itemIndex >= 0 && itemIndex < comics.length) {
+        int buildNumber = comics[itemIndex].buildNumber;
+        debugPrint(comics[itemIndex].doc.title);
+        pageStore.setDate("$buildNumber/$pagesCount");
+      }
+
+      // 更新上次执行时间
+      _lastExecutedTime = currentTime;
     }
 
     // 控制 FAB 的上下移动

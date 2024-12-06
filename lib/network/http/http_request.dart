@@ -295,7 +295,7 @@ Future<Map<String, dynamic>> getPages(
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comics/$comicId/order/$epId/pages?page=$pageCount',
     'GET',
-    cache: true,
+    // cache: true,
   );
 
   String limitString(String str, int maxLength) {

@@ -22,6 +22,8 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: WebViewRoute.page),
         AutoRoute(page: FavoriteRoute.page),
         AutoRoute(page: HistoryRoute.page),
+        AutoRoute(page: BikaSettingRoute.page),
+        AutoRoute(page: GlobalSettingRoute.page),
       ];
 
   @override

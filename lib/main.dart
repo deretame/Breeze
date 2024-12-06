@@ -29,7 +29,7 @@ late final ObjectBox objectbox;
 // 定义全局Dio实例
 final dio = Dio();
 // 定义缓存拦截器
-final cacheInterceptor = DioCacheInterceptor(
+var cacheInterceptor = DioCacheInterceptor(
   options: CacheOptions(
     store: MemCacheStore(), // 使用内存缓存
     policy: CachePolicy.forceCache, // 根据请求决定是否使用缓存

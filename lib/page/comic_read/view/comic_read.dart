@@ -476,7 +476,10 @@ class _ImageDisplayState extends State<_ImageDisplay> {
           ? (imageHeight! * (screenWidth / imageWidth!))
           : null, // 动态计算高度
       child: imageWidth != null && imageHeight != null
-          ? Image.file(File(widget.imagePath))
+          ? Image.file(
+              File(widget.imagePath),
+              fit: BoxFit.cover, // 使图片填充整个屏幕
+            )
           : Container(color: Colors.grey[300]), // 占位符
     );
   }

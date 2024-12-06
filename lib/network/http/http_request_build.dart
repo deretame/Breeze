@@ -7,8 +7,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/main.dart';
 
-import '../../config/global.dart';
-
 String _getNonce() {
   return const Uuid().v4().replaceAll('-', '');
 }
@@ -49,7 +47,7 @@ Map<String, String> _getRequestHeaders(
   Map<String, String> headers = {
     'api-key': "C69BAF41DA5ABD1FFEDC6D2FEA56B",
     'accept': 'application/vnd.picacomic.com.v1+json',
-    'app-channel': shunt.toString(),
+    'app-channel': bikaSetting.getProxy().toString(),
     'time': timestamp.toString(),
     'nonce': nonce,
     'signature': signature,

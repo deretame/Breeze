@@ -81,7 +81,10 @@ class ComicPictureWidget extends StatelessWidget {
               );
             case PictureLoadStatus.failure:
               if (state.result.toString().contains('404')) {
-                return Image.asset('asset/image/error_image/404.png');
+                return SizedBox(
+                  width: (screenWidth / 10) * 3,
+                  child: Image.asset('asset/image/error_image/404.png'),
+                );
               } else {
                 return InkWell(
                   onTap: () {

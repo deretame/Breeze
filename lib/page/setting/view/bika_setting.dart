@@ -1,5 +1,4 @@
 import 'package:auto_route/annotations.dart';
-import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
@@ -56,17 +55,7 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
                   icon: const Icon(Icons.expand_more),
                   onChanged: (String? value) {
                     setState(
-                      () async {
-                        var temp = DioCacheInterceptor(
-                          options: CacheOptions(
-                            store: MemCacheStore(), // 使用内存缓存
-                            policy: CachePolicy.forceCache, // 根据请求决定是否使用缓存
-                            maxStale:
-                                const Duration(minutes: 5), // 设置缓存最大有效时长为5分钟
-                          ),
-                        );
-
-                        cacheInterceptor = temp;
+                      () {
                         bikaSetting.setProxy(int.parse(value!));
                       },
                     );
@@ -103,6 +92,8 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
                   onChanged: (String? value) {
                     setState(
                       () {
+                        // 删除缓存避免出问题
+                        cacheInterceptor.clear();
                         bikaSetting.setImageQuality(value!);
                       },
                     );

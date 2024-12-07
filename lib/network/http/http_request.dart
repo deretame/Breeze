@@ -264,6 +264,52 @@ Future<Map<String, dynamic>> like(
   return data;
 }
 
+Future<Map<String, dynamic>> getComments(
+  String comicId,
+  int pageCount,
+) async {
+  final Map<String, dynamic> data = await request(
+    'https://picaapi.picacomic.com/comics/$comicId/comments?page=$pageCount',
+    'GET',
+    cache: true,
+  );
+
+  String limitString(String str, int maxLength) {
+    return str.substring(0, min(str.length, maxLength));
+  }
+
+  debugPrint(limitString(data.toString(), 150));
+
+  if (data['code'] != 200) {
+    throw data;
+  }
+
+  return data;
+}
+
+Future<Map<String, dynamic>> getCommentsChildren(
+  String commentId,
+  int pageCount,
+) async {
+  final Map<String, dynamic> data = await request(
+    'https://picaapi.picacomic.com/comments/$commentId/childrens?page=$pageCount',
+    'GET',
+    cache: true,
+  );
+
+  String limitString(String str, int maxLength) {
+    return str.substring(0, min(str.length, maxLength));
+  }
+
+  debugPrint(limitString(data.toString(), 150));
+
+  if (data['code'] != 200) {
+    throw data;
+  }
+
+  return data;
+}
+
 Future<Map<String, dynamic>> getEps(
   String comicId,
   int pageCount,
@@ -295,7 +341,7 @@ Future<Map<String, dynamic>> getPages(
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comics/$comicId/order/$epId/pages?page=$pageCount',
     'GET',
-    // cache: true,
+    cache: true,
   );
 
   String limitString(String str, int maxLength) {

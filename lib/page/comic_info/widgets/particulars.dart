@@ -51,7 +51,7 @@ class ComicParticularsWidget extends StatelessWidget {
                     ),
                     if (comicInfo.author != '') ...[
                       const SizedBox(height: 2),
-                      InkWell(
+                      GestureDetector(
                         onTap: () {
                           AutoRouter.of(context).push(
                             SearchResultRoute(
@@ -79,7 +79,7 @@ class ComicParticularsWidget extends StatelessWidget {
                     ],
                     const SizedBox(height: 2),
                     if (comicInfo.chineseTeam != "") ...[
-                      InkWell(
+                      GestureDetector(
                         onTap: () {
                           // 点击时触发的事件
                           var enter = SearchEnter();

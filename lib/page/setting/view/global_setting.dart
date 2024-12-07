@@ -48,7 +48,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             children: [
               SizedBox(width: 10),
               Text(
-                "分流设置",
+                "主题模式",
                 style: TextStyle(
                   fontSize: 18,
                 ),

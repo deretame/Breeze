@@ -17,6 +17,7 @@ import 'package:zephyr/util/router/router.dart';
 
 import 'config/global.dart';
 import 'config/global_setting.dart';
+import 'config/theme_mode_adapter.dart';
 import 'mobx/fullscreen_store.dart';
 import 'object_box/object_box.dart';
 
@@ -53,6 +54,7 @@ Future<void> main() async {
   await Hive.initFlutter();
   // 注册 Color 适配器
   Hive.registerAdapter(ColorAdapter());
+  Hive.registerAdapter(ThemeModeAdapter());
   await globalSetting.initBox();
   await bikaSetting.initBox();
 
@@ -131,14 +133,17 @@ class _MyAppState extends State<MyApp> {
     }
 
     // 更新设置
-    globalSetting.setThemeType(!isDarkMode);
+    globalSetting.setThemeType(globalSetting.themeMode != ThemeMode.dark);
     globalSetting.setBackgroundColor(currentColorScheme.surface);
-    globalSetting.setTextColor(isDarkMode ? Colors.white : Colors.black);
+    globalSetting.setTextColor(globalSetting.themeMode == ThemeMode.dark
+        ? Colors.white
+        : Colors.black);
 
     // Debug 信息
+    debugPrint("themeType: ${globalSetting.themeType}");
     debugPrint("backgroundColor: ${globalSetting.backgroundColor}");
     debugPrint("current theme: ${globalSetting.themeMode}");
-    debugPrint("textColor: ${globalSetting.textColor}");
+    debugPrint("textColor: ${globalSetting.getTextColor()}");
   }
 
   @override
@@ -171,7 +176,7 @@ class _MyAppState extends State<MyApp> {
         globalSetting.themeMode == ThemeMode.dark
             ? darkColorScheme
             : lightColorScheme;
-
+        _updateThemeSettings();
         return MaterialApp.router(
           routerConfig: appRouter.config(),
           builder: EasyLoading.init(),

@@ -1,6 +1,6 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
-version: 1.7.18+24
+version: 1.7.19+25
 
 environment:
   sdk: ">=3.0.0"
@@ -42,7 +42,6 @@ dependencies:
 
   # --------------- 网络请求与 API 处理 ---------------
   dio: ^5.6.0                   # HTTP 网络请求客户端
-  dio_cache_interceptor: ^3.5.0 # Dio 缓存拦截器
   webview_flutter: ^4.10.0      # WebView 组件
   url_launcher: ^6.3.1          # 外部 URL 启动器
 

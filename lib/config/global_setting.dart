@@ -31,7 +31,7 @@ abstract class _GlobalSetting with Store {
   @observable
   int themeInitState = 0; // 主题初始状态
   @observable
-  dynamic locale = Locale('en', 'US'); // 语言
+  dynamic locale = Locale('zh', 'CN'); // 语言
   @observable
   bool doubleReturn = true; // 双击返回键退出应用
   @observable

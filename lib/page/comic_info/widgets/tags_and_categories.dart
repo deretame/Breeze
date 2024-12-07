@@ -1,6 +1,8 @@
 // 通用的标签/分类 Widget
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../../../config/global.dart';
@@ -108,6 +110,15 @@ class _TagsAndCategoriesWidgetState extends State<TagsAndCategoriesWidget> {
                               ),
                             );
                           }
+                        },
+                        onLongPress: () {
+                          // 长按事件逻辑
+                          Clipboard.setData(
+                            ClipboardData(text: processText(items[index])),
+                          );
+                          EasyLoading.showSuccess(
+                            "已将${items[index]}复制到剪贴板",
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: globalSetting.backgroundColor,

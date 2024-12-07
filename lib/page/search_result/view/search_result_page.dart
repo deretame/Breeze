@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/page/search_result/search_result.dart';
 
@@ -137,7 +138,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
                                 ),
                               );
                             }
-                            return ListView.builder(
+                            return SuperListView.builder(
                               itemBuilder: (BuildContext context, int index) {
                                 // 如果索引等于状态的 comics.length，并且已经达到最大值
                                 if (state.hasReachedMax &&
@@ -165,7 +166,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
                               controller: _scrollController,
                             );
                           case SearchStatus.loadingMore:
-                            return ListView.builder(
+                            return SuperListView.builder(
                               itemBuilder: (BuildContext context, int index) {
                                 if (index == state.comics.length) {
                                   return const BottomLoader(); // 显示加载动画
@@ -182,7 +183,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
                             );
                           case SearchStatus.getMoreFailure:
                             _update(state.searchEnterConst);
-                            return ListView.builder(
+                            return SuperListView.builder(
                               itemBuilder: (BuildContext context, int index) {
                                 if (index == state.comics.length) {
                                   return Center(

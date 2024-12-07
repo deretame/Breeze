@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:catcher_2/catcher_2.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
-import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -19,6 +19,7 @@ import 'config/global.dart';
 import 'config/global_setting.dart';
 import 'config/theme_mode_adapter.dart';
 import 'mobx/fullscreen_store.dart';
+import 'network/dio_cache.dart';
 import 'object_box/object_box.dart';
 
 final globalSetting = GlobalSetting();
@@ -30,13 +31,7 @@ late final ObjectBox objectbox;
 // 定义全局Dio实例
 final dio = Dio();
 // 定义缓存拦截器
-var cacheInterceptor = DioCacheInterceptor(
-  options: CacheOptions(
-    store: MemCacheStore(), // 使用内存缓存
-    policy: CachePolicy.forceCache, // 根据请求决定是否使用缓存
-    maxStale: const Duration(minutes: 5), // 设置缓存最大有效时长为5分钟
-  ),
-);
+final cacheInterceptor = DioCacheInterceptor(ExpiringMemoryCache());
 final appRouter = AppRouter();
 
 Future<void> main() async {
@@ -183,6 +178,16 @@ class _MyAppState extends State<MyApp> {
           locale: globalSetting.locale,
           title: 'Breeze',
           themeMode: globalSetting.themeMode,
+          supportedLocales: [
+            Locale('en', 'US'), // English
+            Locale('zh', 'CN'), // Chinese
+            // 其他支持的语言
+          ],
+          localizationsDelegates: [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           theme: ThemeData.light().copyWith(
             primaryColor: lightColorScheme.primary,
             colorScheme: lightColorScheme,

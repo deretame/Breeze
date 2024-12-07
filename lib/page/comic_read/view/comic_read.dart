@@ -87,11 +87,10 @@ class _ComicReadPageState extends State<_ComicReadPage>
   late BikaComicHistory? comicHistory;
   late final int? comicHistoryId;
   DateTime? _lastUpdateTime; // 记录上次更新时间
-  late Timer? _writingTimer; // 用于控制写入间隔的定时器
   bool _isInserting = false; // 检测数据插入状态
-  int index = 0;
+  int pageIndex = 0;
   bool _hasScrolled = false; // 跳转标志
-  late Timer? _timer;
+  Timer? _timer;
   bool isTimerFinished = false; // 定时器是否完成的标志
   String epPages = ""; // 章节总页数
 
@@ -131,10 +130,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
   @override
   void dispose() {
     // 在 dispose 中先检查 _timer 是否为 null 然后取消
-    if (_timer != null) {
-      _timer!.cancel();
-    }
-    _writingTimer?.cancel();
+    _timer?.cancel();
     _itemPositionsListener.itemPositions
         .removeListener(() => getTopThirdItemIndex());
     super.dispose();
@@ -241,7 +237,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                 ),
               ),
               child: Text(
-                "  $index/$epPages", // 显示当前页数
+                "  $pageIndex/$epPages", // 显示当前页数
                 style: TextStyle(color: Colors.white),
               ),
             ),
@@ -271,7 +267,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
     }
 
     if (closestPosition != null) {
-      index = closestPosition.index;
+      pageIndex = closestPosition.index;
     }
   }
 
@@ -285,7 +281,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
     _isInserting = true;
     comicHistory!.history = DateTime.now().toUtc();
     comicHistory!.order = doc.order;
-    comicHistory!.epPageCount = index;
+    comicHistory!.epPageCount = pageIndex;
     comicHistory!.epTitle = doc.title;
     await objectbox.bikaBox.putAsync(comicHistory!);
     _isInserting = false;
@@ -443,9 +439,12 @@ class _ImageDisplayState extends State<_ImageDisplay> {
   double? imageWidth;
   double? imageHeight;
 
+  bool _isMounted = false; // 标志，指示 Widget 是否仍挂载
+
   @override
   void initState() {
     super.initState();
+    _isMounted = true; // Widget 初始化时认为它是挂载的
     _getImageResolution(widget.imagePath);
   }
 
@@ -453,17 +452,27 @@ class _ImageDisplayState extends State<_ImageDisplay> {
     final Completer<void> completer = Completer();
     final Image image = Image.file(File(imagePath));
 
+    // 监听图片解析完成
     image.image.resolve(ImageConfiguration()).addListener(
       ImageStreamListener((ImageInfo imageInfo, _) {
-        setState(() {
-          imageWidth = imageInfo.image.width.toDouble();
-          imageHeight = imageInfo.image.height.toDouble();
-        });
+        // 只有在 Widget 仍挂载时才调用 setState
+        if (_isMounted) {
+          setState(() {
+            imageWidth = imageInfo.image.width.toDouble();
+            imageHeight = imageInfo.image.height.toDouble();
+          });
+        }
         completer.complete();
       }),
     );
 
     await completer.future; // 等待解析完成
+  }
+
+  @override
+  void dispose() {
+    _isMounted = false; // Widget 暴露时，设置为未挂载
+    super.dispose();
   }
 
   @override

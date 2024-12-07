@@ -46,9 +46,12 @@ class ComicPictureWidget extends StatelessWidget {
               return Center(
                 child: SizedBox(
                   width: (screenWidth / 10) * 3,
-                  child: LoadingAnimationWidget.waveDots(
-                    color: globalSetting.textColor,
-                    size: 25,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: LoadingAnimationWidget.waveDots(
+                      color: Colors.blue,
+                      size: 50,
+                    ),
                   ),
                 ),
               );
@@ -86,21 +89,31 @@ class ComicPictureWidget extends StatelessWidget {
                   child: Image.asset('asset/image/error_image/404.png'),
                 );
               } else {
-                return InkWell(
-                  onTap: () {
-                    context.read<PictureBloc>().add(
-                          GetPicture(
-                            PictureInfo(
-                              from: "bika",
-                              url: fileServer,
-                              path: path,
-                              cartoonId: id,
-                              pictureType: pictureType,
+                return SizedBox(
+                  width: (screenWidth / 10) * 3,
+                  child: InkWell(
+                    onTap: () {
+                      context.read<PictureBloc>().add(
+                            GetPicture(
+                              PictureInfo(
+                                from: "bika",
+                                url: fileServer,
+                                path: path,
+                                cartoonId: id,
+                                pictureType: pictureType,
+                              ),
                             ),
-                          ),
-                        );
-                  },
-                  child: Icon(Icons.refresh),
+                          );
+                    },
+                    child: Center(
+                      child: Text(
+                        '加载图片失败\n点击重新加载',
+                        style: TextStyle(
+                          color: globalSetting.textColor,
+                        ),
+                      ),
+                    ),
+                  ),
                 );
               }
           }

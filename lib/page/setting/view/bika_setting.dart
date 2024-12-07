@@ -1,6 +1,7 @@
 import 'package:auto_route/annotations.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
 
 @RoutePage()
@@ -37,92 +38,94 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
       appBar: AppBar(
         title: const Text('哔咔设置'),
       ),
-      body: Column(
-        children: [
-          Row(
-            children: [
-              SizedBox(width: 10),
-              Text(
-                "分流设置",
-                style: TextStyle(
-                  fontSize: 18,
+      body: Observer(builder: (context) {
+        return Column(
+          children: [
+            Row(
+              children: [
+                SizedBox(width: 10),
+                Text(
+                  "分流设置",
+                  style: TextStyle(
+                    fontSize: 18,
+                  ),
                 ),
-              ),
-              Expanded(child: Container()),
-              DropdownButton<String>(
-                value: bikaSetting.getProxy().toString(),
-                icon: const Icon(Icons.expand_more),
-                onChanged: (String? value) {
-                  setState(
-                    () async {
-                      var temp = DioCacheInterceptor(
-                        options: CacheOptions(
-                          store: MemCacheStore(), // 使用内存缓存
-                          policy: CachePolicy.forceCache, // 根据请求决定是否使用缓存
-                          maxStale:
-                              const Duration(minutes: 5), // 设置缓存最大有效时长为5分钟
-                        ),
-                      );
+                Expanded(child: Container()),
+                DropdownButton<String>(
+                  value: bikaSetting.getProxy().toString(),
+                  icon: const Icon(Icons.expand_more),
+                  onChanged: (String? value) {
+                    setState(
+                      () async {
+                        var temp = DioCacheInterceptor(
+                          options: CacheOptions(
+                            store: MemCacheStore(), // 使用内存缓存
+                            policy: CachePolicy.forceCache, // 根据请求决定是否使用缓存
+                            maxStale:
+                                const Duration(minutes: 5), // 设置缓存最大有效时长为5分钟
+                          ),
+                        );
 
-                      cacheInterceptor = temp;
-                      bikaSetting.setProxy(int.parse(value!));
-                    },
-                  );
-                },
-                items: shuntList.map<DropdownMenuItem<String>>(
-                  (String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(shunt[value]!),
+                        cacheInterceptor = temp;
+                        bikaSetting.setProxy(int.parse(value!));
+                      },
                     );
                   },
-                ).toList(),
-                style: TextStyle(
-                  color: globalSetting.getTextColor(),
-                  fontSize: 18,
-                ),
-              ),
-              SizedBox(width: 10),
-            ],
-          ),
-          Row(
-            children: [
-              SizedBox(width: 10),
-              Text(
-                "图片质量",
-                style: TextStyle(
-                  fontSize: 18,
-                ),
-              ),
-              Expanded(child: Container()),
-              DropdownButton<String>(
-                value: bikaSetting.getImageQuality(),
-                icon: const Icon(Icons.expand_more),
-                onChanged: (String? value) {
-                  setState(
-                    () {
-                      bikaSetting.setImageQuality(value!);
+                  items: shuntList.map<DropdownMenuItem<String>>(
+                    (String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(shunt[value]!),
+                      );
                     },
-                  );
-                },
-                items: imageQualityList.map<DropdownMenuItem<String>>(
-                  (String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(imageQuality[value]!),
+                  ).toList(),
+                  style: TextStyle(
+                    color: globalSetting.textColor,
+                    fontSize: 18,
+                  ),
+                ),
+                SizedBox(width: 10),
+              ],
+            ),
+            Row(
+              children: [
+                SizedBox(width: 10),
+                Text(
+                  "图片质量",
+                  style: TextStyle(
+                    fontSize: 18,
+                  ),
+                ),
+                Expanded(child: Container()),
+                DropdownButton<String>(
+                  value: bikaSetting.getImageQuality(),
+                  icon: const Icon(Icons.expand_more),
+                  onChanged: (String? value) {
+                    setState(
+                      () {
+                        bikaSetting.setImageQuality(value!);
+                      },
                     );
                   },
-                ).toList(),
-                style: TextStyle(
-                  color: globalSetting.getTextColor(),
-                  fontSize: 18,
+                  items: imageQualityList.map<DropdownMenuItem<String>>(
+                    (String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(imageQuality[value]!),
+                      );
+                    },
+                  ).toList(),
+                  style: TextStyle(
+                    color: globalSetting.textColor,
+                    fontSize: 18,
+                  ),
                 ),
-              ),
-              SizedBox(width: 10),
-            ],
-          )
-        ],
-      ),
+                SizedBox(width: 10),
+              ],
+            )
+          ],
+        );
+      }),
     );
   }
 }

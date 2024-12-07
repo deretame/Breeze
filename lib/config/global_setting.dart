@@ -101,15 +101,15 @@ abstract class _GlobalSetting with Store {
   @action
   ThemeMode getThemeMode() {
     final themeModeIndex = _box.get(GlobalSettingBoxKey.themeMode,
-        defaultValue: ThemeMode.system.index);
-    themeMode = ThemeMode.values[themeModeIndex];
+        defaultValue: ThemeMode.system.index); // 确保这里获取的是 int 类型
+    themeMode = ThemeMode.values[themeModeIndex]; // 转换为 ThemeMode
     return themeMode;
   }
 
   @action
   void setThemeMode(int value) {
-    themeMode = ThemeMode.values[value];
-    _box.put(GlobalSettingBoxKey.themeMode, themeMode);
+    themeMode = ThemeMode.values[value]; // 根据索引设置 ThemeMode
+    _box.put(GlobalSettingBoxKey.themeMode, value); // 存储 int 值
   }
 
   @action
@@ -312,7 +312,7 @@ class GlobalSettingBoxKey {
   static const String globalSetting = 'globalSetting';
   static const String dynamicColor = 'dynamicColor'; // 是否开启动态颜色
   static const String themeColor = 'themeColor'; // 主题颜色
-  static const String themeMode = 'themeMode'; // 主题模式
+  static const String themeMode = 'themeMode1'; // 主题模式
   static const String themeType = 'themeType'; // 是否是浅色主题
   static const String isAMOLED = 'isAMOLED'; // 是否是AMOLED屏幕
   static const String seedColor = 'seedColor'; // 种子颜色

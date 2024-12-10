@@ -1,6 +1,8 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../../config/global.dart';
 import '../../../main.dart';
@@ -74,7 +76,12 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
                 children: <Widget>[
                   GestureDetector(
                     onTap: () {
-                      nothingDialog(context);
+                      AutoRouter.of(context).push(
+                        CommentsRoute(
+                          comicId: comicInfo.id,
+                          comicTitle: comicInfo.title,
+                        ),
+                      );
                     },
                     child: const Icon(
                       Icons.comment_sharp,

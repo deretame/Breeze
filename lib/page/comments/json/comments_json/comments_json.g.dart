@@ -57,7 +57,7 @@ _$DocImpl _$$DocImplFromJson(Map<String, dynamic> json) => _$DocImpl(
       id: json['_id'] as String,
       content: json['content'] as String,
       user: User.fromJson(json['_user'] as Map<String, dynamic>),
-      comic: $enumDecode(_$ComicEnumMap, json['_comic']),
+      comic: json['_comic'] as String,
       totalComments: (json['totalComments'] as num).toInt(),
       isTop: json['isTop'] as bool,
       hide: json['hide'] as bool,
@@ -72,7 +72,7 @@ Map<String, dynamic> _$$DocImplToJson(_$DocImpl instance) => <String, dynamic>{
       '_id': instance.id,
       'content': instance.content,
       '_user': instance.user,
-      '_comic': _$ComicEnumMap[instance.comic]!,
+      '_comic': instance.comic,
       'totalComments': instance.totalComments,
       'isTop': instance.isTop,
       'hide': instance.hide,
@@ -83,20 +83,18 @@ Map<String, dynamic> _$$DocImplToJson(_$DocImpl instance) => <String, dynamic>{
       'isLiked': instance.isLiked,
     };
 
-const _$ComicEnumMap = {
-  Comic.THE_618234_AB8_A17_D94_EA7_A0_B3_A0: '618234ab8a17d94ea7a0b3a0',
-};
-
 _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
       id: json['_id'] as String,
-      gender: $enumDecode(_$GenderEnumMap, json['gender']),
+      gender: json['gender'] as String,
       name: json['name'] as String,
-      title: $enumDecode(_$TitleEnumMap, json['title']),
+      title: json['title'] as String,
       verified: json['verified'] as bool,
       exp: (json['exp'] as num).toInt(),
       level: (json['level'] as num).toInt(),
-      characters: json['characters'] as List<dynamic>,
-      role: $enumDecode(_$RoleEnumMap, json['role']),
+      characters: (json['characters'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      role: json['role'] as String,
       avatar: json['avatar'] == null
           ? null
           : Avatar.fromJson(json['avatar'] as Map<String, dynamic>),
@@ -107,57 +105,38 @@ _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
 Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
     <String, dynamic>{
       '_id': instance.id,
-      'gender': _$GenderEnumMap[instance.gender]!,
+      'gender': instance.gender,
       'name': instance.name,
-      'title': _$TitleEnumMap[instance.title]!,
+      'title': instance.title,
       'verified': instance.verified,
       'exp': instance.exp,
       'level': instance.level,
       'characters': instance.characters,
-      'role': _$RoleEnumMap[instance.role]!,
+      'role': instance.role,
       'avatar': instance.avatar,
       'slogan': instance.slogan,
       'character': instance.character,
     };
 
-const _$GenderEnumMap = {
-  Gender.BOT: 'bot',
-  Gender.F: 'f',
-  Gender.M: 'm',
-};
-
-const _$TitleEnumMap = {
-  Title.EMPTY: '萌新',
-  Title.TITLE: '👈变态出现',
-};
-
-const _$RoleEnumMap = {
-  Role.MEMBER: 'member',
-};
-
 _$AvatarImpl _$$AvatarImplFromJson(Map<String, dynamic> json) => _$AvatarImpl(
-      originalName: $enumDecode(_$OriginalNameEnumMap, json['originalName']),
+      originalName: json['originalName'] as String,
       path: json['path'] as String,
       fileServer: json['fileServer'] as String,
     );
 
 Map<String, dynamic> _$$AvatarImplToJson(_$AvatarImpl instance) =>
     <String, dynamic>{
-      'originalName': _$OriginalNameEnumMap[instance.originalName]!,
+      'originalName': instance.originalName,
       'path': instance.path,
       'fileServer': instance.fileServer,
     };
-
-const _$OriginalNameEnumMap = {
-  OriginalName.AVATAR_JPG: 'avatar.jpg',
-};
 
 _$TopCommentImpl _$$TopCommentImplFromJson(Map<String, dynamic> json) =>
     _$TopCommentImpl(
       id: json['_id'] as String,
       content: json['content'] as String,
       user: User.fromJson(json['_user'] as Map<String, dynamic>),
-      comic: $enumDecode(_$ComicEnumMap, json['_comic']),
+      comic: json['_comic'] as String,
       isTop: json['isTop'] as bool,
       hide: json['hide'] as bool,
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -172,7 +151,7 @@ Map<String, dynamic> _$$TopCommentImplToJson(_$TopCommentImpl instance) =>
       '_id': instance.id,
       'content': instance.content,
       '_user': instance.user,
-      '_comic': _$ComicEnumMap[instance.comic]!,
+      '_comic': instance.comic,
       'isTop': instance.isTop,
       'hide': instance.hide,
       'created_at': instance.createdAt.toIso8601String(),

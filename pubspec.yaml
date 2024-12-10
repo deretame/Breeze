@@ -1,6 +1,6 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
-version: 1.7.19+25
+version: 1.8.0+26
 
 environment:
   sdk: ">=3.0.0"
@@ -88,6 +88,12 @@ flutter:
     - family: Pacifico-Regular
       fonts:
         - asset: asset/fonts/Pacifico-Regular.ttf
+    - family: LeckerliOne-Regular
+      fonts:
+        - asset: asset/fonts/LeckerliOne-Regular.ttf
+    - family: Courgette-Regular
+      fonts:
+        - asset: asset/fonts/Courgette-Regular.ttf
 
   # 资源文件配置
   assets:

@@ -105,6 +105,13 @@ class _MyAppState extends State<MyApp> {
   void _updateThemeSettings() {
     var isDarkMode =
         MediaQuery.of(context).platformBrightness == Brightness.dark;
+    debugPrint("isDarkMode: $isDarkMode");
+    if (globalSetting.themeMode == ThemeMode.dark) {
+      isDarkMode = true;
+    } else if (globalSetting.themeMode == ThemeMode.light) {
+      isDarkMode = false;
+    }
+    debugPrint("isDarkMode: $isDarkMode");
     var primary = globalSetting.seedColor;
 
     // 使用种子颜色创建颜色方案
@@ -128,17 +135,15 @@ class _MyAppState extends State<MyApp> {
     }
 
     // 更新设置
-    globalSetting.setThemeType(globalSetting.themeMode != ThemeMode.dark);
+    globalSetting.setThemeType(!isDarkMode);
     globalSetting.setBackgroundColor(currentColorScheme.surface);
-    globalSetting.setTextColor(globalSetting.themeMode == ThemeMode.dark
-        ? Colors.white
-        : Colors.black);
+    globalSetting.setTextColor(isDarkMode ? Colors.white : Colors.black);
 
     // Debug 信息
     debugPrint("themeType: ${globalSetting.themeType}");
     debugPrint("backgroundColor: ${globalSetting.backgroundColor}");
     debugPrint("current theme: ${globalSetting.themeMode}");
-    debugPrint("textColor: ${globalSetting.getTextColor()}");
+    debugPrint("textColor: ${globalSetting.textColor}");
   }
 
   @override

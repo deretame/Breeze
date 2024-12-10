@@ -271,7 +271,6 @@ Future<Map<String, dynamic>> getComments(
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comics/$comicId/comments?page=$pageCount',
     'GET',
-    cache: true,
   );
 
   String limitString(String str, int maxLength) {
@@ -294,7 +293,27 @@ Future<Map<String, dynamic>> getCommentsChildren(
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comments/$commentId/childrens?page=$pageCount',
     'GET',
-    cache: true,
+  );
+
+  String limitString(String str, int maxLength) {
+    return str.substring(0, min(str.length, maxLength));
+  }
+
+  debugPrint(limitString(data.toString(), 150));
+
+  if (data['code'] != 200) {
+    throw data;
+  }
+
+  return data;
+}
+
+Future<Map<String, dynamic>> likeComment(
+  String comicId,
+) async {
+  final Map<String, dynamic> data = await request(
+    'https://picaapi.picacomic.com/comments/$comicId/like',
+    'POST',
   );
 
   String limitString(String str, int maxLength) {

@@ -8,33 +8,34 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:auto_route/auto_route.dart' as _i17;
-import 'package:flutter/material.dart' as _i18;
-import 'package:zephyr/page/comic_info/json/comic_info/comic_info.dart' as _i19;
-import 'package:zephyr/page/comic_info/json/eps/eps.dart' as _i20;
+import 'package:auto_route/auto_route.dart' as _i18;
+import 'package:flutter/material.dart' as _i19;
+import 'package:zephyr/page/comic_info/json/comic_info/comic_info.dart' as _i20;
+import 'package:zephyr/page/comic_info/json/eps/eps.dart' as _i21;
 import 'package:zephyr/page/comic_info/view/comic_info.dart' as _i2;
 import 'package:zephyr/page/comic_read/view/comic_read.dart' as _i3;
-import 'package:zephyr/page/favourite/view/favorite_page.dart' as _i4;
-import 'package:zephyr/page/history/history.dart' as _i21;
-import 'package:zephyr/page/history/view/history_page.dart' as _i6;
-import 'package:zephyr/page/home/view/home.dart' as _i7;
-import 'package:zephyr/page/login_page.dart' as _i8;
-import 'package:zephyr/page/main.dart' as _i9;
-import 'package:zephyr/page/ranking_list/view/ranking_list_page.dart' as _i10;
-import 'package:zephyr/page/register_page.dart' as _i11;
-import 'package:zephyr/page/search/view/search.dart' as _i12;
-import 'package:zephyr/page/search_result/search_result.dart' as _i22;
-import 'package:zephyr/page/search_result/view/search_result_page.dart' as _i13;
+import 'package:zephyr/page/comments/view/comments.dart' as _i4;
+import 'package:zephyr/page/favourite/view/favorite_page.dart' as _i5;
+import 'package:zephyr/page/history/history.dart' as _i22;
+import 'package:zephyr/page/history/view/history_page.dart' as _i7;
+import 'package:zephyr/page/home/view/home.dart' as _i8;
+import 'package:zephyr/page/login_page.dart' as _i9;
+import 'package:zephyr/page/main.dart' as _i10;
+import 'package:zephyr/page/ranking_list/view/ranking_list_page.dart' as _i11;
+import 'package:zephyr/page/register_page.dart' as _i12;
+import 'package:zephyr/page/search/view/search.dart' as _i13;
+import 'package:zephyr/page/search_result/search_result.dart' as _i23;
+import 'package:zephyr/page/search_result/view/search_result_page.dart' as _i14;
 import 'package:zephyr/page/setting/view/bika_setting.dart' as _i1;
-import 'package:zephyr/page/setting/view/global_setting.dart' as _i5;
-import 'package:zephyr/page/setting/view/setting.dart' as _i14;
-import 'package:zephyr/page/shunt_page.dart' as _i15;
-import 'package:zephyr/page/webview_page.dart' as _i16;
+import 'package:zephyr/page/setting/view/global_setting.dart' as _i6;
+import 'package:zephyr/page/setting/view/setting.dart' as _i15;
+import 'package:zephyr/page/shunt_page.dart' as _i16;
+import 'package:zephyr/page/webview_page.dart' as _i17;
 
 /// generated route for
 /// [_i1.BikaSettingPage]
-class BikaSettingRoute extends _i17.PageRouteInfo<void> {
-  const BikaSettingRoute({List<_i17.PageRouteInfo>? children})
+class BikaSettingRoute extends _i18.PageRouteInfo<void> {
+  const BikaSettingRoute({List<_i18.PageRouteInfo>? children})
       : super(
           BikaSettingRoute.name,
           initialChildren: children,
@@ -42,7 +43,7 @@ class BikaSettingRoute extends _i17.PageRouteInfo<void> {
 
   static const String name = 'BikaSettingRoute';
 
-  static _i17.PageInfo page = _i17.PageInfo(
+  static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
       return const _i1.BikaSettingPage();
@@ -52,11 +53,11 @@ class BikaSettingRoute extends _i17.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i2.ComicInfoPage]
-class ComicInfoRoute extends _i17.PageRouteInfo<ComicInfoRouteArgs> {
+class ComicInfoRoute extends _i18.PageRouteInfo<ComicInfoRouteArgs> {
   ComicInfoRoute({
-    _i18.Key? key,
+    _i19.Key? key,
     required String comicId,
-    List<_i17.PageRouteInfo>? children,
+    List<_i18.PageRouteInfo>? children,
   }) : super(
           ComicInfoRoute.name,
           args: ComicInfoRouteArgs(
@@ -68,7 +69,7 @@ class ComicInfoRoute extends _i17.PageRouteInfo<ComicInfoRouteArgs> {
 
   static const String name = 'ComicInfoRoute';
 
-  static _i17.PageInfo page = _i17.PageInfo(
+  static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<ComicInfoRouteArgs>();
@@ -86,7 +87,7 @@ class ComicInfoRouteArgs {
     required this.comicId,
   });
 
-  final _i18.Key? key;
+  final _i19.Key? key;
 
   final String comicId;
 
@@ -98,15 +99,15 @@ class ComicInfoRouteArgs {
 
 /// generated route for
 /// [_i3.ComicReadPage]
-class ComicReadRoute extends _i17.PageRouteInfo<ComicReadRouteArgs> {
+class ComicReadRoute extends _i18.PageRouteInfo<ComicReadRouteArgs> {
   ComicReadRoute({
-    _i18.Key? key,
-    required _i19.Comic comicInfo,
-    required List<_i20.Doc> epsInfo,
-    required _i20.Doc doc,
+    _i19.Key? key,
+    required _i20.Comic comicInfo,
+    required List<_i21.Doc> epsInfo,
+    required _i21.Doc doc,
     required String comicId,
     required bool? isHistory,
-    List<_i17.PageRouteInfo>? children,
+    List<_i18.PageRouteInfo>? children,
   }) : super(
           ComicReadRoute.name,
           args: ComicReadRouteArgs(
@@ -122,7 +123,7 @@ class ComicReadRoute extends _i17.PageRouteInfo<ComicReadRouteArgs> {
 
   static const String name = 'ComicReadRoute';
 
-  static _i17.PageInfo page = _i17.PageInfo(
+  static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<ComicReadRouteArgs>();
@@ -148,13 +149,13 @@ class ComicReadRouteArgs {
     required this.isHistory,
   });
 
-  final _i18.Key? key;
+  final _i19.Key? key;
 
-  final _i19.Comic comicInfo;
+  final _i20.Comic comicInfo;
 
-  final List<_i20.Doc> epsInfo;
+  final List<_i21.Doc> epsInfo;
 
-  final _i20.Doc doc;
+  final _i21.Doc doc;
 
   final String comicId;
 
@@ -167,9 +168,61 @@ class ComicReadRouteArgs {
 }
 
 /// generated route for
-/// [_i4.FavoritePage]
-class FavoriteRoute extends _i17.PageRouteInfo<void> {
-  const FavoriteRoute({List<_i17.PageRouteInfo>? children})
+/// [_i4.CommentsPage]
+class CommentsRoute extends _i18.PageRouteInfo<CommentsRouteArgs> {
+  CommentsRoute({
+    _i19.Key? key,
+    required String comicId,
+    required String comicTitle,
+    List<_i18.PageRouteInfo>? children,
+  }) : super(
+          CommentsRoute.name,
+          args: CommentsRouteArgs(
+            key: key,
+            comicId: comicId,
+            comicTitle: comicTitle,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'CommentsRoute';
+
+  static _i18.PageInfo page = _i18.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<CommentsRouteArgs>();
+      return _i4.CommentsPage(
+        key: args.key,
+        comicId: args.comicId,
+        comicTitle: args.comicTitle,
+      );
+    },
+  );
+}
+
+class CommentsRouteArgs {
+  const CommentsRouteArgs({
+    this.key,
+    required this.comicId,
+    required this.comicTitle,
+  });
+
+  final _i19.Key? key;
+
+  final String comicId;
+
+  final String comicTitle;
+
+  @override
+  String toString() {
+    return 'CommentsRouteArgs{key: $key, comicId: $comicId, comicTitle: $comicTitle}';
+  }
+}
+
+/// generated route for
+/// [_i5.FavoritePage]
+class FavoriteRoute extends _i18.PageRouteInfo<void> {
+  const FavoriteRoute({List<_i18.PageRouteInfo>? children})
       : super(
           FavoriteRoute.name,
           initialChildren: children,
@@ -177,18 +230,18 @@ class FavoriteRoute extends _i17.PageRouteInfo<void> {
 
   static const String name = 'FavoriteRoute';
 
-  static _i17.PageInfo page = _i17.PageInfo(
+  static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
-      return const _i4.FavoritePage();
+      return const _i5.FavoritePage();
     },
   );
 }
 
 /// generated route for
-/// [_i5.GlobalSettingPage]
-class GlobalSettingRoute extends _i17.PageRouteInfo<void> {
-  const GlobalSettingRoute({List<_i17.PageRouteInfo>? children})
+/// [_i6.GlobalSettingPage]
+class GlobalSettingRoute extends _i18.PageRouteInfo<void> {
+  const GlobalSettingRoute({List<_i18.PageRouteInfo>? children})
       : super(
           GlobalSettingRoute.name,
           initialChildren: children,
@@ -196,21 +249,21 @@ class GlobalSettingRoute extends _i17.PageRouteInfo<void> {
 
   static const String name = 'GlobalSettingRoute';
 
-  static _i17.PageInfo page = _i17.PageInfo(
+  static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
-      return const _i5.GlobalSettingPage();
+      return const _i6.GlobalSettingPage();
     },
   );
 }
 
 /// generated route for
-/// [_i6.HistoryPage]
-class HistoryRoute extends _i17.PageRouteInfo<HistoryRouteArgs> {
+/// [_i7.HistoryPage]
+class HistoryRoute extends _i18.PageRouteInfo<HistoryRouteArgs> {
   HistoryRoute({
-    _i18.Key? key,
-    required _i21.SearchEnterConst searchEnterConst,
-    List<_i17.PageRouteInfo>? children,
+    _i19.Key? key,
+    required _i22.SearchEnterConst searchEnterConst,
+    List<_i18.PageRouteInfo>? children,
   }) : super(
           HistoryRoute.name,
           args: HistoryRouteArgs(
@@ -222,11 +275,11 @@ class HistoryRoute extends _i17.PageRouteInfo<HistoryRouteArgs> {
 
   static const String name = 'HistoryRoute';
 
-  static _i17.PageInfo page = _i17.PageInfo(
+  static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<HistoryRouteArgs>();
-      return _i6.HistoryPage(
+      return _i7.HistoryPage(
         key: args.key,
         searchEnterConst: args.searchEnterConst,
       );
@@ -240,9 +293,9 @@ class HistoryRouteArgs {
     required this.searchEnterConst,
   });
 
-  final _i18.Key? key;
+  final _i19.Key? key;
 
-  final _i21.SearchEnterConst searchEnterConst;
+  final _i22.SearchEnterConst searchEnterConst;
 
   @override
   String toString() {
@@ -251,9 +304,9 @@ class HistoryRouteArgs {
 }
 
 /// generated route for
-/// [_i7.HomePage]
-class HomeRoute extends _i17.PageRouteInfo<void> {
-  const HomeRoute({List<_i17.PageRouteInfo>? children})
+/// [_i8.HomePage]
+class HomeRoute extends _i18.PageRouteInfo<void> {
+  const HomeRoute({List<_i18.PageRouteInfo>? children})
       : super(
           HomeRoute.name,
           initialChildren: children,
@@ -261,18 +314,18 @@ class HomeRoute extends _i17.PageRouteInfo<void> {
 
   static const String name = 'HomeRoute';
 
-  static _i17.PageInfo page = _i17.PageInfo(
+  static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
-      return const _i7.HomePage();
+      return const _i8.HomePage();
     },
   );
 }
 
 /// generated route for
-/// [_i8.LoginPage]
-class LoginRoute extends _i17.PageRouteInfo<void> {
-  const LoginRoute({List<_i17.PageRouteInfo>? children})
+/// [_i9.LoginPage]
+class LoginRoute extends _i18.PageRouteInfo<void> {
+  const LoginRoute({List<_i18.PageRouteInfo>? children})
       : super(
           LoginRoute.name,
           initialChildren: children,
@@ -280,18 +333,18 @@ class LoginRoute extends _i17.PageRouteInfo<void> {
 
   static const String name = 'LoginRoute';
 
-  static _i17.PageInfo page = _i17.PageInfo(
+  static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
-      return const _i8.LoginPage();
+      return const _i9.LoginPage();
     },
   );
 }
 
 /// generated route for
-/// [_i9.MainPage]
-class MainRoute extends _i17.PageRouteInfo<void> {
-  const MainRoute({List<_i17.PageRouteInfo>? children})
+/// [_i10.MainPage]
+class MainRoute extends _i18.PageRouteInfo<void> {
+  const MainRoute({List<_i18.PageRouteInfo>? children})
       : super(
           MainRoute.name,
           initialChildren: children,
@@ -299,18 +352,18 @@ class MainRoute extends _i17.PageRouteInfo<void> {
 
   static const String name = 'MainRoute';
 
-  static _i17.PageInfo page = _i17.PageInfo(
+  static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
-      return const _i9.MainPage();
+      return const _i10.MainPage();
     },
   );
 }
 
 /// generated route for
-/// [_i10.RankingListPage]
-class RankingListRoute extends _i17.PageRouteInfo<void> {
-  const RankingListRoute({List<_i17.PageRouteInfo>? children})
+/// [_i11.RankingListPage]
+class RankingListRoute extends _i18.PageRouteInfo<void> {
+  const RankingListRoute({List<_i18.PageRouteInfo>? children})
       : super(
           RankingListRoute.name,
           initialChildren: children,
@@ -318,18 +371,18 @@ class RankingListRoute extends _i17.PageRouteInfo<void> {
 
   static const String name = 'RankingListRoute';
 
-  static _i17.PageInfo page = _i17.PageInfo(
+  static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
-      return const _i10.RankingListPage();
+      return const _i11.RankingListPage();
     },
   );
 }
 
 /// generated route for
-/// [_i11.RegisterPage]
-class RegisterRoute extends _i17.PageRouteInfo<void> {
-  const RegisterRoute({List<_i17.PageRouteInfo>? children})
+/// [_i12.RegisterPage]
+class RegisterRoute extends _i18.PageRouteInfo<void> {
+  const RegisterRoute({List<_i18.PageRouteInfo>? children})
       : super(
           RegisterRoute.name,
           initialChildren: children,
@@ -337,18 +390,18 @@ class RegisterRoute extends _i17.PageRouteInfo<void> {
 
   static const String name = 'RegisterRoute';
 
-  static _i17.PageInfo page = _i17.PageInfo(
+  static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
-      return const _i11.RegisterPage();
+      return const _i12.RegisterPage();
     },
   );
 }
 
 /// generated route for
-/// [_i12.SearchPage]
-class SearchRoute extends _i17.PageRouteInfo<void> {
-  const SearchRoute({List<_i17.PageRouteInfo>? children})
+/// [_i13.SearchPage]
+class SearchRoute extends _i18.PageRouteInfo<void> {
+  const SearchRoute({List<_i18.PageRouteInfo>? children})
       : super(
           SearchRoute.name,
           initialChildren: children,
@@ -356,21 +409,21 @@ class SearchRoute extends _i17.PageRouteInfo<void> {
 
   static const String name = 'SearchRoute';
 
-  static _i17.PageInfo page = _i17.PageInfo(
+  static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
-      return const _i12.SearchPage();
+      return const _i13.SearchPage();
     },
   );
 }
 
 /// generated route for
-/// [_i13.SearchResultPage]
-class SearchResultRoute extends _i17.PageRouteInfo<SearchResultRouteArgs> {
+/// [_i14.SearchResultPage]
+class SearchResultRoute extends _i18.PageRouteInfo<SearchResultRouteArgs> {
   SearchResultRoute({
-    _i18.Key? key,
-    required _i22.SearchEnterConst searchEnterConst,
-    List<_i17.PageRouteInfo>? children,
+    _i19.Key? key,
+    required _i23.SearchEnterConst searchEnterConst,
+    List<_i18.PageRouteInfo>? children,
   }) : super(
           SearchResultRoute.name,
           args: SearchResultRouteArgs(
@@ -382,11 +435,11 @@ class SearchResultRoute extends _i17.PageRouteInfo<SearchResultRouteArgs> {
 
   static const String name = 'SearchResultRoute';
 
-  static _i17.PageInfo page = _i17.PageInfo(
+  static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<SearchResultRouteArgs>();
-      return _i13.SearchResultPage(
+      return _i14.SearchResultPage(
         key: args.key,
         searchEnterConst: args.searchEnterConst,
       );
@@ -400,9 +453,9 @@ class SearchResultRouteArgs {
     required this.searchEnterConst,
   });
 
-  final _i18.Key? key;
+  final _i19.Key? key;
 
-  final _i22.SearchEnterConst searchEnterConst;
+  final _i23.SearchEnterConst searchEnterConst;
 
   @override
   String toString() {
@@ -411,9 +464,9 @@ class SearchResultRouteArgs {
 }
 
 /// generated route for
-/// [_i14.SettingsPage]
-class SettingsRoute extends _i17.PageRouteInfo<void> {
-  const SettingsRoute({List<_i17.PageRouteInfo>? children})
+/// [_i15.SettingsPage]
+class SettingsRoute extends _i18.PageRouteInfo<void> {
+  const SettingsRoute({List<_i18.PageRouteInfo>? children})
       : super(
           SettingsRoute.name,
           initialChildren: children,
@@ -421,18 +474,18 @@ class SettingsRoute extends _i17.PageRouteInfo<void> {
 
   static const String name = 'SettingsRoute';
 
-  static _i17.PageInfo page = _i17.PageInfo(
+  static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
-      return const _i14.SettingsPage();
+      return const _i15.SettingsPage();
     },
   );
 }
 
 /// generated route for
-/// [_i15.ShuntPage]
-class ShuntRoute extends _i17.PageRouteInfo<void> {
-  const ShuntRoute({List<_i17.PageRouteInfo>? children})
+/// [_i16.ShuntPage]
+class ShuntRoute extends _i18.PageRouteInfo<void> {
+  const ShuntRoute({List<_i18.PageRouteInfo>? children})
       : super(
           ShuntRoute.name,
           initialChildren: children,
@@ -440,21 +493,21 @@ class ShuntRoute extends _i17.PageRouteInfo<void> {
 
   static const String name = 'ShuntRoute';
 
-  static _i17.PageInfo page = _i17.PageInfo(
+  static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
-      return const _i15.ShuntPage();
+      return const _i16.ShuntPage();
     },
   );
 }
 
 /// generated route for
-/// [_i16.WebViewPage]
-class WebViewRoute extends _i17.PageRouteInfo<WebViewRouteArgs> {
+/// [_i17.WebViewPage]
+class WebViewRoute extends _i18.PageRouteInfo<WebViewRouteArgs> {
   WebViewRoute({
-    _i18.Key? key,
+    _i19.Key? key,
     required List<String> info,
-    List<_i17.PageRouteInfo>? children,
+    List<_i18.PageRouteInfo>? children,
   }) : super(
           WebViewRoute.name,
           args: WebViewRouteArgs(
@@ -466,11 +519,11 @@ class WebViewRoute extends _i17.PageRouteInfo<WebViewRouteArgs> {
 
   static const String name = 'WebViewRoute';
 
-  static _i17.PageInfo page = _i17.PageInfo(
+  static _i18.PageInfo page = _i18.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<WebViewRouteArgs>();
-      return _i16.WebViewPage(
+      return _i17.WebViewPage(
         key: args.key,
         info: args.info,
       );
@@ -484,7 +537,7 @@ class WebViewRouteArgs {
     required this.info,
   });
 
-  final _i18.Key? key;
+  final _i19.Key? key;
 
   final List<String> info;
 

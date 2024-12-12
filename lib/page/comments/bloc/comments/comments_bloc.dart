@@ -136,6 +136,8 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
       topComment['_user']['level'] ??= 0;
       topComment['_user']['characters'] ??= [];
       topComment['_user']['role'] ??= '';
+      topComment['_user']
+          ['avatar'] ??= {"fileServer": "", "path": "", "originalName": ""};
       topComment['_user']['avatar']['originalName'] ??= '';
       topComment['_user']['avatar']['path'] ??= '';
       topComment['_user']['avatar']['fileServer'] ??= '';

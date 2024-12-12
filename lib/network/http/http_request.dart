@@ -5,6 +5,10 @@ import 'package:flutter/foundation.dart';
 
 import 'http_request_build.dart';
 
+String limitString(String str, int maxLength) {
+  return str.substring(0, min(str.length, maxLength));
+}
+
 Future<Map<String, dynamic>> login(
   String username,
   String password,
@@ -14,7 +18,7 @@ Future<Map<String, dynamic>> login(
     'POST',
     body: json.encode({'email': username, 'password': password}),
   );
-  debugPrint(data.toString());
+  debugPrint(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -49,7 +53,8 @@ Future<Map<String, dynamic>> register(
     'POST',
     body: json.encode(jsonMap),
   );
-  debugPrint(data.toString());
+
+  debugPrint(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -64,6 +69,8 @@ Future<Map<String, dynamic>> getCategories() async {
     'GET',
     cache: false,
   );
+
+  debugPrint(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -92,6 +99,8 @@ Future<Map<String, dynamic>> getRankingList({
     cache: true,
   );
 
+  debugPrint(limitString(data.toString(), 150));
+
   if (data['code'] != 200) {
     throw data;
   }
@@ -117,7 +126,6 @@ Future<Map<String, dynamic>> search({
     jsonMap["categories"] = categories;
   }
 
-  debugPrint(jsonMap.toString());
   late Map<String, dynamic> data;
 
   if (url.isNotEmpty) {
@@ -172,10 +180,6 @@ Future<Map<String, dynamic>> search({
     );
   }
 
-  String limitString(String str, int maxLength) {
-    return str.substring(0, min(str.length, maxLength));
-  }
-
   debugPrint(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
@@ -191,10 +195,6 @@ Future<Map<String, dynamic>> getSearchKeywords() async {
     'GET',
     cache: true,
   );
-
-  String limitString(String str, int maxLength) {
-    return str.substring(0, min(str.length, maxLength));
-  }
 
   debugPrint(limitString(data.toString(), 150));
 
@@ -213,10 +213,6 @@ Future<Map<String, dynamic>> getComicInfo(
     'GET',
   );
 
-  String limitString(String str, int maxLength) {
-    return str.substring(0, min(str.length, maxLength));
-  }
-
   debugPrint(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
@@ -232,10 +228,6 @@ Future<Map<String, dynamic>> favourite(
   final Map<String, dynamic> data = await request(
       'https://picaapi.picacomic.com/comics/$comicId/favourite', 'POST');
 
-  String limitString(String str, int maxLength) {
-    return str.substring(0, min(str.length, maxLength));
-  }
-
   debugPrint(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
@@ -250,10 +242,6 @@ Future<Map<String, dynamic>> like(
 ) async {
   final Map<String, dynamic> data = await request(
       'https://picaapi.picacomic.com/comics/$comicId/like', 'POST');
-
-  String limitString(String str, int maxLength) {
-    return str.substring(0, min(str.length, maxLength));
-  }
 
   debugPrint(limitString(data.toString(), 150));
 
@@ -273,10 +261,6 @@ Future<Map<String, dynamic>> getComments(
     'GET',
   );
 
-  String limitString(String str, int maxLength) {
-    return str.substring(0, min(str.length, maxLength));
-  }
-
   debugPrint(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
@@ -295,10 +279,6 @@ Future<Map<String, dynamic>> getCommentsChildren(
     'GET',
   );
 
-  String limitString(String str, int maxLength) {
-    return str.substring(0, min(str.length, maxLength));
-  }
-
   debugPrint(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
@@ -316,9 +296,43 @@ Future<Map<String, dynamic>> likeComment(
     'POST',
   );
 
-  String limitString(String str, int maxLength) {
-    return str.substring(0, min(str.length, maxLength));
+  debugPrint(limitString(data.toString(), 150));
+
+  if (data['code'] != 200) {
+    throw data;
   }
+
+  return data;
+}
+
+Future<Map<String, dynamic>> writeComment(
+  String comicId,
+  String content,
+) async {
+  final Map<String, dynamic> data = await request(
+    'https://picaapi.picacomic.com/comics/$comicId',
+    'POST',
+    body: json.encode({'content': content}),
+  );
+
+  debugPrint(limitString(data.toString(), 150));
+
+  if (data['code'] != 200) {
+    throw data;
+  }
+
+  return data;
+}
+
+Future<Map<String, dynamic>> writeCommentChildren(
+  String comicId,
+  String content,
+) async {
+  final Map<String, dynamic> data = await request(
+    'https://picaapi.picacomic.com/comics/$comicId/comments',
+    'POST',
+    body: json.encode({'content': content}),
+  );
 
   debugPrint(limitString(data.toString(), 150));
 
@@ -339,9 +353,23 @@ Future<Map<String, dynamic>> getEps(
     cache: true,
   );
 
-  String limitString(String str, int maxLength) {
-    return str.substring(0, min(str.length, maxLength));
+  debugPrint(limitString(data.toString(), 150));
+
+  if (data['code'] != 200) {
+    throw data;
   }
+
+  return data;
+}
+
+Future<Map<String, dynamic>> getRecommend(
+  String comicId,
+) async {
+  final Map<String, dynamic> data = await request(
+    'https://picaapi.picacomic.com/comics/$comicId/recommendation',
+    'GET',
+    cache: true,
+  );
 
   debugPrint(limitString(data.toString(), 150));
 
@@ -363,10 +391,6 @@ Future<Map<String, dynamic>> getPages(
     cache: true,
   );
 
-  String limitString(String str, int maxLength) {
-    return str.substring(0, min(str.length, maxLength));
-  }
-
   debugPrint(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
@@ -381,10 +405,6 @@ Future<Map<String, dynamic>> getUserProfile() async {
     'https://picaapi.picacomic.com/users/profile',
     'GET',
   );
-
-  String limitString(String str, int maxLength) {
-    return str.substring(0, min(str.length, maxLength));
-  }
 
   debugPrint(limitString(data.toString(), 150));
 
@@ -403,10 +423,6 @@ Future<Map<String, dynamic>> getFavorites(
     'GET',
   );
 
-  String limitString(String str, int maxLength) {
-    return str.substring(0, min(str.length, maxLength));
-  }
-
   debugPrint(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
@@ -421,19 +437,16 @@ Future<Map<String, dynamic>> signIn() async {
       await request('https://picaapi.picacomic.com/users/punch-in', 'POST');
   debugPrint(data.toString());
 
-  String limitString(String str, int maxLength) {
-    return str.substring(0, min(str.length, maxLength));
-  }
-
   debugPrint(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     return data;
   }
 
-  if (data['data']['message'] == 'success' ||
-      data['data']['res']['status'] == 'fail') {
+  if (data['data']['message'] == 'success') {
     return {"success": "已签到"};
+  } else if (data['data']['res']['status'] == 'fail') {
+    return {"successes": "已签到"};
   } else {
     throw '未知错误';
   }

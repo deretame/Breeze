@@ -26,22 +26,15 @@ Future<void> manageCacheSize() async {
     await clearCache(cacheDirectory);
   } else {
     debugPrint(
-        'Current cache size: ${totalSize / (1024 * 1024)} MB'); // 转换为 MB 输出
+      'Current cache size: ${totalSize / (1024 * 1024)} MB',
+    ); // 转换为 MB 输出
   }
 }
 
 Future<void> clearCache(Directory cacheDirectory) async {
-  // 遍历并删除缓存目录中的所有文件
   try {
-    final List<FileSystemEntity> files =
-        cacheDirectory.listSync(recursive: true);
-    for (var file in files) {
-      if (file is File) {
-        await file.delete();
-      } else if (file is Directory) {
-        await file.delete(recursive: true);
-      }
-    }
+    // 直接删除缓存目录及其所有内容
+    await cacheDirectory.delete(recursive: true);
     debugPrint('Cache cleared successfully.');
   } catch (e) {
     debugPrint('Error clearing cache: $e');

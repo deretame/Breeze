@@ -276,6 +276,10 @@ class _AnimatedToggleFullscreenFABState
 }
 
 Future<void> _signIn() async {
+  if (bikaSetting.getAuthorization().isEmpty) {
+    return;
+  }
+
   // 获取当前时间
   DateTime now = DateTime.now();
 
@@ -299,6 +303,8 @@ Future<void> _signIn() async {
         bikaSetting.setSignIn(true);
         EasyLoading.showSuccess("自动签到成功！");
         debugPrint("自动签到成功！");
+        break;
+      } else if (result.toString().contains("successes")) {
         break;
       }
     } catch (e) {

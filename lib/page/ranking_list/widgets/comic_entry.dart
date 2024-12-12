@@ -43,7 +43,7 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return GestureDetector(
       onTap: () {
         // 跳转到漫画详情页
         AutoRouter.of(context).push(

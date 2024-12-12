@@ -34,7 +34,7 @@ class _CreatorEntryWidgetState extends State<CreatorEntryWidget>
         SizedBox(
           height: (screenHeight / 10) * 0.1,
         ),
-        InkWell(
+        GestureDetector(
           onTap: () {
             AutoRouter.of(context).push(
               SearchResultRoute(

@@ -90,43 +90,46 @@ class _RegisterPageState extends State<RegisterPage> {
       },
     );
 
-    final result = await register(
-      _date,
-      _account.text,
-      _gender,
-      _username.text,
-      _password.text,
-    );
+    try {
+      final result = await register(
+        _date,
+        _account.text,
+        _gender,
+        _username.text,
+        _password.text,
+      );
 
-    // 当登录逻辑完成后，关闭加载动画
-    if (!mounted) return;
-    Navigator.of(context).pop(); // 关闭加载对话框
+      // 当登录逻辑完成后，关闭加载动画
+      if (!mounted) return;
+      Navigator.of(context).pop(); // 关闭加载对话框
 
-    debugPrint(result.toString());
+      debugPrint(result.toString());
 
-    if (result['error'] != null) {
-      commonDialog(context, "注册失败", result['data'].toString());
-    } else if (result['code'] != 200) {
-      commonDialog(context, "注册失败", result.toString());
-    } else if (result['code'] == 200) {
       debugPrint(_username.text);
       debugPrint(_account.text);
       debugPrint(_password.text);
       bikaSetting.setAccount(_account.text);
       bikaSetting.setPassword(_password.text);
       _showDialog("注册成功", "正在跳转...");
-      Future.delayed(const Duration(seconds: 2), () {
-        // 检查State是否仍然挂载
-        if (!mounted) return;
-        AutoRouter.of(context).pushAndPopUntil(
-          MainRoute(),
-          predicate: (Route<dynamic> route) {
-            return false;
-          },
-        );
-      });
-    } else {
-      commonDialog(context, "注册失败", "未知错误");
+      Future.delayed(
+        const Duration(seconds: 2),
+        () {
+          // 检查State是否仍然挂载
+          if (!mounted) return;
+          AutoRouter.of(context).pushAndPopUntil(
+            MainRoute(),
+            predicate: (Route<dynamic> route) {
+              return false;
+            },
+          );
+        },
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).pop(); // 关闭加载对话框
+
+      commonDialog(context, "注册失败", e.toString());
+      return;
     }
   }
 

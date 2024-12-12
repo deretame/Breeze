@@ -160,7 +160,7 @@ class _CommentsWidgetState extends State<CommentsWidget> {
                       child: Divider(
                         color: globalSetting.themeType
                             ? Colors.grey.withOpacity(0.5)
-                            : Colors.white,
+                            : Colors.white.withOpacity(0.5),
                         thickness: 1,
                         height: 10,
                       ),

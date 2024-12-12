@@ -36,118 +36,128 @@ class _TagsAndCategoriesWidgetState extends State<TagsAndCategoriesWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: screenWidth * (48 / 50),
-      child: Observer(
-        builder: (context) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center, // 设置主轴对齐为居中
-                children: <Widget>[
-                  Expanded(
-                    child: Container(
-                      width: screenWidth * (20 / 50),
-                      height: 1.0,
-                      decoration: BoxDecoration(
-                        border: Border(
-                          top: BorderSide(
-                            color: globalSetting.textColor,
-                            width: 1.0, // 颜色条的宽度
-                          ),
+    return Observer(
+      builder: (context) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center, // 设置主轴对齐为居中
+              children: <Widget>[
+                Expanded(
+                  child: Container(
+                    width: screenWidth * (20 / 50),
+                    height: 1.0,
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(
+                          color: globalSetting.textColor,
+                          width: 0.5, // 颜色条的宽度
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 5),
-                  Text(title),
-                  const SizedBox(width: 5),
-                  Expanded(
-                    child: Container(
-                      width: screenWidth * (20 / 50),
-                      height: 1.0,
-                      decoration: BoxDecoration(
-                        border: Border(
-                          top: BorderSide(
-                            color: globalSetting.textColor,
-                            width: 1.0, // 颜色条的宽度
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 3, right: 0),
-                child: Wrap(
-                  spacing: 10,
-                  runSpacing: 5,
-                  children: List.generate(
-                    items.length,
-                    (index) {
-                      return ElevatedButton(
-                        onPressed: () {
-                          if (title == "分类") {
-                            AutoRouter.of(context).push(
-                              SearchResultRoute(
-                                searchEnterConst: SearchEnterConst(
-                                  from: "bika",
-                                  type: title,
-                                  categories: [items[index]],
-                                ),
-                              ),
-                            );
-                          } else if (title == "标签") {
-                            AutoRouter.of(context).push(
-                              SearchResultRoute(
-                                searchEnterConst: SearchEnterConst(
-                                  from: "bika",
-                                  type: title,
-                                  keyword: items[index],
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                        onLongPress: () {
-                          // 长按事件逻辑
-                          Clipboard.setData(
-                            ClipboardData(text: processText(items[index])),
-                          );
-                          EasyLoading.showSuccess(
-                            "已将${items[index]}复制到剪贴板",
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: globalSetting.backgroundColor,
-                          // 背景颜色
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          minimumSize: const Size(0, 10),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          side: BorderSide(
-                            color: globalSetting.themeType
-                                ? Colors.grey[350]!
-                                : Colors.grey[800]!,
-                            width: 1, // 描边颜色和宽度
-                          ),
-                        ),
-                        child: Text(
-                          processText(items[index]),
-                          // style: TextStyle(
-                          //   color: defaultTextColor,
-                          // ),
-                        ),
-                      );
-                    },
                   ),
                 ),
+                const SizedBox(width: 5),
+                Text(title),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Container(
+                    width: screenWidth * (20 / 50),
+                    height: 1.0,
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(
+                          color: globalSetting.textColor,
+                          width: 0.5, // 颜色条的宽度
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 5, right: 0),
+              child: Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: List.generate(
+                  items.length,
+                  (index) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: globalSetting.backgroundColor,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: globalSetting.themeType
+                                ? Colors.black.withOpacity(0.2)
+                                : Colors.white.withOpacity(0.4),
+                            spreadRadius: 1,
+                            blurRadius: 1,
+                            offset: const Offset(0, 0),
+                          ),
+                        ],
+                      ),
+                      // 移除固定长度，使用内部的 Text 组件直接决定外部 Container 的大小
+                      child: Padding(
+                        // 添加 Padding 以使内容不贴边
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 5.0,
+                          horizontal: 10.0,
+                        ), // 适当的内边距
+                        child: GestureDetector(
+                          onTap: () {
+                            if (title == "分类") {
+                              AutoRouter.of(context).push(
+                                SearchResultRoute(
+                                  searchEnterConst: SearchEnterConst(
+                                    from: "bika",
+                                    type: title,
+                                    categories: [items[index]],
+                                  ),
+                                ),
+                              );
+                            } else if (title == "标签") {
+                              AutoRouter.of(context).push(
+                                SearchResultRoute(
+                                  searchEnterConst: SearchEnterConst(
+                                    from: "bika",
+                                    type: title,
+                                    keyword: items[index],
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                          onLongPress: () {
+                            Clipboard.setData(
+                              ClipboardData(text: processText(items[index])),
+                            );
+                            EasyLoading.showSuccess(
+                              "已将${items[index]}复制到剪贴板",
+                            );
+                          },
+                          child: Text(
+                            processText(items[index]),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: globalSetting.themeType
+                                  ? Colors.pink.withOpacity(0.8)
+                                  : Colors.blue,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
-            ],
-          );
-        },
-      ),
+            ),
+          ],
+        );
+      },
     );
   }
 

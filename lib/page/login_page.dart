@@ -92,15 +92,15 @@ class _LoginPageState extends State<LoginPage> {
       },
     );
 
-    final result = await login(_account.text, _password.text);
+    try {
+      final result = await login(_account.text, _password.text);
 
-    // 当登录逻辑完成后，关闭加载动画
-    if (!mounted) return;
-    Navigator.of(context).pop(); // 关闭加载对话框
+      // 当登录逻辑完成后，关闭加载动画
+      if (!mounted) return;
+      Navigator.of(context).pop(); // 关闭加载对话框
 
-    debugPrint(result.toString());
+      debugPrint(result.toString());
 
-    if (result['message'] == "success") {
       bikaSetting.setAccount(_account.text);
       bikaSetting.setPassword(_password.text);
       bikaSetting.setAuthorization(result['data']['token']);
@@ -124,8 +124,11 @@ class _LoginPageState extends State<LoginPage> {
           );
         }
       });
-    } else {
-      _showDialog("登录失败", result.toString());
+    } catch (e) {
+      // 当登录逻辑完成后，关闭加载动画
+      if (!mounted) return;
+      Navigator.of(context).pop(); // 关闭加载对话框
+      _showDialog("登录失败", e.toString());
     }
   }
 

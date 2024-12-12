@@ -175,6 +175,8 @@ class _InfoView extends StatelessWidget {
                   ComicOperationWidget(comicInfo: comicInfo),
                   const SizedBox(height: 10),
                   EpsWidget(comicInfo: comicInfo, comicHistory: comicHistory),
+                  const SizedBox(height: 10),
+                  RecommendWidget(comicId: comicInfo.id),
                   const SizedBox(height: 85),
                 ],
               ),

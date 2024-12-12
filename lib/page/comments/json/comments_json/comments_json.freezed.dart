@@ -22,10 +22,8 @@ CommentsJson _$CommentsJsonFromJson(Map<String, dynamic> json) {
 mixin _$CommentsJson {
   @JsonKey(name: "code")
   int get code => throw _privateConstructorUsedError;
-
   @JsonKey(name: "message")
   String get message => throw _privateConstructorUsedError;
-
   @JsonKey(name: "data")
   Data get data => throw _privateConstructorUsedError;
 
@@ -44,7 +42,6 @@ abstract class $CommentsJsonCopyWith<$Res> {
   factory $CommentsJsonCopyWith(
           CommentsJson value, $Res Function(CommentsJson) then) =
       _$CommentsJsonCopyWithImpl<$Res, CommentsJson>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "code") int code,
@@ -61,7 +58,6 @@ class _$CommentsJsonCopyWithImpl<$Res, $Val extends CommentsJson>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -107,7 +103,6 @@ abstract class _$$CommentsJsonImplCopyWith<$Res>
   factory _$$CommentsJsonImplCopyWith(
           _$CommentsJsonImpl value, $Res Function(_$CommentsJsonImpl) then) =
       __$$CommentsJsonImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -221,11 +216,9 @@ abstract class _CommentsJson implements CommentsJson {
   @override
   @JsonKey(name: "code")
   int get code;
-
   @override
   @JsonKey(name: "message")
   String get message;
-
   @override
   @JsonKey(name: "data")
   Data get data;
@@ -246,7 +239,6 @@ Data _$DataFromJson(Map<String, dynamic> json) {
 mixin _$Data {
   @JsonKey(name: "comments")
   Comments get comments => throw _privateConstructorUsedError;
-
   @JsonKey(name: "topComments")
   List<TopComment> get topComments => throw _privateConstructorUsedError;
 
@@ -263,7 +255,6 @@ mixin _$Data {
 abstract class $DataCopyWith<$Res> {
   factory $DataCopyWith(Data value, $Res Function(Data) then) =
       _$DataCopyWithImpl<$Res, Data>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "comments") Comments comments,
@@ -279,7 +270,6 @@ class _$DataCopyWithImpl<$Res, $Val extends Data>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -319,7 +309,6 @@ abstract class _$$DataImplCopyWith<$Res> implements $DataCopyWith<$Res> {
   factory _$$DataImplCopyWith(
           _$DataImpl value, $Res Function(_$DataImpl) then) =
       __$$DataImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -374,7 +363,6 @@ class _$DataImpl implements _Data {
   @JsonKey(name: "comments")
   final Comments comments;
   final List<TopComment> _topComments;
-
   @override
   @JsonKey(name: "topComments")
   List<TopComment> get topComments {
@@ -431,7 +419,6 @@ abstract class _Data implements Data {
   @override
   @JsonKey(name: "comments")
   Comments get comments;
-
   @override
   @JsonKey(name: "topComments")
   List<TopComment> get topComments;
@@ -452,16 +439,12 @@ Comments _$CommentsFromJson(Map<String, dynamic> json) {
 mixin _$Comments {
   @JsonKey(name: "docs")
   List<Doc> get docs => throw _privateConstructorUsedError;
-
   @JsonKey(name: "total")
   int get total => throw _privateConstructorUsedError;
-
   @JsonKey(name: "limit")
   int get limit => throw _privateConstructorUsedError;
-
   @JsonKey(name: "page")
   String get page => throw _privateConstructorUsedError;
-
   @JsonKey(name: "pages")
   int get pages => throw _privateConstructorUsedError;
 
@@ -479,7 +462,6 @@ mixin _$Comments {
 abstract class $CommentsCopyWith<$Res> {
   factory $CommentsCopyWith(Comments value, $Res Function(Comments) then) =
       _$CommentsCopyWithImpl<$Res, Comments>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "docs") List<Doc> docs,
@@ -496,7 +478,6 @@ class _$CommentsCopyWithImpl<$Res, $Val extends Comments>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -542,7 +523,6 @@ abstract class _$$CommentsImplCopyWith<$Res>
   factory _$$CommentsImplCopyWith(
           _$CommentsImpl value, $Res Function(_$CommentsImpl) then) =
       __$$CommentsImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -612,7 +592,6 @@ class _$CommentsImpl implements _Comments {
       _$$CommentsImplFromJson(json);
 
   final List<Doc> _docs;
-
   @override
   @JsonKey(name: "docs")
   List<Doc> get docs {
@@ -686,19 +665,15 @@ abstract class _Comments implements Comments {
   @override
   @JsonKey(name: "docs")
   List<Doc> get docs;
-
   @override
   @JsonKey(name: "total")
   int get total;
-
   @override
   @JsonKey(name: "limit")
   int get limit;
-
   @override
   @JsonKey(name: "page")
   String get page;
-
   @override
   @JsonKey(name: "pages")
   int get pages;
@@ -719,37 +694,26 @@ Doc _$DocFromJson(Map<String, dynamic> json) {
 mixin _$Doc {
   @JsonKey(name: "_id")
   String get id => throw _privateConstructorUsedError;
-
   @JsonKey(name: "content")
   String get content => throw _privateConstructorUsedError;
-
   @JsonKey(name: "_user")
   User get user => throw _privateConstructorUsedError;
-
   @JsonKey(name: "_comic")
   String get comic => throw _privateConstructorUsedError;
-
   @JsonKey(name: "totalComments")
   int get totalComments => throw _privateConstructorUsedError;
-
   @JsonKey(name: "isTop")
   bool get isTop => throw _privateConstructorUsedError;
-
   @JsonKey(name: "hide")
   bool get hide => throw _privateConstructorUsedError;
-
   @JsonKey(name: "created_at")
   DateTime get createdAt => throw _privateConstructorUsedError;
-
   @JsonKey(name: "id")
   String get docId => throw _privateConstructorUsedError;
-
   @JsonKey(name: "likesCount")
   int get likesCount => throw _privateConstructorUsedError;
-
   @JsonKey(name: "commentsCount")
   int get commentsCount => throw _privateConstructorUsedError;
-
   @JsonKey(name: "isLiked")
   bool get isLiked => throw _privateConstructorUsedError;
 
@@ -766,7 +730,6 @@ mixin _$Doc {
 abstract class $DocCopyWith<$Res> {
   factory $DocCopyWith(Doc value, $Res Function(Doc) then) =
       _$DocCopyWithImpl<$Res, Doc>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "_id") String id,
@@ -791,7 +754,6 @@ class _$DocCopyWithImpl<$Res, $Val extends Doc> implements $DocCopyWith<$Res> {
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -880,7 +842,6 @@ class _$DocCopyWithImpl<$Res, $Val extends Doc> implements $DocCopyWith<$Res> {
 abstract class _$$DocImplCopyWith<$Res> implements $DocCopyWith<$Res> {
   factory _$$DocImplCopyWith(_$DocImpl value, $Res Function(_$DocImpl) then) =
       __$$DocImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -1116,47 +1077,36 @@ abstract class _Doc implements Doc {
   @override
   @JsonKey(name: "_id")
   String get id;
-
   @override
   @JsonKey(name: "content")
   String get content;
-
   @override
   @JsonKey(name: "_user")
   User get user;
-
   @override
   @JsonKey(name: "_comic")
   String get comic;
-
   @override
   @JsonKey(name: "totalComments")
   int get totalComments;
-
   @override
   @JsonKey(name: "isTop")
   bool get isTop;
-
   @override
   @JsonKey(name: "hide")
   bool get hide;
-
   @override
   @JsonKey(name: "created_at")
   DateTime get createdAt;
-
   @override
   @JsonKey(name: "id")
   String get docId;
-
   @override
   @JsonKey(name: "likesCount")
   int get likesCount;
-
   @override
   @JsonKey(name: "commentsCount")
   int get commentsCount;
-
   @override
   @JsonKey(name: "isLiked")
   bool get isLiked;
@@ -1177,37 +1127,26 @@ User _$UserFromJson(Map<String, dynamic> json) {
 mixin _$User {
   @JsonKey(name: "_id")
   String get id => throw _privateConstructorUsedError;
-
   @JsonKey(name: "gender")
   String get gender => throw _privateConstructorUsedError;
-
   @JsonKey(name: "name")
   String get name => throw _privateConstructorUsedError;
-
   @JsonKey(name: "title")
   String get title => throw _privateConstructorUsedError;
-
   @JsonKey(name: "verified")
   bool get verified => throw _privateConstructorUsedError;
-
   @JsonKey(name: "exp")
   int get exp => throw _privateConstructorUsedError;
-
   @JsonKey(name: "level")
   int get level => throw _privateConstructorUsedError;
-
   @JsonKey(name: "characters")
   List<String> get characters => throw _privateConstructorUsedError;
-
   @JsonKey(name: "role")
   String get role => throw _privateConstructorUsedError;
-
   @JsonKey(name: "avatar")
   Avatar? get avatar => throw _privateConstructorUsedError;
-
   @JsonKey(name: "slogan")
   String? get slogan => throw _privateConstructorUsedError;
-
   @JsonKey(name: "character")
   String? get character => throw _privateConstructorUsedError;
 
@@ -1224,7 +1163,6 @@ mixin _$User {
 abstract class $UserCopyWith<$Res> {
   factory $UserCopyWith(User value, $Res Function(User) then) =
       _$UserCopyWithImpl<$Res, User>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "_id") String id,
@@ -1250,7 +1188,6 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -1344,7 +1281,6 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
   factory _$$UserImplCopyWith(
           _$UserImpl value, $Res Function(_$UserImpl) then) =
       __$$UserImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -1486,7 +1422,6 @@ class _$UserImpl implements _User {
   @JsonKey(name: "level")
   final int level;
   final List<String> _characters;
-
   @override
   @JsonKey(name: "characters")
   List<String> get characters {
@@ -1588,47 +1523,36 @@ abstract class _User implements User {
   @override
   @JsonKey(name: "_id")
   String get id;
-
   @override
   @JsonKey(name: "gender")
   String get gender;
-
   @override
   @JsonKey(name: "name")
   String get name;
-
   @override
   @JsonKey(name: "title")
   String get title;
-
   @override
   @JsonKey(name: "verified")
   bool get verified;
-
   @override
   @JsonKey(name: "exp")
   int get exp;
-
   @override
   @JsonKey(name: "level")
   int get level;
-
   @override
   @JsonKey(name: "characters")
   List<String> get characters;
-
   @override
   @JsonKey(name: "role")
   String get role;
-
   @override
   @JsonKey(name: "avatar")
   Avatar? get avatar;
-
   @override
   @JsonKey(name: "slogan")
   String? get slogan;
-
   @override
   @JsonKey(name: "character")
   String? get character;
@@ -1649,10 +1573,8 @@ Avatar _$AvatarFromJson(Map<String, dynamic> json) {
 mixin _$Avatar {
   @JsonKey(name: "originalName")
   String get originalName => throw _privateConstructorUsedError;
-
   @JsonKey(name: "path")
   String get path => throw _privateConstructorUsedError;
-
   @JsonKey(name: "fileServer")
   String get fileServer => throw _privateConstructorUsedError;
 
@@ -1669,7 +1591,6 @@ mixin _$Avatar {
 abstract class $AvatarCopyWith<$Res> {
   factory $AvatarCopyWith(Avatar value, $Res Function(Avatar) then) =
       _$AvatarCopyWithImpl<$Res, Avatar>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "originalName") String originalName,
@@ -1684,7 +1605,6 @@ class _$AvatarCopyWithImpl<$Res, $Val extends Avatar>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -1719,7 +1639,6 @@ abstract class _$$AvatarImplCopyWith<$Res> implements $AvatarCopyWith<$Res> {
   factory _$$AvatarImplCopyWith(
           _$AvatarImpl value, $Res Function(_$AvatarImpl) then) =
       __$$AvatarImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -1832,11 +1751,9 @@ abstract class _Avatar implements Avatar {
   @override
   @JsonKey(name: "originalName")
   String get originalName;
-
   @override
   @JsonKey(name: "path")
   String get path;
-
   @override
   @JsonKey(name: "fileServer")
   String get fileServer;
@@ -1857,34 +1774,24 @@ TopComment _$TopCommentFromJson(Map<String, dynamic> json) {
 mixin _$TopComment {
   @JsonKey(name: "_id")
   String get id => throw _privateConstructorUsedError;
-
   @JsonKey(name: "content")
   String get content => throw _privateConstructorUsedError;
-
   @JsonKey(name: "_user")
   User get user => throw _privateConstructorUsedError;
-
   @JsonKey(name: "_comic")
   String get comic => throw _privateConstructorUsedError;
-
   @JsonKey(name: "isTop")
   bool get isTop => throw _privateConstructorUsedError;
-
   @JsonKey(name: "hide")
   bool get hide => throw _privateConstructorUsedError;
-
   @JsonKey(name: "created_at")
   DateTime get createdAt => throw _privateConstructorUsedError;
-
   @JsonKey(name: "totalComments")
   int get totalComments => throw _privateConstructorUsedError;
-
   @JsonKey(name: "likesCount")
   int get likesCount => throw _privateConstructorUsedError;
-
   @JsonKey(name: "commentsCount")
   int get commentsCount => throw _privateConstructorUsedError;
-
   @JsonKey(name: "isLiked")
   bool get isLiked => throw _privateConstructorUsedError;
 
@@ -1903,7 +1810,6 @@ abstract class $TopCommentCopyWith<$Res> {
   factory $TopCommentCopyWith(
           TopComment value, $Res Function(TopComment) then) =
       _$TopCommentCopyWithImpl<$Res, TopComment>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "_id") String id,
@@ -1928,7 +1834,6 @@ class _$TopCommentCopyWithImpl<$Res, $Val extends TopComment>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -2014,7 +1919,6 @@ abstract class _$$TopCommentImplCopyWith<$Res>
   factory _$$TopCommentImplCopyWith(
           _$TopCommentImpl value, $Res Function(_$TopCommentImpl) then) =
       __$$TopCommentImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -2230,43 +2134,33 @@ abstract class _TopComment implements TopComment {
   @override
   @JsonKey(name: "_id")
   String get id;
-
   @override
   @JsonKey(name: "content")
   String get content;
-
   @override
   @JsonKey(name: "_user")
   User get user;
-
   @override
   @JsonKey(name: "_comic")
   String get comic;
-
   @override
   @JsonKey(name: "isTop")
   bool get isTop;
-
   @override
   @JsonKey(name: "hide")
   bool get hide;
-
   @override
   @JsonKey(name: "created_at")
   DateTime get createdAt;
-
   @override
   @JsonKey(name: "totalComments")
   int get totalComments;
-
   @override
   @JsonKey(name: "likesCount")
   int get likesCount;
-
   @override
   @JsonKey(name: "commentsCount")
   int get commentsCount;
-
   @override
   @JsonKey(name: "isLiked")
   bool get isLiked;

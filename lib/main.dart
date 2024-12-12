@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:catcher_2/catcher_2.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -36,10 +37,11 @@ final appRouter = AppRouter();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  GestureBinding.instance.resamplingEnabled = true;
 
   objectbox = await ObjectBox.create();
 
-  manageCacheSize();
+  await manageCacheSize();
 
   // 告诉系统应该用竖屏
   await SystemChrome.setPreferredOrientations(

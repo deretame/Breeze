@@ -51,7 +51,7 @@ class ComicEntryWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final router = AutoRouter.of(context); // 获取 router 实例
-    return InkWell(
+    return GestureDetector(
       onTap: () {
         // 跳转到漫画详情页
         router.push(ComicInfoRoute(comicId: comicEntryInfo.id));

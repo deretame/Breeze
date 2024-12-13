@@ -104,10 +104,12 @@ class _RecommendWidget extends StatelessWidget {
                                 child: SizedBox(
                                   width: 100,
                                   height: 50,
-                                  child: Flexible(
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.vertical,
                                     child: Text(
                                       state.comicList![index].title,
                                       style: TextStyle(fontSize: 12),
+                                      softWrap: true, // 允许换行
                                     ),
                                   ),
                                 ),

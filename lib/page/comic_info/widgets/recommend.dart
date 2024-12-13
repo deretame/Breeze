@@ -76,16 +76,12 @@ class _RecommendWidget extends StatelessWidget {
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: List.generate(state.comicList!.length, (index) {
-                      return GestureDetector(
-                        onTap: () {
-                          // 跳转到漫画详情页
-                          AutoRouter.of(context).push(
-                            ComicInfoRoute(comicId: state.comicList![index].id),
-                          );
-                        },
-                        child: SizedBox(
+                    children: List.generate(
+                      state.comicList!.length,
+                      (index) {
+                        return SizedBox(
                           width: 100,
+                          height: 200,
                           child: Column(
                             children: [
                               _Cover(
@@ -97,17 +93,30 @@ class _RecommendWidget extends StatelessWidget {
                                   pictureType: "cover",
                                 ),
                               ),
-                              Flexible(
-                                child: Text(
-                                  state.comicList![index].title,
-                                  style: TextStyle(fontSize: 12),
+                              GestureDetector(
+                                onTap: () {
+                                  // 跳转到漫画详情页
+                                  AutoRouter.of(context).push(
+                                    ComicInfoRoute(
+                                        comicId: state.comicList![index].id),
+                                  );
+                                },
+                                child: SizedBox(
+                                  width: 100,
+                                  height: 50,
+                                  child: Flexible(
+                                    child: Text(
+                                      state.comicList![index].title,
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      );
-                    }),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),

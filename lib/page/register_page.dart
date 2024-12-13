@@ -49,23 +49,6 @@ class _RegisterPageState extends State<RegisterPage> {
               ],
             ),
           ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('确定'),
-              onPressed: () {
-                if (title == "注册成功") {
-                  AutoRouter.of(context).pushAndPopUntil(
-                    MainRoute(),
-                    predicate: (Route<dynamic> route) {
-                      return false;
-                    },
-                  );
-                } else {
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-          ],
         );
       },
     );
@@ -110,18 +93,13 @@ class _RegisterPageState extends State<RegisterPage> {
       debugPrint(_password.text);
       bikaSetting.setAccount(_account.text);
       bikaSetting.setPassword(_password.text);
-      _showDialog("注册成功", "正在跳转...");
+      _showDialog("注册成功", "正在跳转登录...");
       Future.delayed(
         const Duration(seconds: 2),
         () {
           // 检查State是否仍然挂载
           if (!mounted) return;
-          AutoRouter.of(context).pushAndPopUntil(
-            MainRoute(),
-            predicate: (Route<dynamic> route) {
-              return false;
-            },
-          );
+          AutoRouter.of(context).push(LoginRoute());
         },
       );
     } catch (e) {

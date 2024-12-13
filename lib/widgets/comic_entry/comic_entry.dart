@@ -101,7 +101,9 @@ class ComicEntryWidget extends StatelessWidget {
                                   children: <TextSpan>[
                                     TextSpan(
                                       text: _getLimitedTitle(
-                                          comicEntryInfo.title, 30),
+                                        comicEntryInfo.title,
+                                        30,
+                                      ),
                                       style: TextStyle(
                                         color: globalSetting.textColor,
                                         fontSize: 18,
@@ -125,7 +127,9 @@ class ComicEntryWidget extends StatelessWidget {
                             const SizedBox(height: 5),
                             Text(
                               _getLimitedTitle(
-                                  comicEntryInfo.author.toString(), 40),
+                                comicEntryInfo.author.toString(),
+                                40,
+                              ),
                               style: TextStyle(
                                 color: globalSetting.themeType
                                     ? Colors.red

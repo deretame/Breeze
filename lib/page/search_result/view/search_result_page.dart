@@ -26,7 +26,13 @@ class SearchResultPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => SearchBloc()..add(FetchSearchResult(searchEnterConst)),
+      create: (_) => SearchBloc()
+        ..add(
+          FetchSearchResult(
+            searchEnterConst,
+            SearchStatus.initial,
+          ),
+        ),
       child: _SearchResultPage(searchEnterConst: searchEnterConst),
     );
   }
@@ -97,6 +103,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
                   Expanded(
                     child: BlocBuilder<SearchBloc, SearchState>(
                       builder: (context, state) {
+                        _update(state.searchEnterConst);
                         switch (state.status) {
                           case SearchStatus.initial:
                             return const Center(
@@ -115,7 +122,9 @@ class _SearchResultPageState extends State<_SearchResultPage>
                                   ElevatedButton(
                                     onPressed: () {
                                       _refresh(
-                                          SearchEnterConst.from(_searchEnter));
+                                        SearchEnterConst.from(_searchEnter),
+                                        SearchStatus.initial,
+                                      );
                                     },
                                     child: Text('点击重试'),
                                   ),
@@ -123,94 +132,9 @@ class _SearchResultPageState extends State<_SearchResultPage>
                               ),
                             );
                           case SearchStatus.success:
-                            comics = state.comics;
-                            pagesCount = state.pagesCount;
-                            if (state.comics.length < 8 &&
-                                !state.hasReachedMax) {
-                              _fetchSearchResult();
-                            }
-                            _update(state.searchEnterConst);
-                            if (state.comics.isEmpty && state.hasReachedMax) {
-                              return const Center(
-                                child: Text(
-                                  '啥都没有',
-                                  style: TextStyle(fontSize: 20.0),
-                                ),
-                              );
-                            }
-                            return SuperListView.builder(
-                              itemBuilder: (BuildContext context, int index) {
-                                // 如果索引等于状态的 comics.length，并且已经达到最大值
-                                if (state.hasReachedMax &&
-                                    index == state.comics.length) {
-                                  return const Center(
-                                    child: Padding(
-                                      padding: EdgeInsets.all(30.0),
-                                      child: Text(
-                                        '你来到了未知领域呢~',
-                                        style: TextStyle(fontSize: 20.0),
-                                      ),
-                                    ),
-                                  );
-                                }
-
-                                return ComicEntryWidget(
-                                  comicEntryInfo: docToComicEntryInfo(
-                                    state.comics[index].doc,
-                                  ),
-                                );
-                              },
-                              itemCount: state.hasReachedMax
-                                  ? state.comics.length + 1
-                                  : state.comics.length,
-                              controller: _scrollController,
-                            );
                           case SearchStatus.loadingMore:
-                            return SuperListView.builder(
-                              itemBuilder: (BuildContext context, int index) {
-                                if (index == state.comics.length) {
-                                  return const BottomLoader(); // 显示加载动画
-                                }
-
-                                return ComicEntryWidget(
-                                  comicEntryInfo: docToComicEntryInfo(
-                                    state.comics[index].doc,
-                                  ),
-                                );
-                              },
-                              itemCount: state.comics.length + 1,
-                              controller: _scrollController,
-                            );
                           case SearchStatus.getMoreFailure:
-                            _update(state.searchEnterConst);
-                            return SuperListView.builder(
-                              itemBuilder: (BuildContext context, int index) {
-                                if (index == state.comics.length) {
-                                  return Center(
-                                    child: Column(
-                                      children: [
-                                        SizedBox(height: 10),
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            _refresh(SearchEnterConst.from(
-                                                _searchEnter));
-                                          },
-                                          child: Text('点击重试'),
-                                        )
-                                      ],
-                                    ),
-                                  );
-                                }
-
-                                return ComicEntryWidget(
-                                  comicEntryInfo: docToComicEntryInfo(
-                                    state.comics[index].doc,
-                                  ),
-                                );
-                              },
-                              itemCount: state.comics.length + 1,
-                              controller: _scrollController,
-                            );
+                            return _comicList(state);
                         }
                       },
                     ),
@@ -275,7 +199,82 @@ class _SearchResultPageState extends State<_SearchResultPage>
     );
   }
 
-  void _refresh(SearchEnterConst searchEnterConst) {
+  Widget _comicList(SearchState state) {
+    int itemCount = state.comics.length + 1;
+    comics = state.comics;
+    pagesCount = state.pagesCount;
+    if (state.status == SearchStatus.success) {
+      if (state.comics.length < 8 && !state.hasReachedMax) {
+        _fetchSearchResult();
+      }
+      if (state.comics.isEmpty && state.hasReachedMax) {
+        return const Center(
+          child: Text(
+            '啥都没有',
+            style: TextStyle(fontSize: 20.0),
+          ),
+        );
+      }
+      if (!state.hasReachedMax) {
+        itemCount = itemCount - 1;
+      }
+    }
+
+    return SuperListView.builder(
+      itemBuilder: (BuildContext context, int index) {
+        if (index == state.comics.length) {
+          switch (state.status) {
+            case SearchStatus.success:
+              if (state.hasReachedMax) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(30.0),
+                    child: Text(
+                      '你来到了未知领域呢~',
+                      style: TextStyle(fontSize: 20.0),
+                    ),
+                  ),
+                );
+              }
+            case SearchStatus.loadingMore:
+              return const BottomLoader(); // 显示加载动画
+            case SearchStatus.getMoreFailure:
+              return Center(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: () {
+                        _refresh(
+                          SearchEnterConst.from(_searchEnter),
+                          SearchStatus.loadingMore,
+                        );
+                      },
+                      child: const Text('点击重试'),
+                    ),
+                  ],
+                ),
+              );
+            default:
+              break;
+          }
+        }
+
+        return ComicEntryWidget(
+          comicEntryInfo: docToComicEntryInfo(
+            state.comics[index].doc,
+          ),
+        );
+      },
+      itemCount: itemCount,
+      controller: _scrollController,
+    );
+  }
+
+  void _refresh(
+    SearchEnterConst searchEnterConst,
+    SearchStatus status,
+  ) {
     // 使用原本输入参数进行重新搜索
     context.read<SearchBloc>().add(
           FetchSearchResult(
@@ -290,11 +289,13 @@ class _SearchResultPageState extends State<_SearchResultPage>
               pageCount: searchEnterConst.pageCount,
               refresh: Uuid().v4(), //传入一个不一样的值，来强行刷新
             ),
+            status,
           ),
         );
   }
 
   void _fetchSearchResult() {
+    debugPrint('pagesCount: ${_searchEnter.pageCount + 1}');
     context.read<SearchBloc>().add(
           FetchSearchResult(
             SearchEnterConst(
@@ -308,6 +309,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
               pageCount: _searchEnter.pageCount + 1,
               refresh: _searchEnter.refresh,
             ),
+            SearchStatus.loadingMore,
           ),
         );
   }
@@ -363,6 +365,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {
         _searchEnter = SearchEnter.fromConst(searchEnterConst);
+        // debugPrint('pagesCount: ${searchEnterConst.pageCount}');
       });
     });
   }

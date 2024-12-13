@@ -17,7 +17,7 @@ Future<String> getCachePicture({
   String chapterId = '',
 }) async {
   if (url == '') {
-    return '404';
+    throw Exception('404');
   }
 
   // 处理图片的路径
@@ -130,50 +130,38 @@ Future<String> getCachePicture({
       ),
     );
 
-    // 检查响应状态码
-    if (response.statusCode == 200) {
-      // 获取响应体（图片数据）
-      String? contentType = response.headers.value('content-type');
-      debugPrint(contentType); // 例如: "image/jpeg"
-      Uint8List imageData = response.data as Uint8List;
+    // 获取响应体（图片数据）
+    String? contentType = response.headers.value('content-type');
+    debugPrint(contentType); // 例如: "image/jpeg"
+    Uint8List imageData = response.data as Uint8List;
 
-      // 临时文件
-      String tempPath = "$cachePath/temp/$sanitizedPath";
+    // 临时文件
+    String tempPath = "$cachePath/temp/$sanitizedPath";
 
-      var tempFile = File(tempPath);
+    var tempFile = File(tempPath);
 
-      // 先写入到临时文件
-      try {
-        // 如果文件不存在，则创建文件
-        if (!await tempFile.exists()) {
-          await tempFile.create(recursive: true);
-        }
-
-        await tempFile.writeAsBytes(imageData);
-
-        // 写入完成后再移动到目标路径
-        if (!await file.exists()) {
-          await file.create(recursive: true);
-        }
-        await tempFile.rename(filePath);
-      } catch (e) {
-        // 如果发生异常，删除不完整的文件
-        await tempFile.delete();
-        debugPrint('保存图片时发生错误，已删除不完整的文件');
-        throw Exception(e.toString());
+    // 先写入到临时文件
+    try {
+      // 如果文件不存在，则创建文件
+      if (!await tempFile.exists()) {
+        await tempFile.create(recursive: true);
       }
 
-      debugPrint('图片已保存到：$filePath');
-    } else if (response.statusCode == 404) {
-      throw Exception('404 Not Found');
-    } else {
-      debugPrint('请求失败，状态码：${response.statusCode}');
-      // 先检查缓存目录中是否存在
-      if (await file.exists()) {
-        file.delete();
+      await tempFile.writeAsBytes(imageData);
+
+      // 写入完成后再移动到目标路径
+      if (!await file.exists()) {
+        await file.create(recursive: true);
       }
-      throw Exception('请求失败，状态码：${response.statusCode}');
+      await tempFile.rename(filePath);
+    } catch (e) {
+      // 如果发生异常，删除不完整的文件
+      await tempFile.delete();
+      debugPrint('保存图片时发生错误，已删除不完整的文件');
+      throw Exception(e.toString());
     }
+
+    debugPrint('图片已保存到：$filePath');
   } catch (e) {
     debugPrint('请求过程中发生错误：$e');
     // 先检查缓存目录中是否存在

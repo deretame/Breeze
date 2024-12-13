@@ -284,16 +284,15 @@ Future<void> _signIn() async {
   DateTime now = DateTime.now();
 
   // 获取今天的日期
-  DateTime today = DateTime(now.year, now.month, now.day, 16); // 今天4点的时间
+  DateTime today = DateTime(now.year, now.month, now.day); // 获取凌晨的时间
 
-  try {
-    if (!bikaSetting.getSignInTime().isBefore(today)) {
-      debugPrint("自动签到成功！");
-      return;
-    }
-  } catch (e) {
-    debugPrint(e.toString());
+  if (!bikaSetting.getSignInTime().isBefore(today)) {
+    debugPrint("今天已经签到过了！");
+    return;
   }
+
+  // 重置签到状态
+  bikaSetting.setSignIn(false);
 
   while (true) {
     try {
@@ -304,7 +303,7 @@ Future<void> _signIn() async {
         EasyLoading.showSuccess("自动签到成功！");
         debugPrint("自动签到成功！");
         break;
-      } else if (result.toString().contains("successes")) {
+      } else {
         break;
       }
     } catch (e) {

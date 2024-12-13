@@ -59,6 +59,7 @@ class BikaSearchBar extends StatelessWidget implements PreferredSizeWidget {
                     categories: searchEnter.categories,
                     pageCount: 1,
                   ),
+                  SearchStatus.initial,
                 ),
               );
         },

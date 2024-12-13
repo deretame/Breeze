@@ -123,6 +123,7 @@ class CategoriesSelect extends StatelessWidget {
                   pageCount: 1,
                   refresh: searchEnter.refresh,
                 ),
+                SearchStatus.initial,
               ),
             );
       },

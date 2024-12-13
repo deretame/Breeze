@@ -84,12 +84,13 @@ class PageSkip extends StatelessWidget {
                     from: searchEnter.from,
                     keyword: searchEnter.keyword,
                     type: searchEnter.type,
-                    state: "page skip",
+                    state: '',
                     sort: searchEnter.sort,
                     categories: searchEnter.categories,
                     pageCount: pageSkip!,
                     refresh: searchEnter.refresh,
                   ),
+                  SearchStatus.initial,
                 ),
               );
 

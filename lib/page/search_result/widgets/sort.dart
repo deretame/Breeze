@@ -49,6 +49,7 @@ class _SortWidgetState extends State<SortWidget> {
                       pageCount: 1,
                       refresh: searchEnter.refresh,
                     ),
+                    SearchStatus.initial,
                   ),
                 );
           },

@@ -245,47 +245,33 @@ class _ImagerWidget extends StatelessWidget {
                     ),
                   );
                 case PictureLoadStatus.success:
-                  if (state.imagePath.toString().contains('404')) {
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(25),
-                      child: SizedBox(
-                        width: 50,
-                        height: 50,
-                        child: Image.asset(
-                          'asset/image/error_image/404.png',
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    );
-                  } else {
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => FullScreenImageView(
-                              imagePath: state.imagePath!,
-                              uuid: uuid,
-                            ),
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => FullScreenImageView(
+                            imagePath: state.imagePath!,
+                            uuid: uuid,
                           ),
-                        );
-                      },
-                      child: Hero(
-                        tag: state.imagePath! + uuid,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(50),
-                          child: SizedBox(
-                            width: 50,
-                            height: 50,
-                            child: Image.file(
-                              File(state.imagePath!),
-                              fit: BoxFit.cover,
-                            ),
+                        ),
+                      );
+                    },
+                    child: Hero(
+                      tag: state.imagePath! + uuid,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(50),
+                        child: SizedBox(
+                          width: 50,
+                          height: 50,
+                          child: Image.file(
+                            File(state.imagePath!),
+                            fit: BoxFit.cover,
                           ),
                         ),
                       ),
-                    );
-                  }
+                    ),
+                  );
                 case PictureLoadStatus.failure:
                   debugPrint(state.result);
                   if (state.result.toString().contains('404')) {

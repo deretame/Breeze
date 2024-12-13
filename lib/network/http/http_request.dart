@@ -443,7 +443,7 @@ Future<Map<String, dynamic>> signIn() async {
     return data;
   }
 
-  if (data['data']['message'] == 'success') {
+  if (data['data']['res']['status'] == 'success') {
     return {"success": "已签到"};
   } else if (data['data']['res']['status'] == 'fail') {
     return {"successes": "已签到"};

@@ -69,7 +69,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
             return Center(child: CircularProgressIndicator());
           case CommentsStatus.success:
             commentIndex = state.count;
-            return _SuccessWidget(
+            return _CommentWidget(
               comments: state.commentsJson!,
               fatherCommentIndex: commentIndex,
               status: state.status,
@@ -89,14 +89,14 @@ class _ComicReadPageState extends State<_ComicReadPage> {
             );
           case CommentsStatus.getMoreFailure:
             commentIndex = state.count;
-            return _SuccessWidget(
+            return _CommentWidget(
               comments: state.commentsJson!,
               fatherCommentIndex: commentIndex,
               status: state.status,
             );
           case CommentsStatus.loadingMore:
             commentIndex = state.count;
-            return _SuccessWidget(
+            return _CommentWidget(
               comments: state.commentsJson!,
               fatherCommentIndex: commentIndex,
               status: state.status,
@@ -107,22 +107,22 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   }
 }
 
-class _SuccessWidget extends StatefulWidget {
+class _CommentWidget extends StatefulWidget {
   final List<CommentsJson> comments;
   final int fatherCommentIndex;
   final CommentsStatus status;
 
-  const _SuccessWidget({
+  const _CommentWidget({
     required this.comments,
     required this.fatherCommentIndex,
     required this.status,
   });
 
   @override
-  State<_SuccessWidget> createState() => _SuccessWidgetState();
+  State<_CommentWidget> createState() => _CommentWidgetState();
 }
 
-class _SuccessWidgetState extends State<_SuccessWidget> {
+class _CommentWidgetState extends State<_CommentWidget> {
   int get fatherCommentIndex => widget.fatherCommentIndex;
 
   List<CommentsJson> comments = [];

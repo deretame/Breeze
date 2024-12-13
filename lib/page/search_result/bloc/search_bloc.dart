@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/network/http/http_request.dart';
 
@@ -28,6 +29,7 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
   }
 
   bool initial = true;
+  bool hasReachedMax = false;
   int page = -1;
   int pagesCount = 0;
   List<ComicNumber> comics = [];
@@ -49,36 +51,19 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
     //   );
     //   return;
     // }
+    debugPrint('pagesCount: ${event.searchEnterConst.pageCount}');
 
-    if (state.searchEnterConst == event.searchEnterConst && initial == false) {
+    if (state.searchEnterConst == event.searchEnterConst &&
+        event.searchStatus != SearchStatus.initial) {
       return; // 如果状态相同，直接返回，避免再次请求
     }
 
-    if (event.searchEnterConst.state == "page skip") {
+    if (event.searchStatus == SearchStatus.initial) {
       if (event.searchEnterConst.pageCount > pagesCount && pagesCount != 0) {
-        // 避免状态污染
-        var cleanSearchEnterConst = SearchEnterConst(
-          url: event.searchEnterConst.url,
-          from: event.searchEnterConst.from,
-          keyword: event.searchEnterConst.keyword,
-          type: event.searchEnterConst.type,
-          state: "",
-          sort: event.searchEnterConst.sort,
-          categories: event.searchEnterConst.categories,
-          pageCount: event.searchEnterConst.pageCount,
-          refresh: event.searchEnterConst.refresh,
-        );
-        emit(
-          state.copyWith(
-            status: SearchStatus.success,
-            comics: comics,
-            searchEnterConst: cleanSearchEnterConst,
-            pagesCount: pagesCount,
-          ),
-        );
         return;
       }
       comics = [];
+      hasReachedMax = false;
       emit(
         state.copyWith(
           status: SearchStatus.initial,
@@ -86,34 +71,22 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
       );
     }
 
+    // 用来判断本子是第几次获取的
     page = event.searchEnterConst.pageCount;
 
-    if (state.hasReachedMax && event.searchEnterConst.pageCount != 1) return;
+    if (hasReachedMax) return;
+
+    if (event.searchStatus == SearchStatus.loadingMore) {
+      emit(
+        state.copyWith(
+          status: SearchStatus.loadingMore,
+          comics: comics,
+          pagesCount: pagesCount,
+        ),
+      );
+    }
 
     try {
-      if (event.searchEnterConst.pageCount != 1 &&
-          initial == false &&
-          event.searchEnterConst.state != "page skip") {
-        emit(
-          state.copyWith(
-            status: SearchStatus.loadingMore,
-            comics: comics,
-            pagesCount: pagesCount,
-          ),
-        );
-      }
-
-      if (event.searchEnterConst.pageCount == 1) {
-        emit(
-          state.copyWith(
-            status: SearchStatus.initial,
-            comics: [],
-            pagesCount: pagesCount,
-          ),
-        );
-        comics = [];
-      }
-
       final result = await search(
         url: event.searchEnterConst.url,
         from: event.searchEnterConst.from,
@@ -124,30 +97,18 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
       );
 
       final comicList = await _processSearchResult(result);
-      final hasReachedMax =
+      hasReachedMax =
           result['data']['comics']['page'] >= result['data']['comics']['pages'];
 
       comics = [...comics, ...comicList];
-
-      // 避免状态污染
-      var cleanSearchEnterConst = SearchEnterConst(
-        url: event.searchEnterConst.url,
-        from: event.searchEnterConst.from,
-        keyword: event.searchEnterConst.keyword,
-        type: event.searchEnterConst.type,
-        state: "",
-        sort: event.searchEnterConst.sort,
-        categories: event.searchEnterConst.categories,
-        pageCount: event.searchEnterConst.pageCount,
-        refresh: event.searchEnterConst.refresh,
-      );
+      debugPrint('pagesCount: ${state.searchEnterConst.pageCount}');
 
       emit(
         state.copyWith(
           status: SearchStatus.success,
           comics: comics,
           hasReachedMax: hasReachedMax,
-          searchEnterConst: cleanSearchEnterConst,
+          searchEnterConst: event.searchEnterConst,
           pagesCount: pagesCount,
         ),
       );

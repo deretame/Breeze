@@ -105,6 +105,7 @@ class CategoriesShield extends StatelessWidget {
                   categories: searchEnter.categories,
                   pageCount: 1,
                 ),
+                SearchStatus.initial,
               ),
             );
       },

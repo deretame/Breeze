@@ -1,7 +1,8 @@
-import 'package:auto_route/annotations.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/util/router/router.gr.dart';
 
 @RoutePage()
 class BikaSettingPage extends StatefulWidget {
@@ -113,6 +114,19 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
                 ),
                 SizedBox(width: 10),
               ],
+            ),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  bikaSetting.deleteAuthorization();
+                  // bikaSetting.deleteAccount();
+                  // bikaSetting.deletePassword();
+                  AutoRouter.of(context).push(LoginRoute());
+                },
+                child: Text(
+                  "退出登录",
+                ),
+              ),
             )
           ],
         );

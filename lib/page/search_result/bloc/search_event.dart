@@ -6,9 +6,11 @@ sealed class SearchEvent extends Equatable {
 
 class FetchSearchResult extends SearchEvent {
   final SearchEnterConst searchEnterConst;
+  final SearchStatus searchStatus;
 
   const FetchSearchResult(
     this.searchEnterConst,
+    this.searchStatus,
   );
 
   @override

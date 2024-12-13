@@ -22,6 +22,13 @@ class _LoginPageState extends State<LoginPage> {
       ElevatedButton.styleFrom(minimumSize: const Size(200, 40));
 
   @override
+  void initState() {
+    super.initState();
+    _account.text = bikaSetting.getAccount();
+    _password.text = bikaSetting.getPassword();
+  }
+
+  @override
   void dispose() {
     _account.dispose();
     _password.dispose();
@@ -47,21 +54,12 @@ class _LoginPageState extends State<LoginPage> {
               child: const Text('确定'),
               onPressed: () {
                 if (title == "登录成功") {
-                  if (inited == false) {
-                    AutoRouter.of(context).pushAndPopUntil(
-                      MainRoute(),
-                      predicate: (Route<dynamic> route) {
-                        return false;
-                      },
-                    );
-                  } else {
-                    AutoRouter.of(context).pushAndPopUntil(
-                      MainRoute(),
-                      predicate: (Route<dynamic> route) {
-                        return false;
-                      },
-                    );
-                  }
+                  AutoRouter.of(context).pushAndPopUntil(
+                    MainRoute(),
+                    predicate: (Route<dynamic> route) {
+                      return false;
+                    },
+                  );
                 } else {
                   Navigator.of(context).pop();
                 }

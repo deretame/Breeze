@@ -9,7 +9,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/util/get_path.dart';
@@ -26,7 +25,6 @@ import 'object_box/object_box.dart';
 final globalSetting = GlobalSetting();
 final bikaSetting = BikaSetting();
 final fullScreenStore = FullScreenStore();
-final getIt = GetIt.instance;
 late final ObjectBox objectbox;
 
 // 定义全局Dio实例

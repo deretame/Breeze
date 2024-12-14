@@ -52,7 +52,7 @@ class _TagsAndCategoriesWidgetState extends State<TagsAndCategoriesWidget> {
                       border: Border(
                         top: BorderSide(
                           color: globalSetting.textColor,
-                          width: 0.5, // 颜色条的宽度
+                          width: 1.0, // 颜色条的宽度
                         ),
                       ),
                     ),
@@ -69,7 +69,7 @@ class _TagsAndCategoriesWidgetState extends State<TagsAndCategoriesWidget> {
                       border: Border(
                         top: BorderSide(
                           color: globalSetting.textColor,
-                          width: 0.5, // 颜色条的宽度
+                          width: 1.0, // 颜色条的宽度
                         ),
                       ),
                     ),

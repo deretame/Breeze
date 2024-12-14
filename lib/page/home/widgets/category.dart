@@ -138,9 +138,7 @@ class CategoryWidget extends StatelessWidget {
 
   Widget _buildDefaultImage(BuildContext context) {
     final router = AutoRouter.of(context);
-    return InkWell(
-      highlightColor: Colors.transparent,
-      splashColor: Colors.transparent,
+    return GestureDetector(
       onTap: () {
         // 根据类别处理点击事件
         if (category.title == '最近更新') {
@@ -196,40 +194,47 @@ class CategoryWidget extends StatelessWidget {
       router.push(
         SearchResultRoute(
           searchEnterConst: SearchEnterConst(
-              url:
-                  "https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E5%AE%B6%E9%83%BD%E5%9C%A8%E7%9C%8B&s=dd"),
+            url:
+                "https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E5%AE%B6%E9%83%BD%E5%9C%A8%E7%9C%8B&s=dd",
+          ),
         ),
       );
     } else if (category.title == '大濕推薦') {
       router.push(
         SearchResultRoute(
           searchEnterConst: SearchEnterConst(
-              url:
-                  "https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E6%BF%95%E6%8E%A8%E8%96%A6&s=dd"),
+            url:
+                "https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E6%BF%95%E6%8E%A8%E8%96%A6&s=dd",
+          ),
         ),
       );
     } else if (category.title == '那年今天') {
       router.push(
         SearchResultRoute(
           searchEnterConst: SearchEnterConst(
-              url:
-                  "https://picaapi.picacomic.com/comics?page=1&c=%E9%82%A3%E5%B9%B4%E4%BB%8A%E5%A4%A9&s=dd"),
+            url:
+                "https://picaapi.picacomic.com/comics?page=1&c=%E9%82%A3%E5%B9%B4%E4%BB%8A%E5%A4%A9&s=dd",
+          ),
         ),
       );
     } else if (category.title == '官方都在看') {
       router.push(
         SearchResultRoute(
           searchEnterConst: SearchEnterConst(
-              url:
-                  "https://picaapi.picacomic.com/comics?page=1&c=%E5%AE%98%E6%96%B9%E9%83%BD%E5%9C%A8%E7%9C%8B&s=dd"),
+            url:
+                "https://picaapi.picacomic.com/comics?page=1&c=%E5%AE%98%E6%96%B9%E9%83%BD%E5%9C%A8%E7%9C%8B&s=dd",
+          ),
         ),
       );
     } else if (category.isWeb) {
       List<String> info = [category.title, category.link];
       router.push(WebViewRoute(info: info));
     } else {
-      router.push(SearchResultRoute(
-          searchEnterConst: SearchEnterConst(categories: [category.title])));
+      router.push(
+        SearchResultRoute(
+          searchEnterConst: SearchEnterConst(categories: [category.title]),
+        ),
+      );
     }
   }
 }

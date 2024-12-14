@@ -35,7 +35,7 @@ Map<String, dynamic> _$$DataImplToJson(_$DataImpl instance) =>
 
 _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
       id: json['_id'] as String,
-      gender: $enumDecode(_$GenderEnumMap, json['gender']),
+      gender: json['gender'] as String,
       name: json['name'] as String,
       slogan: json['slogan'] as String?,
       title: json['title'] as String,
@@ -45,7 +45,7 @@ _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
       characters: (json['characters'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
-      role: $enumDecode(_$RoleEnumMap, json['role']),
+      role: json['role'] as String,
       avatar: Avatar.fromJson(json['avatar'] as Map<String, dynamic>),
       comicsUploaded: (json['comicsUploaded'] as num).toInt(),
       character: json['character'] as String?,
@@ -54,7 +54,7 @@ _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
 Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
     <String, dynamic>{
       '_id': instance.id,
-      'gender': _$GenderEnumMap[instance.gender]!,
+      'gender': instance.gender,
       'name': instance.name,
       'slogan': instance.slogan,
       'title': instance.title,
@@ -62,35 +62,21 @@ Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
       'exp': instance.exp,
       'level': instance.level,
       'characters': instance.characters,
-      'role': _$RoleEnumMap[instance.role]!,
+      'role': instance.role,
       'avatar': instance.avatar,
       'comicsUploaded': instance.comicsUploaded,
       'character': instance.character,
     };
 
-const _$GenderEnumMap = {
-  Gender.BOT: 'bot',
-  Gender.F: 'f',
-  Gender.M: 'm',
-};
-
-const _$RoleEnumMap = {
-  Role.KNIGHT: 'knight',
-};
-
 _$AvatarImpl _$$AvatarImplFromJson(Map<String, dynamic> json) => _$AvatarImpl(
-      originalName: $enumDecode(_$OriginalNameEnumMap, json['originalName']),
+      originalName: json['originalName'] as String,
       path: json['path'] as String,
       fileServer: json['fileServer'] as String,
     );
 
 Map<String, dynamic> _$$AvatarImplToJson(_$AvatarImpl instance) =>
     <String, dynamic>{
-      'originalName': _$OriginalNameEnumMap[instance.originalName]!,
+      'originalName': instance.originalName,
       'path': instance.path,
       'fileServer': instance.fileServer,
     };
-
-const _$OriginalNameEnumMap = {
-  OriginalName.AVATAR_JPG: 'avatar.jpg',
-};

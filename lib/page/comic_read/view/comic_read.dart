@@ -237,7 +237,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                 ),
               ),
               child: Text(
-                "  $pageIndex/$epPages", // 显示当前页数
+                " $pageIndex/$epPages", // 显示当前页数
                 style: TextStyle(color: Colors.white),
               ),
             ),
@@ -352,7 +352,7 @@ class _ImageWidgetState extends State<_ImageWidget>
                   height: screenWidth,
                   child: Center(
                     child: Text(
-                      index.toString(),
+                      (index + 1).toString(),
                       style: TextStyle(
                         fontFamily: 'Pacifico-Regular',
                         color: Color(0xFFCCCCCC),

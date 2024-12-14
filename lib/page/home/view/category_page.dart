@@ -198,8 +198,11 @@ class _CategoryPageState extends State<CategoryPage>
               TextButton(
                 child: Text('前往 GitHub'),
                 onPressed: () {
-                  launchUrl(Uri.parse(
-                      'https://github.com/deretame/Breeze/releases?page=4'));
+                  launchUrl(
+                    Uri.parse(
+                      'https://github.com/deretame/Breeze/releases/tag/$cloudVersion',
+                    ),
+                  );
                   Navigator.of(context).pop();
                 },
               ),

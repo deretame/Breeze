@@ -64,6 +64,10 @@ class _HistoryPageState extends State<_HistoryPage>
                     child: BlocBuilder<HistoryBloc, HistoryState>(
                       builder: (context, state) {
                         switch (state.status) {
+                          case HistoryStatus.initial:
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
                           case HistoryStatus.failure:
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               _showErrorDialog(
@@ -108,10 +112,6 @@ class _HistoryPageState extends State<_HistoryPage>
                                       );
                               },
                               itemCount: state.comics.length + 1,
-                            );
-                          case HistoryStatus.initial:
-                            return const Center(
-                              child: CircularProgressIndicator(),
                             );
                         }
                       },

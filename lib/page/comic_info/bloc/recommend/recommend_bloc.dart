@@ -47,6 +47,16 @@ class RecommendBloc extends Bloc<RecommendEvent, RecommendState> {
         ));
       } else {
         List<Comic> comicList = [];
+        for (var comic in comics) {
+          comic['author'] ??= '';
+          if (comic['likesCount'] is String) {
+            comic['likesCount'] = int.parse(comic['likesCount']);
+          }
+          comic['thumb'] ??= {"fileServer": "", "path": "", "originalName": ""};
+          comic['thumb']['fileServer'] ??= '';
+          comic['thumb']['path'] ??= '';
+          comic['thumb']['originalName'] ??= '';
+        }
         final temp = RecommendJson.fromJson(result);
         for (var comic in temp.data.comics) {
           comicList.add(comic);

@@ -93,9 +93,9 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final result = await login(_account.text, _password.text);
 
-      // 当登录逻辑完成后，关闭加载动画
-      if (!mounted) return;
-      Navigator.of(context).pop(); // 关闭加载对话框
+      // // 当登录逻辑完成后，关闭加载动画
+      // if (!mounted) return;
+      // Navigator.of(context).pop(); // 关闭加载对话框
 
       debugPrint(result.toString());
 

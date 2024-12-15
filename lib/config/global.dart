@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 // 用于在不同页面之间传递数据
 double screenWidth = 0;
 double screenHeight = 0;
+double statusBarHeight = 0;
 
 // 用于判断是否已经初始化完成
 bool inited = false;

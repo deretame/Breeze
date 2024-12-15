@@ -11,30 +11,17 @@ import '../../../widgets/error_view.dart';
 import '../json/comic_info/comic_info.dart';
 import '../json/eps/eps.dart';
 
-class EpsWidget extends StatefulWidget {
+class EpsWidget extends StatelessWidget {
   final Comic comicInfo;
   final BikaComicHistory? comicHistory;
+  final Function(List<Doc>, bool) onUpdateReadInfo; // 用来更新观看按钮信息
 
   const EpsWidget({
     super.key,
     required this.comicInfo,
     required this.comicHistory,
+    required this.onUpdateReadInfo,
   });
-
-  @override
-  State<EpsWidget> createState() => _EpsWidgetState();
-}
-
-class _EpsWidgetState extends State<EpsWidget> {
-  late Comic comicInfo;
-  late BikaComicHistory? comicHistory;
-
-  @override
-  void initState() {
-    super.initState();
-    comicInfo = widget.comicInfo;
-    comicHistory = widget.comicHistory;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +41,7 @@ class _EpsWidgetState extends State<EpsWidget> {
               );
             case GetComicEpsStatus.success:
               List<Doc> docs = state.eps;
+              onUpdateReadInfo(docs, true);
               return Column(
                 children: [
                   // 历史记录按钮
@@ -66,7 +54,7 @@ class _EpsWidgetState extends State<EpsWidget> {
                           title: comicHistory!.epTitle,
                           order: comicHistory!.order,
                           updatedAt: comicHistory!.history,
-                          docId: comicHistory!.epPageCount.toString(),
+                          docId: (comicHistory!.epPageCount - 1).toString(),
                         ),
                         comicInfo: comicInfo,
                         epsInfo: docs,

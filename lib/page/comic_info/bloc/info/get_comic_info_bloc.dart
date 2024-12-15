@@ -62,6 +62,7 @@ class GetComicInfoBloc extends Bloc<GetComicInfo, GetComicInfoState> {
     result['data']['comic']['_creator']['title'] ??= '';
     result['data']['comic']['_creator']['verified'] ??= false;
     result['data']['comic']['chineseTeam'] ??= "";
+    result['data']['comic']['description'] ??= "";
     result['data']['comic']['totalComments'] ??=
         result['data']['comic']['commentsCount'] ?? 0;
     result['data']['comic']['author'] ??= '';

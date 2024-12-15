@@ -151,7 +151,10 @@ class _MyAppState extends State<MyApp> {
     // 设置这个的目的是为了缓解图片重载
     PaintingBinding.instance.imageCache.maximumSizeBytes = 500 * 1024 * 1024;
 
-    Global(context); // 保持原有的 Global 逻辑
+    Global(context);
+    if (statusBarHeight == 0) {
+      statusBarHeight = MediaQuery.of(context).padding.top;
+    }
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       systemNavigationBarColor: Colors.transparent,

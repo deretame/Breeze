@@ -40,14 +40,6 @@ class ComicEntryWidget extends StatelessWidget {
     }
   }
 
-  // 截断过长的标题
-  String _getLimitedTitle(String title, int maxLength) {
-    if (title.length > maxLength) {
-      return '${title.substring(0, maxLength)}...';
-    }
-    return title;
-  }
-
   @override
   Widget build(BuildContext context) {
     final router = AutoRouter.of(context); // 获取 router 实例
@@ -100,10 +92,8 @@ class ComicEntryWidget extends StatelessWidget {
                                 text: TextSpan(
                                   children: <TextSpan>[
                                     TextSpan(
-                                      text: _getLimitedTitle(
-                                        comicEntryInfo.title,
-                                        30,
-                                      ),
+                                      text: comicEntryInfo.title,
+                                      // 文本内容
                                       style: TextStyle(
                                         color: globalSetting.textColor,
                                         fontSize: 18,
@@ -120,16 +110,17 @@ class ComicEntryWidget extends StatelessWidget {
                                     ),
                                   ],
                                 ),
+                                maxLines: 4, // 最大行数
+                                overflow: TextOverflow.ellipsis, // 超出时使用省略号
                               );
                             },
                           ),
                           if (comicEntryInfo.author.toString() != '') ...[
                             const SizedBox(height: 5),
                             Text(
-                              _getLimitedTitle(
-                                comicEntryInfo.author.toString(),
-                                40,
-                              ),
+                              comicEntryInfo.author.toString(),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                               style: TextStyle(
                                 color: globalSetting.themeType
                                     ? Colors.red

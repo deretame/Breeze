@@ -96,7 +96,7 @@ class _BikaWidget extends StatelessWidget {
                       Observer(
                         builder: (context) {
                           return Text(
-                            "经验值: ${profile.data.user.exp.toString()} (${bikaSetting.getSignIn() ? "已签到" : "未签到"})",
+                            "经验值: ${profile.data.user.exp.toString()} (${bikaSetting.signIn ? "已签到" : "未签到"})",
                           );
                         },
                       ),

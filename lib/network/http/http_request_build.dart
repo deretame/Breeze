@@ -7,6 +7,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/main.dart';
 
+import 'http_request.dart';
+
 String _getNonce() {
   return const Uuid().v4().replaceAll('-', '');
 }
@@ -135,8 +137,15 @@ Future<Map<String, dynamic>> request(
         // && bikaSetting.account.isNotEmpty &&
         // bikaSetting.password.isNotEmpty
         ) {
-      errorMessage += '\n登录状态失效，请重新登录哔咔';
-      // var temp = await login(bikaSetting.account, bikaSetting.password);
+      // errorMessage += '\n登录状态失效，请重新登录哔咔';
+      try {
+        var result = await login(bikaSetting.account, bikaSetting.password);
+
+        bikaSetting.setAuthorization(result['data']['token']);
+      } catch (e) {
+        // 抛出封装后的错误信息
+        throw Exception(errorMessage);
+      }
     }
 
     // 抛出封装后的错误信息

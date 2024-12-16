@@ -3,9 +3,9 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_info/json/eps/eps.dart' as eps;
@@ -98,10 +98,12 @@ class _ComicReadPageState extends State<_ComicReadPage>
   late int _lastScrollIndex = -1; // 用于记录上次滚动的索引
   final int _bottomWidgetHeight = 100; // 底部悬浮组件高度
   double _currentSliderValue = 0; // 当前滑块的值
-  int? _totalSlots; // 总槽位数量
+  int _totalSlots = 0; // 总槽位数量
   int displayedSlot = 1; // 显示的当前槽位
   Timer? _sliderIsRollingTimer; // 用来控制滚动隐藏组件的操作
   bool _isSliderRolling = false; // 滑块是否在滑动
+  Timer? comicRollingTimer; // 漫画本身是否在滚动
+  bool _isComicRolling = false; // 漫画本身是否在滚动
 
   @override
   void initState() {
@@ -130,7 +132,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
   @override
   void dispose() {
     // 在 dispose 中恢复状态栏可见性
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    // SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _itemPositionsListener.itemPositions
         .removeListener(() => getTopThirdItemIndex());
     super.dispose();
@@ -182,11 +184,9 @@ class _ComicReadPageState extends State<_ComicReadPage>
   Widget _successWidget(PageState state) {
     epPages = state.result!;
     // 在成功加载状态下设置 _totalSlots
-    _totalSlots ??= state.medias!.length;
-
-    // 默认隐藏状态栏
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-        overlays: [SystemUiOverlay.bottom]);
+    if (_totalSlots == 0) {
+      _totalSlots = state.medias!.length;
+    }
 
     // 处理滚动到历史记录
     if (!_hasScrolled &&
@@ -255,7 +255,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
     // 顶部悬浮组件
     return AnimatedPositioned(
       duration: _animationDuration,
-      top: _isVisible ? 0 : -kToolbarHeight,
+      top: _isVisible ? 0 : -kToolbarHeight - statusBarHeight,
       // 隐藏时往上移动
       left: 0,
       right: 0,
@@ -263,6 +263,18 @@ class _ComicReadPageState extends State<_ComicReadPage>
         title: Text(doc.title),
         backgroundColor: globalSetting.backgroundColor,
         elevation: _isVisible ? 4.0 : 0.0, // 添加阴影效果
+        actions: <Widget>[
+          Observer(builder: (context) {
+            return IconButton(
+              icon: globalSetting.themeMode == ThemeMode.system
+                  ? Icon(Icons.brightness_auto_rounded)
+                  : Icon(Icons.brightness_auto_outlined),
+              onPressed: () {
+                globalSetting.setThemeMode(0);
+              },
+            );
+          }),
+        ],
       ),
     );
   }
@@ -291,120 +303,221 @@ class _ComicReadPageState extends State<_ComicReadPage>
   }
 
   Widget _bottomWidget() {
-    return AnimatedPositioned(
-      duration: _animationDuration,
-      bottom: _isVisible ? 0 : -_bottomWidgetHeight.toDouble(),
-      left: 0,
-      right: 0,
-      child: Container(
-        height: _bottomWidgetHeight.toDouble(),
-        width: screenWidth,
-        color: globalSetting.backgroundColor,
-        child: Column(
-          children: [
-            Row(
-              children: [
-                SizedBox(width: 10),
-                GestureDetector(
-                  child: Text("上一章"),
-                  onTap: () async {
-                    if (doc.order == epsInfo[0].order) {
-                      EasyLoading.showInfo("已经是第一章了");
-                      return;
-                    }
-                    final result = await _bottomButtonDialog(
-                      context,
-                      '跳转',
-                      '是否要跳转到上一章？',
-                      epsInfo[doc.order - 2],
-                    );
-                    if (!mounted) return;
-                    if (result) {
-                      AutoRouter.of(context).popAndPush(
-                        ComicReadRoute(
-                          comicInfo: comicInfo,
-                          epsInfo: epsInfo,
-                          doc: epsInfo[doc.order - 2],
-                          comicId: comicInfo.id,
-                          isHistory: false,
-                        ),
+    return Observer(builder: (context) {
+      return AnimatedPositioned(
+        duration: _animationDuration,
+        bottom: _isVisible ? 0 : -_bottomWidgetHeight.toDouble(),
+        left: 0,
+        right: 0,
+        child: Container(
+          height: _bottomWidgetHeight.toDouble(),
+          width: screenWidth,
+          color: globalSetting.backgroundColor,
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  SizedBox(width: 10),
+                  GestureDetector(
+                    child: Text("上一章"),
+                    onTap: () async {
+                      if (doc.order == epsInfo[0].order) {
+                        EasyLoading.showInfo("已经是第一章了");
+                        return;
+                      }
+                      final result = await _bottomButtonDialog(
+                        context,
+                        '跳转',
+                        '是否要跳转到上一章？',
+                        epsInfo[doc.order - 2],
                       );
-                    }
-                  },
-                ),
-                Expanded(
-                  // 使 Slider 占用剩余空间
-                  child: Slider(
-                    value: _currentSliderValue,
-                    min: 0,
-                    max: _totalSlots != null ? _totalSlots! - 1 : 0,
-                    // 确保 max 不为负
-                    divisions: _totalSlots != null ? _totalSlots! - 1 : 1,
-                    // 确保 divisions 合理
-                    label: (_currentSliderValue.toInt() + 1).toString(),
-                    onChanged: (double newValue) {
-                      setState(() {
-                        _currentSliderValue = newValue; // 实时更新滑块值
-                        _sliderIsRollingTimer?.cancel(); // 取消定时器
-                        _isSliderRolling = true; // 开始滑动状态
-                        _sliderIsRollingTimer =
-                            Timer(const Duration(milliseconds: 1000), () {
-                          _isSliderRolling = false; // 停止滑动状态
-                        });
-
-                        // 更新显示的槽位
-                        displayedSlot =
-                            newValue.toInt() + 1; // 计算显示的槽位（1-indexed）
-
-                        setState(() {
-                          _itemScrollController.scrollTo(
-                            index: _currentSliderValue.toInt() + 1,
-                            alignment: 0.0,
-                            duration: const Duration(milliseconds: 500),
-                          );
-                        });
-
-                        // 打印调试信息
-                        debugPrint('滑块值：$newValue , 显示的槽位：$displayedSlot');
-                      });
+                      if (result && mounted) {
+                        AutoRouter.of(context).popAndPush(
+                          ComicReadRoute(
+                            comicInfo: comicInfo,
+                            epsInfo: epsInfo,
+                            doc: epsInfo[doc.order - 2],
+                            comicId: comicInfo.id,
+                            isHistory: false,
+                          ),
+                        );
+                      }
                     },
                   ),
-                ),
-                GestureDetector(
-                  child: Text("下一章"),
-                  onTap: () async {
-                    debugPrint('下一章');
-                    if (doc.order == epsInfo[epsInfo.length - 1].order) {
-                      EasyLoading.showInfo("已经是最后一章了");
-                      return;
-                    }
+                  _sliderWidget(),
+                  GestureDetector(
+                    child: Text("下一章"),
+                    onTap: () async {
+                      debugPrint('下一章');
+                      if (doc.order == epsInfo[epsInfo.length - 1].order) {
+                        EasyLoading.showInfo("已经是最后一章了");
+                        return;
+                      }
 
-                    final result = await _bottomButtonDialog(
-                      context,
-                      '跳转',
-                      '是否要跳转到下一章？',
-                      epsInfo[doc.order],
-                    );
-                    if (!mounted) return;
-                    if (result) {
-                      AutoRouter.of(context).popAndPush(
-                        ComicReadRoute(
-                          comicInfo: comicInfo,
-                          epsInfo: epsInfo,
-                          doc: epsInfo[doc.order],
-                          comicId: comicInfo.id,
-                          isHistory: false,
-                        ),
+                      final result = await _bottomButtonDialog(
+                        context,
+                        '跳转',
+                        '是否要跳转到下一章？',
+                        epsInfo[doc.order],
                       );
-                    }
-                  },
+                      if (result) {
+                        if (!mounted) return;
+                        AutoRouter.of(context).popAndPush(
+                          ComicReadRoute(
+                            comicInfo: comicInfo,
+                            epsInfo: epsInfo,
+                            doc: epsInfo[doc.order],
+                            comicId: comicInfo.id,
+                            isHistory: false,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  SizedBox(width: 10),
+                ],
+              ),
+              Center(
+                child: Container(
+                  height: 1, // 设置高度为1像素
+                  width: screenWidth * 0.8,
+                  color: globalSetting.themeType
+                      ? Colors.grey.withValues(alpha: 0.5)
+                      : Colors.white.withValues(alpha: 0.5),
                 ),
-                SizedBox(width: 10),
-              ],
-            ),
-            Spacer(),
-          ],
+              ),
+              Row(
+                children: [
+                  Spacer(),
+                  Expanded(
+                    child: Center(
+                      child: IconButton(
+                        icon: globalSetting.themeMode == ThemeMode.light
+                            ? Icon(Icons.brightness_7)
+                            : Icon(Icons.brightness_5_outlined),
+                        onPressed: () {
+                          globalSetting.setThemeMode(1);
+                        },
+                      ),
+                    ),
+                  ),
+                  Spacer(),
+                  SizedBox(
+                    height: 51,
+                    child: GestureDetector(
+                      onTap: () async {
+                        final result = await showDialog<int?>(
+                            context: context,
+                            barrierDismissible: false, // 不允许点击外部区域关闭对话框
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text('选择章节'),
+                                content: SingleChildScrollView(
+                                  child: ListBody(
+                                    children: [
+                                      for (final ep in epsInfo)
+                                        TextButton(
+                                          child: Text(ep.title),
+                                          onPressed: () {
+                                            Navigator.of(context).pop(ep.order);
+                                          },
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    child: Text('取消'),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ],
+                              );
+                            });
+                        if (result == null) return;
+                        if (mounted) return;
+                        AutoRouter.of(context).popAndPush(
+                          ComicReadRoute(
+                            comicInfo: comicInfo,
+                            epsInfo: epsInfo,
+                            doc: epsInfo[result - 1],
+                            comicId: comicInfo.id,
+                            isHistory: false,
+                          ),
+                        );
+                      },
+                      child: Center(
+                        child: Text(
+                          '跳转章节',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Spacer(),
+                  IconButton(
+                    icon: globalSetting.themeMode == ThemeMode.dark
+                        ? Icon(Icons.brightness_2_rounded)
+                        : Icon(Icons.brightness_2_outlined),
+                    onPressed: () {
+                      globalSetting.setThemeMode(2);
+                    },
+                  ),
+                  Spacer(),
+                ],
+              ),
+            ],
+          ),
         ),
+      );
+    });
+  }
+
+  Widget _sliderWidget() {
+    return Expanded(
+      // 使 Slider 占用剩余空间
+      child: Slider(
+        value: _currentSliderValue,
+        min: 0,
+        max: _totalSlots.toDouble(),
+        divisions: _totalSlots,
+        label: (_currentSliderValue.toInt() + 1).toString(),
+        onChanged: (double newValue) {
+          setState(() {
+            _currentSliderValue = newValue; // 实时更新滑块值
+            _sliderIsRollingTimer?.cancel(); // 取消之前的定时器
+            _isSliderRolling = true; // 开始滑动状态
+          });
+
+          // 设置新的定时器以防止多次触发
+          _sliderIsRollingTimer = Timer(const Duration(milliseconds: 300), () {
+            setState(() {
+              _isSliderRolling = false; // 停止滑动状态
+              // 更新显示的槽位
+              displayedSlot = newValue.toInt() + 1;
+
+              _isComicRolling = true; // 开始滚动状态
+              _isSliderRolling = true; // 开始滑动状态
+              comicRollingTimer = Timer(const Duration(milliseconds: 350), () {
+                setState(() {
+                  _isComicRolling = false; // 停止滚动状态
+                  _isSliderRolling = false;
+                });
+              });
+
+              // 滚动到指定的索引
+              _itemScrollController.scrollTo(
+                index: _currentSliderValue.toInt() + 1,
+                alignment: 0.0,
+                duration: const Duration(milliseconds: 300),
+              );
+            });
+
+            // 打印调试信息
+            debugPrint('滑块值：$newValue , 显示的槽位：$displayedSlot');
+          });
+        },
       ),
     );
   }
@@ -468,8 +581,9 @@ class _ComicReadPageState extends State<_ComicReadPage>
     final positions = _itemPositionsListener.itemPositions.value;
     if (positions.isEmpty) return;
 
-    final viewportHeight = MediaQuery.of(context).size.height;
-    final topThird = viewportHeight / 3;
+    // final viewportHeight = MediaQuery.of(context).size.height;
+    // final topThird = viewportHeight / 3;
+    final topThird = 0 + statusBarHeight;
 
     ItemPosition? closestPosition;
     double minDistance = double.infinity;
@@ -489,7 +603,9 @@ class _ComicReadPageState extends State<_ComicReadPage>
       }
       setState(() {
         pageIndex = closestPosition!.index;
-        _currentSliderValue = pageIndex - 2;
+        if (_isComicRolling == false) {
+          _currentSliderValue = pageIndex - 2;
+        }
       });
     }
   }
@@ -539,7 +655,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
         // 向上滚动
         debugPrint('向上滚动');
         setState(() {
-          _isVisible = true;
+          _isVisible = false;
         });
       }
 

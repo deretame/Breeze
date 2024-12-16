@@ -382,8 +382,8 @@ class _ComicReadPageState extends State<_ComicReadPage>
                   height: 1, // 设置高度为1像素
                   width: screenWidth * 0.8,
                   color: globalSetting.themeType
-                      ? Colors.grey.withValues(alpha: 0.5)
-                      : Colors.white.withValues(alpha: 0.5),
+                      ? Colors.grey.withOpacity(0.5)
+                      : Colors.white.withOpacity(0.5),
                 ),
               ),
               Row(

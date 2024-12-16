@@ -159,8 +159,8 @@ class _CommentsWidgetState extends State<CommentsWidget> {
                       width: screenWidth * (48 / 50), // 设置宽度
                       child: Divider(
                         color: globalSetting.themeType
-                            ? Colors.grey.withOpacity(0.5)
-                            : Colors.white.withOpacity(0.5),
+                            ? Colors.grey.withValues(alpha: 0.5)
+                            : Colors.white.withValues(alpha: 0.5),
                         thickness: 1,
                         height: 10,
                       ),

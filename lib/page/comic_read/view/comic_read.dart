@@ -303,6 +303,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
   }
 
   Widget _bottomWidget() {
+    final router = AutoRouter.of(context);
     return Observer(builder: (context) {
       return AnimatedPositioned(
         duration: _animationDuration,
@@ -332,7 +333,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                         epsInfo[doc.order - 2],
                       );
                       if (result && mounted) {
-                        AutoRouter.of(context).popAndPush(
+                        router.popAndPush(
                           ComicReadRoute(
                             comicInfo: comicInfo,
                             epsInfo: epsInfo,
@@ -361,8 +362,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                         epsInfo[doc.order],
                       );
                       if (result) {
-                        if (!mounted) return;
-                        AutoRouter.of(context).popAndPush(
+                        router.popAndPush(
                           ComicReadRoute(
                             comicInfo: comicInfo,
                             epsInfo: epsInfo,
@@ -380,10 +380,10 @@ class _ComicReadPageState extends State<_ComicReadPage>
               Center(
                 child: Container(
                   height: 1, // 设置高度为1像素
-                  width: screenWidth * 0.8,
+                  width: screenWidth * 48 / 50,
                   color: globalSetting.themeType
-                      ? Colors.grey.withOpacity(0.5)
-                      : Colors.white.withOpacity(0.5),
+                      ? Colors.grey.withValues(alpha: 0.5)
+                      : Colors.white.withValues(alpha: 0.5),
                 ),
               ),
               Row(
@@ -435,17 +435,17 @@ class _ComicReadPageState extends State<_ComicReadPage>
                                 ],
                               );
                             });
-                        if (result == null) return;
-                        if (mounted) return;
-                        AutoRouter.of(context).popAndPush(
-                          ComicReadRoute(
-                            comicInfo: comicInfo,
-                            epsInfo: epsInfo,
-                            doc: epsInfo[result - 1],
-                            comicId: comicInfo.id,
-                            isHistory: false,
-                          ),
-                        );
+                        if (result != null && mounted) {
+                          router.popAndPush(
+                            ComicReadRoute(
+                              comicInfo: comicInfo,
+                              epsInfo: epsInfo,
+                              doc: epsInfo[result - 1],
+                              comicId: comicInfo.id,
+                              isHistory: false,
+                            ),
+                          );
+                        }
                       },
                       child: Center(
                         child: Text(

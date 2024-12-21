@@ -91,12 +91,7 @@ class CategoriesShield extends StatelessWidget {
 
         if (!context.mounted) return;
 
-        context.read<FavouriteBloc>().add(
-              FavouriteEvent(
-                1,
-                Uuid().v4(),
-              ),
-            );
+        context.read<FavouriteBloc>().add(FavouriteEvent(1, Uuid().v4()));
       },
       child: Row(
         children: <Widget>[

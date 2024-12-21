@@ -22,10 +22,8 @@ KnightLeaderboard _$KnightLeaderboardFromJson(Map<String, dynamic> json) {
 mixin _$KnightLeaderboard {
   @JsonKey(name: "code")
   int get code => throw _privateConstructorUsedError;
-
   @JsonKey(name: "message")
   String get message => throw _privateConstructorUsedError;
-
   @JsonKey(name: "data")
   Data get data => throw _privateConstructorUsedError;
 
@@ -44,7 +42,6 @@ abstract class $KnightLeaderboardCopyWith<$Res> {
   factory $KnightLeaderboardCopyWith(
           KnightLeaderboard value, $Res Function(KnightLeaderboard) then) =
       _$KnightLeaderboardCopyWithImpl<$Res, KnightLeaderboard>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "code") int code,
@@ -61,7 +58,6 @@ class _$KnightLeaderboardCopyWithImpl<$Res, $Val extends KnightLeaderboard>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -107,7 +103,6 @@ abstract class _$$KnightLeaderboardImplCopyWith<$Res>
   factory _$$KnightLeaderboardImplCopyWith(_$KnightLeaderboardImpl value,
           $Res Function(_$KnightLeaderboardImpl) then) =
       __$$KnightLeaderboardImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -223,11 +218,9 @@ abstract class _KnightLeaderboard implements KnightLeaderboard {
   @override
   @JsonKey(name: "code")
   int get code;
-
   @override
   @JsonKey(name: "message")
   String get message;
-
   @override
   @JsonKey(name: "data")
   Data get data;
@@ -262,7 +255,6 @@ mixin _$Data {
 abstract class $DataCopyWith<$Res> {
   factory $DataCopyWith(Data value, $Res Function(Data) then) =
       _$DataCopyWithImpl<$Res, Data>;
-
   @useResult
   $Res call({@JsonKey(name: "users") List<User> users});
 }
@@ -274,7 +266,6 @@ class _$DataCopyWithImpl<$Res, $Val extends Data>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -299,7 +290,6 @@ abstract class _$$DataImplCopyWith<$Res> implements $DataCopyWith<$Res> {
   factory _$$DataImplCopyWith(
           _$DataImpl value, $Res Function(_$DataImpl) then) =
       __$$DataImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call({@JsonKey(name: "users") List<User> users});
@@ -338,7 +328,6 @@ class _$DataImpl implements _Data {
       _$$DataImplFromJson(json);
 
   final List<User> _users;
-
   @override
   @JsonKey(name: "users")
   List<User> get users {
@@ -407,40 +396,28 @@ User _$UserFromJson(Map<String, dynamic> json) {
 mixin _$User {
   @JsonKey(name: "_id")
   String get id => throw _privateConstructorUsedError;
-
   @JsonKey(name: "gender")
   String get gender => throw _privateConstructorUsedError;
-
   @JsonKey(name: "name")
   String get name => throw _privateConstructorUsedError;
-
   @JsonKey(name: "slogan")
   String? get slogan => throw _privateConstructorUsedError;
-
   @JsonKey(name: "title")
   String get title => throw _privateConstructorUsedError;
-
   @JsonKey(name: "verified")
   bool get verified => throw _privateConstructorUsedError;
-
   @JsonKey(name: "exp")
   int get exp => throw _privateConstructorUsedError;
-
   @JsonKey(name: "level")
   int get level => throw _privateConstructorUsedError;
-
   @JsonKey(name: "characters")
   List<String> get characters => throw _privateConstructorUsedError;
-
   @JsonKey(name: "role")
   String get role => throw _privateConstructorUsedError;
-
   @JsonKey(name: "avatar")
   Avatar get avatar => throw _privateConstructorUsedError;
-
   @JsonKey(name: "comicsUploaded")
   int get comicsUploaded => throw _privateConstructorUsedError;
-
   @JsonKey(name: "character")
   String? get character => throw _privateConstructorUsedError;
 
@@ -457,7 +434,6 @@ mixin _$User {
 abstract class $UserCopyWith<$Res> {
   factory $UserCopyWith(User value, $Res Function(User) then) =
       _$UserCopyWithImpl<$Res, User>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "_id") String id,
@@ -484,7 +460,6 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -579,7 +554,6 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
   factory _$$UserImplCopyWith(
           _$UserImpl value, $Res Function(_$UserImpl) then) =
       __$$UserImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -731,7 +705,6 @@ class _$UserImpl implements _User {
   @JsonKey(name: "level")
   final int level;
   final List<String> _characters;
-
   @override
   @JsonKey(name: "characters")
   List<String> get characters {
@@ -837,51 +810,39 @@ abstract class _User implements User {
   @override
   @JsonKey(name: "_id")
   String get id;
-
   @override
   @JsonKey(name: "gender")
   String get gender;
-
   @override
   @JsonKey(name: "name")
   String get name;
-
   @override
   @JsonKey(name: "slogan")
   String? get slogan;
-
   @override
   @JsonKey(name: "title")
   String get title;
-
   @override
   @JsonKey(name: "verified")
   bool get verified;
-
   @override
   @JsonKey(name: "exp")
   int get exp;
-
   @override
   @JsonKey(name: "level")
   int get level;
-
   @override
   @JsonKey(name: "characters")
   List<String> get characters;
-
   @override
   @JsonKey(name: "role")
   String get role;
-
   @override
   @JsonKey(name: "avatar")
   Avatar get avatar;
-
   @override
   @JsonKey(name: "comicsUploaded")
   int get comicsUploaded;
-
   @override
   @JsonKey(name: "character")
   String? get character;
@@ -902,10 +863,8 @@ Avatar _$AvatarFromJson(Map<String, dynamic> json) {
 mixin _$Avatar {
   @JsonKey(name: "originalName")
   String get originalName => throw _privateConstructorUsedError;
-
   @JsonKey(name: "path")
   String get path => throw _privateConstructorUsedError;
-
   @JsonKey(name: "fileServer")
   String get fileServer => throw _privateConstructorUsedError;
 
@@ -922,7 +881,6 @@ mixin _$Avatar {
 abstract class $AvatarCopyWith<$Res> {
   factory $AvatarCopyWith(Avatar value, $Res Function(Avatar) then) =
       _$AvatarCopyWithImpl<$Res, Avatar>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "originalName") String originalName,
@@ -937,7 +895,6 @@ class _$AvatarCopyWithImpl<$Res, $Val extends Avatar>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -972,7 +929,6 @@ abstract class _$$AvatarImplCopyWith<$Res> implements $AvatarCopyWith<$Res> {
   factory _$$AvatarImplCopyWith(
           _$AvatarImpl value, $Res Function(_$AvatarImpl) then) =
       __$$AvatarImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -1085,11 +1041,9 @@ abstract class _Avatar implements Avatar {
   @override
   @JsonKey(name: "originalName")
   String get originalName;
-
   @override
   @JsonKey(name: "path")
   String get path;
-
   @override
   @JsonKey(name: "fileServer")
   String get fileServer;

@@ -153,7 +153,7 @@ class _MainPageState extends State<MainPage> {
         child: NavigationBar(
           height: 68,
           backgroundColor:
-              Theme.of(context).colorScheme.surface.withOpacity(0.9),
+              Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
           destinations: [
             NavigationDestination(icon: Icon(Icons.home), label: "首页"),
             NavigationDestination(icon: Icon(Icons.leaderboard), label: "排行"),

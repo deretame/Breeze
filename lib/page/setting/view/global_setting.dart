@@ -34,8 +34,6 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       case ThemeMode.dark:
         currentTheme = "深色模式";
         break;
-      default:
-        currentTheme = "跟随系统"; // 默认选择
     }
 
     return Scaffold(

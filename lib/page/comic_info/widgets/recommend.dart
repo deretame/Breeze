@@ -63,8 +63,8 @@ class _RecommendWidget extends StatelessWidget {
                 boxShadow: [
                   BoxShadow(
                     color: globalSetting.themeType
-                        ? Colors.black.withOpacity(0.2)
-                        : Colors.white.withOpacity(0.2),
+                        ? Colors.black.withValues(alpha: 0.2)
+                        : Colors.white.withValues(alpha: 0.2),
                     spreadRadius: 2,
                     blurRadius: 2,
                   ),

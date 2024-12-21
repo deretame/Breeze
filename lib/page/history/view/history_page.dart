@@ -132,8 +132,8 @@ class _HistoryPageState extends State<_HistoryPage>
                   boxShadow: [
                     BoxShadow(
                       color: globalSetting.themeType
-                          ? Colors.black.withOpacity(0.2)
-                          : Colors.white.withOpacity(0.3),
+                          ? Colors.black.withValues(alpha: 0.2)
+                          : Colors.white.withValues(alpha: 0.3),
                       spreadRadius: 2,
                       blurRadius: 2,
                       offset: const Offset(0, 2),

@@ -1,6 +1,6 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
-version: 1.10.1+36
+version: 1.10.2+37
 
 environment:
   sdk: ">=3.0.0"
@@ -24,9 +24,9 @@ dependencies:
   scrollable_positioned_list: ^0.3.8   # 精确定位滚动列表
 
   # --------------- 状态管理库 ---------------
-  mobx: ^2.4.0                  # 响应式状态管理
-  mobx_codegen: ^2.6.2          # MobX 代码生成器
-  flutter_mobx: ^2.2.1+1        # MobX 的 Flutter 绑定
+  mobx: ^2.5.0                  # 响应式状态管理
+  mobx_codegen: ^2.7.0          # MobX 代码生成器
+  flutter_mobx: ^2.3.0          # MobX 的 Flutter 绑定
   bloc: ^8.1.4                  # BLoC 核心库
   flutter_bloc: ^8.1.6          # BLoC 模式实现
   hydrated_bloc: ^9.1.5         # 持久化状态的 BLoC
@@ -52,10 +52,10 @@ dependencies:
   # --------------- 系统功能与工具 ---------------
   path_provider: ^2.1.5                         # 文件系统路径获取
   path: ^1.9.0                                  # 文件路径处理
-  package_info_plus: ^8.1.1                     # 应用包信息获取
-  device_info_plus_platform_interface: ^7.0.1   # 设备信息平台接口
+  package_info_plus: ^8.1.2                     # 应用包信息获取
+  device_info_plus_platform_interface: ^7.0.2   # 设备信息平台接口
   permission_handler: ^11.3.1                   # 权限管理
-  device_info_plus: ^11.1.1                     # 设备信息获取
+  device_info_plus: ^11.2.0                     # 设备信息获取
   image_gallery_saver_plus: ^3.0.5              # 图片保存工具
 
   # --------------- 功能组件 ---------------
@@ -67,7 +67,7 @@ dependencies:
   # --------------- 工具 ---------------
   collection: ^1.18.0           # 集合操作工具
   equatable: ^2.0.3             # 简化对象比较
-  stream_transform: ^2.0.0      # 流变换工具
+  stream_transform: ^2.1.1      # 流变换工具
   meta: ^1.15.0                 # 元数据支持
 
 dev_dependencies:
@@ -75,7 +75,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0           # 代码规范检查
   auto_route_generator: ^9.0.0    # 路由管理代码生成
-  build_runner: ^2.4.13           # 代码生成器运行工具
+  build_runner: ^2.4.14           # 代码生成器运行工具
   hive_generator: ^2.0.1          # Hive 代码生成器
   objectbox_generator: ^4.0.3     # ObjectBox 代码生成器
 

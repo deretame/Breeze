@@ -27,6 +27,9 @@
                     android:name="io.flutter.embedding.android.NormalTheme"
                     android:resource="@style/NormalTheme"
             />
+            <!--            <meta-data-->
+            <!--                    android:name="io.flutter.embedding.android.EnableImpeller"-->
+            <!--                    android:value="true"/>-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -37,6 +40,9 @@
         <meta-data
                 android:name="flutterEmbedding"
                 android:value="2"/>
+        <meta-data
+                android:name="io.flutter.embedding.android.EnableImpeller"
+                android:value="false"/>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

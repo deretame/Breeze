@@ -72,8 +72,8 @@ class ComicEntryWidget extends StatelessWidget {
                   boxShadow: [
                     BoxShadow(
                       color: globalSetting.themeType
-                          ? Colors.black.withOpacity(0.2)
-                          : Colors.white.withOpacity(0.3),
+                          ? Colors.black.withValues(alpha: 0.2)
+                          : Colors.white.withValues(alpha: 0.3),
                       spreadRadius: 1,
                       blurRadius: 6,
                       offset: const Offset(0, 2),

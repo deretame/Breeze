@@ -92,8 +92,8 @@ class _TagsAndCategoriesWidgetState extends State<TagsAndCategoriesWidget> {
                         boxShadow: [
                           BoxShadow(
                             color: globalSetting.themeType
-                                ? Colors.black.withOpacity(0.2)
-                                : Colors.white.withOpacity(0.4),
+                                ? Colors.black.withValues(alpha: 0.2)
+                                : Colors.white.withValues(alpha: 0.4),
                             spreadRadius: 1,
                             blurRadius: 1,
                             offset: const Offset(0, 0),
@@ -144,7 +144,7 @@ class _TagsAndCategoriesWidgetState extends State<TagsAndCategoriesWidget> {
                             style: TextStyle(
                               fontSize: 12,
                               color: globalSetting.themeType
-                                  ? Colors.pink.withOpacity(0.8)
+                                  ? Colors.pink.withValues(alpha: 0.8)
                                   : Colors.blue,
                             ),
                           ),

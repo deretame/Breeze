@@ -128,8 +128,6 @@ class CategoryWidget extends StatelessWidget {
                 },
                 child: Icon(Icons.refresh),
               );
-            default:
-              return SizedBox.shrink(); // 避免状态未定义导致的错误
           }
         },
       ),

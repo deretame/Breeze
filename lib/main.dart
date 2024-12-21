@@ -217,7 +217,4 @@ class _MyAppState extends State<MyApp> {
       },
     );
   }
-
-  // 留待将来实现
-  buildFluentUI(BuildContext context) {}
 }

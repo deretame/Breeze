@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../../../main.dart';
@@ -55,73 +56,83 @@ class _RecommendWidget extends StatelessWidget {
             if (state.comicList == null) {
               return SizedBox.shrink();
             }
-            return Container(
-              height: 200,
-              decoration: BoxDecoration(
-                color: globalSetting.backgroundColor,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: globalSetting.themeType
-                        ? Colors.black.withValues(alpha: 0.2)
-                        : Colors.white.withValues(alpha: 0.2),
-                    spreadRadius: 2,
-                    blurRadius: 2,
+            return Observer(
+              builder: (context) {
+                return Container(
+                  height: 200,
+                  decoration: BoxDecoration(
+                    color: globalSetting.backgroundColor,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: globalSetting.themeType
+                            ? Colors.black.withValues(alpha: 0.2)
+                            : Colors.white.withValues(alpha: 0.2),
+                        spreadRadius: 2,
+                        blurRadius: 2,
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: ClipRRect(
-                // 使用ClipRRect来裁剪子组件
-                borderRadius: BorderRadius.circular(10), // 设置与外层Container相同的圆角
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: List.generate(
-                      state.comicList!.length,
-                      (index) {
-                        return SizedBox(
-                          width: 100,
-                          height: 200,
-                          child: Column(
-                            children: [
-                              _Cover(
-                                pictureInfo: PictureInfo(
-                                  from: "bika",
-                                  url: state.comicList![index].thumb.fileServer,
-                                  path: state.comicList![index].thumb.path,
-                                  chapterId: state.comicList![index].id,
-                                  pictureType: "cover",
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  // 跳转到漫画详情页
-                                  AutoRouter.of(context).push(
-                                    ComicInfoRoute(
-                                        comicId: state.comicList![index].id),
-                                  );
-                                },
-                                child: SizedBox(
-                                  width: 100,
-                                  height: 50,
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.vertical,
-                                    child: Text(
-                                      state.comicList![index].title,
-                                      style: TextStyle(fontSize: 12),
-                                      softWrap: true, // 允许换行
+                  child: ClipRRect(
+                    // 使用ClipRRect来裁剪子组件
+                    borderRadius: BorderRadius.circular(10),
+                    // 设置与外层Container相同的圆角
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: List.generate(
+                          state.comicList!.length,
+                          (index) {
+                            return SizedBox(
+                              width: 100,
+                              height: 200,
+                              child: Column(
+                                children: [
+                                  _Cover(
+                                    pictureInfo: PictureInfo(
+                                      from: "bika",
+                                      url: state
+                                          .comicList![index].thumb.fileServer,
+                                      path: state.comicList![index].thumb.path,
+                                      chapterId: state.comicList![index].id,
+                                      pictureType: "cover",
                                     ),
                                   ),
-                                ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      // 跳转到漫画详情页
+                                      AutoRouter.of(context).push(
+                                        ComicInfoRoute(
+                                          comicId: state.comicList![index].id,
+                                        ),
+                                      );
+                                    },
+                                    child: SizedBox(
+                                      width: 100,
+                                      height: 50,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.vertical,
+                                        child: Text(
+                                          state.comicList![index].title,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: globalSetting.textColor,
+                                          ),
+                                          softWrap: true, // 允许换行
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        );
-                      },
+                            );
+                          },
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
+                );
+              },
             );
         }
       },

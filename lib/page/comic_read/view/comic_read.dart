@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -108,6 +109,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
   @override
   void initState() {
     super.initState();
+    // 隐藏状态栏
     _itemScrollController = ItemScrollController();
     _itemPositionsListener = ItemPositionsListener.create();
 
@@ -131,8 +133,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
 
   @override
   void dispose() {
-    // 在 dispose 中恢复状态栏可见性
-    // SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _itemPositionsListener.itemPositions
         .removeListener(() => getTopThirdItemIndex());
     super.dispose();
@@ -142,20 +143,22 @@ class _ComicReadPageState extends State<_ComicReadPage>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(color: Color(0xFFD3D3D3)),
-        child: BlocBuilder<PageBloc, PageState>(
-          builder: (context, state) {
-            switch (state.status) {
-              case PageStatus.initial:
-                return const Center(child: CircularProgressIndicator());
-              case PageStatus.failure:
-                return _failureWidget(state);
-              case PageStatus.success:
-                return _successWidget(state);
-            }
-          },
-        ),
+      body: BlocBuilder<PageBloc, PageState>(
+        builder: (context, state) {
+          switch (state.status) {
+            case PageStatus.initial:
+              return const Center(child: CircularProgressIndicator());
+            case PageStatus.failure:
+              return _failureWidget(state);
+            case PageStatus.success:
+              // return _successWidget(state);
+              return SafeArea(
+                top: false,
+                bottom: false,
+                child: _successWidget(state),
+              );
+          }
+        },
       ),
     );
   }
@@ -182,6 +185,9 @@ class _ComicReadPageState extends State<_ComicReadPage>
   }
 
   Widget _successWidget(PageState state) {
+    if (_isVisible == false) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+    }
     epPages = state.result!;
     // 在成功加载状态下设置 _totalSlots
     if (_totalSlots == 0) {
@@ -205,48 +211,59 @@ class _ComicReadPageState extends State<_ComicReadPage>
     // debugPrint('statusBarHeight : $statusBarHeight');
     return Stack(
       children: [
-        ScrollablePositionedList.builder(
-          itemCount: state.medias!.length + 2,
-          itemBuilder: (context, index) {
-            // debugPrint('index: $index');
-            // debugPrint('itemCount: ${state.medias!.length + 2}');
-            if (index == 0) {
-              return Container(
-                height: statusBarHeight,
-                decoration: BoxDecoration(color: Color(0xFF2D2D2D)),
-              );
-            } else if (index == state.medias!.length + 1) {
-              return Container(
-                padding: EdgeInsets.all(16.0),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(color: Color(0xFF2D2D2D)),
-                child: Padding(
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              _isVisible = !_isVisible;
+              debugPrint('状态栏可见性：$_isVisible');
+              if (_isVisible) {
+                SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+              }
+            });
+          },
+          child: ScrollablePositionedList.builder(
+            itemCount: state.medias!.length + 2,
+            itemBuilder: (context, index) {
+              // debugPrint('index: $index');
+              // debugPrint('itemCount: ${state.medias!.length + 2}');
+              if (index == 0) {
+                return Container(
+                  height: statusBarHeight,
+                  decoration: BoxDecoration(color: Color(0xFF2D2D2D)),
+                );
+              } else if (index == state.medias!.length + 1) {
+                return Container(
                   padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    "章节结束",
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: Color(0xFFCCCCCC),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(color: Color(0xFF2D2D2D)),
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      "章节结束",
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Color(0xFFCCCCCC),
+                      ),
                     ),
                   ),
-                ),
-              );
-            } else {
-              return _ImageWidget(
-                media: state.medias![index - 1],
-                comicId: comicId,
-                epsId: doc.order,
-                index: index - 1,
-              );
-            }
-          },
-          itemScrollController: _itemScrollController,
-          itemPositionsListener: _itemPositionsListener,
+                );
+              } else {
+                return _ImageWidget(
+                  media: state.medias![index - 1],
+                  comicId: comicId,
+                  epsId: doc.order,
+                  index: index - 1,
+                );
+              }
+            },
+            itemScrollController: _itemScrollController,
+            itemPositionsListener: _itemPositionsListener,
+          ),
         ),
         _appBarWidget(),
         _pageCountWidget(),
         _bottomWidget(),
-        _bottomButton(),
+        // _bottomButton(),
       ],
     );
   }
@@ -254,7 +271,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
   Widget _appBarWidget() {
     // 顶部悬浮组件
     return AnimatedPositioned(
-      duration: _animationDuration,
+      duration: _animationDuration + Duration(milliseconds: 100),
       top: _isVisible ? 0 : -kToolbarHeight - statusBarHeight,
       // 隐藏时往上移动
       left: 0,
@@ -555,20 +572,20 @@ class _ComicReadPageState extends State<_ComicReadPage>
         false; // 处理返回值为空的情况
   }
 
-  Widget _bottomButton() {
-    // 底部悬浮按钮
-    return AnimatedPositioned(
-      duration: _animationDuration,
-      bottom: _isVisible ? 10 + _bottomWidgetHeight.toDouble() : 10,
-      // 隐藏时位置往上移动底部组件的高度
-      right: 10,
-      // 调整FloatingActionButton的位置
-      child: FloatingActionButton(
-        onPressed: toggleVisibility, // 点击时切换可见性
-        child: const Icon(Icons.density_medium), // 更改按钮图标
-      ),
-    );
-  }
+  // Widget _bottomButton() {
+  //   // 底部悬浮按钮
+  //   return AnimatedPositioned(
+  //     duration: _animationDuration,
+  //     bottom: _isVisible ? 10 + _bottomWidgetHeight.toDouble() : 10,
+  //     // 隐藏时位置往上移动底部组件的高度
+  //     right: 10,
+  //     // 调整FloatingActionButton的位置
+  //     child: FloatingActionButton(
+  //       onPressed: toggleVisibility, // 点击时切换可见性
+  //       child: const Icon(Icons.density_medium), // 更改按钮图标
+  //     ),
+  //   );
+  // }
 
   // 切换状态栏和AppBar的显示状态
   void toggleVisibility() {
@@ -756,7 +773,8 @@ class _ImageWidgetState extends State<_ImageWidget>
                     child: Image.asset('asset/image/error_image/404.png'),
                   );
                 } else {
-                  return SizedBox(
+                  return Container(
+                    color: Color(0xFF2D2D2D),
                     height: screenWidth,
                     width: screenWidth,
                     child: InkWell(
@@ -774,16 +792,13 @@ class _ImageWidgetState extends State<_ImageWidget>
                             );
                       },
                       child: Center(
-                        child: SizedBox(
-                          height: screenWidth,
-                          width: screenWidth,
-                          child: Center(
-                            child: Text(
-                              "${state.result.toString()}\n加载失败，点击重试",
-                              style: TextStyle(fontSize: 20),
-                              textAlign: TextAlign.center,
-                            ),
+                        child: Text(
+                          "${state.result.toString()}\n加载失败，点击重试",
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Color(0xFFCCCCCC),
                           ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),

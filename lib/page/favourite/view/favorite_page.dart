@@ -73,167 +73,170 @@ class _FavoritePageState extends State<_FavoritePage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("收藏")),
-      body: Stack(
-        children: <Widget>[
-          Positioned.fill(
-            child: Column(
-              children: <Widget>[
-                SizedBox(height: 35), // 为顶部阴影容器预留空间
-                Expanded(
-                  child: BlocBuilder<FavouriteBloc, FavouriteState>(
-                    builder: (context, state) {
-                      switch (state.status) {
-                        case FavouriteStatus.initial:
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        case FavouriteStatus.failure:
-                          return Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  '${state.result.toString()}\n加载失败',
-                                  style: TextStyle(fontSize: 20),
-                                ),
-                                SizedBox(height: 10), // 添加间距
-                                ElevatedButton(
-                                  onPressed: () {
-                                    _refresh();
-                                  },
-                                  child: Text('点击重试'),
-                                ),
-                              ],
-                            ),
-                          );
-                        case FavouriteStatus.success:
-                          comics = state.comics;
-                          pageCount = state.pageCount;
-                          pagesCount = state.pagesCount;
-                          refresh = state.refresh;
-                          if (state.comics.length < 8 && !state.hasReachedMax) {
-                            _fetchFavoriteResult();
-                          }
-                          if (state.comics.isEmpty) {
+      body: Observer(builder: (context) {
+        return Stack(
+          children: <Widget>[
+            Positioned.fill(
+              child: Column(
+                children: <Widget>[
+                  SizedBox(height: 35), // 为顶部阴影容器预留空间
+                  Expanded(
+                    child: BlocBuilder<FavouriteBloc, FavouriteState>(
+                      builder: (context, state) {
+                        switch (state.status) {
+                          case FavouriteStatus.initial:
                             return const Center(
-                              child: Text(
-                                '啥都没有',
-                                style: TextStyle(fontSize: 20.0),
-                              ),
+                              child: CircularProgressIndicator(),
                             );
-                          }
-                          return ListView.builder(
-                            itemBuilder: (BuildContext context, int index) {
-                              // 如果索引等于状态的 comics.length，并且已经达到最大值
-                              if (state.hasReachedMax &&
-                                  index == state.comics.length) {
-                                return const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(30.0),
-                                    child: Text(
-                                      '你来到了未知领域呢~',
-                                      style: TextStyle(fontSize: 20.0),
-                                    ),
+                          case FavouriteStatus.failure:
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    '${state.result.toString()}\n加载失败',
+                                    style: TextStyle(fontSize: 20),
                                   ),
-                                );
-                              } else {
-                                return ComicEntryWidget(
-                                  comicEntryInfo: state.comics[index].doc,
-                                );
-                              }
-                            },
-                            itemCount: state.hasReachedMax
-                                ? state.comics.length + 1 // 添加用于提示的文本
-                                : state.comics.length,
-                            controller: _scrollController,
-                          );
-                        case FavouriteStatus.loadingMore:
-                          return ListView.builder(
-                            itemBuilder: (BuildContext context, int index) {
-                              if (index == state.comics.length) {
-                                return const BottomLoader(); // 显示加载动画
-                              } else {
-                                return ComicEntryWidget(
-                                  comicEntryInfo: state.comics[index].doc,
-                                );
-                              }
-                            },
-                            itemCount: state.comics.length + 1,
-                            controller: _scrollController,
-                          );
-                        case FavouriteStatus.getMoreFailure:
-                          comics = state.comics;
-                          pageCount = state.pageCount;
-                          refresh = state.refresh;
-                          return ListView.builder(
-                            itemBuilder: (BuildContext context, int index) {
-                              if (index == state.comics.length) {
-                                return Center(
-                                  child: ElevatedButton(
+                                  SizedBox(height: 10), // 添加间距
+                                  ElevatedButton(
                                     onPressed: () {
                                       _refresh();
                                     },
                                     child: Text('点击重试'),
                                   ),
-                                );
-                              } else {
-                                return ComicEntryWidget(
-                                  comicEntryInfo: state.comics[index].doc,
-                                );
-                              }
-                            },
-                            itemCount: state.comics.length + 1,
-                            controller: _scrollController,
-                          );
-                      }
-                    },
+                                ],
+                              ),
+                            );
+                          case FavouriteStatus.success:
+                            comics = state.comics;
+                            pageCount = state.pageCount;
+                            pagesCount = state.pagesCount;
+                            refresh = state.refresh;
+                            if (state.comics.length < 8 &&
+                                !state.hasReachedMax) {
+                              _fetchFavoriteResult();
+                            }
+                            if (state.comics.isEmpty) {
+                              return const Center(
+                                child: Text(
+                                  '啥都没有',
+                                  style: TextStyle(fontSize: 20.0),
+                                ),
+                              );
+                            }
+                            return ListView.builder(
+                              itemBuilder: (BuildContext context, int index) {
+                                // 如果索引等于状态的 comics.length，并且已经达到最大值
+                                if (state.hasReachedMax &&
+                                    index == state.comics.length) {
+                                  return const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(30.0),
+                                      child: Text(
+                                        '你来到了未知领域呢~',
+                                        style: TextStyle(fontSize: 20.0),
+                                      ),
+                                    ),
+                                  );
+                                } else {
+                                  return ComicEntryWidget(
+                                    comicEntryInfo: state.comics[index].doc,
+                                  );
+                                }
+                              },
+                              itemCount: state.hasReachedMax
+                                  ? state.comics.length + 1 // 添加用于提示的文本
+                                  : state.comics.length,
+                              controller: _scrollController,
+                            );
+                          case FavouriteStatus.loadingMore:
+                            return ListView.builder(
+                              itemBuilder: (BuildContext context, int index) {
+                                if (index == state.comics.length) {
+                                  return const BottomLoader(); // 显示加载动画
+                                } else {
+                                  return ComicEntryWidget(
+                                    comicEntryInfo: state.comics[index].doc,
+                                  );
+                                }
+                              },
+                              itemCount: state.comics.length + 1,
+                              controller: _scrollController,
+                            );
+                          case FavouriteStatus.getMoreFailure:
+                            comics = state.comics;
+                            pageCount = state.pageCount;
+                            refresh = state.refresh;
+                            return ListView.builder(
+                              itemBuilder: (BuildContext context, int index) {
+                                if (index == state.comics.length) {
+                                  return Center(
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        _refresh();
+                                      },
+                                      child: Text('点击重试'),
+                                    ),
+                                  );
+                                } else {
+                                  return ComicEntryWidget(
+                                    comicEntryInfo: state.comics[index].doc,
+                                  );
+                                }
+                              },
+                              itemCount: state.comics.length + 1,
+                              controller: _scrollController,
+                            );
+                        }
+                      },
+                    ),
                   ),
+                ],
+              ),
+            ),
+            // 这里是操作栏
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: 35,
+                decoration: BoxDecoration(
+                  color: globalSetting.backgroundColor,
+                  boxShadow: [
+                    BoxShadow(
+                      color: globalSetting.themeType
+                          ? Colors.black.withValues(alpha: 0.2)
+                          : Colors.white.withValues(alpha: 0.3),
+                      spreadRadius: 2,
+                      blurRadius: 2,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          // 这里是操作栏
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 35,
-              decoration: BoxDecoration(
-                color: globalSetting.backgroundColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: globalSetting.themeType
-                        ? Colors.black.withValues(alpha: 0.2)
-                        : Colors.white.withValues(alpha: 0.3),
-                    spreadRadius: 2,
-                    blurRadius: 2,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: <Widget>[
-                  SizedBox(width: 5),
-                  CategoriesShield(),
-                  Expanded(child: Container()),
-                  Observer(builder: (context) {
-                    return Text(
-                      pageStore.date,
-                      style: TextStyle(
-                        fontSize: 16,
-                      ),
-                    );
-                  }),
-                  SizedBox(
-                    width: 5,
-                  ),
-                ],
+                child: Row(
+                  children: <Widget>[
+                    SizedBox(width: 5),
+                    CategoriesShield(),
+                    Expanded(child: Container()),
+                    Observer(builder: (context) {
+                      return Text(
+                        pageStore.date,
+                        style: TextStyle(
+                          fontSize: 16,
+                        ),
+                      );
+                    }),
+                    SizedBox(
+                      width: 5,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      }),
       floatingActionButton: SlideTransition(
         position: _slideAnimation,
         child: PageSkip(
@@ -252,21 +255,11 @@ class _FavoritePageState extends State<_FavoritePage>
       temp = Uuid().v4().toString();
     }
     // 使用原本输入参数进行重新搜索
-    context.read<FavouriteBloc>().add(
-          FavouriteEvent(
-            pageCount,
-            temp,
-          ),
-        );
+    context.read<FavouriteBloc>().add(FavouriteEvent(pageCount, temp));
   }
 
   void _fetchFavoriteResult() {
-    context.read<FavouriteBloc>().add(
-          FavouriteEvent(
-            pageCount + 1,
-            refresh,
-          ),
-        );
+    context.read<FavouriteBloc>().add(FavouriteEvent(pageCount + 1, refresh));
   }
 
   void _onScroll() {

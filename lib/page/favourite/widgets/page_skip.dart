@@ -75,12 +75,9 @@ class PageSkip extends StatelessWidget {
         if (pageSkip != 0) {
           if (!context.mounted) return;
 
-          context.read<FavouriteBloc>().add(
-                FavouriteEvent(
-                  pageSkip!,
-                  Uuid().v4(),
-                ),
-              );
+          context
+              .read<FavouriteBloc>()
+              .add(FavouriteEvent(pageSkip!, Uuid().v4()));
 
           pageStore.setDate("$pageSkip/$pagesCount");
         }

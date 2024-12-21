@@ -88,26 +88,14 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           SizedBox(height: screenWidth / 200),
-                          RichText(
-                            text: TextSpan(
-                              children: <TextSpan>[
-                                TextSpan(
-                                  text: _getLimitedTitle(comic.title, 30),
-                                  style: TextStyle(
-                                    color: globalSetting.textColor,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: comic.finished ? "(完)" : "",
-                                  style: TextStyle(
-                                    color: globalSetting.themeType
-                                        ? Colors.red
-                                        : Colors.yellow,
-                                  ),
-                                ),
-                              ],
+                          Text(
+                            comic.title,
+                            style: TextStyle(
+                              color: globalSetting.textColor,
+                              fontSize: 18,
                             ),
+                            maxLines: 3, // 最大行数
+                            overflow: TextOverflow.ellipsis, // 超出时使用省略号
                           ),
                           if (comic.author.toString() != '') ...[
                             const SizedBox(height: 5),
@@ -123,6 +111,8 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                           const SizedBox(height: 5),
                           Text(
                             _getCategories(comic.categories),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
                             style: TextStyle(
                               color: globalSetting.textColor,
                             ),
@@ -138,6 +128,15 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                               // const SizedBox(width: 10.0),
                               Text(
                                 "$_type：${comic.leaderboardCount.toString()}",
+                              ),
+                              SizedBox(width: 10.0),
+                              Text(
+                                comic.finished ? "完结" : "",
+                                style: TextStyle(
+                                  color: globalSetting.themeType
+                                      ? Colors.red
+                                      : Colors.yellow,
+                                ),
                               ),
                             ],
                           ),

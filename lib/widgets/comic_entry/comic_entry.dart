@@ -23,18 +23,12 @@ class ComicEntryWidget extends StatelessWidget {
   });
 
   String _getCategories(List<String>? categories) {
-    int count = 0;
-    int mainCount = 8;
     if (categories == null) {
       return "";
     } else {
       String temp = "";
       for (var category in categories) {
         temp += "$category ";
-        count++;
-        if (count == mainCount) {
-          break;
-        }
       }
       return "分类: $temp";
     }
@@ -86,34 +80,14 @@ class ComicEntryWidget extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           SizedBox(height: screenWidth / 200),
-                          Observer(
-                            builder: (context) {
-                              return RichText(
-                                text: TextSpan(
-                                  children: <TextSpan>[
-                                    TextSpan(
-                                      text: comicEntryInfo.title,
-                                      // 文本内容
-                                      style: TextStyle(
-                                        color: globalSetting.textColor,
-                                        fontSize: 18,
-                                      ),
-                                    ),
-                                    TextSpan(
-                                      text:
-                                          comicEntryInfo.finished ? "(完)" : "",
-                                      style: TextStyle(
-                                        color: globalSetting.themeType
-                                            ? Colors.red
-                                            : Colors.yellow,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                maxLines: 4, // 最大行数
-                                overflow: TextOverflow.ellipsis, // 超出时使用省略号
-                              );
-                            },
+                          Text(
+                            comicEntryInfo.title,
+                            style: TextStyle(
+                              color: globalSetting.textColor,
+                              fontSize: 18,
+                            ),
+                            maxLines: 3, // 最大行数
+                            overflow: TextOverflow.ellipsis, // 超出时使用省略号
                           ),
                           if (comicEntryInfo.author.toString() != '') ...[
                             const SizedBox(height: 5),
@@ -131,6 +105,8 @@ class ComicEntryWidget extends StatelessWidget {
                           const SizedBox(height: 5),
                           Text(
                             _getCategories(comicEntryInfo.categories),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
                             style: TextStyle(
                               color: globalSetting.textColor,
                             ),
@@ -146,6 +122,15 @@ class ComicEntryWidget extends StatelessWidget {
                               const SizedBox(width: 10.0),
                               Text(
                                 comicEntryInfo.likesCount.toString(),
+                              ),
+                              SizedBox(width: 10.0),
+                              Text(
+                                comicEntryInfo.finished ? "完结" : "",
+                                style: TextStyle(
+                                  color: globalSetting.themeType
+                                      ? Colors.red
+                                      : Colors.yellow,
+                                ),
                               ),
                             ],
                           ),

@@ -221,43 +221,48 @@ class _ComicReadPageState extends State<_ComicReadPage>
               }
             });
           },
-          child: ScrollablePositionedList.builder(
-            itemCount: state.medias!.length + 2,
-            itemBuilder: (context, index) {
-              // debugPrint('index: $index');
-              // debugPrint('itemCount: ${state.medias!.length + 2}');
-              if (index == 0) {
-                return Container(
-                  height: statusBarHeight,
-                  decoration: BoxDecoration(color: Color(0xFF2D2D2D)),
-                );
-              } else if (index == state.medias!.length + 1) {
-                return Container(
-                  padding: EdgeInsets.all(16.0),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(color: Color(0xFF2D2D2D)),
-                  child: Padding(
+          child: InteractiveViewer(
+            boundaryMargin: EdgeInsets.zero,
+            minScale: 1.0,
+            maxScale: 4.0,
+            child: ScrollablePositionedList.builder(
+              itemCount: state.medias!.length + 2,
+              itemBuilder: (context, index) {
+                // debugPrint('index: $index');
+                // debugPrint('itemCount: ${state.medias!.length + 2}');
+                if (index == 0) {
+                  return Container(
+                    height: statusBarHeight,
+                    decoration: BoxDecoration(color: Color(0xFF2D2D2D)),
+                  );
+                } else if (index == state.medias!.length + 1) {
+                  return Container(
                     padding: EdgeInsets.all(16.0),
-                    child: Text(
-                      "章节结束",
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Color(0xFFCCCCCC),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: Color(0xFF2D2D2D)),
+                    child: Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Text(
+                        "章节结束",
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Color(0xFFCCCCCC),
+                        ),
                       ),
                     ),
-                  ),
-                );
-              } else {
-                return _ImageWidget(
-                  media: state.medias![index - 1],
-                  comicId: comicId,
-                  epsId: doc.order,
-                  index: index - 1,
-                );
-              }
-            },
-            itemScrollController: _itemScrollController,
-            itemPositionsListener: _itemPositionsListener,
+                  );
+                } else {
+                  return _ImageWidget(
+                    media: state.medias![index - 1],
+                    comicId: comicId,
+                    epsId: doc.order,
+                    index: index - 1,
+                  );
+                }
+              },
+              itemScrollController: _itemScrollController,
+              itemPositionsListener: _itemPositionsListener,
+            ),
           ),
         ),
         _appBarWidget(),

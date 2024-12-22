@@ -241,9 +241,253 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "3:7460148923873911806",
+      "lastPropertyId": "47:7208513777776492680",
+      "name": "BikaComicDownload",
+      "properties": [
+        {
+          "id": "1:4923628106125040485",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3554959827736600362",
+          "name": "comicId",
+          "type": 9
+        },
+        {
+          "id": "3:1427619926530511655",
+          "name": "creatorId",
+          "type": 9
+        },
+        {
+          "id": "4:4142625094400070682",
+          "name": "creatorGender",
+          "type": 9
+        },
+        {
+          "id": "5:9164204085501230419",
+          "name": "creatorName",
+          "type": 9
+        },
+        {
+          "id": "6:7056690697822955471",
+          "name": "creatorVerified",
+          "type": 1
+        },
+        {
+          "id": "7:1196679959829248871",
+          "name": "creatorExp",
+          "type": 6
+        },
+        {
+          "id": "8:3407091773057184846",
+          "name": "creatorLevel",
+          "type": 6
+        },
+        {
+          "id": "9:5550392932065764404",
+          "name": "creatorCharacters",
+          "type": 30
+        },
+        {
+          "id": "10:1315545036424471067",
+          "name": "creatorCharactersString",
+          "type": 9
+        },
+        {
+          "id": "11:8365554726961843446",
+          "name": "creatorRole",
+          "type": 9
+        },
+        {
+          "id": "12:1271512191147890050",
+          "name": "creatorTitle",
+          "type": 9
+        },
+        {
+          "id": "13:1352812103378274905",
+          "name": "creatorAvatarOriginalName",
+          "type": 9
+        },
+        {
+          "id": "14:2664268321178212250",
+          "name": "creatorAvatarPath",
+          "type": 9
+        },
+        {
+          "id": "15:1966089426968830101",
+          "name": "creatorAvatarFileServer",
+          "type": 9
+        },
+        {
+          "id": "16:5479377330988847943",
+          "name": "creatorSlogan",
+          "type": 9
+        },
+        {
+          "id": "17:5508856510253445366",
+          "name": "title",
+          "type": 9
+        },
+        {
+          "id": "18:1824819675243429458",
+          "name": "description",
+          "type": 9
+        },
+        {
+          "id": "19:3849482297537457547",
+          "name": "thumbOriginalName",
+          "type": 9
+        },
+        {
+          "id": "20:9124311546549270993",
+          "name": "thumbPath",
+          "type": 9
+        },
+        {
+          "id": "21:8057728940436183589",
+          "name": "thumbFileServer",
+          "type": 9
+        },
+        {
+          "id": "22:3601599707357720798",
+          "name": "author",
+          "type": 9
+        },
+        {
+          "id": "23:5681410930332241726",
+          "name": "chineseTeam",
+          "type": 9
+        },
+        {
+          "id": "24:8492101127870452125",
+          "name": "categories",
+          "type": 30
+        },
+        {
+          "id": "25:1591588799040851806",
+          "name": "categoriesString",
+          "type": 9
+        },
+        {
+          "id": "26:5052159655123242634",
+          "name": "tags",
+          "type": 30
+        },
+        {
+          "id": "27:8320134336830704577",
+          "name": "tagsString",
+          "type": 9
+        },
+        {
+          "id": "28:8393049675390589083",
+          "name": "pagesCount",
+          "type": 6
+        },
+        {
+          "id": "29:1497769676407279907",
+          "name": "epsCount",
+          "type": 6
+        },
+        {
+          "id": "30:8451687313576407960",
+          "name": "finished",
+          "type": 1
+        },
+        {
+          "id": "31:4227200661595813312",
+          "name": "updatedAt",
+          "type": 10
+        },
+        {
+          "id": "32:5076984150659930325",
+          "name": "createdAt",
+          "type": 10
+        },
+        {
+          "id": "33:7262789391453800225",
+          "name": "allowDownload",
+          "type": 1
+        },
+        {
+          "id": "34:3471849455686713505",
+          "name": "allowComment",
+          "type": 1
+        },
+        {
+          "id": "35:7321012392570564878",
+          "name": "totalLikes",
+          "type": 6
+        },
+        {
+          "id": "36:9040581488769323125",
+          "name": "totalViews",
+          "type": 6
+        },
+        {
+          "id": "37:7139261190345985873",
+          "name": "totalComments",
+          "type": 6
+        },
+        {
+          "id": "38:6249366144384923469",
+          "name": "viewsCount",
+          "type": 6
+        },
+        {
+          "id": "39:1101017384685397616",
+          "name": "likesCount",
+          "type": 6
+        },
+        {
+          "id": "40:8728264124544160543",
+          "name": "commentsCount",
+          "type": 6
+        },
+        {
+          "id": "41:1917361128172069246",
+          "name": "isFavourite",
+          "type": 1
+        },
+        {
+          "id": "42:3019412222241484340",
+          "name": "isLiked",
+          "type": 1
+        },
+        {
+          "id": "43:6890224761648698547",
+          "name": "history",
+          "type": 10
+        },
+        {
+          "id": "44:9087224682630152491",
+          "name": "order",
+          "type": 6
+        },
+        {
+          "id": "45:7033982892274642636",
+          "name": "epTitle",
+          "type": 9
+        },
+        {
+          "id": "46:5451171976689934386",
+          "name": "epPageCount",
+          "type": 6
+        },
+        {
+          "id": "47:7208513777776492680",
+          "name": "epsInfo",
+          "type": 30
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "2:8710207830109802731",
+  "lastEntityId": "3:7460148923873911806",
   "lastIndexId": "0:0",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",

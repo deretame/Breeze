@@ -257,6 +257,250 @@ final _entities = <obx_int.ModelEntity>[
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(3, 7460148923873911806),
+      name: 'BikaComicDownload',
+      lastPropertyId: const obx_int.IdUid(47, 7208513777776492680),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 4923628106125040485),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 3554959827736600362),
+            name: 'comicId',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 1427619926530511655),
+            name: 'creatorId',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(4, 4142625094400070682),
+            name: 'creatorGender',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(5, 9164204085501230419),
+            name: 'creatorName',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(6, 7056690697822955471),
+            name: 'creatorVerified',
+            type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(7, 1196679959829248871),
+            name: 'creatorExp',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(8, 3407091773057184846),
+            name: 'creatorLevel',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(9, 5550392932065764404),
+            name: 'creatorCharacters',
+            type: 30,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(10, 1315545036424471067),
+            name: 'creatorCharactersString',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(11, 8365554726961843446),
+            name: 'creatorRole',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(12, 1271512191147890050),
+            name: 'creatorTitle',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(13, 1352812103378274905),
+            name: 'creatorAvatarOriginalName',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(14, 2664268321178212250),
+            name: 'creatorAvatarPath',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(15, 1966089426968830101),
+            name: 'creatorAvatarFileServer',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(16, 5479377330988847943),
+            name: 'creatorSlogan',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(17, 5508856510253445366),
+            name: 'title',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(18, 1824819675243429458),
+            name: 'description',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(19, 3849482297537457547),
+            name: 'thumbOriginalName',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(20, 9124311546549270993),
+            name: 'thumbPath',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(21, 8057728940436183589),
+            name: 'thumbFileServer',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(22, 3601599707357720798),
+            name: 'author',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(23, 5681410930332241726),
+            name: 'chineseTeam',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(24, 8492101127870452125),
+            name: 'categories',
+            type: 30,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(25, 1591588799040851806),
+            name: 'categoriesString',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(26, 5052159655123242634),
+            name: 'tags',
+            type: 30,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(27, 8320134336830704577),
+            name: 'tagsString',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(28, 8393049675390589083),
+            name: 'pagesCount',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(29, 1497769676407279907),
+            name: 'epsCount',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(30, 8451687313576407960),
+            name: 'finished',
+            type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(31, 4227200661595813312),
+            name: 'updatedAt',
+            type: 10,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(32, 5076984150659930325),
+            name: 'createdAt',
+            type: 10,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(33, 7262789391453800225),
+            name: 'allowDownload',
+            type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(34, 3471849455686713505),
+            name: 'allowComment',
+            type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(35, 7321012392570564878),
+            name: 'totalLikes',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(36, 9040581488769323125),
+            name: 'totalViews',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(37, 7139261190345985873),
+            name: 'totalComments',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(38, 6249366144384923469),
+            name: 'viewsCount',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(39, 1101017384685397616),
+            name: 'likesCount',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(40, 8728264124544160543),
+            name: 'commentsCount',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(41, 1917361128172069246),
+            name: 'isFavourite',
+            type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(42, 3019412222241484340),
+            name: 'isLiked',
+            type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(43, 6890224761648698547),
+            name: 'history',
+            type: 10,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(44, 9087224682630152491),
+            name: 'order',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(45, 7033982892274642636),
+            name: 'epTitle',
+            type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(46, 5451171976689934386),
+            name: 'epPageCount',
+            type: 6,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(47, 7208513777776492680),
+            name: 'epsInfo',
+            type: 30,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
       backlinks: <obx_int.ModelBacklink>[])
 ];
 
@@ -295,7 +539,7 @@ Future<obx.Store> openStore(
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
       entities: _entities,
-      lastEntityId: const obx_int.IdUid(2, 8710207830109802731),
+      lastEntityId: const obx_int.IdUid(3, 7460148923873911806),
       lastIndexId: const obx_int.IdUid(0, 0),
       lastRelationId: const obx_int.IdUid(0, 0),
       lastSequenceId: const obx_int.IdUid(0, 0),
@@ -581,6 +825,272 @@ obx_int.ModelDefinition getObjectBoxModel() {
               epPageCount: epPageCountParam);
 
           return object;
+        }),
+    BikaComicDownload: obx_int.EntityDefinition<BikaComicDownload>(
+        model: _entities[1],
+        toOneRelations: (BikaComicDownload object) => [],
+        toManyRelations: (BikaComicDownload object) => {},
+        getId: (BikaComicDownload object) => object.id,
+        setId: (BikaComicDownload object, int id) {
+          object.id = id;
+        },
+        objectToFB: (BikaComicDownload object, fb.Builder fbb) {
+          final comicIdOffset = fbb.writeString(object.comicId);
+          final creatorIdOffset = fbb.writeString(object.creatorId);
+          final creatorGenderOffset = fbb.writeString(object.creatorGender);
+          final creatorNameOffset = fbb.writeString(object.creatorName);
+          final creatorCharactersOffset = fbb.writeList(object.creatorCharacters
+              .map(fbb.writeString)
+              .toList(growable: false));
+          final creatorCharactersStringOffset =
+              fbb.writeString(object.creatorCharactersString);
+          final creatorRoleOffset = fbb.writeString(object.creatorRole);
+          final creatorTitleOffset = fbb.writeString(object.creatorTitle);
+          final creatorAvatarOriginalNameOffset =
+              fbb.writeString(object.creatorAvatarOriginalName);
+          final creatorAvatarPathOffset =
+              fbb.writeString(object.creatorAvatarPath);
+          final creatorAvatarFileServerOffset =
+              fbb.writeString(object.creatorAvatarFileServer);
+          final creatorSloganOffset = fbb.writeString(object.creatorSlogan);
+          final titleOffset = fbb.writeString(object.title);
+          final descriptionOffset = fbb.writeString(object.description);
+          final thumbOriginalNameOffset =
+              fbb.writeString(object.thumbOriginalName);
+          final thumbPathOffset = fbb.writeString(object.thumbPath);
+          final thumbFileServerOffset = fbb.writeString(object.thumbFileServer);
+          final authorOffset = fbb.writeString(object.author);
+          final chineseTeamOffset = fbb.writeString(object.chineseTeam);
+          final categoriesOffset = fbb.writeList(
+              object.categories.map(fbb.writeString).toList(growable: false));
+          final categoriesStringOffset =
+              fbb.writeString(object.categoriesString);
+          final tagsOffset = fbb.writeList(
+              object.tags.map(fbb.writeString).toList(growable: false));
+          final tagsStringOffset = fbb.writeString(object.tagsString);
+          final epTitleOffset = fbb.writeString(object.epTitle);
+          final epsInfoOffset = fbb.writeList(
+              object.epsInfo.map(fbb.writeString).toList(growable: false));
+          fbb.startTable(48);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, comicIdOffset);
+          fbb.addOffset(2, creatorIdOffset);
+          fbb.addOffset(3, creatorGenderOffset);
+          fbb.addOffset(4, creatorNameOffset);
+          fbb.addBool(5, object.creatorVerified);
+          fbb.addInt64(6, object.creatorExp);
+          fbb.addInt64(7, object.creatorLevel);
+          fbb.addOffset(8, creatorCharactersOffset);
+          fbb.addOffset(9, creatorCharactersStringOffset);
+          fbb.addOffset(10, creatorRoleOffset);
+          fbb.addOffset(11, creatorTitleOffset);
+          fbb.addOffset(12, creatorAvatarOriginalNameOffset);
+          fbb.addOffset(13, creatorAvatarPathOffset);
+          fbb.addOffset(14, creatorAvatarFileServerOffset);
+          fbb.addOffset(15, creatorSloganOffset);
+          fbb.addOffset(16, titleOffset);
+          fbb.addOffset(17, descriptionOffset);
+          fbb.addOffset(18, thumbOriginalNameOffset);
+          fbb.addOffset(19, thumbPathOffset);
+          fbb.addOffset(20, thumbFileServerOffset);
+          fbb.addOffset(21, authorOffset);
+          fbb.addOffset(22, chineseTeamOffset);
+          fbb.addOffset(23, categoriesOffset);
+          fbb.addOffset(24, categoriesStringOffset);
+          fbb.addOffset(25, tagsOffset);
+          fbb.addOffset(26, tagsStringOffset);
+          fbb.addInt64(27, object.pagesCount);
+          fbb.addInt64(28, object.epsCount);
+          fbb.addBool(29, object.finished);
+          fbb.addInt64(30, object.updatedAt.millisecondsSinceEpoch);
+          fbb.addInt64(31, object.createdAt.millisecondsSinceEpoch);
+          fbb.addBool(32, object.allowDownload);
+          fbb.addBool(33, object.allowComment);
+          fbb.addInt64(34, object.totalLikes);
+          fbb.addInt64(35, object.totalViews);
+          fbb.addInt64(36, object.totalComments);
+          fbb.addInt64(37, object.viewsCount);
+          fbb.addInt64(38, object.likesCount);
+          fbb.addInt64(39, object.commentsCount);
+          fbb.addBool(40, object.isFavourite);
+          fbb.addBool(41, object.isLiked);
+          fbb.addInt64(42, object.history.millisecondsSinceEpoch);
+          fbb.addInt64(43, object.order);
+          fbb.addOffset(44, epTitleOffset);
+          fbb.addInt64(45, object.epPageCount);
+          fbb.addOffset(46, epsInfoOffset);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final idParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+          final comicIdParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 6, '');
+          final creatorIdParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 8, '');
+          final creatorGenderParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 10, '');
+          final creatorNameParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 12, '');
+          final creatorVerifiedParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 14, false);
+          final creatorExpParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0);
+          final creatorLevelParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0);
+          final creatorCharactersParam = const fb.ListReader<String>(
+                  fb.StringReader(asciiOptimization: true),
+                  lazy: false)
+              .vTableGet(buffer, rootOffset, 20, []);
+          final creatorCharactersStringParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 22, '');
+          final creatorRoleParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 24, '');
+          final creatorTitleParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 26, '');
+          final creatorAvatarOriginalNameParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 28, '');
+          final creatorAvatarPathParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 30, '');
+          final creatorAvatarFileServerParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 32, '');
+          final creatorSloganParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 34, '');
+          final titleParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 36, '');
+          final descriptionParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 38, '');
+          final thumbOriginalNameParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 40, '');
+          final thumbPathParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 42, '');
+          final thumbFileServerParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 44, '');
+          final authorParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 46, '');
+          final chineseTeamParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 48, '');
+          final categoriesParam = const fb.ListReader<String>(
+                  fb.StringReader(asciiOptimization: true),
+                  lazy: false)
+              .vTableGet(buffer, rootOffset, 50, []);
+          final categoriesStringParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 52, '');
+          final tagsParam = const fb.ListReader<String>(
+                  fb.StringReader(asciiOptimization: true),
+                  lazy: false)
+              .vTableGet(buffer, rootOffset, 54, []);
+          final tagsStringParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 56, '');
+          final pagesCountParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 58, 0);
+          final epsCountParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 60, 0);
+          final finishedParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 62, false);
+          final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 64, 0));
+          final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 66, 0));
+          final allowDownloadParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 68, false);
+          final allowCommentParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 70, false);
+          final totalLikesParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 72, 0);
+          final totalViewsParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 74, 0);
+          final totalCommentsParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 76, 0);
+          final viewsCountParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 78, 0);
+          final likesCountParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 80, 0);
+          final commentsCountParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 82, 0);
+          final isFavouriteParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 84, false);
+          final isLikedParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 86, false);
+          final historyParam = DateTime.fromMillisecondsSinceEpoch(
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 88, 0));
+          final orderParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 90, 0);
+          final epTitleParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 92, '');
+          final epPageCountParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 94, 0);
+          final epsInfoParam = const fb.ListReader<String>(
+                  fb.StringReader(asciiOptimization: true),
+                  lazy: false)
+              .vTableGet(buffer, rootOffset, 96, []);
+          final object = BikaComicDownload(
+              id: idParam,
+              comicId: comicIdParam,
+              creatorId: creatorIdParam,
+              creatorGender: creatorGenderParam,
+              creatorName: creatorNameParam,
+              creatorVerified: creatorVerifiedParam,
+              creatorExp: creatorExpParam,
+              creatorLevel: creatorLevelParam,
+              creatorCharacters: creatorCharactersParam,
+              creatorCharactersString: creatorCharactersStringParam,
+              creatorRole: creatorRoleParam,
+              creatorTitle: creatorTitleParam,
+              creatorAvatarOriginalName: creatorAvatarOriginalNameParam,
+              creatorAvatarPath: creatorAvatarPathParam,
+              creatorAvatarFileServer: creatorAvatarFileServerParam,
+              creatorSlogan: creatorSloganParam,
+              title: titleParam,
+              description: descriptionParam,
+              thumbOriginalName: thumbOriginalNameParam,
+              thumbPath: thumbPathParam,
+              thumbFileServer: thumbFileServerParam,
+              author: authorParam,
+              chineseTeam: chineseTeamParam,
+              categories: categoriesParam,
+              categoriesString: categoriesStringParam,
+              tags: tagsParam,
+              tagsString: tagsStringParam,
+              pagesCount: pagesCountParam,
+              epsCount: epsCountParam,
+              finished: finishedParam,
+              updatedAt: updatedAtParam,
+              createdAt: createdAtParam,
+              allowDownload: allowDownloadParam,
+              allowComment: allowCommentParam,
+              totalLikes: totalLikesParam,
+              totalViews: totalViewsParam,
+              totalComments: totalCommentsParam,
+              viewsCount: viewsCountParam,
+              likesCount: likesCountParam,
+              commentsCount: commentsCountParam,
+              isFavourite: isFavouriteParam,
+              isLiked: isLikedParam,
+              history: historyParam,
+              order: orderParam,
+              epTitle: epTitleParam,
+              epPageCount: epPageCountParam,
+              epsInfo: epsInfoParam);
+
+          return object;
         })
   };
 
@@ -773,4 +1283,196 @@ class BikaComicHistory_ {
   /// See [BikaComicHistory.tagsString].
   static final tagsString =
       obx.QueryStringProperty<BikaComicHistory>(_entities[0].properties[45]);
+}
+
+/// [BikaComicDownload] entity fields to define ObjectBox queries.
+class BikaComicDownload_ {
+  /// See [BikaComicDownload.id].
+  static final id =
+      obx.QueryIntegerProperty<BikaComicDownload>(_entities[1].properties[0]);
+
+  /// See [BikaComicDownload.comicId].
+  static final comicId =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[1]);
+
+  /// See [BikaComicDownload.creatorId].
+  static final creatorId =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[2]);
+
+  /// See [BikaComicDownload.creatorGender].
+  static final creatorGender =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[3]);
+
+  /// See [BikaComicDownload.creatorName].
+  static final creatorName =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[4]);
+
+  /// See [BikaComicDownload.creatorVerified].
+  static final creatorVerified =
+      obx.QueryBooleanProperty<BikaComicDownload>(_entities[1].properties[5]);
+
+  /// See [BikaComicDownload.creatorExp].
+  static final creatorExp =
+      obx.QueryIntegerProperty<BikaComicDownload>(_entities[1].properties[6]);
+
+  /// See [BikaComicDownload.creatorLevel].
+  static final creatorLevel =
+      obx.QueryIntegerProperty<BikaComicDownload>(_entities[1].properties[7]);
+
+  /// See [BikaComicDownload.creatorCharacters].
+  static final creatorCharacters =
+      obx.QueryStringVectorProperty<BikaComicDownload>(
+          _entities[1].properties[8]);
+
+  /// See [BikaComicDownload.creatorCharactersString].
+  static final creatorCharactersString =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[9]);
+
+  /// See [BikaComicDownload.creatorRole].
+  static final creatorRole =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[10]);
+
+  /// See [BikaComicDownload.creatorTitle].
+  static final creatorTitle =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[11]);
+
+  /// See [BikaComicDownload.creatorAvatarOriginalName].
+  static final creatorAvatarOriginalName =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[12]);
+
+  /// See [BikaComicDownload.creatorAvatarPath].
+  static final creatorAvatarPath =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[13]);
+
+  /// See [BikaComicDownload.creatorAvatarFileServer].
+  static final creatorAvatarFileServer =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[14]);
+
+  /// See [BikaComicDownload.creatorSlogan].
+  static final creatorSlogan =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[15]);
+
+  /// See [BikaComicDownload.title].
+  static final title =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[16]);
+
+  /// See [BikaComicDownload.description].
+  static final description =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[17]);
+
+  /// See [BikaComicDownload.thumbOriginalName].
+  static final thumbOriginalName =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[18]);
+
+  /// See [BikaComicDownload.thumbPath].
+  static final thumbPath =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[19]);
+
+  /// See [BikaComicDownload.thumbFileServer].
+  static final thumbFileServer =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[20]);
+
+  /// See [BikaComicDownload.author].
+  static final author =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[21]);
+
+  /// See [BikaComicDownload.chineseTeam].
+  static final chineseTeam =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[22]);
+
+  /// See [BikaComicDownload.categories].
+  static final categories = obx.QueryStringVectorProperty<BikaComicDownload>(
+      _entities[1].properties[23]);
+
+  /// See [BikaComicDownload.categoriesString].
+  static final categoriesString =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[24]);
+
+  /// See [BikaComicDownload.tags].
+  static final tags = obx.QueryStringVectorProperty<BikaComicDownload>(
+      _entities[1].properties[25]);
+
+  /// See [BikaComicDownload.tagsString].
+  static final tagsString =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[26]);
+
+  /// See [BikaComicDownload.pagesCount].
+  static final pagesCount =
+      obx.QueryIntegerProperty<BikaComicDownload>(_entities[1].properties[27]);
+
+  /// See [BikaComicDownload.epsCount].
+  static final epsCount =
+      obx.QueryIntegerProperty<BikaComicDownload>(_entities[1].properties[28]);
+
+  /// See [BikaComicDownload.finished].
+  static final finished =
+      obx.QueryBooleanProperty<BikaComicDownload>(_entities[1].properties[29]);
+
+  /// See [BikaComicDownload.updatedAt].
+  static final updatedAt =
+      obx.QueryDateProperty<BikaComicDownload>(_entities[1].properties[30]);
+
+  /// See [BikaComicDownload.createdAt].
+  static final createdAt =
+      obx.QueryDateProperty<BikaComicDownload>(_entities[1].properties[31]);
+
+  /// See [BikaComicDownload.allowDownload].
+  static final allowDownload =
+      obx.QueryBooleanProperty<BikaComicDownload>(_entities[1].properties[32]);
+
+  /// See [BikaComicDownload.allowComment].
+  static final allowComment =
+      obx.QueryBooleanProperty<BikaComicDownload>(_entities[1].properties[33]);
+
+  /// See [BikaComicDownload.totalLikes].
+  static final totalLikes =
+      obx.QueryIntegerProperty<BikaComicDownload>(_entities[1].properties[34]);
+
+  /// See [BikaComicDownload.totalViews].
+  static final totalViews =
+      obx.QueryIntegerProperty<BikaComicDownload>(_entities[1].properties[35]);
+
+  /// See [BikaComicDownload.totalComments].
+  static final totalComments =
+      obx.QueryIntegerProperty<BikaComicDownload>(_entities[1].properties[36]);
+
+  /// See [BikaComicDownload.viewsCount].
+  static final viewsCount =
+      obx.QueryIntegerProperty<BikaComicDownload>(_entities[1].properties[37]);
+
+  /// See [BikaComicDownload.likesCount].
+  static final likesCount =
+      obx.QueryIntegerProperty<BikaComicDownload>(_entities[1].properties[38]);
+
+  /// See [BikaComicDownload.commentsCount].
+  static final commentsCount =
+      obx.QueryIntegerProperty<BikaComicDownload>(_entities[1].properties[39]);
+
+  /// See [BikaComicDownload.isFavourite].
+  static final isFavourite =
+      obx.QueryBooleanProperty<BikaComicDownload>(_entities[1].properties[40]);
+
+  /// See [BikaComicDownload.isLiked].
+  static final isLiked =
+      obx.QueryBooleanProperty<BikaComicDownload>(_entities[1].properties[41]);
+
+  /// See [BikaComicDownload.history].
+  static final history =
+      obx.QueryDateProperty<BikaComicDownload>(_entities[1].properties[42]);
+
+  /// See [BikaComicDownload.order].
+  static final order =
+      obx.QueryIntegerProperty<BikaComicDownload>(_entities[1].properties[43]);
+
+  /// See [BikaComicDownload.epTitle].
+  static final epTitle =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[44]);
+
+  /// See [BikaComicDownload.epPageCount].
+  static final epPageCount =
+      obx.QueryIntegerProperty<BikaComicDownload>(_entities[1].properties[45]);
+
+  /// See [BikaComicDownload.epsInfo].
+  static final epsInfo = obx.QueryStringVectorProperty<BikaComicDownload>(
+      _entities[1].properties[46]);
 }

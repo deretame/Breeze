@@ -201,19 +201,53 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
-  late final _$permissionDeniedAtom =
-      Atom(name: '_GlobalSetting.permissionDenied', context: context);
+  late final _$imagePathPermissionAtom =
+      Atom(name: '_GlobalSetting.imagePathPermission', context: context);
 
   @override
-  bool get permissionDenied {
-    _$permissionDeniedAtom.reportRead();
-    return super.permissionDenied;
+  bool get imagePathPermission {
+    _$imagePathPermissionAtom.reportRead();
+    return super.imagePathPermission;
   }
 
   @override
-  set permissionDenied(bool value) {
-    _$permissionDeniedAtom.reportWrite(value, super.permissionDenied, () {
-      super.permissionDenied = value;
+  set imagePathPermission(bool value) {
+    _$imagePathPermissionAtom.reportWrite(value, super.imagePathPermission, () {
+      super.imagePathPermission = value;
+    });
+  }
+
+  late final _$downloadPathPermissionAtom =
+      Atom(name: '_GlobalSetting.downloadPathPermission', context: context);
+
+  @override
+  String get downloadPathPermission {
+    _$downloadPathPermissionAtom.reportRead();
+    return super.downloadPathPermission;
+  }
+
+  @override
+  set downloadPathPermission(String value) {
+    _$downloadPathPermissionAtom
+        .reportWrite(value, super.downloadPathPermission, () {
+      super.downloadPathPermission = value;
+    });
+  }
+
+  late final _$notificationPermissionAtom =
+      Atom(name: '_GlobalSetting.notificationPermission', context: context);
+
+  @override
+  bool get notificationPermission {
+    _$notificationPermissionAtom.reportRead();
+    return super.notificationPermission;
+  }
+
+  @override
+  set notificationPermission(bool value) {
+    _$notificationPermissionAtom
+        .reportWrite(value, super.notificationPermission, () {
+      super.notificationPermission = value;
     });
   }
 
@@ -617,33 +651,99 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   }
 
   @override
-  bool getPermissionDenied() {
+  bool getImagePathPermission() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getPermissionDenied');
+        name: '_GlobalSetting.getImagePathPermission');
     try {
-      return super.getPermissionDenied();
+      return super.getImagePathPermission();
     } finally {
       _$_GlobalSettingActionController.endAction(_$actionInfo);
     }
   }
 
   @override
-  void setPermissionDenied(bool value) {
+  void setImagePathPermission(bool value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setPermissionDenied');
+        name: '_GlobalSetting.setImagePathPermission');
     try {
-      return super.setPermissionDenied(value);
+      return super.setImagePathPermission(value);
     } finally {
       _$_GlobalSettingActionController.endAction(_$actionInfo);
     }
   }
 
   @override
-  void deletePermissionDenied() {
+  void deleteImagePathPermission() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deletePermissionDenied');
+        name: '_GlobalSetting.deleteImagePathPermission');
     try {
-      return super.deletePermissionDenied();
+      return super.deleteImagePathPermission();
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  String getDownloadPathPermission() {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+        name: '_GlobalSetting.getDownloadPathPermission');
+    try {
+      return super.getDownloadPathPermission();
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void setDownloadPathPermission(String value) {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+        name: '_GlobalSetting.setDownloadPathPermission');
+    try {
+      return super.setDownloadPathPermission(value);
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void deleteDownloadPathPermission() {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+        name: '_GlobalSetting.deleteDownloadPathPermission');
+    try {
+      return super.deleteDownloadPathPermission();
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  bool getNotificationPermission() {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+        name: '_GlobalSetting.getNotificationPermission');
+    try {
+      return super.getNotificationPermission();
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void setNotificationPermission(bool value) {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+        name: '_GlobalSetting.setNotificationPermission');
+    try {
+      return super.setNotificationPermission(value);
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void deleteNotificationPermission() {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+        name: '_GlobalSetting.deleteNotificationPermission');
+    try {
+      return super.deleteNotificationPermission();
     } finally {
       _$_GlobalSettingActionController.endAction(_$actionInfo);
     }
@@ -664,7 +764,9 @@ themeInitState: ${themeInitState},
 locale: ${locale},
 doubleReturn: ${doubleReturn},
 welcomePageNum: ${welcomePageNum},
-permissionDenied: ${permissionDenied}
+imagePathPermission: ${imagePathPermission},
+downloadPathPermission: ${downloadPathPermission},
+notificationPermission: ${notificationPermission}
     ''';
   }
 }

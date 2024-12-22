@@ -32,11 +32,11 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
   @override
   initState() {
     if (type == "H24") {
-      _type = "过去24小时观看量";
+      _type = "24小时观看量";
     } else if (type == "D7") {
-      _type = "过去一周观看量";
+      _type = "一周观看量";
     } else if (type == "D30") {
-      _type = "过去一月观看量";
+      _type = "一月观看量";
     }
     super.initState();
   }

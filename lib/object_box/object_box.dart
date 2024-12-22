@@ -8,9 +8,11 @@ class ObjectBox {
   late final Store store;
 
   late final Box<BikaComicHistory> _bikaComicHistoryBox;
+  late final Box<BikaComicDownload> _bikaComicDownloadBox;
 
   ObjectBox._create(this.store) {
     _bikaComicHistoryBox = store.box<BikaComicHistory>();
+    _bikaComicDownloadBox = store.box<BikaComicDownload>();
   }
 
   static Future<ObjectBox> create() async {
@@ -20,4 +22,6 @@ class ObjectBox {
   }
 
   Box<BikaComicHistory> get bikaBox => _bikaComicHistoryBox;
+
+  Box<BikaComicDownload> get downloadBox => _bikaComicDownloadBox;
 }

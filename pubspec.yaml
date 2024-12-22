@@ -1,6 +1,6 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
-version: 1.10.5+40
+version: 1.10.6+41
 
 environment:
   sdk: ">=3.0.0"
@@ -43,6 +43,7 @@ dependencies:
   freezed_annotation: ^2.4.4     # Freezed 注解支持
   objectbox: ^4.0.3              # ObjectBox 数据库
   objectbox_flutter_libs: ^4.0.3 # ObjectBox 的 Flutter 支持
+  permission_guard: ^2.0.1       # 权限管理工具
 
   # --------------- 网络请求与 API 处理 ---------------
   dio: ^5.6.0                   # HTTP 网络请求客户端

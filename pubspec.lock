@@ -810,6 +810,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.0"
+  permission_guard:
+    dependency: "direct main"
+    description:
+      name: permission_guard
+      sha256: c39b068ba19ced7794f02ac12e3fc927c559ce3df0a712c60dc5c3cf8d43e0b2
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
   permission_handler:
     dependency: "direct main"
     description:

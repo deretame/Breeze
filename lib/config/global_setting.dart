@@ -37,7 +37,11 @@ abstract class _GlobalSetting with Store {
   @observable
   int welcomePageNum = 0; // 开屏页序号
   @observable
-  bool permissionDenied = false; // 权限拒绝
+  bool imagePathPermission = true; // 图片路径权限
+  @observable
+  String downloadPathPermission = ""; // 下载路径
+  @observable
+  bool notificationPermission = true; // 通知权限
 
   // _GlobalSetting() {
   //   _initBox();
@@ -57,7 +61,6 @@ abstract class _GlobalSetting with Store {
     locale = getLocale();
     doubleReturn = getDoubleReturn();
     welcomePageNum = getWelcomePageNum();
-    permissionDenied = getPermissionDenied();
   }
 
   @action
@@ -289,22 +292,60 @@ abstract class _GlobalSetting with Store {
   }
 
   @action
-  bool getPermissionDenied() {
-    permissionDenied =
-        _box.get(GlobalSettingBoxKey.permissionDenied, defaultValue: false);
-    return permissionDenied;
+  bool getImagePathPermission() {
+    imagePathPermission =
+        _box.get(GlobalSettingBoxKey.imagePathPermission, defaultValue: false);
+    return imagePathPermission;
   }
 
   @action
-  void setPermissionDenied(bool value) {
-    permissionDenied = value;
-    _box.put(GlobalSettingBoxKey.permissionDenied, value);
+  void setImagePathPermission(bool value) {
+    imagePathPermission = value;
+    _box.put(GlobalSettingBoxKey.imagePathPermission, value);
   }
 
   @action
-  void deletePermissionDenied() {
-    permissionDenied = false;
-    _box.delete(GlobalSettingBoxKey.permissionDenied);
+  void deleteImagePathPermission() {
+    imagePathPermission = false;
+    _box.delete(GlobalSettingBoxKey.imagePathPermission);
+  }
+
+  @action
+  String getDownloadPathPermission() {
+    downloadPathPermission =
+        _box.get(GlobalSettingBoxKey.downloadPathPermission, defaultValue: "");
+    return downloadPathPermission;
+  }
+
+  @action
+  void setDownloadPathPermission(String value) {
+    downloadPathPermission = value;
+    _box.put(GlobalSettingBoxKey.downloadPathPermission, value);
+  }
+
+  @action
+  void deleteDownloadPathPermission() {
+    downloadPathPermission = "";
+    _box.delete(GlobalSettingBoxKey.downloadPathPermission);
+  }
+
+  @action
+  bool getNotificationPermission() {
+    notificationPermission = _box
+        .get(GlobalSettingBoxKey.notificationPermission, defaultValue: false);
+    return notificationPermission;
+  }
+
+  @action
+  void setNotificationPermission(bool value) {
+    notificationPermission = value;
+    _box.put(GlobalSettingBoxKey.notificationPermission, value);
+  }
+
+  @action
+  void deleteNotificationPermission() {
+    notificationPermission = false;
+    _box.delete(GlobalSettingBoxKey.notificationPermission);
   }
 }
 
@@ -322,5 +363,7 @@ class GlobalSettingBoxKey {
   static const String textColor = 'textColor'; // 文字颜色
   static const String doubleReturn = 'doubleReturn'; // 双击返回键退出应用
   static const String welcomePageNum = 'welcomePageNum'; // 开屏页序号
-  static const String permissionDenied = 'permissionDenied'; // 权限拒绝
+  static const String imagePathPermission = 'imagePathPermission'; // 图片路径权限
+  static const String downloadPathPermission = 'downloadPathPermission'; // 下载路径
+  static const String notificationPermission = 'notificationPermission'; // 通知权限
 }

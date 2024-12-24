@@ -55,6 +55,9 @@ class _ComicInfoState extends State<_ComicInfo>
   bool epsCompleted = false; // 用来判断章节是不是加载完毕了
   late List<Doc> epsInfo;
 
+  // 新增一个变量用来控制 EpsWidget 的 Key
+  Key epsWidgetKey = UniqueKey();
+
   void _updateReadInfo(List<Doc> epsInfo, bool epsCompleted) {
     if (this.epsCompleted) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -136,11 +139,7 @@ class _ComicInfoState extends State<_ComicInfo>
               );
             case GetComicInfoStatus.success:
               comicInfo = state.comicInfo!;
-              return _InfoView(
-                comicInfo: state.comicInfo!,
-                comicHistory: comicHistory,
-                onUpdateReadInfo: _updateReadInfo,
-              );
+              return _infoView();
           }
         },
       ),
@@ -188,72 +187,71 @@ class _ComicInfoState extends State<_ComicInfo>
           : null, // 如果为false，则隐藏// 如果为false，则隐藏
     );
   }
-}
 
-class _InfoView extends StatelessWidget {
-  final Comic comicInfo;
-  final BikaComicHistory? comicHistory;
-  final Function(List<Doc>, bool) onUpdateReadInfo; // 用来更新观看按钮信息
-
-  const _InfoView({
-    required this.comicInfo,
-    required this.comicHistory,
-    required this.onUpdateReadInfo,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: screenWidth,
+  Widget _infoView() {
+    return RefreshIndicator(
+      onRefresh: () async {
+        context.read<GetComicInfoBloc>().add(GetComicInfo(widget.comicId));
+        final query = objectbox.bikaBox
+            .query(BikaComicHistory_.comicId.equals(widget.comicId));
+        setState(() {
+          epsWidgetKey = UniqueKey();
+          comicHistory = query.build().findFirst();
+        });
+      },
       child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         // 添加滚动视图包裹
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            SizedBox(width: screenWidth / 50),
-            Flexible(
-              fit: FlexFit.loose,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  const SizedBox(height: 10),
-                  ComicParticularsWidget(comicInfo: comicInfo),
-                  const SizedBox(height: 10),
-                  TagsAndCategoriesWidget(
-                    comicInfo: comicInfo,
-                    type: 'categories',
-                  ),
-                  const SizedBox(height: 3),
-                  if (comicInfo.tags.isNotEmpty) ...[
+        child: SizedBox(
+          width: screenWidth,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              SizedBox(width: screenWidth / 50),
+              Flexible(
+                fit: FlexFit.loose,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    const SizedBox(height: 10),
+                    ComicParticularsWidget(comicInfo: comicInfo),
+                    const SizedBox(height: 10),
                     TagsAndCategoriesWidget(
                       comicInfo: comicInfo,
-                      type: 'tags',
+                      type: 'categories',
                     ),
                     const SizedBox(height: 3),
+                    if (comicInfo.tags.isNotEmpty) ...[
+                      TagsAndCategoriesWidget(
+                        comicInfo: comicInfo,
+                        type: 'tags',
+                      ),
+                      const SizedBox(height: 3),
+                    ],
+                    if (comicInfo.description != '') ...[
+                      SynopsisWidget(comicInfo: comicInfo),
+                    ],
+                    const SizedBox(height: 10),
+                    CreatorInfoWidget(comicInfo: comicInfo),
+                    const SizedBox(height: 10),
+                    const SizedBox(height: 10),
+                    ComicOperationWidget(comicInfo: comicInfo),
+                    const SizedBox(height: 10),
+                    EpsWidget(
+                      comicInfo: comicInfo,
+                      comicHistory: comicHistory,
+                      onUpdateReadInfo: _updateReadInfo,
+                    ),
+                    const SizedBox(height: 10),
+                    RecommendWidget(comicId: comicInfo.id),
+                    const SizedBox(height: 85),
                   ],
-                  if (comicInfo.description != '') ...[
-                    SynopsisWidget(comicInfo: comicInfo),
-                  ],
-                  const SizedBox(height: 10),
-                  CreatorInfoWidget(comicInfo: comicInfo),
-                  const SizedBox(height: 10),
-                  const SizedBox(height: 10),
-                  ComicOperationWidget(comicInfo: comicInfo),
-                  const SizedBox(height: 10),
-                  EpsWidget(
-                    comicInfo: comicInfo,
-                    comicHistory: comicHistory,
-                    onUpdateReadInfo: onUpdateReadInfo,
-                  ),
-                  const SizedBox(height: 10),
-                  RecommendWidget(comicId: comicInfo.id),
-                  const SizedBox(height: 85),
-                ],
+                ),
               ),
-            ),
-            SizedBox(width: screenWidth / 50),
-          ],
+              SizedBox(width: screenWidth / 50),
+            ],
+          ),
         ),
       ),
     );

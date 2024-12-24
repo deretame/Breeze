@@ -34,7 +34,7 @@ class _CreatorRankingsWidgetState extends State<CreatorRankingsWidget>
                     onPressed: () {
                       context
                           .read<CreatorListBloc>()
-                          .add(FetchCreatorList(GetInfo(type: 'comic')));
+                          .add(FetchCreatorList(GetInfo(type: 'creator')));
                     },
                     child: const Text('重新加载'),
                   ),
@@ -42,18 +42,22 @@ class _CreatorRankingsWidgetState extends State<CreatorRankingsWidget>
               ),
             );
           case CreatorListStatus.success:
-            return Column(
-              children: <Widget>[
-                // 使用 map 和 Padding 创建 ComicEntryWidget 列表
-                ...state.userList!.map(
-                  (user) => CreatorEntryWidget(
-                    user: user,
-                  ),
-                ),
-                SizedBox(
-                  height: 80,
-                ),
-              ],
+            return RefreshIndicator(
+              onRefresh: () async {
+                context
+                    .read<CreatorListBloc>()
+                    .add(FetchCreatorList(GetInfo(type: 'creator')));
+              },
+              child: ListView.builder(
+                itemCount: state.userList!.length + 1, // 加1以包含底部留白
+                itemBuilder: (context, index) {
+                  if (index == state.userList!.length) {
+                    return SizedBox(height: 10); // 底部留白
+                  }
+                  final user = state.userList![index];
+                  return CreatorEntryWidget(user: user);
+                },
+              ),
             );
           case CreatorListStatus.initial:
             return const Center(

@@ -1,12 +1,20 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_guard/permission_guard.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
 import '../bloc/get_category_bloc.dart';
+import '../json/github_release_json/github_release_json.dart';
 import '../models/category.dart';
 import '../widgets/category.dart';
 
@@ -38,78 +46,85 @@ class _CategoryPageState extends State<CategoryPage>
       appBar: AppBar(
         title: Text('主页'),
       ),
-      body: BlocBuilder<GetCategoryBloc, GetCategoryState>(
-        builder: (context, state) {
-          switch (state.status) {
-            case GetCategoryStatus.failure:
-              if (state.result!.contains("1005") ||
-                  state.result!.contains("401") ||
-                  state.result!.contains("unauthorized") ||
-                  bikaSetting.authorization == '') {
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // 刷新数据
+          context.read<GetCategoryBloc>().add(GetCategoryStarted());
+        },
+        child: BlocBuilder<GetCategoryBloc, GetCategoryState>(
+          builder: (context, state) {
+            switch (state.status) {
+              case GetCategoryStatus.failure:
+                if (state.result!.contains("1005") ||
+                    state.result!.contains("401") ||
+                    state.result!.contains("unauthorized") ||
+                    bikaSetting.authorization == '') {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '登录状态无效，请重新登录',
+                          style: TextStyle(fontSize: 20),
+                        ),
+                        SizedBox(height: 10), // 添加间距
+                        ElevatedButton(
+                          onPressed: () {
+                            AutoRouter.of(context).push(LoginRoute());
+                          },
+                          child: Text('前往登录'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '登录状态无效，请重新登录',
-                        style: TextStyle(fontSize: 20),
-                      ),
-                      SizedBox(height: 10), // 添加间距
+                    children: <Widget>[
+                      Text(state.result!),
                       ElevatedButton(
                         onPressed: () {
-                          AutoRouter.of(context).push(LoginRoute());
+                          context
+                              .read<GetCategoryBloc>()
+                              .add(GetCategoryStarted());
                         },
-                        child: Text('前往登录'),
+                        child: const Text('重新加载'),
                       ),
                     ],
                   ),
                 );
-              }
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text(state.result!),
-                    ElevatedButton(
-                      onPressed: () {
-                        context
-                            .read<GetCategoryBloc>()
-                            .add(GetCategoryStarted());
-                      },
-                      child: const Text('重新加载'),
-                    ),
-                  ],
-                ),
-              );
-            case GetCategoryStatus.success:
-              final Map<String, bool> shieldCategoryMap =
-                  bikaSetting.shieldCategoryMap;
+              case GetCategoryStatus.success:
+                final Map<String, bool> shieldCategoryMap =
+                    bikaSetting.shieldCategoryMap;
 
-              List<HomeCategory> homeCategories = state.categories!
-                  .where(
-                      (category) => !(shieldCategoryMap[category.id] ?? false))
-                  .toList();
-              // 构建并返回组件
-              var rows = buildCategoriesWidget(homeCategories);
-              return SingleChildScrollView(
-                child: Column(
-                  children: [
-                    ...rows,
-                    SizedBox(
-                      height: 50,
-                    ),
-                  ],
-                ),
-              );
+                List<HomeCategory> homeCategories = state.categories!
+                    .where((category) =>
+                        !(shieldCategoryMap[category.id] ?? false))
+                    .toList();
+                // 构建并返回组件
+                var rows = buildCategoriesWidget(homeCategories);
+                return SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      ...rows,
+                      SizedBox(
+                        height: 50,
+                      ),
+                    ],
+                  ),
+                );
 
-            case GetCategoryStatus.initial:
-              return const Center(child: CircularProgressIndicator());
-          }
-        },
+              case GetCategoryStatus.initial:
+                return const Center(child: CircularProgressIndicator());
+            }
+          },
+        ),
       ),
     );
   }
 
+  // 其他方法保持不变
   // 获取应用的版本信息
   Future<String> getAppVersion() async {
     String version = 'Unknown';
@@ -121,52 +136,43 @@ class _CategoryPageState extends State<CategoryPage>
     return version;
   }
 
-  Future<Map<String, dynamic>> getCloudVersion() async {
-    // 获取响应并提取 data 部分
+  Future<GithubReleaseJson> getCloudVersion() async {
     final response =
         await dio.get("https://api.github.com/repos/deretame/Breeze/releases");
 
-    // 从 response.data 获取返回的列表数据，并将其转换为 List<Map<String, dynamic>>
     final List<Map<String, dynamic>> releases =
         List<Map<String, dynamic>>.from(response.data);
 
-    // 返回版本号
-    return {
-      "cloudVersion": releases[0]['tag_name'] as String,
-      "releaseInfo": releases[0]['body'] as String,
-    };
+    return GithubReleaseJson.fromJson(releases[0]);
   }
 
   bool isUpdateAvailable(String cloudVersion, String localVersion) {
     debugPrint('App version: $localVersion');
     debugPrint('Cloud version: $cloudVersion');
 
-    // 去掉云端版本的前缀 'v'
     cloudVersion = cloudVersion.replaceFirst('v', '');
 
-    // 将版本号划分为主要版本、次要版本和补丁版本
     final cloudVersionParts = cloudVersion.split('.');
     final localVersionParts = localVersion.split('.');
 
-    // 比较版本号的每一部分
     for (int i = 0; i < 3; i++) {
       final int cloudPart = int.parse(cloudVersionParts[i]);
       final int localPart = int.parse(localVersionParts[i]);
 
       if (cloudPart > localPart) {
-        return true; // 云端版本大于本地版本，表示需要更新
+        return true;
       } else if (cloudPart < localPart) {
-        return false; // 本地版本大于云端版本，表示不需要更新
+        return false;
       }
     }
 
-    return false; // 版本相同，不需要更新
+    return false;
   }
 
   Future<void> _checkUpdate() async {
     final temp = await getCloudVersion();
-    final cloudVersion = temp['cloudVersion'] as String;
-    final releaseInfo = temp['releaseInfo'] as String;
+    final cloudVersion = temp.tagName;
+    final releaseInfo = temp.body;
     final String localVersion = await getAppVersion();
 
     if (isUpdateAvailable(cloudVersion, localVersion)) {
@@ -196,7 +202,19 @@ class _CategoryPageState extends State<CategoryPage>
             ),
             actions: [
               TextButton(
-                child: Text('前往 GitHub'),
+                child: Text('下载安装'),
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  for (var apkUrl in temp.assets) {
+                    if (apkUrl.browserDownloadUrl
+                        .contains("app-arm64-v8a-release.apk")) {
+                      await _installApk(apkUrl.browserDownloadUrl);
+                    }
+                  }
+                },
+              ),
+              TextButton(
+                child: Text('前往GitHub'),
                 onPressed: () {
                   launchUrl(
                     Uri.parse(
@@ -217,5 +235,45 @@ class _CategoryPageState extends State<CategoryPage>
         },
       );
     }
+  }
+
+  Future<void> _installApk(String apkUrl) async {
+    if (await _requestInstallPackagesPermission()) {
+      try {
+        // 使用 Dio 下载 APK 文件
+        Response response = await Dio().get(
+          apkUrl,
+          options: Options(responseType: ResponseType.bytes), // 将响应类型设置为字节
+        );
+
+        // 获取应用的文档目录，存储 APK 文件
+        Directory tempDir = await getTemporaryDirectory();
+        String apkFilePath = '${tempDir.path}/your-app.apk'; // 文件名可以自定义
+
+        // 将下载的字节写入 APK 文件
+        File apkFile = File(apkFilePath);
+        await apkFile.writeAsBytes(response.data);
+
+        // 打开 APK 文件以启动安装
+        OpenFile.open(apkFilePath);
+      } catch (e) {
+        EasyLoading.showError('下载失败，请稍后再试！');
+      }
+    } else {
+      EasyLoading.showError('请授予安装应用权限！');
+    }
+  }
+
+  Future<bool> _requestInstallPackagesPermission() async {
+    if (Platform.isAndroid) {
+      var status = await Permission.requestInstallPackages.status;
+      if (status.isGranted) {
+        return true;
+      } else if (status.isDenied) {
+        var requestResult = await Permission.requestInstallPackages.request();
+        return requestResult.isGranted;
+      }
+    }
+    return false; // 仅考虑 Android 平台
   }
 }

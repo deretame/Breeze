@@ -188,13 +188,21 @@ class _MainPageState extends State<MainPage> {
             },
             destinations: <NavigationRailDestination>[
               NavigationRailDestination(
-                  icon: Icon(Icons.home), label: Text("首页")),
+                icon: Icon(Icons.home),
+                label: Text("首页"),
+              ),
               NavigationRailDestination(
-                  icon: Icon(Icons.leaderboard), label: Text("排行")),
+                icon: Icon(Icons.leaderboard),
+                label: Text("排行"),
+              ),
               NavigationRailDestination(
-                  icon: Icon(Icons.search), label: Text("搜索")),
+                icon: Icon(Icons.search),
+                label: Text("搜索"),
+              ),
               NavigationRailDestination(
-                  icon: Icon(Icons.person), label: Text("个人")),
+                icon: Icon(Icons.person),
+                label: Text("个人"),
+              ),
               NavigationRailDestination(
                   icon: Icon(Icons.settings), label: Text("设置")),
             ],

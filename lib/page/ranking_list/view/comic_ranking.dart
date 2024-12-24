@@ -46,19 +46,25 @@ class _ComicRankingState extends State<ComicRanking>
               ),
             );
           case ComicListStatus.success:
-            return Column(
-              children: [
-                // 使用 map 和 Padding 创建 ComicEntryWidget 列表
-                ...state.comicList!.map(
-                  (comic) => ComicEntryWidget(
+            return RefreshIndicator(
+              onRefresh: () async {
+                context.read<ComicListBloc>().add(
+                    FetchComicList(GetInfo(days: widget.type, type: 'comic')));
+              },
+              child: ListView.builder(
+                itemCount: state.comicList!.length + 1, // 加1为底部的空白部分（可选）
+                itemBuilder: (context, index) {
+                  if (index == state.comicList!.length) {
+                    // 显示底部的空白部分
+                    return SizedBox(height: 10);
+                  }
+                  final comic = state.comicList![index];
+                  return ComicEntryWidget(
                     comic: comic,
                     type: widget.type,
-                  ),
-                ),
-                SizedBox(
-                  height: 80,
-                ),
-              ],
+                  );
+                },
+              ),
             );
           case ComicListStatus.initial:
             return const Center(

@@ -257,6 +257,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                     comicId: comicId,
                     epsId: doc.order,
                     index: index - 1,
+                    chapterId: doc.docId,
                   );
                 }
               },
@@ -692,12 +693,14 @@ class _ImageWidget extends StatefulWidget {
   final int epsId;
   final Media media;
   final int index;
+  final String chapterId;
 
   const _ImageWidget({
     required this.media,
     required this.comicId,
     required this.epsId,
     required this.index,
+    required this.chapterId,
   });
 
   @override
@@ -713,6 +716,8 @@ class _ImageWidgetState extends State<_ImageWidget>
   Media get media => widget.media;
 
   int get index => widget.index;
+
+  String get chapterId => widget.chapterId;
 
   @override
   bool get wantKeepAlive => true;
@@ -730,6 +735,7 @@ class _ImageWidgetState extends State<_ImageWidget>
               path: media.path,
               cartoonId: comicId,
               pictureType: "comic",
+              chapterId: chapterId,
             ),
           ),
         ),
@@ -792,6 +798,7 @@ class _ImageWidgetState extends State<_ImageWidget>
                                   path: media.path,
                                   cartoonId: comicId,
                                   pictureType: "comic",
+                                  chapterId: chapterId,
                                 ),
                               ),
                             );

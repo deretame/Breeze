@@ -6,7 +6,7 @@ import 'package:stream_transform/stream_transform.dart';
 
 import '../../../main.dart';
 import '../../../network/http/http_request.dart';
-import '../json/categories.dart';
+import '../json/categories/categories.dart';
 import '../models/category.dart';
 
 part 'get_category_event.dart';

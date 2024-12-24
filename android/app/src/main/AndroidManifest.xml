@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/> <!-- 读取存储权限，对于Android 13以下版本 -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/> <!-- 写入存储权限，对于Android 13以下版本 -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/> <!-- 读取媒体图片权限，Android 13及以上 -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/> <!-- 安装APK权限 -->
 
     <application
             android:label="Breeze"

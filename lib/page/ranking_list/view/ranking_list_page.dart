@@ -71,33 +71,25 @@ class _HotTabBarState extends State<HotTabBar> with TickerProviderStateMixin {
           child: TabBarView(
             controller: _tabController,
             children: <Widget>[
-              SingleChildScrollView(
-                child: BlocProvider(
-                  create: (_) => ComicListBloc()
-                    ..add(FetchComicList(GetInfo(days: "H24", type: "comic"))),
-                  child: const ComicRanking(type: "H24"),
-                ),
+              BlocProvider(
+                create: (_) => ComicListBloc()
+                  ..add(FetchComicList(GetInfo(days: "H24", type: "comic"))),
+                child: const ComicRanking(type: "H24"),
               ),
-              SingleChildScrollView(
-                child: BlocProvider(
-                  create: (_) => ComicListBloc()
-                    ..add(FetchComicList(GetInfo(days: "D7", type: "comic"))),
-                  child: const ComicRanking(type: "D7"),
-                ),
+              BlocProvider(
+                create: (_) => ComicListBloc()
+                  ..add(FetchComicList(GetInfo(days: "D7", type: "comic"))),
+                child: const ComicRanking(type: "D7"),
               ),
-              SingleChildScrollView(
-                child: BlocProvider(
-                  create: (_) => ComicListBloc()
-                    ..add(FetchComicList(GetInfo(days: "D30", type: "comic"))),
-                  child: const ComicRanking(type: "D30"),
-                ),
+              BlocProvider(
+                create: (_) => ComicListBloc()
+                  ..add(FetchComicList(GetInfo(days: "D30", type: "comic"))),
+                child: const ComicRanking(type: "D30"),
               ),
-              SingleChildScrollView(
-                child: BlocProvider(
-                  create: (_) => CreatorListBloc()
-                    ..add(FetchCreatorList(GetInfo(type: "creator"))),
-                  child: const CreatorRankingsWidget(),
-                ),
+              BlocProvider(
+                create: (_) => CreatorListBloc()
+                  ..add(FetchCreatorList(GetInfo(type: "creator"))),
+                child: const CreatorRankingsWidget(),
               ),
             ],
           ),

@@ -92,7 +92,7 @@ class CategoryWidget extends StatelessWidget {
                 ),
               );
             case PictureLoadStatus.success:
-              return InkWell(
+              return GestureDetector(
                 onTap: () => _navigateBasedOnTitle(context),
                 child: Column(
                   children: <Widget>[

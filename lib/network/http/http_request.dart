@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 import 'http_request_build.dart';
@@ -206,11 +207,13 @@ Future<Map<String, dynamic>> getSearchKeywords() async {
 }
 
 Future<Map<String, dynamic>> getComicInfo(
-  String comicId,
-) async {
+  String comicId, {
+  Dio? dio,
+}) async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comics/$comicId',
     'GET',
+    localDio: dio,
   );
 
   debugPrint(limitString(data.toString(), 150));
@@ -345,12 +348,14 @@ Future<Map<String, dynamic>> writeCommentChildren(
 
 Future<Map<String, dynamic>> getEps(
   String comicId,
-  int pageCount,
-) async {
+  int pageCount, {
+  Dio? dio,
+}) async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comics/$comicId/eps?page=$pageCount',
     'GET',
     cache: true,
+    localDio: dio,
   );
 
   debugPrint(limitString(data.toString(), 150));
@@ -383,12 +388,16 @@ Future<Map<String, dynamic>> getRecommend(
 Future<Map<String, dynamic>> getPages(
   String comicId,
   int epId,
-  int pageCount,
-) async {
+  int pageCount, {
+  Dio? dio,
+  String imageQuality = "",
+}) async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comics/$comicId/order/$epId/pages?page=$pageCount',
     'GET',
     cache: true,
+    localDio: dio,
+    imageQuality: imageQuality,
   );
 
   debugPrint(limitString(data.toString(), 150));

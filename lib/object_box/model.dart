@@ -38,7 +38,9 @@ class BikaComicHistory {
   int pagesCount;
   int epsCount;
   bool finished;
+  @Property(type: PropertyType.date)
   DateTime updatedAt;
+  @Property(type: PropertyType.date)
   DateTime createdAt;
   bool allowDownload;
   bool allowComment;
@@ -50,7 +52,10 @@ class BikaComicHistory {
   int commentsCount;
   bool isFavourite;
   bool isLiked;
+  @Property(type: PropertyType.date)
   DateTime history;
+
+  // 下面都是章节的观看历史信息
   int order;
   String epTitle;
   int epPageCount;
@@ -123,10 +128,6 @@ class BikaComicDownload {
   int creatorExp;
   int creatorLevel;
   List<String> creatorCharacters;
-
-  // 为啥要写这个玩意儿呢？
-  // 因为List<String>使用contain的话，太耗时间了，所以用String拼接起来
-  // 这样会提高很多速度
   String creatorCharactersString;
   String creatorRole;
   String creatorTitle;
@@ -148,7 +149,9 @@ class BikaComicDownload {
   int pagesCount;
   int epsCount;
   bool finished;
+  @Property(type: PropertyType.date)
   DateTime updatedAt;
+  @Property(type: PropertyType.date)
   DateTime createdAt;
   bool allowDownload;
   bool allowComment;
@@ -160,11 +163,14 @@ class BikaComicDownload {
   int commentsCount;
   bool isFavourite;
   bool isLiked;
-  DateTime history;
-  int order;
-  String epTitle;
-  int epPageCount;
-  List<String> epsInfo;
+  @Property(type: PropertyType.date)
+  DateTime downloadTime;
+
+  // 这个用来放已经下载好的章节的标题，用来检测是否下载了
+  List<String> epsTitle;
+
+  // 这个用来放漫画的全部的信息，是一个json字符串
+  String comicInfoAll;
 
   BikaComicDownload({
     this.id = 0,
@@ -209,15 +215,13 @@ class BikaComicDownload {
     required this.commentsCount,
     required this.isFavourite,
     required this.isLiked,
-    required this.history,
-    required this.order,
-    required this.epTitle,
-    required this.epPageCount,
-    required this.epsInfo,
+    required this.downloadTime,
+    required this.epsTitle,
+    required this.comicInfoAll,
   });
 
   @override
   String toString() {
-    return 'BikaComicHistory{id: $id, comicId: $comicId, creatorId: $creatorId, creatorGender: $creatorGender, creatorName: $creatorName, creatorVerified: $creatorVerified, creatorExp: $creatorExp, creatorLevel: $creatorLevel, creatorCharacters: $creatorCharacters, creatorCharactersString: $creatorCharactersString, creatorRole: $creatorRole, creatorTitle: $creatorTitle, creatorAvatarOriginalName: $creatorAvatarOriginalName, creatorAvatarPath: $creatorAvatarPath, creatorAvatarFileServer: $creatorAvatarFileServer, creatorSlogan: $creatorSlogan, title: $title, description: $description, thumbOriginalName: $thumbOriginalName, thumbPath: $thumbPath, thumbFileServer: $thumbFileServer, author: $author, chineseTeam: $chineseTeam, categories: $categories, categoriesString: $categoriesString, tags: $tags, tagsString: $tagsString, pagesCount: $pagesCount, epsCount: $epsCount, finished: $finished, updatedAt: $updatedAt, createdAt: $createdAt, allowDownload: $allowDownload, allowComment: $allowComment, totalLikes: $totalLikes, totalViews: $totalViews, totalComments: $totalComments, viewsCount: $viewsCount, likesCount: $likesCount, commentsCount: $commentsCount, isFavourite: $isFavourite, isLiked: $isLiked, history: $history, order: $order,epTitle: $epTitle, epPageCount: $epPageCount}, epsInfo: $epsInfo}';
+    return 'BikaComicDownload{id: $id, comicId: $comicId, creatorId: $creatorId, creatorGender: $creatorGender, creatorName: $creatorName, creatorVerified: $creatorVerified, creatorExp: $creatorExp, creatorLevel: $creatorLevel, creatorCharacters: $creatorCharacters, creatorCharactersString: $creatorCharactersString, creatorRole: $creatorRole, creatorTitle: $creatorTitle, creatorAvatarOriginalName: $creatorAvatarOriginalName, creatorAvatarPath: $creatorAvatarPath, creatorAvatarFileServer: $creatorAvatarFileServer, creatorSlogan: $creatorSlogan, title: $title, description: $description, thumbOriginalName: $thumbOriginalName, thumbPath: $thumbPath, thumbFileServer: $thumbFileServer, author: $author, chineseTeam: $chineseTeam, categories: $categories, categoriesString: $categoriesString, tags: $tags, tagsString: $tagsString, pagesCount: $pagesCount, epsCount: $epsCount, finished: $finished, updatedAt: $updatedAt, createdAt: $createdAt, allowDownload: $allowDownload, allowComment: $allowComment, totalLikes: $totalLikes, totalViews: $totalViews, totalComments: $totalComments, viewsCount: $viewsCount, likesCount: $likesCount, commentsCount: $commentsCount, isFavourite: $isFavourite, isLiked: $isLiked, downloadTime: $downloadTime, epsTitle: $epsTitle, comicInfoAll: $comicInfoAll}';
   }
 }

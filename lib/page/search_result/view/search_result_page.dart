@@ -203,6 +203,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
     int itemCount = state.comics.length + 1;
     comics = state.comics;
     pagesCount = state.pagesCount;
+    _searchEnter = SearchEnter.fromConst(state.searchEnterConst);
     if (state.status == SearchStatus.success) {
       if (state.comics.length < 8 && !state.hasReachedMax) {
         _fetchSearchResult();

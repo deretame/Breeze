@@ -35,6 +35,7 @@ class ComicParticularsWidget extends StatelessWidget {
                   path: comicInfo.thumb.path,
                   chapterId: comicInfo.id,
                   pictureType: "cover",
+                  cartoonId: comicInfo.id,
                 ),
               ),
               SizedBox(width: screenWidth / 60),

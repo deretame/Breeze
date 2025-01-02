@@ -14,13 +14,39 @@ import '../picture_bloc/bloc/picture_bloc.dart';
 import '../picture_bloc/models/picture_info.dart';
 import 'comic_entry_info.dart';
 
-class ComicEntryWidget extends StatelessWidget {
+enum ComicEntryType {
+  normal,
+  history,
+  download,
+  historyAndDownload,
+}
+
+class ComicEntryWidget extends StatefulWidget {
   final ComicEntryInfo comicEntryInfo;
+  final ComicEntryType? type;
 
   const ComicEntryWidget({
     super.key,
     required this.comicEntryInfo,
+    this.type,
   });
+
+  @override
+  State<ComicEntryWidget> createState() => _ComicEntryWidgetState();
+}
+
+class _ComicEntryWidgetState extends State<ComicEntryWidget> {
+  ComicEntryInfo get comicEntryInfo => widget.comicEntryInfo;
+
+  ComicEntryType? get type => widget.type;
+
+  ComicEntryType? _type;
+
+  @override
+  void initState() {
+    super.initState();
+    _type = type ?? ComicEntryType.normal;
+  }
 
   String _getCategories(List<String>? categories) {
     if (categories == null) {
@@ -40,61 +66,99 @@ class ComicEntryWidget extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         // 跳转到漫画详情页
-        router.push(ComicInfoRoute(comicId: comicEntryInfo.id));
+        router.push(ComicInfoRoute(
+          comicId: comicEntryInfo.id,
+          type: _type,
+        ));
       },
       child: Column(
         children: <Widget>[
           SizedBox(height: (screenHeight / 10) * 0.1),
-          Observer(
-            builder: (context) {
-              return Container(
-                height: 180,
-                width: ((screenWidth / 10) * 9.5),
-                margin:
-                    EdgeInsets.symmetric(horizontal: (screenWidth / 10) * 0.25),
-                decoration: BoxDecoration(
-                  color: globalSetting.backgroundColor,
-                  borderRadius: BorderRadius.circular(10.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: globalSetting.themeType
-                          ? Colors.black.withValues(alpha: 0.2)
-                          : Colors.white.withValues(alpha: 0.3),
-                      spreadRadius: 1,
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: <Widget>[
-                    _ImageWidget(
-                      fileServer: comicEntryInfo.thumb.fileServer,
-                      path: comicEntryInfo.thumb.path,
-                      id: comicEntryInfo.id,
-                      pictureType: "cover",
-                    ),
-                    SizedBox(width: screenWidth / 60),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          SizedBox(height: screenWidth / 200),
-                          Text(
-                            comicEntryInfo.title,
-                            style: TextStyle(
-                              color: globalSetting.textColor,
-                              fontSize: 18,
-                            ),
-                            maxLines: 3, // 最大行数
-                            overflow: TextOverflow.ellipsis, // 超出时使用省略号
+          Observer(builder: (context) {
+            return Container(
+              height: 180,
+              width: ((screenWidth / 10) * 9.5),
+              margin:
+                  EdgeInsets.symmetric(horizontal: (screenWidth / 10) * 0.25),
+              decoration: BoxDecoration(
+                color: globalSetting.backgroundColor,
+                borderRadius: BorderRadius.circular(10.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: globalSetting.themeType
+                        ? Colors.black.withValues(alpha: 0.2)
+                        : Colors.white.withValues(alpha: 0.3),
+                    spreadRadius: 1,
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: <Widget>[
+                  Builder(
+                    builder: (BuildContext context) {
+                      return ImageWidget(
+                        key: ValueKey(comicEntryInfo.id),
+                        fileServer: comicEntryInfo.thumb.fileServer,
+                        path: comicEntryInfo.thumb.path,
+                        id: comicEntryInfo.id,
+                        pictureType: "cover",
+                      );
+                    },
+                  ),
+                  SizedBox(width: screenWidth / 60),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        SizedBox(height: screenWidth / 200),
+                        Text(
+                          comicEntryInfo.title,
+                          style: TextStyle(
+                            color: globalSetting.textColor,
+                            fontSize: 18,
                           ),
-                          if (comicEntryInfo.author.toString() != '') ...[
-                            const SizedBox(height: 5),
+                          maxLines: 3, // 最大行数
+                          overflow: TextOverflow.ellipsis, // 超出时使用省略号
+                        ),
+                        if (comicEntryInfo.author.toString() != '') ...[
+                          const SizedBox(height: 5),
+                          Text(
+                            comicEntryInfo.author.toString(),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: TextStyle(
+                              color: globalSetting.themeType
+                                  ? Colors.red
+                                  : Colors.yellow,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 5),
+                        Text(
+                          _getCategories(comicEntryInfo.categories),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
+                          style: TextStyle(
+                            color: globalSetting.textColor,
+                          ),
+                        ),
+                        Spacer(),
+                        Row(
+                          children: <Widget>[
+                            const Icon(
+                              Icons.favorite,
+                              color: Colors.red,
+                              size: 24.0,
+                            ),
+                            const SizedBox(width: 10.0),
                             Text(
-                              comicEntryInfo.author.toString(),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
+                              comicEntryInfo.likesCount.toString(),
+                            ),
+                            SizedBox(width: 10.0),
+                            Text(
+                              comicEntryInfo.finished ? "完结" : "",
                               style: TextStyle(
                                 color: globalSetting.themeType
                                     ? Colors.red
@@ -102,61 +166,30 @@ class ComicEntryWidget extends StatelessWidget {
                               ),
                             ),
                           ],
-                          const SizedBox(height: 5),
-                          Text(
-                            _getCategories(comicEntryInfo.categories),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 2,
-                            style: TextStyle(
-                              color: globalSetting.textColor,
-                            ),
-                          ),
-                          Spacer(),
-                          Row(
-                            children: <Widget>[
-                              const Icon(
-                                Icons.favorite,
-                                color: Colors.red,
-                                size: 24.0,
-                              ),
-                              const SizedBox(width: 10.0),
-                              Text(
-                                comicEntryInfo.likesCount.toString(),
-                              ),
-                              SizedBox(width: 10.0),
-                              Text(
-                                comicEntryInfo.finished ? "完结" : "",
-                                style: TextStyle(
-                                  color: globalSetting.themeType
-                                      ? Colors.red
-                                      : Colors.yellow,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: screenWidth / 200),
-                        ],
-                      ),
+                        ),
+                        SizedBox(height: screenWidth / 200),
+                      ],
                     ),
-                    SizedBox(width: screenWidth / 50),
-                  ],
-                ),
-              );
-            },
-          ),
+                  ),
+                  SizedBox(width: screenWidth / 50),
+                ],
+              ),
+            );
+          })
         ],
       ),
     );
   }
 }
 
-class _ImageWidget extends StatelessWidget {
+class ImageWidget extends StatelessWidget {
   final String fileServer;
   final String path;
   final String id;
   final String pictureType;
 
-  const _ImageWidget({
+  const ImageWidget({
+    super.key,
     required this.fileServer,
     required this.path,
     required this.id,
@@ -201,8 +234,10 @@ class _ImageWidget extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          FullScreenImageView(imagePath: state.imagePath!),
+                      builder: (context) => FullScreenImageView(
+                        imagePath: state.imagePath!,
+                        // uuid: uuid,
+                      ),
                     ),
                   );
                 },

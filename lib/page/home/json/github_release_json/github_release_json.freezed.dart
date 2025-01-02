@@ -22,55 +22,38 @@ GithubReleaseJson _$GithubReleaseJsonFromJson(Map<String, dynamic> json) {
 mixin _$GithubReleaseJson {
   @JsonKey(name: "url")
   String get url => throw _privateConstructorUsedError;
-
   @JsonKey(name: "assets_url")
   String get assetsUrl => throw _privateConstructorUsedError;
-
   @JsonKey(name: "upload_url")
   String get uploadUrl => throw _privateConstructorUsedError;
-
   @JsonKey(name: "html_url")
   String get htmlUrl => throw _privateConstructorUsedError;
-
   @JsonKey(name: "id")
   int get id => throw _privateConstructorUsedError;
-
   @JsonKey(name: "author")
   Author get author => throw _privateConstructorUsedError;
-
   @JsonKey(name: "node_id")
   String get nodeId => throw _privateConstructorUsedError;
-
   @JsonKey(name: "tag_name")
   String get tagName => throw _privateConstructorUsedError;
-
   @JsonKey(name: "target_commitish")
   String get targetCommitish => throw _privateConstructorUsedError;
-
   @JsonKey(name: "name")
   String get name => throw _privateConstructorUsedError;
-
   @JsonKey(name: "draft")
   bool get draft => throw _privateConstructorUsedError;
-
   @JsonKey(name: "prerelease")
   bool get prerelease => throw _privateConstructorUsedError;
-
   @JsonKey(name: "created_at")
   DateTime get createdAt => throw _privateConstructorUsedError;
-
   @JsonKey(name: "published_at")
   DateTime get publishedAt => throw _privateConstructorUsedError;
-
   @JsonKey(name: "assets")
   List<Asset> get assets => throw _privateConstructorUsedError;
-
   @JsonKey(name: "tarball_url")
   String get tarballUrl => throw _privateConstructorUsedError;
-
   @JsonKey(name: "zipball_url")
   String get zipballUrl => throw _privateConstructorUsedError;
-
   @JsonKey(name: "body")
   String get body => throw _privateConstructorUsedError;
 
@@ -89,7 +72,6 @@ abstract class $GithubReleaseJsonCopyWith<$Res> {
   factory $GithubReleaseJsonCopyWith(
           GithubReleaseJson value, $Res Function(GithubReleaseJson) then) =
       _$GithubReleaseJsonCopyWithImpl<$Res, GithubReleaseJson>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "url") String url,
@@ -121,7 +103,6 @@ class _$GithubReleaseJsonCopyWithImpl<$Res, $Val extends GithubReleaseJson>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -242,7 +223,6 @@ abstract class _$$GithubReleaseJsonImplCopyWith<$Res>
   factory _$$GithubReleaseJsonImplCopyWith(_$GithubReleaseJsonImpl value,
           $Res Function(_$GithubReleaseJsonImpl) then) =
       __$$GithubReleaseJsonImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -448,7 +428,6 @@ class _$GithubReleaseJsonImpl implements _GithubReleaseJson {
   @JsonKey(name: "published_at")
   final DateTime publishedAt;
   final List<Asset> _assets;
-
   @override
   @JsonKey(name: "assets")
   List<Asset> get assets {
@@ -573,71 +552,54 @@ abstract class _GithubReleaseJson implements GithubReleaseJson {
   @override
   @JsonKey(name: "url")
   String get url;
-
   @override
   @JsonKey(name: "assets_url")
   String get assetsUrl;
-
   @override
   @JsonKey(name: "upload_url")
   String get uploadUrl;
-
   @override
   @JsonKey(name: "html_url")
   String get htmlUrl;
-
   @override
   @JsonKey(name: "id")
   int get id;
-
   @override
   @JsonKey(name: "author")
   Author get author;
-
   @override
   @JsonKey(name: "node_id")
   String get nodeId;
-
   @override
   @JsonKey(name: "tag_name")
   String get tagName;
-
   @override
   @JsonKey(name: "target_commitish")
   String get targetCommitish;
-
   @override
   @JsonKey(name: "name")
   String get name;
-
   @override
   @JsonKey(name: "draft")
   bool get draft;
-
   @override
   @JsonKey(name: "prerelease")
   bool get prerelease;
-
   @override
   @JsonKey(name: "created_at")
   DateTime get createdAt;
-
   @override
   @JsonKey(name: "published_at")
   DateTime get publishedAt;
-
   @override
   @JsonKey(name: "assets")
   List<Asset> get assets;
-
   @override
   @JsonKey(name: "tarball_url")
   String get tarballUrl;
-
   @override
   @JsonKey(name: "zipball_url")
   String get zipballUrl;
-
   @override
   @JsonKey(name: "body")
   String get body;
@@ -658,40 +620,28 @@ Asset _$AssetFromJson(Map<String, dynamic> json) {
 mixin _$Asset {
   @JsonKey(name: "url")
   String get url => throw _privateConstructorUsedError;
-
   @JsonKey(name: "id")
   int get id => throw _privateConstructorUsedError;
-
   @JsonKey(name: "node_id")
   String get nodeId => throw _privateConstructorUsedError;
-
   @JsonKey(name: "name")
   String get name => throw _privateConstructorUsedError;
-
   @JsonKey(name: "label")
   dynamic get label => throw _privateConstructorUsedError;
-
   @JsonKey(name: "uploader")
   Author get uploader => throw _privateConstructorUsedError;
-
   @JsonKey(name: "content_type")
   String get contentType => throw _privateConstructorUsedError;
-
   @JsonKey(name: "state")
   String get state => throw _privateConstructorUsedError;
-
   @JsonKey(name: "size")
   int get size => throw _privateConstructorUsedError;
-
   @JsonKey(name: "download_count")
   int get downloadCount => throw _privateConstructorUsedError;
-
   @JsonKey(name: "created_at")
   DateTime get createdAt => throw _privateConstructorUsedError;
-
   @JsonKey(name: "updated_at")
   DateTime get updatedAt => throw _privateConstructorUsedError;
-
   @JsonKey(name: "browser_download_url")
   String get browserDownloadUrl => throw _privateConstructorUsedError;
 
@@ -708,7 +658,6 @@ mixin _$Asset {
 abstract class $AssetCopyWith<$Res> {
   factory $AssetCopyWith(Asset value, $Res Function(Asset) then) =
       _$AssetCopyWithImpl<$Res, Asset>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "url") String url,
@@ -735,7 +684,6 @@ class _$AssetCopyWithImpl<$Res, $Val extends Asset>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -830,7 +778,6 @@ abstract class _$$AssetImplCopyWith<$Res> implements $AssetCopyWith<$Res> {
   factory _$$AssetImplCopyWith(
           _$AssetImpl value, $Res Function(_$AssetImpl) then) =
       __$$AssetImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -1084,51 +1031,39 @@ abstract class _Asset implements Asset {
   @override
   @JsonKey(name: "url")
   String get url;
-
   @override
   @JsonKey(name: "id")
   int get id;
-
   @override
   @JsonKey(name: "node_id")
   String get nodeId;
-
   @override
   @JsonKey(name: "name")
   String get name;
-
   @override
   @JsonKey(name: "label")
   dynamic get label;
-
   @override
   @JsonKey(name: "uploader")
   Author get uploader;
-
   @override
   @JsonKey(name: "content_type")
   String get contentType;
-
   @override
   @JsonKey(name: "state")
   String get state;
-
   @override
   @JsonKey(name: "size")
   int get size;
-
   @override
   @JsonKey(name: "download_count")
   int get downloadCount;
-
   @override
   @JsonKey(name: "created_at")
   DateTime get createdAt;
-
   @override
   @JsonKey(name: "updated_at")
   DateTime get updatedAt;
-
   @override
   @JsonKey(name: "browser_download_url")
   String get browserDownloadUrl;
@@ -1149,58 +1084,40 @@ Author _$AuthorFromJson(Map<String, dynamic> json) {
 mixin _$Author {
   @JsonKey(name: "login")
   String get login => throw _privateConstructorUsedError;
-
   @JsonKey(name: "id")
   int get id => throw _privateConstructorUsedError;
-
   @JsonKey(name: "node_id")
   String get nodeId => throw _privateConstructorUsedError;
-
   @JsonKey(name: "avatar_url")
   String get avatarUrl => throw _privateConstructorUsedError;
-
   @JsonKey(name: "gravatar_id")
   String get gravatarId => throw _privateConstructorUsedError;
-
   @JsonKey(name: "url")
   String get url => throw _privateConstructorUsedError;
-
   @JsonKey(name: "html_url")
   String get htmlUrl => throw _privateConstructorUsedError;
-
   @JsonKey(name: "followers_url")
   String get followersUrl => throw _privateConstructorUsedError;
-
   @JsonKey(name: "following_url")
   String get followingUrl => throw _privateConstructorUsedError;
-
   @JsonKey(name: "gists_url")
   String get gistsUrl => throw _privateConstructorUsedError;
-
   @JsonKey(name: "starred_url")
   String get starredUrl => throw _privateConstructorUsedError;
-
   @JsonKey(name: "subscriptions_url")
   String get subscriptionsUrl => throw _privateConstructorUsedError;
-
   @JsonKey(name: "organizations_url")
   String get organizationsUrl => throw _privateConstructorUsedError;
-
   @JsonKey(name: "repos_url")
   String get reposUrl => throw _privateConstructorUsedError;
-
   @JsonKey(name: "events_url")
   String get eventsUrl => throw _privateConstructorUsedError;
-
   @JsonKey(name: "received_events_url")
   String get receivedEventsUrl => throw _privateConstructorUsedError;
-
   @JsonKey(name: "type")
   String get type => throw _privateConstructorUsedError;
-
   @JsonKey(name: "user_view_type")
   String get userViewType => throw _privateConstructorUsedError;
-
   @JsonKey(name: "site_admin")
   bool get siteAdmin => throw _privateConstructorUsedError;
 
@@ -1217,7 +1134,6 @@ mixin _$Author {
 abstract class $AuthorCopyWith<$Res> {
   factory $AuthorCopyWith(Author value, $Res Function(Author) then) =
       _$AuthorCopyWithImpl<$Res, Author>;
-
   @useResult
   $Res call(
       {@JsonKey(name: "login") String login,
@@ -1248,7 +1164,6 @@ class _$AuthorCopyWithImpl<$Res, $Val extends Author>
 
   // ignore: unused_field
   final $Val _value;
-
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -1363,7 +1278,6 @@ abstract class _$$AuthorImplCopyWith<$Res> implements $AuthorCopyWith<$Res> {
   factory _$$AuthorImplCopyWith(
           _$AuthorImpl value, $Res Function(_$AuthorImpl) then) =
       __$$AuthorImplCopyWithImpl<$Res>;
-
   @override
   @useResult
   $Res call(
@@ -1703,75 +1617,57 @@ abstract class _Author implements Author {
   @override
   @JsonKey(name: "login")
   String get login;
-
   @override
   @JsonKey(name: "id")
   int get id;
-
   @override
   @JsonKey(name: "node_id")
   String get nodeId;
-
   @override
   @JsonKey(name: "avatar_url")
   String get avatarUrl;
-
   @override
   @JsonKey(name: "gravatar_id")
   String get gravatarId;
-
   @override
   @JsonKey(name: "url")
   String get url;
-
   @override
   @JsonKey(name: "html_url")
   String get htmlUrl;
-
   @override
   @JsonKey(name: "followers_url")
   String get followersUrl;
-
   @override
   @JsonKey(name: "following_url")
   String get followingUrl;
-
   @override
   @JsonKey(name: "gists_url")
   String get gistsUrl;
-
   @override
   @JsonKey(name: "starred_url")
   String get starredUrl;
-
   @override
   @JsonKey(name: "subscriptions_url")
   String get subscriptionsUrl;
-
   @override
   @JsonKey(name: "organizations_url")
   String get organizationsUrl;
-
   @override
   @JsonKey(name: "repos_url")
   String get reposUrl;
-
   @override
   @JsonKey(name: "events_url")
   String get eventsUrl;
-
   @override
   @JsonKey(name: "received_events_url")
   String get receivedEventsUrl;
-
   @override
   @JsonKey(name: "type")
   String get type;
-
   @override
   @JsonKey(name: "user_view_type")
   String get userViewType;
-
   @override
   @JsonKey(name: "site_admin")
   bool get siteAdmin;

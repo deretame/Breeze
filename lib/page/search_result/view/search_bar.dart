@@ -26,6 +26,8 @@ class BikaSearchBar extends StatelessWidget implements PreferredSizeWidget {
       controller.text = searchEnter.keyword;
     }
 
+    // debugPrint(searchEnter.toString());
+
     return AppBar(
       titleSpacing: 0,
       elevation: 0,

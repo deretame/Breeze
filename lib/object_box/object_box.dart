@@ -21,7 +21,7 @@ class ObjectBox {
     return ObjectBox._create(store);
   }
 
-  Box<BikaComicHistory> get bikaBox => _bikaComicHistoryBox;
+  Box<BikaComicHistory> get bikaHistoryBox => _bikaComicHistoryBox;
 
-  Box<BikaComicDownload> get downloadBox => _bikaComicDownloadBox;
+  Box<BikaComicDownload> get bikaDownloadBox => _bikaComicDownloadBox;
 }

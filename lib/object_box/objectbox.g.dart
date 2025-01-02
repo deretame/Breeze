@@ -261,7 +261,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(3, 7460148923873911806),
       name: 'BikaComicDownload',
-      lastPropertyId: const obx_int.IdUid(47, 7208513777776492680),
+      lastPropertyId: const obx_int.IdUid(50, 6304474719919395059),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -475,29 +475,19 @@ final _entities = <obx_int.ModelEntity>[
             type: 1,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(43, 6890224761648698547),
-            name: 'history',
-            type: 10,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(44, 9087224682630152491),
-            name: 'order',
-            type: 6,
-            flags: 0),
-        obx_int.ModelProperty(
-            id: const obx_int.IdUid(45, 7033982892274642636),
-            name: 'epTitle',
+            id: const obx_int.IdUid(48, 4312721143244788600),
+            name: 'comicInfoAll',
             type: 9,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(46, 5451171976689934386),
-            name: 'epPageCount',
-            type: 6,
+            id: const obx_int.IdUid(49, 4021998921174442439),
+            name: 'epsTitle',
+            type: 30,
             flags: 0),
         obx_int.ModelProperty(
-            id: const obx_int.IdUid(47, 7208513777776492680),
-            name: 'epsInfo',
-            type: 30,
+            id: const obx_int.IdUid(50, 6304474719919395059),
+            name: 'downloadTime',
+            type: 10,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
@@ -539,11 +529,11 @@ Future<obx.Store> openStore(
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
       entities: _entities,
-      lastEntityId: const obx_int.IdUid(3, 7460148923873911806),
+      lastEntityId: const obx_int.IdUid(4, 1327783071807974029),
       lastIndexId: const obx_int.IdUid(0, 0),
       lastRelationId: const obx_int.IdUid(0, 0),
       lastSequenceId: const obx_int.IdUid(0, 0),
-      retiredEntityUids: const [264467845223121709],
+      retiredEntityUids: const [264467845223121709, 1327783071807974029],
       retiredIndexUids: const [],
       retiredPropertyUids: const [
         4194924827811470754,
@@ -560,7 +550,14 @@ obx_int.ModelDefinition getObjectBoxModel() {
         1706497498737540219,
         1696934028246340355,
         7810620125690386167,
-        1240031663584546645
+        1240031663584546645,
+        7208513777776492680,
+        4644449521646476306,
+        2026626721244982575,
+        6890224761648698547,
+        9087224682630152491,
+        7033982892274642636,
+        5451171976689934386
       ],
       retiredRelationUids: const [],
       modelVersion: 5,
@@ -868,10 +865,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final tagsOffset = fbb.writeList(
               object.tags.map(fbb.writeString).toList(growable: false));
           final tagsStringOffset = fbb.writeString(object.tagsString);
-          final epTitleOffset = fbb.writeString(object.epTitle);
-          final epsInfoOffset = fbb.writeList(
-              object.epsInfo.map(fbb.writeString).toList(growable: false));
-          fbb.startTable(48);
+          final comicInfoAllOffset = fbb.writeString(object.comicInfoAll);
+          final epsTitleOffset = fbb.writeList(
+              object.epsTitle.map(fbb.writeString).toList(growable: false));
+          fbb.startTable(51);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, comicIdOffset);
           fbb.addOffset(2, creatorIdOffset);
@@ -914,11 +911,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fbb.addInt64(39, object.commentsCount);
           fbb.addBool(40, object.isFavourite);
           fbb.addBool(41, object.isLiked);
-          fbb.addInt64(42, object.history.millisecondsSinceEpoch);
-          fbb.addInt64(43, object.order);
-          fbb.addOffset(44, epTitleOffset);
-          fbb.addInt64(45, object.epPageCount);
-          fbb.addOffset(46, epsInfoOffset);
+          fbb.addOffset(47, comicInfoAllOffset);
+          fbb.addOffset(48, epsTitleOffset);
+          fbb.addInt64(49, object.downloadTime.millisecondsSinceEpoch);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -1029,18 +1024,15 @@ obx_int.ModelDefinition getObjectBoxModel() {
               const fb.BoolReader().vTableGet(buffer, rootOffset, 84, false);
           final isLikedParam =
               const fb.BoolReader().vTableGet(buffer, rootOffset, 86, false);
-          final historyParam = DateTime.fromMillisecondsSinceEpoch(
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 88, 0));
-          final orderParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 90, 0);
-          final epTitleParam = const fb.StringReader(asciiOptimization: true)
-              .vTableGet(buffer, rootOffset, 92, '');
-          final epPageCountParam =
-              const fb.Int64Reader().vTableGet(buffer, rootOffset, 94, 0);
-          final epsInfoParam = const fb.ListReader<String>(
+          final downloadTimeParam = DateTime.fromMillisecondsSinceEpoch(
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 102, 0));
+          final epsTitleParam = const fb.ListReader<String>(
                   fb.StringReader(asciiOptimization: true),
                   lazy: false)
-              .vTableGet(buffer, rootOffset, 96, []);
+              .vTableGet(buffer, rootOffset, 100, []);
+          final comicInfoAllParam =
+              const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 98, '');
           final object = BikaComicDownload(
               id: idParam,
               comicId: comicIdParam,
@@ -1084,11 +1076,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
               commentsCount: commentsCountParam,
               isFavourite: isFavouriteParam,
               isLiked: isLikedParam,
-              history: historyParam,
-              order: orderParam,
-              epTitle: epTitleParam,
-              epPageCount: epPageCountParam,
-              epsInfo: epsInfoParam);
+              downloadTime: downloadTimeParam,
+              epsTitle: epsTitleParam,
+              comicInfoAll: comicInfoAllParam);
 
           return object;
         })
@@ -1456,23 +1446,15 @@ class BikaComicDownload_ {
   static final isLiked =
       obx.QueryBooleanProperty<BikaComicDownload>(_entities[1].properties[41]);
 
-  /// See [BikaComicDownload.history].
-  static final history =
-      obx.QueryDateProperty<BikaComicDownload>(_entities[1].properties[42]);
+  /// See [BikaComicDownload.comicInfoAll].
+  static final comicInfoAll =
+      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[42]);
 
-  /// See [BikaComicDownload.order].
-  static final order =
-      obx.QueryIntegerProperty<BikaComicDownload>(_entities[1].properties[43]);
+  /// See [BikaComicDownload.epsTitle].
+  static final epsTitle = obx.QueryStringVectorProperty<BikaComicDownload>(
+      _entities[1].properties[43]);
 
-  /// See [BikaComicDownload.epTitle].
-  static final epTitle =
-      obx.QueryStringProperty<BikaComicDownload>(_entities[1].properties[44]);
-
-  /// See [BikaComicDownload.epPageCount].
-  static final epPageCount =
-      obx.QueryIntegerProperty<BikaComicDownload>(_entities[1].properties[45]);
-
-  /// See [BikaComicDownload.epsInfo].
-  static final epsInfo = obx.QueryStringVectorProperty<BikaComicDownload>(
-      _entities[1].properties[46]);
+  /// See [BikaComicDownload.downloadTime].
+  static final downloadTime =
+      obx.QueryDateProperty<BikaComicDownload>(_entities[1].properties[44]);
 }

@@ -17,11 +17,13 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: SearchResultRoute.page),
         AutoRoute(page: SettingsRoute.page),
         AutoRoute(page: ComicInfoRoute.page),
+        AutoRoute(page: DownloadRoute.page),
         AutoRoute(page: CommentsRoute.page),
         AutoRoute(page: ComicReadRoute.page),
         AutoRoute(page: WebViewRoute.page),
         AutoRoute(page: FavoriteRoute.page),
         AutoRoute(page: HistoryRoute.page),
+        AutoRoute(page: DownloadListRoute.page),
         AutoRoute(page: BikaSettingRoute.page),
         AutoRoute(page: GlobalSettingRoute.page),
       ];

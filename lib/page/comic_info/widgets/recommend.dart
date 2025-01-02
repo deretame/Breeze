@@ -8,6 +8,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../../../main.dart';
 import '../../../util/router/router.gr.dart';
+import '../../../widgets/comic_entry/comic_entry.dart';
 import '../../../widgets/error_view.dart';
 import '../../../widgets/full_screen_image_view.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
@@ -17,7 +18,13 @@ import '../bloc/recommend/recommend_bloc.dart';
 class RecommendWidget extends StatelessWidget {
   final String comicId;
 
-  const RecommendWidget({super.key, required this.comicId});
+  final ComicEntryType type;
+
+  const RecommendWidget({
+    super.key,
+    required this.comicId,
+    required this.type,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +33,7 @@ class RecommendWidget extends StatelessWidget {
         ..add(RecommendEvent(comicId, RecommendStatus.initial)),
       child: _RecommendWidget(
         comicId: comicId,
+        type: type,
       ),
     );
   }
@@ -33,8 +41,12 @@ class RecommendWidget extends StatelessWidget {
 
 class _RecommendWidget extends StatelessWidget {
   final String comicId;
+  final ComicEntryType type;
 
-  const _RecommendWidget({required this.comicId});
+  const _RecommendWidget({
+    required this.comicId,
+    required this.type,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -44,97 +56,101 @@ class _RecommendWidget extends StatelessWidget {
           case RecommendStatus.initial:
             return Center(child: CircularProgressIndicator());
           case RecommendStatus.failure:
-            return ErrorView(
-              errorMessage: '${state.result.toString()}\n加载失败，请重试。',
-              onRetry: () {
-                context
-                    .read<RecommendBloc>()
-                    .add(RecommendEvent(comicId, RecommendStatus.initial));
-              },
-            );
+            return type == ComicEntryType.download
+                ? SizedBox.shrink()
+                : ErrorView(
+                    errorMessage: '${state.result.toString()}\n加载失败，请重试。',
+                    onRetry: () {
+                      context.read<RecommendBloc>().add(
+                          RecommendEvent(comicId, RecommendStatus.initial));
+                    },
+                  );
           case RecommendStatus.success:
-            if (state.comicList == null) {
-              return SizedBox.shrink();
-            }
-            return Observer(
-              builder: (context) {
-                return Container(
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: globalSetting.backgroundColor,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: globalSetting.themeType
-                            ? Colors.black.withValues(alpha: 0.2)
-                            : Colors.white.withValues(alpha: 0.2),
-                        spreadRadius: 2,
-                        blurRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    // 使用ClipRRect来裁剪子组件
-                    borderRadius: BorderRadius.circular(10),
-                    // 设置与外层Container相同的圆角
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: List.generate(
-                          state.comicList!.length,
-                          (index) {
-                            return SizedBox(
-                              width: 100,
-                              height: 200,
-                              child: Column(
-                                children: [
-                                  _Cover(
-                                    pictureInfo: PictureInfo(
-                                      from: "bika",
-                                      url: state
-                                          .comicList![index].thumb.fileServer,
-                                      path: state.comicList![index].thumb.path,
-                                      chapterId: state.comicList![index].id,
-                                      pictureType: "cover",
-                                    ),
-                                  ),
-                                  GestureDetector(
-                                    onTap: () {
-                                      // 跳转到漫画详情页
-                                      AutoRouter.of(context).push(
-                                        ComicInfoRoute(
-                                          comicId: state.comicList![index].id,
-                                        ),
-                                      );
-                                    },
-                                    child: SizedBox(
-                                      width: 100,
-                                      height: 50,
-                                      child: SingleChildScrollView(
-                                        scrollDirection: Axis.vertical,
-                                        child: Text(
-                                          state.comicList![index].title,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: globalSetting.textColor,
-                                          ),
-                                          softWrap: true, // 允许换行
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
+            return successWidget(state);
         }
+      },
+    );
+  }
+
+  Widget successWidget(RecommendState state) {
+    if (state.comicList == null) {
+      return SizedBox.shrink();
+    }
+    return Observer(
+      builder: (context) {
+        return Container(
+          height: 200,
+          decoration: BoxDecoration(
+            color: globalSetting.backgroundColor,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: globalSetting.themeType
+                    ? Colors.black.withValues(alpha: 0.2)
+                    : Colors.white.withValues(alpha: 0.2),
+                spreadRadius: 2,
+                blurRadius: 2,
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            // 使用ClipRRect来裁剪子组件
+            borderRadius: BorderRadius.circular(10),
+            // 设置与外层Container相同的圆角
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: List.generate(
+                  state.comicList!.length,
+                  (index) {
+                    return SizedBox(
+                      width: 100,
+                      height: 200,
+                      child: Column(
+                        children: [
+                          _Cover(
+                            pictureInfo: PictureInfo(
+                              from: "bika",
+                              url: state.comicList![index].thumb.fileServer,
+                              path: state.comicList![index].thumb.path,
+                              chapterId: state.comicList![index].id,
+                              pictureType: "cover",
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              // 跳转到漫画详情页
+                              AutoRouter.of(context).push(
+                                ComicInfoRoute(
+                                  comicId: state.comicList![index].id,
+                                ),
+                              );
+                            },
+                            child: SizedBox(
+                              width: 100,
+                              height: 50,
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.vertical,
+                                child: Text(
+                                  state.comicList![index].title,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: globalSetting.textColor,
+                                  ),
+                                  softWrap: true, // 允许换行
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
       },
     );
   }

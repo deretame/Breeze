@@ -35,6 +35,7 @@ final appRouter = AppRouter();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // 重采样触控刷新率
   GestureBinding.instance.resamplingEnabled = true;
 
   objectbox = await ObjectBox.create();

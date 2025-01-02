@@ -36,19 +36,18 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
       return; // 如果状态相同，直接返回，避免再次请求
     }
 
-    emit(
-      state.copyWith(
-        status: HistoryStatus.initial,
-        comics: [],
-        searchEnterConst: event.searchEnterConst,
-      ),
-    );
+    if (initial) {
+      emit(
+        state.copyWith(
+          status: HistoryStatus.initial,
+          comics: [],
+          searchEnterConst: event.searchEnterConst,
+        ),
+      );
+    }
 
     try {
-      // 记录开始时间
-      final startTime = DateTime.now();
-
-      late var comicList = objectbox.bikaBox.getAll();
+      late var comicList = objectbox.bikaHistoryBox.getAll();
 
       comicList = _filterShieldedComics(comicList);
 
@@ -63,24 +62,15 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
       }
 
       if (event.searchEnterConst.keyword.isNotEmpty) {
+        final keyword = event.searchEnterConst.keyword.toLowerCase();
+
         comicList = comicList
             .where((comic) =>
-                comic.title.contains(event.searchEnterConst.keyword) ||
-                comic.categoriesString
-                    .contains(event.searchEnterConst.keyword) ||
-                comic.description.contains(event.searchEnterConst.keyword) ||
-                comic.tagsString.contains(event.searchEnterConst.keyword))
+                comic.title.toLowerCase().contains(keyword) ||
+                comic.categoriesString.toLowerCase().contains(keyword) ||
+                comic.description.toLowerCase().contains(keyword) ||
+                comic.tagsString.toLowerCase().contains(keyword))
             .toList();
-      }
-
-      // 计算耗时
-      final elapsedTime = DateTime.now().difference(startTime).inMilliseconds;
-
-      // 计算需要额外延迟的时间
-      final remainingDelay = 500 - elapsedTime;
-
-      if (remainingDelay > 0) {
-        await Future.delayed(Duration(milliseconds: remainingDelay));
       }
 
       // emit 状态更新

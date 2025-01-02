@@ -1,14 +1,16 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 import '../../../config/global.dart';
 import '../../../main.dart';
 import '../../../object_box/model.dart';
 import '../../../object_box/objectbox.g.dart';
 import '../../../util/router/router.gr.dart';
+import '../../../widgets/comic_entry/comic_entry.dart';
 import '../../../widgets/error_view.dart';
+import '../../download/json/comic_all_info_json/comic_all_info_json.dart'
+    as comic_all_info_json;
 import '../comic_info.dart';
 import '../json/comic_info/comic_info.dart';
 import '../json/eps/eps.dart';
@@ -16,10 +18,12 @@ import '../json/eps/eps.dart';
 @RoutePage()
 class ComicInfoPage extends StatelessWidget {
   final String comicId;
+  final ComicEntryType? type;
 
   const ComicInfoPage({
     super.key,
     required this.comicId,
+    this.type,
   });
 
   @override
@@ -28,6 +32,7 @@ class ComicInfoPage extends StatelessWidget {
       create: (_) => GetComicInfoBloc()..add(GetComicInfo(comicId)),
       child: _ComicInfo(
         comicId: comicId,
+        type: type,
       ),
     );
   }
@@ -35,9 +40,11 @@ class ComicInfoPage extends StatelessWidget {
 
 class _ComicInfo extends StatefulWidget {
   final String comicId;
+  final ComicEntryType? type;
 
   const _ComicInfo({
     required this.comicId,
+    required this.type,
   });
 
   @override
@@ -46,38 +53,48 @@ class _ComicInfo extends StatefulWidget {
 
 class _ComicInfoState extends State<_ComicInfo>
     with AutomaticKeepAliveClientMixin {
+  ComicEntryType? get type => widget.type;
+
   @override
   bool get wantKeepAlive => true;
 
-  late BikaComicHistory? comicHistory;
+  BikaComicHistory? comicHistory;
+  BikaComicDownload? comicDownload;
+  comic_all_info_json.ComicAllInfoJson? comicAllInfo;
   late Comic comicInfo; // 用来存储漫画信息
 
   bool epsCompleted = false; // 用来判断章节是不是加载完毕了
-  late List<Doc> epsInfo;
-
-  // 新增一个变量用来控制 EpsWidget 的 Key
-  Key epsWidgetKey = UniqueKey();
-
-  void _updateReadInfo(List<Doc> epsInfo, bool epsCompleted) {
-    if (this.epsCompleted) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        setState(() {
-          this.epsInfo = epsInfo;
-          this.epsCompleted = epsCompleted;
-        });
-      }
-    });
-  }
+  List<Doc> epsInfo = [];
+  late ComicEntryType _type;
 
   @override
   void initState() {
     super.initState();
-    EasyLoading.instance.animationStyle = EasyLoadingAnimationStyle.offset;
+    _type = type ?? ComicEntryType.normal;
     // 首先查询一下有没有记录
-    final query = objectbox.bikaBox
+    final query = objectbox.bikaHistoryBox
         .query(BikaComicHistory_.comicId.equals(widget.comicId));
     comicHistory = query.build().findFirst();
+    if (_type == ComicEntryType.download) {
+      final query = objectbox.bikaDownloadBox
+          .query(BikaComicDownload_.comicId.equals(widget.comicId));
+      comicDownload = query.build().findFirst();
+      if (comicDownload != null) {
+        comicAllInfo = comic_all_info_json
+            .comicAllInfoJsonFromJson(comicDownload!.comicInfoAll);
+        comicInfo = comicAllInfo2Comic(comicAllInfo!);
+      }
+      var epsDoc = comicAllInfo!.eps.docs;
+      for (var epDoc in epsDoc) {
+        epsInfo.add(Doc(
+          id: epDoc.id,
+          title: epDoc.title,
+          order: epDoc.order,
+          updatedAt: epDoc.updatedAt,
+          docId: epDoc.docId,
+        ));
+      }
+    }
   }
 
   @override
@@ -102,47 +119,49 @@ class _ComicInfoState extends State<_ComicInfo>
           Expanded(child: Container()),
         ],
       ),
-      body: BlocBuilder<GetComicInfoBloc, GetComicInfoState>(
-        builder: (context, state) {
-          switch (state.status) {
-            case GetComicInfoStatus.initial:
-              return Center(child: CircularProgressIndicator());
-            case GetComicInfoStatus.failure:
-              if (state.result.contains("under review") &&
-                  state.result.contains("1014")) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '此漫画已下架',
-                        style: TextStyle(fontSize: 20),
-                      ),
-                      SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: () {
-                          AutoRouter.of(context).maybePopTop();
-                        },
-                        child: Text('返回'),
-                      ),
-                    ],
-                  ),
-                );
-              }
-              return ErrorView(
-                errorMessage: '${state.result.toString()}\n加载失败，请重试。',
-                onRetry: () {
-                  context
-                      .read<GetComicInfoBloc>()
-                      .add(GetComicInfo(widget.comicId));
-                },
-              );
-            case GetComicInfoStatus.success:
-              comicInfo = state.comicInfo!;
-              return _infoView();
-          }
-        },
-      ),
+      body: _type == ComicEntryType.download
+          ? _infoView()
+          : BlocBuilder<GetComicInfoBloc, GetComicInfoState>(
+              builder: (context, state) {
+                switch (state.status) {
+                  case GetComicInfoStatus.initial:
+                    return Center(child: CircularProgressIndicator());
+                  case GetComicInfoStatus.failure:
+                    if (state.result.contains("under review") &&
+                        state.result.contains("1014")) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '此漫画已下架',
+                              style: TextStyle(fontSize: 20),
+                            ),
+                            SizedBox(height: 10),
+                            ElevatedButton(
+                              onPressed: () {
+                                AutoRouter.of(context).maybePopTop();
+                              },
+                              child: Text('返回'),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    return ErrorView(
+                      errorMessage: '${state.result.toString()}\n加载失败，请重试。',
+                      onRetry: () {
+                        context
+                            .read<GetComicInfoBloc>()
+                            .add(GetComicInfo(widget.comicId));
+                      },
+                    );
+                  case GetComicInfoStatus.success:
+                    comicInfo = state.comicInfo!;
+                    return _infoView();
+                }
+              },
+            ),
       floatingActionButton: epsCompleted // 条件显示按钮
           ? SizedBox(
               width: 100, // 设置容器宽度，以容纳更长的文本
@@ -162,7 +181,7 @@ class _ComicInfoState extends State<_ComicInfo>
                           docId: (comicHistory!.epPageCount - 1).toString(),
                         ),
                         comicId: comicInfo.id,
-                        isHistory: true,
+                        type: ComicEntryType.history,
                       ),
                     );
                   } else {
@@ -172,7 +191,6 @@ class _ComicInfoState extends State<_ComicInfo>
                         epsInfo: epsInfo,
                         doc: epsInfo[0],
                         comicId: comicInfo.id,
-                        isHistory: false,
                       ),
                     );
                   }
@@ -192,11 +210,11 @@ class _ComicInfoState extends State<_ComicInfo>
     return RefreshIndicator(
       onRefresh: () async {
         context.read<GetComicInfoBloc>().add(GetComicInfo(widget.comicId));
-        final query = objectbox.bikaBox
+        final query = objectbox.bikaHistoryBox
             .query(BikaComicHistory_.comicId.equals(widget.comicId));
         setState(() {
-          epsWidgetKey = UniqueKey();
           comicHistory = query.build().findFirst();
+          _type = ComicEntryType.normal;
         });
       },
       child: SingleChildScrollView(
@@ -236,15 +254,23 @@ class _ComicInfoState extends State<_ComicInfo>
                     CreatorInfoWidget(comicInfo: comicInfo),
                     const SizedBox(height: 10),
                     const SizedBox(height: 10),
-                    ComicOperationWidget(comicInfo: comicInfo),
+                    ComicOperationWidget(
+                      comicInfo: comicInfo,
+                      epsInfo: epsInfo,
+                    ),
                     const SizedBox(height: 10),
                     EpsWidget(
                       comicInfo: comicInfo,
                       comicHistory: comicHistory,
+                      epsInfo: epsInfo,
                       onUpdateReadInfo: _updateReadInfo,
+                      type: _type,
                     ),
                     const SizedBox(height: 10),
-                    RecommendWidget(comicId: comicInfo.id),
+                    RecommendWidget(
+                      comicId: comicInfo.id,
+                      type: _type,
+                    ),
                     const SizedBox(height: 85),
                   ],
                 ),
@@ -255,5 +281,17 @@ class _ComicInfoState extends State<_ComicInfo>
         ),
       ),
     );
+  }
+
+  void _updateReadInfo(List<Doc> epsInfo, bool epsCompleted) {
+    if (this.epsCompleted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          this.epsInfo = epsInfo;
+          this.epsCompleted = epsCompleted;
+        });
+      }
+    });
   }
 }

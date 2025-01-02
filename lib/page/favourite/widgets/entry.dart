@@ -54,7 +54,9 @@ class ComicEntryWidget extends StatelessWidget {
     return InkWell(
       onTap: () {
         // 跳转到漫画详情页
-        router.push(ComicInfoRoute(comicId: comicEntryInfo.id));
+        router.push(ComicInfoRoute(
+          comicId: comicEntryInfo.id,
+        ));
       },
       child: Column(
         children: <Widget>[

@@ -1,6 +1,6 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
-version: 1.10.7+42
+version: 1.11.0+43
 
 environment:
   sdk: ">=3.0.0"
@@ -13,16 +13,17 @@ dependencies:
     sdk: flutter
 
   # --------------- UI 相关组件 ---------------
-  cupertino_icons: ^1.0.8              # iOS 风格图标
-  loading_animation_widget: ^1.2.1     # 加载动画组件
-  flutter_easyloading: ^3.0.5          # 加载指示器
-  toggle_switch: ^2.3.0                # 开关切换组件
-  animated_search_bar: ^2.7.2          # 动画搜索栏
-  photo_view: ^0.15.0                  # 图片查看器，支持缩放和平移
-  dynamic_color: ^1.7.0                # Material You 动态主题支持
-  super_sliver_list: ^0.4.1            # 扩展滑动列表
-  scrollable_positioned_list: ^0.3.8   # 精确定位滚动列表
-  flutter_markdown: ^0.7.4+3           # Markdown 渲染组件
+  cupertino_icons: ^1.0.8                # iOS 风格图标
+  loading_animation_widget: ^1.2.1       # 加载动画组件
+  flutter_easyloading: ^3.0.5            # 加载指示器
+  toggle_switch: ^2.3.0                  # 开关切换组件
+  animated_search_bar: ^2.7.2            # 动画搜索栏
+  photo_view: ^0.15.0                    # 图片查看器，支持缩放和平移
+  dynamic_color: ^1.7.0                  # Material You 动态主题支持
+  super_sliver_list: ^0.4.1              # 扩展滑动列表
+  scrollable_positioned_list: ^0.3.8     # 精确定位滚动列表
+  flutter_markdown: ^0.7.4+3             # Markdown 渲染组件
+  flutter_awesome_animations_kit: ^0.0.3 # 动画组件库
 
   # --------------- 状态管理库 ---------------
   mobx: ^2.5.0                  # 响应式状态管理
@@ -34,6 +35,7 @@ dependencies:
   replay_bloc: ^0.2.7           # 支持撤销/重做的 BLoC
   bloc_test: ^9.1.7             # BLoC 测试工具
   bloc_concurrency: ^0.2.5      # BLoC 并发控制
+  event_bus: ^2.0.1             # 事件总线
 
   # --------------- 数据存储与处理 ---------------
   hive: ^2.2.3                   # 轻量级键值对数据库
@@ -60,6 +62,8 @@ dependencies:
   device_info_plus: ^11.2.0                     # 设备信息获取
   image_gallery_saver_plus: ^3.0.5              # 图片保存工具
   open_file: ^3.5.10                            # 文件打开工具
+  flutter_local_notifications: ^18.0.1          # 本地通知
+  flutter_foreground_task: ^8.17.0              # 前台服务管理
 
   # --------------- 功能组件 ---------------
   crypto: ^3.0.6                # 加密算法

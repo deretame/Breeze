@@ -7,78 +7,116 @@ import 'package:zephyr/page/comic_info/bloc/bloc.dart';
 import '../../../main.dart';
 import '../../../object_box/model.dart';
 import '../../../util/router/router.gr.dart';
+import '../../../widgets/comic_entry/comic_entry.dart';
 import '../../../widgets/error_view.dart';
 import '../json/comic_info/comic_info.dart';
 import '../json/eps/eps.dart';
 
-class EpsWidget extends StatelessWidget {
+class EpsWidget extends StatefulWidget {
   final Comic comicInfo;
   final BikaComicHistory? comicHistory;
+  final List<Doc> epsInfo;
   final Function(List<Doc>, bool) onUpdateReadInfo; // 用来更新观看按钮信息
+  final ComicEntryType type;
 
   const EpsWidget({
     super.key,
     required this.comicInfo,
     required this.comicHistory,
+    required this.epsInfo,
     required this.onUpdateReadInfo,
+    required this.type,
   });
+
+  @override
+  State<EpsWidget> createState() => _EpsWidgetState();
+}
+
+class _EpsWidgetState extends State<EpsWidget> {
+  Comic get comicInfo => widget.comicInfo;
+
+  BikaComicHistory? get comicHistory => widget.comicHistory;
+
+  List<Doc> get epsInfo => widget.epsInfo;
+
+  Function(List<Doc>, bool) get onUpdateReadInfo => widget.onUpdateReadInfo;
+
+  ComicEntryType get type => widget.type;
+
+  List<Doc> docs = [];
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => GetComicEpsBloc()..add(GetComicEps(comicInfo)),
-      child: BlocBuilder<GetComicEpsBloc, GetComicEpsState>(
-        builder: (context, state) {
-          switch (state.status) {
-            case GetComicEpsStatus.initial:
-              return Center(child: CircularProgressIndicator());
-            case GetComicEpsStatus.failure:
-              return ErrorView(
-                errorMessage: '加载失败，请重试。',
-                onRetry: () {
-                  context.read<GetComicEpsBloc>().add(GetComicEps(comicInfo));
-                },
-              );
-            case GetComicEpsStatus.success:
-              List<Doc> docs = state.eps;
-              onUpdateReadInfo(docs, true);
-              return Column(
-                children: [
-                  // 历史记录按钮
-                  if (comicHistory != null) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 5.0),
-                      child: EpButtonWidget(
-                        doc: Doc(
-                          id: "history",
-                          title: comicHistory!.epTitle,
-                          order: comicHistory!.order,
-                          updatedAt: comicHistory!.history,
-                          docId: (comicHistory!.epPageCount - 1).toString(),
-                        ),
-                        comicInfo: comicInfo,
-                        epsInfo: docs,
-                        isHistory: true,
-                      ),
-                    ),
-                  ],
-                  // 使用 map 和 Padding 创建 EpButton 列表
-                  ...docs.map(
-                    (doc) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 5.0),
-                      child: EpButtonWidget(
-                        doc: doc,
-                        comicInfo: comicInfo,
-                        epsInfo: docs,
-                        isHistory: false,
-                      ),
-                    ),
-                  ),
-                ],
-              );
-          }
-        },
-      ),
+      child: type == ComicEntryType.download
+          ? buildEpsList(null)
+          : BlocBuilder<GetComicEpsBloc, GetComicEpsState>(
+              builder: (context, state) {
+                switch (state.status) {
+                  case GetComicEpsStatus.initial:
+                    return Center(child: CircularProgressIndicator());
+                  case GetComicEpsStatus.failure:
+                    return ErrorView(
+                      errorMessage: '加载失败，请重试。',
+                      onRetry: () {
+                        context
+                            .read<GetComicEpsBloc>()
+                            .add(GetComicEps(comicInfo));
+                      },
+                    );
+                  case GetComicEpsStatus.success:
+                    return buildEpsList(state);
+                }
+              },
+            ),
+    );
+  }
+
+  Widget buildEpsList(GetComicEpsState? state) {
+    if (state != null) {
+      docs = state.eps;
+    } else {
+      docs = epsInfo;
+    }
+    onUpdateReadInfo(docs, true);
+    return Column(
+      children: [
+        // 历史记录按钮
+        if (comicHistory != null) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5.0),
+            child: EpButtonWidget(
+              doc: Doc(
+                id: "history",
+                title: comicHistory!.epTitle,
+                order: comicHistory!.order,
+                updatedAt: comicHistory!.history,
+                docId: (comicHistory!.epPageCount - 1).toString(),
+              ),
+              comicInfo: comicInfo,
+              epsInfo: docs,
+              isHistory: true,
+              type: type == ComicEntryType.download
+                  ? ComicEntryType.historyAndDownload
+                  : ComicEntryType.history,
+            ),
+          ),
+        ],
+        // 使用 map 和 Padding 创建 EpButton 列表
+        ...docs.map(
+          (doc) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5.0),
+            child: EpButtonWidget(
+              doc: doc,
+              comicInfo: comicInfo,
+              epsInfo: docs,
+              isHistory: false,
+              type: type,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -88,6 +126,7 @@ class EpButtonWidget extends StatelessWidget {
   final Comic comicInfo;
   final List<Doc> epsInfo;
   final bool? isHistory;
+  final ComicEntryType type;
 
   const EpButtonWidget({
     super.key,
@@ -95,6 +134,7 @@ class EpButtonWidget extends StatelessWidget {
     required this.comicInfo,
     required this.epsInfo,
     required this.isHistory,
+    required this.type,
   });
 
   @override
@@ -107,7 +147,7 @@ class EpButtonWidget extends StatelessWidget {
             epsInfo: epsInfo,
             doc: doc,
             comicId: comicInfo.id,
-            isHistory: isHistory,
+            type: type,
           ),
         );
       },

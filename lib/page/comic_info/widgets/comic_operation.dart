@@ -9,11 +9,17 @@ import '../../../main.dart';
 import '../../../network/http/http_request.dart';
 import '../../../util/dialog.dart';
 import '../json/comic_info/comic_info.dart';
+import '../json/eps/eps.dart';
 
 class ComicOperationWidget extends StatefulWidget {
   final Comic comicInfo;
+  final List<Doc> epsInfo;
 
-  const ComicOperationWidget({super.key, required this.comicInfo});
+  const ComicOperationWidget({
+    super.key,
+    required this.comicInfo,
+    required this.epsInfo,
+  });
 
   @override
   State<ComicOperationWidget> createState() => _ComicOperationWidgetState();
@@ -120,7 +126,16 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
                 children: <Widget>[
                   GestureDetector(
                     onTap: () {
-                      nothingDialog(context);
+                      if (widget.epsInfo.isNotEmpty) {
+                        AutoRouter.of(context).push(
+                          DownloadRoute(
+                            comicInfo: comicInfo,
+                            epsInfo: widget.epsInfo,
+                          ),
+                        );
+                      } else {
+                        commonDialog(context, '暂无章节信息', '请等待章节信息加载完成后再试');
+                      }
                     },
                     child: const Icon(
                       Icons.cloud_download_outlined,

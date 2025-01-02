@@ -12,6 +12,7 @@ import '../../../../util/dialog.dart';
 import '../../../../widgets/full_screen_image_view.dart';
 import '../../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../../widgets/picture_bloc/models/picture_info.dart';
+import '../../../download_list/models/search_enter.dart' as download_list;
 import '../../../history/models/search_enter.dart';
 
 class BikaUserInfoWidget extends StatelessWidget {
@@ -152,7 +153,12 @@ class _BikaWidget extends StatelessWidget {
                 children: <Widget>[
                   InkWell(
                     onTap: () {
-                      nothingDialog(context);
+                      router.push(
+                        DownloadListRoute(
+                          searchEnterConst:
+                              download_list.SearchEnterConst(sort: "dd"),
+                        ),
+                      );
                     },
                     child: const Icon(
                       Icons.cloud_download_rounded,

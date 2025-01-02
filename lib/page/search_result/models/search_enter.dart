@@ -61,6 +61,11 @@ class SearchEnter {
         refresh.hashCode; // 计算哈希值
   }
 
+  @override
+  String toString() {
+    return 'SearchEnter{url: $url, from: $from, keyword: $keyword, type: $type, state: $state, sort: $sort, categories: $categories, pageCount: $pageCount, refresh: $refresh}';
+  }
+
   // 添加一个从 SearchEnterConst 的构造函数
   SearchEnter.fromConst(SearchEnterConst searchEnterConst)
       : url = searchEnterConst.url,

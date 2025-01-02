@@ -1,22 +1,13 @@
-import 'dart:io';
+import 'dart:isolate';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:open_file/open_file.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_guard/permission_guard.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
-import '../bloc/get_category_bloc.dart';
-import '../json/github_release_json/github_release_json.dart';
-import '../models/category.dart';
-import '../widgets/category.dart';
+import '../home_page.dart';
 
 class CategoryPage extends StatefulWidget {
   const CategoryPage({
@@ -36,6 +27,7 @@ class _CategoryPageState extends State<CategoryPage>
   void initState() {
     super.initState();
     _checkUpdate();
+    // Isolate.spawn(downloadComic, "676ed5839a648f08d0c82731");
   }
 
   @override
@@ -124,51 +116,6 @@ class _CategoryPageState extends State<CategoryPage>
     );
   }
 
-  // 其他方法保持不变
-  // 获取应用的版本信息
-  Future<String> getAppVersion() async {
-    String version = 'Unknown';
-    final PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    setState(() {
-      version = packageInfo.version; // 获取版本号
-    });
-
-    return version;
-  }
-
-  Future<GithubReleaseJson> getCloudVersion() async {
-    final response =
-        await dio.get("https://api.github.com/repos/deretame/Breeze/releases");
-
-    final List<Map<String, dynamic>> releases =
-        List<Map<String, dynamic>>.from(response.data);
-
-    return GithubReleaseJson.fromJson(releases[0]);
-  }
-
-  bool isUpdateAvailable(String cloudVersion, String localVersion) {
-    debugPrint('App version: $localVersion');
-    debugPrint('Cloud version: $cloudVersion');
-
-    cloudVersion = cloudVersion.replaceFirst('v', '');
-
-    final cloudVersionParts = cloudVersion.split('.');
-    final localVersionParts = localVersion.split('.');
-
-    for (int i = 0; i < 3; i++) {
-      final int cloudPart = int.parse(cloudVersionParts[i]);
-      final int localPart = int.parse(localVersionParts[i]);
-
-      if (cloudPart > localPart) {
-        return true;
-      } else if (cloudPart < localPart) {
-        return false;
-      }
-    }
-
-    return false;
-  }
-
   Future<void> _checkUpdate() async {
     final temp = await getCloudVersion();
     final cloudVersion = temp.tagName;
@@ -208,7 +155,7 @@ class _CategoryPageState extends State<CategoryPage>
                   for (var apkUrl in temp.assets) {
                     if (apkUrl.browserDownloadUrl
                         .contains("app-arm64-v8a-release.apk")) {
-                      await _installApk(apkUrl.browserDownloadUrl);
+                      await installApk(apkUrl.browserDownloadUrl);
                     }
                   }
                 },
@@ -237,43 +184,5 @@ class _CategoryPageState extends State<CategoryPage>
     }
   }
 
-  Future<void> _installApk(String apkUrl) async {
-    if (await _requestInstallPackagesPermission()) {
-      try {
-        // 使用 Dio 下载 APK 文件
-        Response response = await Dio().get(
-          apkUrl,
-          options: Options(responseType: ResponseType.bytes), // 将响应类型设置为字节
-        );
-
-        // 获取应用的文档目录，存储 APK 文件
-        Directory tempDir = await getTemporaryDirectory();
-        String apkFilePath = '${tempDir.path}/your-app.apk'; // 文件名可以自定义
-
-        // 将下载的字节写入 APK 文件
-        File apkFile = File(apkFilePath);
-        await apkFile.writeAsBytes(response.data);
-
-        // 打开 APK 文件以启动安装
-        OpenFile.open(apkFilePath);
-      } catch (e) {
-        EasyLoading.showError('下载失败，请稍后再试！');
-      }
-    } else {
-      EasyLoading.showError('请授予安装应用权限！');
-    }
-  }
-
-  Future<bool> _requestInstallPackagesPermission() async {
-    if (Platform.isAndroid) {
-      var status = await Permission.requestInstallPackages.status;
-      if (status.isGranted) {
-        return true;
-      } else if (status.isDenied) {
-        var requestResult = await Permission.requestInstallPackages.request();
-        return requestResult.isGranted;
-      }
-    }
-    return false; // 仅考虑 Android 平台
-  }
+  void backDownloadThread(SendPort sendPort) {}
 }

@@ -18,7 +18,12 @@ int _getCurrentTimestamp() {
 }
 
 String _getSignature(
-    String url, int timestamp, String nonce, String method, String apiKey) {
+  String url,
+  int timestamp,
+  String nonce,
+  String method,
+  String apiKey,
+) {
   String baseUrl = "https://picaapi.picacomic.com/";
   String raw = "${url.replaceAll(baseUrl, '')}$timestamp$nonce$method$apiKey"
       .toLowerCase();
@@ -44,7 +49,12 @@ Map<String, String> _getRequestHeaders(
   String nonce = _getNonce();
   int timestamp = _getCurrentTimestamp();
   String signature = _getSignature(
-      url, timestamp, nonce, method, "C69BAF41DA5ABD1FFEDC6D2FEA56B");
+    url,
+    timestamp,
+    nonce,
+    method,
+    "C69BAF41DA5ABD1FFEDC6D2FEA56B",
+  );
 
   Map<String, String> headers = {
     'api-key': "C69BAF41DA5ABD1FFEDC6D2FEA56B",
@@ -88,23 +98,37 @@ Future<Map<String, dynamic>> request(
   String method, {
   String body = "",
   bool cache = false,
+  int timeOut = 10,
+  String imageQuality = "",
+  Dio? localDio,
 }) async {
-  final headers = _getRequestHeaders(url, method,
-      imageQuality: bikaSetting.imageQuality, body: body);
+  String imageQuality0 =
+      imageQuality == "" ? bikaSetting.imageQuality : imageQuality;
 
-  // 根据useCache决定是否添加缓存拦截器
-  if (cache) {
-    dio.interceptors.add(cacheInterceptor);
-  } else {
-    dio.interceptors.removeWhere((Interceptor i) => i == cacheInterceptor);
+  var tempDio = localDio ?? dio;
+
+  final headers = _getRequestHeaders(
+    url,
+    method,
+    imageQuality: imageQuality0,
+    body: body,
+  );
+
+  if (localDio == null) {
+    // 根据useCache决定是否添加缓存拦截器
+    if (cache) {
+      dio.interceptors.add(cacheInterceptor);
+    } else {
+      dio.interceptors.removeWhere((Interceptor i) => i == cacheInterceptor);
+    }
   }
   try {
     final cancelToken = CancelToken();
-    Timer(const Duration(seconds: 10), () {
+    Timer(Duration(seconds: timeOut), () {
       cancelToken.cancel('请求超时');
     });
 
-    final response = await dio.request(
+    final response = await tempDio.request(
       url,
       data: body.isNotEmpty && (method == 'POST' || method == 'PUT')
           ? body

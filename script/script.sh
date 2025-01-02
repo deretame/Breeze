@@ -3,10 +3,8 @@
 # 构建安装包
 flutter build apk --split-per-abi --no-shrink
 
-# 生成json_serializable freezed 代码
+# 代码生成
 flutter pub run build_runner build
-# 或
-flutter pub run build_runner build --delete-conflicting-outputs
 
 # 生成realm的dart代码
 dart run realm generate

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart';
 import 'package:zephyr/main.dart';
 
 // ignore: unused_import
@@ -33,10 +34,9 @@ Future<String> getCachePicture({
 
   if (pictureType == 'comic') {
     tempPath =
-        "/$from/comic/$imageQuality/$cartoonId/$pictureType/$chapterId/$sanitizedPath";
+        "/$from/$imageQuality/$cartoonId/$pictureType/$chapterId/$sanitizedPath";
   } else if (pictureType == 'cover') {
-    tempPath =
-        "/$from/comic/$imageQuality/$cartoonId/$pictureType/$sanitizedPath";
+    tempPath = "/$from/$imageQuality/$cartoonId/$pictureType/$sanitizedPath";
   } else {
     tempPath = "/$from/$pictureType/$sanitizedPath";
   }
@@ -52,7 +52,7 @@ Future<String> getCachePicture({
     path = "static/$path";
   }
 
-  debugPrint('构造的图片路径：$filePath');
+  // debugPrint('构造的图片路径：$filePath');
   // 检查文件是否存在
   final file = File(filePath);
 
@@ -200,10 +200,9 @@ Future<String> downloadPicture({
 
   if (pictureType == 'comic') {
     tempPath =
-        "/$from/comic/$imageQuality/$cartoonId/$pictureType/$chapterId/$sanitizedPath";
+        "/$from/$imageQuality/$cartoonId/$pictureType/$chapterId/$sanitizedPath";
   } else if (pictureType == 'cover') {
-    tempPath =
-        "/$from/comic/$imageQuality/$cartoonId/$pictureType/$sanitizedPath";
+    tempPath = "/$from/$imageQuality/$cartoonId/$pictureType/$sanitizedPath";
   } else {
     tempPath = "/$from/$pictureType/$sanitizedPath";
   }
@@ -219,7 +218,7 @@ Future<String> downloadPicture({
 
   filePath = downloadPath + tempPath;
 
-  debugPrint('构造的图片路径：$filePath');
+  // debugPrint('构造的图片路径：$filePath');
   // 检查文件是否存在
   final file = File(filePath);
 
@@ -231,7 +230,13 @@ Future<String> downloadPicture({
   // 再次检查缓存目录是否存在文件
   final cacheFile = File("$cachePath$tempPath");
   if (await cacheFile.exists()) {
-    cacheFile.copy(filePath);
+    // 检查目标目录是否存在，如果不存在则创建
+    final targetDirectory = Directory(dirname(filePath));
+    if (!await targetDirectory.exists()) {
+      await targetDirectory.create(recursive: true);
+    }
+
+    await cacheFile.copy(filePath);
     return filePath;
   }
 
@@ -278,55 +283,56 @@ Future<String> downloadPicture({
   var dio = Dio();
   var lastUrl = '$url/$path';
 
-  try {
-    Response response = await dio.get(
-      lastUrl,
-      options: Options(
-        headers: headers,
-        responseType: ResponseType.bytes, // 确保返回二进制数据
-      ),
-    );
-
-    // 获取响应体（图片数据）
-    String? contentType = response.headers.value('content-type');
-    debugPrint(contentType); // 例如: "image/jpeg"
-    Uint8List imageData = response.data as Uint8List;
-
-    // 临时文件
-    String tempPath = "$cachePath/temp/$sanitizedPath";
-
-    var tempFile = File(tempPath);
-
-    // 先写入到临时文件
+  while (true) {
     try {
-      // 如果文件不存在，则创建文件
-      if (!await tempFile.exists()) {
-        await tempFile.create(recursive: true);
+      Response response = await dio.get(
+        lastUrl,
+        options: Options(
+          headers: headers,
+          responseType: ResponseType.bytes, // 确保返回二进制数据
+        ),
+      );
+
+      // 获取响应体（图片数据）
+      String? contentType = response.headers.value('content-type');
+      debugPrint(contentType); // 例如: "image/jpeg"
+      Uint8List imageData = response.data as Uint8List;
+
+      // 临时文件
+      String tempPath = "$cachePath/temp/$sanitizedPath";
+
+      var tempFile = File(tempPath);
+
+      // 先写入到临时文件
+      try {
+        // 如果文件不存在，则创建文件
+        if (!await tempFile.exists()) {
+          await tempFile.create(recursive: true);
+        }
+
+        await tempFile.writeAsBytes(imageData);
+
+        // 写入完成后再移动到目标路径
+        if (!await file.exists()) {
+          await file.create(recursive: true);
+        }
+        await tempFile.rename(filePath);
+      } catch (e) {
+        // 如果发生异常，删除不完整的文件
+        await tempFile.delete();
+        debugPrint('保存图片时发生错误，已删除不完整的文件');
+        throw Exception(e.toString());
       }
 
-      await tempFile.writeAsBytes(imageData);
-
-      // 写入完成后再移动到目标路径
-      if (!await file.exists()) {
-        await file.create(recursive: true);
-      }
-      await tempFile.rename(filePath);
+      debugPrint('图片已保存到：$filePath');
+      break;
     } catch (e) {
-      // 如果发生异常，删除不完整的文件
-      await tempFile.delete();
-      debugPrint('保存图片时发生错误，已删除不完整的文件');
-      throw Exception(e.toString());
+      debugPrint('请求过程中发生错误：$e');
+      // 先检查缓存目录中是否存在
+      if (await file.exists()) {
+        file.delete();
+      }
     }
-
-    debugPrint('图片已保存到：$filePath');
-  } catch (e) {
-    debugPrint('请求过程中发生错误：$e');
-    // 先检查缓存目录中是否存在
-    if (await file.exists()) {
-      file.delete();
-    }
-
-    throw Exception(e.toString());
   }
 
   return filePath;

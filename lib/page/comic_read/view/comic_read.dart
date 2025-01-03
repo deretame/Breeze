@@ -89,10 +89,10 @@ class _ComicReadPageState extends State<_ComicReadPage>
   String get comicId => widget.comicId;
 
   ComicEntryType? get type => widget.type;
-
   late final ComicEntryType _type;
   late final comic_all_info_json.Eps _downloadEpsInfo;
   late eps.Doc _doc;
+  late bool isSkipped = false; // 是否跳转过
   late final ItemScrollController _itemScrollController;
   late final ItemPositionsListener _itemPositionsListener;
   late BikaComicHistory? comicHistory; // 记录阅读记录
@@ -100,7 +100,6 @@ class _ComicReadPageState extends State<_ComicReadPage>
   bool _isInserting = false; // 检测数据插入状态
   int pageIndex = 0; // 当前页数
   String epPages = ""; // 章节总页数
-  bool _hasScrolled = false; // 跳转标志
   bool _isVisible = true; // 控制 AppBar 和 BottomAppBar 的可见性
   final Duration _animationDuration = const Duration(milliseconds: 300); // 动画时长
   late int _lastScrollIndex = -1; // 用于记录上次滚动的索引
@@ -225,24 +224,33 @@ class _ComicReadPageState extends State<_ComicReadPage>
       epPages = state.result!;
       medias = state.medias!;
     } else {
-      var temp = _downloadEpsInfo.docs.firstWhere((e) => e.order == _doc.order);
-
-      _doc = eps.Doc(
-        id: temp.id,
-        title: temp.title,
-        order: temp.order,
-        updatedAt: temp.updatedAt,
-        docId: temp.docId,
-      );
-      medias = temp.pages.docs.map((e) {
-        return Media(
-          originalName: e.media.originalName,
-          path: e.media.path,
-          fileServer: e.media.fileServer,
+      try {
+        var temp =
+            _downloadEpsInfo.docs.firstWhere((e) => e.order == _doc.order);
+        _doc = eps.Doc(
+          id: temp.id,
+          title: temp.title,
+          order: temp.order,
+          updatedAt: temp.updatedAt,
+          docId: temp.docId,
         );
-      }).toList();
-      length = temp.pages.docs.length;
-      epPages = temp.pages.docs.length.toString();
+        medias = temp.pages.docs.map((e) {
+          return Media(
+            originalName: e.media.originalName,
+            path: e.media.path,
+            fileServer: e.media.fileServer,
+          );
+        }).toList();
+        length = temp.pages.docs.length;
+        epPages = temp.pages.docs.length.toString();
+      } catch (e) {
+        return Center(
+          child: Text(
+            '章节未下载',
+            style: TextStyle(fontSize: 20),
+          ),
+        );
+      }
     }
     // 在成功加载状态下设置 _totalSlots
     if (_totalSlots == 0) {
@@ -250,18 +258,19 @@ class _ComicReadPageState extends State<_ComicReadPage>
     }
 
     // 处理滚动到历史记录
-    if (!_hasScrolled &&
-        _type == ComicEntryType.history &&
-        (comicHistory!.epPageCount - 1 != 0)) {
+    if ((_type == ComicEntryType.history ||
+            _type == ComicEntryType.historyAndDownload) &&
+        (comicHistory!.epPageCount - 1 != 0) &&
+        isSkipped == false) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _itemScrollController.scrollTo(
           index: comicHistory!.epPageCount - 1,
           alignment: 0.0,
           duration: const Duration(milliseconds: 500),
         );
-        _hasScrolled = true;
       });
     }
+    isSkipped = true;
 
     // debugPrint('statusBarHeight : $statusBarHeight');
     return Stack(
@@ -382,6 +391,13 @@ class _ComicReadPageState extends State<_ComicReadPage>
 
   Widget _bottomWidget() {
     final router = AutoRouter.of(context);
+    ComicEntryType tempType = ComicEntryType.normal;
+    if (_type == ComicEntryType.historyAndDownload) {
+      tempType = ComicEntryType.download;
+    }
+    if (_type == ComicEntryType.history) {
+      tempType = ComicEntryType.normal;
+    }
     return Observer(builder: (context) {
       return AnimatedPositioned(
         duration: _animationDuration,
@@ -417,7 +433,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                             epsInfo: epsInfo,
                             doc: epsInfo[_doc.order - 2],
                             comicId: comicInfo.id,
-                            type: _type,
+                            type: tempType,
                           ),
                         );
                       }
@@ -446,7 +462,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                             epsInfo: epsInfo,
                             doc: epsInfo[_doc.order],
                             comicId: comicInfo.id,
-                            type: _type,
+                            type: tempType,
                           ),
                         );
                       }
@@ -520,7 +536,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                               epsInfo: epsInfo,
                               doc: epsInfo[result - 1],
                               comicId: comicInfo.id,
-                              type: _type,
+                              type: tempType,
                             ),
                           );
                         }

@@ -111,6 +111,9 @@ class _DownloadListPageState extends State<_DownloadListPage>
                                           state.comics[index],
                                         ),
                                         type: ComicEntryType.download,
+                                        downloadSearchEnter:
+                                            widget.searchEnterConst,
+                                        downloadRefresh: refresh,
                                       );
                               },
                               itemCount: state.comics.length + 1,
@@ -178,7 +181,7 @@ class _DownloadListPageState extends State<_DownloadListPage>
             TextButton(
               child: const Text('重新加载'),
               onPressed: () {
-                _refresh(searchEnterConst);
+                refresh(searchEnterConst);
                 Navigator.of(context).pop();
               },
             ),
@@ -194,7 +197,7 @@ class _DownloadListPageState extends State<_DownloadListPage>
     );
   }
 
-  void _refresh(SearchEnterConst searchEnterConst) {
+  void refresh(SearchEnterConst searchEnterConst) {
     // 使用原本输入参数进行重新搜索
     context.read<DownloadListBloc>().add(
           DownloadListEvent(

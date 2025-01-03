@@ -1,6 +1,6 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
-version: 1.11.1+44
+version: 1.12.0+45
 
 environment:
   sdk: ">=3.0.0"
@@ -24,6 +24,7 @@ dependencies:
   scrollable_positioned_list: ^0.3.8     # 精确定位滚动列表
   flutter_markdown: ^0.7.4+3             # Markdown 渲染组件
   flutter_awesome_animations_kit: ^0.0.3 # 动画组件库
+  indexed_list_view: ^4.0.0              # 索引列表视图
 
   # --------------- 状态管理库 ---------------
   mobx: ^2.5.0                  # 响应式状态管理

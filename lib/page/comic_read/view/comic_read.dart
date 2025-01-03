@@ -301,17 +301,14 @@ class _ComicReadPageState extends State<_ComicReadPage>
                   );
                 } else if (index == length + 1) {
                   return Container(
-                    padding: EdgeInsets.all(16.0),
+                    height: 75,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(color: Color(0xFF2D2D2D)),
-                    child: Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Text(
-                        "章节结束",
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Color(0xFFCCCCCC),
-                        ),
+                    child: Text(
+                      "章节结束",
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Color(0xFFCCCCCC),
                       ),
                     ),
                   );

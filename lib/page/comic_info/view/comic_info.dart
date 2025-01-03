@@ -181,7 +181,9 @@ class _ComicInfoState extends State<_ComicInfo>
                           docId: (comicHistory!.epPageCount - 1).toString(),
                         ),
                         comicId: comicInfo.id,
-                        type: ComicEntryType.history,
+                        type: _type == ComicEntryType.download
+                            ? ComicEntryType.historyAndDownload
+                            : ComicEntryType.history,
                       ),
                     );
                   } else {
@@ -191,6 +193,7 @@ class _ComicInfoState extends State<_ComicInfo>
                         epsInfo: epsInfo,
                         doc: epsInfo[0],
                         comicId: comicInfo.id,
+                        type: _type,
                       ),
                     );
                   }

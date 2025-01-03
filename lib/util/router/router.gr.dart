@@ -17,7 +17,7 @@ import 'package:zephyr/page/comic_read/view/comic_read.dart' as _i3;
 import 'package:zephyr/page/comments/view/comments.dart' as _i4;
 import 'package:zephyr/page/download/view/download.dart' as _i6;
 import 'package:zephyr/page/download_list/download_list.dart' as _i24;
-import 'package:zephyr/page/download_list/view/history_page.dart' as _i5;
+import 'package:zephyr/page/download_list/view/download_list_page.dart' as _i5;
 import 'package:zephyr/page/favourite/view/favorite_page.dart' as _i7;
 import 'package:zephyr/page/history/history.dart' as _i25;
 import 'package:zephyr/page/history/view/history_page.dart' as _i9;

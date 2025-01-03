@@ -5,10 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../config/global.dart';
 import '../../main.dart';
+import '../../page/download_list/models/search_enter.dart' as download;
+import '../../page/history/models/search_enter.dart' as history;
 import '../full_screen_image_view.dart';
 import '../picture_bloc/bloc/picture_bloc.dart';
 import '../picture_bloc/models/picture_info.dart';
@@ -24,11 +27,19 @@ enum ComicEntryType {
 class ComicEntryWidget extends StatefulWidget {
   final ComicEntryInfo comicEntryInfo;
   final ComicEntryType? type;
+  final download.SearchEnterConst? downloadSearchEnter;
+  final Function(download.SearchEnterConst)? downloadRefresh;
+  final history.SearchEnterConst? historySearchEnter;
+  final Function(history.SearchEnterConst)? historyRefresh;
 
   const ComicEntryWidget({
     super.key,
     required this.comicEntryInfo,
     this.type,
+    this.downloadSearchEnter,
+    this.downloadRefresh,
+    this.historySearchEnter,
+    this.historyRefresh,
   });
 
   @override
@@ -39,6 +50,17 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
   ComicEntryInfo get comicEntryInfo => widget.comicEntryInfo;
 
   ComicEntryType? get type => widget.type;
+
+  download.SearchEnterConst? get downloadSearchEnter =>
+      widget.downloadSearchEnter;
+
+  Function(download.SearchEnterConst)? get downloadRefresh =>
+      widget.downloadRefresh;
+
+  history.SearchEnterConst? get historySearchEnter => widget.historySearchEnter;
+
+  Function(history.SearchEnterConst)? get historyRefresh =>
+      widget.historyRefresh;
 
   ComicEntryType? _type;
 
@@ -70,6 +92,13 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
           comicId: comicEntryInfo.id,
           type: _type,
         ));
+      },
+      onLongPress: () {
+        if (_type == ComicEntryType.normal ||
+            _type == ComicEntryType.historyAndDownload) {
+          return;
+        }
+        deleteDialog();
       },
       child: Column(
         children: <Widget>[
@@ -179,6 +208,76 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
         ],
       ),
     );
+  }
+
+  Future deleteDialog() {
+    debugPrint(_type.toString());
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("删除"),
+          content: Text('确认要删除该漫画吗？'),
+          actions: <Widget>[
+            TextButton(
+              child: Text("确定"),
+              onPressed: () {
+                if (_type == ComicEntryType.history) {
+                  var temp = objectbox.bikaHistoryBox
+                      .query(
+                          BikaComicHistory_.comicId.equals(comicEntryInfo.id))
+                      .build()
+                      .findFirst();
+                  if (temp != null) {
+                    objectbox.bikaHistoryBox.remove(temp.id);
+                    historyRefresh!(historySearchEnter!);
+                  }
+                }
+                if (_type == ComicEntryType.download) {
+                  var temp = objectbox.bikaDownloadBox
+                      .query(
+                          BikaComicDownload_.comicId.equals(comicEntryInfo.id))
+                      .build()
+                      .findFirst();
+                  if (temp != null) {
+                    objectbox.bikaDownloadBox.remove(temp.id);
+                    downloadRefresh!(downloadSearchEnter!);
+                    deleteDirectory(
+                      '/data/data/com.zephyr.breeze/files/downloads/bika/original/${comicEntryInfo.id}',
+                    );
+                  }
+                }
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text("取消"),
+              onPressed: () {
+                // 执行操作1
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> deleteDirectory(String path) async {
+    final directory = Directory(path);
+
+    // 检查目录是否存在
+    if (await directory.exists()) {
+      try {
+        // 删除目录及其内容
+        await directory.delete(recursive: true);
+        debugPrint('目录已成功删除: $path');
+      } catch (e) {
+        debugPrint('删除目录时发生错误: $e');
+      }
+    } else {
+      debugPrint('目录不存在: $path');
+    }
   }
 }
 

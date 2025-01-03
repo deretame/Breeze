@@ -109,6 +109,10 @@ class _HistoryPageState extends State<_HistoryPage>
                                         comicEntryInfo: convertToComicEntryInfo(
                                           state.comics[index],
                                         ),
+                                        type: ComicEntryType.history,
+                                        historySearchEnter:
+                                            state.searchEnterConst,
+                                        historyRefresh: refresh,
                                       );
                               },
                               itemCount: state.comics.length + 1,
@@ -176,7 +180,7 @@ class _HistoryPageState extends State<_HistoryPage>
             TextButton(
               child: const Text('重新加载'),
               onPressed: () {
-                _refresh(searchEnterConst);
+                refresh(searchEnterConst);
                 Navigator.of(context).pop();
               },
             ),
@@ -192,7 +196,7 @@ class _HistoryPageState extends State<_HistoryPage>
     );
   }
 
-  void _refresh(SearchEnterConst searchEnterConst) {
+  void refresh(SearchEnterConst searchEnterConst) {
     // 使用原本输入参数进行重新搜索
     context.read<HistoryBloc>().add(
           HistoryEvent(

@@ -7,6 +7,8 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/> <!-- 写入存储权限，对于Android 13以下版本 -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/> <!-- 读取媒体图片权限，Android 13及以上 -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/> <!-- 安装APK权限 -->
+    <!--    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/> &lt;!&ndash; 管理外部存储权限，Android 11及以上 &ndash;&gt;-->
+
     <!--    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/> &lt;!&ndash; 前台服务权限 &ndash;&gt;-->
 
 

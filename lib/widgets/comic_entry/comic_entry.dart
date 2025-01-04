@@ -211,13 +211,25 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
   }
 
   Future deleteDialog() {
+    var title = "";
+    if (_type == ComicEntryType.history) {
+      title = "删除历史记录";
+    } else if (_type == ComicEntryType.download) {
+      title = "删除下载记录";
+    }
+    var content = "确定要删除（${comicEntryInfo.title}）的";
+    if (_type == ComicEntryType.history) {
+      content += "历史记录吗？";
+    } else if (_type == ComicEntryType.download) {
+      content += "下载记录及文件吗？";
+    }
     debugPrint(_type.toString());
     return showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("删除"),
-          content: Text('确认要删除该漫画吗？'),
+          title: Text(title),
+          content: Text(content),
           actions: <Widget>[
             TextButton(
               child: Text("确定"),

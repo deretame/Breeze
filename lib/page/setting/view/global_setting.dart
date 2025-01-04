@@ -90,7 +90,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             onPressed: () {
               objectbox.bikaDownloadBox.removeAll();
               deleteDirectory(
-                '/data/data/com.zephyr.breeze/files/downloads/bika/original',
+                '/data/data/com.zephyr.breeze/files/downloads',
               );
               EasyLoading.showSuccess('已清空');
             },

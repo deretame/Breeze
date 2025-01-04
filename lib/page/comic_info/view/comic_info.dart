@@ -1,6 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:permission_guard/permission_guard.dart';
 
 import '../../../config/global.dart';
 import '../../../main.dart';
@@ -117,6 +119,28 @@ class _ComicInfoState extends State<_ComicInfo>
             },
           ),
           Expanded(child: Container()),
+          if (_type == ComicEntryType.download) ...[
+            IconButton(
+              icon: const Icon(Icons.upload),
+              onPressed: () async {
+                try {
+                  var status = await Permission.manageExternalStorage.status;
+                  if (!status.isGranted) {
+                    var result =
+                        await Permission.manageExternalStorage.request();
+                    if (!result.isGranted) {
+                      EasyLoading.showError("请授予存储权限！");
+                      return;
+                    }
+                  }
+                  EasyLoading.show(status: '正在导出漫画...');
+                  exportComic(comicAllInfo!);
+                } catch (e) {
+                  EasyLoading.showError("导出失败，请重试。\n$e");
+                }
+              },
+            ),
+          ],
         ],
       ),
       body: _type == ComicEntryType.download

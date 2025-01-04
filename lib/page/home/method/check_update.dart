@@ -60,12 +60,12 @@ Future<void> installApk(String apkUrl) async {
       // 使用 Dio 下载 APK 文件
       Response response = await Dio().get(
         apkUrl,
-        options: Options(responseType: ResponseType.bytes), // 将响应类型设置为字节
+        options: Options(responseType: ResponseType.bytes),
       );
 
       // 获取应用的文档目录，存储 APK 文件
       Directory tempDir = await getTemporaryDirectory();
-      String apkFilePath = '${tempDir.path}/your-app.apk'; // 文件名可以自定义
+      String apkFilePath = '${tempDir.path}/app.apk';
 
       // 将下载的字节写入 APK 文件
       File apkFile = File(apkFilePath);

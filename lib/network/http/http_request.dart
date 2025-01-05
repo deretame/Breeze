@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:zephyr/main.dart';
 
 import 'http_request_build.dart';
 
@@ -452,6 +453,29 @@ Future<Map<String, dynamic>> updateProfile(
     'https://picaapi.picacomic.com/users/profile',
     'PUT',
     body: json.encode({"slogan": profile}),
+  );
+
+  debugPrint(limitString(data.toString(), 150));
+
+  if (data['code'] != 200) {
+    throw data;
+  }
+
+  return data;
+}
+
+Future<Map<String, dynamic>> updatePassword(
+  String newPassword,
+) async {
+  final Map<String, dynamic> data = await request(
+    'https://picaapi.picacomic.com/users/password',
+    'PUT',
+    body: json.encode(
+      {
+        "new_password": newPassword,
+        "old_password": bikaSetting.password,
+      },
+    ),
   );
 
   debugPrint(limitString(data.toString(), 150));

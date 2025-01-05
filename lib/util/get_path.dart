@@ -35,10 +35,15 @@ Future<String> getDownloadPath() async {
 // 获取日志目录
 Future<File> getLogPath() async {
   String dir = (await getApplicationDocumentsDirectory()).path;
-  final String filename = "$dir/breeze.log";
-  final file = File(filename);
-  if (!await file.exists()) {
-    await file.create();
+  final String logFileName = "$dir/breeze.log";
+  var logFile = File(logFileName);
+  if (!await logFile.exists()) {
+    await logFile.create(recursive: true);
   }
-  return file;
+  final String screenDirName = "$dir/screens";
+  final Directory screenDir = Directory(screenDirName);
+  if (!await screenDir.exists()) {
+    await screenDir.create(recursive: true);
+  }
+  return logFile;
 }

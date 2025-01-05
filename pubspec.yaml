@@ -1,6 +1,6 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
-version: 1.14.1+49
+version: 1.15.0+50
 
 environment:
   sdk: ">=3.0.0"
@@ -13,14 +13,13 @@ dependencies:
     sdk: flutter
 
   # --------------- UI 相关组件 ---------------
-  cupertino_icons: ^1.0.8                # iOS 风格图标
+  cupertino_icons: ^1.0.8                # 图标
+  dynamic_color: ^1.7.0                  # Material You 动态主题支持
   loading_animation_widget: ^1.2.1       # 加载动画组件
   flutter_easyloading: ^3.0.5            # 加载指示器
   toggle_switch: ^2.3.0                  # 开关切换组件
   animated_search_bar: ^2.7.2            # 动画搜索栏
   photo_view: ^0.15.0                    # 图片查看器，支持缩放和平移
-  dynamic_color: ^1.7.0                  # Material You 动态主题支持
-  super_sliver_list: ^0.4.1              # 扩展滑动列表
   scrollable_positioned_list: ^0.3.8     # 精确定位滚动列表
 
   # --------------- 状态管理库 ---------------
@@ -29,9 +28,6 @@ dependencies:
   flutter_mobx: ^2.3.0          # MobX 的 Flutter 绑定
   bloc: ^8.1.4                  # BLoC 核心库
   flutter_bloc: ^8.1.6          # BLoC 模式实现
-  hydrated_bloc: ^9.1.5         # 持久化状态的 BLoC
-  replay_bloc: ^0.2.7           # 支持撤销/重做的 BLoC
-  bloc_test: ^9.1.7             # BLoC 测试工具
   bloc_concurrency: ^0.2.5      # BLoC 并发控制
 
   # --------------- 数据存储与处理 ---------------
@@ -50,17 +46,14 @@ dependencies:
   url_launcher: ^6.3.1          # 外部 URL 启动器
 
   # --------------- 系统功能与工具 ---------------
-  path_provider: ^2.1.5                         # 文件系统路径获取
-  path: ^1.9.0                                  # 文件路径处理
-  package_info_plus: ^8.1.2                     # 应用包信息获取
-  device_info_plus_platform_interface: ^7.0.2   # 设备信息平台接口
-  permission_handler: ^11.3.1                   # 权限管理
-  device_info_plus: ^11.2.0                     # 设备信息获取
-  open_file: ^3.5.10                            # 文件打开工具
-  permission_guard: ^2.0.1                      # 权限管理工具
-  image_picker: ^1.1.2                          # 图片选择器
-  image_cropper: ^8.1.0                         # 图片裁剪器
-  image: ^4.5.2                                 # 图片处理
+  path_provider: ^2.1.5         # 文件系统路径获取
+  path: ^1.9.0                  # 文件路径处理
+  package_info_plus: ^8.1.2     # 应用包信息获取
+  open_file: ^3.5.10            # 文件打开工具
+  permission_guard: ^2.0.1      # 权限管理工具
+  image_picker: ^1.1.2          # 图片选择器
+  image_cropper: ^8.1.0         # 图片裁剪器
+  image: ^4.5.2                 # 图片处理
 
   # --------------- 功能组件 ---------------
   crypto: ^3.0.6                # 加密算法
@@ -71,15 +64,13 @@ dependencies:
   # --------------- 工具 ---------------
   collection: ^1.18.0           # 集合操作工具
   equatable: ^2.0.3             # 简化对象比较
-  stream_transform: ^2.1.1      # 流变换工具
-  meta: ^1.15.0                 # 元数据支持
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0           # 代码规范检查
-  auto_route_generator: ^9.0.0    # 路由管理代码生成
   build_runner: ^2.4.14           # 代码生成器运行工具
+  auto_route_generator: ^9.0.0    # 路由管理代码生成
   hive_generator: ^2.0.1          # Hive 代码生成器
   objectbox_generator: ^4.0.3     # ObjectBox 代码生成器
 

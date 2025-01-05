@@ -55,6 +55,8 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
             _changeProfilePicture(),
             SizedBox(height: 15),
             _changeBriefIntroduction(),
+            SizedBox(height: 15),
+            _changePassword(),
             SizedBox(height: 10),
             _divider(),
             _shuntWidget(),
@@ -205,18 +207,18 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
   Widget _changeBriefIntroduction() {
     return GestureDetector(
       onTap: () async {
-        var text = await _showInputDialog(context);
+        var text = await _showInputDialog("更新简介", "请输入新的简介");
         if (text.isNotEmpty) {
           EasyLoading.show(status: '正在更新简介...');
           try {
-            await updateProfile(text); // 假设你有这个方法
+            await updateProfile(text);
             EasyLoading.showInfo("成功更新简介");
           } catch (e) {
             EasyLoading.showError("更新简介失败: ${e.toString()}");
           }
         }
       },
-      behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
+      behavior: HitTestBehavior.opaque,
       child: Row(
         children: [
           SizedBox(width: 10),
@@ -235,7 +237,7 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
   }
 
   // 弹出输入框对话框
-  Future<String> _showInputDialog(BuildContext context) async {
+  Future<String> _showInputDialog(String tile, String defaultText) async {
     final TextEditingController controller = TextEditingController();
 
     // 显示对话框并等待响应
@@ -243,22 +245,21 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('请输入信息'),
+          title: Text(tile),
           content: TextField(
             controller: controller,
-            decoration: InputDecoration(hintText: "输入你的内容"),
+            decoration: InputDecoration(hintText: defaultText),
           ),
           actions: <Widget>[
             TextButton(
               child: Text('取消'),
               onPressed: () {
-                Navigator.of(context).pop(); // 直接关闭对话框
+                Navigator.of(context).pop();
               },
             ),
             TextButton(
               child: Text('确认'),
               onPressed: () {
-                // 将用户输入传递出去
                 Navigator.of(context).pop(controller.text);
               },
             ),
@@ -267,8 +268,39 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
       },
     );
 
-    // 返回用户输入或 null（如果用户点击了取消）
-    return result ?? ""; // 如果是取消则返回空字符串
+    return result ?? "";
+  }
+
+  Widget _changePassword() {
+    return GestureDetector(
+      onTap: () async {
+        var text = await _showInputDialog("更新密码", "请输入新的密码");
+        if (text.isNotEmpty) {
+          EasyLoading.show(status: '正在更新密码...');
+          try {
+            await updatePassword(text);
+            EasyLoading.showInfo("成功更新密码");
+          } catch (e) {
+            EasyLoading.showError("更新密码失败: ${e.toString()}");
+          }
+        }
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        children: [
+          SizedBox(width: 10),
+          Text(
+            "更新密码",
+            style: TextStyle(
+              fontSize: 18,
+            ),
+          ),
+          Expanded(child: Container()),
+          Icon(Icons.chevron_right),
+          SizedBox(width: 10),
+        ],
+      ),
+    );
   }
 
   Widget _shuntWidget() {

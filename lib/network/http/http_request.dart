@@ -424,6 +424,45 @@ Future<Map<String, dynamic>> getUserProfile() async {
   return data;
 }
 
+Future<Map<String, dynamic>> updateAvatar(
+  String avatarBASE64String,
+) async {
+  final Map<String, dynamic> data = await request(
+    'https://picaapi.picacomic.com/users/avatar',
+    'PUT',
+    body: json.encode(
+      {"avatar": "data:image/jpeg;base64,$avatarBASE64String"},
+    ),
+  );
+
+  debugPrint(limitString(data.toString(), 150));
+
+  if (data['code'] != 200) {
+    throw data;
+  }
+
+  return data;
+}
+
+// 更新自己的简介
+Future<Map<String, dynamic>> updateProfile(
+  String profile,
+) async {
+  final Map<String, dynamic> data = await request(
+    'https://picaapi.picacomic.com/users/profile',
+    'PUT',
+    body: json.encode({"slogan": profile}),
+  );
+
+  debugPrint(limitString(data.toString(), 150));
+
+  if (data['code'] != 200) {
+    throw data;
+  }
+
+  return data;
+}
+
 Future<Map<String, dynamic>> getFavorites(
   int pageCount,
 ) async {

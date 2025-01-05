@@ -68,129 +68,138 @@ class _BikaWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final router = AutoRouter.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.all(10),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center, // 添加此行以居中
-        children: <Widget>[
-          Center(
-            child: Row(
-              children: <Widget>[
-                _UserAvatar(
-                  pictureInfo: PictureInfo(
-                      url: profile.data.user.avatar.fileServer,
-                      path: profile.data.user.avatar.path,
-                      chapterId: "",
-                      pictureType: "avatar"),
+    return RefreshIndicator(
+      onRefresh: () async {
+        // 发送事件以重新加载用户资料
+        context.read<UserProfileBloc>().add(UserProfileEvent());
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(), // 允许下拉操作
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center, // 添加此行以居中
+            children: <Widget>[
+              Center(
+                child: Row(
+                  children: <Widget>[
+                    _UserAvatar(
+                      pictureInfo: PictureInfo(
+                          url: profile.data.user.avatar.fileServer,
+                          path: profile.data.user.avatar.path,
+                          chapterId: "",
+                          pictureType: "avatar"),
+                    ),
+                    SizedBox(width: 10),
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            "${profile.data.user.name}  (${profile.data.user.slogan})",
+                          ),
+                          Text(
+                            "level: ${profile.data.user.level.toString()}  (${profile.data.user.title})",
+                          ),
+                          Observer(
+                            builder: (context) {
+                              return Text(
+                                "经验值: ${profile.data.user.exp.toString()} (${bikaSetting.signIn ? "已签到" : "未签到"})",
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(width: 10),
-                Flexible(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: <Widget>[
+                  Column(
                     children: <Widget>[
-                      Text(
-                        "${profile.data.user.name}  (${profile.data.user.slogan})",
-                      ),
-                      Text(
-                        "level: ${profile.data.user.level.toString()}  (${profile.data.user.title})",
-                      ),
-                      Observer(
-                        builder: (context) {
-                          return Text(
-                            "经验值: ${profile.data.user.exp.toString()} (${bikaSetting.signIn ? "已签到" : "未签到"})",
-                          );
+                      InkWell(
+                        onTap: () {
+                          router.push(FavoriteRoute());
                         },
+                        child: const Icon(
+                          Icons.star,
+                          size: 24.0,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '收藏',
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              Column(
-                children: <Widget>[
-                  InkWell(
-                    onTap: () {
-                      router.push(FavoriteRoute());
-                    },
-                    child: const Icon(
-                      Icons.star,
-                      size: 24.0,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '收藏',
-                  ),
-                ],
-              ),
-              Column(
-                children: <Widget>[
-                  InkWell(
-                    onTap: () {
-                      router.push(
-                        HistoryRoute(
-                          searchEnterConst: SearchEnterConst(sort: "dd"),
+                  Column(
+                    children: <Widget>[
+                      InkWell(
+                        onTap: () {
+                          router.push(
+                            HistoryRoute(
+                              searchEnterConst: SearchEnterConst(sort: "dd"),
+                            ),
+                          );
+                        },
+                        child: const Icon(
+                          Icons.history,
+                          size: 24.0,
                         ),
-                      );
-                    },
-                    child: const Icon(
-                      Icons.history,
-                      size: 24.0,
-                    ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '历史',
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '历史',
-                  ),
-                ],
-              ),
-              Column(
-                children: <Widget>[
-                  InkWell(
-                    onTap: () {
-                      router.push(
-                        DownloadListRoute(
-                          searchEnterConst:
-                              download_list.SearchEnterConst(sort: "dd"),
+                  Column(
+                    children: <Widget>[
+                      InkWell(
+                        onTap: () {
+                          router.push(
+                            DownloadListRoute(
+                              searchEnterConst:
+                                  download_list.SearchEnterConst(sort: "dd"),
+                            ),
+                          );
+                        },
+                        child: const Icon(
+                          Icons.cloud_download_rounded,
+                          size: 24.0,
                         ),
-                      );
-                    },
-                    child: const Icon(
-                      Icons.cloud_download_rounded,
-                      size: 24.0,
-                    ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '下载',
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '下载',
-                  ),
-                ],
-              ),
-              Column(
-                children: <Widget>[
-                  InkWell(
-                    onTap: () {
-                      nothingDialog(context);
-                    },
-                    child: const Icon(
-                      Icons.comment,
-                      size: 24.0,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '评论',
+                  Column(
+                    children: <Widget>[
+                      InkWell(
+                        onTap: () {
+                          nothingDialog(context);
+                        },
+                        child: const Icon(
+                          Icons.comment,
+                          size: 24.0,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '评论',
+                      ),
+                    ],
                   ),
                 ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

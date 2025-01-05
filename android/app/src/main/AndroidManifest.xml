@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/> <!-- 读取存储权限，对于Android 13以下版本 -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/> <!-- 写入存储权限，对于Android 13以下版本 -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/> <!-- 读取媒体图片权限，Android 13及以上 -->
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/> <!-- 读取媒体视频权限，Android 13及以上 -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/> <!-- 安装APK权限 -->
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/> <!-- 管理外部存储权限，Android 11及以上 -->
 
@@ -46,6 +47,12 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <activity
+                android:name="com.yalantis.ucrop.UCropActivity"
+                android:screenOrientation="portrait"
+                android:theme="@style/Ucrop.CropTheme"/>
+        
         <!-- 前台服务声明 -->
         <!--        <service-->
         <!--                android:name="com.zephyr.breeze.DownloadService"-->

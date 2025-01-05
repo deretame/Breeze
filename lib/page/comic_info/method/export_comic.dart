@@ -22,20 +22,22 @@ Future<void> exportComic(ComicAllInfoJson comicInfo) async {
   }
   await comicInfoFile.writeAsString(comicInfoString);
 
-  var coverDir = '$comicDir/cover';
-  var coverFile = File('$coverDir/cover.jpg');
-  if (!await coverFile.exists()) {
-    await coverFile.create(recursive: true);
+  if (comicInfo.comic.thumb.path.isNotEmpty) {
+    var coverDir = '$comicDir/cover';
+    var coverFile = File('$coverDir/cover.jpg');
+    if (!await coverFile.exists()) {
+      await coverFile.create(recursive: true);
+    }
+    var coverDownloadFile = await downloadPicture(
+      from: 'bika',
+      url: comicInfo.comic.thumb.fileServer,
+      path: comicInfo.comic.thumb.path,
+      cartoonId: comicInfo.comic.id,
+      pictureType: 'cover',
+      chapterId: comicInfo.comic.id,
+    );
+    await File(coverDownloadFile).copy(coverFile.path);
   }
-  var coverDownloadFile = await downloadPicture(
-    from: 'bika',
-    url: comicInfo.comic.thumb.fileServer,
-    path: comicInfo.comic.thumb.path,
-    cartoonId: comicInfo.comic.id,
-    pictureType: 'cover',
-    chapterId: comicInfo.comic.id,
-  );
-  await File(coverDownloadFile).copy(coverFile.path);
 
   final List<Future<void>> downloadTasks = [];
   for (var ep in comicInfo.eps.docs) {

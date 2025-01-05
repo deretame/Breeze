@@ -1,6 +1,6 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
-version: 1.13.0+47
+version: 1.14.0+48
 
 environment:
   sdk: ">=3.0.0"
@@ -22,9 +22,6 @@ dependencies:
   dynamic_color: ^1.7.0                  # Material You 动态主题支持
   super_sliver_list: ^0.4.1              # 扩展滑动列表
   scrollable_positioned_list: ^0.3.8     # 精确定位滚动列表
-  flutter_markdown: ^0.7.4+3             # Markdown 渲染组件
-  flutter_awesome_animations_kit: ^0.0.3 # 动画组件库
-  indexed_list_view: ^4.0.0              # 索引列表视图
 
   # --------------- 状态管理库 ---------------
   mobx: ^2.5.0                  # 响应式状态管理
@@ -36,7 +33,6 @@ dependencies:
   replay_bloc: ^0.2.7           # 支持撤销/重做的 BLoC
   bloc_test: ^9.1.7             # BLoC 测试工具
   bloc_concurrency: ^0.2.5      # BLoC 并发控制
-  event_bus: ^2.0.1             # 事件总线
 
   # --------------- 数据存储与处理 ---------------
   hive: ^2.2.3                   # 轻量级键值对数据库
@@ -60,11 +56,11 @@ dependencies:
   device_info_plus_platform_interface: ^7.0.2   # 设备信息平台接口
   permission_handler: ^11.3.1                   # 权限管理
   device_info_plus: ^11.2.0                     # 设备信息获取
-  image_gallery_saver_plus: ^3.0.5              # 图片保存工具
   open_file: ^3.5.10                            # 文件打开工具
-  flutter_local_notifications: ^18.0.1          # 本地通知
-  flutter_foreground_task: ^8.17.0              # 前台服务管理
   permission_guard: ^2.0.1                      # 权限管理工具
+  image_picker: ^1.1.2                          # 图片选择器
+  image_cropper: ^8.1.0                         # 图片裁剪器
+  image: ^4.5.2                                 # 图片处理
 
   # --------------- 功能组件 ---------------
   crypto: ^3.0.6                # 加密算法

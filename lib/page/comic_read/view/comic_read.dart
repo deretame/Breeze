@@ -388,13 +388,14 @@ class _ComicReadPageState extends State<_ComicReadPage>
 
   Widget _bottomWidget() {
     final router = AutoRouter.of(context);
-    ComicEntryType tempType = ComicEntryType.normal;
+    ComicEntryType tempType = _type;
     if (_type == ComicEntryType.historyAndDownload) {
       tempType = ComicEntryType.download;
     }
     if (_type == ComicEntryType.history) {
       tempType = ComicEntryType.normal;
     }
+    // debugPrint('bottomWidget type: ${tempType.name}');
     return Observer(builder: (context) {
       return AnimatedPositioned(
         duration: _animationDuration,

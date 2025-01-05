@@ -124,14 +124,11 @@ class _ComicInfoState extends State<_ComicInfo>
               icon: const Icon(Icons.upload),
               onPressed: () async {
                 try {
-                  var status = await Permission.manageExternalStorage.status;
-                  if (!status.isGranted) {
-                    var result =
-                        await Permission.manageExternalStorage.request();
-                    if (!result.isGranted) {
-                      EasyLoading.showError("请授予存储权限！");
-                      return;
-                    }
+                  if (!await Permission.manageExternalStorage
+                      .request()
+                      .isGranted) {
+                    EasyLoading.showError("请授予存储权限！");
+                    return;
                   }
                   EasyLoading.show(status: '正在导出漫画...');
                   exportComic(comicAllInfo!);

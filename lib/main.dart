@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:catcher_2/catcher_2.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -60,19 +57,6 @@ Future<void> main() async {
     [FileHandler(await getLogPath())],
   );
 
-  // 小白条、导航栏沉浸设置，仅当平台为Android时
-  if (Platform.isAndroid) {
-    final androidInfo = await DeviceInfoPlugin().androidInfo;
-    if (androidInfo.version.sdkInt >= 29) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    }
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarDividerColor: Colors.transparent,
-      statusBarColor: Colors.transparent,
-    ));
-  }
-
   // 初始化Catcher2并运行应用
   Catcher2(
     releaseConfig: releaseConfig,
@@ -91,15 +75,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   @override
-  void initState() {
-    super.initState();
-    // 在初始化时不进行基于上下文的设置
-  }
-
-  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // 在这里进行基于上下文的设置
     _updateThemeSettings();
   }
 

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:super_sliver_list/super_sliver_list.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/page/search_result/search_result.dart';
 
@@ -221,7 +220,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
       }
     }
 
-    return SuperListView.builder(
+    return ListView.builder(
       itemBuilder: (BuildContext context, int index) {
         if (index == state.comics.length) {
           switch (state.status) {

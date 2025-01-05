@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ import '../../../network/http/http_request.dart';
 import '../../../network/http/picture.dart';
 import '../../../object_box/model.dart';
 import '../../../page/comic_read/json/page.dart' as comic_page_json;
+import '../../../util/get_path.dart';
 import '../../comic_info/json/comic_info/comic_info.dart';
 import '../../comic_info/json/eps/eps.dart';
 import '../../comments/widgets/title.dart';
@@ -68,6 +70,21 @@ class _DownloadPageState extends State<DownloadPage> {
     }
   }
 
+  // 判断是否所有章节都被选中
+  bool get isAllSelected {
+    return epsInfo.every((ep) => _downloadInfo[ep.order] == true);
+  }
+
+  // 切换全选或取消全选
+  void toggleSelectAll() {
+    setState(() {
+      bool newState = !isAllSelected; // 如果当前是全选，则取消全选；反之亦然
+      for (var ep in epsInfo) {
+        _downloadInfo[ep.order] = newState;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,6 +92,13 @@ class _DownloadPageState extends State<DownloadPage> {
         title: ScrollableTitle(
           text: comicInfo.title,
         ),
+        actions: [
+          // 动态切换全选/取消全选按钮
+          IconButton(
+            icon: Icon(isAllSelected ? Icons.deselect : Icons.select_all),
+            onPressed: toggleSelectAll,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: SizedBox(
@@ -221,8 +245,12 @@ class _DownloadPageState extends State<DownloadPage> {
         try {
           temp_json.Pages pagesDocs = temp_json.Pages.empty();
           do {
-            var result = await getPages(comicId, ep.order, page,
-                imageQuality: "original");
+            var result = await getPages(
+              comicId,
+              ep.order,
+              page,
+              imageQuality: "original",
+            );
             var temp = comic_page_json.Page.fromJson(result);
             page += 1;
             pages = temp.data.pages.pages;
@@ -258,13 +286,15 @@ class _DownloadPageState extends State<DownloadPage> {
       }
     }
 
+    List<String> picturePaths = [];
+
     message = "下载进度："
         "${(downloadCount / mediaList.length * 100.0).toStringAsFixed(2)}%";
     // 更新进度条内容
     overlayEntry.markNeedsBuild();
 
     final List<Future<void>> downloadTasks = mediaList.map((media) async {
-      await downloadPicture(
+      var picturePath = await downloadPicture(
         from: 'bika',
         url: media.fileServer,
         path: media.path,
@@ -282,6 +312,8 @@ class _DownloadPageState extends State<DownloadPage> {
 
       // 更新进度条内容
       overlayEntry.markNeedsBuild();
+
+      picturePaths.add(picturePath);
 
       return;
     }).toList();
@@ -424,10 +456,79 @@ class _DownloadPageState extends State<DownloadPage> {
       overlayEntry.remove();
     });
 
-    // var temp = await objectbox.bikaDownloadBox.getAllAsync();
-    // for (var item in temp) {
-    //   debugPrint(item.toString());
-    // }
-    // TODO: 下载完成后检查一下有什么变动，删掉现在不需要的图片
+    String downloadPath = await getDownloadPath();
+    var epsDir = "$downloadPath/bika/original/${comicInfo.id}/comic/";
+    // 创建 Directory 对象
+    Directory directory = Directory(epsDir);
+
+    // 检查目录是否存在
+    if (!await directory.exists()) {
+      debugPrint("目录不存在: $epsDir");
+    }
+
+    // 列出目录下的所有文件和子目录
+    List<FileSystemEntity> entities = directory.listSync();
+
+    // 过滤出子目录
+    List<Directory> epDirs = entities.whereType<Directory>().toList();
+
+    List<String> downloadEpsDir = [];
+    for (var element in comicAllInfoJsonNoFreeze.eps.docs) {
+      downloadEpsDir.add(
+          "$downloadPath/bika/original/${comicInfo.id}/comic/${element.id}");
+    }
+
+    // 过滤出需要删除的目录
+    List<Directory> deleteDirs = epDirs.where((element) {
+      return !downloadEpsDir.contains(element.path);
+    }).toList();
+
+    // 删除不需要的目录
+    for (var element in deleteDirs) {
+      await element.delete(recursive: true);
+    }
+
+    List<String> originalPicturePaths = [];
+
+    for (var element in mediaList) {
+      String sanitizedPath =
+          element.path.replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_');
+      var tempPath =
+          "$downloadPath/bika/original/${comicInfo.id}/comic/${element.epId}/$sanitizedPath";
+      originalPicturePaths.add(tempPath);
+    }
+
+    var allPicturePaths = await getAllFilePaths(
+        "$downloadPath/bika/original/${comicInfo.id}/comic/");
+
+    // 过滤出需要删除的图片
+    List<String> deletePictures = allPicturePaths.where((element) {
+      return !originalPicturePaths.contains(element);
+    }).toList();
+
+    // 删除不需要的图片
+    for (var element in deletePictures) {
+      await File(element).delete();
+    }
+  }
+
+  // 递归获取目录下的所有文件路径
+  Future<List<String>> getAllFilePaths(String directoryPath) async {
+    List<String> filePaths = [];
+    Directory directory = Directory(directoryPath);
+
+    // 检查目录是否存在
+    if (!await directory.exists()) {
+      throw Exception("目录不存在: $directoryPath");
+    }
+
+    // 遍历目录
+    await for (FileSystemEntity entity in directory.list(recursive: true)) {
+      if (entity is File) {
+        filePaths.add(entity.path); // 如果是文件，添加到列表中
+      }
+    }
+
+    return filePaths;
   }
 }

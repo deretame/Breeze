@@ -30,6 +30,17 @@ class _EpsWidgetState extends State<EpsWidget> {
   }
 
   @override
+  void didUpdateWidget(EpsWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.downloaded != widget.downloaded) {
+      // 当父组件的状态变化时，更新复选框状态
+      setState(() {
+        _isChecked = widget.downloaded;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {

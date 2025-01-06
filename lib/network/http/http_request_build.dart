@@ -42,7 +42,6 @@ String _getSignature(
 Map<String, String> _getRequestHeaders(
   String url,
   String method, {
-  String imageQuality = "",
   String body = "",
 }) {
   String? authorization = bikaSetting.authorization;
@@ -86,9 +85,7 @@ Map<String, String> _getRequestHeaders(
     headers['authorization'] = authorization;
   }
 
-  if (imageQuality != "") {
-    headers['image-quality'] = imageQuality;
-  }
+  headers['image-quality'] = bikaSetting.imageQuality;
 
   return headers;
 }
@@ -98,37 +95,27 @@ Future<Map<String, dynamic>> request(
   String method, {
   String body = "",
   bool cache = false,
-  int timeOut = 10,
-  String imageQuality = "",
-  Dio? localDio,
 }) async {
-  String imageQuality0 =
-      imageQuality == "" ? bikaSetting.imageQuality : imageQuality;
-
-  var tempDio = localDio ?? dio;
-
   final headers = _getRequestHeaders(
     url,
     method,
-    imageQuality: imageQuality0,
     body: body,
   );
 
-  if (localDio == null) {
-    // 根据useCache决定是否添加缓存拦截器
-    if (cache) {
-      dio.interceptors.add(cacheInterceptor);
-    } else {
-      dio.interceptors.removeWhere((Interceptor i) => i == cacheInterceptor);
-    }
+  // 根据useCache决定是否添加缓存拦截器
+  if (cache) {
+    dio.interceptors.add(cacheInterceptor);
+  } else {
+    dio.interceptors.removeWhere((Interceptor i) => i == cacheInterceptor);
   }
+
   try {
     final cancelToken = CancelToken();
-    Timer(Duration(seconds: timeOut), () {
+    Timer(Duration(seconds: 10), () {
       cancelToken.cancel('请求超时');
     });
 
-    final response = await tempDio.request(
+    final response = await dio.request(
       url,
       data: body.isNotEmpty && (method == 'POST' || method == 'PUT')
           ? body

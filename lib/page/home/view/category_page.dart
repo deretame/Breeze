@@ -27,7 +27,6 @@ class _CategoryPageState extends State<CategoryPage>
   void initState() {
     super.initState();
     _checkUpdate();
-    // Isolate.spawn(downloadComic, "676ed5839a648f08d0c82731");
   }
 
   @override
@@ -43,74 +42,77 @@ class _CategoryPageState extends State<CategoryPage>
           // 刷新数据
           context.read<GetCategoryBloc>().add(GetCategoryStarted());
         },
-        child: BlocBuilder<GetCategoryBloc, GetCategoryState>(
-          builder: (context, state) {
-            switch (state.status) {
-              case GetCategoryStatus.failure:
-                if (state.result!.contains("1005") ||
-                    state.result!.contains("401") ||
-                    state.result!.contains("unauthorized") ||
-                    bikaSetting.authorization == '') {
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(), // 允许下拉操作
+          child: BlocBuilder<GetCategoryBloc, GetCategoryState>(
+            builder: (context, state) {
+              switch (state.status) {
+                case GetCategoryStatus.failure:
+                  if (state.result!.contains("1005") ||
+                      state.result!.contains("401") ||
+                      state.result!.contains("unauthorized") ||
+                      bikaSetting.authorization == '') {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '登录状态无效，请重新登录',
+                            style: TextStyle(fontSize: 20),
+                          ),
+                          SizedBox(height: 10), // 添加间距
+                          ElevatedButton(
+                            onPressed: () {
+                              AutoRouter.of(context).push(LoginRoute());
+                            },
+                            child: Text('前往登录'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '登录状态无效，请重新登录',
-                          style: TextStyle(fontSize: 20),
-                        ),
-                        SizedBox(height: 10), // 添加间距
+                      children: <Widget>[
+                        Text(state.result!),
                         ElevatedButton(
                           onPressed: () {
-                            AutoRouter.of(context).push(LoginRoute());
+                            context
+                                .read<GetCategoryBloc>()
+                                .add(GetCategoryStarted());
                           },
-                          child: Text('前往登录'),
+                          child: const Text('重新加载'),
                         ),
                       ],
                     ),
                   );
-                }
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text(state.result!),
-                      ElevatedButton(
-                        onPressed: () {
-                          context
-                              .read<GetCategoryBloc>()
-                              .add(GetCategoryStarted());
-                        },
-                        child: const Text('重新加载'),
-                      ),
-                    ],
-                  ),
-                );
-              case GetCategoryStatus.success:
-                final Map<String, bool> shieldCategoryMap =
-                    bikaSetting.shieldCategoryMap;
+                case GetCategoryStatus.success:
+                  final Map<String, bool> shieldHomePageCategoryMap =
+                      bikaSetting.shieldHomePageCategoriesMap;
 
-                List<HomeCategory> homeCategories = state.categories!
-                    .where((category) =>
-                        !(shieldCategoryMap[category.id] ?? false))
-                    .toList();
-                // 构建并返回组件
-                var rows = buildCategoriesWidget(homeCategories);
-                return SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      ...rows,
-                      SizedBox(
-                        height: 50,
-                      ),
-                    ],
-                  ),
-                );
+                  List<HomeCategory> homeCategories = state.categories!
+                      .where((category) =>
+                          !(shieldHomePageCategoryMap[category.title] ?? false))
+                      .toList();
+                  // 构建并返回组件
+                  var rows = buildCategoriesWidget(homeCategories);
+                  return SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        ...rows,
+                        SizedBox(
+                          height: 50,
+                        ),
+                      ],
+                    ),
+                  );
 
-              case GetCategoryStatus.initial:
-                return const Center(child: CircularProgressIndicator());
-            }
-          },
+                case GetCategoryStatus.initial:
+                  return const Center(child: CircularProgressIndicator());
+              }
+            },
+          ),
         ),
       ),
     );

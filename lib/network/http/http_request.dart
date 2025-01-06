@@ -214,7 +214,6 @@ Future<Map<String, dynamic>> getComicInfo(
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comics/$comicId',
     'GET',
-    localDio: dio,
   );
 
   debugPrint(limitString(data.toString(), 150));
@@ -356,7 +355,6 @@ Future<Map<String, dynamic>> getEps(
     'https://picaapi.picacomic.com/comics/$comicId/eps?page=$pageCount',
     'GET',
     cache: true,
-    localDio: dio,
   );
 
   debugPrint(limitString(data.toString(), 150));
@@ -394,12 +392,9 @@ Future<Map<String, dynamic>> getPages(
   String imageQuality = "",
 }) async {
   final Map<String, dynamic> data = await request(
-    'https://picaapi.picacomic.com/comics/$comicId/order/$epId/pages?page=$pageCount',
-    'GET',
-    cache: true,
-    localDio: dio,
-    imageQuality: imageQuality,
-  );
+      'https://picaapi.picacomic.com/comics/$comicId/order/$epId/pages?page=$pageCount',
+      'GET',
+      cache: true);
 
   debugPrint(limitString(data.toString(), 150));
 

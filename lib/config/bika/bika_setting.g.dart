@@ -135,6 +135,23 @@ mixin _$BikaSetting on _BikaSetting, Store {
     });
   }
 
+  late final _$shieldHomePageCategoriesMapAtom =
+      Atom(name: '_BikaSetting.shieldHomePageCategoriesMap', context: context);
+
+  @override
+  Map<String, bool> get shieldHomePageCategoriesMap {
+    _$shieldHomePageCategoriesMapAtom.reportRead();
+    return super.shieldHomePageCategoriesMap;
+  }
+
+  @override
+  set shieldHomePageCategoriesMap(Map<String, bool> value) {
+    _$shieldHomePageCategoriesMapAtom
+        .reportWrite(value, super.shieldHomePageCategoriesMap, () {
+      super.shieldHomePageCategoriesMap = value;
+    });
+  }
+
   late final _$signInAtom = Atom(name: '_BikaSetting.signIn', context: context);
 
   @override
@@ -434,6 +451,39 @@ mixin _$BikaSetting on _BikaSetting, Store {
   }
 
   @override
+  Map<String, bool> getShieldHomePageCategories() {
+    final _$actionInfo = _$_BikaSettingActionController.startAction(
+        name: '_BikaSetting.getShieldHomePageCategories');
+    try {
+      return super.getShieldHomePageCategories();
+    } finally {
+      _$_BikaSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void setShieldHomeCategories(Map<String, bool> value) {
+    final _$actionInfo = _$_BikaSettingActionController.startAction(
+        name: '_BikaSetting.setShieldHomeCategories');
+    try {
+      return super.setShieldHomeCategories(value);
+    } finally {
+      _$_BikaSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void deleteShieldHomeCategories() {
+    final _$actionInfo = _$_BikaSettingActionController.startAction(
+        name: '_BikaSetting.deleteShieldHomeCategories');
+    try {
+      return super.deleteShieldHomeCategories();
+    } finally {
+      _$_BikaSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   bool getSignIn() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
         name: '_BikaSetting.getSignIn');
@@ -510,6 +560,7 @@ checkIn: ${checkIn},
 proxy: ${proxy},
 imageQuality: ${imageQuality},
 shieldCategoryMap: ${shieldCategoryMap},
+shieldHomePageCategoriesMap: ${shieldHomePageCategoriesMap},
 signIn: ${signIn},
 signInTime: ${signInTime}
     ''';

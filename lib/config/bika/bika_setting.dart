@@ -35,6 +35,10 @@ abstract class _BikaSetting with Store {
   Map<String, bool> shieldCategoryMap = Map.of(categoryMap); // 分类设置
 
   @observable
+  Map<String, bool> shieldHomePageCategoriesMap =
+      Map.of(homePageCategoriesMap); // 存储首页的屏蔽分类
+
+  @observable
   bool signIn = false; // 签到状态
 
   @observable
@@ -54,6 +58,7 @@ abstract class _BikaSetting with Store {
     proxy = getProxy();
     imageQuality = getImageQuality();
     shieldCategoryMap = getShieldCategoryMap();
+    shieldHomePageCategoriesMap = getShieldHomePageCategories();
     signIn = getSignIn();
     signInTime = getSignInTime();
   }
@@ -207,6 +212,26 @@ abstract class _BikaSetting with Store {
   }
 
   @action
+  Map<String, bool> getShieldHomePageCategories() {
+    var map = _box.get(BikaSettingBoxKeys.shieldHomePageCategories,
+        defaultValue: Map.of(homePageCategoriesMap));
+    var categories = Map<String, bool>.from(map); // 转换为 Map<String, bool>
+    return categories;
+  }
+
+  @action
+  void setShieldHomeCategories(Map<String, bool> value) {
+    shieldHomePageCategoriesMap = Map<String, bool>.of(value);
+    _box.put(BikaSettingBoxKeys.shieldHomePageCategories, value);
+  }
+
+  @action
+  void deleteShieldHomeCategories() {
+    shieldHomePageCategoriesMap = Map<String, bool>.of(homePageCategoriesMap);
+    _box.delete(BikaSettingBoxKeys.shieldHomePageCategories);
+  }
+
+  @action
   bool getSignIn() {
     signIn = _box.get(BikaSettingBoxKeys.signIn, defaultValue: false);
     return signIn;
@@ -256,6 +281,8 @@ class BikaSettingBoxKeys {
   static const String proxy = 'proxy'; // 分流设置
   static const String imageQuality = 'imageQuality'; // 图片质量
   static const String shieldCategoryMap = 'shieldCategoryMap'; // 屏蔽分类
+  static const String shieldHomePageCategories =
+      'shieldHomePageCategories'; // 首页屏蔽分类
   static const String signIn = 'signIn'; // 签到状态
   static const String signInTime = 'signInTime'; // 签到时间
 }
@@ -283,6 +310,59 @@ Map<String, bool> categoryMap = {
   "妹妹系": false,
   "性轉換": false,
   "SM": false,
+  "足の恋": false,
+  "人妻": false,
+  "NTR": false,
+  "強暴": false,
+  "非人類": false,
+  "艦隊收藏": false,
+  "Love Live": false,
+  "SAO 刀劍神域": false,
+  "Fate": false,
+  "東方": false,
+  "WEBTOON": false,
+  "禁書目錄": false,
+  "歐美": false,
+  "Cosplay": false,
+  "重口地帶": false,
+};
+
+// 首页的分类
+Map<String, bool> homePageCategoriesMap = {
+  "最近更新": false,
+  "随机本子": false,
+  "援助嗶咔": false,
+  "嗶咔小禮物": false,
+  "小電影": false,
+  "小里番": false,
+  "嗶咔畫廊": false,
+  "嗶咔商店": false,
+  "大家都在看": false,
+  "大濕推薦": false,
+  "那年今天": false,
+  "官方都在看": false,
+  "嗶咔運動": false,
+  "嗶咔漢化": false,
+  "全彩": false,
+  "長篇": false,
+  "同人": false,
+  "短篇": false,
+  "圓神領域": false,
+  "碧藍幻想": false,
+  "CG雜圖": false,
+  "英語 ENG": false,
+  "生肉": false,
+  "純愛": false,
+  "百合花園": false,
+  "耽美花園": false,
+  "偽娘哲學": false,
+  "後宮閃光": false,
+  "扶他樂園": false,
+  "單行本": false,
+  "姐姐系": false,
+  "妹妹系": false,
+  "SM": false,
+  "性轉換": false,
   "足の恋": false,
   "人妻": false,
   "NTR": false,

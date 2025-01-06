@@ -4,7 +4,6 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:stream_transform/stream_transform.dart';
 
-import '../../../main.dart';
 import '../../../network/http/http_request.dart';
 import '../json/categories/categories.dart';
 import '../models/category.dart';
@@ -74,9 +73,6 @@ class GetCategoryBloc extends Bloc<GetCategoryStarted, GetCategoryState> {
     }
     result['data']['categories'] = temp;
 
-    List<String> shieldList = bikaSetting.shieldCategoryMap.keys
-        .where((key) => bikaSetting.shieldCategoryMap[key] == true)
-        .toList();
     try {
       var temp = Categories.fromJson(result);
       debugPrint(temp.toString());
@@ -117,9 +113,8 @@ class GetCategoryBloc extends Bloc<GetCategoryStarted, GetCategoryState> {
           id: category.id!,
           description: category.description!,
         );
-        if (!shieldList.any((string) => string.contains(temp.title))) {
-          categoriesGlobal.add(temp);
-        }
+
+        categoriesGlobal.add(temp);
       }
     } catch (e) {
       rethrow;

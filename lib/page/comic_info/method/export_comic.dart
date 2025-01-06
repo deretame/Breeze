@@ -1,13 +1,16 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:archive/archive_io.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../network/http/picture.dart';
 import '../../download/json/comic_all_info_json/comic_all_info_json.dart';
 
-Future<void> exportComic(ComicAllInfoJson comicInfo) async {
+Future<void> exportComicAsFolder(ComicAllInfoJson comicInfo) async {
   var downloadPath = await createDownloadDir();
   var comicDir = '$downloadPath/${comicInfo.comic.title}';
   if (await Directory(comicDir).exists()) {
@@ -69,8 +72,60 @@ Future<void> exportComic(ComicAllInfoJson comicInfo) async {
 
   await Future.wait(downloadTasks);
 
-  debugPrint('漫画${comicInfo.comic.title}导出完成');
-  EasyLoading.showSuccess('漫画${comicInfo.comic.title}导出完成');
+  debugPrint('漫画${comicInfo.comic.title}导出为文件夹完成');
+  EasyLoading.showSuccess('漫画${comicInfo.comic.title}导出为文件夹完成');
+}
+
+Future<void> exportComicAsZip(ComicAllInfoJson comicInfo) async {
+  var downloadPath = await createDownloadDir();
+  var comicDir = comicInfo.comic.title;
+  var archive = Archive();
+
+  // 保存漫画下载信息
+  var comicInfoString = comicAllInfoJsonToJson(comicInfo);
+  var comicInfoBytes = utf8.encode(comicInfoString);
+  archive
+      .addFile(ArchiveFile('info.json', comicInfoBytes.length, comicInfoBytes));
+
+  if (comicInfo.comic.thumb.path.isNotEmpty) {
+    var coverDownloadFile = await downloadPicture(
+      from: 'bika',
+      url: comicInfo.comic.thumb.fileServer,
+      path: comicInfo.comic.thumb.path,
+      cartoonId: comicInfo.comic.id,
+      pictureType: 'cover',
+      chapterId: comicInfo.comic.id,
+    );
+    var coverBytes = await File(coverDownloadFile).readAsBytes();
+    archive
+        .addFile(ArchiveFile('cover/cover.jpg', coverBytes.length, coverBytes));
+  }
+
+  for (var ep in comicInfo.eps.docs) {
+    var epDir = 'eps/${ep.title}';
+    for (var page in ep.pages.docs) {
+      var pageDownloadFile = await downloadPicture(
+        from: 'bika',
+        url: page.media.fileServer,
+        path: page.media.path,
+        cartoonId: comicInfo.comic.id,
+        pictureType: 'comic',
+        chapterId: ep.id,
+      );
+      var pageBytes = await File(pageDownloadFile).readAsBytes();
+      var filePath = join(epDir, page.media.originalName);
+      archive.addFile(ArchiveFile(filePath, pageBytes.length, pageBytes));
+    }
+  }
+
+  // 将归档写入ZIP文件
+  var zipFilePath = '$downloadPath/$comicDir.zip';
+  var zipFile = File(zipFilePath);
+  var output = ZipEncoder().encode(archive);
+  await zipFile.writeAsBytes(output, flush: true);
+
+  debugPrint('漫画${comicInfo.comic.title}导出为ZIP完成');
+  EasyLoading.showSuccess('漫画${comicInfo.comic.title}导出为ZIP完成');
 }
 
 Future<String> createDownloadDir() async {

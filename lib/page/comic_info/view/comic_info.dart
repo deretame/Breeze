@@ -17,6 +17,11 @@ import '../comic_info.dart';
 import '../json/comic_info/comic_info.dart';
 import '../json/eps/eps.dart';
 
+enum ExportType {
+  zip, // 导出为压缩包
+  folder, // 导出为文件夹
+}
+
 @RoutePage()
 class ComicInfoPage extends StatelessWidget {
   final String comicId;
@@ -130,8 +135,18 @@ class _ComicInfoState extends State<_ComicInfo>
                     EasyLoading.showError("请授予存储权限！");
                     return;
                   }
-                  EasyLoading.show(status: '正在导出漫画...');
-                  exportComic(comicAllInfo!);
+                  if (mounted) {
+                    var choice = await showExportTypeDialog();
+                    if (choice == ExportType.zip) {
+                      EasyLoading.show(status: '正在导出漫画...');
+                      exportComicAsZip(comicAllInfo!);
+                    } else if (choice == ExportType.folder) {
+                      EasyLoading.show(status: '正在导出漫画...');
+                      exportComicAsFolder(comicAllInfo!);
+                    } else {
+                      return;
+                    }
+                  }
                 } catch (e) {
                   EasyLoading.showError("导出失败，请重试。\n$e");
                 }
@@ -317,5 +332,38 @@ class _ComicInfoState extends State<_ComicInfo>
         });
       }
     });
+  }
+
+  // 弹出选择对话框，让用户选择导出为压缩包还是文件夹
+  Future<ExportType?> showExportTypeDialog() async {
+    return await showDialog<ExportType>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('选择导出方式'),
+          content: Text('请选择将漫画导出为压缩包还是文件夹：'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(ExportType.zip); // 返回压缩包选项
+              },
+              child: Text('压缩包'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(ExportType.folder); // 返回文件夹选项
+              },
+              child: Text('文件夹'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(null);
+              },
+              child: Text('取消'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

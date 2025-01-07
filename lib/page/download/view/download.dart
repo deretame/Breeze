@@ -249,6 +249,7 @@ class _DownloadPageState extends State<DownloadPage> {
               comicId,
               ep.order,
               page,
+              // 锁定下载图片的质量为原图
               imageQuality: "original",
             );
             var temp = comic_page_json.Page.fromJson(result);

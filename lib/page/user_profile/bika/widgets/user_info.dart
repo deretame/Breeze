@@ -20,40 +20,132 @@ class BikaUserInfoWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final router = AutoRouter.of(context);
     return BlocProvider(
       create: (_) => UserProfileBloc()..add(UserProfileEvent()),
-      child: BlocBuilder<UserProfileBloc, UserProfileState>(
-        builder: (context, state) {
-          switch (state.status) {
-            case UserProfileStatus.initial:
-              return Center(
-                child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: CircularProgressIndicator()),
-              );
-            case UserProfileStatus.failure:
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '${state.result.toString()}\n加载失败',
-                      style: TextStyle(fontSize: 20),
+      child: Column(
+        children: [
+          BlocBuilder<UserProfileBloc, UserProfileState>(
+            builder: (context, state) {
+              switch (state.status) {
+                case UserProfileStatus.initial:
+                  return Center(
+                    child: Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: CircularProgressIndicator()),
+                  );
+                case UserProfileStatus.failure:
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '${state.result.toString()}\n加载失败',
+                          style: TextStyle(fontSize: 20),
+                        ),
+                        SizedBox(height: 10), // 添加间距
+                        ElevatedButton(
+                          onPressed: () {
+                            context
+                                .read<UserProfileBloc>()
+                                .add(UserProfileEvent());
+                          },
+                          child: Text('点击重试'),
+                        ),
+                      ],
                     ),
-                    SizedBox(height: 10), // 添加间距
-                    ElevatedButton(
-                      onPressed: () {
-                        context.read<UserProfileBloc>().add(UserProfileEvent());
+                  );
+                case UserProfileStatus.success:
+                  return Center(child: _BikaWidget(profile: state.profile!));
+              }
+            },
+          ),
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                Column(
+                  children: <Widget>[
+                    InkWell(
+                      onTap: () {
+                        router.push(FavoriteRoute());
                       },
-                      child: Text('点击重试'),
+                      child: const Icon(
+                        Icons.star,
+                        size: 24.0,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '收藏',
                     ),
                   ],
                 ),
-              );
-            case UserProfileStatus.success:
-              return Center(child: _BikaWidget(profile: state.profile!));
-          }
-        },
+                Column(
+                  children: <Widget>[
+                    InkWell(
+                      onTap: () {
+                        router.push(
+                          HistoryRoute(
+                            searchEnterConst: SearchEnterConst(sort: "dd"),
+                          ),
+                        );
+                      },
+                      child: const Icon(
+                        Icons.history,
+                        size: 24.0,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '历史',
+                    ),
+                  ],
+                ),
+                Column(
+                  children: <Widget>[
+                    InkWell(
+                      onTap: () {
+                        router.push(
+                          DownloadListRoute(
+                            searchEnterConst:
+                                download_list.SearchEnterConst(sort: "dd"),
+                          ),
+                        );
+                      },
+                      child: const Icon(
+                        Icons.cloud_download_rounded,
+                        size: 24.0,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '下载',
+                    ),
+                  ],
+                ),
+                Column(
+                  children: <Widget>[
+                    InkWell(
+                      onTap: () {
+                        nothingDialog(context);
+                      },
+                      child: const Icon(
+                        Icons.comment,
+                        size: 24.0,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '评论',
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -66,8 +158,6 @@ class _BikaWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final router = AutoRouter.of(context);
-
     return RefreshIndicator(
       onRefresh: () async {
         // 发送事件以重新加载用户资料
@@ -113,89 +203,6 @@ class _BikaWidget extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  Column(
-                    children: <Widget>[
-                      InkWell(
-                        onTap: () {
-                          router.push(FavoriteRoute());
-                        },
-                        child: const Icon(
-                          Icons.star,
-                          size: 24.0,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '收藏',
-                      ),
-                    ],
-                  ),
-                  Column(
-                    children: <Widget>[
-                      InkWell(
-                        onTap: () {
-                          router.push(
-                            HistoryRoute(
-                              searchEnterConst: SearchEnterConst(sort: "dd"),
-                            ),
-                          );
-                        },
-                        child: const Icon(
-                          Icons.history,
-                          size: 24.0,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '历史',
-                      ),
-                    ],
-                  ),
-                  Column(
-                    children: <Widget>[
-                      InkWell(
-                        onTap: () {
-                          router.push(
-                            DownloadListRoute(
-                              searchEnterConst:
-                                  download_list.SearchEnterConst(sort: "dd"),
-                            ),
-                          );
-                        },
-                        child: const Icon(
-                          Icons.cloud_download_rounded,
-                          size: 24.0,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '下载',
-                      ),
-                    ],
-                  ),
-                  Column(
-                    children: <Widget>[
-                      InkWell(
-                        onTap: () {
-                          nothingDialog(context);
-                        },
-                        child: const Icon(
-                          Icons.comment,
-                          size: 24.0,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '评论',
-                      ),
-                    ],
-                  ),
-                ],
               ),
             ],
           ),

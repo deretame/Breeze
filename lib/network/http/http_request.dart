@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:zephyr/main.dart';
 
@@ -208,9 +207,8 @@ Future<Map<String, dynamic>> getSearchKeywords() async {
 }
 
 Future<Map<String, dynamic>> getComicInfo(
-  String comicId, {
-  Dio? dio,
-}) async {
+  String comicId,
+) async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comics/$comicId',
     'GET',
@@ -348,9 +346,8 @@ Future<Map<String, dynamic>> writeCommentChildren(
 
 Future<Map<String, dynamic>> getEps(
   String comicId,
-  int pageCount, {
-  Dio? dio,
-}) async {
+  int pageCount,
+) async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comics/$comicId/eps?page=$pageCount',
     'GET',
@@ -388,7 +385,6 @@ Future<Map<String, dynamic>> getPages(
   String comicId,
   int epId,
   int pageCount, {
-  Dio? dio,
   String imageQuality = "",
 }) async {
   final Map<String, dynamic> data = await request(

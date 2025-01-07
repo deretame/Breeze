@@ -15,14 +15,13 @@ import 'package:zephyr/util/router/router.dart';
 import 'config/global.dart';
 import 'config/global_setting.dart';
 import 'config/theme_mode_adapter.dart';
-import 'mobx/fullscreen_store.dart';
 import 'network/dio_cache.dart';
 import 'object_box/object_box.dart';
 
 final globalSetting = GlobalSetting();
 final bikaSetting = BikaSetting();
-final fullScreenStore = FullScreenStore();
 late final ObjectBox objectbox;
+late Color primaryColor;
 
 // 定义全局Dio实例
 final dio = Dio();
@@ -148,6 +147,7 @@ class _MyAppState extends State<MyApp> {
         final lightColorScheme = ColorScheme.fromSeed(
           seedColor: primary,
         );
+        primaryColor = lightColorScheme.primaryContainer;
         final darkColorScheme = ColorScheme.fromSeed(
           seedColor: primary,
           brightness: Brightness.dark,

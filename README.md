@@ -20,6 +20,10 @@
 - [ ] 聊天室（不准备支持）
 - [x] 缓存 / 自动清理
 
+# api
+- [哔咔](https://github.com/deretame/Breeze/blob/main/api/bika.md) 
+> **仅做参考，具体api请查看`lib\network\http`目录下的具体文件。**
+
 # **开源项目免责声明**
 
 1. **项目性质与声明**  

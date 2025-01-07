@@ -14,7 +14,7 @@ Future<String> compressImage(File originalFile) async {
   int originalBase64Length = base64String.length;
 
   // 计算压缩比
-  double compressionRatio = 1400000 / originalBase64Length;
+  double compressionRatio = 680000 / originalBase64Length;
   int quality = (compressionRatio * 100).toInt();
   quality = quality.clamp(1, 100); // 确保 quality 在 1 到 100 之间
 
@@ -23,7 +23,7 @@ Future<String> compressImage(File originalFile) async {
 
   // 再次检查压缩后的 base64 长度
   String compressedBase64String = base64Encode(compressedBytes);
-  if (compressedBase64String.length > 1400000) {
+  if (compressedBase64String.length > 680000) {
     // 如果仍然超过长度限制，可以进一步降低 quality
     quality = (quality * 0.9).toInt(); // 降低 quality 10%
     compressedBytes = encodeJpg(decodedImage, quality: quality);

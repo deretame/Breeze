@@ -80,21 +80,17 @@ class _SearchPageState extends State<_SearchPage>
               ),
             ],
           ),
-          Positioned(
-            bottom: 80, // 调整这个值以设置 FloatingActionButton 距离底部的距离
-            right: 16,
-            child: FloatingActionButton(
-              child: const Icon(Icons.search),
-              onPressed: () {
-                AutoRouter.of(context).push(
-                  SearchResultRoute(
-                    searchEnterConst: SearchEnterConst(),
-                  ),
-                );
-              },
-            ),
-          ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.search),
+        onPressed: () {
+          AutoRouter.of(context).push(
+            SearchResultRoute(
+              searchEnterConst: SearchEnterConst(),
+            ),
+          );
+        },
       ),
     );
   }

@@ -211,7 +211,7 @@ class _CommentWidgetState extends State<_CommentWidget> {
         if (widget.status == CommentsStatus.getMoreFailure) ...[
           SliverToBoxAdapter(
             child: ErrorView(
-              errorMessage: '加载更多失败，请重试。',
+              errorMessage: '点击重试',
               onRetry: () {
                 context.read<CommentsBloc>().add(
                       CommentsEvent(

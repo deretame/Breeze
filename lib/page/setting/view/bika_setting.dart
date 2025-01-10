@@ -43,6 +43,7 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
       body: Observer(builder: (context) {
         return Column(
           children: [
+            SizedBox(height: 10),
             changeProfilePicture(context),
             SizedBox(height: 15),
             changeBriefIntroduction(context),

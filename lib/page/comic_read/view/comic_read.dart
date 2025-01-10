@@ -895,8 +895,8 @@ class _ImageDisplay extends StatefulWidget {
 }
 
 class _ImageDisplayState extends State<_ImageDisplay> {
-  double? imageWidth;
-  double? imageHeight;
+  double imageWidth = screenWidth;
+  double imageHeight = screenWidth;
 
   bool _isMounted = false; // 标志，指示 Widget 是否仍挂载
 
@@ -940,15 +940,15 @@ class _ImageDisplayState extends State<_ImageDisplay> {
 
     return SizedBox(
       width: screenWidth,
-      height: imageHeight != null
-          ? (imageHeight! * (screenWidth / imageWidth!))
-          : null, // 动态计算高度
-      child: imageWidth != null && imageHeight != null
+      height: imageHeight != screenWidth
+          ? (imageHeight * (screenWidth / imageWidth))
+          : screenWidth, // 动态计算高度
+      child: imageWidth != screenWidth && imageHeight != screenWidth
           ? Image.file(
               File(widget.imagePath),
               fit: BoxFit.cover, // 使图片填充整个屏幕
             )
-          : Container(color: Colors.grey[300]), // 占位符
+          : Container(color: Color(0xFF2D2D2D)), // 占位符
     );
   }
 }

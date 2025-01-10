@@ -82,12 +82,16 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
                 children: <Widget>[
                   GestureDetector(
                     onTap: () {
-                      AutoRouter.of(context).push(
-                        CommentsRoute(
-                          comicId: comicInfo.id,
-                          comicTitle: comicInfo.title,
-                        ),
-                      );
+                      if (comicInfo.allowComment) {
+                        AutoRouter.of(context).push(
+                          CommentsRoute(
+                            comicId: comicInfo.id,
+                            comicTitle: comicInfo.title,
+                          ),
+                        );
+                      } else {
+                        commonDialog(context, '禁止评论', '该漫画禁止评论');
+                      }
                     },
                     child: const Icon(
                       Icons.comment_sharp,
@@ -165,12 +169,12 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
 
     switch (actionType) {
       case 'like':
-        result = like(comicInfo.id);
+        result = likeComic(comicInfo.id);
         isCurrentlyActive = isLiked;
         actionVerb = '点赞';
         break;
       case 'favorite':
-        result = favourite(comicInfo.id);
+        result = favouriteComic(comicInfo.id);
         isCurrentlyActive = isCollected;
         actionVerb = '收藏';
         break;

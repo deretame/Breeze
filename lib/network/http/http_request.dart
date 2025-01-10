@@ -223,7 +223,7 @@ Future<Map<String, dynamic>> getComicInfo(
   return data;
 }
 
-Future<Map<String, dynamic>> favourite(
+Future<Map<String, dynamic>> favouriteComic(
   String comicId,
 ) async {
   final Map<String, dynamic> data = await request(
@@ -238,7 +238,7 @@ Future<Map<String, dynamic>> favourite(
   return data;
 }
 
-Future<Map<String, dynamic>> like(
+Future<Map<String, dynamic>> likeComic(
   String comicId,
 ) async {
   final Map<String, dynamic> data = await request(
@@ -278,6 +278,7 @@ Future<Map<String, dynamic>> getCommentsChildren(
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comments/$commentId/childrens?page=$pageCount',
     'GET',
+    cache: true,
   );
 
   debugPrint(limitString(data.toString(), 150));
@@ -333,6 +334,23 @@ Future<Map<String, dynamic>> writeCommentChildren(
     'https://picaapi.picacomic.com/comics/$comicId/comments',
     'POST',
     body: json.encode({'content': content}),
+  );
+
+  debugPrint(limitString(data.toString(), 150));
+
+  if (data['code'] != 200) {
+    throw data;
+  }
+
+  return data;
+}
+
+Future<Map<String, dynamic>> reportComments(
+  String commentId,
+) async {
+  final Map<String, dynamic> data = await request(
+    'https://picaapi.picacomic.com/comments/$commentId/report',
+    'POST',
   );
 
   debugPrint(limitString(data.toString(), 150));

@@ -19,6 +19,7 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: ComicInfoRoute.page),
         AutoRoute(page: DownloadRoute.page),
         AutoRoute(page: CommentsRoute.page),
+        AutoRoute(page: CommentsChildrenRoute.page),
         AutoRoute(page: ComicReadRoute.page),
         AutoRoute(page: WebViewRoute.page),
         AutoRoute(page: FavoriteRoute.page),

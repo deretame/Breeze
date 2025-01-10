@@ -22,6 +22,7 @@ final globalSetting = GlobalSetting();
 final bikaSetting = BikaSetting();
 late final ObjectBox objectbox;
 late Color primaryColor;
+late Color primaryTextStyle;
 
 // 定义全局Dio实例
 final dio = Dio();
@@ -147,7 +148,6 @@ class _MyAppState extends State<MyApp> {
         final lightColorScheme = ColorScheme.fromSeed(
           seedColor: primary,
         );
-        primaryColor = lightColorScheme.primaryContainer;
         final darkColorScheme = ColorScheme.fromSeed(
           seedColor: primary,
           brightness: Brightness.dark,
@@ -157,6 +157,15 @@ class _MyAppState extends State<MyApp> {
         globalSetting.themeMode == ThemeMode.dark
             ? darkColorScheme
             : lightColorScheme;
+
+        if (globalSetting.themeType) {
+          primaryColor = lightColorScheme.surfaceContainer;
+          primaryTextStyle = lightColorScheme.surfaceTint;
+        } else {
+          primaryColor = darkColorScheme.surfaceContainer;
+          primaryTextStyle = darkColorScheme.surfaceTint;
+        }
+
         _updateThemeSettings();
         return MaterialApp.router(
           routerConfig: appRouter.config(),

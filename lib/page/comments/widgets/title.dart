@@ -19,7 +19,7 @@ class ScrollableTitle extends StatelessWidget {
               fontSize: 20,
             ),
           ),
-          const SizedBox(width: 10),
+          // const SizedBox(width: 10),
         ],
       ),
     );

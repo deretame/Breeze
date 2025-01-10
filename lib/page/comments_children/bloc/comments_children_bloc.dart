@@ -4,7 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/network/http/http_request.dart';
 
-import '../../json/comments_children_json/comments_children_json.dart';
+import '../json/comments_children_json.dart';
 
 part 'comments_children_event.dart';
 part 'comments_children_state.dart';
@@ -33,6 +33,10 @@ class CommentsChildrenBloc
     CommentsChildrenEvent event,
     Emitter<CommentsChildrenState> emit,
   ) async {
+    if (hasReachedMax) {
+      return;
+    }
+
     if (event.status == CommentsChildrenStatus.initial) {
       comments = [];
       emit(
@@ -138,6 +142,7 @@ class CommentsChildrenBloc
       user['slogan'] ??= '';
       user['character'] ??= '';
       user['avatar'] ??= {"fileServer": "", "path": "", "originalName": ""};
+      user['avatar'] = Map<String, dynamic>.from(user['avatar']);
 
       var avatar = user['avatar'];
       avatar['originalName'] ??= '';

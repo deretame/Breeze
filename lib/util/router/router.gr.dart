@@ -19,23 +19,24 @@ import 'package:zephyr/page/comments/json/comments_json/comments_json.dart'
 import 'package:zephyr/page/comments/view/comments.dart' as _i5;
 import 'package:zephyr/page/comments_children/view/comments_children_page.dart'
     as _i4;
-import 'package:zephyr/page/download/view/download.dart' as _i7;
-import 'package:zephyr/page/download_list/download_list.dart' as _i26;
-import 'package:zephyr/page/download_list/view/download_list_page.dart' as _i6;
-import 'package:zephyr/page/favourite/view/favorite_page.dart' as _i8;
-import 'package:zephyr/page/history/history.dart' as _i27;
-import 'package:zephyr/page/history/view/history_page.dart' as _i10;
-import 'package:zephyr/page/home/view/home.dart' as _i11;
-import 'package:zephyr/page/login_page.dart' as _i12;
-import 'package:zephyr/page/main.dart' as _i13;
-import 'package:zephyr/page/ranking_list/view/ranking_list_page.dart' as _i14;
-import 'package:zephyr/page/register_page.dart' as _i15;
-import 'package:zephyr/page/search/view/search.dart' as _i16;
-import 'package:zephyr/page/search_result/search_result.dart' as _i28;
-import 'package:zephyr/page/search_result/view/search_result_page.dart' as _i17;
+import 'package:zephyr/page/download/view/download.dart' as _i6;
+import 'package:zephyr/page/home/view/home.dart' as _i8;
+import 'package:zephyr/page/login_page.dart' as _i9;
+import 'package:zephyr/page/main.dart' as _i10;
+import 'package:zephyr/page/ranking_list/view/ranking_list_page.dart' as _i11;
+import 'package:zephyr/page/register_page.dart' as _i12;
+import 'package:zephyr/page/search/view/search.dart' as _i13;
+import 'package:zephyr/page/search_result/search_result.dart' as _i26;
+import 'package:zephyr/page/search_result/view/search_result_page.dart' as _i14;
 import 'package:zephyr/page/setting/view/bika_setting.dart' as _i1;
-import 'package:zephyr/page/setting/view/global_setting.dart' as _i9;
-import 'package:zephyr/page/setting/view/setting.dart' as _i18;
+import 'package:zephyr/page/setting/view/global_setting.dart' as _i7;
+import 'package:zephyr/page/setting/view/setting.dart' as _i15;
+import 'package:zephyr/page/user_download/user_download.dart' as _i27;
+import 'package:zephyr/page/user_download/view/user_download_page.dart' as _i16;
+import 'package:zephyr/page/user_favourite/view/user_favourite_page.dart'
+    as _i17;
+import 'package:zephyr/page/user_history/user_history.dart' as _i28;
+import 'package:zephyr/page/user_history/view/user_history_page.dart' as _i18;
 import 'package:zephyr/page/webview_page.dart' as _i19;
 import 'package:zephyr/widgets/comic_entry/comic_entry.dart' as _i22;
 
@@ -280,53 +281,7 @@ class CommentsRouteArgs {
 }
 
 /// generated route for
-/// [_i6.DownloadListPage]
-class DownloadListRoute extends _i20.PageRouteInfo<DownloadListRouteArgs> {
-  DownloadListRoute({
-    _i21.Key? key,
-    required _i26.SearchEnterConst searchEnterConst,
-    List<_i20.PageRouteInfo>? children,
-  }) : super(
-          DownloadListRoute.name,
-          args: DownloadListRouteArgs(
-            key: key,
-            searchEnterConst: searchEnterConst,
-          ),
-          initialChildren: children,
-        );
-
-  static const String name = 'DownloadListRoute';
-
-  static _i20.PageInfo page = _i20.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<DownloadListRouteArgs>();
-      return _i6.DownloadListPage(
-        key: args.key,
-        searchEnterConst: args.searchEnterConst,
-      );
-    },
-  );
-}
-
-class DownloadListRouteArgs {
-  const DownloadListRouteArgs({
-    this.key,
-    required this.searchEnterConst,
-  });
-
-  final _i21.Key? key;
-
-  final _i26.SearchEnterConst searchEnterConst;
-
-  @override
-  String toString() {
-    return 'DownloadListRouteArgs{key: $key, searchEnterConst: $searchEnterConst}';
-  }
-}
-
-/// generated route for
-/// [_i7.DownloadPage]
+/// [_i6.DownloadPage]
 class DownloadRoute extends _i20.PageRouteInfo<DownloadRouteArgs> {
   DownloadRoute({
     _i21.Key? key,
@@ -349,7 +304,7 @@ class DownloadRoute extends _i20.PageRouteInfo<DownloadRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<DownloadRouteArgs>();
-      return _i7.DownloadPage(
+      return _i6.DownloadPage(
         key: args.key,
         comicInfo: args.comicInfo,
         epsInfo: args.epsInfo,
@@ -378,26 +333,7 @@ class DownloadRouteArgs {
 }
 
 /// generated route for
-/// [_i8.FavoritePage]
-class FavoriteRoute extends _i20.PageRouteInfo<void> {
-  const FavoriteRoute({List<_i20.PageRouteInfo>? children})
-      : super(
-          FavoriteRoute.name,
-          initialChildren: children,
-        );
-
-  static const String name = 'FavoriteRoute';
-
-  static _i20.PageInfo page = _i20.PageInfo(
-    name,
-    builder: (data) {
-      return const _i8.FavoritePage();
-    },
-  );
-}
-
-/// generated route for
-/// [_i9.GlobalSettingPage]
+/// [_i7.GlobalSettingPage]
 class GlobalSettingRoute extends _i20.PageRouteInfo<void> {
   const GlobalSettingRoute({List<_i20.PageRouteInfo>? children})
       : super(
@@ -410,59 +346,13 @@ class GlobalSettingRoute extends _i20.PageRouteInfo<void> {
   static _i20.PageInfo page = _i20.PageInfo(
     name,
     builder: (data) {
-      return const _i9.GlobalSettingPage();
+      return const _i7.GlobalSettingPage();
     },
   );
 }
 
 /// generated route for
-/// [_i10.HistoryPage]
-class HistoryRoute extends _i20.PageRouteInfo<HistoryRouteArgs> {
-  HistoryRoute({
-    _i21.Key? key,
-    required _i27.SearchEnterConst searchEnterConst,
-    List<_i20.PageRouteInfo>? children,
-  }) : super(
-          HistoryRoute.name,
-          args: HistoryRouteArgs(
-            key: key,
-            searchEnterConst: searchEnterConst,
-          ),
-          initialChildren: children,
-        );
-
-  static const String name = 'HistoryRoute';
-
-  static _i20.PageInfo page = _i20.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<HistoryRouteArgs>();
-      return _i10.HistoryPage(
-        key: args.key,
-        searchEnterConst: args.searchEnterConst,
-      );
-    },
-  );
-}
-
-class HistoryRouteArgs {
-  const HistoryRouteArgs({
-    this.key,
-    required this.searchEnterConst,
-  });
-
-  final _i21.Key? key;
-
-  final _i27.SearchEnterConst searchEnterConst;
-
-  @override
-  String toString() {
-    return 'HistoryRouteArgs{key: $key, searchEnterConst: $searchEnterConst}';
-  }
-}
-
-/// generated route for
-/// [_i11.HomePage]
+/// [_i8.HomePage]
 class HomeRoute extends _i20.PageRouteInfo<void> {
   const HomeRoute({List<_i20.PageRouteInfo>? children})
       : super(
@@ -475,13 +365,13 @@ class HomeRoute extends _i20.PageRouteInfo<void> {
   static _i20.PageInfo page = _i20.PageInfo(
     name,
     builder: (data) {
-      return const _i11.HomePage();
+      return const _i8.HomePage();
     },
   );
 }
 
 /// generated route for
-/// [_i12.LoginPage]
+/// [_i9.LoginPage]
 class LoginRoute extends _i20.PageRouteInfo<void> {
   const LoginRoute({List<_i20.PageRouteInfo>? children})
       : super(
@@ -494,13 +384,13 @@ class LoginRoute extends _i20.PageRouteInfo<void> {
   static _i20.PageInfo page = _i20.PageInfo(
     name,
     builder: (data) {
-      return const _i12.LoginPage();
+      return const _i9.LoginPage();
     },
   );
 }
 
 /// generated route for
-/// [_i13.MainPage]
+/// [_i10.MainPage]
 class MainRoute extends _i20.PageRouteInfo<void> {
   const MainRoute({List<_i20.PageRouteInfo>? children})
       : super(
@@ -513,13 +403,13 @@ class MainRoute extends _i20.PageRouteInfo<void> {
   static _i20.PageInfo page = _i20.PageInfo(
     name,
     builder: (data) {
-      return const _i13.MainPage();
+      return const _i10.MainPage();
     },
   );
 }
 
 /// generated route for
-/// [_i14.RankingListPage]
+/// [_i11.RankingListPage]
 class RankingListRoute extends _i20.PageRouteInfo<void> {
   const RankingListRoute({List<_i20.PageRouteInfo>? children})
       : super(
@@ -532,13 +422,13 @@ class RankingListRoute extends _i20.PageRouteInfo<void> {
   static _i20.PageInfo page = _i20.PageInfo(
     name,
     builder: (data) {
-      return const _i14.RankingListPage();
+      return const _i11.RankingListPage();
     },
   );
 }
 
 /// generated route for
-/// [_i15.RegisterPage]
+/// [_i12.RegisterPage]
 class RegisterRoute extends _i20.PageRouteInfo<void> {
   const RegisterRoute({List<_i20.PageRouteInfo>? children})
       : super(
@@ -551,13 +441,13 @@ class RegisterRoute extends _i20.PageRouteInfo<void> {
   static _i20.PageInfo page = _i20.PageInfo(
     name,
     builder: (data) {
-      return const _i15.RegisterPage();
+      return const _i12.RegisterPage();
     },
   );
 }
 
 /// generated route for
-/// [_i16.SearchPage]
+/// [_i13.SearchPage]
 class SearchRoute extends _i20.PageRouteInfo<void> {
   const SearchRoute({List<_i20.PageRouteInfo>? children})
       : super(
@@ -570,17 +460,17 @@ class SearchRoute extends _i20.PageRouteInfo<void> {
   static _i20.PageInfo page = _i20.PageInfo(
     name,
     builder: (data) {
-      return const _i16.SearchPage();
+      return const _i13.SearchPage();
     },
   );
 }
 
 /// generated route for
-/// [_i17.SearchResultPage]
+/// [_i14.SearchResultPage]
 class SearchResultRoute extends _i20.PageRouteInfo<SearchResultRouteArgs> {
   SearchResultRoute({
     _i21.Key? key,
-    required _i28.SearchEnterConst searchEnterConst,
+    required _i26.SearchEnterConst searchEnterConst,
     List<_i20.PageRouteInfo>? children,
   }) : super(
           SearchResultRoute.name,
@@ -597,7 +487,7 @@ class SearchResultRoute extends _i20.PageRouteInfo<SearchResultRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<SearchResultRouteArgs>();
-      return _i17.SearchResultPage(
+      return _i14.SearchResultPage(
         key: args.key,
         searchEnterConst: args.searchEnterConst,
       );
@@ -613,7 +503,7 @@ class SearchResultRouteArgs {
 
   final _i21.Key? key;
 
-  final _i28.SearchEnterConst searchEnterConst;
+  final _i26.SearchEnterConst searchEnterConst;
 
   @override
   String toString() {
@@ -622,7 +512,7 @@ class SearchResultRouteArgs {
 }
 
 /// generated route for
-/// [_i18.SettingsPage]
+/// [_i15.SettingsPage]
 class SettingsRoute extends _i20.PageRouteInfo<void> {
   const SettingsRoute({List<_i20.PageRouteInfo>? children})
       : super(
@@ -635,9 +525,120 @@ class SettingsRoute extends _i20.PageRouteInfo<void> {
   static _i20.PageInfo page = _i20.PageInfo(
     name,
     builder: (data) {
-      return const _i18.SettingsPage();
+      return const _i15.SettingsPage();
     },
   );
+}
+
+/// generated route for
+/// [_i16.UserDownloadPage]
+class UserDownloadRoute extends _i20.PageRouteInfo<UserDownloadRouteArgs> {
+  UserDownloadRoute({
+    _i21.Key? key,
+    required _i27.SearchEnterConst searchEnterConst,
+    List<_i20.PageRouteInfo>? children,
+  }) : super(
+          UserDownloadRoute.name,
+          args: UserDownloadRouteArgs(
+            key: key,
+            searchEnterConst: searchEnterConst,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'UserDownloadRoute';
+
+  static _i20.PageInfo page = _i20.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<UserDownloadRouteArgs>();
+      return _i16.UserDownloadPage(
+        key: args.key,
+        searchEnterConst: args.searchEnterConst,
+      );
+    },
+  );
+}
+
+class UserDownloadRouteArgs {
+  const UserDownloadRouteArgs({
+    this.key,
+    required this.searchEnterConst,
+  });
+
+  final _i21.Key? key;
+
+  final _i27.SearchEnterConst searchEnterConst;
+
+  @override
+  String toString() {
+    return 'UserDownloadRouteArgs{key: $key, searchEnterConst: $searchEnterConst}';
+  }
+}
+
+/// generated route for
+/// [_i17.UserFavoritePage]
+class UserFavoriteRoute extends _i20.PageRouteInfo<void> {
+  const UserFavoriteRoute({List<_i20.PageRouteInfo>? children})
+      : super(
+          UserFavoriteRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'UserFavoriteRoute';
+
+  static _i20.PageInfo page = _i20.PageInfo(
+    name,
+    builder: (data) {
+      return const _i17.UserFavoritePage();
+    },
+  );
+}
+
+/// generated route for
+/// [_i18.UserHistoryPage]
+class UserHistoryRoute extends _i20.PageRouteInfo<UserHistoryRouteArgs> {
+  UserHistoryRoute({
+    _i21.Key? key,
+    required _i28.SearchEnterConst searchEnterConst,
+    List<_i20.PageRouteInfo>? children,
+  }) : super(
+          UserHistoryRoute.name,
+          args: UserHistoryRouteArgs(
+            key: key,
+            searchEnterConst: searchEnterConst,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'UserHistoryRoute';
+
+  static _i20.PageInfo page = _i20.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<UserHistoryRouteArgs>();
+      return _i18.UserHistoryPage(
+        key: args.key,
+        searchEnterConst: args.searchEnterConst,
+      );
+    },
+  );
+}
+
+class UserHistoryRouteArgs {
+  const UserHistoryRouteArgs({
+    this.key,
+    required this.searchEnterConst,
+  });
+
+  final _i21.Key? key;
+
+  final _i28.SearchEnterConst searchEnterConst;
+
+  @override
+  String toString() {
+    return 'UserHistoryRouteArgs{key: $key, searchEnterConst: $searchEnterConst}';
+  }
 }
 
 /// generated route for

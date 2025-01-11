@@ -10,8 +10,8 @@ import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../config/global.dart';
 import '../../main.dart';
-import '../../page/download_list/models/search_enter.dart' as download;
-import '../../page/history/models/search_enter.dart' as history;
+import '../../page/user_download/models/search_enter.dart' as download;
+import '../../page/user_history/models/search_enter.dart' as history;
 import '../full_screen_image_view.dart';
 import '../picture_bloc/bloc/picture_bloc.dart';
 import '../picture_bloc/models/picture_info.dart';

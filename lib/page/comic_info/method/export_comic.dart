@@ -12,7 +12,9 @@ import '../../download/json/comic_all_info_json/comic_all_info_json.dart';
 
 Future<void> exportComicAsFolder(ComicAllInfoJson comicInfo) async {
   var downloadPath = await createDownloadDir();
-  var comicDir = '$downloadPath/${comicInfo.comic.title}';
+  var comicDir =
+      '$downloadPath/${comicInfo.comic.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}';
+
   if (await Directory(comicDir).exists()) {
     await Directory(comicDir).create(recursive: true);
   }
@@ -44,9 +46,11 @@ Future<void> exportComicAsFolder(ComicAllInfoJson comicInfo) async {
 
   final List<Future<void>> downloadTasks = [];
   for (var ep in comicInfo.eps.docs) {
-    var epDir = '$comicDir/eps/${ep.title}';
+    var epDir =
+        '$comicDir/eps/${ep.order}.${ep.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}';
     for (var page in ep.pages.docs) {
-      var pageFile = '$epDir/${page.media.originalName}';
+      var pageFile =
+          '$epDir/${page.media.originalName.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}';
       downloadTask() async {
         try {
           var pageDownloadFile = await downloadPicture(
@@ -72,13 +76,16 @@ Future<void> exportComicAsFolder(ComicAllInfoJson comicInfo) async {
 
   await Future.wait(downloadTasks);
 
-  debugPrint('漫画${comicInfo.comic.title}导出为文件夹完成');
-  EasyLoading.showSuccess('漫画${comicInfo.comic.title}导出为文件夹完成');
+  debugPrint(
+      '漫画${comicInfo.comic.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}导出为文件夹完成');
+  EasyLoading.showSuccess(
+      '漫画${comicInfo.comic.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}导出为文件夹完成');
 }
 
 Future<void> exportComicAsZip(ComicAllInfoJson comicInfo) async {
   var downloadPath = await createDownloadDir();
-  var comicDir = comicInfo.comic.title;
+  var comicDir =
+      comicInfo.comic.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_');
   var archive = Archive();
 
   // 保存漫画下载信息
@@ -102,7 +109,8 @@ Future<void> exportComicAsZip(ComicAllInfoJson comicInfo) async {
   }
 
   for (var ep in comicInfo.eps.docs) {
-    var epDir = 'eps/${ep.title}';
+    var epDir =
+        'eps/${ep.order}.${ep.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}';
     for (var page in ep.pages.docs) {
       var pageDownloadFile = await downloadPicture(
         from: 'bika',
@@ -113,7 +121,8 @@ Future<void> exportComicAsZip(ComicAllInfoJson comicInfo) async {
         chapterId: ep.id,
       );
       var pageBytes = await File(pageDownloadFile).readAsBytes();
-      var filePath = join(epDir, page.media.originalName);
+      var filePath = join(epDir,
+          page.media.originalName.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_'));
       archive.addFile(ArchiveFile(filePath, pageBytes.length, pageBytes));
     }
   }
@@ -124,8 +133,10 @@ Future<void> exportComicAsZip(ComicAllInfoJson comicInfo) async {
   var output = ZipEncoder().encode(archive);
   await zipFile.writeAsBytes(output, flush: true);
 
-  debugPrint('漫画${comicInfo.comic.title}导出为ZIP完成');
-  EasyLoading.showSuccess('漫画${comicInfo.comic.title}导出为ZIP完成');
+  debugPrint(
+      '漫画${comicInfo.comic.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}导出为ZIP完成');
+  EasyLoading.showSuccess(
+      '漫画${comicInfo.comic.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}导出为ZIP完成');
 }
 
 Future<String> createDownloadDir() async {

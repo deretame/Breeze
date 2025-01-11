@@ -78,17 +78,20 @@ class _CommentsChildrenWidgetState extends State<CommentsChildrenWidget>
                           mainAxisAlignment: MainAxisAlignment.start, // 横向居左
                           crossAxisAlignment: CrossAxisAlignment.start, // 顶部对齐
                           children: [
-                            _ImagerWidget(
-                              pictureInfo: PictureInfo(
-                                url: commentInfo.user.avatar!.fileServer,
-                                path: commentInfo.user.avatar!.path,
-                                cartoonId: commentInfo.user.id,
-                                pictureType: "creator",
-                                chapterId: commentInfo.id,
-                                from: "bika",
-                              ),
-                              commentId: commentInfo.id,
-                            ),
+                            Builder(builder: (context) {
+                              return ImagerWidget(
+                                key: ValueKey(commentInfo.id),
+                                pictureInfo: PictureInfo(
+                                  url: commentInfo.user.avatar!.fileServer,
+                                  path: commentInfo.user.avatar!.path,
+                                  cartoonId: commentInfo.user.id,
+                                  pictureType: "creator",
+                                  chapterId: commentInfo.id,
+                                  from: "bika",
+                                ),
+                                commentId: commentInfo.id,
+                              );
+                            }),
                             SizedBox(width: 10),
                             Flexible(
                               child: Column(
@@ -223,11 +226,12 @@ class _CommentsChildrenWidgetState extends State<CommentsChildrenWidget>
   }
 }
 
-class _ImagerWidget extends StatelessWidget {
+class ImagerWidget extends StatelessWidget {
   final PictureInfo pictureInfo;
   final String commentId;
 
-  const _ImagerWidget({
+  const ImagerWidget({
+    super.key,
     required this.pictureInfo,
     required this.commentId,
   });

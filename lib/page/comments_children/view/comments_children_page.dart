@@ -1,10 +1,12 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:zephyr/config/global.dart';
 import 'package:zephyr/page/comments_children/comments_children.dart';
 
 import '../../../main.dart';
+import '../../../network/http/http_request.dart';
 import '../../../widgets/error_view.dart';
 import '../../comments/json/comments_json/comments_json.dart' as comments_json;
 import '../json/comments_children_json.dart';
@@ -53,21 +55,83 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
         title: Text('评论详情'),
       ),
       body: BlocBuilder<CommentsChildrenBloc, CommentsChildrenState>(
-        builder: (context, state) {
-          switch (state.status) {
-            case CommentsChildrenStatus.initial:
-            case CommentsChildrenStatus.failure:
-            case CommentsChildrenStatus.success:
-            case CommentsChildrenStatus.getMoreFailure:
-            case CommentsChildrenStatus.loadingMore:
-              return _CommentWidget(
-                fatherDoc: fatherDoc,
-                state: state,
-              );
-          }
-        },
-      ),
+          builder: (context, state) {
+        switch (state.status) {
+          case CommentsChildrenStatus.initial:
+          case CommentsChildrenStatus.failure:
+          case CommentsChildrenStatus.success:
+          case CommentsChildrenStatus.getMoreFailure:
+          case CommentsChildrenStatus.loadingMore:
+          case CommentsChildrenStatus.comment:
+            return _CommentWidget(
+              fatherDoc: fatherDoc,
+              state: state,
+            );
+        }
+      }),
+      floatingActionButton: FloatingActionButton(
+          child: const Icon(Icons.comment),
+          onPressed: () async {
+            var text = await _showInputDialog(context, '发表评论', '输入评论内容');
+            if (text.isEmpty) {
+              return;
+            }
+            _writeCommentChildren(fatherDoc.id, text);
+          }),
     );
+  }
+
+  Future<void> _writeCommentChildren(String comicId, String text) async {
+    try {
+      await writeCommentChildren(comicId, text);
+
+      // 检查 State 是否仍然挂载
+      if (!mounted) return;
+
+      context.read<CommentsChildrenBloc>().add(
+          CommentsChildrenEvent(comicId, CommentsChildrenStatus.comment, 1));
+    } catch (e) {
+      debugPrint(e.toString());
+      EasyLoading.showError('评论失败，请稍后再试。\n${e.toString()}');
+    }
+  }
+
+  // 弹出输入框对话框
+  Future<String> _showInputDialog(
+    BuildContext context,
+    String tile,
+    String defaultText,
+  ) async {
+    final TextEditingController controller = TextEditingController();
+
+    String? result = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(tile),
+          content: TextField(
+            controller: controller,
+            decoration: InputDecoration(hintText: defaultText),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('取消'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('确认'),
+              onPressed: () {
+                Navigator.of(context).pop(controller.text);
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    return result ?? "";
   }
 }
 
@@ -186,18 +250,17 @@ class _CommentWidgetState extends State<_CommentWidget> {
 
         if (index == commentsDoc.length + 1 &&
             state.status == CommentsChildrenStatus.getMoreFailure) {
-          return ErrorView(
-            errorMessage: '点击重试',
-            onRetry: () {
-              context.read<CommentsChildrenBloc>().add(
-                    CommentsChildrenEvent(
-                      fatherDoc.id,
-                      CommentsChildrenStatus.loadingMore,
-                      commentIndex,
-                    ),
-                  );
+          return Center(
+              child: ElevatedButton(
+            onPressed: () {
+              context.read<CommentsChildrenBloc>().add(CommentsChildrenEvent(
+                    fatherDoc.id,
+                    CommentsChildrenStatus.loadingMore,
+                    commentIndex,
+                  ));
             },
-          );
+            child: const Text('重新加载'),
+          ));
         }
         // 计算当前评论的索引
         int currentIndex = index - 1;
@@ -237,19 +300,12 @@ class _CommentWidgetState extends State<_CommentWidget> {
   }
 
   List<Doc> removeDuplicatesDoc(List<Doc> commentsDoc) {
-    // 用于存储已见过的 id
-    Set<String> seenIds = {};
+    List<Doc> uniqueDocs = commentsDoc.toSet().toList();
 
-    // 使用 .where() 方法进行过滤
-    return commentsDoc.where((comment) {
-      // 检查当前 comment 的 id 是否已经在 seenIds 中
-      if (seenIds.contains(comment.id)) {
-        return false; // 已存在，过滤掉
-      } else {
-        seenIds.add(comment.id); // 记录新的 id
-        return true; // 保留这个 comment
-      }
-    }).toList(); // 转换为 List<Doc>
+    // 按照 _id 排序
+    uniqueDocs.sort((a, b) => b.id.compareTo(a.id));
+
+    return uniqueDocs;
   }
 
   Widget _divider() {

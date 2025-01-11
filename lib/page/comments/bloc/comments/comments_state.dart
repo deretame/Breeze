@@ -1,6 +1,13 @@
 part of 'comments_bloc.dart';
 
-enum CommentsStatus { initial, success, failure, loadingMore, getMoreFailure }
+enum CommentsStatus {
+  initial,
+  success,
+  failure,
+  loadingMore,
+  getMoreFailure,
+  comment
+}
 
 final class CommentsState extends Equatable {
   const CommentsState({

@@ -110,15 +110,13 @@ class _FatherCommentsWidgetState extends State<FatherCommentsWidget>
                   Center(
                     child: Row(
                       children: [
-                        if (commentInfo.isTop) ...[
-                          Text(
-                            "TOP",
-                            style: TextStyle(
-                              fontFamily: "LeckerliOne-Regular",
-                              // fontSize: 14,
-                            ),
+                        Text(
+                          "TOP",
+                          style: TextStyle(
+                            fontFamily: "LeckerliOne-Regular",
+                            // fontSize: 14,
                           ),
-                        ],
+                        ),
                         Text(" / "),
                         Text(timeDecode(commentInfo.createdAt)),
                         Spacer(),

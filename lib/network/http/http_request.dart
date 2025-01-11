@@ -279,7 +279,6 @@ Future<Map<String, dynamic>> getCommentsChildren(
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comments/$commentId/childrens?page=$pageCount',
     'GET',
-    // cache: true, // 添加缓存就会导致在有缓存的情况下无法加载第二次评论 ，很奇葩
   );
 
   debugPrint(limitString(data.toString(), 150));
@@ -313,7 +312,7 @@ Future<Map<String, dynamic>> writeComment(
   String content,
 ) async {
   final Map<String, dynamic> data = await request(
-    'https://picaapi.picacomic.com/comics/$comicId',
+    'https://picaapi.picacomic.com/comics/$comicId/comments',
     'POST',
     body: json.encode({'content': content}),
   );
@@ -328,11 +327,11 @@ Future<Map<String, dynamic>> writeComment(
 }
 
 Future<Map<String, dynamic>> writeCommentChildren(
-  String comicId,
+  String commentId,
   String content,
 ) async {
   final Map<String, dynamic> data = await request(
-    'https://picaapi.picacomic.com/comics/$comicId/comments',
+    'https://picaapi.picacomic.com/comments/$commentId',
     'POST',
     body: json.encode({'content': content}),
   );

@@ -1,8 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:zephyr/page/comments/comments.dart';
 
+import '../../../network/http/http_request.dart';
 import '../../../widgets/error_view.dart';
 import '../json/comments_json/comments_json.dart';
 
@@ -67,13 +69,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
         switch (state.status) {
           case CommentsStatus.initial:
             return Center(child: CircularProgressIndicator());
-          case CommentsStatus.success:
-            commentIndex = state.count;
-            return _CommentWidget(
-              comments: state.commentsJson!,
-              fatherCommentIndex: commentIndex,
-              status: state.status,
-            );
+
           case CommentsStatus.failure:
             return ErrorView(
               errorMessage: '${state.result.toString()}\n加载失败，请重试。',
@@ -87,35 +83,88 @@ class _ComicReadPageState extends State<_ComicReadPage> {
                     );
               },
             );
+          case CommentsStatus.success:
           case CommentsStatus.getMoreFailure:
-            commentIndex = state.count;
-            return _CommentWidget(
-              comments: state.commentsJson!,
-              fatherCommentIndex: commentIndex,
-              status: state.status,
-            );
           case CommentsStatus.loadingMore:
-            commentIndex = state.count;
+          case CommentsStatus.comment:
             return _CommentWidget(
-              comments: state.commentsJson!,
-              fatherCommentIndex: commentIndex,
-              status: state.status,
+              state: state,
             );
         }
       }),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.comment),
+        onPressed: () async {
+          var text = await _showInputDialog(context, '发表评论', '输入评论内容');
+          if (text.isEmpty) {
+            return;
+          }
+          _writeComment(comicId, text);
+        },
+      ),
     );
+  }
+
+  Future<void> _writeComment(String comicId, String text) async {
+    try {
+      await writeComment(comicId, text);
+
+      // 检查 State 是否仍然挂载
+      if (!mounted) return;
+
+      context
+          .read<CommentsBloc>()
+          .add(CommentsEvent(comicId, CommentsStatus.comment, 1));
+    } catch (e) {
+      debugPrint(e.toString());
+      EasyLoading.showError('评论失败，请稍后再试。\n${e.toString()}');
+    }
+  }
+
+  // 弹出输入框对话框
+  Future<String> _showInputDialog(
+    BuildContext context,
+    String tile,
+    String defaultText,
+  ) async {
+    final TextEditingController controller = TextEditingController();
+
+    String? result = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(tile),
+          content: TextField(
+            controller: controller,
+            decoration: InputDecoration(hintText: defaultText),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('取消'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('确认'),
+              onPressed: () {
+                Navigator.of(context).pop(controller.text);
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    return result ?? "";
   }
 }
 
 class _CommentWidget extends StatefulWidget {
-  final List<CommentsJson> comments;
-  final int fatherCommentIndex;
-  final CommentsStatus status;
+  final CommentsState state;
 
   const _CommentWidget({
-    required this.comments,
-    required this.fatherCommentIndex,
-    required this.status,
+    required this.state,
   });
 
   @override
@@ -123,7 +172,7 @@ class _CommentWidget extends StatefulWidget {
 }
 
 class _CommentWidgetState extends State<_CommentWidget> {
-  int get fatherCommentIndex => widget.fatherCommentIndex;
+  CommentsState get state => widget.state;
 
   List<CommentsJson> comments = [];
 
@@ -152,8 +201,11 @@ class _CommentWidgetState extends State<_CommentWidget> {
 
   @override
   Widget build(BuildContext context) {
-    commentIndex = fatherCommentIndex;
-    comments = widget.comments;
+    if (state.status != CommentsStatus.comment) {
+      commentIndex = state.count;
+    }
+
+    comments = state.commentsJson!;
     for (var comment in comments) {
       if (comment.data.topComments.isNotEmpty) {
         for (var topComment in comment.data.topComments) {
@@ -171,46 +223,42 @@ class _CommentWidgetState extends State<_CommentWidget> {
       }
     }
     commentsDoc = removeDuplicatesDoc(commentsDoc);
-    return CustomScrollView(
-      slivers: [
-        if (topComments.isNotEmpty) ...[
-          ...topComments.asMap().entries.map(
-            (entry) {
-              int index = entry.key; // 获取当前索引
-              var topComment = entry.value; // 获取当前的 topComment
+    return ListView.builder(
+      itemCount: topComments.length +
+          commentsDoc.length +
+          (state.status == CommentsStatus.loadingMore ? 1 : 0) +
+          (state.status == CommentsStatus.getMoreFailure ? 1 : 0),
+      itemBuilder: (context, index) {
+        // 处理 topComments
+        if (index < topComments.length) {
+          var topComment = topComments[index];
+          return CommentsWidget(
+            doc: topCommentToDoc(topComment),
+            index: index,
+          );
+        }
 
-              return SliverToBoxAdapter(
-                child: CommentsWidget(
-                  doc: topCommentToDoc(topComment),
-                  index: index, // 将索引传递给 CommentsWidget
-                ),
-              );
-            },
-          )
-        ],
-        if (commentsDoc.isNotEmpty) ...[
-          ...commentsDoc.asMap().entries.map(
-            (entry) {
-              int index = comments[0].data.comments.total - entry.key; // 获取当前索引
-              var comment = entry.value; // 获取当前的 topComment
+        // 处理 commentsDoc
+        if (index < topComments.length + commentsDoc.length) {
+          int commentIndex = index - topComments.length;
+          var comment = commentsDoc[commentIndex];
+          int displayIndex = comments[0].data.comments.total - commentIndex;
+          return CommentsWidget(
+            doc: comment,
+            index: displayIndex,
+          );
+        }
 
-              return SliverToBoxAdapter(
-                child: CommentsWidget(
-                  doc: comment,
-                  index: index, // 将索引传递给 CommentsWidget
-                ),
-              );
-            },
-          )
-        ],
-        if (widget.status == CommentsStatus.loadingMore) ...[
-          SliverToBoxAdapter(
-            child: Center(child: CircularProgressIndicator()),
-          ),
-        ],
-        if (widget.status == CommentsStatus.getMoreFailure) ...[
-          SliverToBoxAdapter(
-              child: Center(
+        // 处理加载更多指示器
+        if (state.status == CommentsStatus.loadingMore &&
+            index == topComments.length + commentsDoc.length) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        // 处理加载失败的错误视图
+        if (state.status == CommentsStatus.getMoreFailure &&
+            index == topComments.length + commentsDoc.length) {
+          return Center(
             child: ElevatedButton(
               onPressed: () {
                 context.read<CommentsBloc>().add(
@@ -223,9 +271,12 @@ class _CommentWidgetState extends State<_CommentWidget> {
               },
               child: const Text('重新加载'),
             ),
-          )),
-        ]
-      ],
+          );
+        }
+
+        // 默认返回空容器
+        return SizedBox.shrink();
+      },
       controller: _scrollController, // 设置控制器
     );
   }
@@ -273,18 +324,11 @@ class _CommentWidgetState extends State<_CommentWidget> {
   }
 
   List<Doc> removeDuplicatesDoc(List<Doc> commentsDoc) {
-    // 用于存储已见过的 id
-    Set<String> seenIds = {};
+    List<Doc> uniqueDocs = commentsDoc.toSet().toList();
 
-    // 使用 .where() 方法进行过滤
-    return commentsDoc.where((comment) {
-      // 检查当前 comment 的 id 是否已经在 seenIds 中
-      if (seenIds.contains(comment.id)) {
-        return false; // 已存在，过滤掉
-      } else {
-        seenIds.add(comment.id); // 记录新的 id
-        return true; // 保留这个 comment
-      }
-    }).toList(); // 转换为 List<Doc>
+    // 按照 _id 排序
+    uniqueDocs.sort((a, b) => b.id.compareTo(a.id));
+
+    return uniqueDocs;
   }
 }

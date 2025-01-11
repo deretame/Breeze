@@ -33,7 +33,7 @@ class CommentsChildrenBloc
     CommentsChildrenEvent event,
     Emitter<CommentsChildrenState> emit,
   ) async {
-    if (hasReachedMax) {
+    if (hasReachedMax && event.status != CommentsChildrenStatus.comment) {
       return;
     }
 
@@ -56,8 +56,11 @@ class CommentsChildrenBloc
     try {
       var commentsJson =
           await _getCommentsChildren(event.commentChildrenId, event.count);
-
-      comments = [...comments, commentsJson];
+      if (event.status == CommentsChildrenStatus.comment) {
+        comments = [commentsJson, ...comments];
+      } else {
+        comments = [...comments, commentsJson];
+      }
       if (int.parse(commentsJson.data.comments.page) >=
           commentsJson.data.comments.pages) {
         hasReachedMax = true;

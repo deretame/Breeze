@@ -337,7 +337,6 @@ class _ImagerWidget extends StatelessWidget {
                     ),
                   );
                 case PictureLoadStatus.failure:
-                  debugPrint(state.result);
                   if (state.result.toString().contains('404')) {
                     // return SizedBox.shrink();
                     return ClipRRect(

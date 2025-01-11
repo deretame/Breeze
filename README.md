@@ -14,14 +14,16 @@
     - [x] 在分类中搜索 / 按“分类 / 标签 / 创作者 / 汉化组”搜索
     - [x] 漫画详情 / 章节 / 查看图片 / 保存图片到相册
     - [x] 收藏 / 点赞
-    - [x] 获取评论（暂时无法获取子评论以及发送评论）
+    - [x] 获取评论 / 发送评论 / 回复评论
 - [x] 下载
     - [x] 导出 / 导出为zip
 - [ ] 聊天室（不准备支持）
 - [x] 缓存 / 自动清理
 
 # api
-- [哔咔](https://github.com/deretame/Breeze/blob/main/api/bika.md) 
+
+- [哔咔](https://github.com/deretame/Breeze/blob/main/api/bika.md)
+
 > **仅做参考，具体api请查看`lib\network\http`目录下的具体文件。**
 
 # **开源项目免责声明**

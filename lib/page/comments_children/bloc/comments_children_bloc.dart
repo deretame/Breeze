@@ -87,7 +87,7 @@ class CommentsChildrenBloc
         state.copyWith(
           status: CommentsChildrenStatus.getMoreFailure,
           commentsChildrenJson: comments,
-          count: event.count,
+          count: event.count - 1,
           result: e.toString(),
         ),
       );
@@ -128,6 +128,20 @@ class CommentsChildrenBloc
       doc['likesCount'] ??= 0;
       doc['isLiked'] ??= false;
 
+      doc['_user'] ??= {
+        "_id": "",
+        "gender": "",
+        "name": "用户已注销",
+        "verified": false,
+        "exp": 0,
+        "level": 0,
+        "characters": [],
+        "role": "",
+        "avatar": {"fileServer": "", "path": "", "originalName": ""},
+        "title": "",
+        "slogan": "",
+        "character": "",
+      };
       var user = doc['_user'];
       user['_id'] ??= '';
       user['gender'] ??= 'bot';

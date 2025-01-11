@@ -63,7 +63,6 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
               return _CommentWidget(
                 fatherDoc: fatherDoc,
                 state: state,
-                fatherCommentIndex: 1,
               );
           }
         },
@@ -75,12 +74,10 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
 class _CommentWidget extends StatefulWidget {
   final comments_json.Doc fatherDoc;
   final CommentsChildrenState state;
-  final int fatherCommentIndex;
 
   const _CommentWidget({
     required this.fatherDoc,
     required this.state,
-    required this.fatherCommentIndex,
   });
 
   @override
@@ -89,8 +86,6 @@ class _CommentWidget extends StatefulWidget {
 
 class _CommentWidgetState extends State<_CommentWidget> {
   comments_json.Doc get fatherDoc => widget.fatherDoc;
-
-  int get fatherCommentIndex => widget.fatherCommentIndex;
 
   CommentsChildrenState get state => widget.state;
 
@@ -102,13 +97,9 @@ class _CommentWidgetState extends State<_CommentWidget> {
 
   final ScrollController _scrollController = ScrollController();
 
-  // int _lastExecutedTime = 0;
-
   @override
   void initState() {
     super.initState();
-
-    debugPrint("comments count: ${commentsDoc.length}");
     _scrollController.addListener(_onScroll);
   }
 
@@ -152,7 +143,6 @@ class _CommentWidgetState extends State<_CommentWidget> {
       );
     }
 
-    commentIndex = fatherCommentIndex;
     comments = state.commentsChildrenJson!;
 
     for (var comment in comments) {
@@ -184,13 +174,17 @@ class _CommentWidgetState extends State<_CommentWidget> {
               SizedBox(height: 5),
             ],
           );
-        } else if (index == commentsDoc.length + 1 &&
+        }
+
+        if (index == commentsDoc.length + 1 &&
             state.status == CommentsChildrenStatus.loadingMore) {
           return Padding(
             padding: const EdgeInsets.all(10),
             child: Center(child: CircularProgressIndicator()),
           );
-        } else if (index == commentsDoc.length + 1 &&
+        }
+
+        if (index == commentsDoc.length + 1 &&
             state.status == CommentsChildrenStatus.getMoreFailure) {
           return ErrorView(
             errorMessage: '点击重试',
@@ -198,20 +192,19 @@ class _CommentWidgetState extends State<_CommentWidget> {
               context.read<CommentsChildrenBloc>().add(
                     CommentsChildrenEvent(
                       fatherDoc.id,
-                      CommentsChildrenStatus.initial,
+                      CommentsChildrenStatus.loadingMore,
                       commentIndex,
                     ),
                   );
             },
           );
-        } else {
-          // 计算当前评论的索引
-          int currentIndex = index - 1; // 因为 index == 0 已经被占用
-          return CommentsChildrenWidget(
-            doc: commentsDoc[currentIndex],
-            index: currentIndex + 1,
-          );
         }
+        // 计算当前评论的索引
+        int currentIndex = index - 1;
+        return CommentsChildrenWidget(
+          doc: commentsDoc[currentIndex],
+          index: comments[0].data.comments.total - index + 1,
+        );
       },
       controller: _scrollController,
     );

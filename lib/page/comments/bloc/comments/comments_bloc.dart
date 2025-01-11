@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:stream_transform/stream_transform.dart';
 
 import '../../../../network/http/http_request.dart';
@@ -54,6 +55,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
 
     try {
       var commentsJson = await _getComments(event.commentsId, event.count);
+      debugPrint(limitString(commentsJson.toString(), 150));
 
       comments = [...comments, commentsJson];
       if (int.parse(commentsJson.data.comments.page) >=
@@ -71,6 +73,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
       );
       return;
     } catch (e) {
+      debugPrint(e.toString());
       if (comments.isEmpty) {
         emit(
           state.copyWith(
@@ -85,7 +88,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
         state.copyWith(
           status: CommentsStatus.getMoreFailure,
           commentsJson: comments,
-          count: event.count,
+          count: event.count - 1,
           result: e.toString(),
         ),
       );
@@ -98,6 +101,20 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
     for (var comment in temp['data']['comments']['docs']) {
       comment['_id'] ??= '';
       comment['content'] ??= '';
+      comment['_user'] ??= {
+        "_id": "",
+        "gender": "",
+        "name": "用户已注销",
+        "verified": false,
+        "exp": 0,
+        "level": 0,
+        "characters": [],
+        "role": "",
+        "avatar": {"fileServer": "", "path": "", "originalName": ""},
+        "title": "",
+        "slogan": "",
+        "character": "",
+      };
       comment['_user']['_id'] ??= '';
       comment['_user']['gender'] ??= '';
       comment['_user']['name'] ??= '';

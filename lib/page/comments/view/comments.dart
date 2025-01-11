@@ -210,19 +210,20 @@ class _CommentWidgetState extends State<_CommentWidget> {
         ],
         if (widget.status == CommentsStatus.getMoreFailure) ...[
           SliverToBoxAdapter(
-            child: ErrorView(
-              errorMessage: '点击重试',
-              onRetry: () {
+              child: Center(
+            child: ElevatedButton(
+              onPressed: () {
                 context.read<CommentsBloc>().add(
                       CommentsEvent(
                         comments[0].data.comments.docs[0].comic,
-                        CommentsStatus.initial,
+                        CommentsStatus.loadingMore,
                         commentIndex,
                       ),
                     );
               },
+              child: const Text('重新加载'),
             ),
-          ),
+          )),
         ]
       ],
       controller: _scrollController, // 设置控制器

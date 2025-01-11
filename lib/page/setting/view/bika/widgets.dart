@@ -242,7 +242,9 @@ Widget changeShieldedCategories(BuildContext context, String type) {
 }
 
 Future<Map<String, bool>?> showShieldCategoryDialog(
-    BuildContext context, String type) {
+  BuildContext context,
+  String type,
+) {
   Map<String, bool> shieldCategoriesMap = {};
   if (type == "home") {
     shieldCategoriesMap = Map.of(bikaSetting.shieldHomePageCategoriesMap);
@@ -309,7 +311,10 @@ Future<Map<String, bool>?> showShieldCategoryDialog(
 
 // 弹出输入框对话框
 Future<String> _showInputDialog(
-    BuildContext context, String tile, String defaultText) async {
+  BuildContext context,
+  String tile,
+  String defaultText,
+) async {
   final TextEditingController controller = TextEditingController();
 
   // 显示对话框并等待响应

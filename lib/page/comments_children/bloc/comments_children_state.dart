@@ -5,7 +5,8 @@ enum CommentsChildrenStatus {
   success,
   failure,
   loadingMore,
-  getMoreFailure
+  getMoreFailure,
+  comment
 }
 
 final class CommentsChildrenState extends Equatable {

@@ -75,7 +75,8 @@ class _CommentsWidgetState extends State<CommentsWidget>
                         mainAxisAlignment: MainAxisAlignment.start, // 横向居左
                         crossAxisAlignment: CrossAxisAlignment.start, // 顶部对齐
                         children: [
-                          _ImagerWidget(
+                          ImagerWidget(
+                            key: ValueKey(commentInfo.toString()),
                             pictureInfo: PictureInfo(
                               url: commentInfo.user.avatar!.fileServer,
                               path: commentInfo.user.avatar!.path,
@@ -112,39 +113,37 @@ class _CommentsWidgetState extends State<CommentsWidget>
                           ),
                         ],
                       ),
-                      if (commentInfo.totalComments > 0) ...[
-                        SizedBox(height: 3),
-                        Row(
-                          children: [
-                            SizedBox(width: 70),
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () {
-                                  AutoRouter.of(context).push(
-                                    CommentsChildrenRoute(
-                                      fatherDoc: commentInfo,
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: primaryColor, // 背景颜色
-                                    borderRadius:
-                                        BorderRadius.circular(5.0), // 圆角
+                      SizedBox(height: 3),
+                      Row(
+                        children: [
+                          SizedBox(width: 70),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                AutoRouter.of(context).push(
+                                  CommentsChildrenRoute(
+                                    fatherDoc: commentInfo,
                                   ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(5),
-                                    child: Text(
-                                      "  查看全部${commentInfo.totalComments}条回复",
-                                      style: TextStyle(color: primaryTextStyle),
-                                    ),
+                                );
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: primaryColor, // 背景颜色
+                                  borderRadius:
+                                      BorderRadius.circular(5.0), // 圆角
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(5),
+                                  child: Text(
+                                    "  查看全部${commentInfo.totalComments}条回复",
+                                    style: TextStyle(color: primaryTextStyle),
                                   ),
                                 ),
                               ),
                             ),
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                       SizedBox(height: 5),
                       Center(
                         child: Row(
@@ -232,15 +231,15 @@ class _CommentsWidgetState extends State<CommentsWidget>
               content: Text('你确定要举报此评论吗？\n${commentInfo.content}'),
               actions: <Widget>[
                 TextButton(
-                  child: Text('取消'),
-                  onPressed: () {
-                    Navigator.of(context).pop(false);
-                  },
-                ),
-                TextButton(
                   child: Text('确定'),
                   onPressed: () {
                     Navigator.of(context).pop(true);
+                  },
+                ),
+                TextButton(
+                  child: Text('取消'),
+                  onPressed: () {
+                    Navigator.of(context).pop(false);
                   },
                 ),
               ],
@@ -268,14 +267,24 @@ class _CommentsWidgetState extends State<CommentsWidget>
   }
 }
 
-class _ImagerWidget extends StatelessWidget {
+class ImagerWidget extends StatefulWidget {
   final PictureInfo pictureInfo;
   final String commentId;
 
-  const _ImagerWidget({
+  const ImagerWidget({
+    super.key,
     required this.pictureInfo,
     required this.commentId,
   });
+
+  @override
+  State<ImagerWidget> createState() => _ImagerWidgetState();
+}
+
+class _ImagerWidgetState extends State<ImagerWidget> {
+  PictureInfo get pictureInfo => widget.pictureInfo;
+
+  String get commentId => widget.commentId;
 
   @override
   Widget build(BuildContext context) {

@@ -12,8 +12,8 @@ import '../../../../util/dialog.dart';
 import '../../../../widgets/full_screen_image_view.dart';
 import '../../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../../widgets/picture_bloc/models/picture_info.dart';
-import '../../../download_list/models/search_enter.dart' as download_list;
-import '../../../history/models/search_enter.dart';
+import '../../../user_download/models/search_enter.dart' as download_list;
+import '../../../user_history/models/search_enter.dart';
 
 class BikaUserInfoWidget extends StatelessWidget {
   const BikaUserInfoWidget({super.key});
@@ -69,7 +69,7 @@ class BikaUserInfoWidget extends StatelessWidget {
                   children: <Widget>[
                     InkWell(
                       onTap: () {
-                        router.push(FavoriteRoute());
+                        router.push(UserFavoriteRoute());
                       },
                       child: const Icon(
                         Icons.star,
@@ -87,7 +87,7 @@ class BikaUserInfoWidget extends StatelessWidget {
                     InkWell(
                       onTap: () {
                         router.push(
-                          HistoryRoute(
+                          UserHistoryRoute(
                             searchEnterConst: SearchEnterConst(sort: "dd"),
                           ),
                         );
@@ -108,7 +108,7 @@ class BikaUserInfoWidget extends StatelessWidget {
                     InkWell(
                       onTap: () {
                         router.push(
-                          DownloadListRoute(
+                          UserDownloadRoute(
                             searchEnterConst:
                                 download_list.SearchEnterConst(sort: "dd"),
                           ),

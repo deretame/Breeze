@@ -151,15 +151,9 @@ class _CategoryPageState extends State<CategoryPage>
             ),
             actions: [
               TextButton(
-                child: Text('下载安装'),
-                onPressed: () async {
+                child: Text('取消'),
+                onPressed: () {
                   Navigator.of(context).pop();
-                  for (var apkUrl in temp.assets) {
-                    if (apkUrl.browserDownloadUrl
-                        .contains("app-arm64-v8a-release.apk")) {
-                      await installApk(apkUrl.browserDownloadUrl);
-                    }
-                  }
                 },
               ),
               TextButton(
@@ -174,9 +168,15 @@ class _CategoryPageState extends State<CategoryPage>
                 },
               ),
               TextButton(
-                child: Text('取消'),
-                onPressed: () {
+                child: Text('下载安装'),
+                onPressed: () async {
                   Navigator.of(context).pop();
+                  for (var apkUrl in temp.assets) {
+                    if (apkUrl.browserDownloadUrl
+                        .contains("app-arm64-v8a-release.apk")) {
+                      await installApk(apkUrl.browserDownloadUrl);
+                    }
+                  }
                 },
               ),
             ],

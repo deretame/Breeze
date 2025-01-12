@@ -633,15 +633,15 @@ class _ComicReadPageState extends State<_ComicReadPage>
               content: Text(content),
               actions: [
                 TextButton(
-                  child: Text('确定'),
-                  onPressed: () {
-                    Navigator.of(context).pop(true); // 返回 true
-                  },
-                ),
-                TextButton(
                   child: Text('取消'),
                   onPressed: () {
                     Navigator.of(context).pop(false); // 返回 false
+                  },
+                ),
+                TextButton(
+                  child: Text('确定'),
+                  onPressed: () {
+                    Navigator.of(context).pop(true); // 返回 true
                   },
                 ),
               ],

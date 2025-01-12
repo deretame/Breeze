@@ -345,9 +345,9 @@ class _ComicInfoState extends State<_ComicInfo>
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(ExportType.zip); // 返回压缩包选项
+                Navigator.of(context).pop(null);
               },
-              child: Text('压缩包'),
+              child: Text('取消'),
             ),
             TextButton(
               onPressed: () {
@@ -357,9 +357,9 @@ class _ComicInfoState extends State<_ComicInfo>
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(null);
+                Navigator.of(context).pop(ExportType.zip); // 返回压缩包选项
               },
-              child: Text('取消'),
+              child: Text('压缩包'),
             ),
           ],
         );

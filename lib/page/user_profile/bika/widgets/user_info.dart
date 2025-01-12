@@ -8,6 +8,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/page/user_profile/bika/bika.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
+import '../../../../config/global.dart';
 import '../../../../util/dialog.dart';
 import '../../../../widgets/full_screen_image_view.dart';
 import '../../../../widgets/picture_bloc/bloc/picture_bloc.dart';
@@ -29,6 +30,7 @@ class BikaUserInfoWidget extends StatelessWidget {
             builder: (context, state) {
               switch (state.status) {
                 case UserProfileStatus.initial:
+                  loadBikaProfile = false;
                   return Center(
                     child: Padding(
                         padding: const EdgeInsets.all(10.0),
@@ -129,7 +131,13 @@ class BikaUserInfoWidget extends StatelessWidget {
                   children: <Widget>[
                     InkWell(
                       onTap: () {
-                        nothingDialog(context);
+                        if (loadBikaProfile) {
+                          router.push(
+                            UserCommentsRoute(),
+                          );
+                        } else {
+                          commonDialog(context, "提示", "请等待用户信息加载完毕！");
+                        }
                       },
                       child: const Icon(
                         Icons.comment,
@@ -241,11 +249,13 @@ class _UserAvatar extends StatelessWidget {
           builder: (context, state) {
             switch (state.status) {
               case PictureLoadStatus.initial:
+                loadBikaProfile = false;
                 return Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: CircularProgressIndicator(),
                 );
               case PictureLoadStatus.success:
+                loadBikaProfile = true;
                 return GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -270,6 +280,7 @@ class _UserAvatar extends StatelessWidget {
                   ),
                 );
               case PictureLoadStatus.failure:
+                loadBikaProfile = true;
                 if (state.result.toString().contains('404')) {
                   return Image.asset('asset/image/error_image/404.png');
                 } else {

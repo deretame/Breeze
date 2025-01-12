@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/dialog.dart';
 
-import '../config/global.dart';
 import '../network/http/http_request.dart';
 import '../util/router/router.gr.dart';
 
@@ -106,21 +105,12 @@ class _LoginPageState extends State<LoginPage> {
       Future.delayed(const Duration(seconds: 2), () {
         // 检查State是否仍然挂载
         if (!mounted) return;
-        if (inited == false) {
-          AutoRouter.of(context).pushAndPopUntil(
-            MainRoute(),
-            predicate: (Route<dynamic> route) {
-              return false;
-            },
-          );
-        } else {
-          AutoRouter.of(context).pushAndPopUntil(
-            MainRoute(),
-            predicate: (Route<dynamic> route) {
-              return false;
-            },
-          );
-        }
+        AutoRouter.of(context).pushAndPopUntil(
+          MainRoute(),
+          predicate: (Route<dynamic> route) {
+            return false;
+          },
+        );
       });
     } catch (e) {
       // 当登录逻辑完成后，关闭加载动画

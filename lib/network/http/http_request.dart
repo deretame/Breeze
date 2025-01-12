@@ -513,6 +513,23 @@ Future<Map<String, dynamic>> getFavorites(
   return data;
 }
 
+Future<Map<String, dynamic>> getUserComments(
+  int pageCount,
+) async {
+  final Map<String, dynamic> data = await request(
+    'https://picaapi.picacomic.com/users/my-comments?page=$pageCount',
+    'GET',
+  );
+
+  debugPrint(limitString(data.toString(), 150));
+
+  if (data['code'] != 200) {
+    throw data;
+  }
+
+  return data;
+}
+
 Future<Map<String, dynamic>> signIn() async {
   final Map<String, dynamic> data =
       await request('https://picaapi.picacomic.com/users/punch-in', 'POST');

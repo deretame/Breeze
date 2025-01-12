@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:stream_transform/stream_transform.dart';
 
+import '../../../../config/global.dart';
 import '../../../../network/http/http_request.dart';
 import '../json/profile.dart';
 
@@ -82,6 +83,36 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
     result['data']['user']['isPunched'] ??= false;
     result['data']['user']['character'] ??= "";
 
-    return Profile.fromJson(result);
+    var temp = Profile.fromJson(result);
+
+    globalBikaProfile = GlobalBIkaProfile(
+      code: temp.code,
+      message: temp.message,
+      data: GlobalBIkaData(
+        user: GlobalBIkaUser(
+          id: temp.data.user.id,
+          birthday: temp.data.user.birthday,
+          email: temp.data.user.email,
+          gender: temp.data.user.gender,
+          name: temp.data.user.name,
+          slogan: temp.data.user.slogan,
+          title: temp.data.user.title,
+          verified: temp.data.user.verified,
+          exp: temp.data.user.exp,
+          level: temp.data.user.level,
+          characters: temp.data.user.characters,
+          createdAt: temp.data.user.createdAt,
+          avatar: GlobalBIkaAvatar(
+              originalName: temp.data.user.avatar.originalName,
+              path: temp.data.user.avatar.path,
+              fileServer: temp.data.user.avatar.fileServer),
+          isPunched: temp.data.user.isPunched,
+          character: temp.data.user.character,
+          role: "",
+        ),
+      ),
+    );
+
+    return temp;
   }
 }

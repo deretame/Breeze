@@ -25,6 +25,7 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: UserFavoriteRoute.page),
         AutoRoute(page: UserHistoryRoute.page),
         AutoRoute(page: UserDownloadRoute.page),
+        AutoRoute(page: UserCommentsRoute.page),
         AutoRoute(page: BikaSettingRoute.page),
         AutoRoute(page: GlobalSettingRoute.page),
       ];

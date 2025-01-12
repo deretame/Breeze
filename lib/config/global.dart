@@ -8,15 +8,6 @@ double screenWidth = 0;
 double screenHeight = 0;
 double statusBarHeight = 0;
 
-// 用于判断是否已经初始化完成
-bool inited = false;
-
-// 分流设置
-int shunt = 3;
-
-// realm数据库版本号
-int shieldedCategoriesVersion = 0;
-
 class Global {
   final BuildContext context;
 
@@ -25,4 +16,79 @@ class Global {
     screenWidth = MediaQuery.of(context).size.width;
     screenHeight = MediaQuery.of(context).size.height;
   }
+}
+
+// 用来判断哔咔的用户信息是否加载完毕
+bool loadBikaProfile = false;
+
+late GlobalBIkaProfile globalBikaProfile;
+
+class GlobalBIkaProfile {
+  final int code;
+  final String message;
+  final GlobalBIkaData data;
+
+  GlobalBIkaProfile({
+    required this.code,
+    required this.message,
+    required this.data,
+  });
+}
+
+class GlobalBIkaData {
+  final GlobalBIkaUser user;
+
+  GlobalBIkaData({
+    required this.user,
+  });
+}
+
+class GlobalBIkaUser {
+  final String id;
+  final DateTime birthday;
+  final String email;
+  final String gender;
+  final String name;
+  final String slogan;
+  final String title;
+  final bool verified;
+  final int exp;
+  final String role;
+  final int level;
+  final List<String> characters;
+  final DateTime createdAt;
+  final GlobalBIkaAvatar avatar;
+  final bool isPunched;
+  final String character;
+
+  GlobalBIkaUser({
+    required this.id,
+    required this.birthday,
+    required this.email,
+    required this.gender,
+    required this.name,
+    required this.slogan,
+    required this.title,
+    required this.verified,
+    required this.exp,
+    required this.role,
+    required this.level,
+    required this.characters,
+    required this.createdAt,
+    required this.avatar,
+    required this.isPunched,
+    required this.character,
+  });
+}
+
+class GlobalBIkaAvatar {
+  final String originalName;
+  final String path;
+  final String fileServer;
+
+  GlobalBIkaAvatar({
+    required this.originalName,
+    required this.path,
+    required this.fileServer,
+  });
 }

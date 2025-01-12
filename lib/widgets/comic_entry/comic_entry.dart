@@ -232,6 +232,13 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
           content: Text(content),
           actions: <Widget>[
             TextButton(
+              child: Text("取消"),
+              onPressed: () {
+                // 执行操作1
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
               child: Text("确定"),
               onPressed: () {
                 if (_type == ComicEntryType.history) {
@@ -259,13 +266,6 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                     );
                   }
                 }
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text("取消"),
-              onPressed: () {
-                // 执行操作1
                 Navigator.of(context).pop();
               },
             ),

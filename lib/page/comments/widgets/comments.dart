@@ -209,15 +209,15 @@ class _CommentsWidgetState extends State<CommentsWidget>
               content: Text('你确定要举报此评论吗？\n${commentInfo.content}'),
               actions: <Widget>[
                 TextButton(
-                  child: Text('确定'),
-                  onPressed: () {
-                    Navigator.of(context).pop(true);
-                  },
-                ),
-                TextButton(
                   child: Text('取消'),
                   onPressed: () {
                     Navigator.of(context).pop(false);
+                  },
+                ),
+                TextButton(
+                  child: Text('确定'),
+                  onPressed: () {
+                    Navigator.of(context).pop(true);
                   },
                 ),
               ],

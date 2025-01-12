@@ -179,15 +179,15 @@ class _UserDownloadPageState extends State<_UserDownloadPage>
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('重新加载'),
+              child: const Text('取消'),
               onPressed: () {
-                refresh(searchEnterConst);
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('取消'),
+              child: const Text('重新加载'),
               onPressed: () {
+                refresh(searchEnterConst);
                 Navigator.of(context).pop();
               },
             ),

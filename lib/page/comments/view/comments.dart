@@ -2,8 +2,10 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/page/comments/comments.dart';
 
+import '../../../main.dart';
 import '../../../network/http/http_request.dart';
 import '../../../widgets/error_view.dart';
 import '../json/comments_json/comments_json.dart';
@@ -124,7 +126,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   // 弹出输入框对话框
   Future<String> _showInputDialog(
     BuildContext context,
-    String tile,
+    String title,
     String defaultText,
   ) async {
     final TextEditingController controller = TextEditingController();
@@ -132,27 +134,62 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     String? result = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(tile),
-          content: TextField(
-            controller: controller,
-            decoration: InputDecoration(hintText: defaultText),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('取消'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+        return Observer(builder: (context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16.0), // 圆角
             ),
-            TextButton(
-              child: Text('确认'),
-              onPressed: () {
-                Navigator.of(context).pop(controller.text);
-              },
+            child: Container(
+              padding: EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min, // 使对话框根据内容调整大小
+                children: [
+                  Text(title),
+                  SizedBox(height: 16),
+                  Container(
+                    decoration: BoxDecoration(
+                      // color: Colors.grey[200], // 背景色
+                      border: Border.all(
+                        color: globalSetting.themeType
+                            ? Colors.grey.withValues(alpha: 1)
+                            : Colors.white.withValues(alpha: 0.5),
+                      ), // 边框
+                      borderRadius: BorderRadius.circular(8.0), // 圆角
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 8.0),
+                    child: TextField(
+                      controller: controller,
+                      maxLines: null, // 设置多行输入
+                      decoration: InputDecoration(
+                        border: InputBorder.none, // 去掉默认的输入框边框
+                        hintText: defaultText,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // 关闭对话框
+                        },
+                        child: Text('取消'),
+                      ),
+                      SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(controller.text); // 返回输入内容
+                        },
+                        child: Text('确认'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ],
-        );
+          );
+        });
       },
     );
 

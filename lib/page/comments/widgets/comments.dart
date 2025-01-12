@@ -53,7 +53,13 @@ class _CommentsWidgetState extends State<CommentsWidget>
             child: Column(
               children: [
                 InkWell(
-                  // behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
+                  onTap: () {
+                    AutoRouter.of(context).push(
+                      CommentsChildrenRoute(
+                        fatherDoc: commentInfo,
+                      ),
+                    );
+                  },
                   onLongPress: () async {
                     var result = await showConfirmationDialog();
                     debugPrint(result.toString());
@@ -113,37 +119,6 @@ class _CommentsWidgetState extends State<CommentsWidget>
                           ),
                         ],
                       ),
-                      SizedBox(height: 3),
-                      Row(
-                        children: [
-                          SizedBox(width: 70),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                AutoRouter.of(context).push(
-                                  CommentsChildrenRoute(
-                                    fatherDoc: commentInfo,
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: primaryColor, // 背景颜色
-                                  borderRadius:
-                                      BorderRadius.circular(5.0), // 圆角
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(5),
-                                  child: Text(
-                                    "  查看全部${commentInfo.totalComments}条回复",
-                                    style: TextStyle(color: primaryTextStyle),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
                       SizedBox(height: 5),
                       Center(
                         child: Row(
@@ -183,7 +158,10 @@ class _CommentsWidgetState extends State<CommentsWidget>
                             ),
                             SizedBox(width: 5),
                             Text(likeCountStore.date.toString()),
-                            SizedBox(width: 10),
+                            SizedBox(width: 5),
+                            Icon(Icons.comment, size: 14),
+                            SizedBox(width: 5),
+                            Text(commentInfo.commentsCount.toString()),
                           ],
                         ),
                       ),

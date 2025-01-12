@@ -55,7 +55,13 @@ class _CommentsWidgetState extends State<CommentsWidget>
             child: Column(
               children: [
                 InkWell(
-                  // behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
+                  onTap: () {
+                    AutoRouter.of(context).push(
+                      ComicInfoRoute(
+                        comicId: commentInfo.comic.id,
+                      ),
+                    );
+                  },
                   onLongPress: () async {
                     var result = await showConfirmationDialog();
                     debugPrint(result.toString());
@@ -104,7 +110,7 @@ class _CommentsWidgetState extends State<CommentsWidget>
                                   ),
                                 ),
                                 Text(
-                                  commentInfo.content,
+                                  "${commentInfo.content}(${commentInfo.comic.title})",
                                   style: TextStyle(
                                     color: globalSetting.textColor,
                                   ),
@@ -167,39 +173,6 @@ class _CommentsWidgetState extends State<CommentsWidget>
                                   child: Text(
                                     "  查看全部${commentInfo.totalComments}条回复",
                                     style: TextStyle(color: primaryTextStyle),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 5),
-                      Row(
-                        children: [
-                          SizedBox(width: 70),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                AutoRouter.of(context).push(
-                                  ComicInfoRoute(
-                                    comicId: commentInfo.comic.id,
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: primaryColor, // 背景颜色
-                                  borderRadius:
-                                      BorderRadius.circular(5.0), // 圆角
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(5),
-                                  child: Flexible(
-                                    child: Text(
-                                      commentInfo.comic.title,
-                                      style: TextStyle(color: primaryTextStyle),
-                                    ),
                                   ),
                                 ),
                               ),

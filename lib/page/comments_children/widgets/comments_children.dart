@@ -144,7 +144,6 @@ class _CommentsChildrenWidgetState extends State<CommentsChildrenWidget>
                             ),
                             SizedBox(width: 5),
                             Text(likeCountStore.date.toString()),
-                            SizedBox(width: 10),
                           ],
                         ),
                       ],

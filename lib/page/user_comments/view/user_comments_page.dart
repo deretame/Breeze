@@ -28,6 +28,27 @@ class _UserCommentsPage extends StatefulWidget {
 }
 
 class _UserCommentsPageState extends State<_UserCommentsPage> {
+  int _count = 1;
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels ==
+          _scrollController.position.maxScrollExtent) {
+        context.read<UserCommentsBloc>().add(UserCommentsEvent(
+            status: UserCommentsStatus.loadingMore, count: _count));
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,6 +82,7 @@ class _UserCommentsPageState extends State<_UserCommentsPage> {
   }
 
   Widget _buildCommentList(UserCommentsState state) {
+    _count = state.count;
     if (state.userCommentsJson!.isEmpty) {
       return Center(
         child: Text('啥都没有', style: TextStyle(fontSize: 20)),
@@ -78,13 +100,39 @@ class _UserCommentsPageState extends State<_UserCommentsPage> {
     userComments.toSet().toList();
 
     return ListView.builder(
-      itemCount: userComments.length,
+      itemCount: userComments.length +
+          (state.status == UserCommentsStatus.loadingMore ? 1 : 0) +
+          (state.status == UserCommentsStatus.getMoreFailure ? 1 : 0),
       itemBuilder: (context, index) {
+        if (index == userComments.length) {
+          if (state.status == UserCommentsStatus.loadingMore) {
+            return Center(
+                child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: CircularProgressIndicator(),
+            ));
+          }
+
+          if (state.status == UserCommentsStatus.getMoreFailure) {
+            return Center(
+                child: ElevatedButton(
+              onPressed: () {
+                context.read<UserCommentsBloc>().add(UserCommentsEvent(
+                      status: UserCommentsStatus.loadingMore,
+                      count: _count,
+                    ));
+              },
+              child: const Text('重新加载'),
+            ));
+          }
+        }
+
         return CommentsWidget(
           doc: userComments[index],
           index: userComments.length - index,
         );
       },
+      controller: _scrollController,
     );
   }
 }

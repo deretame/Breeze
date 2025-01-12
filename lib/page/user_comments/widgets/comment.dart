@@ -56,11 +56,7 @@ class _CommentsWidgetState extends State<CommentsWidget>
               children: [
                 InkWell(
                   onTap: () {
-                    AutoRouter.of(context).push(
-                      ComicInfoRoute(
-                        comicId: commentInfo.comic.id,
-                      ),
-                    );
+                    _goToComment();
                   },
                   onLongPress: () async {
                     var result = await showConfirmationDialog();
@@ -110,7 +106,7 @@ class _CommentsWidgetState extends State<CommentsWidget>
                                   ),
                                 ),
                                 Text(
-                                  "${commentInfo.content}(${commentInfo.comic.title})",
+                                  commentInfo.content,
                                   style: TextStyle(
                                     color: globalSetting.textColor,
                                   ),
@@ -128,37 +124,8 @@ class _CommentsWidgetState extends State<CommentsWidget>
                             child: GestureDetector(
                               onTap: () {
                                 AutoRouter.of(context).push(
-                                  CommentsChildrenRoute(
-                                    fatherDoc: comments_json.Doc(
-                                      id: commentInfo.id,
-                                      content: commentInfo.content,
-                                      user: comments_json.User(
-                                          id: userInfo.id,
-                                          name: userInfo.name,
-                                          level: userInfo.level,
-                                          title: userInfo.title,
-                                          avatar: comments_json.Avatar(
-                                              fileServer:
-                                                  userInfo.avatar.fileServer,
-                                              path: userInfo.avatar.path,
-                                              originalName:
-                                                  userInfo.avatar.originalName),
-                                          character: userInfo.character,
-                                          gender: userInfo.gender,
-                                          verified: userInfo.verified,
-                                          exp: userInfo.exp,
-                                          role: userInfo.role,
-                                          characters: userInfo.characters),
-                                      comic: commentInfo.comic.id,
-                                      totalComments: commentInfo.totalComments,
-                                      isTop: false,
-                                      hide: commentInfo.hide,
-                                      createdAt: commentInfo.createdAt,
-                                      docId: commentInfo.id,
-                                      likesCount: commentInfo.likesCount,
-                                      commentsCount: commentInfo.commentsCount,
-                                      isLiked: commentInfo.isLiked,
-                                    ),
+                                  ComicInfoRoute(
+                                    comicId: commentInfo.comic.id,
                                   ),
                                 );
                               },
@@ -171,7 +138,7 @@ class _CommentsWidgetState extends State<CommentsWidget>
                                 child: Padding(
                                   padding: const EdgeInsets.all(5),
                                   child: Text(
-                                    "  查看全部${commentInfo.totalComments}条回复",
+                                    commentInfo.comic.title.toString(),
                                     style: TextStyle(color: primaryTextStyle),
                                   ),
                                 ),
@@ -208,7 +175,10 @@ class _CommentsWidgetState extends State<CommentsWidget>
                             ),
                             SizedBox(width: 5),
                             Text(likeCountStore.date.toString()),
-                            SizedBox(width: 10),
+                            SizedBox(width: 5),
+                            Icon(Icons.comment, size: 14),
+                            SizedBox(width: 5),
+                            Text(commentInfo.commentsCount.toString()),
                           ],
                         ),
                       ),
@@ -289,6 +259,41 @@ class _CommentsWidgetState extends State<CommentsWidget>
       EasyLoading.showError("点赞失败：${e.toString()}");
       debugPrint(e.toString());
     }
+  }
+
+  void _goToComment() {
+    AutoRouter.of(context).push(
+      CommentsChildrenRoute(
+        fatherDoc: comments_json.Doc(
+          id: commentInfo.id,
+          content: commentInfo.content,
+          user: comments_json.User(
+              id: userInfo.id,
+              name: userInfo.name,
+              level: userInfo.level,
+              title: userInfo.title,
+              avatar: comments_json.Avatar(
+                  fileServer: userInfo.avatar.fileServer,
+                  path: userInfo.avatar.path,
+                  originalName: userInfo.avatar.originalName),
+              character: userInfo.character,
+              gender: userInfo.gender,
+              verified: userInfo.verified,
+              exp: userInfo.exp,
+              role: userInfo.role,
+              characters: userInfo.characters),
+          comic: commentInfo.comic.id,
+          totalComments: commentInfo.totalComments,
+          isTop: false,
+          hide: commentInfo.hide,
+          createdAt: commentInfo.createdAt,
+          docId: commentInfo.id,
+          likesCount: commentInfo.likesCount,
+          commentsCount: commentInfo.commentsCount,
+          isLiked: commentInfo.isLiked,
+        ),
+      ),
+    );
   }
 }
 

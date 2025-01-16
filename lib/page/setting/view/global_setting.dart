@@ -1,10 +1,10 @@
-import 'dart:io';
-
-import 'package:auto_route/annotations.dart';
+import 'package:auto_route/auto_route.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
+
+import '../../../util/router/router.gr.dart';
 
 @RoutePage()
 class GlobalSettingPage extends StatefulWidget {
@@ -22,8 +22,34 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     "深色模式": 2,
   };
 
+  bool _dynamicColorValue = globalSetting.dynamicColor;
+  bool _isAMOLEDValue = globalSetting.isAMOLED;
+
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('全局设置'),
+      ),
+      body: Column(
+        children: [
+          _systemTheme(),
+          _dynamicColor(),
+          _isAMOLED(),
+          if (kDebugMode) ...[
+            ElevatedButton(
+              onPressed: () {
+                AutoRouter.of(context).push(ShowColorRoute());
+              },
+              child: Text("整点颜色看看"),
+            ),
+          ]
+        ],
+      ),
+    );
+  }
+
+  Widget _systemTheme() {
     String currentTheme = "";
 
     // 通过 int 类型的主题模式获取对应的字符串
@@ -39,82 +65,116 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
         break;
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('全局设置'),
-      ),
-      body: Column(
-        children: [
-          Row(
-            children: [
-              SizedBox(width: 10),
-              Text(
-                "主题模式",
-                style: TextStyle(
-                  fontSize: 18,
-                ),
-              ),
-              Expanded(child: Container()),
-              Observer(builder: (context) {
-                return DropdownButton<String>(
-                  value: currentTheme,
-                  // 根据获取的主题设置当前值
-                  icon: const Icon(Icons.expand_more),
-                  onChanged: (String? value) {
-                    if (value != null) {
-                      setState(() {
-                        // 根据选择的主题更新设置
-                        globalSetting.setThemeMode(systemTheme[value]!);
-                      });
-                    }
-                  },
-                  items: systemThemeList.map<DropdownMenuItem<String>>(
-                    (String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(
-                            value), // 或者使用 systemTheme[value]!.toString()，但直接使用字符串更简单
-                      );
-                    },
-                  ).toList(),
-                  style: TextStyle(
-                    color: globalSetting.textColor,
-                    fontSize: 18,
-                  ),
-                );
-              }),
-              SizedBox(width: 10),
-            ],
+    return Row(
+      children: [
+        SizedBox(width: 10),
+        Text(
+          "主题模式",
+          style: TextStyle(
+            fontSize: 18,
           ),
-          ElevatedButton(
-            onPressed: () {
-              objectbox.bikaDownloadBox.removeAll();
-              deleteDirectory(
-                '/data/data/com.zephyr.breeze/files/downloads',
-              );
-              EasyLoading.showSuccess('已清空');
+        ),
+        Expanded(child: Container()),
+        Observer(builder: (context) {
+          return DropdownButton<String>(
+            value: currentTheme,
+            // 根据获取的主题设置当前值
+            icon: const Icon(Icons.expand_more),
+            onChanged: (String? value) {
+              if (value != null) {
+                setState(() {
+                  // 根据选择的主题更新设置
+                  globalSetting.setThemeMode(systemTheme[value]!);
+                });
+              }
             },
-            child: Text("删除所有下载记录及其文件"),
-          ),
-        ],
-      ),
+            items: systemThemeList.map<DropdownMenuItem<String>>(
+              (String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              },
+            ).toList(),
+            style: TextStyle(
+              color: globalSetting.textColor,
+              fontSize: 18,
+            ),
+          );
+        }),
+        SizedBox(width: 10),
+      ],
     );
   }
 
-  Future<void> deleteDirectory(String path) async {
-    final directory = Directory(path);
+  Widget _dynamicColor() {
+    return Row(
+      children: [
+        SizedBox(width: 10),
+        Text(
+          "动态取色",
+          style: TextStyle(
+            fontSize: 18,
+          ),
+        ),
+        SizedBox(width: 5), // 添加间距
+        Tooltip(
+          message: "动态取色是一种根据图片或内容自动调整界面主题颜色的功能。\n"
+              "启用后，系统会分析当前页面的主要颜色，并自动调整界面元素的颜色以匹配整体风格，提供更一致的视觉体验。",
+          triggerMode: TooltipTriggerMode.tap, // 点击触发
+          child: Icon(
+            Icons.help_outline, // 问号图标
+            size: 20,
+            color: materialColorScheme.outlineVariant,
+          ),
+        ),
+        Spacer(),
+        Switch(value: _dynamicColorValue, onChanged: changeDynamicColor),
+        SizedBox(width: 10),
+      ],
+    );
+  }
 
-    // 检查目录是否存在
-    if (await directory.exists()) {
-      try {
-        // 删除目录及其内容
-        await directory.delete(recursive: true);
-        debugPrint('目录已成功删除: $path');
-      } catch (e) {
-        debugPrint('删除目录时发生错误: $e');
-      }
-    } else {
-      debugPrint('目录不存在: $path');
-    }
+  void changeDynamicColor(bool value) {
+    setState(() {
+      _dynamicColorValue = !_dynamicColorValue;
+    });
+    globalSetting.setDynamicColor(_dynamicColorValue);
+  }
+
+  Widget _isAMOLED() {
+    return Row(
+      children: [
+        SizedBox(width: 10),
+        Text(
+          "纯黑模式",
+          style: TextStyle(
+            fontSize: 18,
+          ),
+        ),
+        SizedBox(width: 5), // 添加间距
+        Tooltip(
+          message: "纯黑模式专为 AMOLED 屏幕设计。\n"
+              "由于 AMOLED 屏幕的像素点可以单独发光，显示纯黑色时像素点会完全关闭，从而达到省电的效果。\n"
+              "如果您的设备不是 AMOLED 屏幕，开启此模式将不会有明显的省电效果。",
+          triggerMode: TooltipTriggerMode.tap, // 点击触发
+          child: Icon(
+            Icons.help_outline, // 问号图标
+            size: 20,
+            color: materialColorScheme.outlineVariant,
+          ),
+        ),
+        Spacer(),
+        Switch(value: _isAMOLEDValue, onChanged: changeIsAMOLED),
+        SizedBox(width: 10),
+      ],
+    );
+  }
+
+  void changeIsAMOLED(bool value) {
+    setState(() {
+      _isAMOLEDValue = !_isAMOLEDValue;
+    });
+    globalSetting.setIsAMOLED(_isAMOLEDValue);
   }
 }

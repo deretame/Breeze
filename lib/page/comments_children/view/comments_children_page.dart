@@ -125,8 +125,8 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
                       // color: Colors.grey[200], // 背景色
                       border: Border.all(
                         color: globalSetting.themeType
-                            ? Colors.grey.withValues(alpha: 1)
-                            : Colors.white.withValues(alpha: 0.5),
+                            ? materialColorScheme.secondaryFixedDim
+                            : materialColorScheme.secondaryFixedDim,
                       ), // 边框
                       borderRadius: BorderRadius.circular(8.0), // 圆角
                     ),
@@ -348,7 +348,7 @@ class _CommentWidgetState extends State<_CommentWidget> {
     return Container(
       width: screenHeight,
       height: 5,
-      color: primaryColor,
+      color: materialColorScheme.onInverseSurface,
     );
   }
 }

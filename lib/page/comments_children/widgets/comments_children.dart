@@ -53,117 +53,116 @@ class _CommentsChildrenWidgetState extends State<CommentsChildrenWidget>
       builder: (context) {
         return Center(
           child: SizedBox(
-              width: screenWidth * (48 / 50),
-              child: Column(
-                children: [
-                  InkWell(
-                    onLongPress: () async {
-                      var result = await showConfirmationDialog();
-                      debugPrint(result.toString());
-                      if (result) {
-                        try {
-                          await reportComments(commentInfo.id);
-                          EasyLoading.showSuccess("举报成功");
-                        } catch (e) {
-                          EasyLoading.showError("举报失败：${e.toString()}");
-                          debugPrint(e.toString());
-                        }
+            width: screenWidth * (48 / 50),
+            child: Column(
+              children: [
+                InkWell(
+                  onLongPress: () async {
+                    var result = await showConfirmationDialog();
+                    debugPrint(result.toString());
+                    if (result) {
+                      try {
+                        await reportComments(commentInfo.id);
+                        EasyLoading.showSuccess("举报成功");
+                      } catch (e) {
+                        EasyLoading.showError("举报失败：${e.toString()}");
+                        debugPrint(e.toString());
                       }
-                    },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start, // 左对齐
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.start, // 横向居左
-                          crossAxisAlignment: CrossAxisAlignment.start, // 顶部对齐
-                          children: [
-                            Builder(builder: (context) {
-                              return ImagerWidget(
-                                key: ValueKey(commentInfo.id),
-                                pictureInfo: PictureInfo(
-                                  url: commentInfo.user.avatar!.fileServer,
-                                  path: commentInfo.user.avatar!.path,
-                                  cartoonId: commentInfo.user.id,
-                                  pictureType: "creator",
-                                  chapterId: commentInfo.id,
-                                  from: "bika",
+                    }
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start, // 左对齐
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.start, // 横向居左
+                        crossAxisAlignment: CrossAxisAlignment.start, // 顶部对齐
+                        children: [
+                          Builder(builder: (context) {
+                            return ImagerWidget(
+                              key: ValueKey(commentInfo.id),
+                              pictureInfo: PictureInfo(
+                                url: commentInfo.user.avatar!.fileServer,
+                                path: commentInfo.user.avatar!.path,
+                                cartoonId: commentInfo.user.id,
+                                pictureType: "creator",
+                                chapterId: commentInfo.id,
+                                from: "bika",
+                              ),
+                              commentId: commentInfo.id,
+                            );
+                          }),
+                          SizedBox(width: 10),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(commentInfo.user.name),
+                                Text(
+                                  "level:${commentInfo.user.level} (${commentInfo.user.title})",
+                                  style: TextStyle(
+                                    color: globalSetting.themeType
+                                        ? Colors.red
+                                        : Colors.yellow,
+                                  ),
                                 ),
-                                commentId: commentInfo.id,
-                              );
-                            }),
-                            SizedBox(width: 10),
-                            Flexible(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(commentInfo.user.name),
-                                  Text(
-                                    "level:${commentInfo.user.level} (${commentInfo.user.title})",
-                                    style: TextStyle(
-                                      color: globalSetting.themeType
-                                          ? Colors.red
-                                          : Colors.yellow,
-                                    ),
+                                Text(
+                                  commentInfo.content,
+                                  style: TextStyle(
+                                    color: globalSetting.textColor,
                                   ),
-                                  Text(
-                                    commentInfo.content,
-                                    style: TextStyle(
-                                      color: globalSetting.textColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        SizedBox(height: 5),
-                        Row(
-                          children: [
-                            Text(
-                              index.toString(),
-                              style: TextStyle(
-                                fontFamily: "LeckerliOne-Regular",
-                                // fontSize: 14,
-                              ),
-                            ),
-                            Text(" / "),
-                            Text(timeDecode(commentInfo.createdAt)),
-                            Spacer(),
-                            GestureDetector(
-                              onTap: () {
-                                _likeComment(commentInfo.id);
-                              },
-                              child: Icon(
-                                like ? Icons.favorite : Icons.favorite_border,
-                                size: 14,
-                                color:
-                                    like ? Colors.red : globalSetting.textColor,
-                              ),
-                            ),
-                            SizedBox(width: 5),
-                            Text(likeCountStore.date.toString()),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.center,
-                    child: SizedBox(
-                      width: screenWidth * (48 / 50), // 设置宽度
-                      child: Divider(
-                        color: globalSetting.themeType
-                            ? Colors.grey.withValues(alpha: 0.5)
-                            : Colors.white.withValues(alpha: 0.5),
-                        thickness: 1,
-                        height: 10,
+                          ),
+                        ],
                       ),
+                      SizedBox(height: 5),
+                      Row(
+                        children: [
+                          Text(
+                            index.toString(),
+                            style: TextStyle(
+                              fontFamily: "LeckerliOne-Regular",
+                              // fontSize: 14,
+                            ),
+                          ),
+                          Text(" / "),
+                          Text(timeDecode(commentInfo.createdAt)),
+                          Spacer(),
+                          GestureDetector(
+                            onTap: () {
+                              _likeComment(commentInfo.id);
+                            },
+                            child: Icon(
+                              like ? Icons.favorite : Icons.favorite_border,
+                              size: 14,
+                              color:
+                                  like ? Colors.red : globalSetting.textColor,
+                            ),
+                          ),
+                          SizedBox(width: 5),
+                          Text(likeCountStore.date.toString()),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    width: screenWidth * (48 / 50), // 设置宽度
+                    child: Divider(
+                      color: materialColorScheme.secondaryFixedDim,
+                      thickness: 1,
+                      height: 10,
                     ),
                   ),
-                ],
-              )),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );

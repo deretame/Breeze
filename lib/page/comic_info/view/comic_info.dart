@@ -271,20 +271,20 @@ class _ComicInfoState extends State<_ComicInfo>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    const SizedBox(height: 10),
+                    // const SizedBox(height: 10),
                     ComicParticularsWidget(comicInfo: comicInfo),
                     const SizedBox(height: 10),
                     TagsAndCategoriesWidget(
                       comicInfo: comicInfo,
                       type: 'categories',
                     ),
-                    const SizedBox(height: 3),
+                    // const SizedBox(height: 3),
                     if (comicInfo.tags.isNotEmpty) ...[
                       TagsAndCategoriesWidget(
                         comicInfo: comicInfo,
                         type: 'tags',
                       ),
-                      const SizedBox(height: 3),
+                      // const SizedBox(height: 3),
                     ],
                     if (comicInfo.description != '') ...[
                       SynopsisWidget(comicInfo: comicInfo),
@@ -311,6 +311,7 @@ class _ComicInfoState extends State<_ComicInfo>
                       type: _type,
                     ),
                     const SizedBox(height: 85),
+                    const SizedBox(height: 30),
                   ],
                 ),
               ),

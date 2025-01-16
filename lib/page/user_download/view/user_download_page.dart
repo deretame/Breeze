@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/page/user_download/user_download.dart';
 
@@ -93,15 +96,7 @@ class _UserDownloadPageState extends State<_UserDownloadPage>
                               itemBuilder: (BuildContext context, int index) {
                                 // 如果索引等于状态的 comics.length
                                 if (index == state.comics.length) {
-                                  return const Center(
-                                    child: Padding(
-                                      padding: EdgeInsets.all(30.0),
-                                      child: Text(
-                                        '你来到了未知领域呢~',
-                                        style: TextStyle(fontSize: 20.0),
-                                      ),
-                                    ),
-                                  );
+                                  return _deletingDialog();
                                 }
 
                                 return index >= state.comics.length
@@ -136,12 +131,10 @@ class _UserDownloadPageState extends State<_UserDownloadPage>
                   color: globalSetting.backgroundColor,
                   boxShadow: [
                     BoxShadow(
-                      color: globalSetting.themeType
-                          ? Colors.black.withValues(alpha: 0.2)
-                          : Colors.white.withValues(alpha: 0.3),
-                      spreadRadius: 2,
+                      color: materialColorScheme.secondaryFixedDim,
+                      spreadRadius: 0,
                       blurRadius: 2,
-                      offset: const Offset(0, 2),
+                      offset: const Offset(0, 0),
                     ),
                   ],
                 ),
@@ -217,5 +210,69 @@ class _UserDownloadPageState extends State<_UserDownloadPage>
         _searchEnter = SearchEnter.fromConst(searchEnterConst);
       });
     });
+  }
+
+  Future<void> deleteDirectory(String path) async {
+    final directory = Directory(path);
+
+    // 检查目录是否存在
+    if (await directory.exists()) {
+      try {
+        // 删除目录及其内容
+        await directory.delete(recursive: true);
+        debugPrint('目录已成功删除: $path');
+      } catch (e) {
+        debugPrint('删除目录时发生错误: $e');
+      }
+    } else {
+      debugPrint('目录不存在: $path');
+    }
+  }
+
+  Widget _deletingDialog() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(30.0),
+        child: ElevatedButton(
+          onPressed: () {
+            // 弹出确认对话框
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('确认删除'),
+                  content: Text('确定要删除所有下载记录及其文件吗？此操作不可恢复！'),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        // 关闭对话框
+                        Navigator.of(context).pop();
+                      },
+                      child: Text('取消'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        // 执行删除操作
+                        objectbox.bikaDownloadBox.removeAll();
+                        deleteDirectory(
+                          '/data/data/com.zephyr.breeze/files/downloads',
+                        );
+                        refresh(searchEnterConst);
+                        EasyLoading.showSuccess('已清空');
+
+                        // 关闭对话框
+                        Navigator.of(context).pop();
+                      },
+                      child: Text('确认'),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+          child: const Text("删除所有下载记录及其文件"),
+        ),
+      ),
+    );
   }
 }

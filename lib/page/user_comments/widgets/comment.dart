@@ -101,8 +101,8 @@ class _CommentsWidgetState extends State<CommentsWidget>
                                   "level:${userInfo.level} (${userInfo.title})",
                                   style: TextStyle(
                                     color: globalSetting.themeType
-                                        ? Colors.red
-                                        : Colors.yellow,
+                                        ? materialColorScheme.tertiary
+                                        : materialColorScheme.tertiary,
                                   ),
                                 ),
                                 Text(
@@ -131,7 +131,8 @@ class _CommentsWidgetState extends State<CommentsWidget>
                               },
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: primaryColor, // 背景颜色
+                                  color: materialColorScheme.onInverseSurface,
+                                  // 背景颜色
                                   borderRadius:
                                       BorderRadius.circular(5.0), // 圆角
                                 ),
@@ -139,7 +140,9 @@ class _CommentsWidgetState extends State<CommentsWidget>
                                   padding: const EdgeInsets.all(5),
                                   child: Text(
                                     commentInfo.comic.title.toString(),
-                                    style: TextStyle(color: primaryTextStyle),
+                                    style: TextStyle(
+                                      color: materialColorScheme.surfaceTint,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -191,8 +194,8 @@ class _CommentsWidgetState extends State<CommentsWidget>
                     width: screenWidth * (48 / 50), // 设置宽度
                     child: Divider(
                       color: globalSetting.themeType
-                          ? Colors.grey.withValues(alpha: 0.5)
-                          : Colors.white.withValues(alpha: 0.5),
+                          ? materialColorScheme.secondaryFixedDim
+                          : materialColorScheme.secondaryFixedDim,
                       thickness: 1,
                       height: 10,
                     ),

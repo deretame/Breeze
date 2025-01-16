@@ -1,6 +1,6 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
-version: 1.20.3+61
+version: 1.21.0+62
 
 environment:
   sdk: ">=3.0.0"
@@ -27,9 +27,10 @@ dependencies:
   mobx: ^2.5.0                  # 响应式状态管理
   mobx_codegen: ^2.7.0          # MobX 代码生成器
   flutter_mobx: ^2.3.0          # MobX 的 Flutter 绑定
-  bloc: ^8.1.4                  # BLoC 核心库
-  flutter_bloc: ^8.1.6          # BLoC 模式实现
-  bloc_concurrency: ^0.2.5      # BLoC 并发控制
+  bloc: ^9.0.0                  # BLoC 核心库
+  flutter_bloc: ^9.0.0          # BLoC 模式实现
+  bloc_concurrency: ^0.3.0      # BLoC 并发控制
+  #  flutter_displaymode: ^0.6.0   # 屏幕管理
 
   # --------------- 数据存储与处理 ---------------
   hive: ^2.2.3                   # 轻量级键值对数据库

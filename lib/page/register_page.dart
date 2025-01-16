@@ -171,25 +171,27 @@ class _RegisterPageState extends State<RegisterPage> {
             const SizedBox(height: 10), // 用于添加空间
             Row(
               children: <Widget>[
-                ToggleSwitch(
-                  initialLabelIndex: 0,
-                  totalSwitches: 3,
-                  minWidth: double.maxFinite,
-                  inactiveBgColor: Colors.white,
-                  dividerColor: Colors.blue,
-                  borderColor: [Colors.blue],
-                  borderWidth: 1.0,
-                  labels: ['绅士', '淑女', '机器人'],
-                  onToggle: (index) {
-                    debugPrint('switched to: $index');
-                    if (index == 0) {
-                      _gender = "m";
-                    } else if (index == 1) {
-                      _gender = "f";
-                    } else {
-                      _gender = "bot";
-                    }
-                  },
+                Expanded(
+                  child: ToggleSwitch(
+                    initialLabelIndex: 0,
+                    totalSwitches: 3,
+                    minWidth: double.maxFinite,
+                    inactiveBgColor: materialColorScheme.surfaceBright,
+                    dividerColor: materialColorScheme.secondaryFixedDim,
+                    borderColor: [materialColorScheme.secondaryFixedDim],
+                    borderWidth: 1.0,
+                    labels: ['绅士', '淑女', '机器人'],
+                    onToggle: (index) {
+                      debugPrint('switched to: $index');
+                      if (index == 0) {
+                        _gender = "m";
+                      } else if (index == 1) {
+                        _gender = "f";
+                      } else {
+                        _gender = "bot";
+                      }
+                    },
+                  ),
                 ),
               ],
             ),

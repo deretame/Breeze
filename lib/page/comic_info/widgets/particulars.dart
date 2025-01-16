@@ -72,8 +72,8 @@ class ComicParticularsWidget extends StatelessWidget {
                           '作者：${comicInfo.author}',
                           style: TextStyle(
                             color: globalSetting.themeType
-                                ? Colors.red
-                                : Colors.yellow,
+                                ? materialColorScheme.primary
+                                : materialColorScheme.primary,
                           ),
                         ),
                       ),
@@ -103,8 +103,8 @@ class ComicParticularsWidget extends StatelessWidget {
                           '汉化组：${comicInfo.chineseTeam}',
                           style: TextStyle(
                             color: globalSetting.themeType
-                                ? Colors.blue.shade300
-                                : Colors.blue.shade800,
+                                ? materialColorScheme.primary
+                                : materialColorScheme.primary,
                           ),
                         ),
                       ),

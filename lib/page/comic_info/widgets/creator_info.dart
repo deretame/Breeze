@@ -59,9 +59,9 @@ class CreatorInfoWidget extends StatelessWidget {
               boxShadow: [
                 BoxShadow(
                   color: globalSetting.themeType
-                      ? Colors.black.withValues(alpha: 0.2)
-                      : Colors.white.withValues(alpha: 0.2),
-                  spreadRadius: 2,
+                      ? materialColorScheme.secondaryFixedDim
+                      : materialColorScheme.secondaryFixedDim,
+                  spreadRadius: 0,
                   blurRadius: 2,
                 ),
               ],
@@ -89,8 +89,10 @@ class CreatorInfoWidget extends StatelessWidget {
                     children: <Widget>[
                       Text(
                         comicInfo.creator.name,
-                        style: const TextStyle(
-                          color: Colors.red,
+                        style: TextStyle(
+                          color: globalSetting.themeType
+                              ? materialColorScheme.tertiary
+                              : materialColorScheme.tertiary,
                         ),
                       ),
                       Text(

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:ui';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -17,9 +17,6 @@ import '../../../object_box/model.dart';
 import '../../../object_box/objectbox.g.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/comic_entry/comic_entry.dart';
-import '../../../widgets/full_screen_image_view.dart';
-import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
-import '../../../widgets/picture_bloc/models/picture_info.dart';
 import '../../comic_info/json/comic_info/comic_info.dart';
 import '../../download/json/comic_all_info_json/comic_all_info_json.dart'
     as comic_all_info_json;
@@ -111,6 +108,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
   bool _isSliderRolling = false; // 滑块是否在滑动
   Timer? comicRollingTimer; // 漫画本身是否在滚动
   bool _isComicRolling = false; // 漫画本身是否在滚动
+  OverlayEntry? _overlayEntry; // 用于存储 OverlayEntry
 
   @override
   void initState() {
@@ -157,6 +155,9 @@ class _ComicReadPageState extends State<_ComicReadPage>
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _itemPositionsListener.itemPositions
         .removeListener(() => getTopThirdItemIndex());
+    _overlayEntry?.remove(); // 移除 Overlay
+    _sliderIsRollingTimer?.cancel(); // 取消定时器
+    comicRollingTimer?.cancel(); // 取消滚动定时器
     super.dispose();
   }
 
@@ -313,7 +314,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                     ),
                   );
                 } else {
-                  return _ImageWidget(
+                  return ReadImageWidget(
                     media: medias[index - 1],
                     comicId: comicId,
                     epsId: _doc.order,
@@ -343,22 +344,30 @@ class _ComicReadPageState extends State<_ComicReadPage>
       // 隐藏时往上移动
       left: 0,
       right: 0,
-      child: AppBar(
-        title: Text(_doc.title),
-        backgroundColor: globalSetting.backgroundColor,
-        elevation: _isVisible ? 4.0 : 0.0, // 添加阴影效果
-        actions: <Widget>[
-          Observer(builder: (context) {
-            return IconButton(
-              icon: globalSetting.themeMode == ThemeMode.system
-                  ? Icon(Icons.brightness_auto_rounded)
-                  : Icon(Icons.brightness_auto_outlined),
-              onPressed: () {
-                globalSetting.setThemeMode(0);
-              },
-            );
-          }),
-        ],
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // 高斯模糊强度
+          child: AppBar(
+            title: Text(_doc.title),
+            backgroundColor:
+                globalSetting.backgroundColor.withValues(alpha: 0.5),
+            // 半透明背景
+            elevation: _isVisible ? 4.0 : 0.0,
+            // 添加阴影效果
+            actions: <Widget>[
+              Observer(builder: (context) {
+                return IconButton(
+                  icon: globalSetting.themeMode == ThemeMode.system
+                      ? Icon(Icons.brightness_auto_rounded)
+                      : Icon(Icons.brightness_auto_outlined),
+                  onPressed: () {
+                    globalSetting.setThemeMode(0);
+                  },
+                );
+              }),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -367,20 +376,29 @@ class _ComicReadPageState extends State<_ComicReadPage>
     return Positioned(
       bottom: 0, // 离底部的间距
       left: 0, // 离右边的间距
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: globalSetting.backgroundColor,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(0), // 左上角保持直角
-            topRight: Radius.circular(10), // 右上角设置圆角
-            bottomLeft: Radius.circular(0), // 左下角保持直角
-            bottomRight: Radius.circular(0), // 右下角保持直角
-          ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(10), // 右上角设置圆角
         ),
-        child: Text(
-          " ${pageIndex - 1}/$epPages", // 显示当前页数
-          style: TextStyle(color: globalSetting.textColor),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // 高斯模糊强度
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: globalSetting.backgroundColor.withValues(alpha: 0.7),
+              // 半透明背景
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(0), // 左上角保持直角
+                topRight: Radius.circular(10), // 右上角设置圆角
+                bottomLeft: Radius.circular(0), // 左下角保持直角
+                bottomRight: Radius.circular(0), // 右下角保持直角
+              ),
+            ),
+            child: Text(
+              " ${pageIndex - 1}/$epPages", // 显示当前页数
+              style: TextStyle(color: globalSetting.textColor),
+            ),
+          ),
         ),
       ),
     );
@@ -395,171 +413,177 @@ class _ComicReadPageState extends State<_ComicReadPage>
     if (_type == ComicEntryType.history) {
       tempType = ComicEntryType.normal;
     }
-    // debugPrint('bottomWidget type: ${tempType.name}');
     return Observer(builder: (context) {
       return AnimatedPositioned(
         duration: _animationDuration,
         bottom: _isVisible ? 0 : -_bottomWidgetHeight.toDouble(),
         left: 0,
         right: 0,
-        child: Container(
-          height: _bottomWidgetHeight.toDouble(),
-          width: screenWidth,
-          color: globalSetting.backgroundColor,
-          child: Column(
-            children: [
-              Row(
+        child: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // 高斯模糊强度
+            child: Container(
+              height: _bottomWidgetHeight.toDouble(),
+              width: screenWidth,
+              color: globalSetting.backgroundColor.withValues(alpha: 0.5),
+              // 半透明背景
+              child: Column(
                 children: [
-                  SizedBox(width: 10),
-                  GestureDetector(
-                    child: Text("上一章"),
-                    onTap: () async {
-                      if (_doc.order == epsInfo[0].order) {
-                        EasyLoading.showInfo("已经是第一章了");
-                        return;
-                      }
-                      final result = await _bottomButtonDialog(
-                        context,
-                        '跳转',
-                        '是否要跳转到上一章？',
-                        epsInfo[_doc.order - 2],
-                      );
-                      if (result && mounted) {
-                        router.popAndPush(
-                          ComicReadRoute(
-                            comicInfo: comicInfo,
-                            epsInfo: epsInfo,
-                            doc: epsInfo[_doc.order - 2],
-                            comicId: comicInfo.id,
-                            type: tempType,
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                  _sliderWidget(),
-                  GestureDetector(
-                    child: Text("下一章"),
-                    onTap: () async {
-                      debugPrint('下一章');
-                      if (_doc.order == epsInfo[epsInfo.length - 1].order) {
-                        EasyLoading.showInfo("已经是最后一章了");
-                        return;
-                      }
-
-                      final result = await _bottomButtonDialog(
-                        context,
-                        '跳转',
-                        '是否要跳转到下一章？',
-                        epsInfo[_doc.order],
-                      );
-                      if (result) {
-                        router.popAndPush(
-                          ComicReadRoute(
-                            comicInfo: comicInfo,
-                            epsInfo: epsInfo,
-                            doc: epsInfo[_doc.order],
-                            comicId: comicInfo.id,
-                            type: tempType,
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                  SizedBox(width: 10),
-                ],
-              ),
-              Center(
-                child: Container(
-                  height: 1, // 设置高度为1像素
-                  width: screenWidth * 48 / 50,
-                  color: globalSetting.themeType
-                      ? Colors.grey.withValues(alpha: 0.5)
-                      : Colors.white.withValues(alpha: 0.5),
-                ),
-              ),
-              Row(
-                children: [
-                  Spacer(),
-                  Expanded(
-                    child: Center(
-                      child: IconButton(
-                        icon: globalSetting.themeMode == ThemeMode.light
-                            ? Icon(Icons.brightness_7)
-                            : Icon(Icons.brightness_5_outlined),
-                        onPressed: () {
-                          globalSetting.setThemeMode(1);
+                  Row(
+                    children: [
+                      SizedBox(width: 10),
+                      GestureDetector(
+                        child: Text("上一章"),
+                        onTap: () async {
+                          if (_doc.order == epsInfo[0].order) {
+                            EasyLoading.showInfo("已经是第一章了");
+                            return;
+                          }
+                          final result = await _bottomButtonDialog(
+                            context,
+                            '跳转',
+                            '是否要跳转到上一章？',
+                            epsInfo[_doc.order - 2],
+                          );
+                          if (result && mounted) {
+                            router.popAndPush(
+                              ComicReadRoute(
+                                comicInfo: comicInfo,
+                                epsInfo: epsInfo,
+                                doc: epsInfo[_doc.order - 2],
+                                comicId: comicInfo.id,
+                                type: tempType,
+                              ),
+                            );
+                          }
                         },
                       ),
+                      _sliderWidget(),
+                      GestureDetector(
+                        child: Text("下一章"),
+                        onTap: () async {
+                          debugPrint('下一章');
+                          if (_doc.order == epsInfo[epsInfo.length - 1].order) {
+                            EasyLoading.showInfo("已经是最后一章了");
+                            return;
+                          }
+
+                          final result = await _bottomButtonDialog(
+                            context,
+                            '跳转',
+                            '是否要跳转到下一章？',
+                            epsInfo[_doc.order],
+                          );
+                          if (result) {
+                            router.popAndPush(
+                              ComicReadRoute(
+                                comicInfo: comicInfo,
+                                epsInfo: epsInfo,
+                                doc: epsInfo[_doc.order],
+                                comicId: comicInfo.id,
+                                type: tempType,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                      SizedBox(width: 10),
+                    ],
+                  ),
+                  Center(
+                    child: Container(
+                      height: 1, // 设置高度为1像素
+                      width: screenWidth * 48 / 50,
+                      color: globalSetting.themeType
+                          ? materialColorScheme.secondaryFixedDim
+                          : materialColorScheme.secondaryFixedDim,
                     ),
                   ),
-                  Spacer(),
-                  SizedBox(
-                    height: 51,
-                    child: GestureDetector(
-                      onTap: () async {
-                        final result = await showDialog<int?>(
-                            context: context,
-                            barrierDismissible: false, // 不允许点击外部区域关闭对话框
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: Text('选择章节'),
-                                content: SingleChildScrollView(
-                                  child: ListBody(
-                                    children: [
-                                      for (final ep in epsInfo)
-                                        TextButton(
-                                          child: Text(ep.title),
-                                          onPressed: () {
-                                            Navigator.of(context).pop(ep.order);
-                                          },
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                                actions: [
-                                  TextButton(
-                                    child: Text('取消'),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                ],
-                              );
-                            });
-                        if (result != null && mounted) {
-                          router.popAndPush(
-                            ComicReadRoute(
-                              comicInfo: comicInfo,
-                              epsInfo: epsInfo,
-                              doc: epsInfo[result - 1],
-                              comicId: comicInfo.id,
-                              type: tempType,
-                            ),
-                          );
-                        }
-                      },
-                      child: Center(
-                        child: Text(
-                          '跳转章节',
-                          style: TextStyle(fontSize: 16),
+                  Row(
+                    children: [
+                      Spacer(),
+                      Expanded(
+                        child: Center(
+                          child: IconButton(
+                            icon: globalSetting.themeMode == ThemeMode.light
+                                ? Icon(Icons.brightness_7)
+                                : Icon(Icons.brightness_5_outlined),
+                            onPressed: () {
+                              globalSetting.setThemeMode(1);
+                            },
+                          ),
                         ),
                       ),
-                    ),
+                      Spacer(),
+                      SizedBox(
+                        height: 51,
+                        child: GestureDetector(
+                          onTap: () async {
+                            final result = await showDialog<int?>(
+                                context: context,
+                                barrierDismissible: false, // 不允许点击外部区域关闭对话框
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text('选择章节'),
+                                    content: SingleChildScrollView(
+                                      child: ListBody(
+                                        children: [
+                                          for (final ep in epsInfo)
+                                            TextButton(
+                                              child: Text(ep.title),
+                                              onPressed: () {
+                                                Navigator.of(context)
+                                                    .pop(ep.order);
+                                              },
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        child: Text('取消'),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                });
+                            if (result != null && mounted) {
+                              router.popAndPush(
+                                ComicReadRoute(
+                                  comicInfo: comicInfo,
+                                  epsInfo: epsInfo,
+                                  doc: epsInfo[result - 1],
+                                  comicId: comicInfo.id,
+                                  type: tempType,
+                                ),
+                              );
+                            }
+                          },
+                          child: Center(
+                            child: Text(
+                              '跳转章节',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Spacer(),
+                      IconButton(
+                        icon: globalSetting.themeMode == ThemeMode.dark
+                            ? Icon(Icons.brightness_2_rounded)
+                            : Icon(Icons.brightness_2_outlined),
+                        onPressed: () {
+                          globalSetting.setThemeMode(2);
+                        },
+                      ),
+                      Spacer(),
+                    ],
                   ),
-                  Spacer(),
-                  IconButton(
-                    icon: globalSetting.themeMode == ThemeMode.dark
-                        ? Icon(Icons.brightness_2_rounded)
-                        : Icon(Icons.brightness_2_outlined),
-                    onPressed: () {
-                      globalSetting.setThemeMode(2);
-                    },
-                  ),
-                  Spacer(),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       );
@@ -572,34 +596,38 @@ class _ComicReadPageState extends State<_ComicReadPage>
       maxValue = _totalSlots.toDouble() - 1;
     }
     return Expanded(
-      // 使 Slider 占用剩余空间
       child: Slider(
         value: _currentSliderValue,
         min: 0,
         max: maxValue,
-        divisions: _totalSlots,
         label: (_currentSliderValue.toInt() + 1).toString(),
         onChanged: (double newValue) {
           setState(() {
-            _currentSliderValue = newValue; // 实时更新滑块值
-            _sliderIsRollingTimer?.cancel(); // 取消之前的定时器
-            _isSliderRolling = true; // 开始滑动状态
+            _currentSliderValue = newValue;
+            _sliderIsRollingTimer?.cancel();
+            _isSliderRolling = true;
           });
+
+          // 显示 Overlay 提示框
+          _showOverlayToast((newValue.toInt() + 1).toString());
 
           // 设置新的定时器以防止多次触发
           _sliderIsRollingTimer = Timer(const Duration(milliseconds: 300), () {
             setState(() {
-              _isSliderRolling = false; // 停止滑动状态
-              // 更新显示的槽位
+              _isSliderRolling = false;
               displayedSlot = newValue.toInt() + 1;
 
-              _isComicRolling = true; // 开始滚动状态
-              _isSliderRolling = true; // 开始滑动状态
+              _isComicRolling = true;
+              _isSliderRolling = true;
               comicRollingTimer = Timer(const Duration(milliseconds: 350), () {
                 setState(() {
-                  _isComicRolling = false; // 停止滚动状态
+                  _isComicRolling = false;
                   _isSliderRolling = false;
                 });
+
+                // 移除 Overlay 提示框
+                _overlayEntry?.remove();
+                _overlayEntry = null;
               });
 
               // 滚动到指定的索引
@@ -610,12 +638,54 @@ class _ComicReadPageState extends State<_ComicReadPage>
               );
             });
 
-            // 打印调试信息
             debugPrint('滑块值：$newValue , 显示的槽位：$displayedSlot');
           });
         },
       ),
     );
+  }
+
+  void _showOverlayToast(String message) {
+    // 移除之前的 Overlay
+    _overlayEntry?.remove();
+
+    // 创建新的 OverlayEntry
+    _overlayEntry = OverlayEntry(
+      builder: (context) {
+        return Stack(
+          children: [
+            // 提示信息
+            Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8.0),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                  child: Container(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 48.0, vertical: 24.0),
+                    decoration: BoxDecoration(
+                      color: materialColorScheme.surfaceBright
+                          .withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      message,
+                      style: TextStyle(
+                        fontSize: 60,
+                        color: globalSetting.textColor,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    // 插入 Overlay
+    Overlay.of(context).insert(_overlayEntry!);
   }
 
   Future<bool> _bottomButtonDialog(
@@ -649,13 +719,6 @@ class _ComicReadPageState extends State<_ComicReadPage>
           },
         ) ??
         false; // 处理返回值为空的情况
-  }
-
-  // 切换状态栏和AppBar的显示状态
-  void toggleVisibility() {
-    setState(() {
-      _isVisible = !_isVisible;
-    });
   }
 
   Future<void> updateIndex() async {
@@ -734,221 +797,10 @@ class _ComicReadPageState extends State<_ComicReadPage>
         setState(() {
           _isVisible = false;
         });
-      } else if (firstItemIndex < _lastScrollIndex &&
-          _isSliderRolling == false) {
-        // 向上滚动
-        debugPrint('向上滚动');
-        setState(() {
-          _isVisible = false;
-        });
       }
 
       // 更新记录的滚动索引
       _lastScrollIndex = firstItemIndex;
     }
-  }
-}
-
-class _ImageWidget extends StatefulWidget {
-  final String comicId;
-  final int epsId;
-  final Media media;
-  final int index;
-  final String chapterId;
-
-  const _ImageWidget({
-    required this.media,
-    required this.comicId,
-    required this.epsId,
-    required this.index,
-    required this.chapterId,
-  });
-
-  @override
-  State<_ImageWidget> createState() => _ImageWidgetState();
-}
-
-class _ImageWidgetState extends State<_ImageWidget>
-    with AutomaticKeepAliveClientMixin {
-  String get comicId => widget.comicId;
-
-  int get epsId => widget.epsId;
-
-  Media get media => widget.media;
-
-  int get index => widget.index;
-
-  String get chapterId => widget.chapterId;
-
-  @override
-  bool get wantKeepAlive => true;
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    return BlocProvider(
-      create: (context) => PictureBloc()
-        ..add(
-          GetPicture(
-            PictureInfo(
-              from: "bika",
-              url: media.fileServer,
-              path: media.path,
-              cartoonId: comicId,
-              pictureType: "comic",
-              chapterId: chapterId,
-            ),
-          ),
-        ),
-      child: SizedBox(
-        width: screenWidth,
-        child: BlocBuilder<PictureBloc, PictureLoadState>(
-          builder: (context, state) {
-            switch (state.status) {
-              case PictureLoadStatus.initial:
-                return Container(
-                  color: Color(0xFF2D2D2D),
-                  width: screenWidth,
-                  height: screenWidth,
-                  child: Center(
-                    child: Text(
-                      (index + 1).toString(),
-                      style: TextStyle(
-                        fontFamily: 'Pacifico-Regular',
-                        color: Color(0xFFCCCCCC),
-                        fontSize: 150,
-                      ),
-                    ),
-                  ),
-                );
-              case PictureLoadStatus.success:
-                return GestureDetector(
-                  onLongPress: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            FullScreenImageView(imagePath: state.imagePath!),
-                      ),
-                    );
-                  },
-                  child: Hero(
-                    tag: state.imagePath!,
-                    child: _ImageDisplay(imagePath: state.imagePath!),
-                  ),
-                );
-              case PictureLoadStatus.failure:
-                if (state.result.toString().contains('404')) {
-                  return SizedBox(
-                    height: screenWidth,
-                    width: screenWidth,
-                    child: Image.asset('asset/image/error_image/404.png'),
-                  );
-                } else {
-                  return Container(
-                    color: Color(0xFF2D2D2D),
-                    height: screenWidth,
-                    width: screenWidth,
-                    child: InkWell(
-                      onTap: () {
-                        context.read<PictureBloc>().add(
-                              GetPicture(
-                                PictureInfo(
-                                  from: "bika",
-                                  url: media.fileServer,
-                                  path: media.path,
-                                  cartoonId: comicId,
-                                  pictureType: "comic",
-                                  chapterId: chapterId,
-                                ),
-                              ),
-                            );
-                      },
-                      child: Center(
-                        child: Text(
-                          "${state.result.toString()}\n加载失败，点击重试",
-                          style: TextStyle(
-                            fontSize: 20,
-                            color: Color(0xFFCCCCCC),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  );
-                }
-            }
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _ImageDisplay extends StatefulWidget {
-  final String imagePath;
-
-  const _ImageDisplay({required this.imagePath});
-
-  @override
-  State<_ImageDisplay> createState() => _ImageDisplayState();
-}
-
-class _ImageDisplayState extends State<_ImageDisplay> {
-  double imageWidth = screenWidth;
-  double imageHeight = screenWidth;
-
-  bool _isMounted = false; // 标志，指示 Widget 是否仍挂载
-
-  @override
-  void initState() {
-    super.initState();
-    _isMounted = true; // Widget 初始化时认为它是挂载的
-    _getImageResolution(widget.imagePath);
-  }
-
-  Future<void> _getImageResolution(String imagePath) async {
-    final Completer<void> completer = Completer();
-    final Image image = Image.file(File(imagePath));
-
-    // 监听图片解析完成
-    image.image.resolve(ImageConfiguration()).addListener(
-      ImageStreamListener((ImageInfo imageInfo, _) {
-        // 只有在 Widget 仍挂载时才调用 setState
-        if (_isMounted) {
-          setState(() {
-            imageWidth = imageInfo.image.width.toDouble();
-            imageHeight = imageInfo.image.height.toDouble();
-          });
-        }
-        completer.complete();
-      }),
-    );
-
-    await completer.future; // 等待解析完成
-  }
-
-  @override
-  void dispose() {
-    _isMounted = false; // Widget 暴露时，设置为未挂载
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final double screenWidth = MediaQuery.of(context).size.width;
-
-    return SizedBox(
-      width: screenWidth,
-      height: imageHeight != screenWidth
-          ? (imageHeight * (screenWidth / imageWidth))
-          : screenWidth, // 动态计算高度
-      child: imageWidth != screenWidth && imageHeight != screenWidth
-          ? Image.file(
-              File(widget.imagePath),
-              fit: BoxFit.cover, // 使图片填充整个屏幕
-            )
-          : Container(color: Color(0xFF2D2D2D)), // 占位符
-    );
   }
 }

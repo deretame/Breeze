@@ -46,6 +46,7 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Observer(builder: (context) {
+      debugPrint("surfaceBright = ${materialColorScheme.surfaceBright}");
       return PersistentTabView(
         context,
         controller: _controller,
@@ -61,10 +62,10 @@ class _MainPageState extends State<MainPage> {
         resizeToAvoidBottomInset: true,
         // 保持页面状态
         stateManagement: true,
-        decoration: NavBarDecoration(
-          borderRadius: BorderRadius.circular(10.0), // 导航栏圆角
-          colorBehindNavBar: globalSetting.backgroundColor, // 导航栏后面的颜色
-        ),
+        // decoration: NavBarDecoration(
+        //   // borderRadius: BorderRadius.circular(10.0), // 导航栏圆角
+        //   colorBehindNavBar: globalSetting.backgroundColor, // 导航栏后面的颜色
+        // ),
         navBarStyle: NavBarStyle.style3, // 导航栏样式
       );
     });
@@ -76,31 +77,31 @@ class _MainPageState extends State<MainPage> {
       PersistentBottomNavBarItem(
         icon: Icon(Icons.home),
         title: "首页",
-        activeColorPrimary: globalSetting.seedColor,
+        activeColorPrimary: materialColorScheme.primary,
         inactiveColorPrimary: globalSetting.textColor,
       ),
       PersistentBottomNavBarItem(
         icon: Icon(Icons.leaderboard),
         title: "排行",
-        activeColorPrimary: globalSetting.seedColor,
+        activeColorPrimary: materialColorScheme.primary,
         inactiveColorPrimary: globalSetting.textColor,
       ),
       PersistentBottomNavBarItem(
         icon: Icon(Icons.search),
         title: "搜索",
-        activeColorPrimary: globalSetting.seedColor,
+        activeColorPrimary: materialColorScheme.primary,
         inactiveColorPrimary: globalSetting.textColor,
       ),
       PersistentBottomNavBarItem(
         icon: Icon(Icons.person),
         title: "个人",
-        activeColorPrimary: globalSetting.seedColor,
+        activeColorPrimary: materialColorScheme.primary,
         inactiveColorPrimary: globalSetting.textColor,
       ),
       PersistentBottomNavBarItem(
         icon: Icon(Icons.settings),
         title: "设置",
-        activeColorPrimary: globalSetting.seedColor,
+        activeColorPrimary: materialColorScheme.primary,
         inactiveColorPrimary: globalSetting.textColor,
       ),
     ];

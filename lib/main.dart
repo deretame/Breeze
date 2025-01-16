@@ -1,5 +1,6 @@
 import 'package:catcher_2/catcher_2.dart';
 import 'package:dio/dio.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -21,14 +22,15 @@ import 'object_box/object_box.dart';
 final globalSetting = GlobalSetting();
 final bikaSetting = BikaSetting();
 late final ObjectBox objectbox;
-late Color primaryColor;
-late Color primaryTextStyle;
 
 // 定义全局Dio实例
 final dio = Dio();
 // 定义缓存拦截器
 final cacheInterceptor = DioCacheInterceptor(ExpiringMemoryCache());
 final appRouter = AppRouter();
+
+// 获取material主题颜色方案
+late ColorScheme materialColorScheme;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -74,12 +76,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _updateThemeSettings();
-  }
-
   void _updateThemeSettings() {
     var isDarkMode =
         MediaQuery.of(context).platformBrightness == Brightness.dark;
@@ -90,32 +86,10 @@ class _MyAppState extends State<MyApp> {
       isDarkMode = false;
     }
     debugPrint("isDarkMode: $isDarkMode");
-    var primary = globalSetting.seedColor;
 
-    // 使用种子颜色创建颜色方案
-    var lightColorScheme = ColorScheme.fromSeed(
-      seedColor: primary,
-    );
-    var darkColorScheme = ColorScheme.fromSeed(
-      seedColor: primary,
-      brightness: Brightness.dark,
-    );
-
-    // 根据当前主题模式选择对应的 ColorScheme
-    ColorScheme currentColorScheme;
-    if (globalSetting.themeMode == ThemeMode.dark) {
-      currentColorScheme = darkColorScheme;
-    } else if (globalSetting.themeMode == ThemeMode.light) {
-      currentColorScheme = lightColorScheme;
-    } else {
-      // ThemeMode.system
-      currentColorScheme = isDarkMode ? darkColorScheme : lightColorScheme;
-    }
-
-    // 更新设置
     globalSetting.setThemeType(!isDarkMode);
-    globalSetting.setBackgroundColor(currentColorScheme.surface);
-    globalSetting.setTextColor(isDarkMode ? Colors.white : Colors.black);
+    globalSetting.setBackgroundColor(materialColorScheme.surfaceBright);
+    globalSetting.setTextColor(materialColorScheme.onSurface);
 
     // Debug 信息
     debugPrint("themeType: ${globalSetting.themeType}");
@@ -142,64 +116,90 @@ class _MyAppState extends State<MyApp> {
 
     return Observer(
       builder: (context) {
-        final primary = globalSetting.seedColor;
+        return DynamicColorBuilder(
+          key: ValueKey(
+            globalSetting.dynamicColor.toString() +
+                globalSetting.seedColor.toString() +
+                globalSetting.themeMode.toString() +
+                globalSetting.themeType.toString() +
+                globalSetting.isAMOLED.toString(),
+          ), // 强制重建
+          builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+            ColorScheme lightColorScheme;
+            ColorScheme darkColorScheme;
 
-        // 使用种子颜色创建颜色方案
-        final lightColorScheme = ColorScheme.fromSeed(
-          seedColor: primary,
-        );
-        final darkColorScheme = ColorScheme.fromSeed(
-          seedColor: primary,
-          brightness: Brightness.dark,
-        );
+            // 根据 dynamicColor 的值决定是否使用动态颜色
+            if (globalSetting.dynamicColor == true) {
+              lightColorScheme = lightDynamic ??
+                  ColorScheme.fromSeed(
+                    seedColor: globalSetting.seedColor, // 默认颜色
+                    brightness: Brightness.light,
+                  );
+              darkColorScheme = darkDynamic ??
+                  ColorScheme.fromSeed(
+                    seedColor: globalSetting.seedColor, // 默认颜色
+                    brightness: Brightness.dark,
+                  );
+            } else {
+              // 使用静态颜色方案
+              var primary = globalSetting.seedColor;
 
-        // 根据当前主题模式选择对应的 ColorScheme
-        globalSetting.themeMode == ThemeMode.dark
-            ? darkColorScheme
-            : lightColorScheme;
+              lightColorScheme = ColorScheme.fromSeed(
+                seedColor: primary,
+                brightness: Brightness.light,
+              );
+              darkColorScheme = ColorScheme.fromSeed(
+                seedColor: primary,
+                brightness: Brightness.dark,
+              );
+            }
 
-        if (globalSetting.themeType) {
-          primaryColor = lightColorScheme.surfaceContainer;
-          primaryTextStyle = lightColorScheme.surfaceTint;
-        } else {
-          primaryColor = darkColorScheme.surfaceContainer;
-          primaryTextStyle = darkColorScheme.surfaceTint;
-        }
+            // 根据当前主题模式选择对应的 ColorScheme
+            globalSetting.themeMode == ThemeMode.dark
+                ? darkColorScheme
+                : lightColorScheme;
 
-        _updateThemeSettings();
-        return MaterialApp.router(
-          routerConfig: appRouter.config(),
-          builder: EasyLoading.init(),
-          locale: globalSetting.locale,
-          title: 'Breeze',
-          themeMode: globalSetting.themeMode,
-          supportedLocales: [
-            Locale('en', 'US'), // English
-            Locale('zh', 'CN'), // Chinese
-            // 其他支持的语言
-          ],
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          theme: ThemeData.light().copyWith(
-            primaryColor: lightColorScheme.primary,
-            colorScheme: lightColorScheme,
-            scaffoldBackgroundColor: lightColorScheme.surface,
-            cardColor: lightColorScheme.surfaceContainer,
-            dialogBackgroundColor: lightColorScheme.surfaceContainer,
-            chipTheme: ChipThemeData(
-              backgroundColor: lightColorScheme.surface,
-            ),
-            canvasColor: lightColorScheme.surfaceContainer,
-          ),
-          darkTheme: ThemeData.dark().copyWith(
-            scaffoldBackgroundColor:
-                globalSetting.isAMOLED ? Colors.black : darkColorScheme.surface,
-            tabBarTheme: TabBarTheme(dividerColor: Colors.transparent),
-            colorScheme: darkColorScheme,
-          ),
+            globalSetting.themeType == true
+                ? materialColorScheme = lightColorScheme
+                : materialColorScheme = darkColorScheme;
+
+            _updateThemeSettings();
+            return MaterialApp.router(
+              routerConfig: appRouter.config(),
+              builder: EasyLoading.init(),
+              locale: globalSetting.locale,
+              title: 'Breeze',
+              themeMode: globalSetting.themeMode,
+              supportedLocales: [
+                Locale('en', 'US'), // English
+                Locale('zh', 'CN'), // Chinese
+                // 其他支持的语言
+              ],
+              localizationsDelegates: [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              theme: ThemeData.light().copyWith(
+                primaryColor: lightColorScheme.primary,
+                colorScheme: lightColorScheme,
+                scaffoldBackgroundColor: lightColorScheme.surface,
+                cardColor: lightColorScheme.surfaceContainer,
+                dialogBackgroundColor: lightColorScheme.surfaceContainer,
+                chipTheme: ChipThemeData(
+                  backgroundColor: lightColorScheme.surface,
+                ),
+                canvasColor: lightColorScheme.surfaceContainer,
+              ),
+              darkTheme: ThemeData.dark().copyWith(
+                scaffoldBackgroundColor: globalSetting.isAMOLED
+                    ? Colors.black
+                    : darkColorScheme.surface,
+                tabBarTheme: TabBarTheme(dividerColor: Colors.transparent),
+                colorScheme: darkColorScheme,
+              ),
+            );
+          },
         );
       },
     );

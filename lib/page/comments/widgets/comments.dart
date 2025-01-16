@@ -104,8 +104,8 @@ class _CommentsWidgetState extends State<CommentsWidget>
                                   "level:${commentInfo.user.level} (${commentInfo.user.title})",
                                   style: TextStyle(
                                     color: globalSetting.themeType
-                                        ? Colors.red
-                                        : Colors.yellow,
+                                        ? materialColorScheme.tertiary
+                                        : materialColorScheme.tertiary,
                                   ),
                                 ),
                                 Text(
@@ -174,8 +174,8 @@ class _CommentsWidgetState extends State<CommentsWidget>
                     width: screenWidth * (48 / 50), // 设置宽度
                     child: Divider(
                       color: globalSetting.themeType
-                          ? Colors.grey.withValues(alpha: 0.5)
-                          : Colors.white.withValues(alpha: 0.5),
+                          ? materialColorScheme.secondaryFixedDim
+                          : materialColorScheme.secondaryFixedDim,
                       thickness: 1,
                       height: 10,
                     ),

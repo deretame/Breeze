@@ -33,8 +33,8 @@ Widget divider() {
       child: Observer(
         builder: (context) => Divider(
           color: globalSetting.themeType
-              ? Colors.grey.withValues(alpha: 0.5)
-              : Colors.white.withValues(alpha: 0.5),
+              ? materialColorScheme.secondaryFixedDim
+              : materialColorScheme.secondaryFixedDim,
           thickness: 1,
           height: 10,
         ),

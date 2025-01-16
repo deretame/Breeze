@@ -60,10 +60,8 @@ class _EpsWidgetState extends State<EpsWidget> {
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
-                  color: globalSetting.themeType
-                      ? Colors.black.withValues(alpha: 0.2)
-                      : Colors.white.withValues(alpha: 0.2),
-                  spreadRadius: 2,
+                  color: materialColorScheme.secondaryFixedDim,
+                  spreadRadius: 0,
                   blurRadius: 2,
                 ),
               ],

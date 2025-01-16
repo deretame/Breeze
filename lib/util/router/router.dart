@@ -28,6 +28,7 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: UserCommentsRoute.page),
         AutoRoute(page: BikaSettingRoute.page),
         AutoRoute(page: GlobalSettingRoute.page),
+        AutoRoute(page: ShowColorRoute.page),
       ];
 
   @override

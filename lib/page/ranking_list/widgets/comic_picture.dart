@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../config/global.dart';
 import '../../../main.dart';
@@ -26,6 +27,7 @@ class ComicPictureWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final uuid = Uuid().v4();
     return BlocProvider(
       create: (context) => PictureBloc()
         ..add(
@@ -61,13 +63,15 @@ class ComicPictureWidget extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          FullScreenImageView(imagePath: state.imagePath!),
+                      builder: (context) => FullScreenImageView(
+                        imagePath: state.imagePath!,
+                        uuid: uuid,
+                      ),
                     ),
                   );
                 },
                 child: Hero(
-                  tag: state.imagePath!,
+                  tag: state.imagePath! + uuid,
                   child: ClipRRect(
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(10.0),

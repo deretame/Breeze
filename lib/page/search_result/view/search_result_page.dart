@@ -153,11 +153,11 @@ class _SearchResultPageState extends State<_SearchResultPage>
                   boxShadow: [
                     BoxShadow(
                       color: globalSetting.themeType
-                          ? Colors.black.withValues(alpha: 0.2)
-                          : Colors.white.withValues(alpha: 0.3),
-                      spreadRadius: 2,
+                          ? materialColorScheme.secondaryFixedDim
+                          : materialColorScheme.secondaryFixedDim,
+                      spreadRadius: 0,
                       blurRadius: 2,
-                      offset: const Offset(0, 2),
+                      offset: const Offset(0, 0),
                     ),
                   ],
                 ),

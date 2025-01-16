@@ -114,12 +114,10 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                 borderRadius: BorderRadius.circular(10.0),
                 boxShadow: [
                   BoxShadow(
-                    color: globalSetting.themeType
-                        ? Colors.black.withValues(alpha: 0.2)
-                        : Colors.white.withValues(alpha: 0.3),
-                    spreadRadius: 1,
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
+                    color: materialColorScheme.secondaryFixedDim,
+                    spreadRadius: 0,
+                    blurRadius: 2,
+                    offset: const Offset(0, 0),
                   ),
                 ],
               ),
@@ -152,15 +150,13 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                           overflow: TextOverflow.ellipsis, // 超出时使用省略号
                         ),
                         if (comicEntryInfo.author.toString() != '') ...[
-                          const SizedBox(height: 5),
+                          const SizedBox(height: 4),
                           Text(
                             comicEntryInfo.author.toString(),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                             style: TextStyle(
-                              color: globalSetting.themeType
-                                  ? Colors.red
-                                  : Colors.yellow,
+                              color: materialColorScheme.primary,
                             ),
                           ),
                         ],
@@ -189,9 +185,7 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                             Text(
                               comicEntryInfo.finished ? "完结" : "",
                               style: TextStyle(
-                                color: globalSetting.themeType
-                                    ? Colors.red
-                                    : Colors.yellow,
+                                color: materialColorScheme.tertiary,
                               ),
                             ),
                           ],

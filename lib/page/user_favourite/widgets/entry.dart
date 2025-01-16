@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:uuid/uuid.dart';
 import 'package:zephyr/page/user_favourite/user_favourite.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
@@ -73,12 +74,10 @@ class ComicEntryWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10.0),
                   boxShadow: [
                     BoxShadow(
-                      color: globalSetting.themeType
-                          ? Colors.black.withValues(alpha: 0.2)
-                          : Colors.white.withValues(alpha: 0.3),
-                      spreadRadius: 1,
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
+                      color: materialColorScheme.secondaryFixedDim,
+                      spreadRadius: 0,
+                      blurRadius: 2,
+                      offset: const Offset(0, 0),
                     ),
                   ],
                 ),
@@ -106,7 +105,7 @@ class ComicEntryWidget extends StatelessWidget {
                             overflow: TextOverflow.ellipsis, // 超出时使用省略号
                           ),
                           if (comicEntryInfo.author.toString() != '') ...[
-                            const SizedBox(height: 5),
+                            const SizedBox(height: 4),
                             Text(
                               _getLimitedTitle(
                                   comicEntryInfo.author.toString(), 40),
@@ -178,6 +177,7 @@ class _ImageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final uuid = Uuid().v4();
     return BlocProvider(
       create: (context) => PictureBloc()
         ..add(
@@ -214,13 +214,15 @@ class _ImageWidget extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          FullScreenImageView(imagePath: state.imagePath!),
+                      builder: (context) => FullScreenImageView(
+                        imagePath: state.imagePath!,
+                        uuid: uuid,
+                      ),
                     ),
                   );
                 },
                 child: Hero(
-                  tag: state.imagePath!,
+                  tag: state.imagePath! + uuid,
                   child: ClipRRect(
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(10.0),

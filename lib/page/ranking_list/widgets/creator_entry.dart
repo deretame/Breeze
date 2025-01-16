@@ -58,10 +58,8 @@ class _CreatorEntryWidgetState extends State<CreatorEntryWidget>
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: globalSetting.themeType
-                          ? Colors.black.withValues(alpha: 0.2)
-                          : Colors.white.withValues(alpha: 0.2),
-                      spreadRadius: 2,
+                      color: materialColorScheme.secondaryFixedDim,
+                      spreadRadius: 0,
                       blurRadius: 2,
                     ),
                   ],
@@ -85,8 +83,8 @@ class _CreatorEntryWidgetState extends State<CreatorEntryWidget>
                         children: <Widget>[
                           Text(
                             user.name,
-                            style: const TextStyle(
-                              color: Colors.red,
+                            style: TextStyle(
+                              color: materialColorScheme.tertiary,
                             ),
                           ),
                           Row(

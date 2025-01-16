@@ -90,9 +90,7 @@ class _FatherCommentsWidgetState extends State<FatherCommentsWidget>
                             Text(
                               "level:${commentInfo.user.level} (${commentInfo.user.title})",
                               style: TextStyle(
-                                color: globalSetting.themeType
-                                    ? Colors.red
-                                    : Colors.yellow,
+                                color: materialColorScheme.tertiary,
                               ),
                             ),
                             Text(

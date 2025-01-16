@@ -1,23 +1,37 @@
 import 'package:flutter/material.dart';
 
-final List<Map<String, dynamic>> colorThemeTypes = [
-  {'color': const Color.fromARGB(255, 92, 182, 123), 'label': '默认绿'},
-  {'color': Colors.pink, 'label': '粉红色'},
-  {'color': Colors.red, 'label': '红色'},
-  {'color': Colors.orange, 'label': '橙色'},
-  {'color': Colors.amber, 'label': '琥珀色'},
-  {'color': Colors.yellow, 'label': '黄色'},
-  {'color': Colors.lime, 'label': '酸橙色'},
-  {'color': Colors.lightGreen, 'label': '浅绿色'},
-  {'color': Colors.green, 'label': '绿色'},
-  {'color': Colors.teal, 'label': '青色'},
-  {'color': Colors.cyan, 'label': '蓝绿色'},
-  {'color': Colors.lightBlue, 'label': '浅蓝色'},
-  {'color': Colors.blue, 'label': '蓝色'},
-  {'color': Colors.indigo, 'label': '靛蓝色'},
-  {'color': Colors.purple, 'label': '紫色'},
-  {'color': Colors.deepPurple, 'label': '深紫色'},
-  {'color': Colors.blueGrey, 'label': '蓝灰色'},
-  {'color': Colors.brown, 'label': '棕色'},
-  {'color': Colors.grey, 'label': '灰色'},
+class ColorThemeInfo {
+  Color color;
+  String label;
+  int index;
+
+  ColorThemeInfo(this.color, this.label, this.index);
+
+  @override
+  String toString() {
+    return 'ColorThemeInfo(color: $color, label: $label, index: $index)';
+  }
+}
+
+// 将 materialColors 封装到 ColorThemeInfo 中
+final List<ColorThemeInfo> colorThemeList = [
+  ColorThemeInfo(Colors.red, '红色', 0),
+  ColorThemeInfo(Colors.pink, '粉色', 1),
+  ColorThemeInfo(Colors.purple, '紫色', 2),
+  ColorThemeInfo(Colors.deepPurple, '深紫色', 3),
+  ColorThemeInfo(Colors.indigo, '靛蓝色', 4),
+  ColorThemeInfo(Colors.blue, '蓝色', 5),
+  ColorThemeInfo(Colors.lightBlue, '浅蓝色', 6),
+  ColorThemeInfo(Colors.cyan, '青色', 7),
+  ColorThemeInfo(Colors.teal, '水鸭色', 8),
+  ColorThemeInfo(Colors.green, '绿色', 9),
+  ColorThemeInfo(Colors.lightGreen, '浅绿色', 10),
+  ColorThemeInfo(Colors.lime, '酸橙色', 11),
+  ColorThemeInfo(Colors.yellow, '黄色', 12),
+  ColorThemeInfo(Colors.amber, '琥珀色', 13),
+  ColorThemeInfo(Colors.orange, '橙色', 14),
+  ColorThemeInfo(Colors.deepOrange, '深橙色', 15),
+  ColorThemeInfo(Colors.brown, '棕色', 16),
+  ColorThemeInfo(Colors.grey, '灰色', 17),
+  ColorThemeInfo(Colors.blueGrey, '蓝灰色', 18),
 ];

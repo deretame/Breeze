@@ -48,11 +48,12 @@
             </intent-filter>
         </activity>
 
+        <!--图片裁剪库需要的声明-->
         <activity
                 android:name="com.yalantis.ucrop.UCropActivity"
                 android:screenOrientation="portrait"
                 android:theme="@style/Ucrop.CropTheme"/>
-        
+
         <!-- 前台服务声明 -->
         <!--        <service-->
         <!--                android:name="com.zephyr.breeze.DownloadService"-->

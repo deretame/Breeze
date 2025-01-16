@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:mobx/mobx.dart';
 
+import 'color_theme_types.dart';
+
 part 'global_setting.g.dart';
 
 // ignore: library_private_types_in_public_api
@@ -160,7 +162,7 @@ abstract class _GlobalSetting with Store {
   @action
   Color getSeedColor() {
     seedColor = _box.get(GlobalSettingBoxKey.seedColor,
-        defaultValue: Colors.blue[400]!);
+        defaultValue: colorThemeList[6].color);
     return seedColor;
   }
 
@@ -172,7 +174,8 @@ abstract class _GlobalSetting with Store {
 
   @action
   void deleteSeedColor() {
-    seedColor = Colors.blue[400]!;
+    seedColor = _box.get(GlobalSettingBoxKey.seedColor,
+        defaultValue: colorThemeList[6].color);
     _box.delete(GlobalSettingBoxKey.seedColor);
   }
 

@@ -264,7 +264,8 @@ class _CommentWidgetState extends State<_CommentWidget> {
       itemCount: commentsDoc.length +
           1 +
           (state.status == CommentsChildrenStatus.loadingMore ? 1 : 0) +
-          (state.status == CommentsChildrenStatus.getMoreFailure ? 1 : 0),
+          (state.status == CommentsChildrenStatus.getMoreFailure ? 1 : 0) +
+          1,
       itemBuilder: (context, index) {
         if (index == 0) {
           return Column(
@@ -298,6 +299,17 @@ class _CommentWidgetState extends State<_CommentWidget> {
             child: const Text('重新加载'),
           ));
         }
+
+        if (index ==
+            commentsDoc.length +
+                1 +
+                (state.status == CommentsChildrenStatus.loadingMore ? 1 : 0) +
+                (state.status == CommentsChildrenStatus.getMoreFailure
+                    ? 1
+                    : 0)) {
+          return const SizedBox(height: 120);
+        }
+
         // 计算当前评论的索引
         int currentIndex = index - 1;
         return CommentsChildrenWidget(

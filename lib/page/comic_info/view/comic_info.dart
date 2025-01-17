@@ -271,7 +271,7 @@ class _ComicInfoState extends State<_ComicInfo>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    // const SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     ComicParticularsWidget(comicInfo: comicInfo),
                     const SizedBox(height: 10),
                     TagsAndCategoriesWidget(

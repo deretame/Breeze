@@ -1,11 +1,9 @@
 import 'package:animated_search_bar/animated_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/page/user_history/bloc/user_history_bloc.dart';
-import 'package:zephyr/page/user_history/models/search_enter.dart';
+import 'package:zephyr/page/user_download/user_download.dart';
 
 import '../../../main.dart';
-import '../method/search_enter_provider.dart';
 
 class BikaSearchBar extends StatelessWidget implements PreferredSizeWidget {
   const BikaSearchBar({
@@ -48,8 +46,8 @@ class BikaSearchBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         textInputAction: TextInputAction.done,
         onFieldSubmitted: (value) {
-          context.read<UserHistoryBloc>().add(
-                UserHistoryEvent(
+          context.read<UserDownloadBloc>().add(
+                UserDownloadEvent(
                   SearchEnterConst(
                     keyword: value,
                     sort: searchEnter.sort,

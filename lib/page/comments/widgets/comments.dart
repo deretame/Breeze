@@ -229,6 +229,11 @@ class _CommentsWidgetState extends State<CommentsWidget>
 
   void _likeComment(String commentId) async {
     try {
+      if (like) {
+        EasyLoading.showSuccess("正在取消点赞");
+      } else {
+        EasyLoading.showSuccess("正在点赞");
+      }
       await likeComment(commentId);
       like = !like;
       if (like) {

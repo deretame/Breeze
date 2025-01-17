@@ -264,7 +264,8 @@ class _CommentWidgetState extends State<_CommentWidget> {
       itemCount: topComments.length +
           commentsDoc.length +
           (state.status == CommentsStatus.loadingMore ? 1 : 0) +
-          (state.status == CommentsStatus.getMoreFailure ? 1 : 0),
+          (state.status == CommentsStatus.getMoreFailure ? 1 : 0) +
+          1,
       itemBuilder: (context, index) {
         // 处理 topComments
         if (index < topComments.length) {
@@ -312,7 +313,7 @@ class _CommentWidgetState extends State<_CommentWidget> {
         }
 
         // 默认返回空容器
-        return SizedBox.shrink();
+        return const SizedBox(height: 120);
       },
       controller: _scrollController, // 设置控制器
     );

@@ -30,6 +30,7 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: GlobalSettingRoute.page),
         AutoRoute(page: ThemeColorRoute.page),
         AutoRoute(page: ShowColorRoute.page),
+        AutoRoute(page: AboutRoute.page),
       ];
 
   @override

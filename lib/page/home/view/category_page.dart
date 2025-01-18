@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/router/router.gr.dart';
@@ -131,22 +132,12 @@ class _CategoryPageState extends State<CategoryPage>
         builder: (context) {
           return AlertDialog(
             title: Text('发现新版本'),
-            content: RichText(
-              text: TextSpan(
-                style: TextStyle(
-                  color: globalSetting.textColor,
+            content: SingleChildScrollView(
+              child: SizedBox(
+                width: double.maxFinite, // 设置最大宽度
+                child: MarkdownBody(
+                  data: '# $cloudVersion\n$releaseInfo',
                 ),
-                children: <TextSpan>[
-                  TextSpan(
-                    text: '$cloudVersion\n$releaseInfo\n\n如果不知道下载什么版本请选择\n',
-                  ),
-                  TextSpan(
-                    text: 'app-arm64-v8a-release.apk',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold, // 加粗
-                    ),
-                  ),
-                ],
               ),
             ),
             actions: [

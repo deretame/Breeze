@@ -1,6 +1,6 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
-version: 1.21.1+63
+version: 1.22.0+64
 
 environment:
   sdk: ">=3.0.0"
@@ -68,6 +68,7 @@ dependencies:
   collection: ^1.18.0           # 集合操作工具
   equatable: ^2.0.3             # 简化对象比较
   stream_transform: ^2.1.1      # 流数据处理工具
+  flutter_colorpicker: ^1.1.0   # 颜色选择器
 
 dev_dependencies:
   flutter_test:

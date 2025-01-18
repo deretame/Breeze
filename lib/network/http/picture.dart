@@ -29,12 +29,15 @@ Future<String> getCachePicture({
   String downloadPath = await getDownloadPath();
 
   // 构建文件路径
-  String filePath = buildFilePath(
+  String cacheFilePath = buildFilePath(
       cachePath, from, pictureType, cartoonId, chapterId, sanitizedPath);
+
+  String downloadFilePath = buildFilePath(
+      downloadPath, from, pictureType, cartoonId, chapterId, sanitizedPath);
 
   // 检查文件是否存在
   String existingFilePath =
-      await checkFileExists(cachePath, downloadPath, filePath);
+      await checkFileExists(cacheFilePath, downloadFilePath);
   if (existingFilePath.isNotEmpty) {
     return existingFilePath;
   }
@@ -47,9 +50,9 @@ Future<String> getCachePicture({
   Uint8List imageData = await downloadImageWithRetry(finalUrl);
 
   // 保存图片
-  await saveImage(imageData, filePath);
+  await saveImage(imageData, cacheFilePath);
 
-  return filePath;
+  return cacheFilePath;
 }
 
 Future<String> downloadPicture({
@@ -71,21 +74,19 @@ Future<String> downloadPicture({
   String downloadPath = await getDownloadPath();
   String cachePath = await getCachePath();
 
-  // 构建文件路径
-  String filePath = buildFilePath(
+  String cacheFilePath = buildFilePath(
+      cachePath, from, pictureType, cartoonId, chapterId, sanitizedPath);
+
+  String downloadFilePath = buildFilePath(
       downloadPath, from, pictureType, cartoonId, chapterId, sanitizedPath);
 
   // 检查文件是否存在
-  if (await fileExists(filePath)) {
-    return filePath;
-  }
+  String existingFilePath =
+      await checkFileExists(cacheFilePath, downloadFilePath);
 
-  // 检查缓存目录是否存在文件
-  String cacheFilePath = buildFilePath(
-      cachePath, from, pictureType, cartoonId, chapterId, sanitizedPath);
-  if (await fileExists(cacheFilePath)) {
-    await copyFile(cacheFilePath, filePath);
-    return filePath;
+  if (existingFilePath.isNotEmpty && existingFilePath != downloadFilePath) {
+    await copyFile(cacheFilePath, downloadFilePath);
+    return downloadFilePath;
   }
 
   // 处理 URL
@@ -96,9 +97,9 @@ Future<String> downloadPicture({
   Uint8List imageData = await downloadImageWithRetry(finalUrl);
 
   // 保存图片
-  await saveImage(imageData, filePath);
+  await saveImage(imageData, downloadFilePath);
 
-  return filePath;
+  return downloadFilePath;
 }
 
 String sanitizePath(String path) {
@@ -127,16 +128,13 @@ String buildFilePath(
 Future<String> checkFileExists(
   String cachePath,
   String downloadPath,
-  String filePath,
 ) async {
-  if (await fileExists(filePath)) {
-    return filePath;
+  if (await fileExists(cachePath)) {
+    return cachePath;
   }
 
-  String downloadFilePath = file_path.join(
-      downloadPath, file_path.relative(filePath, from: cachePath));
-  if (await fileExists(downloadFilePath)) {
-    return downloadFilePath;
+  if (await fileExists(downloadPath)) {
+    return downloadPath;
   }
 
   return '';

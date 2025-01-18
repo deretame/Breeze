@@ -35,6 +35,11 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
         children: [
           _systemTheme(),
           _dynamicColor(),
+          if (!globalSetting.dynamicColor) ...[
+            SizedBox(height: 11),
+            changeThemeColor(context),
+            SizedBox(height: 11),
+          ],
           _isAMOLED(),
           if (kDebugMode) ...[
             ElevatedButton(
@@ -140,6 +145,30 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       _dynamicColorValue = !_dynamicColorValue;
     });
     globalSetting.setDynamicColor(_dynamicColorValue);
+  }
+
+  Widget changeThemeColor(BuildContext context) {
+    final router = AutoRouter.of(context);
+    return GestureDetector(
+      onTap: () async {
+        router.push(ThemeColorRoute());
+      },
+      behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
+      child: Row(
+        children: [
+          SizedBox(width: 10),
+          Text(
+            "主题颜色",
+            style: TextStyle(
+              fontSize: 18,
+            ),
+          ),
+          Expanded(child: Container()),
+          Icon(Icons.chevron_right),
+          SizedBox(width: 10),
+        ],
+      ),
+    );
   }
 
   Widget _isAMOLED() {

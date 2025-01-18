@@ -13,7 +13,6 @@ class ColorThemeInfo {
   }
 }
 
-// 将 materialColors 封装到 ColorThemeInfo 中
 final List<ColorThemeInfo> colorThemeList = [
   ColorThemeInfo(Colors.red, '红色', 0),
   ColorThemeInfo(Colors.pink, '粉色', 1),

@@ -84,9 +84,11 @@ Future<String> downloadPicture({
   String existingFilePath =
       await checkFileExists(cacheFilePath, downloadFilePath);
 
-  if (existingFilePath.isNotEmpty && existingFilePath != downloadFilePath) {
-    await copyFile(cacheFilePath, downloadFilePath);
-    return downloadFilePath;
+  if (existingFilePath.isNotEmpty) {
+    if (existingFilePath != downloadFilePath) {
+      await copyFile(cacheFilePath, downloadFilePath);
+    }
+    return existingFilePath;
   }
 
   // 处理 URL

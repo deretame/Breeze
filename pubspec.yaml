@@ -1,6 +1,6 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
-version: 1.23.0+65
+version: 1.23.1+66
 
 environment:
   sdk: ">=3.0.0"
@@ -43,6 +43,7 @@ dependencies:
   objectbox: ^4.0.3              # ObjectBox 数据库
   objectbox_flutter_libs: ^4.0.3 # ObjectBox 的 Flutter 支持
   archive: ^4.0.2                # 压缩/解压缩工具
+  xml: ^6.5.0                    # XML 解析器
 
   # --------------- 网络请求与 API 处理 ---------------
   dio: ^5.6.0                   # HTTP 网络请求客户端

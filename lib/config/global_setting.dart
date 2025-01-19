@@ -17,8 +17,6 @@ abstract class _GlobalSetting with Store {
   @observable
   bool dynamicColor = true; // 是否开启动态颜色
   @observable
-  int themeColor = 0xFF4CAF50; // 主题颜色
-  @observable
   ThemeMode themeMode = ThemeMode.system; // 主题模式
   @observable
   bool themeType = true; // 是否是浅色主题
@@ -35,24 +33,19 @@ abstract class _GlobalSetting with Store {
   @observable
   dynamic locale = Locale('zh', 'CN'); // 语言
   @observable
-  bool doubleReturn = true; // 双击返回键退出应用
-  @observable
   int welcomePageNum = 0; // 开屏页序号
   @observable
-  bool imagePathPermission = true; // 图片路径权限
+  String webdavHost = ''; // webdav地址
   @observable
-  String downloadPathPermission = ""; // 下载路径
+  String webdavUsername = ''; // webdav用户名
   @observable
-  bool notificationPermission = true; // 通知权限
-
-  // _GlobalSetting() {
-  //   _initBox();
-  // }
+  String webdavPassword = ''; // webdav密码
+  @observable
+  bool autoSync = true; // 是否自动同步
 
   Future<void> initBox() async {
     _box = await Hive.openBox(GlobalSettingBoxKey.globalSetting);
     dynamicColor = getDynamicColor();
-    themeColor = getThemeColor();
     themeMode = getThemeMode();
     themeType = getThemeType();
     isAMOLED = getIsAMOLED();
@@ -61,8 +54,11 @@ abstract class _GlobalSetting with Store {
     textColor = getTextColor();
     themeInitState = getThemeInitState();
     locale = getLocale();
-    doubleReturn = getDoubleReturn();
     welcomePageNum = getWelcomePageNum();
+    webdavHost = getWebdavHost();
+    webdavUsername = getWebdavUsername();
+    webdavPassword = getWebdavPassword();
+    autoSync = getAutoSync();
   }
 
   @action
@@ -82,25 +78,6 @@ abstract class _GlobalSetting with Store {
   void deleteDynamicColor() {
     dynamicColor = true;
     _box.delete(GlobalSettingBoxKey.dynamicColor);
-  }
-
-  @action
-  int getThemeColor() {
-    themeColor =
-        _box.get(GlobalSettingBoxKey.themeColor, defaultValue: 0xFF4CAF50);
-    return themeColor;
-  }
-
-  @action
-  void setThemeColor(int value) {
-    themeColor = value;
-    _box.put(GlobalSettingBoxKey.themeColor, value);
-  }
-
-  @action
-  void deleteThemeColor() {
-    themeColor = 0xFF4CAF50;
-    _box.delete(GlobalSettingBoxKey.themeColor);
   }
 
   @action
@@ -257,25 +234,6 @@ abstract class _GlobalSetting with Store {
   }
 
   @action
-  bool getDoubleReturn() {
-    doubleReturn =
-        _box.get(GlobalSettingBoxKey.doubleReturn, defaultValue: true);
-    return doubleReturn;
-  }
-
-  @action
-  void setDoubleReturn(bool value) {
-    doubleReturn = value;
-    _box.put(GlobalSettingBoxKey.doubleReturn, value);
-  }
-
-  @action
-  void deleteDoubleReturn() {
-    doubleReturn = true;
-    _box.delete(GlobalSettingBoxKey.doubleReturn);
-  }
-
-  @action
   int getWelcomePageNum() {
     welcomePageNum =
         _box.get(GlobalSettingBoxKey.welcomePageNum, defaultValue: 0);
@@ -295,67 +253,83 @@ abstract class _GlobalSetting with Store {
   }
 
   @action
-  bool getImagePathPermission() {
-    imagePathPermission =
-        _box.get(GlobalSettingBoxKey.imagePathPermission, defaultValue: false);
-    return imagePathPermission;
+  String getWebdavHost() {
+    webdavHost = _box.get(GlobalSettingBoxKey.webdavHost, defaultValue: '');
+    return webdavHost;
   }
 
   @action
-  void setImagePathPermission(bool value) {
-    imagePathPermission = value;
-    _box.put(GlobalSettingBoxKey.imagePathPermission, value);
+  void setWebdavHost(String value) {
+    webdavHost = value;
+    _box.put(GlobalSettingBoxKey.webdavHost, value);
   }
 
   @action
-  void deleteImagePathPermission() {
-    imagePathPermission = false;
-    _box.delete(GlobalSettingBoxKey.imagePathPermission);
+  void deleteWebdavHost() {
+    webdavHost = '';
+    _box.delete(GlobalSettingBoxKey.webdavHost);
   }
 
   @action
-  String getDownloadPathPermission() {
-    downloadPathPermission =
-        _box.get(GlobalSettingBoxKey.downloadPathPermission, defaultValue: "");
-    return downloadPathPermission;
+  String getWebdavUsername() {
+    webdavUsername =
+        _box.get(GlobalSettingBoxKey.webdavUsername, defaultValue: '');
+    return webdavUsername;
   }
 
   @action
-  void setDownloadPathPermission(String value) {
-    downloadPathPermission = value;
-    _box.put(GlobalSettingBoxKey.downloadPathPermission, value);
+  void setWebdavUsername(String value) {
+    webdavUsername = value;
+    _box.put(GlobalSettingBoxKey.webdavUsername, value);
   }
 
   @action
-  void deleteDownloadPathPermission() {
-    downloadPathPermission = "";
-    _box.delete(GlobalSettingBoxKey.downloadPathPermission);
+  void deleteWebdavUsername() {
+    webdavUsername = '';
+    _box.delete(GlobalSettingBoxKey.webdavUsername);
   }
 
   @action
-  bool getNotificationPermission() {
-    notificationPermission = _box
-        .get(GlobalSettingBoxKey.notificationPermission, defaultValue: false);
-    return notificationPermission;
+  String getWebdavPassword() {
+    webdavPassword =
+        _box.get(GlobalSettingBoxKey.webdavPassword, defaultValue: '');
+    return webdavPassword;
   }
 
   @action
-  void setNotificationPermission(bool value) {
-    notificationPermission = value;
-    _box.put(GlobalSettingBoxKey.notificationPermission, value);
+  void setWebdavPassword(String value) {
+    webdavPassword = value;
+    _box.put(GlobalSettingBoxKey.webdavPassword, value);
   }
 
   @action
-  void deleteNotificationPermission() {
-    notificationPermission = false;
-    _box.delete(GlobalSettingBoxKey.notificationPermission);
+  void deleteWebdavPassword() {
+    webdavPassword = '';
+    _box.delete(GlobalSettingBoxKey.webdavPassword);
+  }
+
+  @action
+  bool getAutoSync() {
+    autoSync = _box.get(GlobalSettingBoxKey.autoSync, defaultValue: true);
+    return autoSync;
+  }
+
+  @action
+  void setAutoSync(bool value) {
+    autoSync = value;
+    _box.put(GlobalSettingBoxKey.autoSync, value);
+  }
+
+  @action
+  void deleteAutoSync() {
+    autoSync = true;
+    _box.delete(GlobalSettingBoxKey.autoSync);
   }
 }
 
 class GlobalSettingBoxKey {
   static const String globalSetting = 'globalSetting';
   static const String dynamicColor = 'dynamicColor'; // 是否开启动态颜色
-  static const String themeColor = 'themeColor'; // 主题颜色
   static const String themeMode = 'themeMode1'; // 主题模式
   static const String themeType = 'themeType'; // 是否是浅色主题
   static const String isAMOLED = 'isAMOLED'; // 是否是AMOLED屏幕
@@ -364,9 +338,9 @@ class GlobalSettingBoxKey {
   static const String locale = 'locale'; // 语言
   static const String backgroundColor = 'backgroundColor'; // 背景颜色
   static const String textColor = 'textColor'; // 文字颜色
-  static const String doubleReturn = 'doubleReturn'; // 双击返回键退出应用
   static const String welcomePageNum = 'welcomePageNum'; // 开屏页序号
-  static const String imagePathPermission = 'imagePathPermission'; // 图片路径权限
-  static const String downloadPathPermission = 'downloadPathPermission'; // 下载路径
-  static const String notificationPermission = 'notificationPermission'; // 通知权限
+  static const String webdavHost = 'webdavHost'; // webdav地址
+  static const String webdavUsername = 'webdavUsername'; // webdav用户名
+  static const String webdavPassword = 'webdavPassword'; // webdav密码
+  static const String autoSync = 'autoSync'; // 是否自动同步
 }

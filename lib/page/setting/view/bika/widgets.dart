@@ -11,20 +11,6 @@ import '../../../../main.dart';
 import '../../../../network/http/http_request.dart';
 import 'method.dart';
 
-final List<String> shuntList = ["1", "2", "3"];
-final Map<String, String> shunt = {
-  "1": "1",
-  "2": "2",
-  "3": "3",
-};
-final List<String> imageQualityList = ["low", "medium", "high", "original"];
-final Map<String, String> imageQuality = {
-  "low": "低画质",
-  "medium": "中画质",
-  "high": "高画质",
-  "original": "原图",
-};
-
 Widget divider() {
   return Align(
     alignment: Alignment.center,

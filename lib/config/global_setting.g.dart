@@ -25,22 +25,6 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
-  late final _$themeColorAtom =
-      Atom(name: '_GlobalSetting.themeColor', context: context);
-
-  @override
-  int get themeColor {
-    _$themeColorAtom.reportRead();
-    return super.themeColor;
-  }
-
-  @override
-  set themeColor(int value) {
-    _$themeColorAtom.reportWrite(value, super.themeColor, () {
-      super.themeColor = value;
-    });
-  }
-
   late final _$themeModeAtom =
       Atom(name: '_GlobalSetting.themeMode', context: context);
 
@@ -169,22 +153,6 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
-  late final _$doubleReturnAtom =
-      Atom(name: '_GlobalSetting.doubleReturn', context: context);
-
-  @override
-  bool get doubleReturn {
-    _$doubleReturnAtom.reportRead();
-    return super.doubleReturn;
-  }
-
-  @override
-  set doubleReturn(bool value) {
-    _$doubleReturnAtom.reportWrite(value, super.doubleReturn, () {
-      super.doubleReturn = value;
-    });
-  }
-
   late final _$welcomePageNumAtom =
       Atom(name: '_GlobalSetting.welcomePageNum', context: context);
 
@@ -201,53 +169,67 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
-  late final _$imagePathPermissionAtom =
-      Atom(name: '_GlobalSetting.imagePathPermission', context: context);
+  late final _$webdavHostAtom =
+      Atom(name: '_GlobalSetting.webdavHost', context: context);
 
   @override
-  bool get imagePathPermission {
-    _$imagePathPermissionAtom.reportRead();
-    return super.imagePathPermission;
+  String get webdavHost {
+    _$webdavHostAtom.reportRead();
+    return super.webdavHost;
   }
 
   @override
-  set imagePathPermission(bool value) {
-    _$imagePathPermissionAtom.reportWrite(value, super.imagePathPermission, () {
-      super.imagePathPermission = value;
+  set webdavHost(String value) {
+    _$webdavHostAtom.reportWrite(value, super.webdavHost, () {
+      super.webdavHost = value;
     });
   }
 
-  late final _$downloadPathPermissionAtom =
-      Atom(name: '_GlobalSetting.downloadPathPermission', context: context);
+  late final _$webdavUsernameAtom =
+      Atom(name: '_GlobalSetting.webdavUsername', context: context);
 
   @override
-  String get downloadPathPermission {
-    _$downloadPathPermissionAtom.reportRead();
-    return super.downloadPathPermission;
+  String get webdavUsername {
+    _$webdavUsernameAtom.reportRead();
+    return super.webdavUsername;
   }
 
   @override
-  set downloadPathPermission(String value) {
-    _$downloadPathPermissionAtom
-        .reportWrite(value, super.downloadPathPermission, () {
-      super.downloadPathPermission = value;
+  set webdavUsername(String value) {
+    _$webdavUsernameAtom.reportWrite(value, super.webdavUsername, () {
+      super.webdavUsername = value;
     });
   }
 
-  late final _$notificationPermissionAtom =
-      Atom(name: '_GlobalSetting.notificationPermission', context: context);
+  late final _$webdavPasswordAtom =
+      Atom(name: '_GlobalSetting.webdavPassword', context: context);
 
   @override
-  bool get notificationPermission {
-    _$notificationPermissionAtom.reportRead();
-    return super.notificationPermission;
+  String get webdavPassword {
+    _$webdavPasswordAtom.reportRead();
+    return super.webdavPassword;
   }
 
   @override
-  set notificationPermission(bool value) {
-    _$notificationPermissionAtom
-        .reportWrite(value, super.notificationPermission, () {
-      super.notificationPermission = value;
+  set webdavPassword(String value) {
+    _$webdavPasswordAtom.reportWrite(value, super.webdavPassword, () {
+      super.webdavPassword = value;
+    });
+  }
+
+  late final _$autoSyncAtom =
+      Atom(name: '_GlobalSetting.autoSync', context: context);
+
+  @override
+  bool get autoSync {
+    _$autoSyncAtom.reportRead();
+    return super.autoSync;
+  }
+
+  @override
+  set autoSync(bool value) {
+    _$autoSyncAtom.reportWrite(value, super.autoSync, () {
+      super.autoSync = value;
     });
   }
 
@@ -282,39 +264,6 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
         name: '_GlobalSetting.deleteDynamicColor');
     try {
       return super.deleteDynamicColor();
-    } finally {
-      _$_GlobalSettingActionController.endAction(_$actionInfo);
-    }
-  }
-
-  @override
-  int getThemeColor() {
-    final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getThemeColor');
-    try {
-      return super.getThemeColor();
-    } finally {
-      _$_GlobalSettingActionController.endAction(_$actionInfo);
-    }
-  }
-
-  @override
-  void setThemeColor(int value) {
-    final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setThemeColor');
-    try {
-      return super.setThemeColor(value);
-    } finally {
-      _$_GlobalSettingActionController.endAction(_$actionInfo);
-    }
-  }
-
-  @override
-  void deleteThemeColor() {
-    final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteThemeColor');
-    try {
-      return super.deleteThemeColor();
     } finally {
       _$_GlobalSettingActionController.endAction(_$actionInfo);
     }
@@ -585,39 +534,6 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   }
 
   @override
-  bool getDoubleReturn() {
-    final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getDoubleReturn');
-    try {
-      return super.getDoubleReturn();
-    } finally {
-      _$_GlobalSettingActionController.endAction(_$actionInfo);
-    }
-  }
-
-  @override
-  void setDoubleReturn(bool value) {
-    final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setDoubleReturn');
-    try {
-      return super.setDoubleReturn(value);
-    } finally {
-      _$_GlobalSettingActionController.endAction(_$actionInfo);
-    }
-  }
-
-  @override
-  void deleteDoubleReturn() {
-    final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteDoubleReturn');
-    try {
-      return super.deleteDoubleReturn();
-    } finally {
-      _$_GlobalSettingActionController.endAction(_$actionInfo);
-    }
-  }
-
-  @override
   int getWelcomePageNum() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
         name: '_GlobalSetting.getWelcomePageNum');
@@ -651,99 +567,132 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   }
 
   @override
-  bool getImagePathPermission() {
+  String getWebdavHost() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getImagePathPermission');
+        name: '_GlobalSetting.getWebdavHost');
     try {
-      return super.getImagePathPermission();
+      return super.getWebdavHost();
     } finally {
       _$_GlobalSettingActionController.endAction(_$actionInfo);
     }
   }
 
   @override
-  void setImagePathPermission(bool value) {
+  void setWebdavHost(String value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setImagePathPermission');
+        name: '_GlobalSetting.setWebdavHost');
     try {
-      return super.setImagePathPermission(value);
+      return super.setWebdavHost(value);
     } finally {
       _$_GlobalSettingActionController.endAction(_$actionInfo);
     }
   }
 
   @override
-  void deleteImagePathPermission() {
+  void deleteWebdavHost() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteImagePathPermission');
+        name: '_GlobalSetting.deleteWebdavHost');
     try {
-      return super.deleteImagePathPermission();
+      return super.deleteWebdavHost();
     } finally {
       _$_GlobalSettingActionController.endAction(_$actionInfo);
     }
   }
 
   @override
-  String getDownloadPathPermission() {
+  String getWebdavUsername() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getDownloadPathPermission');
+        name: '_GlobalSetting.getWebdavUsername');
     try {
-      return super.getDownloadPathPermission();
+      return super.getWebdavUsername();
     } finally {
       _$_GlobalSettingActionController.endAction(_$actionInfo);
     }
   }
 
   @override
-  void setDownloadPathPermission(String value) {
+  void setWebdavUsername(String value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setDownloadPathPermission');
+        name: '_GlobalSetting.setWebdavUsername');
     try {
-      return super.setDownloadPathPermission(value);
+      return super.setWebdavUsername(value);
     } finally {
       _$_GlobalSettingActionController.endAction(_$actionInfo);
     }
   }
 
   @override
-  void deleteDownloadPathPermission() {
+  void deleteWebdavUsername() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteDownloadPathPermission');
+        name: '_GlobalSetting.deleteWebdavUsername');
     try {
-      return super.deleteDownloadPathPermission();
+      return super.deleteWebdavUsername();
     } finally {
       _$_GlobalSettingActionController.endAction(_$actionInfo);
     }
   }
 
   @override
-  bool getNotificationPermission() {
+  String getWebdavPassword() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getNotificationPermission');
+        name: '_GlobalSetting.getWebdavPassword');
     try {
-      return super.getNotificationPermission();
+      return super.getWebdavPassword();
     } finally {
       _$_GlobalSettingActionController.endAction(_$actionInfo);
     }
   }
 
   @override
-  void setNotificationPermission(bool value) {
+  void setWebdavPassword(String value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setNotificationPermission');
+        name: '_GlobalSetting.setWebdavPassword');
     try {
-      return super.setNotificationPermission(value);
+      return super.setWebdavPassword(value);
     } finally {
       _$_GlobalSettingActionController.endAction(_$actionInfo);
     }
   }
 
   @override
-  void deleteNotificationPermission() {
+  void deleteWebdavPassword() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteNotificationPermission');
+        name: '_GlobalSetting.deleteWebdavPassword');
     try {
-      return super.deleteNotificationPermission();
+      return super.deleteWebdavPassword();
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  bool getAutoSync() {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+        name: '_GlobalSetting.getAutoSync');
+    try {
+      return super.getAutoSync();
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void setAutoSync(bool value) {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+        name: '_GlobalSetting.setAutoSync');
+    try {
+      return super.setAutoSync(value);
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void deleteAutoSync() {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+        name: '_GlobalSetting.deleteAutoSync');
+    try {
+      return super.deleteAutoSync();
     } finally {
       _$_GlobalSettingActionController.endAction(_$actionInfo);
     }
@@ -753,7 +702,6 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   String toString() {
     return '''
 dynamicColor: ${dynamicColor},
-themeColor: ${themeColor},
 themeMode: ${themeMode},
 themeType: ${themeType},
 isAMOLED: ${isAMOLED},
@@ -762,11 +710,11 @@ backgroundColor: ${backgroundColor},
 textColor: ${textColor},
 themeInitState: ${themeInitState},
 locale: ${locale},
-doubleReturn: ${doubleReturn},
 welcomePageNum: ${welcomePageNum},
-imagePathPermission: ${imagePathPermission},
-downloadPathPermission: ${downloadPathPermission},
-notificationPermission: ${notificationPermission}
+webdavHost: ${webdavHost},
+webdavUsername: ${webdavUsername},
+webdavPassword: ${webdavPassword},
+autoSync: ${autoSync}
     ''';
   }
 }

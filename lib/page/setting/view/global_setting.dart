@@ -1,10 +1,14 @@
+import 'dart:convert';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
 
+import '../../../object_box/model.dart';
 import '../../../util/router/router.gr.dart';
+import 'global/widgets.dart';
 
 @RoutePage()
 class GlobalSettingPage extends StatefulWidget {
@@ -24,6 +28,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
 
   bool _dynamicColorValue = globalSetting.dynamicColor;
   bool _isAMOLEDValue = globalSetting.isAMOLED;
+  bool _autoSyncValue = globalSetting.autoSync;
 
   @override
   Widget build(BuildContext context) {
@@ -31,25 +36,50 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       appBar: AppBar(
         title: const Text('全局设置'),
       ),
-      body: Column(
-        children: [
-          _systemTheme(),
-          _dynamicColor(),
-          if (!globalSetting.dynamicColor) ...[
-            SizedBox(height: 11),
-            changeThemeColor(context),
-            SizedBox(height: 11),
+      body: Observer(
+        builder: (context) => Column(
+          children: [
+            _systemTheme(),
+            _dynamicColor(),
+            if (!globalSetting.dynamicColor) ...[
+              SizedBox(height: 11),
+              changeThemeColor(context),
+              SizedBox(height: 11),
+            ],
+            _isAMOLED(),
+            // divider(),
+            SizedBox(height: 10),
+            // webdavSync(context),
+            SizedBox(height: 10),
+            if (globalSetting.webdavHost.isNotEmpty) ...[
+              _autoSync(),
+            ],
+            if (kDebugMode) ...[
+              ElevatedButton(
+                onPressed: () {
+                  AutoRouter.of(context).push(ShowColorRoute());
+                },
+                child: Text("整点颜色看看"),
+              ),
+            ],
+            if (kDebugMode) ...[
+              ElevatedButton(
+                onPressed: () async {
+                  var temp =
+                      jsonEncode(objectbox.bikaHistoryBox.getAll()[1].toJson());
+
+                  debugPrint(temp);
+
+                  final history = BikaComicHistory.fromJson(
+                    objectbox.bikaHistoryBox.getAll()[1].toJson(),
+                  );
+                  debugPrint(history.toString());
+                },
+                child: Text("测试用的玩意儿"),
+              ),
+            ]
           ],
-          _isAMOLED(),
-          if (kDebugMode) ...[
-            ElevatedButton(
-              onPressed: () {
-                AutoRouter.of(context).push(ShowColorRoute());
-              },
-              child: Text("整点颜色看看"),
-            ),
-          ]
-        ],
+        ),
       ),
     );
   }
@@ -147,30 +177,6 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     globalSetting.setDynamicColor(_dynamicColorValue);
   }
 
-  Widget changeThemeColor(BuildContext context) {
-    final router = AutoRouter.of(context);
-    return GestureDetector(
-      onTap: () async {
-        router.push(ThemeColorRoute());
-      },
-      behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
-      child: Row(
-        children: [
-          SizedBox(width: 10),
-          Text(
-            "主题颜色",
-            style: TextStyle(
-              fontSize: 18,
-            ),
-          ),
-          Expanded(child: Container()),
-          Icon(Icons.chevron_right),
-          SizedBox(width: 10),
-        ],
-      ),
-    );
-  }
-
   Widget _isAMOLED() {
     return Row(
       children: [
@@ -205,5 +211,29 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       _isAMOLEDValue = !_isAMOLEDValue;
     });
     globalSetting.setIsAMOLED(_isAMOLEDValue);
+  }
+
+  Widget _autoSync() {
+    return Row(
+      children: [
+        SizedBox(width: 10),
+        Text(
+          "自动同步",
+          style: TextStyle(
+            fontSize: 18,
+          ),
+        ),
+        Spacer(),
+        Switch(value: _autoSyncValue, onChanged: changeAutoSync),
+        SizedBox(width: 10),
+      ],
+    );
+  }
+
+  void changeAutoSync(bool value) {
+    setState(() {
+      _autoSyncValue = !_autoSyncValue;
+    });
+    globalSetting.setAutoSync(_autoSyncValue);
   }
 }

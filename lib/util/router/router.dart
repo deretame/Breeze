@@ -29,6 +29,7 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: BikaSettingRoute.page),
         AutoRoute(page: GlobalSettingRoute.page),
         AutoRoute(page: ThemeColorRoute.page),
+        AutoRoute(page: WebDavSyncRoute.page),
         AutoRoute(page: ShowColorRoute.page),
         AutoRoute(page: AboutRoute.page),
       ];

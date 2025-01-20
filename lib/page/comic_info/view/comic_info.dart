@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -79,18 +81,27 @@ class _ComicInfoState extends State<_ComicInfo>
     super.initState();
     _type = type ?? ComicEntryType.normal;
     // 首先查询一下有没有记录
-    final query = objectbox.bikaHistoryBox
-        .query(BikaComicHistory_.comicId.equals(widget.comicId));
-    comicHistory = query.build().findFirst();
+    comicHistory = objectbox.bikaHistoryBox
+        .query(BikaComicHistory_.comicId.equals(widget.comicId))
+        .build()
+        .findFirst();
+
+    var temp = jsonEncode(comicHistory?.toJson());
+
+    debugPrint('comicHistory: $temp');
+
     if (_type == ComicEntryType.download) {
-      final query = objectbox.bikaDownloadBox
-          .query(BikaComicDownload_.comicId.equals(widget.comicId));
-      comicDownload = query.build().findFirst();
+      comicDownload = objectbox.bikaDownloadBox
+          .query(BikaComicDownload_.comicId.equals(widget.comicId))
+          .build()
+          .findFirst();
+
       if (comicDownload != null) {
         comicAllInfo = comic_all_info_json
             .comicAllInfoJsonFromJson(comicDownload!.comicInfoAll);
         comicInfo = comicAllInfo2Comic(comicAllInfo!);
       }
+
       var epsDoc = comicAllInfo!.eps.docs;
       for (var epDoc in epsDoc) {
         epsInfo.add(Doc(

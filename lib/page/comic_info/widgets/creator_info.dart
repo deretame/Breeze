@@ -22,12 +22,18 @@ class CreatorInfoWidget extends StatelessWidget {
   const CreatorInfoWidget({super.key, required this.comicInfo});
 
   String timeDecode(DateTime originalTime) {
-    // 加上8个小时
-    DateTime newDateTime = originalTime.add(const Duration(hours: 8));
+    // 获取当前设备的时区偏移量
+    Duration timeZoneOffset = DateTime.now().timeZoneOffset;
+
+    // 根据时区偏移量调整时间
+    DateTime newDateTime = originalTime.add(timeZoneOffset);
 
     // 按照指定格式输出
     String formattedTime =
-        '${newDateTime.year}年${newDateTime.month}月${newDateTime.day}日 ${newDateTime.hour.toString().padLeft(2, '0')}:${newDateTime.minute.toString().padLeft(2, '0')}:${newDateTime.second.toString().padLeft(2, '0')}';
+        '${newDateTime.year}年${newDateTime.month}月${newDateTime.day}日 '
+        '${newDateTime.hour.toString().padLeft(2, '0')}:'
+        '${newDateTime.minute.toString().padLeft(2, '0')}:'
+        '${newDateTime.second.toString().padLeft(2, '0')}';
 
     return "$formattedTime 更新";
   }

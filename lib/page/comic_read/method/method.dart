@@ -62,7 +62,7 @@ BikaComicHistory comicToBikaComicHistory(
     commentsCount: comic.commentsCount,
     isFavourite: comic.isFavourite,
     isLiked: comic.isLiked,
-    history: DateTime.now().toUtc().add(Duration(hours: 8)),
+    history: DateTime.now().toUtc(),
     epTitle: "",
     order: 0,
     epPageCount: 0,

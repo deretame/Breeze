@@ -6,6 +6,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
 
 import '../../../config/global.dart';
+import '../../../main.dart';
 import '../../../widgets/full_screen_image_view.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 
@@ -42,7 +43,7 @@ class Cover extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: LoadingAnimationWidget.waveDots(
-                    color: Colors.blue,
+                    color: materialColorScheme.primaryFixedDim,
                     size: 50,
                   ),
                 );

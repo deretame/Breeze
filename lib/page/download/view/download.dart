@@ -432,7 +432,7 @@ class _DownloadPageState extends State<DownloadPage> {
       commentsCount: comicInfo.commentsCount,
       isFavourite: comicInfo.isFavourite,
       isLiked: comicInfo.isLiked,
-      downloadTime: DateTime.now(),
+      downloadTime: DateTime.now().toUtc(),
       epsTitle: epsTitle,
       comicInfoAll: comicAllInfoStr,
     );

@@ -41,14 +41,6 @@ class ComicEntryWidget extends StatelessWidget {
     }
   }
 
-  // 截断过长的标题
-  String _getLimitedTitle(String title, int maxLength) {
-    if (title.length > maxLength) {
-      return '${title.substring(0, maxLength)}...';
-    }
-    return title;
-  }
-
   @override
   Widget build(BuildContext context) {
     final router = AutoRouter.of(context); // 获取 router 实例
@@ -107,12 +99,11 @@ class ComicEntryWidget extends StatelessWidget {
                           if (comicEntryInfo.author.toString() != '') ...[
                             const SizedBox(height: 4),
                             Text(
-                              _getLimitedTitle(
-                                  comicEntryInfo.author.toString(), 40),
+                              comicEntryInfo.author.toString(),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                               style: TextStyle(
-                                color: globalSetting.themeType
-                                    ? Colors.red
-                                    : Colors.yellow,
+                                color: materialColorScheme.primary,
                               ),
                             ),
                           ],
@@ -139,9 +130,7 @@ class ComicEntryWidget extends StatelessWidget {
                               Text(
                                 comicEntryInfo.finished ? "完结" : "",
                                 style: TextStyle(
-                                  color: globalSetting.themeType
-                                      ? Colors.red
-                                      : Colors.yellow,
+                                  color: materialColorScheme.tertiary,
                                 ),
                               ),
                             ],
@@ -201,7 +190,7 @@ class _ImageWidget extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.only(left: 20, right: 20),
                     child: LoadingAnimationWidget.waveDots(
-                      color: Colors.blue,
+                      color: materialColorScheme.primaryFixedDim,
                       size: 25,
                     ),
                   ),

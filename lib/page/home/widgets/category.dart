@@ -87,7 +87,7 @@ class CategoryWidget extends StatelessWidget {
             case PictureLoadStatus.initial:
               return Center(
                 child: LoadingAnimationWidget.waveDots(
-                  color: globalSetting.textColor,
+                  color: materialColorScheme.primaryFixedDim,
                   size: 25,
                 ),
               );

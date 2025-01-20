@@ -12,9 +12,9 @@ import '../../download/json/comic_all_info_json/comic_all_info_json.dart';
 
 /// 导出漫画为文件夹
 Future<void> exportComicAsFolder(ComicAllInfoJson comicInfo) async {
+  var processedComicInfo = comicInfoProcess(comicInfo);
   var downloadPath = await createDownloadDir();
-  var comicDir =
-      '$downloadPath/${comicInfo.comic.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}';
+  var comicDir = '$downloadPath/${processedComicInfo.comic.title}';
 
   if (!await Directory(comicDir).exists()) {
     await Directory(comicDir).create(recursive: true);
@@ -22,13 +22,20 @@ Future<void> exportComicAsFolder(ComicAllInfoJson comicInfo) async {
 
   // 保存漫画下载信息
   var comicInfoString = comicAllInfoJsonToJson(comicInfo);
-  var comicInfoFile = File('$comicDir/info.json');
+  var comicInfoFile = File('$comicDir/original_comic_info.json');
   if (!await comicInfoFile.exists()) {
     await comicInfoFile.create(recursive: true);
   }
   await comicInfoFile.writeAsString(comicInfoString);
 
-  if (comicInfo.comic.thumb.path.isNotEmpty) {
+  var processedComicInfoString = comicAllInfoJsonToJson(processedComicInfo);
+  var processedComicInfoFile = File('$comicDir/processed_comic_info.json');
+  if (!await processedComicInfoFile.exists()) {
+    await processedComicInfoFile.create(recursive: true);
+  }
+  await processedComicInfoFile.writeAsString(processedComicInfoString);
+
+  if (processedComicInfo.comic.thumb.path.isNotEmpty) {
     var coverDir = '$comicDir/cover';
     var coverFile = File('$coverDir/cover.jpg');
     if (!await coverFile.exists()) {
@@ -36,22 +43,20 @@ Future<void> exportComicAsFolder(ComicAllInfoJson comicInfo) async {
     }
     var coverDownloadFile = await downloadPicture(
       from: 'bika',
-      url: comicInfo.comic.thumb.fileServer,
-      path: comicInfo.comic.thumb.path,
-      cartoonId: comicInfo.comic.id,
+      url: processedComicInfo.comic.thumb.fileServer,
+      path: processedComicInfo.comic.thumb.path,
+      cartoonId: processedComicInfo.comic.id,
       pictureType: 'cover',
-      chapterId: comicInfo.comic.id,
+      chapterId: processedComicInfo.comic.id,
     );
     await File(coverDownloadFile).copy(coverFile.path);
   }
 
   final List<Future<void>> downloadTasks = [];
-  for (var ep in comicInfo.eps.docs) {
-    var epDir =
-        '$comicDir/eps/${ep.order}.${ep.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}';
+  for (var ep in processedComicInfo.eps.docs) {
+    var epDir = '$comicDir/eps/${ep.title}';
     for (var page in ep.pages.docs) {
-      var pageFile =
-          '$epDir/${page.media.originalName.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}';
+      var pageFile = '$epDir/${page.media.originalName}';
       downloadTask() async {
         try {
           var pageDownloadFile = await downloadPicture(
@@ -77,53 +82,53 @@ Future<void> exportComicAsFolder(ComicAllInfoJson comicInfo) async {
 
   await Future.wait(downloadTasks);
 
-  debugPrint(
-      '漫画${comicInfo.comic.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}导出为文件夹完成');
-  EasyLoading.showSuccess(
-      '漫画${comicInfo.comic.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}导出为文件夹完成');
+  debugPrint('漫画${comicInfo.comic.title}导出为文件夹完成');
+  EasyLoading.showSuccess('漫画${comicInfo.comic.title}导出为文件夹完成');
 }
 
 /// 导出漫画为 ZIP
 Future<void> exportComicAsZip(ComicAllInfoJson comicInfo) async {
+  var processedComicInfo = comicInfoProcess(comicInfo);
   var downloadPath = await createDownloadDir();
-  var comicDir =
-      comicInfo.comic.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_');
+  var comicDir = processedComicInfo.comic.title;
 
-  // 保存漫画下载信息
-  var comicInfoString = comicAllInfoJsonToJson(comicInfo);
-  var comicInfoBytes = utf8.encode(comicInfoString);
+  // 保存原始漫画信息
+  var originalComicInfoString = comicAllInfoJsonToJson(comicInfo);
+  var originalComicInfoBytes = utf8.encode(originalComicInfoString);
+
+  // 保存处理后的漫画信息
+  var processedComicInfoString = comicAllInfoJsonToJson(processedComicInfo);
+  var processedComicInfoBytes = utf8.encode(processedComicInfoString);
 
   // 封面图片
   Uint8List? coverBytes;
-  if (comicInfo.comic.thumb.path.isNotEmpty) {
+  if (processedComicInfo.comic.thumb.path.isNotEmpty) {
     var coverDownloadFile = await downloadPicture(
       from: 'bika',
-      url: comicInfo.comic.thumb.fileServer,
-      path: comicInfo.comic.thumb.path,
-      cartoonId: comicInfo.comic.id,
+      url: processedComicInfo.comic.thumb.fileServer,
+      path: processedComicInfo.comic.thumb.path,
+      cartoonId: processedComicInfo.comic.id,
       pictureType: 'cover',
-      chapterId: comicInfo.comic.id,
+      chapterId: processedComicInfo.comic.id,
     );
     coverBytes = await File(coverDownloadFile).readAsBytes();
   }
 
   // 漫画页面
   final List<Map<String, dynamic>> pages = [];
-  for (var ep in comicInfo.eps.docs) {
-    var epDir =
-        'eps/${ep.order}.${ep.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}';
+  for (var ep in processedComicInfo.eps.docs) {
+    var epDir = 'eps/${ep.title}';
     for (var page in ep.pages.docs) {
       var pageDownloadFile = await downloadPicture(
         from: 'bika',
         url: page.media.fileServer,
         path: page.media.path,
-        cartoonId: comicInfo.comic.id,
+        cartoonId: processedComicInfo.comic.id,
         pictureType: 'comic',
         chapterId: ep.id,
       );
       var pageBytes = await File(pageDownloadFile).readAsBytes();
-      var fileName =
-          page.media.originalName.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_');
+      var fileName = page.media.originalName;
       pages.add({
         'path': join(epDir, fileName),
         'bytes': pageBytes,
@@ -137,30 +142,31 @@ Future<void> exportComicAsZip(ComicAllInfoJson comicInfo) async {
     _CompressToZipParams(
       downloadPath: downloadPath,
       comicDir: comicDir,
-      comicInfoBytes: comicInfoBytes,
+      originalComicInfoBytes: originalComicInfoBytes,
+      processedComicInfoBytes: processedComicInfoBytes,
       coverBytes: coverBytes,
       pages: pages,
     ),
   );
 
-  debugPrint(
-      '漫画${comicInfo.comic.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}导出为ZIP完成');
-  EasyLoading.showSuccess(
-      '漫画${comicInfo.comic.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}导出为ZIP完成');
+  debugPrint('漫画${comicInfo.comic.title}导出为ZIP完成');
+  EasyLoading.showSuccess('漫画${comicInfo.comic.title}导出为ZIP完成');
 }
 
 /// 压缩任务参数类
 class _CompressToZipParams {
   final String downloadPath;
   final String comicDir;
-  final Uint8List comicInfoBytes;
+  final Uint8List originalComicInfoBytes; // 原始漫画信息
+  final Uint8List processedComicInfoBytes; // 处理后的漫画信息
   final Uint8List? coverBytes;
   final List<Map<String, dynamic>> pages;
 
   _CompressToZipParams({
     required this.downloadPath,
     required this.comicDir,
-    required this.comicInfoBytes,
+    required this.originalComicInfoBytes,
+    required this.processedComicInfoBytes,
     this.coverBytes,
     required this.pages,
   });
@@ -170,11 +176,18 @@ class _CompressToZipParams {
 void _compressToZip(_CompressToZipParams params) {
   var archive = Archive();
 
-  // 添加漫画信息文件
+  // 添加原始漫画信息文件
   archive.addFile(ArchiveFile(
-    'info.json',
-    params.comicInfoBytes.length,
-    params.comicInfoBytes,
+    'original_comic_info.json',
+    params.originalComicInfoBytes.length,
+    params.originalComicInfoBytes,
+  ));
+
+  // 添加处理后的漫画信息文件
+  archive.addFile(ArchiveFile(
+    'processed_comic_info.json',
+    params.processedComicInfoBytes.length,
+    params.processedComicInfoBytes,
   ));
 
   // 添加封面图片
@@ -241,4 +254,61 @@ Future<String> createDownloadDir() async {
     debugPrint(e.toString());
     rethrow;
   }
+}
+
+ComicAllInfoJson comicInfoProcess(ComicAllInfoJson comicInfo) {
+  return ComicAllInfoJson(
+    comic: Comic(
+      id: comicInfo.comic.id,
+      creator: comicInfo.comic.creator,
+      title: comicInfo.comic.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_'),
+      description: comicInfo.comic.description,
+      thumb: comicInfo.comic.thumb,
+      author: comicInfo.comic.author,
+      chineseTeam: comicInfo.comic.chineseTeam,
+      categories: comicInfo.comic.categories,
+      tags: comicInfo.comic.tags,
+      pagesCount: comicInfo.comic.pagesCount,
+      epsCount: comicInfo.comic.epsCount,
+      finished: comicInfo.comic.finished,
+      updatedAt: comicInfo.comic.updatedAt,
+      createdAt: comicInfo.comic.createdAt,
+      allowDownload: comicInfo.comic.allowDownload,
+      allowComment: comicInfo.comic.allowComment,
+      totalLikes: comicInfo.comic.totalLikes,
+      totalViews: comicInfo.comic.totalViews,
+      totalComments: comicInfo.comic.totalComments,
+      viewsCount: comicInfo.comic.viewsCount,
+      likesCount: comicInfo.comic.likesCount,
+      commentsCount: comicInfo.comic.commentsCount,
+      isFavourite: comicInfo.comic.isFavourite,
+      isLiked: comicInfo.comic.isLiked,
+    ),
+    eps: Eps(
+      docs: comicInfo.eps.docs
+          .map((ep) => EpsDoc(
+                id: ep.id,
+                title:
+                    "${ep.order}.${ep.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}",
+                order: ep.order,
+                updatedAt: ep.updatedAt,
+                docId: ep.docId,
+                pages: Pages(
+                  docs: ep.pages.docs
+                      .map((page) => PagesDoc(
+                            id: page.id,
+                            media: Thumb(
+                              originalName: page.media.originalName
+                                  .replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_'),
+                              path: page.media.path,
+                              fileServer: page.media.fileServer,
+                            ),
+                            docId: page.docId,
+                          ))
+                      .toList(),
+                ),
+              ))
+          .toList(),
+    ),
+  );
 }

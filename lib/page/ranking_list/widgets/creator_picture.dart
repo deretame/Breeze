@@ -44,7 +44,7 @@ class CreatorPictureWidget extends StatelessWidget {
                   width: 50,
                   height: 50,
                   child: LoadingAnimationWidget.waveDots(
-                    color: globalSetting.textColor,
+                    color: materialColorScheme.primaryFixedDim,
                     size: 25,
                   ),
                 ),

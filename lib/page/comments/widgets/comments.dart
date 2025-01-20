@@ -99,7 +99,7 @@ class _CommentsWidgetState extends State<CommentsWidget>
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(commentInfo.user.name),
+                                SelectableText(commentInfo.user.name),
                                 Text(
                                   "level:${commentInfo.user.level} (${commentInfo.user.title})",
                                   style: TextStyle(
@@ -108,7 +108,7 @@ class _CommentsWidgetState extends State<CommentsWidget>
                                         : materialColorScheme.tertiary,
                                   ),
                                 ),
-                                Text(
+                                SelectableText(
                                   commentInfo.content,
                                   style: TextStyle(
                                     color: globalSetting.textColor,
@@ -190,12 +190,18 @@ class _CommentsWidgetState extends State<CommentsWidget>
   }
 
   String timeDecode(DateTime originalTime) {
-    // 加上8个小时
-    DateTime newDateTime = originalTime.add(const Duration(hours: 8));
+    // 获取当前设备的时区偏移量
+    Duration timeZoneOffset = DateTime.now().timeZoneOffset;
+
+    // 根据时区偏移量调整时间
+    DateTime newDateTime = originalTime.add(timeZoneOffset);
 
     // 按照指定格式输出
     String formattedTime =
-        '${newDateTime.year}年${newDateTime.month}月${newDateTime.day}日 ${newDateTime.hour.toString().padLeft(2, '0')}:${newDateTime.minute.toString().padLeft(2, '0')}:${newDateTime.second.toString().padLeft(2, '0')}';
+        '${newDateTime.year}年${newDateTime.month}月${newDateTime.day}日 '
+        '${newDateTime.hour.toString().padLeft(2, '0')}:'
+        '${newDateTime.minute.toString().padLeft(2, '0')}:'
+        '${newDateTime.second.toString().padLeft(2, '0')}';
 
     return formattedTime;
   }
@@ -296,7 +302,7 @@ class _ImagerWidgetState extends State<ImagerWidget> {
                 case PictureLoadStatus.initial:
                   return Center(
                     child: LoadingAnimationWidget.waveDots(
-                      color: globalSetting.textColor,
+                      color: materialColorScheme.primaryFixedDim,
                       size: 25,
                     ),
                   );

@@ -1,13 +1,11 @@
-import 'dart:convert';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
 
-import '../../../object_box/model.dart';
 import '../../../util/router/router.gr.dart';
+import '../../../util/webdav.dart';
 import 'global/widgets.dart';
 
 @RoutePage()
@@ -48,12 +46,12 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             ],
             _isAMOLED(),
             // divider(),
-            SizedBox(height: 10),
+            // SizedBox(height: 10),
             // webdavSync(context),
-            SizedBox(height: 10),
-            if (globalSetting.webdavHost.isNotEmpty) ...[
-              _autoSync(),
-            ],
+            // SizedBox(height: 10),
+            // if (globalSetting.webdavHost.isNotEmpty) ...[
+            //   _autoSync(),
+            // ],
             if (kDebugMode) ...[
               ElevatedButton(
                 onPressed: () {
@@ -65,15 +63,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             if (kDebugMode) ...[
               ElevatedButton(
                 onPressed: () async {
-                  var temp =
-                      jsonEncode(objectbox.bikaHistoryBox.getAll()[1].toJson());
-
-                  debugPrint(temp);
-
-                  final history = BikaComicHistory.fromJson(
-                    objectbox.bikaHistoryBox.getAll()[1].toJson(),
-                  );
-                  debugPrint(history.toString());
+                  var temp = await getLastModifiedTime("/Breeze/history.zst");
+                  debugPrint("temp: ${temp.toString()}");
                 },
                 child: Text("测试用的玩意儿"),
               ),

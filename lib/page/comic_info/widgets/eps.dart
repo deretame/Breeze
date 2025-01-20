@@ -211,11 +211,24 @@ class EpButtonWidget extends StatelessWidget {
 
   String timeDecode(DateTime originalTime, {bool history = false}) {
     DateTime newDateTime;
-    history
-        ? newDateTime = originalTime
-        : newDateTime = originalTime.add(const Duration(hours: 8));
+
+    if (history) {
+      // 如果是历史记录，直接使用原始时间
+      newDateTime = originalTime;
+    } else {
+      // 如果不是历史记录，获取当前设备的时区偏移量并调整时间
+      Duration timeZoneOffset = DateTime.now().timeZoneOffset;
+      newDateTime = originalTime.add(timeZoneOffset);
+    }
+
+    // 格式化时间
     String formattedTime =
-        '${newDateTime.year}年${newDateTime.month}月${newDateTime.day}日 ${newDateTime.hour.toString().padLeft(2, '0')}:${newDateTime.minute.toString().padLeft(2, '0')}:${newDateTime.second.toString().padLeft(2, '0')}';
+        '${newDateTime.year}年${newDateTime.month}月${newDateTime.day}日 '
+        '${newDateTime.hour.toString().padLeft(2, '0')}:'
+        '${newDateTime.minute.toString().padLeft(2, '0')}:'
+        '${newDateTime.second.toString().padLeft(2, '0')}';
+
+    // 返回格式化后的时间
     return history ? "$formattedTime 观看" : "$formattedTime 更新";
   }
 }

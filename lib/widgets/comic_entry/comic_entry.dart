@@ -326,7 +326,7 @@ class ImageWidget extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: LoadingAnimationWidget.waveDots(
-                      color: Colors.blue,
+                      color: materialColorScheme.primaryFixedDim,
                       size: 50,
                     ),
                   ),

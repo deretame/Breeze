@@ -797,6 +797,13 @@ class _ComicReadPageState extends State<_ComicReadPage>
         setState(() {
           _isVisible = false;
         });
+      } else if (firstItemIndex < _lastScrollIndex &&
+          _isSliderRolling == false) {
+        // 向上滚动
+        debugPrint('向上滚动');
+        setState(() {
+          _isVisible = false;
+        });
       }
 
       // 更新记录的滚动索引

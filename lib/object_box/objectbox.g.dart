@@ -22,7 +22,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(2, 8710207830109802731),
       name: 'BikaComicHistory',
-      lastPropertyId: const obx_int.IdUid(46, 7447827015123359149),
+      lastPropertyId: const obx_int.IdUid(47, 3824346468692726665),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -94,7 +94,8 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(14, 4488370369732020728),
             name: 'comicId',
             type: 9,
-            flags: 0),
+            flags: 2048,
+            indexId: const obx_int.IdUid(3, 3486826873856380308)),
         obx_int.ModelProperty(
             id: const obx_int.IdUid(15, 5901265100428652114),
             name: 'likesCount',
@@ -104,7 +105,8 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(16, 2976387199063785145),
             name: 'history',
             type: 10,
-            flags: 0),
+            flags: 8,
+            indexId: const obx_int.IdUid(4, 931357141992892300)),
         obx_int.ModelProperty(
             id: const obx_int.IdUid(17, 4401910177588291657),
             name: 'creatorId',
@@ -254,6 +256,11 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(46, 7447827015123359149),
             name: 'tagsString',
             type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(47, 3824346468692726665),
+            name: 'deleted',
+            type: 1,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
@@ -273,7 +280,8 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(2, 3554959827736600362),
             name: 'comicId',
             type: 9,
-            flags: 0),
+            flags: 2048,
+            indexId: const obx_int.IdUid(1, 6271388813384307204)),
         obx_int.ModelProperty(
             id: const obx_int.IdUid(3, 1427619926530511655),
             name: 'creatorId',
@@ -488,7 +496,8 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(50, 6304474719919395059),
             name: 'downloadTime',
             type: 10,
-            flags: 0)
+            flags: 8,
+            indexId: const obx_int.IdUid(2, 7862266475076102896))
       ],
       relations: <obx_int.ModelRelation>[],
       backlinks: <obx_int.ModelBacklink>[])
@@ -530,7 +539,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
       entities: _entities,
       lastEntityId: const obx_int.IdUid(4, 1327783071807974029),
-      lastIndexId: const obx_int.IdUid(0, 0),
+      lastIndexId: const obx_int.IdUid(4, 931357141992892300),
       lastRelationId: const obx_int.IdUid(0, 0),
       lastSequenceId: const obx_int.IdUid(0, 0),
       retiredEntityUids: const [264467845223121709, 1327783071807974029],
@@ -608,7 +617,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final categoriesStringOffset =
               fbb.writeString(object.categoriesString);
           final tagsStringOffset = fbb.writeString(object.tagsString);
-          fbb.startTable(47);
+          fbb.startTable(48);
           fbb.addInt64(0, object.id);
           fbb.addInt64(1, object.updatedAt.millisecondsSinceEpoch);
           fbb.addOffset(2, thumbOriginalNameOffset);
@@ -655,6 +664,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fbb.addOffset(43, creatorCharactersStringOffset);
           fbb.addOffset(44, categoriesStringOffset);
           fbb.addOffset(45, tagsStringOffset);
+          fbb.addBool(46, object.deleted);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -773,6 +783,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
               .vTableGet(buffer, rootOffset, 88, '');
           final epPageCountParam =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 86, 0);
+          final deletedParam =
+              const fb.BoolReader().vTableGet(buffer, rootOffset, 96, false);
           final object = BikaComicHistory(
               id: idParam,
               comicId: comicIdParam,
@@ -819,7 +831,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
               history: historyParam,
               order: orderParam,
               epTitle: epTitleParam,
-              epPageCount: epPageCountParam);
+              epPageCount: epPageCountParam,
+              deleted: deletedParam);
 
           return object;
         }),
@@ -1273,6 +1286,10 @@ class BikaComicHistory_ {
   /// See [BikaComicHistory.tagsString].
   static final tagsString =
       obx.QueryStringProperty<BikaComicHistory>(_entities[0].properties[45]);
+
+  /// See [BikaComicHistory.deleted].
+  static final deleted =
+      obx.QueryBooleanProperty<BikaComicHistory>(_entities[0].properties[46]);
 }
 
 /// [BikaComicDownload] entity fields to define ObjectBox queries.

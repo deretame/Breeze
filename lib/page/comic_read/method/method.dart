@@ -66,5 +66,6 @@ BikaComicHistory comicToBikaComicHistory(
     epTitle: "",
     order: 0,
     epPageCount: 0,
+    deleted: false,
   );
 }

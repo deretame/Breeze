@@ -88,34 +88,41 @@ class _UserHistoryPageState extends State<_UserHistoryPage>
                                 ),
                               );
                             }
-                            return ListView.builder(
-                              itemBuilder: (BuildContext context, int index) {
-                                // 如果索引等于状态的 comics.length
-                                if (index == state.comics.length) {
-                                  return const Center(
-                                    child: Padding(
-                                      padding: EdgeInsets.all(30.0),
-                                      child: Text(
-                                        '你来到了未知领域呢~',
-                                        style: TextStyle(fontSize: 20.0),
-                                      ),
-                                    ),
-                                  );
-                                }
-
-                                return index >= state.comics.length
-                                    ? const BottomLoader()
-                                    : ComicEntryWidget(
-                                        comicEntryInfo: convertToComicEntryInfo(
-                                          state.comics[index],
-                                        ),
-                                        type: ComicEntryType.history,
-                                        historySearchEnter:
-                                            state.searchEnterConst,
-                                        historyRefresh: refresh,
-                                      );
+                            return RefreshIndicator(
+                              onRefresh: () async {
+                                // 触发刷新操作
+                                refresh(state.searchEnterConst);
                               },
-                              itemCount: state.comics.length + 1,
+                              child: ListView.builder(
+                                itemBuilder: (BuildContext context, int index) {
+                                  // 如果索引等于状态的 comics.length
+                                  if (index == state.comics.length) {
+                                    return const Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(30.0),
+                                        child: Text(
+                                          '你来到了未知领域呢~',
+                                          style: TextStyle(fontSize: 20.0),
+                                        ),
+                                      ),
+                                    );
+                                  }
+
+                                  return index >= state.comics.length
+                                      ? const BottomLoader()
+                                      : ComicEntryWidget(
+                                          comicEntryInfo:
+                                              convertToComicEntryInfo(
+                                            state.comics[index],
+                                          ),
+                                          type: ComicEntryType.history,
+                                          historySearchEnter:
+                                              state.searchEnterConst,
+                                          historyRefresh: refresh,
+                                        );
+                                },
+                                itemCount: state.comics.length + 1,
+                              ),
                             );
                         }
                       },

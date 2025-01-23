@@ -66,6 +66,8 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
         comicList = comicList
             .where((comic) =>
                 comic.title.toLowerCase().contains(keyword) ||
+                comic.creatorName.toLowerCase().contains(keyword) ||
+                comic.chineseTeam.toLowerCase().contains(keyword) ||
                 comic.categoriesString.toLowerCase().contains(keyword) ||
                 comic.description.toLowerCase().contains(keyword) ||
                 comic.tagsString.toLowerCase().contains(keyword))
@@ -112,7 +114,8 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
   }
 
   List<BikaComicDownload> _filterShieldedComics(
-      List<BikaComicDownload> comics) {
+    List<BikaComicDownload> comics,
+  ) {
     // 获取所有被屏蔽的分类
     List<String> shieldedCategoriesList = bikaSetting.shieldCategoryMap.entries
         .where((entry) => entry.value) // 只选择值为 true 的条目

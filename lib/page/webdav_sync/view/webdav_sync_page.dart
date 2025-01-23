@@ -1,9 +1,11 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:zephyr/page/webdav_sync/webdav_sync.dart';
 
 import '../../../main.dart';
 import '../../../util/dialog.dart';
+import '../../main.dart';
 
 @RoutePage()
 class WebDavSyncPage extends StatefulWidget {
@@ -97,6 +99,15 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
                 Spacer(),
               ],
             ),
+            Spacer(),
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  _showQA(context);
+                },
+                child: const Text('常见问题'),
+              ),
+            )
           ],
         ),
       ),
@@ -140,6 +151,8 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
       globalSetting.setWebdavUsername(_webdavUsername.text);
       globalSetting.setWebdavPassword(_webdavPassword.text);
 
+      eventBus.fire(NoticeSync());
+
       if (!mounted) return;
       commonDialog(
         context,
@@ -159,5 +172,45 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
         "连接失败，请检查网络连接或webdav地址是否正确。\n$e",
       );
     }
+  }
+
+  void _showQA(BuildContext context) {
+    final String disclaimerMarkdown = '''
+### 什么是 webdav？怎么用？
+- 请百度
+### 哪里有 webdav 服务器？
+- 国内可以使用坚果云，国外服务可以使用 InfiniCLOUD，或者自建服务器使用
+### 可以同步那些东西？
+- 仅可以同步历史记录
+### 同步间隔时长是？
+- 五分钟
+### 如何手动触发一次同步？
+- 手动开关一次自动同步即可触发一次同步
+''';
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('常见问题'),
+          content: SingleChildScrollView(
+            child: SizedBox(
+              width: double.maxFinite, // 设置最大宽度
+              child: MarkdownBody(
+                data: disclaimerMarkdown,
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('关闭'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

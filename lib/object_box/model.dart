@@ -5,6 +5,7 @@ class BikaComicHistory {
   @Id()
   int id;
 
+  @Index()
   String comicId;
   String creatorId;
   String creatorGender;
@@ -52,6 +53,7 @@ class BikaComicHistory {
   int commentsCount;
   bool isFavourite;
   bool isLiked;
+  @Index()
   @Property(type: PropertyType.date)
   DateTime history;
 
@@ -59,6 +61,8 @@ class BikaComicHistory {
   int order;
   String epTitle;
   int epPageCount;
+
+  bool deleted;
 
   BikaComicHistory({
     this.id = 0,
@@ -107,6 +111,7 @@ class BikaComicHistory {
     required this.order,
     required this.epTitle,
     required this.epPageCount,
+    required this.deleted,
   });
 
   // 实现 toJson 方法
@@ -158,6 +163,7 @@ class BikaComicHistory {
       'order': order,
       'epTitle': epTitle,
       'epPageCount': epPageCount,
+      'deleted': deleted,
     };
   }
 
@@ -213,12 +219,13 @@ class BikaComicHistory {
       order: json['order'] ?? 0,
       epTitle: json['epTitle'] ?? '',
       epPageCount: json['epPageCount'] ?? 0,
+      deleted: json['deleted'] ?? false,
     );
   }
 
   @override
   String toString() {
-    return 'BikaComicHistory{id: $id, comicId: $comicId, creatorId: $creatorId, creatorGender: $creatorGender, creatorName: $creatorName, creatorVerified: $creatorVerified, creatorExp: $creatorExp, creatorLevel: $creatorLevel, creatorCharacters: $creatorCharacters, creatorCharactersString: $creatorCharactersString, creatorRole: $creatorRole, creatorTitle: $creatorTitle, creatorAvatarOriginalName: $creatorAvatarOriginalName, creatorAvatarPath: $creatorAvatarPath, creatorAvatarFileServer: $creatorAvatarFileServer, creatorSlogan: $creatorSlogan, title: $title, description: $description, thumbOriginalName: $thumbOriginalName, thumbPath: $thumbPath, thumbFileServer: $thumbFileServer, author: $author, chineseTeam: $chineseTeam, categories: $categories, categoriesString: $categoriesString, tags: $tags, tagsString: $tagsString, pagesCount: $pagesCount, epsCount: $epsCount, finished: $finished, updatedAt: $updatedAt, createdAt: $createdAt, allowDownload: $allowDownload, allowComment: $allowComment, totalLikes: $totalLikes, totalViews: $totalViews, totalComments: $totalComments, viewsCount: $viewsCount, likesCount: $likesCount, commentsCount: $commentsCount, isFavourite: $isFavourite, isLiked: $isLiked, history: $history, order: $order, epTitle: $epTitle, epPageCount: $epPageCount}';
+    return 'BikaComicHistory{id: $id, comicId: $comicId, creatorId: $creatorId, creatorGender: $creatorGender, creatorName: $creatorName, creatorVerified: $creatorVerified, creatorExp: $creatorExp, creatorLevel: $creatorLevel, creatorCharacters: $creatorCharacters, creatorCharactersString: $creatorCharactersString, creatorRole: $creatorRole, creatorTitle: $creatorTitle, creatorAvatarOriginalName: $creatorAvatarOriginalName, creatorAvatarPath: $creatorAvatarPath, creatorAvatarFileServer: $creatorAvatarFileServer, creatorSlogan: $creatorSlogan, title: $title, description: $description, thumbOriginalName: $thumbOriginalName, thumbPath: $thumbPath, thumbFileServer: $thumbFileServer, author: $author, chineseTeam: $chineseTeam, categories: $categories, categoriesString: $categoriesString, tags: $tags, tagsString: $tagsString, pagesCount: $pagesCount, epsCount: $epsCount, finished: $finished, updatedAt: $updatedAt, createdAt: $createdAt, allowDownload: $allowDownload, allowComment: $allowComment, totalLikes: $totalLikes, totalViews: $totalViews, totalComments: $totalComments, viewsCount: $viewsCount, likesCount: $likesCount, commentsCount: $commentsCount, isFavourite: $isFavourite, isLiked: $isLiked, history: $history, order: $order, epTitle: $epTitle, epPageCount: $epPageCount, deleted: $deleted}';
   }
 }
 
@@ -227,6 +234,7 @@ class BikaComicDownload {
   @Id()
   int id;
 
+  @Index()
   String comicId;
   String creatorId;
   String creatorGender;
@@ -270,6 +278,7 @@ class BikaComicDownload {
   int commentsCount;
   bool isFavourite;
   bool isLiked;
+  @Index()
   @Property(type: PropertyType.date)
   DateTime downloadTime;
 

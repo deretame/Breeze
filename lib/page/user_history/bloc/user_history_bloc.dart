@@ -49,6 +49,8 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
     try {
       late var comicList = objectbox.bikaHistoryBox.getAll();
 
+      comicList = comicList.where((comic) => comic.deleted == false).toList();
+
       comicList = _filterShieldedComics(comicList);
 
       comicList = _fetchOfSort(comicList, event.searchEnterConst.sort);
@@ -67,6 +69,8 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
         comicList = comicList
             .where((comic) =>
                 comic.title.toLowerCase().contains(keyword) ||
+                comic.creatorName.toLowerCase().contains(keyword) ||
+                comic.chineseTeam.toLowerCase().contains(keyword) ||
                 comic.categoriesString.toLowerCase().contains(keyword) ||
                 comic.description.toLowerCase().contains(keyword) ||
                 comic.tagsString.toLowerCase().contains(keyword))
@@ -94,7 +98,9 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
   }
 
   List<BikaComicHistory> _fetchOfSort(
-      List<BikaComicHistory> comicList, String sort) {
+    List<BikaComicHistory> comicList,
+    String sort,
+  ) {
     if (sort == "dd") {
       comicList.sort((a, b) => b.history.compareTo(a.history));
     }

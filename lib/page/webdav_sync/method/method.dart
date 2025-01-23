@@ -28,19 +28,19 @@ Future<void> testWebDavServer(
     if (response.statusCode == 200) {
       debugPrint('WebDAV 服务可用');
     } else {
-      debugPrint('WebDAV 服务返回异常状态码: ${response.statusCode}');
+      throw Exception('WebDAV 服务返回异常状态码: ${response.statusCode}');
     }
   } on DioException catch (e) {
     // 捕获 Dio 的错误
     if (e.response != null) {
       // 如果服务器返回了响应
-      debugPrint('WebDAV 服务返回错误: ${e.response?.statusCode}');
+      throw Exception('WebDAV 服务返回错误: ${e.response?.statusCode}');
     } else {
       // 如果只是 Dio 的错误（如网络连接失败、超时等）
-      debugPrint('连接失败: ${e.message}');
+      throw Exception('连接失败: ${e.message}');
     }
   } catch (e) {
     // 捕获其他未知错误
-    debugPrint('未知错误: $e');
+    throw Exception('未知错误: $e');
   }
 }

@@ -92,26 +92,33 @@ class _UserDownloadPageState extends State<_UserDownloadPage>
                                 ),
                               );
                             }
-                            return ListView.builder(
-                              itemBuilder: (BuildContext context, int index) {
-                                // 如果索引等于状态的 comics.length
-                                if (index == state.comics.length) {
-                                  return _deletingDialog();
-                                }
-
-                                return index >= state.comics.length
-                                    ? const BottomLoader()
-                                    : ComicEntryWidget(
-                                        comicEntryInfo: convertToComicEntryInfo(
-                                          state.comics[index],
-                                        ),
-                                        type: ComicEntryType.download,
-                                        downloadSearchEnter:
-                                            widget.searchEnterConst,
-                                        downloadRefresh: refresh,
-                                      );
+                            return RefreshIndicator(
+                              onRefresh: () async {
+                                // 触发刷新操作
+                                refresh(state.searchEnterConst);
                               },
-                              itemCount: state.comics.length + 1,
+                              child: ListView.builder(
+                                itemBuilder: (BuildContext context, int index) {
+                                  // 如果索引等于状态的 comics.length
+                                  if (index == state.comics.length) {
+                                    return _deletingDialog();
+                                  }
+
+                                  return index >= state.comics.length
+                                      ? const BottomLoader()
+                                      : ComicEntryWidget(
+                                          comicEntryInfo:
+                                              convertToComicEntryInfo(
+                                            state.comics[index],
+                                          ),
+                                          type: ComicEntryType.download,
+                                          downloadSearchEnter:
+                                              widget.searchEnterConst,
+                                          downloadRefresh: refresh,
+                                        );
+                                },
+                                itemCount: state.comics.length + 1,
+                              ),
                             );
                         }
                       },

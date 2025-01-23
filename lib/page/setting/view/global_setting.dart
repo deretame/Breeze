@@ -5,7 +5,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
 
 import '../../../util/router/router.gr.dart';
-import '../../../util/webdav.dart';
+import '../../main.dart';
 import 'global/widgets.dart';
 
 @RoutePage()
@@ -45,13 +45,13 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               SizedBox(height: 11),
             ],
             _isAMOLED(),
-            // divider(),
-            // SizedBox(height: 10),
-            // webdavSync(context),
-            // SizedBox(height: 10),
-            // if (globalSetting.webdavHost.isNotEmpty) ...[
-            //   _autoSync(),
-            // ],
+            divider(),
+            SizedBox(height: 10),
+            webdavSync(context),
+            SizedBox(height: 10),
+            if (globalSetting.webdavHost.isNotEmpty) ...[
+              _autoSync(),
+            ],
             if (kDebugMode) ...[
               ElevatedButton(
                 onPressed: () {
@@ -59,13 +59,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                 },
                 child: Text("整点颜色看看"),
               ),
-            ],
-            if (kDebugMode) ...[
               ElevatedButton(
-                onPressed: () async {
-                  var temp = await getLastModifiedTime("/Breeze/history.zst");
-                  debugPrint("temp: ${temp.toString()}");
-                },
+                onPressed: () async {},
                 child: Text("测试用的玩意儿"),
               ),
             ]
@@ -226,5 +221,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       _autoSyncValue = !_autoSyncValue;
     });
     globalSetting.setAutoSync(_autoSyncValue);
+    if (_autoSyncValue) {
+      eventBus.fire(NoticeSync());
+    }
   }
 }

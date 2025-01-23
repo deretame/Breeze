@@ -1,6 +1,7 @@
 import 'package:catcher_2/catcher_2.dart';
 import 'package:dio/dio.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:event_bus/event_bus.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -28,6 +29,9 @@ final dio = Dio();
 // 定义缓存拦截器
 final cacheInterceptor = DioCacheInterceptor(ExpiringMemoryCache());
 final appRouter = AppRouter();
+
+// 全局事件总线实例
+EventBus eventBus = EventBus();
 
 // 获取material主题颜色方案
 late ColorScheme materialColorScheme;

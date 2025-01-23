@@ -14,7 +14,7 @@
 
 
     <application
-            android:label="Breeze"
+            android:label="BK comic"
             android:name="${applicationName}"
             android:icon="@mipmap/ic_launcher"
             android:enableOnBackInvokedCallback="true">

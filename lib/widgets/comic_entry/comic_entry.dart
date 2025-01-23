@@ -242,7 +242,8 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                       .build()
                       .findFirst();
                   if (temp != null) {
-                    objectbox.bikaHistoryBox.remove(temp.id);
+                    temp.deleted = true;
+                    objectbox.bikaHistoryBox.put(temp);
                     historyRefresh!(historySearchEnter!);
                   }
                 }

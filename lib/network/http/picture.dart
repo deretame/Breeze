@@ -75,10 +75,22 @@ Future<String> downloadPicture({
   String cachePath = await getCachePath();
 
   String cacheFilePath = buildFilePath(
-      cachePath, from, pictureType, cartoonId, chapterId, sanitizedPath);
+    cachePath,
+    from,
+    pictureType,
+    cartoonId,
+    chapterId,
+    sanitizedPath,
+  );
 
   String downloadFilePath = buildFilePath(
-      downloadPath, from, pictureType, cartoonId, chapterId, sanitizedPath);
+    downloadPath,
+    from,
+    pictureType,
+    cartoonId,
+    chapterId,
+    sanitizedPath,
+  );
 
   // 检查文件是否存在
   String existingFilePath =
@@ -131,12 +143,12 @@ Future<String> checkFileExists(
   String cachePath,
   String downloadPath,
 ) async {
-  if (await fileExists(cachePath)) {
-    return cachePath;
-  }
-
   if (await fileExists(downloadPath)) {
     return downloadPath;
+  }
+
+  if (await fileExists(cachePath)) {
+    return cachePath;
   }
 
   return '';

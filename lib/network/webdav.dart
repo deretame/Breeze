@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:archive/archive.dart';
 import 'package:dio/dio.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:xml/xml.dart' as xml;
 
 import '../../../main.dart';
@@ -306,34 +306,41 @@ Future<List<String>> fetchWebDAVFiles() async {
 }
 
 Future<void> uploadFile2WebDav() async {
-  // 获取数据并转换为 JSON
   var allHistory = await objectbox.bikaHistoryBox.getAllAsync();
   allHistory.sort((a, b) => b.history.compareTo(a.history));
   var comicHistoriesJson = allHistory.map((comic) => comic.toJson()).toList();
   String comicHistoriesJsonString = jsonEncode(comicHistoriesJson);
 
+  // 使用 compute 在后台执行加密和压缩
+  final compressedBytes =
+      await compute(_encryptAndCompress, comicHistoriesJsonString);
+
+  if (compressedBytes == null) {
+    throw Exception('加密压缩失败');
+  }
+
+  var time = DateTime.now().toUtc().millisecondsSinceEpoch;
+
+  await _uploadDataToWebDav(compressedBytes, '/Breeze/BK_$time.gz');
+}
+
+List<int>? _encryptAndCompress(String data) {
   // 命令行解密方式
   // gunzip history.gz
   // base64 --decode history > encrypted.bin
   // openssl enc -d -aes-256-ctr -iv 37714677547877482669797577333566 -K 5859214578336a3368505e42475046616e59456a4241214c216f44326b6b434e -in encrypted.bin -out decrypted.json
 
-  final key = encrypt.Key.fromUtf8("XY!Ex3j3hP^BGPFanYEjBA!L!oD2kkCN");
-  final iv = encrypt.IV.fromUtf8("7qFwTxwH&iyuw35f");
-  final encrypter =
-      encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.ctr));
-
-  final encrypted = encrypter.encrypt(comicHistoriesJsonString, iv: iv);
-
-  // 将 JSON 字符串转换为字节数据
-  final jsonBytes = utf8.encode(encrypted.base64);
-
-  // 压缩数据
-  final compressedBytes = GZipEncoder().encode(jsonBytes);
-
-  var time = DateTime.now().toUtc().millisecondsSinceEpoch;
-
-  // 上传数据到 WebDAV
-  await _uploadDataToWebDav(compressedBytes, '/Breeze/BK_$time.gz');
+  try {
+    final key = encrypt.Key.fromUtf8("XY!Ex3j3hP^BGPFanYEjBA!L!oD2kkCN");
+    final iv = encrypt.IV.fromUtf8("7qFwTxwH&iyuw35f");
+    final encrypter =
+        encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.ctr));
+    final encrypted = encrypter.encrypt(data, iv: iv);
+    final jsonBytes = utf8.encode(encrypted.base64);
+    return GZipEncoder().encode(jsonBytes);
+  } catch (e) {
+    return null;
+  }
 }
 
 Future<void> _uploadDataToWebDav(List<int> data, String remotePath) async {
@@ -420,33 +427,48 @@ Future<List<BikaComicHistory>> getHistoryFromWebdav(String remotePath) async {
   // 下载文件
   final compressedBytes = await _downloadFromWebDav(remotePath);
 
-  // 解压缩数据
-  final jsonBytes = GZipDecoder().decodeBytes(compressedBytes);
+  // 使用 compute 在后台执行解压和解密操作
+  final comicHistoriesJson =
+      await compute(_decompressAndDecrypt, compressedBytes);
 
-  // 将字节数据转换为字符串
-  final encryptedBase64 = utf8.decode(jsonBytes);
-
-  // 解密数据
-  final key = encrypt.Key.fromUtf8("XY!Ex3j3hP^BGPFanYEjBA!L!oD2kkCN");
-  final iv = encrypt.IV.fromUtf8("7qFwTxwH&iyuw35f");
-  final encrypter =
-      encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.ctr));
-
-  // 解密
-  final encrypted = encrypt.Encrypted.fromBase64(encryptedBase64);
-  final decrypted = encrypter.decrypt(encrypted, iv: iv);
-
-  // 将解密后的 JSON 字符串转换为对象
-  final temp = jsonDecode(decrypted) as List<dynamic>;
-
-  // 将 List<dynamic> 转换为 List<Map<String, dynamic>>
-  final comicHistoriesJson = temp.cast<Map<String, dynamic>>().map((comic) {
-    return BikaComicHistory.fromJson(comic);
-  }).toList();
+  if (comicHistoriesJson.isEmpty) {
+    throw Exception('下载数据为空');
+  }
 
   debugPrint('解密后的数据条数: ${comicHistoriesJson.length}');
 
   return comicHistoriesJson;
+}
+
+List<BikaComicHistory> _decompressAndDecrypt(List<int> compressedBytes) {
+  try {
+    // 解压缩数据
+    final jsonBytes = GZipDecoder().decodeBytes(compressedBytes);
+
+    // 将字节数据转换为字符串
+    final encryptedBase64 = utf8.decode(jsonBytes);
+
+    // 解密数据
+    final key = encrypt.Key.fromUtf8("XY!Ex3j3hP^BGPFanYEjBA!L!oD2kkCN");
+    final iv = encrypt.IV.fromUtf8("7qFwTxwH&iyuw35f");
+    final encrypter =
+        encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.ctr));
+
+    // 解密
+    final encrypted = encrypt.Encrypted.fromBase64(encryptedBase64);
+    final decrypted = encrypter.decrypt(encrypted, iv: iv);
+
+    // 将解密后的 JSON 字符串转换为对象
+    final temp = jsonDecode(decrypted) as List<dynamic>;
+
+    // 将 List<dynamic> 转换为 List<Map<String, dynamic>>
+    return temp.cast<Map<String, dynamic>>().map((comic) {
+      return BikaComicHistory.fromJson(comic);
+    }).toList();
+  } catch (e) {
+    debugPrint('解压或解密失败: $e');
+    return []; // 发生错误时返回空列表
+  }
 }
 
 Future<List<int>> _downloadFromWebDav(String remotePath) async {

@@ -112,7 +112,8 @@ class _EpsWidgetState extends State<EpsWidget> {
               comicInfo: comicInfo,
               epsInfo: docs,
               isHistory: false,
-              type: type,
+              type:
+                  type == ComicEntryType.history ? ComicEntryType.normal : type,
             ),
           ),
         ),

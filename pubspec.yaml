@@ -1,6 +1,6 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
-version: 1.24.2+70
+version: 1.24.3+71
 
 environment:
   sdk: ">=3.0.0"
@@ -61,6 +61,7 @@ dependencies:
   image_picker: ^1.1.2          # 图片选择器
   image_cropper: ^8.1.0         # 图片裁剪器
   image: ^4.5.2                 # 图片处理
+  connectivity_plus: ^6.1.2     # 网络状态监听
 
   # --------------- 功能组件 ---------------
   crypto: ^3.0.6                # 加密算法

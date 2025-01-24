@@ -122,8 +122,9 @@ class _ComicReadPageState extends State<_ComicReadPage>
 
     _itemPositionsListener.itemPositions.addListener(() {
       if (_itemPositionsListener.itemPositions.value.isNotEmpty) {
-        getTopThirdItemIndex();
-        _detectScrollDirection();
+        final positions = _itemPositionsListener.itemPositions.value;
+        getTopThirdItemIndex(positions);
+        _detectScrollDirection(positions);
       }
     });
 
@@ -155,8 +156,6 @@ class _ComicReadPageState extends State<_ComicReadPage>
   @override
   void dispose() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    _itemPositionsListener.itemPositions
-        .removeListener(() => getTopThirdItemIndex());
     _overlayEntry?.remove(); // 移除 Overlay
     _sliderIsRollingTimer?.cancel(); // 取消定时器
     comicRollingTimer?.cancel(); // 取消滚动定时器
@@ -298,30 +297,45 @@ class _ComicReadPageState extends State<_ComicReadPage>
                 // debugPrint('index: $index');
                 // debugPrint('itemCount: ${state.medias!.length + 2}');
                 if (index == 0) {
-                  return Container(
-                    height: statusBarHeight,
-                    decoration: BoxDecoration(color: Color(0xFF2D2D2D)),
+                  return ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minWidth: screenWidth,
+                    ),
+                    child: Container(
+                      height: statusBarHeight,
+                      decoration: BoxDecoration(color: Color(0xFF2D2D2D)),
+                    ),
                   );
                 } else if (index == length + 1) {
-                  return Container(
-                    height: 75,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(color: Color(0xFF2D2D2D)),
-                    child: Text(
-                      "章节结束",
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Color(0xFFCCCCCC),
+                  return ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minWidth: screenWidth,
+                    ),
+                    child: Container(
+                      height: 75,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(color: Color(0xFF2D2D2D)),
+                      child: Text(
+                        "章节结束",
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Color(0xFFCCCCCC),
+                        ),
                       ),
                     ),
                   );
                 } else {
-                  return ReadImageWidget(
-                    media: medias[index - 1],
-                    comicId: comicId,
-                    epsId: _doc.id,
-                    index: index - 1,
-                    chapterId: _doc.docId,
+                  return ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minWidth: screenWidth,
+                    ),
+                    child: ReadImageWidget(
+                      media: medias[index - 1],
+                      comicId: comicId,
+                      epsId: _doc.id,
+                      index: index - 1,
+                      chapterId: _doc.docId,
+                    ),
                   );
                 }
               },
@@ -330,79 +344,21 @@ class _ComicReadPageState extends State<_ComicReadPage>
             ),
           ),
         ),
-        _appBarWidget(),
-        _pageCountWidget(),
+        ComicReadAppBar(
+          title: _doc.title,
+          isVisible: _isVisible,
+          onThemeModeChanged: () {
+            globalSetting.setThemeMode(0);
+          },
+        ),
+        // _pageCountWidget(),
+        PageCountWidget(
+          pageIndex: pageIndex,
+          epPages: epPages,
+        ),
         _bottomWidget(),
         // _bottomButton(),
       ],
-    );
-  }
-
-  Widget _appBarWidget() {
-    // 顶部悬浮组件
-    return AnimatedPositioned(
-      duration: _animationDuration + Duration(milliseconds: 100),
-      top: _isVisible ? 0 : -kToolbarHeight - statusBarHeight,
-      // 隐藏时往上移动
-      left: 0,
-      right: 0,
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // 高斯模糊强度
-          child: AppBar(
-            title: Text(_doc.title),
-            backgroundColor:
-                globalSetting.backgroundColor.withValues(alpha: 0.5),
-            // 半透明背景
-            elevation: _isVisible ? 4.0 : 0.0,
-            // 添加阴影效果
-            actions: <Widget>[
-              Observer(builder: (context) {
-                return IconButton(
-                  icon: globalSetting.themeMode == ThemeMode.system
-                      ? Icon(Icons.brightness_auto_rounded)
-                      : Icon(Icons.brightness_auto_outlined),
-                  onPressed: () {
-                    globalSetting.setThemeMode(0);
-                  },
-                );
-              }),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _pageCountWidget() {
-    return Positioned(
-      bottom: 0, // 离底部的间距
-      left: 0, // 离右边的间距
-      child: ClipRRect(
-        borderRadius: BorderRadius.only(
-          topRight: Radius.circular(10), // 右上角设置圆角
-        ),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // 高斯模糊强度
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: globalSetting.backgroundColor.withValues(alpha: 0.7),
-              // 半透明背景
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(0), // 左上角保持直角
-                topRight: Radius.circular(10), // 右上角设置圆角
-                bottomLeft: Radius.circular(0), // 左下角保持直角
-                bottomRight: Radius.circular(0), // 右下角保持直角
-              ),
-            ),
-            child: Text(
-              " ${pageIndex - 1}/$epPages", // 显示当前页数
-              style: TextStyle(color: globalSetting.textColor),
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -725,42 +681,52 @@ class _ComicReadPageState extends State<_ComicReadPage>
         false; // 处理返回值为空的情况
   }
 
-  Future<void> updateIndex() async {
-    final positions = _itemPositionsListener.itemPositions.value;
+  Future<void> updateIndex(Iterable<ItemPosition> positions) async {
     if (positions.isEmpty) return;
 
+    // 提前计算屏幕的三分之一位置
     final viewportHeight = MediaQuery.of(context).size.height;
     final topThird = viewportHeight / 3 + statusBarHeight;
 
+    // 找到最接近的项
+    final closestPosition = _findClosestPosition(positions, topThird);
+
+    // 更新索引
+    if (closestPosition != null &&
+        mounted &&
+        !_isSliderRolling &&
+        pageIndex != closestPosition.index) {
+      debugPrint('更新索引：$pageIndex');
+
+      setState(() {
+        pageIndex = closestPosition.index;
+        if (!_isComicRolling) {
+          _currentSliderValue = pageIndex - 2;
+        }
+      });
+    }
+  }
+
+  /// 找到最接近屏幕三分之一位置的项
+  ItemPosition? _findClosestPosition(
+      Iterable<ItemPosition> positions, double topThird) {
     ItemPosition? closestPosition;
     double minDistance = double.infinity;
+
     for (final position in positions) {
-      // 考虑列表项的实际高度
+      // 计算项的中心位置
       final itemHeight = position.itemTrailingEdge - position.itemLeadingEdge;
       final itemMiddle = position.itemLeadingEdge + itemHeight / 2;
       final distance = (topThird - itemMiddle).abs();
 
-      // // 增加阈值
-      // final threshold = itemHeight / 4;
+      // 找到距离最小的项
       if (distance < minDistance) {
         minDistance = distance;
         closestPosition = position;
       }
     }
 
-    if (closestPosition != null &&
-        mounted &&
-        _isSliderRolling == false &&
-        pageIndex != closestPosition.index) {
-      debugPrint('更新索引：$pageIndex');
-
-      setState(() {
-        pageIndex = closestPosition!.index;
-        if (_isComicRolling == false) {
-          _currentSliderValue = pageIndex - 2;
-        }
-      });
-    }
+    return closestPosition;
   }
 
   Future<void> writeToDatabase() async {
@@ -780,30 +746,21 @@ class _ComicReadPageState extends State<_ComicReadPage>
     _lastUpdateTime = DateTime.now();
   }
 
-  Future<void> getTopThirdItemIndex() async {
-    await updateIndex();
+  Future<void> getTopThirdItemIndex(Iterable<ItemPosition> positions) async {
+    await updateIndex(positions);
     await writeToDatabase();
   }
 
-  void _detectScrollDirection() {
-    final positions = _itemPositionsListener.itemPositions.value;
+  void _detectScrollDirection(Iterable<ItemPosition> positions) {
     if (positions.isNotEmpty) {
-      // 获取当前滚动的第一个和最后一个索引
+      // 获取当前滚动的第一个索引
       final firstItemIndex = positions.first.index;
-      // final lastItemIndex = positions.last.index;
 
-      if (firstItemIndex > _lastScrollIndex && _isSliderRolling == false) {
-        // 向下滚动
-        debugPrint('向下滚动');
+      // 判断是否有滚动
+      if (firstItemIndex != _lastScrollIndex && !_isSliderRolling) {
+        debugPrint('滚动检测：隐藏组件');
         setState(() {
-          _isVisible = false;
-        });
-      } else if (firstItemIndex < _lastScrollIndex &&
-          _isSliderRolling == false) {
-        // 向上滚动
-        debugPrint('向上滚动');
-        setState(() {
-          _isVisible = false;
+          _isVisible = false; // 只要滚动了就隐藏组件
         });
       }
 

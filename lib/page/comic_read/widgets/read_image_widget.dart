@@ -9,7 +9,7 @@ import '../../../widgets/picture_bloc/models/picture_info.dart';
 
 class ReadImageWidget extends StatefulWidget {
   final String comicId;
-  final int epsId;
+  final String epsId;
   final Media media;
   final int index;
   final String chapterId;
@@ -31,7 +31,7 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
     with AutomaticKeepAliveClientMixin {
   String get comicId => widget.comicId;
 
-  int get epsId => widget.epsId;
+  String get epsId => widget.epsId;
 
   Media get media => widget.media;
 

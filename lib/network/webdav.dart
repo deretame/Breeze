@@ -8,7 +8,6 @@ import 'package:xml/xml.dart' as xml;
 
 import '../../../main.dart';
 import '../object_box/model.dart';
-import '../object_box/objectbox.g.dart';
 
 // 测试 WebDAV 服务是否可用
 Future<void> testWebDavServer() async {
@@ -308,11 +307,8 @@ Future<List<String>> fetchWebDAVFiles() async {
 
 Future<void> uploadFile2WebDav() async {
   // 获取数据并转换为 JSON
-  var allHistory = await objectbox.bikaHistoryBox
-      .query()
-      .order(BikaComicHistory_.history, flags: Order.descending)
-      .build()
-      .findAsync();
+  var allHistory = await objectbox.bikaHistoryBox.getAllAsync();
+  allHistory.sort((a, b) => b.history.compareTo(a.history));
   var comicHistoriesJson = allHistory.map((comic) => comic.toJson()).toList();
   String comicHistoriesJsonString = jsonEncode(comicHistoriesJson);
 

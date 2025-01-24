@@ -148,6 +148,8 @@ class _ComicReadPageState extends State<_ComicReadPage>
       var temp2 = comic_all_info_json.comicAllInfoJsonFromJson(temp);
       _downloadEpsInfo = temp2.eps;
     }
+
+    debugPrint(_type.toString().split('.').last);
   }
 
   @override
@@ -317,7 +319,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                   return ReadImageWidget(
                     media: medias[index - 1],
                     comicId: comicId,
-                    epsId: _doc.order,
+                    epsId: _doc.id,
                     index: index - 1,
                     chapterId: _doc.docId,
                   );
@@ -602,11 +604,13 @@ class _ComicReadPageState extends State<_ComicReadPage>
         max: maxValue,
         label: (_currentSliderValue.toInt() + 1).toString(),
         onChanged: (double newValue) {
-          setState(() {
-            _currentSliderValue = newValue;
-            _sliderIsRollingTimer?.cancel();
-            _isSliderRolling = true;
-          });
+          if (_currentSliderValue.toInt() != newValue.toInt()) {
+            setState(() {
+              _currentSliderValue = newValue;
+            });
+          }
+          _isSliderRolling = true;
+          _sliderIsRollingTimer?.cancel();
 
           // 显示 Overlay 提示框
           _showOverlayToast((newValue.toInt() + 1).toString());
@@ -744,10 +748,12 @@ class _ComicReadPageState extends State<_ComicReadPage>
       }
     }
 
-    if (closestPosition != null && mounted && _isSliderRolling == false) {
-      if (pageIndex != closestPosition.index) {
-        debugPrint('更新索引：$pageIndex');
-      }
+    if (closestPosition != null &&
+        mounted &&
+        _isSliderRolling == false &&
+        pageIndex != closestPosition.index) {
+      debugPrint('更新索引：$pageIndex');
+
       setState(() {
         pageIndex = closestPosition!.index;
         if (_isComicRolling == false) {
@@ -770,12 +776,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
     comicHistory!.epPageCount = pageIndex;
     comicHistory!.epTitle = _doc.title;
     await objectbox.bikaHistoryBox.putAsync(comicHistory!);
-    if (mounted) {
-      // 添加 mounted 检查
-      setState(() {
-        _isInserting = false;
-      });
-    }
+    _isInserting = false;
     _lastUpdateTime = DateTime.now();
   }
 

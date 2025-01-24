@@ -47,7 +47,8 @@ Future<void> main() async {
 
   // 告诉系统应该用竖屏
   await SystemChrome.setPreferredOrientations(
-      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+    [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown],
+  );
 
   // 初始化Hive
   await Hive.initFlutter();

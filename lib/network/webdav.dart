@@ -30,8 +30,11 @@ Future<void> testWebDavServer() async {
   ));
 
   try {
-    // 发送 HEAD 请求测试服务是否可用
-    final response = await dio.head('/');
+    // 发送 OPTIONS 请求测试服务是否可用
+    final response = await dio.request(
+      '/',
+      options: Options(method: 'OPTIONS'),
+    );
 
     // 检查状态码
     if (response.statusCode == 200) {
@@ -248,15 +251,20 @@ Future<void> checkOrCreateFixedDirectory() async {
 }
 
 // 判断是否是文件夹
-bool xmlIsDirectory(xml.XmlElement prop) {
-  // 检查 <D:resourcetype> 节点下是否有 <D:collection />
-  var resourceType = prop.findElements('D:resourcetype').firstOrNull;
+bool xmlIsDirectory(xml.XmlElement prop, String namespacePrefix) {
+  // 动态构建元素名称
+  var resourceTypeElement = '$namespacePrefix:resourcetype';
+  var collectionElement = '$namespacePrefix:collection';
+
+  // 检查 <resourcetype> 节点下是否有 <collection />
+  var resourceType = prop.findElements(resourceTypeElement).firstOrNull;
   if (resourceType != null) {
-    return resourceType.findElements('D:collection').isNotEmpty;
+    return resourceType.findElements(collectionElement).isNotEmpty;
   }
   return false;
 }
 
+// 获取 WebDAV 文件列表
 Future<List<String>> fetchWebDAVFiles() async {
   List<String> urlList = [];
 
@@ -279,17 +287,27 @@ Future<List<String>> fetchWebDAVFiles() async {
       xml.XmlDocument xmlDoc = xml.XmlDocument.parse(response.data);
 
       try {
-        var elements = xmlDoc.findAllElements('D:response');
+        // 获取命名空间前缀
+        var namespacePrefix = _getNamespacePrefix(xmlDoc);
+
+        // 动态构建元素名称
+        var responseElement = '$namespacePrefix:response';
+        var propstatElement = '$namespacePrefix:propstat';
+        var propElement = '$namespacePrefix:prop';
+        var displayNameElement = '$namespacePrefix:displayname';
+
+        var elements = xmlDoc.findAllElements(responseElement);
 
         for (var element in elements) {
-          var href = element.findElements('D:href').first.innerText;
-          var propstat = element.findElements('D:propstat').first;
-          var prop = propstat.findElements('D:prop').first;
+          var propstat = element.findElements(propstatElement).first;
+          var prop = propstat.findElements(propElement).first;
 
-          var isDir = xmlIsDirectory(prop); // 判断是否是文件夹
+          // 获取 displayname
+          var displayName =
+              prop.findElements(displayNameElement).firstOrNull?.innerText;
 
-          if (!isDir) {
-            urlList.add(href);
+          if (displayName != null && !xmlIsDirectory(prop, namespacePrefix)) {
+            urlList.add("/Breeze/$displayName");
           }
         }
       } catch (e) {
@@ -303,6 +321,15 @@ Future<List<String>> fetchWebDAVFiles() async {
   }
 
   return urlList;
+}
+
+// 获取命名空间前缀
+String _getNamespacePrefix(xml.XmlDocument xmlDoc) {
+  var rootElement = xmlDoc.rootElement;
+  var namespacePrefix = rootElement.name.prefix;
+
+  // 如果未找到前缀，默认使用 'd'
+  return namespacePrefix ?? 'd';
 }
 
 Future<void> uploadFile2WebDav() async {
@@ -477,32 +504,42 @@ Future<List<int>> _downloadFromWebDav(String remotePath) async {
     throw Exception('WebDAV 配置不完整');
   }
 
-  try {
-    // 发送 GET 请求下载文件
-    final response = await dio.get(
-      remotePath,
-      options: Options(
-        responseType: ResponseType.bytes, // 以字节数组形式接收数据
-      ),
-    );
+  const maxRetries = 3;
+  const retryDelay = Duration(seconds: 2);
 
-    // 检查状态码
-    if (response.statusCode == 200) {
-      debugPrint('文件下载成功');
-      return response.data as List<int>;
-    } else {
-      throw Exception('文件下载失败，状态码: ${response.statusCode}');
+  for (var i = 0; i < maxRetries; i++) {
+    try {
+      final response = await dio.get(
+        remotePath,
+        options: Options(
+          responseType: ResponseType.bytes,
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        debugPrint('文件下载成功');
+        return response.data as List<int>;
+      } else if (response.statusCode == 409) {
+        debugPrint('冲突，重试中...');
+        await Future.delayed(retryDelay);
+        continue;
+      } else {
+        throw Exception('文件下载失败，状态码: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 409) {
+        debugPrint('冲突，重试中...');
+        await Future.delayed(retryDelay);
+        continue;
+      } else {
+        throw Exception('文件下载失败: ${e.message}');
+      }
+    } catch (e) {
+      throw Exception('未知错误: $e');
     }
-  } on DioException catch (e) {
-    if (e.response != null) {
-      throw Exception(
-          '文件下载失败: ${e.message}\n${e.response?.statusCode}\n${e.response?.data}');
-    } else {
-      throw Exception('文件下载失败: ${e.message}');
-    }
-  } catch (e) {
-    throw Exception('未知错误: $e');
   }
+
+  throw Exception('文件下载失败，重试次数用尽');
 }
 
 Future<void> updateHistory(List<BikaComicHistory> comicHistories) async {

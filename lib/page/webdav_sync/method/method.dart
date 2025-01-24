@@ -21,19 +21,30 @@ Future<void> testWebDavServer(
   ));
 
   try {
-    // 发送 HEAD 请求测试服务是否可用
-    final response = await dio.head('/');
+    // 打印请求信息
+    debugPrint('请求 URL: ${dio.options.baseUrl}');
+    debugPrint('请求头: ${dio.options.headers}');
+
+    // 发送 OPTIONS 请求测试服务是否可用
+    final response = await dio.request(
+      '/',
+      options: Options(method: 'OPTIONS'),
+    );
 
     // 检查状态码
     if (response.statusCode == 200) {
       debugPrint('WebDAV 服务可用');
+      debugPrint('支持的 HTTP 方法: ${response.headers['allow']}');
     } else {
       throw Exception('WebDAV 服务返回异常状态码: ${response.statusCode}');
     }
   } on DioException catch (e) {
     // 捕获 Dio 的错误
     if (e.response != null) {
-      // 如果服务器返回了响应
+      // 打印完整响应信息
+      debugPrint('响应状态码: ${e.response?.statusCode}');
+      debugPrint('响应头: ${e.response?.headers}');
+      debugPrint('响应体: ${e.response?.data}');
       throw Exception('WebDAV 服务返回错误: ${e.response?.statusCode}');
     } else {
       // 如果只是 Dio 的错误（如网络连接失败、超时等）

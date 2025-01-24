@@ -68,3 +68,8 @@
 - 开发者：**[windy](https://github.com/deretame)**
 - 项目仓库：**[Breeze](https://github.com/deretame/Breeze)**
 - 联系方式：**[telegram(电报)](https://t.me/breeze_zh_cn)**
+
+
+/data/user/0/com.zephyr.breeze/files/downloads/bika/original/6172ed076f7967071f380ba4/comic/6172ed076f7967071f380ba5/2a83fa93-8a39-44d9-a665-054376a85705.jpg
+/data/user/0/com.zephyr.breeze/files/downloads/bika/original/6172ed076f7967071f380ba4/comic/1/4ed6de25-6317-4ef0-87ff-8c5a671d1bfe.jpg
+/data/user/0/com.zephyr.breeze/cache/bika/original/6172ed076f7967071f380ba4/comic/1/4ed6de25-6317-4ef0-87ff-8c5a671d1bfe.jpg

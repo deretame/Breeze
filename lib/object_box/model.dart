@@ -5,7 +5,7 @@ class BikaComicHistory {
   @Id()
   int id;
 
-  @Index()
+  // @Index()
   String comicId;
   String creatorId;
   String creatorGender;
@@ -53,7 +53,7 @@ class BikaComicHistory {
   int commentsCount;
   bool isFavourite;
   bool isLiked;
-  @Index()
+  // @Index()
   @Property(type: PropertyType.date)
   DateTime history;
 

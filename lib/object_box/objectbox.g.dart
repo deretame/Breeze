@@ -94,8 +94,7 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(14, 4488370369732020728),
             name: 'comicId',
             type: 9,
-            flags: 2048,
-            indexId: const obx_int.IdUid(3, 3486826873856380308)),
+            flags: 0),
         obx_int.ModelProperty(
             id: const obx_int.IdUid(15, 5901265100428652114),
             name: 'likesCount',
@@ -105,8 +104,7 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(16, 2976387199063785145),
             name: 'history',
             type: 10,
-            flags: 8,
-            indexId: const obx_int.IdUid(4, 931357141992892300)),
+            flags: 0),
         obx_int.ModelProperty(
             id: const obx_int.IdUid(17, 4401910177588291657),
             name: 'creatorId',
@@ -543,7 +541,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
       lastRelationId: const obx_int.IdUid(0, 0),
       lastSequenceId: const obx_int.IdUid(0, 0),
       retiredEntityUids: const [264467845223121709, 1327783071807974029],
-      retiredIndexUids: const [],
+      retiredIndexUids: const [3486826873856380308, 931357141992892300],
       retiredPropertyUids: const [
         4194924827811470754,
         6505186057625373131,

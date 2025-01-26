@@ -53,6 +53,7 @@ class BikaComicHistory {
   int commentsCount;
   bool isFavourite;
   bool isLiked;
+
   // @Index()
   @Property(type: PropertyType.date)
   DateTime history;
@@ -63,6 +64,8 @@ class BikaComicHistory {
   int epPageCount;
 
   bool deleted;
+  @Property(type: PropertyType.date)
+  DateTime deletedAt;
 
   BikaComicHistory({
     this.id = 0,
@@ -112,6 +115,7 @@ class BikaComicHistory {
     required this.epTitle,
     required this.epPageCount,
     required this.deleted,
+    required this.deletedAt,
   });
 
   // 实现 toJson 方法
@@ -164,6 +168,7 @@ class BikaComicHistory {
       'epTitle': epTitle,
       'epPageCount': epPageCount,
       'deleted': deleted,
+      'deletedAt': deletedAt.toIso8601String()
     };
   }
 
@@ -220,6 +225,8 @@ class BikaComicHistory {
       epTitle: json['epTitle'] ?? '',
       epPageCount: json['epPageCount'] ?? 0,
       deleted: json['deleted'] ?? false,
+      deletedAt:
+          DateTime.parse(json['deletedAt'] ?? DateTime.now().toIso8601String()),
     );
   }
 

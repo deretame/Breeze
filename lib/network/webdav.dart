@@ -348,7 +348,7 @@ Future<void> uploadFile2WebDav() async {
 
   var time = DateTime.now().toUtc().millisecondsSinceEpoch;
 
-  await _uploadDataToWebDav(compressedBytes, '/Breeze/BK_$time.gz');
+  await _uploadDataToWebDav(compressedBytes, '/Breeze/BK_${time}_1.24.4.gz');
 }
 
 List<int>? _encryptAndCompress(String data) {
@@ -397,7 +397,8 @@ Future<void> _uploadDataToWebDav(List<int> data, String remotePath) async {
   } on DioException catch (e) {
     if (e.response != null) {
       throw Exception(
-          '文件上传失败: ${e.message}\n${e.response?.statusCode}\n${e.response?.data}');
+        '文件上传失败: ${e.message}\n${e.response?.statusCode}\n${e.response?.data}',
+      );
     } else {
       throw Exception('文件上传失败: ${e.message}');
     }
@@ -410,7 +411,7 @@ Future<String> getNeedDownloadUrl(List<String> urlList) async {
   List<String> timestampList = [];
 
   // 正则表达式
-  final regex = RegExp(r'BK_(\d+)\.gz');
+  final regex = RegExp(r'BK_(\d+)_1.24.4\.gz');
 
   for (var url in urlList) {
     // 匹配正则表达式
@@ -422,9 +423,8 @@ Future<String> getNeedDownloadUrl(List<String> urlList) async {
     }
   }
 
-  // 确保时间戳列表不为空
   if (timestampList.isEmpty) {
-    throw Exception('No valid URLs found');
+    return '';
   }
 
   // 按时间戳排序（升序）
@@ -436,15 +436,10 @@ Future<String> getNeedDownloadUrl(List<String> urlList) async {
   // 找到最新时间戳对应的 URL
   String latestUrl = '';
   for (var url in urlList) {
-    if (url.contains('BK_$latestTimestamp.gz')) {
+    if (url.contains('BK_${latestTimestamp}_1.24.4.gz')) {
       latestUrl = url;
       break;
     }
-  }
-
-  // 确保找到对应的 URL
-  if (latestUrl.isEmpty) {
-    throw Exception('No URL found for the latest timestamp');
   }
 
   return latestUrl;
@@ -543,28 +538,38 @@ Future<List<int>> _downloadFromWebDav(String remotePath) async {
 }
 
 Future<void> updateHistory(List<BikaComicHistory> comicHistories) async {
+  comicHistories.sort((a, b) => b.history.compareTo(a.history));
   List<BikaComicHistory> needUpdateList = [];
   List<int> needDeleteIdList = [];
-  var historyBox = objectbox.bikaHistoryBox.query().build().find();
-  // 获取当前设备的时区偏移量
-  Duration timeZoneOffset = DateTime.now().timeZoneOffset;
+  var historyBox = await objectbox.bikaHistoryBox.getAllAsync();
+  historyBox.sort((a, b) => b.history.compareTo(a.history));
 
-  for (var comicHistory in comicHistories) {
-    var temp = historyBox
-        .where((history) => history.comicId == comicHistory.comicId)
+  for (var cloudHistory in comicHistories) {
+    var localHistory = historyBox
+        .where((history) => history.comicId == cloudHistory.comicId)
         .firstOrNull;
 
-    if (temp != null) {
-      if (temp.history.compareTo(comicHistory.history) < 0) {
-        needDeleteIdList.add(temp.id);
-        comicHistory.id = 0;
-        comicHistory.history.add(timeZoneOffset);
-        needUpdateList.add(comicHistory);
+    if (localHistory != null) {
+      cloudHistory = mergeDeletedStatus(localHistory, cloudHistory);
+
+      // < 云端时间大于本地时间
+      // > 云端时间小于本地时间
+      if (localHistory.history.compareTo(cloudHistory.history) < 0) {
+        needDeleteIdList.add(localHistory.id);
+        cloudHistory.id = 0;
+        needUpdateList.add(cloudHistory);
+      } else {
+        cloudHistory.history = localHistory.history;
+        cloudHistory.order = localHistory.order;
+        cloudHistory.epTitle = localHistory.epTitle;
+        cloudHistory.epPageCount = localHistory.epPageCount;
+        needDeleteIdList.add(localHistory.id);
+        cloudHistory.id = 0;
+        needUpdateList.add(cloudHistory);
       }
     } else {
-      comicHistory.id = 0;
-      comicHistory.history.add(timeZoneOffset);
-      needUpdateList.add(comicHistory);
+      cloudHistory.id = 0;
+      needUpdateList.add(cloudHistory);
     }
   }
 
@@ -574,32 +579,66 @@ Future<void> updateHistory(List<BikaComicHistory> comicHistories) async {
   debugPrint('更新历史记录成功');
 }
 
+// 合并两个记录的删除状态和时间
+BikaComicHistory mergeDeletedStatus(
+  BikaComicHistory temp,
+  BikaComicHistory comicHistory,
+) {
+  if (temp.deleted || comicHistory.deleted) {
+    // 确定双方的最新删除时间和最新观看时间
+    final latestDeleteTime =
+        _maxDateTime(temp.deletedAt, comicHistory.deletedAt);
+    final latestHistoryTime = _maxDateTime(temp.history, comicHistory.history);
+
+    // 判断删除是否发生在最后一次观看之后
+    if (latestDeleteTime.isAfter(latestHistoryTime)) {
+      // 保留删除状态（取时间更晚的删除记录）
+      comicHistory.deleted = true;
+      comicHistory.deletedAt = latestDeleteTime;
+    } else {
+      // 保留观看状态
+      comicHistory.deleted = false;
+      comicHistory.deletedAt = DateTime.utc(2000); // 重置删除时间
+    }
+  }
+
+  return comicHistory;
+}
+
+// 辅助函数：返回两个时间中较晚的一个
+DateTime _maxDateTime(DateTime a, DateTime b) {
+  return a.isAfter(b) ? a : b;
+}
+
 Future<void> deleteFileFromWebDav(List<String> remotePath) async {
   final dio = getWebDavDio();
   if (dio == null) {
     throw Exception('WebDAV 配置不完整');
   }
+  try {
+    for (var path in remotePath) {
+      try {
+        // 发送 DELETE 请求删除文件
+        final response = await dio.delete(path);
 
-  for (var path in remotePath) {
-    try {
-      // 发送 DELETE 请求删除文件
-      final response = await dio.delete(path);
-
-      // 检查状态码
-      if (response.statusCode == 200 || response.statusCode == 204) {
-        debugPrint('文件删除成功: $path');
-      } else {
-        throw Exception('文件删除失败，状态码: ${response.statusCode}');
+        // 检查状态码
+        if (response.statusCode == 200 || response.statusCode == 204) {
+          debugPrint('文件删除成功: $path');
+        } else {
+          throw Exception('文件删除失败，状态码: ${response.statusCode}');
+        }
+      } on DioException catch (e) {
+        if (e.response != null) {
+          throw Exception(
+              '文件删除失败: ${e.message}\n${e.response?.statusCode}\n${e.response?.data}');
+        } else {
+          throw Exception('文件删除失败: ${e.message}');
+        }
+      } catch (e) {
+        throw Exception('未知错误: $e');
       }
-    } on DioException catch (e) {
-      if (e.response != null) {
-        throw Exception(
-            '文件删除失败: ${e.message}\n${e.response?.statusCode}\n${e.response?.data}');
-      } else {
-        throw Exception('文件删除失败: ${e.message}');
-      }
-    } catch (e) {
-      throw Exception('未知错误: $e');
     }
+  } catch (e) {
+    debugPrint('删除文件失败: $e');
   }
 }

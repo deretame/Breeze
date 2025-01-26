@@ -22,7 +22,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(2, 8710207830109802731),
       name: 'BikaComicHistory',
-      lastPropertyId: const obx_int.IdUid(47, 3824346468692726665),
+      lastPropertyId: const obx_int.IdUid(48, 4559793647698832271),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -259,6 +259,11 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(47, 3824346468692726665),
             name: 'deleted',
             type: 1,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(48, 4559793647698832271),
+            name: 'deletedAt',
+            type: 10,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
@@ -615,7 +620,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final categoriesStringOffset =
               fbb.writeString(object.categoriesString);
           final tagsStringOffset = fbb.writeString(object.tagsString);
-          fbb.startTable(48);
+          fbb.startTable(49);
           fbb.addInt64(0, object.id);
           fbb.addInt64(1, object.updatedAt.millisecondsSinceEpoch);
           fbb.addOffset(2, thumbOriginalNameOffset);
@@ -663,6 +668,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fbb.addOffset(44, categoriesStringOffset);
           fbb.addOffset(45, tagsStringOffset);
           fbb.addBool(46, object.deleted);
+          fbb.addInt64(47, object.deletedAt.millisecondsSinceEpoch);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -783,6 +789,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 86, 0);
           final deletedParam =
               const fb.BoolReader().vTableGet(buffer, rootOffset, 96, false);
+          final deletedAtParam = DateTime.fromMillisecondsSinceEpoch(
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 98, 0));
           final object = BikaComicHistory(
               id: idParam,
               comicId: comicIdParam,
@@ -830,7 +838,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
               order: orderParam,
               epTitle: epTitleParam,
               epPageCount: epPageCountParam,
-              deleted: deletedParam);
+              deleted: deletedParam,
+              deletedAt: deletedAtParam);
 
           return object;
         }),
@@ -1288,6 +1297,10 @@ class BikaComicHistory_ {
   /// See [BikaComicHistory.deleted].
   static final deleted =
       obx.QueryBooleanProperty<BikaComicHistory>(_entities[0].properties[46]);
+
+  /// See [BikaComicHistory.deletedAt].
+  static final deletedAt =
+      obx.QueryDateProperty<BikaComicHistory>(_entities[0].properties[47]);
 }
 
 /// [BikaComicDownload] entity fields to define ObjectBox queries.

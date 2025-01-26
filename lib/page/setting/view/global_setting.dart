@@ -27,6 +27,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   bool _dynamicColorValue = globalSetting.dynamicColor;
   bool _isAMOLEDValue = globalSetting.isAMOLED;
   bool _autoSyncValue = globalSetting.autoSync;
+  bool _autoSyncNotifyValue = globalSetting.syncNotify;
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +53,10 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             if (globalSetting.webdavHost.isNotEmpty) ...[
               _autoSync(),
             ],
+            if (globalSetting.webdavHost.isNotEmpty &&
+                globalSetting.autoSync) ...[
+              _syncNotify(),
+            ],
             if (kDebugMode) ...[
               ElevatedButton(
                 onPressed: () {
@@ -60,7 +65,9 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                 child: Text("整点颜色看看"),
               ),
               ElevatedButton(
-                onPressed: () async {},
+                onPressed: () async {
+                  objectbox.bikaHistoryBox.removeAll();
+                },
                 child: Text("测试用的玩意儿"),
               ),
             ]
@@ -224,5 +231,29 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     if (_autoSyncValue) {
       eventBus.fire(NoticeSync());
     }
+  }
+
+  Widget _syncNotify() {
+    return Row(
+      children: [
+        SizedBox(width: 10),
+        Text(
+          "自动同步通知",
+          style: TextStyle(
+            fontSize: 18,
+          ),
+        ),
+        Spacer(),
+        Switch(value: _autoSyncNotifyValue, onChanged: changeSyncNotify),
+        SizedBox(width: 10),
+      ],
+    );
+  }
+
+  void changeSyncNotify(bool value) {
+    setState(() {
+      _autoSyncNotifyValue = !_autoSyncNotifyValue;
+    });
+    globalSetting.setSyncNotify(_autoSyncNotifyValue);
   }
 }

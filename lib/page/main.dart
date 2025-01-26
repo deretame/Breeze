@@ -149,12 +149,16 @@ class _MainPageState extends State<MainPage> {
       var files = await fetchWebDAVFiles();
       if (files.isNotEmpty) {
         var needDownloadUrl = await getNeedDownloadUrl(files);
-        var historyFromWebdav = await getHistoryFromWebdav(needDownloadUrl);
-        await updateHistory(historyFromWebdav);
+        if (needDownloadUrl.isNotEmpty) {
+          var historyFromWebdav = await getHistoryFromWebdav(needDownloadUrl);
+          await updateHistory(historyFromWebdav);
+        }
       }
       await uploadFile2WebDav();
       await deleteFileFromWebDav(files);
-      EasyLoading.showSuccess("自动同步成功！");
+      if (globalSetting.syncNotify) {
+        EasyLoading.showSuccess("自动同步成功！");
+      }
     } catch (e) {
       debugPrint(e.toString());
       if (!mounted) return;

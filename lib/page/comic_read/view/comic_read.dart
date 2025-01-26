@@ -116,7 +116,6 @@ class _ComicReadPageState extends State<_ComicReadPage>
     _currentSliderValue = 0;
     _type = type ?? ComicEntryType.normal;
     _doc = doc;
-    // 隐藏状态栏
     _itemScrollController = ItemScrollController();
     _itemPositionsListener = ItemPositionsListener.create();
 
@@ -741,6 +740,8 @@ class _ComicReadPageState extends State<_ComicReadPage>
     comicHistory!.order = _doc.order;
     comicHistory!.epPageCount = pageIndex;
     comicHistory!.epTitle = _doc.title;
+    comicHistory!.deleted = false;
+    comicHistory!.deletedAt = DateTime.utc(2000);
     await objectbox.bikaHistoryBox.putAsync(comicHistory!);
     _isInserting = false;
     _lastUpdateTime = DateTime.now();

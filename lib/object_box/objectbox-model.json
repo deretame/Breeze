@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "2:8710207830109802731",
-      "lastPropertyId": "47:3824346468692726665",
+      "lastPropertyId": "48:4559793647698832271",
       "name": "BikaComicHistory",
       "properties": [
         {
@@ -243,6 +243,11 @@
           "id": "47:3824346468692726665",
           "name": "deleted",
           "type": 1
+        },
+        {
+          "id": "48:4559793647698832271",
+          "name": "deletedAt",
+          "type": 10
         }
       ],
       "relations": []

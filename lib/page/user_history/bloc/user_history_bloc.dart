@@ -49,8 +49,6 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
     try {
       late var comicList = objectbox.bikaHistoryBox.getAll();
 
-      comicList = comicList.where((comic) => comic.deleted == false).toList();
-
       comicList = _filterShieldedComics(comicList);
 
       comicList = _fetchOfSort(comicList, event.searchEnterConst.sort);
@@ -76,6 +74,8 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
                 comic.tagsString.toLowerCase().contains(keyword))
             .toList();
       }
+
+      comicList = comicList.where((comic) => comic.deleted == false).toList();
 
       // emit 状态更新
       emit(

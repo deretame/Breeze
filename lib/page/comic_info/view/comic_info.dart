@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -86,9 +84,11 @@ class _ComicInfoState extends State<_ComicInfo>
         .build()
         .findFirst();
 
-    var temp = jsonEncode(comicHistory?.toJson());
-
-    debugPrint('comicHistory: $temp');
+    if (comicHistory != null) {
+      if (comicHistory!.deleted) {
+        comicHistory = null;
+      }
+    }
 
     if (_type == ComicEntryType.download) {
       comicDownload = objectbox.bikaDownloadBox

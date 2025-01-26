@@ -42,6 +42,8 @@ abstract class _GlobalSetting with Store {
   String webdavPassword = ''; // webdav密码
   @observable
   bool autoSync = true; // 是否自动同步
+  @observable
+  bool syncNotify = true; // 同步提示
 
   Future<void> initBox() async {
     _box = await Hive.openBox(GlobalSettingBoxKey.globalSetting);
@@ -59,6 +61,7 @@ abstract class _GlobalSetting with Store {
     webdavUsername = getWebdavUsername();
     webdavPassword = getWebdavPassword();
     autoSync = getAutoSync();
+    syncNotify = getSyncNotify();
   }
 
   @action
@@ -325,6 +328,24 @@ abstract class _GlobalSetting with Store {
     autoSync = true;
     _box.delete(GlobalSettingBoxKey.autoSync);
   }
+
+  @action
+  void setSyncNotify(bool value) {
+    syncNotify = value;
+    _box.put(GlobalSettingBoxKey.syncNotify, value);
+  }
+
+  @action
+  bool getSyncNotify() {
+    syncNotify = _box.get(GlobalSettingBoxKey.syncNotify, defaultValue: true);
+    return syncNotify;
+  }
+
+  @action
+  void deleteSyncNotify() {
+    syncNotify = true;
+    _box.delete(GlobalSettingBoxKey.syncNotify);
+  }
 }
 
 class GlobalSettingBoxKey {
@@ -343,4 +364,5 @@ class GlobalSettingBoxKey {
   static const String webdavUsername = 'webdavUsername'; // webdav用户名
   static const String webdavPassword = 'webdavPassword'; // webdav密码
   static const String autoSync = 'autoSync'; // 是否自动同步
+  static const String syncNotify = 'syncNotify'; // 自动同步提醒
 }

@@ -44,6 +44,8 @@ abstract class _GlobalSetting with Store {
   bool autoSync = true; // 是否自动同步
   @observable
   bool syncNotify = true; // 同步提示
+  @observable
+  bool shade = true; // 夜间模式遮罩
 
   Future<void> initBox() async {
     _box = await Hive.openBox(GlobalSettingBoxKey.globalSetting);
@@ -62,6 +64,7 @@ abstract class _GlobalSetting with Store {
     webdavPassword = getWebdavPassword();
     autoSync = getAutoSync();
     syncNotify = getSyncNotify();
+    shade = getShade();
   }
 
   @action
@@ -346,6 +349,24 @@ abstract class _GlobalSetting with Store {
     syncNotify = true;
     _box.delete(GlobalSettingBoxKey.syncNotify);
   }
+
+  @action
+  void setShade(bool value) {
+    shade = value;
+    _box.put(GlobalSettingBoxKey.shade, value);
+  }
+
+  @action
+  bool getShade() {
+    shade = _box.get(GlobalSettingBoxKey.shade, defaultValue: true);
+    return shade;
+  }
+
+  @action
+  void deleteShade() {
+    shade = true;
+    _box.delete(GlobalSettingBoxKey.shade);
+  }
 }
 
 class GlobalSettingBoxKey {
@@ -365,4 +386,5 @@ class GlobalSettingBoxKey {
   static const String webdavPassword = 'webdavPassword'; // webdav密码
   static const String autoSync = 'autoSync'; // 是否自动同步
   static const String syncNotify = 'syncNotify'; // 自动同步提醒
+  static const String shade = 'shade'; // 黑夜模式遮罩
 }

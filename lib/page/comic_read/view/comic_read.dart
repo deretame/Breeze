@@ -165,30 +165,49 @@ class _ComicReadPageState extends State<_ComicReadPage>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      body: _type == ComicEntryType.download ||
-              _type == ComicEntryType.historyAndDownload
-          ? SafeArea(
-              top: false,
-              bottom: false,
-              child: _successWidget(null),
-            )
-          : BlocBuilder<PageBloc, PageState>(
-              builder: (context, state) {
-                switch (state.status) {
-                  case PageStatus.initial:
-                    return const Center(child: CircularProgressIndicator());
-                  case PageStatus.failure:
-                    return _failureWidget(state);
-                  case PageStatus.success:
-                    // return _successWidget(state);
-                    return SafeArea(
+      body: Observer(
+        builder: (context) {
+          return Stack(
+            children: [
+              _type == ComicEntryType.download ||
+                      _type == ComicEntryType.historyAndDownload
+                  ? SafeArea(
                       top: false,
                       bottom: false,
-                      child: _successWidget(state),
-                    );
-                }
-              },
-            ),
+                      child: _successWidget(null),
+                    )
+                  : BlocBuilder<PageBloc, PageState>(
+                      builder: (context, state) {
+                        switch (state.status) {
+                          case PageStatus.initial:
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          case PageStatus.failure:
+                            return _failureWidget(state);
+                          case PageStatus.success:
+                            // return _successWidget(state);
+                            return SafeArea(
+                              top: false,
+                              bottom: false,
+                              child: _successWidget(state),
+                            );
+                        }
+                      },
+                    ),
+              if (globalSetting.shade && !globalSetting.themeType)
+                // 遮罩层
+                Positioned.fill(
+                  child: IgnorePointer(
+                    ignoring: true, // 设置为 true，让遮罩层不响应触摸事件
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.3), // 半透明黑色遮罩
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -274,90 +293,104 @@ class _ComicReadPageState extends State<_ComicReadPage>
     isSkipped = true;
 
     // debugPrint('statusBarHeight : $statusBarHeight');
-    return Stack(
-      children: [
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              _isVisible = !_isVisible;
-              debugPrint('状态栏可见性：$_isVisible');
-              if (_isVisible) {
-                SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-              }
-            });
-          },
-          child: InteractiveViewer(
-            boundaryMargin: EdgeInsets.zero,
-            minScale: 1.0,
-            maxScale: 4.0,
-            child: ScrollablePositionedList.builder(
-              itemCount: length + 2,
-              itemBuilder: (context, index) {
-                // debugPrint('index: $index');
-                // debugPrint('itemCount: ${state.medias!.length + 2}');
-                if (index == 0) {
-                  return ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minWidth: screenWidth,
-                    ),
-                    child: Container(
-                      height: statusBarHeight,
-                      decoration: BoxDecoration(color: Color(0xFF2D2D2D)),
-                    ),
-                  );
-                } else if (index == length + 1) {
-                  return ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minWidth: screenWidth,
-                    ),
-                    child: Container(
-                      height: 75,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(color: Color(0xFF2D2D2D)),
-                      child: Text(
-                        "章节结束",
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Color(0xFFCCCCCC),
+    return Container(
+      color: materialColorSchemeDark.surface,
+      child: Stack(
+        children: [
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _isVisible = !_isVisible;
+                debugPrint('状态栏可见性：$_isVisible');
+                if (_isVisible) {
+                  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+                }
+              });
+            },
+            child: InteractiveViewer(
+              boundaryMargin: EdgeInsets.zero,
+              minScale: 1.0,
+              maxScale: 4.0,
+              child: ScrollablePositionedList.separated(
+                itemCount: length + 2,
+                itemBuilder: (context, index) {
+                  // debugPrint('index: $index');
+                  // debugPrint('itemCount: ${state.medias!.length + 2}');
+                  if (index == 0) {
+                    return ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minWidth: screenWidth,
+                      ),
+                      child: Container(
+                        height: statusBarHeight,
+                        decoration: BoxDecoration(color: Color(0xFF2D2D2D)),
+                      ),
+                    );
+                  } else if (index == length + 1) {
+                    return ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minWidth: screenWidth,
+                      ),
+                      child: Container(
+                        height: 75,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(color: Color(0xFF2D2D2D)),
+                        child: Text(
+                          "章节结束",
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Color(0xFFCCCCCC),
+                          ),
                         ),
                       ),
-                    ),
+                    );
+                  } else {
+                    return ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minWidth: screenWidth,
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: materialColorSchemeDark.surface,
+                        ),
+                        child: ReadImageWidget(
+                          media: medias[index - 1],
+                          comicId: comicId,
+                          epsId: _doc.id,
+                          index: index - 1,
+                          chapterId: _doc.id,
+                        ),
+                      ),
+                    );
+                  }
+                },
+                separatorBuilder: (BuildContext context, int index) {
+                  return Divider(
+                    height: 2,
+                    color: materialColorSchemeDark.surface,
                   );
-                } else {
-                  return ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minWidth: screenWidth,
-                    ),
-                    child: ReadImageWidget(
-                      media: medias[index - 1],
-                      comicId: comicId,
-                      epsId: _doc.id,
-                      index: index - 1,
-                      chapterId: _doc.docId,
-                    ),
-                  );
-                }
-              },
-              itemScrollController: _itemScrollController,
-              itemPositionsListener: _itemPositionsListener,
+                },
+                itemScrollController: _itemScrollController,
+                itemPositionsListener: _itemPositionsListener,
+              ),
             ),
           ),
-        ),
-        ComicReadAppBar(
-          title: _doc.title,
-          isVisible: _isVisible,
-          onThemeModeChanged: () {
-            globalSetting.setThemeMode(0);
-          },
-        ),
-        // _pageCountWidget(),
-        PageCountWidget(
-          pageIndex: pageIndex,
-          epPages: epPages,
-        ),
-        _bottomWidget(),
-        // _bottomButton(),
-      ],
+          ComicReadAppBar(
+            title: _doc.title,
+            isVisible: _isVisible,
+            onThemeModeChanged: () {
+              globalSetting.setThemeMode(0);
+            },
+          ),
+          // _pageCountWidget(),
+          PageCountWidget(
+            pageIndex: pageIndex,
+            epPages: epPages,
+          ),
+          _bottomWidget(),
+          // _bottomButton(),
+        ],
+      ),
     );
   }
 

@@ -28,6 +28,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   bool _isAMOLEDValue = globalSetting.isAMOLED;
   bool _autoSyncValue = globalSetting.autoSync;
   bool _autoSyncNotifyValue = globalSetting.syncNotify;
+  bool _shadeValue = globalSetting.shade;
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +46,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               changeThemeColor(context),
               SizedBox(height: 11),
             ],
+            _shade(),
             _isAMOLED(),
             divider(),
             SizedBox(height: 10),
@@ -255,5 +257,30 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       _autoSyncNotifyValue = !_autoSyncNotifyValue;
     });
     globalSetting.setSyncNotify(_autoSyncNotifyValue);
+  }
+
+  Widget _shade() {
+    return Row(
+      children: [
+        SizedBox(width: 10),
+        Text(
+          "夜间模式遮罩",
+          style: TextStyle(
+            fontSize: 18,
+          ),
+        ),
+        Spacer(),
+        Switch(value: _shadeValue, onChanged: changeShade),
+        SizedBox(width: 10),
+      ],
+    );
+  }
+
+  void changeShade(bool value) {
+    setState(() {
+      _shadeValue = !_shadeValue;
+    });
+
+    globalSetting.setShade(_shadeValue);
   }
 }

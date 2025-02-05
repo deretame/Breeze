@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:catcher_2/catcher_2.dart';
 import 'package:dio/dio.dart';
 import 'package:dynamic_color/dynamic_color.dart';
@@ -35,6 +37,7 @@ EventBus eventBus = EventBus();
 
 // 获取material主题颜色方案
 late ColorScheme materialColorScheme;
+late ColorScheme materialColorSchemeDark;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -167,6 +170,7 @@ class _MyAppState extends State<MyApp> {
             globalSetting.themeType == true
                 ? materialColorScheme = lightColorScheme
                 : materialColorScheme = darkColorScheme;
+            materialColorSchemeDark = darkColorScheme;
 
             _updateThemeSettings();
             return MaterialApp.router(

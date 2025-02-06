@@ -91,10 +91,10 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
                       ),
                     );
                   },
-                  child: Hero(
-                    tag: state.imagePath!,
-                    child: ImageDisplay(imagePath: state.imagePath!),
-                  ),
+                  // child: Hero(
+                  //   tag: state.imagePath!,
+                  child: ImageDisplay(imagePath: state.imagePath!),
+                  // ),
                 );
               case PictureLoadStatus.failure:
                 if (state.result.toString().contains('404')) {

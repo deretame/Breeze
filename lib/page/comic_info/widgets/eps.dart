@@ -80,11 +80,19 @@ class _EpsWidgetState extends State<EpsWidget> {
       docs = epsInfo;
     }
     onUpdateReadInfo(docs, true);
-    return Column(
-      children: [
-        // 历史记录按钮
-        if (comicHistory != null) ...[
-          Padding(
+
+    return ListView.builder(
+      cacheExtent: 0,
+      physics: const NeverScrollableScrollPhysics(),
+      // 禁止内部滚动，交由外层处理
+      shrinkWrap: true,
+      // 让 ListView 根据内容调整高度
+      itemCount: docs.length + (comicHistory != null ? 1 : 0),
+      // 总数量 = eps数量 + 历史记录按钮
+      itemBuilder: (context, index) {
+        // 如果是历史记录按钮
+        if (comicHistory != null && index == 0) {
+          return Padding(
             padding: const EdgeInsets.symmetric(vertical: 5.0),
             child: EpButtonWidget(
               doc: Doc(
@@ -101,23 +109,24 @@ class _EpsWidgetState extends State<EpsWidget> {
                   ? ComicEntryType.historyAndDownload
                   : ComicEntryType.history,
             ),
+          );
+        }
+
+        // 调整索引，排除历史记录按钮
+        final adjustedIndex = comicHistory != null ? index - 1 : index;
+        final doc = docs[adjustedIndex];
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 5.0),
+          child: EpButtonWidget(
+            doc: doc,
+            comicInfo: comicInfo,
+            epsInfo: docs,
+            isHistory: false,
+            type: type == ComicEntryType.history ? ComicEntryType.normal : type,
           ),
-        ],
-        // 使用 map 和 Padding 创建 EpButton 列表
-        ...docs.map(
-          (doc) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 5.0),
-            child: EpButtonWidget(
-              doc: doc,
-              comicInfo: comicInfo,
-              epsInfo: docs,
-              isHistory: false,
-              type:
-                  type == ComicEntryType.history ? ComicEntryType.normal : type,
-            ),
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 }

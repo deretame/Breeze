@@ -100,36 +100,21 @@ class _DownloadPageState extends State<DownloadPage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: SizedBox(
-          width: screenWidth,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              SizedBox(width: screenWidth / 50),
-              Flexible(
-                fit: FlexFit.loose,
-                child: Column(
-                  children: [
-                    ...epsInfo.map(
-                      (doc) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 5.0),
-                        child: EpsWidget(
-                          doc: doc,
-                          downloaded: _downloadInfo[doc.order]!,
-                          onUpdateDownloadInfo: onUpdateDownloadInfo,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 85),
-                  ],
-                ),
-              ),
-              SizedBox(width: screenWidth / 50),
-            ],
-          ),
-        ),
+      body: ListView.builder(
+        // 设置 ListView 的宽度为屏幕宽度
+        padding: EdgeInsets.symmetric(horizontal: screenWidth / 50),
+        itemCount: epsInfo.length, // 列表项的数量
+        itemBuilder: (context, index) {
+          final doc = epsInfo[index];
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5.0),
+            child: EpsWidget(
+              doc: doc,
+              downloaded: _downloadInfo[doc.order]!,
+              onUpdateDownloadInfo: onUpdateDownloadInfo,
+            ),
+          );
+        },
       ),
       floatingActionButton: SizedBox(
         width: 100, // 设置容器宽度，以容纳更长的文本

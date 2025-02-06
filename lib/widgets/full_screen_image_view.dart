@@ -5,6 +5,8 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:permission_guard/permission_guard.dart';
 import 'package:photo_view/photo_view.dart';
 
+import '../main.dart';
+
 class FullScreenImageView extends StatelessWidget {
   final String imagePath;
   final String? uuid;
@@ -14,6 +16,7 @@ class FullScreenImageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String temp = uuid ?? "";
+    final bool havaShade = globalSetting.shade && !globalSetting.themeType;
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
@@ -55,6 +58,16 @@ class FullScreenImageView extends StatelessWidget {
               },
             ),
           ),
+          if (havaShade)
+            // 遮罩层
+            Positioned.fill(
+              child: IgnorePointer(
+                ignoring: true, // 设置为 true，让遮罩层不响应触摸事件
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.3), // 半透明黑色遮罩
+                ),
+              ),
+            ),
         ],
       ),
     );

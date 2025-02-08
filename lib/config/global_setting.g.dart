@@ -233,6 +233,37 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
+  late final _$syncNotifyAtom =
+      Atom(name: '_GlobalSetting.syncNotify', context: context);
+
+  @override
+  bool get syncNotify {
+    _$syncNotifyAtom.reportRead();
+    return super.syncNotify;
+  }
+
+  @override
+  set syncNotify(bool value) {
+    _$syncNotifyAtom.reportWrite(value, super.syncNotify, () {
+      super.syncNotify = value;
+    });
+  }
+
+  late final _$shadeAtom = Atom(name: '_GlobalSetting.shade', context: context);
+
+  @override
+  bool get shade {
+    _$shadeAtom.reportRead();
+    return super.shade;
+  }
+
+  @override
+  set shade(bool value) {
+    _$shadeAtom.reportWrite(value, super.shade, () {
+      super.shade = value;
+    });
+  }
+
   late final _$_GlobalSettingActionController =
       ActionController(name: '_GlobalSetting', context: context);
 
@@ -699,6 +730,72 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   }
 
   @override
+  void setSyncNotify(bool value) {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+        name: '_GlobalSetting.setSyncNotify');
+    try {
+      return super.setSyncNotify(value);
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  bool getSyncNotify() {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+        name: '_GlobalSetting.getSyncNotify');
+    try {
+      return super.getSyncNotify();
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void deleteSyncNotify() {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+        name: '_GlobalSetting.deleteSyncNotify');
+    try {
+      return super.deleteSyncNotify();
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void setShade(bool value) {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+        name: '_GlobalSetting.setShade');
+    try {
+      return super.setShade(value);
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  bool getShade() {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+        name: '_GlobalSetting.getShade');
+    try {
+      return super.getShade();
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void deleteShade() {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+        name: '_GlobalSetting.deleteShade');
+    try {
+      return super.deleteShade();
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     return '''
 dynamicColor: ${dynamicColor},
@@ -714,7 +811,9 @@ welcomePageNum: ${welcomePageNum},
 webdavHost: ${webdavHost},
 webdavUsername: ${webdavUsername},
 webdavPassword: ${webdavPassword},
-autoSync: ${autoSync}
+autoSync: ${autoSync},
+syncNotify: ${syncNotify},
+shade: ${shade}
     ''';
   }
 }

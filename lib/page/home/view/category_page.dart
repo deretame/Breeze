@@ -37,10 +37,8 @@ class _CategoryPageState extends State<CategoryPage>
         title: Text('主页'),
       ),
       body: RefreshIndicator(
-        onRefresh: () async {
-          // 刷新数据
-          context.read<GetCategoryBloc>().add(GetCategoryStarted());
-        },
+        onRefresh: () async =>
+            context.read<GetCategoryBloc>().add(GetCategoryStarted()),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(), // 允许下拉操作
           child: BlocBuilder<GetCategoryBloc, GetCategoryState>(

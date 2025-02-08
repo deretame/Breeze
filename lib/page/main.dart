@@ -13,7 +13,7 @@ import '../main.dart';
 import '../network/http/http_request.dart';
 import '../network/webdav.dart';
 import '../util/dialog.dart';
-import 'home/view/home.dart';
+import 'bookshelf/bookshelf.dart';
 import 'search/search_page.dart';
 import 'setting/setting_page.dart';
 
@@ -38,7 +38,7 @@ class _MainPageState extends State<MainPage> {
 
   // 页面列表
   final List<Widget> _pageList = [
-    HomePage(),
+    BookshelfPage(),
     RankingListPage(),
     SearchPage(),
     UserInfoPage(),

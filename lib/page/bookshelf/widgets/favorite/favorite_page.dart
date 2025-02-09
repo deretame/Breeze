@@ -53,7 +53,7 @@ class _UserFavoritePageState extends State<_FavoritePage>
   int pageCount = 0;
   String refresh = "";
   int pagesCount = 0;
-  int _currentIndex = 0;
+  bool notice = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -62,14 +62,21 @@ class _UserFavoritePageState extends State<_FavoritePage>
   void initState() {
     super.initState();
     pageCount = 1;
-    eventBus
-        .on<FavoriteEvent>()
-        .listen((event) => _refresh(updateShield: true));
+    eventBus.on<FavoriteEvent>().listen((event) {
+      if (event.type == EventType.refresh) {
+        _refresh(initState: true);
+      } else if (event.type == EventType.pageSkip) {
+        _pageSkip(event.page);
+      } else if (event.type == EventType.updateShield) {
+        _refresh(updateShield: true);
+      } else if (event.type == EventType.showInfo) {
+        stringSelectStore.setDate("$pageCount/$pagesCount"); // 更新状态
+      }
+    });
   }
 
   @override
   void dispose() {
-    eventBus.destroy();
     super.dispose();
   }
 
@@ -91,7 +98,14 @@ class _UserFavoritePageState extends State<_FavoritePage>
             }
             return false;
           },
-          child: _buildContent(state),
+          child: RefreshIndicator(
+            displacement: 60.0,
+            onRefresh: () async {
+              // 触发刷新操作
+              _refresh(initState: true);
+            },
+            child: _buildContent(state),
+          ),
         );
       },
     );
@@ -100,6 +114,8 @@ class _UserFavoritePageState extends State<_FavoritePage>
   Widget _buildContent(UserFavouriteState state) {
     switch (state.status) {
       case UserFavouriteStatus.initial:
+        notice = false;
+        stringSelectStore.setDate("");
         return const Center(child: CircularProgressIndicator());
       case UserFavouriteStatus.failure:
         return _buildError(state);
@@ -158,6 +174,10 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
     debugPrint(itemCount.toString());
 
+    if (notice == false) {
+      stringSelectStore.setDate("$pageCount/$pagesCount"); // 更新状态
+    }
+
     return CustomScrollView(
       slivers: [
         SliverOverlapInjector(
@@ -185,7 +205,10 @@ class _UserFavoritePageState extends State<_FavoritePage>
                   return Center(
                     child: ElevatedButton(
                       onPressed: () => _refresh(),
-                      child: Text('点击重试'),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text('点击重试'),
+                      ),
                     ),
                   );
                 }
@@ -212,7 +235,10 @@ class _UserFavoritePageState extends State<_FavoritePage>
     );
   }
 
-  void _refresh({bool updateShield = false}) {
+  void _refresh({
+    bool updateShield = false,
+    bool initState = false,
+  }) {
     if (updateShield) {
       context.read<UserFavouriteBloc>().add(
             UserFavouriteEvent(
@@ -222,6 +248,16 @@ class _UserFavoritePageState extends State<_FavoritePage>
             ),
           );
       return;
+    }
+
+    if (initState) {
+      context.read<UserFavouriteBloc>().add(
+            UserFavouriteEvent(
+              UserFavouriteStatus.initial,
+              1,
+              Uuid().v4().toString(),
+            ),
+          );
     }
 
     if (pageCount != 1) {
@@ -236,11 +272,21 @@ class _UserFavoritePageState extends State<_FavoritePage>
       context.read<UserFavouriteBloc>().add(
             UserFavouriteEvent(
               UserFavouriteStatus.initial,
-              pageCount,
+              1,
               Uuid().v4().toString(),
             ),
           );
     }
+  }
+
+  void _pageSkip(int page) {
+    context.read<UserFavouriteBloc>().add(
+          UserFavouriteEvent(
+            UserFavouriteStatus.initial,
+            page,
+            Uuid().v4().toString(),
+          ),
+        );
   }
 
   void _fetchFavoriteResult() {
@@ -265,11 +311,8 @@ class _UserFavoritePageState extends State<_FavoritePage>
     if (itemIndex >= 0 && itemIndex < comics.length) {
       int buildNumber =
           comics[itemIndex].buildNumber; // 获取当前 item 的 buildNumber
-      if (_currentIndex != buildNumber) {
-        debugPrint(comics[itemIndex].doc.title); // 打印当前 item 的标题
-        stringSelectStore.setDate("$buildNumber/$pagesCount"); // 更新状态
-        _currentIndex = buildNumber; // 更新当前索引
-      }
+      debugPrint(comics[itemIndex].doc.title); // 打印当前 item 的标题
+      stringSelectStore.setDate("$buildNumber/$pagesCount"); // 更新状态
     }
   }
 }

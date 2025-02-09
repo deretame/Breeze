@@ -56,17 +56,13 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
       emit(
         state.copyWith(
           status: UserFavouriteStatus.success,
-          comics: temp,
+          comics: deduplicateComics(temp),
           hasReachedMax: hasReachedMax,
-          refresh: event.refresh,
+          refresh: "",
           pageCount: event.pageCount,
           pagesCount: totalPages,
         ),
       );
-    }
-
-    if (hasReachedMax == true) {
-      return;
     }
 
     if (event.status == UserFavouriteStatus.initial) {
@@ -81,11 +77,15 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
       hasReachedMax = false;
     }
 
+    if (hasReachedMax == true) {
+      return;
+    }
+
     if (event.status == UserFavouriteStatus.loadingMore) {
       emit(
         state.copyWith(
           status: UserFavouriteStatus.loadingMore,
-          comics: comics,
+          comics: comics.toSet().toList(),
           refresh: event.refresh,
           hasReachedMax: hasReachedMax,
           pageCount: event.pageCount,
@@ -126,7 +126,7 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
       emit(
         state.copyWith(
           status: UserFavouriteStatus.success,
-          comics: comicTemp,
+          comics: deduplicateComics(comicTemp),
           hasReachedMax: hasReachedMax,
           refresh: event.refresh,
           pageCount: event.pageCount,
@@ -140,7 +140,7 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
         emit(
           state.copyWith(
             status: UserFavouriteStatus.getMoreFailure,
-            comics: comics,
+            comics: deduplicateComics(comics),
             hasReachedMax: hasReachedMax,
             refresh: event.refresh,
             pageCount: event.pageCount,
@@ -159,5 +159,19 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
         ),
       );
     }
+  }
+
+  List<ComicNumber> deduplicateComics(List<ComicNumber> comics) {
+    Set<String> seenIds = {};
+    List<ComicNumber> uniqueComics = [];
+
+    for (var comic in comics) {
+      if (!seenIds.contains(comic.doc.id)) {
+        uniqueComics.add(comic);
+        seenIds.add(comic.doc.id);
+      }
+    }
+
+    return uniqueComics;
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
@@ -33,6 +34,8 @@ class _SideDrawerState extends State<SideDrawer> {
   SearchStatusStore get downloadStore => widget.downloadStore;
 
   late Map<String, bool> _categoriesShield;
+  SortType sortType = SortType.nullValue;
+  int page = 0;
 
   @override
   void initState() {
@@ -50,49 +53,80 @@ class _SideDrawerState extends State<SideDrawer> {
       child: Observer(
         builder: (context) {
           return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    indexStore.date == 0
-                        ? "收藏筛选"
-                        : indexStore.date == 1
-                            ? "历史筛选"
-                            : "下载筛选",
-                    style: TextStyle(fontSize: 24),
+              AppBar(
+                title: Text(indexStore.date == 0
+                    ? "收藏筛选"
+                    : indexStore.date == 1
+                        ? "历史筛选"
+                        : "下载筛选"),
+                automaticallyImplyLeading: false, // 不显示默认的返回按钮
+                actions: [
+                  IconButton(
+                    icon: Icon(Icons.close),
+                    onPressed: () {
+                      Navigator.pop(context); // 关闭Drawer
+                    },
                   ),
-                ),
+                ],
               ),
               Container(color: globalSetting.textColor, height: 1),
-              SizedBox(height: 16.0),
-              if (indexStore.date == 0) favoriteFilter(),
+              SizedBox(height: 8), // 添加一些间距
+              SizedBox(height: 8), // 添加一些间距
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0), // 添加左右间距
+                child: favoriteFilter(),
+              ),
+              SizedBox(height: 8), // 添加一些间距
+              if (indexStore.date == 0) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  // 添加左右间距
+                  child: Row(
+                    children: [
+                      Text('跳页', style: TextStyle(fontSize: 16)),
+                      SizedBox(width: 8), // 添加一些间距
+                      Expanded(
+                        child: TextField(
+                          keyboardType: TextInputType.number, // 设置键盘类型为数字
+                          inputFormatters: <TextInputFormatter>[
+                            FilteringTextInputFormatter.digitsOnly, // 只允许输入数字
+                          ],
+                          decoration: InputDecoration(hintText: '请输入页数'),
+                          onSubmitted: (value) {
+                            if (value.isEmpty) {
+                              page = -1;
+                            }
+                            page = int.parse(value);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               Spacer(),
               Padding(
-                padding: const EdgeInsets.all(16.0), // 添加左右间距
+                padding: const EdgeInsets.all(16.0),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  // 确保按钮水平居中且间距均匀
                   children: [
-                    SizedBox(width: 8.0), // 左侧空间
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: Text('返回'),
-                      ),
+                    ElevatedButton(
+                      onPressed: () {
+                        _refresh();
+                        Navigator.pop(context);
+                      },
+                      child: Text('刷新当前页面'),
                     ),
-                    SizedBox(width: 16.0), // 按钮之间的空间
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          bikaSetting.setShieldCategoryMap(_categoriesShield);
-                          eventBus.fire(FavoriteEvent());
-                          Navigator.pop(context);
-                        },
-                        child: Text('确定'),
-                      ),
+                    ElevatedButton(
+                      onPressed: () {
+                        _onTap();
+                        Navigator.pop(context);
+                      },
+                      child: Text('确定'),
                     ),
-                    SizedBox(width: 8.0), // 右侧空间
                   ],
                 ),
               ),
@@ -104,8 +138,8 @@ class _SideDrawerState extends State<SideDrawer> {
   }
 
   Widget favoriteFilter() {
-    return TextButton(
-        onPressed: () async {
+    return GestureDetector(
+        onTap: () async {
           late var oldCategoriesMap =
               Map.of(bikaSetting.getShieldCategoryMap());
           final categoriesShield = await showShieldCategoryDialog(context);
@@ -120,6 +154,31 @@ class _SideDrawerState extends State<SideDrawer> {
 
           _categoriesShield = Map.of(categoriesShield);
         },
-        child: Text('更新屏蔽分类'));
+        child: Text(
+          '选择屏蔽分类',
+          style: TextStyle(fontSize: 16, color: materialColorScheme.primary),
+        ));
+  }
+
+  void _onTap() {
+    if (indexStore.date == 0) {
+      try {
+        _categoriesShield;
+        bikaSetting.setShieldCategoryMap(_categoriesShield);
+      } catch (_) {}
+
+      if (page != -1 && page != 0) {
+        eventBus.fire(FavoriteEvent(EventType.pageSkip, sortType, page));
+      } else {
+        eventBus.fire(FavoriteEvent(EventType.updateShield, sortType, page));
+      }
+      favoriteStore.sort = SortType.dd.toString().split('.').last;
+    }
+  }
+
+  void _refresh() {
+    if (indexStore.date == 0) {
+      eventBus.fire(FavoriteEvent(EventType.refresh, sortType, 0));
+    }
   }
 }

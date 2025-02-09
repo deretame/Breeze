@@ -38,8 +38,6 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
     FetchSearchResult event,
     Emitter<SearchState> emit,
   ) async {
-    // 如果屏蔽分类更新的话就去掉被屏蔽的漫画并返回结果
-    // 现阶段会出现漫画不见了但是封面不变的状态，搞不定，先搁置了
     if (event.searchEnterConst.state == "更新屏蔽列表") {
       emit(
         state.copyWith(

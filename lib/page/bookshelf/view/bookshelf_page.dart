@@ -4,6 +4,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/mobx/string_select.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 
+import '../../../main.dart';
 import '../../../mobx/int_select.dart';
 import '../../../util/router/router.gr.dart';
 import '../../search_result/models/search_enter.dart';
@@ -37,6 +38,11 @@ class _BookshelfPageState extends State<BookshelfPage>
           _currentIndex = _tabController.index;
           indexStore.setDate(_currentIndex);
           debugPrint('Current index: $_currentIndex');
+          if (_currentIndex == 0) {
+            eventBus.fire(
+              FavoriteEvent(EventType.showInfo, SortType.nullValue, 0),
+            );
+          }
         }
       });
     stringSelectStore.setDate("");
@@ -78,8 +84,8 @@ class _BookshelfPageState extends State<BookshelfPage>
                 floating: true,
                 snap: true,
                 bottom: PreferredSize(
-                  preferredSize: const Size.fromHeight(kToolbarHeight),
-                  // 设置一个合适的高度
+                  preferredSize:
+                      const Size.fromHeight(kMinInteractiveDimension),
                   child: Row(
                     children: [
                       Expanded(

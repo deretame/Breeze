@@ -171,11 +171,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
             children: [
               _type == ComicEntryType.download ||
                       _type == ComicEntryType.historyAndDownload
-                  ? SafeArea(
-                      top: false,
-                      bottom: false,
-                      child: _successWidget(null),
-                    )
+                  ? _successWidget(null)
                   : BlocBuilder<PageBloc, PageState>(
                       builder: (context, state) {
                         switch (state.status) {
@@ -185,12 +181,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                           case PageStatus.failure:
                             return _failureWidget(state);
                           case PageStatus.success:
-                            // return _successWidget(state);
-                            return SafeArea(
-                              top: false,
-                              bottom: false,
-                              child: _successWidget(state),
-                            );
+                            return _successWidget(state);
                         }
                       },
                     ),
@@ -293,8 +284,9 @@ class _ComicReadPageState extends State<_ComicReadPage>
     isSkipped = true;
 
     // debugPrint('statusBarHeight : $statusBarHeight');
-    return Container(
-      color: materialColorSchemeDark.surface,
+    return SafeArea(
+      top: false,
+      bottom: false,
       child: Stack(
         children: [
           GestureDetector(
@@ -311,7 +303,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
               boundaryMargin: EdgeInsets.zero,
               minScale: 1.0,
               maxScale: 4.0,
-              child: ScrollablePositionedList.separated(
+              child: ScrollablePositionedList.builder(
                 itemCount: length + 2,
                 itemBuilder: (context, index) {
                   // debugPrint('index: $index');
@@ -363,12 +355,6 @@ class _ComicReadPageState extends State<_ComicReadPage>
                       ),
                     );
                   }
-                },
-                separatorBuilder: (BuildContext context, int index) {
-                  return Divider(
-                    height: 2,
-                    color: materialColorSchemeDark.surface,
-                  );
                 },
                 itemScrollController: _itemScrollController,
                 itemPositionsListener: _itemPositionsListener,

@@ -7,7 +7,7 @@ import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import '../../../main.dart';
 import '../../../mobx/int_select.dart';
 import '../../../util/router/router.gr.dart';
-import '../../search_result/models/search_enter.dart';
+import '../../search_result/models/search_enter.dart' as search_result;
 
 @RoutePage()
 class BookshelfPage extends StatefulWidget {
@@ -24,8 +24,8 @@ class _BookshelfPageState extends State<BookshelfPage>
   int _currentIndex = 0;
 
   final IntSelectStore indexStore = IntSelectStore();
-  final SearchStatusStore favoriteStore = SearchStatusStore();
   final StringSelectStore stringSelectStore = StringSelectStore();
+  final SearchStatusStore favoriteStore = SearchStatusStore();
   final SearchStatusStore historyStore = SearchStatusStore();
   final SearchStatusStore downloadStore = SearchStatusStore();
 
@@ -42,6 +42,10 @@ class _BookshelfPageState extends State<BookshelfPage>
             eventBus.fire(
               FavoriteEvent(EventType.showInfo, SortType.nullValue, 0),
             );
+          } else if (_currentIndex == 1) {
+            eventBus.fire(HistoryEvent(EventType.showInfo));
+          } else if (_currentIndex == 2) {
+            eventBus.fire(DownloadEvent(EventType.showInfo));
           }
         }
       });
@@ -75,7 +79,7 @@ class _BookshelfPageState extends State<BookshelfPage>
                     icon: const Icon(Icons.search),
                     onPressed: () => AutoRouter.of(context).push(
                       SearchResultRoute(
-                        searchEnterConst: SearchEnterConst(),
+                        searchEnterConst: search_result.SearchEnterConst(),
                       ),
                     ),
                   )
@@ -128,49 +132,21 @@ class _BookshelfPageState extends State<BookshelfPage>
             FavoritePage(
               searchStatusStore: favoriteStore,
               stringSelectStore: stringSelectStore,
+              indexStore: indexStore,
             ),
-            TabContent(),
-            TabContent(),
+            HistoryPage(
+              searchStatusStore: historyStore,
+              stringSelectStore: stringSelectStore,
+              indexStore: indexStore,
+            ),
+            DownloadPage(
+              searchStatusStore: downloadStore,
+              stringSelectStore: stringSelectStore,
+              indexStore: indexStore,
+            ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class TabContent extends StatefulWidget {
-  const TabContent({super.key});
-
-  @override
-  State<TabContent> createState() => _TabContentState();
-}
-
-class _TabContentState extends State<TabContent>
-    with AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    return CustomScrollView(
-      slivers: [
-        SliverOverlapInjector(
-          handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-        ),
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) => Container(
-              height: 100,
-              color: index % 2 == 0 ? Colors.blue : Colors.green,
-              child: Center(
-                child: Text("Item $index"),
-              ),
-            ),
-            childCount: 50,
-          ),
-        ),
-      ],
     );
   }
 }

@@ -221,6 +221,8 @@ class _DownloadPageState extends State<DownloadPage> {
       }
     }
 
+    int i = 0;
+
     for (var ep in epsInfo) {
       if (!_downloadInfo[ep.order]!) {
         continue;
@@ -263,7 +265,8 @@ class _DownloadPageState extends State<DownloadPage> {
               );
             }
           } while (page <= pages);
-          eps[ep.order - 1].pages = pagesDocs;
+          eps[i].pages = pagesDocs;
+          i++;
           break;
         } catch (e) {
           debugPrint('Error getting pages: ${e.toString()}');

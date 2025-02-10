@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../config/global.dart';
-import '../../../../main.dart';
+import '../../../config/global.dart';
+import '../../../main.dart';
 
 Future<Map<String, bool>?> showShieldCategoryDialog(BuildContext context) {
   late Map<String, bool> shieldCategoriesMap =

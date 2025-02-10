@@ -112,9 +112,13 @@ class _UserDownloadPageState extends State<_UserDownloadPage>
                                             state.comics[index],
                                           ),
                                           type: ComicEntryType.download,
-                                          downloadSearchEnter:
-                                              widget.searchEnterConst,
-                                          downloadRefresh: refresh,
+                                          refresh: () {
+                                            refresh(
+                                              SearchEnterConst.from(
+                                                _searchEnter,
+                                              ),
+                                            );
+                                          },
                                         );
                                 },
                                 itemCount: state.comics.length + 1,

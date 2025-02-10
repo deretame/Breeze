@@ -4,6 +4,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 
+import '../../../config/bika/bika_setting.dart';
 import '../../../mobx/int_select.dart';
 
 class SideDrawer extends StatefulWidget {
@@ -33,13 +34,25 @@ class _SideDrawerState extends State<SideDrawer> {
 
   SearchStatusStore get downloadStore => widget.downloadStore;
 
-  late Map<String, bool> _categoriesShield;
+  Map<String, bool> _categoriesShield = Map.of(bikaSetting.shieldCategoryMap);
+  List<String> categories = [];
   SortType sortType = SortType.nullValue;
   int page = 0;
+  String sort = 'dd';
+  String keyword = '';
 
   @override
   void initState() {
     super.initState();
+    eventBus.on<HistoryEvent>().listen((event) {
+      if (event.type == EventType.showInfo) {
+        if (indexStore.date == 1) {
+          sort = historyStore.sort;
+        } else if (indexStore.date == 2) {
+          sort = downloadStore.sort;
+        }
+      }
+    });
   }
 
   @override
@@ -72,39 +85,52 @@ class _SideDrawerState extends State<SideDrawer> {
                 ],
               ),
               Container(color: globalSetting.textColor, height: 1),
-              SizedBox(height: 8), // 添加一些间距
-              SizedBox(height: 8), // 添加一些间距
+              SizedBox(height: 16),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0), // 添加左右间距
-                child: favoriteFilter(),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: _shieldCategory(),
               ),
-              SizedBox(height: 8), // 添加一些间距
-              if (indexStore.date == 0) ...[
+              SizedBox(height: 16),
+              if (indexStore.date == 0) historyPageSkip(),
+              if (indexStore.date == 1) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  // 添加左右间距
-                  child: Row(
-                    children: [
-                      Text('跳页', style: TextStyle(fontSize: 16)),
-                      SizedBox(width: 8), // 添加一些间距
-                      Expanded(
-                        child: TextField(
-                          keyboardType: TextInputType.number, // 设置键盘类型为数字
-                          inputFormatters: <TextInputFormatter>[
-                            FilteringTextInputFormatter.digitsOnly, // 只允许输入数字
-                          ],
-                          decoration: InputDecoration(hintText: '请输入页数'),
-                          onSubmitted: (value) {
-                            if (value.isEmpty) {
-                              page = -1;
-                            }
-                            page = int.parse(value);
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
+                  child: _choiceCategory(historyStore),
                 ),
+                SizedBox(height: 8),
+                Builder(builder: (context) {
+                  sort = historyStore.sort;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: SortWidget(
+                      searchStatusStore: historyStore,
+                      onSortChanged: (value) {
+                        sort = value;
+                      },
+                    ),
+                  );
+                }),
+                keywordSearch(historyStore),
+              ],
+              if (indexStore.date == 2) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: _choiceCategory(downloadStore),
+                ),
+                SizedBox(height: 8),
+                Builder(builder: (context) {
+                  sort = downloadStore.sort;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: SortWidget(
+                      searchStatusStore: downloadStore,
+                      onSortChanged: (value) {
+                        sort = value;
+                      },
+                    ),
+                  );
+                }),
+                keywordSearch(downloadStore),
               ],
               Spacer(),
               Padding(
@@ -115,10 +141,9 @@ class _SideDrawerState extends State<SideDrawer> {
                   children: [
                     ElevatedButton(
                       onPressed: () {
-                        _refresh();
                         Navigator.pop(context);
                       },
-                      child: Text('刷新当前页面'),
+                      child: Text('取消'),
                     ),
                     ElevatedButton(
                       onPressed: () {
@@ -137,35 +162,67 @@ class _SideDrawerState extends State<SideDrawer> {
     );
   }
 
-  Widget favoriteFilter() {
+  Widget _shieldCategory() {
     return GestureDetector(
-        onTap: () async {
-          late var oldCategoriesMap =
-              Map.of(bikaSetting.getShieldCategoryMap());
-          final categoriesShield = await showShieldCategoryDialog(context);
+      onTap: () async {
+        late var oldCategoriesMap = Map.of(bikaSetting.shieldCategoryMap);
+        final categoriesShield = await showShieldCategoryDialog(context);
 
-          if (categoriesShield == null) {
-            return;
+        if (categoriesShield == null) {
+          return;
+        }
+
+        if (oldCategoriesMap == categoriesShield) {
+          return;
+        }
+
+        _categoriesShield = Map.of(categoriesShield);
+      },
+      child: Text(
+        '屏蔽分类',
+        style: TextStyle(fontSize: 16, color: materialColorScheme.primary),
+      ),
+    );
+  }
+
+  Widget _choiceCategory(SearchStatusStore store) {
+    return GestureDetector(
+      onTap: () async {
+        categories = store.categories;
+        Map<String, bool> oldCategoriesMap = Map.from(categoryMap);
+        for (String category in store.categories) {
+          if (oldCategoriesMap.containsKey(category)) {
+            oldCategoriesMap[category] = true;
           }
+        }
 
-          if (oldCategoriesMap == categoriesShield) {
-            return;
-          }
+        final categoriesSelected = await showCategoryDialog(context, store);
 
-          _categoriesShield = Map.of(categoriesShield);
-        },
-        child: Text(
-          '选择屏蔽分类',
-          style: TextStyle(fontSize: 16, color: materialColorScheme.primary),
-        ));
+        if (categoriesSelected == null) {
+          return;
+        }
+
+        if (oldCategoriesMap == categoriesSelected) {
+          return;
+        }
+
+        var temp = categoriesSelected.entries
+            .where((entry) => entry.value == true)
+            .map((entry) => entry.key)
+            .toList();
+
+        categories = temp;
+      },
+      child: Text(
+        '选择分类',
+        style: TextStyle(fontSize: 16, color: materialColorScheme.primary),
+      ),
+    );
   }
 
   void _onTap() {
     if (indexStore.date == 0) {
-      try {
-        _categoriesShield;
-        bikaSetting.setShieldCategoryMap(_categoriesShield);
-      } catch (_) {}
+      bikaSetting.setShieldCategoryMap(_categoriesShield);
 
       if (page != -1 && page != 0) {
         eventBus.fire(FavoriteEvent(EventType.pageSkip, sortType, page));
@@ -174,11 +231,60 @@ class _SideDrawerState extends State<SideDrawer> {
       }
       favoriteStore.sort = SortType.dd.toString().split('.').last;
     }
+
+    if (indexStore.date == 1) {
+      bikaSetting.setShieldCategoryMap(_categoriesShield);
+      historyStore.setCategories(categories);
+      historyStore.setSort(sort);
+      historyStore.setKeyword(keyword);
+
+      eventBus.fire(HistoryEvent(EventType.refresh));
+    }
+
+    if (indexStore.date == 2) {
+      bikaSetting.setShieldCategoryMap(_categoriesShield);
+      downloadStore.setCategories(categories);
+      downloadStore.setSort(sort);
+      downloadStore.setKeyword(keyword);
+
+      eventBus.fire(DownloadEvent(EventType.refresh));
+    }
   }
 
-  void _refresh() {
-    if (indexStore.date == 0) {
-      eventBus.fire(FavoriteEvent(EventType.refresh, sortType, 0));
-    }
+  Widget historyPageSkip() {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: TextField(
+          keyboardType: TextInputType.number, // 设置键盘类型为数字
+          inputFormatters: <TextInputFormatter>[
+            FilteringTextInputFormatter.digitsOnly, // 只允许输入数字
+          ],
+          decoration: InputDecoration(hintText: '跳页，请输入页数'),
+          onSubmitted: (value) {
+            if (value.isEmpty) {
+              page = -1;
+            }
+            page = int.parse(value);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget keywordSearch(SearchStatusStore store) {
+    final TextEditingController controller =
+        TextEditingController(text: store.keyword);
+
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: TextField(
+          controller: controller,
+          decoration: InputDecoration(hintText: '请输入'),
+          onSubmitted: (value) => keyword = value,
+        ),
+      ),
+    );
   }
 }

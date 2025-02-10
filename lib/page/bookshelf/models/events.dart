@@ -19,20 +19,24 @@ class FavoriteEvent {
 
 class HistoryEvent {
   EventType type;
-  SortType sortType;
 
-  HistoryEvent(this.type, this.sortType);
+  HistoryEvent(this.type);
 }
 
 class DownloadEvent {
   EventType type;
-  SortType sortType;
 
-  DownloadEvent(this.type, this.sortType);
+  DownloadEvent(this.type);
 }
 
 class TabViewEvent {
   int index;
 
   TabViewEvent(this.index);
+}
+
+class ChangeSortValueEvent {
+  String value;
+
+  ChangeSortValueEvent(this.value);
 }

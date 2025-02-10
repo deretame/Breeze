@@ -17,7 +17,7 @@ abstract class _SearchStatusStore with Store {
   @observable
   String keyword = "";
   @observable
-  String sort = "";
+  String sort = "dd";
   @observable
   List<String> categories = ObservableList<String>();
 

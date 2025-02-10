@@ -15,10 +15,10 @@ import '../../../../widgets/full_screen_image_view.dart';
 import '../../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../../widgets/picture_bloc/models/picture_info.dart';
 
-class ComicEntryWidget extends StatelessWidget {
+class FavoriteComicEntryWidget extends StatelessWidget {
   final Doc comicEntryInfo;
 
-  const ComicEntryWidget({
+  const FavoriteComicEntryWidget({
     super.key,
     required this.comicEntryInfo,
   });
@@ -44,7 +44,7 @@ class ComicEntryWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final router = AutoRouter.of(context); // 获取 router 实例
-    return InkWell(
+    return GestureDetector(
       onTap: () {
         // 跳转到漫画详情页
         router.push(ComicInfoRoute(
@@ -168,7 +168,6 @@ class _ImageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final uuid = Uuid().v4();
     return BlocProvider(
       create: (context) => PictureBloc()
         ..add(
@@ -199,6 +198,7 @@ class _ImageWidget extends StatelessWidget {
                 ),
               );
             case PictureLoadStatus.success:
+              final uuid = Uuid().v4();
               // 没有错误，正常显示图片
               return InkWell(
                 onTap: () {

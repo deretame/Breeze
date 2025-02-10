@@ -70,8 +70,8 @@ class _ComicInfoState extends State<_ComicInfo>
   comic_all_info_json.ComicAllInfoJson? comicAllInfo;
   late Comic comicInfo; // 用来存储漫画信息
 
-  bool epsCompleted = false; // 用来判断章节是不是加载完毕了
-  List<Doc> epsInfo = [];
+  bool _epsCompleted = false; // 用来判断章节是不是加载完毕了
+  List<Doc> _epsInfo = [];
   late ComicEntryType _type;
 
   @override
@@ -104,7 +104,7 @@ class _ComicInfoState extends State<_ComicInfo>
 
       var epsDoc = comicAllInfo!.eps.docs;
       for (var epDoc in epsDoc) {
-        epsInfo.add(Doc(
+        _epsInfo.add(Doc(
           id: epDoc.id,
           title: epDoc.title,
           order: epDoc.order,
@@ -209,7 +209,7 @@ class _ComicInfoState extends State<_ComicInfo>
                 }
               },
             ),
-      floatingActionButton: epsCompleted // 条件显示按钮
+      floatingActionButton: _epsCompleted // 条件显示按钮
           ? SizedBox(
               width: 100, // 设置容器宽度，以容纳更长的文本
               height: 56, // 设置容器高度，与默认的FloatingActionButton高度一致
@@ -219,7 +219,7 @@ class _ComicInfoState extends State<_ComicInfo>
                     AutoRouter.of(context).push(
                       ComicReadRoute(
                         comicInfo: comicInfo,
-                        epsInfo: epsInfo,
+                        epsInfo: _epsInfo,
                         doc: Doc(
                           id: "history",
                           title: comicHistory!.epTitle,
@@ -237,8 +237,8 @@ class _ComicInfoState extends State<_ComicInfo>
                     AutoRouter.of(context).push(
                       ComicReadRoute(
                         comicInfo: comicInfo,
-                        epsInfo: epsInfo,
-                        doc: epsInfo[0],
+                        epsInfo: _epsInfo,
+                        doc: _epsInfo[0],
                         comicId: comicInfo.id,
                         type: _type,
                       ),
@@ -259,6 +259,7 @@ class _ComicInfoState extends State<_ComicInfo>
   Widget _infoView() {
     return RefreshIndicator(
       onRefresh: () async {
+        _epsCompleted = false;
         context.read<GetComicInfoBloc>().add(GetComicInfo(widget.comicId));
         final query = objectbox.bikaHistoryBox
             .query(BikaComicHistory_.comicId.equals(widget.comicId));
@@ -306,13 +307,13 @@ class _ComicInfoState extends State<_ComicInfo>
                     const SizedBox(height: 10),
                     ComicOperationWidget(
                       comicInfo: comicInfo,
-                      epsInfo: epsInfo,
+                      epsInfo: _epsInfo,
                     ),
                     const SizedBox(height: 10),
                     EpsWidget(
                       comicInfo: comicInfo,
                       comicHistory: comicHistory,
-                      epsInfo: epsInfo,
+                      epsInfo: _epsInfo,
                       onUpdateReadInfo: _updateReadInfo,
                       type: _type,
                     ),
@@ -335,12 +336,12 @@ class _ComicInfoState extends State<_ComicInfo>
   }
 
   void _updateReadInfo(List<Doc> epsInfo, bool epsCompleted) {
-    if (this.epsCompleted) return;
+    if (_epsCompleted) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         setState(() {
-          this.epsInfo = epsInfo;
-          this.epsCompleted = epsCompleted;
+          _epsInfo = epsInfo;
+          _epsCompleted = epsCompleted;
         });
       }
     });

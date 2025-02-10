@@ -1,12 +1,11 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
-version: 1.24.7+75
+version: 1.25.0+76
 
 environment:
   sdk: ">=3.0.0"
 
 dependencies:
-  # Flutter SDK
   flutter:
     sdk: flutter
   flutter_localizations:
@@ -23,6 +22,8 @@ dependencies:
   scrollable_positioned_list: ^0.3.8     # 精确定位滚动列表
   persistent_bottom_nav_bar: ^6.2.1      # 底部导航栏
   flutter_markdown: ^0.7.5               # Markdown 渲染组件
+  dropdown_button2: ^2.3.9               # 下拉菜单组件
+  toastification: ^2.3.0                 # 现代化通知提示系统
 
   # --------------- 状态管理库 ---------------
   mobx: ^2.5.0                  # 响应式状态管理
@@ -66,8 +67,9 @@ dependencies:
   # --------------- 功能组件 ---------------
   crypto: ^3.0.6                # 加密算法
   uuid: ^4.4.2                  # UUID 生成
-  catcher_2: ^2.0.1             # 异常捕获与处理
   auto_route: ^9.2.2            # 路由管理
+  stack_trace: ^1.12.0          # 异常堆栈解析
+  logger: ^2.5.0                # 日志打印
 
   # --------------- 工具 ---------------
   collection: ^1.18.0           # 集合操作工具

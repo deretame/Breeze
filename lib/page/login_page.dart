@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/dialog.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import '../network/http/http_request.dart';
 import '../util/router/router.gr.dart';
@@ -72,50 +73,21 @@ class _LoginPageState extends State<LoginPage> {
 
   void _submitForm() async {
     if (!mounted) return;
-    // 显示加载动画
-    showDialog(
-      context: context,
-      barrierDismissible: false, // 用户不能通过点击屏幕其他地方来关闭对话框
-      builder: (BuildContext context) {
-        return const AlertDialog(
-          content: Row(
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(width: 20),
-              Text("正在登录..."),
-            ],
-          ),
-        );
-      },
-    );
+    showInfoToast("正在登录，请耐心等待...");
 
     try {
       final result = await login(_account.text, _password.text);
-
-      // // 当登录逻辑完成后，关闭加载动画
-      // if (!mounted) return;
-      // Navigator.of(context).pop(); // 关闭加载对话框
 
       debugPrint(result.toString());
 
       bikaSetting.setAccount(_account.text);
       bikaSetting.setPassword(_password.text);
       bikaSetting.setAuthorization(result['data']['token']);
-      _showDialog("登录成功", "正在跳转...");
-      Future.delayed(const Duration(seconds: 2), () {
-        // 检查State是否仍然挂载
-        if (!mounted) return;
-        AutoRouter.of(context).pushAndPopUntil(
-          MainRoute(),
-          predicate: (Route<dynamic> route) {
-            return false;
-          },
-        );
-      });
-    } catch (e) {
-      // 当登录逻辑完成后，关闭加载动画
+      showSuccessToast("登录成功");
+
       if (!mounted) return;
-      Navigator.of(context).pop(); // 关闭加载对话框
+      AutoRouter.of(context).maybePop();
+    } catch (e) {
       _showDialog("登录失败", e.toString());
     }
   }

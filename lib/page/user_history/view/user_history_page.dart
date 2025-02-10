@@ -116,9 +116,13 @@ class _UserHistoryPageState extends State<_UserHistoryPage>
                                             state.comics[index],
                                           ),
                                           type: ComicEntryType.history,
-                                          historySearchEnter:
-                                              state.searchEnterConst,
-                                          historyRefresh: refresh,
+                                          refresh: () {
+                                            refresh(
+                                              SearchEnterConst.from(
+                                                _searchEnter,
+                                              ),
+                                            );
+                                          },
                                         );
                                 },
                                 itemCount: state.comics.length + 1,

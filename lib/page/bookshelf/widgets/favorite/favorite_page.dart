@@ -5,16 +5,19 @@ import 'package:zephyr/page/bookshelf/bookshelf.dart';
 
 import '../../../../config/global.dart';
 import '../../../../main.dart';
+import '../../../../mobx/int_select.dart';
 import '../../../../mobx/string_select.dart';
 
 class FavoritePage extends StatelessWidget {
   final SearchStatusStore searchStatusStore;
   final StringSelectStore stringSelectStore;
+  final IntSelectStore indexStore;
 
   const FavoritePage({
     super.key,
     required this.searchStatusStore,
     required this.stringSelectStore,
+    required this.indexStore,
   });
 
   @override
@@ -25,6 +28,7 @@ class FavoritePage extends StatelessWidget {
       child: _FavoritePage(
         searchStatusStore: searchStatusStore,
         stringSelectStore: stringSelectStore,
+        indexStore: indexStore,
       ),
     );
   }
@@ -33,10 +37,12 @@ class FavoritePage extends StatelessWidget {
 class _FavoritePage extends StatefulWidget {
   final SearchStatusStore searchStatusStore;
   final StringSelectStore stringSelectStore;
+  final IntSelectStore indexStore;
 
   const _FavoritePage({
     required this.searchStatusStore,
     required this.stringSelectStore,
+    required this.indexStore,
   });
 
   @override
@@ -53,7 +59,7 @@ class _UserFavoritePageState extends State<_FavoritePage>
   int pageCount = 0;
   String refresh = "";
   int pagesCount = 0;
-  bool notice = false;
+  int _currentIndex = 0;
 
   @override
   bool get wantKeepAlive => true;
@@ -70,7 +76,7 @@ class _UserFavoritePageState extends State<_FavoritePage>
       } else if (event.type == EventType.updateShield) {
         _refresh(updateShield: true);
       } else if (event.type == EventType.showInfo) {
-        stringSelectStore.setDate("$pageCount/$pagesCount"); // 更新状态
+        stringSelectStore.setDate("$_currentIndex/$pagesCount"); // 更新状态
       }
     });
   }
@@ -85,27 +91,15 @@ class _UserFavoritePageState extends State<_FavoritePage>
     super.build(context);
     return BlocBuilder<UserFavouriteBloc, UserFavouriteState>(
       builder: (context, state) {
-        return NotificationListener<ScrollNotification>(
-          onNotification: (notification) {
-            if (notification is ScrollUpdateNotification) {
-              final maxScroll = notification.metrics.maxScrollExtent;
-              final currentScroll = notification.metrics.pixels;
-              if (currentScroll >= maxScroll * 0.9) {
-                _fetchFavoriteResult();
-              }
-              // 添加滚动位置监听逻辑
-              _handleScrollPosition(notification.metrics);
-            }
-            return false;
-          },
-          child: RefreshIndicator(
-            displacement: 60.0,
-            onRefresh: () async {
-              // 触发刷新操作
+        return RefreshIndicator(
+          displacement: 60.0,
+          onRefresh: () async {
+            // 触发刷新操作
+            if (widget.indexStore.date == 0) {
               _refresh(initState: true);
-            },
-            child: _buildContent(state),
-          ),
+            }
+          },
+          child: _buildContent(state),
         );
       },
     );
@@ -114,7 +108,6 @@ class _UserFavoritePageState extends State<_FavoritePage>
   Widget _buildContent(UserFavouriteState state) {
     switch (state.status) {
       case UserFavouriteStatus.initial:
-        notice = false;
         stringSelectStore.setDate("");
         return const Center(child: CircularProgressIndicator());
       case UserFavouriteStatus.failure:
@@ -174,64 +167,75 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
     debugPrint(itemCount.toString());
 
-    if (notice == false) {
-      stringSelectStore.setDate("$pageCount/$pagesCount"); // 更新状态
-    }
-
-    return CustomScrollView(
-      slivers: [
-        SliverOverlapInjector(
-          handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-        ),
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (BuildContext context, int index) {
-              // 如果索引等于状态的 comics.length，并且已经达到最大值
-              if (index == state.comics.length) {
-                if (state.status == UserFavouriteStatus.success &&
-                    state.hasReachedMax) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(30.0),
-                      child: Text(
-                        '你来到了未知领域呢~',
-                        style: const TextStyle(fontSize: 20.0),
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (notification is ScrollUpdateNotification) {
+          if (widget.indexStore.date == 0) {
+            final maxScroll = notification.metrics.maxScrollExtent;
+            final currentScroll = notification.metrics.pixels;
+            if (currentScroll >= maxScroll * 0.9) {
+              _fetchFavoriteResult();
+            }
+            _handleScrollPosition(notification.metrics);
+          }
+        }
+        return false;
+      },
+      child: CustomScrollView(
+        slivers: [
+          SliverOverlapInjector(
+            handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+          ),
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (BuildContext context, int index) {
+                // 如果索引等于状态的 comics.length，并且已经达到最大值
+                if (index == state.comics.length) {
+                  if (state.status == UserFavouriteStatus.success &&
+                      state.hasReachedMax) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(30.0),
+                        child: Text(
+                          '你来到了未知领域呢~',
+                          style: const TextStyle(fontSize: 20.0),
+                        ),
                       ),
-                    ),
-                  );
-                }
+                    );
+                  }
 
-                if (state.status == UserFavouriteStatus.getMoreFailure) {
-                  return Center(
-                    child: ElevatedButton(
-                      onPressed: () => _refresh(),
+                  if (state.status == UserFavouriteStatus.getMoreFailure) {
+                    return Center(
+                      child: ElevatedButton(
+                        onPressed: () => _refresh(),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text('点击重试'),
+                        ),
+                      ),
+                    );
+                  }
+
+                  if (state.status == UserFavouriteStatus.loadingMore) {
+                    return Center(
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
-                        child: Text('点击重试'),
+                        child: CircularProgressIndicator(),
                       ),
-                    ),
+                    );
+                  }
+                } else {
+                  return FavoriteComicEntryWidget(
+                    comicEntryInfo: state.comics[index].doc,
                   );
                 }
-
-                if (state.status == UserFavouriteStatus.loadingMore) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-              } else {
-                return ComicEntryWidget(
-                  comicEntryInfo: state.comics[index].doc,
-                );
-              }
-              return null;
-            },
-            childCount: itemCount,
+                return null;
+              },
+              childCount: itemCount,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -313,6 +317,7 @@ class _UserFavoritePageState extends State<_FavoritePage>
           comics[itemIndex].buildNumber; // 获取当前 item 的 buildNumber
       debugPrint(comics[itemIndex].doc.title); // 打印当前 item 的标题
       stringSelectStore.setDate("$buildNumber/$pagesCount"); // 更新状态
+      _currentIndex = buildNumber; // 更新当前索引
     }
   }
 }

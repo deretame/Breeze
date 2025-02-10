@@ -1,23 +1,28 @@
 import 'dart:async';
 
-import 'package:auto_route/annotations.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/page/ranking_list/ranking_list.dart';
-import 'package:zephyr/page/user_profile/view/view.dart';
+import 'package:zephyr/util/router/router.gr.dart';
 
 import '../main.dart';
 import '../network/http/http_request.dart';
 import '../network/webdav.dart';
 import '../util/dialog.dart';
+import '../util/update/check_update.dart';
 import 'bookshelf/bookshelf.dart';
-import 'search/search_page.dart';
-import 'setting/setting_page.dart';
+import 'category/view/category.dart';
+import 'more/view/more.dart';
 
 class NoticeSync {}
+
+class NeedLogin {}
 
 @RoutePage()
 class MainPage extends StatefulWidget {
@@ -40,14 +45,14 @@ class _MainPageState extends State<MainPage> {
   final List<Widget> _pageList = [
     BookshelfPage(),
     RankingListPage(),
-    SearchPage(),
-    UserInfoPage(),
-    SettingsPage(),
+    CategoryPage(),
+    MorePage(),
   ];
 
   @override
   void initState() {
     super.initState();
+    _checkUpdate();
     _signIn();
     // 先执行一次
     _autoSync();
@@ -61,6 +66,10 @@ class _MainPageState extends State<MainPage> {
     // 用来手动触发同步
     _subscription = eventBus.on<NoticeSync>().listen((event) {
       _autoSync();
+    });
+
+    eventBus.on<NeedLogin>().listen((event) {
+      _goToLoginPage();
     });
   }
 
@@ -86,7 +95,9 @@ class _MainPageState extends State<MainPage> {
         // 处理 Android 返回按钮
         handleAndroidBackButtonPress: true,
         // 调整布局以避免键盘遮挡
-        resizeToAvoidBottomInset: true,
+        resizeToAvoidBottomInset: false,
+        // 避免在键盘弹出时隐藏导航栏
+        hideNavigationBarWhenKeyboardAppears: false,
         // 保持页面状态
         stateManagement: true,
         // decoration: NavBarDecoration(
@@ -102,8 +113,8 @@ class _MainPageState extends State<MainPage> {
   List<PersistentBottomNavBarItem> _navBarItems() {
     return [
       PersistentBottomNavBarItem(
-        icon: Icon(Icons.home),
-        title: "首页",
+        icon: Icon(Icons.menu_book_sharp),
+        title: "书架",
         activeColorPrimary: materialColorScheme.primary,
         inactiveColorPrimary: globalSetting.textColor,
       ),
@@ -114,20 +125,14 @@ class _MainPageState extends State<MainPage> {
         inactiveColorPrimary: globalSetting.textColor,
       ),
       PersistentBottomNavBarItem(
-        icon: Icon(Icons.search),
-        title: "搜索",
+        icon: Icon(Icons.class_outlined),
+        title: "分类",
         activeColorPrimary: materialColorScheme.primary,
         inactiveColorPrimary: globalSetting.textColor,
       ),
       PersistentBottomNavBarItem(
-        icon: Icon(Icons.person),
-        title: "个人",
-        activeColorPrimary: materialColorScheme.primary,
-        inactiveColorPrimary: globalSetting.textColor,
-      ),
-      PersistentBottomNavBarItem(
-        icon: Icon(Icons.settings),
-        title: "设置",
+        icon: Icon(Icons.more_horiz),
+        title: "跟多",
         activeColorPrimary: materialColorScheme.primary,
         inactiveColorPrimary: globalSetting.textColor,
       ),
@@ -166,6 +171,69 @@ class _MainPageState extends State<MainPage> {
         context,
         "自动同步失败",
         "请检查网络连接或稍后再试。\n${e.toString()}",
+      );
+    }
+  }
+
+  void _goToLoginPage() {
+    final route = AutoRouter.of(context);
+    route.push(const LoginRoute());
+  }
+
+  Future<void> _checkUpdate() async {
+    final temp = await getCloudVersion();
+    final cloudVersion = temp.tagName;
+    final releaseInfo = temp.body;
+    final String localVersion = await getAppVersion();
+
+    if (isUpdateAvailable(cloudVersion, localVersion)) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('发现新版本'),
+            content: SingleChildScrollView(
+              child: SizedBox(
+                width: double.maxFinite, // 设置最大宽度
+                child: MarkdownBody(
+                  data: '# $cloudVersion\n$releaseInfo',
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                child: Text('取消'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('前往GitHub'),
+                onPressed: () {
+                  launchUrl(
+                    Uri.parse(
+                      'https://github.com/deretame/Breeze/releases/tag/$cloudVersion',
+                    ),
+                  );
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('下载安装'),
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  for (var apkUrl in temp.assets) {
+                    if (apkUrl.browserDownloadUrl
+                        .contains("app-arm64-v8a-release.apk")) {
+                      await installApk(apkUrl.browserDownloadUrl);
+                    }
+                  }
+                },
+              ),
+            ],
+          );
+        },
       );
     }
   }

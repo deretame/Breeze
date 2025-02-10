@@ -1,10 +1,7 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-
-import '../../../main.dart';
 
 class PageCountWidget extends StatefulWidget {
   final int pageIndex;
@@ -100,44 +97,39 @@ class _PageCountWidgetState extends State<PageCountWidget> {
         borderRadius: BorderRadius.only(
           topRight: Radius.circular(10), // 右上角设置圆角
         ),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // 高斯模糊强度
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: globalSetting.textColor.withValues(alpha: 0.7),
-              // 半透明背景
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(0), // 左上角保持直角
-                topRight: Radius.circular(10), // 右上角设置圆角
-                bottomLeft: Radius.circular(0), // 左下角保持直角
-                bottomRight: Radius.circular(0), // 右下角保持直角
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: Colors.black,
+            // 半透明背景
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(0), // 左上角保持直角
+              topRight: Radius.circular(10), // 右上角设置圆角
+              bottomLeft: Radius.circular(0), // 左下角保持直角
+              bottomRight: Radius.circular(0), // 右下角保持直角
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 显示当前页数
+              Text(
+                "${widget.pageIndex - 1}/${widget.epPages}",
+                style: TextStyle(color: Colors.white, fontSize: 12),
               ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // 显示当前页数
-                Text(
-                  "${widget.pageIndex - 1}/${widget.epPages}",
-                  style: TextStyle(
-                      color: globalSetting.backgroundColor, fontSize: 12),
-                ),
-                SizedBox(width: 5), // 添加间距
-                // 显示网络状态
-                Icon(
-                  _getNetworkStatusIcon(_connectivityResult), // 使用网络状态图标
-                  color: globalSetting.backgroundColor,
-                  size: 12,
-                ),
-                SizedBox(width: 5), // 添加间距
-                Text(
-                  _currentTime,
-                  style: TextStyle(
-                      color: globalSetting.backgroundColor, fontSize: 12),
-                ),
-              ],
-            ),
+              SizedBox(width: 5), // 添加间距
+              // 显示网络状态
+              Icon(
+                _getNetworkStatusIcon(_connectivityResult), // 使用网络状态图标
+                color: Colors.white,
+                size: 12,
+              ),
+              SizedBox(width: 5), // 添加间距
+              Text(
+                _currentTime,
+                style: TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ],
           ),
         ),
       ),

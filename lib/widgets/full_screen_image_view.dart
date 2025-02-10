@@ -10,13 +10,20 @@ import '../main.dart';
 class FullScreenImageView extends StatelessWidget {
   final String imagePath;
   final String? uuid;
+  final bool? showShade;
 
-  const FullScreenImageView({super.key, required this.imagePath, this.uuid});
+  const FullScreenImageView({
+    super.key,
+    required this.imagePath,
+    this.uuid,
+    this.showShade,
+  });
 
   @override
   Widget build(BuildContext context) {
     String temp = uuid ?? "";
-    final bool havaShade = globalSetting.shade && !globalSetting.themeType;
+    final bool havaShade =
+        globalSetting.shade && !globalSetting.themeType && (showShade ?? false);
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(

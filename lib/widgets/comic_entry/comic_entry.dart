@@ -5,13 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:uuid/uuid.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../config/global.dart';
 import '../../main.dart';
-import '../../page/user_download/models/search_enter.dart' as download;
-import '../../page/user_history/models/search_enter.dart' as history;
 import '../full_screen_image_view.dart';
 import '../picture_bloc/bloc/picture_bloc.dart';
 import '../picture_bloc/models/picture_info.dart';
@@ -27,19 +26,13 @@ enum ComicEntryType {
 class ComicEntryWidget extends StatefulWidget {
   final ComicEntryInfo comicEntryInfo;
   final ComicEntryType? type;
-  final download.SearchEnterConst? downloadSearchEnter;
-  final Function(download.SearchEnterConst)? downloadRefresh;
-  final history.SearchEnterConst? historySearchEnter;
-  final Function(history.SearchEnterConst)? historyRefresh;
+  final Function()? refresh;
 
   const ComicEntryWidget({
     super.key,
     required this.comicEntryInfo,
     this.type,
-    this.downloadSearchEnter,
-    this.downloadRefresh,
-    this.historySearchEnter,
-    this.historyRefresh,
+    this.refresh,
   });
 
   @override
@@ -51,16 +44,7 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
 
   ComicEntryType? get type => widget.type;
 
-  download.SearchEnterConst? get downloadSearchEnter =>
-      widget.downloadSearchEnter;
-
-  Function(download.SearchEnterConst)? get downloadRefresh =>
-      widget.downloadRefresh;
-
-  history.SearchEnterConst? get historySearchEnter => widget.historySearchEnter;
-
-  Function(history.SearchEnterConst)? get historyRefresh =>
-      widget.historyRefresh;
+  Function()? get refresh => widget.refresh;
 
   ComicEntryType? _type;
 
@@ -245,7 +229,7 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                     temp.deleted = true;
                     temp.deletedAt = DateTime.now().toUtc();
                     objectbox.bikaHistoryBox.put(temp);
-                    historyRefresh!(historySearchEnter!);
+                    refresh!();
                   }
                 }
                 if (_type == ComicEntryType.download) {
@@ -256,10 +240,8 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                       .findFirst();
                   if (temp != null) {
                     objectbox.bikaDownloadBox.remove(temp.id);
-                    downloadRefresh!(downloadSearchEnter!);
-                    deleteDirectory(
-                      '/data/data/com.zephyr.breeze/files/downloads/bika/original/${comicEntryInfo.id}',
-                    );
+                    refresh!();
+                    deleteDirectory(comicEntryInfo.id);
                   }
                 }
                 Navigator.of(context).pop();
@@ -271,7 +253,9 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
     );
   }
 
-  Future<void> deleteDirectory(String path) async {
+  Future<void> deleteDirectory(String id) async {
+    String path =
+        '/data/data/com.zephyr.breeze/files/downloads/bika/original/$id';
     final directory = Directory(path);
 
     // 检查目录是否存在
@@ -335,6 +319,7 @@ class ImageWidget extends StatelessWidget {
                 ),
               );
             case PictureLoadStatus.success:
+              final uuid = Uuid().v4();
               // 没有错误，正常显示图片
               return InkWell(
                 onTap: () {
@@ -343,13 +328,13 @@ class ImageWidget extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (context) => FullScreenImageView(
                         imagePath: state.imagePath!,
-                        // uuid: uuid,
+                        uuid: uuid,
                       ),
                     ),
                   );
                 },
                 child: Hero(
-                  tag: state.imagePath!,
+                  tag: state.imagePath! + uuid,
                   child: ClipRRect(
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(10.0),

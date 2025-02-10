@@ -86,8 +86,10 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            FullScreenImageView(imagePath: state.imagePath!),
+                        builder: (context) => FullScreenImageView(
+                          imagePath: state.imagePath!,
+                          showShade: true,
+                        ),
                       ),
                     );
                   },

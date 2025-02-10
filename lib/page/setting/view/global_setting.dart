@@ -68,7 +68,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               ),
               ElevatedButton(
                 onPressed: () async {
-                  objectbox.bikaHistoryBox.removeAll();
+                  // logger.e("测试用的玩意儿");
+                  throw Exception("测试用的玩意儿");
                 },
                 child: Text("测试用的玩意儿"),
               ),

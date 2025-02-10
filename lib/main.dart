@@ -1,18 +1,18 @@
 import 'dart:async';
+import 'dart:ui';
 
-import 'package:catcher_2/catcher_2.dart';
 import 'package:dio/dio.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:event_bus/event_bus.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:logger/logger.dart';
+import 'package:stack_trace/stack_trace.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
-import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/router/router.dart';
 
@@ -39,10 +39,37 @@ EventBus eventBus = EventBus();
 late ColorScheme materialColorScheme;
 late ColorScheme materialColorSchemeDark;
 
+class CustomPrinter extends LogPrinter {
+  final PrettyPrinter _prettyPrinter = PrettyPrinter();
+
+  @override
+  List<String> log(LogEvent event) {
+    var message = event.message;
+    var error = event.error;
+    var stackTrace = event.stackTrace;
+
+    // 如果有堆栈信息，使用TersePrinter来简化它
+    if (stackTrace != null) {
+      Chain chain = Chain.forTrace(Trace.from(stackTrace));
+      Chain terseChain = chain.terse;
+      stackTrace = terseChain.toTrace();
+    }
+
+    // 使用PrettyPrinter来格式化日志
+    return _prettyPrinter.log(
+      LogEvent(event.level, message, error: error, stackTrace: stackTrace),
+    );
+  }
+}
+
+var logger = Logger(
+  printer: CustomPrinter(),
+);
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // 重采样触控刷新率
-  GestureBinding.instance.resamplingEnabled = true;
+  // GestureBinding.instance.resamplingEnabled = true;
 
   objectbox = await ObjectBox.create();
 
@@ -61,19 +88,25 @@ Future<void> main() async {
   await globalSetting.initBox();
   await bikaSetting.initBox();
 
-  // 异常捕获 logo记录
-  final Catcher2Options releaseConfig = Catcher2Options(
-    SilentReportMode(),
-    [FileHandler(await getLogPath())],
-  );
+  // 设置Flutter框架的全局错误处理器
+  FlutterError.onError = (FlutterErrorDetails details) {
+    // 在这里处理Flutter框架的错误
+    logger.e('Flutter error: ${details.exceptionAsString()}',
+        stackTrace: details.stack);
+  };
 
-  // 初始化Catcher2并运行应用
-  Catcher2(
-    releaseConfig: releaseConfig,
-    runAppFunction: () {
-      runApp(const MyApp());
-    },
-  );
+  // 设置Dart层的全局错误处理器
+  PlatformDispatcher.instance.onError = (error, stackTrace) {
+    // 在这里处理Dart层的错误
+    logger.e('Dart error: $error', stackTrace: stackTrace);
+    return true; // 返回true表示错误已经被处理
+  };
+
+  try {
+    runApp(const MyApp());
+  } catch (error, stackTrace) {
+    logger.e(error, stackTrace: stackTrace);
+  }
 }
 
 class MyApp extends StatefulWidget {
@@ -109,7 +142,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     // 设置这个的目的是为了缓解图片重载
-    PaintingBinding.instance.imageCache.maximumSizeBytes = 500 * 1024 * 1024;
+    // PaintingBinding.instance.imageCache.maximumSizeBytes = 500 * 1024 * 1024;
 
     Global(context);
     if (statusBarHeight == 0) {
@@ -194,11 +227,12 @@ class _MyAppState extends State<MyApp> {
                 colorScheme: lightColorScheme,
                 scaffoldBackgroundColor: lightColorScheme.surface,
                 cardColor: lightColorScheme.surfaceContainer,
-                dialogBackgroundColor: lightColorScheme.surfaceContainer,
                 chipTheme: ChipThemeData(
                   backgroundColor: lightColorScheme.surface,
                 ),
                 canvasColor: lightColorScheme.surfaceContainer,
+                dialogTheme: DialogThemeData(
+                    backgroundColor: lightColorScheme.surfaceContainer),
               ),
               darkTheme: ThemeData.dark().copyWith(
                 scaffoldBackgroundColor: globalSetting.isAMOLED

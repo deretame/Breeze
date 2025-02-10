@@ -85,6 +85,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
 
   String get comicId => widget.comicId;
 
+  String _epId = ""; // 用来存储当前观看的章节id
   ComicEntryType? get type => widget.type;
   late final ComicEntryType _type;
   late final comic_all_info_json.Eps _downloadEpsInfo;
@@ -116,6 +117,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
     _currentSliderValue = 0;
     _type = type ?? ComicEntryType.normal;
     _doc = doc;
+    _epId = epsInfo.firstWhere((doc) => doc.title == _doc.title).id;
     _itemScrollController = ItemScrollController();
     _itemPositionsListener = ItemPositionsListener.create();
 
@@ -353,7 +355,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                             comicId: comicId,
                             epsId: _doc.id,
                             index: index - 1,
-                            chapterId: _doc.id,
+                            chapterId: _epId,
                           ),
                         ),
                       );
@@ -769,6 +771,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
     comicHistory!.order = _doc.order;
     comicHistory!.epPageCount = pageIndex;
     comicHistory!.epTitle = _doc.title;
+    comicHistory!.epId = _epId;
     comicHistory!.deleted = false;
     comicHistory!.deletedAt = DateTime.utc(2000);
     await objectbox.bikaHistoryBox.putAsync(comicHistory!);

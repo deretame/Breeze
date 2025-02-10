@@ -30,10 +30,22 @@ Future<String> getCachePicture({
 
   // 构建文件路径
   String cacheFilePath = buildFilePath(
-      cachePath, from, pictureType, cartoonId, chapterId, sanitizedPath);
+    cachePath,
+    from,
+    pictureType,
+    cartoonId,
+    chapterId,
+    sanitizedPath,
+  );
 
   String downloadFilePath = buildFilePath(
-      downloadPath, from, pictureType, cartoonId, chapterId, sanitizedPath);
+    downloadPath,
+    from,
+    pictureType,
+    cartoonId,
+    chapterId,
+    sanitizedPath,
+  );
 
   // 检查文件是否存在
   String existingFilePath =
@@ -41,10 +53,16 @@ Future<String> getCachePicture({
   if (existingFilePath.isNotEmpty) {
     return existingFilePath;
   }
+  logger.d('开始下载图片: $url');
 
   // 处理 URL
   String finalUrl = buildImageUrl(
-      url, path, pictureType, bikaSetting.imageQuality, bikaSetting.proxy);
+    url,
+    path,
+    pictureType,
+    bikaSetting.imageQuality,
+    bikaSetting.proxy,
+  );
 
   // 下载图片
   Uint8List imageData = await downloadImageWithRetry(finalUrl);
@@ -105,7 +123,12 @@ Future<String> downloadPicture({
 
   // 处理 URL
   String finalUrl = buildImageUrl(
-      url, path, pictureType, bikaSetting.imageQuality, bikaSetting.proxy);
+    url,
+    path,
+    pictureType,
+    bikaSetting.imageQuality,
+    bikaSetting.proxy,
+  );
 
   // 下载图片
   Uint8List imageData = await downloadImageWithRetry(finalUrl);
@@ -129,11 +152,24 @@ String buildFilePath(
   String sanitizedPath,
 ) {
   if (pictureType == 'comic') {
-    return file_path.join(basePath, from, bikaSetting.imageQuality, cartoonId,
-        pictureType, chapterId, sanitizedPath);
+    return file_path.join(
+      basePath,
+      from,
+      bikaSetting.imageQuality,
+      cartoonId,
+      pictureType,
+      chapterId,
+      sanitizedPath,
+    );
   } else if (pictureType == 'cover') {
-    return file_path.join(basePath, from, bikaSetting.imageQuality, cartoonId,
-        pictureType, sanitizedPath);
+    return file_path.join(
+      basePath,
+      from,
+      bikaSetting.imageQuality,
+      cartoonId,
+      pictureType,
+      sanitizedPath,
+    );
   } else {
     return file_path.join(basePath, from, pictureType, sanitizedPath);
   }

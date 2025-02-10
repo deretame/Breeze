@@ -62,6 +62,7 @@ class BikaComicHistory {
   int order;
   String epTitle;
   int epPageCount;
+  String epId;
 
   bool deleted;
   @Property(type: PropertyType.date)
@@ -114,6 +115,7 @@ class BikaComicHistory {
     required this.order,
     required this.epTitle,
     required this.epPageCount,
+    required this.epId,
     required this.deleted,
     required this.deletedAt,
   });
@@ -167,6 +169,7 @@ class BikaComicHistory {
       'order': order,
       'epTitle': epTitle,
       'epPageCount': epPageCount,
+      'epId': epId,
       'deleted': deleted,
       'deletedAt': deletedAt.toIso8601String()
     };
@@ -224,6 +227,7 @@ class BikaComicHistory {
       order: json['order'] ?? 0,
       epTitle: json['epTitle'] ?? '',
       epPageCount: json['epPageCount'] ?? 0,
+      epId: json['epId'] ?? '',
       deleted: json['deleted'] ?? false,
       deletedAt:
           DateTime.parse(json['deletedAt'] ?? DateTime.now().toIso8601String()),

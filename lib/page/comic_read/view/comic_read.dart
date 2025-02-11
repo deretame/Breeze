@@ -658,11 +658,13 @@ class _ComicReadPageState extends State<_ComicReadPage>
                           .withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Text(
-                      message,
-                      style: TextStyle(
-                        fontSize: 60,
-                        color: globalSetting.textColor,
+                    child: RichText(
+                      text: TextSpan(
+                        text: message,
+                        style: TextStyle(
+                          fontSize: 60,
+                          color: globalSetting.textColor.withValues(alpha: 0.8),
+                        ),
                       ),
                     ),
                   ),

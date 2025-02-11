@@ -1,6 +1,6 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
-version: 1.25.3+79
+version: 1.25.4+80
 
 environment:
   sdk: ">=3.0.0"
@@ -15,7 +15,6 @@ dependencies:
   cupertino_icons: ^1.0.8                # 图标
   dynamic_color: ^1.7.0                  # Material You 动态主题支持
   loading_animation_widget: ^1.2.1       # 加载动画组件
-  flutter_easyloading: ^3.0.5            # 加载指示器
   toggle_switch: ^2.3.0                  # 开关切换组件
   animated_search_bar: ^2.7.2            # 动画搜索栏
   photo_view: ^0.15.0                    # 图片查看器，支持缩放和平移

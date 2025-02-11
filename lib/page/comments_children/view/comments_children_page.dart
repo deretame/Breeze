@@ -1,10 +1,10 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/config/global.dart';
 import 'package:zephyr/page/comments_children/comments_children.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import '../../../main.dart';
 import '../../../network/http/http_request.dart';
@@ -84,6 +84,7 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
 
   Future<void> _writeCommentChildren(String comicId, String text) async {
     try {
+      showInfoToast("正在评论...");
       await writeCommentChildren(comicId, text);
 
       // 检查 State 是否仍然挂载
@@ -93,7 +94,10 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
           CommentsChildrenEvent(comicId, CommentsChildrenStatus.comment, 1));
     } catch (e) {
       debugPrint(e.toString());
-      EasyLoading.showError('评论失败，请稍后再试。\n${e.toString()}');
+      showErrorToast(
+        '评论失败，请稍后再试。\n${e.toString()}',
+        duration: const Duration(seconds: 5),
+      );
     }
   }
 

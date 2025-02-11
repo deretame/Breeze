@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import '../../../config/global.dart';
 import '../../../main.dart';
@@ -64,9 +64,12 @@ class _CommentsWidgetState extends State<CommentsWidget>
                     if (result) {
                       try {
                         await reportComments(commentInfo.id);
-                        EasyLoading.showSuccess("举报成功");
+                        showSuccessToast("举报成功");
                       } catch (e) {
-                        EasyLoading.showError("举报失败：${e.toString()}");
+                        showErrorToast(
+                          "举报失败：${e.toString()}",
+                          duration: Duration(seconds: 5),
+                        );
                         debugPrint(e.toString());
                       }
                     }
@@ -256,21 +259,21 @@ class _CommentsWidgetState extends State<CommentsWidget>
   void _likeComment(String commentId) async {
     try {
       if (like) {
-        EasyLoading.showSuccess("正在取消点赞");
+        showSuccessToast("正在取消点赞");
       } else {
-        EasyLoading.showSuccess("正在点赞");
+        showSuccessToast("正在点赞");
       }
       await likeComment(commentId);
       like = !like;
       if (like) {
-        EasyLoading.showSuccess("点赞成功");
+        showSuccessToast("点赞成功");
         likeCountStore.setDate(likeCountStore.date + 1);
       } else {
-        EasyLoading.showSuccess("取消点赞成功");
+        showSuccessToast("取消点赞成功");
         likeCountStore.setDate(likeCountStore.date - 1);
       }
     } catch (e) {
-      EasyLoading.showError("点赞失败：${e.toString()}");
+      showErrorToast("点赞失败：${e.toString()}", duration: Duration(seconds: 5));
       debugPrint(e.toString());
     }
   }

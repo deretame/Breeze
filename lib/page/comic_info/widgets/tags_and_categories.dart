@@ -2,8 +2,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import '../../../main.dart';
 import '../../../util/router/router.gr.dart';
@@ -90,9 +90,7 @@ class _TagsAndCategoriesWidgetState extends State<TagsAndCategoriesWidget> {
                       Clipboard.setData(
                         ClipboardData(text: processText(items[index - 1])),
                       );
-                      EasyLoading.showSuccess(
-                        "已将${items[index - 1]}复制到剪贴板",
-                      );
+                      showSuccessToast("已将${items[index - 1]}复制到剪贴板");
                     },
                     child: Chip(
                       backgroundColor: globalSetting.backgroundColor,

@@ -1,12 +1,12 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../../config/global.dart';
 import '../../../main.dart';
 import '../../../network/http/http_request.dart';
 import '../../../util/dialog.dart';
+import '../../../widgets/toast.dart';
 import '../json/comic_info/comic_info.dart';
 import '../json/eps/eps.dart';
 
@@ -176,7 +176,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         throw ArgumentError('Invalid action type: $actionType');
     }
 
-    EasyLoading.showInfo("正在$actionVerb...");
+    showInfoToast("请求中...");
 
     result.then((Map<String, dynamic> data) {
       if (data["error"] != null) {
@@ -185,7 +185,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         failureMessage = actionType == 'like'
             ? "请求失败: ${data["error"]}"
             : (isCurrentlyActive ? '取消$actionVerb失败' : '$actionVerb失败');
-        EasyLoading.showError(failureMessage);
+        showErrorToast(failureMessage, duration: const Duration(seconds: 5));
       } else {
         debugPrint('$actionVerb成功: $data');
         setState(() {
@@ -199,11 +199,14 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         if (!mounted) return;
         successMessage =
             isCurrentlyActive ? '取消$actionVerb成功' : '$actionVerb成功';
-        EasyLoading.showSuccess(successMessage);
+        showSuccessToast(successMessage);
       }
     }).catchError((error) {
       if (!mounted) return;
-      EasyLoading.showError("请求过程中发生错误: $error");
+      showErrorToast(
+        "请求过程中发生错误: ${error.toString()}",
+        duration: const Duration(seconds: 5),
+      );
     });
   }
 }

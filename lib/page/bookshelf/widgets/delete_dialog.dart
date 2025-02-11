@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import '../../../main.dart';
 
@@ -14,6 +14,7 @@ Widget deletingDialog(BuildContext context, Function refresh, DeleteType type) {
       ? '确定要删除所有下载记录及其文件吗？此操作不可恢复！'
       : '确定要清空历史记录吗？此操作不可恢复！';
   final deletedText = type == DeleteType.download ? '所有下载记录及其文件已删除' : '历史记录已清空';
+  final buttonText = type == DeleteType.download ? '删除所有下载记录及其文件' : '清空历史记录';
 
   return Center(
     child: Padding(
@@ -57,7 +58,7 @@ Widget deletingDialog(BuildContext context, Function refresh, DeleteType type) {
 
                       // 刷新页面
                       refresh();
-                      EasyLoading.showSuccess(deletedText);
+                      showSuccessToast(deletedText);
 
                       // 关闭对话框
                       Navigator.of(context).pop();
@@ -69,7 +70,7 @@ Widget deletingDialog(BuildContext context, Function refresh, DeleteType type) {
             },
           );
         },
-        child: const Text("删除所有下载记录及其文件"),
+        child: Text(buttonText),
       ),
     ),
   );

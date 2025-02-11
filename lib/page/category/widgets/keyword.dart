@@ -1,9 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/page/search_result/models/search_enter.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import '../../../main.dart';
 import '../../../util/router/router.gr.dart';
@@ -37,12 +37,8 @@ class KeywordWidget extends StatelessWidget {
                     );
                   },
                   onLongPress: () {
-                    Clipboard.setData(
-                      ClipboardData(text: keywords[index]),
-                    );
-                    EasyLoading.showSuccess(
-                      "已将${keywords[index]}复制到剪贴板",
-                    );
+                    Clipboard.setData(ClipboardData(text: keywords[index]));
+                    showSuccessToast("${keywords[index]}已复制到剪贴板");
                   },
                   child: Chip(
                     backgroundColor: globalSetting.backgroundColor, // 设置背景颜色

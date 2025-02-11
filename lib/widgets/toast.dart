@@ -1,9 +1,9 @@
-import 'package:toastification/toastification.dart';
-
 import '../main.dart';
 
+enum ToastType { info, success, warning, error }
+
 class ToastEvent {
-  ToastificationType type;
+  ToastType type;
   String? title;
   String message;
   Duration duration;
@@ -23,7 +23,7 @@ void showInfoToast(
 }) {
   eventBus.fire(
     ToastEvent(
-      type: ToastificationType.info,
+      type: ToastType.info,
       title: title,
       message: message,
       duration: duration,
@@ -38,7 +38,7 @@ void showSuccessToast(
 }) {
   eventBus.fire(
     ToastEvent(
-      type: ToastificationType.success,
+      type: ToastType.success,
       title: title,
       message: message,
       duration: duration,
@@ -53,7 +53,7 @@ void showWarningToast(
 }) {
   eventBus.fire(
     ToastEvent(
-      type: ToastificationType.warning,
+      type: ToastType.warning,
       title: title,
       message: message,
       duration: duration,
@@ -68,7 +68,7 @@ void showErrorToast(
 }) {
   eventBus.fire(
     ToastEvent(
-      type: ToastificationType.error,
+      type: ToastType.error,
       title: title,
       message: message,
       duration: duration,

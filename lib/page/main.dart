@@ -244,11 +244,27 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _showToast(ToastEvent event) {
+    ToastificationType type;
+    switch (event.type) {
+      case ToastType.success:
+        type = ToastificationType.success;
+        break;
+      case ToastType.error:
+        type = ToastificationType.error;
+        break;
+      case ToastType.warning:
+        type = ToastificationType.warning;
+        break;
+      case ToastType.info:
+        type = ToastificationType.info;
+        break;
+    }
+
     toastification.show(
       context: context,
       title: event.title == null ? null : Text(event.title!),
       description: Text(event.message),
-      type: event.type,
+      type: type,
       style: ToastificationStyle.flatColored,
       autoCloseDuration: event.duration,
     );

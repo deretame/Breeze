@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/page/comments/comments.dart';
-import 'package:zephyr/widgets/toast.dart';
 
 import '../../../main.dart';
 import '../../../network/http/http_request.dart';
 import '../../../widgets/error_view.dart';
+import '../../main.dart';
 import '../json/comments_json/comments_json.dart';
 
 @RoutePage()
@@ -109,7 +109,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
 
   Future<void> _writeComment(String comicId, String text) async {
     try {
-      showInfoToast("正在评论...");
+      eventBus.fire(ToastMessage(ToastType.info, "正在评论..."));
       await writeComment(comicId, text);
 
       // 检查 State 是否仍然挂载
@@ -120,10 +120,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
           .add(CommentsEvent(comicId, CommentsStatus.comment, 1));
     } catch (e) {
       debugPrint(e.toString());
-      showErrorToast(
-        '评论失败，请稍后再试。\n${e.toString()}',
-        duration: const Duration(seconds: 5),
-      );
+      eventBus.fire(ToastMessage(ToastType.error, ('评论失败，请稍后再试。')));
     }
   }
 

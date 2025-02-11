@@ -14,8 +14,8 @@ import '../../../network/http/http_request.dart';
 import '../../../widgets/full_screen_image_view.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
-import '../../../widgets/toast.dart';
 import '../../comments/json/comments_json/comments_json.dart' as comments_json;
+import '../../main.dart';
 
 class FatherCommentsWidget extends StatefulWidget {
   final comments_json.Doc doc;
@@ -54,14 +54,11 @@ class _FatherCommentsWidgetState extends State<FatherCommentsWidget>
                 debugPrint(result.toString());
                 if (result) {
                   try {
-                    showInfoToast("正在举报");
+                    eventBus.fire(ToastMessage(ToastType.info, "正在举报"));
                     await reportComments(commentInfo.id);
-                    showSuccessToast("举报成功");
+                    eventBus.fire(ToastMessage(ToastType.success, "举报成功"));
                   } catch (e) {
-                    showErrorToast(
-                      "举报失败：${e.toString()}",
-                      duration: const Duration(seconds: 5),
-                    );
+                    eventBus.fire(ToastMessage(ToastType.error, "举报失败"));
                     debugPrint(e.toString());
                   }
                 }
@@ -192,7 +189,7 @@ class _FatherCommentsWidgetState extends State<FatherCommentsWidget>
                   child: Text('复制评论'),
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: commentInfo.content));
-                    showSuccessToast("复制成功");
+                    eventBus.fire(ToastMessage(ToastType.success, "复制成功"));
                     Navigator.of(context).pop(false);
                   },
                 ),
@@ -206,24 +203,21 @@ class _FatherCommentsWidgetState extends State<FatherCommentsWidget>
   void _likeComment(String commentId) async {
     try {
       if (like) {
-        showInfoToast("正在取消点赞");
+        eventBus.fire(ToastMessage(ToastType.info, "正在取消点赞"));
       } else {
-        showInfoToast("正在点赞");
+        eventBus.fire(ToastMessage(ToastType.info, "正在点赞"));
       }
       await likeComment(commentId);
       like = !like;
       if (like) {
-        showSuccessToast("点赞成功");
+        eventBus.fire(ToastMessage(ToastType.success, "点赞成功"));
         likeCountStore.setDate(likeCountStore.date + 1);
       } else {
-        showSuccessToast("取消点赞成功");
+        eventBus.fire(ToastMessage(ToastType.success, "取消点赞成功"));
         likeCountStore.setDate(likeCountStore.date - 1);
       }
     } catch (e) {
-      showErrorToast(
-        "点赞失败：${e.toString()}",
-        duration: const Duration(seconds: 5),
-      );
+      eventBus.fire(ToastMessage(ToastType.error, "点赞失败"));
       debugPrint(e.toString());
     }
   }

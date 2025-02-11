@@ -6,7 +6,7 @@ import '../../../config/global.dart';
 import '../../../main.dart';
 import '../../../network/http/http_request.dart';
 import '../../../util/dialog.dart';
-import '../../../widgets/toast.dart';
+import '../../main.dart';
 import '../json/comic_info/comic_info.dart';
 import '../json/eps/eps.dart';
 
@@ -176,7 +176,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         throw ArgumentError('Invalid action type: $actionType');
     }
 
-    showInfoToast("请求中...");
+    eventBus.fire(ToastMessage(ToastType.info, "请求中..."));
 
     result.then((Map<String, dynamic> data) {
       if (data["error"] != null) {
@@ -185,7 +185,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         failureMessage = actionType == 'like'
             ? "请求失败: ${data["error"]}"
             : (isCurrentlyActive ? '取消$actionVerb失败' : '$actionVerb失败');
-        showErrorToast(failureMessage, duration: const Duration(seconds: 5));
+        eventBus.fire(ToastMessage(ToastType.error, failureMessage));
       } else {
         debugPrint('$actionVerb成功: $data');
         setState(() {
@@ -199,13 +199,12 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         if (!mounted) return;
         successMessage =
             isCurrentlyActive ? '取消$actionVerb成功' : '$actionVerb成功';
-        showSuccessToast(successMessage);
+        eventBus.fire(ToastMessage(ToastType.success, successMessage));
       }
     }).catchError((error) {
       if (!mounted) return;
-      showErrorToast(
-        "请求过程中发生错误: ${error.toString()}",
-        duration: const Duration(seconds: 5),
+      eventBus.fire(
+        ToastMessage(ToastType.error, "请求过程中发生错误\n${error.toString()}"),
       );
     });
   }

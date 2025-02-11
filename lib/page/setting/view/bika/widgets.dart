@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:zephyr/widgets/toast.dart';
 
 import '../../../../config/global.dart';
 import '../../../../main.dart';
 import '../../../../network/http/http_request.dart';
+import '../../../main.dart';
 import 'method.dart';
 
 Widget divider() {
@@ -77,15 +77,15 @@ Widget changeProfilePicture(BuildContext context) {
         }
       }
 
-      showInfoToast("正在上传头像...");
+      eventBus.fire(ToastMessage(ToastType.info, "正在上传头像..."));
       try {
         await updateAvatar(await compressImage(File(selectedImages)));
-        showSuccessToast("成功上传头像");
+        eventBus.fire(ToastMessage(ToastType.success, "成功上传头像"));
       } catch (e) {
-        showErrorToast(
-          "上传头像失败: ${e.toString()}",
-          duration: const Duration(seconds: 5),
-        );
+        eventBus.fire(ToastMessage(
+          ToastType.error,
+          "上传头像失败: ",
+        ));
       }
     },
     behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
@@ -119,14 +119,16 @@ Widget changeBriefIntroduction(BuildContext context) {
     onTap: () async {
       var text = await _showInputDialog(context, "更新简介", "请输入新的简介");
       if (text.isNotEmpty) {
-        showInfoToast('正在更新简介...');
+        eventBus.fire(ToastMessage(ToastType.info, '正在更新简介...'));
         try {
           await updateProfile(text);
-          showSuccessToast("成功更新简介");
+          eventBus.fire(ToastMessage(ToastType.success, "成功更新简介"));
         } catch (e) {
-          showErrorToast(
-            "更新简介失败: ${e.toString()}",
-            duration: const Duration(seconds: 5),
+          eventBus.fire(
+            ToastMessage(
+              ToastType.error,
+              "更新简介失败",
+            ),
           );
         }
       }
@@ -154,14 +156,16 @@ Widget changePassword(BuildContext context) {
     onTap: () async {
       var text = await _showInputDialog(context, "更新密码", "请输入新的密码");
       if (text.isNotEmpty) {
-        showInfoToast('正在更新密码...');
+        eventBus.fire(ToastMessage(ToastType.info, '正在更新密码...'));
         try {
           await updatePassword(text);
-          showSuccessToast("成功更新密码");
+          eventBus.fire(ToastMessage(ToastType.success, "成功更新密码"));
         } catch (e) {
-          showErrorToast(
-            "更新密码失败: ${e.toString()}",
-            duration: const Duration(seconds: 5),
+          eventBus.fire(
+            ToastMessage(
+              ToastType.error,
+              "更新密码失败",
+            ),
           );
         }
       }
@@ -201,7 +205,7 @@ Widget changeShieldedCategories(BuildContext context, String type) {
 
         bikaSetting.setShieldHomeCategories(categoriesShield);
 
-        showSuccessToast("成功更新首页屏蔽项\n请刷新首页查看效果");
+        eventBus.fire(ToastMessage(ToastType.success, "成功更新首页屏蔽项\n请刷新首页查看效果"));
       } else if (type == "categories") {
         late var oldCategoriesMap = Map.of(bikaSetting.shieldCategoryMap);
         var categoriesShield = await showShieldCategoryDialog(context, type);
@@ -215,7 +219,7 @@ Widget changeShieldedCategories(BuildContext context, String type) {
 
         bikaSetting.setShieldCategoryMap(categoriesShield);
 
-        showSuccessToast("成功更新屏蔽项");
+        eventBus.fire(ToastMessage(ToastType.success, "成功更新屏蔽项"));
       }
     },
     behavior: HitTestBehavior.opaque,

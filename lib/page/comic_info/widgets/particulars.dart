@@ -8,7 +8,7 @@ import '../../../config/global.dart';
 import '../../../main.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
-import '../../../widgets/toast.dart';
+import '../../main.dart';
 import '../../search_result/models/search_enter.dart';
 import '../json/comic_info/comic_info.dart';
 
@@ -66,7 +66,8 @@ class ComicParticularsWidget extends StatelessWidget {
                           Clipboard.setData(
                             ClipboardData(text: comicInfo.author),
                           );
-                          showSuccessToast("已将${comicInfo.author}复制到剪贴板");
+                          eventBus.fire(ToastMessage(ToastType.success,
+                              "已将${comicInfo.author}复制到剪贴板"));
                         },
                         child: Text(
                           '作者：${comicInfo.author}',
@@ -96,9 +97,10 @@ class ComicParticularsWidget extends StatelessWidget {
                           Clipboard.setData(
                             ClipboardData(text: comicInfo.chineseTeam),
                           );
-                          showSuccessToast(
+                          eventBus.fire(ToastMessage(
+                            ToastType.success,
                             "已将${comicInfo.chineseTeam}复制到剪贴板",
-                          );
+                          ));
                         },
                         child: Text(
                           '汉化组：${comicInfo.chineseTeam}',

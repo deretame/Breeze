@@ -24,6 +24,20 @@ class NoticeSync {}
 
 class NeedLogin {}
 
+enum ToastType {
+  info,
+  success,
+  warning,
+  error,
+}
+
+class ToastMessage {
+  ToastType type;
+  String message;
+
+  ToastMessage(this.type, this.message);
+}
+
 @RoutePage()
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -70,6 +84,10 @@ class _MainPageState extends State<MainPage> {
 
     eventBus.on<NeedLogin>().listen((event) {
       _goToLoginPage();
+    });
+
+    eventBus.on<ToastMessage>().listen((event) {
+      showToast(event.type, event.message);
     });
   }
 
@@ -162,7 +180,7 @@ class _MainPageState extends State<MainPage> {
       await uploadFile2WebDav();
       await deleteFileFromWebDav(files);
       if (globalSetting.syncNotify) {
-        showSuccessToast("自动同步成功！");
+        eventBus.fire(ToastMessage(ToastType.success, "自动同步成功！"));
       }
     } catch (e) {
       debugPrint(e.toString());
@@ -237,6 +255,23 @@ class _MainPageState extends State<MainPage> {
       );
     }
   }
+
+  void showToast(ToastType type, String message) {
+    switch (type) {
+      case ToastType.info:
+        showInfoToast(context, message);
+        break;
+      case ToastType.success:
+        showSuccessToast(context, message);
+        break;
+      case ToastType.warning:
+        showWarningToast(context, message);
+        break;
+      case ToastType.error:
+        showErrorToast(context, message);
+        break;
+    }
+  }
 }
 
 Future<void> _signIn() async {
@@ -264,7 +299,7 @@ Future<void> _signIn() async {
       if (result.toString().contains("success")) {
         bikaSetting.setSignInTime(DateTime.now());
         bikaSetting.setSignIn(true);
-        showSuccessToast("自动签到成功！");
+        eventBus.fire(ToastMessage(ToastType.success, "自动签到成功！"));
         debugPrint("自动签到成功！");
         break;
       } else {

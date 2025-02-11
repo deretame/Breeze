@@ -2,10 +2,32 @@ import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zephyr/main.dart';
+
+import '../../../util/update/check_update.dart';
 
 @RoutePage()
-class AboutPage extends StatelessWidget {
+class AboutPage extends StatefulWidget {
   const AboutPage({super.key});
+
+  @override
+  State<AboutPage> createState() => _AboutPageState();
+}
+
+class _AboutPageState extends State<AboutPage> {
+  var version = "";
+
+  @override
+  void initState() {
+    super.initState();
+    getAppVersion().then((value) {
+      logger.i("App version: $value");
+      version = value;
+      setState(() {
+        version = value;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +35,7 @@ class AboutPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('关于'),
       ),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -82,6 +104,9 @@ class AboutPage extends StatelessWidget {
                 style: TextStyle(color: Colors.blue),
               ),
             ),
+
+            Spacer(),
+            Text('版本号: $version', style: TextStyle(fontSize: 16)),
           ],
         ),
       ),

@@ -6,3 +6,4 @@ export './favorite/favorite_page.dart';
 export './history/history_page.dart';
 export './side_drawer.dart';
 export './sort.dart';
+export 'delete_dialog.dart';

@@ -126,7 +126,7 @@ Future<String> downloadPicture({
     url,
     path,
     pictureType,
-    bikaSetting.imageQuality,
+    "original",
     bikaSetting.proxy,
   );
 

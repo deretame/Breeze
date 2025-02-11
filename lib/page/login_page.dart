@@ -88,6 +88,11 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       AutoRouter.of(context).maybePop();
     } catch (e) {
+      logger.e(e);
+      if (e.toString().contains("invalid email or password")) {
+        showErrorToast("账号或密码错误");
+        return;
+      }
       _showDialog("登录失败", e.toString());
     }
   }

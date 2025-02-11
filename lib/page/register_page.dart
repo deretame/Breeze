@@ -1,13 +1,14 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/mobx/string_select.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import '../network/http/http_request.dart';
 import '../util/dialog.dart';
-import '../util/router/router.gr.dart';
 
 @RoutePage()
 class RegisterPage extends StatefulWidget {
@@ -35,43 +36,10 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  Future<void> _showDialog(String title, String message) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text(message),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   void _register() async {
     if (!mounted) return;
-    // 显示加载动画
-    showDialog(
-      context: context,
-      barrierDismissible: false, // 用户不能通过点击屏幕其他地方来关闭对话框
-      builder: (BuildContext context) {
-        return const AlertDialog(
-          content: Row(
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(width: 20),
-              Text("正在注册..."),
-            ],
-          ),
-        );
-      },
-    );
+
+    showInfoToast("正在注册...");
 
     try {
       final result = await register(
@@ -82,29 +50,37 @@ class _RegisterPageState extends State<RegisterPage> {
         _password.text,
       );
 
-      // 当登录逻辑完成后，关闭加载动画
-      if (!mounted) return;
-      Navigator.of(context).pop(); // 关闭加载对话框
-
-      debugPrint(result.toString());
+      logger.d(result.toString());
 
       debugPrint(_username.text);
       debugPrint(_account.text);
       debugPrint(_password.text);
       bikaSetting.setAccount(_account.text);
       bikaSetting.setPassword(_password.text);
-      _showDialog("注册成功", "正在跳转登录...");
+      showSuccessToast("注册成功，正在跳转登录...");
       Future.delayed(
         const Duration(seconds: 2),
         () {
           // 检查State是否仍然挂载
           if (!mounted) return;
-          AutoRouter.of(context).push(LoginRoute());
+          AutoRouter.of(context).maybePop();
         },
       );
     } catch (e) {
+      logger.e(e);
       if (!mounted) return;
-      Navigator.of(context).pop(); // 关闭加载对话框
+      if (e.toString().contains("birthday adult only")) {
+        showErrorToast("未成年人请勿注册！");
+        return;
+      }
+      if (e.toString().contains("name is already exist")) {
+        showErrorToast("用户名已被使用，请更换用户名！");
+        return;
+      }
+      if (e.toString().contains("email is already exist")) {
+        showErrorToast("账号已被注册，请更换账号！");
+        return;
+      }
 
       commonDialog(context, "注册失败", e.toString());
       return;
@@ -136,6 +112,11 @@ class _RegisterPageState extends State<RegisterPage> {
                 labelText: '账号',
                 border: OutlineInputBorder(),
               ),
+              keyboardType: TextInputType.text, // 设置键盘类型为文本输入
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                // 只允许输入数字和字母
+              ],
             ),
             const SizedBox(height: 20), // 用于添加空间
             TextField(

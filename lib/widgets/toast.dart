@@ -39,7 +39,7 @@ void showWarningToast(
 
 void showErrorToast(
   String message, {
-  Duration duration = const Duration(seconds: 2),
+  Duration duration = const Duration(seconds: 5),
 }) {
   toastification.show(
     title: Text(message),

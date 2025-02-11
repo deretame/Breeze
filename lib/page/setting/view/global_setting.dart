@@ -68,7 +68,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               ),
               ElevatedButton(
                 onPressed: () async {
-                  eventBus.fire(NeedLogin());
+                  throw Exception("测试异常");
                 },
                 child: Text("测试用的玩意儿"),
               ),

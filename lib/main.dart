@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:dio/dio.dart';
 import 'package:dynamic_color/dynamic_color.dart';
@@ -13,6 +12,7 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:logger/logger.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/util/manage_cache.dart';
+import 'package:zephyr/util/pretty_log.dart';
 import 'package:zephyr/util/router/router.dart';
 
 import 'config/global.dart';
@@ -39,48 +39,42 @@ late ColorScheme materialColorScheme;
 late ColorScheme materialColorSchemeDark;
 
 var logger = Logger(
-    // printer: CustomPrinter(),
-    );
+  printer: CustomPrinter(),
+);
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // 重采样触控刷新率
-  // GestureBinding.instance.resamplingEnabled = true;
+  // 捕获Dart异常
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    // 重采样触控刷新率
+    // GestureBinding.instance.resamplingEnabled = true;
 
-  objectbox = await ObjectBox.create();
+    objectbox = await ObjectBox.create();
 
-  await manageCacheSize();
+    await manageCacheSize();
 
-  // 告诉系统应该用竖屏
-  await SystemChrome.setPreferredOrientations(
-    [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown],
-  );
-
-  // 初始化Hive
-  await Hive.initFlutter();
-  // 注册 Color 适配器
-  Hive.registerAdapter(ColorAdapter());
-  Hive.registerAdapter(ThemeModeAdapter());
-  await globalSetting.initBox();
-  await bikaSetting.initBox();
-
-  // 设置Flutter框架的全局错误处理器
-  FlutterError.onError = (FlutterErrorDetails details) {
-    // 在这里处理Flutter框架的错误
-    logger.e(
-      'Flutter error: ${details.exceptionAsString()}',
-      stackTrace: details.stack,
+    // 告诉系统应该用竖屏
+    await SystemChrome.setPreferredOrientations(
+      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown],
     );
-  };
 
-  // 设置Dart层的全局错误处理器
-  PlatformDispatcher.instance.onError = (error, stackTrace) {
-    // 在这里处理Dart层的错误
-    logger.e('Dart error: $error', stackTrace: stackTrace);
-    return true; // 返回true表示错误已经被处理
-  };
+    // 初始化Hive
+    await Hive.initFlutter();
+    // 注册 Color 适配器
+    Hive.registerAdapter(ColorAdapter());
+    Hive.registerAdapter(ThemeModeAdapter());
+    await globalSetting.initBox();
+    await bikaSetting.initBox();
 
-  runApp(const MyApp());
+    // 捕获Flutter框架异常
+    FlutterError.onError = (FlutterErrorDetails details) {
+      logger.e(details, error: details.exception, stackTrace: details.stack);
+    };
+
+    runApp(MyApp());
+  }, (error, stackTrace) {
+    logger.e(error, stackTrace: stackTrace);
+  });
 }
 
 class MyApp extends StatefulWidget {

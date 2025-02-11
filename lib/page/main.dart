@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
+import 'package:toastification/toastification.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/page/ranking_list/ranking_list.dart';
@@ -70,6 +71,10 @@ class _MainPageState extends State<MainPage> {
 
     eventBus.on<NeedLogin>().listen((event) {
       _goToLoginPage();
+    });
+
+    eventBus.on<ToastEvent>().listen((event) {
+      _showToast(event);
     });
   }
 
@@ -236,6 +241,17 @@ class _MainPageState extends State<MainPage> {
         },
       );
     }
+  }
+
+  void _showToast(ToastEvent event) {
+    toastification.show(
+      context: context,
+      title: event.title == null ? null : Text(event.title!),
+      description: Text(event.message),
+      type: event.type,
+      style: ToastificationStyle.flatColored,
+      autoCloseDuration: event.duration,
+    );
   }
 }
 

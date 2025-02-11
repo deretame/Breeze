@@ -5,10 +5,10 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/mobx/string_select.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import '../network/http/http_request.dart';
 import '../util/dialog.dart';
-import 'main.dart';
 
 @RoutePage()
 class RegisterPage extends StatefulWidget {
@@ -39,7 +39,7 @@ class _RegisterPageState extends State<RegisterPage> {
   void _register() async {
     if (!mounted) return;
 
-    eventBus.fire(ToastMessage(ToastType.info, "正在注册..."));
+    showInfoToast("正在注册...");
 
     try {
       final result = await register(
@@ -57,8 +57,7 @@ class _RegisterPageState extends State<RegisterPage> {
       debugPrint(_password.text);
       bikaSetting.setAccount(_account.text);
       bikaSetting.setPassword(_password.text);
-
-      eventBus.fire(ToastMessage(ToastType.success, "注册成功，正在跳转登录..."));
+      showSuccessToast("注册成功，正在跳转登录...");
       Future.delayed(
         const Duration(seconds: 2),
         () {
@@ -71,15 +70,15 @@ class _RegisterPageState extends State<RegisterPage> {
       logger.e(e);
       if (!mounted) return;
       if (e.toString().contains("birthday adult only")) {
-        eventBus.fire(ToastMessage(ToastType.error, "未成年人请勿注册！"));
+        showErrorToast("未成年人请勿注册！");
         return;
       }
       if (e.toString().contains("name is already exist")) {
-        eventBus.fire(ToastMessage(ToastType.error, "用户名已被使用，请更换用户名！"));
+        showErrorToast("用户名已被使用，请更换用户名！");
         return;
       }
       if (e.toString().contains("email is already exist")) {
-        eventBus.fire(ToastMessage(ToastType.error, "账号已被注册，请更换账号！"));
+        showErrorToast("账号已被注册，请更换账号！");
         return;
       }
 

@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:uuid/uuid.dart';
-import 'package:zephyr/widgets/toast.dart';
 
 import '../../../config/global.dart';
 import '../../../main.dart';
@@ -17,6 +16,7 @@ import '../../../widgets/full_screen_image_view.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 import '../../comments/json/comments_json/comments_json.dart' as comments_json;
+import '../../main.dart';
 import '../json/user_comments_json.dart';
 
 class CommentsWidget extends StatefulWidget {
@@ -64,11 +64,11 @@ class _CommentsWidgetState extends State<CommentsWidget>
                     if (result) {
                       try {
                         await reportComments(commentInfo.id);
-                        showSuccessToast("举报成功");
+
+                        eventBus.fire(ToastMessage(ToastType.success, "举报成功"));
                       } catch (e) {
-                        showErrorToast(
-                          "举报失败：${e.toString()}",
-                          duration: Duration(seconds: 5),
+                        eventBus.fire(
+                          ToastMessage(ToastType.error, "举报失败"),
                         );
                         debugPrint(e.toString());
                       }
@@ -259,21 +259,21 @@ class _CommentsWidgetState extends State<CommentsWidget>
   void _likeComment(String commentId) async {
     try {
       if (like) {
-        showSuccessToast("正在取消点赞");
+        eventBus.fire(ToastMessage(ToastType.success, "正在取消点赞"));
       } else {
-        showSuccessToast("正在点赞");
+        eventBus.fire(ToastMessage(ToastType.success, "正在点赞"));
       }
       await likeComment(commentId);
       like = !like;
       if (like) {
-        showSuccessToast("点赞成功");
+        eventBus.fire(ToastMessage(ToastType.success, "点赞成功"));
         likeCountStore.setDate(likeCountStore.date + 1);
       } else {
-        showSuccessToast("取消点赞成功");
+        eventBus.fire(ToastMessage(ToastType.success, "取消点赞成功"));
         likeCountStore.setDate(likeCountStore.date - 1);
       }
     } catch (e) {
-      showErrorToast("点赞失败：${e.toString()}", duration: Duration(seconds: 5));
+      eventBus.fire(ToastMessage(ToastType.error, "点赞失败"));
       debugPrint(e.toString());
     }
   }

@@ -2,10 +2,10 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/dialog.dart';
-import 'package:zephyr/widgets/toast.dart';
 
 import '../network/http/http_request.dart';
 import '../util/router/router.gr.dart';
+import 'main.dart';
 
 @RoutePage()
 class LoginPage extends StatefulWidget {
@@ -73,7 +73,8 @@ class _LoginPageState extends State<LoginPage> {
 
   void _submitForm() async {
     if (!mounted) return;
-    showInfoToast("正在登录，请耐心等待...");
+
+    eventBus.fire(ToastMessage(ToastType.success, "下载成功！"));
 
     try {
       final result = await login(_account.text, _password.text);
@@ -83,14 +84,15 @@ class _LoginPageState extends State<LoginPage> {
       bikaSetting.setAccount(_account.text);
       bikaSetting.setPassword(_password.text);
       bikaSetting.setAuthorization(result['data']['token']);
-      showSuccessToast("登录成功");
+
+      eventBus.fire(ToastMessage(ToastType.success, "登录成功！"));
 
       if (!mounted) return;
       AutoRouter.of(context).maybePop();
     } catch (e) {
       logger.e(e);
       if (e.toString().contains("invalid email or password")) {
-        showErrorToast("账号或密码错误");
+        eventBus.fire(ToastMessage(ToastType.error, "账号或密码错误！"));
         return;
       }
       _showDialog("登录失败", e.toString());

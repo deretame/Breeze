@@ -3,11 +3,11 @@ import 'dart:io';
 
 import 'package:archive/archive_io.dart';
 import 'package:flutter/foundation.dart'; // 引入 compute
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../network/http/picture.dart';
+import '../../../widgets/toast.dart';
 import '../../download/json/comic_all_info_json/comic_all_info_json.dart';
 
 /// 导出漫画为文件夹
@@ -83,7 +83,7 @@ Future<void> exportComicAsFolder(ComicAllInfoJson comicInfo) async {
   await Future.wait(downloadTasks);
 
   debugPrint('漫画${comicInfo.comic.title}导出为文件夹完成');
-  EasyLoading.showSuccess('漫画${comicInfo.comic.title}导出为文件夹完成');
+  showSuccessToast('漫画${comicInfo.comic.title}导出为文件夹完成');
 }
 
 /// 导出漫画为 ZIP
@@ -150,7 +150,7 @@ Future<void> exportComicAsZip(ComicAllInfoJson comicInfo) async {
   );
 
   debugPrint('漫画${comicInfo.comic.title}导出为ZIP完成');
-  EasyLoading.showSuccess('漫画${comicInfo.comic.title}导出为ZIP完成');
+  showSuccessToast('漫画${comicInfo.comic.title}导出为ZIP完成');
 }
 
 /// 压缩任务参数类

@@ -159,37 +159,44 @@ class _DownloadPageState extends State<DownloadPage> {
     downloadCount = 0;
     List<MediaInfoAll> mediaList = [];
 
-    // 使用 Card 显示进度条
     final overlay = Overlay.of(context);
     OverlayEntry overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
         top: MediaQuery.of(context).padding.top + 200.0, // 调整到状态栏下面
         left: 16.0,
         right: 16.0,
-        child: Material(
-          color: Colors.transparent, // 设置 Material 背景为透明，这样可以显示背景底色
-          elevation: 4,
-          child: Container(
-            decoration: BoxDecoration(
-              color: globalSetting.backgroundColor,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  message,
-                  style: TextStyle(fontSize: 18),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10), // 设置圆角
+          child: Material(
+            color: materialColorScheme.secondaryFixedDim,
+            // 设置 Material 背景为透明
+            elevation: 2,
+            // 设置阴影
+            child: Padding(
+              padding: const EdgeInsets.all(2.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: globalSetting.backgroundColor,
+                  borderRadius: BorderRadius.circular(10), // 内部容器的圆角
                 ),
-                SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: mediaList.isNotEmpty
-                      ? (downloadCount / mediaList.length)
-                      : null,
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      message,
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    SizedBox(height: 8),
+                    LinearProgressIndicator(
+                      value: mediaList.isNotEmpty
+                          ? (downloadCount / mediaList.length)
+                          : null,
+                    ),
+                    SizedBox(height: 8),
+                  ],
                 ),
-                SizedBox(height: 8),
-              ],
+              ),
             ),
           ),
         ),

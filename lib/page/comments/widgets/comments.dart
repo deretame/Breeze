@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:uuid/uuid.dart';
@@ -16,6 +16,7 @@ import '../../../util/router/router.gr.dart';
 import '../../../widgets/full_screen_image_view.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
+import '../../../widgets/toast.dart';
 import '../json/comments_json/comments_json.dart';
 
 class CommentsWidget extends StatefulWidget {
@@ -65,10 +66,14 @@ class _CommentsWidgetState extends State<CommentsWidget>
                     debugPrint(result.toString());
                     if (result) {
                       try {
+                        showInfoToast("正在举报");
                         await reportComments(commentInfo.id);
-                        EasyLoading.showSuccess("举报成功");
+                        showSuccessToast("举报成功");
                       } catch (e) {
-                        EasyLoading.showError("举报失败：${e.toString()}");
+                        showErrorToast(
+                          "举报失败：${e.toString()}",
+                          duration: const Duration(seconds: 5),
+                        );
                         debugPrint(e.toString());
                       }
                     }
@@ -99,16 +104,14 @@ class _CommentsWidgetState extends State<CommentsWidget>
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                SelectableText(commentInfo.user.name),
+                                Text(commentInfo.user.name),
                                 Text(
                                   "level:${commentInfo.user.level} (${commentInfo.user.title})",
                                   style: TextStyle(
-                                    color: globalSetting.themeType
-                                        ? materialColorScheme.tertiary
-                                        : materialColorScheme.tertiary,
+                                    color: materialColorScheme.tertiary,
                                   ),
                                 ),
-                                SelectableText(
+                                Text(
                                   commentInfo.content,
                                   style: TextStyle(
                                     color: globalSetting.textColor,
@@ -211,8 +214,8 @@ class _CommentsWidgetState extends State<CommentsWidget>
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('举报评论'),
-              content: Text('你确定要举报此评论吗？\n${commentInfo.content}'),
+              title: Text('选择操作'),
+              content: Text(commentInfo.content),
               actions: <Widget>[
                 TextButton(
                   child: Text('取消'),
@@ -221,9 +224,17 @@ class _CommentsWidgetState extends State<CommentsWidget>
                   },
                 ),
                 TextButton(
-                  child: Text('确定'),
+                  child: Text('举报'),
                   onPressed: () {
                     Navigator.of(context).pop(true);
+                  },
+                ),
+                TextButton(
+                  child: Text('复制评论'),
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: commentInfo.content));
+                    showSuccessToast("复制成功");
+                    Navigator.of(context).pop(false);
                   },
                 ),
               ],
@@ -236,21 +247,24 @@ class _CommentsWidgetState extends State<CommentsWidget>
   void _likeComment(String commentId) async {
     try {
       if (like) {
-        EasyLoading.showSuccess("正在取消点赞");
+        showInfoToast("正在取消点赞");
       } else {
-        EasyLoading.showSuccess("正在点赞");
+        showInfoToast("正在点赞");
       }
       await likeComment(commentId);
       like = !like;
       if (like) {
-        EasyLoading.showSuccess("点赞成功");
+        showSuccessToast("点赞成功");
         likeCountStore.setDate(likeCountStore.date + 1);
       } else {
-        EasyLoading.showSuccess("取消点赞成功");
+        showSuccessToast("取消点赞成功");
         likeCountStore.setDate(likeCountStore.date - 1);
       }
     } catch (e) {
-      EasyLoading.showError("点赞失败：${e.toString()}");
+      showErrorToast(
+        "点赞失败：${e.toString()}",
+        duration: const Duration(seconds: 5),
+      );
       debugPrint(e.toString());
     }
   }

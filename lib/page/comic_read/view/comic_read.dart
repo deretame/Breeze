@@ -5,7 +5,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:zephyr/main.dart';
@@ -17,6 +16,7 @@ import '../../../object_box/model.dart';
 import '../../../object_box/objectbox.g.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/comic_entry/comic_entry.dart';
+import '../../../widgets/toast.dart';
 import '../../comic_info/json/comic_info/comic_info.dart';
 import '../../download/json/comic_all_info_json/comic_all_info_json.dart'
     as comic_all_info_json;
@@ -424,7 +424,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                         child: Text("上一章"),
                         onTap: () async {
                           if (_doc.order == epsInfo[0].order) {
-                            EasyLoading.showInfo("已经是第一章了");
+                            showInfoToast("已经是第一章了");
                             return;
                           }
                           final result = await _bottomButtonDialog(
@@ -452,7 +452,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                         onTap: () async {
                           debugPrint('下一章');
                           if (_doc.order == epsInfo[epsInfo.length - 1].order) {
-                            EasyLoading.showInfo("已经是最后一章了");
+                            showInfoToast("已经是最后一章了");
                             return;
                           }
 

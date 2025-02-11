@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:permission_guard/permission_guard.dart';
 
 import '../../../config/global.dart';
@@ -11,6 +10,7 @@ import '../../../object_box/objectbox.g.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/comic_entry/comic_entry.dart';
 import '../../../widgets/error_view.dart';
+import '../../../widgets/toast.dart';
 import '../../download/json/comic_all_info_json/comic_all_info_json.dart'
     as comic_all_info_json;
 import '../comic_info.dart';
@@ -143,23 +143,26 @@ class _ComicInfoState extends State<_ComicInfo>
                   if (!await Permission.manageExternalStorage
                       .request()
                       .isGranted) {
-                    EasyLoading.showError("请授予存储权限！");
+                    showErrorToast("请授予存储权限！");
                     return;
                   }
                   if (mounted) {
                     var choice = await showExportTypeDialog();
                     if (choice == ExportType.zip) {
-                      EasyLoading.show(status: '正在导出漫画...');
+                      showInfoToast('正在导出漫画...');
                       exportComicAsZip(comicAllInfo!);
                     } else if (choice == ExportType.folder) {
-                      EasyLoading.show(status: '正在导出漫画...');
+                      showInfoToast('正在导出漫画...');
                       exportComicAsFolder(comicAllInfo!);
                     } else {
                       return;
                     }
                   }
                 } catch (e) {
-                  EasyLoading.showError("导出失败，请重试。\n$e");
+                  showErrorToast(
+                    "导出失败，请重试。\n${e.toString()}",
+                    duration: const Duration(seconds: 5),
+                  );
                 }
               },
             ),

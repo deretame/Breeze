@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
@@ -10,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/page/ranking_list/ranking_list.dart';
 import 'package:zephyr/util/router/router.gr.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import '../main.dart';
 import '../network/http/http_request.dart';
@@ -162,7 +162,7 @@ class _MainPageState extends State<MainPage> {
       await uploadFile2WebDav();
       await deleteFileFromWebDav(files);
       if (globalSetting.syncNotify) {
-        EasyLoading.showSuccess("自动同步成功！");
+        showSuccessToast("自动同步成功！");
       }
     } catch (e) {
       debugPrint(e.toString());
@@ -264,7 +264,7 @@ Future<void> _signIn() async {
       if (result.toString().contains("success")) {
         bikaSetting.setSignInTime(DateTime.now());
         bikaSetting.setSignIn(true);
-        EasyLoading.showSuccess("自动签到成功！");
+        showSuccessToast("自动签到成功！");
         debugPrint("自动签到成功！");
         break;
       } else {

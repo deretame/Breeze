@@ -2,11 +2,11 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_guard/permission_guard.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import '../../../../main.dart';
 import 'json/github_release_json.dart';
@@ -79,10 +79,10 @@ Future<void> installApk(String apkUrl) async {
       // 打开 APK 文件以启动安装
       OpenFile.open(apkFilePath);
     } catch (e) {
-      EasyLoading.showError('下载失败，请稍后再试！');
+      showErrorToast("下载失败，请稍后再试！");
     }
   } else {
-    EasyLoading.showError('请授予安装应用权限！');
+    showErrorToast("请授予安装应用权限！");
   }
 }
 

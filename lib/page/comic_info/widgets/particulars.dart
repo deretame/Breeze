@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 
@@ -9,6 +8,7 @@ import '../../../config/global.dart';
 import '../../../main.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
+import '../../../widgets/toast.dart';
 import '../../search_result/models/search_enter.dart';
 import '../json/comic_info/comic_info.dart';
 
@@ -64,16 +64,14 @@ class ComicParticularsWidget extends StatelessWidget {
                         onLongPress: () {
                           // 长按时触发的事件
                           Clipboard.setData(
-                              ClipboardData(text: comicInfo.author));
-                          EasyLoading.showSuccess(
-                              "已将${comicInfo.author}复制到剪贴板");
+                            ClipboardData(text: comicInfo.author),
+                          );
+                          showSuccessToast("已将${comicInfo.author}复制到剪贴板");
                         },
                         child: Text(
                           '作者：${comicInfo.author}',
                           style: TextStyle(
-                            color: globalSetting.themeType
-                                ? materialColorScheme.primary
-                                : materialColorScheme.primary,
+                            color: materialColorScheme.primary,
                           ),
                         ),
                       ),
@@ -88,23 +86,24 @@ class ComicParticularsWidget extends StatelessWidget {
                           AutoRouter.of(context).push(
                             SearchResultRoute(
                               searchEnterConst: SearchEnterConst(
-                                  keyword: comicInfo.chineseTeam),
+                                keyword: comicInfo.chineseTeam,
+                              ),
                             ),
                           );
                         },
                         onLongPress: () {
                           // 长按时触发的事件
                           Clipboard.setData(
-                              ClipboardData(text: comicInfo.chineseTeam));
-                          EasyLoading.showSuccess(
-                              "已将${comicInfo.chineseTeam}复制到剪贴板");
+                            ClipboardData(text: comicInfo.chineseTeam),
+                          );
+                          showSuccessToast(
+                            "已将${comicInfo.chineseTeam}复制到剪贴板",
+                          );
                         },
                         child: Text(
                           '汉化组：${comicInfo.chineseTeam}',
                           style: TextStyle(
-                            color: globalSetting.themeType
-                                ? materialColorScheme.primary
-                                : materialColorScheme.primary,
+                            color: materialColorScheme.primary,
                           ),
                         ),
                       ),

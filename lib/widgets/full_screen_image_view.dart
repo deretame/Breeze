@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:permission_guard/permission_guard.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import '../main.dart';
 
@@ -52,15 +52,14 @@ class FullScreenImageView extends StatelessWidget {
                 debugPrint("download image");
                 if (await Permission.photos.request().isGranted ||
                     await Permission.storage.request().isGranted) {
-                  _copyImage2PicturesPath(imagePath).then((newFilePath) {
-                    if (newFilePath.isNotEmpty) {
-                      EasyLoading.showSuccess("图片已保存到相册！");
-                    } else {
-                      EasyLoading.showError("图片保存失败！");
-                    }
-                  });
+                  var result = await _copyImage2PicturesPath(imagePath);
+                  if (result.isNotEmpty) {
+                    showSuccessToast("图片已保存到相册！");
+                  } else {
+                    showErrorToast("图片保存失败！");
+                  }
                 } else {
-                  EasyLoading.showError("请授予访问相册的权限！");
+                  showErrorToast("请授予访问相册的权限！");
                 }
               },
             ),

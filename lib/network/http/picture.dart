@@ -53,7 +53,7 @@ Future<String> getCachePicture({
   if (existingFilePath.isNotEmpty) {
     return existingFilePath;
   }
-  logger.d('开始下载图片: $url');
+  // logger.d('开始下载图片: $url');
 
   // 处理 URL
   String finalUrl = buildImageUrl(

@@ -13,9 +13,14 @@ import 'json/github_release_json.dart';
 
 Future<String> getAppVersion() async {
   String version = 'Unknown';
-  final PackageInfo packageInfo = await PackageInfo.fromPlatform();
 
-  version = packageInfo.version; // 获取版本号
+  try {
+    final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+    version = packageInfo.version; // 获取版本号
+  } catch (e, stackTrace) {
+    logger.e(e, stackTrace: stackTrace);
+  }
 
   return version;
 }

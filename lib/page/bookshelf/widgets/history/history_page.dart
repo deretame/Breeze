@@ -135,10 +135,18 @@ class __HistoryPageState extends State<_HistoryPage>
     }
 
     if (state.comics.isEmpty) {
-      return const Center(
-        child: Text(
-          '啥都没有',
-          style: TextStyle(fontSize: 20.0),
+      return Center(
+        child: Column(
+          children: [
+            Spacer(),
+            const Text('啥都没有', style: TextStyle(fontSize: 20.0)),
+            SizedBox(height: 10), // 添加间距
+            ElevatedButton(
+              onPressed: () => _refresh(searchStatusStore),
+              child: const Text('刷新'),
+            ),
+            Spacer(),
+          ],
         ),
       );
     }
@@ -166,11 +174,10 @@ class __HistoryPageState extends State<_HistoryPage>
               (BuildContext context, int index) {
                 // 如果索引等于状态的 comics.length，并且已经达到最大值
                 if (index == state.comics.length) {
-                  return const Center(
-                    child: Text(
-                      '到底了',
-                      style: TextStyle(fontSize: 20.0),
-                    ),
+                  return deletingDialog(
+                    context,
+                    () => _refresh(searchStatusStore),
+                    DeleteType.history,
                   );
                 } else {
                   return ComicEntryWidget(

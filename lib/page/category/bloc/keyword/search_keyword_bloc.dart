@@ -2,11 +2,12 @@ import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
-import 'package:zephyr/page/search/json/keywords_json.dart';
 
 import '../../../../network/http/http_request.dart';
+import '../../json/keyword/keywords_json.dart';
 
-part 'search_keyword_event.dart';part 'search_keyword_state.dart';
+part 'search_keyword_event.dart';
+part 'search_keyword_state.dart';
 
 const _throttleDuration = Duration(milliseconds: 100);
 

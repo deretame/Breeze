@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:permission_guard/permission_guard.dart';
 import 'package:photo_view/photo_view.dart';
-import 'package:zephyr/page/main.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import '../main.dart';
 
@@ -54,12 +54,12 @@ class FullScreenImageView extends StatelessWidget {
                     await Permission.storage.request().isGranted) {
                   var result = await _copyImage2PicturesPath(imagePath);
                   if (result.isNotEmpty) {
-                    eventBus.fire(ToastMessage(ToastType.success, "图片已保存到相册！"));
+                    showSuccessToast("图片已保存到相册！");
                   } else {
-                    eventBus.fire(ToastMessage(ToastType.error, "图片保存失败！"));
+                    showErrorToast("图片保存失败！");
                   }
                 } else {
-                  eventBus.fire(ToastMessage(ToastType.error, "请授予存储权限！"));
+                  showErrorToast("请授予访问相册的权限！");
                 }
               },
             ),

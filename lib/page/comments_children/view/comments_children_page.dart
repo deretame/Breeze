@@ -4,12 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/config/global.dart';
 import 'package:zephyr/page/comments_children/comments_children.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import '../../../main.dart';
 import '../../../network/http/http_request.dart';
 import '../../../widgets/error_view.dart';
 import '../../comments/json/comments_json/comments_json.dart' as comments_json;
-import '../../main.dart';
 import '../json/comments_children_json.dart';
 
 @RoutePage()
@@ -84,7 +84,7 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
 
   Future<void> _writeCommentChildren(String comicId, String text) async {
     try {
-      eventBus.fire(ToastMessage(ToastType.info, "正在评论..."));
+      showInfoToast("正在评论...");
       await writeCommentChildren(comicId, text);
 
       // 检查 State 是否仍然挂载
@@ -94,8 +94,9 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
           CommentsChildrenEvent(comicId, CommentsChildrenStatus.comment, 1));
     } catch (e) {
       debugPrint(e.toString());
-      eventBus.fire(
-        ToastMessage(ToastType.error, '评论失败，请稍后再试。'),
+      showErrorToast(
+        '评论失败，请稍后再试。\n${e.toString()}',
+        duration: const Duration(seconds: 5),
       );
     }
   }

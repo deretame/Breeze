@@ -9,6 +9,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:logger/logger.dart';
+import 'package:toastification/toastification.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/pretty_log.dart';
@@ -173,44 +174,42 @@ class _MyAppState extends State<MyApp> {
             materialColorSchemeDark = darkColorScheme;
 
             _updateThemeSettings();
-            return
-                // ToastificationWrapper(
-                // child:
-                MaterialApp.router(
-              routerConfig: appRouter.config(),
-              locale: globalSetting.locale,
-              title: 'Breeze',
-              themeMode: globalSetting.themeMode,
-              supportedLocales: [
-                Locale('en', 'US'), // English
-                Locale('zh', 'CN'), // Chinese
-                // 其他支持的语言
-              ],
-              localizationsDelegates: [
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-              ],
-              theme: ThemeData.light().copyWith(
-                primaryColor: lightColorScheme.primary,
-                colorScheme: lightColorScheme,
-                scaffoldBackgroundColor: lightColorScheme.surface,
-                cardColor: lightColorScheme.surfaceContainer,
-                chipTheme: ChipThemeData(
-                  backgroundColor: lightColorScheme.surface,
+            return ToastificationWrapper(
+              child: MaterialApp.router(
+                routerConfig: appRouter.config(),
+                locale: globalSetting.locale,
+                title: 'Breeze',
+                themeMode: globalSetting.themeMode,
+                supportedLocales: [
+                  Locale('en', 'US'), // English
+                  Locale('zh', 'CN'), // Chinese
+                  // 其他支持的语言
+                ],
+                localizationsDelegates: [
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                theme: ThemeData.light().copyWith(
+                  primaryColor: lightColorScheme.primary,
+                  colorScheme: lightColorScheme,
+                  scaffoldBackgroundColor: lightColorScheme.surface,
+                  cardColor: lightColorScheme.surfaceContainer,
+                  chipTheme: ChipThemeData(
+                    backgroundColor: lightColorScheme.surface,
+                  ),
+                  canvasColor: lightColorScheme.surfaceContainer,
+                  dialogTheme: DialogThemeData(
+                      backgroundColor: lightColorScheme.surfaceContainer),
                 ),
-                canvasColor: lightColorScheme.surfaceContainer,
-                dialogTheme: DialogThemeData(
-                    backgroundColor: lightColorScheme.surfaceContainer),
+                darkTheme: ThemeData.dark().copyWith(
+                  scaffoldBackgroundColor: globalSetting.isAMOLED
+                      ? Colors.black
+                      : darkColorScheme.surface,
+                  tabBarTheme: TabBarTheme(dividerColor: Colors.transparent),
+                  colorScheme: darkColorScheme,
+                ),
               ),
-              darkTheme: ThemeData.dark().copyWith(
-                scaffoldBackgroundColor: globalSetting.isAMOLED
-                    ? Colors.black
-                    : darkColorScheme.surface,
-                tabBarTheme: TabBarTheme(dividerColor: Colors.transparent),
-                colorScheme: darkColorScheme,
-              ),
-              // ),
             );
           },
         );

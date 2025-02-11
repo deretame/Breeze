@@ -10,9 +10,9 @@ import '../../../object_box/objectbox.g.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/comic_entry/comic_entry.dart';
 import '../../../widgets/error_view.dart';
+import '../../../widgets/toast.dart';
 import '../../download/json/comic_all_info_json/comic_all_info_json.dart'
     as comic_all_info_json;
-import '../../main.dart';
 import '../comic_info.dart';
 import '../json/comic_info/comic_info.dart';
 import '../json/eps/eps.dart';
@@ -143,24 +143,25 @@ class _ComicInfoState extends State<_ComicInfo>
                   if (!await Permission.manageExternalStorage
                       .request()
                       .isGranted) {
-                    eventBus.fire(ToastMessage(ToastType.error, "请授予存储权限！"));
+                    showErrorToast("请授予存储权限！");
                     return;
                   }
                   if (mounted) {
                     var choice = await showExportTypeDialog();
                     if (choice == ExportType.zip) {
-                      eventBus.fire(ToastMessage(ToastType.info, '正在导出漫画...'));
+                      showInfoToast('正在导出漫画...');
                       exportComicAsZip(comicAllInfo!);
                     } else if (choice == ExportType.folder) {
-                      eventBus.fire(ToastMessage(ToastType.info, '正在导出漫画...'));
+                      showInfoToast('正在导出漫画...');
                       exportComicAsFolder(comicAllInfo!);
                     } else {
                       return;
                     }
                   }
                 } catch (e) {
-                  eventBus.fire(
-                    ToastMessage(ToastType.error, "导出失败，请重试。\n${e.toString()}"),
+                  showErrorToast(
+                    "导出失败，请重试。\n${e.toString()}",
+                    duration: const Duration(seconds: 5),
                   );
                 }
               },

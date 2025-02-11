@@ -16,10 +16,10 @@ import '../../../object_box/model.dart';
 import '../../../object_box/objectbox.g.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/comic_entry/comic_entry.dart';
+import '../../../widgets/toast.dart';
 import '../../comic_info/json/comic_info/comic_info.dart';
 import '../../download/json/comic_all_info_json/comic_all_info_json.dart'
     as comic_all_info_json;
-import '../../main.dart';
 
 @RoutePage()
 class ComicReadPage extends StatelessWidget {
@@ -424,8 +424,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                         child: Text("上一章"),
                         onTap: () async {
                           if (_doc.order == epsInfo[0].order) {
-                            eventBus
-                                .fire(ToastMessage(ToastType.info, "已经是第一章了"));
+                            showInfoToast("已经是第一章了");
                             return;
                           }
                           final result = await _bottomButtonDialog(
@@ -453,8 +452,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
                         onTap: () async {
                           debugPrint('下一章');
                           if (_doc.order == epsInfo[epsInfo.length - 1].order) {
-                            eventBus
-                                .fire(ToastMessage(ToastType.info, "已经是最后一章了"));
+                            showInfoToast("已经是最后一章了");
                             return;
                           }
 
@@ -660,13 +658,11 @@ class _ComicReadPageState extends State<_ComicReadPage>
                           .withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: RichText(
-                      text: TextSpan(
-                        text: message,
-                        style: TextStyle(
-                          fontSize: 60,
-                          color: globalSetting.textColor,
-                        ),
+                    child: Text(
+                      message,
+                      style: TextStyle(
+                        fontSize: 60,
+                        color: globalSetting.textColor,
                       ),
                     ),
                   ),

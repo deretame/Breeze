@@ -10,6 +10,7 @@ import 'package:zephyr/widgets/toast.dart';
 
 import '../../../config/global.dart';
 import '../../../main.dart';
+import '../../../mobx/bool_select.dart';
 import '../../../mobx/int_select.dart';
 import '../../../network/http/http_request.dart';
 import '../../../util/router/router.gr.dart';
@@ -37,12 +38,14 @@ class _CommentsWidgetState extends State<CommentsWidget>
   final likeCountStore = IntSelectStore();
   bool like = false;
   var userInfo = globalBikaProfile.data.user;
+  final BoolSelectStore likeStore = BoolSelectStore();
 
   @override
   void initState() {
     super.initState();
     likeCountStore.setDate(commentInfo.likesCount);
     like = commentInfo.isLiked;
+    likeStore.setDate(like);
   }
 
   @override
@@ -172,11 +175,16 @@ class _CommentsWidgetState extends State<CommentsWidget>
                               onTap: () {
                                 _likeComment(commentInfo.id);
                               },
-                              child: Icon(
-                                like ? Icons.favorite : Icons.favorite_border,
-                                size: 14,
-                                color:
-                                    like ? Colors.red : globalSetting.textColor,
+                              child: Observer(
+                                builder: (context) => Icon(
+                                  likeStore.date
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  size: 14,
+                                  color: likeStore.date
+                                      ? Colors.red
+                                      : globalSetting.textColor,
+                                ),
                               ),
                             ),
                             SizedBox(width: 5),
@@ -272,6 +280,7 @@ class _CommentsWidgetState extends State<CommentsWidget>
         showSuccessToast("取消点赞成功");
         likeCountStore.setDate(likeCountStore.date - 1);
       }
+      likeStore.setDate(like);
     } catch (e) {
       showErrorToast("点赞失败：${e.toString()}", duration: Duration(seconds: 5));
       debugPrint(e.toString());
@@ -309,6 +318,8 @@ class _CommentsWidgetState extends State<CommentsWidget>
           commentsCount: commentInfo.commentsCount,
           isLiked: commentInfo.isLiked,
         ),
+        store: likeStore,
+        likeCountStore: likeCountStore,
       ),
     );
   }

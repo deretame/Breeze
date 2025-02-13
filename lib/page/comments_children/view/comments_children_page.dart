@@ -7,6 +7,8 @@ import 'package:zephyr/page/comments_children/comments_children.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../main.dart';
+import '../../../mobx/bool_select.dart';
+import '../../../mobx/int_select.dart';
 import '../../../network/http/http_request.dart';
 import '../../../widgets/error_view.dart';
 import '../../comments/json/comments_json/comments_json.dart' as comments_json;
@@ -15,10 +17,14 @@ import '../json/comments_children_json.dart';
 @RoutePage()
 class CommentsChildrenPage extends StatelessWidget {
   final comments_json.Doc fatherDoc;
+  final BoolSelectStore store;
+  final IntSelectStore likeCountStore;
 
   const CommentsChildrenPage({
     super.key,
     required this.fatherDoc,
+    required this.store,
+    required this.likeCountStore,
   });
 
   @override
@@ -32,6 +38,8 @@ class CommentsChildrenPage extends StatelessWidget {
         )),
       child: _CommentsChildrenPage(
         fatherDoc: fatherDoc,
+        store: store,
+        likeCountStore: likeCountStore,
       ),
     );
   }
@@ -39,8 +47,14 @@ class CommentsChildrenPage extends StatelessWidget {
 
 class _CommentsChildrenPage extends StatefulWidget {
   final comments_json.Doc fatherDoc;
+  final BoolSelectStore store;
+  final IntSelectStore likeCountStore;
 
-  const _CommentsChildrenPage({required this.fatherDoc});
+  const _CommentsChildrenPage({
+    required this.fatherDoc,
+    required this.store,
+    required this.likeCountStore,
+  });
 
   @override
   _CommentsChildrenPageState createState() => _CommentsChildrenPageState();
@@ -48,6 +62,10 @@ class _CommentsChildrenPage extends StatefulWidget {
 
 class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
   comments_json.Doc get fatherDoc => widget.fatherDoc;
+
+  BoolSelectStore get store => widget.store;
+
+  IntSelectStore get likeCountStore => widget.likeCountStore;
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +85,8 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
             return _CommentWidget(
               fatherDoc: fatherDoc,
               state: state,
+              store: store,
+              likeCountStore: likeCountStore,
             );
         }
       }),
@@ -178,10 +198,14 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
 class _CommentWidget extends StatefulWidget {
   final comments_json.Doc fatherDoc;
   final CommentsChildrenState state;
+  final BoolSelectStore store;
+  final IntSelectStore likeCountStore;
 
   const _CommentWidget({
     required this.fatherDoc,
     required this.state,
+    required this.store,
+    required this.likeCountStore,
   });
 
   @override
@@ -192,6 +216,10 @@ class _CommentWidgetState extends State<_CommentWidget> {
   comments_json.Doc get fatherDoc => widget.fatherDoc;
 
   CommentsChildrenState get state => widget.state;
+
+  BoolSelectStore get store => widget.store;
+
+  IntSelectStore get likeCountStore => widget.likeCountStore;
 
   List<CommentsChildrenJson> comments = [];
 
@@ -218,7 +246,11 @@ class _CommentWidgetState extends State<_CommentWidget> {
     if (state.status == CommentsChildrenStatus.initial) {
       return Column(
         children: [
-          FatherCommentsWidget(doc: fatherDoc),
+          FatherCommentsWidget(
+            doc: fatherDoc,
+            store: store,
+            likeCountStore: likeCountStore,
+          ),
           _divider(),
           Padding(
             padding: const EdgeInsets.all(20),
@@ -231,7 +263,11 @@ class _CommentWidgetState extends State<_CommentWidget> {
     if (state.status == CommentsChildrenStatus.failure) {
       return Column(
         children: [
-          FatherCommentsWidget(doc: fatherDoc),
+          FatherCommentsWidget(
+            doc: fatherDoc,
+            store: store,
+            likeCountStore: likeCountStore,
+          ),
           _divider(),
           ErrorView(
             errorMessage: '${state.result.toString()}\n加载失败，请重试。',
@@ -274,7 +310,11 @@ class _CommentWidgetState extends State<_CommentWidget> {
         if (index == 0) {
           return Column(
             children: [
-              FatherCommentsWidget(doc: fatherDoc),
+              FatherCommentsWidget(
+                doc: fatherDoc,
+                store: store,
+                likeCountStore: likeCountStore,
+              ),
               _divider(),
               SizedBox(height: 5),
             ],

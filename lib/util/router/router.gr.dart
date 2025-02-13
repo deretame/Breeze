@@ -11,6 +11,8 @@
 import 'package:auto_route/auto_route.dart' as _i21;
 import 'package:flutter/material.dart' as _i22;
 import 'package:zephyr/debug/show_color.dart' as _i16;
+import 'package:zephyr/mobx/bool_select.dart' as _i27;
+import 'package:zephyr/mobx/int_select.dart' as _i28;
 import 'package:zephyr/page/about/view/about_page.dart' as _i1;
 import 'package:zephyr/page/bookshelf/view/bookshelf_page.dart' as _i3;
 import 'package:zephyr/page/category/view/category.dart' as _i4;
@@ -28,7 +30,7 @@ import 'package:zephyr/page/login_page.dart' as _i11;
 import 'package:zephyr/page/main.dart' as _i12;
 import 'package:zephyr/page/ranking_list/view/ranking_list_page.dart' as _i13;
 import 'package:zephyr/page/register_page.dart' as _i14;
-import 'package:zephyr/page/search_result/search_result.dart' as _i27;
+import 'package:zephyr/page/search_result/search_result.dart' as _i29;
 import 'package:zephyr/page/search_result/view/search_result_page.dart' as _i15;
 import 'package:zephyr/page/setting/view/bika_setting.dart' as _i2;
 import 'package:zephyr/page/setting/view/global_setting.dart' as _i10;
@@ -243,12 +245,16 @@ class CommentsChildrenRoute
   CommentsChildrenRoute({
     _i22.Key? key,
     required _i26.Doc fatherDoc,
+    required _i27.BoolSelectStore store,
+    required _i28.IntSelectStore likeCountStore,
     List<_i21.PageRouteInfo>? children,
   }) : super(
           CommentsChildrenRoute.name,
           args: CommentsChildrenRouteArgs(
             key: key,
             fatherDoc: fatherDoc,
+            store: store,
+            likeCountStore: likeCountStore,
           ),
           initialChildren: children,
         );
@@ -262,6 +268,8 @@ class CommentsChildrenRoute
       return _i7.CommentsChildrenPage(
         key: args.key,
         fatherDoc: args.fatherDoc,
+        store: args.store,
+        likeCountStore: args.likeCountStore,
       );
     },
   );
@@ -271,15 +279,21 @@ class CommentsChildrenRouteArgs {
   const CommentsChildrenRouteArgs({
     this.key,
     required this.fatherDoc,
+    required this.store,
+    required this.likeCountStore,
   });
 
   final _i22.Key? key;
 
   final _i26.Doc fatherDoc;
 
+  final _i27.BoolSelectStore store;
+
+  final _i28.IntSelectStore likeCountStore;
+
   @override
   String toString() {
-    return 'CommentsChildrenRouteArgs{key: $key, fatherDoc: $fatherDoc}';
+    return 'CommentsChildrenRouteArgs{key: $key, fatherDoc: $fatherDoc, store: $store, likeCountStore: $likeCountStore}';
   }
 }
 
@@ -487,7 +501,7 @@ class RegisterRoute extends _i21.PageRouteInfo<void> {
 class SearchResultRoute extends _i21.PageRouteInfo<SearchResultRouteArgs> {
   SearchResultRoute({
     _i22.Key? key,
-    required _i27.SearchEnterConst searchEnterConst,
+    required _i29.SearchEnterConst searchEnterConst,
     List<_i21.PageRouteInfo>? children,
   }) : super(
           SearchResultRoute.name,
@@ -520,7 +534,7 @@ class SearchResultRouteArgs {
 
   final _i22.Key? key;
 
-  final _i27.SearchEnterConst searchEnterConst;
+  final _i29.SearchEnterConst searchEnterConst;
 
   @override
   String toString() {

@@ -10,6 +10,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../config/global.dart';
 import '../../../main.dart';
+import '../../../mobx/bool_select.dart';
 import '../../../mobx/int_select.dart';
 import '../../../network/http/http_request.dart';
 import '../../../util/router/router.gr.dart';
@@ -36,12 +37,14 @@ class _CommentsWidgetState extends State<CommentsWidget>
   int get index => widget.index;
   final likeCountStore = IntSelectStore();
   bool like = false;
+  final BoolSelectStore likeStore = BoolSelectStore();
 
   @override
   void initState() {
     super.initState();
     likeCountStore.setDate(commentInfo.likesCount);
     like = commentInfo.isLiked;
+    likeStore.setDate(like);
   }
 
   @override
@@ -58,6 +61,8 @@ class _CommentsWidgetState extends State<CommentsWidget>
                     AutoRouter.of(context).push(
                       CommentsChildrenRoute(
                         fatherDoc: commentInfo,
+                        store: likeStore,
+                        likeCountStore: likeCountStore,
                       ),
                     );
                   },
@@ -153,10 +158,13 @@ class _CommentsWidgetState extends State<CommentsWidget>
                                 _likeComment(commentInfo.id);
                               },
                               child: Icon(
-                                like ? Icons.favorite : Icons.favorite_border,
+                                likeStore.date
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
                                 size: 14,
-                                color:
-                                    like ? Colors.red : globalSetting.textColor,
+                                color: likeStore.date
+                                    ? Colors.red
+                                    : globalSetting.textColor,
                               ),
                             ),
                             SizedBox(width: 5),
@@ -215,7 +223,7 @@ class _CommentsWidgetState extends State<CommentsWidget>
           builder: (BuildContext context) {
             return AlertDialog(
               title: Text('选择操作'),
-              content: Text(commentInfo.content),
+              content: SelectableText(commentInfo.content),
               actions: <Widget>[
                 TextButton(
                   child: Text('取消'),
@@ -260,6 +268,7 @@ class _CommentsWidgetState extends State<CommentsWidget>
         showSuccessToast("取消点赞成功");
         likeCountStore.setDate(likeCountStore.date - 1);
       }
+      likeStore.setDate(like);
     } catch (e) {
       showErrorToast(
         "点赞失败：${e.toString()}",

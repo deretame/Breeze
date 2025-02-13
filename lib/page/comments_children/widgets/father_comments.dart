@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../config/global.dart';
 import '../../../main.dart';
+import '../../../mobx/bool_select.dart';
 import '../../../mobx/int_select.dart';
 import '../../../network/http/http_request.dart';
 import '../../../widgets/full_screen_image_view.dart';
@@ -19,8 +20,15 @@ import '../../comments/json/comments_json/comments_json.dart' as comments_json;
 
 class FatherCommentsWidget extends StatefulWidget {
   final comments_json.Doc doc;
+  final BoolSelectStore store;
+  final IntSelectStore likeCountStore;
 
-  const FatherCommentsWidget({super.key, required this.doc});
+  const FatherCommentsWidget({
+    super.key,
+    required this.doc,
+    required this.store,
+    required this.likeCountStore,
+  });
 
   @override
   State<FatherCommentsWidget> createState() => _FatherCommentsWidgetState();
@@ -30,14 +38,16 @@ class _FatherCommentsWidgetState extends State<FatherCommentsWidget>
     with SingleTickerProviderStateMixin {
   comments_json.Doc get commentInfo => widget.doc;
 
-  final likeCountStore = IntSelectStore();
+  BoolSelectStore get store => widget.store;
+
+  IntSelectStore get likeCountStore => widget.likeCountStore;
+
   bool like = false;
 
   @override
   void initState() {
     super.initState();
-    likeCountStore.setDate(commentInfo.likesCount);
-    like = commentInfo.isLiked;
+    like = store.date;
   }
 
   @override
@@ -128,9 +138,11 @@ class _FatherCommentsWidgetState extends State<FatherCommentsWidget>
                             _likeComment(commentInfo.id);
                           },
                           child: Icon(
-                            like ? Icons.favorite : Icons.favorite_border,
+                            store.date ? Icons.favorite : Icons.favorite_border,
                             size: 14,
-                            color: like ? Colors.red : globalSetting.textColor,
+                            color: store.date
+                                ? Colors.red
+                                : globalSetting.textColor,
                           ),
                         ),
                         SizedBox(width: 5),
@@ -174,7 +186,7 @@ class _FatherCommentsWidgetState extends State<FatherCommentsWidget>
           builder: (BuildContext context) {
             return AlertDialog(
               title: Text('选择操作'),
-              content: Text(commentInfo.content),
+              content: SelectableText(commentInfo.content),
               actions: <Widget>[
                 TextButton(
                   child: Text('取消'),
@@ -219,6 +231,7 @@ class _FatherCommentsWidgetState extends State<FatherCommentsWidget>
         showSuccessToast("取消点赞成功");
         likeCountStore.setDate(likeCountStore.date - 1);
       }
+      store.setDate(like);
     } catch (e) {
       showErrorToast(
         "点赞失败：${e.toString()}",

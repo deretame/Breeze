@@ -260,14 +260,18 @@ class _MainPageState extends State<MainPage> {
         break;
     }
 
-    toastification.show(
-      context: context,
-      title: event.title == null ? null : Text(event.title!),
-      description: Text(event.message),
-      type: type,
-      style: ToastificationStyle.flatColored,
-      autoCloseDuration: event.duration,
-    );
+    if (event.message.runes.length < 20) {
+      toastification.show(
+        context: context,
+        title: event.title == null ? null : Text(event.title!),
+        description: Text(event.message),
+        type: type,
+        style: ToastificationStyle.flatColored,
+        autoCloseDuration: event.duration,
+      );
+    } else {
+      commonDialog(context, event.title ?? "错误", event.message);
+    }
   }
 }
 

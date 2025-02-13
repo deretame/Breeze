@@ -43,7 +43,7 @@ Future<void> commonDialog(
         content: SingleChildScrollView(
           child: ListBody(
             children: <Widget>[
-              Text(content),
+              SelectableText(content),
             ],
           ),
         ),

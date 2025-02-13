@@ -196,7 +196,7 @@ class _CommentsChildrenWidgetState extends State<CommentsChildrenWidget>
           builder: (BuildContext context) {
             return AlertDialog(
               title: Text('选择操作'),
-              content: Text(commentInfo.content),
+              content: SelectableText(commentInfo.content),
               actions: <Widget>[
                 TextButton(
                   child: Text('取消'),

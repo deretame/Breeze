@@ -1,4 +1,5 @@
 gradle-wrapper.jar
+.cxx/
 /.gradle
 /captures/
 /gradlew

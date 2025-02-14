@@ -63,15 +63,16 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
       if (event.searchEnterConst.keyword.isNotEmpty) {
         final keyword = event.searchEnterConst.keyword.toLowerCase();
 
-        comicList = comicList
-            .where((comic) =>
-                comic.title.toLowerCase().contains(keyword) ||
-                comic.creatorName.toLowerCase().contains(keyword) ||
-                comic.chineseTeam.toLowerCase().contains(keyword) ||
-                comic.categoriesString.toLowerCase().contains(keyword) ||
-                comic.description.toLowerCase().contains(keyword) ||
-                comic.tagsString.toLowerCase().contains(keyword))
-            .toList();
+        comicList = comicList.where((comic) {
+          var allString = comic.title +
+              comic.author +
+              comic.chineseTeam +
+              comic.categoriesString +
+              comic.tagsString +
+              comic.description +
+              comic.creatorName;
+          return allString.toLowerCase().contains(keyword);
+        }).toList();
       }
 
       // emit 状态更新

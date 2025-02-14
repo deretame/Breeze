@@ -281,7 +281,7 @@ class _SideDrawerState extends State<SideDrawer> {
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: TextField(
           controller: controller,
-          decoration: InputDecoration(hintText: '请输入'),
+          decoration: InputDecoration(hintText: '搜索漫画，请输入关键字'),
           onSubmitted: (value) => keyword = value,
         ),
       ),

@@ -50,6 +50,9 @@ class _MainPageState extends State<MainPage> {
     MorePage(),
   ];
 
+  // OverlayEntry 用于管理遮罩层
+  OverlayEntry? _overlayEntry;
+
   @override
   void initState() {
     super.initState();
@@ -76,11 +79,17 @@ class _MainPageState extends State<MainPage> {
     eventBus.on<ToastEvent>().listen((event) {
       _showToast(event);
     });
+
+    // 添加遮罩层
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _addOverlay();
+    });
   }
 
   @override
   void dispose() {
     _subscription?.cancel();
+    _removeOverlay(); // 移除遮罩层
     super.dispose();
   }
 
@@ -112,6 +121,37 @@ class _MainPageState extends State<MainPage> {
         navBarStyle: NavBarStyle.style3, // 导航栏样式
       );
     });
+  }
+
+  // 添加遮罩层
+  void _addOverlay() {
+    _overlayEntry = OverlayEntry(
+      builder: (context) {
+        return Observer(
+          builder: (context) => Positioned.fill(
+            child: IgnorePointer(
+              ignoring: true, // 不拦截触控事件
+              child: Container(
+                color: globalSetting.shade
+                    ? !globalSetting.themeType
+                        ? Colors.black.withValues(alpha: 0.5)
+                        : Colors.transparent
+                    : Colors.transparent,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    // 将遮罩层插入到 Overlay 中
+    Overlay.of(context).insert(_overlayEntry!);
+  }
+
+  // 移除遮罩层
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
   }
 
   // 底部导航栏的配置项

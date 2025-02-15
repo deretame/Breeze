@@ -272,23 +272,20 @@ class _ComicReadPageState extends State<_ComicReadPage>
 
     // debugPrint('statusBarHeight : $statusBarHeight');
     return Container(
-      color: materialColorSchemeDark.surface,
+      color: Colors.black,
       child: SafeArea(
         top: false,
         bottom: false,
         child: Stack(
           children: [
             GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isVisible = !_isVisible;
-                  debugPrint('状态栏可见性：$_isVisible');
-                  if (_isVisible) {
-                    SystemChrome.setEnabledSystemUIMode(
-                        SystemUiMode.edgeToEdge);
-                  }
-                });
-              },
+              onTap: () => setState(() {
+                _isVisible = !_isVisible;
+                debugPrint('状态栏可见性：$_isVisible');
+                if (_isVisible) {
+                  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+                }
+              }),
               child: InteractiveViewer(
                 boundaryMargin: EdgeInsets.zero,
                 minScale: 1.0,
@@ -299,58 +296,40 @@ class _ComicReadPageState extends State<_ComicReadPage>
                     // debugPrint('index: $index');
                     // debugPrint('itemCount: ${state.medias!.length + 2}');
                     if (index == 0) {
-                      return ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minWidth: screenWidth,
-                        ),
-                        child: Container(
-                          height: statusBarHeight,
-                          decoration: BoxDecoration(color: Color(0xFF2D2D2D)),
-                        ),
+                      return Container(
+                        width: screenWidth,
+                        height: statusBarHeight,
+                        color: Colors.black,
                       );
                     } else if (index == length + 1) {
-                      return ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minWidth: screenWidth,
-                        ),
-                        child: Container(
-                          height: 75,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(color: Color(0xFF2D2D2D)),
-                          child: Text(
-                            "章节结束",
-                            style: TextStyle(
-                              fontSize: 20,
-                              color: Color(0xFFCCCCCC),
-                            ),
+                      return Container(
+                        height: 75,
+                        width: screenWidth,
+                        alignment: Alignment.center,
+                        color: Colors.black,
+                        child: Text(
+                          "章节结束",
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Color(0xFFCCCCCC),
                           ),
                         ),
                       );
                     } else {
-                      return ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minWidth: screenWidth,
-                        ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: materialColorSchemeDark.surface,
-                          ),
-                          child: ReadImageWidget(
-                            media: medias[index - 1],
-                            comicId: comicId,
-                            epsId: _doc.id,
-                            index: index - 1,
-                            chapterId: _epId,
-                          ),
+                      return Container(
+                        color: Colors.black,
+                        child: ReadImageWidget(
+                          media: medias[index - 1],
+                          comicId: comicId,
+                          epsId: _doc.id,
+                          index: index - 1,
+                          chapterId: _epId,
                         ),
                       );
                     }
                   },
                   separatorBuilder: (BuildContext context, int index) {
-                    return Divider(
-                      height: 2,
-                      color: materialColorSchemeDark.surface,
-                    );
+                    return Divider(height: 2, color: Colors.black);
                   },
                   itemScrollController: _itemScrollController,
                   itemPositionsListener: _itemPositionsListener,

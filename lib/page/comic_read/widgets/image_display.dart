@@ -41,15 +41,15 @@ class _ImageDisplayState extends State<ImageDisplay> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: screenWidth,
+    return Container(
+      color: Colors.black, width: screenWidth,
       height: imageHeight != screenWidth
           ? (imageHeight * (screenWidth / imageWidth))
           : screenWidth,
       child: imageWidth != screenWidth && imageHeight != screenWidth
           ? Image.file(
               File(widget.imagePath),
-              fit: BoxFit.cover,
+              fit: BoxFit.fill,
             )
           : Container(color: const Color(0xFF2D2D2D)), // 占位符
     );

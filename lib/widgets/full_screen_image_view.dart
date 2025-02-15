@@ -5,8 +5,6 @@ import 'package:permission_guard/permission_guard.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../main.dart';
-
 class FullScreenImageView extends StatelessWidget {
   final String imagePath;
   final String? uuid;
@@ -21,31 +19,34 @@ class FullScreenImageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String temp = uuid ?? "";
-    final bool havaShade =
-        globalSetting.shade && !globalSetting.themeType && (showShade ?? false);
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
+          // 图片部分
           PhotoView(
             imageProvider: FileImage(File(imagePath)),
             minScale: PhotoViewComputedScale.contained,
             maxScale: PhotoViewComputedScale.covered * 2,
             initialScale: PhotoViewComputedScale.contained,
-            heroAttributes: PhotoViewHeroAttributes(tag: imagePath + temp),
           ),
+
+          // 关闭按钮
           Positioned(
             top: 40,
             left: 20,
             child: IconButton(
               icon: Icon(Icons.close, color: Colors.white),
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
             ),
           ),
+
+          // 下载按钮
           Positioned(
-            bottom: 20, // 将图标放在底部
-            right: 20, // 将图标放在右侧
+            bottom: 20,
+            right: 20,
             child: IconButton(
               icon: const Icon(Icons.download, color: Colors.white),
               onPressed: () async {
@@ -64,16 +65,6 @@ class FullScreenImageView extends StatelessWidget {
               },
             ),
           ),
-          if (havaShade)
-            // 遮罩层
-            Positioned.fill(
-              child: IgnorePointer(
-                ignoring: true, // 设置为 true，让遮罩层不响应触摸事件
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.3), // 半透明黑色遮罩
-                ),
-              ),
-            ),
         ],
       ),
     );

@@ -169,36 +169,21 @@ class _ComicReadPageState extends State<_ComicReadPage>
     return Scaffold(
       body: Observer(
         builder: (context) {
-          return Stack(
-            children: [
-              _type == ComicEntryType.download ||
-                      _type == ComicEntryType.historyAndDownload
-                  ? _successWidget(null)
-                  : BlocBuilder<PageBloc, PageState>(
-                      builder: (context, state) {
-                        switch (state.status) {
-                          case PageStatus.initial:
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          case PageStatus.failure:
-                            return _failureWidget(state);
-                          case PageStatus.success:
-                            return _successWidget(state);
-                        }
-                      },
-                    ),
-              if (globalSetting.shade && !globalSetting.themeType)
-                // 遮罩层
-                Positioned.fill(
-                  child: IgnorePointer(
-                    ignoring: true, // 设置为 true，让遮罩层不响应触摸事件
-                    child: Container(
-                      color: Colors.black.withValues(alpha: 0.3), // 半透明黑色遮罩
-                    ),
-                  ),
-                ),
-            ],
-          );
+          return _type == ComicEntryType.download ||
+                  _type == ComicEntryType.historyAndDownload
+              ? _successWidget(null)
+              : BlocBuilder<PageBloc, PageState>(
+                  builder: (context, state) {
+                    switch (state.status) {
+                      case PageStatus.initial:
+                        return const Center(child: CircularProgressIndicator());
+                      case PageStatus.failure:
+                        return _failureWidget(state);
+                      case PageStatus.success:
+                        return _successWidget(state);
+                    }
+                  },
+                );
         },
       ),
     );

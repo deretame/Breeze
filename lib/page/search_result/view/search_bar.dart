@@ -48,7 +48,7 @@ class BikaSearchBar extends StatelessWidget implements PreferredSizeWidget {
             borderRadius: BorderRadius.all(Radius.circular(8)),
           ),
         ),
-        textInputAction: TextInputAction.done,
+        textInputAction: TextInputAction.search,
         onFieldSubmitted: (value) {
           context.read<SearchBloc>().add(
                 FetchSearchResult(

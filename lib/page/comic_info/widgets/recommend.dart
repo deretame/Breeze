@@ -20,21 +20,16 @@ class RecommendWidget extends StatelessWidget {
 
   final ComicEntryType type;
 
-  const RecommendWidget({
-    super.key,
-    required this.comicId,
-    required this.type,
-  });
+  const RecommendWidget({super.key, required this.comicId, required this.type});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => RecommendBloc()
-        ..add(RecommendEvent(comicId, RecommendStatus.initial)),
-      child: _RecommendWidget(
-        comicId: comicId,
-        type: type,
-      ),
+      create:
+          (_) =>
+              RecommendBloc()
+                ..add(RecommendEvent(comicId, RecommendStatus.initial)),
+      child: _RecommendWidget(comicId: comicId, type: type),
     );
   }
 }
@@ -43,10 +38,7 @@ class _RecommendWidget extends StatelessWidget {
   final String comicId;
   final ComicEntryType type;
 
-  const _RecommendWidget({
-    required this.comicId,
-    required this.type,
-  });
+  const _RecommendWidget({required this.comicId, required this.type});
 
   @override
   Widget build(BuildContext context) {
@@ -59,12 +51,13 @@ class _RecommendWidget extends StatelessWidget {
             return type == ComicEntryType.download
                 ? SizedBox.shrink()
                 : ErrorView(
-                    errorMessage: '${state.result.toString()}\n加载失败，请重试。',
-                    onRetry: () {
-                      context.read<RecommendBloc>().add(
-                          RecommendEvent(comicId, RecommendStatus.initial));
-                    },
-                  );
+                  errorMessage: '${state.result.toString()}\n加载失败，请重试。',
+                  onRetry: () {
+                    context.read<RecommendBloc>().add(
+                      RecommendEvent(comicId, RecommendStatus.initial),
+                    );
+                  },
+                );
           case RecommendStatus.success:
             return successWidget(state);
         }
@@ -85,9 +78,10 @@ class _RecommendWidget extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
-                color: globalSetting.themeType
-                    ? materialColorScheme.secondaryFixedDim
-                    : materialColorScheme.secondaryFixedDim,
+                color:
+                    globalSetting.themeType
+                        ? materialColorScheme.secondaryFixedDim
+                        : materialColorScheme.secondaryFixedDim,
                 spreadRadius: 0,
                 blurRadius: 2,
               ),
@@ -100,53 +94,50 @@ class _RecommendWidget extends StatelessWidget {
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: List.generate(
-                  state.comicList!.length,
-                  (index) {
-                    return SizedBox(
-                      width: 100,
-                      height: 200,
-                      child: Column(
-                        children: [
-                          _Cover(
-                            pictureInfo: PictureInfo(
-                              from: "bika",
-                              url: state.comicList![index].thumb.fileServer,
-                              path: state.comicList![index].thumb.path,
-                              chapterId: state.comicList![index].id,
-                              pictureType: "cover",
-                            ),
+                children: List.generate(state.comicList!.length, (index) {
+                  return SizedBox(
+                    width: 100,
+                    height: 200,
+                    child: Column(
+                      children: [
+                        _Cover(
+                          pictureInfo: PictureInfo(
+                            from: "bika",
+                            url: state.comicList![index].thumb.fileServer,
+                            path: state.comicList![index].thumb.path,
+                            chapterId: state.comicList![index].id,
+                            pictureType: "cover",
                           ),
-                          GestureDetector(
-                            onTap: () {
-                              // 跳转到漫画详情页
-                              AutoRouter.of(context).push(
-                                ComicInfoRoute(
-                                  comicId: state.comicList![index].id,
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            // 跳转到漫画详情页
+                            AutoRouter.of(context).push(
+                              ComicInfoRoute(
+                                comicId: state.comicList![index].id,
+                              ),
+                            );
+                          },
+                          child: SizedBox(
+                            width: 100,
+                            height: 50,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.vertical,
+                              child: Text(
+                                state.comicList![index].title,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: globalSetting.textColor,
                                 ),
-                              );
-                            },
-                            child: SizedBox(
-                              width: 100,
-                              height: 50,
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.vertical,
-                                child: Text(
-                                  state.comicList![index].title,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: globalSetting.textColor,
-                                  ),
-                                  softWrap: true, // 允许换行
-                                ),
+                                softWrap: true, // 允许换行
                               ),
                             ),
                           ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
               ),
             ),
           ),
@@ -159,9 +150,7 @@ class _RecommendWidget extends StatelessWidget {
 class _Cover extends StatelessWidget {
   final PictureInfo pictureInfo;
 
-  const _Cover({
-    required this.pictureInfo,
-  });
+  const _Cover({required this.pictureInfo});
 
   @override
   Widget build(BuildContext context) {
@@ -169,18 +158,19 @@ class _Cover extends StatelessWidget {
       width: 100,
       height: 150,
       child: BlocProvider(
-        create: (context) => PictureBloc()
-          ..add(
-            GetPicture(
-              PictureInfo(
-                from: "bika",
-                url: pictureInfo.url,
-                path: pictureInfo.path,
-                cartoonId: pictureInfo.cartoonId,
-                pictureType: pictureInfo.pictureType,
-              ),
-            ),
-          ),
+        create:
+            (context) =>
+                PictureBloc()..add(
+                  GetPicture(
+                    PictureInfo(
+                      from: "bika",
+                      url: pictureInfo.url,
+                      path: pictureInfo.path,
+                      cartoonId: pictureInfo.cartoonId,
+                      pictureType: pictureInfo.pictureType,
+                    ),
+                  ),
+                ),
         child: BlocBuilder<PictureBloc, PictureLoadState>(
           builder: (context, state) {
             switch (state.status) {
@@ -198,8 +188,10 @@ class _Cover extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            FullScreenImageView(imagePath: state.imagePath!),
+                        builder:
+                            (context) => FullScreenImageView(
+                              imagePath: state.imagePath!,
+                            ),
                       ),
                     );
                   },
@@ -220,16 +212,16 @@ class _Cover extends StatelessWidget {
                   return InkWell(
                     onTap: () {
                       context.read<PictureBloc>().add(
-                            GetPicture(
-                              PictureInfo(
-                                from: "bika",
-                                url: pictureInfo.url,
-                                path: pictureInfo.path,
-                                cartoonId: pictureInfo.cartoonId,
-                                pictureType: pictureInfo.pictureType,
-                              ),
-                            ),
-                          );
+                        GetPicture(
+                          PictureInfo(
+                            from: "bika",
+                            url: pictureInfo.url,
+                            path: pictureInfo.path,
+                            cartoonId: pictureInfo.cartoonId,
+                            pictureType: pictureInfo.pictureType,
+                          ),
+                        ),
+                      );
                     },
                     child: Icon(Icons.refresh),
                   );

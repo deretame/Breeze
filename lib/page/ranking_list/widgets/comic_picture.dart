@@ -29,18 +29,19 @@ class ComicPictureWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final uuid = Uuid().v4();
     return BlocProvider(
-      create: (context) => PictureBloc()
-        ..add(
-          GetPicture(
-            PictureInfo(
-              from: "bika",
-              url: fileServer,
-              path: path,
-              cartoonId: id,
-              pictureType: pictureType,
-            ),
-          ),
-        ),
+      create:
+          (context) =>
+              PictureBloc()..add(
+                GetPicture(
+                  PictureInfo(
+                    from: "bika",
+                    url: fileServer,
+                    path: path,
+                    cartoonId: id,
+                    pictureType: pictureType,
+                  ),
+                ),
+              ),
       child: BlocBuilder<PictureBloc, PictureLoadState>(
         builder: (context, state) {
           switch (state.status) {
@@ -63,10 +64,11 @@ class ComicPictureWidget extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => FullScreenImageView(
-                        imagePath: state.imagePath!,
-                        uuid: uuid,
-                      ),
+                      builder:
+                          (context) => FullScreenImageView(
+                            imagePath: state.imagePath!,
+                            uuid: uuid,
+                          ),
                     ),
                   );
                 },
@@ -98,23 +100,21 @@ class ComicPictureWidget extends StatelessWidget {
                   child: InkWell(
                     onTap: () {
                       context.read<PictureBloc>().add(
-                            GetPicture(
-                              PictureInfo(
-                                from: "bika",
-                                url: fileServer,
-                                path: path,
-                                cartoonId: id,
-                                pictureType: pictureType,
-                              ),
-                            ),
-                          );
+                        GetPicture(
+                          PictureInfo(
+                            from: "bika",
+                            url: fileServer,
+                            path: path,
+                            cartoonId: id,
+                            pictureType: pictureType,
+                          ),
+                        ),
+                      );
                     },
                     child: Center(
                       child: Text(
                         '加载图片失败\n点击重新加载',
-                        style: TextStyle(
-                          color: globalSetting.textColor,
-                        ),
+                        style: TextStyle(color: globalSetting.textColor),
                       ),
                     ),
                   ),

@@ -3,7 +3,7 @@ description: "使用Flutter开发的三方哔咔应用。"
 version: 1.26.1+86
 
 environment:
-  sdk: ">=3.0.0"
+  sdk: ^3.7.0-323.0.dev
 
 dependencies:
   flutter:

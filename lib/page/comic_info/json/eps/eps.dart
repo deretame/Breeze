@@ -26,9 +26,7 @@ class Eps with _$Eps {
 
 @freezed
 class Data with _$Data {
-  const factory Data({
-    @JsonKey(name: "eps") required EpsClass eps,
-  }) = _Data;
+  const factory Data({@JsonKey(name: "eps") required EpsClass eps}) = _Data;
 
   factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 }

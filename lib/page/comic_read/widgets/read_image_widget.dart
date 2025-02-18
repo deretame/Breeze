@@ -46,19 +46,20 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
   Widget build(BuildContext context) {
     super.build(context);
     return BlocProvider(
-      create: (context) => PictureBloc()
-        ..add(
-          GetPicture(
-            PictureInfo(
-              from: "bika",
-              url: media.fileServer,
-              path: media.path,
-              cartoonId: comicId,
-              pictureType: "comic",
-              chapterId: chapterId,
-            ),
-          ),
-        ),
+      create:
+          (context) =>
+              PictureBloc()..add(
+                GetPicture(
+                  PictureInfo(
+                    from: "bika",
+                    url: media.fileServer,
+                    path: media.path,
+                    cartoonId: comicId,
+                    pictureType: "comic",
+                    chapterId: chapterId,
+                  ),
+                ),
+              ),
       child: SizedBox(
         width: screenWidth,
         child: BlocBuilder<PictureBloc, PictureLoadState>(
@@ -86,10 +87,11 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => FullScreenImageView(
-                          imagePath: state.imagePath!,
-                          showShade: true,
-                        ),
+                        builder:
+                            (context) => FullScreenImageView(
+                              imagePath: state.imagePath!,
+                              showShade: true,
+                            ),
                       ),
                     );
                   },
@@ -113,17 +115,17 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
                     child: InkWell(
                       onTap: () {
                         context.read<PictureBloc>().add(
-                              GetPicture(
-                                PictureInfo(
-                                  from: "bika",
-                                  url: media.fileServer,
-                                  path: media.path,
-                                  cartoonId: comicId,
-                                  pictureType: "comic",
-                                  chapterId: chapterId,
-                                ),
-                              ),
-                            );
+                          GetPicture(
+                            PictureInfo(
+                              from: "bika",
+                              url: media.fileServer,
+                              path: media.path,
+                              cartoonId: comicId,
+                              pictureType: "comic",
+                              chapterId: chapterId,
+                            ),
+                          ),
+                        );
                       },
                       child: Center(
                         child: Text(

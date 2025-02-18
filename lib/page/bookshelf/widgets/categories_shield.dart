@@ -4,8 +4,9 @@ import '../../../config/global.dart';
 import '../../../main.dart';
 
 Future<Map<String, bool>?> showShieldCategoryDialog(BuildContext context) {
-  late Map<String, bool> shieldCategoriesMap =
-      Map.of(bikaSetting.getShieldCategoryMap());
+  late Map<String, bool> shieldCategoriesMap = Map.of(
+    bikaSetting.getShieldCategoryMap(),
+  );
 
   return showDialog(
     context: context,

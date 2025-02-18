@@ -12,7 +12,8 @@ part of 'categories.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 Categories _$CategoriesFromJson(Map<String, dynamic> json) {
   return _Categories.fromJson(json);
@@ -22,8 +23,10 @@ Categories _$CategoriesFromJson(Map<String, dynamic> json) {
 mixin _$Categories {
   @JsonKey(name: "code")
   int get code => throw _privateConstructorUsedError;
+
   @JsonKey(name: "message")
   String get message => throw _privateConstructorUsedError;
+
   @JsonKey(name: "data")
   Data get data => throw _privateConstructorUsedError;
 
@@ -40,13 +43,16 @@ mixin _$Categories {
 /// @nodoc
 abstract class $CategoriesCopyWith<$Res> {
   factory $CategoriesCopyWith(
-          Categories value, $Res Function(Categories) then) =
-      _$CategoriesCopyWithImpl<$Res, Categories>;
+    Categories value,
+    $Res Function(Categories) then,
+  ) = _$CategoriesCopyWithImpl<$Res, Categories>;
+
   @useResult
-  $Res call(
-      {@JsonKey(name: "code") int code,
-      @JsonKey(name: "message") String message,
-      @JsonKey(name: "data") Data data});
+  $Res call({
+    @JsonKey(name: "code") int code,
+    @JsonKey(name: "message") String message,
+    @JsonKey(name: "data") Data data,
+  });
 
   $DataCopyWith<$Res> get data;
 }
@@ -58,6 +64,7 @@ class _$CategoriesCopyWithImpl<$Res, $Val extends Categories>
 
   // ignore: unused_field
   final $Val _value;
+
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -70,20 +77,26 @@ class _$CategoriesCopyWithImpl<$Res, $Val extends Categories>
     Object? message = null,
     Object? data = null,
   }) {
-    return _then(_value.copyWith(
-      code: null == code
-          ? _value.code
-          : code // ignore: cast_nullable_to_non_nullable
-              as int,
-      message: null == message
-          ? _value.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String,
-      data: null == data
-          ? _value.data
-          : data // ignore: cast_nullable_to_non_nullable
-              as Data,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            code:
+                null == code
+                    ? _value.code
+                    : code // ignore: cast_nullable_to_non_nullable
+                        as int,
+            message:
+                null == message
+                    ? _value.message
+                    : message // ignore: cast_nullable_to_non_nullable
+                        as String,
+            data:
+                null == data
+                    ? _value.data
+                    : data // ignore: cast_nullable_to_non_nullable
+                        as Data,
+          )
+          as $Val,
+    );
   }
 
   /// Create a copy of Categories
@@ -101,14 +114,17 @@ class _$CategoriesCopyWithImpl<$Res, $Val extends Categories>
 abstract class _$$CategoriesImplCopyWith<$Res>
     implements $CategoriesCopyWith<$Res> {
   factory _$$CategoriesImplCopyWith(
-          _$CategoriesImpl value, $Res Function(_$CategoriesImpl) then) =
-      __$$CategoriesImplCopyWithImpl<$Res>;
+    _$CategoriesImpl value,
+    $Res Function(_$CategoriesImpl) then,
+  ) = __$$CategoriesImplCopyWithImpl<$Res>;
+
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: "code") int code,
-      @JsonKey(name: "message") String message,
-      @JsonKey(name: "data") Data data});
+  $Res call({
+    @JsonKey(name: "code") int code,
+    @JsonKey(name: "message") String message,
+    @JsonKey(name: "data") Data data,
+  });
 
   @override
   $DataCopyWith<$Res> get data;
@@ -119,8 +135,9 @@ class __$$CategoriesImplCopyWithImpl<$Res>
     extends _$CategoriesCopyWithImpl<$Res, _$CategoriesImpl>
     implements _$$CategoriesImplCopyWith<$Res> {
   __$$CategoriesImplCopyWithImpl(
-      _$CategoriesImpl _value, $Res Function(_$CategoriesImpl) _then)
-      : super(_value, _then);
+    _$CategoriesImpl _value,
+    $Res Function(_$CategoriesImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of Categories
   /// with the given fields replaced by the non-null parameter values.
@@ -131,30 +148,36 @@ class __$$CategoriesImplCopyWithImpl<$Res>
     Object? message = null,
     Object? data = null,
   }) {
-    return _then(_$CategoriesImpl(
-      code: null == code
-          ? _value.code
-          : code // ignore: cast_nullable_to_non_nullable
-              as int,
-      message: null == message
-          ? _value.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String,
-      data: null == data
-          ? _value.data
-          : data // ignore: cast_nullable_to_non_nullable
-              as Data,
-    ));
+    return _then(
+      _$CategoriesImpl(
+        code:
+            null == code
+                ? _value.code
+                : code // ignore: cast_nullable_to_non_nullable
+                    as int,
+        message:
+            null == message
+                ? _value.message
+                : message // ignore: cast_nullable_to_non_nullable
+                    as String,
+        data:
+            null == data
+                ? _value.data
+                : data // ignore: cast_nullable_to_non_nullable
+                    as Data,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$CategoriesImpl implements _Categories {
-  const _$CategoriesImpl(
-      {@JsonKey(name: "code") required this.code,
-      @JsonKey(name: "message") required this.message,
-      @JsonKey(name: "data") required this.data});
+  const _$CategoriesImpl({
+    @JsonKey(name: "code") required this.code,
+    @JsonKey(name: "message") required this.message,
+    @JsonKey(name: "data") required this.data,
+  });
 
   factory _$CategoriesImpl.fromJson(Map<String, dynamic> json) =>
       _$$CategoriesImplFromJson(json);
@@ -198,17 +221,16 @@ class _$CategoriesImpl implements _Categories {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$CategoriesImplToJson(
-      this,
-    );
+    return _$$CategoriesImplToJson(this);
   }
 }
 
 abstract class _Categories implements Categories {
-  const factory _Categories(
-      {@JsonKey(name: "code") required final int code,
-      @JsonKey(name: "message") required final String message,
-      @JsonKey(name: "data") required final Data data}) = _$CategoriesImpl;
+  const factory _Categories({
+    @JsonKey(name: "code") required final int code,
+    @JsonKey(name: "message") required final String message,
+    @JsonKey(name: "data") required final Data data,
+  }) = _$CategoriesImpl;
 
   factory _Categories.fromJson(Map<String, dynamic> json) =
       _$CategoriesImpl.fromJson;
@@ -216,9 +238,11 @@ abstract class _Categories implements Categories {
   @override
   @JsonKey(name: "code")
   int get code;
+
   @override
   @JsonKey(name: "message")
   String get message;
+
   @override
   @JsonKey(name: "data")
   Data get data;
@@ -253,6 +277,7 @@ mixin _$Data {
 abstract class $DataCopyWith<$Res> {
   factory $DataCopyWith(Data value, $Res Function(Data) then) =
       _$DataCopyWithImpl<$Res, Data>;
+
   @useResult
   $Res call({@JsonKey(name: "categories") List<Category> categories});
 }
@@ -264,6 +289,7 @@ class _$DataCopyWithImpl<$Res, $Val extends Data>
 
   // ignore: unused_field
   final $Val _value;
+
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -271,23 +297,27 @@ class _$DataCopyWithImpl<$Res, $Val extends Data>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? categories = null,
-  }) {
-    return _then(_value.copyWith(
-      categories: null == categories
-          ? _value.categories
-          : categories // ignore: cast_nullable_to_non_nullable
-              as List<Category>,
-    ) as $Val);
+  $Res call({Object? categories = null}) {
+    return _then(
+      _value.copyWith(
+            categories:
+                null == categories
+                    ? _value.categories
+                    : categories // ignore: cast_nullable_to_non_nullable
+                        as List<Category>,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$DataImplCopyWith<$Res> implements $DataCopyWith<$Res> {
   factory _$$DataImplCopyWith(
-          _$DataImpl value, $Res Function(_$DataImpl) then) =
-      __$$DataImplCopyWithImpl<$Res>;
+    _$DataImpl value,
+    $Res Function(_$DataImpl) then,
+  ) = __$$DataImplCopyWithImpl<$Res>;
+
   @override
   @useResult
   $Res call({@JsonKey(name: "categories") List<Category> categories});
@@ -298,35 +328,37 @@ class __$$DataImplCopyWithImpl<$Res>
     extends _$DataCopyWithImpl<$Res, _$DataImpl>
     implements _$$DataImplCopyWith<$Res> {
   __$$DataImplCopyWithImpl(_$DataImpl _value, $Res Function(_$DataImpl) _then)
-      : super(_value, _then);
+    : super(_value, _then);
 
   /// Create a copy of Data
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? categories = null,
-  }) {
-    return _then(_$DataImpl(
-      categories: null == categories
-          ? _value._categories
-          : categories // ignore: cast_nullable_to_non_nullable
-              as List<Category>,
-    ));
+  $Res call({Object? categories = null}) {
+    return _then(
+      _$DataImpl(
+        categories:
+            null == categories
+                ? _value._categories
+                : categories // ignore: cast_nullable_to_non_nullable
+                    as List<Category>,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$DataImpl implements _Data {
-  const _$DataImpl(
-      {@JsonKey(name: "categories") required final List<Category> categories})
-      : _categories = categories;
+  const _$DataImpl({
+    @JsonKey(name: "categories") required final List<Category> categories,
+  }) : _categories = categories;
 
   factory _$DataImpl.fromJson(Map<String, dynamic> json) =>
       _$$DataImplFromJson(json);
 
   final List<Category> _categories;
+
   @override
   @JsonKey(name: "categories")
   List<Category> get categories {
@@ -345,14 +377,18 @@ class _$DataImpl implements _Data {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$DataImpl &&
-            const DeepCollectionEquality()
-                .equals(other._categories, _categories));
+            const DeepCollectionEquality().equals(
+              other._categories,
+              _categories,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-      runtimeType, const DeepCollectionEquality().hash(_categories));
+    runtimeType,
+    const DeepCollectionEquality().hash(_categories),
+  );
 
   /// Create a copy of Data
   /// with the given fields replaced by the non-null parameter values.
@@ -364,16 +400,14 @@ class _$DataImpl implements _Data {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$DataImplToJson(
-      this,
-    );
+    return _$$DataImplToJson(this);
   }
 }
 
 abstract class _Data implements Data {
-  const factory _Data(
-      {@JsonKey(name: "categories")
-      required final List<Category> categories}) = _$DataImpl;
+  const factory _Data({
+    @JsonKey(name: "categories") required final List<Category> categories,
+  }) = _$DataImpl;
 
   factory _Data.fromJson(Map<String, dynamic> json) = _$DataImpl.fromJson;
 
@@ -397,16 +431,22 @@ Category _$CategoryFromJson(Map<String, dynamic> json) {
 mixin _$Category {
   @JsonKey(name: "title")
   String get title => throw _privateConstructorUsedError;
+
   @JsonKey(name: "thumb")
   Thumb get thumb => throw _privateConstructorUsedError;
+
   @JsonKey(name: "isWeb")
   bool? get isWeb => throw _privateConstructorUsedError;
+
   @JsonKey(name: "active")
   bool? get active => throw _privateConstructorUsedError;
+
   @JsonKey(name: "link")
   String? get link => throw _privateConstructorUsedError;
+
   @JsonKey(name: "_id")
   String? get id => throw _privateConstructorUsedError;
+
   @JsonKey(name: "description")
   String? get description => throw _privateConstructorUsedError;
 
@@ -424,15 +464,17 @@ mixin _$Category {
 abstract class $CategoryCopyWith<$Res> {
   factory $CategoryCopyWith(Category value, $Res Function(Category) then) =
       _$CategoryCopyWithImpl<$Res, Category>;
+
   @useResult
-  $Res call(
-      {@JsonKey(name: "title") String title,
-      @JsonKey(name: "thumb") Thumb thumb,
-      @JsonKey(name: "isWeb") bool? isWeb,
-      @JsonKey(name: "active") bool? active,
-      @JsonKey(name: "link") String? link,
-      @JsonKey(name: "_id") String? id,
-      @JsonKey(name: "description") String? description});
+  $Res call({
+    @JsonKey(name: "title") String title,
+    @JsonKey(name: "thumb") Thumb thumb,
+    @JsonKey(name: "isWeb") bool? isWeb,
+    @JsonKey(name: "active") bool? active,
+    @JsonKey(name: "link") String? link,
+    @JsonKey(name: "_id") String? id,
+    @JsonKey(name: "description") String? description,
+  });
 
   $ThumbCopyWith<$Res> get thumb;
 }
@@ -444,6 +486,7 @@ class _$CategoryCopyWithImpl<$Res, $Val extends Category>
 
   // ignore: unused_field
   final $Val _value;
+
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -460,36 +503,46 @@ class _$CategoryCopyWithImpl<$Res, $Val extends Category>
     Object? id = freezed,
     Object? description = freezed,
   }) {
-    return _then(_value.copyWith(
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      thumb: null == thumb
-          ? _value.thumb
-          : thumb // ignore: cast_nullable_to_non_nullable
-              as Thumb,
-      isWeb: freezed == isWeb
-          ? _value.isWeb
-          : isWeb // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      active: freezed == active
-          ? _value.active
-          : active // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      link: freezed == link
-          ? _value.link
-          : link // ignore: cast_nullable_to_non_nullable
-              as String?,
-      id: freezed == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String?,
-      description: freezed == description
-          ? _value.description
-          : description // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            title:
+                null == title
+                    ? _value.title
+                    : title // ignore: cast_nullable_to_non_nullable
+                        as String,
+            thumb:
+                null == thumb
+                    ? _value.thumb
+                    : thumb // ignore: cast_nullable_to_non_nullable
+                        as Thumb,
+            isWeb:
+                freezed == isWeb
+                    ? _value.isWeb
+                    : isWeb // ignore: cast_nullable_to_non_nullable
+                        as bool?,
+            active:
+                freezed == active
+                    ? _value.active
+                    : active // ignore: cast_nullable_to_non_nullable
+                        as bool?,
+            link:
+                freezed == link
+                    ? _value.link
+                    : link // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            id:
+                freezed == id
+                    ? _value.id
+                    : id // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            description:
+                freezed == description
+                    ? _value.description
+                    : description // ignore: cast_nullable_to_non_nullable
+                        as String?,
+          )
+          as $Val,
+    );
   }
 
   /// Create a copy of Category
@@ -507,18 +560,21 @@ class _$CategoryCopyWithImpl<$Res, $Val extends Category>
 abstract class _$$CategoryImplCopyWith<$Res>
     implements $CategoryCopyWith<$Res> {
   factory _$$CategoryImplCopyWith(
-          _$CategoryImpl value, $Res Function(_$CategoryImpl) then) =
-      __$$CategoryImplCopyWithImpl<$Res>;
+    _$CategoryImpl value,
+    $Res Function(_$CategoryImpl) then,
+  ) = __$$CategoryImplCopyWithImpl<$Res>;
+
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: "title") String title,
-      @JsonKey(name: "thumb") Thumb thumb,
-      @JsonKey(name: "isWeb") bool? isWeb,
-      @JsonKey(name: "active") bool? active,
-      @JsonKey(name: "link") String? link,
-      @JsonKey(name: "_id") String? id,
-      @JsonKey(name: "description") String? description});
+  $Res call({
+    @JsonKey(name: "title") String title,
+    @JsonKey(name: "thumb") Thumb thumb,
+    @JsonKey(name: "isWeb") bool? isWeb,
+    @JsonKey(name: "active") bool? active,
+    @JsonKey(name: "link") String? link,
+    @JsonKey(name: "_id") String? id,
+    @JsonKey(name: "description") String? description,
+  });
 
   @override
   $ThumbCopyWith<$Res> get thumb;
@@ -529,8 +585,9 @@ class __$$CategoryImplCopyWithImpl<$Res>
     extends _$CategoryCopyWithImpl<$Res, _$CategoryImpl>
     implements _$$CategoryImplCopyWith<$Res> {
   __$$CategoryImplCopyWithImpl(
-      _$CategoryImpl _value, $Res Function(_$CategoryImpl) _then)
-      : super(_value, _then);
+    _$CategoryImpl _value,
+    $Res Function(_$CategoryImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of Category
   /// with the given fields replaced by the non-null parameter values.
@@ -545,50 +602,60 @@ class __$$CategoryImplCopyWithImpl<$Res>
     Object? id = freezed,
     Object? description = freezed,
   }) {
-    return _then(_$CategoryImpl(
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      thumb: null == thumb
-          ? _value.thumb
-          : thumb // ignore: cast_nullable_to_non_nullable
-              as Thumb,
-      isWeb: freezed == isWeb
-          ? _value.isWeb
-          : isWeb // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      active: freezed == active
-          ? _value.active
-          : active // ignore: cast_nullable_to_non_nullable
-              as bool?,
-      link: freezed == link
-          ? _value.link
-          : link // ignore: cast_nullable_to_non_nullable
-              as String?,
-      id: freezed == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String?,
-      description: freezed == description
-          ? _value.description
-          : description // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
+    return _then(
+      _$CategoryImpl(
+        title:
+            null == title
+                ? _value.title
+                : title // ignore: cast_nullable_to_non_nullable
+                    as String,
+        thumb:
+            null == thumb
+                ? _value.thumb
+                : thumb // ignore: cast_nullable_to_non_nullable
+                    as Thumb,
+        isWeb:
+            freezed == isWeb
+                ? _value.isWeb
+                : isWeb // ignore: cast_nullable_to_non_nullable
+                    as bool?,
+        active:
+            freezed == active
+                ? _value.active
+                : active // ignore: cast_nullable_to_non_nullable
+                    as bool?,
+        link:
+            freezed == link
+                ? _value.link
+                : link // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        id:
+            freezed == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        description:
+            freezed == description
+                ? _value.description
+                : description // ignore: cast_nullable_to_non_nullable
+                    as String?,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$CategoryImpl implements _Category {
-  const _$CategoryImpl(
-      {@JsonKey(name: "title") required this.title,
-      @JsonKey(name: "thumb") required this.thumb,
-      @JsonKey(name: "isWeb") this.isWeb,
-      @JsonKey(name: "active") this.active,
-      @JsonKey(name: "link") this.link,
-      @JsonKey(name: "_id") this.id,
-      @JsonKey(name: "description") this.description});
+  const _$CategoryImpl({
+    @JsonKey(name: "title") required this.title,
+    @JsonKey(name: "thumb") required this.thumb,
+    @JsonKey(name: "isWeb") this.isWeb,
+    @JsonKey(name: "active") this.active,
+    @JsonKey(name: "link") this.link,
+    @JsonKey(name: "_id") this.id,
+    @JsonKey(name: "description") this.description,
+  });
 
   factory _$CategoryImpl.fromJson(Map<String, dynamic> json) =>
       _$$CategoryImplFromJson(json);
@@ -638,7 +705,15 @@ class _$CategoryImpl implements _Category {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-      runtimeType, title, thumb, isWeb, active, link, id, description);
+    runtimeType,
+    title,
+    thumb,
+    isWeb,
+    active,
+    link,
+    id,
+    description,
+  );
 
   /// Create a copy of Category
   /// with the given fields replaced by the non-null parameter values.
@@ -650,22 +725,20 @@ class _$CategoryImpl implements _Category {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$CategoryImplToJson(
-      this,
-    );
+    return _$$CategoryImplToJson(this);
   }
 }
 
 abstract class _Category implements Category {
-  const factory _Category(
-          {@JsonKey(name: "title") required final String title,
-          @JsonKey(name: "thumb") required final Thumb thumb,
-          @JsonKey(name: "isWeb") final bool? isWeb,
-          @JsonKey(name: "active") final bool? active,
-          @JsonKey(name: "link") final String? link,
-          @JsonKey(name: "_id") final String? id,
-          @JsonKey(name: "description") final String? description}) =
-      _$CategoryImpl;
+  const factory _Category({
+    @JsonKey(name: "title") required final String title,
+    @JsonKey(name: "thumb") required final Thumb thumb,
+    @JsonKey(name: "isWeb") final bool? isWeb,
+    @JsonKey(name: "active") final bool? active,
+    @JsonKey(name: "link") final String? link,
+    @JsonKey(name: "_id") final String? id,
+    @JsonKey(name: "description") final String? description,
+  }) = _$CategoryImpl;
 
   factory _Category.fromJson(Map<String, dynamic> json) =
       _$CategoryImpl.fromJson;
@@ -673,21 +746,27 @@ abstract class _Category implements Category {
   @override
   @JsonKey(name: "title")
   String get title;
+
   @override
   @JsonKey(name: "thumb")
   Thumb get thumb;
+
   @override
   @JsonKey(name: "isWeb")
   bool? get isWeb;
+
   @override
   @JsonKey(name: "active")
   bool? get active;
+
   @override
   @JsonKey(name: "link")
   String? get link;
+
   @override
   @JsonKey(name: "_id")
   String? get id;
+
   @override
   @JsonKey(name: "description")
   String? get description;
@@ -708,8 +787,10 @@ Thumb _$ThumbFromJson(Map<String, dynamic> json) {
 mixin _$Thumb {
   @JsonKey(name: "originalName")
   String get originalName => throw _privateConstructorUsedError;
+
   @JsonKey(name: "path")
   String get path => throw _privateConstructorUsedError;
+
   @JsonKey(name: "fileServer")
   String get fileServer => throw _privateConstructorUsedError;
 
@@ -726,11 +807,13 @@ mixin _$Thumb {
 abstract class $ThumbCopyWith<$Res> {
   factory $ThumbCopyWith(Thumb value, $Res Function(Thumb) then) =
       _$ThumbCopyWithImpl<$Res, Thumb>;
+
   @useResult
-  $Res call(
-      {@JsonKey(name: "originalName") String originalName,
-      @JsonKey(name: "path") String path,
-      @JsonKey(name: "fileServer") String fileServer});
+  $Res call({
+    @JsonKey(name: "originalName") String originalName,
+    @JsonKey(name: "path") String path,
+    @JsonKey(name: "fileServer") String fileServer,
+  });
 }
 
 /// @nodoc
@@ -740,6 +823,7 @@ class _$ThumbCopyWithImpl<$Res, $Val extends Thumb>
 
   // ignore: unused_field
   final $Val _value;
+
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -752,34 +836,43 @@ class _$ThumbCopyWithImpl<$Res, $Val extends Thumb>
     Object? path = null,
     Object? fileServer = null,
   }) {
-    return _then(_value.copyWith(
-      originalName: null == originalName
-          ? _value.originalName
-          : originalName // ignore: cast_nullable_to_non_nullable
-              as String,
-      path: null == path
-          ? _value.path
-          : path // ignore: cast_nullable_to_non_nullable
-              as String,
-      fileServer: null == fileServer
-          ? _value.fileServer
-          : fileServer // ignore: cast_nullable_to_non_nullable
-              as String,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            originalName:
+                null == originalName
+                    ? _value.originalName
+                    : originalName // ignore: cast_nullable_to_non_nullable
+                        as String,
+            path:
+                null == path
+                    ? _value.path
+                    : path // ignore: cast_nullable_to_non_nullable
+                        as String,
+            fileServer:
+                null == fileServer
+                    ? _value.fileServer
+                    : fileServer // ignore: cast_nullable_to_non_nullable
+                        as String,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$ThumbImplCopyWith<$Res> implements $ThumbCopyWith<$Res> {
   factory _$$ThumbImplCopyWith(
-          _$ThumbImpl value, $Res Function(_$ThumbImpl) then) =
-      __$$ThumbImplCopyWithImpl<$Res>;
+    _$ThumbImpl value,
+    $Res Function(_$ThumbImpl) then,
+  ) = __$$ThumbImplCopyWithImpl<$Res>;
+
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: "originalName") String originalName,
-      @JsonKey(name: "path") String path,
-      @JsonKey(name: "fileServer") String fileServer});
+  $Res call({
+    @JsonKey(name: "originalName") String originalName,
+    @JsonKey(name: "path") String path,
+    @JsonKey(name: "fileServer") String fileServer,
+  });
 }
 
 /// @nodoc
@@ -787,8 +880,9 @@ class __$$ThumbImplCopyWithImpl<$Res>
     extends _$ThumbCopyWithImpl<$Res, _$ThumbImpl>
     implements _$$ThumbImplCopyWith<$Res> {
   __$$ThumbImplCopyWithImpl(
-      _$ThumbImpl _value, $Res Function(_$ThumbImpl) _then)
-      : super(_value, _then);
+    _$ThumbImpl _value,
+    $Res Function(_$ThumbImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of Thumb
   /// with the given fields replaced by the non-null parameter values.
@@ -799,30 +893,36 @@ class __$$ThumbImplCopyWithImpl<$Res>
     Object? path = null,
     Object? fileServer = null,
   }) {
-    return _then(_$ThumbImpl(
-      originalName: null == originalName
-          ? _value.originalName
-          : originalName // ignore: cast_nullable_to_non_nullable
-              as String,
-      path: null == path
-          ? _value.path
-          : path // ignore: cast_nullable_to_non_nullable
-              as String,
-      fileServer: null == fileServer
-          ? _value.fileServer
-          : fileServer // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
+    return _then(
+      _$ThumbImpl(
+        originalName:
+            null == originalName
+                ? _value.originalName
+                : originalName // ignore: cast_nullable_to_non_nullable
+                    as String,
+        path:
+            null == path
+                ? _value.path
+                : path // ignore: cast_nullable_to_non_nullable
+                    as String,
+        fileServer:
+            null == fileServer
+                ? _value.fileServer
+                : fileServer // ignore: cast_nullable_to_non_nullable
+                    as String,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ThumbImpl implements _Thumb {
-  const _$ThumbImpl(
-      {@JsonKey(name: "originalName") required this.originalName,
-      @JsonKey(name: "path") required this.path,
-      @JsonKey(name: "fileServer") required this.fileServer});
+  const _$ThumbImpl({
+    @JsonKey(name: "originalName") required this.originalName,
+    @JsonKey(name: "path") required this.path,
+    @JsonKey(name: "fileServer") required this.fileServer,
+  });
 
   factory _$ThumbImpl.fromJson(Map<String, dynamic> json) =>
       _$$ThumbImplFromJson(json);
@@ -868,27 +968,27 @@ class _$ThumbImpl implements _Thumb {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ThumbImplToJson(
-      this,
-    );
+    return _$$ThumbImplToJson(this);
   }
 }
 
 abstract class _Thumb implements Thumb {
-  const factory _Thumb(
-          {@JsonKey(name: "originalName") required final String originalName,
-          @JsonKey(name: "path") required final String path,
-          @JsonKey(name: "fileServer") required final String fileServer}) =
-      _$ThumbImpl;
+  const factory _Thumb({
+    @JsonKey(name: "originalName") required final String originalName,
+    @JsonKey(name: "path") required final String path,
+    @JsonKey(name: "fileServer") required final String fileServer,
+  }) = _$ThumbImpl;
 
   factory _Thumb.fromJson(Map<String, dynamic> json) = _$ThumbImpl.fromJson;
 
   @override
   @JsonKey(name: "originalName")
   String get originalName;
+
   @override
   @JsonKey(name: "path")
   String get path;
+
   @override
   @JsonKey(name: "fileServer")
   String get fileServer;

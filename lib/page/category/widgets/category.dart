@@ -34,10 +34,7 @@ List<Widget> buildCategoriesWidget(List<HomeCategory> data) {
     widgets.addAll(
       List.generate(
         placeholdersToAdd,
-        (index) => SizedBox(
-          width: screenWidth / 4,
-          height: screenWidth / 4,
-        ),
+        (index) => SizedBox(width: screenWidth / 4, height: screenWidth / 4),
       ),
     );
   }
@@ -48,11 +45,7 @@ List<Widget> buildCategoriesWidget(List<HomeCategory> data) {
     rows.add(
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          widgets[i * 3],
-          widgets[i * 3 + 1],
-          widgets[i * 3 + 2],
-        ],
+        children: [widgets[i * 3], widgets[i * 3 + 1], widgets[i * 3 + 2]],
       ),
     );
   }
@@ -68,15 +61,18 @@ class CategoryWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => PictureBloc()
-        ..add(GetPicture(
-          PictureInfo(
-            from: "bika",
-            url: category.homeThumb.fileServer,
-            path: category.homeThumb.path,
-            pictureType: "category",
-          ),
-        )),
+      create:
+          (context) =>
+              PictureBloc()..add(
+                GetPicture(
+                  PictureInfo(
+                    from: "bika",
+                    url: category.homeThumb.fileServer,
+                    path: category.homeThumb.path,
+                    pictureType: "category",
+                  ),
+                ),
+              ),
       child: BlocBuilder<PictureBloc, PictureLoadState>(
         builder: (context, state) {
           if (category.homeThumb.path.isEmpty) {
@@ -116,15 +112,15 @@ class CategoryWidget extends StatelessWidget {
               return InkWell(
                 onTap: () {
                   context.read<PictureBloc>().add(
-                        GetPicture(
-                          PictureInfo(
-                            from: "bika",
-                            url: category.homeThumb.fileServer,
-                            path: category.homeThumb.path,
-                            pictureType: "category",
-                          ),
-                        ),
-                      );
+                    GetPicture(
+                      PictureInfo(
+                        from: "bika",
+                        url: category.homeThumb.fileServer,
+                        path: category.homeThumb.path,
+                        pictureType: "category",
+                      ),
+                    ),
+                  );
                 },
                 child: Icon(Icons.refresh),
               );
@@ -166,10 +162,7 @@ class CategoryWidget extends StatelessWidget {
             builder: (context) {
               return Text(
                 category.title,
-                style: TextStyle(
-                  color: globalSetting.textColor,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: globalSetting.textColor, fontSize: 14),
               );
             },
           ),

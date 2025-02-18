@@ -1,10 +1,7 @@
 import '../../../object_box/model.dart';
 import '../../comic_info/json/comic_info/comic_info.dart';
 
-BikaComicHistory comicToBikaComicHistory(
-  Comic comic,
-  int order,
-) {
+BikaComicHistory comicToBikaComicHistory(Comic comic, int order) {
   String creatorCharactersString = "";
   for (var character in comic.creator.characters) {
     creatorCharactersString += character;

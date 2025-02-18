@@ -19,40 +19,26 @@ EventTransformer<E> throttleDroppable<E>(Duration duration) {
 
 class PageBloc extends Bloc<GetPage, PageState> {
   PageBloc() : super(PageState()) {
-    on<GetPage>(
-      _fetchPages,
-      transformer: throttleDroppable(throttleDuration),
-    );
+    on<GetPage>(_fetchPages, transformer: throttleDroppable(throttleDuration));
   }
 
   int epPages = 0;
 
-  Future<void> _fetchPages(
-    GetPage event,
-    Emitter<PageState> emit,
-  ) async {
-    emit(
-      state.copyWith(
-        status: PageStatus.initial,
-      ),
-    );
+  Future<void> _fetchPages(GetPage event, Emitter<PageState> emit) async {
+    emit(state.copyWith(status: PageStatus.initial));
 
     try {
       final result = await _fetchMedia(event.comicId, event.epsId);
 
       emit(
         state.copyWith(
-            status: PageStatus.success,
-            medias: result,
-            result: epPages.toString()),
-      );
-    } catch (e) {
-      emit(
-        state.copyWith(
-          status: PageStatus.failure,
-          result: e.toString(),
+          status: PageStatus.success,
+          medias: result,
+          result: epPages.toString(),
         ),
       );
+    } catch (e) {
+      emit(state.copyWith(status: PageStatus.failure, result: e.toString()));
     }
   }
 

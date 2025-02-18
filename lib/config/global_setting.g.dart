@@ -9,8 +9,10 @@ part of 'global_setting.dart';
 // ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic, no_leading_underscores_for_local_identifiers
 
 mixin _$GlobalSetting on _GlobalSetting, Store {
-  late final _$dynamicColorAtom =
-      Atom(name: '_GlobalSetting.dynamicColor', context: context);
+  late final _$dynamicColorAtom = Atom(
+    name: '_GlobalSetting.dynamicColor',
+    context: context,
+  );
 
   @override
   bool get dynamicColor {
@@ -25,8 +27,10 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
-  late final _$themeModeAtom =
-      Atom(name: '_GlobalSetting.themeMode', context: context);
+  late final _$themeModeAtom = Atom(
+    name: '_GlobalSetting.themeMode',
+    context: context,
+  );
 
   @override
   ThemeMode get themeMode {
@@ -41,8 +45,10 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
-  late final _$themeTypeAtom =
-      Atom(name: '_GlobalSetting.themeType', context: context);
+  late final _$themeTypeAtom = Atom(
+    name: '_GlobalSetting.themeType',
+    context: context,
+  );
 
   @override
   bool get themeType {
@@ -57,8 +63,10 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
-  late final _$isAMOLEDAtom =
-      Atom(name: '_GlobalSetting.isAMOLED', context: context);
+  late final _$isAMOLEDAtom = Atom(
+    name: '_GlobalSetting.isAMOLED',
+    context: context,
+  );
 
   @override
   bool get isAMOLED {
@@ -73,8 +81,10 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
-  late final _$seedColorAtom =
-      Atom(name: '_GlobalSetting.seedColor', context: context);
+  late final _$seedColorAtom = Atom(
+    name: '_GlobalSetting.seedColor',
+    context: context,
+  );
 
   @override
   Color get seedColor {
@@ -89,8 +99,10 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
-  late final _$backgroundColorAtom =
-      Atom(name: '_GlobalSetting.backgroundColor', context: context);
+  late final _$backgroundColorAtom = Atom(
+    name: '_GlobalSetting.backgroundColor',
+    context: context,
+  );
 
   @override
   Color get backgroundColor {
@@ -105,8 +117,10 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
-  late final _$textColorAtom =
-      Atom(name: '_GlobalSetting.textColor', context: context);
+  late final _$textColorAtom = Atom(
+    name: '_GlobalSetting.textColor',
+    context: context,
+  );
 
   @override
   Color get textColor {
@@ -121,8 +135,10 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
-  late final _$themeInitStateAtom =
-      Atom(name: '_GlobalSetting.themeInitState', context: context);
+  late final _$themeInitStateAtom = Atom(
+    name: '_GlobalSetting.themeInitState',
+    context: context,
+  );
 
   @override
   int get themeInitState {
@@ -137,8 +153,10 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
-  late final _$localeAtom =
-      Atom(name: '_GlobalSetting.locale', context: context);
+  late final _$localeAtom = Atom(
+    name: '_GlobalSetting.locale',
+    context: context,
+  );
 
   @override
   dynamic get locale {
@@ -153,8 +171,10 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
-  late final _$welcomePageNumAtom =
-      Atom(name: '_GlobalSetting.welcomePageNum', context: context);
+  late final _$welcomePageNumAtom = Atom(
+    name: '_GlobalSetting.welcomePageNum',
+    context: context,
+  );
 
   @override
   int get welcomePageNum {
@@ -169,8 +189,10 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
-  late final _$webdavHostAtom =
-      Atom(name: '_GlobalSetting.webdavHost', context: context);
+  late final _$webdavHostAtom = Atom(
+    name: '_GlobalSetting.webdavHost',
+    context: context,
+  );
 
   @override
   String get webdavHost {
@@ -185,8 +207,10 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
-  late final _$webdavUsernameAtom =
-      Atom(name: '_GlobalSetting.webdavUsername', context: context);
+  late final _$webdavUsernameAtom = Atom(
+    name: '_GlobalSetting.webdavUsername',
+    context: context,
+  );
 
   @override
   String get webdavUsername {
@@ -201,8 +225,10 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
-  late final _$webdavPasswordAtom =
-      Atom(name: '_GlobalSetting.webdavPassword', context: context);
+  late final _$webdavPasswordAtom = Atom(
+    name: '_GlobalSetting.webdavPassword',
+    context: context,
+  );
 
   @override
   String get webdavPassword {
@@ -217,8 +243,10 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
-  late final _$autoSyncAtom =
-      Atom(name: '_GlobalSetting.autoSync', context: context);
+  late final _$autoSyncAtom = Atom(
+    name: '_GlobalSetting.autoSync',
+    context: context,
+  );
 
   @override
   bool get autoSync {
@@ -233,8 +261,10 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
-  late final _$syncNotifyAtom =
-      Atom(name: '_GlobalSetting.syncNotify', context: context);
+  late final _$syncNotifyAtom = Atom(
+    name: '_GlobalSetting.syncNotify',
+    context: context,
+  );
 
   @override
   bool get syncNotify {
@@ -264,13 +294,16 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
-  late final _$_GlobalSettingActionController =
-      ActionController(name: '_GlobalSetting', context: context);
+  late final _$_GlobalSettingActionController = ActionController(
+    name: '_GlobalSetting',
+    context: context,
+  );
 
   @override
   bool getDynamicColor() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getDynamicColor');
+      name: '_GlobalSetting.getDynamicColor',
+    );
     try {
       return super.getDynamicColor();
     } finally {
@@ -281,7 +314,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void setDynamicColor(bool value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setDynamicColor');
+      name: '_GlobalSetting.setDynamicColor',
+    );
     try {
       return super.setDynamicColor(value);
     } finally {
@@ -292,7 +326,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void deleteDynamicColor() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteDynamicColor');
+      name: '_GlobalSetting.deleteDynamicColor',
+    );
     try {
       return super.deleteDynamicColor();
     } finally {
@@ -303,7 +338,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   ThemeMode getThemeMode() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getThemeMode');
+      name: '_GlobalSetting.getThemeMode',
+    );
     try {
       return super.getThemeMode();
     } finally {
@@ -314,7 +350,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void setThemeMode(int value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setThemeMode');
+      name: '_GlobalSetting.setThemeMode',
+    );
     try {
       return super.setThemeMode(value);
     } finally {
@@ -325,7 +362,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void deleteThemeMode() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteThemeMode');
+      name: '_GlobalSetting.deleteThemeMode',
+    );
     try {
       return super.deleteThemeMode();
     } finally {
@@ -336,7 +374,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   bool getThemeType() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getThemeType');
+      name: '_GlobalSetting.getThemeType',
+    );
     try {
       return super.getThemeType();
     } finally {
@@ -347,7 +386,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void setThemeType(bool value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setThemeType');
+      name: '_GlobalSetting.setThemeType',
+    );
     try {
       return super.setThemeType(value);
     } finally {
@@ -358,7 +398,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void deleteThemeType() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteThemeType');
+      name: '_GlobalSetting.deleteThemeType',
+    );
     try {
       return super.deleteThemeType();
     } finally {
@@ -369,7 +410,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   bool getIsAMOLED() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getIsAMOLED');
+      name: '_GlobalSetting.getIsAMOLED',
+    );
     try {
       return super.getIsAMOLED();
     } finally {
@@ -380,7 +422,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void setIsAMOLED(bool value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setIsAMOLED');
+      name: '_GlobalSetting.setIsAMOLED',
+    );
     try {
       return super.setIsAMOLED(value);
     } finally {
@@ -391,7 +434,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void deleteIsAMOLED() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteIsAMOLED');
+      name: '_GlobalSetting.deleteIsAMOLED',
+    );
     try {
       return super.deleteIsAMOLED();
     } finally {
@@ -402,7 +446,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   Color getSeedColor() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getSeedColor');
+      name: '_GlobalSetting.getSeedColor',
+    );
     try {
       return super.getSeedColor();
     } finally {
@@ -413,7 +458,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void setSeedColor(Color value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setSeedColor');
+      name: '_GlobalSetting.setSeedColor',
+    );
     try {
       return super.setSeedColor(value);
     } finally {
@@ -424,7 +470,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void deleteSeedColor() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteSeedColor');
+      name: '_GlobalSetting.deleteSeedColor',
+    );
     try {
       return super.deleteSeedColor();
     } finally {
@@ -435,7 +482,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   Color getBackgroundColor() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getBackgroundColor');
+      name: '_GlobalSetting.getBackgroundColor',
+    );
     try {
       return super.getBackgroundColor();
     } finally {
@@ -446,7 +494,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void setBackgroundColor(Color value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setBackgroundColor');
+      name: '_GlobalSetting.setBackgroundColor',
+    );
     try {
       return super.setBackgroundColor(value);
     } finally {
@@ -457,7 +506,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void deleteBackgroundColor() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteBackgroundColor');
+      name: '_GlobalSetting.deleteBackgroundColor',
+    );
     try {
       return super.deleteBackgroundColor();
     } finally {
@@ -468,7 +518,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   Color getTextColor() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getTextColor');
+      name: '_GlobalSetting.getTextColor',
+    );
     try {
       return super.getTextColor();
     } finally {
@@ -479,7 +530,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void setTextColor(Color value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setTextColor');
+      name: '_GlobalSetting.setTextColor',
+    );
     try {
       return super.setTextColor(value);
     } finally {
@@ -490,7 +542,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void deleteTextColor() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteTextColor');
+      name: '_GlobalSetting.deleteTextColor',
+    );
     try {
       return super.deleteTextColor();
     } finally {
@@ -501,7 +554,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   int getThemeInitState() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getThemeInitState');
+      name: '_GlobalSetting.getThemeInitState',
+    );
     try {
       return super.getThemeInitState();
     } finally {
@@ -512,7 +566,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void setThemeInitState(int value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setThemeInitState');
+      name: '_GlobalSetting.setThemeInitState',
+    );
     try {
       return super.setThemeInitState(value);
     } finally {
@@ -523,7 +578,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void deleteThemeInitState() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteThemeInitState');
+      name: '_GlobalSetting.deleteThemeInitState',
+    );
     try {
       return super.deleteThemeInitState();
     } finally {
@@ -534,7 +590,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   dynamic getLocale() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getLocale');
+      name: '_GlobalSetting.getLocale',
+    );
     try {
       return super.getLocale();
     } finally {
@@ -545,7 +602,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void setLocale(dynamic value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setLocale');
+      name: '_GlobalSetting.setLocale',
+    );
     try {
       return super.setLocale(value);
     } finally {
@@ -556,7 +614,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void deleteLocale() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteLocale');
+      name: '_GlobalSetting.deleteLocale',
+    );
     try {
       return super.deleteLocale();
     } finally {
@@ -567,7 +626,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   int getWelcomePageNum() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getWelcomePageNum');
+      name: '_GlobalSetting.getWelcomePageNum',
+    );
     try {
       return super.getWelcomePageNum();
     } finally {
@@ -578,7 +638,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void setWelcomePageNum(int value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setWelcomePageNum');
+      name: '_GlobalSetting.setWelcomePageNum',
+    );
     try {
       return super.setWelcomePageNum(value);
     } finally {
@@ -589,7 +650,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void deleteWelcomePageNum() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteWelcomePageNum');
+      name: '_GlobalSetting.deleteWelcomePageNum',
+    );
     try {
       return super.deleteWelcomePageNum();
     } finally {
@@ -600,7 +662,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   String getWebdavHost() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getWebdavHost');
+      name: '_GlobalSetting.getWebdavHost',
+    );
     try {
       return super.getWebdavHost();
     } finally {
@@ -611,7 +674,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void setWebdavHost(String value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setWebdavHost');
+      name: '_GlobalSetting.setWebdavHost',
+    );
     try {
       return super.setWebdavHost(value);
     } finally {
@@ -622,7 +686,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void deleteWebdavHost() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteWebdavHost');
+      name: '_GlobalSetting.deleteWebdavHost',
+    );
     try {
       return super.deleteWebdavHost();
     } finally {
@@ -633,7 +698,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   String getWebdavUsername() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getWebdavUsername');
+      name: '_GlobalSetting.getWebdavUsername',
+    );
     try {
       return super.getWebdavUsername();
     } finally {
@@ -644,7 +710,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void setWebdavUsername(String value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setWebdavUsername');
+      name: '_GlobalSetting.setWebdavUsername',
+    );
     try {
       return super.setWebdavUsername(value);
     } finally {
@@ -655,7 +722,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void deleteWebdavUsername() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteWebdavUsername');
+      name: '_GlobalSetting.deleteWebdavUsername',
+    );
     try {
       return super.deleteWebdavUsername();
     } finally {
@@ -666,7 +734,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   String getWebdavPassword() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getWebdavPassword');
+      name: '_GlobalSetting.getWebdavPassword',
+    );
     try {
       return super.getWebdavPassword();
     } finally {
@@ -677,7 +746,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void setWebdavPassword(String value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setWebdavPassword');
+      name: '_GlobalSetting.setWebdavPassword',
+    );
     try {
       return super.setWebdavPassword(value);
     } finally {
@@ -688,7 +758,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void deleteWebdavPassword() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteWebdavPassword');
+      name: '_GlobalSetting.deleteWebdavPassword',
+    );
     try {
       return super.deleteWebdavPassword();
     } finally {
@@ -699,7 +770,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   bool getAutoSync() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getAutoSync');
+      name: '_GlobalSetting.getAutoSync',
+    );
     try {
       return super.getAutoSync();
     } finally {
@@ -710,7 +782,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void setAutoSync(bool value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setAutoSync');
+      name: '_GlobalSetting.setAutoSync',
+    );
     try {
       return super.setAutoSync(value);
     } finally {
@@ -721,7 +794,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void deleteAutoSync() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteAutoSync');
+      name: '_GlobalSetting.deleteAutoSync',
+    );
     try {
       return super.deleteAutoSync();
     } finally {
@@ -732,7 +806,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void setSyncNotify(bool value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setSyncNotify');
+      name: '_GlobalSetting.setSyncNotify',
+    );
     try {
       return super.setSyncNotify(value);
     } finally {
@@ -743,7 +818,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   bool getSyncNotify() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getSyncNotify');
+      name: '_GlobalSetting.getSyncNotify',
+    );
     try {
       return super.getSyncNotify();
     } finally {
@@ -754,7 +830,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void deleteSyncNotify() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteSyncNotify');
+      name: '_GlobalSetting.deleteSyncNotify',
+    );
     try {
       return super.deleteSyncNotify();
     } finally {
@@ -765,7 +842,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void setShade(bool value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.setShade');
+      name: '_GlobalSetting.setShade',
+    );
     try {
       return super.setShade(value);
     } finally {
@@ -776,7 +854,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   bool getShade() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.getShade');
+      name: '_GlobalSetting.getShade',
+    );
     try {
       return super.getShade();
     } finally {
@@ -787,7 +866,8 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   @override
   void deleteShade() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
-        name: '_GlobalSetting.deleteShade');
+      name: '_GlobalSetting.deleteShade',
+    );
     try {
       return super.deleteShade();
     } finally {

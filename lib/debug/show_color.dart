@@ -11,9 +11,7 @@ class ShowColorPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final primary = Colors.blue[400]!;
     // 使用种子颜色创建颜色方案
-    final lightColorScheme = ColorScheme.fromSeed(
-      seedColor: primary,
-    );
+    final lightColorScheme = ColorScheme.fromSeed(seedColor: primary);
     final darkColorScheme = ColorScheme.fromSeed(
       seedColor: primary,
       brightness: Brightness.dark,
@@ -80,9 +78,7 @@ class ShowColorPage extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Color Showcase'),
-      ),
+      appBar: AppBar(title: const Text('Color Showcase')),
       body: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3, // 每行显示 3 个颜色块

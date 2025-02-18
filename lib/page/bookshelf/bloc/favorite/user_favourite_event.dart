@@ -9,11 +9,7 @@ class UserFavouriteEvent extends UserFavorite {
   final int pageCount;
   final String refresh;
 
-  const UserFavouriteEvent(
-    this.status,
-    this.pageCount,
-    this.refresh,
-  );
+  const UserFavouriteEvent(this.status, this.pageCount, this.refresh);
 
   @override
   List<Object> get props => [status, pageCount, refresh];

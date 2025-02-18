@@ -49,27 +49,28 @@ class _EpsWidgetState extends State<EpsWidget> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => GetComicEpsBloc()..add(GetComicEps(comicInfo)),
-      child: type == ComicEntryType.download
-          ? buildEpsList(null)
-          : BlocBuilder<GetComicEpsBloc, GetComicEpsState>(
-              builder: (context, state) {
-                switch (state.status) {
-                  case GetComicEpsStatus.initial:
-                    return Center(child: CircularProgressIndicator());
-                  case GetComicEpsStatus.failure:
-                    return ErrorView(
-                      errorMessage: '加载失败，请重试。',
-                      onRetry: () {
-                        context
-                            .read<GetComicEpsBloc>()
-                            .add(GetComicEps(comicInfo));
-                      },
-                    );
-                  case GetComicEpsStatus.success:
-                    return buildEpsList(state);
-                }
-              },
-            ),
+      child:
+          type == ComicEntryType.download
+              ? buildEpsList(null)
+              : BlocBuilder<GetComicEpsBloc, GetComicEpsState>(
+                builder: (context, state) {
+                  switch (state.status) {
+                    case GetComicEpsStatus.initial:
+                      return Center(child: CircularProgressIndicator());
+                    case GetComicEpsStatus.failure:
+                      return ErrorView(
+                        errorMessage: '加载失败，请重试。',
+                        onRetry: () {
+                          context.read<GetComicEpsBloc>().add(
+                            GetComicEps(comicInfo),
+                          );
+                        },
+                      );
+                    case GetComicEpsStatus.success:
+                      return buildEpsList(state);
+                  }
+                },
+              ),
     );
   }
 
@@ -105,9 +106,10 @@ class _EpsWidgetState extends State<EpsWidget> {
               comicInfo: comicInfo,
               epsInfo: docs,
               isHistory: true,
-              type: type == ComicEntryType.download
-                  ? ComicEntryType.historyAndDownload
-                  : ComicEntryType.history,
+              type:
+                  type == ComicEntryType.download
+                      ? ComicEntryType.historyAndDownload
+                      : ComicEntryType.history,
             ),
           );
         }
@@ -197,18 +199,16 @@ class EpButtonWidget extends StatelessWidget {
                           : timeDecode(doc.updatedAt),
                       style: TextStyle(fontSize: 14, color: Colors.grey),
                     ),
-                    Expanded(
-                      child: Container(),
-                    ),
+                    Expanded(child: Container()),
                     doc.id == 'history'
                         ? Text("观看历史", style: TextStyle(fontSize: 14))
                         : Text(
-                            "number : ${doc.order.toString()}",
-                            style: TextStyle(
-                              fontFamily: "Pacifico-Regular",
-                              fontSize: 14,
-                            ),
+                          "number : ${doc.order.toString()}",
+                          style: TextStyle(
+                            fontFamily: "Pacifico-Regular",
+                            fontSize: 14,
                           ),
+                        ),
                   ],
                 ),
               ],

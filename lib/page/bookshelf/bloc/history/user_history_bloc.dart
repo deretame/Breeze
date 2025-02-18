@@ -58,25 +58,28 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
 
       if (event.searchEnterConst.categories.isNotEmpty) {
         for (var category in event.searchEnterConst.categories) {
-          comicList = comicList
-              .where((comic) => comic.categories.contains(category))
-              .toList();
+          comicList =
+              comicList
+                  .where((comic) => comic.categories.contains(category))
+                  .toList();
         }
       }
 
       if (event.searchEnterConst.keyword.isNotEmpty) {
         final keyword = event.searchEnterConst.keyword.toLowerCase();
 
-        comicList = comicList.where((comic) {
-          var allString = comic.title +
-              comic.author +
-              comic.chineseTeam +
-              comic.categoriesString +
-              comic.tagsString +
-              comic.description +
-              comic.creatorName;
-          return allString.toLowerCase().contains(keyword);
-        }).toList();
+        comicList =
+            comicList.where((comic) {
+              var allString =
+                  comic.title +
+                  comic.author +
+                  comic.chineseTeam +
+                  comic.categoriesString +
+                  comic.tagsString +
+                  comic.description +
+                  comic.creatorName;
+              return allString.toLowerCase().contains(keyword);
+            }).toList();
       }
 
       comicList = comicList.where((comic) => comic.deleted == false).toList();
@@ -123,16 +126,18 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
 
   List<BikaComicHistory> _filterShieldedComics(List<BikaComicHistory> comics) {
     // 获取所有被屏蔽的分类
-    List<String> shieldedCategoriesList = bikaSetting.shieldCategoryMap.entries
-        .where((entry) => entry.value) // 只选择值为 true 的条目
-        .map((entry) => entry.key) // 提取键（分类名）
-        .toList();
+    List<String> shieldedCategoriesList =
+        bikaSetting.shieldCategoryMap.entries
+            .where((entry) => entry.value) // 只选择值为 true 的条目
+            .map((entry) => entry.key) // 提取键（分类名）
+            .toList();
 
     // 过滤掉包含屏蔽分类的漫画
     return comics.where((comic) {
       // 检查该漫画的分类是否与屏蔽分类列表中的任何分类匹配
-      return !comic.categories
-          .any((category) => shieldedCategoriesList.contains(category));
+      return !comic.categories.any(
+        (category) => shieldedCategoriesList.contains(category),
+      );
     }).toList();
   }
 }

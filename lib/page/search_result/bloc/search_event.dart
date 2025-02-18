@@ -8,10 +8,7 @@ class FetchSearchResult extends SearchEvent {
   final SearchEnterConst searchEnterConst;
   final SearchStatus searchStatus;
 
-  const FetchSearchResult(
-    this.searchEnterConst,
-    this.searchStatus,
-  );
+  const FetchSearchResult(this.searchEnterConst, this.searchStatus);
 
   @override
   List<Object> get props => [searchEnterConst];

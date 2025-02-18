@@ -7,7 +7,6 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:toastification/toastification.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/page/ranking_list/ranking_list.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -34,11 +33,10 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  late final bikaSetting = BikaSetting();
-
   // PersistentTabController 用于控制底部导航栏
-  final PersistentTabController _controller =
-      PersistentTabController(initialIndex: 0);
+  final PersistentTabController _controller = PersistentTabController(
+    initialIndex: 0,
+  );
 
   StreamSubscription<NoticeSync>? _subscription;
 
@@ -95,32 +93,33 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Observer(builder: (context) {
-      debugPrint("surfaceBright = ${materialColorScheme.surfaceBright}");
-      return PersistentTabView(
-        context,
-        controller: _controller,
-        // 页面列表
-        screens: _pageList,
-        // 导航栏项
-        items: _navBarItems(),
-        // 导航栏背景颜色
-        backgroundColor: globalSetting.backgroundColor,
-        // 处理 Android 返回按钮
-        handleAndroidBackButtonPress: true,
-        // 调整布局以避免键盘遮挡
-        resizeToAvoidBottomInset: false,
-        // 避免在键盘弹出时隐藏导航栏
-        hideNavigationBarWhenKeyboardAppears: false,
-        // 保持页面状态
-        stateManagement: true,
-        // decoration: NavBarDecoration(
-        //   // borderRadius: BorderRadius.circular(10.0), // 导航栏圆角
-        //   colorBehindNavBar: globalSetting.backgroundColor, // 导航栏后面的颜色
-        // ),
-        navBarStyle: NavBarStyle.style3, // 导航栏样式
-      );
-    });
+    return Observer(
+      builder: (context) {
+        return PersistentTabView(
+          context,
+          controller: _controller,
+          // 页面列表
+          screens: _pageList,
+          // 导航栏项
+          items: _navBarItems(),
+          // 导航栏背景颜色
+          backgroundColor: globalSetting.backgroundColor,
+          // 处理 Android 返回按钮
+          handleAndroidBackButtonPress: true,
+          // 调整布局以避免键盘遮挡
+          resizeToAvoidBottomInset: false,
+          // 避免在键盘弹出时隐藏导航栏
+          hideNavigationBarWhenKeyboardAppears: false,
+          // 保持页面状态
+          stateManagement: true,
+          // decoration: NavBarDecoration(
+          //   // borderRadius: BorderRadius.circular(10.0), // 导航栏圆角
+          //   colorBehindNavBar: globalSetting.backgroundColor, // 导航栏后面的颜色
+          // ),
+          navBarStyle: NavBarStyle.style3, // 导航栏样式
+        );
+      },
+    );
   }
 
   // 添加遮罩层
@@ -128,18 +127,20 @@ class _MainPageState extends State<MainPage> {
     _overlayEntry = OverlayEntry(
       builder: (context) {
         return Observer(
-          builder: (context) => Positioned.fill(
-            child: IgnorePointer(
-              ignoring: true, // 不拦截触控事件
-              child: Container(
-                color: globalSetting.shade
-                    ? !globalSetting.themeType
-                        ? Colors.black.withValues(alpha: 0.5)
-                        : Colors.transparent
-                    : Colors.transparent,
+          builder:
+              (context) => Positioned.fill(
+                child: IgnorePointer(
+                  ignoring: true, // 不拦截触控事件
+                  child: Container(
+                    color:
+                        globalSetting.shade
+                            ? !globalSetting.themeType
+                                ? Colors.black.withValues(alpha: 0.5)
+                                : Colors.transparent
+                            : Colors.transparent,
+                  ),
+                ),
               ),
-            ),
-          ),
         );
       },
     );
@@ -212,11 +213,7 @@ class _MainPageState extends State<MainPage> {
     } catch (e) {
       debugPrint(e.toString());
       if (!mounted) return;
-      commonDialog(
-        context,
-        "自动同步失败",
-        "请检查网络连接或稍后再试。\n${e.toString()}",
-      );
+      commonDialog(context, "自动同步失败", "请检查网络连接或稍后再试。\n${e.toString()}");
     }
   }
 
@@ -241,9 +238,7 @@ class _MainPageState extends State<MainPage> {
             content: SingleChildScrollView(
               child: SizedBox(
                 width: double.maxFinite, // 设置最大宽度
-                child: MarkdownBody(
-                  data: '# $cloudVersion\n$releaseInfo',
-                ),
+                child: MarkdownBody(data: '# $cloudVersion\n$releaseInfo'),
               ),
             ),
             actions: [
@@ -269,8 +264,9 @@ class _MainPageState extends State<MainPage> {
                 onPressed: () async {
                   Navigator.of(context).pop();
                   for (var apkUrl in temp.assets) {
-                    if (apkUrl.browserDownloadUrl
-                        .contains("app-arm64-v8a-release.apk")) {
+                    if (apkUrl.browserDownloadUrl.contains(
+                      "app-arm64-v8a-release.apk",
+                    )) {
                       await installApk(apkUrl.browserDownloadUrl);
                     }
                   }

@@ -43,10 +43,10 @@ class SearchEnter {
 
   // 添加一个从 SearchEnterConst 的构造函数
   SearchEnter.fromConst(SearchEnterConst searchEnterConst)
-      : keyword = searchEnterConst.keyword,
-        sort = searchEnterConst.sort,
-        categories = searchEnterConst.categories,
-        refresh = searchEnterConst.refresh;
+    : keyword = searchEnterConst.keyword,
+      sort = searchEnterConst.sort,
+      categories = searchEnterConst.categories,
+      refresh = searchEnterConst.refresh;
 }
 
 class SearchEnterConst extends Equatable {
@@ -67,8 +67,8 @@ class SearchEnterConst extends Equatable {
 
   // 添加一个从 SearchEnter 的构造函数
   SearchEnterConst.from(SearchEnter searchEnter)
-      : keyword = searchEnter.keyword,
-        sort = searchEnter.sort,
-        categories = searchEnter.categories,
-        refresh = searchEnter.refresh;
+    : keyword = searchEnter.keyword,
+      sort = searchEnter.sort,
+      categories = searchEnter.categories,
+      refresh = searchEnter.refresh;
 }

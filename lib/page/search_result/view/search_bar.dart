@@ -8,9 +8,7 @@ import '../bloc/search_bloc.dart';
 import '../method/search_enter_provider.dart';
 
 class BikaSearchBar extends StatelessWidget implements PreferredSizeWidget {
-  const BikaSearchBar({
-    super.key,
-  });
+  const BikaSearchBar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -51,19 +49,19 @@ class BikaSearchBar extends StatelessWidget implements PreferredSizeWidget {
         textInputAction: TextInputAction.search,
         onFieldSubmitted: (value) {
           context.read<SearchBloc>().add(
-                FetchSearchResult(
-                  SearchEnterConst(
-                    url: searchEnter.url,
-                    from: searchEnter.from,
-                    keyword: value,
-                    type: searchEnter.type,
-                    sort: searchEnter.sort,
-                    categories: searchEnter.categories,
-                    pageCount: 1,
-                  ),
-                  SearchStatus.initial,
-                ),
-              );
+            FetchSearchResult(
+              SearchEnterConst(
+                url: searchEnter.url,
+                from: searchEnter.from,
+                keyword: value,
+                type: searchEnter.type,
+                sort: searchEnter.sort,
+                categories: searchEnter.categories,
+                pageCount: 1,
+              ),
+              SearchStatus.initial,
+            ),
+          );
         },
       ),
     );

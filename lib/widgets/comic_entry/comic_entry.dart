@@ -16,12 +16,7 @@ import '../picture_bloc/bloc/picture_bloc.dart';
 import '../picture_bloc/models/picture_info.dart';
 import 'comic_entry_info.dart';
 
-enum ComicEntryType {
-  normal,
-  history,
-  download,
-  historyAndDownload,
-}
+enum ComicEntryType { normal, history, download, historyAndDownload }
 
 class ComicEntryWidget extends StatefulWidget {
   final ComicEntryInfo comicEntryInfo;
@@ -72,10 +67,7 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
     return GestureDetector(
       onTap: () {
         // 跳转到漫画详情页
-        router.push(ComicInfoRoute(
-          comicId: comicEntryInfo.id,
-          type: _type,
-        ));
+        router.push(ComicInfoRoute(comicId: comicEntryInfo.id, type: _type));
       },
       onLongPress: () {
         if (_type == ComicEntryType.normal ||
@@ -87,102 +79,101 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
       child: Column(
         children: <Widget>[
           SizedBox(height: (screenHeight / 10) * 0.1),
-          Observer(builder: (context) {
-            return Container(
-              height: 180,
-              width: ((screenWidth / 10) * 9.5),
-              margin:
-                  EdgeInsets.symmetric(horizontal: (screenWidth / 10) * 0.25),
-              decoration: BoxDecoration(
-                color: globalSetting.backgroundColor,
-                borderRadius: BorderRadius.circular(10.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: materialColorScheme.secondaryFixedDim,
-                    spreadRadius: 0,
-                    blurRadius: 2,
-                    offset: const Offset(0, 0),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: <Widget>[
-                  Builder(
-                    builder: (BuildContext context) {
-                      return ImageWidget(
-                        key: ValueKey(comicEntryInfo.id),
-                        fileServer: comicEntryInfo.thumb.fileServer,
-                        path: comicEntryInfo.thumb.path,
-                        id: comicEntryInfo.id,
-                        pictureType: "cover",
-                      );
-                    },
-                  ),
-                  SizedBox(width: screenWidth / 60),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        SizedBox(height: screenWidth / 200),
-                        Text(
-                          comicEntryInfo.title,
-                          style: TextStyle(
-                            color: globalSetting.textColor,
-                            fontSize: 18,
-                          ),
-                          maxLines: 3, // 最大行数
-                          overflow: TextOverflow.ellipsis, // 超出时使用省略号
-                        ),
-                        if (comicEntryInfo.author.toString() != '') ...[
-                          const SizedBox(height: 4),
+          Observer(
+            builder: (context) {
+              return Container(
+                height: 180,
+                width: ((screenWidth / 10) * 9.5),
+                margin: EdgeInsets.symmetric(
+                  horizontal: (screenWidth / 10) * 0.25,
+                ),
+                decoration: BoxDecoration(
+                  color: globalSetting.backgroundColor,
+                  borderRadius: BorderRadius.circular(10.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: materialColorScheme.secondaryFixedDim,
+                      spreadRadius: 0,
+                      blurRadius: 2,
+                      offset: const Offset(0, 0),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: <Widget>[
+                    Builder(
+                      builder: (BuildContext context) {
+                        return ImageWidget(
+                          key: ValueKey(comicEntryInfo.id),
+                          fileServer: comicEntryInfo.thumb.fileServer,
+                          path: comicEntryInfo.thumb.path,
+                          id: comicEntryInfo.id,
+                          pictureType: "cover",
+                        );
+                      },
+                    ),
+                    SizedBox(width: screenWidth / 60),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          SizedBox(height: screenWidth / 200),
                           Text(
-                            comicEntryInfo.author.toString(),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
+                            comicEntryInfo.title,
                             style: TextStyle(
-                              color: materialColorScheme.primary,
+                              color: globalSetting.textColor,
+                              fontSize: 18,
                             ),
+                            maxLines: 3, // 最大行数
+                            overflow: TextOverflow.ellipsis, // 超出时使用省略号
                           ),
-                        ],
-                        const SizedBox(height: 5),
-                        Text(
-                          _getCategories(comicEntryInfo.categories),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 2,
-                          style: TextStyle(
-                            color: globalSetting.textColor,
-                          ),
-                        ),
-                        Spacer(),
-                        Row(
-                          children: <Widget>[
-                            const Icon(
-                              Icons.favorite,
-                              color: Colors.red,
-                              size: 24.0,
-                            ),
-                            const SizedBox(width: 10.0),
+                          if (comicEntryInfo.author.toString() != '') ...[
+                            const SizedBox(height: 4),
                             Text(
-                              comicEntryInfo.likesCount.toString(),
-                            ),
-                            SizedBox(width: 10.0),
-                            Text(
-                              comicEntryInfo.finished ? "完结" : "",
+                              comicEntryInfo.author.toString(),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                               style: TextStyle(
-                                color: materialColorScheme.tertiary,
+                                color: materialColorScheme.primary,
                               ),
                             ),
                           ],
-                        ),
-                        SizedBox(height: screenWidth / 200),
-                      ],
+                          const SizedBox(height: 5),
+                          Text(
+                            _getCategories(comicEntryInfo.categories),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
+                            style: TextStyle(color: globalSetting.textColor),
+                          ),
+                          Spacer(),
+                          Row(
+                            children: <Widget>[
+                              const Icon(
+                                Icons.favorite,
+                                color: Colors.red,
+                                size: 24.0,
+                              ),
+                              const SizedBox(width: 10.0),
+                              Text(comicEntryInfo.likesCount.toString()),
+                              SizedBox(width: 10.0),
+                              Text(
+                                comicEntryInfo.finished ? "完结" : "",
+                                style: TextStyle(
+                                  color: materialColorScheme.tertiary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: screenWidth / 200),
+                        ],
+                      ),
                     ),
-                  ),
-                  SizedBox(width: screenWidth / 50),
-                ],
-              ),
-            );
-          })
+                    SizedBox(width: screenWidth / 50),
+                  ],
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -220,11 +211,13 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
               child: Text("确定"),
               onPressed: () {
                 if (_type == ComicEntryType.history) {
-                  var temp = objectbox.bikaHistoryBox
-                      .query(
-                          BikaComicHistory_.comicId.equals(comicEntryInfo.id))
-                      .build()
-                      .findFirst();
+                  var temp =
+                      objectbox.bikaHistoryBox
+                          .query(
+                            BikaComicHistory_.comicId.equals(comicEntryInfo.id),
+                          )
+                          .build()
+                          .findFirst();
                   if (temp != null) {
                     temp.deleted = true;
                     temp.deletedAt = DateTime.now().toUtc();
@@ -233,11 +226,15 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                   }
                 }
                 if (_type == ComicEntryType.download) {
-                  var temp = objectbox.bikaDownloadBox
-                      .query(
-                          BikaComicDownload_.comicId.equals(comicEntryInfo.id))
-                      .build()
-                      .findFirst();
+                  var temp =
+                      objectbox.bikaDownloadBox
+                          .query(
+                            BikaComicDownload_.comicId.equals(
+                              comicEntryInfo.id,
+                            ),
+                          )
+                          .build()
+                          .findFirst();
                   if (temp != null) {
                     objectbox.bikaDownloadBox.remove(temp.id);
                     refresh!();
@@ -290,18 +287,19 @@ class ImageWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => PictureBloc()
-        ..add(
-          GetPicture(
-            PictureInfo(
-              from: "bika",
-              url: fileServer,
-              path: path,
-              cartoonId: id,
-              pictureType: pictureType,
-            ),
-          ),
-        ),
+      create:
+          (context) =>
+              PictureBloc()..add(
+                GetPicture(
+                  PictureInfo(
+                    from: "bika",
+                    url: fileServer,
+                    path: path,
+                    cartoonId: id,
+                    pictureType: pictureType,
+                  ),
+                ),
+              ),
       child: BlocBuilder<PictureBloc, PictureLoadState>(
         builder: (context, state) {
           switch (state.status) {
@@ -326,10 +324,11 @@ class ImageWidget extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => FullScreenImageView(
-                        imagePath: state.imagePath!,
-                        uuid: uuid,
-                      ),
+                      builder:
+                          (context) => FullScreenImageView(
+                            imagePath: state.imagePath!,
+                            uuid: uuid,
+                          ),
                     ),
                   );
                 },
@@ -361,23 +360,21 @@ class ImageWidget extends StatelessWidget {
                   child: InkWell(
                     onTap: () {
                       context.read<PictureBloc>().add(
-                            GetPicture(
-                              PictureInfo(
-                                from: "bika",
-                                url: fileServer,
-                                path: path,
-                                cartoonId: id,
-                                pictureType: pictureType,
-                              ),
-                            ),
-                          );
+                        GetPicture(
+                          PictureInfo(
+                            from: "bika",
+                            url: fileServer,
+                            path: path,
+                            cartoonId: id,
+                            pictureType: pictureType,
+                          ),
+                        ),
+                      );
                     },
                     child: Center(
                       child: Text(
                         '加载图片失败\n点击重新加载',
-                        style: TextStyle(
-                          color: globalSetting.textColor,
-                        ),
+                        style: TextStyle(color: globalSetting.textColor),
                       ),
                     ),
                   ),

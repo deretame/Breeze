@@ -38,9 +38,7 @@ class GlobalBIkaProfile {
 class GlobalBIkaData {
   final GlobalBIkaUser user;
 
-  GlobalBIkaData({
-    required this.user,
-  });
+  GlobalBIkaData({required this.user});
 }
 
 class GlobalBIkaUser {

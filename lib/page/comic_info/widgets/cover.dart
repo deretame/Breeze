@@ -13,10 +13,7 @@ import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 class Cover extends StatelessWidget {
   final PictureInfo pictureInfo;
 
-  const Cover({
-    super.key,
-    required this.pictureInfo,
-  });
+  const Cover({super.key, required this.pictureInfo});
 
   @override
   Widget build(BuildContext context) {
@@ -24,18 +21,19 @@ class Cover extends StatelessWidget {
       height: 180,
       width: (screenWidth / 10) * 3,
       child: BlocProvider(
-        create: (context) => PictureBloc()
-          ..add(
-            GetPicture(
-              PictureInfo(
-                from: "bika",
-                url: pictureInfo.url,
-                path: pictureInfo.path,
-                cartoonId: pictureInfo.cartoonId,
-                pictureType: pictureInfo.pictureType,
-              ),
-            ),
-          ),
+        create:
+            (context) =>
+                PictureBloc()..add(
+                  GetPicture(
+                    PictureInfo(
+                      from: "bika",
+                      url: pictureInfo.url,
+                      path: pictureInfo.path,
+                      cartoonId: pictureInfo.cartoonId,
+                      pictureType: pictureInfo.pictureType,
+                    ),
+                  ),
+                ),
         child: BlocBuilder<PictureBloc, PictureLoadState>(
           builder: (context, state) {
             switch (state.status) {
@@ -53,8 +51,10 @@ class Cover extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            FullScreenImageView(imagePath: state.imagePath!),
+                        builder:
+                            (context) => FullScreenImageView(
+                              imagePath: state.imagePath!,
+                            ),
                       ),
                     );
                   },
@@ -78,16 +78,16 @@ class Cover extends StatelessWidget {
                   return InkWell(
                     onTap: () {
                       context.read<PictureBloc>().add(
-                            GetPicture(
-                              PictureInfo(
-                                from: "bika",
-                                url: pictureInfo.url,
-                                path: pictureInfo.path,
-                                cartoonId: pictureInfo.cartoonId,
-                                pictureType: pictureInfo.pictureType,
-                              ),
-                            ),
-                          );
+                        GetPicture(
+                          PictureInfo(
+                            from: "bika",
+                            url: pictureInfo.url,
+                            path: pictureInfo.path,
+                            cartoonId: pictureInfo.cartoonId,
+                            pictureType: pictureInfo.pictureType,
+                          ),
+                        ),
+                      );
                     },
                     child: Icon(Icons.refresh),
                   );

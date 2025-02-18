@@ -106,9 +106,10 @@ class _CommentsWidgetState extends State<CommentsWidget>
                                 Text(
                                   "level:${userInfo.level} (${userInfo.title})",
                                   style: TextStyle(
-                                    color: globalSetting.themeType
-                                        ? materialColorScheme.tertiary
-                                        : materialColorScheme.tertiary,
+                                    color:
+                                        globalSetting.themeType
+                                            ? materialColorScheme.tertiary
+                                            : materialColorScheme.tertiary,
                                   ),
                                 ),
                                 SelectableText(
@@ -130,17 +131,16 @@ class _CommentsWidgetState extends State<CommentsWidget>
                             child: GestureDetector(
                               onTap: () {
                                 AutoRouter.of(context).push(
-                                  ComicInfoRoute(
-                                    comicId: commentInfo.comic.id,
-                                  ),
+                                  ComicInfoRoute(comicId: commentInfo.comic.id),
                                 );
                               },
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: materialColorScheme.onInverseSurface,
                                   // 背景颜色
-                                  borderRadius:
-                                      BorderRadius.circular(5.0), // 圆角
+                                  borderRadius: BorderRadius.circular(
+                                    5.0,
+                                  ), // 圆角
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(5),
@@ -176,15 +176,17 @@ class _CommentsWidgetState extends State<CommentsWidget>
                                 _likeComment(commentInfo.id);
                               },
                               child: Observer(
-                                builder: (context) => Icon(
-                                  likeStore.date
-                                      ? Icons.favorite
-                                      : Icons.favorite_border,
-                                  size: 14,
-                                  color: likeStore.date
-                                      ? Colors.red
-                                      : globalSetting.textColor,
-                                ),
+                                builder:
+                                    (context) => Icon(
+                                      likeStore.date
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      size: 14,
+                                      color:
+                                          likeStore.date
+                                              ? Colors.red
+                                              : globalSetting.textColor,
+                                    ),
                               ),
                             ),
                             SizedBox(width: 5),
@@ -204,9 +206,10 @@ class _CommentsWidgetState extends State<CommentsWidget>
                   child: SizedBox(
                     width: screenWidth * (48 / 50), // 设置宽度
                     child: Divider(
-                      color: globalSetting.themeType
-                          ? materialColorScheme.secondaryFixedDim
-                          : materialColorScheme.secondaryFixedDim,
+                      color:
+                          globalSetting.themeType
+                              ? materialColorScheme.secondaryFixedDim
+                              : materialColorScheme.secondaryFixedDim,
                       thickness: 1,
                       height: 10,
                     ),
@@ -294,20 +297,22 @@ class _CommentsWidgetState extends State<CommentsWidget>
           id: commentInfo.id,
           content: commentInfo.content,
           user: comments_json.User(
-              id: userInfo.id,
-              name: userInfo.name,
-              level: userInfo.level,
-              title: userInfo.title,
-              avatar: comments_json.Avatar(
-                  fileServer: userInfo.avatar.fileServer,
-                  path: userInfo.avatar.path,
-                  originalName: userInfo.avatar.originalName),
-              character: userInfo.character,
-              gender: userInfo.gender,
-              verified: userInfo.verified,
-              exp: userInfo.exp,
-              role: userInfo.role,
-              characters: userInfo.characters),
+            id: userInfo.id,
+            name: userInfo.name,
+            level: userInfo.level,
+            title: userInfo.title,
+            avatar: comments_json.Avatar(
+              fileServer: userInfo.avatar.fileServer,
+              path: userInfo.avatar.path,
+              originalName: userInfo.avatar.originalName,
+            ),
+            character: userInfo.character,
+            gender: userInfo.gender,
+            verified: userInfo.verified,
+            exp: userInfo.exp,
+            role: userInfo.role,
+            characters: userInfo.characters,
+          ),
           comic: commentInfo.comic.id,
           totalComments: commentInfo.totalComments,
           isTop: false,
@@ -328,10 +333,7 @@ class _CommentsWidgetState extends State<CommentsWidget>
 class ImagerWidget extends StatefulWidget {
   final PictureInfo pictureInfo;
 
-  const ImagerWidget({
-    super.key,
-    required this.pictureInfo,
-  });
+  const ImagerWidget({super.key, required this.pictureInfo});
 
   @override
   State<ImagerWidget> createState() => _ImagerWidgetState();
@@ -349,18 +351,19 @@ class _ImagerWidgetState extends State<ImagerWidget> {
       child: Padding(
         padding: const EdgeInsets.all(2),
         child: BlocProvider(
-          create: (context) => PictureBloc()
-            ..add(
-              GetPicture(
-                PictureInfo(
-                  from: "bika",
-                  url: pictureInfo.url,
-                  path: pictureInfo.path,
-                  cartoonId: pictureInfo.cartoonId,
-                  pictureType: pictureInfo.pictureType,
-                ),
-              ),
-            ),
+          create:
+              (context) =>
+                  PictureBloc()..add(
+                    GetPicture(
+                      PictureInfo(
+                        from: "bika",
+                        url: pictureInfo.url,
+                        path: pictureInfo.path,
+                        cartoonId: pictureInfo.cartoonId,
+                        pictureType: pictureInfo.pictureType,
+                      ),
+                    ),
+                  ),
           child: BlocBuilder<PictureBloc, PictureLoadState>(
             builder: (context, state) {
               switch (state.status) {
@@ -377,10 +380,11 @@ class _ImagerWidgetState extends State<ImagerWidget> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => FullScreenImageView(
-                            imagePath: state.imagePath!,
-                            uuid: uuid,
-                          ),
+                          builder:
+                              (context) => FullScreenImageView(
+                                imagePath: state.imagePath!,
+                                uuid: uuid,
+                              ),
                         ),
                       );
                     },
@@ -417,16 +421,16 @@ class _ImagerWidgetState extends State<ImagerWidget> {
                     return InkWell(
                       onTap: () {
                         context.read<PictureBloc>().add(
-                              GetPicture(
-                                PictureInfo(
-                                  from: "bika",
-                                  url: pictureInfo.url,
-                                  path: pictureInfo.path,
-                                  cartoonId: pictureInfo.cartoonId,
-                                  pictureType: pictureInfo.pictureType,
-                                ),
-                              ),
-                            );
+                          GetPicture(
+                            PictureInfo(
+                              from: "bika",
+                              url: pictureInfo.url,
+                              path: pictureInfo.path,
+                              cartoonId: pictureInfo.cartoonId,
+                              pictureType: pictureInfo.pictureType,
+                            ),
+                          ),
+                        );
                       },
                       child: Icon(Icons.refresh),
                     );

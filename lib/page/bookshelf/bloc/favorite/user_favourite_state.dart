@@ -5,7 +5,7 @@ enum UserFavouriteStatus {
   success,
   failure,
   loadingMore,
-  getMoreFailure
+  getMoreFailure,
 }
 
 final class UserFavouriteState extends Equatable {
@@ -48,6 +48,13 @@ final class UserFavouriteState extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [status, comics, hasReachedMax, result, pageCount, pagesCount, refresh];
+  List<Object?> get props => [
+    status,
+    comics,
+    hasReachedMax,
+    result,
+    pageCount,
+    pagesCount,
+    refresh,
+  ];
 }

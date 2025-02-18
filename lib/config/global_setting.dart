@@ -69,8 +69,10 @@ abstract class _GlobalSetting with Store {
 
   @action
   bool getDynamicColor() {
-    dynamicColor =
-        _box.get(GlobalSettingBoxKey.dynamicColor, defaultValue: true);
+    dynamicColor = _box.get(
+      GlobalSettingBoxKey.dynamicColor,
+      defaultValue: true,
+    );
     return dynamicColor;
   }
 
@@ -88,8 +90,10 @@ abstract class _GlobalSetting with Store {
 
   @action
   ThemeMode getThemeMode() {
-    final themeModeIndex = _box.get(GlobalSettingBoxKey.themeMode,
-        defaultValue: ThemeMode.system.index); // 确保这里获取的是 int 类型
+    final themeModeIndex = _box.get(
+      GlobalSettingBoxKey.themeMode,
+      defaultValue: ThemeMode.system.index,
+    ); // 确保这里获取的是 int 类型
     themeMode = ThemeMode.values[themeModeIndex]; // 转换为 ThemeMode
     return themeMode;
   }
@@ -144,8 +148,10 @@ abstract class _GlobalSetting with Store {
 
   @action
   Color getSeedColor() {
-    seedColor = _box.get(GlobalSettingBoxKey.seedColor,
-        defaultValue: colorThemeList[6].color);
+    seedColor = _box.get(
+      GlobalSettingBoxKey.seedColor,
+      defaultValue: colorThemeList[6].color,
+    );
     return seedColor;
   }
 
@@ -157,15 +163,19 @@ abstract class _GlobalSetting with Store {
 
   @action
   void deleteSeedColor() {
-    seedColor = _box.get(GlobalSettingBoxKey.seedColor,
-        defaultValue: colorThemeList[6].color);
+    seedColor = _box.get(
+      GlobalSettingBoxKey.seedColor,
+      defaultValue: colorThemeList[6].color,
+    );
     _box.delete(GlobalSettingBoxKey.seedColor);
   }
 
   @action
   Color getBackgroundColor() {
-    backgroundColor = _box.get(GlobalSettingBoxKey.backgroundColor,
-        defaultValue: Colors.white);
+    backgroundColor = _box.get(
+      GlobalSettingBoxKey.backgroundColor,
+      defaultValue: Colors.white,
+    );
     return backgroundColor;
   }
 
@@ -183,8 +193,10 @@ abstract class _GlobalSetting with Store {
 
   @action
   Color getTextColor() {
-    textColor =
-        _box.get(GlobalSettingBoxKey.textColor, defaultValue: Colors.black);
+    textColor = _box.get(
+      GlobalSettingBoxKey.textColor,
+      defaultValue: Colors.black,
+    );
     return textColor;
   }
 
@@ -196,15 +208,19 @@ abstract class _GlobalSetting with Store {
 
   @action
   void deleteTextColor() {
-    textColor =
-        _box.get(GlobalSettingBoxKey.textColor, defaultValue: Colors.black);
+    textColor = _box.get(
+      GlobalSettingBoxKey.textColor,
+      defaultValue: Colors.black,
+    );
     _box.delete(GlobalSettingBoxKey.textColor);
   }
 
   @action
   int getThemeInitState() {
-    themeInitState =
-        _box.get(GlobalSettingBoxKey.themeInitState, defaultValue: 0);
+    themeInitState = _box.get(
+      GlobalSettingBoxKey.themeInitState,
+      defaultValue: 0,
+    );
     return themeInitState;
   }
 
@@ -222,8 +238,10 @@ abstract class _GlobalSetting with Store {
 
   @action
   dynamic getLocale() {
-    locale =
-        _box.get(GlobalSettingBoxKey.locale, defaultValue: Locale('zh', 'CN'));
+    locale = _box.get(
+      GlobalSettingBoxKey.locale,
+      defaultValue: Locale('zh', 'CN'),
+    );
     return locale;
   }
 
@@ -241,8 +259,10 @@ abstract class _GlobalSetting with Store {
 
   @action
   int getWelcomePageNum() {
-    welcomePageNum =
-        _box.get(GlobalSettingBoxKey.welcomePageNum, defaultValue: 0);
+    welcomePageNum = _box.get(
+      GlobalSettingBoxKey.welcomePageNum,
+      defaultValue: 0,
+    );
     return welcomePageNum;
   }
 
@@ -278,8 +298,10 @@ abstract class _GlobalSetting with Store {
 
   @action
   String getWebdavUsername() {
-    webdavUsername =
-        _box.get(GlobalSettingBoxKey.webdavUsername, defaultValue: '');
+    webdavUsername = _box.get(
+      GlobalSettingBoxKey.webdavUsername,
+      defaultValue: '',
+    );
     return webdavUsername;
   }
 
@@ -297,8 +319,10 @@ abstract class _GlobalSetting with Store {
 
   @action
   String getWebdavPassword() {
-    webdavPassword =
-        _box.get(GlobalSettingBoxKey.webdavPassword, defaultValue: '');
+    webdavPassword = _box.get(
+      GlobalSettingBoxKey.webdavPassword,
+      defaultValue: '',
+    );
     return webdavPassword;
   }
 

@@ -6,9 +6,7 @@ import '../bloc/search_bloc.dart';
 import '../method/search_enter_provider.dart';
 
 class SortWidget extends StatefulWidget {
-  const SortWidget({
-    super.key,
-  });
+  const SortWidget({super.key});
 
   @override
   State<SortWidget> createState() => _SortWidgetState();
@@ -30,39 +28,34 @@ class _SortWidgetState extends State<SortWidget> {
       value: searchEnter.sort,
       icon: const Icon(Icons.expand_more),
       elevation: 16,
-      underline: Container(
-        height: 2,
-      ),
+      underline: Container(height: 2),
       onChanged: (String? value) {
-        setState(
-          () {
-            context.read<SearchBloc>().add(
-                  FetchSearchResult(
-                    SearchEnterConst(
-                      url: searchEnter.url,
-                      from: searchEnter.from,
-                      keyword: searchEnter.keyword,
-                      type: searchEnter.type,
-                      state: searchEnter.state,
-                      sort: value!,
-                      categories: searchEnter.categories,
-                      pageCount: 1,
-                      refresh: searchEnter.refresh,
-                    ),
-                    SearchStatus.initial,
-                  ),
-                );
-          },
-        );
-      },
-      items: sortList.map<DropdownMenuItem<String>>(
-        (String value) {
-          return DropdownMenuItem<String>(
-            value: value,
-            child: Text(sortMap[value]!),
+        setState(() {
+          context.read<SearchBloc>().add(
+            FetchSearchResult(
+              SearchEnterConst(
+                url: searchEnter.url,
+                from: searchEnter.from,
+                keyword: searchEnter.keyword,
+                type: searchEnter.type,
+                state: searchEnter.state,
+                sort: value!,
+                categories: searchEnter.categories,
+                pageCount: 1,
+                refresh: searchEnter.refresh,
+              ),
+              SearchStatus.initial,
+            ),
           );
-        },
-      ).toList(),
+        });
+      },
+      items:
+          sortList.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(sortMap[value]!),
+            );
+          }).toList(),
     );
   }
 }

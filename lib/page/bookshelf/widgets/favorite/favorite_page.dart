@@ -23,8 +23,11 @@ class FavoritePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => UserFavouriteBloc()
-        ..add(UserFavouriteEvent(UserFavouriteStatus.initial, 1, Uuid().v4())),
+      create:
+          (_) =>
+              UserFavouriteBloc()..add(
+                UserFavouriteEvent(UserFavouriteStatus.initial, 1, Uuid().v4()),
+              ),
       child: _FavoritePage(
         searchStatusStore: searchStatusStore,
         stringSelectStore: stringSelectStore,
@@ -129,10 +132,7 @@ class _UserFavoritePageState extends State<_FavoritePage>
             style: TextStyle(fontSize: 20),
           ),
           SizedBox(height: 10), // 添加间距
-          ElevatedButton(
-            onPressed: () => _refresh(),
-            child: Text('点击重试'),
-          ),
+          ElevatedButton(onPressed: () => _refresh(), child: Text('点击重试')),
         ],
       ),
     );
@@ -150,17 +150,15 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
     if (state.comics.isEmpty) {
       return const Center(
-        child: Text(
-          '啥都没有',
-          style: TextStyle(fontSize: 20.0),
-        ),
+        child: Text('啥都没有', style: TextStyle(fontSize: 20.0)),
       );
     }
 
     debugPrint(state.status.toString());
     debugPrint(state.hasReachedMax.toString());
 
-    int itemCount = state.comics.length +
+    int itemCount =
+        state.comics.length +
         (state.hasReachedMax ? 1 : 0) +
         (state.status == UserFavouriteStatus.loadingMore ? 1 : 0) +
         (state.status == UserFavouriteStatus.getMoreFailure ? 1 : 0);
@@ -187,120 +185,113 @@ class _UserFavoritePageState extends State<_FavoritePage>
             handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
           ),
           SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-                // 如果索引等于状态的 comics.length，并且已经达到最大值
-                if (index == state.comics.length) {
-                  if (state.status == UserFavouriteStatus.success &&
-                      state.hasReachedMax) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(30.0),
-                        child: Text(
-                          '你来到了未知领域呢~',
-                          style: const TextStyle(fontSize: 20.0),
-                        ),
+            delegate: SliverChildBuilderDelegate((
+              BuildContext context,
+              int index,
+            ) {
+              // 如果索引等于状态的 comics.length，并且已经达到最大值
+              if (index == state.comics.length) {
+                if (state.status == UserFavouriteStatus.success &&
+                    state.hasReachedMax) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(30.0),
+                      child: Text(
+                        '你来到了未知领域呢~',
+                        style: const TextStyle(fontSize: 20.0),
                       ),
-                    );
-                  }
-
-                  if (state.status == UserFavouriteStatus.getMoreFailure) {
-                    return Center(
-                      child: ElevatedButton(
-                        onPressed: () => _refresh(),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Text('点击重试'),
-                        ),
-                      ),
-                    );
-                  }
-
-                  if (state.status == UserFavouriteStatus.loadingMore) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
-                  }
-                } else {
-                  return FavoriteComicEntryWidget(
-                    comicEntryInfo: state.comics[index].doc,
+                    ),
                   );
                 }
-                return null;
-              },
-              childCount: itemCount,
-            ),
+
+                if (state.status == UserFavouriteStatus.getMoreFailure) {
+                  return Center(
+                    child: ElevatedButton(
+                      onPressed: () => _refresh(),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text('点击重试'),
+                      ),
+                    ),
+                  );
+                }
+
+                if (state.status == UserFavouriteStatus.loadingMore) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+              } else {
+                return FavoriteComicEntryWidget(
+                  comicEntryInfo: state.comics[index].doc,
+                );
+              }
+              return null;
+            }, childCount: itemCount),
           ),
         ],
       ),
     );
   }
 
-  void _refresh({
-    bool updateShield = false,
-    bool initState = false,
-  }) {
+  void _refresh({bool updateShield = false, bool initState = false}) {
     if (updateShield) {
       context.read<UserFavouriteBloc>().add(
-            UserFavouriteEvent(
-              UserFavouriteStatus.loadingMore,
-              pageCount,
-              "updateShield",
-            ),
-          );
+        UserFavouriteEvent(
+          UserFavouriteStatus.loadingMore,
+          pageCount,
+          "updateShield",
+        ),
+      );
       return;
     }
 
     if (initState) {
       context.read<UserFavouriteBloc>().add(
-            UserFavouriteEvent(
-              UserFavouriteStatus.initial,
-              1,
-              Uuid().v4().toString(),
-            ),
-          );
+        UserFavouriteEvent(
+          UserFavouriteStatus.initial,
+          1,
+          Uuid().v4().toString(),
+        ),
+      );
     }
 
     if (pageCount != 1) {
       context.read<UserFavouriteBloc>().add(
-            UserFavouriteEvent(
-              UserFavouriteStatus.loadingMore,
-              pageCount,
-              refresh,
-            ),
-          );
+        UserFavouriteEvent(UserFavouriteStatus.loadingMore, pageCount, refresh),
+      );
     } else {
       context.read<UserFavouriteBloc>().add(
-            UserFavouriteEvent(
-              UserFavouriteStatus.initial,
-              1,
-              Uuid().v4().toString(),
-            ),
-          );
+        UserFavouriteEvent(
+          UserFavouriteStatus.initial,
+          1,
+          Uuid().v4().toString(),
+        ),
+      );
     }
   }
 
   void _pageSkip(int page) {
     context.read<UserFavouriteBloc>().add(
-          UserFavouriteEvent(
-            UserFavouriteStatus.initial,
-            page,
-            Uuid().v4().toString(),
-          ),
-        );
+      UserFavouriteEvent(
+        UserFavouriteStatus.initial,
+        page,
+        Uuid().v4().toString(),
+      ),
+    );
   }
 
   void _fetchFavoriteResult() {
     context.read<UserFavouriteBloc>().add(
-          UserFavouriteEvent(
-            UserFavouriteStatus.loadingMore,
-            pageCount + 1,
-            refresh,
-          ),
-        );
+      UserFavouriteEvent(
+        UserFavouriteStatus.loadingMore,
+        pageCount + 1,
+        refresh,
+      ),
+    );
   }
 
   void _handleScrollPosition(ScrollMetrics metrics) {
@@ -309,8 +300,9 @@ class _UserFavoritePageState extends State<_FavoritePage>
     double middlePosition =
         currentScrollPosition + (screenHeight / 3); // 计算中间位置
     double listViewStartOffset = 0.0; // ListView 的起始偏移量
-    int itemIndex = ((middlePosition - listViewStartOffset) / itemHeight)
-        .floor(); // 计算当前 item 的索引
+    int itemIndex =
+        ((middlePosition - listViewStartOffset) / itemHeight)
+            .floor(); // 计算当前 item 的索引
 
     if (itemIndex >= 0 && itemIndex < comics.length) {
       int buildNumber =

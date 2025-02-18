@@ -8,10 +8,7 @@ import '../widgets/widgets.dart';
 class ComicRanking extends StatefulWidget {
   final String type;
 
-  const ComicRanking({
-    super.key,
-    required this.type,
-  });
+  const ComicRanking({super.key, required this.type});
 
   @override
   State<ComicRanking> createState() => _ComicRankingState();
@@ -37,8 +34,11 @@ class _ComicRankingState extends State<ComicRanking>
                   Text(state.result!),
                   ElevatedButton(
                     onPressed: () {
-                      context.read<ComicListBloc>().add(FetchComicList(
-                          GetInfo(days: widget.type, type: 'comic')));
+                      context.read<ComicListBloc>().add(
+                        FetchComicList(
+                          GetInfo(days: widget.type, type: 'comic'),
+                        ),
+                      );
                     },
                     child: const Text('重新加载'),
                   ),
@@ -49,7 +49,8 @@ class _ComicRankingState extends State<ComicRanking>
             return RefreshIndicator(
               onRefresh: () async {
                 context.read<ComicListBloc>().add(
-                    FetchComicList(GetInfo(days: widget.type, type: 'comic')));
+                  FetchComicList(GetInfo(days: widget.type, type: 'comic')),
+                );
               },
               child: ListView.builder(
                 itemCount: state.comicList!.length + 1, // 加1为底部的空白部分（可选）
@@ -59,10 +60,7 @@ class _ComicRankingState extends State<ComicRanking>
                     return SizedBox(height: 10);
                   }
                   final comic = state.comicList![index];
-                  return ComicEntryWidget(
-                    comic: comic,
-                    type: widget.type,
-                  );
+                  return ComicEntryWidget(comic: comic, type: widget.type);
                 },
               ),
             );

@@ -2,20 +2,15 @@ class ComicAllInfoJsonNoFreeze {
   Comic comic;
   Eps eps;
 
-  ComicAllInfoJsonNoFreeze({
-    required this.comic,
-    required this.eps,
-  });
+  ComicAllInfoJsonNoFreeze({required this.comic, required this.eps});
 
   // 空构造函数
-  ComicAllInfoJsonNoFreeze.empty()
-      : comic = Comic.empty(),
-        eps = Eps(docs: []);
+  ComicAllInfoJsonNoFreeze.empty() : comic = Comic.empty(), eps = Eps(docs: []);
 
   Map<String, dynamic> toJson() => {
-        'comic': comic.toJson(),
-        'eps': eps.toJson(),
-      };
+    'comic': comic.toJson(),
+    'eps': eps.toJson(),
+  };
 
   Comic get comicInfo => comic;
 
@@ -81,57 +76,57 @@ class Comic {
 
   // 空构造函数
   Comic.empty()
-      : id = '',
-        creator = Creator.empty(),
-        title = '',
-        description = '',
-        thumb = Thumb.empty(),
-        author = '',
-        chineseTeam = '',
-        categories = [],
-        tags = [],
-        pagesCount = 0,
-        epsCount = 0,
-        finished = false,
-        updatedAt = DateTime.now().toUtc(),
-        createdAt = DateTime.now().toUtc(),
-        allowDownload = false,
-        allowComment = false,
-        totalLikes = 0,
-        totalViews = 0,
-        totalComments = 0,
-        viewsCount = 0,
-        likesCount = 0,
-        commentsCount = 0,
-        isFavourite = false,
-        isLiked = false;
+    : id = '',
+      creator = Creator.empty(),
+      title = '',
+      description = '',
+      thumb = Thumb.empty(),
+      author = '',
+      chineseTeam = '',
+      categories = [],
+      tags = [],
+      pagesCount = 0,
+      epsCount = 0,
+      finished = false,
+      updatedAt = DateTime.now().toUtc(),
+      createdAt = DateTime.now().toUtc(),
+      allowDownload = false,
+      allowComment = false,
+      totalLikes = 0,
+      totalViews = 0,
+      totalComments = 0,
+      viewsCount = 0,
+      likesCount = 0,
+      commentsCount = 0,
+      isFavourite = false,
+      isLiked = false;
 
   Map<String, dynamic> toJson() => {
-        '_id': id,
-        '_creator': creator.toJson(),
-        'title': title,
-        'description': description,
-        'thumb': thumb.toJson(),
-        'author': author,
-        'chineseTeam': chineseTeam,
-        'categories': categories,
-        'tags': tags,
-        'pagesCount': pagesCount,
-        'epsCount': epsCount,
-        'finished': finished,
-        'updated_at': updatedAt.toIso8601String(),
-        'created_at': createdAt.toIso8601String(),
-        'allowDownload': allowDownload,
-        'allowComment': allowComment,
-        'totalLikes': totalLikes,
-        'totalViews': totalViews,
-        'totalComments': totalComments,
-        'viewsCount': viewsCount,
-        'likesCount': likesCount,
-        'commentsCount': commentsCount,
-        'isFavourite': isFavourite,
-        'isLiked': isLiked,
-      };
+    '_id': id,
+    '_creator': creator.toJson(),
+    'title': title,
+    'description': description,
+    'thumb': thumb.toJson(),
+    'author': author,
+    'chineseTeam': chineseTeam,
+    'categories': categories,
+    'tags': tags,
+    'pagesCount': pagesCount,
+    'epsCount': epsCount,
+    'finished': finished,
+    'updated_at': updatedAt.toIso8601String(),
+    'created_at': createdAt.toIso8601String(),
+    'allowDownload': allowDownload,
+    'allowComment': allowComment,
+    'totalLikes': totalLikes,
+    'totalViews': totalViews,
+    'totalComments': totalComments,
+    'viewsCount': viewsCount,
+    'likesCount': likesCount,
+    'commentsCount': commentsCount,
+    'isFavourite': isFavourite,
+    'isLiked': isLiked,
+  };
 
   String get comicId => id;
 
@@ -258,31 +253,31 @@ class Creator {
 
   // 空构造函数
   Creator.empty()
-      : id = '',
-        gender = '',
-        name = '',
-        verified = false,
-        exp = 0,
-        level = 0,
-        role = '',
-        avatar = Thumb.empty(),
-        characters = [],
-        title = '',
-        slogan = '';
+    : id = '',
+      gender = '',
+      name = '',
+      verified = false,
+      exp = 0,
+      level = 0,
+      role = '',
+      avatar = Thumb.empty(),
+      characters = [],
+      title = '',
+      slogan = '';
 
   Map<String, dynamic> toJson() => {
-        '_id': id,
-        'gender': gender,
-        'name': name,
-        'verified': verified,
-        'exp': exp,
-        'level': level,
-        'role': role,
-        'avatar': avatar.toJson(),
-        'characters': characters,
-        'title': title,
-        'slogan': slogan,
-      };
+    '_id': id,
+    'gender': gender,
+    'name': name,
+    'verified': verified,
+    'exp': exp,
+    'level': level,
+    'role': role,
+    'avatar': avatar.toJson(),
+    'characters': characters,
+    'title': title,
+    'slogan': slogan,
+  };
 
   String get creatorId => id;
 
@@ -342,16 +337,13 @@ class Thumb {
   });
 
   // 空构造函数
-  Thumb.empty()
-      : fileServer = '',
-        path = '',
-        originalName = '';
+  Thumb.empty() : fileServer = '', path = '', originalName = '';
 
   Map<String, dynamic> toJson() => {
-        'fileServer': fileServer,
-        'path': path,
-        'originalName': originalName,
-      };
+    'fileServer': fileServer,
+    'path': path,
+    'originalName': originalName,
+  };
 
   String get thumbFileServer => fileServer;
 
@@ -376,8 +368,8 @@ class Eps {
   Eps.empty() : docs = [];
 
   Map<String, dynamic> toJson() => {
-        'docs': docs.map((doc) => doc.toJson()).toList(),
-      };
+    'docs': docs.map((doc) => doc.toJson()).toList(),
+  };
 
   List<EpsDoc> get episodes => docs;
 
@@ -411,21 +403,21 @@ class EpsDoc {
 
   // 空构造函数
   EpsDoc.empty()
-      : id = '',
-        title = '',
-        order = 0,
-        updatedAt = DateTime.now(),
-        docId = '',
-        pages = Pages(docs: []);
+    : id = '',
+      title = '',
+      order = 0,
+      updatedAt = DateTime.now(),
+      docId = '',
+      pages = Pages(docs: []);
 
   Map<String, dynamic> toJson() => {
-        '_id': id,
-        'title': title,
-        'order': order,
-        'updated_at': updatedAt.toIso8601String(),
-        'id': docId,
-        'pages': pages.toJson(),
-      };
+    '_id': id,
+    'title': title,
+    'order': order,
+    'updated_at': updatedAt.toIso8601String(),
+    'id': docId,
+    'pages': pages.toJson(),
+  };
 
   String get episodeId => id;
 
@@ -461,8 +453,8 @@ class Pages {
   Pages.empty() : docs = [];
 
   Map<String, dynamic> toJson() => {
-        'docs': docs.map((doc) => doc.toJson()).toList(),
-      };
+    'docs': docs.map((doc) => doc.toJson()).toList(),
+  };
 
   List<PagesDoc> get pages => docs;
 
@@ -478,23 +470,16 @@ class PagesDoc {
   Thumb media;
   String docId;
 
-  PagesDoc({
-    required this.id,
-    required this.media,
-    required this.docId,
-  });
+  PagesDoc({required this.id, required this.media, required this.docId});
 
   // 空构造函数
-  PagesDoc.empty()
-      : id = '',
-        media = Thumb.empty(),
-        docId = '';
+  PagesDoc.empty() : id = '', media = Thumb.empty(), docId = '';
 
   Map<String, dynamic> toJson() => {
-        '_id': id,
-        'media': media.toJson(),
-        'id': docId,
-      };
+    '_id': id,
+    'media': media.toJson(),
+    'id': docId,
+  };
 
   String get pageId => id;
 

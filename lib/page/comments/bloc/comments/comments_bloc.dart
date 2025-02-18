@@ -39,11 +39,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
 
     if (event.status == CommentsStatus.initial) {
       comments = [];
-      emit(
-        state.copyWith(
-          status: CommentsStatus.initial,
-        ),
-      );
+      emit(state.copyWith(status: CommentsStatus.initial));
     }
 
     if (event.status == CommentsStatus.loadingMore) {
@@ -82,10 +78,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
       debugPrint(e.toString());
       if (comments.isEmpty) {
         emit(
-          state.copyWith(
-            status: CommentsStatus.failure,
-            result: e.toString(),
-          ),
+          state.copyWith(status: CommentsStatus.failure, result: e.toString()),
         );
         return;
       }
@@ -132,8 +125,11 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
       comment['_user']['level'] ??= 0;
       comment['_user']['characters'] ??= [];
       comment['_user']['role'] ??= '';
-      comment['_user']
-          ['avatar'] ??= {"fileServer": "", "path": "", "originalName": ""};
+      comment['_user']['avatar'] ??= {
+        "fileServer": "",
+        "path": "",
+        "originalName": "",
+      };
       comment['_user']['avatar']['originalName'] ??= '';
       comment['_user']['avatar']['path'] ??= '';
       comment['_user']['avatar']['fileServer'] ??= '';
@@ -162,8 +158,11 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
       topComment['_user']['level'] ??= 0;
       topComment['_user']['characters'] ??= [];
       topComment['_user']['role'] ??= '';
-      topComment['_user']
-          ['avatar'] ??= {"fileServer": "", "path": "", "originalName": ""};
+      topComment['_user']['avatar'] ??= {
+        "fileServer": "",
+        "path": "",
+        "originalName": "",
+      };
       topComment['_user']['avatar']['originalName'] ??= '';
       topComment['_user']['avatar']['path'] ??= '';
       topComment['_user']['avatar']['fileServer'] ??= '';

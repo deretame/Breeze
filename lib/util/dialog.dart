@@ -8,11 +8,7 @@ Future<void> nothingDialog(BuildContext context) async {
       return AlertDialog(
         title: const Text('施工中'),
         content: const SingleChildScrollView(
-          child: ListBody(
-            children: <Widget>[
-              Text("在写了，在写了"),
-            ],
-          ),
+          child: ListBody(children: <Widget>[Text("在写了，在写了")]),
         ),
         actions: <Widget>[
           TextButton(
@@ -41,11 +37,7 @@ Future<void> commonDialog(
       return AlertDialog(
         title: Text(title),
         content: SingleChildScrollView(
-          child: ListBody(
-            children: <Widget>[
-              SelectableText(content),
-            ],
-          ),
+          child: ListBody(children: <Widget>[SelectableText(content)]),
         ),
         actions: <Widget>[
           TextButton(

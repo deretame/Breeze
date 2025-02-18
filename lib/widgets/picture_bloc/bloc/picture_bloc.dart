@@ -29,11 +29,7 @@ class PictureBloc extends Bloc<GetPicture, PictureLoadState> {
     GetPicture event,
     Emitter<PictureLoadState> emit,
   ) async {
-    emit(
-      state.copyWith(
-        status: PictureLoadStatus.initial,
-      ),
-    );
+    emit(state.copyWith(status: PictureLoadStatus.initial));
 
     try {
       var picturePath = await getCachePicture(
@@ -53,10 +49,7 @@ class PictureBloc extends Bloc<GetPicture, PictureLoadState> {
       );
     } catch (e) {
       emit(
-        state.copyWith(
-          status: PictureLoadStatus.failure,
-          result: e.toString(),
-        ),
+        state.copyWith(status: PictureLoadStatus.failure, result: e.toString()),
       );
     }
   }

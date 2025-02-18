@@ -56,8 +56,9 @@ class _DownloadPageState extends State<DownloadPage> {
     for (var ep in epsInfo) {
       _downloadInfo[ep.order] = false;
     }
-    final query = objectbox.bikaDownloadBox
-        .query(BikaComicDownload_.comicId.equals(comicInfo.id));
+    final query = objectbox.bikaDownloadBox.query(
+      BikaComicDownload_.comicId.equals(comicInfo.id),
+    );
     bikaComicDownloadInfo = query.build().findFirst();
     if (bikaComicDownloadInfo != null) {
       for (var epTitle in bikaComicDownloadInfo!.epsTitle) {
@@ -89,9 +90,7 @@ class _DownloadPageState extends State<DownloadPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: ScrollableTitle(
-          text: comicInfo.title,
-        ),
+        title: ScrollableTitle(text: comicInfo.title),
         actions: [
           // 动态切换全选/取消全选按钮
           IconButton(
@@ -124,11 +123,7 @@ class _DownloadPageState extends State<DownloadPage> {
             debugPrint("开始下载");
             download();
           },
-          child: Text(
-            "开始下载",
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
+          child: Text("开始下载", overflow: TextOverflow.ellipsis, maxLines: 1),
         ),
       ),
     );
@@ -161,46 +156,45 @@ class _DownloadPageState extends State<DownloadPage> {
 
     final overlay = Overlay.of(context);
     OverlayEntry overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: MediaQuery.of(context).padding.top + 200.0, // 调整到状态栏下面
-        left: 16.0,
-        right: 16.0,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(10), // 设置圆角
-          child: Material(
-            color: materialColorScheme.secondaryFixedDim,
-            // 设置 Material 背景为透明
-            elevation: 2,
-            // 设置阴影
-            child: Padding(
-              padding: const EdgeInsets.all(2.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: globalSetting.backgroundColor,
-                  borderRadius: BorderRadius.circular(10), // 内部容器的圆角
-                ),
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      message,
-                      style: TextStyle(fontSize: 18),
+      builder:
+          (context) => Positioned(
+            top: MediaQuery.of(context).padding.top + 200.0, // 调整到状态栏下面
+            left: 16.0,
+            right: 16.0,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10), // 设置圆角
+              child: Material(
+                color: materialColorScheme.secondaryFixedDim,
+                // 设置 Material 背景为透明
+                elevation: 2,
+                // 设置阴影
+                child: Padding(
+                  padding: const EdgeInsets.all(2.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: globalSetting.backgroundColor,
+                      borderRadius: BorderRadius.circular(10), // 内部容器的圆角
                     ),
-                    SizedBox(height: 8),
-                    LinearProgressIndicator(
-                      value: mediaList.isNotEmpty
-                          ? (downloadCount / mediaList.length)
-                          : null,
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(message, style: TextStyle(fontSize: 18)),
+                        SizedBox(height: 8),
+                        LinearProgressIndicator(
+                          value:
+                              mediaList.isNotEmpty
+                                  ? (downloadCount / mediaList.length)
+                                  : null,
+                        ),
+                        SizedBox(height: 8),
+                      ],
                     ),
-                    SizedBox(height: 8),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
     );
 
     overlay.insert(overlayEntry);
@@ -284,35 +278,38 @@ class _DownloadPageState extends State<DownloadPage> {
 
     List<String> picturePaths = [];
 
-    message = "下载进度："
+    message =
+        "下载进度："
         "${(downloadCount / mediaList.length * 100.0).toStringAsFixed(2)}%";
     // 更新进度条内容
     overlayEntry.markNeedsBuild();
 
-    final List<Future<void>> downloadTasks = mediaList.map((media) async {
-      var picturePath = await downloadPicture(
-        from: 'bika',
-        url: media.fileServer,
-        path: media.path,
-        cartoonId: comicInfo.id,
-        pictureType: 'comic',
-        chapterId: media.epId,
-      ).catchError((e) {
-        debugPrint('Error downloading ${media.fileServer}: $e');
-        return "";
-      });
+    final List<Future<void>> downloadTasks =
+        mediaList.map((media) async {
+          var picturePath = await downloadPicture(
+            from: 'bika',
+            url: media.fileServer,
+            path: media.path,
+            cartoonId: comicInfo.id,
+            pictureType: 'comic',
+            chapterId: media.epId,
+          ).catchError((e) {
+            debugPrint('Error downloading ${media.fileServer}: $e');
+            return "";
+          });
 
-      downloadCount++;
-      message = "下载进度："
-          "${(downloadCount / mediaList.length * 100.0).toStringAsFixed(2)}%";
+          downloadCount++;
+          message =
+              "下载进度："
+              "${(downloadCount / mediaList.length * 100.0).toStringAsFixed(2)}%";
 
-      // 更新进度条内容
-      overlayEntry.markNeedsBuild();
+          // 更新进度条内容
+          overlayEntry.markNeedsBuild();
 
-      picturePaths.add(picturePath);
+          picturePaths.add(picturePath);
 
-      return;
-    }).toList();
+          return;
+        }).toList();
 
     await Future.wait(downloadTasks);
 
@@ -432,10 +429,11 @@ class _DownloadPageState extends State<DownloadPage> {
       comicInfoAll: comicAllInfoStr,
     );
 
-    var temp = objectbox.bikaDownloadBox
-        .query(BikaComicDownload_.comicId.equals(comicInfo.id))
-        .build()
-        .find();
+    var temp =
+        objectbox.bikaDownloadBox
+            .query(BikaComicDownload_.comicId.equals(comicInfo.id))
+            .build()
+            .find();
 
     // 这个是为了避免重复放置数据
     for (var item in temp) {
@@ -471,13 +469,15 @@ class _DownloadPageState extends State<DownloadPage> {
     List<String> downloadEpsDir = [];
     for (var element in comicAllInfoJsonNoFreeze.eps.docs) {
       downloadEpsDir.add(
-          "$downloadPath/bika/original/${comicInfo.id}/comic/${element.id}");
+        "$downloadPath/bika/original/${comicInfo.id}/comic/${element.id}",
+      );
     }
 
     // 过滤出需要删除的目录
-    List<Directory> deleteDirs = epDirs.where((element) {
-      return !downloadEpsDir.contains(element.path);
-    }).toList();
+    List<Directory> deleteDirs =
+        epDirs.where((element) {
+          return !downloadEpsDir.contains(element.path);
+        }).toList();
 
     // 删除不需要的目录
     for (var element in deleteDirs) {
@@ -487,20 +487,24 @@ class _DownloadPageState extends State<DownloadPage> {
     List<String> originalPicturePaths = [];
 
     for (var element in mediaList) {
-      String sanitizedPath =
-          element.path.replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_');
+      String sanitizedPath = element.path.replaceAll(
+        RegExp(r'[^a-zA-Z0-9_\-.]'),
+        '_',
+      );
       var tempPath =
           "$downloadPath/bika/original/${comicInfo.id}/comic/${element.epId}/$sanitizedPath";
       originalPicturePaths.add(tempPath);
     }
 
     var allPicturePaths = await getAllFilePaths(
-        "$downloadPath/bika/original/${comicInfo.id}/comic/");
+      "$downloadPath/bika/original/${comicInfo.id}/comic/",
+    );
 
     // 过滤出需要删除的图片
-    List<String> deletePictures = allPicturePaths.where((element) {
-      return !originalPicturePaths.contains(element);
-    }).toList();
+    List<String> deletePictures =
+        allPicturePaths.where((element) {
+          return !originalPicturePaths.contains(element);
+        }).toList();
 
     // 删除不需要的图片
     for (var element in deletePictures) {

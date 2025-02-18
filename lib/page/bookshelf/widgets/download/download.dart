@@ -23,8 +23,8 @@ class DownloadPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) =>
-          UserDownloadBloc()..add(UserDownloadEvent(SearchEnterConst())),
+      create:
+          (_) => UserDownloadBloc()..add(UserDownloadEvent(SearchEnterConst())),
       child: _DownloadPage(
         searchStatusStore: searchStatusStore,
         stringSelectStore: stringSelectStore,
@@ -170,27 +170,27 @@ class _DownloadPageState extends State<_DownloadPage>
             handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
           ),
           SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-                // 如果索引等于状态的 comics.length，并且已经达到最大值
-                if (index == state.comics.length) {
-                  return deletingDialog(
-                    context,
-                    () => _refresh(searchStatusStore),
-                    DeleteType.download,
-                  );
-                } else {
-                  return ComicEntryWidget(
-                    comicEntryInfo: downloadConvertToComicEntryInfo(
-                      state.comics[index],
-                    ),
-                    type: ComicEntryType.download,
-                    refresh: () => _refresh(searchStatusStore),
-                  );
-                }
-              },
-              childCount: itemCount,
-            ),
+            delegate: SliverChildBuilderDelegate((
+              BuildContext context,
+              int index,
+            ) {
+              // 如果索引等于状态的 comics.length，并且已经达到最大值
+              if (index == state.comics.length) {
+                return deletingDialog(
+                  context,
+                  () => _refresh(searchStatusStore),
+                  DeleteType.download,
+                );
+              } else {
+                return ComicEntryWidget(
+                  comicEntryInfo: downloadConvertToComicEntryInfo(
+                    state.comics[index],
+                  ),
+                  type: ComicEntryType.download,
+                  refresh: () => _refresh(searchStatusStore),
+                );
+              }
+            }, childCount: itemCount),
           ),
         ],
       ),
@@ -201,14 +201,14 @@ class _DownloadPageState extends State<_DownloadPage>
     notice = false;
     // 使用原本输入参数进行重新搜索
     context.read<UserDownloadBloc>().add(
-          UserDownloadEvent(
-            SearchEnterConst(
-              keyword: searchStatusStore.keyword,
-              sort: searchStatusStore.sort,
-              categories: searchStatusStore.categories,
-              refresh: Uuid().v4(), //传入一个不一样的值，来强行刷新
-            ),
-          ),
-        );
+      UserDownloadEvent(
+        SearchEnterConst(
+          keyword: searchStatusStore.keyword,
+          sort: searchStatusStore.sort,
+          categories: searchStatusStore.categories,
+          refresh: Uuid().v4(), //传入一个不一样的值，来强行刷新
+        ),
+      ),
+    );
   }
 }

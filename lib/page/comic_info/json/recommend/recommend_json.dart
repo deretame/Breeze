@@ -28,9 +28,8 @@ class RecommendJson with _$RecommendJson {
 
 @freezed
 class Data with _$Data {
-  const factory Data({
-    @JsonKey(name: "comics") required List<Comic> comics,
-  }) = _Data;
+  const factory Data({@JsonKey(name: "comics") required List<Comic> comics}) =
+      _Data;
 
   factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 }

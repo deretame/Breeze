@@ -8,26 +8,26 @@ class AppRouter extends RootStackRouter {
 
   @override
   List<AutoRoute> get routes => [
-        AutoRoute(page: MainRoute.page, initial: true),
-        AutoRoute(page: LoginRoute.page),
-        AutoRoute(page: RankingListRoute.page),
-        AutoRoute(page: RegisterRoute.page),
-        AutoRoute(page: CategoryRoute.page),
-        AutoRoute(page: SearchResultRoute.page),
-        AutoRoute(page: ComicInfoRoute.page),
-        AutoRoute(page: DownloadRoute.page),
-        AutoRoute(page: CommentsRoute.page),
-        AutoRoute(page: CommentsChildrenRoute.page),
-        AutoRoute(page: ComicReadRoute.page),
-        AutoRoute(page: WebViewRoute.page),
-        AutoRoute(page: UserCommentsRoute.page),
-        AutoRoute(page: BikaSettingRoute.page),
-        AutoRoute(page: GlobalSettingRoute.page),
-        AutoRoute(page: ThemeColorRoute.page),
-        AutoRoute(page: WebDavSyncRoute.page),
-        AutoRoute(page: ShowColorRoute.page),
-        AutoRoute(page: AboutRoute.page),
-      ];
+    AutoRoute(page: MainRoute.page, initial: true),
+    AutoRoute(page: LoginRoute.page),
+    AutoRoute(page: RankingListRoute.page),
+    AutoRoute(page: RegisterRoute.page),
+    AutoRoute(page: CategoryRoute.page),
+    AutoRoute(page: SearchResultRoute.page),
+    AutoRoute(page: ComicInfoRoute.page),
+    AutoRoute(page: DownloadRoute.page),
+    AutoRoute(page: CommentsRoute.page),
+    AutoRoute(page: CommentsChildrenRoute.page),
+    AutoRoute(page: ComicReadRoute.page),
+    AutoRoute(page: WebViewRoute.page),
+    AutoRoute(page: UserCommentsRoute.page),
+    AutoRoute(page: BikaSettingRoute.page),
+    AutoRoute(page: GlobalSettingRoute.page),
+    AutoRoute(page: ThemeColorRoute.page),
+    AutoRoute(page: WebDavSyncRoute.page),
+    AutoRoute(page: ShowColorRoute.page),
+    AutoRoute(page: AboutRoute.page),
+  ];
 
   @override
   List<AutoRouteGuard> get guards => [];

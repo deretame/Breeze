@@ -10,10 +10,7 @@ String limitString(String str, int maxLength) {
   return str.substring(0, min(str.length, maxLength));
 }
 
-Future<Map<String, dynamic>> login(
-  String username,
-  String password,
-) async {
+Future<Map<String, dynamic>> login(String username, String password) async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/auth/sign-in',
     'POST',
@@ -46,7 +43,7 @@ Future<Map<String, dynamic>> register(
     "password": password,
     "question1": "1",
     "question2": "2",
-    "question3": "3"
+    "question3": "3",
   };
 
   final Map<String, dynamic> data = await request(
@@ -94,11 +91,7 @@ Future<Map<String, dynamic>> getRankingList({
     throw Exception('未知类型');
   }
 
-  final Map<String, dynamic> data = await request(
-    url,
-    'GET',
-    cache: true,
-  );
+  final Map<String, dynamic> data = await request(url, 'GET', cache: true);
 
   debugPrint(limitString(data.toString(), 150));
 
@@ -135,28 +128,16 @@ Future<Map<String, dynamic>> search({
       var temp = url.split("&s")[0];
       url = "$temp&s=$sort&page=$pageCount";
 
-      data = await request(
-        url,
-        'GET',
-      );
+      data = await request(url, 'GET');
     } else if (url == 'https://picaapi.picacomic.com/comics/random') {
-      data = await request(
-        url,
-        'GET',
-      );
+      data = await request(url, 'GET');
     } else if (url.contains("%E5%A4%A7%E5%AE%B6%E9%83%BD%E5%9C%A8%E7%9C%8B")) {
       url =
           'https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E5%AE%B6%E9%83%BD%E5%9C%A8%E7%9C%8B&s=$sort';
-      data = await request(
-        url,
-        'GET',
-      );
+      data = await request(url, 'GET');
     } else if (url ==
         'https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E6%BF%95%E6%8E%A8%E8%96%A6&s=$sort') {
-      data = await request(
-        url,
-        'GET',
-      );
+      data = await request(url, 'GET');
     } else if (url.contains('%E9%82%A3%E5%B9%B4%E4%BB%8A%E5%A4%A9')) {
       data = await request(
         'https://picaapi.picacomic.com/comics?page=$pageCount&c=%E9%82%A3%E5%B9%B4%E4%BB%8A%E5%A4%A9&s=$sort',
@@ -168,10 +149,7 @@ Future<Map<String, dynamic>> search({
         'GET',
       );
     } else if (url == 'https://picaapi.picacomic.com/comics/random') {
-      data = await request(
-        url,
-        'GET',
-      );
+      data = await request(url, 'GET');
     }
   } else {
     data = await request(
@@ -206,9 +184,7 @@ Future<Map<String, dynamic>> getSearchKeywords() async {
   return data;
 }
 
-Future<Map<String, dynamic>> getComicInfo(
-  String comicId,
-) async {
+Future<Map<String, dynamic>> getComicInfo(String comicId) async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comics/$comicId',
     'GET',
@@ -223,11 +199,11 @@ Future<Map<String, dynamic>> getComicInfo(
   return data;
 }
 
-Future<Map<String, dynamic>> favouriteComic(
-  String comicId,
-) async {
+Future<Map<String, dynamic>> favouriteComic(String comicId) async {
   final Map<String, dynamic> data = await request(
-      'https://picaapi.picacomic.com/comics/$comicId/favourite', 'POST');
+    'https://picaapi.picacomic.com/comics/$comicId/favourite',
+    'POST',
+  );
 
   debugPrint(limitString(data.toString(), 150));
 
@@ -238,11 +214,11 @@ Future<Map<String, dynamic>> favouriteComic(
   return data;
 }
 
-Future<Map<String, dynamic>> likeComic(
-  String comicId,
-) async {
+Future<Map<String, dynamic>> likeComic(String comicId) async {
   final Map<String, dynamic> data = await request(
-      'https://picaapi.picacomic.com/comics/$comicId/like', 'POST');
+    'https://picaapi.picacomic.com/comics/$comicId/like',
+    'POST',
+  );
 
   debugPrint(limitString(data.toString(), 150));
 
@@ -253,10 +229,7 @@ Future<Map<String, dynamic>> likeComic(
   return data;
 }
 
-Future<Map<String, dynamic>> getComments(
-  String comicId,
-  int pageCount,
-) async {
+Future<Map<String, dynamic>> getComments(String comicId, int pageCount) async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comics/$comicId/comments?page=$pageCount',
     'GET',
@@ -289,9 +262,7 @@ Future<Map<String, dynamic>> getCommentsChildren(
   return data;
 }
 
-Future<Map<String, dynamic>> likeComment(
-  String comicId,
-) async {
+Future<Map<String, dynamic>> likeComment(String comicId) async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comments/$comicId/like',
     'POST',
@@ -344,9 +315,7 @@ Future<Map<String, dynamic>> writeCommentChildren(
   return data;
 }
 
-Future<Map<String, dynamic>> reportComments(
-  String commentId,
-) async {
+Future<Map<String, dynamic>> reportComments(String commentId) async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comments/$commentId/report',
     'POST',
@@ -361,10 +330,7 @@ Future<Map<String, dynamic>> reportComments(
   return data;
 }
 
-Future<Map<String, dynamic>> getEps(
-  String comicId,
-  int pageCount,
-) async {
+Future<Map<String, dynamic>> getEps(String comicId, int pageCount) async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comics/$comicId/eps?page=$pageCount',
     'GET',
@@ -380,9 +346,7 @@ Future<Map<String, dynamic>> getEps(
   return data;
 }
 
-Future<Map<String, dynamic>> getRecommend(
-  String comicId,
-) async {
+Future<Map<String, dynamic>> getRecommend(String comicId) async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comics/$comicId/recommendation',
     'GET',
@@ -405,9 +369,10 @@ Future<Map<String, dynamic>> getPages(
   String imageQuality = "",
 }) async {
   final Map<String, dynamic> data = await request(
-      'https://picaapi.picacomic.com/comics/$comicId/order/$epId/pages?page=$pageCount',
-      'GET',
-      cache: true);
+    'https://picaapi.picacomic.com/comics/$comicId/order/$epId/pages?page=$pageCount',
+    'GET',
+    cache: true,
+  );
 
   debugPrint(limitString(data.toString(), 150));
 
@@ -433,15 +398,11 @@ Future<Map<String, dynamic>> getUserProfile() async {
   return data;
 }
 
-Future<Map<String, dynamic>> updateAvatar(
-  String avatarBASE64String,
-) async {
+Future<Map<String, dynamic>> updateAvatar(String avatarBASE64String) async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/users/avatar',
     'PUT',
-    body: json.encode(
-      {"avatar": "data:image/jpeg;base64,$avatarBASE64String"},
-    ),
+    body: json.encode({"avatar": "data:image/jpeg;base64,$avatarBASE64String"}),
   );
 
   debugPrint(limitString(data.toString(), 150));
@@ -454,9 +415,7 @@ Future<Map<String, dynamic>> updateAvatar(
 }
 
 // 更新自己的简介
-Future<Map<String, dynamic>> updateProfile(
-  String profile,
-) async {
+Future<Map<String, dynamic>> updateProfile(String profile) async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/users/profile',
     'PUT',
@@ -472,18 +431,14 @@ Future<Map<String, dynamic>> updateProfile(
   return data;
 }
 
-Future<Map<String, dynamic>> updatePassword(
-  String newPassword,
-) async {
+Future<Map<String, dynamic>> updatePassword(String newPassword) async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/users/password',
     'PUT',
-    body: json.encode(
-      {
-        "new_password": newPassword,
-        "old_password": bikaSetting.password,
-      },
-    ),
+    body: json.encode({
+      "new_password": newPassword,
+      "old_password": bikaSetting.password,
+    }),
   );
 
   debugPrint(limitString(data.toString(), 150));
@@ -495,9 +450,7 @@ Future<Map<String, dynamic>> updatePassword(
   return data;
 }
 
-Future<Map<String, dynamic>> getFavorites(
-  int pageCount,
-) async {
+Future<Map<String, dynamic>> getFavorites(int pageCount) async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/users/favourite?s=dd&page=$pageCount',
     'GET',
@@ -512,9 +465,7 @@ Future<Map<String, dynamic>> getFavorites(
   return data;
 }
 
-Future<Map<String, dynamic>> getUserComments(
-  int pageCount,
-) async {
+Future<Map<String, dynamic>> getUserComments(int pageCount) async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/users/my-comments?page=$pageCount',
     'GET',
@@ -530,8 +481,10 @@ Future<Map<String, dynamic>> getUserComments(
 }
 
 Future<Map<String, dynamic>> signIn() async {
-  final Map<String, dynamic> data =
-      await request('https://picaapi.picacomic.com/users/punch-in', 'POST');
+  final Map<String, dynamic> data = await request(
+    'https://picaapi.picacomic.com/users/punch-in',
+    'POST',
+  );
   debugPrint(data.toString());
 
   debugPrint(limitString(data.toString(), 150));

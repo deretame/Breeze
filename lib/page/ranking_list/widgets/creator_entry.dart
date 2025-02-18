@@ -31,9 +31,7 @@ class _CreatorEntryWidgetState extends State<CreatorEntryWidget>
 
     return Column(
       children: <Widget>[
-        SizedBox(
-          height: (screenHeight / 10) * 0.1,
-        ),
+        SizedBox(height: (screenHeight / 10) * 0.1),
         GestureDetector(
           onTap: () {
             AutoRouter.of(context).push(

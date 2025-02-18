@@ -56,8 +56,9 @@ class ComicParticularsWidget extends StatelessWidget {
                         onTap: () {
                           AutoRouter.of(context).push(
                             SearchResultRoute(
-                              searchEnterConst:
-                                  SearchEnterConst(keyword: comicInfo.author),
+                              searchEnterConst: SearchEnterConst(
+                                keyword: comicInfo.author,
+                              ),
                             ),
                           );
                         },
@@ -70,9 +71,7 @@ class ComicParticularsWidget extends StatelessWidget {
                         },
                         child: Text(
                           '作者：${comicInfo.author}',
-                          style: TextStyle(
-                            color: materialColorScheme.primary,
-                          ),
+                          style: TextStyle(color: materialColorScheme.primary),
                         ),
                       ),
                     ],
@@ -96,15 +95,11 @@ class ComicParticularsWidget extends StatelessWidget {
                           Clipboard.setData(
                             ClipboardData(text: comicInfo.chineseTeam),
                           );
-                          showSuccessToast(
-                            "已将${comicInfo.chineseTeam}复制到剪贴板",
-                          );
+                          showSuccessToast("已将${comicInfo.chineseTeam}复制到剪贴板");
                         },
                         child: Text(
                           '汉化组：${comicInfo.chineseTeam}',
-                          style: TextStyle(
-                            color: materialColorScheme.primary,
-                          ),
+                          style: TextStyle(color: materialColorScheme.primary),
                         ),
                       ),
                     ],

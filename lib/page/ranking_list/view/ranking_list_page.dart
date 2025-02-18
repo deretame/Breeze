@@ -24,9 +24,7 @@ class _RankingListPageState extends State<RankingListPage>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('哔咔排行榜'),
-      ),
+      appBar: AppBar(title: const Text('哔咔排行榜')),
       body: const HotTabBar(),
     );
   }
@@ -72,23 +70,34 @@ class _HotTabBarState extends State<HotTabBar> with TickerProviderStateMixin {
             controller: _tabController,
             children: <Widget>[
               BlocProvider(
-                create: (_) => ComicListBloc()
-                  ..add(FetchComicList(GetInfo(days: "H24", type: "comic"))),
+                create:
+                    (_) =>
+                        ComicListBloc()..add(
+                          FetchComicList(GetInfo(days: "H24", type: "comic")),
+                        ),
                 child: const ComicRanking(type: "H24"),
               ),
               BlocProvider(
-                create: (_) => ComicListBloc()
-                  ..add(FetchComicList(GetInfo(days: "D7", type: "comic"))),
+                create:
+                    (_) =>
+                        ComicListBloc()..add(
+                          FetchComicList(GetInfo(days: "D7", type: "comic")),
+                        ),
                 child: const ComicRanking(type: "D7"),
               ),
               BlocProvider(
-                create: (_) => ComicListBloc()
-                  ..add(FetchComicList(GetInfo(days: "D30", type: "comic"))),
+                create:
+                    (_) =>
+                        ComicListBloc()..add(
+                          FetchComicList(GetInfo(days: "D30", type: "comic")),
+                        ),
                 child: const ComicRanking(type: "D30"),
               ),
               BlocProvider(
-                create: (_) => CreatorListBloc()
-                  ..add(FetchCreatorList(GetInfo(type: "creator"))),
+                create:
+                    (_) =>
+                        CreatorListBloc()
+                          ..add(FetchCreatorList(GetInfo(type: "creator"))),
                 child: const CreatorRankingsWidget(),
               ),
             ],

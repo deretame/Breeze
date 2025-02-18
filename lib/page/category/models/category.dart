@@ -21,14 +21,14 @@ class HomeCategory extends Equatable {
 
   @override
   List<Object?> get props => [
-        title,
-        homeThumb,
-        isWeb,
-        active,
-        link,
-        id,
-        description,
-      ];
+    title,
+    homeThumb,
+    isWeb,
+    active,
+    link,
+    id,
+    description,
+  ];
 }
 
 class HomeThumb {

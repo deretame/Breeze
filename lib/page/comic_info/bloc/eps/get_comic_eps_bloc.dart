@@ -32,26 +32,14 @@ class GetComicEpsBloc extends Bloc<GetComicEps, GetComicEpsState> {
     Emitter<GetComicEpsState> emit,
   ) async {
     try {
-      emit(
-        state.copyWith(
-          status: GetComicEpsStatus.initial,
-        ),
-      );
+      emit(state.copyWith(status: GetComicEpsStatus.initial));
 
       var eps = await _getEps(event.comic);
 
-      emit(
-        state.copyWith(
-          status: GetComicEpsStatus.success,
-          eps: eps,
-        ),
-      );
+      emit(state.copyWith(status: GetComicEpsStatus.success, eps: eps));
     } catch (e) {
       emit(
-        state.copyWith(
-          status: GetComicEpsStatus.failure,
-          result: e.toString(),
-        ),
+        state.copyWith(status: GetComicEpsStatus.failure, result: e.toString()),
       );
     }
   }

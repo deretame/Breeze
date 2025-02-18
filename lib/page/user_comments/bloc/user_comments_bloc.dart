@@ -39,11 +39,7 @@ class UserCommentsBloc extends Bloc<UserCommentsEvent, UserCommentsState> {
 
     if (event.status == UserCommentsStatus.initial) {
       userComments = [];
-      emit(
-        state.copyWith(
-          status: UserCommentsStatus.initial,
-        ),
-      );
+      emit(state.copyWith(status: UserCommentsStatus.initial));
     }
 
     if (event.status == UserCommentsStatus.loadingMore) {

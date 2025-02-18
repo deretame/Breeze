@@ -27,9 +27,7 @@ class ComicInfo with _$ComicInfo {
 
 @freezed
 class Data with _$Data {
-  const factory Data({
-    @JsonKey(name: "comic") required Comic comic,
-  }) = _Data;
+  const factory Data({@JsonKey(name: "comic") required Comic comic}) = _Data;
 
   factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 }

@@ -16,16 +16,12 @@ class BikaSettingPage extends StatefulWidget {
 
 class _BikaSettingPageState extends State<BikaSettingPage> {
   late final List<String> shuntList = ["1", "2", "3"];
-  late final Map<String, String> shunt = {
-    "1": "1",
-    "2": "2",
-    "3": "3",
-  };
+  late final Map<String, String> shunt = {"1": "1", "2": "2", "3": "3"};
   late final List<String> imageQualityList = [
     "low",
     "medium",
     "high",
-    "original"
+    "original",
   ];
   late final Map<String, String> imageQuality = {
     "low": "低画质",
@@ -37,45 +33,43 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('哔咔设置'),
-      ),
-      body: Observer(builder: (context) {
-        return Column(
-          children: [
-            SizedBox(height: 10),
-            changeProfilePicture(context),
-            SizedBox(height: 15),
-            changeBriefIntroduction(context),
-            SizedBox(height: 15),
-            changePassword(context),
-            SizedBox(height: 10),
-            divider(),
-            _shuntWidget(),
-            _imageQualityWidget(),
-            divider(),
-            SizedBox(height: 10),
-            changeShieldedCategories(context, "home"),
-            SizedBox(height: 15),
-            changeShieldedCategories(context, "categories"),
-            SizedBox(height: 10),
-            divider(),
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  bikaSetting.deleteAuthorization();
-                  // bikaSetting.deleteAccount();
-                  // bikaSetting.deletePassword();
-                  AutoRouter.of(context).push(LoginRoute());
-                },
-                child: Text(
-                  "退出登录",
+      appBar: AppBar(title: const Text('哔咔设置')),
+      body: Observer(
+        builder: (context) {
+          return Column(
+            children: [
+              SizedBox(height: 10),
+              changeProfilePicture(context),
+              SizedBox(height: 15),
+              changeBriefIntroduction(context),
+              SizedBox(height: 15),
+              changePassword(context),
+              SizedBox(height: 10),
+              divider(),
+              _shuntWidget(),
+              _imageQualityWidget(),
+              divider(),
+              SizedBox(height: 10),
+              changeShieldedCategories(context, "home"),
+              SizedBox(height: 15),
+              changeShieldedCategories(context, "categories"),
+              SizedBox(height: 10),
+              divider(),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    bikaSetting.deleteAuthorization();
+                    // bikaSetting.deleteAccount();
+                    // bikaSetting.deletePassword();
+                    AutoRouter.of(context).push(LoginRoute());
+                  },
+                  child: Text("退出登录"),
                 ),
               ),
-            )
-          ],
-        );
-      }),
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -83,12 +77,7 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
     return Row(
       children: [
         SizedBox(width: 10),
-        Text(
-          "分流设置",
-          style: TextStyle(
-            fontSize: 18,
-          ),
-        ),
+        Text("分流设置", style: TextStyle(fontSize: 18)),
         Expanded(child: Container()),
         DropdownButton<String>(
           value: bikaSetting.getProxy().toString(),
@@ -98,16 +87,14 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
               bikaSetting.setProxy(int.parse(value!));
             });
           },
-          items: shuntList.map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(shunt[value]!),
-            );
-          }).toList(),
-          style: TextStyle(
-            color: globalSetting.textColor,
-            fontSize: 18,
-          ),
+          items:
+              shuntList.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(shunt[value]!),
+                );
+              }).toList(),
+          style: TextStyle(color: globalSetting.textColor, fontSize: 18),
         ),
         SizedBox(width: 10),
       ],
@@ -118,12 +105,7 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
     return Row(
       children: [
         SizedBox(width: 10),
-        Text(
-          "图片质量",
-          style: TextStyle(
-            fontSize: 18,
-          ),
-        ),
+        Text("图片质量", style: TextStyle(fontSize: 18)),
         Expanded(child: Container()),
         DropdownButton<String>(
           value: bikaSetting.getImageQuality(),
@@ -135,16 +117,14 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
               bikaSetting.setImageQuality(value!);
             });
           },
-          items: imageQualityList.map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(imageQuality[value]!),
-            );
-          }).toList(),
-          style: TextStyle(
-            color: globalSetting.textColor,
-            fontSize: 18,
-          ),
+          items:
+              imageQualityList.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(imageQuality[value]!),
+                );
+              }).toList(),
+          style: TextStyle(color: globalSetting.textColor, fontSize: 18),
         ),
         SizedBox(width: 10),
       ],

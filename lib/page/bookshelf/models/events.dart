@@ -1,11 +1,4 @@
-enum EventType {
-  none,
-  updateShield,
-  updateSort,
-  refresh,
-  pageSkip,
-  showInfo,
-}
+enum EventType { none, updateShield, updateSort, refresh, pageSkip, showInfo }
 
 enum SortType { nullValue, dd, da, ld, vd }
 

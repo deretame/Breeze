@@ -29,9 +29,8 @@ class KnightLeaderboard with _$KnightLeaderboard {
 
 @freezed
 class Data with _$Data {
-  const factory Data({
-    @JsonKey(name: "users") required List<User> users,
-  }) = _Data;
+  const factory Data({@JsonKey(name: "users") required List<User> users}) =
+      _Data;
 
   factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 }

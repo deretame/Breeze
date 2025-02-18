@@ -27,9 +27,7 @@ class Profile with _$Profile {
 
 @freezed
 class Data with _$Data {
-  const factory Data({
-    @JsonKey(name: "user") required User user,
-  }) = _Data;
+  const factory Data({@JsonKey(name: "user") required User user}) = _Data;
 
   factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 }

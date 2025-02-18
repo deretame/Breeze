@@ -49,8 +49,9 @@ class _BikaUserInfoWidgetState extends State<_BikaUserInfoWidget> {
             loadBikaProfile = false;
             return Center(
               child: Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: CircularProgressIndicator()),
+                padding: const EdgeInsets.all(10.0),
+                child: CircularProgressIndicator(),
+              ),
             );
           case UserProfileStatus.failure:
             return Center(
@@ -100,10 +101,11 @@ class _BikaWidget extends StatelessWidget {
               children: <Widget>[
                 _UserAvatar(
                   pictureInfo: PictureInfo(
-                      url: profile.data.user.avatar.fileServer,
-                      path: profile.data.user.avatar.path,
-                      chapterId: "",
-                      pictureType: "avatar"),
+                    url: profile.data.user.avatar.fileServer,
+                    path: profile.data.user.avatar.path,
+                    chapterId: "",
+                    pictureType: "avatar",
+                  ),
                 ),
                 SizedBox(width: 10),
                 Flexible(
@@ -140,9 +142,7 @@ class _BikaWidget extends StatelessWidget {
 class _UserAvatar extends StatelessWidget {
   final PictureInfo pictureInfo;
 
-  const _UserAvatar({
-    required this.pictureInfo,
-  });
+  const _UserAvatar({required this.pictureInfo});
 
   @override
   Widget build(BuildContext context) {
@@ -150,18 +150,19 @@ class _UserAvatar extends StatelessWidget {
       height: 75,
       width: 75,
       child: BlocProvider(
-        create: (context) => PictureBloc()
-          ..add(
-            GetPicture(
-              PictureInfo(
-                from: "bika",
-                url: pictureInfo.url,
-                path: pictureInfo.path,
-                cartoonId: pictureInfo.cartoonId,
-                pictureType: pictureInfo.pictureType,
-              ),
-            ),
-          ),
+        create:
+            (context) =>
+                PictureBloc()..add(
+                  GetPicture(
+                    PictureInfo(
+                      from: "bika",
+                      url: pictureInfo.url,
+                      path: pictureInfo.path,
+                      cartoonId: pictureInfo.cartoonId,
+                      pictureType: pictureInfo.pictureType,
+                    ),
+                  ),
+                ),
         child: BlocBuilder<PictureBloc, PictureLoadState>(
           builder: (context, state) {
             switch (state.status) {
@@ -177,8 +178,10 @@ class _UserAvatar extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            FullScreenImageView(imagePath: state.imagePath!),
+                        builder:
+                            (context) => FullScreenImageView(
+                              imagePath: state.imagePath!,
+                            ),
                       ),
                     );
                   },
@@ -203,16 +206,16 @@ class _UserAvatar extends StatelessWidget {
                   return InkWell(
                     onTap: () {
                       context.read<PictureBloc>().add(
-                            GetPicture(
-                              PictureInfo(
-                                from: "bika",
-                                url: pictureInfo.url,
-                                path: pictureInfo.path,
-                                cartoonId: pictureInfo.cartoonId,
-                                pictureType: pictureInfo.pictureType,
-                              ),
-                            ),
-                          );
+                        GetPicture(
+                          PictureInfo(
+                            from: "bika",
+                            url: pictureInfo.url,
+                            path: pictureInfo.path,
+                            cartoonId: pictureInfo.cartoonId,
+                            pictureType: pictureInfo.pictureType,
+                          ),
+                        ),
+                      );
                     },
                     child: Icon(Icons.refresh),
                   );

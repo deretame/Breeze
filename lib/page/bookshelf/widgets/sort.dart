@@ -46,16 +46,16 @@ class _SortWidgetState extends State<SortWidget> {
     return DropdownButtonHideUnderline(
       child: DropdownButton2<String>(
         isExpanded: true,
-        hint: Text(
-          '选择排序',
-          style: TextStyle(fontSize: 16),
-        ),
-        items: sortList
-            .map((String item) => DropdownMenuItem<String>(
-                  value: item,
-                  child: Text(item, style: const TextStyle(fontSize: 16)),
-                ))
-            .toList(),
+        hint: Text('选择排序', style: TextStyle(fontSize: 16)),
+        items:
+            sortList
+                .map(
+                  (String item) => DropdownMenuItem<String>(
+                    value: item,
+                    child: Text(item, style: const TextStyle(fontSize: 16)),
+                  ),
+                )
+                .toList(),
         value: selectedValue,
         onChanged: (String? value) {
           setState(() {
@@ -63,12 +63,8 @@ class _SortWidgetState extends State<SortWidget> {
           });
           widget.onSortChanged(sortMap2[value!]!);
         },
-        buttonStyleData: const ButtonStyleData(
-          width: 100,
-        ),
-        menuItemStyleData: const MenuItemStyleData(
-          height: 40,
-        ),
+        buttonStyleData: const ButtonStyleData(width: 100),
+        menuItemStyleData: const MenuItemStyleData(height: 40),
       ),
     );
   }

@@ -8,9 +8,7 @@ import '../bloc/search_bloc.dart';
 import '../method/search_enter_provider.dart';
 
 class CategoriesSelect extends StatelessWidget {
-  const CategoriesSelect({
-    super.key,
-  });
+  const CategoriesSelect({super.key});
 
   Future<Map<String, bool>?> showCategoryDialog(BuildContext context) async {
     final searchEnter = SearchEnterProvider.of(context)!.searchEnter;
@@ -111,31 +109,26 @@ class CategoriesSelect extends StatelessWidget {
         if (!context.mounted) return;
 
         context.read<SearchBloc>().add(
-              FetchSearchResult(
-                SearchEnterConst(
-                  url: searchEnter.url,
-                  from: searchEnter.from,
-                  keyword: searchEnter.keyword,
-                  type: searchEnter.type,
-                  state: searchEnter.state,
-                  sort: searchEnter.sort,
-                  categories: categoriesChoice,
-                  pageCount: 1,
-                  refresh: searchEnter.refresh,
-                ),
-                SearchStatus.initial,
-              ),
-            );
+          FetchSearchResult(
+            SearchEnterConst(
+              url: searchEnter.url,
+              from: searchEnter.from,
+              keyword: searchEnter.keyword,
+              type: searchEnter.type,
+              state: searchEnter.state,
+              sort: searchEnter.sort,
+              categories: categoriesChoice,
+              pageCount: 1,
+              refresh: searchEnter.refresh,
+            ),
+            SearchStatus.initial,
+          ),
+        );
       },
       child: Row(
         children: <Widget>[
-          Text(
-            "选择分类",
-            style: TextStyle(
-              fontSize: 16,
-            ),
-          ),
-          Icon(Icons.expand_more)
+          Text("选择分类", style: TextStyle(fontSize: 16)),
+          Icon(Icons.expand_more),
         ],
       ),
     );

@@ -39,9 +39,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('webdav 同步'),
-      ),
+      appBar: AppBar(title: const Text('webdav 同步')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -107,7 +105,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
                 },
                 child: const Text('常见问题'),
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -154,11 +152,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
       eventBus.fire(NoticeSync());
 
       if (!mounted) return;
-      commonDialog(
-        context,
-        "成功",
-        "webdav连接成功，已保存设置。",
-      );
+      commonDialog(context, "成功", "webdav连接成功，已保存设置。");
     } catch (e) {
       // 关闭加载框
       if (mounted) {
@@ -166,11 +160,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
       }
 
       if (!mounted) return;
-      commonDialog(
-        context,
-        "错误",
-        "连接失败，请检查网络连接或webdav地址是否正确。\n$e",
-      );
+      commonDialog(context, "错误", "连接失败，请检查网络连接或webdav地址是否正确。\n$e");
     }
   }
 
@@ -196,9 +186,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
           content: SingleChildScrollView(
             child: SizedBox(
               width: double.maxFinite, // 设置最大宽度
-              child: MarkdownBody(
-                data: disclaimerMarkdown,
-              ),
+              child: MarkdownBody(data: disclaimerMarkdown),
             ),
           ),
           actions: [

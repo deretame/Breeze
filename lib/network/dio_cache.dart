@@ -7,7 +7,7 @@ class ExpiringMemoryCache {
   final Duration _expiryDuration;
 
   ExpiringMemoryCache({Duration? expiryDuration})
-      : _expiryDuration = expiryDuration ?? Duration(minutes: 5);
+    : _expiryDuration = expiryDuration ?? Duration(minutes: 5);
 
   T? get<T>(String key) {
     final cachedItem = _cache[key];

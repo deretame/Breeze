@@ -52,9 +52,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
                 size: 24.0, // 设置图标大小
               ),
               const SizedBox(height: 2),
-              Text(
-                '${comicInfo.viewsCount}',
-              ),
+              Text('${comicInfo.viewsCount}'),
             ],
           ),
           Column(
@@ -70,9 +68,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
                 ),
               ),
               const SizedBox(height: 2),
-              Text(
-                '${comicInfo.totalLikes}',
-              ),
+              Text('${comicInfo.totalLikes}'),
             ],
           ),
           Column(
@@ -144,9 +140,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
                 ),
               ),
               const SizedBox(height: 2),
-              const Text(
-                '下载',
-              ),
+              const Text('下载'),
             ],
           ),
         ],
@@ -178,35 +172,41 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
 
     showInfoToast("请求中...");
 
-    result.then((Map<String, dynamic> data) {
-      if (data["error"] != null) {
-        debugPrint('$actionVerb失败: $data');
-        if (!mounted) return;
-        failureMessage = actionType == 'like'
-            ? "请求失败: ${data["error"]}"
-            : (isCurrentlyActive ? '取消$actionVerb失败' : '$actionVerb失败');
-        showErrorToast(failureMessage, duration: const Duration(seconds: 5));
-      } else {
-        debugPrint('$actionVerb成功: $data');
-        setState(() {
-          if (actionType == 'like') {
-            isLiked = !isLiked;
+    result
+        .then((Map<String, dynamic> data) {
+          if (data["error"] != null) {
+            debugPrint('$actionVerb失败: $data');
+            if (!mounted) return;
+            failureMessage =
+                actionType == 'like'
+                    ? "请求失败: ${data["error"]}"
+                    : (isCurrentlyActive ? '取消$actionVerb失败' : '$actionVerb失败');
+            showErrorToast(
+              failureMessage,
+              duration: const Duration(seconds: 5),
+            );
           } else {
-            isCollected = !isCollected;
-          }
-        });
+            debugPrint('$actionVerb成功: $data');
+            setState(() {
+              if (actionType == 'like') {
+                isLiked = !isLiked;
+              } else {
+                isCollected = !isCollected;
+              }
+            });
 
-        if (!mounted) return;
-        successMessage =
-            isCurrentlyActive ? '取消$actionVerb成功' : '$actionVerb成功';
-        showSuccessToast(successMessage);
-      }
-    }).catchError((error) {
-      if (!mounted) return;
-      showErrorToast(
-        "请求过程中发生错误: ${error.toString()}",
-        duration: const Duration(seconds: 5),
-      );
-    });
+            if (!mounted) return;
+            successMessage =
+                isCurrentlyActive ? '取消$actionVerb成功' : '$actionVerb成功';
+            showSuccessToast(successMessage);
+          }
+        })
+        .catchError((error) {
+          if (!mounted) return;
+          showErrorToast(
+            "请求过程中发生错误: ${error.toString()}",
+            duration: const Duration(seconds: 5),
+          );
+        });
   }
 }

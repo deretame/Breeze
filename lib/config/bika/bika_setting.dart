@@ -35,8 +35,7 @@ abstract class _BikaSetting with Store {
   Map<String, bool> shieldCategoryMap = Map.of(categoryMap); // 分类设置
 
   @observable
-  Map<String, bool> shieldHomePageCategoriesMap =
-      Map.of(homePageCategoriesMap); // 存储首页的屏蔽分类
+  Map<String, bool> shieldHomePageCategoriesMap = Map.of(homePageCategoriesMap); // 存储首页的屏蔽分类
 
   @observable
   bool signIn = false; // 签到状态
@@ -101,8 +100,10 @@ abstract class _BikaSetting with Store {
 
   @action
   String getAuthorization() {
-    authorization =
-        _box.get(BikaSettingBoxKeys.authorization, defaultValue: '');
+    authorization = _box.get(
+      BikaSettingBoxKeys.authorization,
+      defaultValue: '',
+    );
     return authorization;
   }
 
@@ -174,8 +175,10 @@ abstract class _BikaSetting with Store {
 
   @action
   String getImageQuality() {
-    imageQuality =
-        _box.get(BikaSettingBoxKeys.imageQuality, defaultValue: 'original');
+    imageQuality = _box.get(
+      BikaSettingBoxKeys.imageQuality,
+      defaultValue: 'original',
+    );
     return imageQuality;
   }
 
@@ -193,8 +196,10 @@ abstract class _BikaSetting with Store {
 
   @action
   Map<String, bool> getShieldCategoryMap() {
-    var map = _box.get(BikaSettingBoxKeys.shieldCategoryMap,
-        defaultValue: Map.of(categoryMap));
+    var map = _box.get(
+      BikaSettingBoxKeys.shieldCategoryMap,
+      defaultValue: Map.of(categoryMap),
+    );
     shieldCategoryMap = Map<String, bool>.from(map); // 转换为 Map<String, bool>
     return shieldCategoryMap;
   }
@@ -213,8 +218,10 @@ abstract class _BikaSetting with Store {
 
   @action
   Map<String, bool> getShieldHomePageCategories() {
-    var map = _box.get(BikaSettingBoxKeys.shieldHomePageCategories,
-        defaultValue: Map.of(homePageCategoriesMap));
+    var map = _box.get(
+      BikaSettingBoxKeys.shieldHomePageCategories,
+      defaultValue: Map.of(homePageCategoriesMap),
+    );
     var categories = Map<String, bool>.from(map); // 转换为 Map<String, bool>
     return categories;
   }
@@ -251,8 +258,10 @@ abstract class _BikaSetting with Store {
 
   @action
   DateTime getSignInTime() {
-    var dateTime = _box.get(BikaSettingBoxKeys.signInTime,
-        defaultValue: DateTime.now().subtract(Duration(hours: 24)));
+    var dateTime = _box.get(
+      BikaSettingBoxKeys.signInTime,
+      defaultValue: DateTime.now().subtract(Duration(hours: 24)),
+    );
     signInTime = dateTime;
     return signInTime;
   }

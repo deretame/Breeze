@@ -23,7 +23,8 @@ ComicEntryInfo convertToComicEntryInfo(BikaComicHistory comicHistory) {
 }
 
 ComicEntryInfo downloadConvertToComicEntryInfo(
-    BikaComicDownload comicDownload) {
+  BikaComicDownload comicDownload,
+) {
   return ComicEntryInfo(
     updatedAt: comicDownload.updatedAt,
     thumb: Thumb(

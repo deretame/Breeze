@@ -23,8 +23,8 @@ class HistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) =>
-          UserHistoryBloc()..add(UserHistoryEvent(SearchEnterConst())),
+      create:
+          (_) => UserHistoryBloc()..add(UserHistoryEvent(SearchEnterConst())),
       child: _HistoryPage(
         searchStatusStore: searchStatusStore,
         stringSelectStore: stringSelectStore,
@@ -170,27 +170,25 @@ class __HistoryPageState extends State<_HistoryPage>
             handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
           ),
           SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-                // 如果索引等于状态的 comics.length，并且已经达到最大值
-                if (index == state.comics.length) {
-                  return deletingDialog(
-                    context,
-                    () => _refresh(searchStatusStore),
-                    DeleteType.history,
-                  );
-                } else {
-                  return ComicEntryWidget(
-                    comicEntryInfo: convertToComicEntryInfo(
-                      state.comics[index],
-                    ),
-                    type: ComicEntryType.history,
-                    refresh: () => _refresh(searchStatusStore),
-                  );
-                }
-              },
-              childCount: itemCount,
-            ),
+            delegate: SliverChildBuilderDelegate((
+              BuildContext context,
+              int index,
+            ) {
+              // 如果索引等于状态的 comics.length，并且已经达到最大值
+              if (index == state.comics.length) {
+                return deletingDialog(
+                  context,
+                  () => _refresh(searchStatusStore),
+                  DeleteType.history,
+                );
+              } else {
+                return ComicEntryWidget(
+                  comicEntryInfo: convertToComicEntryInfo(state.comics[index]),
+                  type: ComicEntryType.history,
+                  refresh: () => _refresh(searchStatusStore),
+                );
+              }
+            }, childCount: itemCount),
           ),
         ],
       ),
@@ -201,14 +199,14 @@ class __HistoryPageState extends State<_HistoryPage>
     notice = false;
     // 使用原本输入参数进行重新搜索
     context.read<UserHistoryBloc>().add(
-          UserHistoryEvent(
-            SearchEnterConst(
-              keyword: searchStatusStore.keyword,
-              sort: searchStatusStore.sort,
-              categories: searchStatusStore.categories,
-              refresh: Uuid().v4(), //传入一个不一样的值，来强行刷新
-            ),
-          ),
-        );
+      UserHistoryEvent(
+        SearchEnterConst(
+          keyword: searchStatusStore.keyword,
+          sort: searchStatusStore.sort,
+          categories: searchStatusStore.categories,
+          refresh: Uuid().v4(), //传入一个不一样的值，来强行刷新
+        ),
+      ),
+    );
   }
 }

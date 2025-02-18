@@ -18,10 +18,7 @@ import '../../../../widgets/picture_bloc/models/picture_info.dart';
 class FavoriteComicEntryWidget extends StatelessWidget {
   final Doc comicEntryInfo;
 
-  const FavoriteComicEntryWidget({
-    super.key,
-    required this.comicEntryInfo,
-  });
+  const FavoriteComicEntryWidget({super.key, required this.comicEntryInfo});
 
   String _getCategories(List<String>? categories) {
     int count = 0;
@@ -47,9 +44,7 @@ class FavoriteComicEntryWidget extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         // 跳转到漫画详情页
-        router.push(ComicInfoRoute(
-          comicId: comicEntryInfo.id,
-        ));
+        router.push(ComicInfoRoute(comicId: comicEntryInfo.id));
       },
       child: Column(
         children: <Widget>[
@@ -59,8 +54,9 @@ class FavoriteComicEntryWidget extends StatelessWidget {
               return Container(
                 height: 180,
                 width: ((screenWidth / 10) * 9.5),
-                margin:
-                    EdgeInsets.symmetric(horizontal: (screenWidth / 10) * 0.25),
+                margin: EdgeInsets.symmetric(
+                  horizontal: (screenWidth / 10) * 0.25,
+                ),
                 decoration: BoxDecoration(
                   color: globalSetting.backgroundColor,
                   borderRadius: BorderRadius.circular(10.0),
@@ -111,9 +107,7 @@ class FavoriteComicEntryWidget extends StatelessWidget {
                           const SizedBox(height: 5),
                           Text(
                             _getCategories(comicEntryInfo.categories),
-                            style: TextStyle(
-                              color: globalSetting.textColor,
-                            ),
+                            style: TextStyle(color: globalSetting.textColor),
                           ),
                           Spacer(),
                           Row(
@@ -124,9 +118,7 @@ class FavoriteComicEntryWidget extends StatelessWidget {
                                 size: 24.0,
                               ),
                               const SizedBox(width: 10.0),
-                              Text(
-                                comicEntryInfo.likesCount.toString(),
-                              ),
+                              Text(comicEntryInfo.likesCount.toString()),
                               SizedBox(width: 10.0),
                               Text(
                                 comicEntryInfo.finished ? "完结" : "",
@@ -169,18 +161,19 @@ class _ImageWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => PictureBloc()
-        ..add(
-          GetPicture(
-            PictureInfo(
-              from: "bika",
-              url: fileServer,
-              path: path,
-              cartoonId: id,
-              pictureType: pictureType,
-            ),
-          ),
-        ),
+      create:
+          (context) =>
+              PictureBloc()..add(
+                GetPicture(
+                  PictureInfo(
+                    from: "bika",
+                    url: fileServer,
+                    path: path,
+                    cartoonId: id,
+                    pictureType: pictureType,
+                  ),
+                ),
+              ),
       child: BlocBuilder<PictureBloc, PictureLoadState>(
         builder: (context, state) {
           switch (state.status) {
@@ -205,10 +198,11 @@ class _ImageWidget extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => FullScreenImageView(
-                        imagePath: state.imagePath!,
-                        uuid: uuid,
-                      ),
+                      builder:
+                          (context) => FullScreenImageView(
+                            imagePath: state.imagePath!,
+                            uuid: uuid,
+                          ),
                     ),
                   );
                 },
@@ -241,23 +235,21 @@ class _ImageWidget extends StatelessWidget {
                   child: InkWell(
                     onTap: () {
                       context.read<PictureBloc>().add(
-                            GetPicture(
-                              PictureInfo(
-                                from: "bika",
-                                url: fileServer,
-                                path: path,
-                                cartoonId: id,
-                                pictureType: pictureType,
-                              ),
-                            ),
-                          );
+                        GetPicture(
+                          PictureInfo(
+                            from: "bika",
+                            url: fileServer,
+                            path: path,
+                            cartoonId: id,
+                            pictureType: pictureType,
+                          ),
+                        ),
+                      );
                     },
                     child: Center(
                       child: Text(
                         '加载图片失败\n点击重新加载',
-                        style: TextStyle(
-                          color: globalSetting.textColor,
-                        ),
+                        style: TextStyle(color: globalSetting.textColor),
                       ),
                     ),
                   ),

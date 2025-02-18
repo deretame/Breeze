@@ -129,10 +129,7 @@ Future<void> exportComicAsZip(ComicAllInfoJson comicInfo) async {
       );
       var pageBytes = await File(pageDownloadFile).readAsBytes();
       var fileName = page.media.originalName;
-      pages.add({
-        'path': join(epDir, fileName),
-        'bytes': pageBytes,
-      });
+      pages.add({'path': join(epDir, fileName), 'bytes': pageBytes});
     }
   }
 
@@ -177,35 +174,43 @@ void _compressToZip(_CompressToZipParams params) {
   var archive = Archive();
 
   // 添加原始漫画信息文件
-  archive.addFile(ArchiveFile(
-    'original_comic_info.json',
-    params.originalComicInfoBytes.length,
-    params.originalComicInfoBytes,
-  ));
+  archive.addFile(
+    ArchiveFile(
+      'original_comic_info.json',
+      params.originalComicInfoBytes.length,
+      params.originalComicInfoBytes,
+    ),
+  );
 
   // 添加处理后的漫画信息文件
-  archive.addFile(ArchiveFile(
-    'processed_comic_info.json',
-    params.processedComicInfoBytes.length,
-    params.processedComicInfoBytes,
-  ));
+  archive.addFile(
+    ArchiveFile(
+      'processed_comic_info.json',
+      params.processedComicInfoBytes.length,
+      params.processedComicInfoBytes,
+    ),
+  );
 
   // 添加封面图片
   if (params.coverBytes != null) {
-    archive.addFile(ArchiveFile(
-      'cover/cover.jpg',
-      params.coverBytes!.length,
-      params.coverBytes!,
-    ));
+    archive.addFile(
+      ArchiveFile(
+        'cover/cover.jpg',
+        params.coverBytes!.length,
+        params.coverBytes!,
+      ),
+    );
   }
 
   // 添加漫画页面
   for (var page in params.pages) {
-    archive.addFile(ArchiveFile(
-      page['path'],
-      (page['bytes'] as Uint8List).length,
-      page['bytes'],
-    ));
+    archive.addFile(
+      ArchiveFile(
+        page['path'],
+        (page['bytes'] as Uint8List).length,
+        page['bytes'],
+      ),
+    );
   }
 
   // 将归档写入ZIP文件
@@ -285,30 +290,39 @@ ComicAllInfoJson comicInfoProcess(ComicAllInfoJson comicInfo) {
       isLiked: comicInfo.comic.isLiked,
     ),
     eps: Eps(
-      docs: comicInfo.eps.docs
-          .map((ep) => EpsDoc(
-                id: ep.id,
-                title:
-                    "${ep.order}.${ep.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}",
-                order: ep.order,
-                updatedAt: ep.updatedAt,
-                docId: ep.docId,
-                pages: Pages(
-                  docs: ep.pages.docs
-                      .map((page) => PagesDoc(
-                            id: page.id,
-                            media: Thumb(
-                              originalName: page.media.originalName
-                                  .replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_'),
-                              path: page.media.path,
-                              fileServer: page.media.fileServer,
-                            ),
-                            docId: page.docId,
-                          ))
-                      .toList(),
+      docs:
+          comicInfo.eps.docs
+              .map(
+                (ep) => EpsDoc(
+                  id: ep.id,
+                  title:
+                      "${ep.order}.${ep.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}",
+                  order: ep.order,
+                  updatedAt: ep.updatedAt,
+                  docId: ep.docId,
+                  pages: Pages(
+                    docs:
+                        ep.pages.docs
+                            .map(
+                              (page) => PagesDoc(
+                                id: page.id,
+                                media: Thumb(
+                                  originalName: page.media.originalName
+                                      .replaceAll(
+                                        RegExp(r'[<>:"/\\|?* ]'),
+                                        '_',
+                                      ),
+                                  path: page.media.path,
+                                  fileServer: page.media.fileServer,
+                                ),
+                                docId: page.docId,
+                              ),
+                            )
+                            .toList(),
+                  ),
                 ),
-              ))
-          .toList(),
+              )
+              .toList(),
     ),
   );
 }

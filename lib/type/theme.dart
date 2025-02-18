@@ -1,8 +1,4 @@
-enum ThemeType {
-  light,
-  dark,
-  system,
-}
+enum ThemeType { light, dark, system }
 
 extension ThemeTypeDesc on ThemeType {
   String get description => ['浅色', '深色', '跟随系统'][index];

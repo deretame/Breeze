@@ -9,16 +9,17 @@ Future<void> testWebDavServer(
   String username,
   String password,
 ) async {
-  final dio = Dio(BaseOptions(
-    baseUrl: host, // WebDAV 服务器地址
-    headers: {
-      'Authorization': 'Basic ${base64Encode(
-        utf8.encode('$username:$password'),
-      )}',
-    },
-    connectTimeout: const Duration(seconds: 10), // 连接超时时间
-    receiveTimeout: const Duration(seconds: 10), // 接收超时时间
-  ));
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: host, // WebDAV 服务器地址
+      headers: {
+        'Authorization':
+            'Basic ${base64Encode(utf8.encode('$username:$password'))}',
+      },
+      connectTimeout: const Duration(seconds: 10), // 连接超时时间
+      receiveTimeout: const Duration(seconds: 10), // 接收超时时间
+    ),
+  );
 
   try {
     // 打印请求信息

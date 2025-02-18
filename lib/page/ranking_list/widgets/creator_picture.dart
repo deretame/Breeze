@@ -24,17 +24,18 @@ class CreatorPictureWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => PictureBloc()
-        ..add(
-          GetPicture(
-            PictureInfo(
-              from: "bika",
-              url: fileServer,
-              path: path,
-              pictureType: pictureType,
-            ),
-          ),
-        ),
+      create:
+          (context) =>
+              PictureBloc()..add(
+                GetPicture(
+                  PictureInfo(
+                    from: "bika",
+                    url: fileServer,
+                    path: path,
+                    pictureType: pictureType,
+                  ),
+                ),
+              ),
       child: BlocBuilder<PictureBloc, PictureLoadState>(
         builder: (context, state) {
           switch (state.status) {
@@ -56,8 +57,10 @@ class CreatorPictureWidget extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            FullScreenImageView(imagePath: state.imagePath!),
+                        builder:
+                            (context) => FullScreenImageView(
+                              imagePath: state.imagePath!,
+                            ),
                       ),
                     );
                   },
@@ -94,15 +97,15 @@ class CreatorPictureWidget extends StatelessWidget {
                 return InkWell(
                   onTap: () {
                     context.read<PictureBloc>().add(
-                          GetPicture(
-                            PictureInfo(
-                              from: "bika",
-                              url: fileServer,
-                              path: path,
-                              pictureType: pictureType,
-                            ),
-                          ),
-                        );
+                      GetPicture(
+                        PictureInfo(
+                          from: "bika",
+                          url: fileServer,
+                          path: path,
+                          pictureType: pictureType,
+                        ),
+                      ),
+                    );
                   },
                   child: Center(
                     child: Icon(

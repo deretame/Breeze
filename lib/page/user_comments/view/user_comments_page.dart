@@ -8,15 +8,16 @@ import '../json/user_comments_json.dart';
 
 @RoutePage()
 class UserCommentsPage extends StatelessWidget {
-  const UserCommentsPage({
-    super.key,
-  });
+  const UserCommentsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => UserCommentsBloc()
-        ..add(UserCommentsEvent(status: UserCommentsStatus.initial, count: 1)),
+      create:
+          (_) =>
+              UserCommentsBloc()..add(
+                UserCommentsEvent(status: UserCommentsStatus.initial, count: 1),
+              ),
       child: _UserCommentsPage(),
     );
   }
@@ -37,8 +38,12 @@ class _UserCommentsPageState extends State<_UserCommentsPage> {
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {
-        context.read<UserCommentsBloc>().add(UserCommentsEvent(
-            status: UserCommentsStatus.loadingMore, count: _count));
+        context.read<UserCommentsBloc>().add(
+          UserCommentsEvent(
+            status: UserCommentsStatus.loadingMore,
+            count: _count,
+          ),
+        );
       }
     });
   }
@@ -52,41 +57,43 @@ class _UserCommentsPageState extends State<_UserCommentsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('评论'),
-      ),
+      appBar: AppBar(title: Text('评论')),
       body: BlocBuilder<UserCommentsBloc, UserCommentsState>(
-          builder: (context, state) {
-        switch (state.status) {
-          case UserCommentsStatus.initial:
-            return Center(
-              child: Padding(
+        builder: (context, state) {
+          switch (state.status) {
+            case UserCommentsStatus.initial:
+              return Center(
+                child: Padding(
                   padding: const EdgeInsets.all(10.0),
-                  child: CircularProgressIndicator()),
-            );
-          case UserCommentsStatus.failure:
-            return ErrorView(
-              errorMessage: '${state.result.toString()}\n加载失败，请重试。',
-              onRetry: () {
-                context.read<UserCommentsBloc>().add(UserCommentsEvent(
-                    status: UserCommentsStatus.initial, count: 1));
-              },
-            );
-          case UserCommentsStatus.success:
-          case UserCommentsStatus.loadingMore:
-          case UserCommentsStatus.getMoreFailure:
-            return _buildCommentList(state);
-        }
-      }),
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            case UserCommentsStatus.failure:
+              return ErrorView(
+                errorMessage: '${state.result.toString()}\n加载失败，请重试。',
+                onRetry: () {
+                  context.read<UserCommentsBloc>().add(
+                    UserCommentsEvent(
+                      status: UserCommentsStatus.initial,
+                      count: 1,
+                    ),
+                  );
+                },
+              );
+            case UserCommentsStatus.success:
+            case UserCommentsStatus.loadingMore:
+            case UserCommentsStatus.getMoreFailure:
+              return _buildCommentList(state);
+          }
+        },
+      ),
     );
   }
 
   Widget _buildCommentList(UserCommentsState state) {
     _count = state.count;
     if (state.userCommentsJson!.isEmpty) {
-      return Center(
-        child: Text('啥都没有', style: TextStyle(fontSize: 20)),
-      );
+      return Center(child: Text('啥都没有', style: TextStyle(fontSize: 20)));
     }
 
     List<Doc> userComments = [];
@@ -100,30 +107,35 @@ class _UserCommentsPageState extends State<_UserCommentsPage> {
     userComments.toSet().toList();
 
     return ListView.builder(
-      itemCount: userComments.length +
+      itemCount:
+          userComments.length +
           (state.status == UserCommentsStatus.loadingMore ? 1 : 0) +
           (state.status == UserCommentsStatus.getMoreFailure ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == userComments.length) {
           if (state.status == UserCommentsStatus.loadingMore) {
             return Center(
-                child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: CircularProgressIndicator(),
-            ));
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: CircularProgressIndicator(),
+              ),
+            );
           }
 
           if (state.status == UserCommentsStatus.getMoreFailure) {
             return Center(
-                child: ElevatedButton(
-              onPressed: () {
-                context.read<UserCommentsBloc>().add(UserCommentsEvent(
+              child: ElevatedButton(
+                onPressed: () {
+                  context.read<UserCommentsBloc>().add(
+                    UserCommentsEvent(
                       status: UserCommentsStatus.loadingMore,
                       count: _count,
-                    ));
-              },
-              child: const Text('重新加载'),
-            ));
+                    ),
+                  );
+                },
+                child: const Text('重新加载'),
+              ),
+            );
           }
         }
 

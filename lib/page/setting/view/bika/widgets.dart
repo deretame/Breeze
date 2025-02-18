@@ -17,13 +17,15 @@ Widget divider() {
     child: SizedBox(
       width: screenWidth * (48 / 50), // 设置宽度
       child: Observer(
-        builder: (context) => Divider(
-          color: globalSetting.themeType
-              ? materialColorScheme.secondaryFixedDim
-              : materialColorScheme.secondaryFixedDim,
-          thickness: 1,
-          height: 10,
-        ),
+        builder:
+            (context) => Divider(
+              color:
+                  globalSetting.themeType
+                      ? materialColorScheme.secondaryFixedDim
+                      : materialColorScheme.secondaryFixedDim,
+              thickness: 1,
+              height: 10,
+            ),
       ),
     ),
   );
@@ -64,9 +66,7 @@ Widget changeProfilePicture(BuildContext context) {
               toolbarWidgetColor: Colors.white,
               initAspectRatio: CropAspectRatioPreset.square,
               lockAspectRatio: true,
-              aspectRatioPresets: [
-                CustomizedAspectRatioPresetData(),
-              ],
+              aspectRatioPresets: [CustomizedAspectRatioPresetData()],
             ),
           ],
         );
@@ -92,12 +92,7 @@ Widget changeProfilePicture(BuildContext context) {
     child: Row(
       children: [
         SizedBox(width: 10),
-        Text(
-          "更新头像",
-          style: TextStyle(
-            fontSize: 18,
-          ),
-        ),
+        Text("更新头像", style: TextStyle(fontSize: 18)),
         Expanded(child: Container()),
         Icon(Icons.chevron_right),
         SizedBox(width: 10),
@@ -135,12 +130,7 @@ Widget changeBriefIntroduction(BuildContext context) {
     child: Row(
       children: [
         SizedBox(width: 10),
-        Text(
-          "更新简介",
-          style: TextStyle(
-            fontSize: 18,
-          ),
-        ),
+        Text("更新简介", style: TextStyle(fontSize: 18)),
         Expanded(child: Container()),
         Icon(Icons.chevron_right),
         SizedBox(width: 10),
@@ -170,12 +160,7 @@ Widget changePassword(BuildContext context) {
     child: Row(
       children: [
         SizedBox(width: 10),
-        Text(
-          "更新密码",
-          style: TextStyle(
-            fontSize: 18,
-          ),
-        ),
+        Text("更新密码", style: TextStyle(fontSize: 18)),
         Expanded(child: Container()),
         Icon(Icons.chevron_right),
         SizedBox(width: 10),
@@ -188,8 +173,9 @@ Widget changeShieldedCategories(BuildContext context, String type) {
   return GestureDetector(
     onTap: () async {
       if (type == "home") {
-        late var oldCategoriesMap =
-            Map.of(bikaSetting.shieldHomePageCategoriesMap);
+        late var oldCategoriesMap = Map.of(
+          bikaSetting.shieldHomePageCategoriesMap,
+        );
         var categoriesShield = await showShieldCategoryDialog(context, type);
         if (categoriesShield == null) {
           return;
@@ -222,12 +208,7 @@ Widget changeShieldedCategories(BuildContext context, String type) {
     child: Row(
       children: [
         SizedBox(width: 10),
-        Text(
-          type == "home" ? "首页屏蔽" : "分类屏蔽",
-          style: TextStyle(
-            fontSize: 18,
-          ),
-        ),
+        Text(type == "home" ? "首页屏蔽" : "分类屏蔽", style: TextStyle(fontSize: 18)),
         Expanded(child: Container()),
         Icon(Icons.chevron_right),
         SizedBox(width: 10),

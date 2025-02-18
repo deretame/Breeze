@@ -26,8 +26,9 @@ String _getSignature(
   String apiKey,
 ) {
   String baseUrl = "https://picaapi.picacomic.com/";
-  String raw = "${url.replaceAll(baseUrl, '')}$timestamp$nonce$method$apiKey"
-      .toLowerCase();
+  String raw =
+      "${url.replaceAll(baseUrl, '')}$timestamp$nonce$method$apiKey"
+          .toLowerCase();
   String hashKey =
       r"~d}$Q7$eIni=V)9\RK/P.RM4;9[7|@/CA}b~OW!3?EV`:<>M7pddUBL5n|0/*Cn";
 
@@ -68,7 +69,7 @@ Map<String, String> _getRequestHeaders(
     'app-platform': "android",
     'app-build-version': "45",
     'accept-encoding': 'gzip',
-    'user-agent': 'okhttp/3.8.1'
+    'user-agent': 'okhttp/3.8.1',
   };
 
   if ((method == 'POST' || method == 'PUT')) {
@@ -97,11 +98,7 @@ Future<Map<String, dynamic>> request(
   String body = "",
   bool cache = false,
 }) async {
-  final headers = _getRequestHeaders(
-    url,
-    method,
-    body: body,
-  );
+  final headers = _getRequestHeaders(url, method, body: body);
 
   // 根据useCache决定是否添加缓存拦截器
   if (cache) {
@@ -118,13 +115,11 @@ Future<Map<String, dynamic>> request(
 
     final response = await dio.request(
       url,
-      data: body.isNotEmpty && (method == 'POST' || method == 'PUT')
-          ? body
-          : null,
-      options: Options(
-        method: method,
-        headers: headers,
-      ),
+      data:
+          body.isNotEmpty && (method == 'POST' || method == 'PUT')
+              ? body
+              : null,
+      options: Options(method: method, headers: headers),
       cancelToken: cancelToken,
     );
 

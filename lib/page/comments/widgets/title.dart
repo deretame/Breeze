@@ -13,12 +13,7 @@ class ScrollableTitle extends StatelessWidget {
         children: [
           // 设置左右间距，防止内容紧贴边缘
           // const SizedBox(width: 10),
-          Text(
-            text,
-            style: const TextStyle(
-              fontSize: 20,
-            ),
-          ),
+          Text(text, style: const TextStyle(fontSize: 20)),
           // const SizedBox(width: 10),
         ],
       ),

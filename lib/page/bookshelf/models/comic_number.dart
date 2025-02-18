@@ -4,8 +4,5 @@ class ComicNumber {
   final int buildNumber;
   final Doc doc;
 
-  ComicNumber({
-    required this.buildNumber,
-    required this.doc,
-  });
+  ComicNumber({required this.buildNumber, required this.doc});
 }

@@ -31,11 +31,7 @@ class ComicListBloc extends Bloc<FetchComicList, ComicListState> {
     FetchComicList event,
     Emitter<ComicListState> emit,
   ) async {
-    emit(
-      state.copyWith(
-        status: ComicListStatus.initial,
-      ),
-    );
+    emit(state.copyWith(status: ComicListStatus.initial));
 
     try {
       var temp = await getRankingList(
@@ -53,24 +49,18 @@ class ComicListBloc extends Bloc<FetchComicList, ComicListState> {
               .toList();
 
       // 过滤掉包含屏蔽分类的漫画
-      var temp1 = result.data.comics.where((comic) {
-        // 检查该漫画的分类是否与屏蔽分类列表中的任何分类匹配
-        return !comic.categories
-            .any((category) => shieldedCategoriesList.contains(category));
-      }).toList();
+      var temp1 =
+          result.data.comics.where((comic) {
+            // 检查该漫画的分类是否与屏蔽分类列表中的任何分类匹配
+            return !comic.categories.any(
+              (category) => shieldedCategoriesList.contains(category),
+            );
+          }).toList();
 
-      emit(
-        state.copyWith(
-          status: ComicListStatus.success,
-          comicList: temp1,
-        ),
-      );
+      emit(state.copyWith(status: ComicListStatus.success, comicList: temp1));
     } catch (e) {
       emit(
-        state.copyWith(
-          status: ComicListStatus.failure,
-          result: e.toString(),
-        ),
+        state.copyWith(status: ComicListStatus.failure, result: e.toString()),
       );
     }
   }

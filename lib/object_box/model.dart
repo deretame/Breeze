@@ -171,7 +171,7 @@ class BikaComicHistory {
       'epPageCount': epPageCount,
       'epId': epId,
       'deleted': deleted,
-      'deletedAt': deletedAt.toIso8601String()
+      'deletedAt': deletedAt.toIso8601String(),
     };
   }
 
@@ -208,10 +208,12 @@ class BikaComicHistory {
       pagesCount: json['pagesCount'] ?? 0,
       epsCount: json['epsCount'] ?? 0,
       finished: json['finished'] ?? false,
-      updatedAt:
-          DateTime.parse(json['updatedAt'] ?? DateTime.now().toIso8601String()),
-      createdAt:
-          DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
+      updatedAt: DateTime.parse(
+        json['updatedAt'] ?? DateTime.now().toIso8601String(),
+      ),
+      createdAt: DateTime.parse(
+        json['createdAt'] ?? DateTime.now().toIso8601String(),
+      ),
       allowDownload: json['allowDownload'] ?? false,
       allowComment: json['allowComment'] ?? false,
       totalLikes: json['totalLikes'] ?? 0,
@@ -222,15 +224,17 @@ class BikaComicHistory {
       commentsCount: json['commentsCount'] ?? 0,
       isFavourite: json['isFavourite'] ?? false,
       isLiked: json['isLiked'] ?? false,
-      history:
-          DateTime.parse(json['history'] ?? DateTime.now().toIso8601String()),
+      history: DateTime.parse(
+        json['history'] ?? DateTime.now().toIso8601String(),
+      ),
       order: json['order'] ?? 0,
       epTitle: json['epTitle'] ?? '',
       epPageCount: json['epPageCount'] ?? 0,
       epId: json['epId'] ?? '',
       deleted: json['deleted'] ?? false,
-      deletedAt:
-          DateTime.parse(json['deletedAt'] ?? DateTime.now().toIso8601String()),
+      deletedAt: DateTime.parse(
+        json['deletedAt'] ?? DateTime.now().toIso8601String(),
+      ),
     );
   }
 

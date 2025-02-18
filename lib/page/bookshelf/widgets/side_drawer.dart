@@ -69,11 +69,13 @@ class _SideDrawerState extends State<SideDrawer> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               AppBar(
-                title: Text(indexStore.date == 0
-                    ? "收藏筛选"
-                    : indexStore.date == 1
-                        ? "历史筛选"
-                        : "下载筛选"),
+                title: Text(
+                  indexStore.date == 0
+                      ? "收藏筛选"
+                      : indexStore.date == 1
+                      ? "历史筛选"
+                      : "下载筛选",
+                ),
                 automaticallyImplyLeading: false, // 不显示默认的返回按钮
                 actions: [
                   IconButton(
@@ -98,18 +100,20 @@ class _SideDrawerState extends State<SideDrawer> {
                   child: _choiceCategory(historyStore),
                 ),
                 SizedBox(height: 8),
-                Builder(builder: (context) {
-                  sort = historyStore.sort;
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: SortWidget(
-                      searchStatusStore: historyStore,
-                      onSortChanged: (value) {
-                        sort = value;
-                      },
-                    ),
-                  );
-                }),
+                Builder(
+                  builder: (context) {
+                    sort = historyStore.sort;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: SortWidget(
+                        searchStatusStore: historyStore,
+                        onSortChanged: (value) {
+                          sort = value;
+                        },
+                      ),
+                    );
+                  },
+                ),
                 keywordSearch(historyStore),
               ],
               if (indexStore.date == 2) ...[
@@ -118,18 +122,20 @@ class _SideDrawerState extends State<SideDrawer> {
                   child: _choiceCategory(downloadStore),
                 ),
                 SizedBox(height: 8),
-                Builder(builder: (context) {
-                  sort = downloadStore.sort;
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: SortWidget(
-                      searchStatusStore: downloadStore,
-                      onSortChanged: (value) {
-                        sort = value;
-                      },
-                    ),
-                  );
-                }),
+                Builder(
+                  builder: (context) {
+                    sort = downloadStore.sort;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: SortWidget(
+                        searchStatusStore: downloadStore,
+                        onSortChanged: (value) {
+                          sort = value;
+                        },
+                      ),
+                    );
+                  },
+                ),
                 keywordSearch(downloadStore),
               ],
               Spacer(),
@@ -206,10 +212,11 @@ class _SideDrawerState extends State<SideDrawer> {
           return;
         }
 
-        var temp = categoriesSelected.entries
-            .where((entry) => entry.value == true)
-            .map((entry) => entry.key)
-            .toList();
+        var temp =
+            categoriesSelected.entries
+                .where((entry) => entry.value == true)
+                .map((entry) => entry.key)
+                .toList();
 
         categories = temp;
       },
@@ -273,8 +280,9 @@ class _SideDrawerState extends State<SideDrawer> {
   }
 
   Widget keywordSearch(SearchStatusStore store) {
-    final TextEditingController controller =
-        TextEditingController(text: store.keyword);
+    final TextEditingController controller = TextEditingController(
+      text: store.keyword,
+    );
 
     return Expanded(
       child: Padding(

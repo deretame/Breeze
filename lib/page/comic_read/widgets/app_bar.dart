@@ -28,14 +28,16 @@ class ComicReadAppBar extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
           child: AppBar(
             title: Text(title),
-            backgroundColor:
-                globalSetting.backgroundColor.withValues(alpha: 0.5),
+            backgroundColor: globalSetting.backgroundColor.withValues(
+              alpha: 0.5,
+            ),
             elevation: isVisible ? 4.0 : 0.0,
             actions: [
               IconButton(
-                icon: globalSetting.themeMode == ThemeMode.system
-                    ? Icon(Icons.brightness_auto_rounded)
-                    : Icon(Icons.brightness_auto_outlined),
+                icon:
+                    globalSetting.themeMode == ThemeMode.system
+                        ? Icon(Icons.brightness_auto_rounded)
+                        : Icon(Icons.brightness_auto_outlined),
                 onPressed: onThemeModeChanged,
               ),
             ],

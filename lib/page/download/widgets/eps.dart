@@ -86,7 +86,9 @@ class _EpsWidgetState extends State<EpsWidget> {
                       Text(
                         widget.doc.title,
                         style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       SizedBox(height: 4),
                       Row(
@@ -99,12 +101,12 @@ class _EpsWidgetState extends State<EpsWidget> {
                           widget.doc.id == 'history'
                               ? Text("观看历史", style: TextStyle(fontSize: 14))
                               : Text(
-                                  "number : ${widget.doc.order.toString()}",
-                                  style: TextStyle(
-                                    fontFamily: "Pacifico-Regular",
-                                    fontSize: 14,
-                                  ),
+                                "number : ${widget.doc.order.toString()}",
+                                style: TextStyle(
+                                  fontFamily: "Pacifico-Regular",
+                                  fontSize: 14,
                                 ),
+                              ),
                         ],
                       ),
                     ],

@@ -24,12 +24,11 @@ class CommentsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => CommentsBloc()
-        ..add(CommentsEvent(comicId, CommentsStatus.initial, 1)),
-      child: _ComicReadPage(
-        comicId: comicId,
-        comicTitle: comicTitle,
-      ),
+      create:
+          (_) =>
+              CommentsBloc()
+                ..add(CommentsEvent(comicId, CommentsStatus.initial, 1)),
+      child: _ComicReadPage(comicId: comicId, comicTitle: comicTitle),
     );
   }
 }
@@ -38,10 +37,7 @@ class _ComicReadPage extends StatefulWidget {
   final String comicId;
   final String comicTitle;
 
-  const _ComicReadPage({
-    required this.comicId,
-    required this.comicTitle,
-  });
+  const _ComicReadPage({required this.comicId, required this.comicTitle});
 
   @override
   State<_ComicReadPage> createState() => _ComicReadPageState();
@@ -62,38 +58,34 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: ScrollableTitle(
-          text: comicTitle,
-        ),
-      ),
-      body: BlocBuilder<CommentsBloc, CommentsState>(builder: (context, state) {
-        switch (state.status) {
-          case CommentsStatus.initial:
-            return Center(child: CircularProgressIndicator());
+      appBar: AppBar(title: ScrollableTitle(text: comicTitle)),
+      body: BlocBuilder<CommentsBloc, CommentsState>(
+        builder: (context, state) {
+          switch (state.status) {
+            case CommentsStatus.initial:
+              return Center(child: CircularProgressIndicator());
 
-          case CommentsStatus.failure:
-            return ErrorView(
-              errorMessage: '${state.result.toString()}\n加载失败，请重试。',
-              onRetry: () {
-                context.read<CommentsBloc>().add(
-                      CommentsEvent(
-                        comicId,
-                        CommentsStatus.initial,
-                        commentIndex,
-                      ),
-                    );
-              },
-            );
-          case CommentsStatus.success:
-          case CommentsStatus.getMoreFailure:
-          case CommentsStatus.loadingMore:
-          case CommentsStatus.comment:
-            return _CommentWidget(
-              state: state,
-            );
-        }
-      }),
+            case CommentsStatus.failure:
+              return ErrorView(
+                errorMessage: '${state.result.toString()}\n加载失败，请重试。',
+                onRetry: () {
+                  context.read<CommentsBloc>().add(
+                    CommentsEvent(
+                      comicId,
+                      CommentsStatus.initial,
+                      commentIndex,
+                    ),
+                  );
+                },
+              );
+            case CommentsStatus.success:
+            case CommentsStatus.getMoreFailure:
+            case CommentsStatus.loadingMore:
+            case CommentsStatus.comment:
+              return _CommentWidget(state: state);
+          }
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.comment),
         onPressed: () async {
@@ -115,9 +107,9 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       // 检查 State 是否仍然挂载
       if (!mounted) return;
 
-      context
-          .read<CommentsBloc>()
-          .add(CommentsEvent(comicId, CommentsStatus.comment, 1));
+      context.read<CommentsBloc>().add(
+        CommentsEvent(comicId, CommentsStatus.comment, 1),
+      );
     } catch (e) {
       debugPrint(e.toString());
       showErrorToast(
@@ -138,62 +130,67 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     String? result = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
-        return Observer(builder: (context) {
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.0), // 圆角
-            ),
-            child: Container(
-              padding: EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min, // 使对话框根据内容调整大小
-                children: [
-                  Text(title),
-                  SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      // color: Colors.grey[200], // 背景色
-                      border: Border.all(
-                        color: globalSetting.themeType
-                            ? materialColorScheme.secondaryFixedDim
-                            : materialColorScheme.secondaryFixedDim,
-                      ), // 边框
-                      borderRadius: BorderRadius.circular(8.0), // 圆角
-                    ),
-                    padding: EdgeInsets.symmetric(horizontal: 8.0),
-                    child: TextField(
-                      controller: controller,
-                      maxLines: null, // 设置多行输入
-                      decoration: InputDecoration(
-                        border: InputBorder.none, // 去掉默认的输入框边框
-                        hintText: defaultText,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(); // 关闭对话框
-                        },
-                        child: Text('取消'),
-                      ),
-                      SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(controller.text); // 返回输入内容
-                        },
-                        child: Text('确认'),
-                      ),
-                    ],
-                  ),
-                ],
+        return Observer(
+          builder: (context) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.0), // 圆角
               ),
-            ),
-          );
-        });
+              child: Container(
+                padding: EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min, // 使对话框根据内容调整大小
+                  children: [
+                    Text(title),
+                    SizedBox(height: 16),
+                    Container(
+                      decoration: BoxDecoration(
+                        // color: Colors.grey[200], // 背景色
+                        border: Border.all(
+                          color:
+                              globalSetting.themeType
+                                  ? materialColorScheme.secondaryFixedDim
+                                  : materialColorScheme.secondaryFixedDim,
+                        ), // 边框
+                        borderRadius: BorderRadius.circular(8.0), // 圆角
+                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      child: TextField(
+                        controller: controller,
+                        maxLines: null, // 设置多行输入
+                        decoration: InputDecoration(
+                          border: InputBorder.none, // 去掉默认的输入框边框
+                          hintText: defaultText,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(); // 关闭对话框
+                          },
+                          child: Text('取消'),
+                        ),
+                        SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(
+                              context,
+                            ).pop(controller.text); // 返回输入内容
+                          },
+                          child: Text('确认'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
       },
     );
 
@@ -204,9 +201,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
 class _CommentWidget extends StatefulWidget {
   final CommentsState state;
 
-  const _CommentWidget({
-    required this.state,
-  });
+  const _CommentWidget({required this.state});
 
   @override
   State<_CommentWidget> createState() => _CommentWidgetState();
@@ -265,7 +260,8 @@ class _CommentWidgetState extends State<_CommentWidget> {
     }
     commentsDoc = removeDuplicatesDoc(commentsDoc);
     return ListView.builder(
-      itemCount: topComments.length +
+      itemCount:
+          topComments.length +
           commentsDoc.length +
           (state.status == CommentsStatus.loadingMore ? 1 : 0) +
           (state.status == CommentsStatus.getMoreFailure ? 1 : 0) +
@@ -274,10 +270,7 @@ class _CommentWidgetState extends State<_CommentWidget> {
         // 处理 topComments
         if (index < topComments.length) {
           var topComment = topComments[index];
-          return CommentsWidget(
-            doc: topCommentToDoc(topComment),
-            index: index,
-          );
+          return CommentsWidget(doc: topCommentToDoc(topComment), index: index);
         }
 
         // 处理 commentsDoc
@@ -285,10 +278,7 @@ class _CommentWidgetState extends State<_CommentWidget> {
           int commentIndex = index - topComments.length;
           var comment = commentsDoc[commentIndex];
           int displayIndex = comments[0].data.comments.total - commentIndex;
-          return CommentsWidget(
-            doc: comment,
-            index: displayIndex,
-          );
+          return CommentsWidget(doc: comment, index: displayIndex);
         }
 
         // 处理加载更多指示器
@@ -304,12 +294,12 @@ class _CommentWidgetState extends State<_CommentWidget> {
             child: ElevatedButton(
               onPressed: () {
                 context.read<CommentsBloc>().add(
-                      CommentsEvent(
-                        comments[0].data.comments.docs[0].comic,
-                        CommentsStatus.loadingMore,
-                        commentIndex,
-                      ),
-                    );
+                  CommentsEvent(
+                    comments[0].data.comments.docs[0].comic,
+                    CommentsStatus.loadingMore,
+                    commentIndex,
+                  ),
+                );
               },
               child: const Text('重新加载'),
             ),
@@ -340,12 +330,12 @@ class _CommentWidgetState extends State<_CommentWidget> {
 
   void _fetchMoreData() {
     context.read<CommentsBloc>().add(
-          CommentsEvent(
-            comments[0].data.comments.docs[0].comic,
-            CommentsStatus.loadingMore,
-            commentIndex + 1,
-          ),
-        );
+      CommentsEvent(
+        comments[0].data.comments.docs[0].comic,
+        CommentsStatus.loadingMore,
+        commentIndex + 1,
+      ),
+    );
     debugPrint('已经滚动到达底部，加载更多数据!');
   }
 

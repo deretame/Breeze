@@ -32,23 +32,22 @@ class _BookshelfPageState extends State<BookshelfPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this)
-      ..addListener(() {
-        if (_tabController.index != _currentIndex) {
-          _currentIndex = _tabController.index;
-          indexStore.setDate(_currentIndex);
-          debugPrint('Current index: $_currentIndex');
-          if (_currentIndex == 0) {
-            eventBus.fire(
-              FavoriteEvent(EventType.showInfo, SortType.nullValue, 0),
-            );
-          } else if (_currentIndex == 1) {
-            eventBus.fire(HistoryEvent(EventType.showInfo));
-          } else if (_currentIndex == 2) {
-            eventBus.fire(DownloadEvent(EventType.showInfo));
-          }
+    _tabController = TabController(length: 3, vsync: this)..addListener(() {
+      if (_tabController.index != _currentIndex) {
+        _currentIndex = _tabController.index;
+        indexStore.setDate(_currentIndex);
+        debugPrint('Current index: $_currentIndex');
+        if (_currentIndex == 0) {
+          eventBus.fire(
+            FavoriteEvent(EventType.showInfo, SortType.nullValue, 0),
+          );
+        } else if (_currentIndex == 1) {
+          eventBus.fire(HistoryEvent(EventType.showInfo));
+        } else if (_currentIndex == 2) {
+          eventBus.fire(DownloadEvent(EventType.showInfo));
         }
-      });
+      }
+    });
     stringSelectStore.setDate("");
   }
 
@@ -77,19 +76,21 @@ class _BookshelfPageState extends State<BookshelfPage>
                 actions: [
                   IconButton(
                     icon: const Icon(Icons.search),
-                    onPressed: () => AutoRouter.of(context).push(
-                      SearchResultRoute(
-                        searchEnterConst: search_result.SearchEnterConst(),
-                      ),
-                    ),
-                  )
+                    onPressed:
+                        () => AutoRouter.of(context).push(
+                          SearchResultRoute(
+                            searchEnterConst: search_result.SearchEnterConst(),
+                          ),
+                        ),
+                  ),
                 ],
                 pinned: true,
                 floating: true,
                 snap: true,
                 bottom: PreferredSize(
-                  preferredSize:
-                      const Size.fromHeight(kMinInteractiveDimension),
+                  preferredSize: const Size.fromHeight(
+                    kMinInteractiveDimension,
+                  ),
                   child: Row(
                     children: [
                       Expanded(
@@ -103,19 +104,23 @@ class _BookshelfPageState extends State<BookshelfPage>
                         ),
                       ),
                       Observer(
-                        builder: (context) => SizedBox(
-                          width: 120,
-                          child: Center(
-                            child: Text(stringSelectStore.date),
-                          ),
-                        ),
+                        builder:
+                            (context) => SizedBox(
+                              width: 120,
+                              child: Center(
+                                child: Text(stringSelectStore.date),
+                              ),
+                            ),
                       ),
                       Builder(
                         builder: (BuildContext context) {
                           return IconButton(
                             icon: const Icon(Icons.sort),
-                            onPressed: () =>
-                                Scaffold.of(context).openEndDrawer(), // 打开右侧抽屉
+                            onPressed:
+                                () =>
+                                    Scaffold.of(
+                                      context,
+                                    ).openEndDrawer(), // 打开右侧抽屉
                           );
                         },
                       ),

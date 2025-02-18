@@ -36,7 +36,7 @@ class PageSkip extends StatelessWidget {
             focusNode: focusNode,
             keyboardType: TextInputType.number,
             inputFormatters: <TextInputFormatter>[
-              FilteringTextInputFormatter.digitsOnly
+              FilteringTextInputFormatter.digitsOnly,
             ],
             decoration: InputDecoration(hintText: '请输入页数（仅支持数字）'),
             controller: inputController,
@@ -78,21 +78,21 @@ class PageSkip extends StatelessWidget {
           if (!context.mounted) return;
 
           context.read<SearchBloc>().add(
-                FetchSearchResult(
-                  SearchEnterConst(
-                    url: searchEnter.url,
-                    from: searchEnter.from,
-                    keyword: searchEnter.keyword,
-                    type: searchEnter.type,
-                    state: '',
-                    sort: searchEnter.sort,
-                    categories: searchEnter.categories,
-                    pageCount: pageSkip!,
-                    refresh: searchEnter.refresh,
-                  ),
-                  SearchStatus.initial,
-                ),
-              );
+            FetchSearchResult(
+              SearchEnterConst(
+                url: searchEnter.url,
+                from: searchEnter.from,
+                keyword: searchEnter.keyword,
+                type: searchEnter.type,
+                state: '',
+                sort: searchEnter.sort,
+                categories: searchEnter.categories,
+                pageCount: pageSkip!,
+                refresh: searchEnter.refresh,
+              ),
+              SearchStatus.initial,
+            ),
+          );
 
           pageStore.setDate("$pageSkip/$pagesCount");
         }

@@ -130,8 +130,9 @@ class _ComicReadPageState extends State<_ComicReadPage>
     });
 
     // 首先查询一下有没有记录
-    final query = objectbox.bikaHistoryBox
-        .query(BikaComicHistory_.comicId.equals(comicId));
+    final query = objectbox.bikaHistoryBox.query(
+      BikaComicHistory_.comicId.equals(comicId),
+    );
     comicHistory = query.build().findFirst();
     // 如果没有记录就先插入一条记录
     if (comicHistory == null) {
@@ -142,11 +143,12 @@ class _ComicReadPageState extends State<_ComicReadPage>
     if (_type == ComicEntryType.download ||
         _type == ComicEntryType.historyAndDownload) {
       // 首先查询一下有没有记录
-      var temp = objectbox.bikaDownloadBox
-          .query(BikaComicDownload_.comicId.equals(comicId))
-          .build()
-          .findFirst()!
-          .comicInfoAll;
+      var temp =
+          objectbox.bikaDownloadBox
+              .query(BikaComicDownload_.comicId.equals(comicId))
+              .build()
+              .findFirst()!
+              .comicInfoAll;
       var temp2 = comic_all_info_json.comicAllInfoJsonFromJson(temp);
       _downloadEpsInfo = temp2.eps;
     }
@@ -173,17 +175,17 @@ class _ComicReadPageState extends State<_ComicReadPage>
                   _type == ComicEntryType.historyAndDownload
               ? _successWidget(null)
               : BlocBuilder<PageBloc, PageState>(
-                  builder: (context, state) {
-                    switch (state.status) {
-                      case PageStatus.initial:
-                        return const Center(child: CircularProgressIndicator());
-                      case PageStatus.failure:
-                        return _failureWidget(state);
-                      case PageStatus.success:
-                        return _successWidget(state);
-                    }
-                  },
-                );
+                builder: (context, state) {
+                  switch (state.status) {
+                    case PageStatus.initial:
+                      return const Center(child: CircularProgressIndicator());
+                    case PageStatus.failure:
+                      return _failureWidget(state);
+                    case PageStatus.success:
+                      return _successWidget(state);
+                  }
+                },
+              );
         },
       ),
     );
@@ -223,8 +225,9 @@ class _ComicReadPageState extends State<_ComicReadPage>
       medias = state.medias!;
     } else {
       try {
-        var temp =
-            _downloadEpsInfo.docs.firstWhere((e) => e.order == _doc.order);
+        var temp = _downloadEpsInfo.docs.firstWhere(
+          (e) => e.order == _doc.order,
+        );
         _doc = eps.Doc(
           id: temp.id,
           title: temp.title,
@@ -232,22 +235,18 @@ class _ComicReadPageState extends State<_ComicReadPage>
           updatedAt: temp.updatedAt,
           docId: temp.docId,
         );
-        medias = temp.pages.docs.map((e) {
-          return Media(
-            originalName: e.media.originalName,
-            path: e.media.path,
-            fileServer: e.media.fileServer,
-          );
-        }).toList();
+        medias =
+            temp.pages.docs.map((e) {
+              return Media(
+                originalName: e.media.originalName,
+                path: e.media.path,
+                fileServer: e.media.fileServer,
+              );
+            }).toList();
         length = temp.pages.docs.length;
         epPages = temp.pages.docs.length.toString();
       } catch (e) {
-        return Center(
-          child: Text(
-            '章节未下载',
-            style: TextStyle(fontSize: 20),
-          ),
-        );
+        return Center(child: Text('章节未下载', style: TextStyle(fontSize: 20)));
       }
     }
     // 在成功加载状态下设置 _totalSlots
@@ -279,13 +278,16 @@ class _ComicReadPageState extends State<_ComicReadPage>
         child: Stack(
           children: [
             GestureDetector(
-              onTap: () => setState(() {
-                _isVisible = !_isVisible;
-                debugPrint('状态栏可见性：$_isVisible');
-                if (_isVisible) {
-                  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-                }
-              }),
+              onTap:
+                  () => setState(() {
+                    _isVisible = !_isVisible;
+                    debugPrint('状态栏可见性：$_isVisible');
+                    if (_isVisible) {
+                      SystemChrome.setEnabledSystemUIMode(
+                        SystemUiMode.edgeToEdge,
+                      );
+                    }
+                  }),
               child: InteractiveViewer(
                 boundaryMargin: EdgeInsets.zero,
                 minScale: 1.0,
@@ -344,10 +346,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
               },
             ),
             // _pageCountWidget(),
-            PageCountWidget(
-              pageIndex: pageIndex,
-              epPages: epPages,
-            ),
+            PageCountWidget(pageIndex: pageIndex, epPages: epPages),
             _bottomWidget(),
             // _bottomButton(),
           ],
@@ -365,113 +364,117 @@ class _ComicReadPageState extends State<_ComicReadPage>
     if (_type == ComicEntryType.history) {
       tempType = ComicEntryType.normal;
     }
-    return Observer(builder: (context) {
-      return AnimatedPositioned(
-        duration: _animationDuration,
-        bottom: _isVisible ? 0 : -_bottomWidgetHeight.toDouble(),
-        left: 0,
-        right: 0,
-        child: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // 高斯模糊强度
-            child: Container(
-              height: _bottomWidgetHeight.toDouble(),
-              width: screenWidth,
-              color: globalSetting.backgroundColor.withValues(alpha: 0.5),
-              // 半透明背景
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      SizedBox(width: 10),
-                      GestureDetector(
-                        child: Text("上一章"),
-                        onTap: () async {
-                          if (_doc.order == epsInfo[0].order) {
-                            showInfoToast("已经是第一章了");
-                            return;
-                          }
-                          final result = await _bottomButtonDialog(
-                            context,
-                            '跳转',
-                            '是否要跳转到上一章？',
-                            epsInfo[_doc.order - 2],
-                          );
-                          if (result && mounted) {
-                            router.popAndPush(
-                              ComicReadRoute(
-                                comicInfo: comicInfo,
-                                epsInfo: epsInfo,
-                                doc: epsInfo[_doc.order - 2],
-                                comicId: comicInfo.id,
-                                type: tempType,
-                              ),
+    return Observer(
+      builder: (context) {
+        return AnimatedPositioned(
+          duration: _animationDuration,
+          bottom: _isVisible ? 0 : -_bottomWidgetHeight.toDouble(),
+          left: 0,
+          right: 0,
+          child: ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // 高斯模糊强度
+              child: Container(
+                height: _bottomWidgetHeight.toDouble(),
+                width: screenWidth,
+                color: globalSetting.backgroundColor.withValues(alpha: 0.5),
+                // 半透明背景
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        SizedBox(width: 10),
+                        GestureDetector(
+                          child: Text("上一章"),
+                          onTap: () async {
+                            if (_doc.order == epsInfo[0].order) {
+                              showInfoToast("已经是第一章了");
+                              return;
+                            }
+                            final result = await _bottomButtonDialog(
+                              context,
+                              '跳转',
+                              '是否要跳转到上一章？',
+                              epsInfo[_doc.order - 2],
                             );
-                          }
-                        },
-                      ),
-                      _sliderWidget(),
-                      GestureDetector(
-                        child: Text("下一章"),
-                        onTap: () async {
-                          debugPrint('下一章');
-                          if (_doc.order == epsInfo[epsInfo.length - 1].order) {
-                            showInfoToast("已经是最后一章了");
-                            return;
-                          }
+                            if (result && mounted) {
+                              router.popAndPush(
+                                ComicReadRoute(
+                                  comicInfo: comicInfo,
+                                  epsInfo: epsInfo,
+                                  doc: epsInfo[_doc.order - 2],
+                                  comicId: comicInfo.id,
+                                  type: tempType,
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                        _sliderWidget(),
+                        GestureDetector(
+                          child: Text("下一章"),
+                          onTap: () async {
+                            debugPrint('下一章');
+                            if (_doc.order ==
+                                epsInfo[epsInfo.length - 1].order) {
+                              showInfoToast("已经是最后一章了");
+                              return;
+                            }
 
-                          final result = await _bottomButtonDialog(
-                            context,
-                            '跳转',
-                            '是否要跳转到下一章？',
-                            epsInfo[_doc.order],
-                          );
-                          if (result) {
-                            router.popAndPush(
-                              ComicReadRoute(
-                                comicInfo: comicInfo,
-                                epsInfo: epsInfo,
-                                doc: epsInfo[_doc.order],
-                                comicId: comicInfo.id,
-                                type: tempType,
-                              ),
+                            final result = await _bottomButtonDialog(
+                              context,
+                              '跳转',
+                              '是否要跳转到下一章？',
+                              epsInfo[_doc.order],
                             );
-                          }
-                        },
-                      ),
-                      SizedBox(width: 10),
-                    ],
-                  ),
-                  Center(
-                    child: Container(
-                      height: 1, // 设置高度为1像素
-                      width: screenWidth * 48 / 50,
-                      color: globalSetting.themeType
-                          ? materialColorScheme.secondaryFixedDim
-                          : materialColorScheme.secondaryFixedDim,
+                            if (result) {
+                              router.popAndPush(
+                                ComicReadRoute(
+                                  comicInfo: comicInfo,
+                                  epsInfo: epsInfo,
+                                  doc: epsInfo[_doc.order],
+                                  comicId: comicInfo.id,
+                                  type: tempType,
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                        SizedBox(width: 10),
+                      ],
                     ),
-                  ),
-                  Row(
-                    children: [
-                      Spacer(),
-                      Expanded(
-                        child: Center(
-                          child: IconButton(
-                            icon: globalSetting.themeMode == ThemeMode.light
-                                ? Icon(Icons.brightness_7)
-                                : Icon(Icons.brightness_5_outlined),
-                            onPressed: () {
-                              globalSetting.setThemeMode(1);
-                            },
+                    Center(
+                      child: Container(
+                        height: 1, // 设置高度为1像素
+                        width: screenWidth * 48 / 50,
+                        color:
+                            globalSetting.themeType
+                                ? materialColorScheme.secondaryFixedDim
+                                : materialColorScheme.secondaryFixedDim,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Spacer(),
+                        Expanded(
+                          child: Center(
+                            child: IconButton(
+                              icon:
+                                  globalSetting.themeMode == ThemeMode.light
+                                      ? Icon(Icons.brightness_7)
+                                      : Icon(Icons.brightness_5_outlined),
+                              onPressed: () {
+                                globalSetting.setThemeMode(1);
+                              },
+                            ),
                           ),
                         ),
-                      ),
-                      Spacer(),
-                      SizedBox(
-                        height: 51,
-                        child: GestureDetector(
-                          onTap: () async {
-                            final result = await showDialog<int?>(
+                        Spacer(),
+                        SizedBox(
+                          height: 51,
+                          child: GestureDetector(
+                            onTap: () async {
+                              final result = await showDialog<int?>(
                                 context: context,
                                 barrierDismissible: false, // 不允许点击外部区域关闭对话框
                                 builder: (BuildContext context) {
@@ -484,8 +487,9 @@ class _ComicReadPageState extends State<_ComicReadPage>
                                             TextButton(
                                               child: Text(ep.title),
                                               onPressed: () {
-                                                Navigator.of(context)
-                                                    .pop(ep.order);
+                                                Navigator.of(
+                                                  context,
+                                                ).pop(ep.order);
                                               },
                                             ),
                                         ],
@@ -500,46 +504,49 @@ class _ComicReadPageState extends State<_ComicReadPage>
                                       ),
                                     ],
                                   );
-                                });
-                            if (result != null && mounted) {
-                              router.popAndPush(
-                                ComicReadRoute(
-                                  comicInfo: comicInfo,
-                                  epsInfo: epsInfo,
-                                  doc: epsInfo[result - 1],
-                                  comicId: comicInfo.id,
-                                  type: tempType,
-                                ),
+                                },
                               );
-                            }
-                          },
-                          child: Center(
-                            child: Text(
-                              '跳转章节',
-                              style: TextStyle(fontSize: 16),
+                              if (result != null && mounted) {
+                                router.popAndPush(
+                                  ComicReadRoute(
+                                    comicInfo: comicInfo,
+                                    epsInfo: epsInfo,
+                                    doc: epsInfo[result - 1],
+                                    comicId: comicInfo.id,
+                                    type: tempType,
+                                  ),
+                                );
+                              }
+                            },
+                            child: Center(
+                              child: Text(
+                                '跳转章节',
+                                style: TextStyle(fontSize: 16),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      Spacer(),
-                      IconButton(
-                        icon: globalSetting.themeMode == ThemeMode.dark
-                            ? Icon(Icons.brightness_2_rounded)
-                            : Icon(Icons.brightness_2_outlined),
-                        onPressed: () {
-                          globalSetting.setThemeMode(2);
-                        },
-                      ),
-                      Spacer(),
-                    ],
-                  ),
-                ],
+                        Spacer(),
+                        IconButton(
+                          icon:
+                              globalSetting.themeMode == ThemeMode.dark
+                                  ? Icon(Icons.brightness_2_rounded)
+                                  : Icon(Icons.brightness_2_outlined),
+                          onPressed: () {
+                            globalSetting.setThemeMode(2);
+                          },
+                        ),
+                        Spacer(),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 
   Widget _sliderWidget() {
@@ -615,11 +622,14 @@ class _ComicReadPageState extends State<_ComicReadPage>
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
                   child: Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 48.0, vertical: 24.0),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 48.0,
+                      vertical: 24.0,
+                    ),
                     decoration: BoxDecoration(
-                      color: materialColorScheme.surfaceBright
-                          .withValues(alpha: 0.5),
+                      color: materialColorScheme.surfaceBright.withValues(
+                        alpha: 0.5,
+                      ),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: RichText(
@@ -705,7 +715,9 @@ class _ComicReadPageState extends State<_ComicReadPage>
 
   /// 找到最接近屏幕三分之一位置的项
   ItemPosition? _findClosestPosition(
-      Iterable<ItemPosition> positions, double topThird) {
+    Iterable<ItemPosition> positions,
+    double topThird,
+  ) {
     ItemPosition? closestPosition;
     double minDistance = double.infinity;
 

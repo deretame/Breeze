@@ -19,11 +19,11 @@ class PictureInfo extends Equatable {
 
   @override
   List<Object> get props => [
-        from,
-        url,
-        path,
-        cartoonId,
-        pictureType,
-        chapterId,
-      ];
+    from,
+    url,
+    path,
+    cartoonId,
+    pictureType,
+    chapterId,
+  ];
 }

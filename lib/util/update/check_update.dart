@@ -30,8 +30,9 @@ Future<GithubReleaseJson> getCloudVersion() async {
     "https://api.github.com/repos/deretame/Breeze/releases",
   );
 
-  final List<Map<String, dynamic>> releases =
-      List<Map<String, dynamic>>.from(response.data);
+  final List<Map<String, dynamic>> releases = List<Map<String, dynamic>>.from(
+    response.data,
+  );
 
   return GithubReleaseJson.fromJson(releases[0]);
 }

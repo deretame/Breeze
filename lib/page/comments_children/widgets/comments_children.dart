@@ -83,20 +83,22 @@ class _CommentsChildrenWidgetState extends State<CommentsChildrenWidget>
                         mainAxisAlignment: MainAxisAlignment.start, // 横向居左
                         crossAxisAlignment: CrossAxisAlignment.start, // 顶部对齐
                         children: [
-                          Builder(builder: (context) {
-                            return ImagerWidget(
-                              key: ValueKey(commentInfo.id),
-                              pictureInfo: PictureInfo(
-                                url: commentInfo.user.avatar!.fileServer,
-                                path: commentInfo.user.avatar!.path,
-                                cartoonId: commentInfo.user.id,
-                                pictureType: "creator",
-                                chapterId: commentInfo.id,
-                                from: "bika",
-                              ),
-                              commentId: commentInfo.id,
-                            );
-                          }),
+                          Builder(
+                            builder: (context) {
+                              return ImagerWidget(
+                                key: ValueKey(commentInfo.id),
+                                pictureInfo: PictureInfo(
+                                  url: commentInfo.user.avatar!.fileServer,
+                                  path: commentInfo.user.avatar!.path,
+                                  cartoonId: commentInfo.user.id,
+                                  pictureType: "creator",
+                                  chapterId: commentInfo.id,
+                                  from: "bika",
+                                ),
+                                commentId: commentInfo.id,
+                              );
+                            },
+                          ),
                           SizedBox(width: 10),
                           Flexible(
                             child: Column(
@@ -107,9 +109,10 @@ class _CommentsChildrenWidgetState extends State<CommentsChildrenWidget>
                                 Text(
                                   "level:${commentInfo.user.level} (${commentInfo.user.title})",
                                   style: TextStyle(
-                                    color: globalSetting.themeType
-                                        ? Colors.red
-                                        : Colors.yellow,
+                                    color:
+                                        globalSetting.themeType
+                                            ? Colors.red
+                                            : Colors.yellow,
                                   ),
                                 ),
                                 Text(
@@ -270,18 +273,19 @@ class ImagerWidget extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(2),
         child: BlocProvider(
-          create: (context) => PictureBloc()
-            ..add(
-              GetPicture(
-                PictureInfo(
-                  from: "bika",
-                  url: pictureInfo.url,
-                  path: pictureInfo.path,
-                  cartoonId: pictureInfo.cartoonId,
-                  pictureType: pictureInfo.pictureType,
-                ),
-              ),
-            ),
+          create:
+              (context) =>
+                  PictureBloc()..add(
+                    GetPicture(
+                      PictureInfo(
+                        from: "bika",
+                        url: pictureInfo.url,
+                        path: pictureInfo.path,
+                        cartoonId: pictureInfo.cartoonId,
+                        pictureType: pictureInfo.pictureType,
+                      ),
+                    ),
+                  ),
           child: BlocBuilder<PictureBloc, PictureLoadState>(
             builder: (context, state) {
               switch (state.status) {
@@ -298,10 +302,11 @@ class ImagerWidget extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => FullScreenImageView(
-                            imagePath: state.imagePath!,
-                            uuid: uuid,
-                          ),
+                          builder:
+                              (context) => FullScreenImageView(
+                                imagePath: state.imagePath!,
+                                uuid: uuid,
+                              ),
                         ),
                       );
                     },
@@ -338,16 +343,16 @@ class ImagerWidget extends StatelessWidget {
                     return InkWell(
                       onTap: () {
                         context.read<PictureBloc>().add(
-                              GetPicture(
-                                PictureInfo(
-                                  from: "bika",
-                                  url: pictureInfo.url,
-                                  path: pictureInfo.path,
-                                  cartoonId: pictureInfo.cartoonId,
-                                  pictureType: pictureInfo.pictureType,
-                                ),
-                              ),
-                            );
+                          GetPicture(
+                            PictureInfo(
+                              from: "bika",
+                              url: pictureInfo.url,
+                              path: pictureInfo.path,
+                              cartoonId: pictureInfo.cartoonId,
+                              pictureType: pictureInfo.pictureType,
+                            ),
+                          ),
+                        );
                       },
                       child: Icon(Icons.refresh),
                     );

@@ -30,9 +30,7 @@ class RecommendBloc extends Bloc<RecommendEvent, RecommendState> {
     Emitter<RecommendState> emit,
   ) async {
     if (event.status == RecommendStatus.initial) {
-      emit(state.copyWith(
-        status: RecommendStatus.initial,
-      ));
+      emit(state.copyWith(status: RecommendStatus.initial));
     }
 
     try {
@@ -41,10 +39,7 @@ class RecommendBloc extends Bloc<RecommendEvent, RecommendState> {
       final comics = result['data']['comics'] as List;
 
       if (comics.isEmpty) {
-        emit(state.copyWith(
-          status: RecommendStatus.success,
-          comicList: null,
-        ));
+        emit(state.copyWith(status: RecommendStatus.success, comicList: null));
       } else {
         List<Comic> comicList = [];
         for (var comic in comics) {
@@ -61,16 +56,14 @@ class RecommendBloc extends Bloc<RecommendEvent, RecommendState> {
         for (var comic in temp.data.comics) {
           comicList.add(comic);
         }
-        emit(state.copyWith(
-          status: RecommendStatus.success,
-          comicList: comicList,
-        ));
+        emit(
+          state.copyWith(status: RecommendStatus.success, comicList: comicList),
+        );
       }
     } catch (e) {
-      emit(state.copyWith(
-        status: RecommendStatus.failure,
-        result: e.toString(),
-      ));
+      emit(
+        state.copyWith(status: RecommendStatus.failure, result: e.toString()),
+      );
     }
   }
 }

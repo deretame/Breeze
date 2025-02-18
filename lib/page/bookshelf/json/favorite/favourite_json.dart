@@ -11,7 +11,7 @@ part 'favourite_json.g.dart';
 
 FavouriteJson favouriteJsonFromJson(String str) =>
     FavouriteJson.fromJson(json.decode(str));
- 
+
 String favouriteJsonToJson(FavouriteJson data) => json.encode(data.toJson());
 
 @freezed
@@ -28,9 +28,7 @@ class FavouriteJson with _$FavouriteJson {
 
 @freezed
 class Data with _$Data {
-  const factory Data({
-    @JsonKey(name: "comics") required Comics comics,
-  }) = _Data;
+  const factory Data({@JsonKey(name: "comics") required Comics comics}) = _Data;
 
   factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 }

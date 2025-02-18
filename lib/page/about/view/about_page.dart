@@ -32,9 +32,7 @@ class _AboutPageState extends State<AboutPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('关于'),
-      ),
+      appBar: AppBar(title: Text('关于')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -99,10 +97,7 @@ class _AboutPageState extends State<AboutPage> {
               onPressed: () {
                 _showDisclaimerDialog(context);
               },
-              child: Text(
-                '免责声明',
-                style: TextStyle(color: Colors.blue),
-              ),
+              child: Text('免责声明', style: TextStyle(color: Colors.blue)),
             ),
 
             Spacer(),
@@ -194,9 +189,7 @@ class _AboutPageState extends State<AboutPage> {
           content: SingleChildScrollView(
             child: SizedBox(
               width: double.maxFinite, // 设置最大宽度
-              child: MarkdownBody(
-                data: disclaimerMarkdown,
-              ),
+              child: MarkdownBody(data: disclaimerMarkdown),
             ),
           ),
           actions: [

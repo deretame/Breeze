@@ -37,43 +37,45 @@ EventBus eventBus = EventBus();
 late ColorScheme materialColorScheme;
 late ColorScheme materialColorSchemeDark;
 
-var logger = Logger(
-  printer: CustomPrinter(),
-);
+var logger = Logger(printer: CustomPrinter());
 
 Future<void> main() async {
   // 捕获Dart异常
-  runZonedGuarded(() async {
-    WidgetsFlutterBinding.ensureInitialized();
-    // 重采样触控刷新率
-    // GestureBinding.instance.resamplingEnabled = true;
+  runZonedGuarded(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+      // 重采样触控刷新率
+      // GestureBinding.instance.resamplingEnabled = true;
 
-    objectbox = await ObjectBox.create();
+      objectbox = await ObjectBox.create();
 
-    await manageCacheSize();
+      await manageCacheSize();
 
-    // 告诉系统应该用竖屏
-    await SystemChrome.setPreferredOrientations(
-      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown],
-    );
+      // 告诉系统应该用竖屏
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
 
-    // 初始化Hive
-    await Hive.initFlutter();
-    // 注册 Color 适配器
-    Hive.registerAdapter(ColorAdapter());
-    Hive.registerAdapter(ThemeModeAdapter());
-    await globalSetting.initBox();
-    await bikaSetting.initBox();
+      // 初始化Hive
+      await Hive.initFlutter();
+      // 注册 Color 适配器
+      Hive.registerAdapter(ColorAdapter());
+      Hive.registerAdapter(ThemeModeAdapter());
+      await globalSetting.initBox();
+      await bikaSetting.initBox();
 
-    // 捕获Flutter框架异常
-    FlutterError.onError = (FlutterErrorDetails details) {
-      logger.e(details, error: details.exception, stackTrace: details.stack);
-    };
+      // 捕获Flutter框架异常
+      FlutterError.onError = (FlutterErrorDetails details) {
+        logger.e(details, error: details.exception, stackTrace: details.stack);
+      };
 
-    runApp(MyApp());
-  }, (error, stackTrace) {
-    logger.e(error, stackTrace: stackTrace);
-  });
+      runApp(MyApp());
+    },
+    (error, stackTrace) {
+      logger.e(error, stackTrace: stackTrace);
+    },
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -116,11 +118,13 @@ class _MyAppState extends State<MyApp> {
       statusBarHeight = MediaQuery.of(context).padding.top;
     }
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarDividerColor: Colors.transparent,
-      statusBarColor: Colors.transparent,
-    ));
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarDividerColor: Colors.transparent,
+        statusBarColor: Colors.transparent,
+      ),
+    );
 
     return Observer(
       builder: (context) {
@@ -138,12 +142,14 @@ class _MyAppState extends State<MyApp> {
 
             // 根据 dynamicColor 的值决定是否使用动态颜色
             if (globalSetting.dynamicColor == true) {
-              lightColorScheme = lightDynamic ??
+              lightColorScheme =
+                  lightDynamic ??
                   ColorScheme.fromSeed(
                     seedColor: globalSetting.seedColor, // 默认颜色
                     brightness: Brightness.light,
                   );
-              darkColorScheme = darkDynamic ??
+              darkColorScheme =
+                  darkDynamic ??
                   ColorScheme.fromSeed(
                     seedColor: globalSetting.seedColor, // 默认颜色
                     brightness: Brightness.dark,
@@ -198,12 +204,14 @@ class _MyAppState extends State<MyApp> {
                 ),
                 canvasColor: lightColorScheme.surfaceContainer,
                 dialogTheme: DialogThemeData(
-                    backgroundColor: lightColorScheme.surfaceContainer),
+                  backgroundColor: lightColorScheme.surfaceContainer,
+                ),
               ),
               darkTheme: ThemeData.dark().copyWith(
-                scaffoldBackgroundColor: globalSetting.isAMOLED
-                    ? Colors.black
-                    : darkColorScheme.surface,
+                scaffoldBackgroundColor:
+                    globalSetting.isAMOLED
+                        ? Colors.black
+                        : darkColorScheme.surface,
                 tabBarTheme: TabBarTheme(dividerColor: Colors.transparent),
                 colorScheme: darkColorScheme,
               ),

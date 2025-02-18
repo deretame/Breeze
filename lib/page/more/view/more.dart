@@ -8,9 +8,7 @@ class MorePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('更多'),
-      ),
+      appBar: AppBar(title: Text('更多')),
       body: RefreshIndicator(
         onRefresh: () async {
           eventBus.fire(RefreshEvent());

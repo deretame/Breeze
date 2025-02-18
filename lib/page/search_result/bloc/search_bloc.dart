@@ -74,11 +74,7 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
       }
       comics = [];
       hasReachedMax = false;
-      emit(
-        state.copyWith(
-          status: SearchStatus.initial,
-        ),
-      );
+      emit(state.copyWith(status: SearchStatus.initial));
     }
 
     // 用来判断本子是第几次获取的
@@ -152,24 +148,27 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
 
   List<ComicNumber> _filterShieldedComics(List<ComicNumber> comics) {
     // 获取所有被屏蔽的分类
-    List<String> shieldedCategoriesList = bikaSetting.shieldCategoryMap.entries
-        .where((entry) => entry.value) // 只选择值为 true 的条目
-        .map((entry) => entry.key) // 提取键（分类名）
-        .toList();
+    List<String> shieldedCategoriesList =
+        bikaSetting.shieldCategoryMap.entries
+            .where((entry) => entry.value) // 只选择值为 true 的条目
+            .map((entry) => entry.key) // 提取键（分类名）
+            .toList();
 
     // 过滤掉包含屏蔽分类的漫画
     return comics.where((comic) {
       // 检查该漫画的分类是否与屏蔽分类列表中的任何分类匹配
-      return !comic.doc.categories
-          .any((category) => shieldedCategoriesList.contains(category));
+      return !comic.doc.categories.any(
+        (category) => shieldedCategoriesList.contains(category),
+      );
     }).toList();
   }
 
   Future<List<ComicNumber>> _processSearchResult(
-      Map<String, dynamic> result) async {
+    Map<String, dynamic> result,
+  ) async {
     if (result['data']['comics'] is List) {
       result['data'] = {
-        "comics": {"docs": result['data']["comics"]}
+        "comics": {"docs": result['data']["comics"]},
       };
     }
 

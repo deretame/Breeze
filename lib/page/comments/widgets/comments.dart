@@ -162,9 +162,10 @@ class _CommentsWidgetState extends State<CommentsWidget>
                                     ? Icons.favorite
                                     : Icons.favorite_border,
                                 size: 14,
-                                color: likeStore.date
-                                    ? Colors.red
-                                    : globalSetting.textColor,
+                                color:
+                                    likeStore.date
+                                        ? Colors.red
+                                        : globalSetting.textColor,
                               ),
                             ),
                             SizedBox(width: 5),
@@ -184,9 +185,10 @@ class _CommentsWidgetState extends State<CommentsWidget>
                   child: SizedBox(
                     width: screenWidth * (48 / 50), // 设置宽度
                     child: Divider(
-                      color: globalSetting.themeType
-                          ? materialColorScheme.secondaryFixedDim
-                          : materialColorScheme.secondaryFixedDim,
+                      color:
+                          globalSetting.themeType
+                              ? materialColorScheme.secondaryFixedDim
+                              : materialColorScheme.secondaryFixedDim,
                       thickness: 1,
                       height: 10,
                     ),
@@ -307,18 +309,19 @@ class _ImagerWidgetState extends State<ImagerWidget> {
       child: Padding(
         padding: const EdgeInsets.all(2),
         child: BlocProvider(
-          create: (context) => PictureBloc()
-            ..add(
-              GetPicture(
-                PictureInfo(
-                  from: "bika",
-                  url: pictureInfo.url,
-                  path: pictureInfo.path,
-                  cartoonId: pictureInfo.cartoonId,
-                  pictureType: pictureInfo.pictureType,
-                ),
-              ),
-            ),
+          create:
+              (context) =>
+                  PictureBloc()..add(
+                    GetPicture(
+                      PictureInfo(
+                        from: "bika",
+                        url: pictureInfo.url,
+                        path: pictureInfo.path,
+                        cartoonId: pictureInfo.cartoonId,
+                        pictureType: pictureInfo.pictureType,
+                      ),
+                    ),
+                  ),
           child: BlocBuilder<PictureBloc, PictureLoadState>(
             builder: (context, state) {
               switch (state.status) {
@@ -335,10 +338,11 @@ class _ImagerWidgetState extends State<ImagerWidget> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => FullScreenImageView(
-                            imagePath: state.imagePath!,
-                            uuid: uuid,
-                          ),
+                          builder:
+                              (context) => FullScreenImageView(
+                                imagePath: state.imagePath!,
+                                uuid: uuid,
+                              ),
                         ),
                       );
                     },
@@ -375,16 +379,16 @@ class _ImagerWidgetState extends State<ImagerWidget> {
                     return InkWell(
                       onTap: () {
                         context.read<PictureBloc>().add(
-                              GetPicture(
-                                PictureInfo(
-                                  from: "bika",
-                                  url: pictureInfo.url,
-                                  path: pictureInfo.path,
-                                  cartoonId: pictureInfo.cartoonId,
-                                  pictureType: pictureInfo.pictureType,
-                                ),
-                              ),
-                            );
+                          GetPicture(
+                            PictureInfo(
+                              from: "bika",
+                              url: pictureInfo.url,
+                              path: pictureInfo.path,
+                              cartoonId: pictureInfo.cartoonId,
+                              pictureType: pictureInfo.pictureType,
+                            ),
+                          ),
+                        );
                       },
                       child: Icon(Icons.refresh),
                     );

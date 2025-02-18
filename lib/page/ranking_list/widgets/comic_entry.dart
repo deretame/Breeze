@@ -12,11 +12,7 @@ class ComicEntryWidget extends StatefulWidget {
   final String type;
   final Comic comic;
 
-  const ComicEntryWidget({
-    super.key,
-    required this.type,
-    required this.comic,
-  });
+  const ComicEntryWidget({super.key, required this.type, required this.comic});
 
   @override
   State<ComicEntryWidget> createState() => _ComicEntryWidgetState();
@@ -46,9 +42,7 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
     return GestureDetector(
       onTap: () {
         // 跳转到漫画详情页
-        AutoRouter.of(context).push(
-          ComicInfoRoute(comicId: comic.id),
-        );
+        AutoRouter.of(context).push(ComicInfoRoute(comicId: comic.id));
       },
       child: Column(
         children: <Widget>[
@@ -58,8 +52,9 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
               return Container(
                 height: 180,
                 width: ((screenWidth / 10) * 9.5),
-                margin:
-                    EdgeInsets.symmetric(horizontal: (screenWidth / 10) * 0.25),
+                margin: EdgeInsets.symmetric(
+                  horizontal: (screenWidth / 10) * 0.25,
+                ),
                 decoration: BoxDecoration(
                   color: globalSetting.backgroundColor,
                   borderRadius: BorderRadius.circular(10.0),
@@ -109,9 +104,7 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                             _getCategories(comic.categories),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 2,
-                            style: TextStyle(
-                              color: globalSetting.textColor,
-                            ),
+                            style: TextStyle(color: globalSetting.textColor),
                           ),
                           Spacer(),
                           Row(

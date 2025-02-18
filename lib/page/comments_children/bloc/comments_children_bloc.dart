@@ -39,11 +39,7 @@ class CommentsChildrenBloc
 
     if (event.status == CommentsChildrenStatus.initial) {
       comments = [];
-      emit(
-        state.copyWith(
-          status: CommentsChildrenStatus.initial,
-        ),
-      );
+      emit(state.copyWith(status: CommentsChildrenStatus.initial));
     } else if (event.status == CommentsChildrenStatus.loadingMore) {
       emit(
         state.copyWith(
@@ -54,8 +50,10 @@ class CommentsChildrenBloc
     }
 
     try {
-      var commentsJson =
-          await _getCommentsChildren(event.commentChildrenId, event.count);
+      var commentsJson = await _getCommentsChildren(
+        event.commentChildrenId,
+        event.count,
+      );
       if (event.status == CommentsChildrenStatus.comment) {
         comments = [commentsJson, ...comments];
       } else {

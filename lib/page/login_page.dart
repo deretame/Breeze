@@ -18,8 +18,9 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _account = TextEditingController();
   final TextEditingController _password = TextEditingController();
-  final ButtonStyle style =
-      ElevatedButton.styleFrom(minimumSize: const Size(200, 40));
+  final ButtonStyle style = ElevatedButton.styleFrom(
+    minimumSize: const Size(200, 40),
+  );
 
   @override
   void initState() {
@@ -43,11 +44,7 @@ class _LoginPageState extends State<LoginPage> {
         return AlertDialog(
           title: Text(title),
           content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text(message),
-              ],
-            ),
+            child: ListBody(children: <Widget>[Text(message)]),
           ),
           actions: <Widget>[
             TextButton(
@@ -95,9 +92,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('登录'),
-      ),
+      appBar: AppBar(title: const Text('登录')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -144,9 +139,7 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   TextButton(
                     onPressed: () {
-                      AutoRouter.of(context).push(
-                        RegisterRoute(),
-                      );
+                      AutoRouter.of(context).push(RegisterRoute());
                     },
                     child: const Text('注册账号'),
                   ),

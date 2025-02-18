@@ -12,7 +12,8 @@ part of 'page.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 Page _$PageFromJson(Map<String, dynamic> json) {
   return _Page.fromJson(json);
@@ -22,8 +23,10 @@ Page _$PageFromJson(Map<String, dynamic> json) {
 mixin _$Page {
   @JsonKey(name: "code")
   int get code => throw _privateConstructorUsedError;
+
   @JsonKey(name: "message")
   String get message => throw _privateConstructorUsedError;
+
   @JsonKey(name: "data")
   Data get data => throw _privateConstructorUsedError;
 
@@ -40,11 +43,13 @@ mixin _$Page {
 abstract class $PageCopyWith<$Res> {
   factory $PageCopyWith(Page value, $Res Function(Page) then) =
       _$PageCopyWithImpl<$Res, Page>;
+
   @useResult
-  $Res call(
-      {@JsonKey(name: "code") int code,
-      @JsonKey(name: "message") String message,
-      @JsonKey(name: "data") Data data});
+  $Res call({
+    @JsonKey(name: "code") int code,
+    @JsonKey(name: "message") String message,
+    @JsonKey(name: "data") Data data,
+  });
 
   $DataCopyWith<$Res> get data;
 }
@@ -56,6 +61,7 @@ class _$PageCopyWithImpl<$Res, $Val extends Page>
 
   // ignore: unused_field
   final $Val _value;
+
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -68,20 +74,26 @@ class _$PageCopyWithImpl<$Res, $Val extends Page>
     Object? message = null,
     Object? data = null,
   }) {
-    return _then(_value.copyWith(
-      code: null == code
-          ? _value.code
-          : code // ignore: cast_nullable_to_non_nullable
-              as int,
-      message: null == message
-          ? _value.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String,
-      data: null == data
-          ? _value.data
-          : data // ignore: cast_nullable_to_non_nullable
-              as Data,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            code:
+                null == code
+                    ? _value.code
+                    : code // ignore: cast_nullable_to_non_nullable
+                        as int,
+            message:
+                null == message
+                    ? _value.message
+                    : message // ignore: cast_nullable_to_non_nullable
+                        as String,
+            data:
+                null == data
+                    ? _value.data
+                    : data // ignore: cast_nullable_to_non_nullable
+                        as Data,
+          )
+          as $Val,
+    );
   }
 
   /// Create a copy of Page
@@ -98,14 +110,17 @@ class _$PageCopyWithImpl<$Res, $Val extends Page>
 /// @nodoc
 abstract class _$$PageImplCopyWith<$Res> implements $PageCopyWith<$Res> {
   factory _$$PageImplCopyWith(
-          _$PageImpl value, $Res Function(_$PageImpl) then) =
-      __$$PageImplCopyWithImpl<$Res>;
+    _$PageImpl value,
+    $Res Function(_$PageImpl) then,
+  ) = __$$PageImplCopyWithImpl<$Res>;
+
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: "code") int code,
-      @JsonKey(name: "message") String message,
-      @JsonKey(name: "data") Data data});
+  $Res call({
+    @JsonKey(name: "code") int code,
+    @JsonKey(name: "message") String message,
+    @JsonKey(name: "data") Data data,
+  });
 
   @override
   $DataCopyWith<$Res> get data;
@@ -116,7 +131,7 @@ class __$$PageImplCopyWithImpl<$Res>
     extends _$PageCopyWithImpl<$Res, _$PageImpl>
     implements _$$PageImplCopyWith<$Res> {
   __$$PageImplCopyWithImpl(_$PageImpl _value, $Res Function(_$PageImpl) _then)
-      : super(_value, _then);
+    : super(_value, _then);
 
   /// Create a copy of Page
   /// with the given fields replaced by the non-null parameter values.
@@ -127,30 +142,36 @@ class __$$PageImplCopyWithImpl<$Res>
     Object? message = null,
     Object? data = null,
   }) {
-    return _then(_$PageImpl(
-      code: null == code
-          ? _value.code
-          : code // ignore: cast_nullable_to_non_nullable
-              as int,
-      message: null == message
-          ? _value.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String,
-      data: null == data
-          ? _value.data
-          : data // ignore: cast_nullable_to_non_nullable
-              as Data,
-    ));
+    return _then(
+      _$PageImpl(
+        code:
+            null == code
+                ? _value.code
+                : code // ignore: cast_nullable_to_non_nullable
+                    as int,
+        message:
+            null == message
+                ? _value.message
+                : message // ignore: cast_nullable_to_non_nullable
+                    as String,
+        data:
+            null == data
+                ? _value.data
+                : data // ignore: cast_nullable_to_non_nullable
+                    as Data,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$PageImpl implements _Page {
-  const _$PageImpl(
-      {@JsonKey(name: "code") required this.code,
-      @JsonKey(name: "message") required this.message,
-      @JsonKey(name: "data") required this.data});
+  const _$PageImpl({
+    @JsonKey(name: "code") required this.code,
+    @JsonKey(name: "message") required this.message,
+    @JsonKey(name: "data") required this.data,
+  });
 
   factory _$PageImpl.fromJson(Map<String, dynamic> json) =>
       _$$PageImplFromJson(json);
@@ -194,26 +215,27 @@ class _$PageImpl implements _Page {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$PageImplToJson(
-      this,
-    );
+    return _$$PageImplToJson(this);
   }
 }
 
 abstract class _Page implements Page {
-  const factory _Page(
-      {@JsonKey(name: "code") required final int code,
-      @JsonKey(name: "message") required final String message,
-      @JsonKey(name: "data") required final Data data}) = _$PageImpl;
+  const factory _Page({
+    @JsonKey(name: "code") required final int code,
+    @JsonKey(name: "message") required final String message,
+    @JsonKey(name: "data") required final Data data,
+  }) = _$PageImpl;
 
   factory _Page.fromJson(Map<String, dynamic> json) = _$PageImpl.fromJson;
 
   @override
   @JsonKey(name: "code")
   int get code;
+
   @override
   @JsonKey(name: "message")
   String get message;
+
   @override
   @JsonKey(name: "data")
   Data get data;
@@ -234,6 +256,7 @@ Data _$DataFromJson(Map<String, dynamic> json) {
 mixin _$Data {
   @JsonKey(name: "pages")
   Pages get pages => throw _privateConstructorUsedError;
+
   @JsonKey(name: "ep")
   Ep get ep => throw _privateConstructorUsedError;
 
@@ -250,10 +273,12 @@ mixin _$Data {
 abstract class $DataCopyWith<$Res> {
   factory $DataCopyWith(Data value, $Res Function(Data) then) =
       _$DataCopyWithImpl<$Res, Data>;
+
   @useResult
   $Res call({@JsonKey(name: "pages") Pages pages, @JsonKey(name: "ep") Ep ep});
 
   $PagesCopyWith<$Res> get pages;
+
   $EpCopyWith<$Res> get ep;
 }
 
@@ -264,6 +289,7 @@ class _$DataCopyWithImpl<$Res, $Val extends Data>
 
   // ignore: unused_field
   final $Val _value;
+
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -271,20 +297,22 @@ class _$DataCopyWithImpl<$Res, $Val extends Data>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? pages = null,
-    Object? ep = null,
-  }) {
-    return _then(_value.copyWith(
-      pages: null == pages
-          ? _value.pages
-          : pages // ignore: cast_nullable_to_non_nullable
-              as Pages,
-      ep: null == ep
-          ? _value.ep
-          : ep // ignore: cast_nullable_to_non_nullable
-              as Ep,
-    ) as $Val);
+  $Res call({Object? pages = null, Object? ep = null}) {
+    return _then(
+      _value.copyWith(
+            pages:
+                null == pages
+                    ? _value.pages
+                    : pages // ignore: cast_nullable_to_non_nullable
+                        as Pages,
+            ep:
+                null == ep
+                    ? _value.ep
+                    : ep // ignore: cast_nullable_to_non_nullable
+                        as Ep,
+          )
+          as $Val,
+    );
   }
 
   /// Create a copy of Data
@@ -311,14 +339,17 @@ class _$DataCopyWithImpl<$Res, $Val extends Data>
 /// @nodoc
 abstract class _$$DataImplCopyWith<$Res> implements $DataCopyWith<$Res> {
   factory _$$DataImplCopyWith(
-          _$DataImpl value, $Res Function(_$DataImpl) then) =
-      __$$DataImplCopyWithImpl<$Res>;
+    _$DataImpl value,
+    $Res Function(_$DataImpl) then,
+  ) = __$$DataImplCopyWithImpl<$Res>;
+
   @override
   @useResult
   $Res call({@JsonKey(name: "pages") Pages pages, @JsonKey(name: "ep") Ep ep});
 
   @override
   $PagesCopyWith<$Res> get pages;
+
   @override
   $EpCopyWith<$Res> get ep;
 }
@@ -328,35 +359,37 @@ class __$$DataImplCopyWithImpl<$Res>
     extends _$DataCopyWithImpl<$Res, _$DataImpl>
     implements _$$DataImplCopyWith<$Res> {
   __$$DataImplCopyWithImpl(_$DataImpl _value, $Res Function(_$DataImpl) _then)
-      : super(_value, _then);
+    : super(_value, _then);
 
   /// Create a copy of Data
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? pages = null,
-    Object? ep = null,
-  }) {
-    return _then(_$DataImpl(
-      pages: null == pages
-          ? _value.pages
-          : pages // ignore: cast_nullable_to_non_nullable
-              as Pages,
-      ep: null == ep
-          ? _value.ep
-          : ep // ignore: cast_nullable_to_non_nullable
-              as Ep,
-    ));
+  $Res call({Object? pages = null, Object? ep = null}) {
+    return _then(
+      _$DataImpl(
+        pages:
+            null == pages
+                ? _value.pages
+                : pages // ignore: cast_nullable_to_non_nullable
+                    as Pages,
+        ep:
+            null == ep
+                ? _value.ep
+                : ep // ignore: cast_nullable_to_non_nullable
+                    as Ep,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$DataImpl implements _Data {
-  const _$DataImpl(
-      {@JsonKey(name: "pages") required this.pages,
-      @JsonKey(name: "ep") required this.ep});
+  const _$DataImpl({
+    @JsonKey(name: "pages") required this.pages,
+    @JsonKey(name: "ep") required this.ep,
+  });
 
   factory _$DataImpl.fromJson(Map<String, dynamic> json) =>
       _$$DataImplFromJson(json);
@@ -396,22 +429,22 @@ class _$DataImpl implements _Data {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$DataImplToJson(
-      this,
-    );
+    return _$$DataImplToJson(this);
   }
 }
 
 abstract class _Data implements Data {
-  const factory _Data(
-      {@JsonKey(name: "pages") required final Pages pages,
-      @JsonKey(name: "ep") required final Ep ep}) = _$DataImpl;
+  const factory _Data({
+    @JsonKey(name: "pages") required final Pages pages,
+    @JsonKey(name: "ep") required final Ep ep,
+  }) = _$DataImpl;
 
   factory _Data.fromJson(Map<String, dynamic> json) = _$DataImpl.fromJson;
 
   @override
   @JsonKey(name: "pages")
   Pages get pages;
+
   @override
   @JsonKey(name: "ep")
   Ep get ep;
@@ -432,6 +465,7 @@ Ep _$EpFromJson(Map<String, dynamic> json) {
 mixin _$Ep {
   @JsonKey(name: "_id")
   String get id => throw _privateConstructorUsedError;
+
   @JsonKey(name: "title")
   String get title => throw _privateConstructorUsedError;
 
@@ -448,9 +482,12 @@ mixin _$Ep {
 abstract class $EpCopyWith<$Res> {
   factory $EpCopyWith(Ep value, $Res Function(Ep) then) =
       _$EpCopyWithImpl<$Res, Ep>;
+
   @useResult
-  $Res call(
-      {@JsonKey(name: "_id") String id, @JsonKey(name: "title") String title});
+  $Res call({
+    @JsonKey(name: "_id") String id,
+    @JsonKey(name: "title") String title,
+  });
 }
 
 /// @nodoc
@@ -459,6 +496,7 @@ class _$EpCopyWithImpl<$Res, $Val extends Ep> implements $EpCopyWith<$Res> {
 
   // ignore: unused_field
   final $Val _value;
+
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -466,20 +504,22 @@ class _$EpCopyWithImpl<$Res, $Val extends Ep> implements $EpCopyWith<$Res> {
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? id = null,
-    Object? title = null,
-  }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-    ) as $Val);
+  $Res call({Object? id = null, Object? title = null}) {
+    return _then(
+      _value.copyWith(
+            id:
+                null == id
+                    ? _value.id
+                    : id // ignore: cast_nullable_to_non_nullable
+                        as String,
+            title:
+                null == title
+                    ? _value.title
+                    : title // ignore: cast_nullable_to_non_nullable
+                        as String,
+          )
+          as $Val,
+    );
   }
 }
 
@@ -487,45 +527,50 @@ class _$EpCopyWithImpl<$Res, $Val extends Ep> implements $EpCopyWith<$Res> {
 abstract class _$$EpImplCopyWith<$Res> implements $EpCopyWith<$Res> {
   factory _$$EpImplCopyWith(_$EpImpl value, $Res Function(_$EpImpl) then) =
       __$$EpImplCopyWithImpl<$Res>;
+
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: "_id") String id, @JsonKey(name: "title") String title});
+  $Res call({
+    @JsonKey(name: "_id") String id,
+    @JsonKey(name: "title") String title,
+  });
 }
 
 /// @nodoc
 class __$$EpImplCopyWithImpl<$Res> extends _$EpCopyWithImpl<$Res, _$EpImpl>
     implements _$$EpImplCopyWith<$Res> {
   __$$EpImplCopyWithImpl(_$EpImpl _value, $Res Function(_$EpImpl) _then)
-      : super(_value, _then);
+    : super(_value, _then);
 
   /// Create a copy of Ep
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? id = null,
-    Object? title = null,
-  }) {
-    return _then(_$EpImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
+  $Res call({Object? id = null, Object? title = null}) {
+    return _then(
+      _$EpImpl(
+        id:
+            null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                    as String,
+        title:
+            null == title
+                ? _value.title
+                : title // ignore: cast_nullable_to_non_nullable
+                    as String,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$EpImpl implements _Ep {
-  const _$EpImpl(
-      {@JsonKey(name: "_id") required this.id,
-      @JsonKey(name: "title") required this.title});
+  const _$EpImpl({
+    @JsonKey(name: "_id") required this.id,
+    @JsonKey(name: "title") required this.title,
+  });
 
   factory _$EpImpl.fromJson(Map<String, dynamic> json) =>
       _$$EpImplFromJson(json);
@@ -565,22 +610,22 @@ class _$EpImpl implements _Ep {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$EpImplToJson(
-      this,
-    );
+    return _$$EpImplToJson(this);
   }
 }
 
 abstract class _Ep implements Ep {
-  const factory _Ep(
-      {@JsonKey(name: "_id") required final String id,
-      @JsonKey(name: "title") required final String title}) = _$EpImpl;
+  const factory _Ep({
+    @JsonKey(name: "_id") required final String id,
+    @JsonKey(name: "title") required final String title,
+  }) = _$EpImpl;
 
   factory _Ep.fromJson(Map<String, dynamic> json) = _$EpImpl.fromJson;
 
   @override
   @JsonKey(name: "_id")
   String get id;
+
   @override
   @JsonKey(name: "title")
   String get title;
@@ -601,12 +646,16 @@ Pages _$PagesFromJson(Map<String, dynamic> json) {
 mixin _$Pages {
   @JsonKey(name: "docs")
   List<Doc> get docs => throw _privateConstructorUsedError;
+
   @JsonKey(name: "total")
   int get total => throw _privateConstructorUsedError;
+
   @JsonKey(name: "limit")
   int get limit => throw _privateConstructorUsedError;
+
   @JsonKey(name: "page")
   int get page => throw _privateConstructorUsedError;
+
   @JsonKey(name: "pages")
   int get pages => throw _privateConstructorUsedError;
 
@@ -623,13 +672,15 @@ mixin _$Pages {
 abstract class $PagesCopyWith<$Res> {
   factory $PagesCopyWith(Pages value, $Res Function(Pages) then) =
       _$PagesCopyWithImpl<$Res, Pages>;
+
   @useResult
-  $Res call(
-      {@JsonKey(name: "docs") List<Doc> docs,
-      @JsonKey(name: "total") int total,
-      @JsonKey(name: "limit") int limit,
-      @JsonKey(name: "page") int page,
-      @JsonKey(name: "pages") int pages});
+  $Res call({
+    @JsonKey(name: "docs") List<Doc> docs,
+    @JsonKey(name: "total") int total,
+    @JsonKey(name: "limit") int limit,
+    @JsonKey(name: "page") int page,
+    @JsonKey(name: "pages") int pages,
+  });
 }
 
 /// @nodoc
@@ -639,6 +690,7 @@ class _$PagesCopyWithImpl<$Res, $Val extends Pages>
 
   // ignore: unused_field
   final $Val _value;
+
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -653,44 +705,55 @@ class _$PagesCopyWithImpl<$Res, $Val extends Pages>
     Object? page = null,
     Object? pages = null,
   }) {
-    return _then(_value.copyWith(
-      docs: null == docs
-          ? _value.docs
-          : docs // ignore: cast_nullable_to_non_nullable
-              as List<Doc>,
-      total: null == total
-          ? _value.total
-          : total // ignore: cast_nullable_to_non_nullable
-              as int,
-      limit: null == limit
-          ? _value.limit
-          : limit // ignore: cast_nullable_to_non_nullable
-              as int,
-      page: null == page
-          ? _value.page
-          : page // ignore: cast_nullable_to_non_nullable
-              as int,
-      pages: null == pages
-          ? _value.pages
-          : pages // ignore: cast_nullable_to_non_nullable
-              as int,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            docs:
+                null == docs
+                    ? _value.docs
+                    : docs // ignore: cast_nullable_to_non_nullable
+                        as List<Doc>,
+            total:
+                null == total
+                    ? _value.total
+                    : total // ignore: cast_nullable_to_non_nullable
+                        as int,
+            limit:
+                null == limit
+                    ? _value.limit
+                    : limit // ignore: cast_nullable_to_non_nullable
+                        as int,
+            page:
+                null == page
+                    ? _value.page
+                    : page // ignore: cast_nullable_to_non_nullable
+                        as int,
+            pages:
+                null == pages
+                    ? _value.pages
+                    : pages // ignore: cast_nullable_to_non_nullable
+                        as int,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$PagesImplCopyWith<$Res> implements $PagesCopyWith<$Res> {
   factory _$$PagesImplCopyWith(
-          _$PagesImpl value, $Res Function(_$PagesImpl) then) =
-      __$$PagesImplCopyWithImpl<$Res>;
+    _$PagesImpl value,
+    $Res Function(_$PagesImpl) then,
+  ) = __$$PagesImplCopyWithImpl<$Res>;
+
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: "docs") List<Doc> docs,
-      @JsonKey(name: "total") int total,
-      @JsonKey(name: "limit") int limit,
-      @JsonKey(name: "page") int page,
-      @JsonKey(name: "pages") int pages});
+  $Res call({
+    @JsonKey(name: "docs") List<Doc> docs,
+    @JsonKey(name: "total") int total,
+    @JsonKey(name: "limit") int limit,
+    @JsonKey(name: "page") int page,
+    @JsonKey(name: "pages") int pages,
+  });
 }
 
 /// @nodoc
@@ -698,8 +761,9 @@ class __$$PagesImplCopyWithImpl<$Res>
     extends _$PagesCopyWithImpl<$Res, _$PagesImpl>
     implements _$$PagesImplCopyWith<$Res> {
   __$$PagesImplCopyWithImpl(
-      _$PagesImpl _value, $Res Function(_$PagesImpl) _then)
-      : super(_value, _then);
+    _$PagesImpl _value,
+    $Res Function(_$PagesImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of Pages
   /// with the given fields replaced by the non-null parameter values.
@@ -712,46 +776,54 @@ class __$$PagesImplCopyWithImpl<$Res>
     Object? page = null,
     Object? pages = null,
   }) {
-    return _then(_$PagesImpl(
-      docs: null == docs
-          ? _value._docs
-          : docs // ignore: cast_nullable_to_non_nullable
-              as List<Doc>,
-      total: null == total
-          ? _value.total
-          : total // ignore: cast_nullable_to_non_nullable
-              as int,
-      limit: null == limit
-          ? _value.limit
-          : limit // ignore: cast_nullable_to_non_nullable
-              as int,
-      page: null == page
-          ? _value.page
-          : page // ignore: cast_nullable_to_non_nullable
-              as int,
-      pages: null == pages
-          ? _value.pages
-          : pages // ignore: cast_nullable_to_non_nullable
-              as int,
-    ));
+    return _then(
+      _$PagesImpl(
+        docs:
+            null == docs
+                ? _value._docs
+                : docs // ignore: cast_nullable_to_non_nullable
+                    as List<Doc>,
+        total:
+            null == total
+                ? _value.total
+                : total // ignore: cast_nullable_to_non_nullable
+                    as int,
+        limit:
+            null == limit
+                ? _value.limit
+                : limit // ignore: cast_nullable_to_non_nullable
+                    as int,
+        page:
+            null == page
+                ? _value.page
+                : page // ignore: cast_nullable_to_non_nullable
+                    as int,
+        pages:
+            null == pages
+                ? _value.pages
+                : pages // ignore: cast_nullable_to_non_nullable
+                    as int,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$PagesImpl implements _Pages {
-  const _$PagesImpl(
-      {@JsonKey(name: "docs") required final List<Doc> docs,
-      @JsonKey(name: "total") required this.total,
-      @JsonKey(name: "limit") required this.limit,
-      @JsonKey(name: "page") required this.page,
-      @JsonKey(name: "pages") required this.pages})
-      : _docs = docs;
+  const _$PagesImpl({
+    @JsonKey(name: "docs") required final List<Doc> docs,
+    @JsonKey(name: "total") required this.total,
+    @JsonKey(name: "limit") required this.limit,
+    @JsonKey(name: "page") required this.page,
+    @JsonKey(name: "pages") required this.pages,
+  }) : _docs = docs;
 
   factory _$PagesImpl.fromJson(Map<String, dynamic> json) =>
       _$$PagesImplFromJson(json);
 
   final List<Doc> _docs;
+
   @override
   @JsonKey(name: "docs")
   List<Doc> get docs {
@@ -792,8 +864,14 @@ class _$PagesImpl implements _Pages {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType,
-      const DeepCollectionEquality().hash(_docs), total, limit, page, pages);
+  int get hashCode => Object.hash(
+    runtimeType,
+    const DeepCollectionEquality().hash(_docs),
+    total,
+    limit,
+    page,
+    pages,
+  );
 
   /// Create a copy of Pages
   /// with the given fields replaced by the non-null parameter values.
@@ -805,34 +883,37 @@ class _$PagesImpl implements _Pages {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$PagesImplToJson(
-      this,
-    );
+    return _$$PagesImplToJson(this);
   }
 }
 
 abstract class _Pages implements Pages {
-  const factory _Pages(
-      {@JsonKey(name: "docs") required final List<Doc> docs,
-      @JsonKey(name: "total") required final int total,
-      @JsonKey(name: "limit") required final int limit,
-      @JsonKey(name: "page") required final int page,
-      @JsonKey(name: "pages") required final int pages}) = _$PagesImpl;
+  const factory _Pages({
+    @JsonKey(name: "docs") required final List<Doc> docs,
+    @JsonKey(name: "total") required final int total,
+    @JsonKey(name: "limit") required final int limit,
+    @JsonKey(name: "page") required final int page,
+    @JsonKey(name: "pages") required final int pages,
+  }) = _$PagesImpl;
 
   factory _Pages.fromJson(Map<String, dynamic> json) = _$PagesImpl.fromJson;
 
   @override
   @JsonKey(name: "docs")
   List<Doc> get docs;
+
   @override
   @JsonKey(name: "total")
   int get total;
+
   @override
   @JsonKey(name: "limit")
   int get limit;
+
   @override
   @JsonKey(name: "page")
   int get page;
+
   @override
   @JsonKey(name: "pages")
   int get pages;
@@ -853,8 +934,10 @@ Doc _$DocFromJson(Map<String, dynamic> json) {
 mixin _$Doc {
   @JsonKey(name: "_id")
   String get id => throw _privateConstructorUsedError;
+
   @JsonKey(name: "media")
   Media get media => throw _privateConstructorUsedError;
+
   @JsonKey(name: "id")
   String get docId => throw _privateConstructorUsedError;
 
@@ -871,11 +954,13 @@ mixin _$Doc {
 abstract class $DocCopyWith<$Res> {
   factory $DocCopyWith(Doc value, $Res Function(Doc) then) =
       _$DocCopyWithImpl<$Res, Doc>;
+
   @useResult
-  $Res call(
-      {@JsonKey(name: "_id") String id,
-      @JsonKey(name: "media") Media media,
-      @JsonKey(name: "id") String docId});
+  $Res call({
+    @JsonKey(name: "_id") String id,
+    @JsonKey(name: "media") Media media,
+    @JsonKey(name: "id") String docId,
+  });
 
   $MediaCopyWith<$Res> get media;
 }
@@ -886,6 +971,7 @@ class _$DocCopyWithImpl<$Res, $Val extends Doc> implements $DocCopyWith<$Res> {
 
   // ignore: unused_field
   final $Val _value;
+
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -893,25 +979,27 @@ class _$DocCopyWithImpl<$Res, $Val extends Doc> implements $DocCopyWith<$Res> {
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? id = null,
-    Object? media = null,
-    Object? docId = null,
-  }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      media: null == media
-          ? _value.media
-          : media // ignore: cast_nullable_to_non_nullable
-              as Media,
-      docId: null == docId
-          ? _value.docId
-          : docId // ignore: cast_nullable_to_non_nullable
-              as String,
-    ) as $Val);
+  $Res call({Object? id = null, Object? media = null, Object? docId = null}) {
+    return _then(
+      _value.copyWith(
+            id:
+                null == id
+                    ? _value.id
+                    : id // ignore: cast_nullable_to_non_nullable
+                        as String,
+            media:
+                null == media
+                    ? _value.media
+                    : media // ignore: cast_nullable_to_non_nullable
+                        as Media,
+            docId:
+                null == docId
+                    ? _value.docId
+                    : docId // ignore: cast_nullable_to_non_nullable
+                        as String,
+          )
+          as $Val,
+    );
   }
 
   /// Create a copy of Doc
@@ -929,12 +1017,14 @@ class _$DocCopyWithImpl<$Res, $Val extends Doc> implements $DocCopyWith<$Res> {
 abstract class _$$DocImplCopyWith<$Res> implements $DocCopyWith<$Res> {
   factory _$$DocImplCopyWith(_$DocImpl value, $Res Function(_$DocImpl) then) =
       __$$DocImplCopyWithImpl<$Res>;
+
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: "_id") String id,
-      @JsonKey(name: "media") Media media,
-      @JsonKey(name: "id") String docId});
+  $Res call({
+    @JsonKey(name: "_id") String id,
+    @JsonKey(name: "media") Media media,
+    @JsonKey(name: "id") String docId,
+  });
 
   @override
   $MediaCopyWith<$Res> get media;
@@ -944,41 +1034,43 @@ abstract class _$$DocImplCopyWith<$Res> implements $DocCopyWith<$Res> {
 class __$$DocImplCopyWithImpl<$Res> extends _$DocCopyWithImpl<$Res, _$DocImpl>
     implements _$$DocImplCopyWith<$Res> {
   __$$DocImplCopyWithImpl(_$DocImpl _value, $Res Function(_$DocImpl) _then)
-      : super(_value, _then);
+    : super(_value, _then);
 
   /// Create a copy of Doc
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? id = null,
-    Object? media = null,
-    Object? docId = null,
-  }) {
-    return _then(_$DocImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      media: null == media
-          ? _value.media
-          : media // ignore: cast_nullable_to_non_nullable
-              as Media,
-      docId: null == docId
-          ? _value.docId
-          : docId // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
+  $Res call({Object? id = null, Object? media = null, Object? docId = null}) {
+    return _then(
+      _$DocImpl(
+        id:
+            null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                    as String,
+        media:
+            null == media
+                ? _value.media
+                : media // ignore: cast_nullable_to_non_nullable
+                    as Media,
+        docId:
+            null == docId
+                ? _value.docId
+                : docId // ignore: cast_nullable_to_non_nullable
+                    as String,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$DocImpl implements _Doc {
-  const _$DocImpl(
-      {@JsonKey(name: "_id") required this.id,
-      @JsonKey(name: "media") required this.media,
-      @JsonKey(name: "id") required this.docId});
+  const _$DocImpl({
+    @JsonKey(name: "_id") required this.id,
+    @JsonKey(name: "media") required this.media,
+    @JsonKey(name: "id") required this.docId,
+  });
 
   factory _$DocImpl.fromJson(Map<String, dynamic> json) =>
       _$$DocImplFromJson(json);
@@ -1022,26 +1114,27 @@ class _$DocImpl implements _Doc {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$DocImplToJson(
-      this,
-    );
+    return _$$DocImplToJson(this);
   }
 }
 
 abstract class _Doc implements Doc {
-  const factory _Doc(
-      {@JsonKey(name: "_id") required final String id,
-      @JsonKey(name: "media") required final Media media,
-      @JsonKey(name: "id") required final String docId}) = _$DocImpl;
+  const factory _Doc({
+    @JsonKey(name: "_id") required final String id,
+    @JsonKey(name: "media") required final Media media,
+    @JsonKey(name: "id") required final String docId,
+  }) = _$DocImpl;
 
   factory _Doc.fromJson(Map<String, dynamic> json) = _$DocImpl.fromJson;
 
   @override
   @JsonKey(name: "_id")
   String get id;
+
   @override
   @JsonKey(name: "media")
   Media get media;
+
   @override
   @JsonKey(name: "id")
   String get docId;
@@ -1062,8 +1155,10 @@ Media _$MediaFromJson(Map<String, dynamic> json) {
 mixin _$Media {
   @JsonKey(name: "originalName")
   String get originalName => throw _privateConstructorUsedError;
+
   @JsonKey(name: "path")
   String get path => throw _privateConstructorUsedError;
+
   @JsonKey(name: "fileServer")
   String get fileServer => throw _privateConstructorUsedError;
 
@@ -1080,11 +1175,13 @@ mixin _$Media {
 abstract class $MediaCopyWith<$Res> {
   factory $MediaCopyWith(Media value, $Res Function(Media) then) =
       _$MediaCopyWithImpl<$Res, Media>;
+
   @useResult
-  $Res call(
-      {@JsonKey(name: "originalName") String originalName,
-      @JsonKey(name: "path") String path,
-      @JsonKey(name: "fileServer") String fileServer});
+  $Res call({
+    @JsonKey(name: "originalName") String originalName,
+    @JsonKey(name: "path") String path,
+    @JsonKey(name: "fileServer") String fileServer,
+  });
 }
 
 /// @nodoc
@@ -1094,6 +1191,7 @@ class _$MediaCopyWithImpl<$Res, $Val extends Media>
 
   // ignore: unused_field
   final $Val _value;
+
   // ignore: unused_field
   final $Res Function($Val) _then;
 
@@ -1106,34 +1204,43 @@ class _$MediaCopyWithImpl<$Res, $Val extends Media>
     Object? path = null,
     Object? fileServer = null,
   }) {
-    return _then(_value.copyWith(
-      originalName: null == originalName
-          ? _value.originalName
-          : originalName // ignore: cast_nullable_to_non_nullable
-              as String,
-      path: null == path
-          ? _value.path
-          : path // ignore: cast_nullable_to_non_nullable
-              as String,
-      fileServer: null == fileServer
-          ? _value.fileServer
-          : fileServer // ignore: cast_nullable_to_non_nullable
-              as String,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            originalName:
+                null == originalName
+                    ? _value.originalName
+                    : originalName // ignore: cast_nullable_to_non_nullable
+                        as String,
+            path:
+                null == path
+                    ? _value.path
+                    : path // ignore: cast_nullable_to_non_nullable
+                        as String,
+            fileServer:
+                null == fileServer
+                    ? _value.fileServer
+                    : fileServer // ignore: cast_nullable_to_non_nullable
+                        as String,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$MediaImplCopyWith<$Res> implements $MediaCopyWith<$Res> {
   factory _$$MediaImplCopyWith(
-          _$MediaImpl value, $Res Function(_$MediaImpl) then) =
-      __$$MediaImplCopyWithImpl<$Res>;
+    _$MediaImpl value,
+    $Res Function(_$MediaImpl) then,
+  ) = __$$MediaImplCopyWithImpl<$Res>;
+
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: "originalName") String originalName,
-      @JsonKey(name: "path") String path,
-      @JsonKey(name: "fileServer") String fileServer});
+  $Res call({
+    @JsonKey(name: "originalName") String originalName,
+    @JsonKey(name: "path") String path,
+    @JsonKey(name: "fileServer") String fileServer,
+  });
 }
 
 /// @nodoc
@@ -1141,8 +1248,9 @@ class __$$MediaImplCopyWithImpl<$Res>
     extends _$MediaCopyWithImpl<$Res, _$MediaImpl>
     implements _$$MediaImplCopyWith<$Res> {
   __$$MediaImplCopyWithImpl(
-      _$MediaImpl _value, $Res Function(_$MediaImpl) _then)
-      : super(_value, _then);
+    _$MediaImpl _value,
+    $Res Function(_$MediaImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of Media
   /// with the given fields replaced by the non-null parameter values.
@@ -1153,30 +1261,36 @@ class __$$MediaImplCopyWithImpl<$Res>
     Object? path = null,
     Object? fileServer = null,
   }) {
-    return _then(_$MediaImpl(
-      originalName: null == originalName
-          ? _value.originalName
-          : originalName // ignore: cast_nullable_to_non_nullable
-              as String,
-      path: null == path
-          ? _value.path
-          : path // ignore: cast_nullable_to_non_nullable
-              as String,
-      fileServer: null == fileServer
-          ? _value.fileServer
-          : fileServer // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
+    return _then(
+      _$MediaImpl(
+        originalName:
+            null == originalName
+                ? _value.originalName
+                : originalName // ignore: cast_nullable_to_non_nullable
+                    as String,
+        path:
+            null == path
+                ? _value.path
+                : path // ignore: cast_nullable_to_non_nullable
+                    as String,
+        fileServer:
+            null == fileServer
+                ? _value.fileServer
+                : fileServer // ignore: cast_nullable_to_non_nullable
+                    as String,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$MediaImpl implements _Media {
-  const _$MediaImpl(
-      {@JsonKey(name: "originalName") required this.originalName,
-      @JsonKey(name: "path") required this.path,
-      @JsonKey(name: "fileServer") required this.fileServer});
+  const _$MediaImpl({
+    @JsonKey(name: "originalName") required this.originalName,
+    @JsonKey(name: "path") required this.path,
+    @JsonKey(name: "fileServer") required this.fileServer,
+  });
 
   factory _$MediaImpl.fromJson(Map<String, dynamic> json) =>
       _$$MediaImplFromJson(json);
@@ -1222,27 +1336,27 @@ class _$MediaImpl implements _Media {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$MediaImplToJson(
-      this,
-    );
+    return _$$MediaImplToJson(this);
   }
 }
 
 abstract class _Media implements Media {
-  const factory _Media(
-          {@JsonKey(name: "originalName") required final String originalName,
-          @JsonKey(name: "path") required final String path,
-          @JsonKey(name: "fileServer") required final String fileServer}) =
-      _$MediaImpl;
+  const factory _Media({
+    @JsonKey(name: "originalName") required final String originalName,
+    @JsonKey(name: "path") required final String path,
+    @JsonKey(name: "fileServer") required final String fileServer,
+  }) = _$MediaImpl;
 
   factory _Media.fromJson(Map<String, dynamic> json) = _$MediaImpl.fromJson;
 
   @override
   @JsonKey(name: "originalName")
   String get originalName;
+
   @override
   @JsonKey(name: "path")
   String get path;
+
   @override
   @JsonKey(name: "fileServer")
   String get fileServer;

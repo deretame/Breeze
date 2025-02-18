@@ -30,12 +30,15 @@ class CommentsChildrenPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => CommentsChildrenBloc()
-        ..add(CommentsChildrenEvent(
-          fatherDoc.id,
-          CommentsChildrenStatus.initial,
-          1,
-        )),
+      create:
+          (_) =>
+              CommentsChildrenBloc()..add(
+                CommentsChildrenEvent(
+                  fatherDoc.id,
+                  CommentsChildrenStatus.initial,
+                  1,
+                ),
+              ),
       child: _CommentsChildrenPage(
         fatherDoc: fatherDoc,
         store: store,
@@ -70,35 +73,35 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('评论详情'),
-      ),
+      appBar: AppBar(title: Text('评论详情')),
       body: BlocBuilder<CommentsChildrenBloc, CommentsChildrenState>(
-          builder: (context, state) {
-        switch (state.status) {
-          case CommentsChildrenStatus.initial:
-          case CommentsChildrenStatus.failure:
-          case CommentsChildrenStatus.success:
-          case CommentsChildrenStatus.getMoreFailure:
-          case CommentsChildrenStatus.loadingMore:
-          case CommentsChildrenStatus.comment:
-            return _CommentWidget(
-              fatherDoc: fatherDoc,
-              state: state,
-              store: store,
-              likeCountStore: likeCountStore,
-            );
-        }
-      }),
+        builder: (context, state) {
+          switch (state.status) {
+            case CommentsChildrenStatus.initial:
+            case CommentsChildrenStatus.failure:
+            case CommentsChildrenStatus.success:
+            case CommentsChildrenStatus.getMoreFailure:
+            case CommentsChildrenStatus.loadingMore:
+            case CommentsChildrenStatus.comment:
+              return _CommentWidget(
+                fatherDoc: fatherDoc,
+                state: state,
+                store: store,
+                likeCountStore: likeCountStore,
+              );
+          }
+        },
+      ),
       floatingActionButton: FloatingActionButton(
-          child: const Icon(Icons.comment),
-          onPressed: () async {
-            var text = await _showInputDialog(context, '发表评论', '输入评论内容');
-            if (text.isEmpty) {
-              return;
-            }
-            _writeCommentChildren(fatherDoc.id, text);
-          }),
+        child: const Icon(Icons.comment),
+        onPressed: () async {
+          var text = await _showInputDialog(context, '发表评论', '输入评论内容');
+          if (text.isEmpty) {
+            return;
+          }
+          _writeCommentChildren(fatherDoc.id, text);
+        },
+      ),
     );
   }
 
@@ -111,7 +114,8 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
       if (!mounted) return;
 
       context.read<CommentsChildrenBloc>().add(
-          CommentsChildrenEvent(comicId, CommentsChildrenStatus.comment, 1));
+        CommentsChildrenEvent(comicId, CommentsChildrenStatus.comment, 1),
+      );
     } catch (e) {
       debugPrint(e.toString());
       showErrorToast(
@@ -132,62 +136,67 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
     String? result = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
-        return Observer(builder: (context) {
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.0), // 圆角
-            ),
-            child: Container(
-              padding: EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min, // 使对话框根据内容调整大小
-                children: [
-                  Text(title),
-                  SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      // color: Colors.grey[200], // 背景色
-                      border: Border.all(
-                        color: globalSetting.themeType
-                            ? materialColorScheme.secondaryFixedDim
-                            : materialColorScheme.secondaryFixedDim,
-                      ), // 边框
-                      borderRadius: BorderRadius.circular(8.0), // 圆角
-                    ),
-                    padding: EdgeInsets.symmetric(horizontal: 8.0),
-                    child: TextField(
-                      controller: controller,
-                      maxLines: null, // 设置多行输入
-                      decoration: InputDecoration(
-                        border: InputBorder.none, // 去掉默认的输入框边框
-                        hintText: defaultText,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(); // 关闭对话框
-                        },
-                        child: Text('取消'),
-                      ),
-                      SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(controller.text); // 返回输入内容
-                        },
-                        child: Text('确认'),
-                      ),
-                    ],
-                  ),
-                ],
+        return Observer(
+          builder: (context) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.0), // 圆角
               ),
-            ),
-          );
-        });
+              child: Container(
+                padding: EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min, // 使对话框根据内容调整大小
+                  children: [
+                    Text(title),
+                    SizedBox(height: 16),
+                    Container(
+                      decoration: BoxDecoration(
+                        // color: Colors.grey[200], // 背景色
+                        border: Border.all(
+                          color:
+                              globalSetting.themeType
+                                  ? materialColorScheme.secondaryFixedDim
+                                  : materialColorScheme.secondaryFixedDim,
+                        ), // 边框
+                        borderRadius: BorderRadius.circular(8.0), // 圆角
+                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      child: TextField(
+                        controller: controller,
+                        maxLines: null, // 设置多行输入
+                        decoration: InputDecoration(
+                          border: InputBorder.none, // 去掉默认的输入框边框
+                          hintText: defaultText,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(); // 关闭对话框
+                          },
+                          child: Text('取消'),
+                        ),
+                        SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(
+                              context,
+                            ).pop(controller.text); // 返回输入内容
+                          },
+                          child: Text('确认'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
       },
     );
 
@@ -272,13 +281,15 @@ class _CommentWidgetState extends State<_CommentWidget> {
           ErrorView(
             errorMessage: '${state.result.toString()}\n加载失败，请重试。',
             onRetry: () {
-              context.read<CommentsChildrenBloc>().add(CommentsChildrenEvent(
-                    fatherDoc.id,
-                    CommentsChildrenStatus.initial,
-                    1,
-                  ));
+              context.read<CommentsChildrenBloc>().add(
+                CommentsChildrenEvent(
+                  fatherDoc.id,
+                  CommentsChildrenStatus.initial,
+                  1,
+                ),
+              );
             },
-          )
+          ),
         ],
       );
     }
@@ -301,7 +312,8 @@ class _CommentWidgetState extends State<_CommentWidget> {
     }
 
     return ListView.builder(
-      itemCount: commentsDoc.length +
+      itemCount:
+          commentsDoc.length +
           1 +
           (state.status == CommentsChildrenStatus.loadingMore ? 1 : 0) +
           (state.status == CommentsChildrenStatus.getMoreFailure ? 1 : 0) +
@@ -332,16 +344,19 @@ class _CommentWidgetState extends State<_CommentWidget> {
         if (index == commentsDoc.length + 1 &&
             state.status == CommentsChildrenStatus.getMoreFailure) {
           return Center(
-              child: ElevatedButton(
-            onPressed: () {
-              context.read<CommentsChildrenBloc>().add(CommentsChildrenEvent(
+            child: ElevatedButton(
+              onPressed: () {
+                context.read<CommentsChildrenBloc>().add(
+                  CommentsChildrenEvent(
                     fatherDoc.id,
                     CommentsChildrenStatus.loadingMore,
                     commentIndex,
-                  ));
-            },
-            child: const Text('重新加载'),
-          ));
+                  ),
+                );
+              },
+              child: const Text('重新加载'),
+            ),
+          );
         }
 
         if (index ==
@@ -382,12 +397,12 @@ class _CommentWidgetState extends State<_CommentWidget> {
 
   void _fetchMoreData() {
     context.read<CommentsChildrenBloc>().add(
-          CommentsChildrenEvent(
-            fatherDoc.id,
-            CommentsChildrenStatus.loadingMore,
-            commentIndex + 1,
-          ),
-        );
+      CommentsChildrenEvent(
+        fatherDoc.id,
+        CommentsChildrenStatus.loadingMore,
+        commentIndex + 1,
+      ),
+    );
     debugPrint('已经滚动到达底部，加载更多数据!');
   }
 

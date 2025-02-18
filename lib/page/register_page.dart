@@ -58,14 +58,11 @@ class _RegisterPageState extends State<RegisterPage> {
       bikaSetting.setAccount(_account.text);
       bikaSetting.setPassword(_password.text);
       showSuccessToast("注册成功，正在跳转登录...");
-      Future.delayed(
-        const Duration(seconds: 2),
-        () {
-          // 检查State是否仍然挂载
-          if (!mounted) return;
-          AutoRouter.of(context).maybePop();
-        },
-      );
+      Future.delayed(const Duration(seconds: 2), () {
+        // 检查State是否仍然挂载
+        if (!mounted) return;
+        AutoRouter.of(context).maybePop();
+      });
     } catch (e) {
       logger.e(e);
       if (!mounted) return;
@@ -90,9 +87,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('注册账号'),
-      ),
+      appBar: AppBar(title: const Text('注册账号')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -141,12 +136,7 @@ class _RegisterPageState extends State<RegisterPage> {
             Row(
               children: <Widget>[
                 SizedBox(width: 10),
-                Text(
-                  "请选择您的性别: ",
-                  style: TextStyle(
-                    fontSize: 16,
-                  ),
-                ),
+                Text("请选择您的性别: ", style: TextStyle(fontSize: 16)),
               ],
             ),
             const SizedBox(height: 10), // 用于添加空间
@@ -179,12 +169,7 @@ class _RegisterPageState extends State<RegisterPage> {
             Row(
               children: <Widget>[
                 SizedBox(width: 10),
-                Text(
-                  "选择您的出生日期: ",
-                  style: TextStyle(
-                    fontSize: 16,
-                  ),
-                ),
+                Text("选择您的出生日期: ", style: TextStyle(fontSize: 16)),
                 // 使用 Observer 来监听 store 中 date 的变化
                 Observer(
                   builder: (_) {
@@ -192,15 +177,10 @@ class _RegisterPageState extends State<RegisterPage> {
                     _date = store.date;
                     debugPrint('date changed to: ${store.date}');
 
-                    return Text(
-                      store.date,
-                      style: TextStyle(fontSize: 16),
-                    );
+                    return Text(store.date, style: TextStyle(fontSize: 16));
                   }, // 显示 MobX 管理的日期
                 ),
-                Expanded(
-                  child: Container(),
-                ),
+                Expanded(child: Container()),
                 TextButton(
                   onPressed: () async {
                     var result = await showDatePicker(
@@ -224,59 +204,31 @@ class _RegisterPageState extends State<RegisterPage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           if (_username.text.isEmpty) {
-            commonDialog(
-              context,
-              "警告",
-              "用户名不能为空，请重新输入！",
-            );
+            commonDialog(context, "警告", "用户名不能为空，请重新输入！");
             return;
           }
           if (_account.text.isEmpty) {
-            commonDialog(
-              context,
-              "警告",
-              "账号不能为空，请重新输入！",
-            );
+            commonDialog(context, "警告", "账号不能为空，请重新输入！");
             return;
           }
           if (_password.text.isEmpty) {
-            commonDialog(
-              context,
-              "警告",
-              "密码不能为空，请重新输入！",
-            );
+            commonDialog(context, "警告", "密码不能为空，请重新输入！");
             return;
           }
           if (_password.text.length < 8) {
-            commonDialog(
-              context,
-              "警告",
-              "密码长度至少8位，请重新输入！",
-            );
+            commonDialog(context, "警告", "密码长度至少8位，请重新输入！");
             return;
           }
           if (_password.text != _passwordAgain.text) {
-            commonDialog(
-              context,
-              "警告",
-              "输入的两次密码不一致，请重新输入！",
-            );
+            commonDialog(context, "警告", "输入的两次密码不一致，请重新输入！");
             return;
           }
           if (_gender.isEmpty) {
-            commonDialog(
-              context,
-              "警告",
-              "请选择您的性别！",
-            );
+            commonDialog(context, "警告", "请选择您的性别！");
             return;
           }
           if (_date.isEmpty) {
-            commonDialog(
-              context,
-              "警告",
-              "请选择您的出生日期！",
-            );
+            commonDialog(context, "警告", "请选择您的出生日期！");
             return;
           }
           _register();

@@ -40,6 +40,11 @@ final class UserCommentsState extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [status, userCommentsJson, hasReachedMax, result, count];
+  List<Object?> get props => [
+    status,
+    userCommentsJson,
+    hasReachedMax,
+    result,
+    count,
+  ];
 }

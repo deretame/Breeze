@@ -28,9 +28,7 @@ class AdvancedSearch with _$AdvancedSearch {
 
 @freezed
 class Data with _$Data {
-  const factory Data({
-    @JsonKey(name: "comics") required Comics comics,
-  }) = _Data;
+  const factory Data({@JsonKey(name: "comics") required Comics comics}) = _Data;
 
   factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 }

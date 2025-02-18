@@ -43,71 +43,68 @@ class _TagsAndCategoriesWidgetState extends State<TagsAndCategoriesWidget> {
             Wrap(
               spacing: 10,
               // runSpacing: 10,
-              children: List.generate(
-                items.length + 1,
-                (index) {
-                  if (index == 0) {
-                    return Chip(
-                      backgroundColor: globalSetting.backgroundColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      side: BorderSide(color: globalSetting.textColor),
-                      label: Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: globalSetting.textColor,
-                        ),
-                      ),
-                    );
-                  }
-                  return GestureDetector(
-                    onTap: () {
-                      if (title == "分类") {
-                        AutoRouter.of(context).push(
-                          SearchResultRoute(
-                            searchEnterConst: SearchEnterConst(
-                              from: "bika",
-                              type: title,
-                              categories: [items[index - 1]],
-                            ),
-                          ),
-                        );
-                      } else if (title == "标签") {
-                        AutoRouter.of(context).push(
-                          SearchResultRoute(
-                            searchEnterConst: SearchEnterConst(
-                              from: "bika",
-                              type: title,
-                              keyword: items[index - 1],
-                            ),
-                          ),
-                        );
-                      }
-                    },
-                    onLongPress: () {
-                      Clipboard.setData(
-                        ClipboardData(text: processText(items[index - 1])),
-                      );
-                      showSuccessToast("已将${items[index - 1]}复制到剪贴板");
-                    },
-                    child: Chip(
-                      backgroundColor: globalSetting.backgroundColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      label: Text(
-                        processText(items[index - 1]),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: materialColorScheme.primary,
-                        ),
+              children: List.generate(items.length + 1, (index) {
+                if (index == 0) {
+                  return Chip(
+                    backgroundColor: globalSetting.backgroundColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    side: BorderSide(color: globalSetting.textColor),
+                    label: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: globalSetting.textColor,
                       ),
                     ),
                   );
-                },
-              ),
+                }
+                return GestureDetector(
+                  onTap: () {
+                    if (title == "分类") {
+                      AutoRouter.of(context).push(
+                        SearchResultRoute(
+                          searchEnterConst: SearchEnterConst(
+                            from: "bika",
+                            type: title,
+                            categories: [items[index - 1]],
+                          ),
+                        ),
+                      );
+                    } else if (title == "标签") {
+                      AutoRouter.of(context).push(
+                        SearchResultRoute(
+                          searchEnterConst: SearchEnterConst(
+                            from: "bika",
+                            type: title,
+                            keyword: items[index - 1],
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  onLongPress: () {
+                    Clipboard.setData(
+                      ClipboardData(text: processText(items[index - 1])),
+                    );
+                    showSuccessToast("已将${items[index - 1]}复制到剪贴板");
+                  },
+                  child: Chip(
+                    backgroundColor: globalSetting.backgroundColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    label: Text(
+                      processText(items[index - 1]),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: materialColorScheme.primary,
+                      ),
+                    ),
+                  ),
+                );
+              }),
             ),
           ],
         );

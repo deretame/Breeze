@@ -48,8 +48,10 @@ Future<String> getCachePicture({
   );
 
   // 检查文件是否存在
-  String existingFilePath =
-      await checkFileExists(cacheFilePath, downloadFilePath);
+  String existingFilePath = await checkFileExists(
+    cacheFilePath,
+    downloadFilePath,
+  );
   if (existingFilePath.isNotEmpty) {
     return existingFilePath;
   }
@@ -111,8 +113,10 @@ Future<String> downloadPicture({
   );
 
   // 检查文件是否存在
-  String existingFilePath =
-      await checkFileExists(cacheFilePath, downloadFilePath);
+  String existingFilePath = await checkFileExists(
+    cacheFilePath,
+    downloadFilePath,
+  );
 
   if (existingFilePath.isNotEmpty) {
     if (existingFilePath != downloadFilePath) {
@@ -175,10 +179,7 @@ String buildFilePath(
   }
 }
 
-Future<String> checkFileExists(
-  String cachePath,
-  String downloadPath,
-) async {
+Future<String> checkFileExists(String cachePath, String downloadPath) async {
   if (await fileExists(downloadPath)) {
     return downloadPath;
   }
@@ -220,16 +221,18 @@ String buildImageUrl(
     if (pictureType == "cover") {
       url = "https://img.picacomic.com";
     } else if (pictureType == "creator" || pictureType == "favourite") {
-      url = proxy == 1
-          ? "https://storage.diwodiwo.xyz"
-          : "https://s3.picacomic.com";
+      url =
+          proxy == 1
+              ? "https://storage.diwodiwo.xyz"
+              : "https://s3.picacomic.com";
     } else {
       if (imageQuality != "original") {
         url = "https://img.picacomic.com";
       } else {
-        url = proxy == 1
-            ? "https://storage.diwodiwo.xyz"
-            : "https://s3.picacomic.com";
+        url =
+            proxy == 1
+                ? "https://storage.diwodiwo.xyz"
+                : "https://s3.picacomic.com";
       }
     }
   } else if (url == "https://storage-b.picacomic.com") {
@@ -246,9 +249,10 @@ String buildImageUrl(
 
   if (path.contains("picacomic-paint.jpg") ||
       path.contains("picacomic-gift.jpg")) {
-    url = proxy == 1
-        ? "https://storage.diwodiwo.xyz/static"
-        : "https://s3.picacomic.com/static";
+    url =
+        proxy == 1
+            ? "https://storage.diwodiwo.xyz/static"
+            : "https://s3.picacomic.com/static";
   }
 
   if (path.contains("tobeimg/")) {
@@ -275,10 +279,7 @@ Future<Uint8List> downloadImageWithRetry(String url) async {
     try {
       Response response = await dio.get(
         url,
-        options: Options(
-          headers: headers,
-          responseType: ResponseType.bytes,
-        ),
+        options: Options(headers: headers, responseType: ResponseType.bytes),
       );
       return response.data as Uint8List;
     } catch (e) {
@@ -325,8 +326,10 @@ String replaceSubsequentDoubleSlashes(String input) {
 
   // 如果存在第一个'//'，则从其后开始替换所有'//'为'/'
   if (firstDoubleSlashIndex != -1) {
-    String firstPart =
-        input.substring(0, firstDoubleSlashIndex + target.length);
+    String firstPart = input.substring(
+      0,
+      firstDoubleSlashIndex + target.length,
+    );
     String secondPart = input.substring(firstDoubleSlashIndex + target.length);
     String replacedSecondPart = secondPart.replaceAll(target, replacement);
     return '$firstPart$replacedSecondPart';

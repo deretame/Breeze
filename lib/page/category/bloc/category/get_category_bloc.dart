@@ -30,11 +30,7 @@ class GetCategoryBloc extends Bloc<GetCategoryStarted, GetCategoryState> {
     GetCategoryStarted event,
     Emitter<GetCategoryState> emit,
   ) async {
-    emit(
-      state.copyWith(
-        status: GetCategoryStatus.initial,
-      ),
-    );
+    emit(state.copyWith(status: GetCategoryStatus.initial));
 
     try {
       var posts = await getCategories();
@@ -49,17 +45,12 @@ class GetCategoryBloc extends Bloc<GetCategoryStarted, GetCategoryState> {
       );
     } catch (e) {
       emit(
-        state.copyWith(
-          status: GetCategoryStatus.failure,
-          result: e.toString(),
-        ),
+        state.copyWith(status: GetCategoryStatus.failure, result: e.toString()),
       );
     }
   }
 
-  List<HomeCategory> disposeCategories(
-    Map<String, dynamic> result,
-  ) {
+  List<HomeCategory> disposeCategories(Map<String, dynamic> result) {
     late List<HomeCategory> categoriesGlobal = [];
     // 值里面缺胳膊少腿的比较多，需要处理一下
     var temp = result['data']['categories'];

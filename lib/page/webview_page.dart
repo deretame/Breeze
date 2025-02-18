@@ -18,9 +18,10 @@ class WebViewPage extends StatelessWidget {
       info[1] = "${info[1]}?token=$authorization";
     }
 
-    final WebViewController controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse(info[1]));
+    final WebViewController controller =
+        WebViewController()
+          ..setJavaScriptMode(JavaScriptMode.unrestricted)
+          ..loadRequest(Uri.parse(info[1]));
 
     return Scaffold(
       appBar: AppBar(
@@ -39,9 +40,7 @@ class WebViewPage extends StatelessWidget {
           ),
         ],
       ),
-      body: WebViewWidget(
-        controller: controller,
-      ),
+      body: WebViewWidget(controller: controller),
     );
   }
 }

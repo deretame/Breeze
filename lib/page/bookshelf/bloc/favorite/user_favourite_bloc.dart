@@ -47,11 +47,13 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
               .map((entry) => entry.key) // 提取键（分类名）
               .toList();
 
-      var temp = comics.where((comic) {
-        // 检查该漫画的分类是否与屏蔽分类列表中的任何分类匹配
-        return !comic.doc.categories
-            .any((category) => shieldedCategoriesList.contains(category));
-      }).toList();
+      var temp =
+          comics.where((comic) {
+            // 检查该漫画的分类是否与屏蔽分类列表中的任何分类匹配
+            return !comic.doc.categories.any(
+              (category) => shieldedCategoriesList.contains(category),
+            );
+          }).toList();
 
       emit(
         state.copyWith(
@@ -117,11 +119,13 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
               .map((entry) => entry.key) // 提取键（分类名）
               .toList();
 
-      var comicTemp = comics.where((comic) {
-        // 检查该漫画的分类是否与屏蔽分类列表中的任何分类匹配
-        return !comic.doc.categories
-            .any((category) => shieldedCategoriesList.contains(category));
-      }).toList();
+      var comicTemp =
+          comics.where((comic) {
+            // 检查该漫画的分类是否与屏蔽分类列表中的任何分类匹配
+            return !comic.doc.categories.any(
+              (category) => shieldedCategoriesList.contains(category),
+            );
+          }).toList();
 
       emit(
         state.copyWith(

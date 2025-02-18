@@ -91,9 +91,7 @@ class Thumb with _$Thumb {
 
 @freezed
 class Eps with _$Eps {
-  const factory Eps({
-    @JsonKey(name: "docs") required List<EpsDoc> docs,
-  }) = _Eps;
+  const factory Eps({@JsonKey(name: "docs") required List<EpsDoc> docs}) = _Eps;
 
   factory Eps.fromJson(Map<String, dynamic> json) => _$EpsFromJson(json);
 }
@@ -114,9 +112,8 @@ class EpsDoc with _$EpsDoc {
 
 @freezed
 class Pages with _$Pages {
-  const factory Pages({
-    @JsonKey(name: "docs") required List<PagesDoc> docs,
-  }) = _Pages;
+  const factory Pages({@JsonKey(name: "docs") required List<PagesDoc> docs}) =
+      _Pages;
 
   factory Pages.fromJson(Map<String, dynamic> json) => _$PagesFromJson(json);
 }

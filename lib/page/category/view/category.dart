@@ -18,12 +18,11 @@ class CategoryPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () => AutoRouter.of(context).push(
-              SearchResultRoute(
-                searchEnterConst: SearchEnterConst(),
-              ),
-            ),
-          )
+            onPressed:
+                () => AutoRouter.of(
+                  context,
+                ).push(SearchResultRoute(searchEnterConst: SearchEnterConst())),
+          ),
         ],
       ),
       body: RefreshIndicator(

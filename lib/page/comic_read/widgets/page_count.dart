@@ -42,8 +42,9 @@ class _PageCountWidgetState extends State<PageCountWidget> {
     if (results.isNotEmpty) {
       _updateConnectivityResult(results.first); // 取第一个网络状态
     }
-    _connectivitySubscription =
-        connectivity.onConnectivityChanged.listen((results) {
+    _connectivitySubscription = connectivity.onConnectivityChanged.listen((
+      results,
+    ) {
       if (mounted &&
           results.isNotEmpty &&
           results.first != _connectivityResult) {

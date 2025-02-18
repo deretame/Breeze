@@ -17,21 +17,16 @@ import '../widgets/page_skip.dart';
 class SearchResultPage extends StatelessWidget {
   final SearchEnterConst searchEnterConst;
 
-  const SearchResultPage({
-    super.key,
-    required this.searchEnterConst,
-  });
+  const SearchResultPage({super.key, required this.searchEnterConst});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => SearchBloc()
-        ..add(
-          FetchSearchResult(
-            searchEnterConst,
-            SearchStatus.initial,
-          ),
-        ),
+      create:
+          (_) =>
+              SearchBloc()..add(
+                FetchSearchResult(searchEnterConst, SearchStatus.initial),
+              ),
       child: _SearchResultPage(searchEnterConst: searchEnterConst),
     );
   }
@@ -40,9 +35,7 @@ class SearchResultPage extends StatelessWidget {
 class _SearchResultPage extends StatefulWidget {
   final SearchEnterConst searchEnterConst;
 
-  const _SearchResultPage({
-    required this.searchEnterConst,
-  });
+  const _SearchResultPage({required this.searchEnterConst});
 
   @override
   State<_SearchResultPage> createState() => _SearchResultPageState();
@@ -71,10 +64,12 @@ class _SearchResultPageState extends State<_SearchResultPage>
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0), // 初始位置
       end: const Offset(0, 2),
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut, // 动画曲线
-    ));
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut, // 动画曲线
+      ),
+    );
 
     _searchEnter = SearchEnter.fromConst(searchEnterConst);
     _scrollController.addListener(_onScroll);
@@ -152,9 +147,10 @@ class _SearchResultPageState extends State<_SearchResultPage>
                   color: globalSetting.backgroundColor,
                   boxShadow: [
                     BoxShadow(
-                      color: globalSetting.themeType
-                          ? materialColorScheme.secondaryFixedDim
-                          : materialColorScheme.secondaryFixedDim,
+                      color:
+                          globalSetting.themeType
+                              ? materialColorScheme.secondaryFixedDim
+                              : materialColorScheme.secondaryFixedDim,
                       spreadRadius: 0,
                       blurRadius: 2,
                       offset: const Offset(0, 0),
@@ -170,17 +166,15 @@ class _SearchResultPageState extends State<_SearchResultPage>
                     SizedBox(width: 5),
                     CategoriesShield(),
                     Expanded(child: Container()),
-                    Observer(builder: (context) {
-                      return Text(
-                        pageStore.date,
-                        style: TextStyle(
-                          fontSize: 16,
-                        ),
-                      );
-                    }),
-                    SizedBox(
-                      width: 5,
+                    Observer(
+                      builder: (context) {
+                        return Text(
+                          pageStore.date,
+                          style: TextStyle(fontSize: 16),
+                        );
+                      },
                     ),
+                    SizedBox(width: 5),
                   ],
                 ),
               ),
@@ -189,10 +183,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
         ),
         floatingActionButton: SlideTransition(
           position: _slideAnimation,
-          child: PageSkip(
-            pageStore: pageStore,
-            pagesCount: pagesCount,
-          ),
+          child: PageSkip(pageStore: pageStore, pagesCount: pagesCount),
         ),
       ),
     );
@@ -209,10 +200,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
       }
       if (state.comics.isEmpty && state.hasReachedMax) {
         return const Center(
-          child: Text(
-            '啥都没有',
-            style: TextStyle(fontSize: 20.0),
-          ),
+          child: Text('啥都没有', style: TextStyle(fontSize: 20.0)),
         );
       }
       if (!state.hasReachedMax) {
@@ -229,10 +217,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
                 return const Center(
                   child: Padding(
                     padding: EdgeInsets.all(30.0),
-                    child: Text(
-                      '你来到了未知领域呢~',
-                      style: TextStyle(fontSize: 20.0),
-                    ),
+                    child: Text('你来到了未知领域呢~', style: TextStyle(fontSize: 20.0)),
                   ),
                 );
               }
@@ -261,9 +246,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
         }
 
         return ComicEntryWidget(
-          comicEntryInfo: docToComicEntryInfo(
-            state.comics[index].doc,
-          ),
+          comicEntryInfo: docToComicEntryInfo(state.comics[index].doc),
         );
       },
       itemCount: itemCount,
@@ -271,47 +254,44 @@ class _SearchResultPageState extends State<_SearchResultPage>
     );
   }
 
-  void _refresh(
-    SearchEnterConst searchEnterConst,
-    SearchStatus status,
-  ) {
+  void _refresh(SearchEnterConst searchEnterConst, SearchStatus status) {
     // 使用原本输入参数进行重新搜索
     context.read<SearchBloc>().add(
-          FetchSearchResult(
-            SearchEnterConst(
-              url: searchEnterConst.url,
-              from: searchEnterConst.from,
-              keyword: searchEnterConst.keyword,
-              type: searchEnterConst.type,
-              state: searchEnterConst.state,
-              sort: searchEnterConst.sort,
-              categories: searchEnterConst.categories,
-              pageCount: searchEnterConst.pageCount,
-              refresh: Uuid().v4(), //传入一个不一样的值，来强行刷新
-            ),
-            status,
-          ),
-        );
+      FetchSearchResult(
+        SearchEnterConst(
+          url: searchEnterConst.url,
+          from: searchEnterConst.from,
+          keyword: searchEnterConst.keyword,
+          type: searchEnterConst.type,
+          state: searchEnterConst.state,
+          sort: searchEnterConst.sort,
+          categories: searchEnterConst.categories,
+          pageCount: searchEnterConst.pageCount,
+          refresh: Uuid().v4(), //传入一个不一样的值，来强行刷新
+        ),
+        status,
+      ),
+    );
   }
 
   void _fetchSearchResult() {
     debugPrint('pagesCount: ${_searchEnter.pageCount + 1}');
     context.read<SearchBloc>().add(
-          FetchSearchResult(
-            SearchEnterConst(
-              url: _searchEnter.url,
-              from: _searchEnter.from,
-              keyword: _searchEnter.keyword,
-              type: _searchEnter.type,
-              state: _searchEnter.state,
-              sort: _searchEnter.sort,
-              categories: _searchEnter.categories,
-              pageCount: _searchEnter.pageCount + 1,
-              refresh: _searchEnter.refresh,
-            ),
-            SearchStatus.loadingMore,
-          ),
-        );
+      FetchSearchResult(
+        SearchEnterConst(
+          url: _searchEnter.url,
+          from: _searchEnter.from,
+          keyword: _searchEnter.keyword,
+          type: _searchEnter.type,
+          state: _searchEnter.state,
+          sort: _searchEnter.sort,
+          categories: _searchEnter.categories,
+          pageCount: _searchEnter.pageCount + 1,
+          refresh: _searchEnter.refresh,
+        ),
+        SearchStatus.loadingMore,
+      ),
+    );
   }
 
   void _onScroll() {

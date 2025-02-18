@@ -30,11 +30,7 @@ class GetComicInfoBloc extends Bloc<GetComicInfo, GetComicInfoState> {
     Emitter<GetComicInfoState> emit,
   ) async {
     try {
-      emit(
-        state.copyWith(
-          status: GetComicInfoStatus.initial,
-        ),
-      );
+      emit(state.copyWith(status: GetComicInfoStatus.initial));
 
       var comicInfo = await _getComicInfo(event.comicId);
 
@@ -66,8 +62,11 @@ class GetComicInfoBloc extends Bloc<GetComicInfo, GetComicInfoState> {
     result['data']['comic']['totalComments'] ??=
         result['data']['comic']['commentsCount'] ?? 0;
     result['data']['comic']['author'] ??= '';
-    result['data']['comic']['_creator']
-        ['avatar'] ??= {"fileServer": "", "path": "", "originalName": ""};
+    result['data']['comic']['_creator']['avatar'] ??= {
+      "fileServer": "",
+      "path": "",
+      "originalName": "",
+    };
 
     var comicInfo = ComicInfo.fromJson(result);
     return comicInfo;

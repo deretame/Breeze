@@ -32,9 +32,9 @@ class _CreatorRankingsWidgetState extends State<CreatorRankingsWidget>
                   Text(state.result!),
                   ElevatedButton(
                     onPressed: () {
-                      context
-                          .read<CreatorListBloc>()
-                          .add(FetchCreatorList(GetInfo(type: 'creator')));
+                      context.read<CreatorListBloc>().add(
+                        FetchCreatorList(GetInfo(type: 'creator')),
+                      );
                     },
                     child: const Text('重新加载'),
                   ),
@@ -44,9 +44,9 @@ class _CreatorRankingsWidgetState extends State<CreatorRankingsWidget>
           case CreatorListStatus.success:
             return RefreshIndicator(
               onRefresh: () async {
-                context
-                    .read<CreatorListBloc>()
-                    .add(FetchCreatorList(GetInfo(type: 'creator')));
+                context.read<CreatorListBloc>().add(
+                  FetchCreatorList(GetInfo(type: 'creator')),
+                );
               },
               child: ListView.builder(
                 itemCount: state.userList!.length + 1, // 加1以包含底部留白

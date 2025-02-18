@@ -17,17 +17,17 @@ Future<void> testWebDavServer() async {
     throw Exception('WebDAV 配置不完整');
   }
 
-  final dio = Dio(BaseOptions(
-    baseUrl: globalSetting.webdavHost, // WebDAV 服务器地址
-    headers: {
-      'Authorization': 'Basic ${base64Encode(
-        utf8.encode(
-            '${globalSetting.webdavUsername}:${globalSetting.webdavPassword}'),
-      )}',
-    },
-    connectTimeout: const Duration(seconds: 10), // 连接超时时间
-    receiveTimeout: const Duration(seconds: 10), // 接收超时时间
-  ));
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: globalSetting.webdavHost, // WebDAV 服务器地址
+      headers: {
+        'Authorization':
+            'Basic ${base64Encode(utf8.encode('${globalSetting.webdavUsername}:${globalSetting.webdavPassword}'))}',
+      },
+      connectTimeout: const Duration(seconds: 10), // 连接超时时间
+      receiveTimeout: const Duration(seconds: 10), // 接收超时时间
+    ),
+  );
 
   try {
     // 发送 OPTIONS 请求测试服务是否可用
@@ -47,7 +47,8 @@ Future<void> testWebDavServer() async {
     if (e.response != null) {
       // 如果服务器返回了响应，将错误信息和返回值合并后抛出
       throw Exception(
-          'WebDAV 服务返回错误: ${e.response?.statusCode}\n${e.response?.data}');
+        'WebDAV 服务返回错误: ${e.response?.statusCode}\n${e.response?.data}',
+      );
     } else {
       // 如果只是 Dio 的错误（如网络连接失败、超时等），直接抛出错误
       throw Exception('连接失败: ${e.message}');
@@ -65,16 +66,15 @@ Dio? getWebDavDio() {
     throw Exception('WebDAV 配置不完整');
   }
 
-  final dio = Dio(BaseOptions(
-    baseUrl: globalSetting.webdavHost, // WebDAV服务器地址
-    headers: {
-      'Authorization': 'Basic ${base64Encode(
-        utf8.encode(
-          '${globalSetting.webdavUsername}:${globalSetting.webdavPassword}',
-        ),
-      )}',
-    },
-  ));
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: globalSetting.webdavHost, // WebDAV服务器地址
+      headers: {
+        'Authorization':
+            'Basic ${base64Encode(utf8.encode('${globalSetting.webdavUsername}:${globalSetting.webdavPassword}'))}',
+      },
+    ),
+  );
 
   return dio;
 }
@@ -339,8 +339,10 @@ Future<void> uploadFile2WebDav() async {
   String comicHistoriesJsonString = jsonEncode(comicHistoriesJson);
 
   // 使用 compute 在后台执行加密和压缩
-  final compressedBytes =
-      await compute(_encryptAndCompress, comicHistoriesJsonString);
+  final compressedBytes = await compute(
+    _encryptAndCompress,
+    comicHistoriesJsonString,
+  );
 
   if (compressedBytes == null) {
     throw Exception('加密压缩失败');
@@ -360,8 +362,9 @@ List<int>? _encryptAndCompress(String data) {
   try {
     final key = encrypt.Key.fromUtf8("XY!Ex3j3hP^BGPFanYEjBA!L!oD2kkCN");
     final iv = encrypt.IV.fromUtf8("7qFwTxwH&iyuw35f");
-    final encrypter =
-        encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.ctr));
+    final encrypter = encrypt.Encrypter(
+      encrypt.AES(key, mode: encrypt.AESMode.ctr),
+    );
     final encrypted = encrypter.encrypt(data, iv: iv);
     final jsonBytes = utf8.encode(encrypted.base64);
     return GZipEncoder().encode(jsonBytes);
@@ -450,8 +453,10 @@ Future<List<BikaComicHistory>> getHistoryFromWebdav(String remotePath) async {
   final compressedBytes = await _downloadFromWebDav(remotePath);
 
   // 使用 compute 在后台执行解压和解密操作
-  final comicHistoriesJson =
-      await compute(_decompressAndDecrypt, compressedBytes);
+  final comicHistoriesJson = await compute(
+    _decompressAndDecrypt,
+    compressedBytes,
+  );
 
   if (comicHistoriesJson.isEmpty) {
     throw Exception('下载数据为空');
@@ -473,8 +478,9 @@ List<BikaComicHistory> _decompressAndDecrypt(List<int> compressedBytes) {
     // 解密数据
     final key = encrypt.Key.fromUtf8("XY!Ex3j3hP^BGPFanYEjBA!L!oD2kkCN");
     final iv = encrypt.IV.fromUtf8("7qFwTxwH&iyuw35f");
-    final encrypter =
-        encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.ctr));
+    final encrypter = encrypt.Encrypter(
+      encrypt.AES(key, mode: encrypt.AESMode.ctr),
+    );
 
     // 解密
     final encrypted = encrypt.Encrypted.fromBase64(encryptedBase64);
@@ -506,9 +512,7 @@ Future<List<int>> _downloadFromWebDav(String remotePath) async {
     try {
       final response = await dio.get(
         remotePath,
-        options: Options(
-          responseType: ResponseType.bytes,
-        ),
+        options: Options(responseType: ResponseType.bytes),
       );
 
       if (response.statusCode == 200) {
@@ -545,9 +549,10 @@ Future<void> updateHistory(List<BikaComicHistory> comicHistories) async {
   historyBox.sort((a, b) => b.history.compareTo(a.history));
 
   for (var cloudHistory in comicHistories) {
-    var localHistory = historyBox
-        .where((history) => history.comicId == cloudHistory.comicId)
-        .firstOrNull;
+    var localHistory =
+        historyBox
+            .where((history) => history.comicId == cloudHistory.comicId)
+            .firstOrNull;
 
     if (localHistory != null) {
       cloudHistory = mergeDeletedStatus(localHistory, cloudHistory);
@@ -586,8 +591,10 @@ BikaComicHistory mergeDeletedStatus(
 ) {
   if (temp.deleted || comicHistory.deleted) {
     // 确定双方的最新删除时间和最新观看时间
-    final latestDeleteTime =
-        _maxDateTime(temp.deletedAt, comicHistory.deletedAt);
+    final latestDeleteTime = _maxDateTime(
+      temp.deletedAt,
+      comicHistory.deletedAt,
+    );
     final latestHistoryTime = _maxDateTime(temp.history, comicHistory.history);
 
     // 判断删除是否发生在最后一次观看之后
@@ -630,7 +637,8 @@ Future<void> deleteFileFromWebDav(List<String> remotePath) async {
       } on DioException catch (e) {
         if (e.response != null) {
           throw Exception(
-              '文件删除失败: ${e.message}\n${e.response?.statusCode}\n${e.response?.data}');
+            '文件删除失败: ${e.message}\n${e.response?.statusCode}\n${e.response?.data}',
+          );
         } else {
           throw Exception('文件删除失败: ${e.message}');
         }

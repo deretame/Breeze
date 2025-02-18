@@ -64,9 +64,10 @@ class CreatorInfoWidget extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
-                  color: globalSetting.themeType
-                      ? materialColorScheme.secondaryFixedDim
-                      : materialColorScheme.secondaryFixedDim,
+                  color:
+                      globalSetting.themeType
+                          ? materialColorScheme.secondaryFixedDim
+                          : materialColorScheme.secondaryFixedDim,
                   spreadRadius: 0,
                   blurRadius: 2,
                 ),
@@ -96,14 +97,13 @@ class CreatorInfoWidget extends StatelessWidget {
                       Text(
                         comicInfo.creator.name,
                         style: TextStyle(
-                          color: globalSetting.themeType
-                              ? materialColorScheme.tertiary
-                              : materialColorScheme.tertiary,
+                          color:
+                              globalSetting.themeType
+                                  ? materialColorScheme.tertiary
+                                  : materialColorScheme.tertiary,
                         ),
                       ),
-                      Text(
-                        timeDecode(comicInfo.updatedAt),
-                      ),
+                      Text(timeDecode(comicInfo.updatedAt)),
                     ],
                   ),
                 ),
@@ -119,9 +119,7 @@ class CreatorInfoWidget extends StatelessWidget {
 class _ImagerWidget extends StatelessWidget {
   final PictureInfo pictureInfo;
 
-  const _ImagerWidget({
-    required this.pictureInfo,
-  });
+  const _ImagerWidget({required this.pictureInfo});
 
   @override
   Widget build(BuildContext context) {
@@ -131,18 +129,19 @@ class _ImagerWidget extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(10),
         child: BlocProvider(
-          create: (context) => PictureBloc()
-            ..add(
-              GetPicture(
-                PictureInfo(
-                  from: "bika",
-                  url: pictureInfo.url,
-                  path: pictureInfo.path,
-                  cartoonId: pictureInfo.cartoonId,
-                  pictureType: pictureInfo.pictureType,
-                ),
-              ),
-            ),
+          create:
+              (context) =>
+                  PictureBloc()..add(
+                    GetPicture(
+                      PictureInfo(
+                        from: "bika",
+                        url: pictureInfo.url,
+                        path: pictureInfo.path,
+                        cartoonId: pictureInfo.cartoonId,
+                        pictureType: pictureInfo.pictureType,
+                      ),
+                    ),
+                  ),
           child: BlocBuilder<PictureBloc, PictureLoadState>(
             builder: (context, state) {
               switch (state.status) {
@@ -159,8 +158,10 @@ class _ImagerWidget extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              FullScreenImageView(imagePath: state.imagePath!),
+                          builder:
+                              (context) => FullScreenImageView(
+                                imagePath: state.imagePath!,
+                              ),
                         ),
                       );
                     },
@@ -196,16 +197,16 @@ class _ImagerWidget extends StatelessWidget {
                     return InkWell(
                       onTap: () {
                         context.read<PictureBloc>().add(
-                              GetPicture(
-                                PictureInfo(
-                                  from: "bika",
-                                  url: pictureInfo.url,
-                                  path: pictureInfo.path,
-                                  cartoonId: pictureInfo.cartoonId,
-                                  pictureType: pictureInfo.pictureType,
-                                ),
-                              ),
-                            );
+                          GetPicture(
+                            PictureInfo(
+                              from: "bika",
+                              url: pictureInfo.url,
+                              path: pictureInfo.path,
+                              cartoonId: pictureInfo.cartoonId,
+                              pictureType: pictureInfo.pictureType,
+                            ),
+                          ),
+                        );
                       },
                       child: Icon(Icons.refresh),
                     );

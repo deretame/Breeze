@@ -29,9 +29,8 @@ class UserCommentsJson with _$UserCommentsJson {
 
 @freezed
 class Data with _$Data {
-  const factory Data({
-    @JsonKey(name: "comments") required Comments comments,
-  }) = _Data;
+  const factory Data({@JsonKey(name: "comments") required Comments comments}) =
+      _Data;
 
   factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 }

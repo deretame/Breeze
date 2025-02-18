@@ -68,15 +68,15 @@ class SearchEnter {
 
   // 添加一个从 SearchEnterConst 的构造函数
   SearchEnter.fromConst(SearchEnterConst searchEnterConst)
-      : url = searchEnterConst.url,
-        from = searchEnterConst.from,
-        keyword = searchEnterConst.keyword,
-        type = searchEnterConst.type,
-        state = searchEnterConst.state,
-        sort = searchEnterConst.sort,
-        categories = searchEnterConst.categories,
-        pageCount = searchEnterConst.pageCount,
-        refresh = searchEnterConst.refresh;
+    : url = searchEnterConst.url,
+      from = searchEnterConst.from,
+      keyword = searchEnterConst.keyword,
+      type = searchEnterConst.type,
+      state = searchEnterConst.state,
+      sort = searchEnterConst.sort,
+      categories = searchEnterConst.categories,
+      pageCount = searchEnterConst.pageCount,
+      refresh = searchEnterConst.refresh;
 }
 
 class SearchEnterConst extends Equatable {
@@ -103,18 +103,27 @@ class SearchEnterConst extends Equatable {
   });
 
   @override
-  List<Object> get props =>
-      [url, from, keyword, type, state, sort, categories, pageCount, refresh];
+  List<Object> get props => [
+    url,
+    from,
+    keyword,
+    type,
+    state,
+    sort,
+    categories,
+    pageCount,
+    refresh,
+  ];
 
   // 添加一个从 SearchEnter 的构造函数
   SearchEnterConst.from(SearchEnter searchEnter)
-      : url = searchEnter.url,
-        from = searchEnter.from,
-        keyword = searchEnter.keyword,
-        type = searchEnter.type,
-        state = searchEnter.state,
-        sort = searchEnter.sort,
-        categories = searchEnter.categories,
-        pageCount = searchEnter.pageCount,
-        refresh = searchEnter.refresh;
+    : url = searchEnter.url,
+      from = searchEnter.from,
+      keyword = searchEnter.keyword,
+      type = searchEnter.type,
+      state = searchEnter.state,
+      sort = searchEnter.sort,
+      categories = searchEnter.categories,
+      pageCount = searchEnter.pageCount,
+      refresh = searchEnter.refresh;
 }

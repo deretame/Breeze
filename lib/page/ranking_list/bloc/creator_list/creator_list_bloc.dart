@@ -30,11 +30,7 @@ class CreatorListBloc extends Bloc<FetchCreatorList, CreatorListState> {
     FetchCreatorList event,
     Emitter<CreatorListState> emit,
   ) async {
-    emit(
-      state.copyWith(
-        status: CreatorListStatus.initial,
-      ),
-    );
+    emit(state.copyWith(status: CreatorListStatus.initial));
 
     try {
       var temp = await getRankingList(
@@ -52,10 +48,7 @@ class CreatorListBloc extends Bloc<FetchCreatorList, CreatorListState> {
       );
     } catch (e) {
       emit(
-        state.copyWith(
-          status: CreatorListStatus.failure,
-          result: e.toString(),
-        ),
+        state.copyWith(status: CreatorListStatus.failure, result: e.toString()),
       );
     }
   }

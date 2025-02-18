@@ -8,13 +8,12 @@ import '../bloc/search_bloc.dart';
 import '../method/search_enter_provider.dart';
 
 class CategoriesShield extends StatelessWidget {
-  const CategoriesShield({
-    super.key,
-  });
+  const CategoriesShield({super.key});
 
   Future<Map<String, bool>?> showShieldCategoryDialog(BuildContext context) {
-    late Map<String, bool> shieldCategoriesMap =
-        Map.of(bikaSetting.getShieldCategoryMap());
+    late Map<String, bool> shieldCategoriesMap = Map.of(
+      bikaSetting.getShieldCategoryMap(),
+    );
 
     return showDialog(
       context: context,
@@ -94,30 +93,25 @@ class CategoriesShield extends StatelessWidget {
         if (!context.mounted) return;
 
         context.read<SearchBloc>().add(
-              FetchSearchResult(
-                SearchEnterConst(
-                  url: searchEnter.url,
-                  from: searchEnter.from,
-                  keyword: searchEnter.keyword,
-                  type: searchEnter.type,
-                  state: "更新屏蔽列表",
-                  sort: searchEnter.sort,
-                  categories: searchEnter.categories,
-                  pageCount: searchEnter.pageCount,
-                ),
-                SearchStatus.initial,
-              ),
-            );
+          FetchSearchResult(
+            SearchEnterConst(
+              url: searchEnter.url,
+              from: searchEnter.from,
+              keyword: searchEnter.keyword,
+              type: searchEnter.type,
+              state: "更新屏蔽列表",
+              sort: searchEnter.sort,
+              categories: searchEnter.categories,
+              pageCount: searchEnter.pageCount,
+            ),
+            SearchStatus.initial,
+          ),
+        );
       },
       child: Row(
         children: <Widget>[
-          Text(
-            "屏蔽分类",
-            style: TextStyle(
-              fontSize: 16,
-            ),
-          ),
-          Icon(Icons.expand_more)
+          Text("屏蔽分类", style: TextStyle(fontSize: 16)),
+          Icon(Icons.expand_more),
         ],
       ),
     );

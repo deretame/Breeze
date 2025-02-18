@@ -6,7 +6,7 @@ enum CommentsStatus {
   failure,
   loadingMore,
   getMoreFailure,
-  comment
+  comment,
 }
 
 final class CommentsState extends Equatable {
@@ -41,6 +41,11 @@ final class CommentsState extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [status, commentsJson, hasReachedMax, result, count];
+  List<Object?> get props => [
+    status,
+    commentsJson,
+    hasReachedMax,
+    result,
+    count,
+  ];
 }

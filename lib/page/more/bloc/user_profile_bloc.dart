@@ -31,11 +31,7 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
     UserProfileEvent event,
     Emitter<UserProfileState> emit,
   ) async {
-    emit(
-      state.copyWith(
-        status: UserProfileStatus.initial,
-      ),
-    );
+    emit(state.copyWith(status: UserProfileStatus.initial));
 
     try {
       final profile = await _getUserProfile();
@@ -49,10 +45,7 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
       );
     } catch (e) {
       emit(
-        state.copyWith(
-          status: UserProfileStatus.failure,
-          result: e.toString(),
-        ),
+        state.copyWith(status: UserProfileStatus.failure, result: e.toString()),
       );
     }
   }
@@ -75,8 +68,11 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
     result['data']['user']['slogan'] ??= "";
     result['data']['user']['birthday'] ??= "1989-08-13T00:00:00.000Z";
     result['data']['user']['created_at'] ??= "";
-    result['data']['user']
-        ['avatar'] ??= {"fileServer": "", "path": "", "originalName": ""};
+    result['data']['user']['avatar'] ??= {
+      "fileServer": "",
+      "path": "",
+      "originalName": "",
+    };
     result['data']['user']['avatar']['originalName'] ??= "";
     result['data']['user']['avatar']['path'] ??= "";
     result['data']['user']['avatar']['fileServer'] ??= "";
@@ -103,9 +99,10 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
           characters: temp.data.user.characters,
           createdAt: temp.data.user.createdAt,
           avatar: GlobalBIkaAvatar(
-              originalName: temp.data.user.avatar.originalName,
-              path: temp.data.user.avatar.path,
-              fileServer: temp.data.user.avatar.fileServer),
+            originalName: temp.data.user.avatar.originalName,
+            path: temp.data.user.avatar.path,
+            fileServer: temp.data.user.avatar.fileServer,
+          ),
           isPunched: temp.data.user.isPunched,
           character: temp.data.user.character,
           role: "",

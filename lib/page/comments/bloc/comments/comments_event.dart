@@ -5,11 +5,7 @@ final class CommentsEvent extends Equatable {
   final CommentsStatus status;
   final int count;
 
-  const CommentsEvent(
-    this.commentsId,
-    this.status,
-    this.count,
-  );
+  const CommentsEvent(this.commentsId, this.status, this.count);
 
   @override
   List<Object> get props => [commentsId, status, count];

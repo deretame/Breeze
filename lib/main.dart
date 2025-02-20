@@ -182,7 +182,7 @@ class _MyAppState extends State<MyApp> {
             return MaterialApp.router(
               routerConfig: appRouter.config(),
               locale: globalSetting.locale,
-              title: 'Breeze',
+              title: 'BK comic',
               themeMode: globalSetting.themeMode,
               supportedLocales: [
                 Locale('en', 'US'), // English

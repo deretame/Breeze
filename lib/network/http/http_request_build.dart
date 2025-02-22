@@ -45,6 +45,7 @@ Map<String, String> _getRequestHeaders(
   String url,
   String method, {
   String body = "",
+  String imageQuality = "",
 }) {
   String? authorization = bikaSetting.authorization;
   String nonce = _getNonce();
@@ -87,7 +88,8 @@ Map<String, String> _getRequestHeaders(
     headers['authorization'] = authorization;
   }
 
-  headers['image-quality'] = bikaSetting.imageQuality;
+  headers['image-quality'] =
+      imageQuality.isEmpty ? bikaSetting.imageQuality : imageQuality;
 
   return headers;
 }
@@ -97,8 +99,14 @@ Future<Map<String, dynamic>> request(
   String method, {
   String body = "",
   bool cache = false,
+  String imageQuality = "",
 }) async {
-  final headers = _getRequestHeaders(url, method, body: body);
+  final headers = _getRequestHeaders(
+    url,
+    method,
+    body: body,
+    imageQuality: imageQuality,
+  );
 
   // 根据useCache决定是否添加缓存拦截器
   if (cache) {

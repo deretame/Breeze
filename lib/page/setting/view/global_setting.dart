@@ -25,6 +25,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   bool _autoSyncValue = globalSetting.autoSync;
   bool _autoSyncNotifyValue = globalSetting.syncNotify;
   bool _shadeValue = globalSetting.shade;
+  bool _comicReadTopContainerValue = globalSetting.comicReadTopContainer;
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +42,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                   changeThemeColor(context),
                   SizedBox(height: 11),
                 ],
+                _comicReadTopContainer(),
                 _shade(),
                 _isAMOLED(),
                 divider(),
@@ -245,5 +247,38 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     });
 
     globalSetting.setShade(_shadeValue);
+  }
+
+  Widget _comicReadTopContainer() {
+    return Row(
+      children: [
+        SizedBox(width: 10),
+        Text("异形屏适配", style: TextStyle(fontSize: 18)),
+        SizedBox(width: 5), // 添加间距
+        Tooltip(
+          message: "在漫画阅读界面，会在最顶层生成一个状态栏高度的占位容器来避免摄像头遮挡内容。",
+          triggerMode: TooltipTriggerMode.tap, // 点击触发
+          child: Icon(
+            Icons.help_outline, // 问号图标
+            size: 20,
+            color: materialColorScheme.outlineVariant,
+          ),
+        ),
+        Spacer(),
+        Switch(
+          value: _comicReadTopContainerValue,
+          onChanged: changeComicReadTopContainer,
+        ),
+        SizedBox(width: 10),
+      ],
+    );
+  }
+
+  void changeComicReadTopContainer(bool value) {
+    setState(() {
+      _comicReadTopContainerValue = !_comicReadTopContainerValue;
+    });
+
+    globalSetting.setComicReadTopContainer(_comicReadTopContainerValue);
   }
 }

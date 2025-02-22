@@ -46,6 +46,8 @@ abstract class _GlobalSetting with Store {
   bool syncNotify = true; // 同步提示
   @observable
   bool shade = true; // 夜间模式遮罩
+  @observable
+  bool comicReadTopContainer = true; // 漫画阅读器顶部占位容器
 
   Future<void> initBox() async {
     _box = await Hive.openBox(GlobalSettingBoxKey.globalSetting);
@@ -65,6 +67,7 @@ abstract class _GlobalSetting with Store {
     autoSync = getAutoSync();
     syncNotify = getSyncNotify();
     shade = getShade();
+    comicReadTopContainer = getComicReadTopContainer();
   }
 
   @action
@@ -391,6 +394,27 @@ abstract class _GlobalSetting with Store {
     shade = true;
     _box.delete(GlobalSettingBoxKey.shade);
   }
+
+  @action
+  bool getComicReadTopContainer() {
+    comicReadTopContainer = _box.get(
+      GlobalSettingBoxKey.comicReadTopContainer,
+      defaultValue: true,
+    );
+    return comicReadTopContainer;
+  }
+
+  @action
+  void setComicReadTopContainer(bool value) {
+    comicReadTopContainer = value;
+    _box.put(GlobalSettingBoxKey.comicReadTopContainer, value);
+  }
+
+  @action
+  void deleteComicReadTopContainer() {
+    comicReadTopContainer = true;
+    _box.delete(GlobalSettingBoxKey.comicReadTopContainer);
+  }
 }
 
 class GlobalSettingBoxKey {
@@ -411,4 +435,6 @@ class GlobalSettingBoxKey {
   static const String autoSync = 'autoSync'; // 是否自动同步
   static const String syncNotify = 'syncNotify'; // 自动同步提醒
   static const String shade = 'shade'; // 黑夜模式遮罩
+  static const String comicReadTopContainer =
+      'comicReadTopContainer'; // 漫画阅读器顶部占位容器
 }

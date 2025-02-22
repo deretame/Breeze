@@ -296,7 +296,7 @@ class _MainPageState extends State<MainPage> {
         break;
     }
 
-    if (event.message.runes.length < 20) {
+    if (event.message.runes.length < 30) {
       toastification.show(
         context: context,
         title: event.title == null ? null : Text(event.title!),
@@ -306,7 +306,26 @@ class _MainPageState extends State<MainPage> {
         autoCloseDuration: event.duration,
       );
     } else {
-      commonDialog(context, event.title ?? "错误", event.message);
+      late String title;
+      if (event.title != null) {
+        title = event.title!;
+      } else {
+        switch (event.type) {
+          case ToastType.success:
+            title = "成功";
+            break;
+          case ToastType.error:
+            title = "错误";
+            break;
+          case ToastType.warning:
+            title = "警告";
+            break;
+          case ToastType.info:
+            title = "提示";
+            break;
+        }
+      }
+      commonDialog(context, title, event.message);
     }
   }
 }

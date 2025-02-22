@@ -9,6 +9,8 @@ import 'package:zephyr/main.dart';
 import '../../config/global_setting.dart';
 import '../../util/get_path.dart';
 
+final pictureDio = Dio();
+
 Future<String> getCachePicture({
   String from = '',
   String url = '',
@@ -267,7 +269,6 @@ String buildImageUrl(
 }
 
 Future<Uint8List> downloadImageWithRetry(String url) async {
-  var dio = Dio();
   var headers = {
     'User-Agent': '#',
     'Host': Uri.parse(url).host,
@@ -277,7 +278,7 @@ Future<Uint8List> downloadImageWithRetry(String url) async {
 
   while (true) {
     try {
-      Response response = await dio.get(
+      Response response = await pictureDio.get(
         url,
         options: Options(headers: headers, responseType: ResponseType.bytes),
       );

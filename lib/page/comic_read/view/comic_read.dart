@@ -298,10 +298,17 @@ class _ComicReadPageState extends State<_ComicReadPage>
                     // debugPrint('index: $index');
                     // debugPrint('itemCount: ${state.medias!.length + 2}');
                     if (index == 0) {
-                      return Container(
-                        width: screenWidth,
-                        height: statusBarHeight,
-                        color: Colors.black,
+                      return Observer(
+                        builder: (context) {
+                          return Container(
+                            width: screenWidth,
+                            height:
+                                globalSetting.comicReadTopContainer
+                                    ? statusBarHeight
+                                    : 0,
+                            color: Colors.black,
+                          );
+                        },
                       );
                     } else if (index == length + 1) {
                       return Container(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -75,11 +77,25 @@ class _ComicInfoState extends State<_ComicInfo>
             .build()
             .findFirst();
 
-    if (comicHistory != null) {
-      if (comicHistory!.deleted) {
-        comicHistory = null;
-      }
+    if (comicHistory!.deleted) {
+      comicHistory = null;
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      const duration = Duration(seconds: 3);
+      Timer.periodic(duration, (Timer timer) async {
+        setState(() {
+          comicHistory =
+              objectbox.bikaHistoryBox
+                  .query(BikaComicHistory_.comicId.equals(widget.comicId))
+                  .build()
+                  .findFirst();
+          if (comicHistory!.deleted) {
+            comicHistory = null;
+          }
+        });
+      });
+    });
 
     if (_type == ComicEntryType.download) {
       comicDownload =
@@ -213,6 +229,15 @@ class _ComicInfoState extends State<_ComicInfo>
                 child: FloatingActionButton(
                   onPressed: () {
                     if (comicHistory != null) {
+                      comicHistory =
+                          objectbox.bikaHistoryBox
+                              .query(
+                                BikaComicHistory_.comicId.equals(
+                                  widget.comicId,
+                                ),
+                              )
+                              .build()
+                              .findFirst();
                       AutoRouter.of(context).push(
                         ComicReadRoute(
                           comicInfo: comicInfo,

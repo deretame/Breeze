@@ -349,9 +349,15 @@ Future<void> _signIn() async {
   // 重置签到状态
   bikaSetting.setSignIn(false);
 
+  await Future.delayed(Duration(seconds: 5));
+
   while (true) {
     try {
       var result = await signIn();
+      if (bikaSetting.authorization.isEmpty) {
+        await Future.delayed(Duration(seconds: 5));
+        continue;
+      }
       if (result.toString().contains("success")) {
         bikaSetting.setSignInTime(DateTime.now());
         bikaSetting.setSignIn(true);
@@ -362,7 +368,7 @@ Future<void> _signIn() async {
         break;
       }
     } catch (e) {
-      debugPrint(e.toString());
+      await Future.delayed(Duration(seconds: 5));
       continue;
     }
   }

@@ -149,6 +149,7 @@ Future<Map<String, dynamic>> request(
     // 如果是掉登录了
     if (error.response?.data?['code'] == 401 &&
         error.response?.data?['message'] == 'unauthorized') {
+      bikaSetting.deleteAuthorization();
       showErrorToast('登录失效，请重新登录');
       eventBus.fire(NeedLogin());
     }

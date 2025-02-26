@@ -178,7 +178,7 @@ class _MainPageState extends State<MainPage> {
       ),
       PersistentBottomNavBarItem(
         icon: Icon(Icons.more_horiz),
-        title: "跟多",
+        title: "更多",
         activeColorPrimary: materialColorScheme.primary,
         inactiveColorPrimary: globalSetting.textColor,
       ),

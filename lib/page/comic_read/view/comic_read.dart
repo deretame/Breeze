@@ -9,7 +9,6 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_info/json/eps/eps.dart' as eps;
 import 'package:zephyr/page/comic_read/comic_read.dart';
 
-import '../../../config/global.dart';
 import '../../../object_box/model.dart';
 import '../../../object_box/objectbox.g.dart';
 import '../../../widgets/comic_entry/comic_entry.dart';
@@ -68,21 +67,12 @@ class _ComicReadPage extends StatefulWidget {
   State<_ComicReadPage> createState() => _ComicReadPageState();
 }
 
-class _ComicReadPageState extends State<_ComicReadPage>
-    with AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
-
+class _ComicReadPageState extends State<_ComicReadPage> {
   Comic get comicInfo => widget.comicInfo;
-
-  List<eps.Doc> get epsInfo => widget.epsInfo;
-
-  eps.Doc get doc => widget.doc;
 
   String get comicId => widget.comicId;
 
   String _epId = ""; // 用来存储当前观看的章节id
-  ComicEntryType? get type => widget.type;
   late final ComicEntryType _type;
   late final comic_all_info_json.Eps _downloadEpsInfo;
   late eps.Doc _doc;
@@ -106,9 +96,9 @@ class _ComicReadPageState extends State<_ComicReadPage>
   void initState() {
     super.initState();
     _currentSliderValue = 0;
-    _type = type ?? ComicEntryType.normal;
-    _doc = doc;
-    _epId = epsInfo.firstWhere((doc) => doc.title == _doc.title).id;
+    _type = widget.type ?? ComicEntryType.normal;
+    _doc = widget.doc;
+    _epId = widget.epsInfo.firstWhere((doc) => doc.title == _doc.title).id;
     _itemScrollController = ItemScrollController();
     _itemPositionsListener = ItemPositionsListener.create();
 
@@ -155,7 +145,6 @@ class _ComicReadPageState extends State<_ComicReadPage>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return Scaffold(
       body:
           _type == ComicEntryType.download ||
@@ -197,64 +186,21 @@ class _ComicReadPageState extends State<_ComicReadPage>
     );
   }
 
+  var length = 0;
+  List<Media> medias = [];
+
   Widget _successWidget(PageState? state) {
     // debugPrint(_currentSliderValue.toString());
     if (_isVisible == false) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     }
-    var length = 0;
-    List<Media> medias = [];
-    if (state != null) {
-      length = state.medias!.length;
-      epPages = state.result!;
-      medias = state.medias!;
-    } else {
-      try {
-        var temp = _downloadEpsInfo.docs.firstWhere(
-          (e) => e.order == _doc.order,
-        );
-        _doc = eps.Doc(
-          id: temp.id,
-          title: temp.title,
-          order: temp.order,
-          updatedAt: temp.updatedAt,
-          docId: temp.docId,
-        );
-        medias =
-            temp.pages.docs.map((e) {
-              return Media(
-                originalName: e.media.originalName,
-                path: e.media.path,
-                fileServer: e.media.fileServer,
-              );
-            }).toList();
-        length = temp.pages.docs.length;
-        epPages = temp.pages.docs.length.toString();
-      } catch (e) {
-        return Center(child: Text('章节未下载', style: TextStyle(fontSize: 20)));
-      }
-    }
-    // 在成功加载状态下设置 _totalSlots
-    if (_totalSlots == 0) {
-      _totalSlots = length;
+
+    try {
+      _handleMediaData(state);
+    } catch (e) {
+      return _showDownloadError();
     }
 
-    // 处理滚动到历史记录
-    if ((_type == ComicEntryType.history ||
-            _type == ComicEntryType.historyAndDownload) &&
-        (comicHistory!.epPageCount - 1 != 0) &&
-        isSkipped == false) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _itemScrollController.scrollTo(
-          index: comicHistory!.epPageCount - 1,
-          alignment: 0.0,
-          duration: const Duration(milliseconds: 500),
-        );
-      });
-    }
-    isSkipped = true;
-
-    // debugPrint('statusBarHeight : $statusBarHeight');
     return Container(
       color: Colors.black,
       child: SafeArea(
@@ -262,30 +208,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
         bottom: false,
         child: Stack(
           children: [
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isVisible = !_isVisible;
-                });
-                if (_isVisible) {
-                  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-                }
-              },
-              child: InteractiveViewer(
-                boundaryMargin: EdgeInsets.zero,
-                minScale: 1.0,
-                maxScale: 4.0,
-                child: ListModeWidget(
-                  comicId: comicId,
-                  epsId: _doc.id,
-                  chapterId: _epId,
-                  length: length,
-                  medias: medias,
-                  itemScrollController: _itemScrollController,
-                  itemPositionsListener: _itemPositionsListener,
-                ),
-              ),
-            ),
+            _buildInteractiveViewer(),
             ComicReadAppBar(
               title: _doc.title,
               isVisible: _isVisible,
@@ -299,7 +222,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
               type: _type,
               isVisible: _isVisible,
               doc: _doc,
-              epsInfo: epsInfo,
+              epsInfo: widget.epsInfo,
               comicInfo: comicInfo,
               sliderWidget: SliderWidget(
                 totalSlots: _totalSlots,
@@ -316,60 +239,44 @@ class _ComicReadPageState extends State<_ComicReadPage>
                 itemScrollController: _itemScrollController,
               ),
             ),
-            // _bottomButton(),
           ],
         ),
       ),
     );
   }
 
-  Future<void> updateIndex(Iterable<ItemPosition> positions) async {
-    if (positions.isEmpty) return;
-
-    // 提前计算屏幕的三分之一位置
-    final viewportHeight = MediaQuery.of(context).size.height;
-    final topThird = viewportHeight / 3 + statusBarHeight;
-
-    // 找到最接近的项
-    final closestPosition = _findClosestPosition(positions, topThird);
-
-    // 更新索引
-    if (closestPosition != null &&
-        mounted &&
-        !_isSliderRolling &&
-        pageIndex != closestPosition.index) {
-      debugPrint('更新索引：$pageIndex');
-
-      setState(() {
-        pageIndex = closestPosition.index;
-        if (!_isComicRolling) {
-          _currentSliderValue = pageIndex - 2;
-        }
-      });
-    }
+  /// 构建交互式查看器
+  Widget _buildInteractiveViewer() {
+    return GestureDetector(
+      onTap: _toggleVisibility,
+      child: InteractiveViewer(
+        boundaryMargin: EdgeInsets.zero,
+        minScale: 1.0,
+        maxScale: 4.0,
+        child: InteractiveViewer(
+          boundaryMargin: EdgeInsets.zero,
+          minScale: 1.0,
+          maxScale: 4.0,
+          child: ListModeWidget(
+            comicId: comicId,
+            epsId: _doc.id,
+            chapterId: _epId,
+            length: length,
+            medias: medias,
+            itemScrollController: _itemScrollController,
+            itemPositionsListener: _itemPositionsListener,
+          ),
+        ),
+      ),
+    );
   }
 
-  ItemPosition? _findClosestPosition(
-    Iterable<ItemPosition> positions,
-    double topThird,
-  ) {
-    ItemPosition? closestPosition;
-    double minDistance = double.infinity;
-
-    for (final position in positions) {
-      // 计算项的中心位置
-      final itemHeight = position.itemTrailingEdge - position.itemLeadingEdge;
-      final itemMiddle = position.itemLeadingEdge + itemHeight / 2;
-      final distance = (topThird - itemMiddle).abs();
-
-      // 找到距离最小的项
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestPosition = position;
-      }
+  /// 切换UI可见性
+  void _toggleVisibility() {
+    setState(() => _isVisible = !_isVisible);
+    if (_isVisible) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     }
-
-    return closestPosition;
   }
 
   Future<void> writeToDatabase() async {
@@ -394,8 +301,25 @@ class _ComicReadPageState extends State<_ComicReadPage>
   }
 
   Future<void> getTopThirdItemIndex(Iterable<ItemPosition> positions) async {
-    await updateIndex(positions);
-    await writeToDatabase();
+    ScrollPositionHelper.handleUpdate(
+      context: context,
+      positions: positions,
+      isSliderRolling: _isSliderRolling,
+      isMounted: mounted,
+      onPageIndexChanged: (newIndex) {
+        if (pageIndex != newIndex) {
+          debugPrint('更新索引：$newIndex');
+          setState(() {
+            pageIndex = newIndex;
+            if (!_isComicRolling) {
+              _currentSliderValue =
+                  (pageIndex - 2).clamp(0, _totalSlots - 1).toDouble();
+            }
+          });
+        }
+        writeToDatabase();
+      },
+    );
   }
 
   void _detectScrollDirection(Iterable<ItemPosition> positions) {
@@ -414,5 +338,89 @@ class _ComicReadPageState extends State<_ComicReadPage>
       // 更新记录的滚动索引
       _lastScrollIndex = firstItemIndex;
     }
+  }
+
+  /// 处理媒体数据加载
+  void _handleMediaData(PageState? state) {
+    if (state != null) {
+      _loadOnlineData(state);
+    } else {
+      try {
+        _loadDownloadedData();
+      } catch (e) {
+        _showDownloadError();
+      }
+    }
+    _updateTotalSlots();
+    _handleHistoryScroll();
+  }
+
+  /// 加载在线数据
+  void _loadOnlineData(PageState state) {
+    length = state.medias!.length;
+    epPages = state.result!;
+    medias = state.medias!;
+  }
+
+  /// 加载下载数据
+  void _loadDownloadedData() {
+    final temp = _downloadEpsInfo.docs.firstWhere((e) => e.order == _doc.order);
+
+    _doc = eps.Doc(
+      id: temp.id,
+      title: temp.title,
+      order: temp.order,
+      updatedAt: temp.updatedAt,
+      docId: temp.docId,
+    );
+
+    medias =
+        temp.pages.docs
+            .map(
+              (e) => Media(
+                originalName: e.media.originalName,
+                path: e.media.path,
+                fileServer: e.media.fileServer,
+              ),
+            )
+            .toList();
+
+    length = temp.pages.docs.length;
+    epPages = temp.pages.docs.length.toString();
+  }
+
+  /// 显示下载错误
+  Widget _showDownloadError() {
+    return Center(child: Text('章节未下载', style: TextStyle(fontSize: 20)));
+  }
+
+  /// 更新总页数
+  void _updateTotalSlots() {
+    _totalSlots == 0 ? _totalSlots = length : 0;
+  }
+
+  /// 处理历史记录滚动
+  void _handleHistoryScroll() {
+    final shouldScroll =
+        (_type == ComicEntryType.history ||
+            _type == ComicEntryType.historyAndDownload) &&
+        (comicHistory!.epPageCount - 1 != 0) &&
+        !isSkipped;
+
+    if (shouldScroll) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToHistoryPosition();
+      });
+      isSkipped = true;
+    }
+  }
+
+  /// 滚动到历史位置
+  void _scrollToHistoryPosition() {
+    _itemScrollController.scrollTo(
+      index: comicHistory!.epPageCount - 1,
+      alignment: 0.0,
+      duration: const Duration(milliseconds: 500),
+    );
   }
 }

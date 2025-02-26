@@ -77,7 +77,7 @@ class _ComicInfoState extends State<_ComicInfo>
             .build()
             .findFirst();
 
-    if (comicHistory!.deleted) {
+    if (comicHistory?.deleted == true) {
       comicHistory = null;
     }
 
@@ -90,7 +90,7 @@ class _ComicInfoState extends State<_ComicInfo>
                   .query(BikaComicHistory_.comicId.equals(widget.comicId))
                   .build()
                   .findFirst();
-          if (comicHistory!.deleted) {
+          if (comicHistory?.deleted == true) {
             comicHistory = null;
           }
         });

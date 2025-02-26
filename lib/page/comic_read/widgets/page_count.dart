@@ -26,7 +26,14 @@ class _PageCountWidgetState extends State<PageCountWidget> {
   void initState() {
     super.initState();
     _initConnectivity();
-    _startTimer();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final now = DateTime.now();
+      final formattedTime =
+          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+      setState(() => _currentTime = formattedTime);
+
+      _startTimer();
+    });
   }
 
   @override
@@ -40,23 +47,45 @@ class _PageCountWidgetState extends State<PageCountWidget> {
     final connectivity = Connectivity();
     final results = await connectivity.checkConnectivity();
     if (results.isNotEmpty) {
-      _updateConnectivityResult(results.first); // 取第一个网络状态
+      _updateConnectivityResult(results); // 传入完整结果列表
     }
     _connectivitySubscription = connectivity.onConnectivityChanged.listen((
       results,
     ) {
-      if (mounted &&
-          results.isNotEmpty &&
-          results.first != _connectivityResult) {
-        _updateConnectivityResult(results.first); // 更新网络状态
+      if (mounted && results.isNotEmpty) {
+        _updateConnectivityResult(results);
       }
     });
   }
 
-  void _updateConnectivityResult(ConnectivityResult result) {
-    setState(() {
-      _connectivityResult = result;
-    });
+  void _updateConnectivityResult(List<ConnectivityResult> results) {
+    final highestPriority = _getHighestPriorityResult(results);
+    if (mounted && highestPriority != _connectivityResult) {
+      setState(() {
+        _connectivityResult = highestPriority;
+      });
+    }
+  }
+
+  ConnectivityResult _getHighestPriorityResult(
+    List<ConnectivityResult> results,
+  ) {
+    const priorityOrder = [
+      ConnectivityResult.wifi,
+      ConnectivityResult.mobile,
+      ConnectivityResult.none,
+      ConnectivityResult.ethernet,
+      ConnectivityResult.bluetooth,
+      ConnectivityResult.vpn,
+      ConnectivityResult.other,
+    ];
+
+    for (var type in priorityOrder) {
+      if (results.contains(type)) {
+        return type;
+      }
+    }
+    return ConnectivityResult.none;
   }
 
   // 启动定时器，每秒更新时间
@@ -78,14 +107,20 @@ class _PageCountWidgetState extends State<PageCountWidget> {
   // 获取网络状态图标
   IconData _getNetworkStatusIcon(ConnectivityResult result) {
     switch (result) {
+      case ConnectivityResult.bluetooth:
+        return Icons.bluetooth; // 蓝牙图标
       case ConnectivityResult.wifi:
         return Icons.wifi; // Wi-Fi 图标
+      case ConnectivityResult.ethernet:
+        return Icons.router; // 以太网图标
       case ConnectivityResult.mobile:
         return Icons.network_cell; // 移动数据图标
       case ConnectivityResult.none:
         return Icons.signal_wifi_off; // 无网络图标
-      default:
-        return Icons.error; // 未知状态图标
+      case ConnectivityResult.vpn:
+        return Icons.vpn_key; // vpn图标
+      case ConnectivityResult.other:
+        return Icons.signal_cellular_off; // 未知网络图标
     }
   }
 

@@ -133,10 +133,8 @@ class _MainPageState extends State<MainPage> {
                   ignoring: true, // 不拦截触控事件
                   child: Container(
                     color:
-                        globalSetting.shade
-                            ? !globalSetting.themeType
-                                ? Colors.black.withValues(alpha: 0.5)
-                                : Colors.transparent
+                        globalSetting.shade && !globalSetting.themeType
+                            ? Colors.black.withValues(alpha: 0.5)
                             : Colors.transparent,
                   ),
                 ),

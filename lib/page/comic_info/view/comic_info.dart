@@ -65,6 +65,7 @@ class _ComicInfoState extends State<_ComicInfo>
   bool _epsCompleted = false; // 用来判断章节是不是加载完毕了
   List<Doc> _epsInfo = [];
   late ComicEntryType _type;
+  Timer? _historyCheckTimer;
 
   @override
   void initState() {
@@ -83,7 +84,11 @@ class _ComicInfoState extends State<_ComicInfo>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       const duration = Duration(seconds: 1);
-      Timer.periodic(duration, (Timer timer) async {
+      _historyCheckTimer = Timer.periodic(duration, (Timer timer) async {
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
         var temp =
             await objectbox.bikaHistoryBox
                 .query(BikaComicHistory_.comicId.equals(widget.comicId))
@@ -92,7 +97,7 @@ class _ComicInfoState extends State<_ComicInfo>
         if (temp?.deleted == true) {
           temp = null;
         }
-        if (temp != null) {
+        if (mounted && temp != null) {
           setState(() => comicHistory = temp);
         }
       });
@@ -125,6 +130,12 @@ class _ComicInfoState extends State<_ComicInfo>
         );
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _historyCheckTimer?.cancel();
+    super.dispose();
   }
 
   @override

@@ -82,18 +82,19 @@ class _ComicInfoState extends State<_ComicInfo>
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      const duration = Duration(seconds: 3);
+      const duration = Duration(seconds: 1);
       Timer.periodic(duration, (Timer timer) async {
-        setState(() {
-          comicHistory =
-              objectbox.bikaHistoryBox
-                  .query(BikaComicHistory_.comicId.equals(widget.comicId))
-                  .build()
-                  .findFirst();
-          if (comicHistory?.deleted == true) {
-            comicHistory = null;
-          }
-        });
+        var temp =
+            await objectbox.bikaHistoryBox
+                .query(BikaComicHistory_.comicId.equals(widget.comicId))
+                .build()
+                .findFirstAsync();
+        if (temp?.deleted == true) {
+          temp = null;
+        }
+        if (temp != null) {
+          setState(() => comicHistory = temp);
+        }
       });
     });
 

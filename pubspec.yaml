@@ -1,6 +1,6 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
-version: 1.26.6+91
+version: 1.26.7+92
 
 environment:
   sdk: ^3.7.0-323.0.dev
@@ -22,7 +22,7 @@ dependencies:
   persistent_bottom_nav_bar: ^6.2.1      # 底部导航栏
   flutter_markdown: ^0.7.5               # Markdown 渲染组件
   dropdown_button2: ^2.3.9               # 下拉菜单组件
-  toastification: ^2.3.0                 # 现代化通知提示系统
+  toastification: ^3.0.1                 # 现代化通知提示系统
   flutter_animate: ^4.5.2                # 动画组件
 
   # --------------- 状态管理库 ---------------
@@ -40,8 +40,8 @@ dependencies:
   hive_flutter: ^1.1.0           # Hive 的 Flutter 支持
   json_annotation: ^4.9.0        # JSON 序列化注解
   json_serializable: ^6.8.0      # JSON 序列化代码生成
-  freezed: ^2.5.7                # 不可变数据类生成器
-  freezed_annotation: ^2.4.4     # Freezed 注解支持
+  freezed: ^3.0.0-0.0.dev                # 不可变数据类生成器
+  freezed_annotation: ^3.0.0     # Freezed 注解支持
   objectbox: ^4.0.3              # ObjectBox 数据库
   objectbox_flutter_libs: ^4.0.3 # ObjectBox 的 Flutter 支持
   archive: ^4.0.2                # 压缩/解压缩工具
@@ -60,7 +60,7 @@ dependencies:
   open_file: ^3.5.10            # 文件打开工具
   permission_guard: ^2.0.1      # 权限管理工具
   image_picker: ^1.1.2          # 图片选择器
-  image_cropper: ^8.1.0         # 图片裁剪器
+  image_cropper: ^9.0.0         # 图片裁剪器
   image: ^4.5.2                 # 图片处理
   connectivity_plus: ^6.1.2     # 网络状态监听
 

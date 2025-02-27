@@ -28,7 +28,7 @@ class ListModeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScrollablePositionedList.separated(
+    return ScrollablePositionedList.builder(
       itemCount: length + 2,
       itemBuilder: (context, index) {
         if (index == 0) {
@@ -60,9 +60,6 @@ class ListModeWidget extends StatelessWidget {
             ),
           );
         }
-      },
-      separatorBuilder: (BuildContext context, int index) {
-        return Divider(height: 2, color: Colors.black);
       },
       itemScrollController: itemScrollController,
       itemPositionsListener: itemPositionsListener,

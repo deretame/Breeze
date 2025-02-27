@@ -16,4 +16,5 @@
         <item name="android:windowBackground">?android:colorBackground</item>
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>
+    <style name="Ucrop.CropTheme" parent="Theme.AppCompat.Light.NoActionBar"/>
 </resources>

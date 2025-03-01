@@ -34,10 +34,10 @@ packages:
     dependency: "direct main"
     description:
       name: archive
-      sha256: "528579c7e4579719f04b21eeeeddfd73a18b31dabc22766893b7d1be7f49b967"
+      sha256: "0c64e928dcbefddecd234205422bcfc2b5e6d31be0b86fef0d0dd48d7b4c9742"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.3"
+    version: "4.0.4"
   args:
     dependency: transitive
     description:
@@ -460,10 +460,10 @@ packages:
     dependency: transitive
     description:
       name: flutter_plugin_android_lifecycle
-      sha256: "615a505aef59b151b46bbeef55b36ce2b6ed299d160c51d84281946f0aa0ce0e"
+      sha256: "1c2b787f99bdca1f3718543f81d38aa1b124817dfeb9fb196201bea85b6134bf"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.24"
+    version: "2.0.26"
   flutter_shaders:
     dependency: transitive
     description:
@@ -1459,10 +1459,10 @@ packages:
     dependency: transitive
     description:
       name: webview_flutter_wkwebview
-      sha256: d7403ef4f042714c9ee2b26eaac4cadae7394cb0d4e608b1dd850c3ff96bd893
+      sha256: d183aa3d0fbc1f4d0715ce06c5a44cad636598c3340ae8d359fbc61b4016fb60
       url: "https://pub.dev"
     source: hosted
-    version: "3.18.2"
+    version: "3.18.3"
   win32:
     dependency: transitive
     description:

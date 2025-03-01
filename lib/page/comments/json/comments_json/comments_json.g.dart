@@ -21,12 +21,11 @@ Map<String, dynamic> _$$CommentsJsonImplToJson(_$CommentsJsonImpl instance) =>
     };
 
 _$DataImpl _$$DataImplFromJson(Map<String, dynamic> json) => _$DataImpl(
-  comments: Comments.fromJson(json['comments'] as Map<String, dynamic>),
-  topComments:
-      (json['topComments'] as List<dynamic>)
+      comments: Comments.fromJson(json['comments'] as Map<String, dynamic>),
+      topComments: (json['topComments'] as List<dynamic>)
           .map((e) => TopComment.fromJson(e as Map<String, dynamic>))
           .toList(),
-);
+    );
 
 Map<String, dynamic> _$$DataImplToJson(_$DataImpl instance) =>
     <String, dynamic>{
@@ -36,10 +35,9 @@ Map<String, dynamic> _$$DataImplToJson(_$DataImpl instance) =>
 
 _$CommentsImpl _$$CommentsImplFromJson(Map<String, dynamic> json) =>
     _$CommentsImpl(
-      docs:
-          (json['docs'] as List<dynamic>)
-              .map((e) => Doc.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      docs: (json['docs'] as List<dynamic>)
+          .map((e) => Doc.fromJson(e as Map<String, dynamic>))
+          .toList(),
       total: (json['total'] as num).toInt(),
       limit: (json['limit'] as num).toInt(),
       page: json['page'] as String,
@@ -56,53 +54,53 @@ Map<String, dynamic> _$$CommentsImplToJson(_$CommentsImpl instance) =>
     };
 
 _$DocImpl _$$DocImplFromJson(Map<String, dynamic> json) => _$DocImpl(
-  id: json['_id'] as String,
-  content: json['content'] as String,
-  user: User.fromJson(json['_user'] as Map<String, dynamic>),
-  comic: json['_comic'] as String,
-  totalComments: (json['totalComments'] as num).toInt(),
-  isTop: json['isTop'] as bool,
-  hide: json['hide'] as bool,
-  createdAt: DateTime.parse(json['created_at'] as String),
-  docId: json['id'] as String,
-  likesCount: (json['likesCount'] as num).toInt(),
-  commentsCount: (json['commentsCount'] as num).toInt(),
-  isLiked: json['isLiked'] as bool,
-);
+      id: json['_id'] as String,
+      content: json['content'] as String,
+      user: User.fromJson(json['_user'] as Map<String, dynamic>),
+      comic: json['_comic'] as String,
+      totalComments: (json['totalComments'] as num).toInt(),
+      isTop: json['isTop'] as bool,
+      hide: json['hide'] as bool,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      docId: json['id'] as String,
+      likesCount: (json['likesCount'] as num).toInt(),
+      commentsCount: (json['commentsCount'] as num).toInt(),
+      isLiked: json['isLiked'] as bool,
+    );
 
 Map<String, dynamic> _$$DocImplToJson(_$DocImpl instance) => <String, dynamic>{
-  '_id': instance.id,
-  'content': instance.content,
-  '_user': instance.user,
-  '_comic': instance.comic,
-  'totalComments': instance.totalComments,
-  'isTop': instance.isTop,
-  'hide': instance.hide,
-  'created_at': instance.createdAt.toIso8601String(),
-  'id': instance.docId,
-  'likesCount': instance.likesCount,
-  'commentsCount': instance.commentsCount,
-  'isLiked': instance.isLiked,
-};
+      '_id': instance.id,
+      'content': instance.content,
+      '_user': instance.user,
+      '_comic': instance.comic,
+      'totalComments': instance.totalComments,
+      'isTop': instance.isTop,
+      'hide': instance.hide,
+      'created_at': instance.createdAt.toIso8601String(),
+      'id': instance.docId,
+      'likesCount': instance.likesCount,
+      'commentsCount': instance.commentsCount,
+      'isLiked': instance.isLiked,
+    };
 
 _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
-  id: json['_id'] as String,
-  gender: json['gender'] as String,
-  name: json['name'] as String,
-  title: json['title'] as String,
-  verified: json['verified'] as bool,
-  exp: (json['exp'] as num).toInt(),
-  level: (json['level'] as num).toInt(),
-  characters:
-      (json['characters'] as List<dynamic>).map((e) => e as String).toList(),
-  role: json['role'] as String,
-  avatar:
-      json['avatar'] == null
+      id: json['_id'] as String,
+      gender: json['gender'] as String,
+      name: json['name'] as String,
+      title: json['title'] as String,
+      verified: json['verified'] as bool,
+      exp: (json['exp'] as num).toInt(),
+      level: (json['level'] as num).toInt(),
+      characters: (json['characters'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      role: json['role'] as String,
+      avatar: json['avatar'] == null
           ? null
           : Avatar.fromJson(json['avatar'] as Map<String, dynamic>),
-  slogan: json['slogan'] as String?,
-  character: json['character'] as String?,
-);
+      slogan: json['slogan'] as String?,
+      character: json['character'] as String?,
+    );
 
 Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
     <String, dynamic>{
@@ -121,10 +119,10 @@ Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
     };
 
 _$AvatarImpl _$$AvatarImplFromJson(Map<String, dynamic> json) => _$AvatarImpl(
-  originalName: json['originalName'] as String,
-  path: json['path'] as String,
-  fileServer: json['fileServer'] as String,
-);
+      originalName: json['originalName'] as String,
+      path: json['path'] as String,
+      fileServer: json['fileServer'] as String,
+    );
 
 Map<String, dynamic> _$$AvatarImplToJson(_$AvatarImpl instance) =>
     <String, dynamic>{

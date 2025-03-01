@@ -13,6 +13,7 @@ class ReadImageWidget extends StatefulWidget {
   final Media media;
   final int index;
   final String chapterId;
+  final bool isColumn;
 
   const ReadImageWidget({
     super.key,
@@ -21,6 +22,7 @@ class ReadImageWidget extends StatefulWidget {
     required this.epsId,
     required this.index,
     required this.chapterId,
+    required this.isColumn,
   });
 
   @override
@@ -38,6 +40,8 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
   int get index => widget.index;
 
   String get chapterId => widget.chapterId;
+
+  bool get isColumn => widget.isColumn;
 
   @override
   bool get wantKeepAlive => true;
@@ -67,7 +71,7 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
             switch (state.status) {
               case PictureLoadStatus.initial:
                 return Container(
-                  color: Color(0xFF2D2D2D),
+                  color: isColumn ? Color(0xFF2D2D2D) : Colors.black,
                   width: screenWidth,
                   height: screenWidth,
                   child: Center(
@@ -75,7 +79,7 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
                       (index + 1).toString(),
                       style: TextStyle(
                         fontFamily: 'Pacifico-Regular',
-                        color: Color(0xFFCCCCCC),
+                        color: isColumn ? Color(0xFFCCCCCC) : Colors.white,
                         fontSize: 150,
                       ),
                     ),
@@ -95,10 +99,10 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
                       ),
                     );
                   },
-                  // child: Hero(
-                  //   tag: state.imagePath!,
-                  child: ImageDisplay(imagePath: state.imagePath!),
-                  // ),
+                  child: ImageDisplay(
+                    imagePath: state.imagePath!,
+                    isColumn: isColumn,
+                  ),
                 );
               case PictureLoadStatus.failure:
                 if (state.result.toString().contains('404')) {
@@ -109,7 +113,7 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
                   );
                 } else {
                   return Container(
-                    color: Color(0xFF2D2D2D),
+                    color: isColumn ? Color(0xFF2D2D2D) : Colors.black,
                     height: screenWidth,
                     width: screenWidth,
                     child: InkWell(
@@ -132,7 +136,7 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
                           "${state.result.toString()}\n加载失败，点击重试",
                           style: TextStyle(
                             fontSize: 20,
-                            color: Color(0xFFCCCCCC),
+                            color: isColumn ? Color(0xFFCCCCCC) : Colors.white,
                           ),
                           textAlign: TextAlign.center,
                         ),

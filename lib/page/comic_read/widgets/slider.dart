@@ -13,6 +13,7 @@ class SliderWidget extends StatefulWidget {
   final ValueChanged<bool> changeSliderRollState;
   final ValueChanged<bool> changeComicRollState;
   final ItemScrollController itemScrollController;
+  final PageController pageController;
 
   const SliderWidget({
     super.key,
@@ -22,6 +23,7 @@ class SliderWidget extends StatefulWidget {
     required this.changeSliderRollState,
     required this.changeComicRollState,
     required this.itemScrollController,
+    required this.pageController,
   });
 
   @override
@@ -67,7 +69,6 @@ class _SliderWidgetState extends State<SliderWidget> {
 
           // 设置新的定时器以防止多次触发
           _sliderIsRollingTimer = Timer(const Duration(milliseconds: 300), () {
-            widget.changeSliderRollState(false);
             displayedSlot = newValue.toInt() + 1;
 
             widget.changeComicRollState(true);
@@ -82,11 +83,19 @@ class _SliderWidgetState extends State<SliderWidget> {
             });
 
             // 滚动到指定的索引
-            widget.itemScrollController.scrollTo(
-              index: currentSliderValue.toInt() + 1,
-              alignment: 0.0,
-              duration: const Duration(milliseconds: 300),
-            );
+            if (globalSetting.readMode == 0) {
+              widget.itemScrollController.scrollTo(
+                index: currentSliderValue.toInt() + 1,
+                alignment: 0.0,
+                duration: const Duration(milliseconds: 300),
+              );
+            } else {
+              widget.pageController.animateToPage(
+                currentSliderValue.toInt(),
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            }
 
             debugPrint('滑块值：$newValue , 显示的槽位：$displayedSlot');
           });

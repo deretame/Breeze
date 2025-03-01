@@ -94,6 +94,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   bool _isSliderRolling = false; // 滑块是否在滑动
   bool _isComicRolling = false; // 漫画本身是否在滚动
   Timer? _timer; // 定时器，定时存储阅读记录
+  TapDownDetails? _tapDownDetails; // 保存点击信息
 
   @override
   void initState() {
@@ -264,11 +265,17 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   /// 构建交互式查看器
   Widget _buildInteractiveViewer() {
     return GestureDetector(
-      onTap: globalSetting.readMode != 0 ? null : _toggleVisibility,
-      onTapDown:
-          globalSetting.readMode == 0
-              ? null
-              : (TapDownDetails details) => _handleTapDown(details),
+      onTap:
+          globalSetting.readMode != 0
+              ? () {
+                if (_tapDownDetails != null) {
+                  // 使用保存的details执行处理逻辑
+                  _handleTap(_tapDownDetails!);
+                  _tapDownDetails = null;
+                }
+              }
+              : _toggleVisibility,
+      onTapDown: (TapDownDetails details) => _tapDownDetails = details,
       child: InteractiveViewer(
         boundaryMargin: EdgeInsets.zero,
         minScale: 1.0,
@@ -321,7 +328,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     }
   }
 
-  void _handleTapDown(TapDownDetails details) {
+  void _handleTap(TapDownDetails details) {
     // 获取点击的全局坐标
     final Offset tapPosition = details.globalPosition;
     // 获取屏幕宽度和高度

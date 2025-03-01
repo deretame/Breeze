@@ -1,11 +1,10 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 
 import '../../../config/global.dart';
 
-class ImageDisplay extends StatelessWidget {
+class ImageDisplay extends StatefulWidget {
   final String imagePath;
   final bool isColumn;
 
@@ -16,55 +15,55 @@ class ImageDisplay extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return isColumn
-        ? _buildAdaptiveImage()
-        : Image.file(File(imagePath), fit: BoxFit.contain);
+  State<ImageDisplay> createState() => _ImageDisplayState();
+}
+
+class _ImageDisplayState extends State<ImageDisplay> {
+  bool get isColumn => widget.isColumn;
+
+  double imageWidth = screenWidth;
+  double imageHeight = screenWidth;
+
+  @override
+  void initState() {
+    super.initState();
+    _getImageResolution(widget.imagePath);
   }
 
-  Widget _buildAdaptiveImage() {
-    return FutureBuilder<Size>(
-      future: _getImageSize(),
-      builder: (context, snapshot) {
-        final size = snapshot.data;
-        return Container(
-          color: Colors.black,
-          width: screenWidth,
-          height:
-              size != null
-                  ? screenWidth * size.height / size.width
-                  : screenWidth,
-          child: _buildImageContent(size),
+  void _getImageResolution(String imagePath) {
+    final Image image = Image.file(File(imagePath));
+
+    // 监听图片解析完成
+    image.image
+        .resolve(ImageConfiguration())
+        .addListener(
+          ImageStreamListener((ImageInfo imageInfo, _) {
+            if (mounted) {
+              setState(() {
+                imageWidth = imageInfo.image.width.toDouble();
+                imageHeight = imageInfo.image.height.toDouble();
+              });
+            }
+          }),
         );
-      },
-    );
   }
 
-  Widget _buildImageContent(Size? size) {
-    return size != null
-        ? Image.file(File(imagePath), fit: BoxFit.fill)
-        : const Placeholder(color: Color(0xFF2D2D2D));
-  }
-
-  Future<Size> _getImageSize() async {
-    final Completer<Size> completer = Completer();
-    final ImageStream stream = FileImage(
-      File(imagePath),
-    ).resolve(ImageConfiguration());
-
-    stream.addListener(
-      ImageStreamListener(
-        (ImageInfo info, _) {
-          completer.complete(
-            Size(info.image.width.toDouble(), info.image.height.toDouble()),
-          );
-        },
-        onError: (error, stackTrace) {
-          completer.complete(Size.zero); // 出错时返回 Size.zero
-        },
-      ),
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black,
+      width: screenWidth,
+      height:
+          imageHeight != screenWidth
+              ? (imageHeight * (screenWidth / imageWidth))
+              : screenWidth,
+      child:
+          imageWidth != screenWidth && imageHeight != screenWidth
+              ? Image.file(
+                File(widget.imagePath),
+                fit: isColumn ? BoxFit.fill : BoxFit.contain,
+              )
+              : Container(color: const Color(0xFF2D2D2D)), // 占位符
     );
-
-    return completer.future;
   }
 }

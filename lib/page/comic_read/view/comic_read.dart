@@ -99,6 +99,9 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   @override
   void initState() {
     super.initState();
+    if (globalSetting.readMode != 0) {
+      pageIndex = 2;
+    }
     _currentSliderValue = 0;
     _type = widget.type ?? ComicEntryType.normal;
     _doc = widget.doc;
@@ -125,8 +128,6 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       objectbox.bikaHistoryBox.put(comicHistory!);
     }
 
-    pageIndex = comicHistory!.epPageCount;
-
     if (_type == ComicEntryType.download ||
         _type == ComicEntryType.historyAndDownload) {
       // 首先查询一下有没有记录
@@ -142,10 +143,16 @@ class _ComicReadPageState extends State<_ComicReadPage> {
 
     debugPrint(_type.toString().split('.').last);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
         writeToDatabase();
       });
+      if (globalSetting.readMode != 0) {
+        await Future.delayed(
+          Duration(milliseconds: 200),
+          () => setState(() => _isVisible = false),
+        );
+      }
     });
   }
 
@@ -303,7 +310,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
                 onPageChanged: (int index) {
                   setState(() {
                     pageIndex = index + 2;
-                    logger.d('当前页数：${pageIndex - 1}');
+                    // logger.d('当前页数：${pageIndex - 1}');
                     if (!_isComicRolling) {
                       _currentSliderValue =
                           (pageIndex).clamp(0, _totalSlots - 1).toDouble() - 1;
@@ -499,6 +506,9 @@ class _ComicReadPageState extends State<_ComicReadPage> {
         !isSkipped;
 
     if (shouldScroll) {
+      setState(() {
+        pageIndex = comicHistory!.epPageCount;
+      });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (globalSetting.readMode == 0) {
           _itemScrollController.scrollTo(

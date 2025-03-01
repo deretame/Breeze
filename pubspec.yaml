@@ -1,6 +1,6 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
-version: 1.27.1+94
+version: 1.27.2+95
 
 environment:
   sdk: ^3.7.0-323.0.dev
@@ -40,7 +40,7 @@ dependencies:
   hive_flutter: ^1.1.0           # Hive 的 Flutter 支持
   json_annotation: ^4.9.0        # JSON 序列化注解
   json_serializable: ^6.8.0      # JSON 序列化代码生成
-  freezed: ^3.0.0-0.0.dev                # 不可变数据类生成器
+  freezed: ^3.0.0-0.0.dev        # 不可变数据类生成器
   freezed_annotation: ^3.0.0     # Freezed 注解支持
   objectbox: ^4.0.3              # ObjectBox 数据库
   objectbox_flutter_libs: ^4.0.3 # ObjectBox 的 Flutter 支持

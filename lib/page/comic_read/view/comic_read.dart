@@ -220,6 +220,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     try {
       _handleMediaData(state);
     } catch (e) {
+      logger.e(e);
       return _showDownloadError();
     }
 
@@ -506,8 +507,10 @@ class _ComicReadPageState extends State<_ComicReadPage> {
         !isSkipped;
 
     if (shouldScroll) {
-      setState(() {
-        pageIndex = comicHistory!.epPageCount;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          pageIndex = comicHistory!.epPageCount;
+        });
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (globalSetting.readMode == 0) {
@@ -517,7 +520,6 @@ class _ComicReadPageState extends State<_ComicReadPage> {
             duration: const Duration(milliseconds: 500),
           );
         } else {
-          logger.d('历史页数：${comicHistory!.epPageCount - 1}');
           _pageController.animateToPage(
             comicHistory!.epPageCount - 2,
             duration: const Duration(milliseconds: 300),

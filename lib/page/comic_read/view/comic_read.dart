@@ -144,9 +144,13 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     debugPrint(_type.toString().split('.').last);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
-        writeToDatabase();
+      await Future.delayed(Duration(milliseconds: 200), () async {
+        await Future.delayed(Duration(seconds: 1));
+        _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+          writeToDatabase();
+        });
       });
+
       if (globalSetting.readMode != 0) {
         await Future.delayed(
           Duration(milliseconds: 200),
@@ -513,6 +517,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
         });
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        // logger.d('历史记录：${comicHistory!.epPageCount}');
         if (globalSetting.readMode == 0) {
           _itemScrollController.scrollTo(
             index: comicHistory!.epPageCount - 1,

@@ -6,7 +6,7 @@ import '../../../config/global.dart';
 import '../../../main.dart';
 import '../json/page.dart';
 
-class ListModeWidget extends StatelessWidget {
+class ColumnModeWidget extends StatelessWidget {
   final int length;
   final List<Media> medias;
   final String comicId;
@@ -15,7 +15,7 @@ class ListModeWidget extends StatelessWidget {
   final ItemScrollController itemScrollController;
   final ItemPositionsListener itemPositionsListener;
 
-  const ListModeWidget({
+  const ColumnModeWidget({
     super.key,
     required this.length,
     required this.medias,
@@ -57,6 +57,7 @@ class ListModeWidget extends StatelessWidget {
               epsId: epsId,
               index: index - 1,
               chapterId: chapterId,
+              isColumn: true,
             ),
           );
         }

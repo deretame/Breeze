@@ -48,6 +48,8 @@ abstract class _GlobalSetting with Store {
   bool shade = true; // 夜间模式遮罩
   @observable
   bool comicReadTopContainer = true; // 漫画阅读器顶部占位容器
+  @observable
+  int readMode = 0; // 阅读模式 0：竖向阅读 1：横向阅读（从左到右） 2：横向阅读（从右到左）
 
   Future<void> initBox() async {
     _box = await Hive.openBox(GlobalSettingBoxKey.globalSetting);
@@ -68,6 +70,7 @@ abstract class _GlobalSetting with Store {
     syncNotify = getSyncNotify();
     shade = getShade();
     comicReadTopContainer = getComicReadTopContainer();
+    readMode = getReadMode();
   }
 
   @action
@@ -415,6 +418,24 @@ abstract class _GlobalSetting with Store {
     comicReadTopContainer = true;
     _box.delete(GlobalSettingBoxKey.comicReadTopContainer);
   }
+
+  @action
+  int getReadMode() {
+    readMode = _box.get(GlobalSettingBoxKey.readMode, defaultValue: 0);
+    return readMode;
+  }
+
+  @action
+  void setReadMode(int value) {
+    readMode = value;
+    _box.put(GlobalSettingBoxKey.readMode, value);
+  }
+
+  @action
+  void deleteReadMode() {
+    readMode = 0;
+    _box.delete(GlobalSettingBoxKey.readMode);
+  }
 }
 
 class GlobalSettingBoxKey {
@@ -437,4 +458,5 @@ class GlobalSettingBoxKey {
   static const String shade = 'shade'; // 黑夜模式遮罩
   static const String comicReadTopContainer =
       'comicReadTopContainer'; // 漫画阅读器顶部占位容器
+  static const String readMode = "readMode"; // 阅读模式
 }

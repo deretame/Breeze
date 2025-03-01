@@ -9,10 +9,8 @@ part of 'bika_setting.dart';
 // ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic, no_leading_underscores_for_local_identifiers
 
 mixin _$BikaSetting on _BikaSetting, Store {
-  late final _$accountAtom = Atom(
-    name: '_BikaSetting.account',
-    context: context,
-  );
+  late final _$accountAtom =
+      Atom(name: '_BikaSetting.account', context: context);
 
   @override
   String get account {
@@ -27,10 +25,8 @@ mixin _$BikaSetting on _BikaSetting, Store {
     });
   }
 
-  late final _$passwordAtom = Atom(
-    name: '_BikaSetting.password',
-    context: context,
-  );
+  late final _$passwordAtom =
+      Atom(name: '_BikaSetting.password', context: context);
 
   @override
   String get password {
@@ -45,10 +41,8 @@ mixin _$BikaSetting on _BikaSetting, Store {
     });
   }
 
-  late final _$authorizationAtom = Atom(
-    name: '_BikaSetting.authorization',
-    context: context,
-  );
+  late final _$authorizationAtom =
+      Atom(name: '_BikaSetting.authorization', context: context);
 
   @override
   String get authorization {
@@ -78,10 +72,8 @@ mixin _$BikaSetting on _BikaSetting, Store {
     });
   }
 
-  late final _$checkInAtom = Atom(
-    name: '_BikaSetting.checkIn',
-    context: context,
-  );
+  late final _$checkInAtom =
+      Atom(name: '_BikaSetting.checkIn', context: context);
 
   @override
   bool get checkIn {
@@ -111,10 +103,8 @@ mixin _$BikaSetting on _BikaSetting, Store {
     });
   }
 
-  late final _$imageQualityAtom = Atom(
-    name: '_BikaSetting.imageQuality',
-    context: context,
-  );
+  late final _$imageQualityAtom =
+      Atom(name: '_BikaSetting.imageQuality', context: context);
 
   @override
   String get imageQuality {
@@ -129,10 +119,8 @@ mixin _$BikaSetting on _BikaSetting, Store {
     });
   }
 
-  late final _$shieldCategoryMapAtom = Atom(
-    name: '_BikaSetting.shieldCategoryMap',
-    context: context,
-  );
+  late final _$shieldCategoryMapAtom =
+      Atom(name: '_BikaSetting.shieldCategoryMap', context: context);
 
   @override
   Map<String, bool> get shieldCategoryMap {
@@ -147,10 +135,8 @@ mixin _$BikaSetting on _BikaSetting, Store {
     });
   }
 
-  late final _$shieldHomePageCategoriesMapAtom = Atom(
-    name: '_BikaSetting.shieldHomePageCategoriesMap',
-    context: context,
-  );
+  late final _$shieldHomePageCategoriesMapAtom =
+      Atom(name: '_BikaSetting.shieldHomePageCategoriesMap', context: context);
 
   @override
   Map<String, bool> get shieldHomePageCategoriesMap {
@@ -160,13 +146,10 @@ mixin _$BikaSetting on _BikaSetting, Store {
 
   @override
   set shieldHomePageCategoriesMap(Map<String, bool> value) {
-    _$shieldHomePageCategoriesMapAtom.reportWrite(
-      value,
-      super.shieldHomePageCategoriesMap,
-      () {
-        super.shieldHomePageCategoriesMap = value;
-      },
-    );
+    _$shieldHomePageCategoriesMapAtom
+        .reportWrite(value, super.shieldHomePageCategoriesMap, () {
+      super.shieldHomePageCategoriesMap = value;
+    });
   }
 
   late final _$signInAtom = Atom(name: '_BikaSetting.signIn', context: context);
@@ -184,10 +167,8 @@ mixin _$BikaSetting on _BikaSetting, Store {
     });
   }
 
-  late final _$signInTimeAtom = Atom(
-    name: '_BikaSetting.signInTime',
-    context: context,
-  );
+  late final _$signInTimeAtom =
+      Atom(name: '_BikaSetting.signInTime', context: context);
 
   @override
   DateTime get signInTime {
@@ -202,16 +183,13 @@ mixin _$BikaSetting on _BikaSetting, Store {
     });
   }
 
-  late final _$_BikaSettingActionController = ActionController(
-    name: '_BikaSetting',
-    context: context,
-  );
+  late final _$_BikaSettingActionController =
+      ActionController(name: '_BikaSetting', context: context);
 
   @override
   String getAccount() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.getAccount',
-    );
+        name: '_BikaSetting.getAccount');
     try {
       return super.getAccount();
     } finally {
@@ -222,8 +200,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void setAccount(String value) {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.setAccount',
-    );
+        name: '_BikaSetting.setAccount');
     try {
       return super.setAccount(value);
     } finally {
@@ -234,8 +211,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void deleteAccount() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.deleteAccount',
-    );
+        name: '_BikaSetting.deleteAccount');
     try {
       return super.deleteAccount();
     } finally {
@@ -246,8 +222,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   String getPassword() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.getPassword',
-    );
+        name: '_BikaSetting.getPassword');
     try {
       return super.getPassword();
     } finally {
@@ -258,8 +233,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void setPassword(String value) {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.setPassword',
-    );
+        name: '_BikaSetting.setPassword');
     try {
       return super.setPassword(value);
     } finally {
@@ -270,8 +244,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void deletePassword() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.deletePassword',
-    );
+        name: '_BikaSetting.deletePassword');
     try {
       return super.deletePassword();
     } finally {
@@ -282,8 +255,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   String getAuthorization() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.getAuthorization',
-    );
+        name: '_BikaSetting.getAuthorization');
     try {
       return super.getAuthorization();
     } finally {
@@ -294,8 +266,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void setAuthorization(String value) {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.setAuthorization',
-    );
+        name: '_BikaSetting.setAuthorization');
     try {
       return super.setAuthorization(value);
     } finally {
@@ -306,8 +277,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void deleteAuthorization() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.deleteAuthorization',
-    );
+        name: '_BikaSetting.deleteAuthorization');
     try {
       return super.deleteAuthorization();
     } finally {
@@ -318,8 +288,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   int getLevel() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.getLevel',
-    );
+        name: '_BikaSetting.getLevel');
     try {
       return super.getLevel();
     } finally {
@@ -330,8 +299,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void setLevel(int value) {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.setLevel',
-    );
+        name: '_BikaSetting.setLevel');
     try {
       return super.setLevel(value);
     } finally {
@@ -342,8 +310,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void deleteLevel() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.deleteLevel',
-    );
+        name: '_BikaSetting.deleteLevel');
     try {
       return super.deleteLevel();
     } finally {
@@ -354,8 +321,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   bool getCheckIn() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.getCheckIn',
-    );
+        name: '_BikaSetting.getCheckIn');
     try {
       return super.getCheckIn();
     } finally {
@@ -366,8 +332,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void setCheckIn(bool value) {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.setCheckIn',
-    );
+        name: '_BikaSetting.setCheckIn');
     try {
       return super.setCheckIn(value);
     } finally {
@@ -378,8 +343,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void deleteCheckIn() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.deleteCheckIn',
-    );
+        name: '_BikaSetting.deleteCheckIn');
     try {
       return super.deleteCheckIn();
     } finally {
@@ -390,8 +354,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   int getProxy() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.getProxy',
-    );
+        name: '_BikaSetting.getProxy');
     try {
       return super.getProxy();
     } finally {
@@ -402,8 +365,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void setProxy(int value) {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.setProxy',
-    );
+        name: '_BikaSetting.setProxy');
     try {
       return super.setProxy(value);
     } finally {
@@ -414,8 +376,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void deleteProxy() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.deleteProxy',
-    );
+        name: '_BikaSetting.deleteProxy');
     try {
       return super.deleteProxy();
     } finally {
@@ -426,8 +387,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   String getImageQuality() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.getImageQuality',
-    );
+        name: '_BikaSetting.getImageQuality');
     try {
       return super.getImageQuality();
     } finally {
@@ -438,8 +398,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void setImageQuality(String value) {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.setImageQuality',
-    );
+        name: '_BikaSetting.setImageQuality');
     try {
       return super.setImageQuality(value);
     } finally {
@@ -450,8 +409,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void deleteImageQuality() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.deleteImageQuality',
-    );
+        name: '_BikaSetting.deleteImageQuality');
     try {
       return super.deleteImageQuality();
     } finally {
@@ -462,8 +420,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   Map<String, bool> getShieldCategoryMap() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.getShieldCategoryMap',
-    );
+        name: '_BikaSetting.getShieldCategoryMap');
     try {
       return super.getShieldCategoryMap();
     } finally {
@@ -474,8 +431,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void setShieldCategoryMap(Map<String, bool> value) {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.setShieldCategoryMap',
-    );
+        name: '_BikaSetting.setShieldCategoryMap');
     try {
       return super.setShieldCategoryMap(value);
     } finally {
@@ -486,8 +442,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void deleteShieldCategoryMap() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.deleteShieldCategoryMap',
-    );
+        name: '_BikaSetting.deleteShieldCategoryMap');
     try {
       return super.deleteShieldCategoryMap();
     } finally {
@@ -498,8 +453,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   Map<String, bool> getShieldHomePageCategories() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.getShieldHomePageCategories',
-    );
+        name: '_BikaSetting.getShieldHomePageCategories');
     try {
       return super.getShieldHomePageCategories();
     } finally {
@@ -510,8 +464,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void setShieldHomeCategories(Map<String, bool> value) {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.setShieldHomeCategories',
-    );
+        name: '_BikaSetting.setShieldHomeCategories');
     try {
       return super.setShieldHomeCategories(value);
     } finally {
@@ -522,8 +475,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void deleteShieldHomeCategories() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.deleteShieldHomeCategories',
-    );
+        name: '_BikaSetting.deleteShieldHomeCategories');
     try {
       return super.deleteShieldHomeCategories();
     } finally {
@@ -534,8 +486,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   bool getSignIn() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.getSignIn',
-    );
+        name: '_BikaSetting.getSignIn');
     try {
       return super.getSignIn();
     } finally {
@@ -546,8 +497,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void deleteSignIn() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.deleteSignIn',
-    );
+        name: '_BikaSetting.deleteSignIn');
     try {
       return super.deleteSignIn();
     } finally {
@@ -558,8 +508,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void setSignIn(bool value) {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.setSignIn',
-    );
+        name: '_BikaSetting.setSignIn');
     try {
       return super.setSignIn(value);
     } finally {
@@ -570,8 +519,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   DateTime getSignInTime() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.getSignInTime',
-    );
+        name: '_BikaSetting.getSignInTime');
     try {
       return super.getSignInTime();
     } finally {
@@ -582,8 +530,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void setSignInTime(DateTime value) {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.setSignInTime',
-    );
+        name: '_BikaSetting.setSignInTime');
     try {
       return super.setSignInTime(value);
     } finally {
@@ -594,8 +541,7 @@ mixin _$BikaSetting on _BikaSetting, Store {
   @override
   void deleteSignInTime() {
     final _$actionInfo = _$_BikaSettingActionController.startAction(
-      name: '_BikaSetting.deleteSignInTime',
-    );
+        name: '_BikaSetting.deleteSignInTime');
     try {
       return super.deleteSignInTime();
     } finally {

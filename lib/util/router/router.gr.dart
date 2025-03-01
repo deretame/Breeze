@@ -44,7 +44,10 @@ import 'package:zephyr/widgets/comic_entry/comic_entry.dart' as _i23;
 /// [_i1.AboutPage]
 class AboutRoute extends _i21.PageRouteInfo<void> {
   const AboutRoute({List<_i21.PageRouteInfo>? children})
-    : super(AboutRoute.name, initialChildren: children);
+      : super(
+          AboutRoute.name,
+          initialChildren: children,
+        );
 
   static const String name = 'AboutRoute';
 
@@ -60,7 +63,10 @@ class AboutRoute extends _i21.PageRouteInfo<void> {
 /// [_i2.BikaSettingPage]
 class BikaSettingRoute extends _i21.PageRouteInfo<void> {
   const BikaSettingRoute({List<_i21.PageRouteInfo>? children})
-    : super(BikaSettingRoute.name, initialChildren: children);
+      : super(
+          BikaSettingRoute.name,
+          initialChildren: children,
+        );
 
   static const String name = 'BikaSettingRoute';
 
@@ -76,7 +82,10 @@ class BikaSettingRoute extends _i21.PageRouteInfo<void> {
 /// [_i3.BookshelfPage]
 class BookshelfRoute extends _i21.PageRouteInfo<void> {
   const BookshelfRoute({List<_i21.PageRouteInfo>? children})
-    : super(BookshelfRoute.name, initialChildren: children);
+      : super(
+          BookshelfRoute.name,
+          initialChildren: children,
+        );
 
   static const String name = 'BookshelfRoute';
 
@@ -92,7 +101,10 @@ class BookshelfRoute extends _i21.PageRouteInfo<void> {
 /// [_i4.CategoryPage]
 class CategoryRoute extends _i21.PageRouteInfo<void> {
   const CategoryRoute({List<_i21.PageRouteInfo>? children})
-    : super(CategoryRoute.name, initialChildren: children);
+      : super(
+          CategoryRoute.name,
+          initialChildren: children,
+        );
 
   static const String name = 'CategoryRoute';
 
@@ -113,10 +125,14 @@ class ComicInfoRoute extends _i21.PageRouteInfo<ComicInfoRouteArgs> {
     _i23.ComicEntryType? type,
     List<_i21.PageRouteInfo>? children,
   }) : super(
-         ComicInfoRoute.name,
-         args: ComicInfoRouteArgs(key: key, comicId: comicId, type: type),
-         initialChildren: children,
-       );
+          ComicInfoRoute.name,
+          args: ComicInfoRouteArgs(
+            key: key,
+            comicId: comicId,
+            type: type,
+          ),
+          initialChildren: children,
+        );
 
   static const String name = 'ComicInfoRoute';
 
@@ -134,7 +150,11 @@ class ComicInfoRoute extends _i21.PageRouteInfo<ComicInfoRouteArgs> {
 }
 
 class ComicInfoRouteArgs {
-  const ComicInfoRouteArgs({this.key, required this.comicId, this.type});
+  const ComicInfoRouteArgs({
+    this.key,
+    required this.comicId,
+    this.type,
+  });
 
   final _i22.Key? key;
 
@@ -160,17 +180,17 @@ class ComicReadRoute extends _i21.PageRouteInfo<ComicReadRouteArgs> {
     _i23.ComicEntryType? type,
     List<_i21.PageRouteInfo>? children,
   }) : super(
-         ComicReadRoute.name,
-         args: ComicReadRouteArgs(
-           key: key,
-           comicInfo: comicInfo,
-           epsInfo: epsInfo,
-           doc: doc,
-           comicId: comicId,
-           type: type,
-         ),
-         initialChildren: children,
-       );
+          ComicReadRoute.name,
+          args: ComicReadRouteArgs(
+            key: key,
+            comicInfo: comicInfo,
+            epsInfo: epsInfo,
+            doc: doc,
+            comicId: comicId,
+            type: type,
+          ),
+          initialChildren: children,
+        );
 
   static const String name = 'ComicReadRoute';
 
@@ -229,15 +249,15 @@ class CommentsChildrenRoute
     required _i28.IntSelectStore likeCountStore,
     List<_i21.PageRouteInfo>? children,
   }) : super(
-         CommentsChildrenRoute.name,
-         args: CommentsChildrenRouteArgs(
-           key: key,
-           fatherDoc: fatherDoc,
-           store: store,
-           likeCountStore: likeCountStore,
-         ),
-         initialChildren: children,
-       );
+          CommentsChildrenRoute.name,
+          args: CommentsChildrenRouteArgs(
+            key: key,
+            fatherDoc: fatherDoc,
+            store: store,
+            likeCountStore: likeCountStore,
+          ),
+          initialChildren: children,
+        );
 
   static const String name = 'CommentsChildrenRoute';
 
@@ -286,14 +306,14 @@ class CommentsRoute extends _i21.PageRouteInfo<CommentsRouteArgs> {
     required String comicTitle,
     List<_i21.PageRouteInfo>? children,
   }) : super(
-         CommentsRoute.name,
-         args: CommentsRouteArgs(
-           key: key,
-           comicId: comicId,
-           comicTitle: comicTitle,
-         ),
-         initialChildren: children,
-       );
+          CommentsRoute.name,
+          args: CommentsRouteArgs(
+            key: key,
+            comicId: comicId,
+            comicTitle: comicTitle,
+          ),
+          initialChildren: children,
+        );
 
   static const String name = 'CommentsRoute';
 
@@ -338,14 +358,14 @@ class DownloadRoute extends _i21.PageRouteInfo<DownloadRouteArgs> {
     required List<_i25.Doc> epsInfo,
     List<_i21.PageRouteInfo>? children,
   }) : super(
-         DownloadRoute.name,
-         args: DownloadRouteArgs(
-           key: key,
-           comicInfo: comicInfo,
-           epsInfo: epsInfo,
-         ),
-         initialChildren: children,
-       );
+          DownloadRoute.name,
+          args: DownloadRouteArgs(
+            key: key,
+            comicInfo: comicInfo,
+            epsInfo: epsInfo,
+          ),
+          initialChildren: children,
+        );
 
   static const String name = 'DownloadRoute';
 
@@ -385,7 +405,10 @@ class DownloadRouteArgs {
 /// [_i10.GlobalSettingPage]
 class GlobalSettingRoute extends _i21.PageRouteInfo<void> {
   const GlobalSettingRoute({List<_i21.PageRouteInfo>? children})
-    : super(GlobalSettingRoute.name, initialChildren: children);
+      : super(
+          GlobalSettingRoute.name,
+          initialChildren: children,
+        );
 
   static const String name = 'GlobalSettingRoute';
 
@@ -401,7 +424,10 @@ class GlobalSettingRoute extends _i21.PageRouteInfo<void> {
 /// [_i11.LoginPage]
 class LoginRoute extends _i21.PageRouteInfo<void> {
   const LoginRoute({List<_i21.PageRouteInfo>? children})
-    : super(LoginRoute.name, initialChildren: children);
+      : super(
+          LoginRoute.name,
+          initialChildren: children,
+        );
 
   static const String name = 'LoginRoute';
 
@@ -417,7 +443,10 @@ class LoginRoute extends _i21.PageRouteInfo<void> {
 /// [_i12.MainPage]
 class MainRoute extends _i21.PageRouteInfo<void> {
   const MainRoute({List<_i21.PageRouteInfo>? children})
-    : super(MainRoute.name, initialChildren: children);
+      : super(
+          MainRoute.name,
+          initialChildren: children,
+        );
 
   static const String name = 'MainRoute';
 
@@ -433,7 +462,10 @@ class MainRoute extends _i21.PageRouteInfo<void> {
 /// [_i13.RankingListPage]
 class RankingListRoute extends _i21.PageRouteInfo<void> {
   const RankingListRoute({List<_i21.PageRouteInfo>? children})
-    : super(RankingListRoute.name, initialChildren: children);
+      : super(
+          RankingListRoute.name,
+          initialChildren: children,
+        );
 
   static const String name = 'RankingListRoute';
 
@@ -449,7 +481,10 @@ class RankingListRoute extends _i21.PageRouteInfo<void> {
 /// [_i14.RegisterPage]
 class RegisterRoute extends _i21.PageRouteInfo<void> {
   const RegisterRoute({List<_i21.PageRouteInfo>? children})
-    : super(RegisterRoute.name, initialChildren: children);
+      : super(
+          RegisterRoute.name,
+          initialChildren: children,
+        );
 
   static const String name = 'RegisterRoute';
 
@@ -469,13 +504,13 @@ class SearchResultRoute extends _i21.PageRouteInfo<SearchResultRouteArgs> {
     required _i29.SearchEnterConst searchEnterConst,
     List<_i21.PageRouteInfo>? children,
   }) : super(
-         SearchResultRoute.name,
-         args: SearchResultRouteArgs(
-           key: key,
-           searchEnterConst: searchEnterConst,
-         ),
-         initialChildren: children,
-       );
+          SearchResultRoute.name,
+          args: SearchResultRouteArgs(
+            key: key,
+            searchEnterConst: searchEnterConst,
+          ),
+          initialChildren: children,
+        );
 
   static const String name = 'SearchResultRoute';
 
@@ -492,7 +527,10 @@ class SearchResultRoute extends _i21.PageRouteInfo<SearchResultRouteArgs> {
 }
 
 class SearchResultRouteArgs {
-  const SearchResultRouteArgs({this.key, required this.searchEnterConst});
+  const SearchResultRouteArgs({
+    this.key,
+    required this.searchEnterConst,
+  });
 
   final _i22.Key? key;
 
@@ -508,7 +546,10 @@ class SearchResultRouteArgs {
 /// [_i16.ShowColorPage]
 class ShowColorRoute extends _i21.PageRouteInfo<void> {
   const ShowColorRoute({List<_i21.PageRouteInfo>? children})
-    : super(ShowColorRoute.name, initialChildren: children);
+      : super(
+          ShowColorRoute.name,
+          initialChildren: children,
+        );
 
   static const String name = 'ShowColorRoute';
 
@@ -524,7 +565,10 @@ class ShowColorRoute extends _i21.PageRouteInfo<void> {
 /// [_i17.ThemeColorPage]
 class ThemeColorRoute extends _i21.PageRouteInfo<void> {
   const ThemeColorRoute({List<_i21.PageRouteInfo>? children})
-    : super(ThemeColorRoute.name, initialChildren: children);
+      : super(
+          ThemeColorRoute.name,
+          initialChildren: children,
+        );
 
   static const String name = 'ThemeColorRoute';
 
@@ -540,7 +584,10 @@ class ThemeColorRoute extends _i21.PageRouteInfo<void> {
 /// [_i18.UserCommentsPage]
 class UserCommentsRoute extends _i21.PageRouteInfo<void> {
   const UserCommentsRoute({List<_i21.PageRouteInfo>? children})
-    : super(UserCommentsRoute.name, initialChildren: children);
+      : super(
+          UserCommentsRoute.name,
+          initialChildren: children,
+        );
 
   static const String name = 'UserCommentsRoute';
 
@@ -556,7 +603,10 @@ class UserCommentsRoute extends _i21.PageRouteInfo<void> {
 /// [_i19.WebDavSyncPage]
 class WebDavSyncRoute extends _i21.PageRouteInfo<void> {
   const WebDavSyncRoute({List<_i21.PageRouteInfo>? children})
-    : super(WebDavSyncRoute.name, initialChildren: children);
+      : super(
+          WebDavSyncRoute.name,
+          initialChildren: children,
+        );
 
   static const String name = 'WebDavSyncRoute';
 
@@ -576,10 +626,13 @@ class WebViewRoute extends _i21.PageRouteInfo<WebViewRouteArgs> {
     required List<String> info,
     List<_i21.PageRouteInfo>? children,
   }) : super(
-         WebViewRoute.name,
-         args: WebViewRouteArgs(key: key, info: info),
-         initialChildren: children,
-       );
+          WebViewRoute.name,
+          args: WebViewRouteArgs(
+            key: key,
+            info: info,
+          ),
+          initialChildren: children,
+        );
 
   static const String name = 'WebViewRoute';
 
@@ -587,13 +640,19 @@ class WebViewRoute extends _i21.PageRouteInfo<WebViewRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<WebViewRouteArgs>();
-      return _i20.WebViewPage(key: args.key, info: args.info);
+      return _i20.WebViewPage(
+        key: args.key,
+        info: args.info,
+      );
     },
   );
 }
 
 class WebViewRouteArgs {
-  const WebViewRouteArgs({this.key, required this.info});
+  const WebViewRouteArgs({
+    this.key,
+    required this.info,
+  });
 
   final _i22.Key? key;
 

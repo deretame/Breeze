@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_info/json/eps/eps.dart' as eps;
@@ -79,6 +80,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   late bool isSkipped = false; // 是否跳转过
   late final ItemScrollController _itemScrollController;
   late final ItemPositionsListener _itemPositionsListener;
+  final PageController _pageController = PageController(initialPage: 0);
   late BikaComicHistory? comicHistory; // 记录阅读记录
   DateTime? _lastUpdateTime; // 记录上次更新时间
   bool _isInserting = false; // 检测数据插入状态
@@ -91,6 +93,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   int displayedSlot = 1; // 显示的当前槽位
   bool _isSliderRolling = false; // 滑块是否在滑动
   bool _isComicRolling = false; // 漫画本身是否在滚动
+  Timer? _timer; // 定时器，定时存储阅读记录
 
   @override
   void initState() {
@@ -121,6 +124,8 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       objectbox.bikaHistoryBox.put(comicHistory!);
     }
 
+    pageIndex = comicHistory!.epPageCount;
+
     if (_type == ComicEntryType.download ||
         _type == ComicEntryType.historyAndDownload) {
       // 首先查询一下有没有记录
@@ -135,11 +140,20 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     }
 
     debugPrint(_type.toString().split('.').last);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+        writeToDatabase();
+      });
+    });
   }
 
   @override
   void dispose() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    _pageController.dispose();
+    _itemPositionsListener.itemPositions.removeListener(() {});
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -191,7 +205,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
 
   Widget _successWidget(PageState? state) {
     // debugPrint(_currentSliderValue.toString());
-    if (_isVisible == false) {
+    if (_isVisible == false && globalSetting.readMode == 0) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     }
 
@@ -212,11 +226,12 @@ class _ComicReadPageState extends State<_ComicReadPage> {
             ComicReadAppBar(
               title: _doc.title,
               isVisible: _isVisible,
-              onThemeModeChanged: () {
-                globalSetting.setThemeMode(0);
-              },
+              changePageIndex:
+                  (int value) => setState(() {
+                    _currentSliderValue = 1.0;
+                    pageIndex = value;
+                  }),
             ),
-            // _pageCountWidget(),
             PageCountWidget(pageIndex: pageIndex, epPages: epPages),
             BottomWidget(
               type: _type,
@@ -237,6 +252,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
                   setState(() => _isComicRolling = newValue);
                 },
                 itemScrollController: _itemScrollController,
+                pageController: _pageController,
               ),
             ),
           ],
@@ -248,24 +264,50 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   /// 构建交互式查看器
   Widget _buildInteractiveViewer() {
     return GestureDetector(
-      onTap: _toggleVisibility,
+      onTap: globalSetting.readMode != 0 ? null : _toggleVisibility,
+      onTapDown:
+          globalSetting.readMode == 0
+              ? null
+              : (TapDownDetails details) => _handleTapDown(details),
       child: InteractiveViewer(
         boundaryMargin: EdgeInsets.zero,
         minScale: 1.0,
         maxScale: 4.0,
-        child: InteractiveViewer(
-          boundaryMargin: EdgeInsets.zero,
-          minScale: 1.0,
-          maxScale: 4.0,
-          child: ListModeWidget(
-            comicId: comicId,
-            epsId: _doc.id,
-            chapterId: _epId,
-            length: length,
-            medias: medias,
-            itemScrollController: _itemScrollController,
-            itemPositionsListener: _itemPositionsListener,
-          ),
+        child: Observer(
+          builder: (context) {
+            if (globalSetting.readMode == 0) {
+              return ColumnModeWidget(
+                comicId: comicId,
+                epsId: _doc.id,
+                chapterId: _epId,
+                length: length,
+                medias: medias,
+                itemScrollController: _itemScrollController,
+                itemPositionsListener: _itemPositionsListener,
+              );
+            } else {
+              return RowModeWidget(
+                key: ValueKey(globalSetting.readMode.toString()),
+                comicId: comicId,
+                epsId: _doc.id,
+                chapterId: _epId,
+                medias: medias,
+                pageController: _pageController,
+                onPageChanged: (int index) {
+                  setState(() {
+                    pageIndex = index + 2;
+                    logger.d('当前页数：${pageIndex - 1}');
+                    if (!_isComicRolling) {
+                      _currentSliderValue =
+                          (pageIndex).clamp(0, _totalSlots - 1).toDouble() - 1;
+                      _isVisible = false;
+                    }
+                  });
+                },
+                isSliderRolling: _isSliderRolling,
+              );
+            }
+          },
         ),
       ),
     );
@@ -276,6 +318,48 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     setState(() => _isVisible = !_isVisible);
     if (_isVisible) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    }
+  }
+
+  void _handleTapDown(TapDownDetails details) {
+    // 获取点击的全局坐标
+    final Offset tapPosition = details.globalPosition;
+    // 获取屏幕宽度和高度
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double screenHeight = MediaQuery.of(context).size.height;
+    // 将屏幕宽度分为三等份
+    final double thirdWidth = screenWidth / 3;
+    // 将中间区域的高度分为上面三分之二和下面三分之一
+    final double middleTopHeight = screenHeight * 2 / 3;
+    // final double middleBottomHeight = screenHeight / 3;
+
+    // 判断点击区域
+    if (tapPosition.dx < thirdWidth) {
+      // 点击左边三分之一
+      _pageController.animateToPage(
+        pageIndex - 3,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else if (tapPosition.dx < 2 * thirdWidth) {
+      // 点击中间三分之一
+      if (tapPosition.dy < middleTopHeight) {
+        _toggleVisibility();
+      } else {
+        // 点击中间三分之一的下面三分之一
+        _pageController.animateToPage(
+          pageIndex - 1,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    } else {
+      // 点击右边三分之一
+      _pageController.animateToPage(
+        pageIndex - 1,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
     }
   }
 
@@ -301,6 +385,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   }
 
   Future<void> getTopThirdItemIndex(Iterable<ItemPosition> positions) async {
+    if (globalSetting.readMode != 0) return;
     ScrollPositionHelper.handleUpdate(
       context: context,
       positions: positions,
@@ -317,7 +402,6 @@ class _ComicReadPageState extends State<_ComicReadPage> {
             }
           });
         }
-        writeToDatabase();
       },
     );
   }
@@ -409,18 +493,22 @@ class _ComicReadPageState extends State<_ComicReadPage> {
 
     if (shouldScroll) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToHistoryPosition();
+        if (globalSetting.readMode == 0) {
+          _itemScrollController.scrollTo(
+            index: comicHistory!.epPageCount - 1,
+            alignment: 0.0,
+            duration: const Duration(milliseconds: 500),
+          );
+        } else {
+          logger.d('历史页数：${comicHistory!.epPageCount - 1}');
+          _pageController.animateToPage(
+            comicHistory!.epPageCount - 2,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        }
+        isSkipped = true;
       });
-      isSkipped = true;
     }
-  }
-
-  /// 滚动到历史位置
-  void _scrollToHistoryPosition() {
-    _itemScrollController.scrollTo(
-      index: comicHistory!.epPageCount - 1,
-      alignment: 0.0,
-      duration: const Duration(milliseconds: 500),
-    );
   }
 }

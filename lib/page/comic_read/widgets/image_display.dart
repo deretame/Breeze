@@ -6,14 +6,21 @@ import '../../../config/global.dart';
 
 class ImageDisplay extends StatefulWidget {
   final String imagePath;
+  final bool isColumn;
 
-  const ImageDisplay({super.key, required this.imagePath});
+  const ImageDisplay({
+    super.key,
+    required this.imagePath,
+    required this.isColumn,
+  });
 
   @override
   State<ImageDisplay> createState() => _ImageDisplayState();
 }
 
 class _ImageDisplayState extends State<ImageDisplay> {
+  bool get isColumn => widget.isColumn;
+
   double imageWidth = screenWidth;
   double imageHeight = screenWidth;
 
@@ -52,7 +59,10 @@ class _ImageDisplayState extends State<ImageDisplay> {
               : screenWidth,
       child:
           imageWidth != screenWidth && imageHeight != screenWidth
-              ? Image.file(File(widget.imagePath), fit: BoxFit.fill)
+              ? Image.file(
+                File(widget.imagePath),
+                fit: isColumn ? BoxFit.fill : BoxFit.contain,
+              )
               : Container(color: const Color(0xFF2D2D2D)), // 占位符
     );
   }

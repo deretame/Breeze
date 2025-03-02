@@ -27,7 +27,7 @@ class _ImageDisplayState extends State<ImageDisplay> {
   @override
   void initState() {
     super.initState();
-    _getImageResolution(widget.imagePath);
+    if (isColumn) _getImageResolution(widget.imagePath);
   }
 
   void _getImageResolution(String imagePath) {
@@ -58,12 +58,11 @@ class _ImageDisplayState extends State<ImageDisplay> {
               ? (imageHeight * (screenWidth / imageWidth))
               : screenWidth,
       child:
-          imageWidth != screenWidth && imageHeight != screenWidth
-              ? Image.file(
-                File(widget.imagePath),
-                fit: isColumn ? BoxFit.fill : BoxFit.contain,
-              )
-              : Container(color: const Color(0xFF2D2D2D)), // 占位符
+          isColumn
+              ? imageWidth != screenWidth && imageHeight != screenWidth
+                  ? Image.file(File(widget.imagePath), fit: BoxFit.fill)
+                  : Container(color: const Color(0xFF2D2D2D))
+              : Image.file(File(widget.imagePath), fit: BoxFit.contain),
     );
   }
 }

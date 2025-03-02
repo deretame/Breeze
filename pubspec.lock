@@ -486,18 +486,18 @@ packages:
     dependency: "direct main"
     description:
       name: freezed
-      sha256: "62b248b2dfb06ded10c84b713215b25aea020a5b08c32e801a974361557ebc3f"
+      sha256: "44c19278dd9d89292cf46e97dc0c1e52ce03275f40a97c5a348e802a924bf40e"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.0-0.0.dev"
+    version: "2.5.7"
   freezed_annotation:
     dependency: "direct main"
     description:
       name: freezed_annotation
-      sha256: c87ff004c8aa6af2d531668b46a4ea379f7191dc6dfa066acd53d506da6e044b
+      sha256: c2e2d632dd9b8a2b7751117abcfc2b4888ecfe181bd9fca7170d9ef02e595fe2
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.0"
+    version: "2.4.4"
   frontend_server_client:
     dependency: transitive
     description:
@@ -522,30 +522,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
-  hive:
+  hive_ce:
     dependency: "direct main"
     description:
-      name: hive
-      sha256: "8dcf6db979d7933da8217edcec84e9df1bdb4e4edc7fc77dbd5aa74356d6d941"
+      name: hive_ce
+      sha256: ac66daee46ad46486a1ed12cf91e9d7479c875fb46889be8d2c96b557406647f
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.3"
-  hive_flutter:
+    version: "2.10.1"
+  hive_ce_flutter:
     dependency: "direct main"
     description:
-      name: hive_flutter
-      sha256: dca1da446b1d808a51689fb5d0c6c9510c0a2ba01e22805d492c73b68e33eecc
+      name: hive_ce_flutter
+      sha256: "74c1d5f10d803446b4e7913bb272137e2724ba8a56465444f9e7713aeb60a877"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.0"
-  hive_generator:
+    version: "2.2.0"
+  hive_ce_generator:
     dependency: "direct dev"
     description:
-      name: hive_generator
-      sha256: "06cb8f58ace74de61f63500564931f9505368f45f98958bd7a6c35ba24159db4"
+      name: hive_ce_generator
+      sha256: "182fb88273055e05ef0e630b5e32e5a30268722ed3bf46fdf5986792862975af"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.1"
+    version: "1.8.1"
   http:
     dependency: transitive
     description:
@@ -1495,6 +1495,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.3"
+  yaml_writer:
+    dependency: transitive
+    description:
+      name: yaml_writer
+      sha256: "69651cd7238411179ac32079937d4aa9a2970150d6b2ae2c6fe6de09402a5dc5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
 sdks:
   dart: ">=3.7.0 <4.0.0"
   flutter: ">=3.27.0"

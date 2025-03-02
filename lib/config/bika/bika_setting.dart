@@ -1,5 +1,5 @@
 // 存储哔咔的设置和账号信息
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 import 'package:mobx/mobx.dart';
 
 part 'bika_setting.g.dart';

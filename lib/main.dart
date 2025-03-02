@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:hive_flutter/adapters.dart';
+import 'package:hive_ce_flutter/adapters.dart';
 import 'package:logger/logger.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/util/manage_cache.dart';
@@ -60,7 +60,7 @@ Future<void> main() async {
       // 初始化Hive
       await Hive.initFlutter();
       // 注册 Color 适配器
-      Hive.registerAdapter(ColorAdapter());
+      // Hive.registerAdapter(ColorAdapter());
       Hive.registerAdapter(ThemeModeAdapter());
       await globalSetting.initBox();
       await bikaSetting.initBox();

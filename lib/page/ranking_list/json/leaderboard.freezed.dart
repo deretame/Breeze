@@ -12,8 +12,7 @@ part of 'leaderboard.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 Leaderboard _$LeaderboardFromJson(Map<String, dynamic> json) {
   return _Leaderboard.fromJson(json);
@@ -41,15 +40,13 @@ mixin _$Leaderboard {
 /// @nodoc
 abstract class $LeaderboardCopyWith<$Res> {
   factory $LeaderboardCopyWith(
-    Leaderboard value,
-    $Res Function(Leaderboard) then,
-  ) = _$LeaderboardCopyWithImpl<$Res, Leaderboard>;
+          Leaderboard value, $Res Function(Leaderboard) then) =
+      _$LeaderboardCopyWithImpl<$Res, Leaderboard>;
   @useResult
-  $Res call({
-    @JsonKey(name: "code") int code,
-    @JsonKey(name: "message") String message,
-    @JsonKey(name: "data") Data data,
-  });
+  $Res call(
+      {@JsonKey(name: "code") int code,
+      @JsonKey(name: "message") String message,
+      @JsonKey(name: "data") Data data});
 
   $DataCopyWith<$Res> get data;
 }
@@ -73,26 +70,20 @@ class _$LeaderboardCopyWithImpl<$Res, $Val extends Leaderboard>
     Object? message = null,
     Object? data = null,
   }) {
-    return _then(
-      _value.copyWith(
-            code:
-                null == code
-                    ? _value.code
-                    : code // ignore: cast_nullable_to_non_nullable
-                        as int,
-            message:
-                null == message
-                    ? _value.message
-                    : message // ignore: cast_nullable_to_non_nullable
-                        as String,
-            data:
-                null == data
-                    ? _value.data
-                    : data // ignore: cast_nullable_to_non_nullable
-                        as Data,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      code: null == code
+          ? _value.code
+          : code // ignore: cast_nullable_to_non_nullable
+              as int,
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+      data: null == data
+          ? _value.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Data,
+    ) as $Val);
   }
 
   /// Create a copy of Leaderboard
@@ -110,16 +101,14 @@ class _$LeaderboardCopyWithImpl<$Res, $Val extends Leaderboard>
 abstract class _$$LeaderboardImplCopyWith<$Res>
     implements $LeaderboardCopyWith<$Res> {
   factory _$$LeaderboardImplCopyWith(
-    _$LeaderboardImpl value,
-    $Res Function(_$LeaderboardImpl) then,
-  ) = __$$LeaderboardImplCopyWithImpl<$Res>;
+          _$LeaderboardImpl value, $Res Function(_$LeaderboardImpl) then) =
+      __$$LeaderboardImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    @JsonKey(name: "code") int code,
-    @JsonKey(name: "message") String message,
-    @JsonKey(name: "data") Data data,
-  });
+  $Res call(
+      {@JsonKey(name: "code") int code,
+      @JsonKey(name: "message") String message,
+      @JsonKey(name: "data") Data data});
 
   @override
   $DataCopyWith<$Res> get data;
@@ -130,9 +119,8 @@ class __$$LeaderboardImplCopyWithImpl<$Res>
     extends _$LeaderboardCopyWithImpl<$Res, _$LeaderboardImpl>
     implements _$$LeaderboardImplCopyWith<$Res> {
   __$$LeaderboardImplCopyWithImpl(
-    _$LeaderboardImpl _value,
-    $Res Function(_$LeaderboardImpl) _then,
-  ) : super(_value, _then);
+      _$LeaderboardImpl _value, $Res Function(_$LeaderboardImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of Leaderboard
   /// with the given fields replaced by the non-null parameter values.
@@ -143,36 +131,30 @@ class __$$LeaderboardImplCopyWithImpl<$Res>
     Object? message = null,
     Object? data = null,
   }) {
-    return _then(
-      _$LeaderboardImpl(
-        code:
-            null == code
-                ? _value.code
-                : code // ignore: cast_nullable_to_non_nullable
-                    as int,
-        message:
-            null == message
-                ? _value.message
-                : message // ignore: cast_nullable_to_non_nullable
-                    as String,
-        data:
-            null == data
-                ? _value.data
-                : data // ignore: cast_nullable_to_non_nullable
-                    as Data,
-      ),
-    );
+    return _then(_$LeaderboardImpl(
+      code: null == code
+          ? _value.code
+          : code // ignore: cast_nullable_to_non_nullable
+              as int,
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+      data: null == data
+          ? _value.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Data,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$LeaderboardImpl implements _Leaderboard {
-  const _$LeaderboardImpl({
-    @JsonKey(name: "code") required this.code,
-    @JsonKey(name: "message") required this.message,
-    @JsonKey(name: "data") required this.data,
-  });
+  const _$LeaderboardImpl(
+      {@JsonKey(name: "code") required this.code,
+      @JsonKey(name: "message") required this.message,
+      @JsonKey(name: "data") required this.data});
 
   factory _$LeaderboardImpl.fromJson(Map<String, dynamic> json) =>
       _$$LeaderboardImplFromJson(json);
@@ -216,16 +198,17 @@ class _$LeaderboardImpl implements _Leaderboard {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$LeaderboardImplToJson(this);
+    return _$$LeaderboardImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _Leaderboard implements Leaderboard {
-  const factory _Leaderboard({
-    @JsonKey(name: "code") required final int code,
-    @JsonKey(name: "message") required final String message,
-    @JsonKey(name: "data") required final Data data,
-  }) = _$LeaderboardImpl;
+  const factory _Leaderboard(
+      {@JsonKey(name: "code") required final int code,
+      @JsonKey(name: "message") required final String message,
+      @JsonKey(name: "data") required final Data data}) = _$LeaderboardImpl;
 
   factory _Leaderboard.fromJson(Map<String, dynamic> json) =
       _$LeaderboardImpl.fromJson;
@@ -288,26 +271,23 @@ class _$DataCopyWithImpl<$Res, $Val extends Data>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? comics = null}) {
-    return _then(
-      _value.copyWith(
-            comics:
-                null == comics
-                    ? _value.comics
-                    : comics // ignore: cast_nullable_to_non_nullable
-                        as List<Comic>,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? comics = null,
+  }) {
+    return _then(_value.copyWith(
+      comics: null == comics
+          ? _value.comics
+          : comics // ignore: cast_nullable_to_non_nullable
+              as List<Comic>,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$DataImplCopyWith<$Res> implements $DataCopyWith<$Res> {
   factory _$$DataImplCopyWith(
-    _$DataImpl value,
-    $Res Function(_$DataImpl) then,
-  ) = __$$DataImplCopyWithImpl<$Res>;
+          _$DataImpl value, $Res Function(_$DataImpl) then) =
+      __$$DataImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({@JsonKey(name: "comics") List<Comic> comics});
@@ -318,22 +298,21 @@ class __$$DataImplCopyWithImpl<$Res>
     extends _$DataCopyWithImpl<$Res, _$DataImpl>
     implements _$$DataImplCopyWith<$Res> {
   __$$DataImplCopyWithImpl(_$DataImpl _value, $Res Function(_$DataImpl) _then)
-    : super(_value, _then);
+      : super(_value, _then);
 
   /// Create a copy of Data
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? comics = null}) {
-    return _then(
-      _$DataImpl(
-        comics:
-            null == comics
-                ? _value._comics
-                : comics // ignore: cast_nullable_to_non_nullable
-                    as List<Comic>,
-      ),
-    );
+  $Res call({
+    Object? comics = null,
+  }) {
+    return _then(_$DataImpl(
+      comics: null == comics
+          ? _value._comics
+          : comics // ignore: cast_nullable_to_non_nullable
+              as List<Comic>,
+    ));
   }
 }
 
@@ -341,7 +320,7 @@ class __$$DataImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$DataImpl implements _Data {
   const _$DataImpl({@JsonKey(name: "comics") required final List<Comic> comics})
-    : _comics = comics;
+      : _comics = comics;
 
   factory _$DataImpl.fromJson(Map<String, dynamic> json) =>
       _$$DataImplFromJson(json);
@@ -383,14 +362,16 @@ class _$DataImpl implements _Data {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$DataImplToJson(this);
+    return _$$DataImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _Data implements Data {
-  const factory _Data({
-    @JsonKey(name: "comics") required final List<Comic> comics,
-  }) = _$DataImpl;
+  const factory _Data(
+          {@JsonKey(name: "comics") required final List<Comic> comics}) =
+      _$DataImpl;
 
   factory _Data.fromJson(Map<String, dynamic> json) = _$DataImpl.fromJson;
 
@@ -451,20 +432,19 @@ abstract class $ComicCopyWith<$Res> {
   factory $ComicCopyWith(Comic value, $Res Function(Comic) then) =
       _$ComicCopyWithImpl<$Res, Comic>;
   @useResult
-  $Res call({
-    @JsonKey(name: "_id") String id,
-    @JsonKey(name: "title") String title,
-    @JsonKey(name: "author") String author,
-    @JsonKey(name: "totalViews") int totalViews,
-    @JsonKey(name: "totalLikes") int totalLikes,
-    @JsonKey(name: "pagesCount") int pagesCount,
-    @JsonKey(name: "epsCount") int epsCount,
-    @JsonKey(name: "finished") bool finished,
-    @JsonKey(name: "categories") List<String> categories,
-    @JsonKey(name: "thumb") Thumb thumb,
-    @JsonKey(name: "viewsCount") int viewsCount,
-    @JsonKey(name: "leaderboardCount") int leaderboardCount,
-  });
+  $Res call(
+      {@JsonKey(name: "_id") String id,
+      @JsonKey(name: "title") String title,
+      @JsonKey(name: "author") String author,
+      @JsonKey(name: "totalViews") int totalViews,
+      @JsonKey(name: "totalLikes") int totalLikes,
+      @JsonKey(name: "pagesCount") int pagesCount,
+      @JsonKey(name: "epsCount") int epsCount,
+      @JsonKey(name: "finished") bool finished,
+      @JsonKey(name: "categories") List<String> categories,
+      @JsonKey(name: "thumb") Thumb thumb,
+      @JsonKey(name: "viewsCount") int viewsCount,
+      @JsonKey(name: "leaderboardCount") int leaderboardCount});
 
   $ThumbCopyWith<$Res> get thumb;
 }
@@ -497,71 +477,56 @@ class _$ComicCopyWithImpl<$Res, $Val extends Comic>
     Object? viewsCount = null,
     Object? leaderboardCount = null,
   }) {
-    return _then(
-      _value.copyWith(
-            id:
-                null == id
-                    ? _value.id
-                    : id // ignore: cast_nullable_to_non_nullable
-                        as String,
-            title:
-                null == title
-                    ? _value.title
-                    : title // ignore: cast_nullable_to_non_nullable
-                        as String,
-            author:
-                null == author
-                    ? _value.author
-                    : author // ignore: cast_nullable_to_non_nullable
-                        as String,
-            totalViews:
-                null == totalViews
-                    ? _value.totalViews
-                    : totalViews // ignore: cast_nullable_to_non_nullable
-                        as int,
-            totalLikes:
-                null == totalLikes
-                    ? _value.totalLikes
-                    : totalLikes // ignore: cast_nullable_to_non_nullable
-                        as int,
-            pagesCount:
-                null == pagesCount
-                    ? _value.pagesCount
-                    : pagesCount // ignore: cast_nullable_to_non_nullable
-                        as int,
-            epsCount:
-                null == epsCount
-                    ? _value.epsCount
-                    : epsCount // ignore: cast_nullable_to_non_nullable
-                        as int,
-            finished:
-                null == finished
-                    ? _value.finished
-                    : finished // ignore: cast_nullable_to_non_nullable
-                        as bool,
-            categories:
-                null == categories
-                    ? _value.categories
-                    : categories // ignore: cast_nullable_to_non_nullable
-                        as List<String>,
-            thumb:
-                null == thumb
-                    ? _value.thumb
-                    : thumb // ignore: cast_nullable_to_non_nullable
-                        as Thumb,
-            viewsCount:
-                null == viewsCount
-                    ? _value.viewsCount
-                    : viewsCount // ignore: cast_nullable_to_non_nullable
-                        as int,
-            leaderboardCount:
-                null == leaderboardCount
-                    ? _value.leaderboardCount
-                    : leaderboardCount // ignore: cast_nullable_to_non_nullable
-                        as int,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      title: null == title
+          ? _value.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String,
+      author: null == author
+          ? _value.author
+          : author // ignore: cast_nullable_to_non_nullable
+              as String,
+      totalViews: null == totalViews
+          ? _value.totalViews
+          : totalViews // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalLikes: null == totalLikes
+          ? _value.totalLikes
+          : totalLikes // ignore: cast_nullable_to_non_nullable
+              as int,
+      pagesCount: null == pagesCount
+          ? _value.pagesCount
+          : pagesCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      epsCount: null == epsCount
+          ? _value.epsCount
+          : epsCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      finished: null == finished
+          ? _value.finished
+          : finished // ignore: cast_nullable_to_non_nullable
+              as bool,
+      categories: null == categories
+          ? _value.categories
+          : categories // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      thumb: null == thumb
+          ? _value.thumb
+          : thumb // ignore: cast_nullable_to_non_nullable
+              as Thumb,
+      viewsCount: null == viewsCount
+          ? _value.viewsCount
+          : viewsCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      leaderboardCount: null == leaderboardCount
+          ? _value.leaderboardCount
+          : leaderboardCount // ignore: cast_nullable_to_non_nullable
+              as int,
+    ) as $Val);
   }
 
   /// Create a copy of Comic
@@ -578,25 +543,23 @@ class _$ComicCopyWithImpl<$Res, $Val extends Comic>
 /// @nodoc
 abstract class _$$ComicImplCopyWith<$Res> implements $ComicCopyWith<$Res> {
   factory _$$ComicImplCopyWith(
-    _$ComicImpl value,
-    $Res Function(_$ComicImpl) then,
-  ) = __$$ComicImplCopyWithImpl<$Res>;
+          _$ComicImpl value, $Res Function(_$ComicImpl) then) =
+      __$$ComicImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    @JsonKey(name: "_id") String id,
-    @JsonKey(name: "title") String title,
-    @JsonKey(name: "author") String author,
-    @JsonKey(name: "totalViews") int totalViews,
-    @JsonKey(name: "totalLikes") int totalLikes,
-    @JsonKey(name: "pagesCount") int pagesCount,
-    @JsonKey(name: "epsCount") int epsCount,
-    @JsonKey(name: "finished") bool finished,
-    @JsonKey(name: "categories") List<String> categories,
-    @JsonKey(name: "thumb") Thumb thumb,
-    @JsonKey(name: "viewsCount") int viewsCount,
-    @JsonKey(name: "leaderboardCount") int leaderboardCount,
-  });
+  $Res call(
+      {@JsonKey(name: "_id") String id,
+      @JsonKey(name: "title") String title,
+      @JsonKey(name: "author") String author,
+      @JsonKey(name: "totalViews") int totalViews,
+      @JsonKey(name: "totalLikes") int totalLikes,
+      @JsonKey(name: "pagesCount") int pagesCount,
+      @JsonKey(name: "epsCount") int epsCount,
+      @JsonKey(name: "finished") bool finished,
+      @JsonKey(name: "categories") List<String> categories,
+      @JsonKey(name: "thumb") Thumb thumb,
+      @JsonKey(name: "viewsCount") int viewsCount,
+      @JsonKey(name: "leaderboardCount") int leaderboardCount});
 
   @override
   $ThumbCopyWith<$Res> get thumb;
@@ -607,9 +570,8 @@ class __$$ComicImplCopyWithImpl<$Res>
     extends _$ComicCopyWithImpl<$Res, _$ComicImpl>
     implements _$$ComicImplCopyWith<$Res> {
   __$$ComicImplCopyWithImpl(
-    _$ComicImpl _value,
-    $Res Function(_$ComicImpl) _then,
-  ) : super(_value, _then);
+      _$ComicImpl _value, $Res Function(_$ComicImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of Comic
   /// with the given fields replaced by the non-null parameter values.
@@ -629,90 +591,76 @@ class __$$ComicImplCopyWithImpl<$Res>
     Object? viewsCount = null,
     Object? leaderboardCount = null,
   }) {
-    return _then(
-      _$ComicImpl(
-        id:
-            null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                    as String,
-        title:
-            null == title
-                ? _value.title
-                : title // ignore: cast_nullable_to_non_nullable
-                    as String,
-        author:
-            null == author
-                ? _value.author
-                : author // ignore: cast_nullable_to_non_nullable
-                    as String,
-        totalViews:
-            null == totalViews
-                ? _value.totalViews
-                : totalViews // ignore: cast_nullable_to_non_nullable
-                    as int,
-        totalLikes:
-            null == totalLikes
-                ? _value.totalLikes
-                : totalLikes // ignore: cast_nullable_to_non_nullable
-                    as int,
-        pagesCount:
-            null == pagesCount
-                ? _value.pagesCount
-                : pagesCount // ignore: cast_nullable_to_non_nullable
-                    as int,
-        epsCount:
-            null == epsCount
-                ? _value.epsCount
-                : epsCount // ignore: cast_nullable_to_non_nullable
-                    as int,
-        finished:
-            null == finished
-                ? _value.finished
-                : finished // ignore: cast_nullable_to_non_nullable
-                    as bool,
-        categories:
-            null == categories
-                ? _value._categories
-                : categories // ignore: cast_nullable_to_non_nullable
-                    as List<String>,
-        thumb:
-            null == thumb
-                ? _value.thumb
-                : thumb // ignore: cast_nullable_to_non_nullable
-                    as Thumb,
-        viewsCount:
-            null == viewsCount
-                ? _value.viewsCount
-                : viewsCount // ignore: cast_nullable_to_non_nullable
-                    as int,
-        leaderboardCount:
-            null == leaderboardCount
-                ? _value.leaderboardCount
-                : leaderboardCount // ignore: cast_nullable_to_non_nullable
-                    as int,
-      ),
-    );
+    return _then(_$ComicImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      title: null == title
+          ? _value.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String,
+      author: null == author
+          ? _value.author
+          : author // ignore: cast_nullable_to_non_nullable
+              as String,
+      totalViews: null == totalViews
+          ? _value.totalViews
+          : totalViews // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalLikes: null == totalLikes
+          ? _value.totalLikes
+          : totalLikes // ignore: cast_nullable_to_non_nullable
+              as int,
+      pagesCount: null == pagesCount
+          ? _value.pagesCount
+          : pagesCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      epsCount: null == epsCount
+          ? _value.epsCount
+          : epsCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      finished: null == finished
+          ? _value.finished
+          : finished // ignore: cast_nullable_to_non_nullable
+              as bool,
+      categories: null == categories
+          ? _value._categories
+          : categories // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      thumb: null == thumb
+          ? _value.thumb
+          : thumb // ignore: cast_nullable_to_non_nullable
+              as Thumb,
+      viewsCount: null == viewsCount
+          ? _value.viewsCount
+          : viewsCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      leaderboardCount: null == leaderboardCount
+          ? _value.leaderboardCount
+          : leaderboardCount // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ComicImpl implements _Comic {
-  const _$ComicImpl({
-    @JsonKey(name: "_id") required this.id,
-    @JsonKey(name: "title") required this.title,
-    @JsonKey(name: "author") required this.author,
-    @JsonKey(name: "totalViews") required this.totalViews,
-    @JsonKey(name: "totalLikes") required this.totalLikes,
-    @JsonKey(name: "pagesCount") required this.pagesCount,
-    @JsonKey(name: "epsCount") required this.epsCount,
-    @JsonKey(name: "finished") required this.finished,
-    @JsonKey(name: "categories") required final List<String> categories,
-    @JsonKey(name: "thumb") required this.thumb,
-    @JsonKey(name: "viewsCount") required this.viewsCount,
-    @JsonKey(name: "leaderboardCount") required this.leaderboardCount,
-  }) : _categories = categories;
+  const _$ComicImpl(
+      {@JsonKey(name: "_id") required this.id,
+      @JsonKey(name: "title") required this.title,
+      @JsonKey(name: "author") required this.author,
+      @JsonKey(name: "totalViews") required this.totalViews,
+      @JsonKey(name: "totalLikes") required this.totalLikes,
+      @JsonKey(name: "pagesCount") required this.pagesCount,
+      @JsonKey(name: "epsCount") required this.epsCount,
+      @JsonKey(name: "finished") required this.finished,
+      @JsonKey(name: "categories") required final List<String> categories,
+      @JsonKey(name: "thumb") required this.thumb,
+      @JsonKey(name: "viewsCount") required this.viewsCount,
+      @JsonKey(name: "leaderboardCount") required this.leaderboardCount})
+      : _categories = categories;
 
   factory _$ComicImpl.fromJson(Map<String, dynamic> json) =>
       _$$ComicImplFromJson(json);
@@ -783,10 +731,8 @@ class _$ComicImpl implements _Comic {
                 other.epsCount == epsCount) &&
             (identical(other.finished, finished) ||
                 other.finished == finished) &&
-            const DeepCollectionEquality().equals(
-              other._categories,
-              _categories,
-            ) &&
+            const DeepCollectionEquality()
+                .equals(other._categories, _categories) &&
             (identical(other.thumb, thumb) || other.thumb == thumb) &&
             (identical(other.viewsCount, viewsCount) ||
                 other.viewsCount == viewsCount) &&
@@ -797,20 +743,19 @@ class _$ComicImpl implements _Comic {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    title,
-    author,
-    totalViews,
-    totalLikes,
-    pagesCount,
-    epsCount,
-    finished,
-    const DeepCollectionEquality().hash(_categories),
-    thumb,
-    viewsCount,
-    leaderboardCount,
-  );
+      runtimeType,
+      id,
+      title,
+      author,
+      totalViews,
+      totalLikes,
+      pagesCount,
+      epsCount,
+      finished,
+      const DeepCollectionEquality().hash(_categories),
+      thumb,
+      viewsCount,
+      leaderboardCount);
 
   /// Create a copy of Comic
   /// with the given fields replaced by the non-null parameter values.
@@ -822,25 +767,27 @@ class _$ComicImpl implements _Comic {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ComicImplToJson(this);
+    return _$$ComicImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _Comic implements Comic {
-  const factory _Comic({
-    @JsonKey(name: "_id") required final String id,
-    @JsonKey(name: "title") required final String title,
-    @JsonKey(name: "author") required final String author,
-    @JsonKey(name: "totalViews") required final int totalViews,
-    @JsonKey(name: "totalLikes") required final int totalLikes,
-    @JsonKey(name: "pagesCount") required final int pagesCount,
-    @JsonKey(name: "epsCount") required final int epsCount,
-    @JsonKey(name: "finished") required final bool finished,
-    @JsonKey(name: "categories") required final List<String> categories,
-    @JsonKey(name: "thumb") required final Thumb thumb,
-    @JsonKey(name: "viewsCount") required final int viewsCount,
-    @JsonKey(name: "leaderboardCount") required final int leaderboardCount,
-  }) = _$ComicImpl;
+  const factory _Comic(
+      {@JsonKey(name: "_id") required final String id,
+      @JsonKey(name: "title") required final String title,
+      @JsonKey(name: "author") required final String author,
+      @JsonKey(name: "totalViews") required final int totalViews,
+      @JsonKey(name: "totalLikes") required final int totalLikes,
+      @JsonKey(name: "pagesCount") required final int pagesCount,
+      @JsonKey(name: "epsCount") required final int epsCount,
+      @JsonKey(name: "finished") required final bool finished,
+      @JsonKey(name: "categories") required final List<String> categories,
+      @JsonKey(name: "thumb") required final Thumb thumb,
+      @JsonKey(name: "viewsCount") required final int viewsCount,
+      @JsonKey(name: "leaderboardCount")
+      required final int leaderboardCount}) = _$ComicImpl;
 
   factory _Comic.fromJson(Map<String, dynamic> json) = _$ComicImpl.fromJson;
 
@@ -916,11 +863,10 @@ abstract class $ThumbCopyWith<$Res> {
   factory $ThumbCopyWith(Thumb value, $Res Function(Thumb) then) =
       _$ThumbCopyWithImpl<$Res, Thumb>;
   @useResult
-  $Res call({
-    @JsonKey(name: "fileServer") String fileServer,
-    @JsonKey(name: "path") String path,
-    @JsonKey(name: "originalName") String originalName,
-  });
+  $Res call(
+      {@JsonKey(name: "fileServer") String fileServer,
+      @JsonKey(name: "path") String path,
+      @JsonKey(name: "originalName") String originalName});
 }
 
 /// @nodoc
@@ -942,42 +888,34 @@ class _$ThumbCopyWithImpl<$Res, $Val extends Thumb>
     Object? path = null,
     Object? originalName = null,
   }) {
-    return _then(
-      _value.copyWith(
-            fileServer:
-                null == fileServer
-                    ? _value.fileServer
-                    : fileServer // ignore: cast_nullable_to_non_nullable
-                        as String,
-            path:
-                null == path
-                    ? _value.path
-                    : path // ignore: cast_nullable_to_non_nullable
-                        as String,
-            originalName:
-                null == originalName
-                    ? _value.originalName
-                    : originalName // ignore: cast_nullable_to_non_nullable
-                        as String,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      fileServer: null == fileServer
+          ? _value.fileServer
+          : fileServer // ignore: cast_nullable_to_non_nullable
+              as String,
+      path: null == path
+          ? _value.path
+          : path // ignore: cast_nullable_to_non_nullable
+              as String,
+      originalName: null == originalName
+          ? _value.originalName
+          : originalName // ignore: cast_nullable_to_non_nullable
+              as String,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$ThumbImplCopyWith<$Res> implements $ThumbCopyWith<$Res> {
   factory _$$ThumbImplCopyWith(
-    _$ThumbImpl value,
-    $Res Function(_$ThumbImpl) then,
-  ) = __$$ThumbImplCopyWithImpl<$Res>;
+          _$ThumbImpl value, $Res Function(_$ThumbImpl) then) =
+      __$$ThumbImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    @JsonKey(name: "fileServer") String fileServer,
-    @JsonKey(name: "path") String path,
-    @JsonKey(name: "originalName") String originalName,
-  });
+  $Res call(
+      {@JsonKey(name: "fileServer") String fileServer,
+      @JsonKey(name: "path") String path,
+      @JsonKey(name: "originalName") String originalName});
 }
 
 /// @nodoc
@@ -985,9 +923,8 @@ class __$$ThumbImplCopyWithImpl<$Res>
     extends _$ThumbCopyWithImpl<$Res, _$ThumbImpl>
     implements _$$ThumbImplCopyWith<$Res> {
   __$$ThumbImplCopyWithImpl(
-    _$ThumbImpl _value,
-    $Res Function(_$ThumbImpl) _then,
-  ) : super(_value, _then);
+      _$ThumbImpl _value, $Res Function(_$ThumbImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of Thumb
   /// with the given fields replaced by the non-null parameter values.
@@ -998,36 +935,30 @@ class __$$ThumbImplCopyWithImpl<$Res>
     Object? path = null,
     Object? originalName = null,
   }) {
-    return _then(
-      _$ThumbImpl(
-        fileServer:
-            null == fileServer
-                ? _value.fileServer
-                : fileServer // ignore: cast_nullable_to_non_nullable
-                    as String,
-        path:
-            null == path
-                ? _value.path
-                : path // ignore: cast_nullable_to_non_nullable
-                    as String,
-        originalName:
-            null == originalName
-                ? _value.originalName
-                : originalName // ignore: cast_nullable_to_non_nullable
-                    as String,
-      ),
-    );
+    return _then(_$ThumbImpl(
+      fileServer: null == fileServer
+          ? _value.fileServer
+          : fileServer // ignore: cast_nullable_to_non_nullable
+              as String,
+      path: null == path
+          ? _value.path
+          : path // ignore: cast_nullable_to_non_nullable
+              as String,
+      originalName: null == originalName
+          ? _value.originalName
+          : originalName // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ThumbImpl implements _Thumb {
-  const _$ThumbImpl({
-    @JsonKey(name: "fileServer") required this.fileServer,
-    @JsonKey(name: "path") required this.path,
-    @JsonKey(name: "originalName") required this.originalName,
-  });
+  const _$ThumbImpl(
+      {@JsonKey(name: "fileServer") required this.fileServer,
+      @JsonKey(name: "path") required this.path,
+      @JsonKey(name: "originalName") required this.originalName});
 
   factory _$ThumbImpl.fromJson(Map<String, dynamic> json) =>
       _$$ThumbImplFromJson(json);
@@ -1073,16 +1004,18 @@ class _$ThumbImpl implements _Thumb {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ThumbImplToJson(this);
+    return _$$ThumbImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _Thumb implements Thumb {
-  const factory _Thumb({
-    @JsonKey(name: "fileServer") required final String fileServer,
-    @JsonKey(name: "path") required final String path,
-    @JsonKey(name: "originalName") required final String originalName,
-  }) = _$ThumbImpl;
+  const factory _Thumb(
+          {@JsonKey(name: "fileServer") required final String fileServer,
+          @JsonKey(name: "path") required final String path,
+          @JsonKey(name: "originalName") required final String originalName}) =
+      _$ThumbImpl;
 
   factory _Thumb.fromJson(Map<String, dynamic> json) = _$ThumbImpl.fromJson;
 

@@ -12,8 +12,7 @@ part of 'user_comments_json.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 UserCommentsJson _$UserCommentsJsonFromJson(Map<String, dynamic> json) {
   return _UserCommentsJson.fromJson(json);
@@ -41,15 +40,13 @@ mixin _$UserCommentsJson {
 /// @nodoc
 abstract class $UserCommentsJsonCopyWith<$Res> {
   factory $UserCommentsJsonCopyWith(
-    UserCommentsJson value,
-    $Res Function(UserCommentsJson) then,
-  ) = _$UserCommentsJsonCopyWithImpl<$Res, UserCommentsJson>;
+          UserCommentsJson value, $Res Function(UserCommentsJson) then) =
+      _$UserCommentsJsonCopyWithImpl<$Res, UserCommentsJson>;
   @useResult
-  $Res call({
-    @JsonKey(name: "code") int code,
-    @JsonKey(name: "message") String message,
-    @JsonKey(name: "data") Data data,
-  });
+  $Res call(
+      {@JsonKey(name: "code") int code,
+      @JsonKey(name: "message") String message,
+      @JsonKey(name: "data") Data data});
 
   $DataCopyWith<$Res> get data;
 }
@@ -73,26 +70,20 @@ class _$UserCommentsJsonCopyWithImpl<$Res, $Val extends UserCommentsJson>
     Object? message = null,
     Object? data = null,
   }) {
-    return _then(
-      _value.copyWith(
-            code:
-                null == code
-                    ? _value.code
-                    : code // ignore: cast_nullable_to_non_nullable
-                        as int,
-            message:
-                null == message
-                    ? _value.message
-                    : message // ignore: cast_nullable_to_non_nullable
-                        as String,
-            data:
-                null == data
-                    ? _value.data
-                    : data // ignore: cast_nullable_to_non_nullable
-                        as Data,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      code: null == code
+          ? _value.code
+          : code // ignore: cast_nullable_to_non_nullable
+              as int,
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+      data: null == data
+          ? _value.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Data,
+    ) as $Val);
   }
 
   /// Create a copy of UserCommentsJson
@@ -109,17 +100,15 @@ class _$UserCommentsJsonCopyWithImpl<$Res, $Val extends UserCommentsJson>
 /// @nodoc
 abstract class _$$UserCommentsJsonImplCopyWith<$Res>
     implements $UserCommentsJsonCopyWith<$Res> {
-  factory _$$UserCommentsJsonImplCopyWith(
-    _$UserCommentsJsonImpl value,
-    $Res Function(_$UserCommentsJsonImpl) then,
-  ) = __$$UserCommentsJsonImplCopyWithImpl<$Res>;
+  factory _$$UserCommentsJsonImplCopyWith(_$UserCommentsJsonImpl value,
+          $Res Function(_$UserCommentsJsonImpl) then) =
+      __$$UserCommentsJsonImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    @JsonKey(name: "code") int code,
-    @JsonKey(name: "message") String message,
-    @JsonKey(name: "data") Data data,
-  });
+  $Res call(
+      {@JsonKey(name: "code") int code,
+      @JsonKey(name: "message") String message,
+      @JsonKey(name: "data") Data data});
 
   @override
   $DataCopyWith<$Res> get data;
@@ -129,10 +118,9 @@ abstract class _$$UserCommentsJsonImplCopyWith<$Res>
 class __$$UserCommentsJsonImplCopyWithImpl<$Res>
     extends _$UserCommentsJsonCopyWithImpl<$Res, _$UserCommentsJsonImpl>
     implements _$$UserCommentsJsonImplCopyWith<$Res> {
-  __$$UserCommentsJsonImplCopyWithImpl(
-    _$UserCommentsJsonImpl _value,
-    $Res Function(_$UserCommentsJsonImpl) _then,
-  ) : super(_value, _then);
+  __$$UserCommentsJsonImplCopyWithImpl(_$UserCommentsJsonImpl _value,
+      $Res Function(_$UserCommentsJsonImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of UserCommentsJson
   /// with the given fields replaced by the non-null parameter values.
@@ -143,36 +131,30 @@ class __$$UserCommentsJsonImplCopyWithImpl<$Res>
     Object? message = null,
     Object? data = null,
   }) {
-    return _then(
-      _$UserCommentsJsonImpl(
-        code:
-            null == code
-                ? _value.code
-                : code // ignore: cast_nullable_to_non_nullable
-                    as int,
-        message:
-            null == message
-                ? _value.message
-                : message // ignore: cast_nullable_to_non_nullable
-                    as String,
-        data:
-            null == data
-                ? _value.data
-                : data // ignore: cast_nullable_to_non_nullable
-                    as Data,
-      ),
-    );
+    return _then(_$UserCommentsJsonImpl(
+      code: null == code
+          ? _value.code
+          : code // ignore: cast_nullable_to_non_nullable
+              as int,
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+      data: null == data
+          ? _value.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as Data,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$UserCommentsJsonImpl implements _UserCommentsJson {
-  const _$UserCommentsJsonImpl({
-    @JsonKey(name: "code") required this.code,
-    @JsonKey(name: "message") required this.message,
-    @JsonKey(name: "data") required this.data,
-  });
+  const _$UserCommentsJsonImpl(
+      {@JsonKey(name: "code") required this.code,
+      @JsonKey(name: "message") required this.message,
+      @JsonKey(name: "data") required this.data});
 
   factory _$UserCommentsJsonImpl.fromJson(Map<String, dynamic> json) =>
       _$$UserCommentsJsonImplFromJson(json);
@@ -213,22 +195,22 @@ class _$UserCommentsJsonImpl implements _UserCommentsJson {
   @pragma('vm:prefer-inline')
   _$$UserCommentsJsonImplCopyWith<_$UserCommentsJsonImpl> get copyWith =>
       __$$UserCommentsJsonImplCopyWithImpl<_$UserCommentsJsonImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$UserCommentsJsonImplToJson(this);
+    return _$$UserCommentsJsonImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _UserCommentsJson implements UserCommentsJson {
-  const factory _UserCommentsJson({
-    @JsonKey(name: "code") required final int code,
-    @JsonKey(name: "message") required final String message,
-    @JsonKey(name: "data") required final Data data,
-  }) = _$UserCommentsJsonImpl;
+  const factory _UserCommentsJson(
+          {@JsonKey(name: "code") required final int code,
+          @JsonKey(name: "message") required final String message,
+          @JsonKey(name: "data") required final Data data}) =
+      _$UserCommentsJsonImpl;
 
   factory _UserCommentsJson.fromJson(Map<String, dynamic> json) =
       _$UserCommentsJsonImpl.fromJson;
@@ -293,17 +275,15 @@ class _$DataCopyWithImpl<$Res, $Val extends Data>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? comments = null}) {
-    return _then(
-      _value.copyWith(
-            comments:
-                null == comments
-                    ? _value.comments
-                    : comments // ignore: cast_nullable_to_non_nullable
-                        as Comments,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? comments = null,
+  }) {
+    return _then(_value.copyWith(
+      comments: null == comments
+          ? _value.comments
+          : comments // ignore: cast_nullable_to_non_nullable
+              as Comments,
+    ) as $Val);
   }
 
   /// Create a copy of Data
@@ -320,9 +300,8 @@ class _$DataCopyWithImpl<$Res, $Val extends Data>
 /// @nodoc
 abstract class _$$DataImplCopyWith<$Res> implements $DataCopyWith<$Res> {
   factory _$$DataImplCopyWith(
-    _$DataImpl value,
-    $Res Function(_$DataImpl) then,
-  ) = __$$DataImplCopyWithImpl<$Res>;
+          _$DataImpl value, $Res Function(_$DataImpl) then) =
+      __$$DataImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({@JsonKey(name: "comments") Comments comments});
@@ -336,22 +315,21 @@ class __$$DataImplCopyWithImpl<$Res>
     extends _$DataCopyWithImpl<$Res, _$DataImpl>
     implements _$$DataImplCopyWith<$Res> {
   __$$DataImplCopyWithImpl(_$DataImpl _value, $Res Function(_$DataImpl) _then)
-    : super(_value, _then);
+      : super(_value, _then);
 
   /// Create a copy of Data
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? comments = null}) {
-    return _then(
-      _$DataImpl(
-        comments:
-            null == comments
-                ? _value.comments
-                : comments // ignore: cast_nullable_to_non_nullable
-                    as Comments,
-      ),
-    );
+  $Res call({
+    Object? comments = null,
+  }) {
+    return _then(_$DataImpl(
+      comments: null == comments
+          ? _value.comments
+          : comments // ignore: cast_nullable_to_non_nullable
+              as Comments,
+    ));
   }
 }
 
@@ -395,14 +373,16 @@ class _$DataImpl implements _Data {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$DataImplToJson(this);
+    return _$$DataImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _Data implements Data {
-  const factory _Data({
-    @JsonKey(name: "comments") required final Comments comments,
-  }) = _$DataImpl;
+  const factory _Data(
+          {@JsonKey(name: "comments") required final Comments comments}) =
+      _$DataImpl;
 
   factory _Data.fromJson(Map<String, dynamic> json) = _$DataImpl.fromJson;
 
@@ -450,13 +430,12 @@ abstract class $CommentsCopyWith<$Res> {
   factory $CommentsCopyWith(Comments value, $Res Function(Comments) then) =
       _$CommentsCopyWithImpl<$Res, Comments>;
   @useResult
-  $Res call({
-    @JsonKey(name: "docs") List<Doc> docs,
-    @JsonKey(name: "total") int total,
-    @JsonKey(name: "limit") int limit,
-    @JsonKey(name: "page") String page,
-    @JsonKey(name: "pages") int pages,
-  });
+  $Res call(
+      {@JsonKey(name: "docs") List<Doc> docs,
+      @JsonKey(name: "total") int total,
+      @JsonKey(name: "limit") int limit,
+      @JsonKey(name: "page") String page,
+      @JsonKey(name: "pages") int pages});
 }
 
 /// @nodoc
@@ -480,36 +459,28 @@ class _$CommentsCopyWithImpl<$Res, $Val extends Comments>
     Object? page = null,
     Object? pages = null,
   }) {
-    return _then(
-      _value.copyWith(
-            docs:
-                null == docs
-                    ? _value.docs
-                    : docs // ignore: cast_nullable_to_non_nullable
-                        as List<Doc>,
-            total:
-                null == total
-                    ? _value.total
-                    : total // ignore: cast_nullable_to_non_nullable
-                        as int,
-            limit:
-                null == limit
-                    ? _value.limit
-                    : limit // ignore: cast_nullable_to_non_nullable
-                        as int,
-            page:
-                null == page
-                    ? _value.page
-                    : page // ignore: cast_nullable_to_non_nullable
-                        as String,
-            pages:
-                null == pages
-                    ? _value.pages
-                    : pages // ignore: cast_nullable_to_non_nullable
-                        as int,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      docs: null == docs
+          ? _value.docs
+          : docs // ignore: cast_nullable_to_non_nullable
+              as List<Doc>,
+      total: null == total
+          ? _value.total
+          : total // ignore: cast_nullable_to_non_nullable
+              as int,
+      limit: null == limit
+          ? _value.limit
+          : limit // ignore: cast_nullable_to_non_nullable
+              as int,
+      page: null == page
+          ? _value.page
+          : page // ignore: cast_nullable_to_non_nullable
+              as String,
+      pages: null == pages
+          ? _value.pages
+          : pages // ignore: cast_nullable_to_non_nullable
+              as int,
+    ) as $Val);
   }
 }
 
@@ -517,18 +488,16 @@ class _$CommentsCopyWithImpl<$Res, $Val extends Comments>
 abstract class _$$CommentsImplCopyWith<$Res>
     implements $CommentsCopyWith<$Res> {
   factory _$$CommentsImplCopyWith(
-    _$CommentsImpl value,
-    $Res Function(_$CommentsImpl) then,
-  ) = __$$CommentsImplCopyWithImpl<$Res>;
+          _$CommentsImpl value, $Res Function(_$CommentsImpl) then) =
+      __$$CommentsImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    @JsonKey(name: "docs") List<Doc> docs,
-    @JsonKey(name: "total") int total,
-    @JsonKey(name: "limit") int limit,
-    @JsonKey(name: "page") String page,
-    @JsonKey(name: "pages") int pages,
-  });
+  $Res call(
+      {@JsonKey(name: "docs") List<Doc> docs,
+      @JsonKey(name: "total") int total,
+      @JsonKey(name: "limit") int limit,
+      @JsonKey(name: "page") String page,
+      @JsonKey(name: "pages") int pages});
 }
 
 /// @nodoc
@@ -536,9 +505,8 @@ class __$$CommentsImplCopyWithImpl<$Res>
     extends _$CommentsCopyWithImpl<$Res, _$CommentsImpl>
     implements _$$CommentsImplCopyWith<$Res> {
   __$$CommentsImplCopyWithImpl(
-    _$CommentsImpl _value,
-    $Res Function(_$CommentsImpl) _then,
-  ) : super(_value, _then);
+      _$CommentsImpl _value, $Res Function(_$CommentsImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of Comments
   /// with the given fields replaced by the non-null parameter values.
@@ -551,48 +519,41 @@ class __$$CommentsImplCopyWithImpl<$Res>
     Object? page = null,
     Object? pages = null,
   }) {
-    return _then(
-      _$CommentsImpl(
-        docs:
-            null == docs
-                ? _value._docs
-                : docs // ignore: cast_nullable_to_non_nullable
-                    as List<Doc>,
-        total:
-            null == total
-                ? _value.total
-                : total // ignore: cast_nullable_to_non_nullable
-                    as int,
-        limit:
-            null == limit
-                ? _value.limit
-                : limit // ignore: cast_nullable_to_non_nullable
-                    as int,
-        page:
-            null == page
-                ? _value.page
-                : page // ignore: cast_nullable_to_non_nullable
-                    as String,
-        pages:
-            null == pages
-                ? _value.pages
-                : pages // ignore: cast_nullable_to_non_nullable
-                    as int,
-      ),
-    );
+    return _then(_$CommentsImpl(
+      docs: null == docs
+          ? _value._docs
+          : docs // ignore: cast_nullable_to_non_nullable
+              as List<Doc>,
+      total: null == total
+          ? _value.total
+          : total // ignore: cast_nullable_to_non_nullable
+              as int,
+      limit: null == limit
+          ? _value.limit
+          : limit // ignore: cast_nullable_to_non_nullable
+              as int,
+      page: null == page
+          ? _value.page
+          : page // ignore: cast_nullable_to_non_nullable
+              as String,
+      pages: null == pages
+          ? _value.pages
+          : pages // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$CommentsImpl implements _Comments {
-  const _$CommentsImpl({
-    @JsonKey(name: "docs") required final List<Doc> docs,
-    @JsonKey(name: "total") required this.total,
-    @JsonKey(name: "limit") required this.limit,
-    @JsonKey(name: "page") required this.page,
-    @JsonKey(name: "pages") required this.pages,
-  }) : _docs = docs;
+  const _$CommentsImpl(
+      {@JsonKey(name: "docs") required final List<Doc> docs,
+      @JsonKey(name: "total") required this.total,
+      @JsonKey(name: "limit") required this.limit,
+      @JsonKey(name: "page") required this.page,
+      @JsonKey(name: "pages") required this.pages})
+      : _docs = docs;
 
   factory _$CommentsImpl.fromJson(Map<String, dynamic> json) =>
       _$$CommentsImplFromJson(json);
@@ -638,14 +599,8 @@ class _$CommentsImpl implements _Comments {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    const DeepCollectionEquality().hash(_docs),
-    total,
-    limit,
-    page,
-    pages,
-  );
+  int get hashCode => Object.hash(runtimeType,
+      const DeepCollectionEquality().hash(_docs), total, limit, page, pages);
 
   /// Create a copy of Comments
   /// with the given fields replaced by the non-null parameter values.
@@ -657,18 +612,19 @@ class _$CommentsImpl implements _Comments {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$CommentsImplToJson(this);
+    return _$$CommentsImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _Comments implements Comments {
-  const factory _Comments({
-    @JsonKey(name: "docs") required final List<Doc> docs,
-    @JsonKey(name: "total") required final int total,
-    @JsonKey(name: "limit") required final int limit,
-    @JsonKey(name: "page") required final String page,
-    @JsonKey(name: "pages") required final int pages,
-  }) = _$CommentsImpl;
+  const factory _Comments(
+      {@JsonKey(name: "docs") required final List<Doc> docs,
+      @JsonKey(name: "total") required final int total,
+      @JsonKey(name: "limit") required final int limit,
+      @JsonKey(name: "page") required final String page,
+      @JsonKey(name: "pages") required final int pages}) = _$CommentsImpl;
 
   factory _Comments.fromJson(Map<String, dynamic> json) =
       _$CommentsImpl.fromJson;
@@ -738,18 +694,17 @@ abstract class $DocCopyWith<$Res> {
   factory $DocCopyWith(Doc value, $Res Function(Doc) then) =
       _$DocCopyWithImpl<$Res, Doc>;
   @useResult
-  $Res call({
-    @JsonKey(name: "_id") String id,
-    @JsonKey(name: "content") String content,
-    @JsonKey(name: "_comic") Comic comic,
-    @JsonKey(name: "totalComments") int totalComments,
-    @JsonKey(name: "hide") bool hide,
-    @JsonKey(name: "created_at") DateTime createdAt,
-    @JsonKey(name: "id") String docId,
-    @JsonKey(name: "likesCount") int likesCount,
-    @JsonKey(name: "commentsCount") int commentsCount,
-    @JsonKey(name: "isLiked") bool isLiked,
-  });
+  $Res call(
+      {@JsonKey(name: "_id") String id,
+      @JsonKey(name: "content") String content,
+      @JsonKey(name: "_comic") Comic comic,
+      @JsonKey(name: "totalComments") int totalComments,
+      @JsonKey(name: "hide") bool hide,
+      @JsonKey(name: "created_at") DateTime createdAt,
+      @JsonKey(name: "id") String docId,
+      @JsonKey(name: "likesCount") int likesCount,
+      @JsonKey(name: "commentsCount") int commentsCount,
+      @JsonKey(name: "isLiked") bool isLiked});
 
   $ComicCopyWith<$Res> get comic;
 }
@@ -779,61 +734,48 @@ class _$DocCopyWithImpl<$Res, $Val extends Doc> implements $DocCopyWith<$Res> {
     Object? commentsCount = null,
     Object? isLiked = null,
   }) {
-    return _then(
-      _value.copyWith(
-            id:
-                null == id
-                    ? _value.id
-                    : id // ignore: cast_nullable_to_non_nullable
-                        as String,
-            content:
-                null == content
-                    ? _value.content
-                    : content // ignore: cast_nullable_to_non_nullable
-                        as String,
-            comic:
-                null == comic
-                    ? _value.comic
-                    : comic // ignore: cast_nullable_to_non_nullable
-                        as Comic,
-            totalComments:
-                null == totalComments
-                    ? _value.totalComments
-                    : totalComments // ignore: cast_nullable_to_non_nullable
-                        as int,
-            hide:
-                null == hide
-                    ? _value.hide
-                    : hide // ignore: cast_nullable_to_non_nullable
-                        as bool,
-            createdAt:
-                null == createdAt
-                    ? _value.createdAt
-                    : createdAt // ignore: cast_nullable_to_non_nullable
-                        as DateTime,
-            docId:
-                null == docId
-                    ? _value.docId
-                    : docId // ignore: cast_nullable_to_non_nullable
-                        as String,
-            likesCount:
-                null == likesCount
-                    ? _value.likesCount
-                    : likesCount // ignore: cast_nullable_to_non_nullable
-                        as int,
-            commentsCount:
-                null == commentsCount
-                    ? _value.commentsCount
-                    : commentsCount // ignore: cast_nullable_to_non_nullable
-                        as int,
-            isLiked:
-                null == isLiked
-                    ? _value.isLiked
-                    : isLiked // ignore: cast_nullable_to_non_nullable
-                        as bool,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      content: null == content
+          ? _value.content
+          : content // ignore: cast_nullable_to_non_nullable
+              as String,
+      comic: null == comic
+          ? _value.comic
+          : comic // ignore: cast_nullable_to_non_nullable
+              as Comic,
+      totalComments: null == totalComments
+          ? _value.totalComments
+          : totalComments // ignore: cast_nullable_to_non_nullable
+              as int,
+      hide: null == hide
+          ? _value.hide
+          : hide // ignore: cast_nullable_to_non_nullable
+              as bool,
+      createdAt: null == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      docId: null == docId
+          ? _value.docId
+          : docId // ignore: cast_nullable_to_non_nullable
+              as String,
+      likesCount: null == likesCount
+          ? _value.likesCount
+          : likesCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      commentsCount: null == commentsCount
+          ? _value.commentsCount
+          : commentsCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      isLiked: null == isLiked
+          ? _value.isLiked
+          : isLiked // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ) as $Val);
   }
 
   /// Create a copy of Doc
@@ -853,18 +795,17 @@ abstract class _$$DocImplCopyWith<$Res> implements $DocCopyWith<$Res> {
       __$$DocImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    @JsonKey(name: "_id") String id,
-    @JsonKey(name: "content") String content,
-    @JsonKey(name: "_comic") Comic comic,
-    @JsonKey(name: "totalComments") int totalComments,
-    @JsonKey(name: "hide") bool hide,
-    @JsonKey(name: "created_at") DateTime createdAt,
-    @JsonKey(name: "id") String docId,
-    @JsonKey(name: "likesCount") int likesCount,
-    @JsonKey(name: "commentsCount") int commentsCount,
-    @JsonKey(name: "isLiked") bool isLiked,
-  });
+  $Res call(
+      {@JsonKey(name: "_id") String id,
+      @JsonKey(name: "content") String content,
+      @JsonKey(name: "_comic") Comic comic,
+      @JsonKey(name: "totalComments") int totalComments,
+      @JsonKey(name: "hide") bool hide,
+      @JsonKey(name: "created_at") DateTime createdAt,
+      @JsonKey(name: "id") String docId,
+      @JsonKey(name: "likesCount") int likesCount,
+      @JsonKey(name: "commentsCount") int commentsCount,
+      @JsonKey(name: "isLiked") bool isLiked});
 
   @override
   $ComicCopyWith<$Res> get comic;
@@ -874,7 +815,7 @@ abstract class _$$DocImplCopyWith<$Res> implements $DocCopyWith<$Res> {
 class __$$DocImplCopyWithImpl<$Res> extends _$DocCopyWithImpl<$Res, _$DocImpl>
     implements _$$DocImplCopyWith<$Res> {
   __$$DocImplCopyWithImpl(_$DocImpl _value, $Res Function(_$DocImpl) _then)
-    : super(_value, _then);
+      : super(_value, _then);
 
   /// Create a copy of Doc
   /// with the given fields replaced by the non-null parameter values.
@@ -892,78 +833,65 @@ class __$$DocImplCopyWithImpl<$Res> extends _$DocCopyWithImpl<$Res, _$DocImpl>
     Object? commentsCount = null,
     Object? isLiked = null,
   }) {
-    return _then(
-      _$DocImpl(
-        id:
-            null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                    as String,
-        content:
-            null == content
-                ? _value.content
-                : content // ignore: cast_nullable_to_non_nullable
-                    as String,
-        comic:
-            null == comic
-                ? _value.comic
-                : comic // ignore: cast_nullable_to_non_nullable
-                    as Comic,
-        totalComments:
-            null == totalComments
-                ? _value.totalComments
-                : totalComments // ignore: cast_nullable_to_non_nullable
-                    as int,
-        hide:
-            null == hide
-                ? _value.hide
-                : hide // ignore: cast_nullable_to_non_nullable
-                    as bool,
-        createdAt:
-            null == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                    as DateTime,
-        docId:
-            null == docId
-                ? _value.docId
-                : docId // ignore: cast_nullable_to_non_nullable
-                    as String,
-        likesCount:
-            null == likesCount
-                ? _value.likesCount
-                : likesCount // ignore: cast_nullable_to_non_nullable
-                    as int,
-        commentsCount:
-            null == commentsCount
-                ? _value.commentsCount
-                : commentsCount // ignore: cast_nullable_to_non_nullable
-                    as int,
-        isLiked:
-            null == isLiked
-                ? _value.isLiked
-                : isLiked // ignore: cast_nullable_to_non_nullable
-                    as bool,
-      ),
-    );
+    return _then(_$DocImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      content: null == content
+          ? _value.content
+          : content // ignore: cast_nullable_to_non_nullable
+              as String,
+      comic: null == comic
+          ? _value.comic
+          : comic // ignore: cast_nullable_to_non_nullable
+              as Comic,
+      totalComments: null == totalComments
+          ? _value.totalComments
+          : totalComments // ignore: cast_nullable_to_non_nullable
+              as int,
+      hide: null == hide
+          ? _value.hide
+          : hide // ignore: cast_nullable_to_non_nullable
+              as bool,
+      createdAt: null == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      docId: null == docId
+          ? _value.docId
+          : docId // ignore: cast_nullable_to_non_nullable
+              as String,
+      likesCount: null == likesCount
+          ? _value.likesCount
+          : likesCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      commentsCount: null == commentsCount
+          ? _value.commentsCount
+          : commentsCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      isLiked: null == isLiked
+          ? _value.isLiked
+          : isLiked // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$DocImpl implements _Doc {
-  const _$DocImpl({
-    @JsonKey(name: "_id") required this.id,
-    @JsonKey(name: "content") required this.content,
-    @JsonKey(name: "_comic") required this.comic,
-    @JsonKey(name: "totalComments") required this.totalComments,
-    @JsonKey(name: "hide") required this.hide,
-    @JsonKey(name: "created_at") required this.createdAt,
-    @JsonKey(name: "id") required this.docId,
-    @JsonKey(name: "likesCount") required this.likesCount,
-    @JsonKey(name: "commentsCount") required this.commentsCount,
-    @JsonKey(name: "isLiked") required this.isLiked,
-  });
+  const _$DocImpl(
+      {@JsonKey(name: "_id") required this.id,
+      @JsonKey(name: "content") required this.content,
+      @JsonKey(name: "_comic") required this.comic,
+      @JsonKey(name: "totalComments") required this.totalComments,
+      @JsonKey(name: "hide") required this.hide,
+      @JsonKey(name: "created_at") required this.createdAt,
+      @JsonKey(name: "id") required this.docId,
+      @JsonKey(name: "likesCount") required this.likesCount,
+      @JsonKey(name: "commentsCount") required this.commentsCount,
+      @JsonKey(name: "isLiked") required this.isLiked});
 
   factory _$DocImpl.fromJson(Map<String, dynamic> json) =>
       _$$DocImplFromJson(json);
@@ -1028,18 +956,17 @@ class _$DocImpl implements _Doc {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    content,
-    comic,
-    totalComments,
-    hide,
-    createdAt,
-    docId,
-    likesCount,
-    commentsCount,
-    isLiked,
-  );
+      runtimeType,
+      id,
+      content,
+      comic,
+      totalComments,
+      hide,
+      createdAt,
+      docId,
+      likesCount,
+      commentsCount,
+      isLiked);
 
   /// Create a copy of Doc
   /// with the given fields replaced by the non-null parameter values.
@@ -1051,23 +978,24 @@ class _$DocImpl implements _Doc {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$DocImplToJson(this);
+    return _$$DocImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _Doc implements Doc {
-  const factory _Doc({
-    @JsonKey(name: "_id") required final String id,
-    @JsonKey(name: "content") required final String content,
-    @JsonKey(name: "_comic") required final Comic comic,
-    @JsonKey(name: "totalComments") required final int totalComments,
-    @JsonKey(name: "hide") required final bool hide,
-    @JsonKey(name: "created_at") required final DateTime createdAt,
-    @JsonKey(name: "id") required final String docId,
-    @JsonKey(name: "likesCount") required final int likesCount,
-    @JsonKey(name: "commentsCount") required final int commentsCount,
-    @JsonKey(name: "isLiked") required final bool isLiked,
-  }) = _$DocImpl;
+  const factory _Doc(
+      {@JsonKey(name: "_id") required final String id,
+      @JsonKey(name: "content") required final String content,
+      @JsonKey(name: "_comic") required final Comic comic,
+      @JsonKey(name: "totalComments") required final int totalComments,
+      @JsonKey(name: "hide") required final bool hide,
+      @JsonKey(name: "created_at") required final DateTime createdAt,
+      @JsonKey(name: "id") required final String docId,
+      @JsonKey(name: "likesCount") required final int likesCount,
+      @JsonKey(name: "commentsCount") required final int commentsCount,
+      @JsonKey(name: "isLiked") required final bool isLiked}) = _$DocImpl;
 
   factory _Doc.fromJson(Map<String, dynamic> json) = _$DocImpl.fromJson;
 
@@ -1135,10 +1063,8 @@ abstract class $ComicCopyWith<$Res> {
   factory $ComicCopyWith(Comic value, $Res Function(Comic) then) =
       _$ComicCopyWithImpl<$Res, Comic>;
   @useResult
-  $Res call({
-    @JsonKey(name: "_id") String id,
-    @JsonKey(name: "title") String title,
-  });
+  $Res call(
+      {@JsonKey(name: "_id") String id, @JsonKey(name: "title") String title});
 }
 
 /// @nodoc
@@ -1155,37 +1081,32 @@ class _$ComicCopyWithImpl<$Res, $Val extends Comic>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? id = null, Object? title = null}) {
-    return _then(
-      _value.copyWith(
-            id:
-                null == id
-                    ? _value.id
-                    : id // ignore: cast_nullable_to_non_nullable
-                        as String,
-            title:
-                null == title
-                    ? _value.title
-                    : title // ignore: cast_nullable_to_non_nullable
-                        as String,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? id = null,
+    Object? title = null,
+  }) {
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      title: null == title
+          ? _value.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$ComicImplCopyWith<$Res> implements $ComicCopyWith<$Res> {
   factory _$$ComicImplCopyWith(
-    _$ComicImpl value,
-    $Res Function(_$ComicImpl) then,
-  ) = __$$ComicImplCopyWithImpl<$Res>;
+          _$ComicImpl value, $Res Function(_$ComicImpl) then) =
+      __$$ComicImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    @JsonKey(name: "_id") String id,
-    @JsonKey(name: "title") String title,
-  });
+  $Res call(
+      {@JsonKey(name: "_id") String id, @JsonKey(name: "title") String title});
 }
 
 /// @nodoc
@@ -1193,39 +1114,36 @@ class __$$ComicImplCopyWithImpl<$Res>
     extends _$ComicCopyWithImpl<$Res, _$ComicImpl>
     implements _$$ComicImplCopyWith<$Res> {
   __$$ComicImplCopyWithImpl(
-    _$ComicImpl _value,
-    $Res Function(_$ComicImpl) _then,
-  ) : super(_value, _then);
+      _$ComicImpl _value, $Res Function(_$ComicImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of Comic
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? id = null, Object? title = null}) {
-    return _then(
-      _$ComicImpl(
-        id:
-            null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                    as String,
-        title:
-            null == title
-                ? _value.title
-                : title // ignore: cast_nullable_to_non_nullable
-                    as String,
-      ),
-    );
+  $Res call({
+    Object? id = null,
+    Object? title = null,
+  }) {
+    return _then(_$ComicImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      title: null == title
+          ? _value.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ComicImpl implements _Comic {
-  const _$ComicImpl({
-    @JsonKey(name: "_id") required this.id,
-    @JsonKey(name: "title") required this.title,
-  });
+  const _$ComicImpl(
+      {@JsonKey(name: "_id") required this.id,
+      @JsonKey(name: "title") required this.title});
 
   factory _$ComicImpl.fromJson(Map<String, dynamic> json) =>
       _$$ComicImplFromJson(json);
@@ -1265,15 +1183,16 @@ class _$ComicImpl implements _Comic {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ComicImplToJson(this);
+    return _$$ComicImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _Comic implements Comic {
-  const factory _Comic({
-    @JsonKey(name: "_id") required final String id,
-    @JsonKey(name: "title") required final String title,
-  }) = _$ComicImpl;
+  const factory _Comic(
+      {@JsonKey(name: "_id") required final String id,
+      @JsonKey(name: "title") required final String title}) = _$ComicImpl;
 
   factory _Comic.fromJson(Map<String, dynamic> json) = _$ComicImpl.fromJson;
 

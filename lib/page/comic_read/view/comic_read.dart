@@ -144,17 +144,17 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     debugPrint(_type.toString().split('.').last);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await Future.delayed(Duration(seconds: 1));
-      _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
-        writeToDatabase();
-      });
-
       if (globalSetting.readMode != 0) {
         await Future.delayed(
           Duration(milliseconds: 200),
           () => setState(() => _isVisible = false),
         );
       }
+
+      await Future.delayed(Duration(seconds: 1));
+      _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+        writeToDatabase();
+      });
     });
   }
 

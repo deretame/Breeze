@@ -12,7 +12,8 @@ part of 'eps.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 Eps _$EpsFromJson(Map<String, dynamic> json) {
   return _Eps.fromJson(json);
@@ -41,10 +42,11 @@ abstract class $EpsCopyWith<$Res> {
   factory $EpsCopyWith(Eps value, $Res Function(Eps) then) =
       _$EpsCopyWithImpl<$Res, Eps>;
   @useResult
-  $Res call(
-      {@JsonKey(name: "code") int code,
-      @JsonKey(name: "message") String message,
-      @JsonKey(name: "data") Data data});
+  $Res call({
+    @JsonKey(name: "code") int code,
+    @JsonKey(name: "message") String message,
+    @JsonKey(name: "data") Data data,
+  });
 
   $DataCopyWith<$Res> get data;
 }
@@ -67,20 +69,26 @@ class _$EpsCopyWithImpl<$Res, $Val extends Eps> implements $EpsCopyWith<$Res> {
     Object? message = null,
     Object? data = null,
   }) {
-    return _then(_value.copyWith(
-      code: null == code
-          ? _value.code
-          : code // ignore: cast_nullable_to_non_nullable
-              as int,
-      message: null == message
-          ? _value.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String,
-      data: null == data
-          ? _value.data
-          : data // ignore: cast_nullable_to_non_nullable
-              as Data,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            code:
+                null == code
+                    ? _value.code
+                    : code // ignore: cast_nullable_to_non_nullable
+                        as int,
+            message:
+                null == message
+                    ? _value.message
+                    : message // ignore: cast_nullable_to_non_nullable
+                        as String,
+            data:
+                null == data
+                    ? _value.data
+                    : data // ignore: cast_nullable_to_non_nullable
+                        as Data,
+          )
+          as $Val,
+    );
   }
 
   /// Create a copy of Eps
@@ -100,10 +108,11 @@ abstract class _$$EpsImplCopyWith<$Res> implements $EpsCopyWith<$Res> {
       __$$EpsImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: "code") int code,
-      @JsonKey(name: "message") String message,
-      @JsonKey(name: "data") Data data});
+  $Res call({
+    @JsonKey(name: "code") int code,
+    @JsonKey(name: "message") String message,
+    @JsonKey(name: "data") Data data,
+  });
 
   @override
   $DataCopyWith<$Res> get data;
@@ -113,7 +122,7 @@ abstract class _$$EpsImplCopyWith<$Res> implements $EpsCopyWith<$Res> {
 class __$$EpsImplCopyWithImpl<$Res> extends _$EpsCopyWithImpl<$Res, _$EpsImpl>
     implements _$$EpsImplCopyWith<$Res> {
   __$$EpsImplCopyWithImpl(_$EpsImpl _value, $Res Function(_$EpsImpl) _then)
-      : super(_value, _then);
+    : super(_value, _then);
 
   /// Create a copy of Eps
   /// with the given fields replaced by the non-null parameter values.
@@ -124,30 +133,36 @@ class __$$EpsImplCopyWithImpl<$Res> extends _$EpsCopyWithImpl<$Res, _$EpsImpl>
     Object? message = null,
     Object? data = null,
   }) {
-    return _then(_$EpsImpl(
-      code: null == code
-          ? _value.code
-          : code // ignore: cast_nullable_to_non_nullable
-              as int,
-      message: null == message
-          ? _value.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String,
-      data: null == data
-          ? _value.data
-          : data // ignore: cast_nullable_to_non_nullable
-              as Data,
-    ));
+    return _then(
+      _$EpsImpl(
+        code:
+            null == code
+                ? _value.code
+                : code // ignore: cast_nullable_to_non_nullable
+                    as int,
+        message:
+            null == message
+                ? _value.message
+                : message // ignore: cast_nullable_to_non_nullable
+                    as String,
+        data:
+            null == data
+                ? _value.data
+                : data // ignore: cast_nullable_to_non_nullable
+                    as Data,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$EpsImpl implements _Eps {
-  const _$EpsImpl(
-      {@JsonKey(name: "code") required this.code,
-      @JsonKey(name: "message") required this.message,
-      @JsonKey(name: "data") required this.data});
+  const _$EpsImpl({
+    @JsonKey(name: "code") required this.code,
+    @JsonKey(name: "message") required this.message,
+    @JsonKey(name: "data") required this.data,
+  });
 
   factory _$EpsImpl.fromJson(Map<String, dynamic> json) =>
       _$$EpsImplFromJson(json);
@@ -191,17 +206,16 @@ class _$EpsImpl implements _Eps {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$EpsImplToJson(
-      this,
-    );
+    return _$$EpsImplToJson(this);
   }
 }
 
 abstract class _Eps implements Eps {
-  const factory _Eps(
-      {@JsonKey(name: "code") required final int code,
-      @JsonKey(name: "message") required final String message,
-      @JsonKey(name: "data") required final Data data}) = _$EpsImpl;
+  const factory _Eps({
+    @JsonKey(name: "code") required final int code,
+    @JsonKey(name: "message") required final String message,
+    @JsonKey(name: "data") required final Data data,
+  }) = _$EpsImpl;
 
   factory _Eps.fromJson(Map<String, dynamic> json) = _$EpsImpl.fromJson;
 
@@ -265,15 +279,17 @@ class _$DataCopyWithImpl<$Res, $Val extends Data>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? eps = null,
-  }) {
-    return _then(_value.copyWith(
-      eps: null == eps
-          ? _value.eps
-          : eps // ignore: cast_nullable_to_non_nullable
-              as EpsClass,
-    ) as $Val);
+  $Res call({Object? eps = null}) {
+    return _then(
+      _value.copyWith(
+            eps:
+                null == eps
+                    ? _value.eps
+                    : eps // ignore: cast_nullable_to_non_nullable
+                        as EpsClass,
+          )
+          as $Val,
+    );
   }
 
   /// Create a copy of Data
@@ -290,8 +306,9 @@ class _$DataCopyWithImpl<$Res, $Val extends Data>
 /// @nodoc
 abstract class _$$DataImplCopyWith<$Res> implements $DataCopyWith<$Res> {
   factory _$$DataImplCopyWith(
-          _$DataImpl value, $Res Function(_$DataImpl) then) =
-      __$$DataImplCopyWithImpl<$Res>;
+    _$DataImpl value,
+    $Res Function(_$DataImpl) then,
+  ) = __$$DataImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({@JsonKey(name: "eps") EpsClass eps});
@@ -305,21 +322,22 @@ class __$$DataImplCopyWithImpl<$Res>
     extends _$DataCopyWithImpl<$Res, _$DataImpl>
     implements _$$DataImplCopyWith<$Res> {
   __$$DataImplCopyWithImpl(_$DataImpl _value, $Res Function(_$DataImpl) _then)
-      : super(_value, _then);
+    : super(_value, _then);
 
   /// Create a copy of Data
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? eps = null,
-  }) {
-    return _then(_$DataImpl(
-      eps: null == eps
-          ? _value.eps
-          : eps // ignore: cast_nullable_to_non_nullable
-              as EpsClass,
-    ));
+  $Res call({Object? eps = null}) {
+    return _then(
+      _$DataImpl(
+        eps:
+            null == eps
+                ? _value.eps
+                : eps // ignore: cast_nullable_to_non_nullable
+                    as EpsClass,
+      ),
+    );
   }
 }
 
@@ -362,9 +380,7 @@ class _$DataImpl implements _Data {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$DataImplToJson(
-      this,
-    );
+    return _$$DataImplToJson(this);
   }
 }
 
@@ -418,12 +434,13 @@ abstract class $EpsClassCopyWith<$Res> {
   factory $EpsClassCopyWith(EpsClass value, $Res Function(EpsClass) then) =
       _$EpsClassCopyWithImpl<$Res, EpsClass>;
   @useResult
-  $Res call(
-      {@JsonKey(name: "docs") List<Doc> docs,
-      @JsonKey(name: "total") int total,
-      @JsonKey(name: "limit") int limit,
-      @JsonKey(name: "page") int page,
-      @JsonKey(name: "pages") int pages});
+  $Res call({
+    @JsonKey(name: "docs") List<Doc> docs,
+    @JsonKey(name: "total") int total,
+    @JsonKey(name: "limit") int limit,
+    @JsonKey(name: "page") int page,
+    @JsonKey(name: "pages") int pages,
+  });
 }
 
 /// @nodoc
@@ -447,28 +464,36 @@ class _$EpsClassCopyWithImpl<$Res, $Val extends EpsClass>
     Object? page = null,
     Object? pages = null,
   }) {
-    return _then(_value.copyWith(
-      docs: null == docs
-          ? _value.docs
-          : docs // ignore: cast_nullable_to_non_nullable
-              as List<Doc>,
-      total: null == total
-          ? _value.total
-          : total // ignore: cast_nullable_to_non_nullable
-              as int,
-      limit: null == limit
-          ? _value.limit
-          : limit // ignore: cast_nullable_to_non_nullable
-              as int,
-      page: null == page
-          ? _value.page
-          : page // ignore: cast_nullable_to_non_nullable
-              as int,
-      pages: null == pages
-          ? _value.pages
-          : pages // ignore: cast_nullable_to_non_nullable
-              as int,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            docs:
+                null == docs
+                    ? _value.docs
+                    : docs // ignore: cast_nullable_to_non_nullable
+                        as List<Doc>,
+            total:
+                null == total
+                    ? _value.total
+                    : total // ignore: cast_nullable_to_non_nullable
+                        as int,
+            limit:
+                null == limit
+                    ? _value.limit
+                    : limit // ignore: cast_nullable_to_non_nullable
+                        as int,
+            page:
+                null == page
+                    ? _value.page
+                    : page // ignore: cast_nullable_to_non_nullable
+                        as int,
+            pages:
+                null == pages
+                    ? _value.pages
+                    : pages // ignore: cast_nullable_to_non_nullable
+                        as int,
+          )
+          as $Val,
+    );
   }
 }
 
@@ -476,16 +501,18 @@ class _$EpsClassCopyWithImpl<$Res, $Val extends EpsClass>
 abstract class _$$EpsClassImplCopyWith<$Res>
     implements $EpsClassCopyWith<$Res> {
   factory _$$EpsClassImplCopyWith(
-          _$EpsClassImpl value, $Res Function(_$EpsClassImpl) then) =
-      __$$EpsClassImplCopyWithImpl<$Res>;
+    _$EpsClassImpl value,
+    $Res Function(_$EpsClassImpl) then,
+  ) = __$$EpsClassImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: "docs") List<Doc> docs,
-      @JsonKey(name: "total") int total,
-      @JsonKey(name: "limit") int limit,
-      @JsonKey(name: "page") int page,
-      @JsonKey(name: "pages") int pages});
+  $Res call({
+    @JsonKey(name: "docs") List<Doc> docs,
+    @JsonKey(name: "total") int total,
+    @JsonKey(name: "limit") int limit,
+    @JsonKey(name: "page") int page,
+    @JsonKey(name: "pages") int pages,
+  });
 }
 
 /// @nodoc
@@ -493,8 +520,9 @@ class __$$EpsClassImplCopyWithImpl<$Res>
     extends _$EpsClassCopyWithImpl<$Res, _$EpsClassImpl>
     implements _$$EpsClassImplCopyWith<$Res> {
   __$$EpsClassImplCopyWithImpl(
-      _$EpsClassImpl _value, $Res Function(_$EpsClassImpl) _then)
-      : super(_value, _then);
+    _$EpsClassImpl _value,
+    $Res Function(_$EpsClassImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of EpsClass
   /// with the given fields replaced by the non-null parameter values.
@@ -507,41 +535,48 @@ class __$$EpsClassImplCopyWithImpl<$Res>
     Object? page = null,
     Object? pages = null,
   }) {
-    return _then(_$EpsClassImpl(
-      docs: null == docs
-          ? _value._docs
-          : docs // ignore: cast_nullable_to_non_nullable
-              as List<Doc>,
-      total: null == total
-          ? _value.total
-          : total // ignore: cast_nullable_to_non_nullable
-              as int,
-      limit: null == limit
-          ? _value.limit
-          : limit // ignore: cast_nullable_to_non_nullable
-              as int,
-      page: null == page
-          ? _value.page
-          : page // ignore: cast_nullable_to_non_nullable
-              as int,
-      pages: null == pages
-          ? _value.pages
-          : pages // ignore: cast_nullable_to_non_nullable
-              as int,
-    ));
+    return _then(
+      _$EpsClassImpl(
+        docs:
+            null == docs
+                ? _value._docs
+                : docs // ignore: cast_nullable_to_non_nullable
+                    as List<Doc>,
+        total:
+            null == total
+                ? _value.total
+                : total // ignore: cast_nullable_to_non_nullable
+                    as int,
+        limit:
+            null == limit
+                ? _value.limit
+                : limit // ignore: cast_nullable_to_non_nullable
+                    as int,
+        page:
+            null == page
+                ? _value.page
+                : page // ignore: cast_nullable_to_non_nullable
+                    as int,
+        pages:
+            null == pages
+                ? _value.pages
+                : pages // ignore: cast_nullable_to_non_nullable
+                    as int,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$EpsClassImpl implements _EpsClass {
-  const _$EpsClassImpl(
-      {@JsonKey(name: "docs") required final List<Doc> docs,
-      @JsonKey(name: "total") required this.total,
-      @JsonKey(name: "limit") required this.limit,
-      @JsonKey(name: "page") required this.page,
-      @JsonKey(name: "pages") required this.pages})
-      : _docs = docs;
+  const _$EpsClassImpl({
+    @JsonKey(name: "docs") required final List<Doc> docs,
+    @JsonKey(name: "total") required this.total,
+    @JsonKey(name: "limit") required this.limit,
+    @JsonKey(name: "page") required this.page,
+    @JsonKey(name: "pages") required this.pages,
+  }) : _docs = docs;
 
   factory _$EpsClassImpl.fromJson(Map<String, dynamic> json) =>
       _$$EpsClassImplFromJson(json);
@@ -587,8 +622,14 @@ class _$EpsClassImpl implements _EpsClass {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType,
-      const DeepCollectionEquality().hash(_docs), total, limit, page, pages);
+  int get hashCode => Object.hash(
+    runtimeType,
+    const DeepCollectionEquality().hash(_docs),
+    total,
+    limit,
+    page,
+    pages,
+  );
 
   /// Create a copy of EpsClass
   /// with the given fields replaced by the non-null parameter values.
@@ -600,19 +641,18 @@ class _$EpsClassImpl implements _EpsClass {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$EpsClassImplToJson(
-      this,
-    );
+    return _$$EpsClassImplToJson(this);
   }
 }
 
 abstract class _EpsClass implements EpsClass {
-  const factory _EpsClass(
-      {@JsonKey(name: "docs") required final List<Doc> docs,
-      @JsonKey(name: "total") required final int total,
-      @JsonKey(name: "limit") required final int limit,
-      @JsonKey(name: "page") required final int page,
-      @JsonKey(name: "pages") required final int pages}) = _$EpsClassImpl;
+  const factory _EpsClass({
+    @JsonKey(name: "docs") required final List<Doc> docs,
+    @JsonKey(name: "total") required final int total,
+    @JsonKey(name: "limit") required final int limit,
+    @JsonKey(name: "page") required final int page,
+    @JsonKey(name: "pages") required final int pages,
+  }) = _$EpsClassImpl;
 
   factory _EpsClass.fromJson(Map<String, dynamic> json) =
       _$EpsClassImpl.fromJson;
@@ -672,12 +712,13 @@ abstract class $DocCopyWith<$Res> {
   factory $DocCopyWith(Doc value, $Res Function(Doc) then) =
       _$DocCopyWithImpl<$Res, Doc>;
   @useResult
-  $Res call(
-      {@JsonKey(name: "_id") String id,
-      @JsonKey(name: "title") String title,
-      @JsonKey(name: "order") int order,
-      @JsonKey(name: "updated_at") DateTime updatedAt,
-      @JsonKey(name: "id") String docId});
+  $Res call({
+    @JsonKey(name: "_id") String id,
+    @JsonKey(name: "title") String title,
+    @JsonKey(name: "order") int order,
+    @JsonKey(name: "updated_at") DateTime updatedAt,
+    @JsonKey(name: "id") String docId,
+  });
 }
 
 /// @nodoc
@@ -700,28 +741,36 @@ class _$DocCopyWithImpl<$Res, $Val extends Doc> implements $DocCopyWith<$Res> {
     Object? updatedAt = null,
     Object? docId = null,
   }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      order: null == order
-          ? _value.order
-          : order // ignore: cast_nullable_to_non_nullable
-              as int,
-      updatedAt: null == updatedAt
-          ? _value.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      docId: null == docId
-          ? _value.docId
-          : docId // ignore: cast_nullable_to_non_nullable
-              as String,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            id:
+                null == id
+                    ? _value.id
+                    : id // ignore: cast_nullable_to_non_nullable
+                        as String,
+            title:
+                null == title
+                    ? _value.title
+                    : title // ignore: cast_nullable_to_non_nullable
+                        as String,
+            order:
+                null == order
+                    ? _value.order
+                    : order // ignore: cast_nullable_to_non_nullable
+                        as int,
+            updatedAt:
+                null == updatedAt
+                    ? _value.updatedAt
+                    : updatedAt // ignore: cast_nullable_to_non_nullable
+                        as DateTime,
+            docId:
+                null == docId
+                    ? _value.docId
+                    : docId // ignore: cast_nullable_to_non_nullable
+                        as String,
+          )
+          as $Val,
+    );
   }
 }
 
@@ -731,19 +780,20 @@ abstract class _$$DocImplCopyWith<$Res> implements $DocCopyWith<$Res> {
       __$$DocImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: "_id") String id,
-      @JsonKey(name: "title") String title,
-      @JsonKey(name: "order") int order,
-      @JsonKey(name: "updated_at") DateTime updatedAt,
-      @JsonKey(name: "id") String docId});
+  $Res call({
+    @JsonKey(name: "_id") String id,
+    @JsonKey(name: "title") String title,
+    @JsonKey(name: "order") int order,
+    @JsonKey(name: "updated_at") DateTime updatedAt,
+    @JsonKey(name: "id") String docId,
+  });
 }
 
 /// @nodoc
 class __$$DocImplCopyWithImpl<$Res> extends _$DocCopyWithImpl<$Res, _$DocImpl>
     implements _$$DocImplCopyWith<$Res> {
   __$$DocImplCopyWithImpl(_$DocImpl _value, $Res Function(_$DocImpl) _then)
-      : super(_value, _then);
+    : super(_value, _then);
 
   /// Create a copy of Doc
   /// with the given fields replaced by the non-null parameter values.
@@ -756,40 +806,48 @@ class __$$DocImplCopyWithImpl<$Res> extends _$DocCopyWithImpl<$Res, _$DocImpl>
     Object? updatedAt = null,
     Object? docId = null,
   }) {
-    return _then(_$DocImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      order: null == order
-          ? _value.order
-          : order // ignore: cast_nullable_to_non_nullable
-              as int,
-      updatedAt: null == updatedAt
-          ? _value.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      docId: null == docId
-          ? _value.docId
-          : docId // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
+    return _then(
+      _$DocImpl(
+        id:
+            null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                    as String,
+        title:
+            null == title
+                ? _value.title
+                : title // ignore: cast_nullable_to_non_nullable
+                    as String,
+        order:
+            null == order
+                ? _value.order
+                : order // ignore: cast_nullable_to_non_nullable
+                    as int,
+        updatedAt:
+            null == updatedAt
+                ? _value.updatedAt
+                : updatedAt // ignore: cast_nullable_to_non_nullable
+                    as DateTime,
+        docId:
+            null == docId
+                ? _value.docId
+                : docId // ignore: cast_nullable_to_non_nullable
+                    as String,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$DocImpl implements _Doc {
-  const _$DocImpl(
-      {@JsonKey(name: "_id") required this.id,
-      @JsonKey(name: "title") required this.title,
-      @JsonKey(name: "order") required this.order,
-      @JsonKey(name: "updated_at") required this.updatedAt,
-      @JsonKey(name: "id") required this.docId});
+  const _$DocImpl({
+    @JsonKey(name: "_id") required this.id,
+    @JsonKey(name: "title") required this.title,
+    @JsonKey(name: "order") required this.order,
+    @JsonKey(name: "updated_at") required this.updatedAt,
+    @JsonKey(name: "id") required this.docId,
+  });
 
   factory _$DocImpl.fromJson(Map<String, dynamic> json) =>
       _$$DocImplFromJson(json);
@@ -843,19 +901,18 @@ class _$DocImpl implements _Doc {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$DocImplToJson(
-      this,
-    );
+    return _$$DocImplToJson(this);
   }
 }
 
 abstract class _Doc implements Doc {
-  const factory _Doc(
-      {@JsonKey(name: "_id") required final String id,
-      @JsonKey(name: "title") required final String title,
-      @JsonKey(name: "order") required final int order,
-      @JsonKey(name: "updated_at") required final DateTime updatedAt,
-      @JsonKey(name: "id") required final String docId}) = _$DocImpl;
+  const factory _Doc({
+    @JsonKey(name: "_id") required final String id,
+    @JsonKey(name: "title") required final String title,
+    @JsonKey(name: "order") required final int order,
+    @JsonKey(name: "updated_at") required final DateTime updatedAt,
+    @JsonKey(name: "id") required final String docId,
+  }) = _$DocImpl;
 
   factory _Doc.fromJson(Map<String, dynamic> json) = _$DocImpl.fromJson;
 

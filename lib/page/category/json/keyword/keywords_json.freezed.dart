@@ -12,7 +12,8 @@ part of 'keywords_json.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 KeywordsJson _$KeywordsJsonFromJson(Map<String, dynamic> json) {
   return _KeywordsJson.fromJson(json);
@@ -40,13 +41,15 @@ mixin _$KeywordsJson {
 /// @nodoc
 abstract class $KeywordsJsonCopyWith<$Res> {
   factory $KeywordsJsonCopyWith(
-          KeywordsJson value, $Res Function(KeywordsJson) then) =
-      _$KeywordsJsonCopyWithImpl<$Res, KeywordsJson>;
+    KeywordsJson value,
+    $Res Function(KeywordsJson) then,
+  ) = _$KeywordsJsonCopyWithImpl<$Res, KeywordsJson>;
   @useResult
-  $Res call(
-      {@JsonKey(name: "code") int code,
-      @JsonKey(name: "message") String message,
-      @JsonKey(name: "data") Data data});
+  $Res call({
+    @JsonKey(name: "code") int code,
+    @JsonKey(name: "message") String message,
+    @JsonKey(name: "data") Data data,
+  });
 
   $DataCopyWith<$Res> get data;
 }
@@ -70,20 +73,26 @@ class _$KeywordsJsonCopyWithImpl<$Res, $Val extends KeywordsJson>
     Object? message = null,
     Object? data = null,
   }) {
-    return _then(_value.copyWith(
-      code: null == code
-          ? _value.code
-          : code // ignore: cast_nullable_to_non_nullable
-              as int,
-      message: null == message
-          ? _value.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String,
-      data: null == data
-          ? _value.data
-          : data // ignore: cast_nullable_to_non_nullable
-              as Data,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            code:
+                null == code
+                    ? _value.code
+                    : code // ignore: cast_nullable_to_non_nullable
+                        as int,
+            message:
+                null == message
+                    ? _value.message
+                    : message // ignore: cast_nullable_to_non_nullable
+                        as String,
+            data:
+                null == data
+                    ? _value.data
+                    : data // ignore: cast_nullable_to_non_nullable
+                        as Data,
+          )
+          as $Val,
+    );
   }
 
   /// Create a copy of KeywordsJson
@@ -101,14 +110,16 @@ class _$KeywordsJsonCopyWithImpl<$Res, $Val extends KeywordsJson>
 abstract class _$$KeywordsJsonImplCopyWith<$Res>
     implements $KeywordsJsonCopyWith<$Res> {
   factory _$$KeywordsJsonImplCopyWith(
-          _$KeywordsJsonImpl value, $Res Function(_$KeywordsJsonImpl) then) =
-      __$$KeywordsJsonImplCopyWithImpl<$Res>;
+    _$KeywordsJsonImpl value,
+    $Res Function(_$KeywordsJsonImpl) then,
+  ) = __$$KeywordsJsonImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: "code") int code,
-      @JsonKey(name: "message") String message,
-      @JsonKey(name: "data") Data data});
+  $Res call({
+    @JsonKey(name: "code") int code,
+    @JsonKey(name: "message") String message,
+    @JsonKey(name: "data") Data data,
+  });
 
   @override
   $DataCopyWith<$Res> get data;
@@ -119,8 +130,9 @@ class __$$KeywordsJsonImplCopyWithImpl<$Res>
     extends _$KeywordsJsonCopyWithImpl<$Res, _$KeywordsJsonImpl>
     implements _$$KeywordsJsonImplCopyWith<$Res> {
   __$$KeywordsJsonImplCopyWithImpl(
-      _$KeywordsJsonImpl _value, $Res Function(_$KeywordsJsonImpl) _then)
-      : super(_value, _then);
+    _$KeywordsJsonImpl _value,
+    $Res Function(_$KeywordsJsonImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of KeywordsJson
   /// with the given fields replaced by the non-null parameter values.
@@ -131,30 +143,36 @@ class __$$KeywordsJsonImplCopyWithImpl<$Res>
     Object? message = null,
     Object? data = null,
   }) {
-    return _then(_$KeywordsJsonImpl(
-      code: null == code
-          ? _value.code
-          : code // ignore: cast_nullable_to_non_nullable
-              as int,
-      message: null == message
-          ? _value.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String,
-      data: null == data
-          ? _value.data
-          : data // ignore: cast_nullable_to_non_nullable
-              as Data,
-    ));
+    return _then(
+      _$KeywordsJsonImpl(
+        code:
+            null == code
+                ? _value.code
+                : code // ignore: cast_nullable_to_non_nullable
+                    as int,
+        message:
+            null == message
+                ? _value.message
+                : message // ignore: cast_nullable_to_non_nullable
+                    as String,
+        data:
+            null == data
+                ? _value.data
+                : data // ignore: cast_nullable_to_non_nullable
+                    as Data,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$KeywordsJsonImpl implements _KeywordsJson {
-  const _$KeywordsJsonImpl(
-      {@JsonKey(name: "code") required this.code,
-      @JsonKey(name: "message") required this.message,
-      @JsonKey(name: "data") required this.data});
+  const _$KeywordsJsonImpl({
+    @JsonKey(name: "code") required this.code,
+    @JsonKey(name: "message") required this.message,
+    @JsonKey(name: "data") required this.data,
+  });
 
   factory _$KeywordsJsonImpl.fromJson(Map<String, dynamic> json) =>
       _$$KeywordsJsonImplFromJson(json);
@@ -198,17 +216,16 @@ class _$KeywordsJsonImpl implements _KeywordsJson {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$KeywordsJsonImplToJson(
-      this,
-    );
+    return _$$KeywordsJsonImplToJson(this);
   }
 }
 
 abstract class _KeywordsJson implements KeywordsJson {
-  const factory _KeywordsJson(
-      {@JsonKey(name: "code") required final int code,
-      @JsonKey(name: "message") required final String message,
-      @JsonKey(name: "data") required final Data data}) = _$KeywordsJsonImpl;
+  const factory _KeywordsJson({
+    @JsonKey(name: "code") required final int code,
+    @JsonKey(name: "message") required final String message,
+    @JsonKey(name: "data") required final Data data,
+  }) = _$KeywordsJsonImpl;
 
   factory _KeywordsJson.fromJson(Map<String, dynamic> json) =
       _$KeywordsJsonImpl.fromJson;
@@ -271,23 +288,26 @@ class _$DataCopyWithImpl<$Res, $Val extends Data>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? keywords = null,
-  }) {
-    return _then(_value.copyWith(
-      keywords: null == keywords
-          ? _value.keywords
-          : keywords // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-    ) as $Val);
+  $Res call({Object? keywords = null}) {
+    return _then(
+      _value.copyWith(
+            keywords:
+                null == keywords
+                    ? _value.keywords
+                    : keywords // ignore: cast_nullable_to_non_nullable
+                        as List<String>,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$DataImplCopyWith<$Res> implements $DataCopyWith<$Res> {
   factory _$$DataImplCopyWith(
-          _$DataImpl value, $Res Function(_$DataImpl) then) =
-      __$$DataImplCopyWithImpl<$Res>;
+    _$DataImpl value,
+    $Res Function(_$DataImpl) then,
+  ) = __$$DataImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({@JsonKey(name: "keywords") List<String> keywords});
@@ -298,30 +318,31 @@ class __$$DataImplCopyWithImpl<$Res>
     extends _$DataCopyWithImpl<$Res, _$DataImpl>
     implements _$$DataImplCopyWith<$Res> {
   __$$DataImplCopyWithImpl(_$DataImpl _value, $Res Function(_$DataImpl) _then)
-      : super(_value, _then);
+    : super(_value, _then);
 
   /// Create a copy of Data
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? keywords = null,
-  }) {
-    return _then(_$DataImpl(
-      keywords: null == keywords
-          ? _value._keywords
-          : keywords // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-    ));
+  $Res call({Object? keywords = null}) {
+    return _then(
+      _$DataImpl(
+        keywords:
+            null == keywords
+                ? _value._keywords
+                : keywords // ignore: cast_nullable_to_non_nullable
+                    as List<String>,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$DataImpl implements _Data {
-  const _$DataImpl(
-      {@JsonKey(name: "keywords") required final List<String> keywords})
-      : _keywords = keywords;
+  const _$DataImpl({
+    @JsonKey(name: "keywords") required final List<String> keywords,
+  }) : _keywords = keywords;
 
   factory _$DataImpl.fromJson(Map<String, dynamic> json) =>
       _$$DataImplFromJson(json);
@@ -363,16 +384,14 @@ class _$DataImpl implements _Data {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$DataImplToJson(
-      this,
-    );
+    return _$$DataImplToJson(this);
   }
 }
 
 abstract class _Data implements Data {
-  const factory _Data(
-          {@JsonKey(name: "keywords") required final List<String> keywords}) =
-      _$DataImpl;
+  const factory _Data({
+    @JsonKey(name: "keywords") required final List<String> keywords,
+  }) = _$DataImpl;
 
   factory _Data.fromJson(Map<String, dynamic> json) = _$DataImpl.fromJson;
 

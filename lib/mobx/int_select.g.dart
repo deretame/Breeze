@@ -24,13 +24,16 @@ mixin _$IntSelectStore on _IntSelectStore, Store {
     });
   }
 
-  late final _$_IntSelectStoreActionController =
-      ActionController(name: '_IntSelectStore', context: context);
+  late final _$_IntSelectStoreActionController = ActionController(
+    name: '_IntSelectStore',
+    context: context,
+  );
 
   @override
   void setDate(int newDate) {
     final _$actionInfo = _$_IntSelectStoreActionController.startAction(
-        name: '_IntSelectStore.setDate');
+      name: '_IntSelectStore.setDate',
+    );
     try {
       return super.setDate(newDate);
     } finally {

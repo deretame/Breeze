@@ -12,7 +12,8 @@ part of 'github_release_json.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 GithubReleaseJson _$GithubReleaseJsonFromJson(Map<String, dynamic> json) {
   return _GithubReleaseJson.fromJson(json);
@@ -70,28 +71,30 @@ mixin _$GithubReleaseJson {
 /// @nodoc
 abstract class $GithubReleaseJsonCopyWith<$Res> {
   factory $GithubReleaseJsonCopyWith(
-          GithubReleaseJson value, $Res Function(GithubReleaseJson) then) =
-      _$GithubReleaseJsonCopyWithImpl<$Res, GithubReleaseJson>;
+    GithubReleaseJson value,
+    $Res Function(GithubReleaseJson) then,
+  ) = _$GithubReleaseJsonCopyWithImpl<$Res, GithubReleaseJson>;
   @useResult
-  $Res call(
-      {@JsonKey(name: "url") String url,
-      @JsonKey(name: "assets_url") String assetsUrl,
-      @JsonKey(name: "upload_url") String uploadUrl,
-      @JsonKey(name: "html_url") String htmlUrl,
-      @JsonKey(name: "id") int id,
-      @JsonKey(name: "author") Author author,
-      @JsonKey(name: "node_id") String nodeId,
-      @JsonKey(name: "tag_name") String tagName,
-      @JsonKey(name: "target_commitish") String targetCommitish,
-      @JsonKey(name: "name") String name,
-      @JsonKey(name: "draft") bool draft,
-      @JsonKey(name: "prerelease") bool prerelease,
-      @JsonKey(name: "created_at") DateTime createdAt,
-      @JsonKey(name: "published_at") DateTime publishedAt,
-      @JsonKey(name: "assets") List<Asset> assets,
-      @JsonKey(name: "tarball_url") String tarballUrl,
-      @JsonKey(name: "zipball_url") String zipballUrl,
-      @JsonKey(name: "body") String body});
+  $Res call({
+    @JsonKey(name: "url") String url,
+    @JsonKey(name: "assets_url") String assetsUrl,
+    @JsonKey(name: "upload_url") String uploadUrl,
+    @JsonKey(name: "html_url") String htmlUrl,
+    @JsonKey(name: "id") int id,
+    @JsonKey(name: "author") Author author,
+    @JsonKey(name: "node_id") String nodeId,
+    @JsonKey(name: "tag_name") String tagName,
+    @JsonKey(name: "target_commitish") String targetCommitish,
+    @JsonKey(name: "name") String name,
+    @JsonKey(name: "draft") bool draft,
+    @JsonKey(name: "prerelease") bool prerelease,
+    @JsonKey(name: "created_at") DateTime createdAt,
+    @JsonKey(name: "published_at") DateTime publishedAt,
+    @JsonKey(name: "assets") List<Asset> assets,
+    @JsonKey(name: "tarball_url") String tarballUrl,
+    @JsonKey(name: "zipball_url") String zipballUrl,
+    @JsonKey(name: "body") String body,
+  });
 
   $AuthorCopyWith<$Res> get author;
 }
@@ -130,80 +133,101 @@ class _$GithubReleaseJsonCopyWithImpl<$Res, $Val extends GithubReleaseJson>
     Object? zipballUrl = null,
     Object? body = null,
   }) {
-    return _then(_value.copyWith(
-      url: null == url
-          ? _value.url
-          : url // ignore: cast_nullable_to_non_nullable
-              as String,
-      assetsUrl: null == assetsUrl
-          ? _value.assetsUrl
-          : assetsUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      uploadUrl: null == uploadUrl
-          ? _value.uploadUrl
-          : uploadUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      htmlUrl: null == htmlUrl
-          ? _value.htmlUrl
-          : htmlUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      author: null == author
-          ? _value.author
-          : author // ignore: cast_nullable_to_non_nullable
-              as Author,
-      nodeId: null == nodeId
-          ? _value.nodeId
-          : nodeId // ignore: cast_nullable_to_non_nullable
-              as String,
-      tagName: null == tagName
-          ? _value.tagName
-          : tagName // ignore: cast_nullable_to_non_nullable
-              as String,
-      targetCommitish: null == targetCommitish
-          ? _value.targetCommitish
-          : targetCommitish // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      draft: null == draft
-          ? _value.draft
-          : draft // ignore: cast_nullable_to_non_nullable
-              as bool,
-      prerelease: null == prerelease
-          ? _value.prerelease
-          : prerelease // ignore: cast_nullable_to_non_nullable
-              as bool,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      publishedAt: null == publishedAt
-          ? _value.publishedAt
-          : publishedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      assets: null == assets
-          ? _value.assets
-          : assets // ignore: cast_nullable_to_non_nullable
-              as List<Asset>,
-      tarballUrl: null == tarballUrl
-          ? _value.tarballUrl
-          : tarballUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      zipballUrl: null == zipballUrl
-          ? _value.zipballUrl
-          : zipballUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      body: null == body
-          ? _value.body
-          : body // ignore: cast_nullable_to_non_nullable
-              as String,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            url:
+                null == url
+                    ? _value.url
+                    : url // ignore: cast_nullable_to_non_nullable
+                        as String,
+            assetsUrl:
+                null == assetsUrl
+                    ? _value.assetsUrl
+                    : assetsUrl // ignore: cast_nullable_to_non_nullable
+                        as String,
+            uploadUrl:
+                null == uploadUrl
+                    ? _value.uploadUrl
+                    : uploadUrl // ignore: cast_nullable_to_non_nullable
+                        as String,
+            htmlUrl:
+                null == htmlUrl
+                    ? _value.htmlUrl
+                    : htmlUrl // ignore: cast_nullable_to_non_nullable
+                        as String,
+            id:
+                null == id
+                    ? _value.id
+                    : id // ignore: cast_nullable_to_non_nullable
+                        as int,
+            author:
+                null == author
+                    ? _value.author
+                    : author // ignore: cast_nullable_to_non_nullable
+                        as Author,
+            nodeId:
+                null == nodeId
+                    ? _value.nodeId
+                    : nodeId // ignore: cast_nullable_to_non_nullable
+                        as String,
+            tagName:
+                null == tagName
+                    ? _value.tagName
+                    : tagName // ignore: cast_nullable_to_non_nullable
+                        as String,
+            targetCommitish:
+                null == targetCommitish
+                    ? _value.targetCommitish
+                    : targetCommitish // ignore: cast_nullable_to_non_nullable
+                        as String,
+            name:
+                null == name
+                    ? _value.name
+                    : name // ignore: cast_nullable_to_non_nullable
+                        as String,
+            draft:
+                null == draft
+                    ? _value.draft
+                    : draft // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            prerelease:
+                null == prerelease
+                    ? _value.prerelease
+                    : prerelease // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            createdAt:
+                null == createdAt
+                    ? _value.createdAt
+                    : createdAt // ignore: cast_nullable_to_non_nullable
+                        as DateTime,
+            publishedAt:
+                null == publishedAt
+                    ? _value.publishedAt
+                    : publishedAt // ignore: cast_nullable_to_non_nullable
+                        as DateTime,
+            assets:
+                null == assets
+                    ? _value.assets
+                    : assets // ignore: cast_nullable_to_non_nullable
+                        as List<Asset>,
+            tarballUrl:
+                null == tarballUrl
+                    ? _value.tarballUrl
+                    : tarballUrl // ignore: cast_nullable_to_non_nullable
+                        as String,
+            zipballUrl:
+                null == zipballUrl
+                    ? _value.zipballUrl
+                    : zipballUrl // ignore: cast_nullable_to_non_nullable
+                        as String,
+            body:
+                null == body
+                    ? _value.body
+                    : body // ignore: cast_nullable_to_non_nullable
+                        as String,
+          )
+          as $Val,
+    );
   }
 
   /// Create a copy of GithubReleaseJson
@@ -220,30 +244,32 @@ class _$GithubReleaseJsonCopyWithImpl<$Res, $Val extends GithubReleaseJson>
 /// @nodoc
 abstract class _$$GithubReleaseJsonImplCopyWith<$Res>
     implements $GithubReleaseJsonCopyWith<$Res> {
-  factory _$$GithubReleaseJsonImplCopyWith(_$GithubReleaseJsonImpl value,
-          $Res Function(_$GithubReleaseJsonImpl) then) =
-      __$$GithubReleaseJsonImplCopyWithImpl<$Res>;
+  factory _$$GithubReleaseJsonImplCopyWith(
+    _$GithubReleaseJsonImpl value,
+    $Res Function(_$GithubReleaseJsonImpl) then,
+  ) = __$$GithubReleaseJsonImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: "url") String url,
-      @JsonKey(name: "assets_url") String assetsUrl,
-      @JsonKey(name: "upload_url") String uploadUrl,
-      @JsonKey(name: "html_url") String htmlUrl,
-      @JsonKey(name: "id") int id,
-      @JsonKey(name: "author") Author author,
-      @JsonKey(name: "node_id") String nodeId,
-      @JsonKey(name: "tag_name") String tagName,
-      @JsonKey(name: "target_commitish") String targetCommitish,
-      @JsonKey(name: "name") String name,
-      @JsonKey(name: "draft") bool draft,
-      @JsonKey(name: "prerelease") bool prerelease,
-      @JsonKey(name: "created_at") DateTime createdAt,
-      @JsonKey(name: "published_at") DateTime publishedAt,
-      @JsonKey(name: "assets") List<Asset> assets,
-      @JsonKey(name: "tarball_url") String tarballUrl,
-      @JsonKey(name: "zipball_url") String zipballUrl,
-      @JsonKey(name: "body") String body});
+  $Res call({
+    @JsonKey(name: "url") String url,
+    @JsonKey(name: "assets_url") String assetsUrl,
+    @JsonKey(name: "upload_url") String uploadUrl,
+    @JsonKey(name: "html_url") String htmlUrl,
+    @JsonKey(name: "id") int id,
+    @JsonKey(name: "author") Author author,
+    @JsonKey(name: "node_id") String nodeId,
+    @JsonKey(name: "tag_name") String tagName,
+    @JsonKey(name: "target_commitish") String targetCommitish,
+    @JsonKey(name: "name") String name,
+    @JsonKey(name: "draft") bool draft,
+    @JsonKey(name: "prerelease") bool prerelease,
+    @JsonKey(name: "created_at") DateTime createdAt,
+    @JsonKey(name: "published_at") DateTime publishedAt,
+    @JsonKey(name: "assets") List<Asset> assets,
+    @JsonKey(name: "tarball_url") String tarballUrl,
+    @JsonKey(name: "zipball_url") String zipballUrl,
+    @JsonKey(name: "body") String body,
+  });
 
   @override
   $AuthorCopyWith<$Res> get author;
@@ -253,9 +279,10 @@ abstract class _$$GithubReleaseJsonImplCopyWith<$Res>
 class __$$GithubReleaseJsonImplCopyWithImpl<$Res>
     extends _$GithubReleaseJsonCopyWithImpl<$Res, _$GithubReleaseJsonImpl>
     implements _$$GithubReleaseJsonImplCopyWith<$Res> {
-  __$$GithubReleaseJsonImplCopyWithImpl(_$GithubReleaseJsonImpl _value,
-      $Res Function(_$GithubReleaseJsonImpl) _then)
-      : super(_value, _then);
+  __$$GithubReleaseJsonImplCopyWithImpl(
+    _$GithubReleaseJsonImpl _value,
+    $Res Function(_$GithubReleaseJsonImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of GithubReleaseJson
   /// with the given fields replaced by the non-null parameter values.
@@ -281,106 +308,126 @@ class __$$GithubReleaseJsonImplCopyWithImpl<$Res>
     Object? zipballUrl = null,
     Object? body = null,
   }) {
-    return _then(_$GithubReleaseJsonImpl(
-      url: null == url
-          ? _value.url
-          : url // ignore: cast_nullable_to_non_nullable
-              as String,
-      assetsUrl: null == assetsUrl
-          ? _value.assetsUrl
-          : assetsUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      uploadUrl: null == uploadUrl
-          ? _value.uploadUrl
-          : uploadUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      htmlUrl: null == htmlUrl
-          ? _value.htmlUrl
-          : htmlUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      author: null == author
-          ? _value.author
-          : author // ignore: cast_nullable_to_non_nullable
-              as Author,
-      nodeId: null == nodeId
-          ? _value.nodeId
-          : nodeId // ignore: cast_nullable_to_non_nullable
-              as String,
-      tagName: null == tagName
-          ? _value.tagName
-          : tagName // ignore: cast_nullable_to_non_nullable
-              as String,
-      targetCommitish: null == targetCommitish
-          ? _value.targetCommitish
-          : targetCommitish // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      draft: null == draft
-          ? _value.draft
-          : draft // ignore: cast_nullable_to_non_nullable
-              as bool,
-      prerelease: null == prerelease
-          ? _value.prerelease
-          : prerelease // ignore: cast_nullable_to_non_nullable
-              as bool,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      publishedAt: null == publishedAt
-          ? _value.publishedAt
-          : publishedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      assets: null == assets
-          ? _value._assets
-          : assets // ignore: cast_nullable_to_non_nullable
-              as List<Asset>,
-      tarballUrl: null == tarballUrl
-          ? _value.tarballUrl
-          : tarballUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      zipballUrl: null == zipballUrl
-          ? _value.zipballUrl
-          : zipballUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      body: null == body
-          ? _value.body
-          : body // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
+    return _then(
+      _$GithubReleaseJsonImpl(
+        url:
+            null == url
+                ? _value.url
+                : url // ignore: cast_nullable_to_non_nullable
+                    as String,
+        assetsUrl:
+            null == assetsUrl
+                ? _value.assetsUrl
+                : assetsUrl // ignore: cast_nullable_to_non_nullable
+                    as String,
+        uploadUrl:
+            null == uploadUrl
+                ? _value.uploadUrl
+                : uploadUrl // ignore: cast_nullable_to_non_nullable
+                    as String,
+        htmlUrl:
+            null == htmlUrl
+                ? _value.htmlUrl
+                : htmlUrl // ignore: cast_nullable_to_non_nullable
+                    as String,
+        id:
+            null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                    as int,
+        author:
+            null == author
+                ? _value.author
+                : author // ignore: cast_nullable_to_non_nullable
+                    as Author,
+        nodeId:
+            null == nodeId
+                ? _value.nodeId
+                : nodeId // ignore: cast_nullable_to_non_nullable
+                    as String,
+        tagName:
+            null == tagName
+                ? _value.tagName
+                : tagName // ignore: cast_nullable_to_non_nullable
+                    as String,
+        targetCommitish:
+            null == targetCommitish
+                ? _value.targetCommitish
+                : targetCommitish // ignore: cast_nullable_to_non_nullable
+                    as String,
+        name:
+            null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                    as String,
+        draft:
+            null == draft
+                ? _value.draft
+                : draft // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        prerelease:
+            null == prerelease
+                ? _value.prerelease
+                : prerelease // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        createdAt:
+            null == createdAt
+                ? _value.createdAt
+                : createdAt // ignore: cast_nullable_to_non_nullable
+                    as DateTime,
+        publishedAt:
+            null == publishedAt
+                ? _value.publishedAt
+                : publishedAt // ignore: cast_nullable_to_non_nullable
+                    as DateTime,
+        assets:
+            null == assets
+                ? _value._assets
+                : assets // ignore: cast_nullable_to_non_nullable
+                    as List<Asset>,
+        tarballUrl:
+            null == tarballUrl
+                ? _value.tarballUrl
+                : tarballUrl // ignore: cast_nullable_to_non_nullable
+                    as String,
+        zipballUrl:
+            null == zipballUrl
+                ? _value.zipballUrl
+                : zipballUrl // ignore: cast_nullable_to_non_nullable
+                    as String,
+        body:
+            null == body
+                ? _value.body
+                : body // ignore: cast_nullable_to_non_nullable
+                    as String,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$GithubReleaseJsonImpl implements _GithubReleaseJson {
-  const _$GithubReleaseJsonImpl(
-      {@JsonKey(name: "url") required this.url,
-      @JsonKey(name: "assets_url") required this.assetsUrl,
-      @JsonKey(name: "upload_url") required this.uploadUrl,
-      @JsonKey(name: "html_url") required this.htmlUrl,
-      @JsonKey(name: "id") required this.id,
-      @JsonKey(name: "author") required this.author,
-      @JsonKey(name: "node_id") required this.nodeId,
-      @JsonKey(name: "tag_name") required this.tagName,
-      @JsonKey(name: "target_commitish") required this.targetCommitish,
-      @JsonKey(name: "name") required this.name,
-      @JsonKey(name: "draft") required this.draft,
-      @JsonKey(name: "prerelease") required this.prerelease,
-      @JsonKey(name: "created_at") required this.createdAt,
-      @JsonKey(name: "published_at") required this.publishedAt,
-      @JsonKey(name: "assets") required final List<Asset> assets,
-      @JsonKey(name: "tarball_url") required this.tarballUrl,
-      @JsonKey(name: "zipball_url") required this.zipballUrl,
-      @JsonKey(name: "body") required this.body})
-      : _assets = assets;
+  const _$GithubReleaseJsonImpl({
+    @JsonKey(name: "url") required this.url,
+    @JsonKey(name: "assets_url") required this.assetsUrl,
+    @JsonKey(name: "upload_url") required this.uploadUrl,
+    @JsonKey(name: "html_url") required this.htmlUrl,
+    @JsonKey(name: "id") required this.id,
+    @JsonKey(name: "author") required this.author,
+    @JsonKey(name: "node_id") required this.nodeId,
+    @JsonKey(name: "tag_name") required this.tagName,
+    @JsonKey(name: "target_commitish") required this.targetCommitish,
+    @JsonKey(name: "name") required this.name,
+    @JsonKey(name: "draft") required this.draft,
+    @JsonKey(name: "prerelease") required this.prerelease,
+    @JsonKey(name: "created_at") required this.createdAt,
+    @JsonKey(name: "published_at") required this.publishedAt,
+    @JsonKey(name: "assets") required final List<Asset> assets,
+    @JsonKey(name: "tarball_url") required this.tarballUrl,
+    @JsonKey(name: "zipball_url") required this.zipballUrl,
+    @JsonKey(name: "body") required this.body,
+  }) : _assets = assets;
 
   factory _$GithubReleaseJsonImpl.fromJson(Map<String, dynamic> json) =>
       _$$GithubReleaseJsonImplFromJson(json);
@@ -487,25 +534,26 @@ class _$GithubReleaseJsonImpl implements _GithubReleaseJson {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-      runtimeType,
-      url,
-      assetsUrl,
-      uploadUrl,
-      htmlUrl,
-      id,
-      author,
-      nodeId,
-      tagName,
-      targetCommitish,
-      name,
-      draft,
-      prerelease,
-      createdAt,
-      publishedAt,
-      const DeepCollectionEquality().hash(_assets),
-      tarballUrl,
-      zipballUrl,
-      body);
+    runtimeType,
+    url,
+    assetsUrl,
+    uploadUrl,
+    htmlUrl,
+    id,
+    author,
+    nodeId,
+    tagName,
+    targetCommitish,
+    name,
+    draft,
+    prerelease,
+    createdAt,
+    publishedAt,
+    const DeepCollectionEquality().hash(_assets),
+    tarballUrl,
+    zipballUrl,
+    body,
+  );
 
   /// Create a copy of GithubReleaseJson
   /// with the given fields replaced by the non-null parameter values.
@@ -514,37 +562,37 @@ class _$GithubReleaseJsonImpl implements _GithubReleaseJson {
   @pragma('vm:prefer-inline')
   _$$GithubReleaseJsonImplCopyWith<_$GithubReleaseJsonImpl> get copyWith =>
       __$$GithubReleaseJsonImplCopyWithImpl<_$GithubReleaseJsonImpl>(
-          this, _$identity);
+        this,
+        _$identity,
+      );
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$GithubReleaseJsonImplToJson(
-      this,
-    );
+    return _$$GithubReleaseJsonImplToJson(this);
   }
 }
 
 abstract class _GithubReleaseJson implements GithubReleaseJson {
-  const factory _GithubReleaseJson(
-      {@JsonKey(name: "url") required final String url,
-      @JsonKey(name: "assets_url") required final String assetsUrl,
-      @JsonKey(name: "upload_url") required final String uploadUrl,
-      @JsonKey(name: "html_url") required final String htmlUrl,
-      @JsonKey(name: "id") required final int id,
-      @JsonKey(name: "author") required final Author author,
-      @JsonKey(name: "node_id") required final String nodeId,
-      @JsonKey(name: "tag_name") required final String tagName,
-      @JsonKey(name: "target_commitish") required final String targetCommitish,
-      @JsonKey(name: "name") required final String name,
-      @JsonKey(name: "draft") required final bool draft,
-      @JsonKey(name: "prerelease") required final bool prerelease,
-      @JsonKey(name: "created_at") required final DateTime createdAt,
-      @JsonKey(name: "published_at") required final DateTime publishedAt,
-      @JsonKey(name: "assets") required final List<Asset> assets,
-      @JsonKey(name: "tarball_url") required final String tarballUrl,
-      @JsonKey(name: "zipball_url") required final String zipballUrl,
-      @JsonKey(name: "body")
-      required final String body}) = _$GithubReleaseJsonImpl;
+  const factory _GithubReleaseJson({
+    @JsonKey(name: "url") required final String url,
+    @JsonKey(name: "assets_url") required final String assetsUrl,
+    @JsonKey(name: "upload_url") required final String uploadUrl,
+    @JsonKey(name: "html_url") required final String htmlUrl,
+    @JsonKey(name: "id") required final int id,
+    @JsonKey(name: "author") required final Author author,
+    @JsonKey(name: "node_id") required final String nodeId,
+    @JsonKey(name: "tag_name") required final String tagName,
+    @JsonKey(name: "target_commitish") required final String targetCommitish,
+    @JsonKey(name: "name") required final String name,
+    @JsonKey(name: "draft") required final bool draft,
+    @JsonKey(name: "prerelease") required final bool prerelease,
+    @JsonKey(name: "created_at") required final DateTime createdAt,
+    @JsonKey(name: "published_at") required final DateTime publishedAt,
+    @JsonKey(name: "assets") required final List<Asset> assets,
+    @JsonKey(name: "tarball_url") required final String tarballUrl,
+    @JsonKey(name: "zipball_url") required final String zipballUrl,
+    @JsonKey(name: "body") required final String body,
+  }) = _$GithubReleaseJsonImpl;
 
   factory _GithubReleaseJson.fromJson(Map<String, dynamic> json) =
       _$GithubReleaseJsonImpl.fromJson;
@@ -659,20 +707,21 @@ abstract class $AssetCopyWith<$Res> {
   factory $AssetCopyWith(Asset value, $Res Function(Asset) then) =
       _$AssetCopyWithImpl<$Res, Asset>;
   @useResult
-  $Res call(
-      {@JsonKey(name: "url") String url,
-      @JsonKey(name: "id") int id,
-      @JsonKey(name: "node_id") String nodeId,
-      @JsonKey(name: "name") String name,
-      @JsonKey(name: "label") dynamic label,
-      @JsonKey(name: "uploader") Author uploader,
-      @JsonKey(name: "content_type") String contentType,
-      @JsonKey(name: "state") String state,
-      @JsonKey(name: "size") int size,
-      @JsonKey(name: "download_count") int downloadCount,
-      @JsonKey(name: "created_at") DateTime createdAt,
-      @JsonKey(name: "updated_at") DateTime updatedAt,
-      @JsonKey(name: "browser_download_url") String browserDownloadUrl});
+  $Res call({
+    @JsonKey(name: "url") String url,
+    @JsonKey(name: "id") int id,
+    @JsonKey(name: "node_id") String nodeId,
+    @JsonKey(name: "name") String name,
+    @JsonKey(name: "label") dynamic label,
+    @JsonKey(name: "uploader") Author uploader,
+    @JsonKey(name: "content_type") String contentType,
+    @JsonKey(name: "state") String state,
+    @JsonKey(name: "size") int size,
+    @JsonKey(name: "download_count") int downloadCount,
+    @JsonKey(name: "created_at") DateTime createdAt,
+    @JsonKey(name: "updated_at") DateTime updatedAt,
+    @JsonKey(name: "browser_download_url") String browserDownloadUrl,
+  });
 
   $AuthorCopyWith<$Res> get uploader;
 }
@@ -706,60 +755,76 @@ class _$AssetCopyWithImpl<$Res, $Val extends Asset>
     Object? updatedAt = null,
     Object? browserDownloadUrl = null,
   }) {
-    return _then(_value.copyWith(
-      url: null == url
-          ? _value.url
-          : url // ignore: cast_nullable_to_non_nullable
-              as String,
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      nodeId: null == nodeId
-          ? _value.nodeId
-          : nodeId // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      label: freezed == label
-          ? _value.label
-          : label // ignore: cast_nullable_to_non_nullable
-              as dynamic,
-      uploader: null == uploader
-          ? _value.uploader
-          : uploader // ignore: cast_nullable_to_non_nullable
-              as Author,
-      contentType: null == contentType
-          ? _value.contentType
-          : contentType // ignore: cast_nullable_to_non_nullable
-              as String,
-      state: null == state
-          ? _value.state
-          : state // ignore: cast_nullable_to_non_nullable
-              as String,
-      size: null == size
-          ? _value.size
-          : size // ignore: cast_nullable_to_non_nullable
-              as int,
-      downloadCount: null == downloadCount
-          ? _value.downloadCount
-          : downloadCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      updatedAt: null == updatedAt
-          ? _value.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      browserDownloadUrl: null == browserDownloadUrl
-          ? _value.browserDownloadUrl
-          : browserDownloadUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            url:
+                null == url
+                    ? _value.url
+                    : url // ignore: cast_nullable_to_non_nullable
+                        as String,
+            id:
+                null == id
+                    ? _value.id
+                    : id // ignore: cast_nullable_to_non_nullable
+                        as int,
+            nodeId:
+                null == nodeId
+                    ? _value.nodeId
+                    : nodeId // ignore: cast_nullable_to_non_nullable
+                        as String,
+            name:
+                null == name
+                    ? _value.name
+                    : name // ignore: cast_nullable_to_non_nullable
+                        as String,
+            label:
+                freezed == label
+                    ? _value.label
+                    : label // ignore: cast_nullable_to_non_nullable
+                        as dynamic,
+            uploader:
+                null == uploader
+                    ? _value.uploader
+                    : uploader // ignore: cast_nullable_to_non_nullable
+                        as Author,
+            contentType:
+                null == contentType
+                    ? _value.contentType
+                    : contentType // ignore: cast_nullable_to_non_nullable
+                        as String,
+            state:
+                null == state
+                    ? _value.state
+                    : state // ignore: cast_nullable_to_non_nullable
+                        as String,
+            size:
+                null == size
+                    ? _value.size
+                    : size // ignore: cast_nullable_to_non_nullable
+                        as int,
+            downloadCount:
+                null == downloadCount
+                    ? _value.downloadCount
+                    : downloadCount // ignore: cast_nullable_to_non_nullable
+                        as int,
+            createdAt:
+                null == createdAt
+                    ? _value.createdAt
+                    : createdAt // ignore: cast_nullable_to_non_nullable
+                        as DateTime,
+            updatedAt:
+                null == updatedAt
+                    ? _value.updatedAt
+                    : updatedAt // ignore: cast_nullable_to_non_nullable
+                        as DateTime,
+            browserDownloadUrl:
+                null == browserDownloadUrl
+                    ? _value.browserDownloadUrl
+                    : browserDownloadUrl // ignore: cast_nullable_to_non_nullable
+                        as String,
+          )
+          as $Val,
+    );
   }
 
   /// Create a copy of Asset
@@ -776,24 +841,26 @@ class _$AssetCopyWithImpl<$Res, $Val extends Asset>
 /// @nodoc
 abstract class _$$AssetImplCopyWith<$Res> implements $AssetCopyWith<$Res> {
   factory _$$AssetImplCopyWith(
-          _$AssetImpl value, $Res Function(_$AssetImpl) then) =
-      __$$AssetImplCopyWithImpl<$Res>;
+    _$AssetImpl value,
+    $Res Function(_$AssetImpl) then,
+  ) = __$$AssetImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: "url") String url,
-      @JsonKey(name: "id") int id,
-      @JsonKey(name: "node_id") String nodeId,
-      @JsonKey(name: "name") String name,
-      @JsonKey(name: "label") dynamic label,
-      @JsonKey(name: "uploader") Author uploader,
-      @JsonKey(name: "content_type") String contentType,
-      @JsonKey(name: "state") String state,
-      @JsonKey(name: "size") int size,
-      @JsonKey(name: "download_count") int downloadCount,
-      @JsonKey(name: "created_at") DateTime createdAt,
-      @JsonKey(name: "updated_at") DateTime updatedAt,
-      @JsonKey(name: "browser_download_url") String browserDownloadUrl});
+  $Res call({
+    @JsonKey(name: "url") String url,
+    @JsonKey(name: "id") int id,
+    @JsonKey(name: "node_id") String nodeId,
+    @JsonKey(name: "name") String name,
+    @JsonKey(name: "label") dynamic label,
+    @JsonKey(name: "uploader") Author uploader,
+    @JsonKey(name: "content_type") String contentType,
+    @JsonKey(name: "state") String state,
+    @JsonKey(name: "size") int size,
+    @JsonKey(name: "download_count") int downloadCount,
+    @JsonKey(name: "created_at") DateTime createdAt,
+    @JsonKey(name: "updated_at") DateTime updatedAt,
+    @JsonKey(name: "browser_download_url") String browserDownloadUrl,
+  });
 
   @override
   $AuthorCopyWith<$Res> get uploader;
@@ -804,8 +871,9 @@ class __$$AssetImplCopyWithImpl<$Res>
     extends _$AssetCopyWithImpl<$Res, _$AssetImpl>
     implements _$$AssetImplCopyWith<$Res> {
   __$$AssetImplCopyWithImpl(
-      _$AssetImpl _value, $Res Function(_$AssetImpl) _then)
-      : super(_value, _then);
+    _$AssetImpl _value,
+    $Res Function(_$AssetImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of Asset
   /// with the given fields replaced by the non-null parameter values.
@@ -826,80 +894,96 @@ class __$$AssetImplCopyWithImpl<$Res>
     Object? updatedAt = null,
     Object? browserDownloadUrl = null,
   }) {
-    return _then(_$AssetImpl(
-      url: null == url
-          ? _value.url
-          : url // ignore: cast_nullable_to_non_nullable
-              as String,
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      nodeId: null == nodeId
-          ? _value.nodeId
-          : nodeId // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      label: freezed == label
-          ? _value.label
-          : label // ignore: cast_nullable_to_non_nullable
-              as dynamic,
-      uploader: null == uploader
-          ? _value.uploader
-          : uploader // ignore: cast_nullable_to_non_nullable
-              as Author,
-      contentType: null == contentType
-          ? _value.contentType
-          : contentType // ignore: cast_nullable_to_non_nullable
-              as String,
-      state: null == state
-          ? _value.state
-          : state // ignore: cast_nullable_to_non_nullable
-              as String,
-      size: null == size
-          ? _value.size
-          : size // ignore: cast_nullable_to_non_nullable
-              as int,
-      downloadCount: null == downloadCount
-          ? _value.downloadCount
-          : downloadCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      updatedAt: null == updatedAt
-          ? _value.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      browserDownloadUrl: null == browserDownloadUrl
-          ? _value.browserDownloadUrl
-          : browserDownloadUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
+    return _then(
+      _$AssetImpl(
+        url:
+            null == url
+                ? _value.url
+                : url // ignore: cast_nullable_to_non_nullable
+                    as String,
+        id:
+            null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                    as int,
+        nodeId:
+            null == nodeId
+                ? _value.nodeId
+                : nodeId // ignore: cast_nullable_to_non_nullable
+                    as String,
+        name:
+            null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                    as String,
+        label:
+            freezed == label
+                ? _value.label
+                : label // ignore: cast_nullable_to_non_nullable
+                    as dynamic,
+        uploader:
+            null == uploader
+                ? _value.uploader
+                : uploader // ignore: cast_nullable_to_non_nullable
+                    as Author,
+        contentType:
+            null == contentType
+                ? _value.contentType
+                : contentType // ignore: cast_nullable_to_non_nullable
+                    as String,
+        state:
+            null == state
+                ? _value.state
+                : state // ignore: cast_nullable_to_non_nullable
+                    as String,
+        size:
+            null == size
+                ? _value.size
+                : size // ignore: cast_nullable_to_non_nullable
+                    as int,
+        downloadCount:
+            null == downloadCount
+                ? _value.downloadCount
+                : downloadCount // ignore: cast_nullable_to_non_nullable
+                    as int,
+        createdAt:
+            null == createdAt
+                ? _value.createdAt
+                : createdAt // ignore: cast_nullable_to_non_nullable
+                    as DateTime,
+        updatedAt:
+            null == updatedAt
+                ? _value.updatedAt
+                : updatedAt // ignore: cast_nullable_to_non_nullable
+                    as DateTime,
+        browserDownloadUrl:
+            null == browserDownloadUrl
+                ? _value.browserDownloadUrl
+                : browserDownloadUrl // ignore: cast_nullable_to_non_nullable
+                    as String,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$AssetImpl implements _Asset {
-  const _$AssetImpl(
-      {@JsonKey(name: "url") required this.url,
-      @JsonKey(name: "id") required this.id,
-      @JsonKey(name: "node_id") required this.nodeId,
-      @JsonKey(name: "name") required this.name,
-      @JsonKey(name: "label") required this.label,
-      @JsonKey(name: "uploader") required this.uploader,
-      @JsonKey(name: "content_type") required this.contentType,
-      @JsonKey(name: "state") required this.state,
-      @JsonKey(name: "size") required this.size,
-      @JsonKey(name: "download_count") required this.downloadCount,
-      @JsonKey(name: "created_at") required this.createdAt,
-      @JsonKey(name: "updated_at") required this.updatedAt,
-      @JsonKey(name: "browser_download_url") required this.browserDownloadUrl});
+  const _$AssetImpl({
+    @JsonKey(name: "url") required this.url,
+    @JsonKey(name: "id") required this.id,
+    @JsonKey(name: "node_id") required this.nodeId,
+    @JsonKey(name: "name") required this.name,
+    @JsonKey(name: "label") required this.label,
+    @JsonKey(name: "uploader") required this.uploader,
+    @JsonKey(name: "content_type") required this.contentType,
+    @JsonKey(name: "state") required this.state,
+    @JsonKey(name: "size") required this.size,
+    @JsonKey(name: "download_count") required this.downloadCount,
+    @JsonKey(name: "created_at") required this.createdAt,
+    @JsonKey(name: "updated_at") required this.updatedAt,
+    @JsonKey(name: "browser_download_url") required this.browserDownloadUrl,
+  });
 
   factory _$AssetImpl.fromJson(Map<String, dynamic> json) =>
       _$$AssetImplFromJson(json);
@@ -978,20 +1062,21 @@ class _$AssetImpl implements _Asset {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-      runtimeType,
-      url,
-      id,
-      nodeId,
-      name,
-      const DeepCollectionEquality().hash(label),
-      uploader,
-      contentType,
-      state,
-      size,
-      downloadCount,
-      createdAt,
-      updatedAt,
-      browserDownloadUrl);
+    runtimeType,
+    url,
+    id,
+    nodeId,
+    name,
+    const DeepCollectionEquality().hash(label),
+    uploader,
+    contentType,
+    state,
+    size,
+    downloadCount,
+    createdAt,
+    updatedAt,
+    browserDownloadUrl,
+  );
 
   /// Create a copy of Asset
   /// with the given fields replaced by the non-null parameter values.
@@ -1003,28 +1088,27 @@ class _$AssetImpl implements _Asset {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$AssetImplToJson(
-      this,
-    );
+    return _$$AssetImplToJson(this);
   }
 }
 
 abstract class _Asset implements Asset {
-  const factory _Asset(
-      {@JsonKey(name: "url") required final String url,
-      @JsonKey(name: "id") required final int id,
-      @JsonKey(name: "node_id") required final String nodeId,
-      @JsonKey(name: "name") required final String name,
-      @JsonKey(name: "label") required final dynamic label,
-      @JsonKey(name: "uploader") required final Author uploader,
-      @JsonKey(name: "content_type") required final String contentType,
-      @JsonKey(name: "state") required final String state,
-      @JsonKey(name: "size") required final int size,
-      @JsonKey(name: "download_count") required final int downloadCount,
-      @JsonKey(name: "created_at") required final DateTime createdAt,
-      @JsonKey(name: "updated_at") required final DateTime updatedAt,
-      @JsonKey(name: "browser_download_url")
-      required final String browserDownloadUrl}) = _$AssetImpl;
+  const factory _Asset({
+    @JsonKey(name: "url") required final String url,
+    @JsonKey(name: "id") required final int id,
+    @JsonKey(name: "node_id") required final String nodeId,
+    @JsonKey(name: "name") required final String name,
+    @JsonKey(name: "label") required final dynamic label,
+    @JsonKey(name: "uploader") required final Author uploader,
+    @JsonKey(name: "content_type") required final String contentType,
+    @JsonKey(name: "state") required final String state,
+    @JsonKey(name: "size") required final int size,
+    @JsonKey(name: "download_count") required final int downloadCount,
+    @JsonKey(name: "created_at") required final DateTime createdAt,
+    @JsonKey(name: "updated_at") required final DateTime updatedAt,
+    @JsonKey(name: "browser_download_url")
+    required final String browserDownloadUrl,
+  }) = _$AssetImpl;
 
   factory _Asset.fromJson(Map<String, dynamic> json) = _$AssetImpl.fromJson;
 
@@ -1135,26 +1219,27 @@ abstract class $AuthorCopyWith<$Res> {
   factory $AuthorCopyWith(Author value, $Res Function(Author) then) =
       _$AuthorCopyWithImpl<$Res, Author>;
   @useResult
-  $Res call(
-      {@JsonKey(name: "login") String login,
-      @JsonKey(name: "id") int id,
-      @JsonKey(name: "node_id") String nodeId,
-      @JsonKey(name: "avatar_url") String avatarUrl,
-      @JsonKey(name: "gravatar_id") String gravatarId,
-      @JsonKey(name: "url") String url,
-      @JsonKey(name: "html_url") String htmlUrl,
-      @JsonKey(name: "followers_url") String followersUrl,
-      @JsonKey(name: "following_url") String followingUrl,
-      @JsonKey(name: "gists_url") String gistsUrl,
-      @JsonKey(name: "starred_url") String starredUrl,
-      @JsonKey(name: "subscriptions_url") String subscriptionsUrl,
-      @JsonKey(name: "organizations_url") String organizationsUrl,
-      @JsonKey(name: "repos_url") String reposUrl,
-      @JsonKey(name: "events_url") String eventsUrl,
-      @JsonKey(name: "received_events_url") String receivedEventsUrl,
-      @JsonKey(name: "type") String type,
-      @JsonKey(name: "user_view_type") String userViewType,
-      @JsonKey(name: "site_admin") bool siteAdmin});
+  $Res call({
+    @JsonKey(name: "login") String login,
+    @JsonKey(name: "id") int id,
+    @JsonKey(name: "node_id") String nodeId,
+    @JsonKey(name: "avatar_url") String avatarUrl,
+    @JsonKey(name: "gravatar_id") String gravatarId,
+    @JsonKey(name: "url") String url,
+    @JsonKey(name: "html_url") String htmlUrl,
+    @JsonKey(name: "followers_url") String followersUrl,
+    @JsonKey(name: "following_url") String followingUrl,
+    @JsonKey(name: "gists_url") String gistsUrl,
+    @JsonKey(name: "starred_url") String starredUrl,
+    @JsonKey(name: "subscriptions_url") String subscriptionsUrl,
+    @JsonKey(name: "organizations_url") String organizationsUrl,
+    @JsonKey(name: "repos_url") String reposUrl,
+    @JsonKey(name: "events_url") String eventsUrl,
+    @JsonKey(name: "received_events_url") String receivedEventsUrl,
+    @JsonKey(name: "type") String type,
+    @JsonKey(name: "user_view_type") String userViewType,
+    @JsonKey(name: "site_admin") bool siteAdmin,
+  });
 }
 
 /// @nodoc
@@ -1192,114 +1277,138 @@ class _$AuthorCopyWithImpl<$Res, $Val extends Author>
     Object? userViewType = null,
     Object? siteAdmin = null,
   }) {
-    return _then(_value.copyWith(
-      login: null == login
-          ? _value.login
-          : login // ignore: cast_nullable_to_non_nullable
-              as String,
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      nodeId: null == nodeId
-          ? _value.nodeId
-          : nodeId // ignore: cast_nullable_to_non_nullable
-              as String,
-      avatarUrl: null == avatarUrl
-          ? _value.avatarUrl
-          : avatarUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      gravatarId: null == gravatarId
-          ? _value.gravatarId
-          : gravatarId // ignore: cast_nullable_to_non_nullable
-              as String,
-      url: null == url
-          ? _value.url
-          : url // ignore: cast_nullable_to_non_nullable
-              as String,
-      htmlUrl: null == htmlUrl
-          ? _value.htmlUrl
-          : htmlUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      followersUrl: null == followersUrl
-          ? _value.followersUrl
-          : followersUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      followingUrl: null == followingUrl
-          ? _value.followingUrl
-          : followingUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      gistsUrl: null == gistsUrl
-          ? _value.gistsUrl
-          : gistsUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      starredUrl: null == starredUrl
-          ? _value.starredUrl
-          : starredUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      subscriptionsUrl: null == subscriptionsUrl
-          ? _value.subscriptionsUrl
-          : subscriptionsUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      organizationsUrl: null == organizationsUrl
-          ? _value.organizationsUrl
-          : organizationsUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      reposUrl: null == reposUrl
-          ? _value.reposUrl
-          : reposUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      eventsUrl: null == eventsUrl
-          ? _value.eventsUrl
-          : eventsUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      receivedEventsUrl: null == receivedEventsUrl
-          ? _value.receivedEventsUrl
-          : receivedEventsUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      type: null == type
-          ? _value.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as String,
-      userViewType: null == userViewType
-          ? _value.userViewType
-          : userViewType // ignore: cast_nullable_to_non_nullable
-              as String,
-      siteAdmin: null == siteAdmin
-          ? _value.siteAdmin
-          : siteAdmin // ignore: cast_nullable_to_non_nullable
-              as bool,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            login:
+                null == login
+                    ? _value.login
+                    : login // ignore: cast_nullable_to_non_nullable
+                        as String,
+            id:
+                null == id
+                    ? _value.id
+                    : id // ignore: cast_nullable_to_non_nullable
+                        as int,
+            nodeId:
+                null == nodeId
+                    ? _value.nodeId
+                    : nodeId // ignore: cast_nullable_to_non_nullable
+                        as String,
+            avatarUrl:
+                null == avatarUrl
+                    ? _value.avatarUrl
+                    : avatarUrl // ignore: cast_nullable_to_non_nullable
+                        as String,
+            gravatarId:
+                null == gravatarId
+                    ? _value.gravatarId
+                    : gravatarId // ignore: cast_nullable_to_non_nullable
+                        as String,
+            url:
+                null == url
+                    ? _value.url
+                    : url // ignore: cast_nullable_to_non_nullable
+                        as String,
+            htmlUrl:
+                null == htmlUrl
+                    ? _value.htmlUrl
+                    : htmlUrl // ignore: cast_nullable_to_non_nullable
+                        as String,
+            followersUrl:
+                null == followersUrl
+                    ? _value.followersUrl
+                    : followersUrl // ignore: cast_nullable_to_non_nullable
+                        as String,
+            followingUrl:
+                null == followingUrl
+                    ? _value.followingUrl
+                    : followingUrl // ignore: cast_nullable_to_non_nullable
+                        as String,
+            gistsUrl:
+                null == gistsUrl
+                    ? _value.gistsUrl
+                    : gistsUrl // ignore: cast_nullable_to_non_nullable
+                        as String,
+            starredUrl:
+                null == starredUrl
+                    ? _value.starredUrl
+                    : starredUrl // ignore: cast_nullable_to_non_nullable
+                        as String,
+            subscriptionsUrl:
+                null == subscriptionsUrl
+                    ? _value.subscriptionsUrl
+                    : subscriptionsUrl // ignore: cast_nullable_to_non_nullable
+                        as String,
+            organizationsUrl:
+                null == organizationsUrl
+                    ? _value.organizationsUrl
+                    : organizationsUrl // ignore: cast_nullable_to_non_nullable
+                        as String,
+            reposUrl:
+                null == reposUrl
+                    ? _value.reposUrl
+                    : reposUrl // ignore: cast_nullable_to_non_nullable
+                        as String,
+            eventsUrl:
+                null == eventsUrl
+                    ? _value.eventsUrl
+                    : eventsUrl // ignore: cast_nullable_to_non_nullable
+                        as String,
+            receivedEventsUrl:
+                null == receivedEventsUrl
+                    ? _value.receivedEventsUrl
+                    : receivedEventsUrl // ignore: cast_nullable_to_non_nullable
+                        as String,
+            type:
+                null == type
+                    ? _value.type
+                    : type // ignore: cast_nullable_to_non_nullable
+                        as String,
+            userViewType:
+                null == userViewType
+                    ? _value.userViewType
+                    : userViewType // ignore: cast_nullable_to_non_nullable
+                        as String,
+            siteAdmin:
+                null == siteAdmin
+                    ? _value.siteAdmin
+                    : siteAdmin // ignore: cast_nullable_to_non_nullable
+                        as bool,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$AuthorImplCopyWith<$Res> implements $AuthorCopyWith<$Res> {
   factory _$$AuthorImplCopyWith(
-          _$AuthorImpl value, $Res Function(_$AuthorImpl) then) =
-      __$$AuthorImplCopyWithImpl<$Res>;
+    _$AuthorImpl value,
+    $Res Function(_$AuthorImpl) then,
+  ) = __$$AuthorImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: "login") String login,
-      @JsonKey(name: "id") int id,
-      @JsonKey(name: "node_id") String nodeId,
-      @JsonKey(name: "avatar_url") String avatarUrl,
-      @JsonKey(name: "gravatar_id") String gravatarId,
-      @JsonKey(name: "url") String url,
-      @JsonKey(name: "html_url") String htmlUrl,
-      @JsonKey(name: "followers_url") String followersUrl,
-      @JsonKey(name: "following_url") String followingUrl,
-      @JsonKey(name: "gists_url") String gistsUrl,
-      @JsonKey(name: "starred_url") String starredUrl,
-      @JsonKey(name: "subscriptions_url") String subscriptionsUrl,
-      @JsonKey(name: "organizations_url") String organizationsUrl,
-      @JsonKey(name: "repos_url") String reposUrl,
-      @JsonKey(name: "events_url") String eventsUrl,
-      @JsonKey(name: "received_events_url") String receivedEventsUrl,
-      @JsonKey(name: "type") String type,
-      @JsonKey(name: "user_view_type") String userViewType,
-      @JsonKey(name: "site_admin") bool siteAdmin});
+  $Res call({
+    @JsonKey(name: "login") String login,
+    @JsonKey(name: "id") int id,
+    @JsonKey(name: "node_id") String nodeId,
+    @JsonKey(name: "avatar_url") String avatarUrl,
+    @JsonKey(name: "gravatar_id") String gravatarId,
+    @JsonKey(name: "url") String url,
+    @JsonKey(name: "html_url") String htmlUrl,
+    @JsonKey(name: "followers_url") String followersUrl,
+    @JsonKey(name: "following_url") String followingUrl,
+    @JsonKey(name: "gists_url") String gistsUrl,
+    @JsonKey(name: "starred_url") String starredUrl,
+    @JsonKey(name: "subscriptions_url") String subscriptionsUrl,
+    @JsonKey(name: "organizations_url") String organizationsUrl,
+    @JsonKey(name: "repos_url") String reposUrl,
+    @JsonKey(name: "events_url") String eventsUrl,
+    @JsonKey(name: "received_events_url") String receivedEventsUrl,
+    @JsonKey(name: "type") String type,
+    @JsonKey(name: "user_view_type") String userViewType,
+    @JsonKey(name: "site_admin") bool siteAdmin,
+  });
 }
 
 /// @nodoc
@@ -1307,8 +1416,9 @@ class __$$AuthorImplCopyWithImpl<$Res>
     extends _$AuthorCopyWithImpl<$Res, _$AuthorImpl>
     implements _$$AuthorImplCopyWith<$Res> {
   __$$AuthorImplCopyWithImpl(
-      _$AuthorImpl _value, $Res Function(_$AuthorImpl) _then)
-      : super(_value, _then);
+    _$AuthorImpl _value,
+    $Res Function(_$AuthorImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of Author
   /// with the given fields replaced by the non-null parameter values.
@@ -1335,110 +1445,132 @@ class __$$AuthorImplCopyWithImpl<$Res>
     Object? userViewType = null,
     Object? siteAdmin = null,
   }) {
-    return _then(_$AuthorImpl(
-      login: null == login
-          ? _value.login
-          : login // ignore: cast_nullable_to_non_nullable
-              as String,
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      nodeId: null == nodeId
-          ? _value.nodeId
-          : nodeId // ignore: cast_nullable_to_non_nullable
-              as String,
-      avatarUrl: null == avatarUrl
-          ? _value.avatarUrl
-          : avatarUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      gravatarId: null == gravatarId
-          ? _value.gravatarId
-          : gravatarId // ignore: cast_nullable_to_non_nullable
-              as String,
-      url: null == url
-          ? _value.url
-          : url // ignore: cast_nullable_to_non_nullable
-              as String,
-      htmlUrl: null == htmlUrl
-          ? _value.htmlUrl
-          : htmlUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      followersUrl: null == followersUrl
-          ? _value.followersUrl
-          : followersUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      followingUrl: null == followingUrl
-          ? _value.followingUrl
-          : followingUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      gistsUrl: null == gistsUrl
-          ? _value.gistsUrl
-          : gistsUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      starredUrl: null == starredUrl
-          ? _value.starredUrl
-          : starredUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      subscriptionsUrl: null == subscriptionsUrl
-          ? _value.subscriptionsUrl
-          : subscriptionsUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      organizationsUrl: null == organizationsUrl
-          ? _value.organizationsUrl
-          : organizationsUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      reposUrl: null == reposUrl
-          ? _value.reposUrl
-          : reposUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      eventsUrl: null == eventsUrl
-          ? _value.eventsUrl
-          : eventsUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      receivedEventsUrl: null == receivedEventsUrl
-          ? _value.receivedEventsUrl
-          : receivedEventsUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      type: null == type
-          ? _value.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as String,
-      userViewType: null == userViewType
-          ? _value.userViewType
-          : userViewType // ignore: cast_nullable_to_non_nullable
-              as String,
-      siteAdmin: null == siteAdmin
-          ? _value.siteAdmin
-          : siteAdmin // ignore: cast_nullable_to_non_nullable
-              as bool,
-    ));
+    return _then(
+      _$AuthorImpl(
+        login:
+            null == login
+                ? _value.login
+                : login // ignore: cast_nullable_to_non_nullable
+                    as String,
+        id:
+            null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                    as int,
+        nodeId:
+            null == nodeId
+                ? _value.nodeId
+                : nodeId // ignore: cast_nullable_to_non_nullable
+                    as String,
+        avatarUrl:
+            null == avatarUrl
+                ? _value.avatarUrl
+                : avatarUrl // ignore: cast_nullable_to_non_nullable
+                    as String,
+        gravatarId:
+            null == gravatarId
+                ? _value.gravatarId
+                : gravatarId // ignore: cast_nullable_to_non_nullable
+                    as String,
+        url:
+            null == url
+                ? _value.url
+                : url // ignore: cast_nullable_to_non_nullable
+                    as String,
+        htmlUrl:
+            null == htmlUrl
+                ? _value.htmlUrl
+                : htmlUrl // ignore: cast_nullable_to_non_nullable
+                    as String,
+        followersUrl:
+            null == followersUrl
+                ? _value.followersUrl
+                : followersUrl // ignore: cast_nullable_to_non_nullable
+                    as String,
+        followingUrl:
+            null == followingUrl
+                ? _value.followingUrl
+                : followingUrl // ignore: cast_nullable_to_non_nullable
+                    as String,
+        gistsUrl:
+            null == gistsUrl
+                ? _value.gistsUrl
+                : gistsUrl // ignore: cast_nullable_to_non_nullable
+                    as String,
+        starredUrl:
+            null == starredUrl
+                ? _value.starredUrl
+                : starredUrl // ignore: cast_nullable_to_non_nullable
+                    as String,
+        subscriptionsUrl:
+            null == subscriptionsUrl
+                ? _value.subscriptionsUrl
+                : subscriptionsUrl // ignore: cast_nullable_to_non_nullable
+                    as String,
+        organizationsUrl:
+            null == organizationsUrl
+                ? _value.organizationsUrl
+                : organizationsUrl // ignore: cast_nullable_to_non_nullable
+                    as String,
+        reposUrl:
+            null == reposUrl
+                ? _value.reposUrl
+                : reposUrl // ignore: cast_nullable_to_non_nullable
+                    as String,
+        eventsUrl:
+            null == eventsUrl
+                ? _value.eventsUrl
+                : eventsUrl // ignore: cast_nullable_to_non_nullable
+                    as String,
+        receivedEventsUrl:
+            null == receivedEventsUrl
+                ? _value.receivedEventsUrl
+                : receivedEventsUrl // ignore: cast_nullable_to_non_nullable
+                    as String,
+        type:
+            null == type
+                ? _value.type
+                : type // ignore: cast_nullable_to_non_nullable
+                    as String,
+        userViewType:
+            null == userViewType
+                ? _value.userViewType
+                : userViewType // ignore: cast_nullable_to_non_nullable
+                    as String,
+        siteAdmin:
+            null == siteAdmin
+                ? _value.siteAdmin
+                : siteAdmin // ignore: cast_nullable_to_non_nullable
+                    as bool,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$AuthorImpl implements _Author {
-  const _$AuthorImpl(
-      {@JsonKey(name: "login") required this.login,
-      @JsonKey(name: "id") required this.id,
-      @JsonKey(name: "node_id") required this.nodeId,
-      @JsonKey(name: "avatar_url") required this.avatarUrl,
-      @JsonKey(name: "gravatar_id") required this.gravatarId,
-      @JsonKey(name: "url") required this.url,
-      @JsonKey(name: "html_url") required this.htmlUrl,
-      @JsonKey(name: "followers_url") required this.followersUrl,
-      @JsonKey(name: "following_url") required this.followingUrl,
-      @JsonKey(name: "gists_url") required this.gistsUrl,
-      @JsonKey(name: "starred_url") required this.starredUrl,
-      @JsonKey(name: "subscriptions_url") required this.subscriptionsUrl,
-      @JsonKey(name: "organizations_url") required this.organizationsUrl,
-      @JsonKey(name: "repos_url") required this.reposUrl,
-      @JsonKey(name: "events_url") required this.eventsUrl,
-      @JsonKey(name: "received_events_url") required this.receivedEventsUrl,
-      @JsonKey(name: "type") required this.type,
-      @JsonKey(name: "user_view_type") required this.userViewType,
-      @JsonKey(name: "site_admin") required this.siteAdmin});
+  const _$AuthorImpl({
+    @JsonKey(name: "login") required this.login,
+    @JsonKey(name: "id") required this.id,
+    @JsonKey(name: "node_id") required this.nodeId,
+    @JsonKey(name: "avatar_url") required this.avatarUrl,
+    @JsonKey(name: "gravatar_id") required this.gravatarId,
+    @JsonKey(name: "url") required this.url,
+    @JsonKey(name: "html_url") required this.htmlUrl,
+    @JsonKey(name: "followers_url") required this.followersUrl,
+    @JsonKey(name: "following_url") required this.followingUrl,
+    @JsonKey(name: "gists_url") required this.gistsUrl,
+    @JsonKey(name: "starred_url") required this.starredUrl,
+    @JsonKey(name: "subscriptions_url") required this.subscriptionsUrl,
+    @JsonKey(name: "organizations_url") required this.organizationsUrl,
+    @JsonKey(name: "repos_url") required this.reposUrl,
+    @JsonKey(name: "events_url") required this.eventsUrl,
+    @JsonKey(name: "received_events_url") required this.receivedEventsUrl,
+    @JsonKey(name: "type") required this.type,
+    @JsonKey(name: "user_view_type") required this.userViewType,
+    @JsonKey(name: "site_admin") required this.siteAdmin,
+  });
 
   factory _$AuthorImpl.fromJson(Map<String, dynamic> json) =>
       _$$AuthorImplFromJson(json);
@@ -1548,27 +1680,27 @@ class _$AuthorImpl implements _Author {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hashAll([
-        runtimeType,
-        login,
-        id,
-        nodeId,
-        avatarUrl,
-        gravatarId,
-        url,
-        htmlUrl,
-        followersUrl,
-        followingUrl,
-        gistsUrl,
-        starredUrl,
-        subscriptionsUrl,
-        organizationsUrl,
-        reposUrl,
-        eventsUrl,
-        receivedEventsUrl,
-        type,
-        userViewType,
-        siteAdmin
-      ]);
+    runtimeType,
+    login,
+    id,
+    nodeId,
+    avatarUrl,
+    gravatarId,
+    url,
+    htmlUrl,
+    followersUrl,
+    followingUrl,
+    gistsUrl,
+    starredUrl,
+    subscriptionsUrl,
+    organizationsUrl,
+    reposUrl,
+    eventsUrl,
+    receivedEventsUrl,
+    type,
+    userViewType,
+    siteAdmin,
+  ]);
 
   /// Create a copy of Author
   /// with the given fields replaced by the non-null parameter values.
@@ -1580,37 +1712,33 @@ class _$AuthorImpl implements _Author {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$AuthorImplToJson(
-      this,
-    );
+    return _$$AuthorImplToJson(this);
   }
 }
 
 abstract class _Author implements Author {
-  const factory _Author(
-          {@JsonKey(name: "login") required final String login,
-          @JsonKey(name: "id") required final int id,
-          @JsonKey(name: "node_id") required final String nodeId,
-          @JsonKey(name: "avatar_url") required final String avatarUrl,
-          @JsonKey(name: "gravatar_id") required final String gravatarId,
-          @JsonKey(name: "url") required final String url,
-          @JsonKey(name: "html_url") required final String htmlUrl,
-          @JsonKey(name: "followers_url") required final String followersUrl,
-          @JsonKey(name: "following_url") required final String followingUrl,
-          @JsonKey(name: "gists_url") required final String gistsUrl,
-          @JsonKey(name: "starred_url") required final String starredUrl,
-          @JsonKey(name: "subscriptions_url")
-          required final String subscriptionsUrl,
-          @JsonKey(name: "organizations_url")
-          required final String organizationsUrl,
-          @JsonKey(name: "repos_url") required final String reposUrl,
-          @JsonKey(name: "events_url") required final String eventsUrl,
-          @JsonKey(name: "received_events_url")
-          required final String receivedEventsUrl,
-          @JsonKey(name: "type") required final String type,
-          @JsonKey(name: "user_view_type") required final String userViewType,
-          @JsonKey(name: "site_admin") required final bool siteAdmin}) =
-      _$AuthorImpl;
+  const factory _Author({
+    @JsonKey(name: "login") required final String login,
+    @JsonKey(name: "id") required final int id,
+    @JsonKey(name: "node_id") required final String nodeId,
+    @JsonKey(name: "avatar_url") required final String avatarUrl,
+    @JsonKey(name: "gravatar_id") required final String gravatarId,
+    @JsonKey(name: "url") required final String url,
+    @JsonKey(name: "html_url") required final String htmlUrl,
+    @JsonKey(name: "followers_url") required final String followersUrl,
+    @JsonKey(name: "following_url") required final String followingUrl,
+    @JsonKey(name: "gists_url") required final String gistsUrl,
+    @JsonKey(name: "starred_url") required final String starredUrl,
+    @JsonKey(name: "subscriptions_url") required final String subscriptionsUrl,
+    @JsonKey(name: "organizations_url") required final String organizationsUrl,
+    @JsonKey(name: "repos_url") required final String reposUrl,
+    @JsonKey(name: "events_url") required final String eventsUrl,
+    @JsonKey(name: "received_events_url")
+    required final String receivedEventsUrl,
+    @JsonKey(name: "type") required final String type,
+    @JsonKey(name: "user_view_type") required final String userViewType,
+    @JsonKey(name: "site_admin") required final bool siteAdmin,
+  }) = _$AuthorImpl;
 
   factory _Author.fromJson(Map<String, dynamic> json) = _$AuthorImpl.fromJson;
 

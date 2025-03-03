@@ -21,15 +21,14 @@ Map<String, dynamic> _$$CategoriesImplToJson(_$CategoriesImpl instance) =>
     };
 
 _$DataImpl _$$DataImplFromJson(Map<String, dynamic> json) => _$DataImpl(
-      categories: (json['categories'] as List<dynamic>)
+  categories:
+      (json['categories'] as List<dynamic>)
           .map((e) => Category.fromJson(e as Map<String, dynamic>))
           .toList(),
-    );
+);
 
 Map<String, dynamic> _$$DataImplToJson(_$DataImpl instance) =>
-    <String, dynamic>{
-      'categories': instance.categories,
-    };
+    <String, dynamic>{'categories': instance.categories};
 
 _$CategoryImpl _$$CategoryImplFromJson(Map<String, dynamic> json) =>
     _$CategoryImpl(
@@ -54,10 +53,10 @@ Map<String, dynamic> _$$CategoryImplToJson(_$CategoryImpl instance) =>
     };
 
 _$ThumbImpl _$$ThumbImplFromJson(Map<String, dynamic> json) => _$ThumbImpl(
-      originalName: json['originalName'] as String,
-      path: json['path'] as String,
-      fileServer: json['fileServer'] as String,
-    );
+  originalName: json['originalName'] as String,
+  path: json['path'] as String,
+  fileServer: json['fileServer'] as String,
+);
 
 Map<String, dynamic> _$$ThumbImplToJson(_$ThumbImpl instance) =>
     <String, dynamic>{

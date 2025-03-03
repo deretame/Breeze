@@ -12,7 +12,8 @@ part of 'profile.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 Profile _$ProfileFromJson(Map<String, dynamic> json) {
   return _Profile.fromJson(json);
@@ -41,10 +42,11 @@ abstract class $ProfileCopyWith<$Res> {
   factory $ProfileCopyWith(Profile value, $Res Function(Profile) then) =
       _$ProfileCopyWithImpl<$Res, Profile>;
   @useResult
-  $Res call(
-      {@JsonKey(name: "code") int code,
-      @JsonKey(name: "message") String message,
-      @JsonKey(name: "data") Data data});
+  $Res call({
+    @JsonKey(name: "code") int code,
+    @JsonKey(name: "message") String message,
+    @JsonKey(name: "data") Data data,
+  });
 
   $DataCopyWith<$Res> get data;
 }
@@ -68,20 +70,26 @@ class _$ProfileCopyWithImpl<$Res, $Val extends Profile>
     Object? message = null,
     Object? data = null,
   }) {
-    return _then(_value.copyWith(
-      code: null == code
-          ? _value.code
-          : code // ignore: cast_nullable_to_non_nullable
-              as int,
-      message: null == message
-          ? _value.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String,
-      data: null == data
-          ? _value.data
-          : data // ignore: cast_nullable_to_non_nullable
-              as Data,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            code:
+                null == code
+                    ? _value.code
+                    : code // ignore: cast_nullable_to_non_nullable
+                        as int,
+            message:
+                null == message
+                    ? _value.message
+                    : message // ignore: cast_nullable_to_non_nullable
+                        as String,
+            data:
+                null == data
+                    ? _value.data
+                    : data // ignore: cast_nullable_to_non_nullable
+                        as Data,
+          )
+          as $Val,
+    );
   }
 
   /// Create a copy of Profile
@@ -98,14 +106,16 @@ class _$ProfileCopyWithImpl<$Res, $Val extends Profile>
 /// @nodoc
 abstract class _$$ProfileImplCopyWith<$Res> implements $ProfileCopyWith<$Res> {
   factory _$$ProfileImplCopyWith(
-          _$ProfileImpl value, $Res Function(_$ProfileImpl) then) =
-      __$$ProfileImplCopyWithImpl<$Res>;
+    _$ProfileImpl value,
+    $Res Function(_$ProfileImpl) then,
+  ) = __$$ProfileImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: "code") int code,
-      @JsonKey(name: "message") String message,
-      @JsonKey(name: "data") Data data});
+  $Res call({
+    @JsonKey(name: "code") int code,
+    @JsonKey(name: "message") String message,
+    @JsonKey(name: "data") Data data,
+  });
 
   @override
   $DataCopyWith<$Res> get data;
@@ -116,8 +126,9 @@ class __$$ProfileImplCopyWithImpl<$Res>
     extends _$ProfileCopyWithImpl<$Res, _$ProfileImpl>
     implements _$$ProfileImplCopyWith<$Res> {
   __$$ProfileImplCopyWithImpl(
-      _$ProfileImpl _value, $Res Function(_$ProfileImpl) _then)
-      : super(_value, _then);
+    _$ProfileImpl _value,
+    $Res Function(_$ProfileImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of Profile
   /// with the given fields replaced by the non-null parameter values.
@@ -128,30 +139,36 @@ class __$$ProfileImplCopyWithImpl<$Res>
     Object? message = null,
     Object? data = null,
   }) {
-    return _then(_$ProfileImpl(
-      code: null == code
-          ? _value.code
-          : code // ignore: cast_nullable_to_non_nullable
-              as int,
-      message: null == message
-          ? _value.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String,
-      data: null == data
-          ? _value.data
-          : data // ignore: cast_nullable_to_non_nullable
-              as Data,
-    ));
+    return _then(
+      _$ProfileImpl(
+        code:
+            null == code
+                ? _value.code
+                : code // ignore: cast_nullable_to_non_nullable
+                    as int,
+        message:
+            null == message
+                ? _value.message
+                : message // ignore: cast_nullable_to_non_nullable
+                    as String,
+        data:
+            null == data
+                ? _value.data
+                : data // ignore: cast_nullable_to_non_nullable
+                    as Data,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ProfileImpl implements _Profile {
-  const _$ProfileImpl(
-      {@JsonKey(name: "code") required this.code,
-      @JsonKey(name: "message") required this.message,
-      @JsonKey(name: "data") required this.data});
+  const _$ProfileImpl({
+    @JsonKey(name: "code") required this.code,
+    @JsonKey(name: "message") required this.message,
+    @JsonKey(name: "data") required this.data,
+  });
 
   factory _$ProfileImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProfileImplFromJson(json);
@@ -195,17 +212,16 @@ class _$ProfileImpl implements _Profile {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ProfileImplToJson(
-      this,
-    );
+    return _$$ProfileImplToJson(this);
   }
 }
 
 abstract class _Profile implements Profile {
-  const factory _Profile(
-      {@JsonKey(name: "code") required final int code,
-      @JsonKey(name: "message") required final String message,
-      @JsonKey(name: "data") required final Data data}) = _$ProfileImpl;
+  const factory _Profile({
+    @JsonKey(name: "code") required final int code,
+    @JsonKey(name: "message") required final String message,
+    @JsonKey(name: "data") required final Data data,
+  }) = _$ProfileImpl;
 
   factory _Profile.fromJson(Map<String, dynamic> json) = _$ProfileImpl.fromJson;
 
@@ -269,15 +285,17 @@ class _$DataCopyWithImpl<$Res, $Val extends Data>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? user = null,
-  }) {
-    return _then(_value.copyWith(
-      user: null == user
-          ? _value.user
-          : user // ignore: cast_nullable_to_non_nullable
-              as User,
-    ) as $Val);
+  $Res call({Object? user = null}) {
+    return _then(
+      _value.copyWith(
+            user:
+                null == user
+                    ? _value.user
+                    : user // ignore: cast_nullable_to_non_nullable
+                        as User,
+          )
+          as $Val,
+    );
   }
 
   /// Create a copy of Data
@@ -294,8 +312,9 @@ class _$DataCopyWithImpl<$Res, $Val extends Data>
 /// @nodoc
 abstract class _$$DataImplCopyWith<$Res> implements $DataCopyWith<$Res> {
   factory _$$DataImplCopyWith(
-          _$DataImpl value, $Res Function(_$DataImpl) then) =
-      __$$DataImplCopyWithImpl<$Res>;
+    _$DataImpl value,
+    $Res Function(_$DataImpl) then,
+  ) = __$$DataImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({@JsonKey(name: "user") User user});
@@ -309,21 +328,22 @@ class __$$DataImplCopyWithImpl<$Res>
     extends _$DataCopyWithImpl<$Res, _$DataImpl>
     implements _$$DataImplCopyWith<$Res> {
   __$$DataImplCopyWithImpl(_$DataImpl _value, $Res Function(_$DataImpl) _then)
-      : super(_value, _then);
+    : super(_value, _then);
 
   /// Create a copy of Data
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? user = null,
-  }) {
-    return _then(_$DataImpl(
-      user: null == user
-          ? _value.user
-          : user // ignore: cast_nullable_to_non_nullable
-              as User,
-    ));
+  $Res call({Object? user = null}) {
+    return _then(
+      _$DataImpl(
+        user:
+            null == user
+                ? _value.user
+                : user // ignore: cast_nullable_to_non_nullable
+                    as User,
+      ),
+    );
   }
 }
 
@@ -366,9 +386,7 @@ class _$DataImpl implements _Data {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$DataImplToJson(
-      this,
-    );
+    return _$$DataImplToJson(this);
   }
 }
 
@@ -441,22 +459,23 @@ abstract class $UserCopyWith<$Res> {
   factory $UserCopyWith(User value, $Res Function(User) then) =
       _$UserCopyWithImpl<$Res, User>;
   @useResult
-  $Res call(
-      {@JsonKey(name: "_id") String id,
-      @JsonKey(name: "birthday") DateTime birthday,
-      @JsonKey(name: "email") String email,
-      @JsonKey(name: "gender") String gender,
-      @JsonKey(name: "name") String name,
-      @JsonKey(name: "slogan") String slogan,
-      @JsonKey(name: "title") String title,
-      @JsonKey(name: "verified") bool verified,
-      @JsonKey(name: "exp") int exp,
-      @JsonKey(name: "level") int level,
-      @JsonKey(name: "characters") List<String> characters,
-      @JsonKey(name: "created_at") DateTime createdAt,
-      @JsonKey(name: "avatar") Avatar avatar,
-      @JsonKey(name: "isPunched") bool isPunched,
-      @JsonKey(name: "character") String character});
+  $Res call({
+    @JsonKey(name: "_id") String id,
+    @JsonKey(name: "birthday") DateTime birthday,
+    @JsonKey(name: "email") String email,
+    @JsonKey(name: "gender") String gender,
+    @JsonKey(name: "name") String name,
+    @JsonKey(name: "slogan") String slogan,
+    @JsonKey(name: "title") String title,
+    @JsonKey(name: "verified") bool verified,
+    @JsonKey(name: "exp") int exp,
+    @JsonKey(name: "level") int level,
+    @JsonKey(name: "characters") List<String> characters,
+    @JsonKey(name: "created_at") DateTime createdAt,
+    @JsonKey(name: "avatar") Avatar avatar,
+    @JsonKey(name: "isPunched") bool isPunched,
+    @JsonKey(name: "character") String character,
+  });
 
   $AvatarCopyWith<$Res> get avatar;
 }
@@ -492,68 +511,86 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
     Object? isPunched = null,
     Object? character = null,
   }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      birthday: null == birthday
-          ? _value.birthday
-          : birthday // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      email: null == email
-          ? _value.email
-          : email // ignore: cast_nullable_to_non_nullable
-              as String,
-      gender: null == gender
-          ? _value.gender
-          : gender // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      slogan: null == slogan
-          ? _value.slogan
-          : slogan // ignore: cast_nullable_to_non_nullable
-              as String,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      verified: null == verified
-          ? _value.verified
-          : verified // ignore: cast_nullable_to_non_nullable
-              as bool,
-      exp: null == exp
-          ? _value.exp
-          : exp // ignore: cast_nullable_to_non_nullable
-              as int,
-      level: null == level
-          ? _value.level
-          : level // ignore: cast_nullable_to_non_nullable
-              as int,
-      characters: null == characters
-          ? _value.characters
-          : characters // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      avatar: null == avatar
-          ? _value.avatar
-          : avatar // ignore: cast_nullable_to_non_nullable
-              as Avatar,
-      isPunched: null == isPunched
-          ? _value.isPunched
-          : isPunched // ignore: cast_nullable_to_non_nullable
-              as bool,
-      character: null == character
-          ? _value.character
-          : character // ignore: cast_nullable_to_non_nullable
-              as String,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            id:
+                null == id
+                    ? _value.id
+                    : id // ignore: cast_nullable_to_non_nullable
+                        as String,
+            birthday:
+                null == birthday
+                    ? _value.birthday
+                    : birthday // ignore: cast_nullable_to_non_nullable
+                        as DateTime,
+            email:
+                null == email
+                    ? _value.email
+                    : email // ignore: cast_nullable_to_non_nullable
+                        as String,
+            gender:
+                null == gender
+                    ? _value.gender
+                    : gender // ignore: cast_nullable_to_non_nullable
+                        as String,
+            name:
+                null == name
+                    ? _value.name
+                    : name // ignore: cast_nullable_to_non_nullable
+                        as String,
+            slogan:
+                null == slogan
+                    ? _value.slogan
+                    : slogan // ignore: cast_nullable_to_non_nullable
+                        as String,
+            title:
+                null == title
+                    ? _value.title
+                    : title // ignore: cast_nullable_to_non_nullable
+                        as String,
+            verified:
+                null == verified
+                    ? _value.verified
+                    : verified // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            exp:
+                null == exp
+                    ? _value.exp
+                    : exp // ignore: cast_nullable_to_non_nullable
+                        as int,
+            level:
+                null == level
+                    ? _value.level
+                    : level // ignore: cast_nullable_to_non_nullable
+                        as int,
+            characters:
+                null == characters
+                    ? _value.characters
+                    : characters // ignore: cast_nullable_to_non_nullable
+                        as List<String>,
+            createdAt:
+                null == createdAt
+                    ? _value.createdAt
+                    : createdAt // ignore: cast_nullable_to_non_nullable
+                        as DateTime,
+            avatar:
+                null == avatar
+                    ? _value.avatar
+                    : avatar // ignore: cast_nullable_to_non_nullable
+                        as Avatar,
+            isPunched:
+                null == isPunched
+                    ? _value.isPunched
+                    : isPunched // ignore: cast_nullable_to_non_nullable
+                        as bool,
+            character:
+                null == character
+                    ? _value.character
+                    : character // ignore: cast_nullable_to_non_nullable
+                        as String,
+          )
+          as $Val,
+    );
   }
 
   /// Create a copy of User
@@ -570,26 +607,28 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
 /// @nodoc
 abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
   factory _$$UserImplCopyWith(
-          _$UserImpl value, $Res Function(_$UserImpl) then) =
-      __$$UserImplCopyWithImpl<$Res>;
+    _$UserImpl value,
+    $Res Function(_$UserImpl) then,
+  ) = __$$UserImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: "_id") String id,
-      @JsonKey(name: "birthday") DateTime birthday,
-      @JsonKey(name: "email") String email,
-      @JsonKey(name: "gender") String gender,
-      @JsonKey(name: "name") String name,
-      @JsonKey(name: "slogan") String slogan,
-      @JsonKey(name: "title") String title,
-      @JsonKey(name: "verified") bool verified,
-      @JsonKey(name: "exp") int exp,
-      @JsonKey(name: "level") int level,
-      @JsonKey(name: "characters") List<String> characters,
-      @JsonKey(name: "created_at") DateTime createdAt,
-      @JsonKey(name: "avatar") Avatar avatar,
-      @JsonKey(name: "isPunched") bool isPunched,
-      @JsonKey(name: "character") String character});
+  $Res call({
+    @JsonKey(name: "_id") String id,
+    @JsonKey(name: "birthday") DateTime birthday,
+    @JsonKey(name: "email") String email,
+    @JsonKey(name: "gender") String gender,
+    @JsonKey(name: "name") String name,
+    @JsonKey(name: "slogan") String slogan,
+    @JsonKey(name: "title") String title,
+    @JsonKey(name: "verified") bool verified,
+    @JsonKey(name: "exp") int exp,
+    @JsonKey(name: "level") int level,
+    @JsonKey(name: "characters") List<String> characters,
+    @JsonKey(name: "created_at") DateTime createdAt,
+    @JsonKey(name: "avatar") Avatar avatar,
+    @JsonKey(name: "isPunched") bool isPunched,
+    @JsonKey(name: "character") String character,
+  });
 
   @override
   $AvatarCopyWith<$Res> get avatar;
@@ -600,7 +639,7 @@ class __$$UserImplCopyWithImpl<$Res>
     extends _$UserCopyWithImpl<$Res, _$UserImpl>
     implements _$$UserImplCopyWith<$Res> {
   __$$UserImplCopyWithImpl(_$UserImpl _value, $Res Function(_$UserImpl) _then)
-      : super(_value, _then);
+    : super(_value, _then);
 
   /// Create a copy of User
   /// with the given fields replaced by the non-null parameter values.
@@ -623,91 +662,108 @@ class __$$UserImplCopyWithImpl<$Res>
     Object? isPunched = null,
     Object? character = null,
   }) {
-    return _then(_$UserImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      birthday: null == birthday
-          ? _value.birthday
-          : birthday // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      email: null == email
-          ? _value.email
-          : email // ignore: cast_nullable_to_non_nullable
-              as String,
-      gender: null == gender
-          ? _value.gender
-          : gender // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      slogan: null == slogan
-          ? _value.slogan
-          : slogan // ignore: cast_nullable_to_non_nullable
-              as String,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      verified: null == verified
-          ? _value.verified
-          : verified // ignore: cast_nullable_to_non_nullable
-              as bool,
-      exp: null == exp
-          ? _value.exp
-          : exp // ignore: cast_nullable_to_non_nullable
-              as int,
-      level: null == level
-          ? _value.level
-          : level // ignore: cast_nullable_to_non_nullable
-              as int,
-      characters: null == characters
-          ? _value._characters
-          : characters // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      avatar: null == avatar
-          ? _value.avatar
-          : avatar // ignore: cast_nullable_to_non_nullable
-              as Avatar,
-      isPunched: null == isPunched
-          ? _value.isPunched
-          : isPunched // ignore: cast_nullable_to_non_nullable
-              as bool,
-      character: null == character
-          ? _value.character
-          : character // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
+    return _then(
+      _$UserImpl(
+        id:
+            null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                    as String,
+        birthday:
+            null == birthday
+                ? _value.birthday
+                : birthday // ignore: cast_nullable_to_non_nullable
+                    as DateTime,
+        email:
+            null == email
+                ? _value.email
+                : email // ignore: cast_nullable_to_non_nullable
+                    as String,
+        gender:
+            null == gender
+                ? _value.gender
+                : gender // ignore: cast_nullable_to_non_nullable
+                    as String,
+        name:
+            null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                    as String,
+        slogan:
+            null == slogan
+                ? _value.slogan
+                : slogan // ignore: cast_nullable_to_non_nullable
+                    as String,
+        title:
+            null == title
+                ? _value.title
+                : title // ignore: cast_nullable_to_non_nullable
+                    as String,
+        verified:
+            null == verified
+                ? _value.verified
+                : verified // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        exp:
+            null == exp
+                ? _value.exp
+                : exp // ignore: cast_nullable_to_non_nullable
+                    as int,
+        level:
+            null == level
+                ? _value.level
+                : level // ignore: cast_nullable_to_non_nullable
+                    as int,
+        characters:
+            null == characters
+                ? _value._characters
+                : characters // ignore: cast_nullable_to_non_nullable
+                    as List<String>,
+        createdAt:
+            null == createdAt
+                ? _value.createdAt
+                : createdAt // ignore: cast_nullable_to_non_nullable
+                    as DateTime,
+        avatar:
+            null == avatar
+                ? _value.avatar
+                : avatar // ignore: cast_nullable_to_non_nullable
+                    as Avatar,
+        isPunched:
+            null == isPunched
+                ? _value.isPunched
+                : isPunched // ignore: cast_nullable_to_non_nullable
+                    as bool,
+        character:
+            null == character
+                ? _value.character
+                : character // ignore: cast_nullable_to_non_nullable
+                    as String,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$UserImpl implements _User {
-  const _$UserImpl(
-      {@JsonKey(name: "_id") required this.id,
-      @JsonKey(name: "birthday") required this.birthday,
-      @JsonKey(name: "email") required this.email,
-      @JsonKey(name: "gender") required this.gender,
-      @JsonKey(name: "name") required this.name,
-      @JsonKey(name: "slogan") required this.slogan,
-      @JsonKey(name: "title") required this.title,
-      @JsonKey(name: "verified") required this.verified,
-      @JsonKey(name: "exp") required this.exp,
-      @JsonKey(name: "level") required this.level,
-      @JsonKey(name: "characters") required final List<String> characters,
-      @JsonKey(name: "created_at") required this.createdAt,
-      @JsonKey(name: "avatar") required this.avatar,
-      @JsonKey(name: "isPunched") required this.isPunched,
-      @JsonKey(name: "character") required this.character})
-      : _characters = characters;
+  const _$UserImpl({
+    @JsonKey(name: "_id") required this.id,
+    @JsonKey(name: "birthday") required this.birthday,
+    @JsonKey(name: "email") required this.email,
+    @JsonKey(name: "gender") required this.gender,
+    @JsonKey(name: "name") required this.name,
+    @JsonKey(name: "slogan") required this.slogan,
+    @JsonKey(name: "title") required this.title,
+    @JsonKey(name: "verified") required this.verified,
+    @JsonKey(name: "exp") required this.exp,
+    @JsonKey(name: "level") required this.level,
+    @JsonKey(name: "characters") required final List<String> characters,
+    @JsonKey(name: "created_at") required this.createdAt,
+    @JsonKey(name: "avatar") required this.avatar,
+    @JsonKey(name: "isPunched") required this.isPunched,
+    @JsonKey(name: "character") required this.character,
+  }) : _characters = characters;
 
   factory _$UserImpl.fromJson(Map<String, dynamic> json) =>
       _$$UserImplFromJson(json);
@@ -786,8 +842,10 @@ class _$UserImpl implements _User {
                 other.verified == verified) &&
             (identical(other.exp, exp) || other.exp == exp) &&
             (identical(other.level, level) || other.level == level) &&
-            const DeepCollectionEquality()
-                .equals(other._characters, _characters) &&
+            const DeepCollectionEquality().equals(
+              other._characters,
+              _characters,
+            ) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.avatar, avatar) || other.avatar == avatar) &&
@@ -800,22 +858,23 @@ class _$UserImpl implements _User {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      birthday,
-      email,
-      gender,
-      name,
-      slogan,
-      title,
-      verified,
-      exp,
-      level,
-      const DeepCollectionEquality().hash(_characters),
-      createdAt,
-      avatar,
-      isPunched,
-      character);
+    runtimeType,
+    id,
+    birthday,
+    email,
+    gender,
+    name,
+    slogan,
+    title,
+    verified,
+    exp,
+    level,
+    const DeepCollectionEquality().hash(_characters),
+    createdAt,
+    avatar,
+    isPunched,
+    character,
+  );
 
   /// Create a copy of User
   /// with the given fields replaced by the non-null parameter values.
@@ -827,30 +886,28 @@ class _$UserImpl implements _User {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$UserImplToJson(
-      this,
-    );
+    return _$$UserImplToJson(this);
   }
 }
 
 abstract class _User implements User {
-  const factory _User(
-          {@JsonKey(name: "_id") required final String id,
-          @JsonKey(name: "birthday") required final DateTime birthday,
-          @JsonKey(name: "email") required final String email,
-          @JsonKey(name: "gender") required final String gender,
-          @JsonKey(name: "name") required final String name,
-          @JsonKey(name: "slogan") required final String slogan,
-          @JsonKey(name: "title") required final String title,
-          @JsonKey(name: "verified") required final bool verified,
-          @JsonKey(name: "exp") required final int exp,
-          @JsonKey(name: "level") required final int level,
-          @JsonKey(name: "characters") required final List<String> characters,
-          @JsonKey(name: "created_at") required final DateTime createdAt,
-          @JsonKey(name: "avatar") required final Avatar avatar,
-          @JsonKey(name: "isPunched") required final bool isPunched,
-          @JsonKey(name: "character") required final String character}) =
-      _$UserImpl;
+  const factory _User({
+    @JsonKey(name: "_id") required final String id,
+    @JsonKey(name: "birthday") required final DateTime birthday,
+    @JsonKey(name: "email") required final String email,
+    @JsonKey(name: "gender") required final String gender,
+    @JsonKey(name: "name") required final String name,
+    @JsonKey(name: "slogan") required final String slogan,
+    @JsonKey(name: "title") required final String title,
+    @JsonKey(name: "verified") required final bool verified,
+    @JsonKey(name: "exp") required final int exp,
+    @JsonKey(name: "level") required final int level,
+    @JsonKey(name: "characters") required final List<String> characters,
+    @JsonKey(name: "created_at") required final DateTime createdAt,
+    @JsonKey(name: "avatar") required final Avatar avatar,
+    @JsonKey(name: "isPunched") required final bool isPunched,
+    @JsonKey(name: "character") required final String character,
+  }) = _$UserImpl;
 
   factory _User.fromJson(Map<String, dynamic> json) = _$UserImpl.fromJson;
 
@@ -935,10 +992,11 @@ abstract class $AvatarCopyWith<$Res> {
   factory $AvatarCopyWith(Avatar value, $Res Function(Avatar) then) =
       _$AvatarCopyWithImpl<$Res, Avatar>;
   @useResult
-  $Res call(
-      {@JsonKey(name: "originalName") String originalName,
-      @JsonKey(name: "path") String path,
-      @JsonKey(name: "fileServer") String fileServer});
+  $Res call({
+    @JsonKey(name: "originalName") String originalName,
+    @JsonKey(name: "path") String path,
+    @JsonKey(name: "fileServer") String fileServer,
+  });
 }
 
 /// @nodoc
@@ -960,34 +1018,42 @@ class _$AvatarCopyWithImpl<$Res, $Val extends Avatar>
     Object? path = null,
     Object? fileServer = null,
   }) {
-    return _then(_value.copyWith(
-      originalName: null == originalName
-          ? _value.originalName
-          : originalName // ignore: cast_nullable_to_non_nullable
-              as String,
-      path: null == path
-          ? _value.path
-          : path // ignore: cast_nullable_to_non_nullable
-              as String,
-      fileServer: null == fileServer
-          ? _value.fileServer
-          : fileServer // ignore: cast_nullable_to_non_nullable
-              as String,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            originalName:
+                null == originalName
+                    ? _value.originalName
+                    : originalName // ignore: cast_nullable_to_non_nullable
+                        as String,
+            path:
+                null == path
+                    ? _value.path
+                    : path // ignore: cast_nullable_to_non_nullable
+                        as String,
+            fileServer:
+                null == fileServer
+                    ? _value.fileServer
+                    : fileServer // ignore: cast_nullable_to_non_nullable
+                        as String,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$AvatarImplCopyWith<$Res> implements $AvatarCopyWith<$Res> {
   factory _$$AvatarImplCopyWith(
-          _$AvatarImpl value, $Res Function(_$AvatarImpl) then) =
-      __$$AvatarImplCopyWithImpl<$Res>;
+    _$AvatarImpl value,
+    $Res Function(_$AvatarImpl) then,
+  ) = __$$AvatarImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: "originalName") String originalName,
-      @JsonKey(name: "path") String path,
-      @JsonKey(name: "fileServer") String fileServer});
+  $Res call({
+    @JsonKey(name: "originalName") String originalName,
+    @JsonKey(name: "path") String path,
+    @JsonKey(name: "fileServer") String fileServer,
+  });
 }
 
 /// @nodoc
@@ -995,8 +1061,9 @@ class __$$AvatarImplCopyWithImpl<$Res>
     extends _$AvatarCopyWithImpl<$Res, _$AvatarImpl>
     implements _$$AvatarImplCopyWith<$Res> {
   __$$AvatarImplCopyWithImpl(
-      _$AvatarImpl _value, $Res Function(_$AvatarImpl) _then)
-      : super(_value, _then);
+    _$AvatarImpl _value,
+    $Res Function(_$AvatarImpl) _then,
+  ) : super(_value, _then);
 
   /// Create a copy of Avatar
   /// with the given fields replaced by the non-null parameter values.
@@ -1007,30 +1074,36 @@ class __$$AvatarImplCopyWithImpl<$Res>
     Object? path = null,
     Object? fileServer = null,
   }) {
-    return _then(_$AvatarImpl(
-      originalName: null == originalName
-          ? _value.originalName
-          : originalName // ignore: cast_nullable_to_non_nullable
-              as String,
-      path: null == path
-          ? _value.path
-          : path // ignore: cast_nullable_to_non_nullable
-              as String,
-      fileServer: null == fileServer
-          ? _value.fileServer
-          : fileServer // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
+    return _then(
+      _$AvatarImpl(
+        originalName:
+            null == originalName
+                ? _value.originalName
+                : originalName // ignore: cast_nullable_to_non_nullable
+                    as String,
+        path:
+            null == path
+                ? _value.path
+                : path // ignore: cast_nullable_to_non_nullable
+                    as String,
+        fileServer:
+            null == fileServer
+                ? _value.fileServer
+                : fileServer // ignore: cast_nullable_to_non_nullable
+                    as String,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$AvatarImpl implements _Avatar {
-  const _$AvatarImpl(
-      {@JsonKey(name: "originalName") required this.originalName,
-      @JsonKey(name: "path") required this.path,
-      @JsonKey(name: "fileServer") required this.fileServer});
+  const _$AvatarImpl({
+    @JsonKey(name: "originalName") required this.originalName,
+    @JsonKey(name: "path") required this.path,
+    @JsonKey(name: "fileServer") required this.fileServer,
+  });
 
   factory _$AvatarImpl.fromJson(Map<String, dynamic> json) =>
       _$$AvatarImplFromJson(json);
@@ -1076,18 +1149,16 @@ class _$AvatarImpl implements _Avatar {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$AvatarImplToJson(
-      this,
-    );
+    return _$$AvatarImplToJson(this);
   }
 }
 
 abstract class _Avatar implements Avatar {
-  const factory _Avatar(
-          {@JsonKey(name: "originalName") required final String originalName,
-          @JsonKey(name: "path") required final String path,
-          @JsonKey(name: "fileServer") required final String fileServer}) =
-      _$AvatarImpl;
+  const factory _Avatar({
+    @JsonKey(name: "originalName") required final String originalName,
+    @JsonKey(name: "path") required final String path,
+    @JsonKey(name: "fileServer") required final String fileServer,
+  }) = _$AvatarImpl;
 
   factory _Avatar.fromJson(Map<String, dynamic> json) = _$AvatarImpl.fromJson;
 

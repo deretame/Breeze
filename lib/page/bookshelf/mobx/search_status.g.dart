@@ -9,8 +9,10 @@ part of 'search_status.dart';
 // ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic, no_leading_underscores_for_local_identifiers
 
 mixin _$SearchStatusStore on _SearchStatusStore, Store {
-  late final _$statusAtom =
-      Atom(name: '_SearchStatusStore.status', context: context);
+  late final _$statusAtom = Atom(
+    name: '_SearchStatusStore.status',
+    context: context,
+  );
 
   @override
   BookShelfStatus get status {
@@ -25,8 +27,10 @@ mixin _$SearchStatusStore on _SearchStatusStore, Store {
     });
   }
 
-  late final _$pageCountAtom =
-      Atom(name: '_SearchStatusStore.pageCount', context: context);
+  late final _$pageCountAtom = Atom(
+    name: '_SearchStatusStore.pageCount',
+    context: context,
+  );
 
   @override
   int get pageCount {
@@ -41,8 +45,10 @@ mixin _$SearchStatusStore on _SearchStatusStore, Store {
     });
   }
 
-  late final _$refreshAtom =
-      Atom(name: '_SearchStatusStore.refresh', context: context);
+  late final _$refreshAtom = Atom(
+    name: '_SearchStatusStore.refresh',
+    context: context,
+  );
 
   @override
   String get refresh {
@@ -57,8 +63,10 @@ mixin _$SearchStatusStore on _SearchStatusStore, Store {
     });
   }
 
-  late final _$keywordAtom =
-      Atom(name: '_SearchStatusStore.keyword', context: context);
+  late final _$keywordAtom = Atom(
+    name: '_SearchStatusStore.keyword',
+    context: context,
+  );
 
   @override
   String get keyword {
@@ -73,8 +81,10 @@ mixin _$SearchStatusStore on _SearchStatusStore, Store {
     });
   }
 
-  late final _$sortAtom =
-      Atom(name: '_SearchStatusStore.sort', context: context);
+  late final _$sortAtom = Atom(
+    name: '_SearchStatusStore.sort',
+    context: context,
+  );
 
   @override
   String get sort {
@@ -89,8 +99,10 @@ mixin _$SearchStatusStore on _SearchStatusStore, Store {
     });
   }
 
-  late final _$categoriesAtom =
-      Atom(name: '_SearchStatusStore.categories', context: context);
+  late final _$categoriesAtom = Atom(
+    name: '_SearchStatusStore.categories',
+    context: context,
+  );
 
   @override
   List<String> get categories {
@@ -105,13 +117,16 @@ mixin _$SearchStatusStore on _SearchStatusStore, Store {
     });
   }
 
-  late final _$_SearchStatusStoreActionController =
-      ActionController(name: '_SearchStatusStore', context: context);
+  late final _$_SearchStatusStoreActionController = ActionController(
+    name: '_SearchStatusStore',
+    context: context,
+  );
 
   @override
   void setStatus(BookShelfStatus status) {
     final _$actionInfo = _$_SearchStatusStoreActionController.startAction(
-        name: '_SearchStatusStore.setStatus');
+      name: '_SearchStatusStore.setStatus',
+    );
     try {
       return super.setStatus(status);
     } finally {
@@ -122,7 +137,8 @@ mixin _$SearchStatusStore on _SearchStatusStore, Store {
   @override
   void setPageCount(int pageCount) {
     final _$actionInfo = _$_SearchStatusStoreActionController.startAction(
-        name: '_SearchStatusStore.setPageCount');
+      name: '_SearchStatusStore.setPageCount',
+    );
     try {
       return super.setPageCount(pageCount);
     } finally {
@@ -133,7 +149,8 @@ mixin _$SearchStatusStore on _SearchStatusStore, Store {
   @override
   void setRefresh(String refresh) {
     final _$actionInfo = _$_SearchStatusStoreActionController.startAction(
-        name: '_SearchStatusStore.setRefresh');
+      name: '_SearchStatusStore.setRefresh',
+    );
     try {
       return super.setRefresh(refresh);
     } finally {
@@ -144,7 +161,8 @@ mixin _$SearchStatusStore on _SearchStatusStore, Store {
   @override
   void setKeyword(String keyword) {
     final _$actionInfo = _$_SearchStatusStoreActionController.startAction(
-        name: '_SearchStatusStore.setKeyword');
+      name: '_SearchStatusStore.setKeyword',
+    );
     try {
       return super.setKeyword(keyword);
     } finally {
@@ -155,7 +173,8 @@ mixin _$SearchStatusStore on _SearchStatusStore, Store {
   @override
   void setSort(String sort) {
     final _$actionInfo = _$_SearchStatusStoreActionController.startAction(
-        name: '_SearchStatusStore.setSort');
+      name: '_SearchStatusStore.setSort',
+    );
     try {
       return super.setSort(sort);
     } finally {
@@ -166,7 +185,8 @@ mixin _$SearchStatusStore on _SearchStatusStore, Store {
   @override
   void setCategories(List<String> categories) {
     final _$actionInfo = _$_SearchStatusStoreActionController.startAction(
-        name: '_SearchStatusStore.setCategories');
+      name: '_SearchStatusStore.setCategories',
+    );
     try {
       return super.setCategories(categories);
     } finally {

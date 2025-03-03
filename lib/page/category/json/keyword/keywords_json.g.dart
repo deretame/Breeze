@@ -21,11 +21,9 @@ Map<String, dynamic> _$$KeywordsJsonImplToJson(_$KeywordsJsonImpl instance) =>
     };
 
 _$DataImpl _$$DataImplFromJson(Map<String, dynamic> json) => _$DataImpl(
-      keywords:
-          (json['keywords'] as List<dynamic>).map((e) => e as String).toList(),
-    );
+  keywords:
+      (json['keywords'] as List<dynamic>).map((e) => e as String).toList(),
+);
 
 Map<String, dynamic> _$$DataImplToJson(_$DataImpl instance) =>
-    <String, dynamic>{
-      'keywords': instance.keywords,
-    };
+    <String, dynamic>{'keywords': instance.keywords};

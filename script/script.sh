@@ -4,7 +4,4 @@
 flutter build apk --split-per-abi --no-shrink
 
 # 代码生成
-flutter pub run build_runner build
-
-# 生成realm的dart代码
-dart run realm generate
+dart run build_runner build

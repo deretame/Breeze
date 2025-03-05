@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -115,37 +114,23 @@ Future<Map<String, dynamic>> request(
     dio.interceptors.removeWhere((Interceptor i) => i == cacheInterceptor);
   }
 
-  try {
-    final cancelToken = CancelToken();
-    Timer(Duration(seconds: 10), () {
-      cancelToken.cancel('请求超时');
-    });
+  final data =
+      body.isNotEmpty && (method == 'POST' || method == 'PUT') ? body : null;
 
+  try {
     final response = await dio.request(
       url,
-      data:
-          body.isNotEmpty && (method == 'POST' || method == 'PUT')
-              ? body
-              : null,
-      options: Options(method: method, headers: headers),
-      cancelToken: cancelToken,
+      data: data,
+      options: Options(
+        method: method,
+        headers: headers,
+        sendTimeout: const Duration(seconds: 10), // 连接超时时间
+        receiveTimeout: const Duration(seconds: 10), // 接收超时时间
+      ),
     );
 
     return response.data;
   } on DioException catch (error) {
-    debugPrint(error.toString());
-
-    // 定义基础错误信息
-    String errorMessage = 'DioError: ${error.toString()}';
-
-    // 检查错误是否有响应体
-    if (error.response != null) {
-      // 如果有响应体，尝试解析错误信息
-      String responseBody =
-          error.response?.data?.toString() ?? 'No response body';
-      errorMessage += '\nBody: $responseBody';
-    }
-
     // 如果是掉登录了
     if (error.response?.data?['code'] == 401 &&
         error.response?.data?['message'] == 'unauthorized') {
@@ -155,9 +140,30 @@ Future<Map<String, dynamic>> request(
     }
 
     // 抛出封装后的错误信息
-    throw Exception(errorMessage);
+    throw Exception(_handleDioError(error));
   } catch (error) {
-    debugPrint(error.toString());
     throw Exception('General Error: ${error.toString()}');
+  }
+}
+
+String _handleDioError(DioException error) {
+  switch (error.type) {
+    case DioExceptionType.connectionTimeout:
+      return '连接服务器超时（${error.requestOptions.connectTimeout}秒）';
+    case DioExceptionType.sendTimeout:
+      return '请求发送超时（${error.requestOptions.sendTimeout}秒）';
+    case DioExceptionType.receiveTimeout:
+      return '响应接收超时（${error.requestOptions.receiveTimeout}秒）';
+    case DioExceptionType.badResponse:
+      return error.response?.data?['message'] ??
+          '服务器返回错误状态码: ${error.response?.statusCode}';
+    case DioExceptionType.cancel:
+      return '请求被取消';
+    case DioExceptionType.connectionError:
+      return '网络连接失败，请检查网络';
+    case DioExceptionType.unknown:
+      return error.error?.toString() ?? '未知网络错误';
+    case DioExceptionType.badCertificate:
+      return '证书验证失败';
   }
 }

@@ -1,3 +1,6 @@
+import 'package:flutter/cupertino.dart';
+import 'package:toastification/toastification.dart';
+
 import '../main.dart';
 
 enum ToastType { info, success, warning, error }
@@ -20,7 +23,20 @@ void showInfoToast(
   String message, {
   String? title,
   Duration duration = const Duration(seconds: 2),
+  BuildContext? context,
 }) {
+  if (context != null) {
+    toastification.show(
+      context: context,
+      title: title == null ? null : Text(title),
+      description: Text(message),
+      type: ToastificationType.info,
+      style: ToastificationStyle.flatColored,
+      autoCloseDuration: duration,
+    );
+    return;
+  }
+
   eventBus.fire(
     ToastEvent(
       type: ToastType.info,
@@ -35,7 +51,20 @@ void showSuccessToast(
   String message, {
   String? title,
   Duration duration = const Duration(seconds: 2),
+  BuildContext? context,
 }) {
+  if (context != null) {
+    toastification.show(
+      context: context,
+      title: title == null ? null : Text(title),
+      description: Text(message),
+      type: ToastificationType.success,
+      style: ToastificationStyle.flatColored,
+      autoCloseDuration: duration,
+    );
+    return;
+  }
+
   eventBus.fire(
     ToastEvent(
       type: ToastType.success,
@@ -50,7 +79,20 @@ void showWarningToast(
   String message, {
   String? title,
   Duration duration = const Duration(seconds: 2),
+  BuildContext? context,
 }) {
+  if (context != null) {
+    toastification.show(
+      context: context,
+      title: title == null ? null : Text(title),
+      description: Text(message),
+      type: ToastificationType.warning,
+      style: ToastificationStyle.flatColored,
+      autoCloseDuration: duration,
+    );
+    return;
+  }
+
   eventBus.fire(
     ToastEvent(
       type: ToastType.warning,
@@ -65,7 +107,20 @@ void showErrorToast(
   String message, {
   String? title,
   Duration duration = const Duration(seconds: 5),
+  BuildContext? context,
 }) {
+  if (context != null) {
+    toastification.show(
+      context: context,
+      title: title == null ? null : Text(title),
+      description: Text(message),
+      type: ToastificationType.error,
+      style: ToastificationStyle.flatColored,
+      autoCloseDuration: duration,
+    );
+    return;
+  }
+
   eventBus.fire(
     ToastEvent(
       type: ToastType.error,

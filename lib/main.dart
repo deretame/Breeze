@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:event_bus/event_bus.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -45,7 +46,7 @@ Future<void> main() async {
     () async {
       WidgetsFlutterBinding.ensureInitialized();
       // 重采样触控刷新率
-      // GestureBinding.instance.resamplingEnabled = true;
+      GestureBinding.instance.resamplingEnabled = false;
 
       objectbox = await ObjectBox.create();
 

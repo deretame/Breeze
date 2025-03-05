@@ -124,7 +124,7 @@ Future<String> downloadPicture({
     if (existingFilePath != downloadFilePath) {
       await copyFile(cacheFilePath, downloadFilePath);
     }
-    return existingFilePath;
+    return downloadFilePath;
   }
 
   // 处理 URL

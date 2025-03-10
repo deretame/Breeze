@@ -335,7 +335,8 @@ class _ComicInfoState extends State<_ComicInfo>
                       // const SizedBox(height: 3),
                     ],
                     if (comicInfo.description != '') ...[
-                      SynopsisWidget(comicInfo: comicInfo),
+                      const SizedBox(height: 3),
+                      Text(comicInfo.description),
                     ],
                     const SizedBox(height: 10),
                     CreatorInfoWidget(comicInfo: comicInfo),

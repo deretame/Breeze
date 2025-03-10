@@ -1,12 +1,13 @@
-import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
-import 'package:archive/archive_io.dart';
 import 'package:flutter/foundation.dart'; // 引入 compute
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:tar/tar.dart';
 
 import '../../../network/http/picture.dart';
+import '../../../util/get_path.dart';
 import '../../../widgets/toast.dart';
 import '../../download/json/comic_all_info_json/comic_all_info_json.dart';
 
@@ -17,6 +18,10 @@ Future<void> exportComicAsFolder(ComicAllInfoJson comicInfo) async {
   var comicDir = '$downloadPath/${processedComicInfo.comic.title}';
 
   if (!await Directory(comicDir).exists()) {
+    await Directory(comicDir).create(recursive: true);
+  } else {
+    // 如果存在，则先删除
+    await Directory(comicDir).delete(recursive: true);
     await Directory(comicDir).create(recursive: true);
   }
 
@@ -86,23 +91,44 @@ Future<void> exportComicAsFolder(ComicAllInfoJson comicInfo) async {
   showSuccessToast('漫画${comicInfo.comic.title}导出为文件夹完成');
 }
 
-/// 导出漫画为 ZIP
 Future<void> exportComicAsZip(ComicAllInfoJson comicInfo) async {
   var processedComicInfo = comicInfoProcess(comicInfo);
-  var downloadPath = await createDownloadDir();
-  var comicDir = processedComicInfo.comic.title;
 
-  // 保存原始漫画信息
-  var originalComicInfoString = comicAllInfoJsonToJson(comicInfo);
-  var originalComicInfoBytes = utf8.encode(originalComicInfoString);
+  // 创建缓存目录
+  var cacheDir = await getCachePath();
+  var comicDir =
+      '$cacheDir/comic_export_cache/${processedComicInfo.comic.title}';
 
-  // 保存处理后的漫画信息
+  if (!await Directory(comicDir).exists()) {
+    await Directory(comicDir).create(recursive: true);
+  } else {
+    // 如果存在，则先删除
+    await Directory(comicDir).delete(recursive: true);
+    await Directory(comicDir).create(recursive: true);
+  }
+
+  // 保存漫画下载信息
+  var comicInfoString = comicAllInfoJsonToJson(comicInfo);
+  var comicInfoFile = File('$comicDir/original_comic_info.json');
+  if (!await comicInfoFile.exists()) {
+    await comicInfoFile.create(recursive: true);
+  }
+  await comicInfoFile.writeAsString(comicInfoString);
+
   var processedComicInfoString = comicAllInfoJsonToJson(processedComicInfo);
-  var processedComicInfoBytes = utf8.encode(processedComicInfoString);
+  var processedComicInfoFile = File('$comicDir/processed_comic_info.json');
+  if (!await processedComicInfoFile.exists()) {
+    await processedComicInfoFile.create(recursive: true);
+  }
+  await processedComicInfoFile.writeAsString(processedComicInfoString);
 
-  // 封面图片
-  Uint8List? coverBytes;
+  // 下载封面
   if (processedComicInfo.comic.thumb.path.isNotEmpty) {
+    var coverDir = '$comicDir/cover';
+    var coverFile = File('$coverDir/cover.jpg');
+    if (!await coverFile.exists()) {
+      await coverFile.create(recursive: true);
+    }
     var coverDownloadFile = await downloadPicture(
       from: 'bika',
       url: processedComicInfo.comic.thumb.fileServer,
@@ -111,113 +137,112 @@ Future<void> exportComicAsZip(ComicAllInfoJson comicInfo) async {
       pictureType: 'cover',
       chapterId: processedComicInfo.comic.id,
     );
-    coverBytes = await File(coverDownloadFile).readAsBytes();
+    await File(coverDownloadFile).copy(coverFile.path);
   }
 
-  // 漫画页面
-  final List<Map<String, dynamic>> pages = [];
+  // 下载漫画章节
+  final List<Future<void>> downloadTasks = [];
   for (var ep in processedComicInfo.eps.docs) {
-    var epDir = 'eps/${ep.title}';
+    var epDir = '$comicDir/eps/${ep.title}';
     for (var page in ep.pages.docs) {
-      var pageDownloadFile = await downloadPicture(
-        from: 'bika',
-        url: page.media.fileServer,
-        path: page.media.path,
-        cartoonId: processedComicInfo.comic.id,
-        pictureType: 'comic',
-        chapterId: ep.id,
-      );
-      var pageBytes = await File(pageDownloadFile).readAsBytes();
-      var fileName = page.media.originalName;
-      pages.add({'path': join(epDir, fileName), 'bytes': pageBytes});
+      var pageFile = '$epDir/${page.media.originalName}';
+      downloadTask() async {
+        try {
+          var pageDownloadFile = await downloadPicture(
+            from: 'bika',
+            url: page.media.fileServer,
+            path: page.media.path,
+            cartoonId: comicInfo.comic.id,
+            pictureType: 'comic',
+            chapterId: ep.id,
+          );
+          if (!await File(pageFile).exists()) {
+            await File(pageFile).create(recursive: true);
+          }
+          await File(pageDownloadFile).copy(pageFile);
+        } catch (e) {
+          debugPrint('Error downloading ${page.media.fileServer}: $e');
+        }
+      }
+
+      downloadTasks.add(downloadTask());
     }
   }
 
-  // 将压缩任务放到后台线程中执行
-  await compute(
-    _compressToZip,
-    _CompressToZipParams(
-      downloadPath: downloadPath,
-      comicDir: comicDir,
-      originalComicInfoBytes: originalComicInfoBytes,
-      processedComicInfoBytes: processedComicInfoBytes,
-      coverBytes: coverBytes,
-      pages: pages,
-    ),
-  );
+  await Future.wait(downloadTasks);
 
-  debugPrint('漫画${comicInfo.comic.title}导出为ZIP完成');
-  showSuccessToast('漫画${comicInfo.comic.title}导出为ZIP完成');
+  var downloadPath = await createDownloadDir();
+  var finalZipPath = '$downloadPath/${processedComicInfo.comic.title}.tar';
+
+  // 在后台线程中压缩文件夹
+  await _compressInBackground(comicDir, finalZipPath);
+
+  // 清理缓存目录
+  await Directory(comicDir).delete(recursive: true);
+
+  debugPrint('漫画${comicInfo.comic.title}导出为压缩包完成');
+  showSuccessToast('漫画${comicInfo.comic.title}导出为压缩包完成');
 }
 
-/// 压缩任务参数类
-class _CompressToZipParams {
-  final String downloadPath;
-  final String comicDir;
-  final Uint8List originalComicInfoBytes; // 原始漫画信息
-  final Uint8List processedComicInfoBytes; // 处理后的漫画信息
-  final Uint8List? coverBytes;
-  final List<Map<String, dynamic>> pages;
+// 在后台线程中压缩文件夹
+Future<void> _compressInBackground(String sourceDir, String zipFilePath) async {
+  final receivePort = ReceivePort();
 
-  _CompressToZipParams({
-    required this.downloadPath,
-    required this.comicDir,
-    required this.originalComicInfoBytes,
-    required this.processedComicInfoBytes,
-    this.coverBytes,
-    required this.pages,
-  });
+  await Isolate.spawn(
+    _compressIsolate,
+    _CompressData(sourceDir, zipFilePath, receivePort.sendPort),
+  );
+
+  // 等待压缩完成
+  await receivePort.first;
 }
 
-/// 压缩任务（在后台线程中执行）
-void _compressToZip(_CompressToZipParams params) {
-  var archive = Archive();
+// Isolate 入口函数
+void _compressIsolate(_CompressData data) async {
+  final entries = _findEntries(data.zipFilePath, data.sourceDir);
+  final output = File(data.zipFilePath);
 
-  // 添加原始漫画信息文件
-  archive.addFile(
-    ArchiveFile(
-      'original_comic_info.json',
-      params.originalComicInfoBytes.length,
-      params.originalComicInfoBytes,
-    ),
-  );
+  await entries.transform(tarWriter).pipe(output.openWrite());
 
-  // 添加处理后的漫画信息文件
-  archive.addFile(
-    ArchiveFile(
-      'processed_comic_info.json',
-      params.processedComicInfoBytes.length,
-      params.processedComicInfoBytes,
-    ),
-  );
+  // 通知主线程压缩完成
+  data.sendPort.send(null);
+}
 
-  // 添加封面图片
-  if (params.coverBytes != null) {
-    archive.addFile(
-      ArchiveFile(
-        'cover/cover.jpg',
-        params.coverBytes!.length,
-        params.coverBytes!,
+Stream<TarEntry> _findEntries(String outputName, String comicDir) async* {
+  final root = Directory(comicDir);
+  await for (final entry in root.list(recursive: true)) {
+    if (entry is! File) continue;
+
+    final name = path.relative(entry.path, from: root.path);
+
+    if (name.startsWith('.')) continue;
+
+    if (name == outputName) continue;
+
+    final stat = entry.statSync();
+
+    yield TarEntry(
+      TarHeader(
+        name: name,
+        typeFlag: TypeFlag.reg,
+        mode: stat.mode,
+        modified: stat.modified,
+        accessed: stat.accessed,
+        changed: stat.changed,
+        size: stat.size,
       ),
+      entry.openRead(),
     );
   }
+}
 
-  // 添加漫画页面
-  for (var page in params.pages) {
-    archive.addFile(
-      ArchiveFile(
-        page['path'],
-        (page['bytes'] as Uint8List).length,
-        page['bytes'],
-      ),
-    );
-  }
+// 用于传递数据到 Isolate
+class _CompressData {
+  final String sourceDir;
+  final String zipFilePath;
+  final SendPort sendPort;
 
-  // 将归档写入ZIP文件
-  var zipFilePath = '${params.downloadPath}/${params.comicDir}.zip';
-  var zipFile = File(zipFilePath);
-  var output = ZipEncoder().encode(archive);
-  zipFile.writeAsBytesSync(output);
+  _CompressData(this.sourceDir, this.zipFilePath, this.sendPort);
 }
 
 /// 创建下载目录

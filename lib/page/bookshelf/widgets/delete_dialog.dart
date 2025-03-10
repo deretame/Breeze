@@ -17,7 +17,7 @@ Widget deletingDialog(BuildContext context, Function refresh, DeleteType type) {
   return Center(
     child: Padding(
       padding: const EdgeInsets.all(30.0),
-      child: ElevatedButton(
+      child: TextButton(
         onPressed: () {
           // 弹出确认对话框
           showDialog(

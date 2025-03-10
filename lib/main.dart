@@ -48,6 +48,13 @@ Future<void> main() async {
       // 重采样触控刷新率
       GestureBinding.instance.resamplingEnabled = false;
 
+      const skia = String.fromEnvironment('use_skia', defaultValue: 'false');
+      if (skia == 'true') {
+        useSkia = true;
+      } else {
+        useSkia = false;
+      }
+
       objectbox = await ObjectBox.create();
 
       await manageCacheSize();

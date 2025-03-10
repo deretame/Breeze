@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 double screenWidth = 0;
 double screenHeight = 0;
 double statusBarHeight = 0;
+bool useSkia = false;
 
 class Global {
   final BuildContext context;

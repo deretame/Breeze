@@ -262,67 +262,41 @@ Future<String> createDownloadDir() async {
 }
 
 ComicAllInfoJson comicInfoProcess(ComicAllInfoJson comicInfo) {
-  return ComicAllInfoJson(
-    comic: Comic(
-      id: comicInfo.comic.id,
-      creator: comicInfo.comic.creator,
-      title: comicInfo.comic.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_'),
-      description: comicInfo.comic.description,
-      thumb: comicInfo.comic.thumb,
-      author: comicInfo.comic.author,
-      chineseTeam: comicInfo.comic.chineseTeam,
-      categories: comicInfo.comic.categories,
-      tags: comicInfo.comic.tags,
-      pagesCount: comicInfo.comic.pagesCount,
-      epsCount: comicInfo.comic.epsCount,
-      finished: comicInfo.comic.finished,
-      updatedAt: comicInfo.comic.updatedAt,
-      createdAt: comicInfo.comic.createdAt,
-      allowDownload: comicInfo.comic.allowDownload,
-      allowComment: comicInfo.comic.allowComment,
-      totalLikes: comicInfo.comic.totalLikes,
-      totalViews: comicInfo.comic.totalViews,
-      totalComments: comicInfo.comic.totalComments,
-      viewsCount: comicInfo.comic.viewsCount,
-      likesCount: comicInfo.comic.likesCount,
-      commentsCount: comicInfo.comic.commentsCount,
-      isFavourite: comicInfo.comic.isFavourite,
-      isLiked: comicInfo.comic.isLiked,
-    ),
-    eps: Eps(
-      docs:
-          comicInfo.eps.docs
-              .map(
-                (ep) => EpsDoc(
-                  id: ep.id,
-                  title:
-                      "${ep.order}.${ep.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}",
-                  order: ep.order,
-                  updatedAt: ep.updatedAt,
-                  docId: ep.docId,
-                  pages: Pages(
-                    docs:
-                        ep.pages.docs
-                            .map(
-                              (page) => PagesDoc(
-                                id: page.id,
-                                media: Thumb(
-                                  originalName: page.media.originalName
-                                      .replaceAll(
-                                        RegExp(r'[<>:"/\\|?* ]'),
-                                        '_',
-                                      ),
-                                  path: page.media.path,
-                                  fileServer: page.media.fileServer,
-                                ),
-                                docId: page.docId,
-                              ),
-                            )
-                            .toList(),
-                  ),
-                ),
-              )
-              .toList(),
-    ),
+  // 修改 comic 的 title
+  final updatedComic = comicInfo.comic.copyWith(
+    title: comicInfo.comic.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_'),
   );
+
+  // 修改 eps 的 docs
+  final updatedEpsDocs =
+      comicInfo.eps.docs.map((ep) {
+        // 修改 epsDoc 的 title
+        final updatedEp = ep.copyWith(
+          title:
+              "${ep.order}.${ep.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}",
+        );
+
+        // 修改 pages 的 docs
+        final updatedPagesDocs =
+            updatedEp.pages.docs.map((page) {
+              // 修改 page 的 media
+              final updatedMedia = page.media.copyWith(
+                originalName: page.media.originalName.replaceAll(
+                  RegExp(r'[<>:"/\\|?* ]'),
+                  '_',
+                ),
+              );
+
+              return page.copyWith(media: updatedMedia);
+            }).toList();
+
+        // 更新 epsDoc 的 pages
+        return updatedEp.copyWith(pages: Pages(docs: updatedPagesDocs));
+      }).toList();
+
+  // 更新 eps 的 docs
+  final updatedEps = comicInfo.eps.copyWith(docs: updatedEpsDocs);
+
+  // 返回更新后的 ComicAllInfoJson
+  return comicInfo.copyWith(comic: updatedComic, eps: updatedEps);
 }

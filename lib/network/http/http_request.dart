@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:zephyr/main.dart';
 
 import 'http_request_build.dart';
@@ -16,7 +15,8 @@ Future<Map<String, dynamic>> login(String username, String password) async {
     'POST',
     body: json.encode({'email': username, 'password': password}),
   );
-  debugPrint(limitString(data.toString(), 150));
+
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -52,7 +52,7 @@ Future<Map<String, dynamic>> register(
     body: json.encode(jsonMap),
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -68,7 +68,7 @@ Future<Map<String, dynamic>> getCategories() async {
     cache: false,
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -93,7 +93,7 @@ Future<Map<String, dynamic>> getRankingList({
 
   final Map<String, dynamic> data = await request(url, 'GET', cache: true);
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -159,7 +159,7 @@ Future<Map<String, dynamic>> search({
     );
   }
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -175,7 +175,7 @@ Future<Map<String, dynamic>> getSearchKeywords() async {
     cache: true,
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -190,7 +190,7 @@ Future<Map<String, dynamic>> getComicInfo(String comicId) async {
     'GET',
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -205,7 +205,7 @@ Future<Map<String, dynamic>> favouriteComic(String comicId) async {
     'POST',
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -220,7 +220,7 @@ Future<Map<String, dynamic>> likeComic(String comicId) async {
     'POST',
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -235,7 +235,7 @@ Future<Map<String, dynamic>> getComments(String comicId, int pageCount) async {
     'GET',
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -253,7 +253,7 @@ Future<Map<String, dynamic>> getCommentsChildren(
     'GET',
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -268,7 +268,7 @@ Future<Map<String, dynamic>> likeComment(String comicId) async {
     'POST',
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -287,7 +287,7 @@ Future<Map<String, dynamic>> writeComment(
     body: json.encode({'content': content}),
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -306,7 +306,7 @@ Future<Map<String, dynamic>> writeCommentChildren(
     body: json.encode({'content': content}),
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -321,7 +321,7 @@ Future<Map<String, dynamic>> reportComments(String commentId) async {
     'POST',
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -337,7 +337,7 @@ Future<Map<String, dynamic>> getEps(String comicId, int pageCount) async {
     cache: true,
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -353,7 +353,7 @@ Future<Map<String, dynamic>> getRecommend(String comicId) async {
     cache: true,
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -374,7 +374,7 @@ Future<Map<String, dynamic>> getPages(
     cache: true,
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -389,7 +389,7 @@ Future<Map<String, dynamic>> getUserProfile() async {
     'GET',
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -405,7 +405,7 @@ Future<Map<String, dynamic>> updateAvatar(String avatarBASE64String) async {
     body: json.encode({"avatar": "data:image/jpeg;base64,$avatarBASE64String"}),
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -422,7 +422,7 @@ Future<Map<String, dynamic>> updateProfile(String profile) async {
     body: json.encode({"slogan": profile}),
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -441,7 +441,7 @@ Future<Map<String, dynamic>> updatePassword(String newPassword) async {
     }),
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -456,7 +456,7 @@ Future<Map<String, dynamic>> getFavorites(int pageCount) async {
     'GET',
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -471,7 +471,7 @@ Future<Map<String, dynamic>> getUserComments(int pageCount) async {
     'GET',
   );
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -480,23 +480,23 @@ Future<Map<String, dynamic>> getUserComments(int pageCount) async {
   return data;
 }
 
-Future<Map<String, dynamic>> signIn() async {
+Future<String> signIn() async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/users/punch-in',
     'POST',
   );
-  debugPrint(data.toString());
+  logger.d(data.toString());
 
-  debugPrint(limitString(data.toString(), 150));
+  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
-    return data;
+    throw data;
   }
 
   if (data['data']['res']['status'] == 'success') {
-    return {"success": "已签到"};
+    return "签到成功";
   } else if (data['data']['res']['status'] == 'fail') {
-    return {"successes": "已签到"};
+    return "已签到";
   } else {
     throw '未知错误';
   }

@@ -5,6 +5,8 @@ import 'package:permission_guard/permission_guard.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:zephyr/widgets/toast.dart';
 
+import '../main.dart';
+
 class FullScreenImageView extends StatelessWidget {
   final String imagePath;
   final String? uuid;
@@ -50,7 +52,7 @@ class FullScreenImageView extends StatelessWidget {
             child: IconButton(
               icon: const Icon(Icons.download, color: Colors.white),
               onPressed: () async {
-                debugPrint("download image");
+                logger.d("download image");
                 if (await Permission.photos.request().isGranted ||
                     await Permission.storage.request().isGranted) {
                   var result = await _copyImage2PicturesPath(imagePath);
@@ -75,7 +77,7 @@ class FullScreenImageView extends StatelessWidget {
     if (await Permission.storage.request().isGranted) {
       // 创建Pictures目录的完整路径
       final picturesDir = '/storage/emulated/0/Pictures/Breeze';
-      debugPrint('Pictures directory: $picturesDir');
+      logger.d('Pictures directory: $picturesDir');
 
       // 确保Pictures目录存在
       final pictureDirectory = Directory(picturesDir);

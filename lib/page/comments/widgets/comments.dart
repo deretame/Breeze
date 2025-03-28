@@ -68,7 +68,7 @@ class _CommentsWidgetState extends State<CommentsWidget>
                   },
                   onLongPress: () async {
                     var result = await showConfirmationDialog();
-                    debugPrint(result.toString());
+                    logger.d(result.toString());
                     if (result) {
                       try {
                         showInfoToast("正在举报");
@@ -79,7 +79,7 @@ class _CommentsWidgetState extends State<CommentsWidget>
                           "举报失败：${e.toString()}",
                           duration: const Duration(seconds: 5),
                         );
-                        debugPrint(e.toString());
+                        logger.e(e.toString());
                       }
                     }
                   },
@@ -276,7 +276,7 @@ class _CommentsWidgetState extends State<CommentsWidget>
         "点赞失败：${e.toString()}",
         duration: const Duration(seconds: 5),
       );
-      debugPrint(e.toString());
+      logger.e(e.toString());
     }
   }
 }

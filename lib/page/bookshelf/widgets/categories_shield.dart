@@ -59,7 +59,7 @@ Future<Map<String, bool>?> showShieldCategoryDialog(BuildContext context) {
     },
   ).then((value) {
     if (value != null) {
-      debugPrint('Checkbox values: $value');
+      logger.d('Checkbox values: $value');
     }
     return value;
   });

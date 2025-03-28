@@ -153,7 +153,7 @@ class _DownloadPageState extends State<_DownloadPage>
 
     int itemCount = state.comics.length + 1;
 
-    debugPrint(itemCount.toString());
+    logger.d(itemCount);
 
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {

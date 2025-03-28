@@ -4,6 +4,7 @@ import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/page/search_result/models/models.dart';
 
 import '../../../config/global.dart';
+import '../../../main.dart';
 import '../bloc/search_bloc.dart';
 import '../method/search_enter_provider.dart';
 
@@ -71,7 +72,7 @@ class CategoriesSelect extends StatelessWidget {
       },
     ).then((value) {
       if (value != null) {
-        debugPrint('Checkbox values: $value');
+        logger.d('Checkbox values: $value');
       }
       return value; // 返回选中的值或 null
     });

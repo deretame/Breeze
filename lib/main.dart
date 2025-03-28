@@ -97,23 +97,24 @@ class _MyAppState extends State<MyApp> {
   void _updateThemeSettings() {
     var isDarkMode =
         MediaQuery.of(context).platformBrightness == Brightness.dark;
-    debugPrint("isDarkMode: $isDarkMode");
     if (globalSetting.themeMode == ThemeMode.dark) {
       isDarkMode = true;
     } else if (globalSetting.themeMode == ThemeMode.light) {
       isDarkMode = false;
     }
-    debugPrint("isDarkMode: $isDarkMode");
 
     globalSetting.setThemeType(!isDarkMode);
     globalSetting.setBackgroundColor(materialColorScheme.surfaceBright);
     globalSetting.setTextColor(materialColorScheme.onSurface);
 
     // Debug 信息
-    debugPrint("themeType: ${globalSetting.themeType}");
-    debugPrint("backgroundColor: ${globalSetting.backgroundColor}");
-    debugPrint("current theme: ${globalSetting.themeMode}");
-    debugPrint("textColor: ${globalSetting.textColor}");
+    logger.d(
+      "dynamicColor: ${globalSetting.dynamicColor}\n"
+      "themeType: ${globalSetting.themeType}\n"
+      "backgroundColor: ${globalSetting.backgroundColor}\n"
+      "current theme: ${globalSetting.themeMode}\n"
+      "textColor: ${globalSetting.textColor}",
+    );
   }
 
   @override

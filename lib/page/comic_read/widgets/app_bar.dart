@@ -75,7 +75,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
 
   // 获取阅读模式的标签
   String _getReadModeLabel(int mode) {
-    logger.d('mode: $mode');
+    // logger.d('mode: $mode');
     if (mode == 0) {
       return 'topToBottom';
     } else if (mode == 1) {

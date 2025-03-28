@@ -1,7 +1,8 @@
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:path_provider/path_provider.dart';
+
+import '../main.dart';
 
 Future<void> manageCacheSize() async {
   // 获取缓存目录
@@ -22,10 +23,10 @@ Future<void> manageCacheSize() async {
   // 检查总大小是否达到 1GB (1GB = 1024 * 1024 * 1024 bytes)
   const int maxSize = 1 * 1024 * 1024 * 1024; // 1GB
   if (totalSize >= maxSize) {
-    debugPrint('Cache size exceeded 1GB, clearing cache...');
+    logger.d('Cache size exceeded 1GB, clearing cache...');
     await clearCache(cacheDirectory);
   } else {
-    debugPrint(
+    logger.d(
       'Current cache size: ${totalSize / (1024 * 1024)} MB',
     ); // 转换为 MB 输出
   }
@@ -35,8 +36,8 @@ Future<void> clearCache(Directory cacheDirectory) async {
   try {
     // 直接删除缓存目录及其所有内容
     await cacheDirectory.delete(recursive: true);
-    debugPrint('Cache cleared successfully.');
+    logger.d('Cache cleared successfully.');
   } catch (e) {
-    debugPrint('Error clearing cache: $e');
+    logger.e('Error clearing cache: $e');
   }
 }

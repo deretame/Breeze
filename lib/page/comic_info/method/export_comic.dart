@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:flutter/foundation.dart'; // 引入 compute
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:tar/tar.dart';
 
+import '../../../main.dart';
 import '../../../network/http/picture.dart';
 import '../../../util/get_path.dart';
 import '../../../widgets/toast.dart';
@@ -77,7 +77,7 @@ Future<void> exportComicAsFolder(ComicAllInfoJson comicInfo) async {
           }
           await File(pageDownloadFile).copy(pageFile);
         } catch (e) {
-          debugPrint('Error downloading ${page.media.fileServer}: $e');
+          logger.e('Error downloading ${page.media.fileServer}: $e');
         }
       }
 
@@ -87,7 +87,7 @@ Future<void> exportComicAsFolder(ComicAllInfoJson comicInfo) async {
 
   await Future.wait(downloadTasks);
 
-  debugPrint('漫画${comicInfo.comic.title}导出为文件夹完成');
+  logger.d('漫画${comicInfo.comic.title}导出为文件夹完成');
   showSuccessToast('漫画${comicInfo.comic.title}导出为文件夹完成');
 }
 
@@ -161,7 +161,7 @@ Future<void> exportComicAsZip(ComicAllInfoJson comicInfo) async {
           }
           await File(pageDownloadFile).copy(pageFile);
         } catch (e) {
-          debugPrint('Error downloading ${page.media.fileServer}: $e');
+          logger.e('Error downloading ${page.media.fileServer}: $e');
         }
       }
 
@@ -180,7 +180,7 @@ Future<void> exportComicAsZip(ComicAllInfoJson comicInfo) async {
   // 清理缓存目录
   await Directory(comicDir).delete(recursive: true);
 
-  debugPrint('漫画${comicInfo.comic.title}导出为压缩包完成');
+  logger.d('漫画${comicInfo.comic.title}导出为压缩包完成');
   showSuccessToast('漫画${comicInfo.comic.title}导出为压缩包完成');
 }
 
@@ -252,7 +252,7 @@ Future<String> createDownloadDir() async {
     Directory? externalDir = await getExternalStorageDirectory();
     if (externalDir != null) {
       String downloadPath = externalDir.path;
-      debugPrint('downloadPath: $downloadPath');
+      logger.d('downloadPath: $downloadPath');
     }
 
     RegExp regExp = RegExp(r'/(\d+)/');
@@ -270,18 +270,18 @@ Future<String> createDownloadDir() async {
       // 如果目录不存在，则创建它
       try {
         await dir.create(recursive: true); // recursive设置为true可以创建所有必要的父目录
-        debugPrint('Directory created: $filePath');
+        logger.d('Directory created: $filePath');
       } catch (e) {
-        debugPrint('Failed to create directory: $e');
+        logger.e('Failed to create directory: $e');
         rethrow;
       }
     } else {
-      debugPrint('Directory already exists: $filePath');
+      logger.e('Directory already exists: $filePath');
     }
 
     return filePath;
   } catch (e) {
-    debugPrint(e.toString());
+    logger.e(e.toString());
     rethrow;
   }
 }

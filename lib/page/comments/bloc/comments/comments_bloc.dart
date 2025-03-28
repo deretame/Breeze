@@ -1,9 +1,9 @@
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:stream_transform/stream_transform.dart';
 
+import '../../../../main.dart';
 import '../../../../network/http/http_request.dart';
 import '../../json/comments_json/comments_json.dart';
 
@@ -53,7 +53,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
 
     try {
       var commentsJson = await _getComments(event.commentsId, event.count);
-      debugPrint(limitString(commentsJson.toString(), 150));
+      logger.d(limitString(commentsJson.toString(), 150));
       if (event.status == CommentsStatus.comment) {
         comments = [commentsJson, ...comments];
       } else {
@@ -75,7 +75,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
       );
       return;
     } catch (e) {
-      debugPrint(e.toString());
+      logger.e(e.toString());
       if (comments.isEmpty) {
         emit(
           state.copyWith(status: CommentsStatus.failure, result: e.toString()),

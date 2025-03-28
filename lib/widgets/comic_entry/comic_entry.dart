@@ -192,7 +192,7 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
     } else if (_type == ComicEntryType.download) {
       content += "下载记录及文件吗？";
     }
-    debugPrint(_type.toString());
+    logger.d(_type.toString());
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -260,12 +260,12 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
       try {
         // 删除目录及其内容
         await directory.delete(recursive: true);
-        debugPrint('目录已成功删除: $path');
+        logger.d('目录已成功删除: $path');
       } catch (e) {
-        debugPrint('删除目录时发生错误: $e');
+        logger.e('删除目录时发生错误: $e');
       }
     } else {
-      debugPrint('目录不存在: $path');
+      logger.e('目录不存在: $path');
     }
   }
 }

@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter/cupertino.dart';
 import 'package:image/image.dart';
+
+import '../../../../main.dart';
 
 Future<String> compressImage(File originalFile) async {
   List<int> imageBytes = await originalFile.readAsBytes();
@@ -31,7 +32,7 @@ Future<String> compressImage(File originalFile) async {
 
   // 最终压缩后的 base64 字符串
   String finalBase64String = base64Encode(compressedBytes);
-  debugPrint('Final Base64 Length: ${finalBase64String.length}');
+  logger.d('Final Base64 Length: ${finalBase64String.length}');
 
   return finalBase64String;
 }

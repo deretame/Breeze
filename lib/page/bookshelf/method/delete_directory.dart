@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import '../../../main.dart';
 
 Future<void> deleteDirectory(String path) async {
   final directory = Directory(path);
@@ -10,11 +10,11 @@ Future<void> deleteDirectory(String path) async {
     try {
       // 删除目录及其内容
       await directory.delete(recursive: true);
-      debugPrint('目录已成功删除: $path');
+      logger.d('目录已成功删除: $path');
     } catch (e) {
-      debugPrint('删除目录时发生错误: $e');
+      logger.e('删除目录时发生错误: $e');
     }
   } else {
-    debugPrint('目录不存在: $path');
+    logger.e('目录不存在: $path');
   }
 }

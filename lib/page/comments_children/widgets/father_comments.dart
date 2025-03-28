@@ -61,7 +61,7 @@ class _FatherCommentsWidgetState extends State<FatherCommentsWidget>
               // behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
               onLongPress: () async {
                 var result = await showConfirmationDialog();
-                debugPrint(result.toString());
+                logger.d(result.toString());
                 if (result) {
                   try {
                     showInfoToast("正在举报");
@@ -72,7 +72,7 @@ class _FatherCommentsWidgetState extends State<FatherCommentsWidget>
                       "举报失败：${e.toString()}",
                       duration: const Duration(seconds: 5),
                     );
-                    debugPrint(e.toString());
+                    logger.e(e.toString());
                   }
                 }
               },
@@ -236,7 +236,7 @@ class _FatherCommentsWidgetState extends State<FatherCommentsWidget>
         "点赞失败：${e.toString()}",
         duration: const Duration(seconds: 5),
       );
-      debugPrint(e.toString());
+      logger.e(e.toString());
     }
   }
 }
@@ -309,7 +309,7 @@ class _ImagerWidget extends StatelessWidget {
                     ),
                   );
                 case PictureLoadStatus.failure:
-                  debugPrint(state.result);
+                  logger.d(state.result);
                   if (state.result.toString().contains('404')) {
                     // return SizedBox.shrink();
                     return ClipRRect(

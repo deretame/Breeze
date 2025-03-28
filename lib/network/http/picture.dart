@@ -137,7 +137,7 @@ Future<String> downloadPicture({
   );
 
   // 下载图片
-  Uint8List imageData = await downloadImageWithRetry(finalUrl);
+  Uint8List imageData = await downloadImageWithRetry(finalUrl, retry: true);
 
   // 保存图片
   await saveImage(imageData, downloadFilePath);
@@ -197,7 +197,7 @@ Future<bool> fileExists(String filePath) async {
   try {
     return await File(filePath).exists();
   } catch (e) {
-    debugPrint('检查文件存在性时出错: $e');
+    logger.e('检查文件存在性时出错: $e');
     return false;
   }
 }
@@ -207,7 +207,7 @@ Future<void> copyFile(String sourcePath, String targetPath) async {
     await ensureDirectoryExists(targetPath);
     await File(sourcePath).copy(targetPath);
   } catch (e) {
-    debugPrint('复制文件失败: $e');
+    logger.e('复制文件失败: $e');
     throw Exception('复制文件失败: $e');
   }
 }
@@ -268,7 +268,10 @@ String buildImageUrl(
   return replaceSubsequentDoubleSlashes('$url/$path');
 }
 
-Future<Uint8List> downloadImageWithRetry(String url) async {
+Future<Uint8List> downloadImageWithRetry(
+  String url, {
+  bool retry = false,
+}) async {
   var headers = {
     'User-Agent': '#',
     'Host': Uri.parse(url).host,
@@ -284,7 +287,10 @@ Future<Uint8List> downloadImageWithRetry(String url) async {
       );
       return response.data as Uint8List;
     } catch (e) {
-      debugPrint('下载图片失败: $e, URL: $url');
+      logger.e('下载图片失败: $e, URL: $url');
+      if (!retry) {
+        throw Exception('下载图片失败: $e');
+      }
       await Future.delayed(Duration(seconds: 1)); // 延迟 1 秒后重试
     }
   }
@@ -300,13 +306,13 @@ Future<void> saveImage(Uint8List imageData, String filePath) async {
     // 直接写入目标文件
     await targetFile.writeAsBytes(imageData);
 
-    debugPrint('图片已保存到：$filePath');
+    // logger.d('图片已保存到：$filePath');
   } catch (e) {
     // 如果发生异常，删除不完整的文件
     if (await targetFile.exists()) {
       await targetFile.delete();
     }
-    debugPrint('保存图片失败: $e');
+    logger.e('保存图片失败: $e');
     throw Exception('保存图片失败: $e');
   }
 }

@@ -38,7 +38,7 @@ Future<void> testWebDavServer() async {
 
     // 检查状态码
     if (response.statusCode == 200) {
-      debugPrint('WebDAV 服务可用');
+      logger.d('WebDAV 服务可用');
     } else {
       throw Exception('WebDAV 服务返回异常状态码: ${response.statusCode}');
     }
@@ -95,7 +95,7 @@ Future<void> createParentDirectory(String path) async {
 
     // 如果目录存在（返回 207 状态码），则跳过创建
     if (response.statusCode == 207) {
-      debugPrint('目录已存在: $path');
+      logger.d('目录已存在: $path');
       return;
     }
   } on DioException catch (e) {
@@ -109,7 +109,7 @@ Future<void> createParentDirectory(String path) async {
         );
 
         if (mkcolResponse.statusCode == 201) {
-          debugPrint('目录创建成功: $path');
+          logger.d('目录创建成功: $path');
         } else {
           throw Exception('目录创建失败，状态码: ${mkcolResponse.statusCode}');
         }
@@ -138,7 +138,7 @@ Future<bool> isDirectory(String path) async {
 
     // 解析响应，检查是否是文件夹
     if (response.statusCode == 207) {
-      debugPrint('路径是文件夹: $path');
+      logger.d('路径是文件夹: $path');
       return true;
     } else {
       throw Exception('路径不是文件夹，状态码: ${response.statusCode}');
@@ -171,13 +171,13 @@ Future<void> checkOrCreateFixedDirectory() async {
 
     // 如果目录存在
     if (headResponse.statusCode == 200) {
-      debugPrint('目录已存在，无需创建');
+      logger.d('目录已存在，无需创建');
       return;
     }
   } on DioException catch (e) {
     // 如果目录不存在（状态码为 404）
     if (e.response?.statusCode == 404) {
-      debugPrint('目录不存在，尝试创建新目录');
+      logger.d('目录不存在，尝试创建新目录');
 
       try {
         // 发送 MKCOL 请求创建新目录
@@ -189,7 +189,7 @@ Future<void> checkOrCreateFixedDirectory() async {
         // 检查 MKCOL 请求是否成功
         if (mkcolResponse.statusCode == 201 ||
             mkcolResponse.statusCode == 204) {
-          debugPrint('目录创建成功');
+          logger.d('目录创建成功');
         } else {
           throw Exception('目录创建失败，状态码: ${mkcolResponse.statusCode}');
         }
@@ -203,7 +203,7 @@ Future<void> checkOrCreateFixedDirectory() async {
         }
       }
     } else if (e.response?.statusCode == 409) {
-      debugPrint('路径冲突，可能是父目录不存在');
+      logger.e('路径冲突，可能是父目录不存在');
 
       // 获取父目录路径
       String parentDir = dirPath
@@ -225,7 +225,7 @@ Future<void> checkOrCreateFixedDirectory() async {
 
         if (mkcolResponse.statusCode == 201 ||
             mkcolResponse.statusCode == 204) {
-          debugPrint('目录创建成功');
+          logger.d('目录创建成功');
         } else {
           throw Exception('目录创建失败，状态码: ${mkcolResponse.statusCode}');
         }
@@ -393,7 +393,7 @@ Future<void> _uploadDataToWebDav(List<int> data, String remotePath) async {
 
     // 检查状态码
     if (response.statusCode == 201 || response.statusCode == 204) {
-      debugPrint('文件上传成功');
+      logger.d('文件上传成功');
     } else {
       throw Exception('文件上传失败，状态码: ${response.statusCode}');
     }
@@ -462,7 +462,7 @@ Future<List<BikaComicHistory>> getHistoryFromWebdav(String remotePath) async {
     throw Exception('下载数据为空');
   }
 
-  debugPrint('解密后的数据条数: ${comicHistoriesJson.length}');
+  logger.d('解密后的数据条数: ${comicHistoriesJson.length}');
 
   return comicHistoriesJson;
 }
@@ -494,7 +494,7 @@ List<BikaComicHistory> _decompressAndDecrypt(List<int> compressedBytes) {
       return BikaComicHistory.fromJson(comic);
     }).toList();
   } catch (e) {
-    debugPrint('解压或解密失败: $e');
+    logger.d('解压或解密失败: $e');
     return []; // 发生错误时返回空列表
   }
 }
@@ -516,10 +516,10 @@ Future<List<int>> _downloadFromWebDav(String remotePath) async {
       );
 
       if (response.statusCode == 200) {
-        debugPrint('文件下载成功');
+        logger.d('文件下载成功');
         return response.data as List<int>;
       } else if (response.statusCode == 409) {
-        debugPrint('冲突，重试中...');
+        logger.d('冲突，重试中...');
         await Future.delayed(retryDelay);
         continue;
       } else {
@@ -527,7 +527,7 @@ Future<List<int>> _downloadFromWebDav(String remotePath) async {
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 409) {
-        debugPrint('冲突，重试中...');
+        logger.d('冲突，重试中...');
         await Future.delayed(retryDelay);
         continue;
       } else {
@@ -581,7 +581,7 @@ Future<void> updateHistory(List<BikaComicHistory> comicHistories) async {
   objectbox.bikaHistoryBox.removeMany(needDeleteIdList);
   objectbox.bikaHistoryBox.putMany(needUpdateList);
 
-  debugPrint('更新历史记录成功');
+  logger.d('更新历史记录成功');
 }
 
 // 合并两个记录的删除状态和时间
@@ -630,7 +630,7 @@ Future<void> deleteFileFromWebDav(List<String> remotePath) async {
 
         // 检查状态码
         if (response.statusCode == 200 || response.statusCode == 204) {
-          debugPrint('文件删除成功: $path');
+          logger.d('文件删除成功: $path');
         } else {
           throw Exception('文件删除失败，状态码: ${response.statusCode}');
         }
@@ -647,6 +647,6 @@ Future<void> deleteFileFromWebDav(List<String> remotePath) async {
       }
     }
   } catch (e) {
-    debugPrint('删除文件失败: $e');
+    logger.e('删除文件失败: $e');
   }
 }

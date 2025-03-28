@@ -223,7 +223,7 @@ class _ImageWidget extends StatelessWidget {
                 ),
               );
             case PictureLoadStatus.failure:
-              debugPrint(state.result.toString());
+              logger.e(state.result.toString());
               if (state.result.toString().contains('404')) {
                 return SizedBox(
                   width: (screenWidth / 10) * 3,

@@ -37,6 +37,10 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _showDialog(String title, String message) async {
+    if (message.contains("invalid email or password")) {
+      message = "用户名或密码错误，请重新输入";
+    }
+
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -75,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final result = await login(_account.text, _password.text);
 
-      debugPrint(result.toString());
+      logger.d(result.toString());
 
       bikaSetting.setAccount(_account.text);
       bikaSetting.setPassword(_password.text);

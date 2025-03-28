@@ -117,7 +117,7 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
         CommentsChildrenEvent(comicId, CommentsChildrenStatus.comment, 1),
       );
     } catch (e) {
-      debugPrint(e.toString());
+      logger.e(e.toString());
       showErrorToast(
         '评论失败，请稍后再试。\n${e.toString()}',
         duration: const Duration(seconds: 5),
@@ -381,7 +381,7 @@ class _CommentWidgetState extends State<_CommentWidget> {
   }
 
   void _onScroll() {
-    // debugPrint('滚动到了底部');
+    logger.d('滚动到了底部');
     if (_isBottom) {
       // 当滚动到达底部时执行相关操作
       _fetchMoreData();
@@ -403,7 +403,7 @@ class _CommentWidgetState extends State<_CommentWidget> {
         commentIndex + 1,
       ),
     );
-    debugPrint('已经滚动到达底部，加载更多数据!');
+    logger.d('已经滚动到达底部，加载更多数据!');
   }
 
   List<Doc> removeDuplicatesDoc(List<Doc> commentsDoc) {

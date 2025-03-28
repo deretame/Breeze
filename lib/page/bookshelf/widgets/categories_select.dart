@@ -3,6 +3,7 @@ import 'package:zephyr/page/bookshelf/bookshelf.dart';
 
 import '../../../config/bika/bika_setting.dart';
 import '../../../config/global.dart';
+import '../../../main.dart';
 
 Future<Map<String, bool>?> showCategoryDialog(
   BuildContext context,
@@ -66,7 +67,7 @@ Future<Map<String, bool>?> showCategoryDialog(
     },
   ).then((value) {
     if (value != null) {
-      debugPrint('Checkbox values: $value');
+      logger.d('Checkbox values: $value');
     }
     return value;
   });

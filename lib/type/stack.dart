@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import '../main.dart';
 
 class StackList<T> {
   // 私有构造函数
@@ -41,7 +41,7 @@ class StackList<T> {
 
   // 打印栈
   void print() {
-    debugPrint('Stack: $_items');
+    logger.d('Stack: $_items');
   }
 
   // 栈大小

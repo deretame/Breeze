@@ -58,7 +58,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
           Column(
             children: <Widget>[
               GestureDetector(
-                onTap: () {
+                onTap: () async {
                   toggleAction('like');
                 },
                 child: Icon(
@@ -148,7 +148,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
     );
   }
 
-  void toggleAction(String actionType) {
+  void toggleAction(String actionType) async {
     late Future<Map<String, dynamic>> result;
     late bool isCurrentlyActive;
     late String actionVerb;
@@ -172,41 +172,40 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
 
     showInfoToast("请求中...");
 
-    result
-        .then((Map<String, dynamic> data) {
-          if (data["error"] != null) {
-            debugPrint('$actionVerb失败: $data');
-            if (!mounted) return;
-            failureMessage =
-                actionType == 'like'
-                    ? "请求失败: ${data["error"]}"
-                    : (isCurrentlyActive ? '取消$actionVerb失败' : '$actionVerb失败');
-            showErrorToast(
-              failureMessage,
-              duration: const Duration(seconds: 5),
-            );
-          } else {
-            debugPrint('$actionVerb成功: $data');
-            setState(() {
-              if (actionType == 'like') {
-                isLiked = !isLiked;
-              } else {
-                isCollected = !isCollected;
-              }
-            });
+    try {
+      final data = await result;
 
-            if (!mounted) return;
-            successMessage =
-                isCurrentlyActive ? '取消$actionVerb成功' : '$actionVerb成功';
-            showSuccessToast(successMessage);
-          }
-        })
-        .catchError((error) {
-          if (!mounted) return;
-          showErrorToast(
-            "请求过程中发生错误: ${error.toString()}",
-            duration: const Duration(seconds: 5),
-          );
-        });
+      if (data["error"] != null) {
+        logger.d('$actionVerb失败: $data');
+        if (!mounted) return;
+        failureMessage =
+            actionType == 'like'
+                ? "请求失败: ${data["error"]}"
+                : (isCurrentlyActive ? '取消$actionVerb失败' : '$actionVerb失败');
+        showErrorToast(failureMessage, duration: const Duration(seconds: 5));
+      } else {
+        logger.d('$actionVerb成功: $data');
+        if (mounted) {
+          setState(() {
+            if (actionType == 'like') {
+              isLiked = !isLiked;
+            } else {
+              isCollected = !isCollected;
+            }
+          });
+        }
+
+        if (!mounted) return;
+        successMessage =
+            isCurrentlyActive ? '取消$actionVerb成功' : '$actionVerb成功';
+        showSuccessToast(successMessage);
+      }
+    } catch (error) {
+      if (!mounted) return;
+      showErrorToast(
+        "请求过程中发生错误: ${error.toString()}",
+        duration: const Duration(seconds: 5),
+      );
+    }
   }
 }

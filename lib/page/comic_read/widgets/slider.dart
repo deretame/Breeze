@@ -97,7 +97,7 @@ class _SliderWidgetState extends State<SliderWidget> {
               );
             }
 
-            debugPrint('滑块值：$newValue , 显示的槽位：$displayedSlot');
+            logger.d('滑块值：$newValue , 显示的槽位：$displayedSlot');
           });
         },
       ),

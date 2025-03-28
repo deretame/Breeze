@@ -144,7 +144,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
         Navigator.of(context).pop();
       }
 
-      debugPrint('webdav连接成功');
+      logger.d('webdav连接成功');
       globalSetting.setWebdavHost(_webdavHost.text);
       globalSetting.setWebdavUsername(_webdavUsername.text);
       globalSetting.setWebdavPassword(_webdavPassword.text);
@@ -154,6 +154,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
       if (!mounted) return;
       commonDialog(context, "成功", "webdav连接成功，已保存设置。");
     } catch (e) {
+      logger.e(e);
       // 关闭加载框
       if (mounted) {
         Navigator.of(context).pop();

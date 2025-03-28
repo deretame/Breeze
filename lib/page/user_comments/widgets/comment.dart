@@ -63,7 +63,7 @@ class _CommentsWidgetState extends State<CommentsWidget>
                   },
                   onLongPress: () async {
                     var result = await showConfirmationDialog();
-                    debugPrint(result.toString());
+                    logger.d(result.toString());
                     if (result) {
                       try {
                         await reportComments(commentInfo.id);
@@ -73,7 +73,7 @@ class _CommentsWidgetState extends State<CommentsWidget>
                           "举报失败：${e.toString()}",
                           duration: Duration(seconds: 5),
                         );
-                        debugPrint(e.toString());
+                        logger.e(e.toString());
                       }
                     }
                   },
@@ -286,7 +286,7 @@ class _CommentsWidgetState extends State<CommentsWidget>
       likeStore.setDate(like);
     } catch (e) {
       showErrorToast("点赞失败：${e.toString()}", duration: Duration(seconds: 5));
-      debugPrint(e.toString());
+      logger.e(e.toString());
     }
   }
 

@@ -51,10 +51,7 @@ class _RegisterPageState extends State<RegisterPage> {
       );
 
       logger.d(result.toString());
-
-      debugPrint(_username.text);
-      debugPrint(_account.text);
-      debugPrint(_password.text);
+      logger.d({_username.text, _account.text, _password.text});
       bikaSetting.setAccount(_account.text);
       bikaSetting.setPassword(_password.text);
       showSuccessToast("注册成功，正在跳转登录...");
@@ -153,7 +150,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     borderWidth: 1.0,
                     labels: ['绅士', '淑女', '机器人'],
                     onToggle: (index) {
-                      debugPrint('switched to: $index');
+                      logger.d('switched to: $index');
                       if (index == 0) {
                         _gender = "m";
                       } else if (index == 1) {
@@ -175,7 +172,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   builder: (_) {
                     // 当 MobX store 中的日期更新时，同时更新 _date
                     _date = store.date;
-                    debugPrint('date changed to: ${store.date}');
+                    logger.d('date changed to: ${store.date}');
 
                     return Text(store.date, style: TextStyle(fontSize: 16));
                   }, // 显示 MobX 管理的日期

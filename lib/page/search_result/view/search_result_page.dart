@@ -275,7 +275,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
   }
 
   void _fetchSearchResult() {
-    debugPrint('pagesCount: ${_searchEnter.pageCount + 1}');
+    logger.d('pagesCount: ${_searchEnter.pageCount + 1}');
     context.read<SearchBloc>().add(
       FetchSearchResult(
         SearchEnterConst(
@@ -308,7 +308,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
 
       if (itemIndex >= 0 && itemIndex < comics.length) {
         int buildNumber = comics[itemIndex].buildNumber;
-        debugPrint(comics[itemIndex].doc.title);
+        logger.d(comics[itemIndex].doc.title);
         pageStore.setDate("$buildNumber/$pagesCount");
       }
 
@@ -345,7 +345,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {
         _searchEnter = SearchEnter.fromConst(searchEnterConst);
-        // debugPrint('pagesCount: ${searchEnterConst.pageCount}');
+        logger.d('pagesCount: ${searchEnterConst.pageCount}');
       });
     });
   }

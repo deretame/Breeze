@@ -154,8 +154,7 @@ class _UserFavoritePageState extends State<_FavoritePage>
       );
     }
 
-    debugPrint(state.status.toString());
-    debugPrint(state.hasReachedMax.toString());
+    // logger.d('${state.status}\n${state.hasReachedMax}');
 
     int itemCount =
         state.comics.length +
@@ -163,7 +162,7 @@ class _UserFavoritePageState extends State<_FavoritePage>
         (state.status == UserFavouriteStatus.loadingMore ? 1 : 0) +
         (state.status == UserFavouriteStatus.getMoreFailure ? 1 : 0);
 
-    debugPrint(itemCount.toString());
+    // logger.d(itemCount.toString());
 
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
@@ -307,7 +306,7 @@ class _UserFavoritePageState extends State<_FavoritePage>
     if (itemIndex >= 0 && itemIndex < comics.length) {
       int buildNumber =
           comics[itemIndex].buildNumber; // 获取当前 item 的 buildNumber
-      debugPrint(comics[itemIndex].doc.title); // 打印当前 item 的标题
+      logger.d(comics[itemIndex].doc.title); // 打印当前 item 的标题
       stringSelectStore.setDate("$buildNumber/$pagesCount"); // 更新状态
       _currentIndex = buildNumber; // 更新当前索引
     }

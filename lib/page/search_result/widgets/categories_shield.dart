@@ -66,7 +66,7 @@ class CategoriesShield extends StatelessWidget {
       },
     ).then((value) {
       if (value != null) {
-        debugPrint('Checkbox values: $value');
+        logger.d('Checkbox values: $value');
       }
       return value;
     });

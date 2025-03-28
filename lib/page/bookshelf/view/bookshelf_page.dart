@@ -36,7 +36,7 @@ class _BookshelfPageState extends State<BookshelfPage>
       if (_tabController.index != _currentIndex) {
         _currentIndex = _tabController.index;
         indexStore.setDate(_currentIndex);
-        debugPrint('Current index: $_currentIndex');
+        logger.d('Current index: $_currentIndex');
         if (_currentIndex == 0) {
           eventBus.fire(
             FavoriteEvent(EventType.showInfo, SortType.nullValue, 0),

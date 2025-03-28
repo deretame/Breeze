@@ -1,7 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/network/http/http_request.dart';
 
@@ -34,10 +33,8 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
   int pagesCount = 0;
   List<ComicNumber> comics = [];
 
-  Future<void> _fetchComicList(
-    FetchSearchResult event,
-    Emitter<SearchState> emit,
-  ) async {
+  Future<void> _fetchComicList(FetchSearchResult event,
+      Emitter<SearchState> emit,) async {
     if (event.searchEnterConst.state == "更新屏蔽列表") {
       emit(
         state.copyWith(
@@ -61,7 +58,7 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
       return;
     }
 
-    debugPrint('pagesCount: ${event.searchEnterConst.pageCount}');
+    logger.d('pagesCount: ${event.searchEnterConst.pageCount}');
 
     if (state.searchEnterConst == event.searchEnterConst &&
         event.searchStatus != SearchStatus.initial) {
@@ -110,7 +107,7 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
 
       comics = [...comics, ...processedResult];
 
-      debugPrint('pagesCount: ${state.searchEnterConst.pageCount}');
+      logger.d('pagesCount: ${state.searchEnterConst.pageCount}');
 
       emit(
         state.copyWith(
@@ -149,23 +146,22 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
   List<ComicNumber> _filterShieldedComics(List<ComicNumber> comics) {
     // 获取所有被屏蔽的分类
     List<String> shieldedCategoriesList =
-        bikaSetting.shieldCategoryMap.entries
-            .where((entry) => entry.value) // 只选择值为 true 的条目
-            .map((entry) => entry.key) // 提取键（分类名）
-            .toList();
+    bikaSetting.shieldCategoryMap.entries
+        .where((entry) => entry.value) // 只选择值为 true 的条目
+        .map((entry) => entry.key) // 提取键（分类名）
+        .toList();
 
     // 过滤掉包含屏蔽分类的漫画
     return comics.where((comic) {
       // 检查该漫画的分类是否与屏蔽分类列表中的任何分类匹配
       return !comic.doc.categories.any(
-        (category) => shieldedCategoriesList.contains(category),
+            (category) => shieldedCategoriesList.contains(category),
       );
     }).toList();
   }
 
   Future<List<ComicNumber>> _processSearchResult(
-    Map<String, dynamic> result,
-  ) async {
+      Map<String, dynamic> result,) async {
     if (result['data']['comics'] is List) {
       result['data'] = {
         "comics": {"docs": result['data']["comics"]},

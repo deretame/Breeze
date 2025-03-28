@@ -1,7 +1,8 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
+
+import '../../../main.dart';
 
 // 测试 WebDAV 服务是否可用
 Future<void> testWebDavServer(
@@ -23,8 +24,7 @@ Future<void> testWebDavServer(
 
   try {
     // 打印请求信息
-    debugPrint('请求 URL: ${dio.options.baseUrl}');
-    debugPrint('请求头: ${dio.options.headers}');
+    logger.d('请求 URL: ${dio.options.baseUrl}\n请求头: ${dio.options.headers}');
 
     // 发送 OPTIONS 请求测试服务是否可用
     final response = await dio.request(
@@ -34,8 +34,7 @@ Future<void> testWebDavServer(
 
     // 检查状态码
     if (response.statusCode == 200) {
-      debugPrint('WebDAV 服务可用');
-      debugPrint('支持的 HTTP 方法: ${response.headers['allow']}');
+      logger.d('WebDAV 服务可用\n支持的 HTTP 方法: ${response.headers['allow']}');
     } else {
       throw Exception('WebDAV 服务返回异常状态码: ${response.statusCode}');
     }
@@ -43,9 +42,9 @@ Future<void> testWebDavServer(
     // 捕获 Dio 的错误
     if (e.response != null) {
       // 打印完整响应信息
-      debugPrint('响应状态码: ${e.response?.statusCode}');
-      debugPrint('响应头: ${e.response?.headers}');
-      debugPrint('响应体: ${e.response?.data}');
+      logger.e(
+        '响应状态码: ${e.response?.statusCode}\n响应头: ${e.response?.headers}\n响应体: ${e.response?.data}\n',
+      );
       throw Exception('WebDAV 服务返回错误: ${e.response?.statusCode}');
     } else {
       // 如果只是 Dio 的错误（如网络连接失败、超时等）

@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
 import '../../../config/global.dart';
+import '../../../main.dart';
 import '../../../util/router/router.gr.dart';
 
 Widget settings(BuildContext context) {
@@ -16,7 +17,7 @@ Widget settings(BuildContext context) {
           GestureDetector(
             onTap: () {
               router.push(BikaSettingRoute());
-              debugPrint("哔咔设置");
+              logger.d("哔咔设置");
             },
             behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
             child: SizedBox(
@@ -36,7 +37,7 @@ Widget settings(BuildContext context) {
           GestureDetector(
             onTap: () {
               router.push(GlobalSettingRoute());
-              debugPrint("全局设置");
+              logger.d("全局设置");
             },
             behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
             child: SizedBox(
@@ -56,7 +57,7 @@ Widget settings(BuildContext context) {
           GestureDetector(
             onTap: () {
               router.push(AboutRoute());
-              debugPrint("关于");
+              logger.d("关于");
             },
             behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
             child: SizedBox(

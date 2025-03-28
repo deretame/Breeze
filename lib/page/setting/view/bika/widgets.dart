@@ -36,22 +36,21 @@ Widget changeProfilePicture(BuildContext context) {
   String selectedImages = '';
   return GestureDetector(
     onTap: () async {
-      debugPrint("点击了更新头像");
       try {
         var response = await picker.pickImage(source: ImageSource.gallery);
-        debugPrint('Response: ${response.toString()}'); // 输出响应内容
+        logger.d('Response: ${response.toString()}'); // 输出响应内容
 
         var files = response?.path;
         if (files != null && files.isNotEmpty) {
           selectedImages = files; // 更新选择的图片
 
-          debugPrint('Selected image path: $files'); // 输出选择的图片路径
+          logger.d('Selected image path: $files'); // 输出选择的图片路径
         } else {
-          debugPrint('No files found.');
+          logger.e('No files found.');
           return;
         }
       } catch (e) {
-        debugPrint('Error retrieving lost data: ${e.toString()}');
+        logger.e('Error retrieving lost data: ${e.toString()}');
       }
 
       if (selectedImages.isNotEmpty) {
@@ -279,7 +278,7 @@ Future<Map<String, bool>?> showShieldCategoryDialog(
     },
   ).then((value) {
     if (value != null) {
-      debugPrint('Checkbox values: $value');
+      logger.d('Checkbox values: $value');
     }
     return value;
   });

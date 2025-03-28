@@ -209,7 +209,7 @@ class _MainPageState extends State<MainPage> {
         showSuccessToast("自动同步成功！");
       }
     } catch (e) {
-      debugPrint(e.toString());
+      logger.e(e.toString());
       if (!mounted) return;
       commonDialog(context, "自动同步失败", "请检查网络连接或稍后再试。\n${e.toString()}");
     }
@@ -329,40 +329,18 @@ class _MainPageState extends State<MainPage> {
 }
 
 Future<void> _signIn() async {
-  if (bikaSetting.getAuthorization().isEmpty) {
-    return;
-  }
-
-  // 获取当前时间
-  DateTime now = DateTime.now();
-
-  // 获取今天的日期
-  DateTime today = DateTime(now.year, now.month, now.day); // 获取凌晨的时间
-
-  if (!bikaSetting.getSignInTime().isBefore(today)) {
-    debugPrint("今天已经签到过了！");
-    return;
-  }
-
-  // 重置签到状态
-  bikaSetting.setSignIn(false);
-
-  await Future.delayed(Duration(seconds: 5));
-
   while (true) {
     try {
-      var result = await signIn();
+      await Future.delayed(Duration(seconds: 5));
       if (bikaSetting.authorization.isEmpty) {
-        await Future.delayed(Duration(seconds: 5));
         continue;
       }
-      if (result.toString().contains("success")) {
-        bikaSetting.setSignInTime(DateTime.now());
-        bikaSetting.setSignIn(true);
+      var result = await signIn();
+      if (result == '签到成功') {
         showSuccessToast("自动签到成功！");
-        debugPrint("自动签到成功！");
         break;
       } else {
+        logger.d(result);
         break;
       }
     } catch (e) {

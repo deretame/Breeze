@@ -120,7 +120,7 @@ class _DownloadPageState extends State<DownloadPage> {
         height: 56, // 设置容器高度，与默认的FloatingActionButton高度一致
         child: FloatingActionButton(
           onPressed: () {
-            debugPrint("开始下载");
+            logger.d("开始下载");
             download();
           },
           child: Text("开始下载", overflow: TextOverflow.ellipsis, maxLines: 1),
@@ -214,7 +214,7 @@ class _DownloadPageState extends State<DownloadPage> {
         getCoverSuccess = true;
         break;
       } catch (e) {
-        debugPrint('Error getting comic info: ${e.toString()}');
+        logger.e('Error getting comic info: ${e.toString()}');
         if (e.toString().contains("404")) {
           getCoverSuccess = false;
           break;
@@ -270,7 +270,7 @@ class _DownloadPageState extends State<DownloadPage> {
           i++;
           break;
         } catch (e) {
-          debugPrint('Error getting pages: ${e.toString()}');
+          logger.e('Error getting pages: ${e.toString()}');
         }
         break;
       }
@@ -294,7 +294,7 @@ class _DownloadPageState extends State<DownloadPage> {
             pictureType: 'comic',
             chapterId: media.epId,
           ).catchError((e) {
-            debugPrint('Error downloading ${media.fileServer}: $e');
+            logger.e('Error downloading ${media.fileServer}: $e');
             return "";
           });
 
@@ -457,7 +457,7 @@ class _DownloadPageState extends State<DownloadPage> {
 
     // 检查目录是否存在
     if (!await directory.exists()) {
-      debugPrint("目录不存在: $epsDir");
+      logger.d("目录不存在: $epsDir");
     }
 
     // 列出目录下的所有文件和子目录

@@ -1,11 +1,11 @@
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:stream_transform/stream_transform.dart';
 
 import '../../../../config/global.dart';
 import '../../../../network/http/http_request.dart';
+import '../../../main.dart';
 import '../json/profile.dart';
 
 part 'user_profile_event.dart';
@@ -52,7 +52,7 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
 
   Future<Profile> _getUserProfile() async {
     var result = await getUserProfile();
-    debugPrint(result.toString());
+    logger.d(result.toString());
 
     result['data']['user']['_id'] ??= "";
     result['data']['user']['name'] ??= "";
@@ -80,6 +80,8 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
     result['data']['user']['character'] ??= "";
 
     var temp = Profile.fromJson(result);
+
+    bikaSetting.setSignIn(temp.data.user.isPunched);
 
     globalBikaProfile = GlobalBIkaProfile(
       code: temp.code,

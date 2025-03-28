@@ -141,7 +141,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       _downloadEpsInfo = temp2.eps;
     }
 
-    debugPrint(_type.toString().split('.').last);
+    logger.d(_type.toString().split('.').last);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (globalSetting.readMode != 0) {
@@ -214,7 +214,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   List<Media> medias = [];
 
   Widget _successWidget(PageState? state) {
-    // debugPrint(_currentSliderValue.toString());
+    // logger.d(_currentSliderValue.toString());
     if (_isVisible == false && globalSetting.readMode == 0) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     }
@@ -275,16 +275,20 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   /// 构建交互式查看器
   Widget _buildInteractiveViewer() {
     return GestureDetector(
-      onTap:
-          globalSetting.readMode != 0
-              ? () {
-                if (_tapDownDetails != null) {
-                  // 使用保存的details执行处理逻辑
-                  _handleTap(_tapDownDetails!);
-                  _tapDownDetails = null;
-                }
-              }
-              : _toggleVisibility,
+      onTap: () async {
+        if (globalSetting.readMode != 0) {
+          // 延迟到下一个循环中执行，避免点击事件冲突
+          await Future.delayed(Duration(milliseconds: 0));
+          if (_tapDownDetails != null) {
+            // 使用保存的details执行处理逻辑
+            _handleTap(_tapDownDetails!);
+            _tapDownDetails = null;
+          }
+        } else {
+          // 点击事件处理
+          _toggleVisibility();
+        }
+      },
       onTapDown: (TapDownDetails details) => _tapDownDetails = details,
       child: InteractiveViewer(
         boundaryMargin: EdgeInsets.zero,
@@ -341,43 +345,44 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   void _handleTap(TapDownDetails details) {
     // 获取点击的全局坐标
     final Offset tapPosition = details.globalPosition;
-    // 获取屏幕宽度和高度
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double screenHeight = MediaQuery.of(context).size.height;
     // 将屏幕宽度分为三等份
-    final double thirdWidth = screenWidth / 3;
-    // 将中间区域的高度分为上面三分之二和下面三分之一
-    final double middleTopHeight = screenHeight * 2 / 3;
-    // final double middleBottomHeight = screenHeight / 3;
+    final double thirdWidth = MediaQuery.of(context).size.width / 3;
+    // 将中间区域的高度分为三等份
+    final double middleTopHeight =
+        MediaQuery.of(context).size.height / 3; // 上三分之一
+    final double middleBottomHeight =
+        MediaQuery.of(context).size.height * 2 / 3; // 下三分之一
+
+    final readMode = globalSetting.readMode == 1 ? true : false;
 
     // 判断点击区域
     if (tapPosition.dx < thirdWidth) {
       // 点击左边三分之一
-      _pageController.animateToPage(
-        pageIndex - 3,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      _jumpToPage(readMode ? pageIndex - 3 : pageIndex - 1);
     } else if (tapPosition.dx < 2 * thirdWidth) {
       // 点击中间三分之一
       if (tapPosition.dy < middleTopHeight) {
+        // 点击中间区域的上三分之一
+        _jumpToPage(pageIndex - 3);
+      } else if (tapPosition.dy < middleBottomHeight) {
+        // 点击中间区域的中三分之一
         _toggleVisibility();
       } else {
-        // 点击中间三分之一的下面三分之一
-        _pageController.animateToPage(
-          pageIndex - 1,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
+        // 点击中间区域的下三分之一
+        _jumpToPage(pageIndex - 1);
       }
     } else {
       // 点击右边三分之一
-      _pageController.animateToPage(
-        pageIndex - 1,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      _jumpToPage(readMode ? pageIndex - 1 : pageIndex - 3);
     }
+  }
+
+  void _jumpToPage(int page) {
+    _pageController.animateToPage(
+      page,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   Future<void> writeToDatabase() async {
@@ -410,7 +415,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       isMounted: mounted,
       onPageIndexChanged: (newIndex) {
         if (pageIndex != newIndex) {
-          debugPrint('更新索引：$newIndex');
+          // logger.d('更新索引：$newIndex');
           setState(() {
             pageIndex = newIndex;
             if (!_isComicRolling) {
@@ -430,7 +435,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
 
       // 判断是否有滚动
       if (firstItemIndex != _lastScrollIndex && !_isSliderRolling) {
-        debugPrint('滚动检测：隐藏组件');
+        // logger.d('滚动检测：隐藏组件');
         setState(() {
           _isVisible = false; // 只要滚动了就隐藏组件
         });

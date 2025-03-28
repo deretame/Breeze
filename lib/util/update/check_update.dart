@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -38,8 +37,7 @@ Future<GithubReleaseJson> getCloudVersion() async {
 }
 
 bool isUpdateAvailable(String cloudVersion, String localVersion) {
-  debugPrint('App version: $localVersion');
-  debugPrint('Cloud version: $cloudVersion');
+  logger.d('App version: $localVersion\nCloud version: $cloudVersion');
 
   cloudVersion = cloudVersion.replaceFirst('v', '');
 

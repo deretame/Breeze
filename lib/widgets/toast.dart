@@ -33,6 +33,7 @@ void showInfoToast(
       type: ToastificationType.info,
       style: ToastificationStyle.flatColored,
       autoCloseDuration: duration,
+      showProgressBar: true,
     );
     return;
   }
@@ -61,6 +62,7 @@ void showSuccessToast(
       type: ToastificationType.success,
       style: ToastificationStyle.flatColored,
       autoCloseDuration: duration,
+      showProgressBar: true,
     );
     return;
   }
@@ -89,6 +91,7 @@ void showWarningToast(
       type: ToastificationType.warning,
       style: ToastificationStyle.flatColored,
       autoCloseDuration: duration,
+      showProgressBar: true,
     );
     return;
   }
@@ -117,6 +120,7 @@ void showErrorToast(
       type: ToastificationType.error,
       style: ToastificationStyle.flatColored,
       autoCloseDuration: duration,
+      showProgressBar: true,
     );
     return;
   }

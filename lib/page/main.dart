@@ -302,6 +302,7 @@ class _MainPageState extends State<MainPage> {
         type: type,
         style: ToastificationStyle.flatColored,
         autoCloseDuration: event.duration,
+        showProgressBar: true,
       );
     } else {
       late String title;
@@ -330,21 +331,21 @@ class _MainPageState extends State<MainPage> {
 
 Future<void> _signIn() async {
   while (true) {
+    await Future.delayed(Duration(seconds: 5));
     try {
-      await Future.delayed(Duration(seconds: 5));
       if (bikaSetting.authorization.isEmpty) {
         continue;
       }
       var result = await signIn();
       if (result == '签到成功') {
         showSuccessToast("自动签到成功！");
+        bikaSetting.setSignIn(true);
         break;
       } else {
         logger.d(result);
         break;
       }
     } catch (e) {
-      await Future.delayed(Duration(seconds: 5));
       continue;
     }
   }

@@ -155,8 +155,7 @@ String _handleDioError(DioException error) {
     case DioExceptionType.receiveTimeout:
       return '响应接收超时（${error.requestOptions.receiveTimeout}秒）';
     case DioExceptionType.badResponse:
-      return error.response?.data?['message'] ??
-          '服务器返回错误状态码: ${error.response?.statusCode}';
+      return error.response?.toString() ?? '未知错误';
     case DioExceptionType.cancel:
       return '请求被取消';
     case DioExceptionType.connectionError:

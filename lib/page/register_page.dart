@@ -51,7 +51,11 @@ class _RegisterPageState extends State<RegisterPage> {
       );
 
       logger.d(result.toString());
-      logger.d({_username.text, _account.text, _password.text});
+      logger.d({
+        'username': _username.text,
+        'account': _account.text,
+        'password': _password.text,
+      });
       bikaSetting.setAccount(_account.text);
       bikaSetting.setPassword(_password.text);
       showSuccessToast("注册成功，正在跳转登录...");

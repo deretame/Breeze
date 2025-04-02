@@ -485,7 +485,6 @@ Future<String> signIn() async {
     'https://picaapi.picacomic.com/users/punch-in',
     'POST',
   );
-  logger.d(data.toString());
 
   logger.d(limitString(data.toString(), 150));
 
@@ -493,7 +492,7 @@ Future<String> signIn() async {
     throw data;
   }
 
-  if (data['data']['res']['status'] == 'success') {
+  if (data['data']['res']['status'] == 'ok') {
     return "签到成功";
   } else if (data['data']['res']['status'] == 'fail') {
     return "已签到";

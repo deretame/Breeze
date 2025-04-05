@@ -186,7 +186,7 @@ Widget changeShieldedCategories(BuildContext context, String type) {
 
         bikaSetting.setShieldHomeCategories(categoriesShield);
 
-        showSuccessToast("成功更新首页屏蔽项\n请刷新首页查看效果");
+        showSuccessToast("成功更新分类页屏蔽项，请刷新分类页查看效果");
       } else if (type == "categories") {
         late var oldCategoriesMap = Map.of(bikaSetting.shieldCategoryMap);
         var categoriesShield = await showShieldCategoryDialog(context, type);
@@ -207,7 +207,7 @@ Widget changeShieldedCategories(BuildContext context, String type) {
     child: Row(
       children: [
         SizedBox(width: 10),
-        Text(type == "home" ? "首页屏蔽" : "分类屏蔽", style: TextStyle(fontSize: 18)),
+        Text(type == "home" ? "分类页屏蔽" : "分类屏蔽", style: TextStyle(fontSize: 18)),
         Expanded(child: Container()),
         Icon(Icons.chevron_right),
         SizedBox(width: 10),

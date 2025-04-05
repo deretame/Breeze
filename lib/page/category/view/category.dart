@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/category/category.dart';
 
+import '../../../config/global.dart';
 import '../../../util/router/router.gr.dart';
 import '../../search_result/models/search_enter.dart';
 
@@ -31,6 +32,7 @@ class CategoryPage extends StatelessWidget {
         },
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
+          controller: scrollControllers['category']!,
           children: const [
             SizedBox(height: 10),
             KeywordPage(),

@@ -1,7 +1,7 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
 publish_to: none
-version: 1.27.7+100
+version: 1.27.8+101
 
 environment:
   sdk: ^3.7.0-323.0.dev

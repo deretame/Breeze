@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/ranking_list/models/get_info.dart';
 
+import '../../../config/global.dart';
 import '../bloc/bloc.dart';
 import '../widgets/widgets.dart';
 
@@ -18,6 +19,14 @@ class _ComicRankingState extends State<ComicRanking>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
+
+  ScrollController get _scrollController {
+    if (widget.type == 'H24') return scrollControllers['day']!;
+
+    if (widget.type == 'D7') return scrollControllers['week']!;
+
+    return scrollControllers['month']!;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +71,7 @@ class _ComicRankingState extends State<ComicRanking>
                   final comic = state.comicList![index];
                   return ComicEntryWidget(comic: comic, type: widget.type);
                 },
+                controller: _scrollController,
               ),
             );
           case ComicListStatus.initial:

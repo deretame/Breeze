@@ -122,10 +122,10 @@ class _MyAppState extends State<MyApp> {
     // 设置这个的目的是为了缓解图片重载
     // PaintingBinding.instance.imageCache.maximumSizeBytes = 500 * 1024 * 1024;
 
-    Global(context);
-    if (statusBarHeight == 0) {
-      statusBarHeight = MediaQuery.of(context).padding.top;
-    }
+    statusBarHeight = MediaQuery.of(context).padding.top;
+    screenWidth = MediaQuery.of(context).size.width;
+    screenHeight = MediaQuery.of(context).size.height;
+
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(

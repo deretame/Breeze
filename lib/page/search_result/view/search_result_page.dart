@@ -94,45 +94,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
               child: Column(
                 children: <Widget>[
                   SizedBox(height: 35), // 为顶部阴影容器预留空间
-                  Expanded(
-                    child: BlocBuilder<SearchBloc, SearchState>(
-                      builder: (context, state) {
-                        _update(state.searchEnterConst);
-                        switch (state.status) {
-                          case SearchStatus.initial:
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          case SearchStatus.failure:
-                            return Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    '${state.result.toString()}\n加载失败',
-                                    style: TextStyle(fontSize: 20),
-                                  ),
-                                  SizedBox(height: 10), // 添加间距
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      _refresh(
-                                        SearchEnterConst.from(_searchEnter),
-                                        SearchStatus.initial,
-                                      );
-                                    },
-                                    child: Text('点击重试'),
-                                  ),
-                                ],
-                              ),
-                            );
-                          case SearchStatus.success:
-                          case SearchStatus.loadingMore:
-                          case SearchStatus.getMoreFailure:
-                            return _comicList(state);
-                        }
-                      },
-                    ),
-                  ),
+                  Expanded(child: _bloc()),
                 ],
               ),
             ),
@@ -147,10 +109,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
                   color: globalSetting.backgroundColor,
                   boxShadow: [
                     BoxShadow(
-                      color:
-                          globalSetting.themeType
-                              ? materialColorScheme.secondaryFixedDim
-                              : materialColorScheme.secondaryFixedDim,
+                      color: materialColorScheme.secondaryFixedDim,
                       spreadRadius: 0,
                       blurRadius: 2,
                       offset: const Offset(0, 0),
@@ -188,6 +147,42 @@ class _SearchResultPageState extends State<_SearchResultPage>
       ),
     );
   }
+
+  Widget _bloc() => BlocBuilder<SearchBloc, SearchState>(
+    builder: (context, state) {
+      _update(state.searchEnterConst);
+      switch (state.status) {
+        case SearchStatus.initial:
+          return const Center(child: CircularProgressIndicator());
+        case SearchStatus.failure:
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '${state.result.toString()}\n加载失败',
+                  style: TextStyle(fontSize: 20),
+                ),
+                SizedBox(height: 10), // 添加间距
+                ElevatedButton(
+                  onPressed: () {
+                    _refresh(
+                      SearchEnterConst.from(_searchEnter),
+                      SearchStatus.initial,
+                    );
+                  },
+                  child: Text('点击重试'),
+                ),
+              ],
+            ),
+          );
+        case SearchStatus.success:
+        case SearchStatus.loadingMore:
+        case SearchStatus.getMoreFailure:
+          return _comicList(state);
+      }
+    },
+  );
 
   Widget _comicList(SearchState state) {
     int itemCount = state.comics.length + 1;
@@ -341,8 +336,9 @@ class _SearchResultPageState extends State<_SearchResultPage>
   }
 
   void _update(SearchEnterConst searchEnterConst) {
+    if (SearchEnter.fromConst(searchEnterConst) == _searchEnter) return;
+    _searchEnter = SearchEnter.fromConst(searchEnterConst);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (SearchEnter.fromConst(searchEnterConst) == _searchEnter) return;
       setState(() {
         _searchEnter = SearchEnter.fromConst(searchEnterConst);
       });

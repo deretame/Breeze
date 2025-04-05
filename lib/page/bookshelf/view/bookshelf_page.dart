@@ -66,91 +66,78 @@ class _BookshelfPageState extends State<BookshelfPage>
         historyStore: historyStore,
         downloadStore: downloadStore,
       ),
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            SliverOverlapAbsorber(
-              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-              sliver: SliverAppBar(
-                title: const Text('书架'),
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.search),
-                    onPressed:
-                        () => AutoRouter.of(context).push(
-                          SearchResultRoute(
-                            searchEnterConst: search_result.SearchEnterConst(),
-                          ),
-                        ),
-                  ),
-                ],
-                pinned: true,
-                floating: true,
-                snap: true,
-                bottom: PreferredSize(
-                  preferredSize: const Size.fromHeight(
-                    kMinInteractiveDimension,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TabBar(
-                          controller: _tabController,
-                          tabs: const [
-                            Tab(text: "收藏"),
-                            Tab(text: "历史"),
-                            Tab(text: "下载"),
-                          ],
-                        ),
-                      ),
-                      Observer(
-                        builder:
-                            (context) => SizedBox(
-                              width: 120,
-                              child: Center(
-                                child: Text(stringSelectStore.date),
-                              ),
-                            ),
-                      ),
-                      Builder(
-                        builder: (BuildContext context) {
-                          return IconButton(
-                            icon: const Icon(Icons.sort),
-                            onPressed:
-                                () =>
-                                    Scaffold.of(
-                                      context,
-                                    ).openEndDrawer(), // 打开右侧抽屉
-                          );
-                        },
-                      ),
-                    ],
+      appBar: AppBar(
+        title: const Text('书架'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed:
+                () => AutoRouter.of(context).push(
+                  SearchResultRoute(
+                    searchEnterConst: search_result.SearchEnterConst(),
                   ),
                 ),
+          ),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(kMinInteractiveDimension),
+          child: Row(
+            children: [
+              Expanded(
+                child: TabBar(
+                  controller: _tabController,
+                  tabs: const [
+                    Tab(text: "收藏"),
+                    Tab(text: "历史"),
+                    Tab(text: "下载"),
+                  ],
+                ),
               ),
-            ),
-          ];
-        },
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            FavoritePage(
-              searchStatusStore: favoriteStore,
-              stringSelectStore: stringSelectStore,
-              indexStore: indexStore,
-            ),
-            HistoryPage(
-              searchStatusStore: historyStore,
-              stringSelectStore: stringSelectStore,
-              indexStore: indexStore,
-            ),
-            DownloadPage(
-              searchStatusStore: downloadStore,
-              stringSelectStore: stringSelectStore,
-              indexStore: indexStore,
-            ),
-          ],
+              Observer(
+                builder:
+                    (context) => SizedBox(
+                      width: 120,
+                      child: Center(child: Text(stringSelectStore.date)),
+                    ),
+              ),
+              Builder(
+                builder: (BuildContext context) {
+                  return IconButton(
+                    icon: const Icon(Icons.sort),
+                    onPressed:
+                        () => Scaffold.of(context).openEndDrawer(), // 打开右侧抽屉
+                  );
+                },
+              ),
+            ],
+          ),
         ),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                FavoritePage(
+                  searchStatusStore: favoriteStore,
+                  stringSelectStore: stringSelectStore,
+                  indexStore: indexStore,
+                ),
+                HistoryPage(
+                  searchStatusStore: historyStore,
+                  stringSelectStore: stringSelectStore,
+                  indexStore: indexStore,
+                ),
+                DownloadPage(
+                  searchStatusStore: downloadStore,
+                  stringSelectStore: stringSelectStore,
+                  indexStore: indexStore,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

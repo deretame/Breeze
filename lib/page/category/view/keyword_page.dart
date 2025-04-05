@@ -25,7 +25,12 @@ class _KeywordPage extends StatelessWidget {
           builder: (context, state) {
             switch (state.status) {
               case SearchKeywordStatus.initial:
-                return Center(child: CircularProgressIndicator());
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: CircularProgressIndicator(),
+                  ),
+                );
               case SearchKeywordStatus.failure:
                 return ErrorView(
                   errorMessage: '加载失败，请重试。',

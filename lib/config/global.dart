@@ -1,28 +1,29 @@
-import 'package:flutter/cupertino.dart';
-
 // 此文件用于定义全局变量，也做部分初始化工作
 
 // 用于存储屏幕宽度和高度
 // 用于在不同页面之间传递数据
+import 'package:flutter/cupertino.dart';
+
 double screenWidth = 0;
 double screenHeight = 0;
 double statusBarHeight = 0;
 bool useSkia = false;
 
-class Global {
-  final BuildContext context;
-
-  Global(this.context) {
-    // 在构造函数中初始化屏幕宽度和高度
-    screenWidth = MediaQuery.of(context).size.width;
-    screenHeight = MediaQuery.of(context).size.height;
-  }
-}
-
 // 用来判断哔咔的用户信息是否加载完毕
 bool loadBikaProfile = false;
 
 late GlobalBIkaProfile globalBikaProfile;
+
+Map<String, ScrollController> scrollControllers = {
+  'favorite': ScrollController(),
+  'history': ScrollController(),
+  'download': ScrollController(),
+  'day': ScrollController(),
+  'week': ScrollController(),
+  'month': ScrollController(),
+  'creator': ScrollController(),
+  'category': ScrollController(),
+};
 
 class GlobalBIkaProfile {
   final int code;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../config/global.dart';
 import '../bloc/creator_list/creator_list_bloc.dart';
 import '../models/get_info.dart';
 import '../widgets/widgets.dart';
@@ -57,6 +58,7 @@ class _CreatorRankingsWidgetState extends State<CreatorRankingsWidget>
                   final user = state.userList![index];
                   return CreatorEntryWidget(user: user);
                 },
+                controller: scrollControllers['creator']!,
               ),
             );
           case CreatorListStatus.initial:

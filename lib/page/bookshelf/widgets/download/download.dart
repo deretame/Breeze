@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 
+import '../../../../config/global.dart';
 import '../../../../main.dart';
 import '../../../../mobx/int_select.dart';
 import '../../../../mobx/string_select.dart';
@@ -60,9 +61,12 @@ class _DownloadPageState extends State<_DownloadPage>
   int totalComicCount = 0;
   bool notice = false;
 
+  ScrollController get _scrollController => scrollControllers['download']!;
+
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_scrollListener);
     eventBus.on<DownloadEvent>().listen((event) {
       if (event.type == EventType.showInfo) {
         stringSelectStore.setDate(totalComicCount.toString());
@@ -70,6 +74,18 @@ class _DownloadPageState extends State<_DownloadPage>
         _refresh(searchStatusStore);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollListener() {
+    if (widget.indexStore.date == 2) {
+      stringSelectStore.setDate(totalComicCount.toString());
+    }
   }
 
   @override
@@ -96,7 +112,6 @@ class _DownloadPageState extends State<_DownloadPage>
   Widget _buildContent(UserDownloadState state) {
     switch (state.status) {
       case UserDownloadStatus.initial:
-        // stringSelectStore.setDate("");
         return const Center(child: CircularProgressIndicator());
       case UserDownloadStatus.failure:
         return _buildError(state);
@@ -114,7 +129,7 @@ class _DownloadPageState extends State<_DownloadPage>
             '${state.result.toString()}\n加载失败',
             style: TextStyle(fontSize: 20),
           ),
-          SizedBox(height: 10), // 添加间距
+          SizedBox(height: 10),
           ElevatedButton(
             onPressed: () => _refresh(searchStatusStore),
             child: Text('点击重试'),
@@ -140,7 +155,7 @@ class _DownloadPageState extends State<_DownloadPage>
           children: [
             Spacer(),
             const Text('啥都没有', style: TextStyle(fontSize: 20.0)),
-            SizedBox(height: 10), // 添加间距
+            SizedBox(height: 10),
             ElevatedButton(
               onPressed: () => _refresh(searchStatusStore),
               child: const Text('刷新'),
@@ -151,62 +166,39 @@ class _DownloadPageState extends State<_DownloadPage>
       );
     }
 
-    int itemCount = state.comics.length + 1;
-
-    logger.d(itemCount);
-
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        if (notification is ScrollUpdateNotification) {
-          if (widget.indexStore.date == 2) {
-            stringSelectStore.setDate(state.comics.length.toString());
-          }
+    return ListView.builder(
+      controller: _scrollController,
+      physics: AlwaysScrollableScrollPhysics(),
+      itemCount: state.comics.length + 1,
+      itemBuilder: (context, index) {
+        if (index == state.comics.length) {
+          return deletingDialog(
+            context,
+            () => _refresh(searchStatusStore),
+            DeleteType.download,
+          );
+        } else {
+          return ComicEntryWidget(
+            comicEntryInfo: downloadConvertToComicEntryInfo(
+              state.comics[index],
+            ),
+            type: ComicEntryType.download,
+            refresh: () => _refresh(searchStatusStore),
+          );
         }
-        return false;
       },
-      child: CustomScrollView(
-        slivers: [
-          SliverOverlapInjector(
-            handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-          ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate((
-              BuildContext context,
-              int index,
-            ) {
-              // 如果索引等于状态的 comics.length，并且已经达到最大值
-              if (index == state.comics.length) {
-                return deletingDialog(
-                  context,
-                  () => _refresh(searchStatusStore),
-                  DeleteType.download,
-                );
-              } else {
-                return ComicEntryWidget(
-                  comicEntryInfo: downloadConvertToComicEntryInfo(
-                    state.comics[index],
-                  ),
-                  type: ComicEntryType.download,
-                  refresh: () => _refresh(searchStatusStore),
-                );
-              }
-            }, childCount: itemCount),
-          ),
-        ],
-      ),
     );
   }
 
   void _refresh(SearchStatusStore searchStatusStore) {
     notice = false;
-    // 使用原本输入参数进行重新搜索
     context.read<UserDownloadBloc>().add(
       UserDownloadEvent(
         SearchEnterConst(
           keyword: searchStatusStore.keyword,
           sort: searchStatusStore.sort,
           categories: searchStatusStore.categories,
-          refresh: Uuid().v4(), //传入一个不一样的值，来强行刷新
+          refresh: Uuid().v4(),
         ),
       ),
     );

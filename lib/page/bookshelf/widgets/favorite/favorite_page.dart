@@ -64,6 +64,8 @@ class _UserFavoritePageState extends State<_FavoritePage>
   int pagesCount = 0;
   int _currentIndex = 0;
 
+  ScrollController get _scrollController => scrollControllers['favorite']!;
+
   @override
   bool get wantKeepAlive => true;
 
@@ -71,6 +73,9 @@ class _UserFavoritePageState extends State<_FavoritePage>
   void initState() {
     super.initState();
     pageCount = 1;
+
+    scrollControllers['favorite']!.addListener(_scrollListener);
+    _scrollController.addListener(_scrollListener);
     eventBus.on<FavoriteEvent>().listen((event) {
       if (event.type == EventType.refresh) {
         _refresh(initState: true);
@@ -79,14 +84,23 @@ class _UserFavoritePageState extends State<_FavoritePage>
       } else if (event.type == EventType.updateShield) {
         _refresh(updateShield: true);
       } else if (event.type == EventType.showInfo) {
-        stringSelectStore.setDate("$_currentIndex/$pagesCount"); // 更新状态
+        stringSelectStore.setDate("$_currentIndex/$pagesCount");
       }
     });
   }
 
   @override
   void dispose() {
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollListener() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent * 0.9) {
+      _fetchFavoriteResult();
+    }
+    _handleScrollPosition(_scrollController.position);
   }
 
   @override
@@ -97,7 +111,6 @@ class _UserFavoritePageState extends State<_FavoritePage>
         return RefreshIndicator(
           displacement: 60.0,
           onRefresh: () async {
-            // 触发刷新操作
             if (widget.indexStore.date == 0) {
               _refresh(initState: true);
             }
@@ -131,7 +144,7 @@ class _UserFavoritePageState extends State<_FavoritePage>
             '${state.result.toString()}\n加载失败',
             style: TextStyle(fontSize: 20),
           ),
-          SizedBox(height: 10), // 添加间距
+          SizedBox(height: 10),
           ElevatedButton(onPressed: () => _refresh(), child: Text('点击重试')),
         ],
       ),
@@ -149,90 +162,66 @@ class _UserFavoritePageState extends State<_FavoritePage>
     }
 
     if (state.comics.isEmpty) {
-      return const Center(
-        child: Text('啥都没有', style: TextStyle(fontSize: 20.0)),
+      return Center(
+        child: Center(
+          child: Column(
+            children: [
+              const Spacer(),
+              const Text('啥都没有', style: TextStyle(fontSize: 20.0)),
+              const SizedBox(height: 10),
+              ElevatedButton(onPressed: _refresh, child: const Text('刷新')),
+              const Spacer(),
+            ],
+          ),
+        ),
       );
     }
 
-    // logger.d('${state.status}\n${state.hasReachedMax}');
+    int itemCount = state.comics.length;
+    bool showLoadingMore = state.status == UserFavouriteStatus.loadingMore;
+    bool showError = state.status == UserFavouriteStatus.getMoreFailure;
+    bool showEnd = state.hasReachedMax;
 
-    int itemCount =
-        state.comics.length +
-        (state.hasReachedMax ? 1 : 0) +
-        (state.status == UserFavouriteStatus.loadingMore ? 1 : 0) +
-        (state.status == UserFavouriteStatus.getMoreFailure ? 1 : 0);
-
-    // logger.d(itemCount.toString());
-
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        if (notification is ScrollUpdateNotification) {
-          if (widget.indexStore.date == 0) {
-            final maxScroll = notification.metrics.maxScrollExtent;
-            final currentScroll = notification.metrics.pixels;
-            if (currentScroll >= maxScroll * 0.9) {
-              _fetchFavoriteResult();
-            }
-            _handleScrollPosition(notification.metrics);
+    return ListView.builder(
+      controller: _scrollController,
+      physics: AlwaysScrollableScrollPhysics(),
+      itemCount: itemCount + (showLoadingMore || showError || showEnd ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index >= itemCount) {
+          if (showLoadingMore) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: CircularProgressIndicator(),
+              ),
+            );
+          } else if (showError) {
+            return Center(
+              child: ElevatedButton(
+                onPressed: () => _refresh(),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text('点击重试'),
+                ),
+              ),
+            );
+          } else if (showEnd) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(30.0),
+                child: Text(
+                  '你来到了未知领域呢~',
+                  style: const TextStyle(fontSize: 20.0),
+                ),
+              ),
+            );
           }
         }
-        return false;
+
+        return FavoriteComicEntryWidget(
+          comicEntryInfo: state.comics[index].doc,
+        );
       },
-      child: CustomScrollView(
-        slivers: [
-          SliverOverlapInjector(
-            handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-          ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate((
-              BuildContext context,
-              int index,
-            ) {
-              // 如果索引等于状态的 comics.length，并且已经达到最大值
-              if (index == state.comics.length) {
-                if (state.status == UserFavouriteStatus.success &&
-                    state.hasReachedMax) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(30.0),
-                      child: Text(
-                        '你来到了未知领域呢~',
-                        style: const TextStyle(fontSize: 20.0),
-                      ),
-                    ),
-                  );
-                }
-
-                if (state.status == UserFavouriteStatus.getMoreFailure) {
-                  return Center(
-                    child: ElevatedButton(
-                      onPressed: () => _refresh(),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text('点击重试'),
-                      ),
-                    ),
-                  );
-                }
-
-                if (state.status == UserFavouriteStatus.loadingMore) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-              } else {
-                return FavoriteComicEntryWidget(
-                  comicEntryInfo: state.comics[index].doc,
-                );
-              }
-              return null;
-            }, childCount: itemCount),
-          ),
-        ],
-      ),
     );
   }
 
@@ -293,22 +282,27 @@ class _UserFavoritePageState extends State<_FavoritePage>
     );
   }
 
-  void _handleScrollPosition(ScrollMetrics metrics) {
-    double itemHeight = 180.0 + ((screenHeight / 10) * 0.1); // 计算每个 item 的高度
-    double currentScrollPosition = metrics.pixels; // 当前滚动位置
-    double middlePosition =
-        currentScrollPosition + (screenHeight / 3); // 计算中间位置
-    double listViewStartOffset = 0.0; // ListView 的起始偏移量
-    int itemIndex =
-        ((middlePosition - listViewStartOffset) / itemHeight)
-            .floor(); // 计算当前 item 的索引
+  var _lastExecutedTime = 0;
 
-    if (itemIndex >= 0 && itemIndex < comics.length) {
-      int buildNumber =
-          comics[itemIndex].buildNumber; // 获取当前 item 的 buildNumber
-      logger.d(comics[itemIndex].doc.title); // 打印当前 item 的标题
-      stringSelectStore.setDate("$buildNumber/$pagesCount"); // 更新状态
-      _currentIndex = buildNumber; // 更新当前索引
+  void _handleScrollPosition(ScrollMetrics metrics) {
+    double itemHeight = 180.0 + ((screenHeight / 10) * 0.1);
+    double currentScrollPosition = metrics.pixels;
+    double middlePosition = currentScrollPosition + (screenHeight / 3);
+    double listViewStartOffset = 0.0;
+    int itemIndex =
+        ((middlePosition - listViewStartOffset) / itemHeight).floor();
+
+    var currentTime = DateTime.now().millisecondsSinceEpoch;
+
+    if (currentTime - _lastExecutedTime > 50) {
+      if (itemIndex >= 0 && itemIndex < comics.length) {
+        int buildNumber = comics[itemIndex].buildNumber;
+        logger.d(comics[itemIndex].doc.title);
+        stringSelectStore.setDate("$buildNumber/$pagesCount");
+        _currentIndex = buildNumber;
+        // 更新上次执行时间
+        _lastExecutedTime = currentTime;
+      }
     }
   }
 }

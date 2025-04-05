@@ -193,7 +193,6 @@ class _SearchResultPageState extends State<_SearchResultPage>
     int itemCount = state.comics.length + 1;
     comics = state.comics;
     pagesCount = state.pagesCount;
-    _searchEnter = SearchEnter.fromConst(state.searchEnterConst);
     if (state.status == SearchStatus.success) {
       if (state.comics.length < 8 && !state.hasReachedMax) {
         _fetchSearchResult();
@@ -297,8 +296,8 @@ class _SearchResultPageState extends State<_SearchResultPage>
   void _onScroll() {
     var currentTime = DateTime.now().millisecondsSinceEpoch;
 
-    // 只有当距离上一次执行超过10ms时，才执行
-    if (currentTime - _lastExecutedTime > 10) {
+    // 只有当距离上一次执行超过50ms时，才执行
+    if (currentTime - _lastExecutedTime > 50) {
       double itemHeight = 180.0 + ((screenHeight / 10) * 0.1);
       double currentScrollPosition = _scrollController.position.pixels;
       double middlePosition = currentScrollPosition + (screenHeight / 3);
@@ -343,9 +342,9 @@ class _SearchResultPageState extends State<_SearchResultPage>
 
   void _update(SearchEnterConst searchEnterConst) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (SearchEnter.fromConst(searchEnterConst) == _searchEnter) return;
       setState(() {
         _searchEnter = SearchEnter.fromConst(searchEnterConst);
-        logger.d('pagesCount: ${searchEnterConst.pageCount}');
       });
     });
   }

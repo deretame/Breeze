@@ -11,6 +11,7 @@ import 'package:zephyr/page/ranking_list/ranking_list.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/toast.dart';
 
+import '../config/global.dart';
 import '../main.dart';
 import '../network/http/http_request.dart';
 import '../network/webdav.dart';
@@ -116,7 +117,20 @@ class _MainPageState extends State<MainPage> {
           //   // borderRadius: BorderRadius.circular(10.0), // 导航栏圆角
           //   colorBehindNavBar: globalSetting.backgroundColor, // 导航栏后面的颜色
           // ),
-          navBarStyle: NavBarStyle.style3, // 导航栏样式
+          navBarStyle: NavBarStyle.style3,
+          // 导航栏样式
+          hideOnScrollSettings: HideOnScrollSettings(
+            scrollControllers: [
+              scrollControllers['favorite']!,
+              scrollControllers['history']!,
+              scrollControllers['download']!,
+              scrollControllers['day']!,
+              scrollControllers['week']!,
+              scrollControllers['month']!,
+              scrollControllers['creator']!,
+              scrollControllers['category']!,
+            ],
+          ),
         );
       },
     );

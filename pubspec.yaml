@@ -12,81 +12,94 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  # --------------- UI 相关组件 ---------------
-  cupertino_icons: ^1.0.8                # 图标
-  dynamic_color: ^1.7.0                  # Material You 动态主题支持
-  loading_animation_widget: ^1.2.1       # 加载动画组件
-  toggle_switch: ^2.3.0                  # 开关切换组件
-  animated_search_bar: ^2.7.2            # 动画搜索栏
-  photo_view: ^0.15.0                    # 图片查看器，支持缩放和平移
-  scrollable_positioned_list: ^0.3.8     # 精确定位滚动列表
-  persistent_bottom_nav_bar: ^6.2.1      # 底部导航栏
-  flutter_markdown: ^0.7.5               # Markdown 渲染组件
-  dropdown_button2: ^2.3.9               # 下拉菜单组件
+  ########################################
+  #            UI 组件 & 动画            #
+  ########################################
+  cupertino_icons: ^1.0.8                # Cupertino 风格图标
+  dynamic_color: ^1.7.0                  # Material You 动态主题
+  loading_animation_widget: ^1.2.1       # 60+ 加载动画集合
+  toggle_switch: ^2.3.0                  # 多状态切换开关
+  animated_search_bar: ^2.7.2            # 带动画的搜索栏组件
+  photo_view: ^0.15.0                    # 交互式图片查看器（缩放/平移）
+  scrollable_positioned_list: ^0.3.8     # 支持滚动定位的列表
+  persistent_bottom_nav_bar: ^6.2.1      # 可持久化的底部导航栏
+  flutter_markdown: ^0.7.5               # Markdown 渲染支持
+  dropdown_button2: ^2.3.9               # 增强型下拉菜单
   toastification: ^3.0.1                 # 现代化通知提示系统
-  flutter_animate: ^4.5.2                # 动画组件
+  flutter_animate: ^4.5.2                # 声明式动画工具集
+  flutter_colorpicker: ^1.1.0            # 颜色选择器组件
 
-  # --------------- 状态管理库 ---------------
-  mobx: ^2.5.0                  # 响应式状态管理
+  ########################################
+  #          状态管理 & 事件总线          #
+  ########################################
+  mobx: ^2.5.0                  # 响应式状态管理核心
   mobx_codegen: ^2.7.0          # MobX 代码生成器
-  flutter_mobx: ^2.3.0          # MobX 的 Flutter 绑定
+  flutter_mobx: ^2.3.0          # MobX-Flutter 桥接
   bloc: ^9.0.0                  # BLoC 核心库
-  flutter_bloc: ^9.0.0          # BLoC 模式实现
-  bloc_concurrency: ^0.3.0      # BLoC 并发控制
-  event_bus: ^2.0.1             # 事件总线
-  #  flutter_displaymode: ^0.6.0   # 屏幕管理
+  flutter_bloc: ^9.0.0          # Flutter BLoC 实现
+  bloc_concurrency: ^0.3.0      # BLoC 并发策略（防抖/节流）
+  event_bus: ^2.0.1             # 全局事件总线
 
-  # --------------- 数据存储与处理 ---------------
-  hive_ce: ^2.10.1               # 轻量级键值对数据库
-  hive_ce_flutter: ^2.2.0        # hive_ce 的 Flutter 适配层
+  ########################################
+  #       数据存储 & 本地持久化          #
+  ########################################
+  hive_ce: ^2.10.1               # 轻量级键值数据库
+  hive_ce_flutter: ^2.2.0        # Hive 的 Flutter 适配
+  objectbox: ^4.0.3              # 高性能对象数据库
+  objectbox_flutter_libs: ^4.0.3 # ObjectBox Flutter 支持
   json_annotation: ^4.9.0        # JSON 序列化注解
-  json_serializable: ^6.8.0      # JSON 序列化代码生成
-  freezed: ^2.5.7                # 不可变数据类生成（类似 Kotlin data class）
+  json_serializable: ^6.8.0      # JSON 序列化生成器
+  freezed: ^2.5.7                # 不可变数据类生成
   freezed_annotation: ^2.4.4     # Freezed 注解支持
-  objectbox: ^4.0.3              # ObjectBox 数据库
-  objectbox_flutter_libs: ^4.0.3 # ObjectBox 的 Flutter 支持
-  archive: ^4.0.2                # 压缩/解压缩工具
-  tar: ^2.0.0                    # TAR 文件解压缩工具
-  xml: ^6.5.0                    # XML 解析器
-  encrypt: ^5.0.3                # 加密/解密工具
 
-  # --------------- 网络请求与 API 处理 ---------------
-  dio: ^5.6.0                   # HTTP 网络请求客户端
+  ########################################
+  #        网络 & 通信 & WebView        #
+  ########################################
+  dio: ^5.6.0                   # 强大的 HTTP 客户端
   webview_flutter: ^4.10.0      # WebView 组件
-  url_launcher: ^6.3.1          # 外部 URL 启动器
+  url_launcher: ^6.3.1          # URL 启动器（外部浏览器）
+  connectivity_plus: ^6.1.2     # 网络状态监测
 
-  # --------------- 系统功能与工具 ---------------
+  ########################################
+  #        文件 & 资源 & 多媒体          #
+  ########################################
   path_provider: ^2.1.5         # 文件系统路径获取
-  path: ^1.9.0                  # 文件路径处理
-  package_info_plus: ^8.1.2     # 应用包信息获取
+  path: ^1.9.0                  # 跨平台路径处理
   open_file: ^3.5.10            # 文件打开工具
-  permission_guard: ^2.0.1      # 权限管理工具
   image_picker: ^1.1.2          # 图片选择器
-  image_cropper: ^9.0.0         # 图片裁剪器
-  image: ^4.5.2                 # 图片处理
-  connectivity_plus: ^6.1.2     # 网络状态监听
+  image_cropper: ^9.0.0         # 图片裁剪组件
+  image: ^4.5.2                 # 图片编解码处理
+  archive: ^4.0.2               # 压缩/解压工具集
+  tar: ^2.0.0                   # TAR 格式处理
 
-  # --------------- 功能组件 ---------------
-  crypto: ^3.0.6                # 加密算法
-  uuid: ^4.4.2                  # UUID 生成
-  auto_route: ^9.2.2            # 路由管理
-  stack_trace: ^1.12.0          # 异常堆栈解析
-  logger: ^2.5.0                # 日志打印
+  ########################################
+  #         安全 & 加密 & 工具           #
+  ########################################
+  encrypt: ^5.0.3                # 加密算法库（AES/RSA）
+  crypto: ^3.0.6                 # 哈希算法（MD5/SHA）
+  permission_guard: ^2.0.1       # 权限管理工具
+  package_info_plus: ^8.1.2      # 应用包信息获取
+  uuid: ^4.4.2                   # UUID 生成器
 
-  # --------------- 工具 ---------------
-  collection: ^1.18.0           # 集合操作工具
-  equatable: ^2.0.3             # 简化对象比较
-  stream_transform: ^2.1.1      # 流数据处理工具
-  flutter_colorpicker: ^1.1.0   # 颜色选择器
+  ########################################
+  #        开发工具 & 辅助功能           #
+  ########################################
+  auto_route: ^9.2.2            # 声明式路由管理
+  logger: ^2.5.0                # 分级日志记录器
+  stack_trace: ^1.12.0          # 异步堆栈追踪
+  collection: ^1.18.0           # 集合工具扩展
+  equatable: ^2.0.3             # 对象相等性简化
+  stream_transform: ^2.1.1      # Stream 转换工具
+  xml: ^6.5.0                   # XML 解析器
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0           # 代码规范检查
-  build_runner: ^2.4.14           # 代码生成器运行工具
-  auto_route_generator: ^9.0.0    # 路由管理代码生成
-  hive_ce_generator: ^1.8.1       # Hive 代码生成器
-  objectbox_generator: ^4.0.3     # ObjectBox 代码生成器
+  build_runner: ^2.4.14           # 代码生成器
+  auto_route_generator: ^9.0.0    # 路由代码生成
+  hive_ce_generator: ^1.8.1       # Hive 模型生成
+  objectbox_generator: ^4.0.3     # ObjectBox 代码生成
 
 # Flutter 配置
 flutter:

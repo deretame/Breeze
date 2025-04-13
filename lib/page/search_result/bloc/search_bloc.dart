@@ -33,8 +33,10 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
   int pagesCount = 0;
   List<ComicNumber> comics = [];
 
-  Future<void> _fetchComicList(FetchSearchResult event,
-      Emitter<SearchState> emit,) async {
+  Future<void> _fetchComicList(
+    FetchSearchResult event,
+    Emitter<SearchState> emit,
+  ) async {
     if (event.searchEnterConst.state == "更新屏蔽列表") {
       emit(
         state.copyWith(
@@ -107,7 +109,7 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
 
       comics = [...comics, ...processedResult];
 
-      logger.d('pagesCount: ${state.searchEnterConst.pageCount}');
+      // logger.d('pagesCount: ${state.searchEnterConst.pageCount}');
 
       emit(
         state.copyWith(
@@ -144,24 +146,48 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
   }
 
   List<ComicNumber> _filterShieldedComics(List<ComicNumber> comics) {
-    // 获取所有被屏蔽的分类
-    List<String> shieldedCategoriesList =
-    bikaSetting.shieldCategoryMap.entries
-        .where((entry) => entry.value) // 只选择值为 true 的条目
-        .map((entry) => entry.key) // 提取键（分类名）
-        .toList();
+    // 获取有效屏蔽关键词（非空）
+    final maskedKeywords =
+        globalSetting.maskedKeywords
+            .where((keyword) => keyword.trim().isNotEmpty)
+            .toList();
 
-    // 过滤掉包含屏蔽分类的漫画
+    // 获取屏蔽分类
+    final shieldedCategories =
+        bikaSetting.shieldCategoryMap.entries
+            .where((entry) => entry.value)
+            .map((entry) => entry.key)
+            .toList();
+
     return comics.where((comic) {
-      // 检查该漫画的分类是否与屏蔽分类列表中的任何分类匹配
-      return !comic.doc.categories.any(
-            (category) => shieldedCategoriesList.contains(category),
+      // 1. 检查屏蔽分类
+      final hasShieldedCategory = comic.doc.categories.any(
+        (category) => shieldedCategories.contains(category),
       );
+      if (hasShieldedCategory) return false;
+
+      // 2. 检查屏蔽关键词
+      final allText =
+          [
+            comic.doc.title,
+            comic.doc.author,
+            comic.doc.chineseTeam,
+            comic.doc.categories.join(),
+            comic.doc.tags.join(),
+            comic.doc.description,
+          ].join().toLowerCase();
+
+      final containsKeyword = maskedKeywords.any(
+        (keyword) => allText.contains(keyword.toLowerCase()),
+      );
+
+      return !containsKeyword;
     }).toList();
   }
 
   Future<List<ComicNumber>> _processSearchResult(
-      Map<String, dynamic> result,) async {
+    Map<String, dynamic> result,
+  ) async {
     if (result['data']['comics'] is List) {
       result['data'] = {
         "comics": {"docs": result['data']["comics"]},

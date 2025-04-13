@@ -7,6 +7,9 @@ import '../../../../config/global.dart';
 import '../../../../main.dart';
 import '../../../../mobx/int_select.dart';
 import '../../../../mobx/string_select.dart';
+import '../../../../widgets/comic_entry/comic_entry.dart';
+import '../../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
+import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 
 class FavoritePage extends StatelessWidget {
   final SearchStatusStore searchStatusStore;
@@ -84,7 +87,9 @@ class _UserFavoritePageState extends State<_FavoritePage>
       } else if (event.type == EventType.updateShield) {
         _refresh(updateShield: true);
       } else if (event.type == EventType.showInfo) {
-        stringSelectStore.setDate("$_currentIndex/$pagesCount");
+        if (!bikaSetting.brevity) {
+          stringSelectStore.setDate("$_currentIndex/$pagesCount");
+        }
       }
     });
   }
@@ -100,7 +105,9 @@ class _UserFavoritePageState extends State<_FavoritePage>
         _scrollController.position.maxScrollExtent * 0.9) {
       _fetchFavoriteResult();
     }
-    _handleScrollPosition(_scrollController.position);
+    if (!bikaSetting.brevity) {
+      _handleScrollPosition(_scrollController.position);
+    }
   }
 
   @override
@@ -152,77 +159,157 @@ class _UserFavoritePageState extends State<_FavoritePage>
   }
 
   Widget _buildList(UserFavouriteState state) {
-    comics = state.comics;
-    pageCount = state.pageCount;
-    pagesCount = state.pagesCount;
-    refresh = state.refresh;
+    _updateStateVariables(state);
 
-    if (state.comics.length < 8 && !state.hasReachedMax) {
+    if (_shouldFetchMore(state)) {
       _fetchFavoriteResult();
     }
 
     if (state.comics.isEmpty) {
-      return Center(
-        child: Center(
-          child: Column(
-            children: [
-              const Spacer(),
-              const Text('啥都没有', style: TextStyle(fontSize: 20.0)),
-              const SizedBox(height: 10),
-              ElevatedButton(onPressed: _refresh, child: const Text('刷新')),
-              const Spacer(),
-            ],
-          ),
-        ),
-      );
+      return _buildEmptyState();
     }
 
-    int itemCount = state.comics.length;
-    bool showLoadingMore = state.status == UserFavouriteStatus.loadingMore;
-    bool showError = state.status == UserFavouriteStatus.getMoreFailure;
-    bool showEnd = state.hasReachedMax;
+    return bikaSetting.brevity
+        ? _buildBrevityList(state)
+        : _buildDetailedList(state);
+  }
+
+  // 状态更新
+  void _updateStateVariables(UserFavouriteState state) {
+    comics = state.comics;
+    pageCount = state.pageCount;
+    pagesCount = state.pagesCount;
+    refresh = state.refresh;
+  }
+
+  // 判断是否需要获取更多
+  bool _shouldFetchMore(UserFavouriteState state) {
+    return state.comics.length < 8 && !state.hasReachedMax;
+  }
+
+  // 空状态UI
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        children: [
+          const Spacer(),
+          const Text('啥都没有', style: TextStyle(fontSize: 20.0)),
+          const SizedBox(height: 10),
+          ElevatedButton(onPressed: _refresh, child: const Text('刷新')),
+          const Spacer(),
+        ],
+      ),
+    );
+  }
+
+  // 构建简洁模式列表
+  Widget _buildBrevityList(UserFavouriteState state) {
+    final elementsRows = generateElements(_convertToSimplifyList(state.comics));
+    return _buildCommonListView(
+      state: state,
+      itemCount: elementsRows.length,
+      itemBuilder: (context, index) => _buildBrevityItem(elementsRows[index]),
+    );
+  }
+
+  // 构建详细模式列表
+  Widget _buildDetailedList(UserFavouriteState state) {
+    return _buildCommonListView(
+      state: state,
+      itemCount: state.comics.length,
+      itemBuilder:
+          (context, index) =>
+              FavoriteComicEntryWidget(comicEntryInfo: state.comics[index].doc),
+    );
+  }
+
+  // 公共列表构建方法
+  ListView _buildCommonListView({
+    required UserFavouriteState state,
+    required int itemCount,
+    required IndexedWidgetBuilder itemBuilder,
+  }) {
+    final showLoadingMore = state.status == UserFavouriteStatus.loadingMore;
+    final showError = state.status == UserFavouriteStatus.getMoreFailure;
+    final showEnd = state.hasReachedMax;
+    final totalItemCount =
+        itemCount + (showLoadingMore || showError || showEnd ? 1 : 0);
 
     return ListView.builder(
       controller: _scrollController,
-      physics: AlwaysScrollableScrollPhysics(),
-      itemCount: itemCount + (showLoadingMore || showError || showEnd ? 1 : 0),
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: totalItemCount,
       itemBuilder: (context, index) {
         if (index >= itemCount) {
-          if (showLoadingMore) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: CircularProgressIndicator(),
-              ),
-            );
-          } else if (showError) {
-            return Center(
-              child: ElevatedButton(
-                onPressed: () => _refresh(),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text('点击重试'),
-                ),
-              ),
-            );
-          } else if (showEnd) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(30.0),
-                child: Text(
-                  '你来到了未知领域呢~',
-                  style: const TextStyle(fontSize: 20.0),
-                ),
-              ),
-            );
-          }
+          return _buildFooterItem(showLoadingMore, showError, showEnd);
         }
-
-        return FavoriteComicEntryWidget(
-          comicEntryInfo: state.comics[index].doc,
-        );
+        return itemBuilder(context, index);
       },
     );
+  }
+
+  // 构建简洁模式下的列表项
+  Widget _buildBrevityItem(List<ComicSimplifyEntryInfo> entries) {
+    return ComicSimplifyEntry(
+      key: ValueKey(entries.map((e) => e.id).join(',')),
+      entries: entries,
+      type: ComicEntryType.normal,
+    );
+  }
+
+  // 构建底部加载/错误/结束项
+  Widget _buildFooterItem(bool showLoadingMore, bool showError, bool showEnd) {
+    if (showLoadingMore) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    } else if (showError) {
+      return Center(
+        child: ElevatedButton(
+          onPressed: _refresh,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text('点击重试'),
+          ),
+        ),
+      );
+    } else if (showEnd) {
+      return Column(
+        children: [
+          SizedBox(height: 10),
+          IconButton(
+            onPressed: () {
+              eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 1));
+            },
+            icon: const Icon(Icons.refresh),
+          ),
+          Center(child: Text('没有更多了', style: const TextStyle(fontSize: 20.0))),
+          SizedBox(height: 10),
+        ],
+      );
+    }
+    return SizedBox.shrink();
+  }
+
+  // 转换数据为简洁模式需要的格式
+  List<ComicSimplifyEntryInfo> _convertToSimplifyList(
+    List<ComicNumber> comics,
+  ) {
+    return comics
+        .map(
+          (element) => ComicSimplifyEntryInfo(
+            title: element.doc.title,
+            id: element.doc.id,
+            fileServer: element.doc.thumb.fileServer,
+            path: element.doc.thumb.path,
+            pictureType: "favourite",
+            from: "bika",
+          ),
+        )
+        .toList();
   }
 
   void _refresh({bool updateShield = false, bool initState = false}) {
@@ -294,10 +381,10 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
     var currentTime = DateTime.now().millisecondsSinceEpoch;
 
-    if (currentTime - _lastExecutedTime > 50) {
+    if (currentTime - _lastExecutedTime > 100) {
       if (itemIndex >= 0 && itemIndex < comics.length) {
         int buildNumber = comics[itemIndex].buildNumber;
-        logger.d(comics[itemIndex].doc.title);
+        // logger.d(comics[itemIndex].doc.title);
         stringSelectStore.setDate("$buildNumber/$pagesCount");
         _currentIndex = buildNumber;
         // 更新上次执行时间

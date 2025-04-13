@@ -1,6 +1,12 @@
+import 'dart:convert';
+
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:objectbox/objectbox.dart';
 
+part 'model.g.dart';
+
 @Entity()
+@JsonSerializable()
 class BikaComicHistory {
   @Id()
   int id;
@@ -120,131 +126,20 @@ class BikaComicHistory {
     required this.deletedAt,
   });
 
-  // 实现 toJson 方法
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'comicId': comicId,
-      'creatorId': creatorId,
-      'creatorGender': creatorGender,
-      'creatorName': creatorName,
-      'creatorVerified': creatorVerified,
-      'creatorExp': creatorExp,
-      'creatorLevel': creatorLevel,
-      'creatorCharacters': creatorCharacters,
-      'creatorCharactersString': creatorCharactersString,
-      'creatorRole': creatorRole,
-      'creatorTitle': creatorTitle,
-      'creatorAvatarOriginalName': creatorAvatarOriginalName,
-      'creatorAvatarPath': creatorAvatarPath,
-      'creatorAvatarFileServer': creatorAvatarFileServer,
-      'creatorSlogan': creatorSlogan,
-      'title': title,
-      'description': description,
-      'thumbOriginalName': thumbOriginalName,
-      'thumbPath': thumbPath,
-      'thumbFileServer': thumbFileServer,
-      'author': author,
-      'chineseTeam': chineseTeam,
-      'categories': categories,
-      'categoriesString': categoriesString,
-      'tags': tags,
-      'tagsString': tagsString,
-      'pagesCount': pagesCount,
-      'epsCount': epsCount,
-      'finished': finished,
-      'updatedAt': updatedAt.toIso8601String(),
-      'createdAt': createdAt.toIso8601String(),
-      'allowDownload': allowDownload,
-      'allowComment': allowComment,
-      'totalLikes': totalLikes,
-      'totalViews': totalViews,
-      'totalComments': totalComments,
-      'viewsCount': viewsCount,
-      'likesCount': likesCount,
-      'commentsCount': commentsCount,
-      'isFavourite': isFavourite,
-      'isLiked': isLiked,
-      'history': history.toIso8601String(),
-      'order': order,
-      'epTitle': epTitle,
-      'epPageCount': epPageCount,
-      'epId': epId,
-      'deleted': deleted,
-      'deletedAt': deletedAt.toIso8601String(),
-    };
-  }
+  Map<String, dynamic> toJson() => _$BikaComicHistoryToJson(this);
 
   // 实现 fromJson 方法
-  factory BikaComicHistory.fromJson(Map<String, dynamic> json) {
-    return BikaComicHistory(
-      id: json['id'] ?? 0,
-      comicId: json['comicId'] ?? '',
-      creatorId: json['creatorId'] ?? '',
-      creatorGender: json['creatorGender'] ?? '',
-      creatorName: json['creatorName'] ?? '',
-      creatorVerified: json['creatorVerified'] ?? false,
-      creatorExp: json['creatorExp'] ?? 0,
-      creatorLevel: json['creatorLevel'] ?? 0,
-      creatorCharacters: List<String>.from(json['creatorCharacters'] ?? []),
-      creatorCharactersString: json['creatorCharactersString'] ?? '',
-      creatorRole: json['creatorRole'] ?? '',
-      creatorTitle: json['creatorTitle'] ?? '',
-      creatorAvatarOriginalName: json['creatorAvatarOriginalName'] ?? '',
-      creatorAvatarPath: json['creatorAvatarPath'] ?? '',
-      creatorAvatarFileServer: json['creatorAvatarFileServer'] ?? '',
-      creatorSlogan: json['creatorSlogan'] ?? '',
-      title: json['title'] ?? '',
-      description: json['description'] ?? '',
-      thumbOriginalName: json['thumbOriginalName'] ?? '',
-      thumbPath: json['thumbPath'] ?? '',
-      thumbFileServer: json['thumbFileServer'] ?? '',
-      author: json['author'] ?? '',
-      chineseTeam: json['chineseTeam'] ?? '',
-      categories: List<String>.from(json['categories'] ?? []),
-      categoriesString: json['categoriesString'] ?? '',
-      tags: List<String>.from(json['tags'] ?? []),
-      tagsString: json['tagsString'] ?? '',
-      pagesCount: json['pagesCount'] ?? 0,
-      epsCount: json['epsCount'] ?? 0,
-      finished: json['finished'] ?? false,
-      updatedAt: DateTime.parse(
-        json['updatedAt'] ?? DateTime.now().toIso8601String(),
-      ),
-      createdAt: DateTime.parse(
-        json['createdAt'] ?? DateTime.now().toIso8601String(),
-      ),
-      allowDownload: json['allowDownload'] ?? false,
-      allowComment: json['allowComment'] ?? false,
-      totalLikes: json['totalLikes'] ?? 0,
-      totalViews: json['totalViews'] ?? 0,
-      totalComments: json['totalComments'] ?? 0,
-      viewsCount: json['viewsCount'] ?? 0,
-      likesCount: json['likesCount'] ?? 0,
-      commentsCount: json['commentsCount'] ?? 0,
-      isFavourite: json['isFavourite'] ?? false,
-      isLiked: json['isLiked'] ?? false,
-      history: DateTime.parse(
-        json['history'] ?? DateTime.now().toIso8601String(),
-      ),
-      order: json['order'] ?? 0,
-      epTitle: json['epTitle'] ?? '',
-      epPageCount: json['epPageCount'] ?? 0,
-      epId: json['epId'] ?? '',
-      deleted: json['deleted'] ?? false,
-      deletedAt: DateTime.parse(
-        json['deletedAt'] ?? DateTime.now().toIso8601String(),
-      ),
-    );
-  }
+  factory BikaComicHistory.fromJson(Map<String, dynamic> json) =>
+      _$BikaComicHistoryFromJson(json);
 
   @override
   String toString() {
-    return 'BikaComicHistory{id: $id, comicId: $comicId, creatorId: $creatorId, creatorGender: $creatorGender, creatorName: $creatorName, creatorVerified: $creatorVerified, creatorExp: $creatorExp, creatorLevel: $creatorLevel, creatorCharacters: $creatorCharacters, creatorCharactersString: $creatorCharactersString, creatorRole: $creatorRole, creatorTitle: $creatorTitle, creatorAvatarOriginalName: $creatorAvatarOriginalName, creatorAvatarPath: $creatorAvatarPath, creatorAvatarFileServer: $creatorAvatarFileServer, creatorSlogan: $creatorSlogan, title: $title, description: $description, thumbOriginalName: $thumbOriginalName, thumbPath: $thumbPath, thumbFileServer: $thumbFileServer, author: $author, chineseTeam: $chineseTeam, categories: $categories, categoriesString: $categoriesString, tags: $tags, tagsString: $tagsString, pagesCount: $pagesCount, epsCount: $epsCount, finished: $finished, updatedAt: $updatedAt, createdAt: $createdAt, allowDownload: $allowDownload, allowComment: $allowComment, totalLikes: $totalLikes, totalViews: $totalViews, totalComments: $totalComments, viewsCount: $viewsCount, likesCount: $likesCount, commentsCount: $commentsCount, isFavourite: $isFavourite, isLiked: $isLiked, history: $history, order: $order, epTitle: $epTitle, epPageCount: $epPageCount, deleted: $deleted}';
+    return jsonEncode(toJson());
   }
 }
 
 @Entity()
+@JsonSerializable()
 class BikaComicDownload {
   @Id()
   int id;
@@ -351,8 +246,13 @@ class BikaComicDownload {
     required this.comicInfoAll,
   });
 
+  Map<String, dynamic> toJson() => _$BikaComicDownloadToJson(this);
+
+  factory BikaComicDownload.fromJson(Map<String, dynamic> json) =>
+      _$BikaComicDownloadFromJson(json);
+
   @override
   String toString() {
-    return 'BikaComicDownload{id: $id, comicId: $comicId, creatorId: $creatorId, creatorGender: $creatorGender, creatorName: $creatorName, creatorVerified: $creatorVerified, creatorExp: $creatorExp, creatorLevel: $creatorLevel, creatorCharacters: $creatorCharacters, creatorCharactersString: $creatorCharactersString, creatorRole: $creatorRole, creatorTitle: $creatorTitle, creatorAvatarOriginalName: $creatorAvatarOriginalName, creatorAvatarPath: $creatorAvatarPath, creatorAvatarFileServer: $creatorAvatarFileServer, creatorSlogan: $creatorSlogan, title: $title, description: $description, thumbOriginalName: $thumbOriginalName, thumbPath: $thumbPath, thumbFileServer: $thumbFileServer, author: $author, chineseTeam: $chineseTeam, categories: $categories, categoriesString: $categoriesString, tags: $tags, tagsString: $tagsString, pagesCount: $pagesCount, epsCount: $epsCount, finished: $finished, updatedAt: $updatedAt, createdAt: $createdAt, allowDownload: $allowDownload, allowComment: $allowComment, totalLikes: $totalLikes, totalViews: $totalViews, totalComments: $totalComments, viewsCount: $viewsCount, likesCount: $likesCount, commentsCount: $commentsCount, isFavourite: $isFavourite, isLiked: $isLiked, downloadTime: $downloadTime, epsTitle: $epsTitle, comicInfoAll: $comicInfoAll}';
+    return jsonEncode(toJson());
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
+import '../../bookshelf/models/events.dart';
 import 'bika/widgets.dart';
 
 @RoutePage()
@@ -30,6 +31,13 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
     "original": "原图",
   };
 
+  static const WidgetStateProperty<Icon> thumbIcon =
+      WidgetStateProperty<Icon>.fromMap(<WidgetStatesConstraint, Icon>{
+        WidgetState.selected: Icon(Icons.check),
+        WidgetState.any: Icon(Icons.close),
+      });
+  bool _brevity = bikaSetting.brevity;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,6 +62,8 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
               SizedBox(height: 15),
               changeShieldedCategories(context, "categories"),
               SizedBox(height: 10),
+              divider(),
+              _brevityWidget(),
               divider(),
               Center(
                 child: ElevatedButton(
@@ -125,6 +135,30 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
                 );
               }).toList(),
           style: TextStyle(color: globalSetting.textColor, fontSize: 18),
+        ),
+        SizedBox(width: 10),
+      ],
+    );
+  }
+
+  Widget _brevityWidget() {
+    return Row(
+      children: [
+        SizedBox(width: 10),
+        Text("漫画列表简略模式", style: TextStyle(fontSize: 18)),
+        SizedBox(width: 5), // 添加间距
+        Spacer(),
+        Switch(
+          thumbIcon: thumbIcon,
+          value: _brevity,
+          onChanged: (bool value) {
+            setState(() => _brevity = !_brevity);
+            bikaSetting.setBrevity(_brevity);
+
+            eventBus.fire(HistoryEvent(EventType.refresh));
+            eventBus.fire(DownloadEvent(EventType.refresh));
+            eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 1));
+          },
         ),
         SizedBox(width: 10),
       ],

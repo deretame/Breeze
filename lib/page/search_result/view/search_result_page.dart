@@ -1,5 +1,5 @@
-import 'package:auto_route/annotations.dart';
-import 'package:flutter/material.dart';
+import 'package:auto_route/auto_route.dart';
+import 'package:flutter/material.dart' hide Thumb;
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -10,6 +10,8 @@ import '../../../config/global.dart';
 import '../../../main.dart';
 import '../../../mobx/string_select.dart';
 import '../../../widgets/comic_entry/comic_entry.dart';
+import '../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
+import '../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 import '../models/models.dart';
 import '../widgets/page_skip.dart';
 
@@ -184,10 +186,40 @@ class _SearchResultPageState extends State<_SearchResultPage>
     },
   );
 
-  Widget _comicList(SearchState state) {
-    int itemCount = state.comics.length + 1;
+  Widget _comicList(SearchState state) =>
+      bikaSetting.brevity ? _brevityList(state) : _detailedList(state);
+
+  Widget _brevityList(SearchState state) {
+    final list =
+        state.comics
+            .map(
+              (element) => ComicSimplifyEntryInfo(
+                title: element.doc.title,
+                id: element.doc.id,
+                fileServer: element.doc.thumb.fileServer,
+                path: element.doc.thumb.path,
+                pictureType: "cover",
+                from: "bika",
+              ),
+            )
+            .toList();
+
+    final elementsRows = generateElements(list);
+    final itemCount = _calculateItemCount(state, elementsRows.length);
+
+    return ListView.builder(
+      itemBuilder:
+          (context, index) =>
+              _buildListItem(context, index, state, elementsRows),
+      itemCount: itemCount,
+      controller: _scrollController,
+    );
+  }
+
+  Widget _detailedList(SearchState state) {
     comics = state.comics;
     pagesCount = state.pagesCount;
+
     if (state.status == SearchStatus.success) {
       if (state.comics.length < 8 && !state.hasReachedMax) {
         _fetchSearchResult();
@@ -197,55 +229,93 @@ class _SearchResultPageState extends State<_SearchResultPage>
           child: Text('啥都没有', style: TextStyle(fontSize: 20.0)),
         );
       }
-      if (!state.hasReachedMax) {
-        itemCount = itemCount - 1;
-      }
     }
 
-    return ListView.builder(
-      itemBuilder: (BuildContext context, int index) {
-        if (index == state.comics.length) {
-          switch (state.status) {
-            case SearchStatus.success:
-              if (state.hasReachedMax) {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(30.0),
-                    child: Text('你来到了未知领域呢~', style: TextStyle(fontSize: 20.0)),
-                  ),
-                );
-              }
-            case SearchStatus.loadingMore:
-              return const BottomLoader(); // 显示加载动画
-            case SearchStatus.getMoreFailure:
-              return Center(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: () {
-                        _refresh(
-                          SearchEnterConst.from(_searchEnter),
-                          SearchStatus.loadingMore,
-                        );
-                      },
-                      child: const Text('点击重试'),
-                    ),
-                  ],
-                ),
-              );
-            default:
-              break;
-          }
-        }
+    final itemCount = _calculateItemCount(state, state.comics.length);
 
-        return ComicEntryWidget(
-          comicEntryInfo: docToComicEntryInfo(state.comics[index].doc),
-        );
-      },
+    return ListView.builder(
+      itemBuilder: (context, index) => _buildListItem(context, index, state),
       itemCount: itemCount,
       controller: _scrollController,
     );
+  }
+
+  // 公共方法：计算item数量
+  int _calculateItemCount(SearchState state, int dataLength) {
+    var count = dataLength + 1;
+    if (!state.hasReachedMax) count--;
+    if (state.status == SearchStatus.loadingMore ||
+        state.status == SearchStatus.getMoreFailure) {
+      count++;
+    }
+    return count;
+  }
+
+  // 公共方法：构建列表项
+  Widget _buildListItem(
+    BuildContext context,
+    int index,
+    SearchState state, [
+    List<List<ComicSimplifyEntryInfo>>? elementsRows,
+  ]) {
+    // 处理列表底部状态显示
+    if (elementsRows != null && index >= elementsRows.length ||
+        elementsRows == null && index >= state.comics.length) {
+      return _buildListFooter(state);
+    }
+
+    // 简洁模式
+    if (elementsRows != null) {
+      final key = elementsRows[index].map((e) => e.id).join(',');
+      return ComicSimplifyEntry(
+        key: ValueKey(key),
+        entries: elementsRows[index],
+        type: ComicEntryType.normal,
+      );
+    }
+    // 详细模式
+    else {
+      return ComicEntryWidget(
+        comicEntryInfo: docToComicEntryInfo(state.comics[index].doc),
+      );
+    }
+  }
+
+  // 公共方法：构建列表底部
+  Widget _buildListFooter(SearchState state) {
+    switch (state.status) {
+      case SearchStatus.success:
+        if (state.hasReachedMax) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(30.0),
+              child: Text('没有更多了', style: TextStyle(fontSize: 20.0)),
+            ),
+          );
+        }
+        break;
+      case SearchStatus.loadingMore:
+        return const BottomLoader();
+      case SearchStatus.getMoreFailure:
+        return Center(
+          child: Column(
+            children: [
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed:
+                    () => _refresh(
+                      SearchEnterConst.from(_searchEnter),
+                      SearchStatus.loadingMore,
+                    ),
+                child: const Text('点击重试'),
+              ),
+            ],
+          ),
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+    return const SizedBox.shrink();
   }
 
   void _refresh(SearchEnterConst searchEnterConst, SearchStatus status) {
@@ -291,8 +361,9 @@ class _SearchResultPageState extends State<_SearchResultPage>
   void _onScroll() {
     var currentTime = DateTime.now().millisecondsSinceEpoch;
 
-    // 只有当距离上一次执行超过50ms时，才执行
-    if (currentTime - _lastExecutedTime > 50) {
+    // logger.d(bikaSetting.brevity);
+    // 只有当距离上一次执行超过50ms且漫画展示不为简略时，才执行
+    if (currentTime - _lastExecutedTime > 100 && !bikaSetting.brevity) {
       double itemHeight = 180.0 + ((screenHeight / 10) * 0.1);
       double currentScrollPosition = _scrollController.position.pixels;
       double middlePosition = currentScrollPosition + (screenHeight / 3);
@@ -302,7 +373,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
 
       if (itemIndex >= 0 && itemIndex < comics.length) {
         int buildNumber = comics[itemIndex].buildNumber;
-        logger.d(comics[itemIndex].doc.title);
+        // logger.d(comics[itemIndex].doc.title);
         pageStore.setDate("$buildNumber/$pagesCount");
       }
 

@@ -15,61 +15,64 @@ Widget deletingDialog(BuildContext context, Function refresh, DeleteType type) {
   final buttonText = type == DeleteType.download ? '删除所有下载记录及其文件' : '清空历史记录';
 
   return Center(
-    child: Padding(
-      padding: const EdgeInsets.all(30.0),
-      child: TextButton(
-        onPressed: () {
-          // 弹出确认对话框
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text('确认删除'),
-                content: Text(bodyText),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      // 关闭对话框
-                      Navigator.of(context).pop();
-                    },
-                    child: Text('取消'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      if (type == DeleteType.download) {
-                        // 执行删除操作
-                        objectbox.bikaDownloadBox.removeAll();
-                        deleteDirectory(
-                          '/data/data/com.zephyr.breeze/files/downloads',
-                        );
-                      } else {
-                        // 执行清空操作
-                        var allHistory = objectbox.bikaHistoryBox.getAll();
+    child: TextButton(
+      onPressed: () {
+        // 弹出确认对话框
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('确认删除'),
+              content: Text(bodyText),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    // 关闭对话框
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('取消'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    if (type == DeleteType.download) {
+                      // 执行删除操作
+                      objectbox.bikaDownloadBox.removeAll();
+                      deleteDirectory(
+                        '/data/data/com.zephyr.breeze/files/downloads',
+                      );
+                    } else {
+                      // 执行清空操作
+                      var allHistory = objectbox.bikaHistoryBox.getAll();
 
-                        for (var history in allHistory) {
-                          history.deleted = true;
-                          history.deletedAt = DateTime.now().toUtc();
-                        }
-
-                        objectbox.bikaHistoryBox.putMany(allHistory);
+                      for (var history in allHistory) {
+                        history.deleted = true;
+                        history.deletedAt = DateTime.now().toUtc();
                       }
 
-                      // 刷新页面
-                      refresh();
-                      showSuccessToast(deletedText);
+                      objectbox.bikaHistoryBox.putMany(allHistory);
+                    }
 
-                      // 关闭对话框
-                      Navigator.of(context).pop();
-                    },
-                    child: Text('确认'),
-                  ),
-                ],
-              );
-            },
-          );
-        },
-        child: Text(buttonText),
-      ),
+                    // 刷新页面
+                    refresh();
+                    showSuccessToast(deletedText);
+
+                    if (type == DeleteType.download) {
+                      eventBus.fire(DownloadEvent(EventType.showInfo));
+                    } else {
+                      eventBus.fire(HistoryEvent(EventType.showInfo));
+                    }
+
+                    // 关闭对话框
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('确认'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+      child: Text(buttonText),
     ),
   );
 }

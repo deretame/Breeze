@@ -202,6 +202,24 @@ mixin _$BikaSetting on _BikaSetting, Store {
     });
   }
 
+  late final _$brevityAtom = Atom(
+    name: '_BikaSetting.brevity',
+    context: context,
+  );
+
+  @override
+  bool get brevity {
+    _$brevityAtom.reportRead();
+    return super.brevity;
+  }
+
+  @override
+  set brevity(bool value) {
+    _$brevityAtom.reportWrite(value, super.brevity, () {
+      super.brevity = value;
+    });
+  }
+
   late final _$_BikaSettingActionController = ActionController(
     name: '_BikaSetting',
     context: context,
@@ -604,6 +622,42 @@ mixin _$BikaSetting on _BikaSetting, Store {
   }
 
   @override
+  bool getBrevity() {
+    final _$actionInfo = _$_BikaSettingActionController.startAction(
+      name: '_BikaSetting.getBrevity',
+    );
+    try {
+      return super.getBrevity();
+    } finally {
+      _$_BikaSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void setBrevity(bool value) {
+    final _$actionInfo = _$_BikaSettingActionController.startAction(
+      name: '_BikaSetting.setBrevity',
+    );
+    try {
+      return super.setBrevity(value);
+    } finally {
+      _$_BikaSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void deleteBrevity() {
+    final _$actionInfo = _$_BikaSettingActionController.startAction(
+      name: '_BikaSetting.deleteBrevity',
+    );
+    try {
+      return super.deleteBrevity();
+    } finally {
+      _$_BikaSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     return '''
 account: ${account},
@@ -616,7 +670,8 @@ imageQuality: ${imageQuality},
 shieldCategoryMap: ${shieldCategoryMap},
 shieldHomePageCategoriesMap: ${shieldHomePageCategoriesMap},
 signIn: ${signIn},
-signInTime: ${signInTime}
+signInTime: ${signInTime},
+brevity: ${brevity}
     ''';
   }
 }

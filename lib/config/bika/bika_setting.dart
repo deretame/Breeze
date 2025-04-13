@@ -12,40 +12,28 @@ abstract class _BikaSetting with Store {
 
   @observable
   String account = ''; // 账号
-
   @observable
   String password = ''; // 密码
-
   @observable
   String authorization = ''; // 授权码
-
   @observable
   int level = 0; // 用户等级
-
   @observable
   bool checkIn = false; // 签到状态
-
   @observable
   int proxy = 3; // 分流设置
-
   @observable
   String imageQuality = 'original'; // 图片质量
-
   @observable
   Map<String, bool> shieldCategoryMap = Map.of(categoryMap); // 分类设置
-
   @observable
   Map<String, bool> shieldHomePageCategoriesMap = Map.of(homePageCategoriesMap); // 存储首页的屏蔽分类
-
   @observable
   bool signIn = false; // 签到状态
-
   @observable
   DateTime signInTime = DateTime.now().subtract(Duration(hours: 24)); // 签到时间
-
-  // _BikaSetting() {
-  //   _init();
-  // }
+  @observable
+  bool brevity = false; // 精简漫画展示
 
   Future<void> initBox() async {
     _box = await Hive.openBox(BikaSettingBoxKeys.bikaSettingBox);
@@ -60,6 +48,7 @@ abstract class _BikaSetting with Store {
     shieldHomePageCategoriesMap = getShieldHomePageCategories();
     signIn = getSignIn();
     signInTime = getSignInTime();
+    brevity = getBrevity();
   }
 
   @action
@@ -277,6 +266,24 @@ abstract class _BikaSetting with Store {
     signInTime = DateTime.utc(1970, 1, 1);
     _box.delete(BikaSettingBoxKeys.signInTime);
   }
+
+  @action
+  bool getBrevity() {
+    brevity = _box.get(BikaSettingBoxKeys.brevity, defaultValue: false);
+    return brevity;
+  }
+
+  @action
+  void setBrevity(bool value) {
+    brevity = value;
+    _box.put(BikaSettingBoxKeys.brevity, value);
+  }
+
+  @action
+  void deleteBrevity() {
+    brevity = false;
+    _box.delete(BikaSettingBoxKeys.brevity);
+  }
 }
 
 class BikaSettingBoxKeys {
@@ -294,6 +301,7 @@ class BikaSettingBoxKeys {
       'shieldHomePageCategories'; // 首页屏蔽分类
   static const String signIn = 'signIn'; // 签到状态
   static const String signInTime = 'signInTime'; // 签到时间
+  static const String brevity = 'brevity'; // 精简漫画展示
 }
 
 // 哔咔的漫画分类

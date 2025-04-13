@@ -120,7 +120,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     // 设置这个的目的是为了缓解图片重载
-    // PaintingBinding.instance.imageCache.maximumSizeBytes = 500 * 1024 * 1024;
+    PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 1024;
 
     statusBarHeight = MediaQuery.of(context).padding.top;
     screenWidth = MediaQuery.of(context).size.width;

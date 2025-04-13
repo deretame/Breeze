@@ -39,25 +39,43 @@ class ComicListBloc extends Bloc<FetchComicList, ComicListState> {
         type: event.getInfo.type,
       );
 
-      var result = Leaderboard.fromJson(temp);
-
-      // 获取所有被屏蔽的分类
-      List<String> shieldedCategoriesList =
-          bikaSetting.shieldCategoryMap.entries
-              .where((entry) => entry.value) // 只选择值为 true 的条目
-              .map((entry) => entry.key) // 提取键（分类名）
+      // 获取有效屏蔽关键词（非空）
+      final maskedKeywords =
+          globalSetting.maskedKeywords
+              .where((keyword) => keyword.trim().isNotEmpty)
               .toList();
 
-      // 过滤掉包含屏蔽分类的漫画
-      var temp1 =
-          result.data.comics.where((comic) {
-            // 检查该漫画的分类是否与屏蔽分类列表中的任何分类匹配
-            return !comic.categories.any(
-              (category) => shieldedCategoriesList.contains(category),
+      // 获取屏蔽分类
+      final shieldedCategories =
+          bikaSetting.shieldCategoryMap.entries
+              .where((entry) => entry.value)
+              .map((entry) => entry.key)
+              .toList();
+
+      List<Comic> result =
+          Leaderboard.fromJson(temp).data.comics.where((comic) {
+            // 1. 检查屏蔽分类
+            final hasShieldedCategory = comic.categories.any(
+              (category) => shieldedCategories.contains(category),
             );
+            if (hasShieldedCategory) return false;
+
+            // 2. 检查屏蔽关键词
+            final allText =
+                [
+                  comic.title,
+                  comic.author,
+                  comic.categories.join(),
+                ].join().toLowerCase();
+
+            final containsKeyword = maskedKeywords.any(
+              (keyword) => allText.contains(keyword.toLowerCase()),
+            );
+
+            return !containsKeyword;
           }).toList();
 
-      emit(state.copyWith(status: ComicListStatus.success, comicList: temp1));
+      emit(state.copyWith(status: ComicListStatus.success, comicList: result));
     } catch (e) {
       emit(
         state.copyWith(status: ComicListStatus.failure, result: e.toString()),

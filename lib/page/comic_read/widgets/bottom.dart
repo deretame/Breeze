@@ -269,14 +269,6 @@ class ChapterNavigationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: isEnabled ? onTap : null,
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isEnabled ? globalSetting.textColor : Colors.grey,
-        ),
-      ),
-    );
+    return TextButton(onPressed: isEnabled ? onTap : null, child: Text(label));
   }
 }

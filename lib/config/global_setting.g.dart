@@ -334,6 +334,24 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
+  late final _$maskedKeywordsAtom = Atom(
+    name: '_GlobalSetting.maskedKeywords',
+    context: context,
+  );
+
+  @override
+  List<String> get maskedKeywords {
+    _$maskedKeywordsAtom.reportRead();
+    return super.maskedKeywords;
+  }
+
+  @override
+  set maskedKeywords(List<String> value) {
+    _$maskedKeywordsAtom.reportWrite(value, super.maskedKeywords, () {
+      super.maskedKeywords = value;
+    });
+  }
+
   late final _$_GlobalSettingActionController = ActionController(
     name: '_GlobalSetting',
     context: context,
@@ -988,6 +1006,42 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   }
 
   @override
+  List<String> getMaskedKeywords() {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+      name: '_GlobalSetting.getMaskedKeywords',
+    );
+    try {
+      return super.getMaskedKeywords();
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void setMaskedKeywords(List<String> value) {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+      name: '_GlobalSetting.setMaskedKeywords',
+    );
+    try {
+      return super.setMaskedKeywords(value);
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void deleteMaskedKeywords() {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+      name: '_GlobalSetting.deleteMaskedKeywords',
+    );
+    try {
+      return super.deleteMaskedKeywords();
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     return '''
 dynamicColor: ${dynamicColor},
@@ -1007,7 +1061,8 @@ autoSync: ${autoSync},
 syncNotify: ${syncNotify},
 shade: ${shade},
 comicReadTopContainer: ${comicReadTopContainer},
-readMode: ${readMode}
+readMode: ${readMode},
+maskedKeywords: ${maskedKeywords}
     ''';
   }
 }

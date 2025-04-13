@@ -7,7 +7,10 @@ import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import '../../../../main.dart';
 import '../../../../mobx/int_select.dart';
 import '../../../../mobx/string_select.dart';
+import '../../../../object_box/model.dart';
 import '../../../../widgets/comic_entry/comic_entry.dart';
+import '../../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
+import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 
 class HistoryPage extends StatelessWidget {
   final SearchStatusStore searchStatusStore;
@@ -136,56 +139,150 @@ class __HistoryPageState extends State<_HistoryPage>
   Widget _buildList(UserHistoryState state) {
     totalComicCount = state.comics.length;
 
-    if (notice == false) {
-      if (widget.indexStore.date == 1) {
-        eventBus.fire(HistoryEvent(EventType.showInfo));
-        notice = true;
-      }
-    }
+    _showNoticeIfNeeded();
 
     if (state.comics.isEmpty) {
-      return Center(
-        child: Column(
-          children: [
-            Spacer(),
-            const Text('啥都没有', style: TextStyle(fontSize: 20.0)),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () => _refresh(searchStatusStore),
-              child: const Text('刷新'),
-            ),
-            Spacer(),
-          ],
-        ),
-      );
+      return _buildEmptyState();
     }
 
-    int itemCount = state.comics.length + 1;
+    return bikaSetting.brevity
+        ? _buildBrevityList(state)
+        : _buildDetailedList(state);
+  }
 
+  // 显示通知（如果条件满足）
+  void _showNoticeIfNeeded() {
+    if (!notice && widget.indexStore.date == 1) {
+      eventBus.fire(HistoryEvent(EventType.showInfo));
+      notice = true;
+    }
+  }
+
+  // 构建空状态UI
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        children: [
+          const Spacer(),
+          const Text('啥都没有', style: TextStyle(fontSize: 20.0)),
+          const SizedBox(height: 10),
+          IconButton(
+            onPressed: () => _refresh(searchStatusStore),
+            icon: const Icon(Icons.refresh),
+          ),
+          const Spacer(),
+        ],
+      ),
+    );
+  }
+
+  // 构建简洁模式列表
+  Widget _buildBrevityList(UserHistoryState state) {
+    final elementsRows = generateElements(
+      _convertToEntryInfoList(state.comics),
+    );
+
+    return _buildCommonListView(
+      itemCount: elementsRows.length + 1,
+      itemBuilder:
+          (context, index) => _buildListItem(
+            context,
+            index,
+            elementsRows.length,
+            () => _refresh(searchStatusStore),
+            isBrevity: true,
+            elementsRows: elementsRows,
+          ),
+    );
+  }
+
+  // 构建详细模式列表
+  Widget _buildDetailedList(UserHistoryState state) {
+    return _buildCommonListView(
+      itemCount: state.comics.length + 1,
+      itemBuilder:
+          (context, index) => _buildListItem(
+            context,
+            index,
+            state.comics.length,
+            () => _refresh(searchStatusStore),
+            isBrevity: false,
+            comics: state.comics,
+          ),
+    );
+  }
+
+  // 公共列表构建方法
+  ListView _buildCommonListView({
+    required int itemCount,
+    required IndexedWidgetBuilder itemBuilder,
+  }) {
     return ListView.builder(
       controller: scrollControllers['history']!,
       padding: EdgeInsets.zero,
       itemCount: itemCount,
-      itemBuilder: (BuildContext context, int index) {
-        if (index == state.comics.length) {
-          return deletingDialog(
-            context,
-            () => _refresh(searchStatusStore),
-            DeleteType.history,
-          );
-        } else {
-          return ComicEntryWidget(
-            comicEntryInfo: convertToComicEntryInfo(state.comics[index]),
-            type: ComicEntryType.history,
-            refresh: () => _refresh(searchStatusStore),
-          );
-        }
-      },
+      itemBuilder: itemBuilder,
     );
+  }
+
+  // 构建单个列表项
+  Widget _buildListItem(
+    BuildContext context,
+    int index,
+    int dataLength,
+    VoidCallback refreshCallback, {
+    required bool isBrevity,
+    List<List<ComicSimplifyEntryInfo>>? elementsRows,
+    List<BikaComicHistory>? comics,
+  }) {
+    if (index == dataLength) {
+      return Column(
+        children: [
+          SizedBox(height: 10),
+          IconButton(
+            onPressed: refreshCallback,
+            icon: const Icon(Icons.refresh),
+          ),
+          deletingDialog(context, refreshCallback, DeleteType.history),
+        ],
+      );
+    }
+
+    return isBrevity
+        ? ComicSimplifyEntry(
+          key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
+          entries: elementsRows[index],
+          type: ComicEntryType.history,
+          refresh: refreshCallback,
+        )
+        : ComicEntryWidget(
+          comicEntryInfo: convertToComicEntryInfo(comics![index]),
+          type: ComicEntryType.history,
+          refresh: refreshCallback,
+        );
+  }
+
+  // 转换数据格式
+  List<ComicSimplifyEntryInfo> _convertToEntryInfoList(
+    List<BikaComicHistory> comics,
+  ) {
+    return comics
+        .map(
+          (element) => ComicSimplifyEntryInfo(
+            title: element.title,
+            id: element.comicId,
+            fileServer: element.thumbFileServer,
+            path: element.thumbPath,
+            pictureType: "cover",
+            from: "bika",
+          ),
+        )
+        .toList();
   }
 
   void _refresh(SearchStatusStore searchStatusStore) {
     notice = false;
+    eventBus.fire(HistoryEvent(EventType.showInfo));
     context.read<UserHistoryBloc>().add(
       UserHistoryEvent(
         SearchEnterConst(

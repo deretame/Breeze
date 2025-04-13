@@ -20,12 +20,18 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   late final List<String> systemThemeList = ["跟随系统", "浅色模式", "深色模式"];
   late final Map<String, int> systemTheme = {"跟随系统": 0, "浅色模式": 1, "深色模式": 2};
 
+  static const WidgetStateProperty<Icon> thumbIcon =
+      WidgetStateProperty<Icon>.fromMap(<WidgetStatesConstraint, Icon>{
+        WidgetState.selected: Icon(Icons.check),
+        WidgetState.any: Icon(Icons.close),
+      });
   bool _dynamicColorValue = globalSetting.dynamicColor;
   bool _isAMOLEDValue = globalSetting.isAMOLED;
   bool _autoSyncValue = globalSetting.autoSync;
   bool _autoSyncNotifyValue = globalSetting.syncNotify;
   bool _shadeValue = globalSetting.shade;
   bool _comicReadTopContainerValue = globalSetting.comicReadTopContainer;
+  final keywordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -46,9 +52,13 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                 _shade(),
                 _isAMOLED(),
                 divider(),
-                SizedBox(height: 10),
+                SizedBox(height: 11),
+                editMaskedKeywords(context, keywordController),
+                SizedBox(height: 11),
+                divider(),
+                SizedBox(height: 11),
                 webdavSync(context),
-                SizedBox(height: 10),
+                SizedBox(height: 11),
                 if (globalSetting.webdavHost.isNotEmpty) ...[_autoSync()],
                 if (globalSetting.webdavHost.isNotEmpty &&
                     globalSetting.autoSync) ...[
@@ -62,9 +72,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                     child: Text("整点颜色看看"),
                   ),
                   ElevatedButton(
-                    onPressed: () async {
-                      throw Exception("测试异常");
-                    },
+                    onPressed: () async {},
                     child: Text("测试用的玩意儿"),
                   ),
                 ],
@@ -143,17 +151,17 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           ),
         ),
         Spacer(),
-        Switch(value: _dynamicColorValue, onChanged: changeDynamicColor),
+        Switch(
+          thumbIcon: thumbIcon,
+          value: _dynamicColorValue,
+          onChanged: (bool value) {
+            setState(() => _dynamicColorValue = !_dynamicColorValue);
+            globalSetting.setDynamicColor(_dynamicColorValue);
+          },
+        ),
         SizedBox(width: 10),
       ],
     );
-  }
-
-  void changeDynamicColor(bool value) {
-    setState(() {
-      _dynamicColorValue = !_dynamicColorValue;
-    });
-    globalSetting.setDynamicColor(_dynamicColorValue);
   }
 
   Widget _isAMOLED() {
@@ -175,17 +183,17 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           ),
         ),
         Spacer(),
-        Switch(value: _isAMOLEDValue, onChanged: changeIsAMOLED),
+        Switch(
+          thumbIcon: thumbIcon,
+          value: _isAMOLEDValue,
+          onChanged: (bool value) {
+            setState(() => _isAMOLEDValue = !_isAMOLEDValue);
+            globalSetting.setIsAMOLED(_isAMOLEDValue);
+          },
+        ),
         SizedBox(width: 10),
       ],
     );
-  }
-
-  void changeIsAMOLED(bool value) {
-    setState(() {
-      _isAMOLEDValue = !_isAMOLEDValue;
-    });
-    globalSetting.setIsAMOLED(_isAMOLEDValue);
   }
 
   Widget _autoSync() {
@@ -194,20 +202,18 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
         SizedBox(width: 10),
         Text("自动同步", style: TextStyle(fontSize: 18)),
         Spacer(),
-        Switch(value: _autoSyncValue, onChanged: changeAutoSync),
+        Switch(
+          thumbIcon: thumbIcon,
+          value: _autoSyncValue,
+          onChanged: (bool value) {
+            setState(() => _autoSyncValue = !_autoSyncValue);
+            globalSetting.setAutoSync(_autoSyncValue);
+            if (_autoSyncValue) eventBus.fire(NoticeSync());
+          },
+        ),
         SizedBox(width: 10),
       ],
     );
-  }
-
-  void changeAutoSync(bool value) {
-    setState(() {
-      _autoSyncValue = !_autoSyncValue;
-    });
-    globalSetting.setAutoSync(_autoSyncValue);
-    if (_autoSyncValue) {
-      eventBus.fire(NoticeSync());
-    }
   }
 
   Widget _syncNotify() {
@@ -216,17 +222,17 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
         SizedBox(width: 10),
         Text("自动同步通知", style: TextStyle(fontSize: 18)),
         Spacer(),
-        Switch(value: _autoSyncNotifyValue, onChanged: changeSyncNotify),
+        Switch(
+          thumbIcon: thumbIcon,
+          value: _autoSyncNotifyValue,
+          onChanged: (bool value) {
+            setState(() => _autoSyncNotifyValue = !_autoSyncNotifyValue);
+            globalSetting.setSyncNotify(_autoSyncNotifyValue);
+          },
+        ),
         SizedBox(width: 10),
       ],
     );
-  }
-
-  void changeSyncNotify(bool value) {
-    setState(() {
-      _autoSyncNotifyValue = !_autoSyncNotifyValue;
-    });
-    globalSetting.setSyncNotify(_autoSyncNotifyValue);
   }
 
   Widget _shade() {
@@ -235,18 +241,17 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
         SizedBox(width: 10),
         Text("夜间模式遮罩", style: TextStyle(fontSize: 18)),
         Spacer(),
-        Switch(value: _shadeValue, onChanged: changeShade),
+        Switch(
+          thumbIcon: thumbIcon,
+          value: _shadeValue,
+          onChanged: (bool value) {
+            setState(() => _shadeValue = !_shadeValue);
+            globalSetting.setShade(_shadeValue);
+          },
+        ),
         SizedBox(width: 10),
       ],
     );
-  }
-
-  void changeShade(bool value) {
-    setState(() {
-      _shadeValue = !_shadeValue;
-    });
-
-    globalSetting.setShade(_shadeValue);
   }
 
   Widget _comicReadTopContainer() {
@@ -266,19 +271,17 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
         ),
         Spacer(),
         Switch(
+          thumbIcon: thumbIcon,
           value: _comicReadTopContainerValue,
-          onChanged: changeComicReadTopContainer,
+          onChanged: (bool value) {
+            setState(
+              () => _comicReadTopContainerValue = !_comicReadTopContainerValue,
+            );
+            globalSetting.setComicReadTopContainer(_comicReadTopContainerValue);
+          },
         ),
         SizedBox(width: 10),
       ],
     );
-  }
-
-  void changeComicReadTopContainer(bool value) {
-    setState(() {
-      _comicReadTopContainerValue = !_comicReadTopContainerValue;
-    });
-
-    globalSetting.setComicReadTopContainer(_comicReadTopContainerValue);
   }
 }

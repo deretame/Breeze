@@ -50,6 +50,8 @@ abstract class _GlobalSetting with Store {
   bool comicReadTopContainer = true; // 漫画阅读器顶部占位容器
   @observable
   int readMode = 0; // 阅读模式 0：竖向阅读 1：横向阅读（从左到右） 2：横向阅读（从右到左）
+  @observable
+  List<String> maskedKeywords = [""]; // 屏蔽关键词
 
   Future<void> initBox() async {
     _box = await Hive.openBox(GlobalSettingBoxKey.globalSetting);
@@ -71,6 +73,7 @@ abstract class _GlobalSetting with Store {
     shade = getShade();
     comicReadTopContainer = getComicReadTopContainer();
     readMode = getReadMode();
+    maskedKeywords = getMaskedKeywords();
   }
 
   @action
@@ -436,6 +439,27 @@ abstract class _GlobalSetting with Store {
     readMode = 0;
     _box.delete(GlobalSettingBoxKey.readMode);
   }
+
+  @action
+  List<String> getMaskedKeywords() {
+    maskedKeywords = _box.get(
+      GlobalSettingBoxKey.maskedKeywords,
+      defaultValue: [""],
+    );
+    return maskedKeywords;
+  }
+
+  @action
+  void setMaskedKeywords(List<String> value) {
+    maskedKeywords = value;
+    _box.put(GlobalSettingBoxKey.maskedKeywords, value);
+  }
+
+  @action
+  void deleteMaskedKeywords() {
+    maskedKeywords = [""];
+    _box.delete(GlobalSettingBoxKey.maskedKeywords);
+  }
 }
 
 class GlobalSettingBoxKey {
@@ -459,4 +483,6 @@ class GlobalSettingBoxKey {
   static const String comicReadTopContainer =
       'comicReadTopContainer'; // 漫画阅读器顶部占位容器
   static const String readMode = "readMode"; // 阅读模式
+
+  static const String maskedKeywords = 'maskedKeywords'; // 屏蔽关键词
 }

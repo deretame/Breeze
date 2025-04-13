@@ -1263,6 +1263,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.1"
+  stroke_text:
+    dependency: "direct main"
+    description:
+      name: stroke_text
+      sha256: b5231282d7e93df3bc28d458ba25fd2dc2acaca77f2771cec4cffe8b6a08850e
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   tar:
     dependency: "direct main"
     description:

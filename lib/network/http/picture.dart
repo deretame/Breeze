@@ -287,6 +287,9 @@ Future<Uint8List> downloadImageWithRetry(
       );
       return response.data as Uint8List;
     } catch (e) {
+      if (e.toString().contains('422')) {
+        throw Exception('404');
+      }
       logger.e('下载图片失败: $e, URL: $url');
       if (!retry) {
         throw Exception('下载图片失败: $e');

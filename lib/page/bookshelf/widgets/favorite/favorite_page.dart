@@ -89,6 +89,8 @@ class _UserFavoritePageState extends State<_FavoritePage>
       } else if (event.type == EventType.showInfo) {
         if (!bikaSetting.brevity) {
           stringSelectStore.setDate("$_currentIndex/$pagesCount");
+        } else {
+          stringSelectStore.setDate("");
         }
       }
     });

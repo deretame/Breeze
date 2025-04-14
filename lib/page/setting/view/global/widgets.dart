@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import '../../../../config/global.dart';
 import '../../../../main.dart';
@@ -32,6 +33,80 @@ Widget changeThemeColor(BuildContext context) {
         SizedBox(width: 10),
         Text("主题颜色", style: TextStyle(fontSize: 18)),
         Expanded(child: Container()),
+        Icon(Icons.chevron_right),
+        SizedBox(width: 10),
+      ],
+    ),
+  );
+}
+
+Widget socks5ProxyEdit(BuildContext context) {
+  // 默认代理参数
+  String defaultProxy = globalSetting.socks5Proxy;
+  String currentProxy = defaultProxy; // 当前使用的代理
+
+  return GestureDetector(
+    onTap: () async {
+      // 弹出输入对话框
+      final result = await showDialog<String>(
+        context: context,
+        builder: (BuildContext context) {
+          TextEditingController controller = TextEditingController(
+            text: currentProxy,
+          );
+
+          return AlertDialog(
+            title: Text('设置SOCKS5代理'),
+            content: TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                hintText: 'ip:port',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('取消'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('确定'),
+                onPressed: () {
+                  Navigator.of(context).pop(controller.text);
+                },
+              ),
+            ],
+          );
+        },
+      );
+
+      if (result != null) {
+        currentProxy = result;
+        globalSetting.setSocks5Proxy(currentProxy);
+        showSuccessToast('设置成功，重启生效');
+      }
+    },
+    behavior: HitTestBehavior.opaque,
+    child: Row(
+      children: [
+        SizedBox(width: 10),
+        Text("SOCKS5代理", style: TextStyle(fontSize: 18)),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(right: 10),
+            child: Observer(
+              builder: (context) {
+                return Text(
+                  globalSetting.socks5Proxy,
+                  textAlign: TextAlign.end,
+                  style: TextStyle(color: Colors.grey),
+                );
+              },
+            ),
+          ),
+        ),
         Icon(Icons.chevron_right),
         SizedBox(width: 10),
       ],

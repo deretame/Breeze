@@ -54,7 +54,13 @@ class CoverWidget extends StatelessWidget {
                 );
               case PictureLoadStatus.failure:
                 if (state.result.toString().contains('404')) {
-                  return Center(child: Icon(Icons.error));
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(5.0),
+                    child: Image.asset(
+                      'asset/image/error_image/404.png',
+                      fit: BoxFit.cover,
+                    ),
+                  );
                 } else {
                   return InkWell(
                     onTap: () {

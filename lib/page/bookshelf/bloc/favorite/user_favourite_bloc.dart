@@ -40,25 +40,10 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
     Emitter<UserFavouriteState> emit,
   ) async {
     if (event.refresh == "updateShield") {
-      // 获取所有被屏蔽的分类
-      List<String> shieldedCategoriesList =
-          bikaSetting.shieldCategoryMap.entries
-              .where((entry) => entry.value) // 只选择值为 true 的条目
-              .map((entry) => entry.key) // 提取键（分类名）
-              .toList();
-
-      var temp =
-          comics.where((comic) {
-            // 检查该漫画的分类是否与屏蔽分类列表中的任何分类匹配
-            return !comic.doc.categories.any(
-              (category) => shieldedCategoriesList.contains(category),
-            );
-          }).toList();
-
       emit(
         state.copyWith(
           status: UserFavouriteStatus.success,
-          comics: deduplicateComics(temp),
+          comics: _filterShieldedComics(comics),
           hasReachedMax: hasReachedMax,
           refresh: "",
           pageCount: event.pageCount,
@@ -87,7 +72,7 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
       emit(
         state.copyWith(
           status: UserFavouriteStatus.loadingMore,
-          comics: comics.toSet().toList(),
+          comics: _filterShieldedComics(comics),
           refresh: event.refresh,
           hasReachedMax: hasReachedMax,
           pageCount: event.pageCount,
@@ -112,25 +97,10 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
         );
       }
 
-      // 获取所有被屏蔽的分类
-      List<String> shieldedCategoriesList =
-          bikaSetting.shieldCategoryMap.entries
-              .where((entry) => entry.value) // 只选择值为 true 的条目
-              .map((entry) => entry.key) // 提取键（分类名）
-              .toList();
-
-      var comicTemp =
-          comics.where((comic) {
-            // 检查该漫画的分类是否与屏蔽分类列表中的任何分类匹配
-            return !comic.doc.categories.any(
-              (category) => shieldedCategoriesList.contains(category),
-            );
-          }).toList();
-
       emit(
         state.copyWith(
           status: UserFavouriteStatus.success,
-          comics: deduplicateComics(comicTemp),
+          comics: _filterShieldedComics(comics),
           hasReachedMax: hasReachedMax,
           refresh: event.refresh,
           pageCount: event.pageCount,
@@ -145,7 +115,7 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
         emit(
           state.copyWith(
             status: UserFavouriteStatus.getMoreFailure,
-            comics: deduplicateComics(comics),
+            comics: _filterShieldedComics(comics),
             hasReachedMax: hasReachedMax,
             refresh: event.refresh,
             pageCount: event.pageCount,
@@ -178,5 +148,22 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
     }
 
     return uniqueComics;
+  }
+
+  List<ComicNumber> _filterShieldedComics(List<ComicNumber> comics) {
+    // 获取所有被屏蔽的分类
+    List<String> shieldedCategoriesList =
+        bikaSetting.shieldCategoryMap.entries
+            .where((entry) => entry.value) // 只选择值为 true 的条目
+            .map((entry) => entry.key) // 提取键（分类名）
+            .toList();
+
+    // 过滤掉包含屏蔽分类的漫画
+    return comics.where((comic) {
+      // 检查该漫画的分类是否与屏蔽分类列表中的任何分类匹配
+      return !comic.doc.categories.any(
+        (category) => shieldedCategoriesList.contains(category),
+      );
+    }).toList();
   }
 }

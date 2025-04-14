@@ -11,6 +11,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:hive_ce_flutter/adapters.dart';
 import 'package:logger/logger.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
+import 'package:zephyr/util/cf_ip_select.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/pretty_log.dart';
 import 'package:zephyr/util/router/router.dart';
@@ -39,6 +40,8 @@ late ColorScheme materialColorScheme;
 late ColorScheme materialColorSchemeDark;
 
 var logger = Logger(printer: CustomPrinter());
+
+List<String> cfIpList = [];
 
 Future<void> main() async {
   // 捕获Dart异常
@@ -72,6 +75,7 @@ Future<void> main() async {
       Hive.registerAdapter(ThemeModeAdapter());
       await globalSetting.initBox();
       await bikaSetting.initBox();
+      await initCfIpList('https://ip.164746.xyz/ipTop.html');
 
       // 捕获Flutter框架异常
       FlutterError.onError = (FlutterErrorDetails details) {

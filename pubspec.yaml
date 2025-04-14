@@ -59,6 +59,7 @@ dependencies:
   webview_flutter: ^4.10.0      # WebView 组件
   url_launcher: ^6.3.1          # URL 启动器（外部浏览器）
   connectivity_plus: ^6.1.2     # 网络状态监测
+  html: ^0.15.5+1               # HTML 解析器
 
   ########################################
   #        文件 & 资源 & 多媒体          #

@@ -118,8 +118,24 @@ Future<Map<String, dynamic>> request(
       body.isNotEmpty && (method == 'POST' || method == 'PUT') ? body : null;
 
   try {
+    // 使用优选 IP 替换原始域名
+    String requestUrl = url;
+    // if (cfIpList.isNotEmpty) {
+    //   final uri = Uri.parse(url);
+    //   requestUrl = url.replaceFirst(
+    //     '${uri.scheme}://${uri.host}',
+    //     'https://${cfIpList.first}',
+    //   );
+    //
+    //   // logger.d('url: $url, requestUrl: $requestUrl');
+    //
+    //   // 添加 Host 头
+    //   headers['Host'] = uri.host;
+    // }
+    // logger.d(headers);
+
     final response = await dio.request(
-      url,
+      requestUrl,
       data: data,
       options: Options(
         method: method,

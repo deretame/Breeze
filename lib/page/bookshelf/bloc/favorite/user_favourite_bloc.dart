@@ -140,6 +140,7 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
       initial = false;
       totalPages = result.data.comics.pages;
     } catch (e) {
+      logger.d(e);
       if (comics.isNotEmpty) {
         emit(
           state.copyWith(

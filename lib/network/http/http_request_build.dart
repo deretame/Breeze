@@ -127,7 +127,7 @@ Future<Map<String, dynamic>> request(
     //     'https://${cfIpList.first}',
     //   );
     //
-    //   // logger.d('url: $url, requestUrl: $requestUrl');
+    //   logger.d('url: $url, requestUrl: $requestUrl');
     //
     //   // 添加 Host 头
     //   headers['Host'] = uri.host;

@@ -352,6 +352,24 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
+  late final _$socks5ProxyAtom = Atom(
+    name: '_GlobalSetting.socks5Proxy',
+    context: context,
+  );
+
+  @override
+  String get socks5Proxy {
+    _$socks5ProxyAtom.reportRead();
+    return super.socks5Proxy;
+  }
+
+  @override
+  set socks5Proxy(String value) {
+    _$socks5ProxyAtom.reportWrite(value, super.socks5Proxy, () {
+      super.socks5Proxy = value;
+    });
+  }
+
   late final _$_GlobalSettingActionController = ActionController(
     name: '_GlobalSetting',
     context: context,
@@ -1042,6 +1060,42 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   }
 
   @override
+  void setSocks5Proxy(String value) {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+      name: '_GlobalSetting.setSocks5Proxy',
+    );
+    try {
+      return super.setSocks5Proxy(value);
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  String getSocks5Proxy() {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+      name: '_GlobalSetting.getSocks5Proxy',
+    );
+    try {
+      return super.getSocks5Proxy();
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void deleteSocks5Proxy() {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+      name: '_GlobalSetting.deleteSocks5Proxy',
+    );
+    try {
+      return super.deleteSocks5Proxy();
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     return '''
 dynamicColor: ${dynamicColor},
@@ -1062,7 +1116,8 @@ syncNotify: ${syncNotify},
 shade: ${shade},
 comicReadTopContainer: ${comicReadTopContainer},
 readMode: ${readMode},
-maskedKeywords: ${maskedKeywords}
+maskedKeywords: ${maskedKeywords},
+socks5Proxy: ${socks5Proxy}
     ''';
   }
 }

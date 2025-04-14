@@ -1,10 +1,10 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
 publish_to: none
-version: 1.28.1+104
+version: 1.29.0+105
 
 environment:
-  sdk: ^3.7.0-323.0.dev
+  sdk: ^3.7.2
 
 dependencies:
   flutter:
@@ -60,6 +60,7 @@ dependencies:
   url_launcher: ^6.3.1          # URL 启动器（外部浏览器）
   connectivity_plus: ^6.1.2     # 网络状态监测
   html: ^0.15.5+1               # HTML 解析器
+  flutter_socks_proxy: ^0.0.3   # socks5代理配置
 
   ########################################
   #        文件 & 资源 & 多媒体          #

@@ -8,10 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:flutter_socks_proxy/socks_proxy.dart';
 import 'package:hive_ce_flutter/adapters.dart';
 import 'package:logger/logger.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
-import 'package:zephyr/util/cf_ip_select.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/pretty_log.dart';
 import 'package:zephyr/util/router/router.dart';
@@ -75,7 +75,13 @@ Future<void> main() async {
       Hive.registerAdapter(ThemeModeAdapter());
       await globalSetting.initBox();
       await bikaSetting.initBox();
-      await initCfIpList('https://ip.164746.xyz/ipTop.html');
+      // await initCfIpList('https://ip.164746.xyz/ipTop.html');
+
+      logger.d(globalSetting.socks5Proxy);
+      if (globalSetting.socks5Proxy.isNotEmpty) {
+        // proxy -> "SOCKS5/SOCKS4/PROXY username:password@host:port;" or "DIRECT"
+        SocksProxy.initProxy(proxy: 'SOCKS5 ${globalSetting.socks5Proxy}');
+      }
 
       // 捕获Flutter框架异常
       FlutterError.onError = (FlutterErrorDetails details) {

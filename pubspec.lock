@@ -1054,10 +1054,10 @@ packages:
     dependency: transitive
     description:
       name: permission_handler_apple
-      sha256: f84a188e79a35c687c132a0a0556c254747a08561e99ab933f12f6ca71ef3c98
+      sha256: f000131e755c54cf4d84a5d8bd6e4149e262cc31c5a8b1d698de1ac85fa41023
       url: "https://pub.dev"
     source: hosted
-    version: "9.4.6"
+    version: "9.4.7"
   permission_handler_html:
     dependency: transitive
     description:
@@ -1263,14 +1263,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.1"
-  stroke_text:
-    dependency: "direct main"
-    description:
-      name: stroke_text
-      sha256: b5231282d7e93df3bc28d458ba25fd2dc2acaca77f2771cec4cffe8b6a08850e
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0"
   tar:
     dependency: "direct main"
     description:

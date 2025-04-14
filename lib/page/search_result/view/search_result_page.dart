@@ -190,6 +190,17 @@ class _SearchResultPageState extends State<_SearchResultPage>
       bikaSetting.brevity ? _brevityList(state) : _detailedList(state);
 
   Widget _brevityList(SearchState state) {
+    if (state.status == SearchStatus.success) {
+      if (state.comics.length < 30 && !state.hasReachedMax) {
+        _fetchSearchResult();
+      }
+      if (state.comics.isEmpty && state.hasReachedMax) {
+        return const Center(
+          child: Text('啥都没有', style: TextStyle(fontSize: 20.0)),
+        );
+      }
+    }
+
     final list =
         state.comics
             .map(

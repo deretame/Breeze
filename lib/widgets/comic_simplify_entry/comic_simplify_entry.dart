@@ -80,8 +80,7 @@ class _ElementInfo extends StatelessWidget {
         ).push(ComicInfoRoute(comicId: info.id, type: type));
       },
       onLongPress: () {
-        if (type == ComicEntryType.normal ||
-            type == ComicEntryType.historyAndDownload) {
+        if (type == ComicEntryType.normal) {
           return;
         }
         deleteDialog(context);

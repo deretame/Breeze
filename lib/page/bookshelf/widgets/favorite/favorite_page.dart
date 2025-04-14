@@ -184,7 +184,11 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
   // 判断是否需要获取更多
   bool _shouldFetchMore(UserFavouriteState state) {
-    return state.comics.length < 8 && !state.hasReachedMax;
+    if (bikaSetting.brevity) {
+      return state.comics.length < 30 && !state.hasReachedMax;
+    } else {
+      return state.comics.length < 8 && !state.hasReachedMax;
+    }
   }
 
   // 空状态UI

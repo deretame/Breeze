@@ -265,7 +265,7 @@ String buildImageUrl(
     path = "static/$path";
   }
 
-  return replaceSubsequentDoubleSlashes('$url/$path');
+  return '$url/$path';
 }
 
 Future<Uint8List> downloadImageWithRetry(
@@ -324,27 +324,5 @@ Future<void> ensureDirectoryExists(String filePath) async {
   final directory = Directory(file_path.dirname(filePath));
   if (!await directory.exists()) {
     await directory.create(recursive: true);
-  }
-}
-
-String replaceSubsequentDoubleSlashes(String input) {
-  String target = '//';
-  String replacement = '/';
-
-  // 找到第一个'//'的位置
-  int firstDoubleSlashIndex = input.indexOf(target);
-
-  // 如果存在第一个'//'，则从其后开始替换所有'//'为'/'
-  if (firstDoubleSlashIndex != -1) {
-    String firstPart = input.substring(
-      0,
-      firstDoubleSlashIndex + target.length,
-    );
-    String secondPart = input.substring(firstDoubleSlashIndex + target.length);
-    String replacedSecondPart = secondPart.replaceAll(target, replacement);
-    return '$firstPart$replacedSecondPart';
-  } else {
-    // 如果没有'//'，则返回原始字符串
-    return input;
   }
 }

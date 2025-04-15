@@ -154,7 +154,9 @@ class _ComicInfoState extends State<_ComicInfo>
           IconButton(
             icon: const Icon(Icons.home),
             onPressed: () {
-              context.router.popUntilRoot();
+              context.router.popUntil(
+                (route) => route.settings.name == 'MainRoute',
+              );
             },
           ),
           Expanded(child: Container()),

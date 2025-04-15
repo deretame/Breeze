@@ -61,8 +61,6 @@ class _BottomWidgetState extends State<BottomWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final router = AutoRouter.of(context);
-
     return Observer(
       builder: (context) {
         return AnimatedPositioned(
@@ -109,7 +107,11 @@ class _BottomWidgetState extends State<BottomWidget> {
                       children: [
                         IconButton(
                           icon: Icon(Icons.home),
-                          onPressed: () => router.popUntilRoot(),
+                          onPressed: () {
+                            context.router.popUntil(
+                              (route) => route.settings.name == 'MainRoute',
+                            );
+                          },
                         ),
                         SizedBox(
                           height: 51,

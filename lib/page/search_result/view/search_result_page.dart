@@ -245,6 +245,10 @@ class _SearchResultPageState extends State<_SearchResultPage>
     final itemCount = _calculateItemCount(state, state.comics.length);
 
     return ListView.builder(
+      itemExtent:
+          bikaSetting.brevity
+              ? screenWidth * 0.425
+              : 180.0 + (screenHeight / 10) * 0.1,
       itemBuilder: (context, index) => _buildListItem(context, index, state),
       itemCount: itemCount,
       controller: _scrollController,

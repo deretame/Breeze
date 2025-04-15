@@ -218,8 +218,12 @@ class __HistoryPageState extends State<_HistoryPage>
     required IndexedWidgetBuilder itemBuilder,
   }) {
     return ListView.builder(
+      itemExtent:
+          bikaSetting.brevity
+              ? screenWidth * 0.425
+              : 180.0 + (screenHeight / 10) * 0.1,
+      physics: const AlwaysScrollableScrollPhysics(),
       controller: scrollControllers['history']!,
-      padding: EdgeInsets.zero,
       itemCount: itemCount,
       itemBuilder: itemBuilder,
     );

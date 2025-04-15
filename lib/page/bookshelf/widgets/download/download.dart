@@ -224,8 +224,12 @@ class _DownloadPageState extends State<_DownloadPage>
     required IndexedWidgetBuilder itemBuilder,
   }) {
     return ListView.builder(
+      itemExtent:
+          bikaSetting.brevity
+              ? screenWidth * 0.425
+              : 180.0 + (screenHeight / 10) * 0.1,
       controller: scrollControllers['download']!,
-      padding: EdgeInsets.zero,
+      physics: const AlwaysScrollableScrollPhysics(),
       itemCount: itemCount,
       itemBuilder: itemBuilder,
     );

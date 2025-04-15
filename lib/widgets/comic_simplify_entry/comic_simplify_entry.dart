@@ -4,7 +4,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../config/global.dart';
 import '../../main.dart';
 import '../../object_box/objectbox.g.dart';
 import '../../util/router/router.gr.dart';
@@ -12,10 +11,15 @@ import '../comic_entry/comic_entry.dart';
 import 'comic_simplify_entry_info.dart';
 import 'cover.dart';
 
-class ComicSimplifyEntry extends StatefulWidget {
+class ComicEntryDimensions {
+  static const double entryWidthFactor = 0.3;
+  static const double spacingHeightFactor = 0.025;
+}
+
+class ComicSimplifyEntry extends StatelessWidget {
   final List<ComicSimplifyEntryInfo> entries;
   final ComicEntryType type;
-  final GestureTapCallback? refresh;
+  final VoidCallback? refresh;
 
   const ComicSimplifyEntry({
     super.key,
@@ -25,202 +29,209 @@ class ComicSimplifyEntry extends StatefulWidget {
   });
 
   @override
-  State<ComicSimplifyEntry> createState() => _ComicSimplifyEntryState();
-}
-
-class _ComicSimplifyEntryState extends State<ComicSimplifyEntry>
-    with AutomaticKeepAliveClientMixin {
-  late final List<ComicSimplifyEntryInfo> entries;
-  late final ComicEntryType type;
-  late final GestureTapCallback? refresh;
-
-  @override
-  bool get wantKeepAlive => true;
-
-  @override
-  void initState() {
-    super.initState();
-    entries = widget.entries;
-    type = widget.type;
-    refresh = widget.refresh;
-  }
-
-  @override
   Widget build(BuildContext context) {
-    super.build(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (var entry in entries)
-          _ElementInfo(info: entry, type: type, refresh: refresh),
-      ],
+      children:
+          entries
+              .map(
+                (entry) =>
+                    _ComicEntryItem(info: entry, type: type, refresh: refresh),
+              )
+              .toList(),
     );
   }
 }
 
-class _ElementInfo extends StatelessWidget {
+class _ComicEntryItem extends StatelessWidget {
   final ComicSimplifyEntryInfo info;
   final ComicEntryType type;
-  final GestureTapCallback? refresh;
+  final VoidCallback? refresh;
 
-  const _ElementInfo({required this.info, required this.type, this.refresh});
+  const _ComicEntryItem({required this.info, required this.type, this.refresh});
 
   @override
   Widget build(BuildContext context) {
     if (info.title == "无数据") {
-      return SizedBox(width: screenWidth * 0.3);
+      return SizedBox(
+        width:
+            MediaQuery.of(context).size.width *
+            ComicEntryDimensions.entryWidthFactor,
+      );
     }
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () {
-        AutoRouter.of(
-          context,
-        ).push(ComicInfoRoute(comicId: info.id, type: type));
-      },
-      onLongPress: () {
-        if (type == ComicEntryType.normal) {
-          return;
-        }
-        deleteDialog(context);
-      },
+      onTap: () => _navigateToComicInfo(context),
+      onLongPress:
+          () =>
+              type != ComicEntryType.normal ? _showDeleteDialog(context) : null,
       child: SizedBox(
-        width: screenWidth * 0.3,
+        width:
+            MediaQuery.of(context).size.width *
+            ComicEntryDimensions.entryWidthFactor,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: screenWidth * 0.1 / 4), // 添加间距
-            Stack(
-              children: [
-                CoverWidget(
-                  fileServer: info.fileServer,
-                  path: info.path,
-                  id: info.id,
-                  pictureType: info.pictureType,
-                  from: info.from,
-                ),
-                Positioned(
-                  left: 5,
-                  right: 5,
-                  bottom: 5,
-                  child: Stack(
-                    children: [
-                      Text(
-                        info.title,
-                        style: TextStyle(
-                          fontSize: 12,
-                          foreground:
-                              Paint()
-                                ..style = PaintingStyle.stroke
-                                ..strokeWidth = 3
-                                ..color = globalSetting.backgroundColor,
-                        ),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      // 填充文字
-                      Text(
-                        info.title,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: globalSetting.textColor,
-                        ),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            SizedBox(
+              height:
+                  MediaQuery.of(context).size.width *
+                  ComicEntryDimensions.spacingHeightFactor,
             ),
+            _buildCoverWithTitle(context),
           ],
         ),
       ),
     );
   }
 
-  Future deleteDialog(BuildContext context) {
-    var title = "";
-    if (type == ComicEntryType.history) {
-      title = "删除历史记录";
-    } else if (type == ComicEntryType.download) {
-      title = "删除下载记录";
-    }
-    var content = "确定要删除（${info.title}）的";
-    if (type == ComicEntryType.history) {
-      content += "历史记录吗？";
-    } else if (type == ComicEntryType.download) {
-      content += "下载记录及文件吗？";
-    }
-    logger.d(type.toString());
-    return showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(content),
-          actions: <Widget>[
-            TextButton(
-              child: Text("取消"),
-              onPressed: () {
-                // 执行操作1
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text("确定"),
-              onPressed: () {
-                if (type == ComicEntryType.history) {
-                  var temp =
-                      objectbox.bikaHistoryBox
-                          .query(BikaComicHistory_.comicId.equals(info.id))
-                          .build()
-                          .findFirst();
-                  if (temp != null) {
-                    temp.deleted = true;
-                    temp.deletedAt = DateTime.now().toUtc();
-                    objectbox.bikaHistoryBox.put(temp);
-                    refresh!();
-                  }
-                }
-                if (type == ComicEntryType.download) {
-                  var temp =
-                      objectbox.bikaDownloadBox
-                          .query(BikaComicDownload_.comicId.equals(info.id))
-                          .build()
-                          .findFirst();
-                  if (temp != null) {
-                    objectbox.bikaDownloadBox.remove(temp.id);
-                    refresh!();
-                    deleteDirectory(info.id);
-                  }
-                }
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
+  Widget _buildCoverWithTitle(BuildContext context) {
+    final textStyle = Theme.of(
+      context,
+    ).textTheme.bodySmall?.copyWith(color: globalSetting.textColor);
+
+    return Stack(
+      children: [
+        CoverWidget(
+          fileServer: info.fileServer,
+          path: info.path,
+          id: info.id,
+          pictureType: info.pictureType,
+          from: info.from,
+        ),
+        Positioned(
+          left: 5,
+          right: 5,
+          bottom: 5,
+          child: _buildTitleText(textStyle),
+        ),
+      ],
     );
   }
 
-  Future<void> deleteDirectory(String id) async {
-    String path =
+  Widget _buildTitleText(TextStyle? textStyle) {
+    return Stack(
+      children: [
+        Text(
+          info.title,
+          style: textStyle?.copyWith(
+            foreground:
+                Paint()
+                  ..style = PaintingStyle.stroke
+                  ..strokeWidth = 3
+                  ..color = globalSetting.backgroundColor,
+          ),
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
+        ),
+        Text(
+          info.title,
+          style: textStyle,
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
+  void _navigateToComicInfo(BuildContext context) {
+    AutoRouter.of(context).push(ComicInfoRoute(comicId: info.id, type: type));
+  }
+
+  Future<void> _showDeleteDialog(BuildContext context) async {
+    final (title, content) = _getDialogContent();
+
+    return showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(title),
+            content: Text(content),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text("取消"),
+              ),
+              TextButton(
+                onPressed: () => _handleDeleteAction(context),
+                child: const Text("确定"),
+              ),
+            ],
+          ),
+    );
+  }
+
+  (String, String) _getDialogContent() {
+    switch (type) {
+      case ComicEntryType.history:
+        return ("删除历史记录", "确定要删除（${info.title}）的历史记录吗？");
+      case ComicEntryType.download:
+        return ("删除下载记录", "确定要删除（${info.title}）的下载记录及文件吗？");
+      default:
+        return ("", "");
+    }
+  }
+
+  Future<void> _handleDeleteAction(BuildContext context) async {
+    try {
+      if (type == ComicEntryType.history) {
+        await _deleteHistory();
+      } else if (type == ComicEntryType.download) {
+        await _deleteDownload();
+      }
+      refresh?.call();
+      if (context.mounted) Navigator.of(context).pop();
+    } catch (e) {
+      logger.e('删除操作失败: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('删除失败: ${e.toString()}')));
+      }
+    }
+  }
+
+  Future<void> _deleteHistory() async {
+    final temp =
+        objectbox.bikaHistoryBox
+            .query(BikaComicHistory_.comicId.equals(info.id))
+            .build()
+            .findFirst();
+
+    if (temp != null) {
+      temp.deleted = true;
+      temp.deletedAt = DateTime.now().toUtc();
+      objectbox.bikaHistoryBox.put(temp);
+    }
+  }
+
+  Future<void> _deleteDownload() async {
+    final temp =
+        objectbox.bikaDownloadBox
+            .query(BikaComicDownload_.comicId.equals(info.id))
+            .build()
+            .findFirst();
+
+    if (temp != null) {
+      objectbox.bikaDownloadBox.remove(temp.id);
+      await _deleteDownloadDirectory(info.id);
+    }
+  }
+
+  Future<void> _deleteDownloadDirectory(String id) async {
+    final path =
         '/data/data/com.zephyr.breeze/files/downloads/bika/original/$id';
     final directory = Directory(path);
 
-    // 检查目录是否存在
     if (await directory.exists()) {
       try {
-        // 删除目录及其内容
         await directory.delete(recursive: true);
         logger.d('目录已成功删除: $path');
       } catch (e) {
         logger.e('删除目录时发生错误: $e');
+        throw Exception('删除目录失败');
       }
-    } else {
-      logger.e('目录不存在: $path');
     }
   }
 }
@@ -228,33 +239,44 @@ class _ElementInfo extends StatelessWidget {
 List<List<ComicSimplifyEntryInfo>> generateElements(
   List<ComicSimplifyEntryInfo> list,
 ) {
-  List<List<ComicSimplifyEntryInfo>> elementsRows = [];
-  int rowCount = list.length ~/ 3;
-  int remainder = list.length % 3;
-  if (remainder != 0) {
-    rowCount++;
-    for (int i = 0; i < 3 - remainder; i++) {
-      list.add(
-        ComicSimplifyEntryInfo(
-          title: '无数据',
-          id: Uuid().v4(),
-          fileServer: '',
-          path: '',
-          pictureType: '',
-          from: '',
-        ),
-      );
-    }
-  }
+  final filledList = _fillListWithPlaceholders(list);
+  return _chunkList(filledList, 3);
+}
 
-  for (int i = 0; i < rowCount; i++) {
-    int start = i * 3;
-    int end = start + 3;
-    if (end > list.length) {
-      end = list.length;
-    }
-    elementsRows.add(list.sublist(start, end));
-  }
+List<ComicSimplifyEntryInfo> _fillListWithPlaceholders(
+  List<ComicSimplifyEntryInfo> list,
+) {
+  final remainder = list.length % 3;
+  if (remainder == 0) return List.from(list);
 
-  return elementsRows;
+  final placeholderCount = 3 - remainder;
+  final placeholders = List.generate(
+    placeholderCount,
+    (_) => _createPlaceholder(),
+  );
+
+  return [...list, ...placeholders];
+}
+
+ComicSimplifyEntryInfo _createPlaceholder() {
+  return ComicSimplifyEntryInfo(
+    title: '无数据',
+    id: const Uuid().v4(),
+    fileServer: '',
+    path: '',
+    pictureType: '',
+    from: '',
+  );
+}
+
+List<List<T>> _chunkList<T>(List<T> list, int chunkSize) {
+  return List.generate(
+    (list.length / chunkSize).ceil(),
+    (index) => list.sublist(
+      index * chunkSize,
+      (index + 1) * chunkSize > list.length
+          ? list.length
+          : (index + 1) * chunkSize,
+    ),
+  );
 }

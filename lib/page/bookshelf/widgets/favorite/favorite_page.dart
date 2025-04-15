@@ -242,6 +242,10 @@ class _UserFavoritePageState extends State<_FavoritePage>
         itemCount + (showLoadingMore || showError || showEnd ? 1 : 0);
 
     return ListView.builder(
+      itemExtent:
+          bikaSetting.brevity
+              ? screenWidth * 0.425
+              : 180.0 + (screenHeight / 10) * 0.1,
       controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: totalItemCount,

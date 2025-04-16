@@ -5,6 +5,7 @@ import 'package:zephyr/util/dialog.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../network/http/http_request.dart';
+import '../util/router/router.dart';
 import '../util/router/router.gr.dart';
 
 @RoutePage()
@@ -54,16 +55,9 @@ class _LoginPageState extends State<LoginPage> {
             TextButton(
               child: const Text('确定'),
               onPressed: () {
-                if (title == "登录成功") {
-                  AutoRouter.of(context).pushAndPopUntil(
-                    MainRoute(),
-                    predicate: (Route<dynamic> route) {
-                      return false;
-                    },
-                  );
-                } else {
-                  Navigator.of(context).pop();
-                }
+                title == "登录成功"
+                    ? popToRoot(context)
+                    : Navigator.of(context).pop();
               },
             ),
           ],

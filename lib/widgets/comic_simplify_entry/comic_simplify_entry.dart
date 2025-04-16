@@ -4,17 +4,13 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../config/global.dart';
 import '../../main.dart';
 import '../../object_box/objectbox.g.dart';
 import '../../util/router/router.gr.dart';
 import '../comic_entry/comic_entry.dart';
 import 'comic_simplify_entry_info.dart';
 import 'cover.dart';
-
-class ComicEntryDimensions {
-  static const double entryWidthFactor = 0.3;
-  static const double spacingHeightFactor = 0.025;
-}
 
 class ComicSimplifyEntryRow extends StatelessWidget {
   final List<ComicSimplifyEntryInfo> entries;
@@ -66,11 +62,7 @@ class ComicSimplifyEntry extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (info.title == "无数据") {
-      return SizedBox(
-        width:
-            MediaQuery.of(context).size.width *
-            ComicEntryDimensions.entryWidthFactor,
-      );
+      return SizedBox(width: screenWidth * 0.3);
     }
 
     return GestureDetector(
@@ -80,18 +72,12 @@ class ComicSimplifyEntry extends StatelessWidget {
           () =>
               type != ComicEntryType.normal ? _showDeleteDialog(context) : null,
       child: SizedBox(
-        width:
-            MediaQuery.of(context).size.width *
-            ComicEntryDimensions.entryWidthFactor,
+        width: screenWidth * 0.3,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             topPadding
-                ? SizedBox(
-                  height:
-                      MediaQuery.of(context).size.width *
-                      ComicEntryDimensions.spacingHeightFactor,
-                )
+                ? SizedBox(height: MediaQuery.of(context).size.width * 0.025)
                 : SizedBox.shrink(),
             _buildCoverWithTitle(context),
           ],
@@ -151,7 +137,7 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   void _navigateToComicInfo(BuildContext context) {
-    AutoRouter.of(context).push(ComicInfoRoute(comicId: info.id, type: type));
+    context.pushRoute(ComicInfoRoute(comicId: info.id, type: type));
   }
 
   Future<void> _showDeleteDialog(BuildContext context) async {

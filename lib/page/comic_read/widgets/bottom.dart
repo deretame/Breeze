@@ -7,6 +7,7 @@ import 'package:zephyr/page/comic_info/json/eps/eps.dart' as eps;
 
 import '../../../config/global.dart';
 import '../../../main.dart';
+import '../../../util/router/router.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/comic_entry/comic_entry.dart';
 import '../../comic_info/json/comic_info/comic_info.dart';
@@ -107,11 +108,7 @@ class _BottomWidgetState extends State<BottomWidget> {
                       children: [
                         IconButton(
                           icon: Icon(Icons.home),
-                          onPressed: () {
-                            context.router.popUntil(
-                              (route) => route.settings.name == 'MainRoute',
-                            );
-                          },
+                          onPressed: () => popToRoot(context),
                         ),
                         SizedBox(
                           height: 51,

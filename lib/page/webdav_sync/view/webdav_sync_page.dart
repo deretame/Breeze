@@ -5,7 +5,7 @@ import 'package:zephyr/page/webdav_sync/webdav_sync.dart';
 
 import '../../../main.dart';
 import '../../../util/dialog.dart';
-import '../../main.dart';
+import '../../navigation_bar.dart';
 
 @RoutePage()
 class WebDavSyncPage extends StatefulWidget {

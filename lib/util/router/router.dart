@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
 @AutoRouterConfig(replaceInRouteName: 'Screen|Page,Route')
@@ -8,7 +9,7 @@ class AppRouter extends RootStackRouter {
 
   @override
   List<AutoRoute> get routes => [
-    AutoRoute(page: MainRoute.page, initial: true),
+    AutoRoute(page: NavigationBar.page, initial: true),
     AutoRoute(page: LoginRoute.page),
     AutoRoute(page: RankingListRoute.page),
     AutoRoute(page: RegisterRoute.page),
@@ -31,4 +32,8 @@ class AppRouter extends RootStackRouter {
 
   @override
   List<AutoRouteGuard> get guards => [];
+}
+
+void popToRoot(BuildContext context) {
+  context.router.popUntil((route) => route.settings.name == 'NavigationBar');
 }

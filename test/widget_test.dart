@@ -8,7 +8,7 @@
 // import 'package:flutter/material.dart';
 // import 'package:flutter_test/flutter_test.dart';
 //
-// import 'package:breeze/main.dart';
+// import 'package:breeze/navigation_bar.dart';
 //
 // void main() {
 //   testWidgets('Counter increments smoke test', (WidgetTester tester) async {

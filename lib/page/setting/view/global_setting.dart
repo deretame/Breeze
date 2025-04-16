@@ -5,7 +5,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
 
 import '../../../util/router/router.gr.dart';
-import '../../main.dart';
+import '../../navigation_bar.dart';
 import 'global/widgets.dart';
 
 @RoutePage()

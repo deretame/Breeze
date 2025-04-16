@@ -260,7 +260,7 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
   // 构建简洁模式下的列表项
   Widget _buildBrevityItem(List<ComicSimplifyEntryInfo> entries) {
-    return ComicSimplifyEntry(
+    return ComicSimplifyEntryRow(
       key: ValueKey(entries.map((e) => e.id).join(',')),
       entries: entries,
       type: ComicEntryType.normal,

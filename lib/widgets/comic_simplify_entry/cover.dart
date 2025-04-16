@@ -13,6 +13,7 @@ class CoverWidget extends StatelessWidget {
   final String id;
   final String pictureType;
   final String from;
+  final bool roundedCorner;
 
   const CoverWidget({
     super.key,
@@ -21,6 +22,7 @@ class CoverWidget extends StatelessWidget {
     required this.id,
     required this.pictureType,
     required this.from,
+    this.roundedCorner = true,
   });
 
   @override
@@ -49,7 +51,9 @@ class CoverWidget extends StatelessWidget {
                 return Center(child: CircularProgressIndicator());
               case PictureLoadStatus.success:
                 return ClipRRect(
-                  borderRadius: BorderRadius.circular(5.0),
+                  borderRadius: BorderRadius.circular(
+                    roundedCorner ? 5.0 : 0.0,
+                  ),
                   child: Image.file(File(state.imagePath!), fit: BoxFit.cover),
                 );
               case PictureLoadStatus.failure:

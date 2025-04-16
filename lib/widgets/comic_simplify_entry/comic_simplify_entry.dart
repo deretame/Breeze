@@ -16,12 +16,12 @@ class ComicEntryDimensions {
   static const double spacingHeightFactor = 0.025;
 }
 
-class ComicSimplifyEntry extends StatelessWidget {
+class ComicSimplifyEntryRow extends StatelessWidget {
   final List<ComicSimplifyEntryInfo> entries;
   final ComicEntryType type;
   final VoidCallback? refresh;
 
-  const ComicSimplifyEntry({
+  const ComicSimplifyEntryRow({
     super.key,
     required this.entries,
     required this.type,
@@ -36,20 +36,32 @@ class ComicSimplifyEntry extends StatelessWidget {
       children:
           entries
               .map(
-                (entry) =>
-                    _ComicEntryItem(info: entry, type: type, refresh: refresh),
+                (entry) => ComicSimplifyEntry(
+                  info: entry,
+                  type: type,
+                  refresh: refresh,
+                ),
               )
               .toList(),
     );
   }
 }
 
-class _ComicEntryItem extends StatelessWidget {
+class ComicSimplifyEntry extends StatelessWidget {
   final ComicSimplifyEntryInfo info;
   final ComicEntryType type;
   final VoidCallback? refresh;
+  final bool topPadding;
+  final bool roundedCorner;
 
-  const _ComicEntryItem({required this.info, required this.type, this.refresh});
+  const ComicSimplifyEntry({
+    super.key,
+    required this.info,
+    required this.type,
+    this.refresh,
+    this.topPadding = true,
+    this.roundedCorner = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -74,11 +86,13 @@ class _ComicEntryItem extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              height:
-                  MediaQuery.of(context).size.width *
-                  ComicEntryDimensions.spacingHeightFactor,
-            ),
+            topPadding
+                ? SizedBox(
+                  height:
+                      MediaQuery.of(context).size.width *
+                      ComicEntryDimensions.spacingHeightFactor,
+                )
+                : SizedBox.shrink(),
             _buildCoverWithTitle(context),
           ],
         ),
@@ -99,6 +113,7 @@ class _ComicEntryItem extends StatelessWidget {
           id: info.id,
           pictureType: info.pictureType,
           from: info.from,
+          roundedCorner: roundedCorner,
         ),
         Positioned(
           left: 5,

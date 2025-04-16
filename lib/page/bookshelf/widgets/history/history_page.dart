@@ -253,7 +253,7 @@ class __HistoryPageState extends State<_HistoryPage>
     }
 
     return isBrevity
-        ? ComicSimplifyEntry(
+        ? ComicSimplifyEntryRow(
           key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
           entries: elementsRows[index],
           type: ComicEntryType.history,

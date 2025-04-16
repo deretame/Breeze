@@ -1,18 +1,13 @@
-import 'dart:io';
-
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 
+import '../../../config/global.dart';
 import '../../../main.dart';
-import '../../../util/router/router.gr.dart';
 import '../../../widgets/comic_entry/comic_entry.dart';
+import '../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
+import '../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 import '../../../widgets/error_view.dart';
-import '../../../widgets/full_screen_image_view.dart';
-import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
-import '../../../widgets/picture_bloc/models/picture_info.dart';
 import '../bloc/recommend/recommend_bloc.dart';
 
 class RecommendWidget extends StatelessWidget {
@@ -69,19 +64,30 @@ class _RecommendWidget extends StatelessWidget {
     if (state.comicList == null) {
       return SizedBox.shrink();
     }
+    final comicInfoList =
+        state.comicList!
+            .map(
+              (e) => ComicSimplifyEntryInfo(
+                title: e.title,
+                id: e.id,
+                fileServer: e.thumb.fileServer,
+                path: e.thumb.path,
+                pictureType: "cover",
+                from: "bika",
+              ),
+            )
+            .toList();
+
     return Observer(
       builder: (context) {
         return Container(
-          height: 200,
+          height: screenWidth * 0.3 / 0.75,
           decoration: BoxDecoration(
             color: globalSetting.backgroundColor,
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
-                color:
-                    globalSetting.themeType
-                        ? materialColorScheme.secondaryFixedDim
-                        : materialColorScheme.secondaryFixedDim,
+                color: materialColorScheme.secondaryFixedDim,
                 spreadRadius: 0,
                 blurRadius: 2,
               ),
@@ -94,48 +100,12 @@ class _RecommendWidget extends StatelessWidget {
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: List.generate(state.comicList!.length, (index) {
-                  return SizedBox(
-                    width: 100,
-                    height: 200,
-                    child: Column(
-                      children: [
-                        _Cover(
-                          pictureInfo: PictureInfo(
-                            from: "bika",
-                            url: state.comicList![index].thumb.fileServer,
-                            path: state.comicList![index].thumb.path,
-                            chapterId: state.comicList![index].id,
-                            pictureType: "cover",
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            // 跳转到漫画详情页
-                            AutoRouter.of(context).push(
-                              ComicInfoRoute(
-                                comicId: state.comicList![index].id,
-                              ),
-                            );
-                          },
-                          child: SizedBox(
-                            width: 100,
-                            height: 50,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.vertical,
-                              child: Text(
-                                state.comicList![index].title,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: globalSetting.textColor,
-                                ),
-                                softWrap: true, // 允许换行
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                children: List.generate(comicInfoList.length, (index) {
+                  return ComicSimplifyEntry(
+                    info: comicInfoList[index],
+                    type: ComicEntryType.normal,
+                    topPadding: false,
+                    roundedCorner: false,
                   );
                 }),
               ),
@@ -143,93 +113,6 @@ class _RecommendWidget extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _Cover extends StatelessWidget {
-  final PictureInfo pictureInfo;
-
-  const _Cover({required this.pictureInfo});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 100,
-      height: 150,
-      child: BlocProvider(
-        create:
-            (context) =>
-                PictureBloc()..add(
-                  GetPicture(
-                    PictureInfo(
-                      from: "bika",
-                      url: pictureInfo.url,
-                      path: pictureInfo.path,
-                      cartoonId: pictureInfo.cartoonId,
-                      pictureType: pictureInfo.pictureType,
-                    ),
-                  ),
-                ),
-        child: BlocBuilder<PictureBloc, PictureLoadState>(
-          builder: (context, state) {
-            switch (state.status) {
-              case PictureLoadStatus.initial:
-                return Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: LoadingAnimationWidget.waveDots(
-                    color: materialColorScheme.primaryFixedDim,
-                    size: 50,
-                  ),
-                );
-              case PictureLoadStatus.success:
-                return InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => FullScreenImageView(
-                              imagePath: state.imagePath!,
-                            ),
-                      ),
-                    );
-                  },
-                  child: Hero(
-                    tag: state.imagePath!,
-                    child: Image.file(
-                      File(state.imagePath!),
-                      fit: BoxFit.cover,
-                      width: 100,
-                      height: 150,
-                    ),
-                  ),
-                );
-              case PictureLoadStatus.failure:
-                if (state.result.toString().contains('404')) {
-                  return Image.asset('asset/image/error_image/404.png');
-                } else {
-                  return InkWell(
-                    onTap: () {
-                      context.read<PictureBloc>().add(
-                        GetPicture(
-                          PictureInfo(
-                            from: "bika",
-                            url: pictureInfo.url,
-                            path: pictureInfo.path,
-                            cartoonId: pictureInfo.cartoonId,
-                            pictureType: pictureInfo.pictureType,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Icon(Icons.refresh),
-                  );
-                }
-            }
-          },
-        ),
-      ),
     );
   }
 }

@@ -259,7 +259,7 @@ class _DownloadPageState extends State<_DownloadPage>
     }
 
     return isBrevity
-        ? ComicSimplifyEntry(
+        ? ComicSimplifyEntryRow(
           key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
           entries: elementsRows[index],
           type: ComicEntryType.download,

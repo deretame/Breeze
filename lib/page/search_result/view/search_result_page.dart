@@ -282,7 +282,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
     // 简洁模式
     if (elementsRows != null) {
       final key = elementsRows[index].map((e) => e.id).join(',');
-      return ComicSimplifyEntry(
+      return ComicSimplifyEntryRow(
         key: ValueKey(key),
         entries: elementsRows[index],
         type: ComicEntryType.normal,

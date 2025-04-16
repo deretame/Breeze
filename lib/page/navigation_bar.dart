@@ -26,14 +26,14 @@ class NoticeSync {}
 class NeedLogin {}
 
 @RoutePage()
-class MainPage extends StatefulWidget {
-  const MainPage({super.key});
+class NavigationBar extends StatefulWidget {
+  const NavigationBar({super.key});
 
   @override
-  State<MainPage> createState() => _MainPageState();
+  State<NavigationBar> createState() => _NavigationBarState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _NavigationBarState extends State<NavigationBar> {
   // PersistentTabController 用于控制底部导航栏
   final PersistentTabController _controller = PersistentTabController(
     initialIndex: 0,
@@ -230,8 +230,15 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _goToLoginPage() {
-    final route = AutoRouter.of(context);
-    route.push(const LoginRoute());
+    String allRoutes = "";
+    Navigator.of(context).widget.pages.forEach((route) {
+      allRoutes += "${route.name} ";
+    });
+    // logger.d(allRoutes);
+    if (!allRoutes.contains('LoginRoute')) {
+      showErrorToast('登录失效，请重新登录');
+    }
+    context.navigateTo(const LoginRoute());
   }
 
   Future<void> _checkUpdate() async {
@@ -341,26 +348,23 @@ class _MainPageState extends State<MainPage> {
       commonDialog(context, title, event.message);
     }
   }
-}
 
-Future<void> _signIn() async {
-  while (true) {
-    await Future.delayed(Duration(seconds: 5));
-    try {
-      if (bikaSetting.authorization.isEmpty) {
+  Future<void> _signIn() async {
+    while (true) {
+      try {
+        var result = await signIn();
+        if (result == '签到成功') {
+          showSuccessToast("自动签到成功！");
+          bikaSetting.setSignIn(true);
+          break;
+        } else {
+          logger.d(result);
+          break;
+        }
+      } catch (e) {
+        await Future.delayed(Duration(seconds: 1));
         continue;
       }
-      var result = await signIn();
-      if (result == '签到成功') {
-        showSuccessToast("自动签到成功！");
-        bikaSetting.setSignIn(true);
-        break;
-      } else {
-        logger.d(result);
-        break;
-      }
-    } catch (e) {
-      continue;
     }
   }
 }

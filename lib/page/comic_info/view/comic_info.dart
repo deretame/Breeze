@@ -9,6 +9,7 @@ import '../../../config/global.dart';
 import '../../../main.dart';
 import '../../../object_box/model.dart';
 import '../../../object_box/objectbox.g.dart';
+import '../../../util/router/router.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/comic_entry/comic_entry.dart';
 import '../../../widgets/error_view.dart';
@@ -153,11 +154,7 @@ class _ComicInfoState extends State<_ComicInfo>
           const SizedBox(width: 50),
           IconButton(
             icon: const Icon(Icons.home),
-            onPressed: () {
-              context.router.popUntil(
-                (route) => route.settings.name == 'MainRoute',
-              );
-            },
+            onPressed: () => popToRoot(context),
           ),
           Expanded(child: Container()),
           if (_type == ComicEntryType.download) ...[

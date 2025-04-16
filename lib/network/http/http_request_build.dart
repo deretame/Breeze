@@ -5,9 +5,8 @@ import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/widgets/toast.dart';
 
-import '../../page/main.dart';
+import '../../page/navigation_bar.dart';
 
 String _getNonce() {
   return const Uuid().v4().replaceAll('-', '');
@@ -151,7 +150,6 @@ Future<Map<String, dynamic>> request(
     if (error.response?.data?['code'] == 401 &&
         error.response?.data?['message'] == 'unauthorized') {
       bikaSetting.deleteAuthorization();
-      showErrorToast('登录失效，请重新登录');
       eventBus.fire(NeedLogin());
     }
 

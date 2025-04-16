@@ -27,7 +27,7 @@ import 'package:zephyr/page/comments_children/view/comments_children_page.dart'
     as _i7;
 import 'package:zephyr/page/download/view/download.dart' as _i9;
 import 'package:zephyr/page/login_page.dart' as _i11;
-import 'package:zephyr/page/main.dart' as _i12;
+import 'package:zephyr/page/navigation_bar.dart' as _i12;
 import 'package:zephyr/page/ranking_list/view/ranking_list_page.dart' as _i13;
 import 'package:zephyr/page/register_page.dart' as _i14;
 import 'package:zephyr/page/search_result/search_result.dart' as _i29;
@@ -414,17 +414,17 @@ class LoginRoute extends _i21.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i12.MainPage]
-class MainRoute extends _i21.PageRouteInfo<void> {
-  const MainRoute({List<_i21.PageRouteInfo>? children})
-    : super(MainRoute.name, initialChildren: children);
+/// [_i12.NavigationBar]
+class NavigationBar extends _i21.PageRouteInfo<void> {
+  const NavigationBar({List<_i21.PageRouteInfo>? children})
+    : super(NavigationBar.name, initialChildren: children);
 
-  static const String name = 'MainRoute';
+  static const String name = 'NavigationBar';
 
   static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
-      return const _i12.MainPage();
+      return const _i12.NavigationBar();
     },
   );
 }

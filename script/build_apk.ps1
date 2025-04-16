@@ -49,8 +49,21 @@ try
 
     # 4. 修改配置
     $content = Get-Content $manifestPath -Raw
-    $modified = $content -replace '(android:name="io\.flutter\.embedding\.android\.EnableImpeller"\s+android:value=")false(")', '$1true$2'
-
+    $pattern = '<meta-data\s+android:name="io\.flutter\.embedding\.android\.EnableImpeller"\s+android:value="false"\s*/>'
+    $replacement = '<!--        <meta-data
+                android:name="io.flutter.embedding.android.EnableImpeller"
+                android:value="false"/>-->'
+    $modified = $content -replace $pattern, $replacement
+    if ($content -ne $modified)
+    {
+        $modified | Set-Content $manifestPath
+        Write-Host "已注释掉 Impeller 配置"
+    }
+    else
+    {
+        Write-Warning "未找到需要修改的配置项"
+    }
+    
     if ($content -ne $modified)
     {
         $modified | Set-Content $manifestPath

@@ -9,6 +9,8 @@ import 'package:xml/xml.dart';
 import '../../../main.dart';
 import '../object_box/model.dart';
 
+final String version = "1.29.3";
+
 // 测试 WebDAV 服务是否可用
 Future<void> testWebDavServer() async {
   if (globalSetting.webdavHost.isEmpty ||
@@ -335,6 +337,7 @@ String _getNamespacePrefix(XmlDocument xmlDoc) {
 Future<void> uploadFile2WebDav() async {
   var allHistory = await objectbox.bikaHistoryBox.getAllAsync();
   allHistory.sort((a, b) => b.history.compareTo(a.history));
+
   var comicHistoriesJson = allHistory.map((comic) => comic.toJson()).toList();
   String comicHistoriesJsonString = jsonEncode(comicHistoriesJson);
 
@@ -350,7 +353,7 @@ Future<void> uploadFile2WebDav() async {
 
   var time = DateTime.now().toUtc().millisecondsSinceEpoch;
 
-  await _uploadDataToWebDav(compressedBytes, '/Breeze/BK_${time}_1.24.4.gz');
+  await _uploadDataToWebDav(compressedBytes, '/Breeze/BK_${time}_$version.gz');
 }
 
 List<int>? _encryptAndCompress(String data) {
@@ -410,9 +413,7 @@ Future<void> _uploadDataToWebDav(List<int> data, String remotePath) async {
 
 Future<String> getNeedDownloadUrl(List<String> urlList) async {
   List<String> timestampList = [];
-
-  // 正则表达式
-  final regex = RegExp(r'BK_(\d+)_1.24.4\.gz');
+  final regex = RegExp(r'BK_(\d+)_' + version + r'\.gz');
 
   for (var url in urlList) {
     // 匹配正则表达式
@@ -437,7 +438,7 @@ Future<String> getNeedDownloadUrl(List<String> urlList) async {
   // 找到最新时间戳对应的 URL
   String latestUrl = '';
   for (var url in urlList) {
-    if (url.contains('BK_${latestTimestamp}_1.24.4.gz')) {
+    if (url.contains('BK_${latestTimestamp}_$version.gz')) {
       latestUrl = url;
       break;
     }
@@ -538,79 +539,57 @@ Future<List<int>> _downloadFromWebDav(String remotePath) async {
 }
 
 Future<void> updateHistory(List<BikaComicHistory> comicHistories) async {
-  comicHistories.sort((a, b) => b.history.compareTo(a.history));
-  List<BikaComicHistory> needUpdateList = [];
-  List<int> needDeleteIdList = [];
-  var historyBox = await objectbox.bikaHistoryBox.getAllAsync();
-  historyBox.sort((a, b) => b.history.compareTo(a.history));
+  int i = 0;
+  // 获取本地历史记录
+  var localHistories = await objectbox.bikaHistoryBox.getAllAsync();
 
-  for (var cloudHistory in comicHistories) {
-    var localHistory =
-        historyBox
-            .where((history) => history.comicId == cloudHistory.comicId)
-            .firstOrNull;
+  List<BikaComicHistory> finalList = [];
 
-    if (localHistory != null) {
-      cloudHistory = mergeDeletedStatus(localHistory, cloudHistory);
+  for (var history in comicHistories) {
+    finalList.add(history);
+  }
 
-      // < 云端时间大于本地时间
-      // > 云端时间小于本地时间
-      if (localHistory.history.compareTo(cloudHistory.history) < 0) {
-        needDeleteIdList.add(localHistory.id);
-        cloudHistory.id = 0;
-        needUpdateList.add(cloudHistory);
-      } else {
-        cloudHistory.history = localHistory.history;
-        cloudHistory.order = localHistory.order;
-        cloudHistory.epTitle = localHistory.epTitle;
-        cloudHistory.epPageCount = localHistory.epPageCount;
-        needDeleteIdList.add(localHistory.id);
-        cloudHistory.id = 0;
-        needUpdateList.add(cloudHistory);
-      }
-    } else {
-      cloudHistory.id = 0;
-      needUpdateList.add(cloudHistory);
+  for (var history in localHistories) {
+    finalList.add(history);
+  }
+
+  finalList.sort((a, b) => b.history.compareTo(a.history));
+
+  for (var history in finalList) {
+    history.id = i++;
+  }
+
+  finalList = removeDuplicates(finalList);
+
+  for (var history in finalList) {
+    history.id = 0;
+  }
+
+  // 更新数据库
+  await objectbox.bikaHistoryBox.removeAllAsync();
+  await objectbox.bikaHistoryBox.putManyAsync(finalList);
+
+  logger.d('更新历史记录成功，共 ${finalList.length} 条记录');
+}
+
+List<BikaComicHistory> removeDuplicates(List<BikaComicHistory> list) {
+  Set<String> set = {};
+  List<int> idList = [];
+  List<BikaComicHistory> result = [];
+  for (var i = 0; i < list.length; i++) {
+    if (!set.contains(list[i].comicId)) {
+      set.add(list[i].comicId);
+      idList.add(list[i].id);
     }
   }
 
-  objectbox.bikaHistoryBox.removeMany(needDeleteIdList);
-  objectbox.bikaHistoryBox.putMany(needUpdateList);
-
-  logger.d('更新历史记录成功');
-}
-
-// 合并两个记录的删除状态和时间
-BikaComicHistory mergeDeletedStatus(
-  BikaComicHistory temp,
-  BikaComicHistory comicHistory,
-) {
-  if (temp.deleted || comicHistory.deleted) {
-    // 确定双方的最新删除时间和最新观看时间
-    final latestDeleteTime = _maxDateTime(
-      temp.deletedAt,
-      comicHistory.deletedAt,
-    );
-    final latestHistoryTime = _maxDateTime(temp.history, comicHistory.history);
-
-    // 判断删除是否发生在最后一次观看之后
-    if (latestDeleteTime.isAfter(latestHistoryTime)) {
-      // 保留删除状态（取时间更晚的删除记录）
-      comicHistory.deleted = true;
-      comicHistory.deletedAt = latestDeleteTime;
-    } else {
-      // 保留观看状态
-      comicHistory.deleted = false;
-      comicHistory.deletedAt = DateTime.utc(2000); // 重置删除时间
+  for (var i = 0; i < list.length; i++) {
+    if (idList.contains(i)) {
+      result.add(list[i]);
     }
   }
 
-  return comicHistory;
-}
-
-// 辅助函数：返回两个时间中较晚的一个
-DateTime _maxDateTime(DateTime a, DateTime b) {
-  return a.isAfter(b) ? a : b;
+  return result;
 }
 
 Future<void> deleteFileFromWebDav(List<String> remotePath) async {

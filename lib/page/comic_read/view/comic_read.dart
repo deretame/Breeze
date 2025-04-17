@@ -93,7 +93,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   int displayedSlot = 1; // 显示的当前槽位
   bool _isSliderRolling = false; // 滑块是否在滑动
   bool _isComicRolling = false; // 漫画本身是否在滚动
-  Timer? _timer; // 定时器，定时存储阅读记录
+  late Timer _timer; // 定时器，定时存储阅读记录
   TapDownDetails? _tapDownDetails; // 保存点击信息
 
   bool get _isHistory =>
@@ -169,7 +169,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _pageController.dispose();
     _itemPositionsListener.itemPositions.removeListener(() {});
-    _timer?.cancel();
+    _timer.cancel();
     super.dispose();
   }
 
@@ -414,8 +414,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       ..epPageCount = pageIndex
       ..epTitle = _doc.title
       ..epId = _epId
-      ..deleted = false
-      ..deletedAt = DateTime.utc(2000);
+      ..deleted = false;
     await objectbox.bikaHistoryBox.putAsync(comicHistory!);
     _isInserting = false;
     _lastUpdateTime = DateTime.now();

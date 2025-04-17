@@ -65,6 +65,5 @@ BikaComicHistory comicToBikaComicHistory(Comic comic, int order) {
     epPageCount: 0,
     epId: "",
     deleted: false,
-    deletedAt: DateTime.utc(2000),
   );
 }

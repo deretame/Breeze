@@ -114,7 +114,7 @@ Future<Map<String, dynamic>> request(
       ),
     );
 
-    logger.d(response.data);
+    // logger.d(response.data);
 
     return response.data;
   } on DioException catch (error) {

@@ -71,8 +71,6 @@ class BikaComicHistory {
   String epId;
 
   bool deleted;
-  @Property(type: PropertyType.date)
-  DateTime deletedAt;
 
   BikaComicHistory({
     this.id = 0,
@@ -123,7 +121,6 @@ class BikaComicHistory {
     required this.epPageCount,
     required this.epId,
     required this.deleted,
-    required this.deletedAt,
   });
 
   Map<String, dynamic> toJson() => _$BikaComicHistoryToJson(this);

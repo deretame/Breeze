@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_guard/permission_guard.dart';
+import 'package:zephyr/page/comic_info/comic_info.dart';
 
 import '../../../config/global.dart';
 import '../../../main.dart';
@@ -16,7 +17,6 @@ import '../../../widgets/error_view.dart';
 import '../../../widgets/toast.dart';
 import '../../download/json/comic_all_info_json/comic_all_info_json.dart'
     as comic_all_info_json;
-import '../comic_info.dart';
 import '../json/comic_info/comic_info.dart';
 import '../json/eps/eps.dart';
 
@@ -66,7 +66,7 @@ class _ComicInfoState extends State<_ComicInfo>
   bool _epsCompleted = false; // 用来判断章节是不是加载完毕了
   List<Doc> _epsInfo = [];
   late ComicEntryType _type;
-  Timer? _historyCheckTimer;
+  late Timer _historyCheckTimer;
 
   @override
   void initState() {
@@ -83,59 +83,17 @@ class _ComicInfoState extends State<_ComicInfo>
       comicHistory = null;
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      const duration = Duration(seconds: 1);
-      _historyCheckTimer = Timer.periodic(duration, (Timer timer) async {
-        if (!mounted) {
-          timer.cancel();
-          return;
-        }
-        var temp =
-            await objectbox.bikaHistoryBox
-                .query(BikaComicHistory_.comicId.equals(widget.comicId))
-                .build()
-                .findFirstAsync();
-        if (temp?.deleted == true) {
-          temp = null;
-        }
-        if (mounted && temp != null) {
-          setState(() => comicHistory = temp);
-        }
-      });
-    });
+    _historyCheckTimer = Timer.periodic(
+      Duration(seconds: 1),
+      _autoUpdateHistory,
+    );
 
-    if (_type == ComicEntryType.download) {
-      comicDownload =
-          objectbox.bikaDownloadBox
-              .query(BikaComicDownload_.comicId.equals(widget.comicId))
-              .build()
-              .findFirst();
-
-      if (comicDownload != null) {
-        comicAllInfo = comic_all_info_json.comicAllInfoJsonFromJson(
-          comicDownload!.comicInfoAll,
-        );
-        comicInfo = comicAllInfo2Comic(comicAllInfo!);
-      }
-
-      var epsDoc = comicAllInfo!.eps.docs;
-      for (var epDoc in epsDoc) {
-        _epsInfo.add(
-          Doc(
-            id: epDoc.id,
-            title: epDoc.title,
-            order: epDoc.order,
-            updatedAt: epDoc.updatedAt,
-            docId: epDoc.docId,
-          ),
-        );
-      }
-    }
+    _initDownloadInfo();
   }
 
   @override
   void dispose() {
-    _historyCheckTimer?.cancel();
+    _historyCheckTimer.cancel();
     super.dispose();
   }
 
@@ -411,5 +369,55 @@ class _ComicInfoState extends State<_ComicInfo>
         );
       },
     );
+  }
+
+  void _autoUpdateHistory(Timer timer) async {
+    if (!mounted) {
+      timer.cancel();
+      return;
+    }
+    var temp =
+        await objectbox.bikaHistoryBox
+            .query(BikaComicHistory_.comicId.equals(widget.comicId))
+            .build()
+            .findFirstAsync();
+    if (temp?.deleted == true) {
+      temp = null;
+    }
+    if (mounted &&
+        temp != null &&
+        temp.toString() != comicHistory!.toString()) {
+      setState(() => comicHistory = temp);
+    }
+  }
+
+  void _initDownloadInfo() {
+    if (_type == ComicEntryType.download) {
+      comicDownload =
+          objectbox.bikaDownloadBox
+              .query(BikaComicDownload_.comicId.equals(widget.comicId))
+              .build()
+              .findFirst();
+
+      if (comicDownload != null) {
+        comicAllInfo = comic_all_info_json.comicAllInfoJsonFromJson(
+          comicDownload!.comicInfoAll,
+        );
+        comicInfo = comicAllInfo2Comic(comicAllInfo!);
+      }
+
+      var epsDoc = comicAllInfo!.eps.docs;
+      for (var epDoc in epsDoc) {
+        _epsInfo.add(
+          Doc(
+            id: epDoc.id,
+            title: epDoc.title,
+            order: epDoc.order,
+            updatedAt: epDoc.updatedAt,
+            docId: epDoc.docId,
+          ),
+        );
+      }
+    }
   }
 }

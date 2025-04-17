@@ -61,6 +61,7 @@ class _RecommendWidget extends StatelessWidget {
   }
 
   Widget successWidget(RecommendState state) {
+    logger.d('RecommendWidget successWidget');
     if (state.comicList == null) {
       return SizedBox.shrink();
     }

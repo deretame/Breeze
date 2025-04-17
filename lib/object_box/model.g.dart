@@ -62,7 +62,6 @@ BikaComicHistory _$BikaComicHistoryFromJson(Map<String, dynamic> json) =>
       epPageCount: (json['epPageCount'] as num).toInt(),
       epId: json['epId'] as String,
       deleted: json['deleted'] as bool,
-      deletedAt: DateTime.parse(json['deletedAt'] as String),
     );
 
 Map<String, dynamic> _$BikaComicHistoryToJson(BikaComicHistory instance) =>
@@ -115,7 +114,6 @@ Map<String, dynamic> _$BikaComicHistoryToJson(BikaComicHistory instance) =>
       'epPageCount': instance.epPageCount,
       'epId': instance.epId,
       'deleted': instance.deleted,
-      'deletedAt': instance.deletedAt.toIso8601String(),
     };
 
 BikaComicDownload _$BikaComicDownloadFromJson(Map<String, dynamic> json) =>

@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:archive/archive.dart';
 import 'package:dio/dio.dart';
-import 'package:encrypt/encrypt.dart' as encrypt;
-import 'package:flutter/foundation.dart';
-import 'package:xml/xml.dart' as xml;
+import 'package:encrypt/encrypt.dart';
+import 'package:flutter/foundation.dart' show compute;
+import 'package:xml/xml.dart';
 
 import '../../../main.dart';
 import '../object_box/model.dart';
@@ -251,7 +251,7 @@ Future<void> checkOrCreateFixedDirectory() async {
 }
 
 // 判断是否是文件夹
-bool xmlIsDirectory(xml.XmlElement prop, String namespacePrefix) {
+bool xmlIsDirectory(XmlElement prop, String namespacePrefix) {
   // 动态构建元素名称
   var resourceTypeElement = '$namespacePrefix:resourcetype';
   var collectionElement = '$namespacePrefix:collection';
@@ -284,7 +284,7 @@ Future<List<String>> fetchWebDAVFiles() async {
 
     // 解析 XML 响应
     if (response.statusCode == 207) {
-      xml.XmlDocument xmlDoc = xml.XmlDocument.parse(response.data);
+      var xmlDoc = XmlDocument.parse(response.data);
 
       try {
         // 获取命名空间前缀
@@ -324,7 +324,7 @@ Future<List<String>> fetchWebDAVFiles() async {
 }
 
 // 获取命名空间前缀
-String _getNamespacePrefix(xml.XmlDocument xmlDoc) {
+String _getNamespacePrefix(XmlDocument xmlDoc) {
   var rootElement = xmlDoc.rootElement;
   var namespacePrefix = rootElement.name.prefix;
 
@@ -360,11 +360,9 @@ List<int>? _encryptAndCompress(String data) {
   // openssl enc -d -aes-256-ctr -iv 37714677547877482669797577333566 -K 5859214578336a3368505e42475046616e59456a4241214c216f44326b6b434e -in encrypted.bin -out decrypted.json
 
   try {
-    final key = encrypt.Key.fromUtf8("XY!Ex3j3hP^BGPFanYEjBA!L!oD2kkCN");
-    final iv = encrypt.IV.fromUtf8("7qFwTxwH&iyuw35f");
-    final encrypter = encrypt.Encrypter(
-      encrypt.AES(key, mode: encrypt.AESMode.ctr),
-    );
+    final key = Key.fromUtf8("XY!Ex3j3hP^BGPFanYEjBA!L!oD2kkCN");
+    final iv = IV.fromUtf8("7qFwTxwH&iyuw35f");
+    final encrypter = Encrypter(AES(key, mode: AESMode.ctr));
     final encrypted = encrypter.encrypt(data, iv: iv);
     final jsonBytes = utf8.encode(encrypted.base64);
     return GZipEncoder().encode(jsonBytes);
@@ -476,14 +474,12 @@ List<BikaComicHistory> _decompressAndDecrypt(List<int> compressedBytes) {
     final encryptedBase64 = utf8.decode(jsonBytes);
 
     // 解密数据
-    final key = encrypt.Key.fromUtf8("XY!Ex3j3hP^BGPFanYEjBA!L!oD2kkCN");
-    final iv = encrypt.IV.fromUtf8("7qFwTxwH&iyuw35f");
-    final encrypter = encrypt.Encrypter(
-      encrypt.AES(key, mode: encrypt.AESMode.ctr),
-    );
+    final key = Key.fromUtf8("XY!Ex3j3hP^BGPFanYEjBA!L!oD2kkCN");
+    final iv = IV.fromUtf8("7qFwTxwH&iyuw35f");
+    final encrypter = Encrypter(AES(key, mode: AESMode.ctr));
 
     // 解密
-    final encrypted = encrypt.Encrypted.fromBase64(encryptedBase64);
+    final encrypted = Encrypted.fromBase64(encryptedBase64);
     final decrypted = encrypter.decrypt(encrypted, iv: iv);
 
     // 将解密后的 JSON 字符串转换为对象

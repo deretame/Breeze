@@ -34,14 +34,14 @@ class _SliderWidgetState extends State<SliderWidget> {
   double get currentSliderValue => widget.currentSliderValue;
 
   Timer? _sliderIsRollingTimer; // 用来控制滚动隐藏组件的操作
-  Timer? comicRollingTimer; // 漫画本身是否在滚动
+  Timer? _comicRollingTimer; // 漫画本身是否在滚动
   OverlayEntry? _overlayEntry; // 用于存储 OverlayEntry
   int displayedSlot = 1; // 显示的当前槽位
 
   @override
   void dispose() {
     _sliderIsRollingTimer?.cancel();
-    comicRollingTimer?.cancel();
+    _comicRollingTimer?.cancel();
     _overlayEntry?.remove();
     super.dispose();
   }
@@ -73,7 +73,7 @@ class _SliderWidgetState extends State<SliderWidget> {
 
             widget.changeComicRollState(true);
             widget.changeSliderRollState(true);
-            comicRollingTimer = Timer(const Duration(milliseconds: 350), () {
+            _comicRollingTimer = Timer(const Duration(milliseconds: 350), () {
               widget.changeComicRollState(false);
               widget.changeSliderRollState(false);
 

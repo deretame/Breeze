@@ -31,7 +31,7 @@ class RowModeWidget extends StatefulWidget {
 }
 
 class _RowModeWidgetState extends State<RowModeWidget> {
-  Timer? _timer;
+  late Timer _timer;
 
   @override
   void initState() {
@@ -40,7 +40,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _timer.cancel();
     super.dispose();
   }
 
@@ -52,7 +52,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
       onPageChanged: (page) {
         if (widget.isSliderRolling) {
           // 如果 isSliderRolling 为真，重置定时器
-          _timer?.cancel(); // 取消之前的定时器
+          _timer.cancel(); // 取消之前的定时器
           _timer = Timer(Duration(milliseconds: 400), () {
             // 400 毫秒后触发 onPageChanged
             widget.onPageChanged(page);

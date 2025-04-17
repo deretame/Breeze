@@ -46,7 +46,7 @@ Widget deletingDialog(BuildContext context, Function refresh, DeleteType type) {
 
                       for (var history in allHistory) {
                         history.deleted = true;
-                        history.deletedAt = DateTime.now().toUtc();
+                        history.updatedAt = DateTime.now().toUtc();
                       }
 
                       objectbox.bikaHistoryBox.putMany(allHistory);

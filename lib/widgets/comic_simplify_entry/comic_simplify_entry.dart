@@ -202,7 +202,7 @@ class ComicSimplifyEntry extends StatelessWidget {
 
     if (temp != null) {
       temp.deleted = true;
-      temp.deletedAt = DateTime.now().toUtc();
+      temp.history = DateTime.now().toUtc();
       objectbox.bikaHistoryBox.put(temp);
     }
   }

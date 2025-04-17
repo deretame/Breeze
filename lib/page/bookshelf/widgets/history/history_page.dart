@@ -64,10 +64,12 @@ class __HistoryPageState extends State<_HistoryPage>
   int totalComicCount = 0;
   bool notice = false;
 
+  ScrollController get _scrollController => scrollControllers['history']!;
+
   @override
   void initState() {
     super.initState();
-    scrollControllers['history']!.addListener(_scrollListener);
+    _scrollController.addListener(_scrollListener);
 
     eventBus.on<HistoryEvent>().listen((event) {
       if (event.type == EventType.showInfo) {
@@ -223,7 +225,7 @@ class __HistoryPageState extends State<_HistoryPage>
               ? screenWidth * 0.425
               : 180.0 + (screenHeight / 10) * 0.1,
       physics: const AlwaysScrollableScrollPhysics(),
-      controller: scrollControllers['history']!,
+      controller: _scrollController,
       itemCount: itemCount,
       itemBuilder: itemBuilder,
     );
@@ -285,6 +287,11 @@ class __HistoryPageState extends State<_HistoryPage>
   }
 
   void _refresh(SearchStatusStore searchStatusStore) {
+    _scrollController.animateTo(
+      0,
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
     notice = false;
     eventBus.fire(HistoryEvent(EventType.showInfo));
     context.read<UserHistoryBloc>().add(

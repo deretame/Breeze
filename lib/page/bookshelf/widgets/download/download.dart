@@ -291,6 +291,11 @@ class _DownloadPageState extends State<_DownloadPage>
   }
 
   void _refresh(SearchStatusStore searchStatusStore) {
+    _scrollController.animateTo(
+      0,
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
     notice = false;
     eventBus.fire(DownloadEvent(EventType.showInfo));
     context.read<UserDownloadBloc>().add(

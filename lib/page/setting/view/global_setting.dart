@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
 
@@ -75,7 +78,13 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                     child: Text("整点颜色看看"),
                   ),
                   ElevatedButton(
-                    onPressed: () async {},
+                    onPressed: () async {
+                      objectbox.bikaHistoryBox.removeAll();
+                      var result = await objectbox.bikaHistoryBox.getAllAsync();
+                      var temp = result.map((e) => e.toJson()).toList();
+                      var json = jsonEncode(temp);
+                      await Clipboard.setData(ClipboardData(text: json));
+                    },
                     child: Text("测试用的玩意儿"),
                   ),
                 ],

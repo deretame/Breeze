@@ -39,8 +39,6 @@ class _NavigationBarState extends State<NavigationBar> {
     initialIndex: 0,
   );
 
-  StreamSubscription<NoticeSync>? _subscription;
-
   // 页面列表
   final List<Widget> _pageList = [
     BookshelfPage(),
@@ -67,7 +65,7 @@ class _NavigationBarState extends State<NavigationBar> {
     });
 
     // 用来手动触发同步
-    _subscription = eventBus.on<NoticeSync>().listen((event) {
+    eventBus.on<NoticeSync>().listen((event) {
       _autoSync();
     });
 
@@ -87,7 +85,6 @@ class _NavigationBarState extends State<NavigationBar> {
 
   @override
   void dispose() {
-    _subscription?.cancel();
     _removeOverlay(); // 移除遮罩层
     super.dispose();
   }

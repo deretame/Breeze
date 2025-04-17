@@ -8,13 +8,10 @@ import 'package:zephyr/main.dart';
 
 import '../../page/navigation_bar.dart';
 
-String _getNonce() {
-  return const Uuid().v4().replaceAll('-', '');
-}
+String _getNonce() => Uuid().v4().replaceAll('-', '');
 
-int _getCurrentTimestamp() {
-  return (DateTime.now().millisecondsSinceEpoch / 1000).floor();
-}
+int _getCurrentTimestamp() =>
+    (DateTime.now().millisecondsSinceEpoch / 1000).floor();
 
 String _getSignature(
   String url,
@@ -39,16 +36,15 @@ String _getSignature(
   return digest.toString();
 }
 
-Map<String, String> _getRequestHeaders(
+Map<String, dynamic> _getRequestHeaders(
   String url,
-  String method, {
-  String body = "",
-  String imageQuality = "",
-}) {
-  String? authorization = bikaSetting.authorization;
-  String nonce = _getNonce();
-  int timestamp = _getCurrentTimestamp();
-  String signature = _getSignature(
+  String method,
+  String? body,
+  String? imageQuality,
+) {
+  var nonce = _getNonce();
+  var timestamp = _getCurrentTimestamp();
+  var signature = _getSignature(
     url,
     timestamp,
     nonce,
@@ -56,11 +52,11 @@ Map<String, String> _getRequestHeaders(
     "C69BAF41DA5ABD1FFEDC6D2FEA56B",
   );
 
-  Map<String, String> headers = {
+  Map<String, dynamic> headers = {
     'api-key': "C69BAF41DA5ABD1FFEDC6D2FEA56B",
     'accept': 'application/vnd.picacomic.com.v1+json',
-    'app-channel': bikaSetting.getProxy().toString(),
-    'time': timestamp.toString(),
+    'app-channel': bikaSetting.proxy,
+    'time': timestamp,
     'nonce': nonce,
     'signature': signature,
     'app-version': "2.2.1.3.3.4",
@@ -69,25 +65,10 @@ Map<String, String> _getRequestHeaders(
     'app-build-version': "45",
     'accept-encoding': 'gzip',
     'user-agent': 'okhttp/3.8.1',
+    'content-type': 'application/json; charset=UTF-8',
+    'image-quality': imageQuality ?? bikaSetting.imageQuality,
+    'authorization': bikaSetting.authorization,
   };
-
-  if ((method == 'POST' || method == 'PUT')) {
-    if (body.isNotEmpty) {
-      headers['Content-Length'] = utf8.encode(body).length.toString();
-      headers['content-type'] = 'application/json; charset=UTF-8';
-    } else {
-      headers['Content-Length'] = '0';
-    }
-  }
-
-  if (authorization.isNotEmpty &&
-      !url.contains('/auth/sign-in') &&
-      !url.contains('/auth/register')) {
-    headers['authorization'] = authorization;
-  }
-
-  headers['image-quality'] =
-      imageQuality.isEmpty ? bikaSetting.imageQuality : imageQuality;
 
   return headers;
 }
@@ -95,26 +76,15 @@ Map<String, String> _getRequestHeaders(
 Future<Map<String, dynamic>> request(
   String url,
   String method, {
-  String body = "",
+  String? body,
   bool cache = false,
-  String imageQuality = "",
+  String? imageQuality,
 }) async {
-  final headers = _getRequestHeaders(
-    url,
-    method,
-    body: body,
-    imageQuality: imageQuality,
-  );
-
-  // 根据useCache决定是否添加缓存拦截器
   if (cache) {
     dio.interceptors.add(cacheInterceptor);
   } else {
     dio.interceptors.removeWhere((Interceptor i) => i == cacheInterceptor);
   }
-
-  final data =
-      body.isNotEmpty && (method == 'POST' || method == 'PUT') ? body : null;
 
   try {
     // 使用优选 IP 替换原始域名
@@ -135,17 +105,20 @@ Future<Map<String, dynamic>> request(
 
     final response = await dio.request(
       requestUrl,
-      data: data,
+      data: body,
       options: Options(
         method: method,
-        headers: headers,
+        headers: _getRequestHeaders(url, method, body, imageQuality),
         sendTimeout: const Duration(seconds: 10), // 连接超时时间
         receiveTimeout: const Duration(seconds: 10), // 接收超时时间
       ),
     );
 
+    logger.d(response.data);
+
     return response.data;
   } on DioException catch (error) {
+    logger.d(error, stackTrace: error.stackTrace);
     // 如果是掉登录了
     if (error.response?.data?['code'] == 401 &&
         error.response?.data?['message'] == 'unauthorized') {
@@ -155,8 +128,6 @@ Future<Map<String, dynamic>> request(
 
     // 抛出封装后的错误信息
     throw Exception(_handleDioError(error));
-  } catch (error) {
-    throw Exception('General Error: ${error.toString()}');
   }
 }
 

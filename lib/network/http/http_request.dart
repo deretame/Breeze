@@ -16,8 +16,6 @@ Future<Map<String, dynamic>> login(String username, String password) async {
     body: json.encode({'email': username, 'password': password}),
   );
 
-  logger.d(limitString(data.toString(), 150));
-
   if (data['code'] != 200) {
     throw data;
   }
@@ -52,8 +50,6 @@ Future<Map<String, dynamic>> register(
     body: json.encode(jsonMap),
   );
 
-  logger.d(limitString(data.toString(), 150));
-
   if (data['code'] != 200) {
     throw data;
   }
@@ -67,8 +63,6 @@ Future<Map<String, dynamic>> getCategories() async {
     'GET',
     cache: false,
   );
-
-  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -92,8 +86,6 @@ Future<Map<String, dynamic>> getRankingList({
   }
 
   final Map<String, dynamic> data = await request(url, 'GET', cache: true);
-
-  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -159,8 +151,6 @@ Future<Map<String, dynamic>> search({
     );
   }
 
-  logger.d(limitString(data.toString(), 150));
-
   if (data['code'] != 200) {
     throw data;
   }
@@ -175,8 +165,6 @@ Future<Map<String, dynamic>> getSearchKeywords() async {
     cache: true,
   );
 
-  logger.d(limitString(data.toString(), 150));
-
   if (data['code'] != 200) {
     throw data;
   }
@@ -189,8 +177,6 @@ Future<Map<String, dynamic>> getComicInfo(String comicId) async {
     'https://picaapi.picacomic.com/comics/$comicId',
     'GET',
   );
-
-  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -205,8 +191,6 @@ Future<Map<String, dynamic>> favouriteComic(String comicId) async {
     'POST',
   );
 
-  logger.d(limitString(data.toString(), 150));
-
   if (data['code'] != 200) {
     throw data;
   }
@@ -220,8 +204,6 @@ Future<Map<String, dynamic>> likeComic(String comicId) async {
     'POST',
   );
 
-  logger.d(limitString(data.toString(), 150));
-
   if (data['code'] != 200) {
     throw data;
   }
@@ -234,8 +216,6 @@ Future<Map<String, dynamic>> getComments(String comicId, int pageCount) async {
     'https://picaapi.picacomic.com/comics/$comicId/comments?page=$pageCount',
     'GET',
   );
-
-  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -253,8 +233,6 @@ Future<Map<String, dynamic>> getCommentsChildren(
     'GET',
   );
 
-  logger.d(limitString(data.toString(), 150));
-
   if (data['code'] != 200) {
     throw data;
   }
@@ -267,8 +245,6 @@ Future<Map<String, dynamic>> likeComment(String comicId) async {
     'https://picaapi.picacomic.com/comments/$comicId/like',
     'POST',
   );
-
-  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -287,8 +263,6 @@ Future<Map<String, dynamic>> writeComment(
     body: json.encode({'content': content}),
   );
 
-  logger.d(limitString(data.toString(), 150));
-
   if (data['code'] != 200) {
     throw data;
   }
@@ -306,8 +280,6 @@ Future<Map<String, dynamic>> writeCommentChildren(
     body: json.encode({'content': content}),
   );
 
-  logger.d(limitString(data.toString(), 150));
-
   if (data['code'] != 200) {
     throw data;
   }
@@ -320,8 +292,6 @@ Future<Map<String, dynamic>> reportComments(String commentId) async {
     'https://picaapi.picacomic.com/comments/$commentId/report',
     'POST',
   );
-
-  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -337,8 +307,6 @@ Future<Map<String, dynamic>> getEps(String comicId, int pageCount) async {
     cache: true,
   );
 
-  logger.d(limitString(data.toString(), 150));
-
   if (data['code'] != 200) {
     throw data;
   }
@@ -352,8 +320,6 @@ Future<Map<String, dynamic>> getRecommend(String comicId) async {
     'GET',
     cache: true,
   );
-
-  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -374,8 +340,6 @@ Future<Map<String, dynamic>> getPages(
     cache: true,
   );
 
-  logger.d(limitString(data.toString(), 150));
-
   if (data['code'] != 200) {
     throw data;
   }
@@ -388,8 +352,6 @@ Future<Map<String, dynamic>> getUserProfile() async {
     'https://picaapi.picacomic.com/users/profile',
     'GET',
   );
-
-  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -405,8 +367,6 @@ Future<Map<String, dynamic>> updateAvatar(String avatarBASE64String) async {
     body: json.encode({"avatar": "data:image/jpeg;base64,$avatarBASE64String"}),
   );
 
-  logger.d(limitString(data.toString(), 150));
-
   if (data['code'] != 200) {
     throw data;
   }
@@ -421,8 +381,6 @@ Future<Map<String, dynamic>> updateProfile(String profile) async {
     'PUT',
     body: json.encode({"slogan": profile}),
   );
-
-  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -441,8 +399,6 @@ Future<Map<String, dynamic>> updatePassword(String newPassword) async {
     }),
   );
 
-  logger.d(limitString(data.toString(), 150));
-
   if (data['code'] != 200) {
     throw data;
   }
@@ -455,8 +411,6 @@ Future<Map<String, dynamic>> getFavorites(int pageCount) async {
     'https://picaapi.picacomic.com/users/favourite?s=dd&page=$pageCount',
     'GET',
   );
-
-  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;
@@ -471,8 +425,6 @@ Future<Map<String, dynamic>> getUserComments(int pageCount) async {
     'GET',
   );
 
-  logger.d(limitString(data.toString(), 150));
-
   if (data['code'] != 200) {
     throw data;
   }
@@ -485,8 +437,6 @@ Future<String> signIn() async {
     'https://picaapi.picacomic.com/users/punch-in',
     'POST',
   );
-
-  logger.d(limitString(data.toString(), 150));
 
   if (data['code'] != 200) {
     throw data;

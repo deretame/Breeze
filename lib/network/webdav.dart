@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:archive/archive.dart';
@@ -61,7 +62,7 @@ Future<void> testWebDavServer() async {
   }
 }
 
-Dio? getWebDavDio() {
+Dio getWebDavDio() {
   if (globalSetting.webdavHost.isEmpty ||
       globalSetting.webdavUsername.isEmpty ||
       globalSetting.webdavPassword.isEmpty) {
@@ -84,9 +85,6 @@ Dio? getWebDavDio() {
 // 创建目录（如果不存在）
 Future<void> createParentDirectory(String path) async {
   Dio? dio = getWebDavDio();
-  if (dio == null) {
-    throw Exception('WebDAV 配置不完整');
-  }
 
   try {
     // 检查目录是否已经存在
@@ -126,10 +124,7 @@ Future<void> createParentDirectory(String path) async {
 
 // 检查路径是否是文件夹
 Future<bool> isDirectory(String path) async {
-  Dio? dio = getWebDavDio();
-  if (dio == null) {
-    throw Exception('WebDAV 配置不完整');
-  }
+  Dio dio = getWebDavDio();
 
   try {
     // 发送 PROPFIND 请求获取路径属性
@@ -162,10 +157,7 @@ Future<void> checkOrCreateFixedDirectory() async {
   const String dirPath = '/Breeze/';
 
   // 获取 Dio 实例
-  Dio? dio = getWebDavDio();
-  if (dio == null) {
-    throw Exception('WebDAV 配置不完整');
-  }
+  Dio dio = getWebDavDio();
 
   try {
     // 发送 HEAD 请求检查目录是否存在
@@ -274,10 +266,6 @@ Future<List<String>> fetchWebDAVFiles() async {
     // 获取 Dio 实例
     final dio = getWebDavDio();
 
-    if (dio == null) {
-      throw Exception('WebDAV 配置不完整');
-    }
-
     // 发送 PROPFIND 请求
     Response response = await dio.request(
       '/Breeze/',
@@ -376,9 +364,6 @@ List<int>? _encryptAndCompress(String data) {
 
 Future<void> _uploadDataToWebDav(List<int> data, String remotePath) async {
   final dio = getWebDavDio();
-  if (dio == null) {
-    throw Exception('WebDAV 配置不完整');
-  }
 
   try {
     // 发送 PUT 请求上传数据
@@ -498,9 +483,6 @@ List<BikaComicHistory> _decompressAndDecrypt(List<int> compressedBytes) {
 
 Future<List<int>> _downloadFromWebDav(String remotePath) async {
   final dio = getWebDavDio();
-  if (dio == null) {
-    throw Exception('WebDAV 配置不完整');
-  }
 
   const maxRetries = 3;
   const retryDelay = Duration(seconds: 2);
@@ -539,30 +521,26 @@ Future<List<int>> _downloadFromWebDav(String remotePath) async {
 }
 
 Future<void> updateHistory(List<BikaComicHistory> comicHistories) async {
-  int i = 0;
-  // 获取本地历史记录
-  var localHistories = await objectbox.bikaHistoryBox.getAllAsync();
+  // 合并本地和云端历史记录
+  final localHistories = await objectbox.bikaHistoryBox.getAllAsync();
+  final combined = [...comicHistories, ...localHistories];
 
-  List<BikaComicHistory> finalList = [];
+  // 按时间降序排序（最新的在前）
+  combined.sort((a, b) => b.history.compareTo(a.history));
 
-  for (var history in comicHistories) {
-    finalList.add(history);
+  // 使用 LinkedHashMap 去重（保留最先出现的记录，即最新记录）
+  final uniqueMap = LinkedHashMap<String, BikaComicHistory>(
+    equals: (a, b) => a == b,
+    hashCode: (e) => e.hashCode,
+  );
+  for (var item in combined) {
+    uniqueMap.putIfAbsent(item.comicId, () => item);
   }
 
-  for (var history in localHistories) {
-    finalList.add(history);
-  }
-
-  finalList.sort((a, b) => b.history.compareTo(a.history));
-
-  for (var history in finalList) {
-    history.id = i++;
-  }
-
-  finalList = removeDuplicates(finalList);
-
-  for (var history in finalList) {
-    history.id = 0;
+  // 准备最终列表并重置 ID
+  final finalList = uniqueMap.values.toList();
+  for (var item in finalList) {
+    item.id = 0; // ObjectBox 插入需要 ID 为 0
   }
 
   // 更新数据库
@@ -572,56 +550,28 @@ Future<void> updateHistory(List<BikaComicHistory> comicHistories) async {
   logger.d('更新历史记录成功，共 ${finalList.length} 条记录');
 }
 
-List<BikaComicHistory> removeDuplicates(List<BikaComicHistory> list) {
-  Set<String> set = {};
-  List<int> idList = [];
-  List<BikaComicHistory> result = [];
-  for (var i = 0; i < list.length; i++) {
-    if (!set.contains(list[i].comicId)) {
-      set.add(list[i].comicId);
-      idList.add(list[i].id);
-    }
-  }
-
-  for (var i = 0; i < list.length; i++) {
-    if (idList.contains(i)) {
-      result.add(list[i]);
-    }
-  }
-
-  return result;
-}
-
 Future<void> deleteFileFromWebDav(List<String> remotePath) async {
   final dio = getWebDavDio();
-  if (dio == null) {
-    throw Exception('WebDAV 配置不完整');
-  }
-  try {
-    for (var path in remotePath) {
-      try {
-        // 发送 DELETE 请求删除文件
-        final response = await dio.delete(path);
 
-        // 检查状态码
-        if (response.statusCode == 200 || response.statusCode == 204) {
-          logger.d('文件删除成功: $path');
-        } else {
-          throw Exception('文件删除失败，状态码: ${response.statusCode}');
-        }
-      } on DioException catch (e) {
-        if (e.response != null) {
-          throw Exception(
-            '文件删除失败: ${e.message}\n${e.response?.statusCode}\n${e.response?.data}',
-          );
-        } else {
-          throw Exception('文件删除失败: ${e.message}');
-        }
-      } catch (e) {
-        throw Exception('未知错误: $e');
+  for (var path in remotePath) {
+    try {
+      final response = await dio.delete(path);
+
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        logger.e('文件删除失败，状态码: ${response.statusCode}');
+        continue; // 或者 throw 根据你的需求
       }
+
+      logger.d('文件删除成功: $path');
+    } on DioException catch (e) {
+      final errorMessage =
+          e.response != null
+              ? '文件删除失败: ${e.message}\n${e.response?.statusCode}\n${e.response?.data}'
+              : '文件删除失败: ${e.message}';
+
+      throw Exception(errorMessage);
+    } catch (e, stackTrace) {
+      Error.throwWithStackTrace(Exception('未知错误: $e'), stackTrace);
     }
-  } catch (e) {
-    logger.e('删除文件失败: $e');
   }
 }

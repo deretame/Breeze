@@ -2,12 +2,12 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/mobx/string_select.dart';
-import 'package:zephyr/page/bookshelf/bookshelf.dart';
+import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnterConst;
 
 import '../../../main.dart';
 import '../../../mobx/int_select.dart';
 import '../../../util/router/router.gr.dart';
-import '../../search_result/models/search_enter.dart' as search_result;
+import '../../search_result/models/search_enter.dart' show SearchEnterConst;
 
 @RoutePage()
 class BookshelfPage extends StatefulWidget {
@@ -71,12 +71,11 @@ class _BookshelfPageState extends State<BookshelfPage>
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed:
-                () => AutoRouter.of(context).push(
-                  SearchResultRoute(
-                    searchEnterConst: search_result.SearchEnterConst(),
-                  ),
-                ),
+            onPressed: () {
+              AutoRouter.of(
+                context,
+              ).push(SearchResultRoute(searchEnterConst: SearchEnterConst()));
+            },
           ),
         ],
         bottom: PreferredSize(

@@ -71,10 +71,10 @@ class _SideDrawerState extends State<SideDrawer> {
               AppBar(
                 title: Text(
                   indexStore.date == 0
-                      ? "收藏筛选"
+                      ? "收藏"
                       : indexStore.date == 1
-                      ? "历史筛选"
-                      : "下载筛选",
+                      ? "历史"
+                      : "下载",
                 ),
                 automaticallyImplyLeading: false, // 不显示默认的返回按钮
                 actions: [

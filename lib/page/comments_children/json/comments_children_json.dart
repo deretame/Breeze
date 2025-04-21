@@ -16,7 +16,7 @@ String commentsChildrenJsonToJson(CommentsChildrenJson data) =>
     json.encode(data.toJson());
 
 @freezed
-class CommentsChildrenJson with _$CommentsChildrenJson {
+abstract class CommentsChildrenJson with _$CommentsChildrenJson {
   const factory CommentsChildrenJson({
     @JsonKey(name: "code") required int code,
     @JsonKey(name: "message") required String message,
@@ -28,7 +28,7 @@ class CommentsChildrenJson with _$CommentsChildrenJson {
 }
 
 @freezed
-class Data with _$Data {
+abstract class Data with _$Data {
   const factory Data({@JsonKey(name: "comments") required Comments comments}) =
       _Data;
 
@@ -36,7 +36,7 @@ class Data with _$Data {
 }
 
 @freezed
-class Comments with _$Comments {
+abstract class Comments with _$Comments {
   const factory Comments({
     @JsonKey(name: "docs") required List<Doc> docs,
     @JsonKey(name: "total") required int total,
@@ -50,7 +50,7 @@ class Comments with _$Comments {
 }
 
 @freezed
-class Doc with _$Doc {
+abstract class Doc with _$Doc {
   const factory Doc({
     @JsonKey(name: "_id") required String id,
     @JsonKey(name: "content") required String content,
@@ -70,7 +70,7 @@ class Doc with _$Doc {
 }
 
 @freezed
-class User with _$User {
+abstract class User with _$User {
   const factory User({
     @JsonKey(name: "_id") required String id,
     @JsonKey(name: "gender") required String gender,
@@ -90,7 +90,7 @@ class User with _$User {
 }
 
 @freezed
-class Avatar with _$Avatar {
+abstract class Avatar with _$Avatar {
   const factory Avatar({
     @JsonKey(name: "originalName") required String originalName,
     @JsonKey(name: "path") required String path,

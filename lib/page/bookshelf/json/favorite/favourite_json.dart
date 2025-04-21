@@ -15,7 +15,7 @@ FavouriteJson favouriteJsonFromJson(String str) =>
 String favouriteJsonToJson(FavouriteJson data) => json.encode(data.toJson());
 
 @freezed
-class FavouriteJson with _$FavouriteJson {
+abstract class FavouriteJson with _$FavouriteJson {
   const factory FavouriteJson({
     @JsonKey(name: "code") required int code,
     @JsonKey(name: "message") required String message,
@@ -27,14 +27,14 @@ class FavouriteJson with _$FavouriteJson {
 }
 
 @freezed
-class Data with _$Data {
+abstract class Data with _$Data {
   const factory Data({@JsonKey(name: "comics") required Comics comics}) = _Data;
 
   factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 }
 
 @freezed
-class Comics with _$Comics {
+abstract class Comics with _$Comics {
   const factory Comics({
     @JsonKey(name: "pages") required int pages,
     @JsonKey(name: "total") required int total,
@@ -47,7 +47,7 @@ class Comics with _$Comics {
 }
 
 @freezed
-class Doc with _$Doc {
+abstract class Doc with _$Doc {
   const factory Doc({
     @JsonKey(name: "_id") required String id,
     @JsonKey(name: "title") required String title,
@@ -66,7 +66,7 @@ class Doc with _$Doc {
 }
 
 @freezed
-class Thumb with _$Thumb {
+abstract class Thumb with _$Thumb {
   const factory Thumb({
     @JsonKey(name: "fileServer") required String fileServer,
     @JsonKey(name: "path") required String path,

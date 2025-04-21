@@ -14,7 +14,7 @@ Eps epsFromJson(String str) => Eps.fromJson(json.decode(str));
 String epsToJson(Eps data) => json.encode(data.toJson());
 
 @freezed
-class Eps with _$Eps {
+abstract class Eps with _$Eps {
   const factory Eps({
     @JsonKey(name: "code") required int code,
     @JsonKey(name: "message") required String message,
@@ -25,14 +25,14 @@ class Eps with _$Eps {
 }
 
 @freezed
-class Data with _$Data {
+abstract class Data with _$Data {
   const factory Data({@JsonKey(name: "eps") required EpsClass eps}) = _Data;
 
   factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 }
 
 @freezed
-class EpsClass with _$EpsClass {
+abstract class EpsClass with _$EpsClass {
   const factory EpsClass({
     @JsonKey(name: "docs") required List<Doc> docs,
     @JsonKey(name: "total") required int total,
@@ -46,7 +46,7 @@ class EpsClass with _$EpsClass {
 }
 
 @freezed
-class Doc with _$Doc {
+abstract class Doc with _$Doc {
   const factory Doc({
     @JsonKey(name: "_id") required String id,
     @JsonKey(name: "title") required String title,

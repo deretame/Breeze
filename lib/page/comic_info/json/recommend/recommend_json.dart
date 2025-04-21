@@ -15,7 +15,7 @@ RecommendJson recommendJsonFromJson(String str) =>
 String recommendJsonToJson(RecommendJson data) => json.encode(data.toJson());
 
 @freezed
-class RecommendJson with _$RecommendJson {
+abstract class RecommendJson with _$RecommendJson {
   const factory RecommendJson({
     @JsonKey(name: "code") required int code,
     @JsonKey(name: "message") required String message,
@@ -27,7 +27,7 @@ class RecommendJson with _$RecommendJson {
 }
 
 @freezed
-class Data with _$Data {
+abstract class Data with _$Data {
   const factory Data({@JsonKey(name: "comics") required List<Comic> comics}) =
       _Data;
 
@@ -35,7 +35,7 @@ class Data with _$Data {
 }
 
 @freezed
-class Comic with _$Comic {
+abstract class Comic with _$Comic {
   const factory Comic({
     @JsonKey(name: "_id") required String id,
     @JsonKey(name: "title") required String title,
@@ -52,7 +52,7 @@ class Comic with _$Comic {
 }
 
 @freezed
-class Thumb with _$Thumb {
+abstract class Thumb with _$Thumb {
   const factory Thumb({
     @JsonKey(name: "originalName") required String originalName,
     @JsonKey(name: "path") required String path,

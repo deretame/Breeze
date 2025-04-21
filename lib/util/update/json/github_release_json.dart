@@ -18,7 +18,7 @@ String githubReleaseJsonToJson(List<GithubReleaseJson> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
 @freezed
-class GithubReleaseJson with _$GithubReleaseJson {
+abstract class GithubReleaseJson with _$GithubReleaseJson {
   const factory GithubReleaseJson({
     @JsonKey(name: "url") required String url,
     @JsonKey(name: "assets_url") required String assetsUrl,
@@ -45,7 +45,7 @@ class GithubReleaseJson with _$GithubReleaseJson {
 }
 
 @freezed
-class Asset with _$Asset {
+abstract class Asset with _$Asset {
   const factory Asset({
     @JsonKey(name: "url") required String url,
     @JsonKey(name: "id") required int id,
@@ -66,7 +66,7 @@ class Asset with _$Asset {
 }
 
 @freezed
-class Author with _$Author {
+abstract class Author with _$Author {
   const factory Author({
     @JsonKey(name: "login") required String login,
     @JsonKey(name: "id") required int id,

@@ -14,7 +14,7 @@ ComicInfo comicInfoFromJson(String str) => ComicInfo.fromJson(json.decode(str));
 String comicInfoToJson(ComicInfo data) => json.encode(data.toJson());
 
 @freezed
-class ComicInfo with _$ComicInfo {
+abstract class ComicInfo with _$ComicInfo {
   const factory ComicInfo({
     @JsonKey(name: "code") required int code,
     @JsonKey(name: "message") required String message,
@@ -26,14 +26,14 @@ class ComicInfo with _$ComicInfo {
 }
 
 @freezed
-class Data with _$Data {
+abstract class Data with _$Data {
   const factory Data({@JsonKey(name: "comic") required Comic comic}) = _Data;
 
   factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 }
 
 @freezed
-class Comic with _$Comic {
+abstract class Comic with _$Comic {
   const factory Comic({
     @JsonKey(name: "_id") required String id,
     @JsonKey(name: "_creator") required Creator creator,
@@ -65,7 +65,7 @@ class Comic with _$Comic {
 }
 
 @freezed
-class Creator with _$Creator {
+abstract class Creator with _$Creator {
   const factory Creator({
     @JsonKey(name: "_id") required String id,
     @JsonKey(name: "gender") required String gender,
@@ -85,7 +85,7 @@ class Creator with _$Creator {
 }
 
 @freezed
-class Thumb with _$Thumb {
+abstract class Thumb with _$Thumb {
   const factory Thumb({
     @JsonKey(name: "originalName") required String originalName,
     @JsonKey(name: "path") required String path,

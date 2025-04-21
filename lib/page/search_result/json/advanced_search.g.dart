@@ -6,28 +6,28 @@ part of 'advanced_search.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$AdvancedSearchImpl _$$AdvancedSearchImplFromJson(Map<String, dynamic> json) =>
-    _$AdvancedSearchImpl(
+_AdvancedSearch _$AdvancedSearchFromJson(Map<String, dynamic> json) =>
+    _AdvancedSearch(
       code: (json['code'] as num).toInt(),
       message: json['message'] as String,
       data: Data.fromJson(json['data'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$AdvancedSearchImplToJson(
-  _$AdvancedSearchImpl instance,
-) => <String, dynamic>{
-  'code': instance.code,
-  'message': instance.message,
-  'data': instance.data,
+Map<String, dynamic> _$AdvancedSearchToJson(_AdvancedSearch instance) =>
+    <String, dynamic>{
+      'code': instance.code,
+      'message': instance.message,
+      'data': instance.data,
+    };
+
+_Data _$DataFromJson(Map<String, dynamic> json) =>
+    _Data(comics: Comics.fromJson(json['comics'] as Map<String, dynamic>));
+
+Map<String, dynamic> _$DataToJson(_Data instance) => <String, dynamic>{
+  'comics': instance.comics,
 };
 
-_$DataImpl _$$DataImplFromJson(Map<String, dynamic> json) =>
-    _$DataImpl(comics: Comics.fromJson(json['comics'] as Map<String, dynamic>));
-
-Map<String, dynamic> _$$DataImplToJson(_$DataImpl instance) =>
-    <String, dynamic>{'comics': instance.comics};
-
-_$ComicsImpl _$$ComicsImplFromJson(Map<String, dynamic> json) => _$ComicsImpl(
+_Comics _$ComicsFromJson(Map<String, dynamic> json) => _Comics(
   total: (json['total'] as num).toInt(),
   page: (json['page'] as num).toInt(),
   pages: (json['pages'] as num).toInt(),
@@ -38,16 +38,15 @@ _$ComicsImpl _$$ComicsImplFromJson(Map<String, dynamic> json) => _$ComicsImpl(
   limit: (json['limit'] as num).toInt(),
 );
 
-Map<String, dynamic> _$$ComicsImplToJson(_$ComicsImpl instance) =>
-    <String, dynamic>{
-      'total': instance.total,
-      'page': instance.page,
-      'pages': instance.pages,
-      'docs': instance.docs,
-      'limit': instance.limit,
-    };
+Map<String, dynamic> _$ComicsToJson(_Comics instance) => <String, dynamic>{
+  'total': instance.total,
+  'page': instance.page,
+  'pages': instance.pages,
+  'docs': instance.docs,
+  'limit': instance.limit,
+};
 
-_$DocImpl _$$DocImplFromJson(Map<String, dynamic> json) => _$DocImpl(
+_Doc _$DocFromJson(Map<String, dynamic> json) => _Doc(
   updatedAt: DateTime.parse(json['updated_at'] as String),
   thumb: Thumb.fromJson(json['thumb'] as Map<String, dynamic>),
   author: json['author'] as String,
@@ -63,7 +62,7 @@ _$DocImpl _$$DocImplFromJson(Map<String, dynamic> json) => _$DocImpl(
   likesCount: (json['likesCount'] as num).toInt(),
 );
 
-Map<String, dynamic> _$$DocImplToJson(_$DocImpl instance) => <String, dynamic>{
+Map<String, dynamic> _$DocToJson(_Doc instance) => <String, dynamic>{
   'updated_at': instance.updatedAt.toIso8601String(),
   'thumb': instance.thumb,
   'author': instance.author,
@@ -78,15 +77,14 @@ Map<String, dynamic> _$$DocImplToJson(_$DocImpl instance) => <String, dynamic>{
   'likesCount': instance.likesCount,
 };
 
-_$ThumbImpl _$$ThumbImplFromJson(Map<String, dynamic> json) => _$ThumbImpl(
+_Thumb _$ThumbFromJson(Map<String, dynamic> json) => _Thumb(
   originalName: json['originalName'] as String,
   path: json['path'] as String,
   fileServer: json['fileServer'] as String,
 );
 
-Map<String, dynamic> _$$ThumbImplToJson(_$ThumbImpl instance) =>
-    <String, dynamic>{
-      'originalName': instance.originalName,
-      'path': instance.path,
-      'fileServer': instance.fileServer,
-    };
+Map<String, dynamic> _$ThumbToJson(_Thumb instance) => <String, dynamic>{
+  'originalName': instance.originalName,
+  'path': instance.path,
+  'fileServer': instance.fileServer,
+};

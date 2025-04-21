@@ -6,51 +6,48 @@ part of 'user_comments_json.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$UserCommentsJsonImpl _$$UserCommentsJsonImplFromJson(
-  Map<String, dynamic> json,
-) => _$UserCommentsJsonImpl(
-  code: (json['code'] as num).toInt(),
-  message: json['message'] as String,
-  data: Data.fromJson(json['data'] as Map<String, dynamic>),
-);
+_UserCommentsJson _$UserCommentsJsonFromJson(Map<String, dynamic> json) =>
+    _UserCommentsJson(
+      code: (json['code'] as num).toInt(),
+      message: json['message'] as String,
+      data: Data.fromJson(json['data'] as Map<String, dynamic>),
+    );
 
-Map<String, dynamic> _$$UserCommentsJsonImplToJson(
-  _$UserCommentsJsonImpl instance,
-) => <String, dynamic>{
-  'code': instance.code,
-  'message': instance.message,
-  'data': instance.data,
-};
+Map<String, dynamic> _$UserCommentsJsonToJson(_UserCommentsJson instance) =>
+    <String, dynamic>{
+      'code': instance.code,
+      'message': instance.message,
+      'data': instance.data,
+    };
 
-_$DataImpl _$$DataImplFromJson(Map<String, dynamic> json) => _$DataImpl(
+_Data _$DataFromJson(Map<String, dynamic> json) => _Data(
   comments: Comments.fromJson(json['comments'] as Map<String, dynamic>),
 );
 
-Map<String, dynamic> _$$DataImplToJson(_$DataImpl instance) =>
-    <String, dynamic>{'comments': instance.comments};
+Map<String, dynamic> _$DataToJson(_Data instance) => <String, dynamic>{
+  'comments': instance.comments,
+};
 
-_$CommentsImpl _$$CommentsImplFromJson(Map<String, dynamic> json) =>
-    _$CommentsImpl(
-      docs:
-          (json['docs'] as List<dynamic>)
-              .map((e) => Doc.fromJson(e as Map<String, dynamic>))
-              .toList(),
-      total: (json['total'] as num).toInt(),
-      limit: (json['limit'] as num).toInt(),
-      page: json['page'] as String,
-      pages: (json['pages'] as num).toInt(),
-    );
+_Comments _$CommentsFromJson(Map<String, dynamic> json) => _Comments(
+  docs:
+      (json['docs'] as List<dynamic>)
+          .map((e) => Doc.fromJson(e as Map<String, dynamic>))
+          .toList(),
+  total: (json['total'] as num).toInt(),
+  limit: (json['limit'] as num).toInt(),
+  page: json['page'] as String,
+  pages: (json['pages'] as num).toInt(),
+);
 
-Map<String, dynamic> _$$CommentsImplToJson(_$CommentsImpl instance) =>
-    <String, dynamic>{
-      'docs': instance.docs,
-      'total': instance.total,
-      'limit': instance.limit,
-      'page': instance.page,
-      'pages': instance.pages,
-    };
+Map<String, dynamic> _$CommentsToJson(_Comments instance) => <String, dynamic>{
+  'docs': instance.docs,
+  'total': instance.total,
+  'limit': instance.limit,
+  'page': instance.page,
+  'pages': instance.pages,
+};
 
-_$DocImpl _$$DocImplFromJson(Map<String, dynamic> json) => _$DocImpl(
+_Doc _$DocFromJson(Map<String, dynamic> json) => _Doc(
   id: json['_id'] as String,
   content: json['content'] as String,
   comic: Comic.fromJson(json['_comic'] as Map<String, dynamic>),
@@ -63,7 +60,7 @@ _$DocImpl _$$DocImplFromJson(Map<String, dynamic> json) => _$DocImpl(
   isLiked: json['isLiked'] as bool,
 );
 
-Map<String, dynamic> _$$DocImplToJson(_$DocImpl instance) => <String, dynamic>{
+Map<String, dynamic> _$DocToJson(_Doc instance) => <String, dynamic>{
   '_id': instance.id,
   'content': instance.content,
   '_comic': instance.comic,
@@ -76,8 +73,10 @@ Map<String, dynamic> _$$DocImplToJson(_$DocImpl instance) => <String, dynamic>{
   'isLiked': instance.isLiked,
 };
 
-_$ComicImpl _$$ComicImplFromJson(Map<String, dynamic> json) =>
-    _$ComicImpl(id: json['_id'] as String, title: json['title'] as String);
+_Comic _$ComicFromJson(Map<String, dynamic> json) =>
+    _Comic(id: json['_id'] as String, title: json['title'] as String);
 
-Map<String, dynamic> _$$ComicImplToJson(_$ComicImpl instance) =>
-    <String, dynamic>{'_id': instance.id, 'title': instance.title};
+Map<String, dynamic> _$ComicToJson(_Comic instance) => <String, dynamic>{
+  '_id': instance.id,
+  'title': instance.title,
+};

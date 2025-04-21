@@ -15,7 +15,7 @@ KeywordsJson keywordsJsonFromJson(String str) =>
 String keywordsJsonToJson(KeywordsJson data) => json.encode(data.toJson());
 
 @freezed
-class KeywordsJson with _$KeywordsJson {
+abstract class KeywordsJson with _$KeywordsJson {
   const factory KeywordsJson({
     @JsonKey(name: "code") required int code,
     @JsonKey(name: "message") required String message,
@@ -27,7 +27,7 @@ class KeywordsJson with _$KeywordsJson {
 }
 
 @freezed
-class Data with _$Data {
+abstract class Data with _$Data {
   const factory Data({
     @JsonKey(name: "keywords") required List<String> keywords,
   }) = _Data;

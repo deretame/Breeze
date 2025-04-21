@@ -1,3 +1,4 @@
+// dart format width=80
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
@@ -9,1016 +10,622 @@ part of 'recommend_json.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
-
-RecommendJson _$RecommendJsonFromJson(Map<String, dynamic> json) {
-  return _RecommendJson.fromJson(json);
-}
 
 /// @nodoc
 mixin _$RecommendJson {
-  @JsonKey(name: "code")
-  int get code => throw _privateConstructorUsedError;
-  @JsonKey(name: "message")
-  String get message => throw _privateConstructorUsedError;
-  @JsonKey(name: "data")
-  Data get data => throw _privateConstructorUsedError;
+
+@JsonKey(name: "code") int get code;@JsonKey(name: "message") String get message;@JsonKey(name: "data") Data get data;
+/// Create a copy of RecommendJson
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$RecommendJsonCopyWith<RecommendJson> get copyWith => _$RecommendJsonCopyWithImpl<RecommendJson>(this as RecommendJson, _$identity);
 
   /// Serializes this RecommendJson to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of RecommendJson
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $RecommendJsonCopyWith<RecommendJson> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RecommendJson&&(identical(other.code, code) || other.code == code)&&(identical(other.message, message) || other.message == message)&&(identical(other.data, data) || other.data == data));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,code,message,data);
+
+@override
+String toString() {
+  return 'RecommendJson(code: $code, message: $message, data: $data)';
+}
+
+
 }
 
 /// @nodoc
-abstract class $RecommendJsonCopyWith<$Res> {
-  factory $RecommendJsonCopyWith(
-    RecommendJson value,
-    $Res Function(RecommendJson) then,
-  ) = _$RecommendJsonCopyWithImpl<$Res, RecommendJson>;
-  @useResult
-  $Res call({
-    @JsonKey(name: "code") int code,
-    @JsonKey(name: "message") String message,
-    @JsonKey(name: "data") Data data,
-  });
+abstract mixin class $RecommendJsonCopyWith<$Res>  {
+  factory $RecommendJsonCopyWith(RecommendJson value, $Res Function(RecommendJson) _then) = _$RecommendJsonCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: "code") int code,@JsonKey(name: "message") String message,@JsonKey(name: "data") Data data
+});
 
-  $DataCopyWith<$Res> get data;
+
+$DataCopyWith<$Res> get data;
+
 }
-
 /// @nodoc
-class _$RecommendJsonCopyWithImpl<$Res, $Val extends RecommendJson>
+class _$RecommendJsonCopyWithImpl<$Res>
     implements $RecommendJsonCopyWith<$Res> {
-  _$RecommendJsonCopyWithImpl(this._value, this._then);
+  _$RecommendJsonCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final RecommendJson _self;
+  final $Res Function(RecommendJson) _then;
 
-  /// Create a copy of RecommendJson
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? code = null,
-    Object? message = null,
-    Object? data = null,
-  }) {
-    return _then(
-      _value.copyWith(
-            code:
-                null == code
-                    ? _value.code
-                    : code // ignore: cast_nullable_to_non_nullable
-                        as int,
-            message:
-                null == message
-                    ? _value.message
-                    : message // ignore: cast_nullable_to_non_nullable
-                        as String,
-            data:
-                null == data
-                    ? _value.data
-                    : data // ignore: cast_nullable_to_non_nullable
-                        as Data,
-          )
-          as $Val,
-    );
-  }
-
-  /// Create a copy of RecommendJson
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $DataCopyWith<$Res> get data {
-    return $DataCopyWith<$Res>(_value.data, (value) {
-      return _then(_value.copyWith(data: value) as $Val);
-    });
-  }
+/// Create a copy of RecommendJson
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? code = null,Object? message = null,Object? data = null,}) {
+  return _then(_self.copyWith(
+code: null == code ? _self.code : code // ignore: cast_nullable_to_non_nullable
+as int,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,data: null == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
+as Data,
+  ));
 }
-
-/// @nodoc
-abstract class _$$RecommendJsonImplCopyWith<$Res>
-    implements $RecommendJsonCopyWith<$Res> {
-  factory _$$RecommendJsonImplCopyWith(
-    _$RecommendJsonImpl value,
-    $Res Function(_$RecommendJsonImpl) then,
-  ) = __$$RecommendJsonImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({
-    @JsonKey(name: "code") int code,
-    @JsonKey(name: "message") String message,
-    @JsonKey(name: "data") Data data,
+/// Create a copy of RecommendJson
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$DataCopyWith<$Res> get data {
+  
+  return $DataCopyWith<$Res>(_self.data, (value) {
+    return _then(_self.copyWith(data: value));
   });
-
-  @override
-  $DataCopyWith<$Res> get data;
+}
 }
 
-/// @nodoc
-class __$$RecommendJsonImplCopyWithImpl<$Res>
-    extends _$RecommendJsonCopyWithImpl<$Res, _$RecommendJsonImpl>
-    implements _$$RecommendJsonImplCopyWith<$Res> {
-  __$$RecommendJsonImplCopyWithImpl(
-    _$RecommendJsonImpl _value,
-    $Res Function(_$RecommendJsonImpl) _then,
-  ) : super(_value, _then);
-
-  /// Create a copy of RecommendJson
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? code = null,
-    Object? message = null,
-    Object? data = null,
-  }) {
-    return _then(
-      _$RecommendJsonImpl(
-        code:
-            null == code
-                ? _value.code
-                : code // ignore: cast_nullable_to_non_nullable
-                    as int,
-        message:
-            null == message
-                ? _value.message
-                : message // ignore: cast_nullable_to_non_nullable
-                    as String,
-        data:
-            null == data
-                ? _value.data
-                : data // ignore: cast_nullable_to_non_nullable
-                    as Data,
-      ),
-    );
-  }
-}
 
 /// @nodoc
 @JsonSerializable()
-class _$RecommendJsonImpl implements _RecommendJson {
-  const _$RecommendJsonImpl({
-    @JsonKey(name: "code") required this.code,
-    @JsonKey(name: "message") required this.message,
-    @JsonKey(name: "data") required this.data,
+
+class _RecommendJson implements RecommendJson {
+  const _RecommendJson({@JsonKey(name: "code") required this.code, @JsonKey(name: "message") required this.message, @JsonKey(name: "data") required this.data});
+  factory _RecommendJson.fromJson(Map<String, dynamic> json) => _$RecommendJsonFromJson(json);
+
+@override@JsonKey(name: "code") final  int code;
+@override@JsonKey(name: "message") final  String message;
+@override@JsonKey(name: "data") final  Data data;
+
+/// Create a copy of RecommendJson
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$RecommendJsonCopyWith<_RecommendJson> get copyWith => __$RecommendJsonCopyWithImpl<_RecommendJson>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$RecommendJsonToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RecommendJson&&(identical(other.code, code) || other.code == code)&&(identical(other.message, message) || other.message == message)&&(identical(other.data, data) || other.data == data));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,code,message,data);
+
+@override
+String toString() {
+  return 'RecommendJson(code: $code, message: $message, data: $data)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$RecommendJsonCopyWith<$Res> implements $RecommendJsonCopyWith<$Res> {
+  factory _$RecommendJsonCopyWith(_RecommendJson value, $Res Function(_RecommendJson) _then) = __$RecommendJsonCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: "code") int code,@JsonKey(name: "message") String message,@JsonKey(name: "data") Data data
+});
+
+
+@override $DataCopyWith<$Res> get data;
+
+}
+/// @nodoc
+class __$RecommendJsonCopyWithImpl<$Res>
+    implements _$RecommendJsonCopyWith<$Res> {
+  __$RecommendJsonCopyWithImpl(this._self, this._then);
+
+  final _RecommendJson _self;
+  final $Res Function(_RecommendJson) _then;
+
+/// Create a copy of RecommendJson
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? code = null,Object? message = null,Object? data = null,}) {
+  return _then(_RecommendJson(
+code: null == code ? _self.code : code // ignore: cast_nullable_to_non_nullable
+as int,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,data: null == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
+as Data,
+  ));
+}
+
+/// Create a copy of RecommendJson
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$DataCopyWith<$Res> get data {
+  
+  return $DataCopyWith<$Res>(_self.data, (value) {
+    return _then(_self.copyWith(data: value));
   });
-
-  factory _$RecommendJsonImpl.fromJson(Map<String, dynamic> json) =>
-      _$$RecommendJsonImplFromJson(json);
-
-  @override
-  @JsonKey(name: "code")
-  final int code;
-  @override
-  @JsonKey(name: "message")
-  final String message;
-  @override
-  @JsonKey(name: "data")
-  final Data data;
-
-  @override
-  String toString() {
-    return 'RecommendJson(code: $code, message: $message, data: $data)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$RecommendJsonImpl &&
-            (identical(other.code, code) || other.code == code) &&
-            (identical(other.message, message) || other.message == message) &&
-            (identical(other.data, data) || other.data == data));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, code, message, data);
-
-  /// Create a copy of RecommendJson
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$RecommendJsonImplCopyWith<_$RecommendJsonImpl> get copyWith =>
-      __$$RecommendJsonImplCopyWithImpl<_$RecommendJsonImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$RecommendJsonImplToJson(this);
-  }
+}
 }
 
-abstract class _RecommendJson implements RecommendJson {
-  const factory _RecommendJson({
-    @JsonKey(name: "code") required final int code,
-    @JsonKey(name: "message") required final String message,
-    @JsonKey(name: "data") required final Data data,
-  }) = _$RecommendJsonImpl;
-
-  factory _RecommendJson.fromJson(Map<String, dynamic> json) =
-      _$RecommendJsonImpl.fromJson;
-
-  @override
-  @JsonKey(name: "code")
-  int get code;
-  @override
-  @JsonKey(name: "message")
-  String get message;
-  @override
-  @JsonKey(name: "data")
-  Data get data;
-
-  /// Create a copy of RecommendJson
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$RecommendJsonImplCopyWith<_$RecommendJsonImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-Data _$DataFromJson(Map<String, dynamic> json) {
-  return _Data.fromJson(json);
-}
 
 /// @nodoc
 mixin _$Data {
-  @JsonKey(name: "comics")
-  List<Comic> get comics => throw _privateConstructorUsedError;
+
+@JsonKey(name: "comics") List<Comic> get comics;
+/// Create a copy of Data
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DataCopyWith<Data> get copyWith => _$DataCopyWithImpl<Data>(this as Data, _$identity);
 
   /// Serializes this Data to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of Data
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $DataCopyWith<Data> get copyWith => throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Data&&const DeepCollectionEquality().equals(other.comics, comics));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(comics));
+
+@override
+String toString() {
+  return 'Data(comics: $comics)';
+}
+
+
 }
 
 /// @nodoc
-abstract class $DataCopyWith<$Res> {
-  factory $DataCopyWith(Data value, $Res Function(Data) then) =
-      _$DataCopyWithImpl<$Res, Data>;
-  @useResult
-  $Res call({@JsonKey(name: "comics") List<Comic> comics});
-}
+abstract mixin class $DataCopyWith<$Res>  {
+  factory $DataCopyWith(Data value, $Res Function(Data) _then) = _$DataCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: "comics") List<Comic> comics
+});
 
+
+
+
+}
 /// @nodoc
-class _$DataCopyWithImpl<$Res, $Val extends Data>
+class _$DataCopyWithImpl<$Res>
     implements $DataCopyWith<$Res> {
-  _$DataCopyWithImpl(this._value, this._then);
+  _$DataCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final Data _self;
+  final $Res Function(Data) _then;
 
-  /// Create a copy of Data
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? comics = null}) {
-    return _then(
-      _value.copyWith(
-            comics:
-                null == comics
-                    ? _value.comics
-                    : comics // ignore: cast_nullable_to_non_nullable
-                        as List<Comic>,
-          )
-          as $Val,
-    );
-  }
+/// Create a copy of Data
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? comics = null,}) {
+  return _then(_self.copyWith(
+comics: null == comics ? _self.comics : comics // ignore: cast_nullable_to_non_nullable
+as List<Comic>,
+  ));
 }
 
-/// @nodoc
-abstract class _$$DataImplCopyWith<$Res> implements $DataCopyWith<$Res> {
-  factory _$$DataImplCopyWith(
-    _$DataImpl value,
-    $Res Function(_$DataImpl) then,
-  ) = __$$DataImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({@JsonKey(name: "comics") List<Comic> comics});
 }
 
-/// @nodoc
-class __$$DataImplCopyWithImpl<$Res>
-    extends _$DataCopyWithImpl<$Res, _$DataImpl>
-    implements _$$DataImplCopyWith<$Res> {
-  __$$DataImplCopyWithImpl(_$DataImpl _value, $Res Function(_$DataImpl) _then)
-    : super(_value, _then);
-
-  /// Create a copy of Data
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? comics = null}) {
-    return _then(
-      _$DataImpl(
-        comics:
-            null == comics
-                ? _value._comics
-                : comics // ignore: cast_nullable_to_non_nullable
-                    as List<Comic>,
-      ),
-    );
-  }
-}
 
 /// @nodoc
 @JsonSerializable()
-class _$DataImpl implements _Data {
-  const _$DataImpl({@JsonKey(name: "comics") required final List<Comic> comics})
-    : _comics = comics;
 
-  factory _$DataImpl.fromJson(Map<String, dynamic> json) =>
-      _$$DataImplFromJson(json);
+class _Data implements Data {
+  const _Data({@JsonKey(name: "comics") required final  List<Comic> comics}): _comics = comics;
+  factory _Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 
-  final List<Comic> _comics;
-  @override
-  @JsonKey(name: "comics")
-  List<Comic> get comics {
-    if (_comics is EqualUnmodifiableListView) return _comics;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_comics);
-  }
-
-  @override
-  String toString() {
-    return 'Data(comics: $comics)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$DataImpl &&
-            const DeepCollectionEquality().equals(other._comics, _comics));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode =>
-      Object.hash(runtimeType, const DeepCollectionEquality().hash(_comics));
-
-  /// Create a copy of Data
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$DataImplCopyWith<_$DataImpl> get copyWith =>
-      __$$DataImplCopyWithImpl<_$DataImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$DataImplToJson(this);
-  }
+ final  List<Comic> _comics;
+@override@JsonKey(name: "comics") List<Comic> get comics {
+  if (_comics is EqualUnmodifiableListView) return _comics;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_comics);
 }
 
-abstract class _Data implements Data {
-  const factory _Data({
-    @JsonKey(name: "comics") required final List<Comic> comics,
-  }) = _$DataImpl;
 
-  factory _Data.fromJson(Map<String, dynamic> json) = _$DataImpl.fromJson;
+/// Create a copy of Data
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$DataCopyWith<_Data> get copyWith => __$DataCopyWithImpl<_Data>(this, _$identity);
 
-  @override
-  @JsonKey(name: "comics")
-  List<Comic> get comics;
-
-  /// Create a copy of Data
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$DataImplCopyWith<_$DataImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+@override
+Map<String, dynamic> toJson() {
+  return _$DataToJson(this, );
 }
 
-Comic _$ComicFromJson(Map<String, dynamic> json) {
-  return _Comic.fromJson(json);
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Data&&const DeepCollectionEquality().equals(other._comics, _comics));
 }
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_comics));
+
+@override
+String toString() {
+  return 'Data(comics: $comics)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$DataCopyWith<$Res> implements $DataCopyWith<$Res> {
+  factory _$DataCopyWith(_Data value, $Res Function(_Data) _then) = __$DataCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: "comics") List<Comic> comics
+});
+
+
+
+
+}
+/// @nodoc
+class __$DataCopyWithImpl<$Res>
+    implements _$DataCopyWith<$Res> {
+  __$DataCopyWithImpl(this._self, this._then);
+
+  final _Data _self;
+  final $Res Function(_Data) _then;
+
+/// Create a copy of Data
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? comics = null,}) {
+  return _then(_Data(
+comics: null == comics ? _self._comics : comics // ignore: cast_nullable_to_non_nullable
+as List<Comic>,
+  ));
+}
+
+
+}
+
 
 /// @nodoc
 mixin _$Comic {
-  @JsonKey(name: "_id")
-  String get id => throw _privateConstructorUsedError;
-  @JsonKey(name: "title")
-  String get title => throw _privateConstructorUsedError;
-  @JsonKey(name: "thumb")
-  Thumb get thumb => throw _privateConstructorUsedError;
-  @JsonKey(name: "author")
-  String get author => throw _privateConstructorUsedError;
-  @JsonKey(name: "categories")
-  List<String> get categories => throw _privateConstructorUsedError;
-  @JsonKey(name: "finished")
-  bool get finished => throw _privateConstructorUsedError;
-  @JsonKey(name: "epsCount")
-  int get epsCount => throw _privateConstructorUsedError;
-  @JsonKey(name: "pagesCount")
-  int get pagesCount => throw _privateConstructorUsedError;
-  @JsonKey(name: "likesCount")
-  int get likesCount => throw _privateConstructorUsedError;
+
+@JsonKey(name: "_id") String get id;@JsonKey(name: "title") String get title;@JsonKey(name: "thumb") Thumb get thumb;@JsonKey(name: "author") String get author;@JsonKey(name: "categories") List<String> get categories;@JsonKey(name: "finished") bool get finished;@JsonKey(name: "epsCount") int get epsCount;@JsonKey(name: "pagesCount") int get pagesCount;@JsonKey(name: "likesCount") int get likesCount;
+/// Create a copy of Comic
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ComicCopyWith<Comic> get copyWith => _$ComicCopyWithImpl<Comic>(this as Comic, _$identity);
 
   /// Serializes this Comic to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of Comic
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $ComicCopyWith<Comic> get copyWith => throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Comic&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.thumb, thumb) || other.thumb == thumb)&&(identical(other.author, author) || other.author == author)&&const DeepCollectionEquality().equals(other.categories, categories)&&(identical(other.finished, finished) || other.finished == finished)&&(identical(other.epsCount, epsCount) || other.epsCount == epsCount)&&(identical(other.pagesCount, pagesCount) || other.pagesCount == pagesCount)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,title,thumb,author,const DeepCollectionEquality().hash(categories),finished,epsCount,pagesCount,likesCount);
+
+@override
+String toString() {
+  return 'Comic(id: $id, title: $title, thumb: $thumb, author: $author, categories: $categories, finished: $finished, epsCount: $epsCount, pagesCount: $pagesCount, likesCount: $likesCount)';
+}
+
+
 }
 
 /// @nodoc
-abstract class $ComicCopyWith<$Res> {
-  factory $ComicCopyWith(Comic value, $Res Function(Comic) then) =
-      _$ComicCopyWithImpl<$Res, Comic>;
-  @useResult
-  $Res call({
-    @JsonKey(name: "_id") String id,
-    @JsonKey(name: "title") String title,
-    @JsonKey(name: "thumb") Thumb thumb,
-    @JsonKey(name: "author") String author,
-    @JsonKey(name: "categories") List<String> categories,
-    @JsonKey(name: "finished") bool finished,
-    @JsonKey(name: "epsCount") int epsCount,
-    @JsonKey(name: "pagesCount") int pagesCount,
-    @JsonKey(name: "likesCount") int likesCount,
-  });
+abstract mixin class $ComicCopyWith<$Res>  {
+  factory $ComicCopyWith(Comic value, $Res Function(Comic) _then) = _$ComicCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: "_id") String id,@JsonKey(name: "title") String title,@JsonKey(name: "thumb") Thumb thumb,@JsonKey(name: "author") String author,@JsonKey(name: "categories") List<String> categories,@JsonKey(name: "finished") bool finished,@JsonKey(name: "epsCount") int epsCount,@JsonKey(name: "pagesCount") int pagesCount,@JsonKey(name: "likesCount") int likesCount
+});
 
-  $ThumbCopyWith<$Res> get thumb;
+
+$ThumbCopyWith<$Res> get thumb;
+
 }
-
 /// @nodoc
-class _$ComicCopyWithImpl<$Res, $Val extends Comic>
+class _$ComicCopyWithImpl<$Res>
     implements $ComicCopyWith<$Res> {
-  _$ComicCopyWithImpl(this._value, this._then);
+  _$ComicCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final Comic _self;
+  final $Res Function(Comic) _then;
 
-  /// Create a copy of Comic
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? title = null,
-    Object? thumb = null,
-    Object? author = null,
-    Object? categories = null,
-    Object? finished = null,
-    Object? epsCount = null,
-    Object? pagesCount = null,
-    Object? likesCount = null,
-  }) {
-    return _then(
-      _value.copyWith(
-            id:
-                null == id
-                    ? _value.id
-                    : id // ignore: cast_nullable_to_non_nullable
-                        as String,
-            title:
-                null == title
-                    ? _value.title
-                    : title // ignore: cast_nullable_to_non_nullable
-                        as String,
-            thumb:
-                null == thumb
-                    ? _value.thumb
-                    : thumb // ignore: cast_nullable_to_non_nullable
-                        as Thumb,
-            author:
-                null == author
-                    ? _value.author
-                    : author // ignore: cast_nullable_to_non_nullable
-                        as String,
-            categories:
-                null == categories
-                    ? _value.categories
-                    : categories // ignore: cast_nullable_to_non_nullable
-                        as List<String>,
-            finished:
-                null == finished
-                    ? _value.finished
-                    : finished // ignore: cast_nullable_to_non_nullable
-                        as bool,
-            epsCount:
-                null == epsCount
-                    ? _value.epsCount
-                    : epsCount // ignore: cast_nullable_to_non_nullable
-                        as int,
-            pagesCount:
-                null == pagesCount
-                    ? _value.pagesCount
-                    : pagesCount // ignore: cast_nullable_to_non_nullable
-                        as int,
-            likesCount:
-                null == likesCount
-                    ? _value.likesCount
-                    : likesCount // ignore: cast_nullable_to_non_nullable
-                        as int,
-          )
-          as $Val,
-    );
-  }
-
-  /// Create a copy of Comic
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $ThumbCopyWith<$Res> get thumb {
-    return $ThumbCopyWith<$Res>(_value.thumb, (value) {
-      return _then(_value.copyWith(thumb: value) as $Val);
-    });
-  }
+/// Create a copy of Comic
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? thumb = null,Object? author = null,Object? categories = null,Object? finished = null,Object? epsCount = null,Object? pagesCount = null,Object? likesCount = null,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,thumb: null == thumb ? _self.thumb : thumb // ignore: cast_nullable_to_non_nullable
+as Thumb,author: null == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
+as String,categories: null == categories ? _self.categories : categories // ignore: cast_nullable_to_non_nullable
+as List<String>,finished: null == finished ? _self.finished : finished // ignore: cast_nullable_to_non_nullable
+as bool,epsCount: null == epsCount ? _self.epsCount : epsCount // ignore: cast_nullable_to_non_nullable
+as int,pagesCount: null == pagesCount ? _self.pagesCount : pagesCount // ignore: cast_nullable_to_non_nullable
+as int,likesCount: null == likesCount ? _self.likesCount : likesCount // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
 }
-
-/// @nodoc
-abstract class _$$ComicImplCopyWith<$Res> implements $ComicCopyWith<$Res> {
-  factory _$$ComicImplCopyWith(
-    _$ComicImpl value,
-    $Res Function(_$ComicImpl) then,
-  ) = __$$ComicImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({
-    @JsonKey(name: "_id") String id,
-    @JsonKey(name: "title") String title,
-    @JsonKey(name: "thumb") Thumb thumb,
-    @JsonKey(name: "author") String author,
-    @JsonKey(name: "categories") List<String> categories,
-    @JsonKey(name: "finished") bool finished,
-    @JsonKey(name: "epsCount") int epsCount,
-    @JsonKey(name: "pagesCount") int pagesCount,
-    @JsonKey(name: "likesCount") int likesCount,
+/// Create a copy of Comic
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ThumbCopyWith<$Res> get thumb {
+  
+  return $ThumbCopyWith<$Res>(_self.thumb, (value) {
+    return _then(_self.copyWith(thumb: value));
   });
-
-  @override
-  $ThumbCopyWith<$Res> get thumb;
+}
 }
 
-/// @nodoc
-class __$$ComicImplCopyWithImpl<$Res>
-    extends _$ComicCopyWithImpl<$Res, _$ComicImpl>
-    implements _$$ComicImplCopyWith<$Res> {
-  __$$ComicImplCopyWithImpl(
-    _$ComicImpl _value,
-    $Res Function(_$ComicImpl) _then,
-  ) : super(_value, _then);
-
-  /// Create a copy of Comic
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? title = null,
-    Object? thumb = null,
-    Object? author = null,
-    Object? categories = null,
-    Object? finished = null,
-    Object? epsCount = null,
-    Object? pagesCount = null,
-    Object? likesCount = null,
-  }) {
-    return _then(
-      _$ComicImpl(
-        id:
-            null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                    as String,
-        title:
-            null == title
-                ? _value.title
-                : title // ignore: cast_nullable_to_non_nullable
-                    as String,
-        thumb:
-            null == thumb
-                ? _value.thumb
-                : thumb // ignore: cast_nullable_to_non_nullable
-                    as Thumb,
-        author:
-            null == author
-                ? _value.author
-                : author // ignore: cast_nullable_to_non_nullable
-                    as String,
-        categories:
-            null == categories
-                ? _value._categories
-                : categories // ignore: cast_nullable_to_non_nullable
-                    as List<String>,
-        finished:
-            null == finished
-                ? _value.finished
-                : finished // ignore: cast_nullable_to_non_nullable
-                    as bool,
-        epsCount:
-            null == epsCount
-                ? _value.epsCount
-                : epsCount // ignore: cast_nullable_to_non_nullable
-                    as int,
-        pagesCount:
-            null == pagesCount
-                ? _value.pagesCount
-                : pagesCount // ignore: cast_nullable_to_non_nullable
-                    as int,
-        likesCount:
-            null == likesCount
-                ? _value.likesCount
-                : likesCount // ignore: cast_nullable_to_non_nullable
-                    as int,
-      ),
-    );
-  }
-}
 
 /// @nodoc
 @JsonSerializable()
-class _$ComicImpl implements _Comic {
-  const _$ComicImpl({
-    @JsonKey(name: "_id") required this.id,
-    @JsonKey(name: "title") required this.title,
-    @JsonKey(name: "thumb") required this.thumb,
-    @JsonKey(name: "author") required this.author,
-    @JsonKey(name: "categories") required final List<String> categories,
-    @JsonKey(name: "finished") required this.finished,
-    @JsonKey(name: "epsCount") required this.epsCount,
-    @JsonKey(name: "pagesCount") required this.pagesCount,
-    @JsonKey(name: "likesCount") required this.likesCount,
-  }) : _categories = categories;
 
-  factory _$ComicImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ComicImplFromJson(json);
+class _Comic implements Comic {
+  const _Comic({@JsonKey(name: "_id") required this.id, @JsonKey(name: "title") required this.title, @JsonKey(name: "thumb") required this.thumb, @JsonKey(name: "author") required this.author, @JsonKey(name: "categories") required final  List<String> categories, @JsonKey(name: "finished") required this.finished, @JsonKey(name: "epsCount") required this.epsCount, @JsonKey(name: "pagesCount") required this.pagesCount, @JsonKey(name: "likesCount") required this.likesCount}): _categories = categories;
+  factory _Comic.fromJson(Map<String, dynamic> json) => _$ComicFromJson(json);
 
-  @override
-  @JsonKey(name: "_id")
-  final String id;
-  @override
-  @JsonKey(name: "title")
-  final String title;
-  @override
-  @JsonKey(name: "thumb")
-  final Thumb thumb;
-  @override
-  @JsonKey(name: "author")
-  final String author;
-  final List<String> _categories;
-  @override
-  @JsonKey(name: "categories")
-  List<String> get categories {
-    if (_categories is EqualUnmodifiableListView) return _categories;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_categories);
-  }
-
-  @override
-  @JsonKey(name: "finished")
-  final bool finished;
-  @override
-  @JsonKey(name: "epsCount")
-  final int epsCount;
-  @override
-  @JsonKey(name: "pagesCount")
-  final int pagesCount;
-  @override
-  @JsonKey(name: "likesCount")
-  final int likesCount;
-
-  @override
-  String toString() {
-    return 'Comic(id: $id, title: $title, thumb: $thumb, author: $author, categories: $categories, finished: $finished, epsCount: $epsCount, pagesCount: $pagesCount, likesCount: $likesCount)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$ComicImpl &&
-            (identical(other.id, id) || other.id == id) &&
-            (identical(other.title, title) || other.title == title) &&
-            (identical(other.thumb, thumb) || other.thumb == thumb) &&
-            (identical(other.author, author) || other.author == author) &&
-            const DeepCollectionEquality().equals(
-              other._categories,
-              _categories,
-            ) &&
-            (identical(other.finished, finished) ||
-                other.finished == finished) &&
-            (identical(other.epsCount, epsCount) ||
-                other.epsCount == epsCount) &&
-            (identical(other.pagesCount, pagesCount) ||
-                other.pagesCount == pagesCount) &&
-            (identical(other.likesCount, likesCount) ||
-                other.likesCount == likesCount));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    title,
-    thumb,
-    author,
-    const DeepCollectionEquality().hash(_categories),
-    finished,
-    epsCount,
-    pagesCount,
-    likesCount,
-  );
-
-  /// Create a copy of Comic
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$ComicImplCopyWith<_$ComicImpl> get copyWith =>
-      __$$ComicImplCopyWithImpl<_$ComicImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$ComicImplToJson(this);
-  }
+@override@JsonKey(name: "_id") final  String id;
+@override@JsonKey(name: "title") final  String title;
+@override@JsonKey(name: "thumb") final  Thumb thumb;
+@override@JsonKey(name: "author") final  String author;
+ final  List<String> _categories;
+@override@JsonKey(name: "categories") List<String> get categories {
+  if (_categories is EqualUnmodifiableListView) return _categories;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_categories);
 }
 
-abstract class _Comic implements Comic {
-  const factory _Comic({
-    @JsonKey(name: "_id") required final String id,
-    @JsonKey(name: "title") required final String title,
-    @JsonKey(name: "thumb") required final Thumb thumb,
-    @JsonKey(name: "author") required final String author,
-    @JsonKey(name: "categories") required final List<String> categories,
-    @JsonKey(name: "finished") required final bool finished,
-    @JsonKey(name: "epsCount") required final int epsCount,
-    @JsonKey(name: "pagesCount") required final int pagesCount,
-    @JsonKey(name: "likesCount") required final int likesCount,
-  }) = _$ComicImpl;
+@override@JsonKey(name: "finished") final  bool finished;
+@override@JsonKey(name: "epsCount") final  int epsCount;
+@override@JsonKey(name: "pagesCount") final  int pagesCount;
+@override@JsonKey(name: "likesCount") final  int likesCount;
 
-  factory _Comic.fromJson(Map<String, dynamic> json) = _$ComicImpl.fromJson;
+/// Create a copy of Comic
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ComicCopyWith<_Comic> get copyWith => __$ComicCopyWithImpl<_Comic>(this, _$identity);
 
-  @override
-  @JsonKey(name: "_id")
-  String get id;
-  @override
-  @JsonKey(name: "title")
-  String get title;
-  @override
-  @JsonKey(name: "thumb")
-  Thumb get thumb;
-  @override
-  @JsonKey(name: "author")
-  String get author;
-  @override
-  @JsonKey(name: "categories")
-  List<String> get categories;
-  @override
-  @JsonKey(name: "finished")
-  bool get finished;
-  @override
-  @JsonKey(name: "epsCount")
-  int get epsCount;
-  @override
-  @JsonKey(name: "pagesCount")
-  int get pagesCount;
-  @override
-  @JsonKey(name: "likesCount")
-  int get likesCount;
-
-  /// Create a copy of Comic
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ComicImplCopyWith<_$ComicImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+@override
+Map<String, dynamic> toJson() {
+  return _$ComicToJson(this, );
 }
 
-Thumb _$ThumbFromJson(Map<String, dynamic> json) {
-  return _Thumb.fromJson(json);
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Comic&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.thumb, thumb) || other.thumb == thumb)&&(identical(other.author, author) || other.author == author)&&const DeepCollectionEquality().equals(other._categories, _categories)&&(identical(other.finished, finished) || other.finished == finished)&&(identical(other.epsCount, epsCount) || other.epsCount == epsCount)&&(identical(other.pagesCount, pagesCount) || other.pagesCount == pagesCount)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount));
 }
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,title,thumb,author,const DeepCollectionEquality().hash(_categories),finished,epsCount,pagesCount,likesCount);
+
+@override
+String toString() {
+  return 'Comic(id: $id, title: $title, thumb: $thumb, author: $author, categories: $categories, finished: $finished, epsCount: $epsCount, pagesCount: $pagesCount, likesCount: $likesCount)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ComicCopyWith<$Res> implements $ComicCopyWith<$Res> {
+  factory _$ComicCopyWith(_Comic value, $Res Function(_Comic) _then) = __$ComicCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: "_id") String id,@JsonKey(name: "title") String title,@JsonKey(name: "thumb") Thumb thumb,@JsonKey(name: "author") String author,@JsonKey(name: "categories") List<String> categories,@JsonKey(name: "finished") bool finished,@JsonKey(name: "epsCount") int epsCount,@JsonKey(name: "pagesCount") int pagesCount,@JsonKey(name: "likesCount") int likesCount
+});
+
+
+@override $ThumbCopyWith<$Res> get thumb;
+
+}
+/// @nodoc
+class __$ComicCopyWithImpl<$Res>
+    implements _$ComicCopyWith<$Res> {
+  __$ComicCopyWithImpl(this._self, this._then);
+
+  final _Comic _self;
+  final $Res Function(_Comic) _then;
+
+/// Create a copy of Comic
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? thumb = null,Object? author = null,Object? categories = null,Object? finished = null,Object? epsCount = null,Object? pagesCount = null,Object? likesCount = null,}) {
+  return _then(_Comic(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,thumb: null == thumb ? _self.thumb : thumb // ignore: cast_nullable_to_non_nullable
+as Thumb,author: null == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
+as String,categories: null == categories ? _self._categories : categories // ignore: cast_nullable_to_non_nullable
+as List<String>,finished: null == finished ? _self.finished : finished // ignore: cast_nullable_to_non_nullable
+as bool,epsCount: null == epsCount ? _self.epsCount : epsCount // ignore: cast_nullable_to_non_nullable
+as int,pagesCount: null == pagesCount ? _self.pagesCount : pagesCount // ignore: cast_nullable_to_non_nullable
+as int,likesCount: null == likesCount ? _self.likesCount : likesCount // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+/// Create a copy of Comic
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ThumbCopyWith<$Res> get thumb {
+  
+  return $ThumbCopyWith<$Res>(_self.thumb, (value) {
+    return _then(_self.copyWith(thumb: value));
+  });
+}
+}
+
 
 /// @nodoc
 mixin _$Thumb {
-  @JsonKey(name: "originalName")
-  String get originalName => throw _privateConstructorUsedError;
-  @JsonKey(name: "path")
-  String get path => throw _privateConstructorUsedError;
-  @JsonKey(name: "fileServer")
-  String get fileServer => throw _privateConstructorUsedError;
+
+@JsonKey(name: "originalName") String get originalName;@JsonKey(name: "path") String get path;@JsonKey(name: "fileServer") String get fileServer;
+/// Create a copy of Thumb
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ThumbCopyWith<Thumb> get copyWith => _$ThumbCopyWithImpl<Thumb>(this as Thumb, _$identity);
 
   /// Serializes this Thumb to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of Thumb
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $ThumbCopyWith<Thumb> get copyWith => throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Thumb&&(identical(other.originalName, originalName) || other.originalName == originalName)&&(identical(other.path, path) || other.path == path)&&(identical(other.fileServer, fileServer) || other.fileServer == fileServer));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,originalName,path,fileServer);
+
+@override
+String toString() {
+  return 'Thumb(originalName: $originalName, path: $path, fileServer: $fileServer)';
+}
+
+
 }
 
 /// @nodoc
-abstract class $ThumbCopyWith<$Res> {
-  factory $ThumbCopyWith(Thumb value, $Res Function(Thumb) then) =
-      _$ThumbCopyWithImpl<$Res, Thumb>;
-  @useResult
-  $Res call({
-    @JsonKey(name: "originalName") String originalName,
-    @JsonKey(name: "path") String path,
-    @JsonKey(name: "fileServer") String fileServer,
-  });
-}
+abstract mixin class $ThumbCopyWith<$Res>  {
+  factory $ThumbCopyWith(Thumb value, $Res Function(Thumb) _then) = _$ThumbCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: "originalName") String originalName,@JsonKey(name: "path") String path,@JsonKey(name: "fileServer") String fileServer
+});
 
+
+
+
+}
 /// @nodoc
-class _$ThumbCopyWithImpl<$Res, $Val extends Thumb>
+class _$ThumbCopyWithImpl<$Res>
     implements $ThumbCopyWith<$Res> {
-  _$ThumbCopyWithImpl(this._value, this._then);
+  _$ThumbCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final Thumb _self;
+  final $Res Function(Thumb) _then;
 
-  /// Create a copy of Thumb
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? originalName = null,
-    Object? path = null,
-    Object? fileServer = null,
-  }) {
-    return _then(
-      _value.copyWith(
-            originalName:
-                null == originalName
-                    ? _value.originalName
-                    : originalName // ignore: cast_nullable_to_non_nullable
-                        as String,
-            path:
-                null == path
-                    ? _value.path
-                    : path // ignore: cast_nullable_to_non_nullable
-                        as String,
-            fileServer:
-                null == fileServer
-                    ? _value.fileServer
-                    : fileServer // ignore: cast_nullable_to_non_nullable
-                        as String,
-          )
-          as $Val,
-    );
-  }
+/// Create a copy of Thumb
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? originalName = null,Object? path = null,Object? fileServer = null,}) {
+  return _then(_self.copyWith(
+originalName: null == originalName ? _self.originalName : originalName // ignore: cast_nullable_to_non_nullable
+as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
+as String,fileServer: null == fileServer ? _self.fileServer : fileServer // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
 }
 
-/// @nodoc
-abstract class _$$ThumbImplCopyWith<$Res> implements $ThumbCopyWith<$Res> {
-  factory _$$ThumbImplCopyWith(
-    _$ThumbImpl value,
-    $Res Function(_$ThumbImpl) then,
-  ) = __$$ThumbImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({
-    @JsonKey(name: "originalName") String originalName,
-    @JsonKey(name: "path") String path,
-    @JsonKey(name: "fileServer") String fileServer,
-  });
 }
 
-/// @nodoc
-class __$$ThumbImplCopyWithImpl<$Res>
-    extends _$ThumbCopyWithImpl<$Res, _$ThumbImpl>
-    implements _$$ThumbImplCopyWith<$Res> {
-  __$$ThumbImplCopyWithImpl(
-    _$ThumbImpl _value,
-    $Res Function(_$ThumbImpl) _then,
-  ) : super(_value, _then);
-
-  /// Create a copy of Thumb
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? originalName = null,
-    Object? path = null,
-    Object? fileServer = null,
-  }) {
-    return _then(
-      _$ThumbImpl(
-        originalName:
-            null == originalName
-                ? _value.originalName
-                : originalName // ignore: cast_nullable_to_non_nullable
-                    as String,
-        path:
-            null == path
-                ? _value.path
-                : path // ignore: cast_nullable_to_non_nullable
-                    as String,
-        fileServer:
-            null == fileServer
-                ? _value.fileServer
-                : fileServer // ignore: cast_nullable_to_non_nullable
-                    as String,
-      ),
-    );
-  }
-}
 
 /// @nodoc
 @JsonSerializable()
-class _$ThumbImpl implements _Thumb {
-  const _$ThumbImpl({
-    @JsonKey(name: "originalName") required this.originalName,
-    @JsonKey(name: "path") required this.path,
-    @JsonKey(name: "fileServer") required this.fileServer,
-  });
 
-  factory _$ThumbImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ThumbImplFromJson(json);
+class _Thumb implements Thumb {
+  const _Thumb({@JsonKey(name: "originalName") required this.originalName, @JsonKey(name: "path") required this.path, @JsonKey(name: "fileServer") required this.fileServer});
+  factory _Thumb.fromJson(Map<String, dynamic> json) => _$ThumbFromJson(json);
 
-  @override
-  @JsonKey(name: "originalName")
-  final String originalName;
-  @override
-  @JsonKey(name: "path")
-  final String path;
-  @override
-  @JsonKey(name: "fileServer")
-  final String fileServer;
+@override@JsonKey(name: "originalName") final  String originalName;
+@override@JsonKey(name: "path") final  String path;
+@override@JsonKey(name: "fileServer") final  String fileServer;
 
-  @override
-  String toString() {
-    return 'Thumb(originalName: $originalName, path: $path, fileServer: $fileServer)';
-  }
+/// Create a copy of Thumb
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ThumbCopyWith<_Thumb> get copyWith => __$ThumbCopyWithImpl<_Thumb>(this, _$identity);
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$ThumbImpl &&
-            (identical(other.originalName, originalName) ||
-                other.originalName == originalName) &&
-            (identical(other.path, path) || other.path == path) &&
-            (identical(other.fileServer, fileServer) ||
-                other.fileServer == fileServer));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, originalName, path, fileServer);
-
-  /// Create a copy of Thumb
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$ThumbImplCopyWith<_$ThumbImpl> get copyWith =>
-      __$$ThumbImplCopyWithImpl<_$ThumbImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$ThumbImplToJson(this);
-  }
+@override
+Map<String, dynamic> toJson() {
+  return _$ThumbToJson(this, );
 }
 
-abstract class _Thumb implements Thumb {
-  const factory _Thumb({
-    @JsonKey(name: "originalName") required final String originalName,
-    @JsonKey(name: "path") required final String path,
-    @JsonKey(name: "fileServer") required final String fileServer,
-  }) = _$ThumbImpl;
-
-  factory _Thumb.fromJson(Map<String, dynamic> json) = _$ThumbImpl.fromJson;
-
-  @override
-  @JsonKey(name: "originalName")
-  String get originalName;
-  @override
-  @JsonKey(name: "path")
-  String get path;
-  @override
-  @JsonKey(name: "fileServer")
-  String get fileServer;
-
-  /// Create a copy of Thumb
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ThumbImplCopyWith<_$ThumbImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Thumb&&(identical(other.originalName, originalName) || other.originalName == originalName)&&(identical(other.path, path) || other.path == path)&&(identical(other.fileServer, fileServer) || other.fileServer == fileServer));
 }
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,originalName,path,fileServer);
+
+@override
+String toString() {
+  return 'Thumb(originalName: $originalName, path: $path, fileServer: $fileServer)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ThumbCopyWith<$Res> implements $ThumbCopyWith<$Res> {
+  factory _$ThumbCopyWith(_Thumb value, $Res Function(_Thumb) _then) = __$ThumbCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: "originalName") String originalName,@JsonKey(name: "path") String path,@JsonKey(name: "fileServer") String fileServer
+});
+
+
+
+
+}
+/// @nodoc
+class __$ThumbCopyWithImpl<$Res>
+    implements _$ThumbCopyWith<$Res> {
+  __$ThumbCopyWithImpl(this._self, this._then);
+
+  final _Thumb _self;
+  final $Res Function(_Thumb) _then;
+
+/// Create a copy of Thumb
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? originalName = null,Object? path = null,Object? fileServer = null,}) {
+  return _then(_Thumb(
+originalName: null == originalName ? _self.originalName : originalName // ignore: cast_nullable_to_non_nullable
+as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
+as String,fileServer: null == fileServer ? _self.fileServer : fileServer // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+// dart format on

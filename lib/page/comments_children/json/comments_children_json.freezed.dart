@@ -1,3 +1,4 @@
+// dart format width=80
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
@@ -9,1853 +10,984 @@ part of 'comments_children_json.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
-
-CommentsChildrenJson _$CommentsChildrenJsonFromJson(Map<String, dynamic> json) {
-  return _CommentsChildrenJson.fromJson(json);
-}
 
 /// @nodoc
 mixin _$CommentsChildrenJson {
-  @JsonKey(name: "code")
-  int get code => throw _privateConstructorUsedError;
-  @JsonKey(name: "message")
-  String get message => throw _privateConstructorUsedError;
-  @JsonKey(name: "data")
-  Data get data => throw _privateConstructorUsedError;
+
+@JsonKey(name: "code") int get code;@JsonKey(name: "message") String get message;@JsonKey(name: "data") Data get data;
+/// Create a copy of CommentsChildrenJson
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CommentsChildrenJsonCopyWith<CommentsChildrenJson> get copyWith => _$CommentsChildrenJsonCopyWithImpl<CommentsChildrenJson>(this as CommentsChildrenJson, _$identity);
 
   /// Serializes this CommentsChildrenJson to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of CommentsChildrenJson
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $CommentsChildrenJsonCopyWith<CommentsChildrenJson> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CommentsChildrenJson&&(identical(other.code, code) || other.code == code)&&(identical(other.message, message) || other.message == message)&&(identical(other.data, data) || other.data == data));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,code,message,data);
+
+@override
+String toString() {
+  return 'CommentsChildrenJson(code: $code, message: $message, data: $data)';
+}
+
+
 }
 
 /// @nodoc
-abstract class $CommentsChildrenJsonCopyWith<$Res> {
-  factory $CommentsChildrenJsonCopyWith(
-    CommentsChildrenJson value,
-    $Res Function(CommentsChildrenJson) then,
-  ) = _$CommentsChildrenJsonCopyWithImpl<$Res, CommentsChildrenJson>;
-  @useResult
-  $Res call({
-    @JsonKey(name: "code") int code,
-    @JsonKey(name: "message") String message,
-    @JsonKey(name: "data") Data data,
-  });
+abstract mixin class $CommentsChildrenJsonCopyWith<$Res>  {
+  factory $CommentsChildrenJsonCopyWith(CommentsChildrenJson value, $Res Function(CommentsChildrenJson) _then) = _$CommentsChildrenJsonCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: "code") int code,@JsonKey(name: "message") String message,@JsonKey(name: "data") Data data
+});
 
-  $DataCopyWith<$Res> get data;
+
+$DataCopyWith<$Res> get data;
+
 }
-
 /// @nodoc
-class _$CommentsChildrenJsonCopyWithImpl<
-  $Res,
-  $Val extends CommentsChildrenJson
->
+class _$CommentsChildrenJsonCopyWithImpl<$Res>
     implements $CommentsChildrenJsonCopyWith<$Res> {
-  _$CommentsChildrenJsonCopyWithImpl(this._value, this._then);
+  _$CommentsChildrenJsonCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final CommentsChildrenJson _self;
+  final $Res Function(CommentsChildrenJson) _then;
 
-  /// Create a copy of CommentsChildrenJson
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? code = null,
-    Object? message = null,
-    Object? data = null,
-  }) {
-    return _then(
-      _value.copyWith(
-            code:
-                null == code
-                    ? _value.code
-                    : code // ignore: cast_nullable_to_non_nullable
-                        as int,
-            message:
-                null == message
-                    ? _value.message
-                    : message // ignore: cast_nullable_to_non_nullable
-                        as String,
-            data:
-                null == data
-                    ? _value.data
-                    : data // ignore: cast_nullable_to_non_nullable
-                        as Data,
-          )
-          as $Val,
-    );
-  }
-
-  /// Create a copy of CommentsChildrenJson
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $DataCopyWith<$Res> get data {
-    return $DataCopyWith<$Res>(_value.data, (value) {
-      return _then(_value.copyWith(data: value) as $Val);
-    });
-  }
+/// Create a copy of CommentsChildrenJson
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? code = null,Object? message = null,Object? data = null,}) {
+  return _then(_self.copyWith(
+code: null == code ? _self.code : code // ignore: cast_nullable_to_non_nullable
+as int,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,data: null == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
+as Data,
+  ));
 }
-
-/// @nodoc
-abstract class _$$CommentsChildrenJsonImplCopyWith<$Res>
-    implements $CommentsChildrenJsonCopyWith<$Res> {
-  factory _$$CommentsChildrenJsonImplCopyWith(
-    _$CommentsChildrenJsonImpl value,
-    $Res Function(_$CommentsChildrenJsonImpl) then,
-  ) = __$$CommentsChildrenJsonImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({
-    @JsonKey(name: "code") int code,
-    @JsonKey(name: "message") String message,
-    @JsonKey(name: "data") Data data,
+/// Create a copy of CommentsChildrenJson
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$DataCopyWith<$Res> get data {
+  
+  return $DataCopyWith<$Res>(_self.data, (value) {
+    return _then(_self.copyWith(data: value));
   });
-
-  @override
-  $DataCopyWith<$Res> get data;
+}
 }
 
-/// @nodoc
-class __$$CommentsChildrenJsonImplCopyWithImpl<$Res>
-    extends _$CommentsChildrenJsonCopyWithImpl<$Res, _$CommentsChildrenJsonImpl>
-    implements _$$CommentsChildrenJsonImplCopyWith<$Res> {
-  __$$CommentsChildrenJsonImplCopyWithImpl(
-    _$CommentsChildrenJsonImpl _value,
-    $Res Function(_$CommentsChildrenJsonImpl) _then,
-  ) : super(_value, _then);
-
-  /// Create a copy of CommentsChildrenJson
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? code = null,
-    Object? message = null,
-    Object? data = null,
-  }) {
-    return _then(
-      _$CommentsChildrenJsonImpl(
-        code:
-            null == code
-                ? _value.code
-                : code // ignore: cast_nullable_to_non_nullable
-                    as int,
-        message:
-            null == message
-                ? _value.message
-                : message // ignore: cast_nullable_to_non_nullable
-                    as String,
-        data:
-            null == data
-                ? _value.data
-                : data // ignore: cast_nullable_to_non_nullable
-                    as Data,
-      ),
-    );
-  }
-}
 
 /// @nodoc
 @JsonSerializable()
-class _$CommentsChildrenJsonImpl implements _CommentsChildrenJson {
-  const _$CommentsChildrenJsonImpl({
-    @JsonKey(name: "code") required this.code,
-    @JsonKey(name: "message") required this.message,
-    @JsonKey(name: "data") required this.data,
+
+class _CommentsChildrenJson implements CommentsChildrenJson {
+  const _CommentsChildrenJson({@JsonKey(name: "code") required this.code, @JsonKey(name: "message") required this.message, @JsonKey(name: "data") required this.data});
+  factory _CommentsChildrenJson.fromJson(Map<String, dynamic> json) => _$CommentsChildrenJsonFromJson(json);
+
+@override@JsonKey(name: "code") final  int code;
+@override@JsonKey(name: "message") final  String message;
+@override@JsonKey(name: "data") final  Data data;
+
+/// Create a copy of CommentsChildrenJson
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$CommentsChildrenJsonCopyWith<_CommentsChildrenJson> get copyWith => __$CommentsChildrenJsonCopyWithImpl<_CommentsChildrenJson>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$CommentsChildrenJsonToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CommentsChildrenJson&&(identical(other.code, code) || other.code == code)&&(identical(other.message, message) || other.message == message)&&(identical(other.data, data) || other.data == data));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,code,message,data);
+
+@override
+String toString() {
+  return 'CommentsChildrenJson(code: $code, message: $message, data: $data)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$CommentsChildrenJsonCopyWith<$Res> implements $CommentsChildrenJsonCopyWith<$Res> {
+  factory _$CommentsChildrenJsonCopyWith(_CommentsChildrenJson value, $Res Function(_CommentsChildrenJson) _then) = __$CommentsChildrenJsonCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: "code") int code,@JsonKey(name: "message") String message,@JsonKey(name: "data") Data data
+});
+
+
+@override $DataCopyWith<$Res> get data;
+
+}
+/// @nodoc
+class __$CommentsChildrenJsonCopyWithImpl<$Res>
+    implements _$CommentsChildrenJsonCopyWith<$Res> {
+  __$CommentsChildrenJsonCopyWithImpl(this._self, this._then);
+
+  final _CommentsChildrenJson _self;
+  final $Res Function(_CommentsChildrenJson) _then;
+
+/// Create a copy of CommentsChildrenJson
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? code = null,Object? message = null,Object? data = null,}) {
+  return _then(_CommentsChildrenJson(
+code: null == code ? _self.code : code // ignore: cast_nullable_to_non_nullable
+as int,message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,data: null == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
+as Data,
+  ));
+}
+
+/// Create a copy of CommentsChildrenJson
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$DataCopyWith<$Res> get data {
+  
+  return $DataCopyWith<$Res>(_self.data, (value) {
+    return _then(_self.copyWith(data: value));
   });
-
-  factory _$CommentsChildrenJsonImpl.fromJson(Map<String, dynamic> json) =>
-      _$$CommentsChildrenJsonImplFromJson(json);
-
-  @override
-  @JsonKey(name: "code")
-  final int code;
-  @override
-  @JsonKey(name: "message")
-  final String message;
-  @override
-  @JsonKey(name: "data")
-  final Data data;
-
-  @override
-  String toString() {
-    return 'CommentsChildrenJson(code: $code, message: $message, data: $data)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$CommentsChildrenJsonImpl &&
-            (identical(other.code, code) || other.code == code) &&
-            (identical(other.message, message) || other.message == message) &&
-            (identical(other.data, data) || other.data == data));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, code, message, data);
-
-  /// Create a copy of CommentsChildrenJson
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$CommentsChildrenJsonImplCopyWith<_$CommentsChildrenJsonImpl>
-  get copyWith =>
-      __$$CommentsChildrenJsonImplCopyWithImpl<_$CommentsChildrenJsonImpl>(
-        this,
-        _$identity,
-      );
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$CommentsChildrenJsonImplToJson(this);
-  }
+}
 }
 
-abstract class _CommentsChildrenJson implements CommentsChildrenJson {
-  const factory _CommentsChildrenJson({
-    @JsonKey(name: "code") required final int code,
-    @JsonKey(name: "message") required final String message,
-    @JsonKey(name: "data") required final Data data,
-  }) = _$CommentsChildrenJsonImpl;
-
-  factory _CommentsChildrenJson.fromJson(Map<String, dynamic> json) =
-      _$CommentsChildrenJsonImpl.fromJson;
-
-  @override
-  @JsonKey(name: "code")
-  int get code;
-  @override
-  @JsonKey(name: "message")
-  String get message;
-  @override
-  @JsonKey(name: "data")
-  Data get data;
-
-  /// Create a copy of CommentsChildrenJson
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$CommentsChildrenJsonImplCopyWith<_$CommentsChildrenJsonImpl>
-  get copyWith => throw _privateConstructorUsedError;
-}
-
-Data _$DataFromJson(Map<String, dynamic> json) {
-  return _Data.fromJson(json);
-}
 
 /// @nodoc
 mixin _$Data {
-  @JsonKey(name: "comments")
-  Comments get comments => throw _privateConstructorUsedError;
+
+@JsonKey(name: "comments") Comments get comments;
+/// Create a copy of Data
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DataCopyWith<Data> get copyWith => _$DataCopyWithImpl<Data>(this as Data, _$identity);
 
   /// Serializes this Data to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of Data
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $DataCopyWith<Data> get copyWith => throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Data&&(identical(other.comments, comments) || other.comments == comments));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,comments);
+
+@override
+String toString() {
+  return 'Data(comments: $comments)';
+}
+
+
 }
 
 /// @nodoc
-abstract class $DataCopyWith<$Res> {
-  factory $DataCopyWith(Data value, $Res Function(Data) then) =
-      _$DataCopyWithImpl<$Res, Data>;
-  @useResult
-  $Res call({@JsonKey(name: "comments") Comments comments});
+abstract mixin class $DataCopyWith<$Res>  {
+  factory $DataCopyWith(Data value, $Res Function(Data) _then) = _$DataCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: "comments") Comments comments
+});
 
-  $CommentsCopyWith<$Res> get comments;
+
+$CommentsCopyWith<$Res> get comments;
+
 }
-
 /// @nodoc
-class _$DataCopyWithImpl<$Res, $Val extends Data>
+class _$DataCopyWithImpl<$Res>
     implements $DataCopyWith<$Res> {
-  _$DataCopyWithImpl(this._value, this._then);
+  _$DataCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final Data _self;
+  final $Res Function(Data) _then;
 
-  /// Create a copy of Data
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? comments = null}) {
-    return _then(
-      _value.copyWith(
-            comments:
-                null == comments
-                    ? _value.comments
-                    : comments // ignore: cast_nullable_to_non_nullable
-                        as Comments,
-          )
-          as $Val,
-    );
-  }
-
-  /// Create a copy of Data
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $CommentsCopyWith<$Res> get comments {
-    return $CommentsCopyWith<$Res>(_value.comments, (value) {
-      return _then(_value.copyWith(comments: value) as $Val);
-    });
-  }
+/// Create a copy of Data
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? comments = null,}) {
+  return _then(_self.copyWith(
+comments: null == comments ? _self.comments : comments // ignore: cast_nullable_to_non_nullable
+as Comments,
+  ));
+}
+/// Create a copy of Data
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CommentsCopyWith<$Res> get comments {
+  
+  return $CommentsCopyWith<$Res>(_self.comments, (value) {
+    return _then(_self.copyWith(comments: value));
+  });
+}
 }
 
-/// @nodoc
-abstract class _$$DataImplCopyWith<$Res> implements $DataCopyWith<$Res> {
-  factory _$$DataImplCopyWith(
-    _$DataImpl value,
-    $Res Function(_$DataImpl) then,
-  ) = __$$DataImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({@JsonKey(name: "comments") Comments comments});
-
-  @override
-  $CommentsCopyWith<$Res> get comments;
-}
-
-/// @nodoc
-class __$$DataImplCopyWithImpl<$Res>
-    extends _$DataCopyWithImpl<$Res, _$DataImpl>
-    implements _$$DataImplCopyWith<$Res> {
-  __$$DataImplCopyWithImpl(_$DataImpl _value, $Res Function(_$DataImpl) _then)
-    : super(_value, _then);
-
-  /// Create a copy of Data
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({Object? comments = null}) {
-    return _then(
-      _$DataImpl(
-        comments:
-            null == comments
-                ? _value.comments
-                : comments // ignore: cast_nullable_to_non_nullable
-                    as Comments,
-      ),
-    );
-  }
-}
 
 /// @nodoc
 @JsonSerializable()
-class _$DataImpl implements _Data {
-  const _$DataImpl({@JsonKey(name: "comments") required this.comments});
 
-  factory _$DataImpl.fromJson(Map<String, dynamic> json) =>
-      _$$DataImplFromJson(json);
+class _Data implements Data {
+  const _Data({@JsonKey(name: "comments") required this.comments});
+  factory _Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 
-  @override
-  @JsonKey(name: "comments")
-  final Comments comments;
+@override@JsonKey(name: "comments") final  Comments comments;
 
-  @override
-  String toString() {
-    return 'Data(comments: $comments)';
-  }
+/// Create a copy of Data
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$DataCopyWith<_Data> get copyWith => __$DataCopyWithImpl<_Data>(this, _$identity);
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$DataImpl &&
-            (identical(other.comments, comments) ||
-                other.comments == comments));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, comments);
-
-  /// Create a copy of Data
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$DataImplCopyWith<_$DataImpl> get copyWith =>
-      __$$DataImplCopyWithImpl<_$DataImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$DataImplToJson(this);
-  }
+@override
+Map<String, dynamic> toJson() {
+  return _$DataToJson(this, );
 }
 
-abstract class _Data implements Data {
-  const factory _Data({
-    @JsonKey(name: "comments") required final Comments comments,
-  }) = _$DataImpl;
-
-  factory _Data.fromJson(Map<String, dynamic> json) = _$DataImpl.fromJson;
-
-  @override
-  @JsonKey(name: "comments")
-  Comments get comments;
-
-  /// Create a copy of Data
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$DataImplCopyWith<_$DataImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Data&&(identical(other.comments, comments) || other.comments == comments));
 }
 
-Comments _$CommentsFromJson(Map<String, dynamic> json) {
-  return _Comments.fromJson(json);
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,comments);
+
+@override
+String toString() {
+  return 'Data(comments: $comments)';
 }
+
+
+}
+
+/// @nodoc
+abstract mixin class _$DataCopyWith<$Res> implements $DataCopyWith<$Res> {
+  factory _$DataCopyWith(_Data value, $Res Function(_Data) _then) = __$DataCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: "comments") Comments comments
+});
+
+
+@override $CommentsCopyWith<$Res> get comments;
+
+}
+/// @nodoc
+class __$DataCopyWithImpl<$Res>
+    implements _$DataCopyWith<$Res> {
+  __$DataCopyWithImpl(this._self, this._then);
+
+  final _Data _self;
+  final $Res Function(_Data) _then;
+
+/// Create a copy of Data
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? comments = null,}) {
+  return _then(_Data(
+comments: null == comments ? _self.comments : comments // ignore: cast_nullable_to_non_nullable
+as Comments,
+  ));
+}
+
+/// Create a copy of Data
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CommentsCopyWith<$Res> get comments {
+  
+  return $CommentsCopyWith<$Res>(_self.comments, (value) {
+    return _then(_self.copyWith(comments: value));
+  });
+}
+}
+
 
 /// @nodoc
 mixin _$Comments {
-  @JsonKey(name: "docs")
-  List<Doc> get docs => throw _privateConstructorUsedError;
-  @JsonKey(name: "total")
-  int get total => throw _privateConstructorUsedError;
-  @JsonKey(name: "limit")
-  int get limit => throw _privateConstructorUsedError;
-  @JsonKey(name: "page")
-  String get page => throw _privateConstructorUsedError;
-  @JsonKey(name: "pages")
-  int get pages => throw _privateConstructorUsedError;
+
+@JsonKey(name: "docs") List<Doc> get docs;@JsonKey(name: "total") int get total;@JsonKey(name: "limit") int get limit;@JsonKey(name: "page") String get page;@JsonKey(name: "pages") int get pages;
+/// Create a copy of Comments
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CommentsCopyWith<Comments> get copyWith => _$CommentsCopyWithImpl<Comments>(this as Comments, _$identity);
 
   /// Serializes this Comments to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of Comments
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $CommentsCopyWith<Comments> get copyWith =>
-      throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Comments&&const DeepCollectionEquality().equals(other.docs, docs)&&(identical(other.total, total) || other.total == total)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.page, page) || other.page == page)&&(identical(other.pages, pages) || other.pages == pages));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(docs),total,limit,page,pages);
+
+@override
+String toString() {
+  return 'Comments(docs: $docs, total: $total, limit: $limit, page: $page, pages: $pages)';
+}
+
+
 }
 
 /// @nodoc
-abstract class $CommentsCopyWith<$Res> {
-  factory $CommentsCopyWith(Comments value, $Res Function(Comments) then) =
-      _$CommentsCopyWithImpl<$Res, Comments>;
-  @useResult
-  $Res call({
-    @JsonKey(name: "docs") List<Doc> docs,
-    @JsonKey(name: "total") int total,
-    @JsonKey(name: "limit") int limit,
-    @JsonKey(name: "page") String page,
-    @JsonKey(name: "pages") int pages,
-  });
-}
+abstract mixin class $CommentsCopyWith<$Res>  {
+  factory $CommentsCopyWith(Comments value, $Res Function(Comments) _then) = _$CommentsCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: "docs") List<Doc> docs,@JsonKey(name: "total") int total,@JsonKey(name: "limit") int limit,@JsonKey(name: "page") String page,@JsonKey(name: "pages") int pages
+});
 
+
+
+
+}
 /// @nodoc
-class _$CommentsCopyWithImpl<$Res, $Val extends Comments>
+class _$CommentsCopyWithImpl<$Res>
     implements $CommentsCopyWith<$Res> {
-  _$CommentsCopyWithImpl(this._value, this._then);
+  _$CommentsCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final Comments _self;
+  final $Res Function(Comments) _then;
 
-  /// Create a copy of Comments
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? docs = null,
-    Object? total = null,
-    Object? limit = null,
-    Object? page = null,
-    Object? pages = null,
-  }) {
-    return _then(
-      _value.copyWith(
-            docs:
-                null == docs
-                    ? _value.docs
-                    : docs // ignore: cast_nullable_to_non_nullable
-                        as List<Doc>,
-            total:
-                null == total
-                    ? _value.total
-                    : total // ignore: cast_nullable_to_non_nullable
-                        as int,
-            limit:
-                null == limit
-                    ? _value.limit
-                    : limit // ignore: cast_nullable_to_non_nullable
-                        as int,
-            page:
-                null == page
-                    ? _value.page
-                    : page // ignore: cast_nullable_to_non_nullable
-                        as String,
-            pages:
-                null == pages
-                    ? _value.pages
-                    : pages // ignore: cast_nullable_to_non_nullable
-                        as int,
-          )
-          as $Val,
-    );
-  }
+/// Create a copy of Comments
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? docs = null,Object? total = null,Object? limit = null,Object? page = null,Object? pages = null,}) {
+  return _then(_self.copyWith(
+docs: null == docs ? _self.docs : docs // ignore: cast_nullable_to_non_nullable
+as List<Doc>,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
+as int,limit: null == limit ? _self.limit : limit // ignore: cast_nullable_to_non_nullable
+as int,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
+as String,pages: null == pages ? _self.pages : pages // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
 }
 
-/// @nodoc
-abstract class _$$CommentsImplCopyWith<$Res>
-    implements $CommentsCopyWith<$Res> {
-  factory _$$CommentsImplCopyWith(
-    _$CommentsImpl value,
-    $Res Function(_$CommentsImpl) then,
-  ) = __$$CommentsImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({
-    @JsonKey(name: "docs") List<Doc> docs,
-    @JsonKey(name: "total") int total,
-    @JsonKey(name: "limit") int limit,
-    @JsonKey(name: "page") String page,
-    @JsonKey(name: "pages") int pages,
-  });
 }
 
-/// @nodoc
-class __$$CommentsImplCopyWithImpl<$Res>
-    extends _$CommentsCopyWithImpl<$Res, _$CommentsImpl>
-    implements _$$CommentsImplCopyWith<$Res> {
-  __$$CommentsImplCopyWithImpl(
-    _$CommentsImpl _value,
-    $Res Function(_$CommentsImpl) _then,
-  ) : super(_value, _then);
-
-  /// Create a copy of Comments
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? docs = null,
-    Object? total = null,
-    Object? limit = null,
-    Object? page = null,
-    Object? pages = null,
-  }) {
-    return _then(
-      _$CommentsImpl(
-        docs:
-            null == docs
-                ? _value._docs
-                : docs // ignore: cast_nullable_to_non_nullable
-                    as List<Doc>,
-        total:
-            null == total
-                ? _value.total
-                : total // ignore: cast_nullable_to_non_nullable
-                    as int,
-        limit:
-            null == limit
-                ? _value.limit
-                : limit // ignore: cast_nullable_to_non_nullable
-                    as int,
-        page:
-            null == page
-                ? _value.page
-                : page // ignore: cast_nullable_to_non_nullable
-                    as String,
-        pages:
-            null == pages
-                ? _value.pages
-                : pages // ignore: cast_nullable_to_non_nullable
-                    as int,
-      ),
-    );
-  }
-}
 
 /// @nodoc
 @JsonSerializable()
-class _$CommentsImpl implements _Comments {
-  const _$CommentsImpl({
-    @JsonKey(name: "docs") required final List<Doc> docs,
-    @JsonKey(name: "total") required this.total,
-    @JsonKey(name: "limit") required this.limit,
-    @JsonKey(name: "page") required this.page,
-    @JsonKey(name: "pages") required this.pages,
-  }) : _docs = docs;
 
-  factory _$CommentsImpl.fromJson(Map<String, dynamic> json) =>
-      _$$CommentsImplFromJson(json);
+class _Comments implements Comments {
+  const _Comments({@JsonKey(name: "docs") required final  List<Doc> docs, @JsonKey(name: "total") required this.total, @JsonKey(name: "limit") required this.limit, @JsonKey(name: "page") required this.page, @JsonKey(name: "pages") required this.pages}): _docs = docs;
+  factory _Comments.fromJson(Map<String, dynamic> json) => _$CommentsFromJson(json);
 
-  final List<Doc> _docs;
-  @override
-  @JsonKey(name: "docs")
-  List<Doc> get docs {
-    if (_docs is EqualUnmodifiableListView) return _docs;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_docs);
-  }
-
-  @override
-  @JsonKey(name: "total")
-  final int total;
-  @override
-  @JsonKey(name: "limit")
-  final int limit;
-  @override
-  @JsonKey(name: "page")
-  final String page;
-  @override
-  @JsonKey(name: "pages")
-  final int pages;
-
-  @override
-  String toString() {
-    return 'Comments(docs: $docs, total: $total, limit: $limit, page: $page, pages: $pages)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$CommentsImpl &&
-            const DeepCollectionEquality().equals(other._docs, _docs) &&
-            (identical(other.total, total) || other.total == total) &&
-            (identical(other.limit, limit) || other.limit == limit) &&
-            (identical(other.page, page) || other.page == page) &&
-            (identical(other.pages, pages) || other.pages == pages));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    const DeepCollectionEquality().hash(_docs),
-    total,
-    limit,
-    page,
-    pages,
-  );
-
-  /// Create a copy of Comments
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$CommentsImplCopyWith<_$CommentsImpl> get copyWith =>
-      __$$CommentsImplCopyWithImpl<_$CommentsImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$CommentsImplToJson(this);
-  }
+ final  List<Doc> _docs;
+@override@JsonKey(name: "docs") List<Doc> get docs {
+  if (_docs is EqualUnmodifiableListView) return _docs;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_docs);
 }
 
-abstract class _Comments implements Comments {
-  const factory _Comments({
-    @JsonKey(name: "docs") required final List<Doc> docs,
-    @JsonKey(name: "total") required final int total,
-    @JsonKey(name: "limit") required final int limit,
-    @JsonKey(name: "page") required final String page,
-    @JsonKey(name: "pages") required final int pages,
-  }) = _$CommentsImpl;
+@override@JsonKey(name: "total") final  int total;
+@override@JsonKey(name: "limit") final  int limit;
+@override@JsonKey(name: "page") final  String page;
+@override@JsonKey(name: "pages") final  int pages;
 
-  factory _Comments.fromJson(Map<String, dynamic> json) =
-      _$CommentsImpl.fromJson;
+/// Create a copy of Comments
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$CommentsCopyWith<_Comments> get copyWith => __$CommentsCopyWithImpl<_Comments>(this, _$identity);
 
-  @override
-  @JsonKey(name: "docs")
-  List<Doc> get docs;
-  @override
-  @JsonKey(name: "total")
-  int get total;
-  @override
-  @JsonKey(name: "limit")
-  int get limit;
-  @override
-  @JsonKey(name: "page")
-  String get page;
-  @override
-  @JsonKey(name: "pages")
-  int get pages;
-
-  /// Create a copy of Comments
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$CommentsImplCopyWith<_$CommentsImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+@override
+Map<String, dynamic> toJson() {
+  return _$CommentsToJson(this, );
 }
 
-Doc _$DocFromJson(Map<String, dynamic> json) {
-  return _Doc.fromJson(json);
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Comments&&const DeepCollectionEquality().equals(other._docs, _docs)&&(identical(other.total, total) || other.total == total)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.page, page) || other.page == page)&&(identical(other.pages, pages) || other.pages == pages));
 }
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_docs),total,limit,page,pages);
+
+@override
+String toString() {
+  return 'Comments(docs: $docs, total: $total, limit: $limit, page: $page, pages: $pages)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$CommentsCopyWith<$Res> implements $CommentsCopyWith<$Res> {
+  factory _$CommentsCopyWith(_Comments value, $Res Function(_Comments) _then) = __$CommentsCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: "docs") List<Doc> docs,@JsonKey(name: "total") int total,@JsonKey(name: "limit") int limit,@JsonKey(name: "page") String page,@JsonKey(name: "pages") int pages
+});
+
+
+
+
+}
+/// @nodoc
+class __$CommentsCopyWithImpl<$Res>
+    implements _$CommentsCopyWith<$Res> {
+  __$CommentsCopyWithImpl(this._self, this._then);
+
+  final _Comments _self;
+  final $Res Function(_Comments) _then;
+
+/// Create a copy of Comments
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? docs = null,Object? total = null,Object? limit = null,Object? page = null,Object? pages = null,}) {
+  return _then(_Comments(
+docs: null == docs ? _self._docs : docs // ignore: cast_nullable_to_non_nullable
+as List<Doc>,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
+as int,limit: null == limit ? _self.limit : limit // ignore: cast_nullable_to_non_nullable
+as int,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
+as String,pages: null == pages ? _self.pages : pages // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+
+}
+
 
 /// @nodoc
 mixin _$Doc {
-  @JsonKey(name: "_id")
-  String get id => throw _privateConstructorUsedError;
-  @JsonKey(name: "content")
-  String get content => throw _privateConstructorUsedError;
-  @JsonKey(name: "_user")
-  User get user => throw _privateConstructorUsedError;
-  @JsonKey(name: "_parent")
-  String get parent => throw _privateConstructorUsedError;
-  @JsonKey(name: "_comic")
-  String get comic => throw _privateConstructorUsedError;
-  @JsonKey(name: "totalComments")
-  int get totalComments => throw _privateConstructorUsedError;
-  @JsonKey(name: "isTop")
-  bool get isTop => throw _privateConstructorUsedError;
-  @JsonKey(name: "hide")
-  bool get hide => throw _privateConstructorUsedError;
-  @JsonKey(name: "created_at")
-  DateTime get createdAt => throw _privateConstructorUsedError;
-  @JsonKey(name: "id")
-  String get docId => throw _privateConstructorUsedError;
-  @JsonKey(name: "likesCount")
-  int get likesCount => throw _privateConstructorUsedError;
-  @JsonKey(name: "isLiked")
-  bool get isLiked => throw _privateConstructorUsedError;
+
+@JsonKey(name: "_id") String get id;@JsonKey(name: "content") String get content;@JsonKey(name: "_user") User get user;@JsonKey(name: "_parent") String get parent;@JsonKey(name: "_comic") String get comic;@JsonKey(name: "totalComments") int get totalComments;@JsonKey(name: "isTop") bool get isTop;@JsonKey(name: "hide") bool get hide;@JsonKey(name: "created_at") DateTime get createdAt;@JsonKey(name: "id") String get docId;@JsonKey(name: "likesCount") int get likesCount;@JsonKey(name: "isLiked") bool get isLiked;
+/// Create a copy of Doc
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DocCopyWith<Doc> get copyWith => _$DocCopyWithImpl<Doc>(this as Doc, _$identity);
 
   /// Serializes this Doc to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of Doc
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $DocCopyWith<Doc> get copyWith => throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Doc&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&(identical(other.user, user) || other.user == user)&&(identical(other.parent, parent) || other.parent == parent)&&(identical(other.comic, comic) || other.comic == comic)&&(identical(other.totalComments, totalComments) || other.totalComments == totalComments)&&(identical(other.isTop, isTop) || other.isTop == isTop)&&(identical(other.hide, hide) || other.hide == hide)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.docId, docId) || other.docId == docId)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.isLiked, isLiked) || other.isLiked == isLiked));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,content,user,parent,comic,totalComments,isTop,hide,createdAt,docId,likesCount,isLiked);
+
+@override
+String toString() {
+  return 'Doc(id: $id, content: $content, user: $user, parent: $parent, comic: $comic, totalComments: $totalComments, isTop: $isTop, hide: $hide, createdAt: $createdAt, docId: $docId, likesCount: $likesCount, isLiked: $isLiked)';
+}
+
+
 }
 
 /// @nodoc
-abstract class $DocCopyWith<$Res> {
-  factory $DocCopyWith(Doc value, $Res Function(Doc) then) =
-      _$DocCopyWithImpl<$Res, Doc>;
-  @useResult
-  $Res call({
-    @JsonKey(name: "_id") String id,
-    @JsonKey(name: "content") String content,
-    @JsonKey(name: "_user") User user,
-    @JsonKey(name: "_parent") String parent,
-    @JsonKey(name: "_comic") String comic,
-    @JsonKey(name: "totalComments") int totalComments,
-    @JsonKey(name: "isTop") bool isTop,
-    @JsonKey(name: "hide") bool hide,
-    @JsonKey(name: "created_at") DateTime createdAt,
-    @JsonKey(name: "id") String docId,
-    @JsonKey(name: "likesCount") int likesCount,
-    @JsonKey(name: "isLiked") bool isLiked,
+abstract mixin class $DocCopyWith<$Res>  {
+  factory $DocCopyWith(Doc value, $Res Function(Doc) _then) = _$DocCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: "_id") String id,@JsonKey(name: "content") String content,@JsonKey(name: "_user") User user,@JsonKey(name: "_parent") String parent,@JsonKey(name: "_comic") String comic,@JsonKey(name: "totalComments") int totalComments,@JsonKey(name: "isTop") bool isTop,@JsonKey(name: "hide") bool hide,@JsonKey(name: "created_at") DateTime createdAt,@JsonKey(name: "id") String docId,@JsonKey(name: "likesCount") int likesCount,@JsonKey(name: "isLiked") bool isLiked
+});
+
+
+$UserCopyWith<$Res> get user;
+
+}
+/// @nodoc
+class _$DocCopyWithImpl<$Res>
+    implements $DocCopyWith<$Res> {
+  _$DocCopyWithImpl(this._self, this._then);
+
+  final Doc _self;
+  final $Res Function(Doc) _then;
+
+/// Create a copy of Doc
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? content = null,Object? user = null,Object? parent = null,Object? comic = null,Object? totalComments = null,Object? isTop = null,Object? hide = null,Object? createdAt = null,Object? docId = null,Object? likesCount = null,Object? isLiked = null,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
+as String,user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
+as User,parent: null == parent ? _self.parent : parent // ignore: cast_nullable_to_non_nullable
+as String,comic: null == comic ? _self.comic : comic // ignore: cast_nullable_to_non_nullable
+as String,totalComments: null == totalComments ? _self.totalComments : totalComments // ignore: cast_nullable_to_non_nullable
+as int,isTop: null == isTop ? _self.isTop : isTop // ignore: cast_nullable_to_non_nullable
+as bool,hide: null == hide ? _self.hide : hide // ignore: cast_nullable_to_non_nullable
+as bool,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,docId: null == docId ? _self.docId : docId // ignore: cast_nullable_to_non_nullable
+as String,likesCount: null == likesCount ? _self.likesCount : likesCount // ignore: cast_nullable_to_non_nullable
+as int,isLiked: null == isLiked ? _self.isLiked : isLiked // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+/// Create a copy of Doc
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$UserCopyWith<$Res> get user {
+  
+  return $UserCopyWith<$Res>(_self.user, (value) {
+    return _then(_self.copyWith(user: value));
   });
-
-  $UserCopyWith<$Res> get user;
+}
 }
 
-/// @nodoc
-class _$DocCopyWithImpl<$Res, $Val extends Doc> implements $DocCopyWith<$Res> {
-  _$DocCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of Doc
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? content = null,
-    Object? user = null,
-    Object? parent = null,
-    Object? comic = null,
-    Object? totalComments = null,
-    Object? isTop = null,
-    Object? hide = null,
-    Object? createdAt = null,
-    Object? docId = null,
-    Object? likesCount = null,
-    Object? isLiked = null,
-  }) {
-    return _then(
-      _value.copyWith(
-            id:
-                null == id
-                    ? _value.id
-                    : id // ignore: cast_nullable_to_non_nullable
-                        as String,
-            content:
-                null == content
-                    ? _value.content
-                    : content // ignore: cast_nullable_to_non_nullable
-                        as String,
-            user:
-                null == user
-                    ? _value.user
-                    : user // ignore: cast_nullable_to_non_nullable
-                        as User,
-            parent:
-                null == parent
-                    ? _value.parent
-                    : parent // ignore: cast_nullable_to_non_nullable
-                        as String,
-            comic:
-                null == comic
-                    ? _value.comic
-                    : comic // ignore: cast_nullable_to_non_nullable
-                        as String,
-            totalComments:
-                null == totalComments
-                    ? _value.totalComments
-                    : totalComments // ignore: cast_nullable_to_non_nullable
-                        as int,
-            isTop:
-                null == isTop
-                    ? _value.isTop
-                    : isTop // ignore: cast_nullable_to_non_nullable
-                        as bool,
-            hide:
-                null == hide
-                    ? _value.hide
-                    : hide // ignore: cast_nullable_to_non_nullable
-                        as bool,
-            createdAt:
-                null == createdAt
-                    ? _value.createdAt
-                    : createdAt // ignore: cast_nullable_to_non_nullable
-                        as DateTime,
-            docId:
-                null == docId
-                    ? _value.docId
-                    : docId // ignore: cast_nullable_to_non_nullable
-                        as String,
-            likesCount:
-                null == likesCount
-                    ? _value.likesCount
-                    : likesCount // ignore: cast_nullable_to_non_nullable
-                        as int,
-            isLiked:
-                null == isLiked
-                    ? _value.isLiked
-                    : isLiked // ignore: cast_nullable_to_non_nullable
-                        as bool,
-          )
-          as $Val,
-    );
-  }
-
-  /// Create a copy of Doc
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $UserCopyWith<$Res> get user {
-    return $UserCopyWith<$Res>(_value.user, (value) {
-      return _then(_value.copyWith(user: value) as $Val);
-    });
-  }
-}
-
-/// @nodoc
-abstract class _$$DocImplCopyWith<$Res> implements $DocCopyWith<$Res> {
-  factory _$$DocImplCopyWith(_$DocImpl value, $Res Function(_$DocImpl) then) =
-      __$$DocImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({
-    @JsonKey(name: "_id") String id,
-    @JsonKey(name: "content") String content,
-    @JsonKey(name: "_user") User user,
-    @JsonKey(name: "_parent") String parent,
-    @JsonKey(name: "_comic") String comic,
-    @JsonKey(name: "totalComments") int totalComments,
-    @JsonKey(name: "isTop") bool isTop,
-    @JsonKey(name: "hide") bool hide,
-    @JsonKey(name: "created_at") DateTime createdAt,
-    @JsonKey(name: "id") String docId,
-    @JsonKey(name: "likesCount") int likesCount,
-    @JsonKey(name: "isLiked") bool isLiked,
-  });
-
-  @override
-  $UserCopyWith<$Res> get user;
-}
-
-/// @nodoc
-class __$$DocImplCopyWithImpl<$Res> extends _$DocCopyWithImpl<$Res, _$DocImpl>
-    implements _$$DocImplCopyWith<$Res> {
-  __$$DocImplCopyWithImpl(_$DocImpl _value, $Res Function(_$DocImpl) _then)
-    : super(_value, _then);
-
-  /// Create a copy of Doc
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? content = null,
-    Object? user = null,
-    Object? parent = null,
-    Object? comic = null,
-    Object? totalComments = null,
-    Object? isTop = null,
-    Object? hide = null,
-    Object? createdAt = null,
-    Object? docId = null,
-    Object? likesCount = null,
-    Object? isLiked = null,
-  }) {
-    return _then(
-      _$DocImpl(
-        id:
-            null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                    as String,
-        content:
-            null == content
-                ? _value.content
-                : content // ignore: cast_nullable_to_non_nullable
-                    as String,
-        user:
-            null == user
-                ? _value.user
-                : user // ignore: cast_nullable_to_non_nullable
-                    as User,
-        parent:
-            null == parent
-                ? _value.parent
-                : parent // ignore: cast_nullable_to_non_nullable
-                    as String,
-        comic:
-            null == comic
-                ? _value.comic
-                : comic // ignore: cast_nullable_to_non_nullable
-                    as String,
-        totalComments:
-            null == totalComments
-                ? _value.totalComments
-                : totalComments // ignore: cast_nullable_to_non_nullable
-                    as int,
-        isTop:
-            null == isTop
-                ? _value.isTop
-                : isTop // ignore: cast_nullable_to_non_nullable
-                    as bool,
-        hide:
-            null == hide
-                ? _value.hide
-                : hide // ignore: cast_nullable_to_non_nullable
-                    as bool,
-        createdAt:
-            null == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                    as DateTime,
-        docId:
-            null == docId
-                ? _value.docId
-                : docId // ignore: cast_nullable_to_non_nullable
-                    as String,
-        likesCount:
-            null == likesCount
-                ? _value.likesCount
-                : likesCount // ignore: cast_nullable_to_non_nullable
-                    as int,
-        isLiked:
-            null == isLiked
-                ? _value.isLiked
-                : isLiked // ignore: cast_nullable_to_non_nullable
-                    as bool,
-      ),
-    );
-  }
-}
 
 /// @nodoc
 @JsonSerializable()
-class _$DocImpl implements _Doc {
-  const _$DocImpl({
-    @JsonKey(name: "_id") required this.id,
-    @JsonKey(name: "content") required this.content,
-    @JsonKey(name: "_user") required this.user,
-    @JsonKey(name: "_parent") required this.parent,
-    @JsonKey(name: "_comic") required this.comic,
-    @JsonKey(name: "totalComments") required this.totalComments,
-    @JsonKey(name: "isTop") required this.isTop,
-    @JsonKey(name: "hide") required this.hide,
-    @JsonKey(name: "created_at") required this.createdAt,
-    @JsonKey(name: "id") required this.docId,
-    @JsonKey(name: "likesCount") required this.likesCount,
-    @JsonKey(name: "isLiked") required this.isLiked,
+
+class _Doc implements Doc {
+  const _Doc({@JsonKey(name: "_id") required this.id, @JsonKey(name: "content") required this.content, @JsonKey(name: "_user") required this.user, @JsonKey(name: "_parent") required this.parent, @JsonKey(name: "_comic") required this.comic, @JsonKey(name: "totalComments") required this.totalComments, @JsonKey(name: "isTop") required this.isTop, @JsonKey(name: "hide") required this.hide, @JsonKey(name: "created_at") required this.createdAt, @JsonKey(name: "id") required this.docId, @JsonKey(name: "likesCount") required this.likesCount, @JsonKey(name: "isLiked") required this.isLiked});
+  factory _Doc.fromJson(Map<String, dynamic> json) => _$DocFromJson(json);
+
+@override@JsonKey(name: "_id") final  String id;
+@override@JsonKey(name: "content") final  String content;
+@override@JsonKey(name: "_user") final  User user;
+@override@JsonKey(name: "_parent") final  String parent;
+@override@JsonKey(name: "_comic") final  String comic;
+@override@JsonKey(name: "totalComments") final  int totalComments;
+@override@JsonKey(name: "isTop") final  bool isTop;
+@override@JsonKey(name: "hide") final  bool hide;
+@override@JsonKey(name: "created_at") final  DateTime createdAt;
+@override@JsonKey(name: "id") final  String docId;
+@override@JsonKey(name: "likesCount") final  int likesCount;
+@override@JsonKey(name: "isLiked") final  bool isLiked;
+
+/// Create a copy of Doc
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$DocCopyWith<_Doc> get copyWith => __$DocCopyWithImpl<_Doc>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$DocToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Doc&&(identical(other.id, id) || other.id == id)&&(identical(other.content, content) || other.content == content)&&(identical(other.user, user) || other.user == user)&&(identical(other.parent, parent) || other.parent == parent)&&(identical(other.comic, comic) || other.comic == comic)&&(identical(other.totalComments, totalComments) || other.totalComments == totalComments)&&(identical(other.isTop, isTop) || other.isTop == isTop)&&(identical(other.hide, hide) || other.hide == hide)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.docId, docId) || other.docId == docId)&&(identical(other.likesCount, likesCount) || other.likesCount == likesCount)&&(identical(other.isLiked, isLiked) || other.isLiked == isLiked));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,content,user,parent,comic,totalComments,isTop,hide,createdAt,docId,likesCount,isLiked);
+
+@override
+String toString() {
+  return 'Doc(id: $id, content: $content, user: $user, parent: $parent, comic: $comic, totalComments: $totalComments, isTop: $isTop, hide: $hide, createdAt: $createdAt, docId: $docId, likesCount: $likesCount, isLiked: $isLiked)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$DocCopyWith<$Res> implements $DocCopyWith<$Res> {
+  factory _$DocCopyWith(_Doc value, $Res Function(_Doc) _then) = __$DocCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: "_id") String id,@JsonKey(name: "content") String content,@JsonKey(name: "_user") User user,@JsonKey(name: "_parent") String parent,@JsonKey(name: "_comic") String comic,@JsonKey(name: "totalComments") int totalComments,@JsonKey(name: "isTop") bool isTop,@JsonKey(name: "hide") bool hide,@JsonKey(name: "created_at") DateTime createdAt,@JsonKey(name: "id") String docId,@JsonKey(name: "likesCount") int likesCount,@JsonKey(name: "isLiked") bool isLiked
+});
+
+
+@override $UserCopyWith<$Res> get user;
+
+}
+/// @nodoc
+class __$DocCopyWithImpl<$Res>
+    implements _$DocCopyWith<$Res> {
+  __$DocCopyWithImpl(this._self, this._then);
+
+  final _Doc _self;
+  final $Res Function(_Doc) _then;
+
+/// Create a copy of Doc
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? content = null,Object? user = null,Object? parent = null,Object? comic = null,Object? totalComments = null,Object? isTop = null,Object? hide = null,Object? createdAt = null,Object? docId = null,Object? likesCount = null,Object? isLiked = null,}) {
+  return _then(_Doc(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
+as String,user: null == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
+as User,parent: null == parent ? _self.parent : parent // ignore: cast_nullable_to_non_nullable
+as String,comic: null == comic ? _self.comic : comic // ignore: cast_nullable_to_non_nullable
+as String,totalComments: null == totalComments ? _self.totalComments : totalComments // ignore: cast_nullable_to_non_nullable
+as int,isTop: null == isTop ? _self.isTop : isTop // ignore: cast_nullable_to_non_nullable
+as bool,hide: null == hide ? _self.hide : hide // ignore: cast_nullable_to_non_nullable
+as bool,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,docId: null == docId ? _self.docId : docId // ignore: cast_nullable_to_non_nullable
+as String,likesCount: null == likesCount ? _self.likesCount : likesCount // ignore: cast_nullable_to_non_nullable
+as int,isLiked: null == isLiked ? _self.isLiked : isLiked // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+/// Create a copy of Doc
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$UserCopyWith<$Res> get user {
+  
+  return $UserCopyWith<$Res>(_self.user, (value) {
+    return _then(_self.copyWith(user: value));
   });
-
-  factory _$DocImpl.fromJson(Map<String, dynamic> json) =>
-      _$$DocImplFromJson(json);
-
-  @override
-  @JsonKey(name: "_id")
-  final String id;
-  @override
-  @JsonKey(name: "content")
-  final String content;
-  @override
-  @JsonKey(name: "_user")
-  final User user;
-  @override
-  @JsonKey(name: "_parent")
-  final String parent;
-  @override
-  @JsonKey(name: "_comic")
-  final String comic;
-  @override
-  @JsonKey(name: "totalComments")
-  final int totalComments;
-  @override
-  @JsonKey(name: "isTop")
-  final bool isTop;
-  @override
-  @JsonKey(name: "hide")
-  final bool hide;
-  @override
-  @JsonKey(name: "created_at")
-  final DateTime createdAt;
-  @override
-  @JsonKey(name: "id")
-  final String docId;
-  @override
-  @JsonKey(name: "likesCount")
-  final int likesCount;
-  @override
-  @JsonKey(name: "isLiked")
-  final bool isLiked;
-
-  @override
-  String toString() {
-    return 'Doc(id: $id, content: $content, user: $user, parent: $parent, comic: $comic, totalComments: $totalComments, isTop: $isTop, hide: $hide, createdAt: $createdAt, docId: $docId, likesCount: $likesCount, isLiked: $isLiked)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$DocImpl &&
-            (identical(other.id, id) || other.id == id) &&
-            (identical(other.content, content) || other.content == content) &&
-            (identical(other.user, user) || other.user == user) &&
-            (identical(other.parent, parent) || other.parent == parent) &&
-            (identical(other.comic, comic) || other.comic == comic) &&
-            (identical(other.totalComments, totalComments) ||
-                other.totalComments == totalComments) &&
-            (identical(other.isTop, isTop) || other.isTop == isTop) &&
-            (identical(other.hide, hide) || other.hide == hide) &&
-            (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt) &&
-            (identical(other.docId, docId) || other.docId == docId) &&
-            (identical(other.likesCount, likesCount) ||
-                other.likesCount == likesCount) &&
-            (identical(other.isLiked, isLiked) || other.isLiked == isLiked));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    content,
-    user,
-    parent,
-    comic,
-    totalComments,
-    isTop,
-    hide,
-    createdAt,
-    docId,
-    likesCount,
-    isLiked,
-  );
-
-  /// Create a copy of Doc
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$DocImplCopyWith<_$DocImpl> get copyWith =>
-      __$$DocImplCopyWithImpl<_$DocImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$DocImplToJson(this);
-  }
+}
 }
 
-abstract class _Doc implements Doc {
-  const factory _Doc({
-    @JsonKey(name: "_id") required final String id,
-    @JsonKey(name: "content") required final String content,
-    @JsonKey(name: "_user") required final User user,
-    @JsonKey(name: "_parent") required final String parent,
-    @JsonKey(name: "_comic") required final String comic,
-    @JsonKey(name: "totalComments") required final int totalComments,
-    @JsonKey(name: "isTop") required final bool isTop,
-    @JsonKey(name: "hide") required final bool hide,
-    @JsonKey(name: "created_at") required final DateTime createdAt,
-    @JsonKey(name: "id") required final String docId,
-    @JsonKey(name: "likesCount") required final int likesCount,
-    @JsonKey(name: "isLiked") required final bool isLiked,
-  }) = _$DocImpl;
-
-  factory _Doc.fromJson(Map<String, dynamic> json) = _$DocImpl.fromJson;
-
-  @override
-  @JsonKey(name: "_id")
-  String get id;
-  @override
-  @JsonKey(name: "content")
-  String get content;
-  @override
-  @JsonKey(name: "_user")
-  User get user;
-  @override
-  @JsonKey(name: "_parent")
-  String get parent;
-  @override
-  @JsonKey(name: "_comic")
-  String get comic;
-  @override
-  @JsonKey(name: "totalComments")
-  int get totalComments;
-  @override
-  @JsonKey(name: "isTop")
-  bool get isTop;
-  @override
-  @JsonKey(name: "hide")
-  bool get hide;
-  @override
-  @JsonKey(name: "created_at")
-  DateTime get createdAt;
-  @override
-  @JsonKey(name: "id")
-  String get docId;
-  @override
-  @JsonKey(name: "likesCount")
-  int get likesCount;
-  @override
-  @JsonKey(name: "isLiked")
-  bool get isLiked;
-
-  /// Create a copy of Doc
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$DocImplCopyWith<_$DocImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-User _$UserFromJson(Map<String, dynamic> json) {
-  return _User.fromJson(json);
-}
 
 /// @nodoc
 mixin _$User {
-  @JsonKey(name: "_id")
-  String get id => throw _privateConstructorUsedError;
-  @JsonKey(name: "gender")
-  String get gender => throw _privateConstructorUsedError;
-  @JsonKey(name: "name")
-  String get name => throw _privateConstructorUsedError;
-  @JsonKey(name: "title")
-  String get title => throw _privateConstructorUsedError;
-  @JsonKey(name: "verified")
-  bool get verified => throw _privateConstructorUsedError;
-  @JsonKey(name: "exp")
-  int get exp => throw _privateConstructorUsedError;
-  @JsonKey(name: "level")
-  int get level => throw _privateConstructorUsedError;
-  @JsonKey(name: "characters")
-  List<dynamic> get characters => throw _privateConstructorUsedError;
-  @JsonKey(name: "role")
-  String get role => throw _privateConstructorUsedError;
-  @JsonKey(name: "avatar")
-  Avatar? get avatar => throw _privateConstructorUsedError;
-  @JsonKey(name: "slogan")
-  String? get slogan => throw _privateConstructorUsedError;
-  @JsonKey(name: "character")
-  String? get character => throw _privateConstructorUsedError;
+
+@JsonKey(name: "_id") String get id;@JsonKey(name: "gender") String get gender;@JsonKey(name: "name") String get name;@JsonKey(name: "title") String get title;@JsonKey(name: "verified") bool get verified;@JsonKey(name: "exp") int get exp;@JsonKey(name: "level") int get level;@JsonKey(name: "characters") List<dynamic> get characters;@JsonKey(name: "role") String get role;@JsonKey(name: "avatar") Avatar? get avatar;@JsonKey(name: "slogan") String? get slogan;@JsonKey(name: "character") String? get character;
+/// Create a copy of User
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$UserCopyWith<User> get copyWith => _$UserCopyWithImpl<User>(this as User, _$identity);
 
   /// Serializes this User to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of User
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $UserCopyWith<User> get copyWith => throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is User&&(identical(other.id, id) || other.id == id)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.name, name) || other.name == name)&&(identical(other.title, title) || other.title == title)&&(identical(other.verified, verified) || other.verified == verified)&&(identical(other.exp, exp) || other.exp == exp)&&(identical(other.level, level) || other.level == level)&&const DeepCollectionEquality().equals(other.characters, characters)&&(identical(other.role, role) || other.role == role)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&(identical(other.slogan, slogan) || other.slogan == slogan)&&(identical(other.character, character) || other.character == character));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,gender,name,title,verified,exp,level,const DeepCollectionEquality().hash(characters),role,avatar,slogan,character);
+
+@override
+String toString() {
+  return 'User(id: $id, gender: $gender, name: $name, title: $title, verified: $verified, exp: $exp, level: $level, characters: $characters, role: $role, avatar: $avatar, slogan: $slogan, character: $character)';
+}
+
+
 }
 
 /// @nodoc
-abstract class $UserCopyWith<$Res> {
-  factory $UserCopyWith(User value, $Res Function(User) then) =
-      _$UserCopyWithImpl<$Res, User>;
-  @useResult
-  $Res call({
-    @JsonKey(name: "_id") String id,
-    @JsonKey(name: "gender") String gender,
-    @JsonKey(name: "name") String name,
-    @JsonKey(name: "title") String title,
-    @JsonKey(name: "verified") bool verified,
-    @JsonKey(name: "exp") int exp,
-    @JsonKey(name: "level") int level,
-    @JsonKey(name: "characters") List<dynamic> characters,
-    @JsonKey(name: "role") String role,
-    @JsonKey(name: "avatar") Avatar? avatar,
-    @JsonKey(name: "slogan") String? slogan,
-    @JsonKey(name: "character") String? character,
-  });
+abstract mixin class $UserCopyWith<$Res>  {
+  factory $UserCopyWith(User value, $Res Function(User) _then) = _$UserCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: "_id") String id,@JsonKey(name: "gender") String gender,@JsonKey(name: "name") String name,@JsonKey(name: "title") String title,@JsonKey(name: "verified") bool verified,@JsonKey(name: "exp") int exp,@JsonKey(name: "level") int level,@JsonKey(name: "characters") List<dynamic> characters,@JsonKey(name: "role") String role,@JsonKey(name: "avatar") Avatar? avatar,@JsonKey(name: "slogan") String? slogan,@JsonKey(name: "character") String? character
+});
 
-  $AvatarCopyWith<$Res>? get avatar;
+
+$AvatarCopyWith<$Res>? get avatar;
+
 }
-
 /// @nodoc
-class _$UserCopyWithImpl<$Res, $Val extends User>
+class _$UserCopyWithImpl<$Res>
     implements $UserCopyWith<$Res> {
-  _$UserCopyWithImpl(this._value, this._then);
+  _$UserCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final User _self;
+  final $Res Function(User) _then;
 
-  /// Create a copy of User
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? gender = null,
-    Object? name = null,
-    Object? title = null,
-    Object? verified = null,
-    Object? exp = null,
-    Object? level = null,
-    Object? characters = null,
-    Object? role = null,
-    Object? avatar = freezed,
-    Object? slogan = freezed,
-    Object? character = freezed,
-  }) {
-    return _then(
-      _value.copyWith(
-            id:
-                null == id
-                    ? _value.id
-                    : id // ignore: cast_nullable_to_non_nullable
-                        as String,
-            gender:
-                null == gender
-                    ? _value.gender
-                    : gender // ignore: cast_nullable_to_non_nullable
-                        as String,
-            name:
-                null == name
-                    ? _value.name
-                    : name // ignore: cast_nullable_to_non_nullable
-                        as String,
-            title:
-                null == title
-                    ? _value.title
-                    : title // ignore: cast_nullable_to_non_nullable
-                        as String,
-            verified:
-                null == verified
-                    ? _value.verified
-                    : verified // ignore: cast_nullable_to_non_nullable
-                        as bool,
-            exp:
-                null == exp
-                    ? _value.exp
-                    : exp // ignore: cast_nullable_to_non_nullable
-                        as int,
-            level:
-                null == level
-                    ? _value.level
-                    : level // ignore: cast_nullable_to_non_nullable
-                        as int,
-            characters:
-                null == characters
-                    ? _value.characters
-                    : characters // ignore: cast_nullable_to_non_nullable
-                        as List<dynamic>,
-            role:
-                null == role
-                    ? _value.role
-                    : role // ignore: cast_nullable_to_non_nullable
-                        as String,
-            avatar:
-                freezed == avatar
-                    ? _value.avatar
-                    : avatar // ignore: cast_nullable_to_non_nullable
-                        as Avatar?,
-            slogan:
-                freezed == slogan
-                    ? _value.slogan
-                    : slogan // ignore: cast_nullable_to_non_nullable
-                        as String?,
-            character:
-                freezed == character
-                    ? _value.character
-                    : character // ignore: cast_nullable_to_non_nullable
-                        as String?,
-          )
-          as $Val,
-    );
-  }
-
-  /// Create a copy of User
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $AvatarCopyWith<$Res>? get avatar {
-    if (_value.avatar == null) {
-      return null;
-    }
-
-    return $AvatarCopyWith<$Res>(_value.avatar!, (value) {
-      return _then(_value.copyWith(avatar: value) as $Val);
-    });
-  }
+/// Create a copy of User
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? gender = null,Object? name = null,Object? title = null,Object? verified = null,Object? exp = null,Object? level = null,Object? characters = null,Object? role = null,Object? avatar = freezed,Object? slogan = freezed,Object? character = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,gender: null == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,verified: null == verified ? _self.verified : verified // ignore: cast_nullable_to_non_nullable
+as bool,exp: null == exp ? _self.exp : exp // ignore: cast_nullable_to_non_nullable
+as int,level: null == level ? _self.level : level // ignore: cast_nullable_to_non_nullable
+as int,characters: null == characters ? _self.characters : characters // ignore: cast_nullable_to_non_nullable
+as List<dynamic>,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
+as String,avatar: freezed == avatar ? _self.avatar : avatar // ignore: cast_nullable_to_non_nullable
+as Avatar?,slogan: freezed == slogan ? _self.slogan : slogan // ignore: cast_nullable_to_non_nullable
+as String?,character: freezed == character ? _self.character : character // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
 }
+/// Create a copy of User
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$AvatarCopyWith<$Res>? get avatar {
+    if (_self.avatar == null) {
+    return null;
+  }
 
-/// @nodoc
-abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
-  factory _$$UserImplCopyWith(
-    _$UserImpl value,
-    $Res Function(_$UserImpl) then,
-  ) = __$$UserImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({
-    @JsonKey(name: "_id") String id,
-    @JsonKey(name: "gender") String gender,
-    @JsonKey(name: "name") String name,
-    @JsonKey(name: "title") String title,
-    @JsonKey(name: "verified") bool verified,
-    @JsonKey(name: "exp") int exp,
-    @JsonKey(name: "level") int level,
-    @JsonKey(name: "characters") List<dynamic> characters,
-    @JsonKey(name: "role") String role,
-    @JsonKey(name: "avatar") Avatar? avatar,
-    @JsonKey(name: "slogan") String? slogan,
-    @JsonKey(name: "character") String? character,
+  return $AvatarCopyWith<$Res>(_self.avatar!, (value) {
+    return _then(_self.copyWith(avatar: value));
   });
-
-  @override
-  $AvatarCopyWith<$Res>? get avatar;
+}
 }
 
-/// @nodoc
-class __$$UserImplCopyWithImpl<$Res>
-    extends _$UserCopyWithImpl<$Res, _$UserImpl>
-    implements _$$UserImplCopyWith<$Res> {
-  __$$UserImplCopyWithImpl(_$UserImpl _value, $Res Function(_$UserImpl) _then)
-    : super(_value, _then);
-
-  /// Create a copy of User
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? gender = null,
-    Object? name = null,
-    Object? title = null,
-    Object? verified = null,
-    Object? exp = null,
-    Object? level = null,
-    Object? characters = null,
-    Object? role = null,
-    Object? avatar = freezed,
-    Object? slogan = freezed,
-    Object? character = freezed,
-  }) {
-    return _then(
-      _$UserImpl(
-        id:
-            null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                    as String,
-        gender:
-            null == gender
-                ? _value.gender
-                : gender // ignore: cast_nullable_to_non_nullable
-                    as String,
-        name:
-            null == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
-                    as String,
-        title:
-            null == title
-                ? _value.title
-                : title // ignore: cast_nullable_to_non_nullable
-                    as String,
-        verified:
-            null == verified
-                ? _value.verified
-                : verified // ignore: cast_nullable_to_non_nullable
-                    as bool,
-        exp:
-            null == exp
-                ? _value.exp
-                : exp // ignore: cast_nullable_to_non_nullable
-                    as int,
-        level:
-            null == level
-                ? _value.level
-                : level // ignore: cast_nullable_to_non_nullable
-                    as int,
-        characters:
-            null == characters
-                ? _value._characters
-                : characters // ignore: cast_nullable_to_non_nullable
-                    as List<dynamic>,
-        role:
-            null == role
-                ? _value.role
-                : role // ignore: cast_nullable_to_non_nullable
-                    as String,
-        avatar:
-            freezed == avatar
-                ? _value.avatar
-                : avatar // ignore: cast_nullable_to_non_nullable
-                    as Avatar?,
-        slogan:
-            freezed == slogan
-                ? _value.slogan
-                : slogan // ignore: cast_nullable_to_non_nullable
-                    as String?,
-        character:
-            freezed == character
-                ? _value.character
-                : character // ignore: cast_nullable_to_non_nullable
-                    as String?,
-      ),
-    );
-  }
-}
 
 /// @nodoc
 @JsonSerializable()
-class _$UserImpl implements _User {
-  const _$UserImpl({
-    @JsonKey(name: "_id") required this.id,
-    @JsonKey(name: "gender") required this.gender,
-    @JsonKey(name: "name") required this.name,
-    @JsonKey(name: "title") required this.title,
-    @JsonKey(name: "verified") required this.verified,
-    @JsonKey(name: "exp") required this.exp,
-    @JsonKey(name: "level") required this.level,
-    @JsonKey(name: "characters") required final List<dynamic> characters,
-    @JsonKey(name: "role") required this.role,
-    @JsonKey(name: "avatar") this.avatar,
-    @JsonKey(name: "slogan") this.slogan,
-    @JsonKey(name: "character") this.character,
-  }) : _characters = characters;
 
-  factory _$UserImpl.fromJson(Map<String, dynamic> json) =>
-      _$$UserImplFromJson(json);
+class _User implements User {
+  const _User({@JsonKey(name: "_id") required this.id, @JsonKey(name: "gender") required this.gender, @JsonKey(name: "name") required this.name, @JsonKey(name: "title") required this.title, @JsonKey(name: "verified") required this.verified, @JsonKey(name: "exp") required this.exp, @JsonKey(name: "level") required this.level, @JsonKey(name: "characters") required final  List<dynamic> characters, @JsonKey(name: "role") required this.role, @JsonKey(name: "avatar") this.avatar, @JsonKey(name: "slogan") this.slogan, @JsonKey(name: "character") this.character}): _characters = characters;
+  factory _User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
-  @override
-  @JsonKey(name: "_id")
-  final String id;
-  @override
-  @JsonKey(name: "gender")
-  final String gender;
-  @override
-  @JsonKey(name: "name")
-  final String name;
-  @override
-  @JsonKey(name: "title")
-  final String title;
-  @override
-  @JsonKey(name: "verified")
-  final bool verified;
-  @override
-  @JsonKey(name: "exp")
-  final int exp;
-  @override
-  @JsonKey(name: "level")
-  final int level;
-  final List<dynamic> _characters;
-  @override
-  @JsonKey(name: "characters")
-  List<dynamic> get characters {
-    if (_characters is EqualUnmodifiableListView) return _characters;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_characters);
-  }
-
-  @override
-  @JsonKey(name: "role")
-  final String role;
-  @override
-  @JsonKey(name: "avatar")
-  final Avatar? avatar;
-  @override
-  @JsonKey(name: "slogan")
-  final String? slogan;
-  @override
-  @JsonKey(name: "character")
-  final String? character;
-
-  @override
-  String toString() {
-    return 'User(id: $id, gender: $gender, name: $name, title: $title, verified: $verified, exp: $exp, level: $level, characters: $characters, role: $role, avatar: $avatar, slogan: $slogan, character: $character)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$UserImpl &&
-            (identical(other.id, id) || other.id == id) &&
-            (identical(other.gender, gender) || other.gender == gender) &&
-            (identical(other.name, name) || other.name == name) &&
-            (identical(other.title, title) || other.title == title) &&
-            (identical(other.verified, verified) ||
-                other.verified == verified) &&
-            (identical(other.exp, exp) || other.exp == exp) &&
-            (identical(other.level, level) || other.level == level) &&
-            const DeepCollectionEquality().equals(
-              other._characters,
-              _characters,
-            ) &&
-            (identical(other.role, role) || other.role == role) &&
-            (identical(other.avatar, avatar) || other.avatar == avatar) &&
-            (identical(other.slogan, slogan) || other.slogan == slogan) &&
-            (identical(other.character, character) ||
-                other.character == character));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    gender,
-    name,
-    title,
-    verified,
-    exp,
-    level,
-    const DeepCollectionEquality().hash(_characters),
-    role,
-    avatar,
-    slogan,
-    character,
-  );
-
-  /// Create a copy of User
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$UserImplCopyWith<_$UserImpl> get copyWith =>
-      __$$UserImplCopyWithImpl<_$UserImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$UserImplToJson(this);
-  }
+@override@JsonKey(name: "_id") final  String id;
+@override@JsonKey(name: "gender") final  String gender;
+@override@JsonKey(name: "name") final  String name;
+@override@JsonKey(name: "title") final  String title;
+@override@JsonKey(name: "verified") final  bool verified;
+@override@JsonKey(name: "exp") final  int exp;
+@override@JsonKey(name: "level") final  int level;
+ final  List<dynamic> _characters;
+@override@JsonKey(name: "characters") List<dynamic> get characters {
+  if (_characters is EqualUnmodifiableListView) return _characters;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_characters);
 }
 
-abstract class _User implements User {
-  const factory _User({
-    @JsonKey(name: "_id") required final String id,
-    @JsonKey(name: "gender") required final String gender,
-    @JsonKey(name: "name") required final String name,
-    @JsonKey(name: "title") required final String title,
-    @JsonKey(name: "verified") required final bool verified,
-    @JsonKey(name: "exp") required final int exp,
-    @JsonKey(name: "level") required final int level,
-    @JsonKey(name: "characters") required final List<dynamic> characters,
-    @JsonKey(name: "role") required final String role,
-    @JsonKey(name: "avatar") final Avatar? avatar,
-    @JsonKey(name: "slogan") final String? slogan,
-    @JsonKey(name: "character") final String? character,
-  }) = _$UserImpl;
+@override@JsonKey(name: "role") final  String role;
+@override@JsonKey(name: "avatar") final  Avatar? avatar;
+@override@JsonKey(name: "slogan") final  String? slogan;
+@override@JsonKey(name: "character") final  String? character;
 
-  factory _User.fromJson(Map<String, dynamic> json) = _$UserImpl.fromJson;
+/// Create a copy of User
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$UserCopyWith<_User> get copyWith => __$UserCopyWithImpl<_User>(this, _$identity);
 
-  @override
-  @JsonKey(name: "_id")
-  String get id;
-  @override
-  @JsonKey(name: "gender")
-  String get gender;
-  @override
-  @JsonKey(name: "name")
-  String get name;
-  @override
-  @JsonKey(name: "title")
-  String get title;
-  @override
-  @JsonKey(name: "verified")
-  bool get verified;
-  @override
-  @JsonKey(name: "exp")
-  int get exp;
-  @override
-  @JsonKey(name: "level")
-  int get level;
-  @override
-  @JsonKey(name: "characters")
-  List<dynamic> get characters;
-  @override
-  @JsonKey(name: "role")
-  String get role;
-  @override
-  @JsonKey(name: "avatar")
-  Avatar? get avatar;
-  @override
-  @JsonKey(name: "slogan")
-  String? get slogan;
-  @override
-  @JsonKey(name: "character")
-  String? get character;
-
-  /// Create a copy of User
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$UserImplCopyWith<_$UserImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+@override
+Map<String, dynamic> toJson() {
+  return _$UserToJson(this, );
 }
 
-Avatar _$AvatarFromJson(Map<String, dynamic> json) {
-  return _Avatar.fromJson(json);
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _User&&(identical(other.id, id) || other.id == id)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.name, name) || other.name == name)&&(identical(other.title, title) || other.title == title)&&(identical(other.verified, verified) || other.verified == verified)&&(identical(other.exp, exp) || other.exp == exp)&&(identical(other.level, level) || other.level == level)&&const DeepCollectionEquality().equals(other._characters, _characters)&&(identical(other.role, role) || other.role == role)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&(identical(other.slogan, slogan) || other.slogan == slogan)&&(identical(other.character, character) || other.character == character));
 }
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,gender,name,title,verified,exp,level,const DeepCollectionEquality().hash(_characters),role,avatar,slogan,character);
+
+@override
+String toString() {
+  return 'User(id: $id, gender: $gender, name: $name, title: $title, verified: $verified, exp: $exp, level: $level, characters: $characters, role: $role, avatar: $avatar, slogan: $slogan, character: $character)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$UserCopyWith<$Res> implements $UserCopyWith<$Res> {
+  factory _$UserCopyWith(_User value, $Res Function(_User) _then) = __$UserCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: "_id") String id,@JsonKey(name: "gender") String gender,@JsonKey(name: "name") String name,@JsonKey(name: "title") String title,@JsonKey(name: "verified") bool verified,@JsonKey(name: "exp") int exp,@JsonKey(name: "level") int level,@JsonKey(name: "characters") List<dynamic> characters,@JsonKey(name: "role") String role,@JsonKey(name: "avatar") Avatar? avatar,@JsonKey(name: "slogan") String? slogan,@JsonKey(name: "character") String? character
+});
+
+
+@override $AvatarCopyWith<$Res>? get avatar;
+
+}
+/// @nodoc
+class __$UserCopyWithImpl<$Res>
+    implements _$UserCopyWith<$Res> {
+  __$UserCopyWithImpl(this._self, this._then);
+
+  final _User _self;
+  final $Res Function(_User) _then;
+
+/// Create a copy of User
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? gender = null,Object? name = null,Object? title = null,Object? verified = null,Object? exp = null,Object? level = null,Object? characters = null,Object? role = null,Object? avatar = freezed,Object? slogan = freezed,Object? character = freezed,}) {
+  return _then(_User(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,gender: null == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String,verified: null == verified ? _self.verified : verified // ignore: cast_nullable_to_non_nullable
+as bool,exp: null == exp ? _self.exp : exp // ignore: cast_nullable_to_non_nullable
+as int,level: null == level ? _self.level : level // ignore: cast_nullable_to_non_nullable
+as int,characters: null == characters ? _self._characters : characters // ignore: cast_nullable_to_non_nullable
+as List<dynamic>,role: null == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
+as String,avatar: freezed == avatar ? _self.avatar : avatar // ignore: cast_nullable_to_non_nullable
+as Avatar?,slogan: freezed == slogan ? _self.slogan : slogan // ignore: cast_nullable_to_non_nullable
+as String?,character: freezed == character ? _self.character : character // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+/// Create a copy of User
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$AvatarCopyWith<$Res>? get avatar {
+    if (_self.avatar == null) {
+    return null;
+  }
+
+  return $AvatarCopyWith<$Res>(_self.avatar!, (value) {
+    return _then(_self.copyWith(avatar: value));
+  });
+}
+}
+
 
 /// @nodoc
 mixin _$Avatar {
-  @JsonKey(name: "originalName")
-  String get originalName => throw _privateConstructorUsedError;
-  @JsonKey(name: "path")
-  String get path => throw _privateConstructorUsedError;
-  @JsonKey(name: "fileServer")
-  String get fileServer => throw _privateConstructorUsedError;
+
+@JsonKey(name: "originalName") String get originalName;@JsonKey(name: "path") String get path;@JsonKey(name: "fileServer") String get fileServer;
+/// Create a copy of Avatar
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$AvatarCopyWith<Avatar> get copyWith => _$AvatarCopyWithImpl<Avatar>(this as Avatar, _$identity);
 
   /// Serializes this Avatar to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of Avatar
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $AvatarCopyWith<Avatar> get copyWith => throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Avatar&&(identical(other.originalName, originalName) || other.originalName == originalName)&&(identical(other.path, path) || other.path == path)&&(identical(other.fileServer, fileServer) || other.fileServer == fileServer));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,originalName,path,fileServer);
+
+@override
+String toString() {
+  return 'Avatar(originalName: $originalName, path: $path, fileServer: $fileServer)';
+}
+
+
 }
 
 /// @nodoc
-abstract class $AvatarCopyWith<$Res> {
-  factory $AvatarCopyWith(Avatar value, $Res Function(Avatar) then) =
-      _$AvatarCopyWithImpl<$Res, Avatar>;
-  @useResult
-  $Res call({
-    @JsonKey(name: "originalName") String originalName,
-    @JsonKey(name: "path") String path,
-    @JsonKey(name: "fileServer") String fileServer,
-  });
-}
+abstract mixin class $AvatarCopyWith<$Res>  {
+  factory $AvatarCopyWith(Avatar value, $Res Function(Avatar) _then) = _$AvatarCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: "originalName") String originalName,@JsonKey(name: "path") String path,@JsonKey(name: "fileServer") String fileServer
+});
 
+
+
+
+}
 /// @nodoc
-class _$AvatarCopyWithImpl<$Res, $Val extends Avatar>
+class _$AvatarCopyWithImpl<$Res>
     implements $AvatarCopyWith<$Res> {
-  _$AvatarCopyWithImpl(this._value, this._then);
+  _$AvatarCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final Avatar _self;
+  final $Res Function(Avatar) _then;
 
-  /// Create a copy of Avatar
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? originalName = null,
-    Object? path = null,
-    Object? fileServer = null,
-  }) {
-    return _then(
-      _value.copyWith(
-            originalName:
-                null == originalName
-                    ? _value.originalName
-                    : originalName // ignore: cast_nullable_to_non_nullable
-                        as String,
-            path:
-                null == path
-                    ? _value.path
-                    : path // ignore: cast_nullable_to_non_nullable
-                        as String,
-            fileServer:
-                null == fileServer
-                    ? _value.fileServer
-                    : fileServer // ignore: cast_nullable_to_non_nullable
-                        as String,
-          )
-          as $Val,
-    );
-  }
+/// Create a copy of Avatar
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? originalName = null,Object? path = null,Object? fileServer = null,}) {
+  return _then(_self.copyWith(
+originalName: null == originalName ? _self.originalName : originalName // ignore: cast_nullable_to_non_nullable
+as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
+as String,fileServer: null == fileServer ? _self.fileServer : fileServer // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
 }
 
-/// @nodoc
-abstract class _$$AvatarImplCopyWith<$Res> implements $AvatarCopyWith<$Res> {
-  factory _$$AvatarImplCopyWith(
-    _$AvatarImpl value,
-    $Res Function(_$AvatarImpl) then,
-  ) = __$$AvatarImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({
-    @JsonKey(name: "originalName") String originalName,
-    @JsonKey(name: "path") String path,
-    @JsonKey(name: "fileServer") String fileServer,
-  });
 }
 
-/// @nodoc
-class __$$AvatarImplCopyWithImpl<$Res>
-    extends _$AvatarCopyWithImpl<$Res, _$AvatarImpl>
-    implements _$$AvatarImplCopyWith<$Res> {
-  __$$AvatarImplCopyWithImpl(
-    _$AvatarImpl _value,
-    $Res Function(_$AvatarImpl) _then,
-  ) : super(_value, _then);
-
-  /// Create a copy of Avatar
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? originalName = null,
-    Object? path = null,
-    Object? fileServer = null,
-  }) {
-    return _then(
-      _$AvatarImpl(
-        originalName:
-            null == originalName
-                ? _value.originalName
-                : originalName // ignore: cast_nullable_to_non_nullable
-                    as String,
-        path:
-            null == path
-                ? _value.path
-                : path // ignore: cast_nullable_to_non_nullable
-                    as String,
-        fileServer:
-            null == fileServer
-                ? _value.fileServer
-                : fileServer // ignore: cast_nullable_to_non_nullable
-                    as String,
-      ),
-    );
-  }
-}
 
 /// @nodoc
 @JsonSerializable()
-class _$AvatarImpl implements _Avatar {
-  const _$AvatarImpl({
-    @JsonKey(name: "originalName") required this.originalName,
-    @JsonKey(name: "path") required this.path,
-    @JsonKey(name: "fileServer") required this.fileServer,
-  });
 
-  factory _$AvatarImpl.fromJson(Map<String, dynamic> json) =>
-      _$$AvatarImplFromJson(json);
+class _Avatar implements Avatar {
+  const _Avatar({@JsonKey(name: "originalName") required this.originalName, @JsonKey(name: "path") required this.path, @JsonKey(name: "fileServer") required this.fileServer});
+  factory _Avatar.fromJson(Map<String, dynamic> json) => _$AvatarFromJson(json);
 
-  @override
-  @JsonKey(name: "originalName")
-  final String originalName;
-  @override
-  @JsonKey(name: "path")
-  final String path;
-  @override
-  @JsonKey(name: "fileServer")
-  final String fileServer;
+@override@JsonKey(name: "originalName") final  String originalName;
+@override@JsonKey(name: "path") final  String path;
+@override@JsonKey(name: "fileServer") final  String fileServer;
 
-  @override
-  String toString() {
-    return 'Avatar(originalName: $originalName, path: $path, fileServer: $fileServer)';
-  }
+/// Create a copy of Avatar
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$AvatarCopyWith<_Avatar> get copyWith => __$AvatarCopyWithImpl<_Avatar>(this, _$identity);
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$AvatarImpl &&
-            (identical(other.originalName, originalName) ||
-                other.originalName == originalName) &&
-            (identical(other.path, path) || other.path == path) &&
-            (identical(other.fileServer, fileServer) ||
-                other.fileServer == fileServer));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, originalName, path, fileServer);
-
-  /// Create a copy of Avatar
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$AvatarImplCopyWith<_$AvatarImpl> get copyWith =>
-      __$$AvatarImplCopyWithImpl<_$AvatarImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$AvatarImplToJson(this);
-  }
+@override
+Map<String, dynamic> toJson() {
+  return _$AvatarToJson(this, );
 }
 
-abstract class _Avatar implements Avatar {
-  const factory _Avatar({
-    @JsonKey(name: "originalName") required final String originalName,
-    @JsonKey(name: "path") required final String path,
-    @JsonKey(name: "fileServer") required final String fileServer,
-  }) = _$AvatarImpl;
-
-  factory _Avatar.fromJson(Map<String, dynamic> json) = _$AvatarImpl.fromJson;
-
-  @override
-  @JsonKey(name: "originalName")
-  String get originalName;
-  @override
-  @JsonKey(name: "path")
-  String get path;
-  @override
-  @JsonKey(name: "fileServer")
-  String get fileServer;
-
-  /// Create a copy of Avatar
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$AvatarImplCopyWith<_$AvatarImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Avatar&&(identical(other.originalName, originalName) || other.originalName == originalName)&&(identical(other.path, path) || other.path == path)&&(identical(other.fileServer, fileServer) || other.fileServer == fileServer));
 }
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,originalName,path,fileServer);
+
+@override
+String toString() {
+  return 'Avatar(originalName: $originalName, path: $path, fileServer: $fileServer)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$AvatarCopyWith<$Res> implements $AvatarCopyWith<$Res> {
+  factory _$AvatarCopyWith(_Avatar value, $Res Function(_Avatar) _then) = __$AvatarCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: "originalName") String originalName,@JsonKey(name: "path") String path,@JsonKey(name: "fileServer") String fileServer
+});
+
+
+
+
+}
+/// @nodoc
+class __$AvatarCopyWithImpl<$Res>
+    implements _$AvatarCopyWith<$Res> {
+  __$AvatarCopyWithImpl(this._self, this._then);
+
+  final _Avatar _self;
+  final $Res Function(_Avatar) _then;
+
+/// Create a copy of Avatar
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? originalName = null,Object? path = null,Object? fileServer = null,}) {
+  return _then(_Avatar(
+originalName: null == originalName ? _self.originalName : originalName // ignore: cast_nullable_to_non_nullable
+as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
+as String,fileServer: null == fileServer ? _self.fileServer : fileServer // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+// dart format on

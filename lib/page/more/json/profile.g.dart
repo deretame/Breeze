@@ -6,27 +6,26 @@ part of 'profile.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ProfileImpl _$$ProfileImplFromJson(Map<String, dynamic> json) =>
-    _$ProfileImpl(
-      code: (json['code'] as num).toInt(),
-      message: json['message'] as String,
-      data: Data.fromJson(json['data'] as Map<String, dynamic>),
-    );
+_Profile _$ProfileFromJson(Map<String, dynamic> json) => _Profile(
+  code: (json['code'] as num).toInt(),
+  message: json['message'] as String,
+  data: Data.fromJson(json['data'] as Map<String, dynamic>),
+);
 
-Map<String, dynamic> _$$ProfileImplToJson(_$ProfileImpl instance) =>
-    <String, dynamic>{
-      'code': instance.code,
-      'message': instance.message,
-      'data': instance.data,
-    };
+Map<String, dynamic> _$ProfileToJson(_Profile instance) => <String, dynamic>{
+  'code': instance.code,
+  'message': instance.message,
+  'data': instance.data,
+};
 
-_$DataImpl _$$DataImplFromJson(Map<String, dynamic> json) =>
-    _$DataImpl(user: User.fromJson(json['user'] as Map<String, dynamic>));
+_Data _$DataFromJson(Map<String, dynamic> json) =>
+    _Data(user: User.fromJson(json['user'] as Map<String, dynamic>));
 
-Map<String, dynamic> _$$DataImplToJson(_$DataImpl instance) =>
-    <String, dynamic>{'user': instance.user};
+Map<String, dynamic> _$DataToJson(_Data instance) => <String, dynamic>{
+  'user': instance.user,
+};
 
-_$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
+_User _$UserFromJson(Map<String, dynamic> json) => _User(
   id: json['_id'] as String,
   birthday: DateTime.parse(json['birthday'] as String),
   email: json['email'] as String,
@@ -45,34 +44,32 @@ _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
   character: json['character'] as String,
 );
 
-Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
-    <String, dynamic>{
-      '_id': instance.id,
-      'birthday': instance.birthday.toIso8601String(),
-      'email': instance.email,
-      'gender': instance.gender,
-      'name': instance.name,
-      'slogan': instance.slogan,
-      'title': instance.title,
-      'verified': instance.verified,
-      'exp': instance.exp,
-      'level': instance.level,
-      'characters': instance.characters,
-      'created_at': instance.createdAt.toIso8601String(),
-      'avatar': instance.avatar,
-      'isPunched': instance.isPunched,
-      'character': instance.character,
-    };
+Map<String, dynamic> _$UserToJson(_User instance) => <String, dynamic>{
+  '_id': instance.id,
+  'birthday': instance.birthday.toIso8601String(),
+  'email': instance.email,
+  'gender': instance.gender,
+  'name': instance.name,
+  'slogan': instance.slogan,
+  'title': instance.title,
+  'verified': instance.verified,
+  'exp': instance.exp,
+  'level': instance.level,
+  'characters': instance.characters,
+  'created_at': instance.createdAt.toIso8601String(),
+  'avatar': instance.avatar,
+  'isPunched': instance.isPunched,
+  'character': instance.character,
+};
 
-_$AvatarImpl _$$AvatarImplFromJson(Map<String, dynamic> json) => _$AvatarImpl(
+_Avatar _$AvatarFromJson(Map<String, dynamic> json) => _Avatar(
   originalName: json['originalName'] as String,
   path: json['path'] as String,
   fileServer: json['fileServer'] as String,
 );
 
-Map<String, dynamic> _$$AvatarImplToJson(_$AvatarImpl instance) =>
-    <String, dynamic>{
-      'originalName': instance.originalName,
-      'path': instance.path,
-      'fileServer': instance.fileServer,
-    };
+Map<String, dynamic> _$AvatarToJson(_Avatar instance) => <String, dynamic>{
+  'originalName': instance.originalName,
+  'path': instance.path,
+  'fileServer': instance.fileServer,
+};

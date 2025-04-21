@@ -15,7 +15,7 @@ AdvancedSearch advancedSearchFromJson(String str) =>
 String advancedSearchToJson(AdvancedSearch data) => json.encode(data.toJson());
 
 @freezed
-class AdvancedSearch with _$AdvancedSearch {
+abstract class AdvancedSearch with _$AdvancedSearch {
   const factory AdvancedSearch({
     @JsonKey(name: "code") required int code,
     @JsonKey(name: "message") required String message,
@@ -27,14 +27,14 @@ class AdvancedSearch with _$AdvancedSearch {
 }
 
 @freezed
-class Data with _$Data {
+abstract class Data with _$Data {
   const factory Data({@JsonKey(name: "comics") required Comics comics}) = _Data;
 
   factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 }
 
 @freezed
-class Comics with _$Comics {
+abstract class Comics with _$Comics {
   const factory Comics({
     @JsonKey(name: "total") required int total,
     @JsonKey(name: "page") required int page,
@@ -47,7 +47,7 @@ class Comics with _$Comics {
 }
 
 @freezed
-class Doc with _$Doc {
+abstract class Doc with _$Doc {
   const factory Doc({
     @JsonKey(name: "updated_at") required DateTime updatedAt,
     @JsonKey(name: "thumb") required Thumb thumb,
@@ -67,7 +67,7 @@ class Doc with _$Doc {
 }
 
 @freezed
-class Thumb with _$Thumb {
+abstract class Thumb with _$Thumb {
   const factory Thumb({
     @JsonKey(name: "originalName") required String originalName,
     @JsonKey(name: "path") required String path,

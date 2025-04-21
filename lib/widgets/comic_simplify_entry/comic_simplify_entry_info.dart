@@ -16,7 +16,7 @@ String comicSimplifyEntryInfoToJson(ComicSimplifyEntryInfo data) =>
     json.encode(data.toJson());
 
 @freezed
-class ComicSimplifyEntryInfo with _$ComicSimplifyEntryInfo {
+abstract class ComicSimplifyEntryInfo with _$ComicSimplifyEntryInfo {
   const factory ComicSimplifyEntryInfo({
     @JsonKey(name: "title") required String title,
     @JsonKey(name: "id") required String id,

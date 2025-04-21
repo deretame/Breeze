@@ -6,27 +6,28 @@ part of 'favourite_json.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$FavouriteJsonImpl _$$FavouriteJsonImplFromJson(Map<String, dynamic> json) =>
-    _$FavouriteJsonImpl(
+_FavouriteJson _$FavouriteJsonFromJson(Map<String, dynamic> json) =>
+    _FavouriteJson(
       code: (json['code'] as num).toInt(),
       message: json['message'] as String,
       data: Data.fromJson(json['data'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$FavouriteJsonImplToJson(_$FavouriteJsonImpl instance) =>
+Map<String, dynamic> _$FavouriteJsonToJson(_FavouriteJson instance) =>
     <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'data': instance.data,
     };
 
-_$DataImpl _$$DataImplFromJson(Map<String, dynamic> json) =>
-    _$DataImpl(comics: Comics.fromJson(json['comics'] as Map<String, dynamic>));
+_Data _$DataFromJson(Map<String, dynamic> json) =>
+    _Data(comics: Comics.fromJson(json['comics'] as Map<String, dynamic>));
 
-Map<String, dynamic> _$$DataImplToJson(_$DataImpl instance) =>
-    <String, dynamic>{'comics': instance.comics};
+Map<String, dynamic> _$DataToJson(_Data instance) => <String, dynamic>{
+  'comics': instance.comics,
+};
 
-_$ComicsImpl _$$ComicsImplFromJson(Map<String, dynamic> json) => _$ComicsImpl(
+_Comics _$ComicsFromJson(Map<String, dynamic> json) => _Comics(
   pages: (json['pages'] as num).toInt(),
   total: (json['total'] as num).toInt(),
   docs:
@@ -37,16 +38,15 @@ _$ComicsImpl _$$ComicsImplFromJson(Map<String, dynamic> json) => _$ComicsImpl(
   limit: (json['limit'] as num).toInt(),
 );
 
-Map<String, dynamic> _$$ComicsImplToJson(_$ComicsImpl instance) =>
-    <String, dynamic>{
-      'pages': instance.pages,
-      'total': instance.total,
-      'docs': instance.docs,
-      'page': instance.page,
-      'limit': instance.limit,
-    };
+Map<String, dynamic> _$ComicsToJson(_Comics instance) => <String, dynamic>{
+  'pages': instance.pages,
+  'total': instance.total,
+  'docs': instance.docs,
+  'page': instance.page,
+  'limit': instance.limit,
+};
 
-_$DocImpl _$$DocImplFromJson(Map<String, dynamic> json) => _$DocImpl(
+_Doc _$DocFromJson(Map<String, dynamic> json) => _Doc(
   id: json['_id'] as String,
   title: json['title'] as String,
   author: json['author'] as String,
@@ -61,7 +61,7 @@ _$DocImpl _$$DocImplFromJson(Map<String, dynamic> json) => _$DocImpl(
   likesCount: (json['likesCount'] as num).toInt(),
 );
 
-Map<String, dynamic> _$$DocImplToJson(_$DocImpl instance) => <String, dynamic>{
+Map<String, dynamic> _$DocToJson(_Doc instance) => <String, dynamic>{
   '_id': instance.id,
   'title': instance.title,
   'author': instance.author,
@@ -75,15 +75,14 @@ Map<String, dynamic> _$$DocImplToJson(_$DocImpl instance) => <String, dynamic>{
   'likesCount': instance.likesCount,
 };
 
-_$ThumbImpl _$$ThumbImplFromJson(Map<String, dynamic> json) => _$ThumbImpl(
+_Thumb _$ThumbFromJson(Map<String, dynamic> json) => _Thumb(
   fileServer: json['fileServer'] as String,
   path: json['path'] as String,
   originalName: json['originalName'] as String,
 );
 
-Map<String, dynamic> _$$ThumbImplToJson(_$ThumbImpl instance) =>
-    <String, dynamic>{
-      'fileServer': instance.fileServer,
-      'path': instance.path,
-      'originalName': instance.originalName,
-    };
+Map<String, dynamic> _$ThumbToJson(_Thumb instance) => <String, dynamic>{
+  'fileServer': instance.fileServer,
+  'path': instance.path,
+  'originalName': instance.originalName,
+};

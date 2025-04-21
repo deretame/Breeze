@@ -16,7 +16,7 @@ String userCommentsJsonToJson(UserCommentsJson data) =>
     json.encode(data.toJson());
 
 @freezed
-class UserCommentsJson with _$UserCommentsJson {
+abstract class UserCommentsJson with _$UserCommentsJson {
   const factory UserCommentsJson({
     @JsonKey(name: "code") required int code,
     @JsonKey(name: "message") required String message,
@@ -28,7 +28,7 @@ class UserCommentsJson with _$UserCommentsJson {
 }
 
 @freezed
-class Data with _$Data {
+abstract class Data with _$Data {
   const factory Data({@JsonKey(name: "comments") required Comments comments}) =
       _Data;
 
@@ -36,7 +36,7 @@ class Data with _$Data {
 }
 
 @freezed
-class Comments with _$Comments {
+abstract class Comments with _$Comments {
   const factory Comments({
     @JsonKey(name: "docs") required List<Doc> docs,
     @JsonKey(name: "total") required int total,
@@ -50,7 +50,7 @@ class Comments with _$Comments {
 }
 
 @freezed
-class Doc with _$Doc {
+abstract class Doc with _$Doc {
   const factory Doc({
     @JsonKey(name: "_id") required String id,
     @JsonKey(name: "content") required String content,
@@ -68,7 +68,7 @@ class Doc with _$Doc {
 }
 
 @freezed
-class Comic with _$Comic {
+abstract class Comic with _$Comic {
   const factory Comic({
     @JsonKey(name: "_id") required String id,
     @JsonKey(name: "title") required String title,

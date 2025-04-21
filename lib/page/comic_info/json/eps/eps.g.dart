@@ -6,46 +6,45 @@ part of 'eps.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$EpsImpl _$$EpsImplFromJson(Map<String, dynamic> json) => _$EpsImpl(
+_Eps _$EpsFromJson(Map<String, dynamic> json) => _Eps(
   code: (json['code'] as num).toInt(),
   message: json['message'] as String,
   data: Data.fromJson(json['data'] as Map<String, dynamic>),
 );
 
-Map<String, dynamic> _$$EpsImplToJson(_$EpsImpl instance) => <String, dynamic>{
+Map<String, dynamic> _$EpsToJson(_Eps instance) => <String, dynamic>{
   'code': instance.code,
   'message': instance.message,
   'data': instance.data,
 };
 
-_$DataImpl _$$DataImplFromJson(Map<String, dynamic> json) =>
-    _$DataImpl(eps: EpsClass.fromJson(json['eps'] as Map<String, dynamic>));
+_Data _$DataFromJson(Map<String, dynamic> json) =>
+    _Data(eps: EpsClass.fromJson(json['eps'] as Map<String, dynamic>));
 
-Map<String, dynamic> _$$DataImplToJson(_$DataImpl instance) =>
-    <String, dynamic>{'eps': instance.eps};
+Map<String, dynamic> _$DataToJson(_Data instance) => <String, dynamic>{
+  'eps': instance.eps,
+};
 
-_$EpsClassImpl _$$EpsClassImplFromJson(Map<String, dynamic> json) =>
-    _$EpsClassImpl(
-      docs:
-          (json['docs'] as List<dynamic>)
-              .map((e) => Doc.fromJson(e as Map<String, dynamic>))
-              .toList(),
-      total: (json['total'] as num).toInt(),
-      limit: (json['limit'] as num).toInt(),
-      page: (json['page'] as num).toInt(),
-      pages: (json['pages'] as num).toInt(),
-    );
+_EpsClass _$EpsClassFromJson(Map<String, dynamic> json) => _EpsClass(
+  docs:
+      (json['docs'] as List<dynamic>)
+          .map((e) => Doc.fromJson(e as Map<String, dynamic>))
+          .toList(),
+  total: (json['total'] as num).toInt(),
+  limit: (json['limit'] as num).toInt(),
+  page: (json['page'] as num).toInt(),
+  pages: (json['pages'] as num).toInt(),
+);
 
-Map<String, dynamic> _$$EpsClassImplToJson(_$EpsClassImpl instance) =>
-    <String, dynamic>{
-      'docs': instance.docs,
-      'total': instance.total,
-      'limit': instance.limit,
-      'page': instance.page,
-      'pages': instance.pages,
-    };
+Map<String, dynamic> _$EpsClassToJson(_EpsClass instance) => <String, dynamic>{
+  'docs': instance.docs,
+  'total': instance.total,
+  'limit': instance.limit,
+  'page': instance.page,
+  'pages': instance.pages,
+};
 
-_$DocImpl _$$DocImplFromJson(Map<String, dynamic> json) => _$DocImpl(
+_Doc _$DocFromJson(Map<String, dynamic> json) => _Doc(
   id: json['_id'] as String,
   title: json['title'] as String,
   order: (json['order'] as num).toInt(),
@@ -53,7 +52,7 @@ _$DocImpl _$$DocImplFromJson(Map<String, dynamic> json) => _$DocImpl(
   docId: json['id'] as String,
 );
 
-Map<String, dynamic> _$$DocImplToJson(_$DocImpl instance) => <String, dynamic>{
+Map<String, dynamic> _$DocToJson(_Doc instance) => <String, dynamic>{
   '_id': instance.id,
   'title': instance.title,
   'order': instance.order,

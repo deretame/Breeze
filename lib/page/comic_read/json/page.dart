@@ -14,7 +14,7 @@ Page pageFromJson(String str) => Page.fromJson(json.decode(str));
 String pageToJson(Page data) => json.encode(data.toJson());
 
 @freezed
-class Page with _$Page {
+abstract class Page with _$Page {
   const factory Page({
     @JsonKey(name: "code") required int code,
     @JsonKey(name: "message") required String message,
@@ -25,7 +25,7 @@ class Page with _$Page {
 }
 
 @freezed
-class Data with _$Data {
+abstract class Data with _$Data {
   const factory Data({
     @JsonKey(name: "pages") required Pages pages,
     @JsonKey(name: "ep") required Ep ep,
@@ -35,7 +35,7 @@ class Data with _$Data {
 }
 
 @freezed
-class Ep with _$Ep {
+abstract class Ep with _$Ep {
   const factory Ep({
     @JsonKey(name: "_id") required String id,
     @JsonKey(name: "title") required String title,
@@ -45,7 +45,7 @@ class Ep with _$Ep {
 }
 
 @freezed
-class Pages with _$Pages {
+abstract class Pages with _$Pages {
   const factory Pages({
     @JsonKey(name: "docs") required List<Doc> docs,
     @JsonKey(name: "total") required int total,
@@ -58,7 +58,7 @@ class Pages with _$Pages {
 }
 
 @freezed
-class Doc with _$Doc {
+abstract class Doc with _$Doc {
   const factory Doc({
     @JsonKey(name: "_id") required String id,
     @JsonKey(name: "media") required Media media,
@@ -69,7 +69,7 @@ class Doc with _$Doc {
 }
 
 @freezed
-class Media with _$Media {
+abstract class Media with _$Media {
   const factory Media({
     @JsonKey(name: "originalName") required String originalName,
     @JsonKey(name: "path") required String path,

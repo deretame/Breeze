@@ -15,7 +15,7 @@ Categories categoriesFromJson(String str) =>
 String categoriesToJson(Categories data) => json.encode(data.toJson());
 
 @freezed
-class Categories with _$Categories {
+abstract class Categories with _$Categories {
   const factory Categories({
     @JsonKey(name: "code") required int code,
     @JsonKey(name: "message") required String message,
@@ -27,7 +27,7 @@ class Categories with _$Categories {
 }
 
 @freezed
-class Data with _$Data {
+abstract class Data with _$Data {
   const factory Data({
     @JsonKey(name: "categories") required List<Category> categories,
   }) = _Data;
@@ -36,7 +36,7 @@ class Data with _$Data {
 }
 
 @freezed
-class Category with _$Category {
+abstract class Category with _$Category {
   const factory Category({
     @JsonKey(name: "title") required String title,
     @JsonKey(name: "thumb") required Thumb thumb,
@@ -52,7 +52,7 @@ class Category with _$Category {
 }
 
 @freezed
-class Thumb with _$Thumb {
+abstract class Thumb with _$Thumb {
   const factory Thumb({
     @JsonKey(name: "originalName") required String originalName,
     @JsonKey(name: "path") required String path,

@@ -6,24 +6,25 @@ part of 'keywords_json.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$KeywordsJsonImpl _$$KeywordsJsonImplFromJson(Map<String, dynamic> json) =>
-    _$KeywordsJsonImpl(
+_KeywordsJson _$KeywordsJsonFromJson(Map<String, dynamic> json) =>
+    _KeywordsJson(
       code: (json['code'] as num).toInt(),
       message: json['message'] as String,
       data: Data.fromJson(json['data'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$KeywordsJsonImplToJson(_$KeywordsJsonImpl instance) =>
+Map<String, dynamic> _$KeywordsJsonToJson(_KeywordsJson instance) =>
     <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'data': instance.data,
     };
 
-_$DataImpl _$$DataImplFromJson(Map<String, dynamic> json) => _$DataImpl(
+_Data _$DataFromJson(Map<String, dynamic> json) => _Data(
   keywords:
       (json['keywords'] as List<dynamic>).map((e) => e as String).toList(),
 );
 
-Map<String, dynamic> _$$DataImplToJson(_$DataImpl instance) =>
-    <String, dynamic>{'keywords': instance.keywords};
+Map<String, dynamic> _$DataToJson(_Data instance) => <String, dynamic>{
+  'keywords': instance.keywords,
+};

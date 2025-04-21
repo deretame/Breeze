@@ -16,7 +16,7 @@ String knightLeaderboardToJson(KnightLeaderboard data) =>
     json.encode(data.toJson());
 
 @freezed
-class KnightLeaderboard with _$KnightLeaderboard {
+abstract class KnightLeaderboard with _$KnightLeaderboard {
   const factory KnightLeaderboard({
     @JsonKey(name: "code") required int code,
     @JsonKey(name: "message") required String message,
@@ -28,7 +28,7 @@ class KnightLeaderboard with _$KnightLeaderboard {
 }
 
 @freezed
-class Data with _$Data {
+abstract class Data with _$Data {
   const factory Data({@JsonKey(name: "users") required List<User> users}) =
       _Data;
 
@@ -36,7 +36,7 @@ class Data with _$Data {
 }
 
 @freezed
-class User with _$User {
+abstract class User with _$User {
   const factory User({
     @JsonKey(name: "_id") required String id,
     @JsonKey(name: "gender") required String gender,
@@ -57,7 +57,7 @@ class User with _$User {
 }
 
 @freezed
-class Avatar with _$Avatar {
+abstract class Avatar with _$Avatar {
   const factory Avatar({
     @JsonKey(name: "originalName") required String originalName,
     @JsonKey(name: "path") required String path,

@@ -16,7 +16,7 @@ String comicAllInfoJsonToJson(ComicAllInfoJson data) =>
     json.encode(data.toJson());
 
 @freezed
-class ComicAllInfoJson with _$ComicAllInfoJson {
+abstract class ComicAllInfoJson with _$ComicAllInfoJson {
   const factory ComicAllInfoJson({
     @JsonKey(name: "comic") required Comic comic,
     @JsonKey(name: "eps") required Eps eps,
@@ -27,7 +27,7 @@ class ComicAllInfoJson with _$ComicAllInfoJson {
 }
 
 @freezed
-class Comic with _$Comic {
+abstract class Comic with _$Comic {
   const factory Comic({
     @JsonKey(name: "_id") required String id,
     @JsonKey(name: "_creator") required Creator creator,
@@ -59,7 +59,7 @@ class Comic with _$Comic {
 }
 
 @freezed
-class Creator with _$Creator {
+abstract class Creator with _$Creator {
   const factory Creator({
     @JsonKey(name: "_id") required String id,
     @JsonKey(name: "gender") required String gender,
@@ -79,7 +79,7 @@ class Creator with _$Creator {
 }
 
 @freezed
-class Thumb with _$Thumb {
+abstract class Thumb with _$Thumb {
   const factory Thumb({
     @JsonKey(name: "originalName") required String originalName,
     @JsonKey(name: "path") required String path,
@@ -90,14 +90,14 @@ class Thumb with _$Thumb {
 }
 
 @freezed
-class Eps with _$Eps {
+abstract class Eps with _$Eps {
   const factory Eps({@JsonKey(name: "docs") required List<EpsDoc> docs}) = _Eps;
 
   factory Eps.fromJson(Map<String, dynamic> json) => _$EpsFromJson(json);
 }
 
 @freezed
-class EpsDoc with _$EpsDoc {
+abstract class EpsDoc with _$EpsDoc {
   const factory EpsDoc({
     @JsonKey(name: "_id") required String id,
     @JsonKey(name: "title") required String title,
@@ -111,7 +111,7 @@ class EpsDoc with _$EpsDoc {
 }
 
 @freezed
-class Pages with _$Pages {
+abstract class Pages with _$Pages {
   const factory Pages({@JsonKey(name: "docs") required List<PagesDoc> docs}) =
       _Pages;
 
@@ -119,7 +119,7 @@ class Pages with _$Pages {
 }
 
 @freezed
-class PagesDoc with _$PagesDoc {
+abstract class PagesDoc with _$PagesDoc {
   const factory PagesDoc({
     @JsonKey(name: "_id") required String id,
     @JsonKey(name: "media") required Thumb media,

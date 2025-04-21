@@ -14,7 +14,7 @@ Profile profileFromJson(String str) => Profile.fromJson(json.decode(str));
 String profileToJson(Profile data) => json.encode(data.toJson());
 
 @freezed
-class Profile with _$Profile {
+abstract class Profile with _$Profile {
   const factory Profile({
     @JsonKey(name: "code") required int code,
     @JsonKey(name: "message") required String message,
@@ -26,14 +26,14 @@ class Profile with _$Profile {
 }
 
 @freezed
-class Data with _$Data {
+abstract class Data with _$Data {
   const factory Data({@JsonKey(name: "user") required User user}) = _Data;
 
   factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 }
 
 @freezed
-class User with _$User {
+abstract class User with _$User {
   const factory User({
     @JsonKey(name: "_id") required String id,
     @JsonKey(name: "birthday") required DateTime birthday,
@@ -56,7 +56,7 @@ class User with _$User {
 }
 
 @freezed
-class Avatar with _$Avatar {
+abstract class Avatar with _$Avatar {
   const factory Avatar({
     @JsonKey(name: "originalName") required String originalName,
     @JsonKey(name: "path") required String path,

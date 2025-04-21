@@ -6,9 +6,9 @@ part of 'comic_simplify_entry_info.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ComicSimplifyEntryInfoImpl _$$ComicSimplifyEntryInfoImplFromJson(
+_ComicSimplifyEntryInfo _$ComicSimplifyEntryInfoFromJson(
   Map<String, dynamic> json,
-) => _$ComicSimplifyEntryInfoImpl(
+) => _ComicSimplifyEntryInfo(
   title: json['title'] as String,
   id: json['id'] as String,
   fileServer: json['fileServer'] as String,
@@ -17,8 +17,8 @@ _$ComicSimplifyEntryInfoImpl _$$ComicSimplifyEntryInfoImplFromJson(
   from: json['from'] as String,
 );
 
-Map<String, dynamic> _$$ComicSimplifyEntryInfoImplToJson(
-  _$ComicSimplifyEntryInfoImpl instance,
+Map<String, dynamic> _$ComicSimplifyEntryInfoToJson(
+  _ComicSimplifyEntryInfo instance,
 ) => <String, dynamic>{
   'title': instance.title,
   'id': instance.id,

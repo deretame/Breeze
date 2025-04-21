@@ -33,8 +33,16 @@ dependencies:
   #          状态管理 & 事件总线          #
   ########################################
   mobx: ^2.5.0                  # 响应式状态管理核心
-  mobx_codegen: ^2.7.0          # MobX 代码生成器
-  flutter_mobx: ^2.3.0          # MobX-Flutter 桥接
+  mobx_codegen: # MobX 代码生成器
+    git:
+      url: https://github.com/sunbromarko/mobx.dart
+      ref: FEAT--Bump-source_get-version
+      path: mobx_codegen
+  flutter_mobx: # MobX-Flutter 桥接
+    git:
+      url: https://github.com/sunbromarko/mobx.dart
+      ref: FEAT--Bump-source_get-version
+      path: flutter_mobx
   bloc: ^9.0.0                  # BLoC 核心库
   flutter_bloc: ^9.0.0          # Flutter BLoC 实现
   bloc_concurrency: ^0.3.0      # BLoC 并发策略（防抖/节流）
@@ -45,12 +53,12 @@ dependencies:
   ########################################
   hive_ce: ^2.10.1               # 轻量级键值数据库
   hive_ce_flutter: ^2.2.0        # Hive 的 Flutter 适配
-  objectbox: ^4.0.3              # 高性能对象数据库
+  objectbox: ^4.2.0              # 高性能对象数据库
   objectbox_flutter_libs: ^4.0.3 # ObjectBox Flutter 支持
   json_annotation: ^4.9.0        # JSON 序列化注解
   json_serializable: ^6.8.0      # JSON 序列化生成器
-  freezed: ^2.5.7                # 不可变数据类生成
-  freezed_annotation: ^2.4.4     # Freezed 注解支持
+  freezed: ^3.0.0                # 不可变数据类生成
+  freezed_annotation: ^3.0.0     # Freezed 注解支持
 
   ########################################
   #        网络 & 通信 & WebView        #
@@ -77,7 +85,7 @@ dependencies:
   ########################################
   #         安全 & 加密 & 工具           #
   ########################################
-  encrypt: ^5.0.3                # 加密算法库（AES/RSA）
+  encrypter_plus: ^5.1.0         # 加密算法库（AES/RSA）
   crypto: ^3.0.6                 # 哈希算法（MD5/SHA）
   permission_guard: ^2.0.1       # 权限管理工具
   package_info_plus: ^8.1.2      # 应用包信息获取
@@ -86,7 +94,7 @@ dependencies:
   ########################################
   #        开发工具 & 辅助功能           #
   ########################################
-  auto_route: ^9.2.2            # 声明式路由管理
+  auto_route: ^10.0.1            # 声明式路由管理
   logger: ^2.5.0                # 分级日志记录器
   stack_trace: ^1.12.0          # 异步堆栈追踪
   collection: ^1.18.0           # 集合工具扩展
@@ -99,9 +107,9 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0           # 代码规范检查
   build_runner: ^2.4.14           # 代码生成器
-  auto_route_generator: ^9.0.0    # 路由代码生成
+  auto_route_generator: ^10.0.1    # 路由代码生成
   hive_ce_generator: ^1.8.1       # Hive 模型生成
-  objectbox_generator: ^4.0.3     # ObjectBox 代码生成
+  objectbox_generator: ^4.2.0     # ObjectBox 代码生成
 
 # Flutter 配置
 flutter:

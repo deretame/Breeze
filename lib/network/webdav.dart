@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:archive/archive.dart';
 import 'package:dio/dio.dart';
-import 'package:encrypt/encrypt.dart';
+import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:flutter/foundation.dart' show compute;
 import 'package:xml/xml.dart';
 

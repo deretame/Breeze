@@ -7,6 +7,7 @@ import '../main.dart';
 Future<void> manageCacheSize() async {
   // 获取缓存目录
   final Directory cacheDirectory = await getTemporaryDirectory();
+  logger.d('Cache directory: ${cacheDirectory.path}');
 
   // 创建一个变量来保存总大小
   int totalSize = 0;
@@ -24,7 +25,7 @@ Future<void> manageCacheSize() async {
   const int maxSize = 1 * 1024 * 1024 * 1024; // 1GB
   if (totalSize >= maxSize) {
     logger.d('Cache size exceeded 1GB, clearing cache...');
-    await clearCache(cacheDirectory);
+    globalSetting.setNeedCleanCache(true);
   } else {
     logger.d(
       'Current cache size: ${totalSize / (1024 * 1024)} MB',

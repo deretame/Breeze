@@ -54,6 +54,8 @@ abstract class _GlobalSetting with Store {
   List<String> maskedKeywords = [""]; // 屏蔽关键词
   @observable
   String socks5Proxy = '';
+  @observable
+  bool needCleanCache = false; // 是否需要清理缓存
 
   Future<void> initBox() async {
     _box = await Hive.openBox(GlobalSettingBoxKey.globalSetting);
@@ -77,6 +79,7 @@ abstract class _GlobalSetting with Store {
     readMode = getReadMode();
     maskedKeywords = getMaskedKeywords();
     socks5Proxy = getSocks5Proxy();
+    needCleanCache = getNeedCleanCache();
   }
 
   @action
@@ -481,6 +484,27 @@ abstract class _GlobalSetting with Store {
     socks5Proxy = '';
     _box.delete(GlobalSettingBoxKey.socks5Proxy);
   }
+
+  @action
+  void setNeedCleanCache(bool value) {
+    needCleanCache = value;
+    _box.put(GlobalSettingBoxKey.needCleanCache, value);
+  }
+
+  @action
+  bool getNeedCleanCache() {
+    needCleanCache = _box.get(
+      GlobalSettingBoxKey.needCleanCache,
+      defaultValue: false,
+    );
+    return needCleanCache;
+  }
+
+  @action
+  void deleteNeedCleanCache() {
+    needCleanCache = false;
+    _box.delete(GlobalSettingBoxKey.needCleanCache);
+  }
 }
 
 class GlobalSettingBoxKey {
@@ -506,4 +530,5 @@ class GlobalSettingBoxKey {
   static const String readMode = "readMode"; // 阅读模式
   static const String maskedKeywords = 'maskedKeywords'; // 屏蔽关键词
   static const String socks5Proxy = 'socks5Proxy'; // socks5代理
+  static const String needCleanCache = 'needCleanCache'; // 是否需要清理缓存
 }

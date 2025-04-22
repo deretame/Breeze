@@ -31,7 +31,7 @@ abstract class _GlobalSetting with Store {
   @observable
   int themeInitState = 0; // 主题初始状态
   @observable
-  dynamic locale = Locale('zh', 'CN'); // 语言
+  Locale locale = Locale('zh', 'CN'); // 语言
   @observable
   int welcomePageNum = 0; // 开屏页序号
   @observable
@@ -252,7 +252,7 @@ abstract class _GlobalSetting with Store {
   }
 
   @action
-  dynamic getLocale() {
+  Locale getLocale() {
     locale = _box.get(
       GlobalSettingBoxKey.locale,
       defaultValue: Locale('zh', 'CN'),
@@ -261,7 +261,7 @@ abstract class _GlobalSetting with Store {
   }
 
   @action
-  void setLocale(dynamic value) {
+  void setLocale(Locale value) {
     locale = value;
     _box.put(GlobalSettingBoxKey.locale, value);
   }

@@ -159,13 +159,13 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   );
 
   @override
-  dynamic get locale {
+  Locale get locale {
     _$localeAtom.reportRead();
     return super.locale;
   }
 
   @override
-  set locale(dynamic value) {
+  set locale(Locale value) {
     _$localeAtom.reportWrite(value, super.locale, () {
       super.locale = value;
     });
@@ -367,6 +367,24 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   set socks5Proxy(String value) {
     _$socks5ProxyAtom.reportWrite(value, super.socks5Proxy, () {
       super.socks5Proxy = value;
+    });
+  }
+
+  late final _$needCleanCacheAtom = Atom(
+    name: '_GlobalSetting.needCleanCache',
+    context: context,
+  );
+
+  @override
+  bool get needCleanCache {
+    _$needCleanCacheAtom.reportRead();
+    return super.needCleanCache;
+  }
+
+  @override
+  set needCleanCache(bool value) {
+    _$needCleanCacheAtom.reportWrite(value, super.needCleanCache, () {
+      super.needCleanCache = value;
     });
   }
 
@@ -664,7 +682,7 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   }
 
   @override
-  dynamic getLocale() {
+  Locale getLocale() {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
       name: '_GlobalSetting.getLocale',
     );
@@ -676,7 +694,7 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   }
 
   @override
-  void setLocale(dynamic value) {
+  void setLocale(Locale value) {
     final _$actionInfo = _$_GlobalSettingActionController.startAction(
       name: '_GlobalSetting.setLocale',
     );
@@ -1096,6 +1114,42 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   }
 
   @override
+  void setNeedCleanCache(bool value) {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+      name: '_GlobalSetting.setNeedCleanCache',
+    );
+    try {
+      return super.setNeedCleanCache(value);
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  bool getNeedCleanCache() {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+      name: '_GlobalSetting.getNeedCleanCache',
+    );
+    try {
+      return super.getNeedCleanCache();
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void deleteNeedCleanCache() {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+      name: '_GlobalSetting.deleteNeedCleanCache',
+    );
+    try {
+      return super.deleteNeedCleanCache();
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     return '''
 dynamicColor: ${dynamicColor},
@@ -1117,7 +1171,8 @@ shade: ${shade},
 comicReadTopContainer: ${comicReadTopContainer},
 readMode: ${readMode},
 maskedKeywords: ${maskedKeywords},
-socks5Proxy: ${socks5Proxy}
+socks5Proxy: ${socks5Proxy},
+needCleanCache: ${needCleanCache}
     ''';
   }
 }

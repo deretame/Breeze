@@ -68,7 +68,7 @@ Widget socks5ProxyEdit(BuildContext context) {
               TextButton(
                 child: Text('取消'),
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  context.pop();
                 },
               ),
               TextButton(

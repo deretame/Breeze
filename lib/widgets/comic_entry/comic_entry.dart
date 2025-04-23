@@ -63,11 +63,12 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final router = AutoRouter.of(context); // 获取 router 实例
     return GestureDetector(
       onTap: () {
         // 跳转到漫画详情页
-        router.push(ComicInfoRoute(comicId: comicEntryInfo.id, type: _type));
+        context.pushRoute(
+          ComicInfoRoute(comicId: comicEntryInfo.id, type: _type),
+        );
       },
       onLongPress: () {
         if (_type == ComicEntryType.normal ||
@@ -200,13 +201,7 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
           title: Text(title),
           content: Text(content),
           actions: <Widget>[
-            TextButton(
-              child: Text("取消"),
-              onPressed: () {
-                // 执行操作1
-                Navigator.of(context).pop();
-              },
-            ),
+            TextButton(child: Text("取消"), onPressed: () => context.pop()),
             TextButton(
               child: Text("确定"),
               onPressed: () {
@@ -241,7 +236,7 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                     deleteDirectory(comicEntryInfo.id);
                   }
                 }
-                Navigator.of(context).pop();
+                context.pop();
               },
             ),
           ],

@@ -233,7 +233,7 @@ class _BottomWidgetState extends State<BottomWidget> {
             TextButton(
               child: Text('取消'),
               onPressed: () {
-                Navigator.of(context).pop();
+                context.pop();
               },
             ),
           ],

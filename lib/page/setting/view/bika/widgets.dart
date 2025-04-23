@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -261,17 +262,10 @@ Future<Map<String, bool>?> showShieldCategoryDialog(
           },
         ),
         actions: <Widget>[
-          TextButton(
-            child: Text('取消'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
+          TextButton(child: Text('取消'), onPressed: () => context.pop()),
           TextButton(
             child: Text('提交'),
-            onPressed: () {
-              Navigator.of(context).pop(shieldCategoriesMap);
-            },
+            onPressed: () => context.pop(shieldCategoriesMap),
           ),
         ],
       );
@@ -306,7 +300,7 @@ Future<String> _showInputDialog(
           TextButton(
             child: Text('取消'),
             onPressed: () {
-              Navigator.of(context).pop();
+              context.pop();
             },
           ),
           TextButton(

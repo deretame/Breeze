@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
 import '../../../config/global.dart';
@@ -42,17 +43,10 @@ Future<Map<String, bool>?> showShieldCategoryDialog(BuildContext context) {
           },
         ),
         actions: <Widget>[
-          TextButton(
-            child: Text('取消'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
+          TextButton(child: Text('取消'), onPressed: () => context.pop()),
           TextButton(
             child: Text('提交'),
-            onPressed: () {
-              Navigator.of(context).pop(shieldCategoriesMap);
-            },
+            onPressed: () => context.pop(shieldCategoriesMap),
           ),
         ],
       );

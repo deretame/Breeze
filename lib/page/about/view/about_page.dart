@@ -1,4 +1,4 @@
-import 'package:auto_route/annotations.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -193,12 +193,7 @@ class _AboutPageState extends State<AboutPage> {
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('关闭'),
-            ),
+            TextButton(onPressed: () => context.pop(), child: Text('关闭')),
           ],
         );
       },

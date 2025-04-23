@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import '../../config/global.dart';
 import '../../main.dart';
@@ -151,11 +152,14 @@ class ComicSimplifyEntry extends StatelessWidget {
             content: Text(content),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => context.pop(),
                 child: const Text("取消"),
               ),
               TextButton(
-                onPressed: () => _handleDeleteAction(context),
+                onPressed: () {
+                  context.router.pop();
+                  _handleDeleteAction(context);
+                },
                 child: const Text("确定"),
               ),
             ],
@@ -181,15 +185,10 @@ class ComicSimplifyEntry extends StatelessWidget {
       } else if (type == ComicEntryType.download) {
         await _deleteDownload();
       }
-      refresh?.call();
-      if (context.mounted) Navigator.of(context).pop();
-    } catch (e) {
-      logger.e('删除操作失败: $e');
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('删除失败: ${e.toString()}')));
-      }
+      refresh!();
+    } catch (e, s) {
+      logger.e('删除失败', error: e, stackTrace: s);
+      showErrorToast("删除失败");
     }
   }
 

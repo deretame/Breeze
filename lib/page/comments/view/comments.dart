@@ -170,7 +170,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
                       children: [
                         TextButton(
                           onPressed: () {
-                            Navigator.of(context).pop(); // 关闭对话框
+                            context.pop(); // 关闭对话框
                           },
                           child: Text('取消'),
                         ),

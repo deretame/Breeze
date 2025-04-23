@@ -258,12 +258,7 @@ class _NavigationBarState extends State<NavigationBar> {
               ),
             ),
             actions: [
-              TextButton(
-                child: Text('取消'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
+              TextButton(child: Text('取消'), onPressed: () => context.pop()),
               TextButton(
                 child: Text('前往GitHub'),
                 onPressed: () {
@@ -272,13 +267,13 @@ class _NavigationBarState extends State<NavigationBar> {
                       'https://github.com/deretame/Breeze/releases/tag/$cloudVersion',
                     ),
                   );
-                  Navigator.of(context).pop();
+                  context.pop();
                 },
               ),
               TextButton(
                 child: Text('下载安装'),
                 onPressed: () async {
-                  Navigator.of(context).pop();
+                  context.pop();
                   for (var apkUrl in temp.assets) {
                     if (apkUrl.browserDownloadUrl.contains(
                       "app-arm64-v8a-release.apk",

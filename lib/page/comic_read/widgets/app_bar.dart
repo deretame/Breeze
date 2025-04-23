@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
 
@@ -102,9 +103,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
       actions: [
         TextButton(
           child: const Text('关闭'),
-          onPressed: () {
-            Navigator.of(context).pop(); // 关闭对话框
-          },
+          onPressed: () => context.pop(), // 关闭对话框
         ),
       ],
     );

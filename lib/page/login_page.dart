@@ -55,9 +55,7 @@ class _LoginPageState extends State<LoginPage> {
             TextButton(
               child: const Text('确定'),
               onPressed: () {
-                title == "登录成功"
-                    ? popToRoot(context)
-                    : Navigator.of(context).pop();
+                title == "登录成功" ? popToRoot(context) : context.pop();
               },
             ),
           ],

@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
@@ -57,15 +58,11 @@ class CategoriesSelect extends StatelessWidget {
           actions: <Widget>[
             TextButton(
               child: Text('取消'),
-              onPressed: () {
-                Navigator.of(context).pop(); // 返回 null
-              },
+              onPressed: () => context.pop(), // 返回 null
             ),
             TextButton(
               child: Text('提交'),
-              onPressed: () {
-                Navigator.of(context).pop(categoriesMap); // 返回选中的值
-              },
+              onPressed: () => context.pop(categoriesMap), // 返回选中的值
             ),
           ],
         );

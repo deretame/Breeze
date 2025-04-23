@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/search_result/models/models.dart';
@@ -49,17 +50,10 @@ class CategoriesShield extends StatelessWidget {
             },
           ),
           actions: <Widget>[
-            TextButton(
-              child: Text('取消'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+            TextButton(child: Text('取消'), onPressed: () => context.pop()),
             TextButton(
               child: Text('提交'),
-              onPressed: () {
-                Navigator.of(context).pop(shieldCategoriesMap);
-              },
+              onPressed: () => context.pop(shieldCategoriesMap),
             ),
           ],
         );

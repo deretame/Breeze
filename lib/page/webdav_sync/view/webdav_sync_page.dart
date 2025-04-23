@@ -1,4 +1,4 @@
-import 'package:auto_route/annotations.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:zephyr/page/webdav_sync/webdav_sync.dart';
@@ -141,7 +141,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
 
       // 关闭加载框
       if (mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
 
       logger.d('webdav连接成功');
@@ -157,7 +157,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
       logger.e(e);
       // 关闭加载框
       if (mounted) {
-        Navigator.of(context).pop();
+        context.pop();
       }
 
       if (!mounted) return;
@@ -193,7 +193,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                context.pop();
               },
               child: Text('关闭'),
             ),

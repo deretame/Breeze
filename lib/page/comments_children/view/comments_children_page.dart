@@ -1,4 +1,4 @@
-import 'package:auto_route/annotations.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -175,18 +175,13 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop(); // 关闭对话框
-                          },
+                          onPressed: () => context.pop(), // 关闭对话框
                           child: Text('取消'),
                         ),
                         SizedBox(width: 8),
                         ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(
-                              context,
-                            ).pop(controller.text); // 返回输入内容
-                          },
+                          onPressed:
+                              () => context.pop(controller.text), // 返回输入内容
                           child: Text('确认'),
                         ),
                       ],

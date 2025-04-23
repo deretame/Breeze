@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -25,13 +26,7 @@ Widget deletingDialog(BuildContext context, Function refresh, DeleteType type) {
               title: Text('确认删除'),
               content: Text(bodyText),
               actions: [
-                TextButton(
-                  onPressed: () {
-                    // 关闭对话框
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('取消'),
-                ),
+                TextButton(onPressed: () => context.pop(), child: Text('取消')),
                 TextButton(
                   onPressed: () {
                     if (type == DeleteType.download) {
@@ -63,7 +58,7 @@ Widget deletingDialog(BuildContext context, Function refresh, DeleteType type) {
                     }
 
                     // 关闭对话框
-                    Navigator.of(context).pop();
+                    context.pop();
                   },
                   child: Text('确认'),
                 ),

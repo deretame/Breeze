@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
 Future<void> nothingDialog(BuildContext context) async {
@@ -14,7 +15,7 @@ Future<void> nothingDialog(BuildContext context) async {
           TextButton(
             child: const Text('知道了'),
             onPressed: () {
-              Navigator.of(context).pop();
+              context.pop();
             },
           ),
         ],
@@ -43,13 +44,13 @@ Future<void> commonDialog(
           TextButton(
             child: const Text('取消'),
             onPressed: () {
-              Navigator.of(context).pop();
+              context.pop();
             },
           ),
           TextButton(
             child: const Text('确定'),
             onPressed: () {
-              Navigator.of(context).pop();
+              context.pop();
             },
           ),
         ],

@@ -167,9 +167,7 @@ class _ComicInfoState extends State<_ComicInfo>
                               Text('此漫画已下架', style: TextStyle(fontSize: 20)),
                               SizedBox(height: 10),
                               ElevatedButton(
-                                onPressed: () {
-                                  AutoRouter.of(context).maybePopTop();
-                                },
+                                onPressed: () => context.pop(),
                                 child: Text('返回'),
                               ),
                             ],

@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
 
+import '../../../util/event/event.dart';
 import '../../../util/router/router.gr.dart';
-import '../../navigation_bar.dart';
 import 'global/widgets.dart';
 
 @RoutePage()

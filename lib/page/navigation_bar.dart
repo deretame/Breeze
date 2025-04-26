@@ -15,15 +15,13 @@ import '../config/global.dart';
 import '../main.dart';
 import '../network/http/http_request.dart';
 import '../network/webdav.dart';
+import '../util/debouncer.dart';
 import '../util/dialog.dart';
+import '../util/event/event.dart';
 import '../util/update/check_update.dart';
 import 'bookshelf/bookshelf.dart';
 import 'category/view/category.dart';
 import 'more/view/more.dart';
-
-class NoticeSync {}
-
-class NeedLogin {}
 
 @RoutePage()
 class NavigationBar extends StatefulWidget {
@@ -38,6 +36,7 @@ class _NavigationBarState extends State<NavigationBar> {
   final PersistentTabController _controller = PersistentTabController(
     initialIndex: 0,
   );
+  final debouncer = Debouncer(milliseconds: 100);
 
   // 页面列表
   final List<Widget> _pageList = [
@@ -221,8 +220,7 @@ class _NavigationBarState extends State<NavigationBar> {
       }
     } catch (e) {
       logger.e(e.toString());
-      if (!mounted) return;
-      commonDialog(context, "自动同步失败", "请检查网络连接或稍后再试。\n${e.toString()}");
+      showErrorToast("请检查网络连接或稍后再试。\n${e.toString()}", title: "自动同步失败");
     }
   }
 
@@ -232,9 +230,11 @@ class _NavigationBarState extends State<NavigationBar> {
       allRoutes += "${route.name} ";
     });
     // logger.d(allRoutes);
-    if (!allRoutes.contains('LoginRoute')) {
-      showErrorToast('登录失效，请重新登录');
-    }
+    debouncer(() {
+      if (!allRoutes.contains('LoginRoute')) {
+        showErrorToast('登录失效，请重新登录');
+      }
+    });
     context.navigateTo(const LoginRoute());
   }
 

@@ -1,0 +1,3 @@
+class NoticeSync {}
+
+class NeedLogin {}

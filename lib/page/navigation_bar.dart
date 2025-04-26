@@ -37,6 +37,8 @@ class _NavigationBarState extends State<NavigationBar> {
     initialIndex: 0,
   );
   final debouncer = Debouncer(milliseconds: 100);
+  final List<ScrollController> _scrollControllers = [];
+  late HideOnScrollSettings hideOnScrollSettings;
 
   // 页面列表
   final List<Widget> _pageList = [
@@ -52,6 +54,12 @@ class _NavigationBarState extends State<NavigationBar> {
   @override
   void initState() {
     super.initState();
+    scrollControllers.forEach((key, value) {
+      _scrollControllers.add(value);
+    });
+    hideOnScrollSettings = HideOnScrollSettings(
+      scrollControllers: _scrollControllers,
+    );
     _checkUpdate();
     _signIn();
     // 先执行一次
@@ -115,18 +123,8 @@ class _NavigationBarState extends State<NavigationBar> {
           // ),
           navBarStyle: NavBarStyle.style3,
           // 导航栏样式
-          hideOnScrollSettings: HideOnScrollSettings(
-            scrollControllers: [
-              scrollControllers['favorite']!,
-              scrollControllers['history']!,
-              scrollControllers['download']!,
-              scrollControllers['day']!,
-              scrollControllers['week']!,
-              scrollControllers['month']!,
-              scrollControllers['creator']!,
-              scrollControllers['category']!,
-            ],
-          ),
+          hideOnScrollSettings: hideOnScrollSettings,
+          // 自动隐藏导航栏
         );
       },
     );
@@ -354,6 +352,7 @@ class _NavigationBarState extends State<NavigationBar> {
           break;
         }
       } catch (e) {
+        logger.e(e);
         await Future.delayed(Duration(seconds: 1));
         continue;
       }

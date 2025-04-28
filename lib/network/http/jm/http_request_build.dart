@@ -3,9 +3,12 @@ import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 
 import '../../../config/jm/config.dart';
 import '../../../main.dart';
+
+final jmDio = Dio();
 
 String get jmUA {
   if (JmConfig.device.isEmpty) {
@@ -46,13 +49,15 @@ Future<Map<String, dynamic>> request(
   bool cache = false,
 }) async {
   if (cache) {
-    dio.interceptors.add(cacheInterceptor);
+    jmDio.interceptors.add(cacheInterceptor);
   } else {
-    dio.interceptors.removeWhere((Interceptor i) => i == cacheInterceptor);
+    jmDio.interceptors.removeWhere((Interceptor i) => i == cacheInterceptor);
   }
 
+  jmDio.interceptors.add(CookieManager(JmConfig.cookieJar));
+
   try {
-    final response = await dio.request(
+    final response = await jmDio.request(
       url,
       data: body,
       queryParameters: params,

@@ -64,6 +64,7 @@ dependencies:
   #        网络 & 通信 & WebView        #
   ########################################
   dio: ^5.6.0                   # 强大的 HTTP 客户端
+  dio_cookie_manager: ^3.0.1    # Dio Cookie 管理器
   webview_flutter: ^4.10.0      # WebView 组件
   url_launcher: ^6.3.1          # URL 启动器（外部浏览器）
   connectivity_plus: ^6.1.2     # 网络状态监测

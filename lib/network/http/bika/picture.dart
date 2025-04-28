@@ -6,8 +6,8 @@ import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
 
 // ignore: unused_import
-import '../../config/global_setting.dart';
-import '../../util/get_path.dart';
+import '../../../config/global/global_setting.dart';
+import '../../../util/get_path.dart';
 
 final pictureDio = Dio();
 

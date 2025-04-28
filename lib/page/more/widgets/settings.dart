@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
-import '../../../config/global.dart';
+import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../util/router/router.gr.dart';
 

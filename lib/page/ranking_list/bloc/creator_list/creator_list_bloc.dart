@@ -2,12 +2,13 @@ import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
-import 'package:zephyr/network/http/http_request.dart';
+import 'package:zephyr/network/http/bika/http_request.dart';
 
 import '../../json/knight_leaderboard.dart';
 import '../../models/models.dart';
 
 part 'creator_list_event.dart';
+
 part 'creator_list_state.dart';
 
 const throttleDurationCreator = Duration(milliseconds: 100);

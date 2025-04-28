@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/page/search_result/models/models.dart';
 
-import '../../../config/global.dart';
+import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../bloc/search_bloc.dart';
 import '../method/search_enter_provider.dart';

@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 
-import '../../../config/global.dart';
+import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';

@@ -2,14 +2,14 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:zephyr/config/global.dart';
+import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/page/comments_children/comments_children.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../main.dart';
 import '../../../mobx/bool_select.dart';
 import '../../../mobx/int_select.dart';
-import '../../../network/http/http_request.dart';
+import '../../../network/http/bika/http_request.dart';
 import '../../../widgets/error_view.dart';
 import '../../comments/json/comments_json/comments_json.dart' as comments_json;
 import '../json/comments_children_json.dart';

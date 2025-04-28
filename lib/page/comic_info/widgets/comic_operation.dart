@@ -2,9 +2,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
-import '../../../config/global.dart';
+import '../../../config/global/global.dart';
 import '../../../main.dart';
-import '../../../network/http/http_request.dart';
+import '../../../network/http/bika/http_request.dart';
 import '../../../util/dialog.dart';
 import '../../../widgets/toast.dart';
 import '../json/comic_info/comic_info.dart';

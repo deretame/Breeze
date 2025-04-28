@@ -4,10 +4,11 @@ import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 
 import '../../../main.dart';
-import '../../../network/http/http_request.dart';
+import '../../../network/http/bika/http_request.dart';
 import '../json/user_comments_json.dart';
 
 part 'user_comments_event.dart';
+
 part 'user_comments_state.dart';
 
 const _throttleDuration = Duration(milliseconds: 100);

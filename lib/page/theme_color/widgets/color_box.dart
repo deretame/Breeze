@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:zephyr/config/global.dart';
+import 'package:zephyr/config/global/global.dart';
 
-import '../../../config/color_theme_types.dart';
+import '../../../config/global/color_theme_types.dart';
 
 class ColorThemeItem extends StatelessWidget {
   final ColorThemeInfo colorInfo;

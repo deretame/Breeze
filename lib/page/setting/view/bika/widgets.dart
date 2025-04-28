@@ -7,9 +7,9 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../../../config/global.dart';
+import '../../../../config/global/global.dart';
 import '../../../../main.dart';
-import '../../../../network/http/http_request.dart';
+import '../../../../network/http/bika/http_request.dart';
 import 'method.dart';
 
 Widget divider() {

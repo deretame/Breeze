@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
-import '../../../config/global.dart';
+import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../widgets/comic_entry/comic_entry.dart';
 import '../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';

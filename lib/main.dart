@@ -17,9 +17,9 @@ import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/pretty_log.dart';
 import 'package:zephyr/util/router/router.dart';
 
-import 'config/global.dart';
-import 'config/global_setting.dart';
-import 'config/theme_mode_adapter.dart';
+import 'config/global/global.dart';
+import 'config/global/global_setting.dart';
+import 'config/mobx/theme_mode_adapter.dart';
 import 'network/dio_cache.dart';
 import 'object_box/object_box.dart';
 
@@ -109,8 +109,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  bool init = false;
-
   void _updateThemeSettings() {
     var isDarkMode =
         MediaQuery.of(context).platformBrightness == Brightness.dark;
@@ -136,24 +134,21 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    if (!init) {
-      init = true;
-      // 设置这个的目的是为了缓解图片重载
-      PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 1024;
+    // 设置这个的目的是为了缓解图片重载
+    PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 1024;
 
-      statusBarHeight = MediaQuery.of(context).padding.top;
-      screenWidth = MediaQuery.of(context).size.width;
-      screenHeight = MediaQuery.of(context).size.height;
+    statusBarHeight = MediaQuery.of(context).padding.top;
+    screenWidth = MediaQuery.of(context).size.width;
+    screenHeight = MediaQuery.of(context).size.height;
 
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-      SystemChrome.setSystemUIOverlayStyle(
-        const SystemUiOverlayStyle(
-          systemNavigationBarColor: Colors.transparent,
-          systemNavigationBarDividerColor: Colors.transparent,
-          statusBarColor: Colors.transparent,
-        ),
-      );
-    }
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarDividerColor: Colors.transparent,
+        statusBarColor: Colors.transparent,
+      ),
+    );
 
     return Observer(
       builder: (context) {

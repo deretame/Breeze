@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_guard/permission_guard.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 
-import '../../../config/global.dart';
+import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../object_box/model.dart';
 import '../../../object_box/objectbox.g.dart';

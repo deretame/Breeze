@@ -3,12 +3,13 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 
-import '../../../../config/global.dart';
-import '../../../../network/http/http_request.dart';
+import '../../../config/global/global.dart';
+import '../../../network/http/bika/http_request.dart';
 import '../../../main.dart';
 import '../json/profile.dart';
 
 part 'user_profile_event.dart';
+
 part 'user_profile_state.dart';
 
 const _throttleDuration = Duration(milliseconds: 100);

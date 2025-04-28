@@ -6,7 +6,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/page/search_result/search_result.dart';
 
-import '../../../config/global.dart';
+import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../mobx/string_select.dart';
 import '../../../widgets/comic_entry/comic_entry.dart';

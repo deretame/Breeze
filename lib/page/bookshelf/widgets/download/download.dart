@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 
-import '../../../../config/global.dart';
+import '../../../../config/global/global.dart';
 import '../../../../main.dart';
 import '../../../../mobx/int_select.dart';
 import '../../../../mobx/string_select.dart';

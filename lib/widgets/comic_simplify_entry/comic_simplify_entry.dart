@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../config/global.dart';
+import '../../config/global/global.dart';
 import '../../main.dart';
 import '../../object_box/objectbox.g.dart';
 import '../../util/router/router.gr.dart';

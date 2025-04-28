@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 
 import '../../../config/bika/bika_setting.dart';
-import '../../../config/global.dart';
+import '../../../config/global/global.dart';
 import '../../../main.dart';
 
 Future<Map<String, bool>?> showCategoryDialog(

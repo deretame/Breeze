@@ -2,11 +2,12 @@ import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
-import 'package:zephyr/network/http/http_request.dart';
+import 'package:zephyr/network/http/bika/http_request.dart';
 
 import '../json/comments_children_json.dart';
 
 part 'comments_children_event.dart';
+
 part 'comments_children_state.dart';
 
 const _throttleDuration = Duration(milliseconds: 100);

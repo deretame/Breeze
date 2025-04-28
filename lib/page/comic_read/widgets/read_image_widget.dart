@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/comic_read/comic_read.dart';
 
-import '../../../config/global.dart';
+import '../../../config/global/global.dart';
 import '../../../widgets/full_screen_image_view.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';

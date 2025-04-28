@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/page/comic_info/json/eps/eps.dart' as eps;
 
-import '../../../config/global.dart';
+import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../util/router/router.dart';
 import '../../../util/router/router.gr.dart';

@@ -4,9 +4,10 @@ import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/page/comic_read/comic_read.dart';
 
-import '../../../network/http/http_request.dart';
+import '../../../network/http/bika/http_request.dart';
 
 part 'page_event.dart';
+
 part 'page_state.dart';
 
 const throttleDuration = Duration(milliseconds: 100);

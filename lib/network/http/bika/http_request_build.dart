@@ -6,7 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/main.dart';
 
-import '../../util/event/event.dart';
+import '../../../util/event/event.dart';
 
 String _getNonce() => Uuid().v4().replaceAll('-', '');
 

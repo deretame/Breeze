@@ -7,7 +7,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/mobx/string_select.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../network/http/http_request.dart';
+import '../network/http/bika/http_request.dart';
 import '../util/dialog.dart';
 
 @RoutePage()

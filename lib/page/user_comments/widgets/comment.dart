@@ -8,11 +8,11 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../../config/global.dart';
+import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../mobx/bool_select.dart';
 import '../../../mobx/int_select.dart';
-import '../../../network/http/http_request.dart';
+import '../../../network/http/bika/http_request.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/full_screen_image_view.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';

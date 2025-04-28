@@ -9,7 +9,7 @@ import 'package:zephyr/page/category/category.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/picture_bloc/bloc/picture_bloc.dart';
 
-import '../../../config/global.dart';
+import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 import '../../search_result/models/search_enter.dart';

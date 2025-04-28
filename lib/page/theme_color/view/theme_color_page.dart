@@ -1,6 +1,6 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
-import 'package:zephyr/config/color_theme_types.dart';
+import 'package:zephyr/config/global/color_theme_types.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/theme_color/theme_color.dart';
 

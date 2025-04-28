@@ -6,7 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:tar/tar.dart';
 
 import '../../../main.dart';
-import '../../../network/http/picture.dart';
+import '../../../network/http/bika/picture.dart';
 import '../../../util/get_path.dart';
 import '../../../widgets/toast.dart';
 import '../../download/json/comic_all_info_json/comic_all_info_json.dart';

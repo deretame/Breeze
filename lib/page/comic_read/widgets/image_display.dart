@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import '../../../config/global.dart';
+import '../../../config/global/global.dart';
 
 class ImageDisplay extends StatefulWidget {
   final String imagePath;

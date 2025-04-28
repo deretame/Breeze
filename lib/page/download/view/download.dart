@@ -9,9 +9,9 @@ import 'package:zephyr/page/download/json/comic_all_info_json_no_freeze/comic_al
     as temp_json;
 import 'package:zephyr/page/download/widgets/eps.dart';
 
-import '../../../config/global.dart';
-import '../../../network/http/http_request.dart';
-import '../../../network/http/picture.dart';
+import '../../../config/global/global.dart';
+import '../../../network/http/bika/http_request.dart';
+import '../../../network/http/bika/picture.dart';
 import '../../../object_box/model.dart';
 import '../../../page/comic_read/json/page.dart' as comic_page_json;
 import '../../../util/get_path.dart';

@@ -3,10 +3,11 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 
-import '../../../../network/http/http_request.dart';
+import '../../../../network/http/bika/http_request.dart';
 import '../../json/comic_info/comic_info.dart';
 
 part 'get_comic_info_event.dart';
+
 part 'get_comic_info_state.dart';
 
 const throttleDurationComicInfo = Duration(milliseconds: 100);

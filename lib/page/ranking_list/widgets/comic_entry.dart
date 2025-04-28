@@ -4,7 +4,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/page/ranking_list/widgets/comic_picture.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
-import '../../../config/global.dart';
+import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../json/leaderboard.dart';
 

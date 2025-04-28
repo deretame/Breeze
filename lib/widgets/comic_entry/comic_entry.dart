@@ -9,7 +9,7 @@ import 'package:uuid/uuid.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
-import '../../config/global.dart';
+import '../../config/global/global.dart';
 import '../../main.dart';
 import '../full_screen_image_view.dart';
 import '../picture_bloc/bloc/picture_bloc.dart';

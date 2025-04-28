@@ -5,10 +5,11 @@ import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/page/category/category.dart';
 
 import '../../../../main.dart';
-import '../../../../network/http/http_request.dart';
+import '../../../../network/http/bika/http_request.dart';
 import '../../json/category/categories.dart';
 
 part 'get_category_event.dart';
+
 part 'get_category_state.dart';
 
 const throttleDuration = Duration(milliseconds: 100);

@@ -6,7 +6,7 @@ import 'package:zephyr/page/comments/comments.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../main.dart';
-import '../../../network/http/http_request.dart';
+import '../../../network/http/bika/http_request.dart';
 import '../../../widgets/error_view.dart';
 import '../json/comments_json/comments_json.dart';
 

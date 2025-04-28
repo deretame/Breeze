@@ -2,13 +2,14 @@ import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
-import 'package:zephyr/network/http/http_request.dart';
+import 'package:zephyr/network/http/bika/http_request.dart';
 
 import '../../../main.dart';
 import '../json/advanced_search.dart';
 import '../models/models.dart';
 
 part 'search_event.dart';
+
 part 'search_state.dart';
 
 const throttleDuration = Duration(milliseconds: 100);

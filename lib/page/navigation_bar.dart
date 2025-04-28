@@ -11,9 +11,9 @@ import 'package:zephyr/page/ranking_list/ranking_list.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../config/global.dart';
+import '../config/global/global.dart';
 import '../main.dart';
-import '../network/http/http_request.dart';
+import '../network/http/bika/http_request.dart';
 import '../network/webdav.dart';
 import '../util/debouncer.dart';
 import '../util/dialog.dart';

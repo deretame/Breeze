@@ -72,12 +72,51 @@ class _BookshelfPageState extends State<BookshelfPage>
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
-              AutoRouter.of(
-                context,
-              ).push(SearchResultRoute(searchEnterConst: SearchEnterConst()));
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return SimpleDialog(
+                    children: [
+                      // 第一个 Chip
+                      SimpleDialogOption(
+                        onPressed: () {
+                          context.pop();
+                          context.pushRoute(
+                            SearchResultRoute(
+                              searchEnterConst: SearchEnterConst(),
+                            ),
+                          );
+                        },
+                        child: const Chip(
+                          label: Text("哔咔漫画"),
+                          backgroundColor: Colors.pink,
+                          labelStyle: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      // 第二个 Chip
+                      SimpleDialogOption(
+                        onPressed: () {
+                          context.pop();
+                          context.pushRoute(
+                            SearchResultRoute(
+                              searchEnterConst: SearchEnterConst(),
+                            ),
+                          );
+                        },
+                        child: const Chip(
+                          label: Text("禁漫天堂"),
+                          backgroundColor: Colors.orange,
+                          labelStyle: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
             },
           ),
         ],
+
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(kMinInteractiveDimension),
           child: Row(

@@ -3,12 +3,13 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 
-import '../../../../network/http/http_request.dart';
+import '../../../../network/http/bika/http_request.dart';
 import '../../../../type/stack.dart';
 import '../../json/comic_info/comic_info.dart';
 import '../../json/eps/eps.dart';
 
 part 'get_comic_eps_event.dart';
+
 part 'get_comic_eps_state.dart';
 
 const throttleDurationEps = Duration(milliseconds: 100);

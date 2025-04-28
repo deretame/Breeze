@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/category/category.dart';
 
-import '../../../config/global.dart';
+import '../../../config/global/global.dart';
 import '../../../util/router/router.gr.dart';
 import '../../search_result/models/search_enter.dart';
 

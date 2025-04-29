@@ -7,6 +7,7 @@ import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnterConst;
 import '../../../main.dart';
 import '../../../mobx/int_select.dart';
 import '../../../util/router/router.gr.dart';
+import '../../jm_search_result/bloc/jm_search_result_bloc.dart';
 import '../../search_result/models/search_enter.dart' show SearchEnterConst;
 
 @RoutePage()
@@ -98,8 +99,8 @@ class _BookshelfPageState extends State<BookshelfPage>
                         onPressed: () {
                           context.pop();
                           context.pushRoute(
-                            SearchResultRoute(
-                              searchEnterConst: SearchEnterConst(),
+                            JmSearchResultRoute(
+                              event: JmSearchResultEvent(keyword: "1"),
                             ),
                           );
                         },

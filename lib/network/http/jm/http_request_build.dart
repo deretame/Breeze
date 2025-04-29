@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:encrypter_plus/encrypter_plus.dart';
+import 'package:zephyr/type/pipe.dart';
 
 import '../../../config/jm/config.dart';
 import '../../../main.dart';
@@ -26,9 +27,9 @@ String jmUA() {
 
 Map<String, dynamic> getHeader(
   String time,
-  bool post, {
+  bool post,
   Map<String, dynamic>? headers,
-}) {
+) {
   var token = md5.convert(utf8.encode('$time${JmConfig.jmVersion}'));
   return {
     'token': token.toString(),
@@ -76,20 +77,23 @@ Future<Map<String, dynamic>> request(
   jmDio.interceptors.add(CookieManager(JmConfig.cookieJar));
 
   try {
-    final response = await jmDio.request(
-      url,
-      data: body,
-      queryParameters: params,
-      options: Options(
-        method: method,
-        headers: getHeader(timestamp, method == 'POST', headers: headers),
-        sendTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 10),
-        responseType: byte ? ResponseType.bytes : null,
-      ),
-    );
-
-    return decodeRespData(response.data['data'], timestamp);
+    return await jmDio
+        .request(
+          url,
+          data: body,
+          queryParameters: params,
+          options: Options(
+            method: method,
+            headers: getHeader(timestamp, method == 'POST', headers),
+            sendTimeout: const Duration(seconds: 10),
+            receiveTimeout: const Duration(seconds: 10),
+            responseType: byte ? ResponseType.bytes : null,
+          ),
+        )
+        .pipe((var res) => res.data as List<int>)
+        .pipe((var d) => utf8.decode(d))
+        .pipe((var d) => jsonDecode(d) as Map<String, dynamic>)
+        .pipe((var d) => decodeRespData(d['data'], timestamp));
   } on DioException catch (error) {
     logger.d(error, stackTrace: error.stackTrace);
 

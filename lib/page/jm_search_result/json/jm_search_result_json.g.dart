@@ -8,11 +8,11 @@ part of 'jm_search_result_json.dart';
 
 _JmSearchResultJson _$JmSearchResultJsonFromJson(Map<String, dynamic> json) =>
     _JmSearchResultJson(
-      searchQuery: json['search_query'] as String?,
-      total: json['total'] as String?,
+      searchQuery: json['search_query'] as String,
+      total: json['total'] as String,
       content:
-          (json['content'] as List<dynamic>?)
-              ?.map((e) => Content.fromJson(e as Map<String, dynamic>))
+          (json['content'] as List<dynamic>)
+              .map((e) => Content.fromJson(e as Map<String, dynamic>))
               .toList(),
     );
 
@@ -24,22 +24,18 @@ Map<String, dynamic> _$JmSearchResultJsonToJson(_JmSearchResultJson instance) =>
     };
 
 _Content _$ContentFromJson(Map<String, dynamic> json) => _Content(
-  id: json['id'] as String?,
-  author: json['author'] as String?,
+  id: json['id'] as String,
+  author: json['author'] as String,
   description: json['description'],
-  name: json['name'] as String?,
-  image: json['image'] as String?,
-  category:
-      json['category'] == null
-          ? null
-          : Category.fromJson(json['category'] as Map<String, dynamic>),
-  categorySub:
-      json['category_sub'] == null
-          ? null
-          : CategorySub.fromJson(json['category_sub'] as Map<String, dynamic>),
-  liked: json['liked'] as bool?,
-  isFavorite: json['is_favorite'] as bool?,
-  updateAt: (json['update_at'] as num?)?.toInt(),
+  name: json['name'] as String,
+  image: json['image'] as String,
+  category: Category.fromJson(json['category'] as Map<String, dynamic>),
+  categorySub: CategorySub.fromJson(
+    json['category_sub'] as Map<String, dynamic>,
+  ),
+  liked: json['liked'] as bool,
+  isFavorite: json['is_favorite'] as bool,
+  updateAt: (json['update_at'] as num).toInt(),
 );
 
 Map<String, dynamic> _$ContentToJson(_Content instance) => <String, dynamic>{
@@ -56,7 +52,7 @@ Map<String, dynamic> _$ContentToJson(_Content instance) => <String, dynamic>{
 };
 
 _Category _$CategoryFromJson(Map<String, dynamic> json) =>
-    _Category(id: json['id'] as String?, title: json['title'] as String?);
+    _Category(id: json['id'] as String, title: json['title'] as String);
 
 Map<String, dynamic> _$CategoryToJson(_Category instance) => <String, dynamic>{
   'id': instance.id,

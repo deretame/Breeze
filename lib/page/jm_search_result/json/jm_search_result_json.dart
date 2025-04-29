@@ -18,9 +18,9 @@ String jmSearchResultJsonToJson(JmSearchResultJson data) =>
 @freezed
 abstract class JmSearchResultJson with _$JmSearchResultJson {
   const factory JmSearchResultJson({
-    @JsonKey(name: "search_query") String? searchQuery,
-    @JsonKey(name: "total") String? total,
-    @JsonKey(name: "content") List<Content>? content,
+    @JsonKey(name: "search_query") required String searchQuery,
+    @JsonKey(name: "total") required String total,
+    @JsonKey(name: "content") required List<Content> content,
   }) = _JmSearchResultJson;
 
   factory JmSearchResultJson.fromJson(Map<String, dynamic> json) =>
@@ -30,16 +30,16 @@ abstract class JmSearchResultJson with _$JmSearchResultJson {
 @freezed
 abstract class Content with _$Content {
   const factory Content({
-    @JsonKey(name: "id") String? id,
-    @JsonKey(name: "author") String? author,
-    @JsonKey(name: "description") dynamic description,
-    @JsonKey(name: "name") String? name,
-    @JsonKey(name: "image") String? image,
-    @JsonKey(name: "category") Category? category,
-    @JsonKey(name: "category_sub") CategorySub? categorySub,
-    @JsonKey(name: "liked") bool? liked,
-    @JsonKey(name: "is_favorite") bool? isFavorite,
-    @JsonKey(name: "update_at") int? updateAt,
+    @JsonKey(name: "id") required String id,
+    @JsonKey(name: "author") required String author,
+    @JsonKey(name: "description") required dynamic description,
+    @JsonKey(name: "name") required String name,
+    @JsonKey(name: "image") required String image,
+    @JsonKey(name: "category") required Category category,
+    @JsonKey(name: "category_sub") required CategorySub categorySub,
+    @JsonKey(name: "liked") required bool liked,
+    @JsonKey(name: "is_favorite") required bool isFavorite,
+    @JsonKey(name: "update_at") required int updateAt,
   }) = _Content;
 
   factory Content.fromJson(Map<String, dynamic> json) =>
@@ -49,8 +49,8 @@ abstract class Content with _$Content {
 @freezed
 abstract class Category with _$Category {
   const factory Category({
-    @JsonKey(name: "id") String? id,
-    @JsonKey(name: "title") String? title,
+    @JsonKey(name: "id") required String id,
+    @JsonKey(name: "title") required String title,
   }) = _Category;
 
   factory Category.fromJson(Map<String, dynamic> json) =>
@@ -60,8 +60,8 @@ abstract class Category with _$Category {
 @freezed
 abstract class CategorySub with _$CategorySub {
   const factory CategorySub({
-    @JsonKey(name: "id") String? id,
-    @JsonKey(name: "title") String? title,
+    @JsonKey(name: "id") required String? id,
+    @JsonKey(name: "title") required String? title,
   }) = _CategorySub;
 
   factory CategorySub.fromJson(Map<String, dynamic> json) =>

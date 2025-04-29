@@ -54,9 +54,11 @@ class JmSearchResultBloc
     }
 
     try {
-      final data = await search(event.keyword, event.sort, page)
-          .pipe((var j) => replaceNestedNull(j))
-          .pipe((var j) => JmSearchResultJson.fromJson(j));
+      final data = await search(
+        event.keyword,
+        event.sort,
+        page,
+      ).pipe(replaceNestedNull).pipe(JmSearchResultJson.fromJson);
 
       _searchResultList = [..._searchResultList, ...data.content];
 

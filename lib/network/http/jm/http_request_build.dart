@@ -91,8 +91,8 @@ Future<Map<String, dynamic>> request(
           ),
         )
         .pipe((var res) => res.data as List<int>)
-        .pipe((var d) => utf8.decode(d))
-        .pipe((var d) => jsonDecode(d) as Map<String, dynamic>)
+        .pipe(utf8.decode)
+        .pipe(jsonDecode)
         .pipe((var d) => decodeRespData(d['data'], timestamp));
   } on DioException catch (error) {
     logger.d(error, stackTrace: error.stackTrace);

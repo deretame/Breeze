@@ -4,13 +4,16 @@ import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:encrypter_plus/encrypter_plus.dart';
 
 import '../../../config/jm/config.dart';
 import '../../../main.dart';
 
 final jmDio = Dio();
 
-String get jmUA {
+String getTime() => (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+
+String jmUA() {
   if (JmConfig.device.isEmpty) {
     var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     var random = Random();
@@ -22,8 +25,8 @@ String get jmUA {
 }
 
 Map<String, dynamic> getHeader(
-  int time, {
-  bool post = false,
+  String time,
+  bool post, {
   Map<String, dynamic>? headers,
 }) {
   var token = md5.convert(utf8.encode('$time${JmConfig.jmVersion}'));
@@ -32,14 +35,28 @@ Map<String, dynamic> getHeader(
     'tokenparam': '$time,${JmConfig.jmVersion}',
     'use-agent': jmUA,
     'accpet-encoding': 'gzip',
-    'Host': JmConfig.baseUrls[0].replaceFirst('https://', ''),
+    'Host': JmConfig.baseUrl.replaceAll('https://', ''),
     ...headers ?? {},
     if (post) 'Content-Type': 'application/x-www-form-urlencoded',
   };
 }
 
+Map<String, dynamic> decodeRespData(String data, String ts, [String? secret]) {
+  final actualSecret = secret ?? JmConfig.kJmSecret;
+
+  // 1. Base64解码
+  final dataB64 = base64.decode(data);
+
+  // 2. AES-ECB解密
+  final key = md5.convert(utf8.encode('$ts$actualSecret')).toString();
+  final encrypter = Encrypter(AES(Key(utf8.encode(key)), mode: AESMode.ecb));
+  final dataAes = encrypter.decryptBytes(Encrypted(dataB64));
+
+  // 3. 解码为字符串 (json)并转化为Map
+  return json.decode(utf8.decode(dataAes));
+}
+
 Future<Map<String, dynamic>> request(
-  int time,
   String url, {
   String? body,
   String method = 'GET',
@@ -48,6 +65,8 @@ Future<Map<String, dynamic>> request(
   bool byte = true,
   bool cache = false,
 }) async {
+  final timestamp = getTime();
+
   if (cache) {
     jmDio.interceptors.add(cacheInterceptor);
   } else {
@@ -63,16 +82,14 @@ Future<Map<String, dynamic>> request(
       queryParameters: params,
       options: Options(
         method: method,
-        headers: getHeader(time, post: method == 'POST', headers: headers),
+        headers: getHeader(timestamp, method == 'POST', headers: headers),
         sendTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 10),
         responseType: byte ? ResponseType.bytes : null,
       ),
     );
 
-    // logger.d(response.data);
-
-    return response.data;
+    return decodeRespData(response.data['data'], timestamp);
   } on DioException catch (error) {
     logger.d(error, stackTrace: error.stackTrace);
 

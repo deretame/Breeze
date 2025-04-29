@@ -101,15 +101,10 @@ Future<void> main() async {
   );
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  void _updateThemeSettings() {
+  void _updateThemeSettings(BuildContext context) {
     var isDarkMode =
         MediaQuery.of(context).platformBrightness == Brightness.dark;
     if (globalSetting.themeMode == ThemeMode.dark) {
@@ -202,7 +197,7 @@ class _MyAppState extends State<MyApp> {
                 : materialColorScheme = darkColorScheme;
             materialColorSchemeDark = darkColorScheme;
 
-            _updateThemeSettings();
+            _updateThemeSettings(context);
             return MaterialApp.router(
               routerConfig: appRouter.config(),
               locale: globalSetting.locale,

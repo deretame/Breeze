@@ -99,9 +99,7 @@ class _BookshelfPageState extends State<BookshelfPage>
                         onPressed: () {
                           context.pop();
                           context.pushRoute(
-                            JmSearchResultRoute(
-                              event: JmSearchResultEvent(keyword: "1"),
-                            ),
+                            JmSearchResultRoute(event: JmSearchResultEvent()),
                           );
                         },
                         child: const Chip(

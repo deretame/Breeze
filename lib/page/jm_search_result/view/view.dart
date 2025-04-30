@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/jm_search_result/jm_search_result.dart';
 
+import '../../../network/http/jm/picture.dart';
+import '../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 import '../../search_result/widgets/bottom_loader.dart';
 
 @RoutePage()
@@ -95,6 +97,20 @@ class _JmSearchResultPageState extends State<_JmSearchResultPage> {
         (state.status == JmSearchResultStatus.loadingMore ? 1 : 0) +
         (state.status == JmSearchResultStatus.loadingMoreFailure ? 1 : 0);
 
+    List<ComicSimplifyEntryInfo> comicSimplifyEntryInfos = [];
+    state.jmSearchResults!.map((item) {
+      comicSimplifyEntryInfos.add(
+        ComicSimplifyEntryInfo(
+          title: item.name,
+          id: item.id,
+          fileServer: getJmCoverUrl(item.id),
+          path: "",
+          pictureType: 'cover',
+          from: 'jm',
+        ),
+      );
+    }).toList();
+
     return ListView.builder(
       itemCount: length,
       itemBuilder: (context, index) {
@@ -134,7 +150,27 @@ class _JmSearchResultPageState extends State<_JmSearchResultPage> {
     ),
   );
 
-  Widget _buildItem(Content item) => ListTile(title: Text(item.name));
+  Widget _buildItem(Content item) {
+    return SizedBox.shrink();
+  }
+
+  //     Image.network(
+  //   getJmCoverUrl(item.id),
+  //   fit: BoxFit.cover, // 根据需要调整
+  //   loadingBuilder: (context, child, loadingProgress) {
+  //     if (loadingProgress == null) return child;
+  //     return Center(
+  //       child: CircularProgressIndicator(
+  //         value:
+  //             loadingProgress.expectedTotalBytes != null
+  //                 ? loadingProgress.cumulativeBytesLoaded /
+  //                     loadingProgress.expectedTotalBytes!
+  //                 : null,
+  //       ),
+  //     );
+  //   },
+  //   errorBuilder: (context, error, stackTrace) => Icon(Icons.error),
+  // );
 
   Widget _failureWidget(JmSearchResultState state) => Center(
     child: Column(

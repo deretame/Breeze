@@ -60,13 +60,16 @@ Future<String> getCachePicture({
   // logger.d('开始下载图片: $url');
 
   // 处理 URL
-  String finalUrl = buildImageUrl(
-    url,
-    path,
-    pictureType,
-    bikaSetting.imageQuality,
-    bikaSetting.proxy,
-  );
+  String finalUrl =
+      path.isEmpty
+          ? url
+          : buildImageUrl(
+            url,
+            path,
+            pictureType,
+            bikaSetting.imageQuality,
+            bikaSetting.proxy,
+          );
 
   // 下载图片
   Uint8List imageData = await downloadImageWithRetry(finalUrl);
@@ -128,13 +131,16 @@ Future<String> downloadPicture({
   }
 
   // 处理 URL
-  String finalUrl = buildImageUrl(
-    url,
-    path,
-    pictureType,
-    "original",
-    bikaSetting.proxy,
-  );
+  String finalUrl =
+      path.isEmpty
+          ? url
+          : buildImageUrl(
+            url,
+            path,
+            pictureType,
+            "original",
+            bikaSetting.proxy,
+          );
 
   // 下载图片
   Uint8List imageData = await downloadImageWithRetry(finalUrl, retry: true);
@@ -161,7 +167,7 @@ String buildFilePath(
     return file_path.join(
       basePath,
       from,
-      bikaSetting.imageQuality,
+      from == 'bika' ? bikaSetting.imageQuality : '',
       cartoonId,
       pictureType,
       chapterId,
@@ -171,7 +177,7 @@ String buildFilePath(
     return file_path.join(
       basePath,
       from,
-      bikaSetting.imageQuality,
+      from == 'bika' ? bikaSetting.imageQuality : '',
       cartoonId,
       pictureType,
       sanitizedPath,

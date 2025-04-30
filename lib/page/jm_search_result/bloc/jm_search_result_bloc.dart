@@ -37,6 +37,18 @@ class JmSearchResultBloc
     JmSearchResultEvent event,
     Emitter<JmSearchResultState> emit,
   ) async {
+    if (event.keyword.isEmpty) {
+      emit(
+        state.copyWith(
+          status: JmSearchResultStatus.success,
+          jmSearchResults: [],
+          hasReachedMax: false,
+          result: '请输入搜索关键词',
+        ),
+      );
+      return;
+    }
+
     if (hasReachedMax) {
       return;
     }
@@ -69,6 +81,7 @@ class JmSearchResultBloc
           status: JmSearchResultStatus.success,
           jmSearchResults: _searchResultList,
           hasReachedMax: hasReachedMax,
+          result: '',
         ),
       );
       page++;

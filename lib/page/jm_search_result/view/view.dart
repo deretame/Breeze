@@ -50,7 +50,7 @@ class _JmSearchResultPageState extends State<_JmSearchResultPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Search Result')),
+      appBar: BikaSearchBar(event: event, searchCallback: _searchCallback),
       body: BlocBuilder<JmSearchResultBloc, JmSearchResultState>(
         builder: (context, state) {
           switch (state.status) {
@@ -69,6 +69,25 @@ class _JmSearchResultPageState extends State<_JmSearchResultPage> {
   }
 
   Widget _buildList(JmSearchResultState state) {
+    if (state.status == JmSearchResultStatus.success &&
+        state.result.isNotEmpty) {
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: Text(state.result, style: TextStyle(fontSize: 20.0)),
+        ),
+      );
+    }
+
+    if (state.jmSearchResults!.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: Text('啥都没有', style: TextStyle(fontSize: 20.0)),
+        ),
+      );
+    }
+
     logger.d(state.status);
     int length =
         state.jmSearchResults!.length +
@@ -108,7 +127,7 @@ class _JmSearchResultPageState extends State<_JmSearchResultPage> {
       children: [
         const SizedBox(height: 10),
         ElevatedButton(
-          onPressed: _fetchSearchResult,
+          onPressed: () => _fetchSearchResult(event),
           child: const Text('点击重试'),
         ),
       ],
@@ -134,13 +153,21 @@ class _JmSearchResultPageState extends State<_JmSearchResultPage> {
     ),
   );
 
-  void _fetchSearchResult() => context.read<JmSearchResultBloc>().add(
-    event.copyWith(status: JmSearchResultStatus.loadingMore),
-  );
+  void _searchCallback(value) {
+    if (event != event.copyWith(keyword: value, sort: '')) {
+      setState(() => event = event.copyWith(keyword: value, sort: ''));
+      _fetchSearchResult(event.copyWith(status: JmSearchResultStatus.initial));
+    }
+  }
+
+  void _fetchSearchResult(JmSearchResultEvent event) =>
+      context.read<JmSearchResultBloc>().add(event);
 
   void _onScroll() {
     if (_isBottom) {
-      _fetchSearchResult();
+      _fetchSearchResult(
+        event.copyWith(status: JmSearchResultStatus.loadingMore),
+      );
     }
   }
 

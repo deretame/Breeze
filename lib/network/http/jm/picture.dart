@@ -1,13 +1,11 @@
 import '../../../config/jm/config.dart';
 
-String getBaseUrl() {
-  return JmConfig.imagesUrl;
-}
+String get baseUrl => JmConfig.imagesUrl;
 
 String getJmCoverUrl(String id) {
-  return '${getBaseUrl()}/media/albums/${id}_3x4.jpg';
+  return '$baseUrl/media/albums/${id}_3x4.jpg';
 }
 
 String getJmImagesUrl(String id, String imageName) {
-  return '${getBaseUrl()}/media/photos/$id/$imageName';
+  return '$baseUrl/media/photos/$id/$imageName';
 }

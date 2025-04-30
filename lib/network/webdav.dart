@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:flutter/foundation.dart' show compute;
 import 'package:xml/xml.dart';
+import 'package:zephyr/type/pipe.dart';
 
 import '../../../main.dart';
 import '../object_box/model.dart';
@@ -326,8 +327,10 @@ Future<void> uploadFile2WebDav() async {
   var allHistory = await objectbox.bikaHistoryBox.getAllAsync();
   allHistory.sort((a, b) => b.history.compareTo(a.history));
 
-  var comicHistoriesJson = allHistory.map((comic) => comic.toJson()).toList();
-  String comicHistoriesJsonString = jsonEncode(comicHistoriesJson);
+  var comicHistoriesJsonString = allHistory
+      .map((comic) => comic.toJson())
+      .toList()
+      .pipe(jsonEncode);
 
   // 使用 compute 在后台执行加密和压缩
   final compressedBytes = await compute(

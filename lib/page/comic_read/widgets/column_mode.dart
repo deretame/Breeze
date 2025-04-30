@@ -28,85 +28,51 @@ class ColumnModeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return useSkia
-        ? ScrollablePositionedList.separated(
-          itemCount: length + 2,
-          itemBuilder: (context, index) {
-            if (index == 0) {
-              return Container(
-                width: screenWidth,
-                height:
-                    globalSetting.comicReadTopContainer ? statusBarHeight : 0,
-                color: Colors.black,
-              );
-            } else if (index == length + 1) {
-              return Container(
-                height: 75,
-                width: screenWidth,
-                alignment: Alignment.center,
-                color: Colors.black,
-                child: Text(
-                  "章节结束",
-                  style: TextStyle(fontSize: 20, color: Color(0xFFCCCCCC)),
-                ),
-              );
-            } else {
-              return Container(
-                color: Colors.black,
-                child: ReadImageWidget(
-                  media: medias[index - 1],
-                  comicId: comicId,
-                  epsId: epsId,
-                  index: index - 1,
-                  chapterId: chapterId,
-                  isColumn: true,
-                ),
-              );
-            }
-          },
-          itemScrollController: itemScrollController,
-          itemPositionsListener: itemPositionsListener,
-          separatorBuilder: (BuildContext context, int index) {
-            return Container(height: 2, color: Colors.black);
-          },
-        )
-        : ScrollablePositionedList.builder(
-          itemCount: length + 2,
-          itemBuilder: (context, index) {
-            if (index == 0) {
-              return Container(
-                width: screenWidth,
-                height:
-                    globalSetting.comicReadTopContainer ? statusBarHeight : 0,
-                color: Colors.black,
-              );
-            } else if (index == length + 1) {
-              return Container(
-                height: 75,
-                width: screenWidth,
-                alignment: Alignment.center,
-                color: Colors.black,
-                child: Text(
-                  "章节结束",
-                  style: TextStyle(fontSize: 20, color: Color(0xFFCCCCCC)),
-                ),
-              );
-            } else {
-              return Container(
-                color: Colors.black,
-                child: ReadImageWidget(
-                  media: medias[index - 1],
-                  comicId: comicId,
-                  epsId: epsId,
-                  index: index - 1,
-                  chapterId: chapterId,
-                  isColumn: true,
-                ),
-              );
-            }
-          },
-          itemScrollController: itemScrollController,
-          itemPositionsListener: itemPositionsListener,
-        );
+    final listBuild =
+        useSkia
+            ? ScrollablePositionedList.separated
+            : ScrollablePositionedList.builder;
+
+    return listBuild(
+      itemCount: length + 2,
+      itemBuilder: itemBuilder,
+      itemScrollController: itemScrollController,
+      itemPositionsListener: itemPositionsListener,
+      separatorBuilder:
+          useSkia ? Container(height: 2, color: Colors.black) : null,
+    );
+  }
+
+  Widget itemBuilder(BuildContext context, int index) {
+    if (index == 0) {
+      return Container(
+        width: screenWidth,
+        height: globalSetting.comicReadTopContainer ? statusBarHeight : 0,
+        color: Colors.black,
+      );
+    } else if (index == length + 1) {
+      return Container(
+        height: 75,
+        width: screenWidth,
+        alignment: Alignment.center,
+        color: Colors.black,
+        child: Text(
+          "章节结束",
+          style: TextStyle(fontSize: 20, color: Color(0xFFCCCCCC)),
+        ),
+      );
+    } else {
+      return Container(
+        color: Colors.black,
+        child: ReadImageWidget(
+          media: medias[index - 1],
+          comicId: comicId,
+          epsId: epsId,
+          index: index - 1,
+          chapterId: chapterId,
+          isColumn: true,
+        ),
+      );
+    }
   }
 }

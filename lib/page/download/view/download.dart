@@ -15,8 +15,8 @@ import '../../../network/http/bika/picture.dart';
 import '../../../object_box/model.dart';
 import '../../../page/comic_read/json/page.dart' as comic_page_json;
 import '../../../util/get_path.dart';
-import '../../comic_info/json/comic_info/comic_info.dart';
-import '../../comic_info/json/eps/eps.dart';
+import '../../comic_info/json/bika/comic_info/comic_info.dart';
+import '../../comic_info/json/bika/eps/eps.dart';
 import '../../comments/widgets/title.dart';
 import '../method/download_comic.dart';
 

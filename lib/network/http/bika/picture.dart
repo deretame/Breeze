@@ -61,7 +61,7 @@ Future<String> getCachePicture({
 
   // 处理 URL
   String finalUrl =
-      path.isEmpty
+      from == 'jm'
           ? url
           : buildImageUrl(
             url,

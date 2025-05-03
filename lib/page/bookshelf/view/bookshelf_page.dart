@@ -7,7 +7,7 @@ import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnterConst;
 import '../../../main.dart';
 import '../../../mobx/int_select.dart';
 import '../../../util/router/router.gr.dart';
-import '../../jm_search_result/bloc/jm_search_result_bloc.dart';
+import '../../jm/jm_search_result/bloc/jm_search_result_bloc.dart';
 import '../../search_result/models/search_enter.dart' show SearchEnterConst;
 
 @RoutePage()

@@ -3,14 +3,14 @@ import 'dart:ui';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:zephyr/page/comic_info/json/eps/eps.dart' as eps;
+import 'package:zephyr/page/comic_info/json/bika/eps/eps.dart' as eps;
 
 import '../../../config/global/global.dart';
 import '../../../main.dart';
+import '../../../type/enum.dart';
 import '../../../util/router/router.dart';
 import '../../../util/router/router.gr.dart';
-import '../../../widgets/comic_entry/comic_entry.dart';
-import '../../comic_info/json/comic_info/comic_info.dart';
+import '../../comic_info/json/bika/comic_info/comic_info.dart';
 
 class BottomWidget extends StatefulWidget {
   final ComicEntryType type;

@@ -46,6 +46,7 @@ dependencies:
   bloc: ^9.0.0                  # BLoC 核心库
   flutter_bloc: ^9.0.0          # Flutter BLoC 实现
   bloc_concurrency: ^0.3.0      # BLoC 并发策略（防抖/节流）
+  bloc_lint: 0.2.0-dev.1        # BLoC 代码规范检查
   event_bus: ^2.0.1             # 全局事件总线
 
   ########################################

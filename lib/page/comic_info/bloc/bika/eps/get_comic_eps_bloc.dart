@@ -3,33 +3,32 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 
-import '../../../../network/http/bika/http_request.dart';
-import '../../../../type/stack.dart';
-import '../../json/comic_info/comic_info.dart';
-import '../../json/eps/eps.dart';
+import '../../../../../network/http/bika/http_request.dart';
+import '../../../../../type/stack.dart';
+import '../../../json/bika/comic_info/comic_info.dart';
+import '../../../json/bika/eps/eps.dart';
 
 part 'get_comic_eps_event.dart';
-
 part 'get_comic_eps_state.dart';
 
-const throttleDurationEps = Duration(milliseconds: 100);
+const _throttleDuration = Duration(milliseconds: 100);
 
-EventTransformer<E> throttleDroppableEps<E>(Duration duration) {
+EventTransformer<E> _throttleDroppable<E>(Duration duration) {
   return (events, mapper) {
     return droppable<E>().call(events.throttle(duration), mapper);
   };
 }
 
-class GetComicEpsBloc extends Bloc<GetComicEps, GetComicEpsState> {
+class GetComicEpsBloc extends Bloc<GetComicEpsEvent, GetComicEpsState> {
   GetComicEpsBloc() : super(GetComicEpsState()) {
-    on<GetComicEps>(
+    on<GetComicEpsEvent>(
       _fetchEps,
-      transformer: throttleDroppableEps(throttleDurationEps),
+      transformer: _throttleDroppable(_throttleDuration),
     );
   }
 
   Future<void> _fetchEps(
-    GetComicEps event,
+    GetComicEpsEvent event,
     Emitter<GetComicEpsState> emit,
   ) async {
     try {

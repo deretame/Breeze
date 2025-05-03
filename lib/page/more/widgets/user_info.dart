@@ -6,10 +6,10 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/more/more.dart';
 
-import '../../../config/global/global.dart';
 import '../../../../widgets/full_screen_image_view.dart';
 import '../../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../../widgets/picture_bloc/models/picture_info.dart';
+import '../../../config/global/global.dart';
 import '../json/profile.dart';
 
 class RefreshEvent {}
@@ -179,7 +179,7 @@ class _UserAvatar extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder:
-                            (context) => FullScreenImageView(
+                            (context) => FullScreenImagePage(
                               imagePath: state.imagePath!,
                             ),
                       ),

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
-import '../json/comic_info/comic_info.dart';
+import '../json/bika/comic_info/comic_info.dart';
 
 // 描述，或者说介绍？我不太清楚这玩意儿到底怎么分类
 class SynopsisWidget extends StatelessWidget {

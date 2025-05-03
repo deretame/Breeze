@@ -330,7 +330,7 @@ Future<void> uploadFile2WebDav() async {
   var comicHistoriesJsonString = allHistory
       .map((comic) => comic.toJson())
       .toList()
-      .pipe(jsonEncode);
+      .let(jsonEncode);
 
   // 使用 compute 在后台执行加密和压缩
   final compressedBytes = await compute(

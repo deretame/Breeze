@@ -339,7 +339,7 @@ class _ImagerWidgetState extends State<ImagerWidget> {
                         context,
                         MaterialPageRoute(
                           builder:
-                              (context) => FullScreenImageView(
+                              (context) => FullScreenImagePage(
                                 imagePath: state.imagePath!,
                                 uuid: uuid,
                               ),

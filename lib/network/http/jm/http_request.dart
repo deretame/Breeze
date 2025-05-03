@@ -9,3 +9,10 @@ Future<Map<String, dynamic>> search(
   '${JmConfig.baseUrl}/search',
   params: {"search_query": keyword, "page": page, "o": sort},
 );
+
+Future<Map<String, dynamic>> getComicInfo(String comicId) async =>
+    await request(
+      '${JmConfig.baseUrl}/album',
+      params: {'id': comicId},
+      cache: true,
+    );

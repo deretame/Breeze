@@ -13,6 +13,7 @@ import '../../../main.dart';
 import '../../../mobx/bool_select.dart';
 import '../../../mobx/int_select.dart';
 import '../../../network/http/bika/http_request.dart';
+import '../../../type/enum.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/full_screen_image_view.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
@@ -130,8 +131,11 @@ class _CommentsWidgetState extends State<CommentsWidget>
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                AutoRouter.of(context).push(
-                                  ComicInfoRoute(comicId: commentInfo.comic.id),
+                                context.pushRoute(
+                                  ComicInfoRoute(
+                                    comicId: commentInfo.comic.id,
+                                    type: ComicEntryType.normal,
+                                  ),
                                 );
                               },
                               child: Container(
@@ -381,7 +385,7 @@ class _ImagerWidgetState extends State<ImagerWidget> {
                         context,
                         MaterialPageRoute(
                           builder:
-                              (context) => FullScreenImageView(
+                              (context) => FullScreenImagePage(
                                 imagePath: state.imagePath!,
                                 uuid: uuid,
                               ),

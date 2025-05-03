@@ -8,8 +8,8 @@ import 'package:zephyr/widgets/toast.dart';
 import '../../config/global/global.dart';
 import '../../main.dart';
 import '../../object_box/objectbox.g.dart';
+import '../../type/enum.dart';
 import '../../util/router/router.gr.dart';
-import '../comic_entry/comic_entry.dart';
 import 'comic_simplify_entry_info.dart';
 import 'cover.dart';
 
@@ -138,7 +138,12 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   void _navigateToComicInfo(BuildContext context) {
-    context.pushRoute(ComicInfoRoute(comicId: info.id, type: type));
+    if (info.from == 'bika') {
+      context.pushRoute(ComicInfoRoute(comicId: info.id, type: type));
+    }
+    if (info.from == 'jm') {
+      context.pushRoute(JmComicInfoRoute(comicId: info.id, type: type));
+    }
   }
 
   Future<void> _showDeleteDialog(BuildContext context) async {

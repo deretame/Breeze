@@ -11,6 +11,7 @@ import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../../../config/global/global.dart';
 import '../../../../main.dart';
+import '../../../../type/enum.dart';
 import '../../../../widgets/full_screen_image_view.dart';
 import '../../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../../widgets/picture_bloc/models/picture_info.dart';
@@ -44,7 +45,12 @@ class FavoriteComicEntryWidget extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         // 跳转到漫画详情页
-        router.push(ComicInfoRoute(comicId: comicEntryInfo.id));
+        router.push(
+          ComicInfoRoute(
+            comicId: comicEntryInfo.id,
+            type: ComicEntryType.normal,
+          ),
+        );
       },
       child: Column(
         children: <Widget>[
@@ -199,7 +205,7 @@ class _ImageWidget extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder:
-                          (context) => FullScreenImageView(
+                          (context) => FullScreenImagePage(
                             imagePath: state.imagePath!,
                             uuid: uuid,
                           ),

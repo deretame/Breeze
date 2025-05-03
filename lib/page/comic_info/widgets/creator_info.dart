@@ -13,7 +13,7 @@ import '../../../widgets/full_screen_image_view.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 import '../../search_result/models/search_enter.dart';
-import '../json/comic_info/comic_info.dart';
+import '../json/bika/comic_info/comic_info.dart';
 
 // 显示上传者信息
 class CreatorInfoWidget extends StatelessWidget {
@@ -159,7 +159,7 @@ class _ImagerWidget extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder:
-                              (context) => FullScreenImageView(
+                              (context) => FullScreenImagePage(
                                 imagePath: state.imagePath!,
                               ),
                         ),

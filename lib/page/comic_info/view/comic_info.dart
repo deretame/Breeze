@@ -10,32 +10,28 @@ import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../object_box/model.dart';
 import '../../../object_box/objectbox.g.dart';
+import '../../../type/enum.dart';
 import '../../../util/router/router.dart';
 import '../../../util/router/router.gr.dart';
-import '../../../widgets/comic_entry/comic_entry.dart';
 import '../../../widgets/error_view.dart';
 import '../../../widgets/toast.dart';
 import '../../download/json/comic_all_info_json/comic_all_info_json.dart'
     as comic_all_info_json;
-import '../json/comic_info/comic_info.dart';
-import '../json/eps/eps.dart';
-
-enum ExportType {
-  zip, // 导出为压缩包
-  folder, // 导出为文件夹
-}
+import '../json/bika/comic_info/comic_info.dart';
+import '../json/bika/eps/eps.dart';
 
 @RoutePage()
 class ComicInfoPage extends StatelessWidget {
   final String comicId;
-  final ComicEntryType? type;
+  final ComicEntryType type;
 
-  const ComicInfoPage({super.key, required this.comicId, this.type});
+  const ComicInfoPage({super.key, required this.comicId, required this.type});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => GetComicInfoBloc()..add(GetComicInfo(comicId)),
+      create:
+          (_) => GetComicInfoBloc()..add(GetComicInfoEvent(comicId: comicId)),
       child: _ComicInfo(comicId: comicId, type: type),
     );
   }
@@ -43,7 +39,7 @@ class ComicInfoPage extends StatelessWidget {
 
 class _ComicInfo extends StatefulWidget {
   final String comicId;
-  final ComicEntryType? type;
+  final ComicEntryType type;
 
   const _ComicInfo({required this.comicId, required this.type});
 
@@ -53,7 +49,7 @@ class _ComicInfo extends StatefulWidget {
 
 class _ComicInfoState extends State<_ComicInfo>
     with AutomaticKeepAliveClientMixin {
-  ComicEntryType? get type => widget.type;
+  ComicEntryType get type => widget.type;
 
   @override
   bool get wantKeepAlive => true;
@@ -66,12 +62,11 @@ class _ComicInfoState extends State<_ComicInfo>
   bool _epsCompleted = false; // 用来判断章节是不是加载完毕了
   List<Doc> _epsInfo = [];
   late ComicEntryType _type;
-  late Timer _historyCheckTimer;
 
   @override
   void initState() {
     super.initState();
-    _type = type ?? ComicEntryType.normal;
+    _type = type;
     // 首先查询一下有没有记录
     comicHistory =
         objectbox.bikaHistoryBox
@@ -83,17 +78,11 @@ class _ComicInfoState extends State<_ComicInfo>
       comicHistory = null;
     }
 
-    _historyCheckTimer = Timer.periodic(
-      Duration(seconds: 1),
-      _autoUpdateHistory,
-    );
-
     _initDownloadInfo();
   }
 
   @override
   void dispose() {
-    _historyCheckTimer.cancel();
     super.dispose();
   }
 
@@ -104,9 +93,7 @@ class _ComicInfoState extends State<_ComicInfo>
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            AutoRouter.of(context).maybePop();
-          },
+          onPressed: () => context.pop(),
         ),
         actions: <Widget>[
           const SizedBox(width: 50),
@@ -178,7 +165,7 @@ class _ComicInfoState extends State<_ComicInfo>
                         errorMessage: '${state.result.toString()}\n加载失败，请重试。',
                         onRetry: () {
                           context.read<GetComicInfoBloc>().add(
-                            GetComicInfo(widget.comicId),
+                            GetComicInfoEvent(comicId: widget.comicId),
                           );
                         },
                       );
@@ -250,7 +237,9 @@ class _ComicInfoState extends State<_ComicInfo>
     return RefreshIndicator(
       onRefresh: () async {
         _epsCompleted = false;
-        context.read<GetComicInfoBloc>().add(GetComicInfo(widget.comicId));
+        context.read<GetComicInfoBloc>().add(
+          GetComicInfoEvent(comicId: widget.comicId),
+        );
         final query = objectbox.bikaHistoryBox.query(
           BikaComicHistory_.comicId.equals(widget.comicId),
         );
@@ -367,26 +356,6 @@ class _ComicInfoState extends State<_ComicInfo>
         );
       },
     );
-  }
-
-  void _autoUpdateHistory(Timer timer) async {
-    if (!mounted) {
-      timer.cancel();
-      return;
-    }
-    var temp =
-        await objectbox.bikaHistoryBox
-            .query(BikaComicHistory_.comicId.equals(widget.comicId))
-            .build()
-            .findFirstAsync();
-    if (temp?.deleted == true) {
-      temp = null;
-    }
-    if (mounted &&
-        temp != null &&
-        temp.toString() != comicHistory!.toString()) {
-      setState(() => comicHistory = temp);
-    }
   }
 
   void _initDownloadInfo() {

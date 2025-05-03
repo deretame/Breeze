@@ -1,5 +1,5 @@
 import '../../../object_box/model.dart';
-import '../../comic_info/json/comic_info/comic_info.dart';
+import '../../comic_info/json/bika/comic_info/comic_info.dart';
 
 BikaComicHistory comicToBikaComicHistory(Comic comic, int order) {
   String creatorCharactersString = "";

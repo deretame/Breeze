@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../config/global/global.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
+import '../../config/global/global.dart';
 
 class CoverWidget extends StatelessWidget {
   final String fileServer;
@@ -27,20 +27,16 @@ class CoverWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pictureInfo = PictureInfo(
+      from: from,
+      url: fileServer,
+      path: path,
+      cartoonId: id,
+      pictureType: pictureType,
+    );
+
     return BlocProvider(
-      create:
-          (context) =>
-              PictureBloc()..add(
-                GetPicture(
-                  PictureInfo(
-                    from: from,
-                    url: fileServer,
-                    path: path,
-                    cartoonId: id,
-                    pictureType: pictureType,
-                  ),
-                ),
-              ),
+      create: (context) => PictureBloc()..add(GetPicture(pictureInfo)),
       child: SizedBox(
         width: screenWidth * 0.3,
         height: (screenWidth * 0.3) / 0.75,
@@ -68,17 +64,7 @@ class CoverWidget extends StatelessWidget {
                 } else {
                   return InkWell(
                     onTap: () {
-                      context.read<PictureBloc>().add(
-                        GetPicture(
-                          PictureInfo(
-                            from: from,
-                            url: fileServer,
-                            path: path,
-                            cartoonId: id,
-                            pictureType: pictureType,
-                          ),
-                        ),
-                      );
+                      context.read<PictureBloc>().add(GetPicture(pictureInfo));
                     },
                     child: Center(child: Icon(Icons.refresh)),
                   );

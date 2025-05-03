@@ -4,11 +4,11 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../../../config/global/global.dart';
 import '../../../main.dart';
-import '../../../widgets/comic_entry/comic_entry.dart';
+import '../../../type/enum.dart';
 import '../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import '../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 import '../../../widgets/error_view.dart';
-import '../bloc/recommend/recommend_bloc.dart';
+import '../bloc/bika/recommend/recommend_bloc.dart';
 
 class RecommendWidget extends StatelessWidget {
   final String comicId;

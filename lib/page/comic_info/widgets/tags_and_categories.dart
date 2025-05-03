@@ -8,7 +8,7 @@ import 'package:zephyr/widgets/toast.dart';
 import '../../../main.dart';
 import '../../../util/router/router.gr.dart';
 import '../../search_result/models/search_enter.dart';
-import '../json/comic_info/comic_info.dart';
+import '../json/bika/comic_info/comic_info.dart';
 
 class TagsAndCategoriesWidget extends StatefulWidget {
   final Comic comicInfo;

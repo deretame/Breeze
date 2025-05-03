@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../../../main.dart';
-import '../../comic_info/json/eps/eps.dart';
+import '../../comic_info/json/bika/eps/eps.dart';
 
 class EpsWidget extends StatefulWidget {
   final Doc doc;

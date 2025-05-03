@@ -1,7 +1,15 @@
-include: package:flutter_lints/flutter.yaml
+include:
+  - package:flutter_lints/flutter.yaml
+  - package:bloc_lint/recommended.yaml
 
 linter:
 
 analyzer:
   errors:
     invalid_annotation_target: ignore
+
+bloc:
+  rules:
+    avoid_flutter_imports: true
+    avoid_public_bloc_methods: true
+    avoid_public_fields: true

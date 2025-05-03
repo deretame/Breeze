@@ -1,6 +1,6 @@
 part of 'recommend_bloc.dart';
 
-final class RecommendEvent extends Equatable {
+class RecommendEvent extends Equatable {
   final String comicId;
   final RecommendStatus status;
 

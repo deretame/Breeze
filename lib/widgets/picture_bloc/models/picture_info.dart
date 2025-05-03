@@ -17,6 +17,24 @@ class PictureInfo extends Equatable {
     this.pictureType = '',
   });
 
+  PictureInfo copyWith({
+    String? from,
+    String? url,
+    String? path,
+    String? cartoonId,
+    String? chapterId,
+    String? pictureType,
+  }) {
+    return PictureInfo(
+      from: from ?? this.from,
+      url: url ?? this.url,
+      path: path ?? this.path,
+      cartoonId: cartoonId ?? this.cartoonId,
+      chapterId: chapterId ?? this.chapterId,
+      pictureType: pictureType ?? this.pictureType,
+    );
+  }
+
   @override
   List<Object> get props => [
     from,

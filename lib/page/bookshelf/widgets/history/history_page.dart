@@ -8,6 +8,7 @@ import '../../../../main.dart';
 import '../../../../mobx/int_select.dart';
 import '../../../../mobx/string_select.dart';
 import '../../../../object_box/model.dart';
+import '../../../../type/enum.dart';
 import '../../../../widgets/comic_entry/comic_entry.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';

@@ -3,31 +3,30 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 
-import '../../../../network/http/bika/http_request.dart';
-import '../../json/comic_info/comic_info.dart';
+import '../../../../../network/http/bika/http_request.dart';
+import '../../../json/bika/comic_info/comic_info.dart';
 
 part 'get_comic_info_event.dart';
-
 part 'get_comic_info_state.dart';
 
-const throttleDurationComicInfo = Duration(milliseconds: 100);
+const _throttleDuration = Duration(milliseconds: 100);
 
-EventTransformer<E> throttleDroppableComicInfo<E>(Duration duration) {
+EventTransformer<E> _throttleDroppable<E>(Duration duration) {
   return (events, mapper) {
     return droppable<E>().call(events.throttle(duration), mapper);
   };
 }
 
-class GetComicInfoBloc extends Bloc<GetComicInfo, GetComicInfoState> {
+class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
   GetComicInfoBloc() : super(GetComicInfoState()) {
-    on<GetComicInfo>(
+    on<GetComicInfoEvent>(
       _fetchComicInfo,
-      transformer: throttleDroppableComicInfo(throttleDurationComicInfo),
+      transformer: _throttleDroppable(_throttleDuration),
     );
   }
 
   Future<void> _fetchComicInfo(
-    GetComicInfo event,
+    GetComicInfoEvent event,
     Emitter<GetComicInfoState> emit,
   ) async {
     try {

@@ -6,6 +6,7 @@ import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../../config/global/global.dart';
 import '../../../main.dart';
+import '../../../type/enum.dart';
 import '../json/leaderboard.dart';
 
 class ComicEntryWidget extends StatefulWidget {
@@ -42,7 +43,9 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
     return GestureDetector(
       onTap: () {
         // 跳转到漫画详情页
-        AutoRouter.of(context).push(ComicInfoRoute(comicId: comic.id));
+        context.pushRoute(
+          ComicInfoRoute(comicId: comic.id, type: ComicEntryType.normal),
+        );
       },
       child: Column(
         children: <Widget>[

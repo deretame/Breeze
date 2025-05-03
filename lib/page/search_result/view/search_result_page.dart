@@ -9,6 +9,7 @@ import 'package:zephyr/page/search_result/search_result.dart';
 import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../mobx/string_select.dart';
+import '../../../type/enum.dart';
 import '../../../widgets/comic_entry/comic_entry.dart';
 import '../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import '../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
@@ -354,7 +355,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
   }
 
   void _fetchSearchResult() {
-    logger.d('pagesCount: ${_searchEnter.pageCount + 1}');
+    // logger.d('pagesCount: ${_searchEnter.pageCount + 1}');
     context.read<SearchBloc>().add(
       FetchSearchResult(
         SearchEnterConst(

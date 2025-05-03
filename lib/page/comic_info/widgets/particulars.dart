@@ -10,7 +10,7 @@ import '../../../util/router/router.gr.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 import '../../../widgets/toast.dart';
 import '../../search_result/models/search_enter.dart';
-import '../json/comic_info/comic_info.dart';
+import '../json/bika/comic_info/comic_info.dart';
 
 // 显示漫画的一些信息
 // 封面，名字，作家，汉化组，收藏人数，章节信息

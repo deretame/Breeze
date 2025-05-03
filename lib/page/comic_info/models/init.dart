@@ -1,11 +1,11 @@
 import '../../../main.dart';
 import '../../../object_box/model.dart';
 import '../../../object_box/objectbox.g.dart';
-import '../../../widgets/comic_entry/comic_entry.dart';
+import '../../../type/enum.dart';
 import '../../download/json/comic_all_info_json/comic_all_info_json.dart'
     hide Comic;
-import '../json/comic_info/comic_info.dart' show Comic;
-import '../json/eps/eps.dart' show Doc;
+import '../json/bika/comic_info/comic_info.dart' show Comic;
+import '../json/bika/eps/eps.dart' show Doc;
 import '../method/type_conversion.dart';
 
 initDownloadInfo(ComicEntryType type, String comicId) {

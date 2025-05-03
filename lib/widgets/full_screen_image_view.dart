@@ -8,12 +8,13 @@ import 'package:zephyr/widgets/toast.dart';
 
 import '../main.dart';
 
-class FullScreenImageView extends StatelessWidget {
+@RoutePage()
+class FullScreenImagePage extends StatelessWidget {
   final String imagePath;
   final String? uuid;
   final bool? showShade;
 
-  const FullScreenImageView({
+  const FullScreenImagePage({
     super.key,
     required this.imagePath,
     this.uuid,

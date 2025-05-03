@@ -7,13 +7,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/page/comic_info/json/eps/eps.dart' as eps;
+import 'package:zephyr/page/comic_info/json/bika/eps/eps.dart' as eps;
 import 'package:zephyr/page/comic_read/comic_read.dart';
 
 import '../../../object_box/model.dart';
 import '../../../object_box/objectbox.g.dart';
-import '../../../widgets/comic_entry/comic_entry.dart';
-import '../../comic_info/json/comic_info/comic_info.dart';
+import '../../../type/enum.dart';
+import '../../comic_info/json/bika/comic_info/comic_info.dart';
 import '../../download/json/comic_all_info_json/comic_all_info_json.dart'
     as comic_all_info_json;
 
@@ -149,7 +149,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       _downloadEpsInfo = temp2.eps;
     }
 
-    logger.d(_type.toString().split('.').last);
+    // logger.d(_type.toString().split('.').last);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (globalSetting.readMode != 0) {

@@ -65,7 +65,7 @@ class ComicPictureWidget extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder:
-                          (context) => FullScreenImageView(
+                          (context) => FullScreenImagePage(
                             imagePath: state.imagePath!,
                             uuid: uuid,
                           ),

@@ -1,6 +1,6 @@
 import '../../download/json/comic_all_info_json/comic_all_info_json.dart'
     as comic_all_info_json;
-import '../json/comic_info/comic_info.dart';
+import '../json/bika/comic_info/comic_info.dart';
 
 Comic comicAllInfo2Comic(
   comic_all_info_json.ComicAllInfoJson comicAllInfoJson,

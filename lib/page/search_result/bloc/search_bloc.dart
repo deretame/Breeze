@@ -9,7 +9,6 @@ import '../json/advanced_search.dart';
 import '../models/models.dart';
 
 part 'search_event.dart';
-
 part 'search_state.dart';
 
 const throttleDuration = Duration(milliseconds: 100);
@@ -61,7 +60,7 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
       return;
     }
 
-    logger.d('pagesCount: ${event.searchEnterConst.pageCount}');
+    // logger.d('pagesCount: ${event.searchEnterConst.pageCount}');
 
     if (state.searchEnterConst == event.searchEnterConst &&
         event.searchStatus != SearchStatus.initial) {

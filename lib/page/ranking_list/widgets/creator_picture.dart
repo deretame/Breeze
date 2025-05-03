@@ -58,7 +58,7 @@ class CreatorPictureWidget extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder:
-                            (context) => FullScreenImageView(
+                            (context) => FullScreenImagePage(
                               imagePath: state.imagePath!,
                             ),
                       ),

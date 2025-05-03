@@ -28,19 +28,23 @@ class ColumnModeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final listBuild =
-        useSkia
-            ? ScrollablePositionedList.separated
-            : ScrollablePositionedList.builder;
-
-    return listBuild(
-      itemCount: length + 2,
-      itemBuilder: itemBuilder,
-      itemScrollController: itemScrollController,
-      itemPositionsListener: itemPositionsListener,
-      separatorBuilder:
-          useSkia ? Container(height: 2, color: Colors.black) : null,
-    );
+    return useSkia
+        ? ScrollablePositionedList.separated(
+          // 带分隔符的版本
+          itemCount: length + 2,
+          itemBuilder: itemBuilder,
+          separatorBuilder:
+              (_, __) => Container(height: 2, color: Colors.black),
+          itemScrollController: itemScrollController,
+          itemPositionsListener: itemPositionsListener,
+        )
+        : ScrollablePositionedList.builder(
+          // 不带分隔符的版本
+          itemCount: length + 2,
+          itemBuilder: itemBuilder,
+          itemScrollController: itemScrollController,
+          itemPositionsListener: itemPositionsListener,
+        );
   }
 
   Widget itemBuilder(BuildContext context, int index) {

@@ -1,8 +1,8 @@
 import 'package:animated_search_bar/animated_search_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:zephyr/page/jm_search_result/jm_search_result.dart';
+import 'package:zephyr/page/jm/jm_search_result/jm_search_result.dart';
 
-import '../../../main.dart';
+import '../../../../main.dart';
 
 class BikaSearchBar extends StatelessWidget implements PreferredSizeWidget {
   final JmSearchResultEvent event;
@@ -16,16 +16,17 @@ class BikaSearchBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    TextEditingController controller = TextEditingController(text: '');
-    String label = event.keyword.isEmpty ? '搜索本子' : event.keyword;
- 
-    logger.d(event.toString());
+    TextEditingController controller = TextEditingController(
+      text: event.keyword,
+    );
+
+    // logger.d(event.toString());
 
     return AppBar(
       titleSpacing: 0,
       elevation: 0,
       title: AnimatedSearchBar(
-        label: label,
+        label: '搜索本子',
         controller: controller,
         labelStyle: TextStyle(
           color: globalSetting.textColor,

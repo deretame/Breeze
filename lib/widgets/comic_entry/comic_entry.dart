@@ -11,12 +11,11 @@ import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../config/global/global.dart';
 import '../../main.dart';
+import '../../type/enum.dart';
 import '../full_screen_image_view.dart';
 import '../picture_bloc/bloc/picture_bloc.dart';
 import '../picture_bloc/models/picture_info.dart';
 import 'comic_entry_info.dart';
-
-enum ComicEntryType { normal, history, download, historyAndDownload }
 
 class ComicEntryWidget extends StatefulWidget {
   final ComicEntryInfo comicEntryInfo;
@@ -67,7 +66,7 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
       onTap: () {
         // 跳转到漫画详情页
         context.pushRoute(
-          ComicInfoRoute(comicId: comicEntryInfo.id, type: _type),
+          ComicInfoRoute(comicId: comicEntryInfo.id, type: _type!),
         );
       },
       onLongPress: () {
@@ -320,7 +319,7 @@ class ImageWidget extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder:
-                          (context) => FullScreenImageView(
+                          (context) => FullScreenImagePage(
                             imagePath: state.imagePath!,
                             uuid: uuid,
                           ),

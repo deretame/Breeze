@@ -6,11 +6,11 @@ import 'package:zephyr/page/comic_info/bloc/bloc.dart';
 
 import '../../../main.dart';
 import '../../../object_box/model.dart';
+import '../../../type/enum.dart';
 import '../../../util/router/router.gr.dart';
-import '../../../widgets/comic_entry/comic_entry.dart';
 import '../../../widgets/error_view.dart';
-import '../json/comic_info/comic_info.dart';
-import '../json/eps/eps.dart';
+import '../json/bika/comic_info/comic_info.dart';
+import '../json/bika/eps/eps.dart';
 
 class EpsWidget extends StatefulWidget {
   final Comic comicInfo;
@@ -48,7 +48,7 @@ class _EpsWidgetState extends State<EpsWidget> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => GetComicEpsBloc()..add(GetComicEps(comicInfo)),
+      create: (_) => GetComicEpsBloc()..add(GetComicEpsEvent(comic: comicInfo)),
       child:
           type == ComicEntryType.download
               ? buildEpsList(null)
@@ -62,7 +62,7 @@ class _EpsWidgetState extends State<EpsWidget> {
                         errorMessage: '加载失败，请重试。',
                         onRetry: () {
                           context.read<GetComicEpsBloc>().add(
-                            GetComicEps(comicInfo),
+                            GetComicEpsEvent(comic: comicInfo),
                           );
                         },
                       );
@@ -119,7 +119,7 @@ class _EpsWidgetState extends State<EpsWidget> {
         final doc = docs[adjustedIndex];
 
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 5.0),
+          padding: const EdgeInsets.all(5.0),
           child: EpButtonWidget(
             doc: doc,
             comicInfo: comicInfo,

@@ -4,7 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/network/http/bika/http_request.dart';
 
-import '../../json/recommend/recommend_json.dart';
+import '../../../json/bika/recommend/recommend_json.dart';
 
 part 'recommend_event.dart';
 

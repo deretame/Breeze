@@ -118,13 +118,13 @@ class MyApp extends StatelessWidget {
     globalSetting.setTextColor(materialColorScheme.onSurface);
 
     // Debug 信息
-    logger.d(
-      "dynamicColor: ${globalSetting.dynamicColor}\n"
-      "themeType: ${globalSetting.themeType}\n"
-      "backgroundColor: ${globalSetting.backgroundColor}\n"
-      "current theme: ${globalSetting.themeMode}\n"
-      "textColor: ${globalSetting.textColor}",
-    );
+    // logger.d(
+    //   "dynamicColor: ${globalSetting.dynamicColor}\n"
+    //   "themeType: ${globalSetting.themeType}\n"
+    //   "backgroundColor: ${globalSetting.backgroundColor}\n"
+    //   "current theme: ${globalSetting.themeMode}\n"
+    //   "textColor: ${globalSetting.textColor}",
+    // );
   }
 
   @override

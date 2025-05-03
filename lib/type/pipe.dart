@@ -4,18 +4,44 @@ import 'package:flutter/foundation.dart';
 
 import '../main.dart';
 
-extension Pipe<T> on T {
-  R pipe<R>(R Function(T) fn) => fn(this);
+extension KotlinScopeFunctions<T> on T {
+  /// let: 转换对象
+  R let<R>(R Function(T) block) => block(this);
 
-  /// 显式类型标注版本
-  R pipeAs<R>(R Function(T) fn) => fn(this);
+  /// also: 执行副作用后返回对象本身
+  T also(void Function(T) block) {
+    block(this);
+    return this;
+  }
+
+  /// run: 在对象上下文中执行代码块
+  R run<R>(R Function(T) block) => block(this);
+
+  /// apply: 配置对象后返回自身
+  T apply(void Function(T) block) {
+    block(this);
+    return this;
+  }
 }
 
-extension FuturePipe<T> on Future<T> {
-  Future<R> pipe<R>(FutureOr<R> Function(T) fn) => then(fn);
+extension KotlinAsyncScopeFunctions<T> on Future<T> {
+  /// 异步版 let
+  Future<R> let<R>(FutureOr<R> Function(T) block) => then(block);
 
-  /// 显式类型标注版本
-  Future<R> pipeAs<R>(FutureOr<R> Function(T) fn) => then(fn);
+  /// 异步版 also
+  Future<T> also(FutureOr<void> Function(T) block) async {
+    await block(await this);
+    return this;
+  }
+
+  /// 异步版 run
+  Future<R> run<R>(FutureOr<R> Function(T) block) => then(block);
+
+  /// 异步版 apply
+  Future<T> apply(FutureOr<void> Function(T) block) async {
+    await block(await this);
+    return this;
+  }
 }
 
 extension PipeX<T> on T {

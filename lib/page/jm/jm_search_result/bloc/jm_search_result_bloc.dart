@@ -6,7 +6,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/type/pipe.dart';
 
-import '../../../util/json_dispose.dart';
+import '../../../../util/json_dispose.dart';
 import '../json/jm_search_result_json.dart';
 
 part 'jm_search_result_event.dart';
@@ -55,6 +55,7 @@ class JmSearchResultBloc
 
     if (event.status == JmSearchResultStatus.initial) {
       _searchResultList = [];
+      page = 1;
       emit(state.copyWith(status: JmSearchResultStatus.initial));
     } else if (event.status == JmSearchResultStatus.loadingMore) {
       emit(
@@ -66,11 +67,11 @@ class JmSearchResultBloc
     }
 
     try {
-      final data = await search(
-        event.keyword,
-        event.sort,
-        page,
-      ).pipe(replaceNestedNull).pipe(JmSearchResultJson.fromJson);
+      // 神经，禁漫在没有结果的情况下，total字段是数字，而不是字符串
+      final data = await search(event.keyword, event.sort, page)
+          .let(replaceNestedNull)
+          .let((d) => (d..['total'] = d['total'].toString()))
+          .let(JmSearchResultJson.fromJson);
 
       _searchResultList = [..._searchResultList, ...data.content];
 
@@ -81,7 +82,7 @@ class JmSearchResultBloc
           status: JmSearchResultStatus.success,
           jmSearchResults: _searchResultList,
           hasReachedMax: hasReachedMax,
-          result: '',
+          result: data.total,
         ),
       );
       page++;

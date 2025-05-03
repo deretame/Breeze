@@ -7,8 +7,8 @@ import '../../../main.dart';
 import '../../../network/http/bika/http_request.dart';
 import '../../../util/dialog.dart';
 import '../../../widgets/toast.dart';
-import '../json/comic_info/comic_info.dart';
-import '../json/eps/eps.dart';
+import '../json/bika/comic_info/comic_info.dart';
+import '../json/bika/eps/eps.dart';
 
 class ComicOperationWidget extends StatefulWidget {
   final Comic comicInfo;

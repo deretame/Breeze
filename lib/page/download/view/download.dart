@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:auto_route/annotations.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Page;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/download/json/comic_all_info_json_no_freeze/comic_all_info_json_no_freeze.dart'
@@ -13,7 +13,7 @@ import '../../../config/global/global.dart';
 import '../../../network/http/bika/http_request.dart';
 import '../../../network/http/bika/picture.dart';
 import '../../../object_box/model.dart';
-import '../../../page/comic_read/json/page.dart' as comic_page_json;
+import '../../comic_read/json/bika_ep_info_json/page.dart' show Page;
 import '../../../util/get_path.dart';
 import '../../comic_info/json/bika/comic_info/comic_info.dart';
 import '../../comic_info/json/bika/eps/eps.dart';
@@ -240,7 +240,7 @@ class _DownloadPageState extends State<DownloadPage> {
               // 锁定下载图片的质量为原图
               imageQuality: "original",
             );
-            var temp = comic_page_json.Page.fromJson(result);
+            var temp = Page.fromJson(result);
             page += 1;
             pages = temp.data.pages.pages;
 
@@ -314,63 +314,57 @@ class _DownloadPageState extends State<DownloadPage> {
     await Future.wait(downloadTasks);
 
     // 创建一个空的 ComicAllInfoJsonNoFreeze 实例
-    var comicAllInfoJsonNoFreeze = temp_json.ComicAllInfoJsonNoFreeze.empty();
+    var a = temp_json.ComicAllInfoJsonNoFreeze.empty();
 
-    comicAllInfoJsonNoFreeze.comic.id = comicInfo.id;
-    comicAllInfoJsonNoFreeze.comic.creator.id = comicInfo.creator.id;
-    comicAllInfoJsonNoFreeze.comic.creator.gender = comicInfo.creator.gender;
-    comicAllInfoJsonNoFreeze.comic.creator.name = comicInfo.creator.name;
-    comicAllInfoJsonNoFreeze.comic.creator.verified =
-        comicInfo.creator.verified;
-    comicAllInfoJsonNoFreeze.comic.creator.exp = comicInfo.creator.exp;
-    comicAllInfoJsonNoFreeze.comic.creator.level = comicInfo.creator.level;
-    comicAllInfoJsonNoFreeze.comic.creator.role = comicInfo.creator.role;
+    a.comic.id = comicInfo.id;
+    a.comic.creator.id = comicInfo.creator.id;
+    a.comic.creator.gender = comicInfo.creator.gender;
+    a.comic.creator.name = comicInfo.creator.name;
+    a.comic.creator.verified = comicInfo.creator.verified;
+    a.comic.creator.exp = comicInfo.creator.exp;
+    a.comic.creator.level = comicInfo.creator.level;
+    a.comic.creator.role = comicInfo.creator.role;
     if (getCoverSuccess) {
-      comicAllInfoJsonNoFreeze.comic.creator.avatar.fileServer =
-          comicInfo.creator.avatar.fileServer;
-      comicAllInfoJsonNoFreeze.comic.creator.avatar.path =
-          comicInfo.creator.avatar.path;
-      comicAllInfoJsonNoFreeze.comic.creator.avatar.originalName =
+      a.comic.creator.avatar.fileServer = comicInfo.creator.avatar.fileServer;
+      a.comic.creator.avatar.path = comicInfo.creator.avatar.path;
+      a.comic.creator.avatar.originalName =
           comicInfo.creator.avatar.originalName;
     } else {
-      comicAllInfoJsonNoFreeze.comic.creator.avatar.fileServer = "";
-      comicAllInfoJsonNoFreeze.comic.creator.avatar.path = "";
-      comicAllInfoJsonNoFreeze.comic.creator.avatar.originalName = "";
+      a.comic.creator.avatar.fileServer = "";
+      a.comic.creator.avatar.path = "";
+      a.comic.creator.avatar.originalName = "";
     }
-    comicAllInfoJsonNoFreeze.comic.creator.characters =
-        comicInfo.creator.characters;
-    comicAllInfoJsonNoFreeze.comic.creator.title = comicInfo.creator.title;
-    comicAllInfoJsonNoFreeze.comic.creator.slogan = comicInfo.creator.slogan;
-    comicAllInfoJsonNoFreeze.comic.title = comicInfo.title;
-    comicAllInfoJsonNoFreeze.comic.description = comicInfo.description;
-    comicAllInfoJsonNoFreeze.comic.thumb.fileServer =
-        comicInfo.thumb.fileServer;
-    comicAllInfoJsonNoFreeze.comic.thumb.path = comicInfo.thumb.path;
-    comicAllInfoJsonNoFreeze.comic.thumb.originalName =
-        comicInfo.thumb.originalName;
-    comicAllInfoJsonNoFreeze.comic.author = comicInfo.author;
-    comicAllInfoJsonNoFreeze.comic.chineseTeam = comicInfo.chineseTeam;
-    comicAllInfoJsonNoFreeze.comic.categories = comicInfo.categories;
-    comicAllInfoJsonNoFreeze.comic.tags = comicInfo.tags;
-    comicAllInfoJsonNoFreeze.comic.totalComments = comicInfo.totalComments;
-    comicAllInfoJsonNoFreeze.comic.pagesCount = comicInfo.pagesCount;
-    comicAllInfoJsonNoFreeze.comic.epsCount = comicInfo.epsCount;
-    comicAllInfoJsonNoFreeze.comic.finished = comicInfo.finished;
-    comicAllInfoJsonNoFreeze.comic.updatedAt = comicInfo.updatedAt;
-    comicAllInfoJsonNoFreeze.comic.createdAt = comicInfo.createdAt;
-    comicAllInfoJsonNoFreeze.comic.allowDownload = comicInfo.allowDownload;
-    comicAllInfoJsonNoFreeze.comic.allowComment = comicInfo.allowComment;
-    comicAllInfoJsonNoFreeze.comic.totalLikes = comicInfo.totalLikes;
-    comicAllInfoJsonNoFreeze.comic.totalViews = comicInfo.totalViews;
-    comicAllInfoJsonNoFreeze.comic.totalComments = comicInfo.totalComments;
-    comicAllInfoJsonNoFreeze.comic.viewsCount = comicInfo.viewsCount;
-    comicAllInfoJsonNoFreeze.comic.likesCount = comicInfo.likesCount;
-    comicAllInfoJsonNoFreeze.comic.commentsCount = comicInfo.commentsCount;
-    comicAllInfoJsonNoFreeze.comic.isFavourite = comicInfo.isFavourite;
-    comicAllInfoJsonNoFreeze.comic.isLiked = comicInfo.isLiked;
-    comicAllInfoJsonNoFreeze.eps = eps;
+    a.comic.creator.characters = comicInfo.creator.characters;
+    a.comic.creator.title = comicInfo.creator.title;
+    a.comic.creator.slogan = comicInfo.creator.slogan;
+    a.comic.title = comicInfo.title;
+    a.comic.description = comicInfo.description;
+    a.comic.thumb.fileServer = comicInfo.thumb.fileServer;
+    a.comic.thumb.path = comicInfo.thumb.path;
+    a.comic.thumb.originalName = comicInfo.thumb.originalName;
+    a.comic.author = comicInfo.author;
+    a.comic.chineseTeam = comicInfo.chineseTeam;
+    a.comic.categories = comicInfo.categories;
+    a.comic.tags = comicInfo.tags;
+    a.comic.totalComments = comicInfo.totalComments;
+    a.comic.pagesCount = comicInfo.pagesCount;
+    a.comic.epsCount = comicInfo.epsCount;
+    a.comic.finished = comicInfo.finished;
+    a.comic.updatedAt = comicInfo.updatedAt;
+    a.comic.createdAt = comicInfo.createdAt;
+    a.comic.allowDownload = comicInfo.allowDownload;
+    a.comic.allowComment = comicInfo.allowComment;
+    a.comic.totalLikes = comicInfo.totalLikes;
+    a.comic.totalViews = comicInfo.totalViews;
+    a.comic.totalComments = comicInfo.totalComments;
+    a.comic.viewsCount = comicInfo.viewsCount;
+    a.comic.likesCount = comicInfo.likesCount;
+    a.comic.commentsCount = comicInfo.commentsCount;
+    a.comic.isFavourite = comicInfo.isFavourite;
+    a.comic.isLiked = comicInfo.isLiked;
+    a.eps = eps;
 
-    var comicAllInfoStr = json.encode(comicAllInfoJsonNoFreeze.toJson());
+    var comicAllInfoStr = json.encode(a.toJson());
 
     List<String> epsTitle = [];
     for (int i = 1; i <= epsInfo.length; i++) {
@@ -467,7 +461,7 @@ class _DownloadPageState extends State<DownloadPage> {
     List<Directory> epDirs = entities.whereType<Directory>().toList();
 
     List<String> downloadEpsDir = [];
-    for (var element in comicAllInfoJsonNoFreeze.eps.docs) {
+    for (var element in a.eps.docs) {
       downloadEpsDir.add(
         "$downloadPath/bika/original/${comicInfo.id}/comic/${element.id}",
       );

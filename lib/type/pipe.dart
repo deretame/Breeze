@@ -69,3 +69,12 @@ extension FutureDebug<T> on Future<T> {
     return value;
   }
 }
+
+// 这个是给管道用的
+String toString(Object? object) {
+  try {
+    return object?.toString() ?? 'null';
+  } catch (e) {
+    return 'toString() failed: ${e.toString()}'; // 兜底处理
+  }
+}

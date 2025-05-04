@@ -4,23 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_read/widgets/read_image_widget.dart';
 
-import '../json/page.dart';
+import '../json/common_ep_info_json/common_ep_info_json.dart';
 
 class RowModeWidget extends StatefulWidget {
-  final List<Media> medias;
+  final List<Doc> docs;
   final String comicId;
   final String epsId;
-  final String chapterId;
   final PageController pageController;
   final ValueChanged<int> onPageChanged;
   final bool isSliderRolling;
 
   const RowModeWidget({
     super.key,
-    required this.medias,
+    required this.docs,
     required this.comicId,
     required this.epsId,
-    required this.chapterId,
     required this.pageController,
     required this.onPageChanged,
     required this.isSliderRolling,
@@ -67,16 +65,15 @@ class _RowModeWidgetState extends State<RowModeWidget> {
           return Container(
             color: Colors.black,
             child: ReadImageWidget(
-              media: widget.medias[index],
+              doc: widget.docs[index],
               comicId: widget.comicId,
               epsId: widget.epsId,
               index: index,
-              chapterId: widget.chapterId,
               isColumn: false,
             ),
           );
         },
-        childCount: widget.medias.length,
+        childCount: widget.docs.length,
         addAutomaticKeepAlives: true, // 保持页面状态，以便预加载
         addRepaintBoundaries: true, // 为每个孩子添加重绘边界，有助于性能
       ),

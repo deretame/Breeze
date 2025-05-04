@@ -105,72 +105,84 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
     final comicInfo = state.comicInfo!;
     final id = comicInfo.id.toString();
 
+    if (comicInfo.name.isEmpty) {
+      return Center(
+        child: Text('不存在id为$id的漫画', style: TextStyle(fontSize: 20)),
+      );
+    }
+
+    List<Widget> comicInfoWidgets = [
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start, // 让Row内部元素顶部对齐
+        children: [
+          Cover(
+            pictureInfo: PictureInfo(
+              from: 'jm',
+              url: getJmCoverUrl(id),
+              path: '.jpg',
+              cartoonId: id,
+              pictureType: 'cover',
+            ),
+          ),
+          SizedBox(width: screenWidth / 60),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  comicInfo.name,
+                  style: TextStyle(fontSize: 18),
+                  softWrap: true,
+                  overflow: TextOverflow.visible,
+                ),
+                const SizedBox(height: 2),
+                Text('上传时间：${_dataFormat(comicInfo.addtime)}'),
+                const SizedBox(height: 2),
+                InkWell(
+                  onLongPress: () {
+                    Clipboard.setData(
+                      ClipboardData(text: comicInfo.id.toString()),
+                    );
+                    showSuccessToast('id已复制到剪贴板');
+                  },
+                  child: Text('禁漫车：JM${comicInfo.id}'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 10),
+      ComicOperationWidget(comicInfo: comicInfo),
+      const SizedBox(height: 10),
+      if (comicInfo.tags.isNotEmpty)
+        AllChipWidget(comicId: id, type: 'tags', chips: comicInfo.tags),
+      if (comicInfo.author.isNotEmpty)
+        AllChipWidget(comicId: id, type: 'author', chips: comicInfo.author),
+      if (comicInfo.actors.isNotEmpty)
+        AllChipWidget(comicId: id, type: 'actors', chips: comicInfo.actors),
+      if (comicInfo.works.isNotEmpty)
+        AllChipWidget(comicId: id, type: 'works', chips: comicInfo.works),
+      if (comicInfo.description.isNotEmpty) ...[
+        const SizedBox(height: 3),
+        Text(
+          comicInfo.description,
+          style: TextStyle(fontSize: 16),
+          softWrap: true,
+          overflow: TextOverflow.visible,
+        ),
+      ],
+      if (comicInfo.series.isNotEmpty) ...[
+        const SizedBox(height: 10),
+        EpsWidget(comicId: id, seriesList: comicInfo.series),
+      ],
+    ];
+
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 10, horizontal: screenWidth / 50),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start, // 让Row内部元素顶部对齐
-            children: [
-              Cover(
-                pictureInfo: PictureInfo(
-                  from: 'jm',
-                  url: getJmCoverUrl(id),
-                  path: '.jpg',
-                  cartoonId: id,
-                  pictureType: 'cover',
-                ),
-              ),
-              SizedBox(width: screenWidth / 60),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      comicInfo.name,
-                      style: TextStyle(fontSize: 18),
-                      softWrap: true,
-                      overflow: TextOverflow.visible,
-                    ),
-                    const SizedBox(height: 2),
-                    Text('上传时间：${_dataFormat(comicInfo.addtime)}'),
-                    const SizedBox(height: 2),
-                    InkWell(
-                      onLongPress: () {
-                        Clipboard.setData(
-                          ClipboardData(text: comicInfo.id.toString()),
-                        );
-                        showSuccessToast('id已复制到剪贴板');
-                      },
-                      child: Text('禁漫车：JM${comicInfo.id}'),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          if (comicInfo.tags.isNotEmpty)
-            AllChipWidget(comicId: id, type: 'tags', chips: comicInfo.tags),
-          if (comicInfo.author.isNotEmpty)
-            AllChipWidget(comicId: id, type: 'author', chips: comicInfo.author),
-          if (comicInfo.actors.isNotEmpty)
-            AllChipWidget(comicId: id, type: 'actors', chips: comicInfo.actors),
-          if (comicInfo.works.isNotEmpty)
-            AllChipWidget(comicId: id, type: 'works', chips: comicInfo.works),
-          if (comicInfo.description.isNotEmpty) ...[
-            const SizedBox(height: 3),
-            Text(
-              comicInfo.description,
-              style: TextStyle(fontSize: 16),
-              softWrap: true,
-              overflow: TextOverflow.visible,
-            ),
-          ],
-          const SizedBox(height: 10),
-          ComicOperationWidget(comicInfo: comicInfo),
-        ],
+      child: ListView.builder(
+        itemCount: comicInfoWidgets.length,
+        itemBuilder: (context, index) => comicInfoWidgets[index],
       ),
     );
   }

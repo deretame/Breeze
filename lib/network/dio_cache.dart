@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -86,5 +87,71 @@ class DioCacheInterceptor extends Interceptor {
       return responseBody['code'] == 200;
     }
     return false;
+  }
+}
+
+class SimpleCacheService {
+  // 使用LinkedHashMap保持插入顺序，方便后续可能的LRU实现
+  final LinkedHashMap<String, Map<String, dynamic>> _cache = LinkedHashMap();
+  final Duration _expiryDuration;
+
+  SimpleCacheService({Duration? expiryDuration})
+    : _expiryDuration = expiryDuration ?? Duration(minutes: 5);
+
+  /// 存入缓存
+  void set(String key, Map<String, dynamic> value) {
+    final now = DateTime.now();
+    _cache[key] = {
+      'value': value,
+      'timestamp': now,
+      'expiry': now.add(_expiryDuration),
+    };
+  }
+
+  /// 获取缓存
+  Map<String, dynamic>? get(String key) {
+    final cachedItem = _cache[key];
+    if (cachedItem == null || _isExpired(cachedItem)) {
+      _cache.remove(key); // 如果过期则移除
+      return null;
+    }
+    return cachedItem['value'];
+  }
+
+  /// 清除所有缓存
+  void clear() {
+    _cache.clear();
+  }
+
+  /// 清除特定key的缓存
+  void remove(String key) {
+    _cache.remove(key);
+  }
+
+  /// 检查是否过期
+  bool _isExpired(Map<String, dynamic> cachedItem) {
+    final expiryTime = cachedItem['expiry'] as DateTime;
+    return DateTime.now().isAfter(expiryTime);
+  }
+
+  /// 清除所有过期的缓存项
+  void cleanExpired() {
+    final now = DateTime.now();
+    _cache.removeWhere(
+      (key, value) => (value['expiry'] as DateTime).isBefore(now),
+    );
+  }
+
+  /// 获取缓存大小
+  int get size => _cache.length;
+
+  /// 检查是否包含某个key
+  bool containsKey(String key) {
+    if (!_cache.containsKey(key)) return false;
+    if (_isExpired(_cache[key]!)) {
+      _cache.remove(key);
+      return false;
+    }
+    return true;
   }
 }

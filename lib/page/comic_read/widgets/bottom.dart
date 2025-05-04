@@ -2,32 +2,35 @@ import 'dart:ui';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:zephyr/page/comic_info/json/bika/eps/eps.dart' as eps;
 
 import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../type/enum.dart';
 import '../../../util/router/router.dart';
 import '../../../util/router/router.gr.dart';
-import '../../comic_info/json/bika/comic_info/comic_info.dart';
+import '../../../widgets/error_view.dart';
+import '../../comic_info/bloc/bika/eps/get_comic_eps_bloc.dart';
 
 class BottomWidget extends StatefulWidget {
   final ComicEntryType type;
   final bool isVisible;
-  final eps.Doc doc;
-  final List<eps.Doc> epsInfo;
-  final Comic comicInfo;
+  final dynamic comicInfo;
   final Widget sliderWidget;
+  final int order;
+  final int epsNumber;
+  final String comicId;
 
   const BottomWidget({
     super.key,
     required this.isVisible,
     required this.type,
-    required this.doc,
-    required this.epsInfo,
     required this.comicInfo,
     required this.sliderWidget,
+    required this.order,
+    required this.epsNumber,
+    required this.comicId,
   });
 
   @override
@@ -39,6 +42,7 @@ class _BottomWidgetState extends State<BottomWidget> {
   final int _bottomWidgetHeight = 100; // 底部悬浮组件高度
 
   late ComicEntryType tempType;
+  late String comicId;
   bool havePrev = true;
   bool haveNext = true;
 
@@ -46,16 +50,17 @@ class _BottomWidgetState extends State<BottomWidget> {
   void initState() {
     super.initState();
     tempType = widget.type;
+    comicId = widget.comicId;
     if (tempType == ComicEntryType.historyAndDownload) {
       tempType = ComicEntryType.download;
     }
     if (tempType == ComicEntryType.history) {
       tempType = ComicEntryType.normal;
     }
-    if (widget.doc.order == widget.epsInfo[0].order) {
+    if (widget.order == 1) {
       havePrev = false;
     }
-    if (widget.doc.order == widget.epsInfo[widget.epsInfo.length - 1].order) {
+    if (widget.order == widget.epsNumber) {
       haveNext = false;
     }
   }
@@ -154,7 +159,6 @@ class _BottomWidgetState extends State<BottomWidget> {
     BuildContext context,
     String title,
     String content,
-    eps.Doc doc,
   ) async {
     return await showDialog<bool>(
           context: context,
@@ -190,19 +194,16 @@ class _BottomWidgetState extends State<BottomWidget> {
       context,
       '跳转',
       '是否要跳转到$dialogMessage？',
-      widget.epsInfo[widget.doc.order],
     );
     if (result) {
       router.popAndPush(
         ComicReadRoute(
           comicInfo: widget.comicInfo,
-          epsInfo: widget.epsInfo,
-          doc:
-              isPrev
-                  ? widget.epsInfo[widget.doc.order - 2]
-                  : widget.epsInfo[widget.doc.order],
-          comicId: widget.comicInfo.id,
+          comicId: comicId,
           type: tempType,
+          order: isPrev ? widget.order - 1 : widget.order + 1,
+          epsNumber: widget.epsNumber,
+          from: From.bika,
         ),
       );
     }
@@ -217,16 +218,40 @@ class _BottomWidgetState extends State<BottomWidget> {
         return AlertDialog(
           title: Text('选择章节'),
           content: SingleChildScrollView(
-            child: ListBody(
-              children: [
-                for (final ep in widget.epsInfo)
-                  TextButton(
-                    child: Text(ep.title),
-                    onPressed: () {
-                      Navigator.of(context).pop(ep.order);
-                    },
-                  ),
-              ],
+            child: BlocProvider(
+              create:
+                  (_) =>
+                      GetComicEpsBloc()
+                        ..add(GetComicEpsEvent(comic: widget.comicInfo)),
+              child: BlocBuilder<GetComicEpsBloc, GetComicEpsState>(
+                builder: (context, state) {
+                  switch (state.status) {
+                    case GetComicEpsStatus.initial:
+                      return Center(child: CircularProgressIndicator());
+                    case GetComicEpsStatus.failure:
+                      return ErrorView(
+                        errorMessage: '加载失败，请重试。',
+                        onRetry: () {
+                          context.read<GetComicEpsBloc>().add(
+                            GetComicEpsEvent(comic: widget.comicInfo),
+                          );
+                        },
+                      );
+                    case GetComicEpsStatus.success:
+                      return ListBody(
+                        children: [
+                          for (final ep in state.eps)
+                            TextButton(
+                              child: Text(ep.title),
+                              onPressed: () {
+                                Navigator.of(context).pop(ep.order);
+                              },
+                            ),
+                        ],
+                      );
+                  }
+                },
+              ),
             ),
           ),
           actions: [
@@ -244,10 +269,11 @@ class _BottomWidgetState extends State<BottomWidget> {
       router.popAndPush(
         ComicReadRoute(
           comicInfo: widget.comicInfo,
-          epsInfo: widget.epsInfo,
-          doc: widget.epsInfo[result - 1],
-          comicId: widget.comicInfo.id,
+          comicId: comicId,
           type: tempType,
+          order: result,
+          epsNumber: widget.epsNumber,
+          from: From.bika,
         ),
       );
     }

@@ -4,24 +4,22 @@ import 'package:zephyr/page/comic_read/widgets/read_image_widget.dart';
 
 import '../../../config/global/global.dart';
 import '../../../main.dart';
-import '../json/page.dart';
+import '../json/common_ep_info_json/common_ep_info_json.dart';
 
 class ColumnModeWidget extends StatelessWidget {
   final int length;
-  final List<Media> medias;
+  final List<Doc> docs;
   final String comicId;
   final String epsId;
-  final String chapterId;
   final ItemScrollController itemScrollController;
   final ItemPositionsListener itemPositionsListener;
 
   const ColumnModeWidget({
     super.key,
     required this.length,
-    required this.medias,
+    required this.docs,
     required this.comicId,
     required this.epsId,
-    required this.chapterId,
     required this.itemScrollController,
     required this.itemPositionsListener,
   });
@@ -69,11 +67,10 @@ class ColumnModeWidget extends StatelessWidget {
       return Container(
         color: Colors.black,
         child: ReadImageWidget(
-          media: medias[index - 1],
+          doc: docs[index - 1],
           comicId: comicId,
           epsId: epsId,
           index: index - 1,
-          chapterId: chapterId,
           isColumn: true,
         ),
       );

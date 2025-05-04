@@ -7,7 +7,7 @@ import '../main.dart';
 Future<void> manageCacheSize() async {
   // 获取缓存目录
   final Directory cacheDirectory = await getTemporaryDirectory();
-  logger.d('Cache directory: ${cacheDirectory.path}');
+  // logger.d('Cache directory: ${cacheDirectory.path}');
 
   // 创建一个变量来保存总大小
   int totalSize = 0;

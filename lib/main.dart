@@ -82,7 +82,7 @@ Future<void> main() async {
 
       manageCacheSize();
 
-      logger.d(globalSetting.socks5Proxy);
+      // logger.d(globalSetting.socks5Proxy);
       if (globalSetting.socks5Proxy.isNotEmpty) {
         // proxy -> "SOCKS5/SOCKS4/PROXY username:password@host:port;" or "DIRECT"
         SocksProxy.initProxy(proxy: 'SOCKS5 ${globalSetting.socks5Proxy}');

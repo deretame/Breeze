@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
@@ -36,10 +38,22 @@ class JmComicInfoBloc extends Bloc<JmComicInfoEvent, JmComicInfoState> {
       emit(state.copyWith(status: JmComicInfoStatus.initial));
     }
 
+    String str;
+
     try {
-      final comicInfo = await getComicInfo(
-        event.comicId,
-      ).let(replaceNestedNull).let(JmComicInfoJson.fromJson);
+      final comicInfo = await getComicInfo(event.comicId)
+          .let(replaceNestedNull)
+          .debug((d) => str = jsonEncode(d))
+          .let(JmComicInfoJson.fromJson)
+          .let((d) {
+            var series = d.series.toList();
+            series.removeWhere((s) => s.sort == '0');
+            final newSeries =
+                series
+                    .map((s) => s.copyWith(name: '第${s.sort}话 ${s.name}'))
+                    .toList();
+            return d.copyWith(series: newSeries);
+          });
 
       emit(
         state.copyWith(status: JmComicInfoStatus.success, comicInfo: comicInfo),

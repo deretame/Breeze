@@ -7,22 +7,21 @@ import '../../../config/global/global.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
+import '../json/common_ep_info_json/common_ep_info_json.dart';
 
 class ReadImageWidget extends StatefulWidget {
   final String comicId;
   final String epsId;
-  final Media media;
+  final Doc doc;
   final int index;
-  final String chapterId;
   final bool isColumn;
 
   const ReadImageWidget({
     super.key,
-    required this.media,
+    required this.doc,
     required this.comicId,
     required this.epsId,
     required this.index,
-    required this.chapterId,
     required this.isColumn,
   });
 
@@ -36,11 +35,11 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
 
   String get epsId => widget.epsId;
 
-  Media get media => widget.media;
+  Doc get doc => widget.doc;
 
   int get index => widget.index;
 
-  String get chapterId => widget.chapterId;
+  String get chapterId => widget.epsId;
 
   bool get isColumn => widget.isColumn;
 
@@ -57,8 +56,8 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
                 GetPicture(
                   PictureInfo(
                     from: "bika",
-                    url: media.fileServer,
-                    path: media.path,
+                    url: doc.fileServer,
+                    path: doc.path,
                     cartoonId: comicId,
                     pictureType: "comic",
                     chapterId: chapterId,
@@ -116,8 +115,8 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
                           GetPicture(
                             PictureInfo(
                               from: "bika",
-                              url: media.fileServer,
-                              path: media.path,
+                              url: doc.fileServer,
+                              path: doc.path,
                               cartoonId: comicId,
                               pictureType: "comic",
                               chapterId: chapterId,

@@ -16,7 +16,6 @@ class EpsWidget extends StatefulWidget {
   final Comic comicInfo;
   final BikaComicHistory? comicHistory;
   final List<Doc> epsInfo;
-  final Function(List<Doc>, bool) onUpdateReadInfo; // 用来更新观看按钮信息
   final ComicEntryType type;
 
   const EpsWidget({
@@ -24,7 +23,6 @@ class EpsWidget extends StatefulWidget {
     required this.comicInfo,
     required this.comicHistory,
     required this.epsInfo,
-    required this.onUpdateReadInfo,
     required this.type,
   });
 
@@ -38,8 +36,6 @@ class _EpsWidgetState extends State<EpsWidget> {
   BikaComicHistory? get comicHistory => widget.comicHistory;
 
   List<Doc> get epsInfo => widget.epsInfo;
-
-  Function(List<Doc>, bool) get onUpdateReadInfo => widget.onUpdateReadInfo;
 
   ComicEntryType get type => widget.type;
 
@@ -80,7 +76,6 @@ class _EpsWidgetState extends State<EpsWidget> {
     } else {
       docs = epsInfo;
     }
-    onUpdateReadInfo(docs, true);
 
     return ListView.builder(
       cacheExtent: 0,
@@ -156,10 +151,11 @@ class EpButtonWidget extends StatelessWidget {
         AutoRouter.of(context).push(
           ComicReadRoute(
             comicInfo: comicInfo,
-            epsInfo: epsInfo,
-            doc: doc,
             comicId: comicInfo.id,
             type: type,
+            order: doc.order,
+            epsNumber: epsInfo.length,
+            from: From.bika,
           ),
         );
       },

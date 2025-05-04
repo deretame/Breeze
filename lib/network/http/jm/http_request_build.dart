@@ -9,10 +9,13 @@ import 'package:zephyr/type/pipe.dart';
 
 import '../../../config/jm/config.dart';
 import '../../../main.dart';
+import '../../dio_cache.dart';
 
 final jmDio = Dio();
 
 String getTime() => (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+
+final netCache = SimpleCacheService();
 
 String jmUA() {
   if (JmConfig.device.isEmpty) {
@@ -68,20 +71,21 @@ Future<Map<String, dynamic>> request(
 }) async {
   final timestamp = getTime();
 
+  url = "$url/${_mapToUrlParams(params)}";
+
   if (cache) {
-    jmDio.interceptors.add(cacheInterceptor);
-  } else {
-    jmDio.interceptors.removeWhere((Interceptor i) => i == cacheInterceptor);
+    if (netCache.get(url) != null) {
+      return netCache.get(url)!;
+    }
   }
 
   jmDio.interceptors.add(CookieManager(JmConfig.cookieJar));
 
   try {
-    return await jmDio
+    var result = await jmDio
         .request(
           url,
           data: body,
-          queryParameters: params,
           options: Options(
             method: method,
             headers: getHeader(timestamp, method == 'POST', headers),
@@ -94,6 +98,10 @@ Future<Map<String, dynamic>> request(
         .let(utf8.decode)
         .let(jsonDecode)
         .let((var d) => decodeRespData(d['data'], timestamp));
+    if (cache) {
+      netCache.set(url, result);
+    }
+    return result;
   } on DioException catch (error) {
     logger.d(error, stackTrace: error.stackTrace);
 
@@ -103,6 +111,51 @@ Future<Map<String, dynamic>> request(
     logger.e(e, stackTrace: s);
     rethrow;
   }
+}
+
+String _mapToUrlParams(
+  Map<String, dynamic>? params, {
+  bool includeQuestionMark = true,
+}) {
+  if (params == null || params.isEmpty) {
+    return '';
+  }
+  final buffer = StringBuffer();
+  if (includeQuestionMark) {
+    buffer.write('?');
+  }
+  var first = true;
+
+  void addParam(String key, String value) {
+    if (!first) {
+      buffer.write('&');
+    }
+    buffer.write(Uri.encodeQueryComponent(key));
+    buffer.write('=');
+    buffer.write(Uri.encodeQueryComponent(value));
+    first = false;
+  }
+
+  params.forEach((key, value) {
+    if (value == null) {
+      return;
+    }
+    if (value is List) {
+      for (var item in value) {
+        if (item != null) {
+          addParam(key, item.toString());
+        }
+      }
+    } else if (value is Map) {
+      // 对于嵌套的Map，可以展平处理，这里简单转为JSON字符串
+      addParam(key, jsonEncode(value));
+    } else if (value is DateTime) {
+      addParam(key, value.toIso8601String());
+    } else {
+      addParam(key, value.toString());
+    }
+  });
+  return buffer.toString();
 }
 
 String _handleDioError(DioException error) {

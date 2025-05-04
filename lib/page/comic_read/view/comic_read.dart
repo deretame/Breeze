@@ -7,7 +7,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/page/comic_info/json/bika/eps/eps.dart' as eps;
 import 'package:zephyr/page/comic_read/comic_read.dart';
 
 import '../../../object_box/model.dart';
@@ -15,53 +14,59 @@ import '../../../object_box/objectbox.g.dart';
 import '../../../type/enum.dart';
 import '../../comic_info/json/bika/comic_info/comic_info.dart';
 import '../../download/json/comic_all_info_json/comic_all_info_json.dart'
-    as comic_all_info_json;
+    show Eps, comicAllInfoJsonFromJson;
+import '../json/common_ep_info_json/common_ep_info_json.dart';
 
 @RoutePage()
 class ComicReadPage extends StatelessWidget {
-  final Comic comicInfo;
-  final List<eps.Doc> epsInfo;
-  final eps.Doc doc;
   final String comicId;
-  final ComicEntryType? type;
+  final int order;
+  final int epsNumber; // 这个的意思是一共有多少章
+  final From from;
+  final ComicEntryType type;
+  final dynamic comicInfo; // 这个是比较方便的让禁漫和哔咔把漫画的数据传输过来，到时候强制转换类型就行了
 
   const ComicReadPage({
     super.key,
-    required this.comicInfo,
-    required this.epsInfo,
-    required this.doc,
     required this.comicId,
-    this.type,
+    required this.order,
+    required this.epsNumber,
+    required this.from,
+    required this.type,
+    required this.comicInfo,
   });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => PageBloc()..add(GetPage(comicId, doc.order)),
+      create: (_) => PageBloc()..add(PageEvent(comicId, order, from)),
       child: _ComicReadPage(
-        comicInfo: comicInfo,
-        epsInfo: epsInfo,
-        doc: doc,
         comicId: comicId,
+        order: order,
+        epsNumber: epsNumber,
+        from: from,
         type: type,
+        comicInfo: comicInfo,
       ),
     );
   }
 }
 
 class _ComicReadPage extends StatefulWidget {
-  final Comic comicInfo;
-  final List<eps.Doc> epsInfo;
-  final eps.Doc doc;
   final String comicId;
-  final ComicEntryType? type;
+  final int order;
+  final int epsNumber; // 这个的意思是一共有多少章
+  final From from;
+  final ComicEntryType type;
+  final dynamic comicInfo;
 
   const _ComicReadPage({
-    required this.comicInfo,
-    required this.epsInfo,
-    required this.doc,
     required this.comicId,
-    this.type,
+    required this.order,
+    required this.epsNumber,
+    required this.from,
+    required this.type,
+    required this.comicInfo,
   });
 
   @override
@@ -69,14 +74,14 @@ class _ComicReadPage extends StatefulWidget {
 }
 
 class _ComicReadPageState extends State<_ComicReadPage> {
-  Comic get comicInfo => widget.comicInfo;
+  dynamic get comicInfo => widget.comicInfo;
 
   String get comicId => widget.comicId;
 
-  String _epId = ""; // 用来存储当前观看的章节id
+  String epId = '';
+  String epName = '';
   late final ComicEntryType _type;
-  late final comic_all_info_json.Eps _downloadEpsInfo;
-  late eps.Doc _doc;
+  late final Eps _downloadEpsInfo;
   late bool isSkipped = false; // 是否跳转过
   late final ItemScrollController _itemScrollController;
   late final ItemPositionsListener _itemPositionsListener;
@@ -95,6 +100,9 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   bool _isComicRolling = false; // 漫画本身是否在滚动
   late Timer _timer; // 定时器，定时存储阅读记录
   TapDownDetails? _tapDownDetails; // 保存点击信息
+  var length = 0; // 组件总数
+  List<Doc> docs = []; // 图片信息
+  bool _loading = false; // 加载状态
 
   bool get _isHistory =>
       _type == ComicEntryType.history ||
@@ -111,9 +119,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       pageIndex = 2;
     }
     _currentSliderValue = 0;
-    _type = widget.type ?? ComicEntryType.normal;
-    _doc = widget.doc;
-    _epId = widget.epsInfo.firstWhere((doc) => doc.title == _doc.title).id;
+    _type = widget.type;
     _itemScrollController = ItemScrollController();
     _itemPositionsListener = ItemPositionsListener.create();
 
@@ -133,7 +139,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
             .findFirst();
     // 如果没有记录就先插入一条记录
     if (comicHistory == null) {
-      comicHistory = comicToBikaComicHistory(comicInfo, _doc.order);
+      comicHistory = comicToBikaComicHistory(comicInfo, widget.order);
       objectbox.bikaHistoryBox.put(comicHistory!);
     }
 
@@ -145,7 +151,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
               .build()
               .findFirst()!
               .comicInfoAll;
-      var temp2 = comic_all_info_json.comicAllInfoJsonFromJson(temp);
+      var temp2 = comicAllInfoJsonFromJson(temp);
       _downloadEpsInfo = temp2.eps;
     }
 
@@ -159,7 +165,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
 
       await Future.delayed(Duration(seconds: 1));
       _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
-        writeToDatabase();
+        if (_loading) writeToDatabase();
       });
     });
   }
@@ -204,7 +210,9 @@ class _ComicReadPageState extends State<_ComicReadPage> {
           SizedBox(height: 10),
           ElevatedButton(
             onPressed: () {
-              context.read<PageBloc>().add(GetPage(comicId, _doc.order));
+              context.read<PageBloc>().add(
+                PageEvent(comicId, widget.order, widget.from),
+              );
             },
             child: Text('点击重试'),
           ),
@@ -213,11 +221,10 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     );
   }
 
-  var length = 0;
-  List<Media> medias = [];
-
   Widget _successWidget(PageState? state) {
     // logger.d(_currentSliderValue.toString());
+    if (!_loading) _loading = true;
+
     if (_isVisible == false && globalSetting.readMode == 0) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     }
@@ -247,7 +254,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   }
 
   Widget _comicReadAppBar() => ComicReadAppBar(
-    title: _doc.title,
+    title: epName,
     isVisible: _isVisible,
     changePageIndex:
         (int value) => setState(() {
@@ -262,8 +269,6 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   Widget _bottomWidget() => BottomWidget(
     type: _type,
     isVisible: _isVisible,
-    doc: _doc,
-    epsInfo: widget.epsInfo,
     comicInfo: comicInfo,
     sliderWidget: SliderWidget(
       totalSlots: _totalSlots,
@@ -280,6 +285,9 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       itemScrollController: _itemScrollController,
       pageController: _pageController,
     ),
+    order: widget.order,
+    epsNumber: widget.epsNumber,
+    comicId: comicId,
   );
 
   /// 构建交互式查看器
@@ -319,10 +327,9 @@ class _ComicReadPageState extends State<_ComicReadPage> {
 
   Widget _columnModeWidget() => ColumnModeWidget(
     comicId: comicId,
-    epsId: _doc.id,
-    chapterId: _epId,
+    epsId: epId,
     length: length,
-    medias: medias,
+    docs: docs,
     itemScrollController: _itemScrollController,
     itemPositionsListener: _itemPositionsListener,
   );
@@ -330,9 +337,8 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   Widget _rowModeWidget() => RowModeWidget(
     key: ValueKey(globalSetting.readMode.toString()),
     comicId: comicId,
-    epsId: _doc.id,
-    chapterId: _epId,
-    medias: medias,
+    epsId: epId,
+    docs: docs,
     pageController: _pageController,
     onPageChanged: (int index) {
       setState(() {
@@ -405,15 +411,17 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     }
     // 更新记录
     _isInserting = true;
+    final temp = comicInfo as Comic;
+    // 我也不知道为啥部分漫画的封面会加载失败，所以这里干脆每次都更新一下
     comicHistory!
-      ..thumbFileServer = comicInfo.thumb.fileServer
-      ..thumbPath = comicInfo.thumb.path
-      ..thumbOriginalName = comicInfo.thumb.originalName
+      ..thumbFileServer = temp.thumb.fileServer
+      ..thumbPath = temp.thumb.path
+      ..thumbOriginalName = temp.thumb.originalName
       ..history = DateTime.now().toUtc()
-      ..order = _doc.order
+      ..order = widget.order
       ..epPageCount = pageIndex
-      ..epTitle = _doc.title
-      ..epId = _epId
+      ..epTitle = epName
+      ..epId = epId
       ..deleted = false;
     await objectbox.bikaHistoryBox.putAsync(comicHistory!);
     _isInserting = false;
@@ -477,30 +485,30 @@ class _ComicReadPageState extends State<_ComicReadPage> {
 
   /// 加载在线数据
   void _loadOnlineData(PageState state) {
-    length = state.medias!.length;
-    epPages = state.result!;
-    medias = state.medias!;
+    length = state.epInfo!.docs.length;
+    epPages = state.result;
+    docs = state.epInfo!.docs;
+    epId = state.epInfo!.epId;
+    epName = state.epInfo!.epName;
   }
 
   /// 加载下载数据
   void _loadDownloadedData() {
-    final temp = _downloadEpsInfo.docs.firstWhere((e) => e.order == _doc.order);
-
-    _doc = eps.Doc(
-      id: temp.id,
-      title: temp.title,
-      order: temp.order,
-      updatedAt: temp.updatedAt,
-      docId: temp.docId,
+    final temp = _downloadEpsInfo.docs.firstWhere(
+      (e) => e.order == widget.order,
     );
 
-    medias =
+    epId = temp.id;
+    epName = temp.title;
+
+    docs =
         temp.pages.docs
             .map(
-              (e) => Media(
+              (e) => Doc(
                 originalName: e.media.originalName,
                 path: e.media.path,
                 fileServer: e.media.fileServer,
+                id: epId,
               ),
             )
             .toList();
@@ -529,17 +537,12 @@ class _ComicReadPageState extends State<_ComicReadPage> {
         setState(() => pageIndex = comicHistory!.epPageCount);
         // logger.d('历史记录：${comicHistory!.epPageCount}');
         if (globalSetting.readMode == 0) {
-          _itemScrollController.scrollTo(
+          _itemScrollController.jumpTo(
             index: comicHistory!.epPageCount - 1,
             alignment: 0.0,
-            duration: const Duration(milliseconds: 500),
           );
         } else {
-          _pageController.animateToPage(
-            comicHistory!.epPageCount - 2,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
+          _pageController.jumpTo(comicHistory!.epPageCount - 2);
         }
         isSkipped = true;
       });

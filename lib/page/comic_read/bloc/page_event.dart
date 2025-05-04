@@ -1,14 +1,11 @@
 part of 'page_bloc.dart';
 
-sealed class PageEvent extends Equatable {
-  const PageEvent();
-}
-
-class GetPage extends PageEvent {
+class PageEvent extends Equatable {
   final String comicId;
   final int epsId;
+  final From from;
 
-  const GetPage(this.comicId, this.epsId);
+  const PageEvent(this.comicId, this.epsId, this.from);
 
   @override
   List<Object> get props => [comicId, epsId];

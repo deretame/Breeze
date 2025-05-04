@@ -35,7 +35,7 @@ class BikaSearchBar extends StatelessWidget implements PreferredSizeWidget {
         searchStyle: TextStyle(color: globalSetting.textColor),
         cursorColor: globalSetting.textColor,
         searchDecoration: InputDecoration(
-          labelText: '搜索本子',
+          labelText: '输入参数请限制在八个unicode字符之内，超出无效。',
           alignLabelWithHint: true,
           contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
           border: OutlineInputBorder(

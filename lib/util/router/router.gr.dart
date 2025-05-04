@@ -12,18 +12,18 @@
 import 'package:auto_route/auto_route.dart' as _i24;
 import 'package:flutter/material.dart' as _i25;
 import 'package:zephyr/debug/show_color.dart' as _i19;
-import 'package:zephyr/mobx/bool_select.dart' as _i30;
-import 'package:zephyr/mobx/int_select.dart' as _i31;
+import 'package:zephyr/mobx/bool_select.dart' as _i28;
+import 'package:zephyr/mobx/int_select.dart' as _i29;
 import 'package:zephyr/page/about/view/about_page.dart' as _i1;
 import 'package:zephyr/page/bookshelf/view/bookshelf_page.dart' as _i3;
 import 'package:zephyr/page/category/view/category.dart' as _i4;
 import 'package:zephyr/page/comic_info/json/bika/comic_info/comic_info.dart'
-    as _i27;
-import 'package:zephyr/page/comic_info/json/bika/eps/eps.dart' as _i28;
+    as _i30;
+import 'package:zephyr/page/comic_info/json/bika/eps/eps.dart' as _i31;
 import 'package:zephyr/page/comic_info/view/comic_info.dart' as _i5;
 import 'package:zephyr/page/comic_read/view/comic_read.dart' as _i6;
 import 'package:zephyr/page/comments/json/comments_json/comments_json.dart'
-    as _i29;
+    as _i27;
 import 'package:zephyr/page/comments/view/comments.dart' as _i8;
 import 'package:zephyr/page/comments_children/view/comments_children_page.dart'
     as _i7;
@@ -163,21 +163,23 @@ class ComicInfoRouteArgs {
 class ComicReadRoute extends _i24.PageRouteInfo<ComicReadRouteArgs> {
   ComicReadRoute({
     _i25.Key? key,
-    required _i27.Comic comicInfo,
-    required List<_i28.Doc> epsInfo,
-    required _i28.Doc doc,
     required String comicId,
-    _i26.ComicEntryType? type,
+    required int order,
+    required int epsNumber,
+    required _i26.From from,
+    required _i26.ComicEntryType type,
+    required dynamic comicInfo,
     List<_i24.PageRouteInfo>? children,
   }) : super(
          ComicReadRoute.name,
          args: ComicReadRouteArgs(
            key: key,
-           comicInfo: comicInfo,
-           epsInfo: epsInfo,
-           doc: doc,
            comicId: comicId,
+           order: order,
+           epsNumber: epsNumber,
+           from: from,
            type: type,
+           comicInfo: comicInfo,
          ),
          initialChildren: children,
        );
@@ -190,11 +192,12 @@ class ComicReadRoute extends _i24.PageRouteInfo<ComicReadRouteArgs> {
       final args = data.argsAs<ComicReadRouteArgs>();
       return _i6.ComicReadPage(
         key: args.key,
-        comicInfo: args.comicInfo,
-        epsInfo: args.epsInfo,
-        doc: args.doc,
         comicId: args.comicId,
+        order: args.order,
+        epsNumber: args.epsNumber,
+        from: args.from,
         type: args.type,
+        comicInfo: args.comicInfo,
       );
     },
   );
@@ -203,28 +206,31 @@ class ComicReadRoute extends _i24.PageRouteInfo<ComicReadRouteArgs> {
 class ComicReadRouteArgs {
   const ComicReadRouteArgs({
     this.key,
-    required this.comicInfo,
-    required this.epsInfo,
-    required this.doc,
     required this.comicId,
-    this.type,
+    required this.order,
+    required this.epsNumber,
+    required this.from,
+    required this.type,
+    required this.comicInfo,
   });
 
   final _i25.Key? key;
 
-  final _i27.Comic comicInfo;
-
-  final List<_i28.Doc> epsInfo;
-
-  final _i28.Doc doc;
-
   final String comicId;
 
-  final _i26.ComicEntryType? type;
+  final int order;
+
+  final int epsNumber;
+
+  final _i26.From from;
+
+  final _i26.ComicEntryType type;
+
+  final dynamic comicInfo;
 
   @override
   String toString() {
-    return 'ComicReadRouteArgs{key: $key, comicInfo: $comicInfo, epsInfo: $epsInfo, doc: $doc, comicId: $comicId, type: $type}';
+    return 'ComicReadRouteArgs{key: $key, comicId: $comicId, order: $order, epsNumber: $epsNumber, from: $from, type: $type, comicInfo: $comicInfo}';
   }
 }
 
@@ -234,9 +240,9 @@ class CommentsChildrenRoute
     extends _i24.PageRouteInfo<CommentsChildrenRouteArgs> {
   CommentsChildrenRoute({
     _i25.Key? key,
-    required _i29.Doc fatherDoc,
-    required _i30.BoolSelectStore store,
-    required _i31.IntSelectStore likeCountStore,
+    required _i27.Doc fatherDoc,
+    required _i28.BoolSelectStore store,
+    required _i29.IntSelectStore likeCountStore,
     List<_i24.PageRouteInfo>? children,
   }) : super(
          CommentsChildrenRoute.name,
@@ -275,11 +281,11 @@ class CommentsChildrenRouteArgs {
 
   final _i25.Key? key;
 
-  final _i29.Doc fatherDoc;
+  final _i27.Doc fatherDoc;
 
-  final _i30.BoolSelectStore store;
+  final _i28.BoolSelectStore store;
 
-  final _i31.IntSelectStore likeCountStore;
+  final _i29.IntSelectStore likeCountStore;
 
   @override
   String toString() {
@@ -344,8 +350,8 @@ class CommentsRouteArgs {
 class DownloadRoute extends _i24.PageRouteInfo<DownloadRouteArgs> {
   DownloadRoute({
     _i25.Key? key,
-    required _i27.Comic comicInfo,
-    required List<_i28.Doc> epsInfo,
+    required _i30.Comic comicInfo,
+    required List<_i31.Doc> epsInfo,
     List<_i24.PageRouteInfo>? children,
   }) : super(
          DownloadRoute.name,
@@ -381,9 +387,9 @@ class DownloadRouteArgs {
 
   final _i25.Key? key;
 
-  final _i27.Comic comicInfo;
+  final _i30.Comic comicInfo;
 
-  final List<_i28.Doc> epsInfo;
+  final List<_i31.Doc> epsInfo;
 
   @override
   String toString() {

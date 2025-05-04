@@ -14,5 +14,11 @@ Future<Map<String, dynamic>> getComicInfo(String comicId) async =>
     await request(
       '${JmConfig.baseUrl}/album',
       params: {'id': comicId},
-      cache: true,
+      // cache: true,
     );
+
+Future<Map<String, dynamic>> getEpInfo(String epId) async => await request(
+  '${JmConfig.baseUrl}/chapter',
+  params: {'skip': '', 'id': epId},
+  cache: true,
+);

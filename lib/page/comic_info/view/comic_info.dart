@@ -59,9 +59,9 @@ class _ComicInfoState extends State<_ComicInfo>
   comic_all_info_json.ComicAllInfoJson? comicAllInfo;
   late Comic comicInfo; // 用来存储漫画信息
 
-  bool _epsCompleted = false; // 用来判断章节是不是加载完毕了
-  List<Doc> _epsInfo = [];
+  final List<Doc> _epsInfo = [];
   late ComicEntryType _type;
+  bool _loaddingComicInfo = false;
 
   @override
   void initState() {
@@ -176,48 +176,35 @@ class _ComicInfoState extends State<_ComicInfo>
                 },
               ),
       floatingActionButton:
-          _epsCompleted // 条件显示按钮
+          _loaddingComicInfo // 条件显示按钮
               ? SizedBox(
                 width: 100, // 设置容器宽度，以容纳更长的文本
                 height: 56, // 设置容器高度，与默认的FloatingActionButton高度一致
                 child: FloatingActionButton(
                   onPressed: () {
                     if (comicHistory != null) {
-                      comicHistory =
-                          objectbox.bikaHistoryBox
-                              .query(
-                                BikaComicHistory_.comicId.equals(
-                                  widget.comicId,
-                                ),
-                              )
-                              .build()
-                              .findFirst();
-                      AutoRouter.of(context).push(
+                      context.pushRoute(
                         ComicReadRoute(
                           comicInfo: comicInfo,
-                          epsInfo: _epsInfo,
-                          doc: Doc(
-                            id: "history",
-                            title: comicHistory!.epTitle,
-                            order: comicHistory!.order,
-                            updatedAt: comicHistory!.history,
-                            docId: (comicHistory!.epPageCount - 1).toString(),
-                          ),
                           comicId: comicInfo.id,
                           type:
                               _type == ComicEntryType.download
                                   ? ComicEntryType.historyAndDownload
                                   : ComicEntryType.history,
+                          order: comicHistory!.order,
+                          epsNumber: comicInfo.epsCount,
+                          from: From.bika,
                         ),
                       );
                     } else {
-                      AutoRouter.of(context).push(
+                      context.pushRoute(
                         ComicReadRoute(
                           comicInfo: comicInfo,
-                          epsInfo: _epsInfo,
-                          doc: _epsInfo[0],
                           comicId: comicInfo.id,
                           type: _type,
+                          order: 1,
+                          epsNumber: comicInfo.epsCount,
+                          from: From.bika,
                         ),
                       );
                     }
@@ -234,9 +221,14 @@ class _ComicInfoState extends State<_ComicInfo>
   }
 
   Widget _infoView() {
+    if (!_loaddingComicInfo) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() => _loaddingComicInfo = true);
+      });
+    }
+
     return RefreshIndicator(
       onRefresh: () async {
-        _epsCompleted = false;
         context.read<GetComicInfoBloc>().add(
           GetComicInfoEvent(comicId: widget.comicId),
         );
@@ -246,6 +238,7 @@ class _ComicInfoState extends State<_ComicInfo>
         setState(() {
           comicHistory = query.build().findFirst();
           _type = ComicEntryType.normal;
+          _loaddingComicInfo = false;
         });
       },
       child: SingleChildScrollView(
@@ -295,7 +288,6 @@ class _ComicInfoState extends State<_ComicInfo>
                       comicInfo: comicInfo,
                       comicHistory: comicHistory,
                       epsInfo: _epsInfo,
-                      onUpdateReadInfo: _updateReadInfo,
                       type: _type,
                     ),
                     const SizedBox(height: 10),
@@ -311,18 +303,6 @@ class _ComicInfoState extends State<_ComicInfo>
         ),
       ),
     );
-  }
-
-  void _updateReadInfo(List<Doc> epsInfo, bool epsCompleted) {
-    if (_epsCompleted) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        setState(() {
-          _epsInfo = epsInfo;
-          _epsCompleted = epsCompleted;
-        });
-      }
-    });
   }
 
   // 弹出选择对话框，让用户选择导出为压缩包还是文件夹

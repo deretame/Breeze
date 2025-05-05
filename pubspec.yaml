@@ -46,7 +46,7 @@ dependencies:
   bloc: ^9.0.0                  # BLoC 核心库
   flutter_bloc: ^9.0.0          # Flutter BLoC 实现
   bloc_concurrency: ^0.3.0      # BLoC 并发策略（防抖/节流）
-  bloc_lint: 0.2.0-dev.1        # BLoC 代码规范检查
+  bloc_lint: ^0.2.0-dev.2        # BLoC 代码规范检查
   event_bus: ^2.0.1             # 全局事件总线
 
   ########################################
@@ -82,7 +82,7 @@ dependencies:
   image_picker: ^1.1.2          # 图片选择器
   image_cropper: ^9.0.0         # 图片裁剪组件
   image: ^4.1.7                 # 图片编解码处理
-  archive: ^3.4.0               # 压缩/解压工具集
+  archive: ^4.0.0               # 压缩/解压工具集
   tar: ^2.0.0                   # TAR 格式处理
 
   ########################################
@@ -109,6 +109,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0           # 代码规范检查
+  #  very_good_analysis: ^7.0.0      # 代码质量分析，这玩意儿检测也太严格了，先不用了
   build_runner: ^2.4.14           # 代码生成器
   auto_route_generator: ^10.0.1   # 路由代码生成
   hive_ce_generator: ^1.8.1       # Hive 模型生成

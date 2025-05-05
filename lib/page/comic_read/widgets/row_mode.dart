@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_read/widgets/read_image_widget.dart';
 
+import '../../../type/enum.dart';
+import '../../../widgets/picture_bloc/models/picture_info.dart';
 import '../json/common_ep_info_json/common_ep_info_json.dart';
 
 class RowModeWidget extends StatefulWidget {
@@ -13,6 +15,7 @@ class RowModeWidget extends StatefulWidget {
   final PageController pageController;
   final ValueChanged<int> onPageChanged;
   final bool isSliderRolling;
+  final From from;
 
   const RowModeWidget({
     super.key,
@@ -22,6 +25,7 @@ class RowModeWidget extends StatefulWidget {
     required this.pageController,
     required this.onPageChanged,
     required this.isSliderRolling,
+    required this.from,
   });
 
   @override
@@ -29,7 +33,7 @@ class RowModeWidget extends StatefulWidget {
 }
 
 class _RowModeWidgetState extends State<RowModeWidget> {
-  late Timer _timer;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -38,7 +42,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
 
   @override
   void dispose() {
-    _timer.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -50,8 +54,8 @@ class _RowModeWidgetState extends State<RowModeWidget> {
       onPageChanged: (page) {
         if (widget.isSliderRolling) {
           // 如果 isSliderRolling 为真，重置定时器
-          _timer.cancel(); // 取消之前的定时器
-          _timer = Timer(Duration(milliseconds: 400), () {
+          _timer?.cancel(); // 取消之前的定时器
+          _timer = Timer(Duration(milliseconds: 100), () {
             // 400 毫秒后触发 onPageChanged
             widget.onPageChanged(page);
           });
@@ -65,9 +69,14 @@ class _RowModeWidgetState extends State<RowModeWidget> {
           return Container(
             color: Colors.black,
             child: ReadImageWidget(
-              doc: widget.docs[index],
-              comicId: widget.comicId,
-              epsId: widget.epsId,
+              pictureInfo: PictureInfo(
+                from: widget.from.toString().split('.').last,
+                url: widget.docs[index].fileServer,
+                path: widget.docs[index].path,
+                cartoonId: widget.comicId,
+                chapterId: widget.epsId,
+                pictureType: 'comic',
+              ),
               index: index,
               isColumn: false,
             ),

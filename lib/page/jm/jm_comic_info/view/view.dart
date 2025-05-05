@@ -1,9 +1,10 @@
-import 'package:auto_route/annotations.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/jm/jm_comic_info/jm_comic_info.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../../config/global/global.dart';
@@ -46,6 +47,9 @@ class _JmComicInfoPage extends StatefulWidget {
 }
 
 class __JmComicInfoPageState extends State<_JmComicInfoPage> {
+  late JmComicInfoState _state;
+  bool _init = false;
+
   @override
   void initState() {
     super.initState();
@@ -76,14 +80,32 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
           }
         },
       ),
-      floatingActionButton: SizedBox(
-        width: 100,
-        height: 56,
-        child: FloatingActionButton(
-          onPressed: () {},
-          child: Text('开始阅读', overflow: TextOverflow.ellipsis, maxLines: 1),
-        ),
-      ),
+      floatingActionButton:
+          _init
+              ? SizedBox(
+                width: 100,
+                height: 56,
+                child: FloatingActionButton(
+                  onPressed: () {
+                    context.pushRoute(
+                      ComicReadRoute(
+                        comicId: widget.comicId,
+                        order: _state.comicInfo!.id,
+                        epsNumber: _state.comicInfo!.series.length,
+                        from: From.jm,
+                        type: ComicEntryType.normal,
+                        comicInfo: _state.comicInfo!,
+                      ),
+                    );
+                  },
+                  child: Text(
+                    '开始阅读',
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+              )
+              : null,
     );
   }
 
@@ -102,6 +124,15 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
   );
 
   Widget _comicEntry(JmComicInfoState state) {
+    if (!_init) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _init = true;
+          _state = state;
+        });
+      });
+    }
+
     final comicInfo = state.comicInfo!;
     final id = comicInfo.id.toString();
 
@@ -174,7 +205,11 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
       ],
       if (comicInfo.series.isNotEmpty) ...[
         const SizedBox(height: 10),
-        EpsWidget(comicId: id, seriesList: comicInfo.series),
+        EpsWidget(
+          comicId: id,
+          seriesList: comicInfo.series,
+          comicInfo: comicInfo,
+        ),
       ],
     ];
 

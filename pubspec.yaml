@@ -1,7 +1,7 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
 publish_to: none
-version: 1.29.4+109
+version: 2.0.0+110
 
 environment:
   sdk: ^3.7.2
@@ -81,7 +81,7 @@ dependencies:
   open_file: ^3.5.10            # 文件打开工具
   image_picker: ^1.1.2          # 图片选择器
   image_cropper: ^9.0.0         # 图片裁剪组件
-  image: 4.1.7                  # 图片编解码处理
+  image: ^4.1.7                 # 图片编解码处理
   archive: ^3.4.0               # 压缩/解压工具集
   tar: ^2.0.0                   # TAR 格式处理
 

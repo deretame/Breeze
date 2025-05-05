@@ -27,6 +27,7 @@ class _ImageDisplayState extends State<ImageDisplay> {
   @override
   void initState() {
     super.initState();
+    // logger.d(isColumn);
     if (isColumn) _getImageResolution(widget.imagePath);
   }
 

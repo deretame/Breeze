@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/type/pipe.dart';
 
 import '../../../config/global/global.dart';
 import '../../../main.dart';
@@ -12,6 +13,7 @@ import '../../../util/router/router.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/error_view.dart';
 import '../../comic_info/bloc/bika/eps/get_comic_eps_bloc.dart';
+import '../json/common_ep_info_json/common_ep_info_json.dart';
 
 class BottomWidget extends StatefulWidget {
   final ComicEntryType type;
@@ -21,6 +23,8 @@ class BottomWidget extends StatefulWidget {
   final int order;
   final int epsNumber;
   final String comicId;
+  final List<Series> seriesList;
+  final From from;
 
   const BottomWidget({
     super.key,
@@ -31,6 +35,8 @@ class BottomWidget extends StatefulWidget {
     required this.order,
     required this.epsNumber,
     required this.comicId,
+    required this.seriesList,
+    required this.from,
   });
 
   @override
@@ -45,23 +51,46 @@ class _BottomWidgetState extends State<BottomWidget> {
   late String comicId;
   bool havePrev = true;
   bool haveNext = true;
+  late List<Series> seriesList;
+  int? sort;
 
   @override
   void initState() {
     super.initState();
     tempType = widget.type;
     comicId = widget.comicId;
+    seriesList = widget.seriesList;
     if (tempType == ComicEntryType.historyAndDownload) {
       tempType = ComicEntryType.download;
     }
     if (tempType == ComicEntryType.history) {
       tempType = ComicEntryType.normal;
     }
-    if (widget.order == 1) {
-      havePrev = false;
+    if (widget.from == From.bika) {
+      if (widget.order == 1) {
+        havePrev = false;
+      }
+      if (widget.order == widget.epsNumber) {
+        haveNext = false;
+      }
     }
-    if (widget.order == widget.epsNumber) {
-      haveNext = false;
+    if (widget.from == From.jm) {
+      if (seriesList.isEmpty) {
+        havePrev = false;
+        haveNext = false;
+      } else {
+        sort = seriesList
+            .where((item) => item.id == widget.order.toString())
+            .first
+            .sort
+            .let(toInt);
+        if (sort == 1) {
+          havePrev = false;
+        }
+        if (sort == widget.epsNumber) {
+          haveNext = false;
+        }
+      }
     }
   }
 
@@ -195,15 +224,43 @@ class _BottomWidgetState extends State<BottomWidget> {
       '跳转',
       '是否要跳转到$dialogMessage？',
     );
+    int order = 0;
+    if (widget.from == From.bika) {
+      if (isPrev) {
+        order = widget.order - 1;
+      } else {
+        order = widget.order + 1;
+      }
+    } else {
+      if (sort != null) {
+        if (isPrev) {
+          var temp =
+              seriesList
+                  .where((item) => item.sort.let(toInt) == sort! - 1)
+                  .firstOrNull;
+          if (temp != null) {
+            order = temp.id.let(toInt);
+          }
+        } else {
+          var temp =
+              seriesList
+                  .where((item) => item.sort.let(toInt) == sort! + 1)
+                  .firstOrNull;
+          if (temp != null) {
+            order = temp.id.let(toInt);
+          }
+        }
+      }
+    }
     if (result) {
       router.popAndPush(
         ComicReadRoute(
           comicInfo: widget.comicInfo,
           comicId: comicId,
           type: tempType,
-          order: isPrev ? widget.order - 1 : widget.order + 1,
+          order: order,
           epsNumber: widget.epsNumber,
-          from: From.bika,
+          from: widget.from,
         ),
       );
     }
@@ -218,41 +275,10 @@ class _BottomWidgetState extends State<BottomWidget> {
         return AlertDialog(
           title: Text('选择章节'),
           content: SingleChildScrollView(
-            child: BlocProvider(
-              create:
-                  (_) =>
-                      GetComicEpsBloc()
-                        ..add(GetComicEpsEvent(comic: widget.comicInfo)),
-              child: BlocBuilder<GetComicEpsBloc, GetComicEpsState>(
-                builder: (context, state) {
-                  switch (state.status) {
-                    case GetComicEpsStatus.initial:
-                      return Center(child: CircularProgressIndicator());
-                    case GetComicEpsStatus.failure:
-                      return ErrorView(
-                        errorMessage: '加载失败，请重试。',
-                        onRetry: () {
-                          context.read<GetComicEpsBloc>().add(
-                            GetComicEpsEvent(comic: widget.comicInfo),
-                          );
-                        },
-                      );
-                    case GetComicEpsStatus.success:
-                      return ListBody(
-                        children: [
-                          for (final ep in state.eps)
-                            TextButton(
-                              child: Text(ep.title),
-                              onPressed: () {
-                                Navigator.of(context).pop(ep.order);
-                              },
-                            ),
-                        ],
-                      );
-                  }
-                },
-              ),
-            ),
+            child:
+                widget.from == From.bika
+                    ? _bikaEpSelector(context)
+                    : _jmEpSelector(context),
           ),
           actions: [
             TextButton(
@@ -273,11 +299,58 @@ class _BottomWidgetState extends State<BottomWidget> {
           type: tempType,
           order: result,
           epsNumber: widget.epsNumber,
-          from: From.bika,
+          from: widget.from,
         ),
       );
     }
   }
+
+  Widget _bikaEpSelector(BuildContext context) => BlocProvider(
+    create:
+        (_) =>
+            GetComicEpsBloc()..add(GetComicEpsEvent(comic: widget.comicInfo)),
+    child: BlocBuilder<GetComicEpsBloc, GetComicEpsState>(
+      builder: (context, state) {
+        switch (state.status) {
+          case GetComicEpsStatus.initial:
+            return Center(child: CircularProgressIndicator());
+          case GetComicEpsStatus.failure:
+            return ErrorView(
+              errorMessage: '加载失败，请重试。',
+              onRetry: () {
+                context.read<GetComicEpsBloc>().add(
+                  GetComicEpsEvent(comic: widget.comicInfo),
+                );
+              },
+            );
+          case GetComicEpsStatus.success:
+            return ListBody(
+              children: [
+                for (final ep in state.eps)
+                  TextButton(
+                    child: Text(ep.title),
+                    onPressed: () => Navigator.of(context).pop(ep.order),
+                  ),
+              ],
+            );
+        }
+      },
+    ),
+  );
+
+  Widget _jmEpSelector(BuildContext context) => ListBody(
+    children: [
+      for (final series in seriesList)
+        TextButton(
+          child: Text(series.name),
+          onPressed: // 使用 rootNavigator: false 确保使用最近的对话框Navigator
+              () => Navigator.of(
+                context,
+                rootNavigator: false,
+              ).pop(series.id.let(toInt)),
+        ),
+    ],
+  );
 }
 
 class ChapterNavigationButton extends StatelessWidget {

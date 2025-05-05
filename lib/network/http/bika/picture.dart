@@ -4,10 +4,13 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
+import 'package:zephyr/type/pipe.dart';
 
 // ignore: unused_import
 import '../../../config/global/global_setting.dart';
+import '../../../config/jm/config.dart';
 import '../../../util/get_path.dart';
+import '../jm/picture.dart';
 
 final pictureDio = Dio();
 
@@ -73,6 +76,15 @@ Future<String> getCachePicture({
 
   // 下载图片
   Uint8List imageData = await downloadImageWithRetry(finalUrl);
+
+  if (from == 'jm' && pictureType == 'comic') {
+    JmPictureData data = JmPictureData(Uint8List(0), 0, 0, '');
+    data.imgData = Uint8List.fromList(imageData.toList()..removeLast());
+    data.epsId = chapterId.let(toInt);
+    data.scrambleId = JmConfig.scrambleId.let(toInt);
+    data.pictureName = url.split('/').last.split('.').first;
+    imageData = await compute(segmentationPictureToDisk, data);
+  }
 
   // 保存图片
   await saveImage(imageData, cacheFilePath);
@@ -306,6 +318,7 @@ Future<Uint8List> downloadImageWithRetry(
 }
 
 Future<void> saveImage(Uint8List imageData, String filePath) async {
+  logger.d('开始保存图片到：$filePath');
   final targetFile = File(filePath);
 
   try {

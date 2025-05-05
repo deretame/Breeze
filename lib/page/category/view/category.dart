@@ -5,6 +5,7 @@ import 'package:zephyr/page/category/category.dart';
 
 import '../../../config/global/global.dart';
 import '../../../util/router/router.gr.dart';
+import '../../jm/jm_search_result/bloc/jm_search_result_bloc.dart';
 import '../../search_result/models/search_enter.dart';
 
 @RoutePage()
@@ -19,10 +20,47 @@ class CategoryPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed:
-                () => AutoRouter.of(
-                  context,
-                ).push(SearchResultRoute(searchEnterConst: SearchEnterConst())),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return SimpleDialog(
+                    children: [
+                      // 第一个 Chip
+                      SimpleDialogOption(
+                        onPressed: () {
+                          context.pop();
+                          context.pushRoute(
+                            SearchResultRoute(
+                              searchEnterConst: SearchEnterConst(),
+                            ),
+                          );
+                        },
+                        child: const Chip(
+                          label: Text("哔咔漫画"),
+                          backgroundColor: Colors.pink,
+                          labelStyle: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      // 第二个 Chip
+                      SimpleDialogOption(
+                        onPressed: () {
+                          context.pop();
+                          context.pushRoute(
+                            JmSearchResultRoute(event: JmSearchResultEvent()),
+                          );
+                        },
+                        child: const Chip(
+                          label: Text("禁漫天堂"),
+                          backgroundColor: Colors.orange,
+                          labelStyle: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
           ),
         ],
       ),

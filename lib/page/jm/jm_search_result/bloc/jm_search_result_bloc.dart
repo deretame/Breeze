@@ -49,11 +49,8 @@ class JmSearchResultBloc
       return;
     }
 
-    if (hasReachedMax) {
-      return;
-    }
-
     if (event.status == JmSearchResultStatus.initial) {
+      hasReachedMax = false;
       _searchResultList = [];
       page = 1;
       emit(state.copyWith(status: JmSearchResultStatus.initial));
@@ -64,6 +61,10 @@ class JmSearchResultBloc
           jmSearchResults: _searchResultList,
         ),
       );
+    }
+
+    if (hasReachedMax) {
+      return;
     }
 
     try {

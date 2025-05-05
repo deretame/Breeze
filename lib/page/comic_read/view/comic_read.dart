@@ -98,11 +98,12 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   int displayedSlot = 1; // 显示的当前槽位
   bool _isSliderRolling = false; // 滑块是否在滑动
   bool _isComicRolling = false; // 漫画本身是否在滚动
-  late Timer _timer; // 定时器，定时存储阅读记录
+  Timer? _timer; // 定时器，定时存储阅读记录
   TapDownDetails? _tapDownDetails; // 保存点击信息
   var length = 0; // 组件总数
   List<Doc> docs = []; // 图片信息
   bool _loading = false; // 加载状态
+  List<Series> seriesList = []; // 章节列表，禁漫用的
 
   bool get _isHistory =>
       _type == ComicEntryType.history ||
@@ -131,43 +132,45 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       }
     });
 
-    // 首先查询一下有没有记录
-    comicHistory =
-        objectbox.bikaHistoryBox
-            .query(BikaComicHistory_.comicId.equals(comicId))
-            .build()
-            .findFirst();
-    // 如果没有记录就先插入一条记录
-    if (comicHistory == null) {
-      comicHistory = comicToBikaComicHistory(comicInfo, widget.order);
-      objectbox.bikaHistoryBox.put(comicHistory!);
-    }
-
-    if (_isDownload) {
+    if (widget.from == From.bika) {
       // 首先查询一下有没有记录
-      var temp =
-          objectbox.bikaDownloadBox
-              .query(BikaComicDownload_.comicId.equals(comicId))
+      comicHistory =
+          objectbox.bikaHistoryBox
+              .query(BikaComicHistory_.comicId.equals(comicId))
               .build()
-              .findFirst()!
-              .comicInfoAll;
-      var temp2 = comicAllInfoJsonFromJson(temp);
-      _downloadEpsInfo = temp2.eps;
-    }
-
-    // logger.d(_type.toString().split('.').last);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (globalSetting.readMode != 0) {
-        await Future.delayed(Duration(milliseconds: 200));
-        setState(() => _isVisible = false);
+              .findFirst();
+      // 如果没有记录就先插入一条记录
+      if (comicHistory == null) {
+        comicHistory = comicToBikaComicHistory(comicInfo, widget.order);
+        objectbox.bikaHistoryBox.put(comicHistory!);
       }
 
-      await Future.delayed(Duration(seconds: 1));
-      _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
-        if (_loading) writeToDatabase();
+      if (_isDownload) {
+        // 首先查询一下有没有记录
+        var temp =
+            objectbox.bikaDownloadBox
+                .query(BikaComicDownload_.comicId.equals(comicId))
+                .build()
+                .findFirst()!
+                .comicInfoAll;
+        var temp2 = comicAllInfoJsonFromJson(temp);
+        _downloadEpsInfo = temp2.eps;
+      }
+
+      // logger.d(_type.toString().split('.').last);
+
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (globalSetting.readMode != 0) {
+          await Future.delayed(Duration(milliseconds: 200));
+          setState(() => _isVisible = false);
+        }
+
+        await Future.delayed(Duration(seconds: 1));
+        _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+          if (_loading) writeToDatabase();
+        });
       });
-    });
+    }
   }
 
   @override
@@ -175,7 +178,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _pageController.dispose();
     _itemPositionsListener.itemPositions.removeListener(() {});
-    _timer.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -288,6 +291,8 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     order: widget.order,
     epsNumber: widget.epsNumber,
     comicId: comicId,
+    seriesList: seriesList,
+    from: widget.from,
   );
 
   /// 构建交互式查看器
@@ -332,6 +337,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     docs: docs,
     itemScrollController: _itemScrollController,
     itemPositionsListener: _itemPositionsListener,
+    from: widget.from,
   );
 
   Widget _rowModeWidget() => RowModeWidget(
@@ -343,6 +349,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     onPageChanged: (int index) {
       setState(() {
         pageIndex = index + 2;
+
         // logger.d('当前页数：${pageIndex - 1}');
         if (!_isComicRolling) {
           _currentSliderValue =
@@ -352,6 +359,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       });
     },
     isSliderRolling: _isSliderRolling,
+    from: widget.from,
   );
 
   /// 切换UI可见性
@@ -409,6 +417,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
             DateTime.now().difference(_lastUpdateTime!).inMilliseconds < 100) {
       return;
     }
+    if (widget.from != From.bika) return;
     // 更新记录
     _isInserting = true;
     final temp = comicInfo as Comic;
@@ -486,10 +495,11 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   /// 加载在线数据
   void _loadOnlineData(PageState state) {
     length = state.epInfo!.docs.length;
-    epPages = state.result;
+    epPages = length.toString();
     docs = state.epInfo!.docs;
     epId = state.epInfo!.epId;
     epName = state.epInfo!.epName;
+    seriesList = state.epInfo!.series;
   }
 
   /// 加载下载数据

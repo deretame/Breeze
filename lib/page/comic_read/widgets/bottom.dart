@@ -80,14 +80,13 @@ class _BottomWidgetState extends State<BottomWidget> {
         haveNext = false;
       } else {
         sort = seriesList
-            .where((item) => item.id == widget.order.toString())
-            .first
+            .firstWhere((series) => series.id == widget.order.toString())
             .sort
             .let(toInt);
-        if (sort == 1) {
+        if (sort == seriesList.first.sort.let(toInt)) {
           havePrev = false;
         }
-        if (sort == widget.epsNumber) {
+        if (sort == seriesList.last.sort.let(toInt)) {
           haveNext = false;
         }
       }
@@ -233,22 +232,10 @@ class _BottomWidgetState extends State<BottomWidget> {
       }
     } else {
       if (sort != null) {
-        if (isPrev) {
-          var temp =
-              seriesList
-                  .where((item) => item.sort.let(toInt) == sort! - 1)
-                  .firstOrNull;
-          if (temp != null) {
-            order = temp.id.let(toInt);
-          }
-        } else {
-          var temp =
-              seriesList
-                  .where((item) => item.sort.let(toInt) == sort! + 1)
-                  .firstOrNull;
-          if (temp != null) {
-            order = temp.id.let(toInt);
-          }
+        if (haveNext && !isPrev) {
+          order = findNeighborOrder(false, seriesList, widget.order);
+        } else if (havePrev && isPrev) {
+          order = findNeighborOrder(true, seriesList, widget.order);
         }
       }
     }
@@ -351,6 +338,33 @@ class _BottomWidgetState extends State<BottomWidget> {
         ),
     ],
   );
+
+  int findNeighborOrder(bool isPrev, List<Series> seriesList, int currentSort) {
+    int neighborOrder = 0;
+    int currentIndex = 0;
+
+    // 首先找到当前项的索引
+    for (int i = 0; i < seriesList.length; i++) {
+      if (seriesList[i].id.let(toInt) == currentSort) {
+        currentIndex = i;
+        break;
+      }
+    }
+
+    if (isPrev) {
+      // 查找上一个项
+      if (currentIndex > 0) {
+        neighborOrder = seriesList[currentIndex - 1].id.let(toInt);
+      }
+    } else {
+      // 查找下一个项
+      if (currentIndex < seriesList.length - 1) {
+        neighborOrder = seriesList[currentIndex + 1].id.let(toInt);
+      }
+    }
+
+    return neighborOrder;
+  }
 }
 
 class ChapterNavigationButton extends StatelessWidget {

@@ -5,7 +5,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/page/jm/jm_search_result/jm_search_result.dart';
 import 'package:zephyr/type/pipe.dart';
 
-import '../../../../network/http/jm/picture.dart';
+import '../../../../network/http/picture/picture.dart';
 import '../../../../type/enum.dart';
 import '../../../../util/router/router.gr.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';

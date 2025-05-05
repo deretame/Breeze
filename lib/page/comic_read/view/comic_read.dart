@@ -116,6 +116,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   @override
   void initState() {
     super.initState();
+    // logger.d(widget.epsNumber.toString());
     if (globalSetting.readMode != 0) {
       pageIndex = 2;
     }

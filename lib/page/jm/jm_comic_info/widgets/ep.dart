@@ -13,12 +13,14 @@ class EpsWidget extends StatelessWidget {
   final String comicId;
   final List<Series> seriesList;
   final JmComicInfoJson comicInfo;
+  final int epsNumber;
 
   const EpsWidget({
     super.key,
     required this.comicId,
     required this.seriesList,
     required this.comicInfo,
+    required this.epsNumber,
   });
 
   @override
@@ -37,6 +39,7 @@ class EpsWidget extends StatelessWidget {
                     comicId: comicId,
                     series: e,
                     comicInfo: comicInfo,
+                    epsNumber: epsNumber,
                   ),
                 ),
               )
@@ -49,12 +52,14 @@ class EpWidget extends StatelessWidget {
   final String comicId;
   final Series series;
   final JmComicInfoJson comicInfo;
+  final int epsNumber;
 
   const EpWidget({
     super.key,
     required this.comicId,
     required this.series,
     required this.comicInfo,
+    required this.epsNumber,
   });
 
   @override
@@ -65,7 +70,7 @@ class EpWidget extends StatelessWidget {
           ComicReadRoute(
             comicId: comicId,
             order: series.id.let(int.parse),
-            epsNumber: 0,
+            epsNumber: epsNumber,
             from: From.jm,
             type: ComicEntryType.normal,
             comicInfo: comicInfo,

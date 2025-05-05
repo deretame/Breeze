@@ -6,7 +6,7 @@ import 'package:zephyr/type/pipe.dart';
 
 import '../../../network/http/bika/http_request.dart';
 import '../../../network/http/jm/http_request.dart';
-import '../../../network/http/jm/picture.dart';
+import '../../../network/http/picture/picture.dart';
 import '../../../type/enum.dart';
 import '../../../util/json_dispose.dart';
 import '../json/bika_ep_info_json/page.dart';

@@ -7,7 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:tar/tar.dart';
 
 import '../../../main.dart';
-import '../../../network/http/bika/picture.dart';
+import '../../../network/http/picture/picture.dart';
 import '../../../type/enum.dart';
 import '../../../util/get_path.dart';
 import '../../../widgets/toast.dart';

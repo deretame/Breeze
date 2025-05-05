@@ -11,12 +11,12 @@ import 'package:zephyr/page/download/widgets/eps.dart';
 
 import '../../../config/global/global.dart';
 import '../../../network/http/bika/http_request.dart';
-import '../../../network/http/bika/picture.dart';
+import '../../../network/http/picture/picture.dart';
 import '../../../object_box/model.dart';
-import '../../comic_read/json/bika_ep_info_json/page.dart' show Page;
 import '../../../util/get_path.dart';
 import '../../comic_info/json/bika/comic_info/comic_info.dart';
 import '../../comic_info/json/bika/eps/eps.dart';
+import '../../comic_read/json/bika_ep_info_json/page.dart' show Page;
 import '../../comments/widgets/title.dart';
 import '../method/download_comic.dart';
 

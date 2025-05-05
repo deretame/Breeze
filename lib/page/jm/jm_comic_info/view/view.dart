@@ -8,7 +8,7 @@ import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../../config/global/global.dart';
-import '../../../../network/http/jm/picture.dart';
+import '../../../../network/http/picture/picture.dart';
 import '../../../../type/enum.dart';
 import '../../../../util/router/router.dart';
 import '../../../../widgets/picture_bloc/models/picture_info.dart';
@@ -209,6 +209,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
           comicId: id,
           seriesList: comicInfo.series,
           comicInfo: comicInfo,
+          epsNumber: state.comicInfo!.series.length,
         ),
       ],
     ];

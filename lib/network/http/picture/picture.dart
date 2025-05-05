@@ -1,7 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
+import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:image/image.dart';
 import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/type/pipe.dart';
@@ -10,7 +14,6 @@ import 'package:zephyr/type/pipe.dart';
 import '../../../config/global/global_setting.dart';
 import '../../../config/jm/config.dart';
 import '../../../util/get_path.dart';
-import '../jm/picture.dart';
 
 final pictureDio = Dio();
 
@@ -78,12 +81,7 @@ Future<String> getCachePicture({
   Uint8List imageData = await downloadImageWithRetry(finalUrl);
 
   if (from == 'jm' && pictureType == 'comic') {
-    JmPictureData data = JmPictureData(Uint8List(0), 0, 0, '');
-    data.imgData = Uint8List.fromList(imageData.toList()..removeLast());
-    data.epsId = chapterId.let(toInt);
-    data.scrambleId = JmConfig.scrambleId.let(toInt);
-    data.pictureName = url.split('/').last.split('.').first;
-    imageData = await compute(segmentationPictureToDisk, data);
+    imageData = await antiObfuscationPicture(imageData, chapterId, url);
   }
 
   // 保存图片
@@ -156,6 +154,10 @@ Future<String> downloadPicture({
 
   // 下载图片
   Uint8List imageData = await downloadImageWithRetry(finalUrl, retry: true);
+
+  if (from == 'jm' && pictureType == 'comic') {
+    imageData = await antiObfuscationPicture(imageData, chapterId, url);
+  }
 
   // 保存图片
   await saveImage(imageData, downloadFilePath);
@@ -318,7 +320,7 @@ Future<Uint8List> downloadImageWithRetry(
 }
 
 Future<void> saveImage(Uint8List imageData, String filePath) async {
-  logger.d('开始保存图片到：$filePath');
+  // logger.d('开始保存图片到：$filePath');
   final targetFile = File(filePath);
 
   try {
@@ -344,4 +346,123 @@ Future<void> ensureDirectoryExists(String filePath) async {
   if (!await directory.exists()) {
     await directory.create(recursive: true);
   }
+}
+
+String get baseUrl => JmConfig.imagesUrl;
+
+String getJmCoverUrl(String id) {
+  return '$baseUrl/media/albums/${id}_3x4.jpg';
+}
+
+String getJmImagesUrl(String id, String imageName) {
+  return '$baseUrl/media/photos/$id/$imageName';
+}
+
+// 用来给compute传输图片数据
+class JmPictureData {
+  TransferableTypedData imgData;
+  int epsId;
+  int scrambleId;
+  String pictureName;
+
+  JmPictureData(this.imgData, this.epsId, this.scrambleId, this.pictureName);
+}
+
+int getSegmentationNum(int epsId, int scrambleId, String pictureName) {
+  int num = 0;
+
+  if (epsId < scrambleId) {
+    num = 0;
+  } else if (epsId < 268850) {
+    num = 10;
+  } else if (epsId > 421926) {
+    String string = epsId.toString() + pictureName;
+    List<int> bytes = utf8.encode(string);
+    String hash = md5.convert(bytes).toString();
+    int charCode = hash.codeUnitAt(hash.length - 1);
+    int remainder = charCode % 8;
+    num = remainder * 2 + 2;
+  } else {
+    String string = epsId.toString() + pictureName;
+    List<int> bytes = utf8.encode(string);
+    String hash = md5.convert(bytes).toString();
+    int charCode = hash.codeUnitAt(hash.length - 1);
+    int remainder = charCode % 10;
+    num = remainder * 2 + 2;
+  }
+
+  return num;
+}
+
+Uint8List segmentationPictureToDisk(JmPictureData pictureData) {
+  Uint8List imgData = pictureData.imgData.materialize().asUint8List();
+  int epsId = pictureData.epsId;
+  int scrambleId = pictureData.scrambleId;
+  String pictureName = pictureData.pictureName;
+
+  final num = getSegmentationNum(epsId, scrambleId, pictureName);
+
+  if (num <= 1) {
+    return imgData;
+  }
+
+  Image srcImg;
+  try {
+    srcImg = decodeImage(imgData)!;
+  } catch (e) {
+    throw Exception(
+      "Failed to decode image: Data length is ${imgData.length} bytes",
+    );
+  }
+
+  int blockSize = (srcImg.height / num).floor();
+  int remainder = srcImg.height % num;
+
+  List<Map<String, int>> blocks = [];
+
+  for (int i = 0; i < num; i++) {
+    int start = i * blockSize;
+    int end = start + blockSize + ((i != num - 1) ? 0 : remainder);
+    blocks.add({'start': start, 'end': end});
+  }
+
+  Image desImg = Image(width: srcImg.width, height: srcImg.height);
+
+  int y = 0;
+  for (int i = blocks.length - 1; i >= 0; i--) {
+    var block = blocks[i];
+    int currBlockHeight = block['end']! - block['start']!;
+    var range = srcImg.getRange(
+      0,
+      block['start']!,
+      srcImg.width,
+      currBlockHeight,
+    );
+    var desRange = desImg.getRange(0, y, srcImg.width, currBlockHeight);
+    while (range.moveNext() && desRange.moveNext()) {
+      desRange.current.r = range.current.r;
+      desRange.current.g = range.current.g;
+      desRange.current.b = range.current.b;
+      desRange.current.a = range.current.a;
+    }
+    y += currBlockHeight;
+  }
+
+  return encodeJpg(desImg);
+}
+
+Future<Uint8List> antiObfuscationPicture(
+  Uint8List imgData,
+  String chapterId,
+  String url,
+) async {
+  // 因为获取到的数据最后会多一位没有用的字节，所以需要移除掉，不然图片无法处理，image库会报错
+  final transferable = TransferableTypedData.fromList([
+    imgData.sublist(0, imgData.length - 1),
+  ]);
+  var data = JmPictureData(transferable, 0, 0, '');
+  data.epsId = chapterId.let(toInt);
+  data.scrambleId = JmConfig.scrambleId.let(toInt);
+  data.pictureName = url.split('/').last.split('.').first;
+  return await compute(segmentationPictureToDisk, data);
 }

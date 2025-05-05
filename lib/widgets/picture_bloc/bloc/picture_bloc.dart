@@ -4,10 +4,9 @@ import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/widgets/picture_bloc/models/models.dart';
 
-import '../../../network/http/bika/picture.dart';
+import '../../../network/http/picture/picture.dart';
 
 part 'picture_event.dart';
-
 part 'picture_state.dart';
 
 const throttleDuration = Duration(milliseconds: 100);

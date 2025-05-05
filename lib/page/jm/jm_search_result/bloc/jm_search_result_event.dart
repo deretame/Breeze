@@ -24,5 +24,9 @@ class JmSearchResultEvent extends Equatable {
   }
 
   @override
+  String toString() =>
+      'JmSearchResultEvent { status: $status, keyword: $keyword, sort: $sort }';
+
+  @override
   List<Object> get props => [status, keyword, sort];
 }

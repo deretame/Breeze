@@ -1,15 +1,25 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/type/pipe.dart';
 
 import '../../../../config/global/global.dart';
 import '../../../../main.dart';
+import '../../../../type/enum.dart';
+import '../../../../util/router/router.gr.dart';
 import '../json/jm_comic_info/jm_comic_info_json.dart';
 
 class EpsWidget extends StatelessWidget {
   final String comicId;
   final List<Series> seriesList;
+  final JmComicInfoJson comicInfo;
 
-  const EpsWidget({super.key, required this.comicId, required this.seriesList});
+  const EpsWidget({
+    super.key,
+    required this.comicId,
+    required this.seriesList,
+    required this.comicInfo,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -21,13 +31,13 @@ class EpsWidget extends StatelessWidget {
               .map(
                 (e) => ConstrainedBox(
                   constraints: BoxConstraints(
-                    maxWidth:
-                        (MediaQuery.of(context).size.width -
-                            screenWidth / 25 -
-                            8) /
-                        2,
+                    maxWidth: (screenWidth * 24 / 25 - 8) / 2,
                   ),
-                  child: EpWidget(comicId: comicId, series: e),
+                  child: EpWidget(
+                    comicId: comicId,
+                    series: e,
+                    comicInfo: comicInfo,
+                  ),
                 ),
               )
               .toList(),
@@ -38,22 +48,29 @@ class EpsWidget extends StatelessWidget {
 class EpWidget extends StatelessWidget {
   final String comicId;
   final Series series;
+  final JmComicInfoJson comicInfo;
 
-  const EpWidget({super.key, required this.comicId, required this.series});
+  const EpWidget({
+    super.key,
+    required this.comicId,
+    required this.series,
+    required this.comicInfo,
+  });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        // AutoRouter.of(context).push(
-        //   ComicReadRoute(
-        //     comicInfo: comicInfo,
-        //     epsInfo: epsInfo,
-        //     doc: doc,
-        //     comicId: comicInfo.id,
-        //     type: type,
-        //   ),
-        // );
+        context.pushRoute(
+          ComicReadRoute(
+            comicId: comicId,
+            order: series.id.let(int.parse),
+            epsNumber: 0,
+            from: From.jm,
+            type: ComicEntryType.normal,
+            comicInfo: comicInfo,
+          ),
+        );
       },
       child: Observer(
         builder: (context) {

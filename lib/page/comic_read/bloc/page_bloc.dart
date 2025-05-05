@@ -87,7 +87,7 @@ class PageBloc extends Bloc<PageEvent, PageState> {
     var result = c.CommonEpInfoJson(epId: '', epName: '', series: [], docs: []);
     await getEpInfo(
       epId,
-    ).let(replaceNestedNull).let(JmEpInfoJson.fromJson).also((d) {
+    ).let(replaceNestedNull).debug().let(JmEpInfoJson.fromJson).also((d) {
       for (var doc in d.images) {
         docsList.add(
           c.Doc(
@@ -103,8 +103,11 @@ class PageBloc extends Bloc<PageEvent, PageState> {
         epName: d.name,
         series: d.series
             .map(
-              (s) =>
-                  c.Series(id: s.id.let(toString), name: s.name, sort: s.sort),
+              (s) => c.Series(
+                id: s.id.let(toString),
+                name: "第${s.sort}话 ${s.name}",
+                sort: s.sort,
+              ),
             )
             .toList()
             .let((d) => d..removeWhere((e) => e.sort == '0')),

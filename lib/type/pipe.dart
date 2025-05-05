@@ -78,3 +78,19 @@ String toString(Object? object) {
     return 'toString() failed: ${e.toString()}'; // 兜底处理
   }
 }
+
+int toInt(Object? object) {
+  try {
+    return int.parse(object.toString());
+  } catch (e) {
+    return 0; // 兜底处理
+  }
+}
+
+double toDouble(Object? object) {
+  try {
+    return double.parse(object.toString());
+  } catch (e) {
+    return 0.0; // 兜底处理
+  }
+}

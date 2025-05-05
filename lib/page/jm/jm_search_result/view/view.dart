@@ -143,7 +143,10 @@ class _JmSearchResultPageState extends State<_JmSearchResultPage> {
   Widget _buildList(JmSearchResultState state) {
     if (totalCount != state.result && event.keyword.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        setState(() => totalCount = state.result);
+        try {
+          int.parse(state.result);
+          setState(() => totalCount = state.result);
+        } catch (_) {}
       });
     }
 
@@ -260,8 +263,8 @@ class _JmSearchResultPageState extends State<_JmSearchResultPage> {
         return;
       }
     } catch (_) {}
-    if (event != event.copyWith(keyword: value, sort: '')) {
-      setState(() => event = event.copyWith(keyword: value, sort: ''));
+    if (event != event.copyWith(keyword: value)) {
+      setState(() => event = event.copyWith(keyword: value));
       _fetchSearchResult(event.copyWith(status: JmSearchResultStatus.initial));
     }
   }

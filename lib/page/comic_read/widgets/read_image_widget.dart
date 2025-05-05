@@ -7,20 +7,15 @@ import '../../../config/global/global.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
-import '../json/common_ep_info_json/common_ep_info_json.dart';
 
 class ReadImageWidget extends StatefulWidget {
-  final String comicId;
-  final String epsId;
-  final Doc doc;
+  final PictureInfo pictureInfo;
   final int index;
   final bool isColumn;
 
   const ReadImageWidget({
     super.key,
-    required this.doc,
-    required this.comicId,
-    required this.epsId,
+    required this.pictureInfo,
     required this.index,
     required this.isColumn,
   });
@@ -31,15 +26,7 @@ class ReadImageWidget extends StatefulWidget {
 
 class _ReadImageWidgetState extends State<ReadImageWidget>
     with AutomaticKeepAliveClientMixin {
-  String get comicId => widget.comicId;
-
-  String get epsId => widget.epsId;
-
-  Doc get doc => widget.doc;
-
   int get index => widget.index;
-
-  String get chapterId => widget.epsId;
 
   bool get isColumn => widget.isColumn;
 
@@ -50,20 +37,7 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
   Widget build(BuildContext context) {
     super.build(context);
     return BlocProvider(
-      create:
-          (context) =>
-              PictureBloc()..add(
-                GetPicture(
-                  PictureInfo(
-                    from: "bika",
-                    url: doc.fileServer,
-                    path: doc.path,
-                    cartoonId: comicId,
-                    pictureType: "comic",
-                    chapterId: chapterId,
-                  ),
-                ),
-              ),
+      create: (context) => PictureBloc()..add(GetPicture(widget.pictureInfo)),
       child: SizedBox(
         width: screenWidth,
         child: BlocBuilder<PictureBloc, PictureLoadState>(
@@ -112,16 +86,7 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
                     child: InkWell(
                       onTap: () {
                         context.read<PictureBloc>().add(
-                          GetPicture(
-                            PictureInfo(
-                              from: "bika",
-                              url: doc.fileServer,
-                              path: doc.path,
-                              cartoonId: comicId,
-                              pictureType: "comic",
-                              chapterId: chapterId,
-                            ),
-                          ),
+                          GetPicture(widget.pictureInfo),
                         );
                       },
                       child: Center(

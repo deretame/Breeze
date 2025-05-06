@@ -13,6 +13,7 @@ import 'package:hive_ce_flutter/adapters.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
+import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/pretty_log.dart';
 import 'package:zephyr/util/router/router.dart';
@@ -49,6 +50,7 @@ Future<void> main() async {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+      await RustLib.init();
       // 重采样触控刷新率
       GestureBinding.instance.resamplingEnabled = false;
 

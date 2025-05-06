@@ -104,6 +104,9 @@ dependencies:
   equatable: ^2.0.3             # 对象相等性简化
   stream_transform: ^2.1.1      # Stream 转换工具
   xml: ^6.5.0                   # XML 解析器
+  rust_lib_zephyr:
+    path: rust_builder
+  flutter_rust_bridge: 2.9.0    # flutter 和 rust 通信桥
 
 dev_dependencies:
   flutter_test:
@@ -114,6 +117,8 @@ dev_dependencies:
   auto_route_generator: ^10.0.1   # 路由代码生成
   hive_ce_generator: ^1.8.1       # Hive 模型生成
   objectbox_generator: ^4.2.0     # ObjectBox 代码生成
+  integration_test:
+    sdk: flutter
 
 # Flutter 配置
 flutter:

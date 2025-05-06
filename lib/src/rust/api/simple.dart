@@ -6,5 +6,21 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-String greet({required String name}) =>
+Future<String> greet({required String name}) =>
     RustLib.instance.api.crateApiSimpleGreet(name: name);
+
+Future<String> sleepTest() => RustLib.instance.api.crateApiSimpleSleepTest();
+
+Future<void> antiObfuscationPicture({
+  required List<int> imgData,
+  required int chapterId,
+  required String url,
+  required int scrambleId,
+  required String fileName,
+}) => RustLib.instance.api.crateApiSimpleAntiObfuscationPicture(
+  imgData: imgData,
+  chapterId: chapterId,
+  url: url,
+  scrambleId: scrambleId,
+  fileName: fileName,
+);

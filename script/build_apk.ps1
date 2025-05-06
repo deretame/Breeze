@@ -1,5 +1,8 @@
 # 用来在windows环境下构建flutter项目的APK
 
+# 安装工具来添加rust的支持
+cargo install flutter_rust_bridge_codegen
+
 # 获取脚本所在目录
 $scriptPath = $PSScriptRoot
 
@@ -63,7 +66,7 @@ try
     {
         Write-Warning "未找到需要修改的配置项"
     }
-    
+
     if ($content -ne $modified)
     {
         $modified | Set-Content $manifestPath

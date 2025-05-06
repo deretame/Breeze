@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
+import 'package:zephyr/main.dart';
 
 import '../../../../../network/http/bika/http_request.dart';
 import '../../../json/bika/comic_info/comic_info.dart';
@@ -40,7 +41,8 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
           comicInfo: comicInfo.data.comic,
         ),
       );
-    } catch (e) {
+    } catch (e, s) {
+      logger.e(e, stackTrace: s);
       emit(
         state.copyWith(
           status: GetComicInfoStatus.failure,

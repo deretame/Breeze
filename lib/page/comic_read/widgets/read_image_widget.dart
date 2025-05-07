@@ -76,7 +76,10 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
                   return SizedBox(
                     height: screenWidth,
                     width: screenWidth,
-                    child: Image.asset('asset/image/error_image/404.png'),
+                    child: Image.asset(
+                      'asset/image/error_image/404.png',
+                      fit: BoxFit.fill,
+                    ),
                   );
                 } else {
                   return Container(

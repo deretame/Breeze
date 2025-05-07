@@ -377,7 +377,7 @@ Future<void> decodeAndSaveImage(
   String url,
 ) async {
   if (imgData.isEmpty) {
-    throw Exception('该图片已失效');
+    throw Exception('404');
   }
 
   try {

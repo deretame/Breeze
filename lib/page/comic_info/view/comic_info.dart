@@ -59,7 +59,7 @@ class _ComicInfoState extends State<_ComicInfo>
   comic_all_info_json.ComicAllInfoJson? comicAllInfo;
   late Comic comicInfo; // 用来存储漫画信息
 
-  final List<Doc> _epsInfo = [];
+  List<Doc> _epsInfo = [];
   late ComicEntryType _type;
   bool _loaddingComicInfo = false;
 
@@ -289,6 +289,7 @@ class _ComicInfoState extends State<_ComicInfo>
                       comicHistory: comicHistory,
                       epsInfo: _epsInfo,
                       type: _type,
+                      epsCompleted: (docs) => setState(() => _epsInfo = docs),
                     ),
                     const SizedBox(height: 10),
                     RecommendWidget(comicId: comicInfo.id, type: _type),

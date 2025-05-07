@@ -17,6 +17,7 @@ class EpsWidget extends StatefulWidget {
   final BikaComicHistory? comicHistory;
   final List<Doc> epsInfo;
   final ComicEntryType type;
+  final ValueChanged<List<Doc>> epsCompleted;
 
   const EpsWidget({
     super.key,
@@ -24,6 +25,7 @@ class EpsWidget extends StatefulWidget {
     required this.comicHistory,
     required this.epsInfo,
     required this.type,
+    required this.epsCompleted,
   });
 
   @override
@@ -39,7 +41,11 @@ class _EpsWidgetState extends State<EpsWidget> {
 
   ComicEntryType get type => widget.type;
 
+  ValueChanged<List<Doc>> get epsCompleted => widget.epsCompleted;
+
   List<Doc> docs = [];
+
+  bool isCompleted = false;
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +83,13 @@ class _EpsWidgetState extends State<EpsWidget> {
       docs = epsInfo;
     }
 
+    if (!isCompleted) {
+      isCompleted = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        epsCompleted(docs);
+      });
+    }
+
     return ListView.builder(
       cacheExtent: 0,
       physics: const NeverScrollableScrollPhysics(),
@@ -89,7 +102,7 @@ class _EpsWidgetState extends State<EpsWidget> {
         // 如果是历史记录按钮
         if (comicHistory != null && index == 0) {
           return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 5.0),
+            padding: const EdgeInsets.all(5.0),
             child: EpButtonWidget(
               doc: Doc(
                 id: "history",

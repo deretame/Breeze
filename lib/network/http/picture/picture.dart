@@ -376,6 +376,10 @@ Future<void> decodeAndSaveImage(
   String fileName,
   String url,
 ) async {
+  if (imgData.isEmpty) {
+    throw Exception('该图片已失效');
+  }
+
   try {
     await antiObfuscationPicture(
       imgData: imgData,

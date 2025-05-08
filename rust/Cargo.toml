@@ -14,6 +14,13 @@ image = { version = "0.25.6", default-features = false, features = ["webp"] }
 md5 = "0.7.0"
 anyhow = "1.0.98"
 crossbeam = "0.8.4"
+reqwest = { version = "0.12.15", default-features = false, features = [
+    "rustls-tls",
+    "json",
+    "stream",
+] }
+tokio = { version = "1.45.0", features = ["full"] }
+serde = { version = "1.0.219", features = ["derive"] }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }

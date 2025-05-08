@@ -1,3 +1,6 @@
+use reqwest;
+use tokio::runtime::Runtime;
+
 use crate::image_decode::decode;
 
 #[flutter_rust_bridge::frb] // Synchronous mode for simplicity of the demo
@@ -40,4 +43,17 @@ pub fn anti_obfuscation_picture(
 pub fn init_app() {
     // Default utilities - feel free to customize
     flutter_rust_bridge::setup_default_user_utils();
+}
+
+#[flutter_rust_bridge::frb]
+pub fn sync_http_get(url: &str) -> Result<String, anyhow::Error> {
+    // 创建Tokio运行时
+    let rt = Runtime::new()?;
+
+    // 使用block_on执行异步代码
+    rt.block_on(async {
+        let client = reqwest::Client::new();
+        let response = client.get(url).send().await?;
+        response.text().await.map_err(Into::into)
+    })
 }

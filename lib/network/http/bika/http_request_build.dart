@@ -86,6 +86,8 @@ Future<Map<String, dynamic>> request(
     dio.interceptors.removeWhere((Interceptor i) => i == cacheInterceptor);
   }
 
+  var cancelToken = CancelToken();
+
   try {
     // 使用优选 IP 替换原始域名
     String requestUrl = url;
@@ -103,6 +105,13 @@ Future<Map<String, dynamic>> request(
     // }
     // logger.d(headers);
 
+    // 20秒后自动取消
+    Timer(Duration(seconds: 20), () {
+      if (!cancelToken.isCancelled) {
+        cancelToken.cancel('请求超时自动取消');
+      }
+    });
+
     final response = await dio.request(
       requestUrl,
       data: body,
@@ -112,6 +121,7 @@ Future<Map<String, dynamic>> request(
         sendTimeout: const Duration(seconds: 10), // 连接超时时间
         receiveTimeout: const Duration(seconds: 10), // 接收超时时间
       ),
+      cancelToken: cancelToken,
     );
 
     // logger.d(response.data);
@@ -124,6 +134,10 @@ Future<Map<String, dynamic>> request(
         error.response?.data?['message'] == 'unauthorized') {
       bikaSetting.deleteAuthorization();
       eventBus.fire(NeedLogin());
+    }
+
+    if (cancelToken.isCancelled) {
+      throw Exception('请求超时自动取消');
     }
 
     // 抛出封装后的错误信息

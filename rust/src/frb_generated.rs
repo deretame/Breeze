@@ -67,22 +67,13 @@ fn wire__crate__api__simple__anti_obfuscation_picture_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_img_data = <Vec<u8>>::sse_decode(&mut deserializer);
-            let api_chapter_id = <i32>::sse_decode(&mut deserializer);
-            let api_url = <String>::sse_decode(&mut deserializer);
-            let api_scramble_id = <i32>::sse_decode(&mut deserializer);
-            let api_file_name = <String>::sse_decode(&mut deserializer);
+            let api_image_info = <crate::decode::decode::ImageInfo>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || {
-                        let output_ok = crate::api::simple::anti_obfuscation_picture(
-                            api_img_data,
-                            api_chapter_id,
-                            api_url,
-                            api_scramble_id,
-                            api_file_name,
-                        )?;
+                        let output_ok =
+                            crate::api::simple::anti_obfuscation_picture(api_image_info)?;
                         Ok(output_ok)
                     })(),
                 )
@@ -216,7 +207,8 @@ fn wire__crate__api__simple__pack_folder_impl(
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_dest_path = <String>::sse_decode(&mut deserializer);
-            let api_pack_info = <crate::api::simple::PackInfo>::sse_decode(&mut deserializer);
+            let api_pack_info =
+                <crate::compressed::compressed::PackInfo>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
@@ -289,6 +281,24 @@ impl SseDecode for i32 {
     }
 }
 
+impl SseDecode for crate::decode::decode::ImageInfo {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_imgData = <Vec<u8>>::sse_decode(deserializer);
+        let mut var_chapterId = <i32>::sse_decode(deserializer);
+        let mut var_url = <String>::sse_decode(deserializer);
+        let mut var_scrambleId = <i32>::sse_decode(deserializer);
+        let mut var_fileName = <String>::sse_decode(deserializer);
+        return crate::decode::decode::ImageInfo {
+            img_data: var_imgData,
+            chapter_id: var_chapterId,
+            url: var_url,
+            scramble_id: var_scrambleId,
+            file_name: var_fileName,
+        };
+    }
+}
+
 impl SseDecode for Vec<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -313,14 +323,14 @@ impl SseDecode for Vec<u8> {
     }
 }
 
-impl SseDecode for crate::api::simple::PackInfo {
+impl SseDecode for crate::compressed::compressed::PackInfo {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_comicInfoString = <String>::sse_decode(deserializer);
         let mut var_processedComicInfoString = <String>::sse_decode(deserializer);
         let mut var_originalImagePaths = <Vec<String>>::sse_decode(deserializer);
         let mut var_packImagePaths = <Vec<String>>::sse_decode(deserializer);
-        return crate::api::simple::PackInfo {
+        return crate::compressed::compressed::PackInfo {
             comic_info_string: var_comicInfoString,
             processed_comic_info_string: var_processedComicInfoString,
             original_image_paths: var_originalImagePaths,
@@ -387,7 +397,31 @@ fn pde_ffi_dispatcher_sync_impl(
 // Section: rust2dart
 
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::simple::PackInfo {
+impl flutter_rust_bridge::IntoDart for crate::decode::decode::ImageInfo {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.img_data.into_into_dart().into_dart(),
+            self.chapter_id.into_into_dart().into_dart(),
+            self.url.into_into_dart().into_dart(),
+            self.scramble_id.into_into_dart().into_dart(),
+            self.file_name.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::decode::decode::ImageInfo
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::decode::decode::ImageInfo>
+    for crate::decode::decode::ImageInfo
+{
+    fn into_into_dart(self) -> crate::decode::decode::ImageInfo {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::compressed::compressed::PackInfo {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.comic_info_string.into_into_dart().into_dart(),
@@ -400,11 +434,14 @@ impl flutter_rust_bridge::IntoDart for crate::api::simple::PackInfo {
         .into_dart()
     }
 }
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::simple::PackInfo {}
-impl flutter_rust_bridge::IntoIntoDart<crate::api::simple::PackInfo>
-    for crate::api::simple::PackInfo
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::compressed::compressed::PackInfo
 {
-    fn into_into_dart(self) -> crate::api::simple::PackInfo {
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::compressed::compressed::PackInfo>
+    for crate::compressed::compressed::PackInfo
+{
+    fn into_into_dart(self) -> crate::compressed::compressed::PackInfo {
         self
     }
 }
@@ -430,6 +467,17 @@ impl SseEncode for i32 {
     }
 }
 
+impl SseEncode for crate::decode::decode::ImageInfo {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Vec<u8>>::sse_encode(self.img_data, serializer);
+        <i32>::sse_encode(self.chapter_id, serializer);
+        <String>::sse_encode(self.url, serializer);
+        <i32>::sse_encode(self.scramble_id, serializer);
+        <String>::sse_encode(self.file_name, serializer);
+    }
+}
+
 impl SseEncode for Vec<String> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -450,7 +498,7 @@ impl SseEncode for Vec<u8> {
     }
 }
 
-impl SseEncode for crate::api::simple::PackInfo {
+impl SseEncode for crate::compressed::compressed::PackInfo {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.comic_info_string, serializer);

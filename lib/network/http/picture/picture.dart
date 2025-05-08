@@ -10,6 +10,7 @@ import 'package:zephyr/type/pipe.dart';
 import '../../../config/global/global_setting.dart';
 import '../../../config/jm/config.dart';
 import '../../../src/rust/api/simple.dart';
+import '../../../src/rust/decode/decode.dart';
 import '../../../util/get_path.dart';
 
 final pictureDio = Dio();
@@ -382,11 +383,13 @@ Future<void> decodeAndSaveImage(
 
   try {
     await antiObfuscationPicture(
-      imgData: imgData,
-      chapterId: chapterId,
-      scrambleId: scrambleId,
-      fileName: fileName,
-      url: url,
+      imageInfo: ImageInfo(
+        imgData: imgData,
+        chapterId: chapterId,
+        scrambleId: scrambleId,
+        fileName: fileName,
+        url: url,
+      ),
     );
   } catch (e, s) {
     logger.e(e, stackTrace: s);

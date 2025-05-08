@@ -1370,14 +1370,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.3.1"
-  tar:
-    dependency: "direct main"
-    description:
-      name: tar
-      sha256: "8e67ab1baa07d3ef2c5d52cfb84e7ed4742799141e9e2ac3d0801a1a7ccb7575"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.0"
   term_glyph:
     dependency: transitive
     description:

@@ -3,29 +3,20 @@
 
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
+import '../compressed/compressed.dart';
+import '../decode/decode.dart';
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
-
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`
 
 Future<String> greet({required String name}) =>
     RustLib.instance.api.crateApiSimpleGreet(name: name);
 
 Future<String> sleepTest() => RustLib.instance.api.crateApiSimpleSleepTest();
 
-Future<void> antiObfuscationPicture({
-  required List<int> imgData,
-  required int chapterId,
-  required String url,
-  required int scrambleId,
-  required String fileName,
-}) => RustLib.instance.api.crateApiSimpleAntiObfuscationPicture(
-  imgData: imgData,
-  chapterId: chapterId,
-  url: url,
-  scrambleId: scrambleId,
-  fileName: fileName,
-);
+Future<void> antiObfuscationPicture({required ImageInfo imageInfo}) => RustLib
+    .instance
+    .api
+    .crateApiSimpleAntiObfuscationPicture(imageInfo: imageInfo);
 
 Future<String> asyncHttpGet({required String url}) =>
     RustLib.instance.api.crateApiSimpleAsyncHttpGet(url: url);
@@ -37,34 +28,3 @@ Future<void> packFolder({
   destPath: destPath,
   packInfo: packInfo,
 );
-
-class PackInfo {
-  final String comicInfoString;
-  final String processedComicInfoString;
-  final List<String> originalImagePaths;
-  final List<String> packImagePaths;
-
-  const PackInfo({
-    required this.comicInfoString,
-    required this.processedComicInfoString,
-    required this.originalImagePaths,
-    required this.packImagePaths,
-  });
-
-  @override
-  int get hashCode =>
-      comicInfoString.hashCode ^
-      processedComicInfoString.hashCode ^
-      originalImagePaths.hashCode ^
-      packImagePaths.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is PackInfo &&
-          runtimeType == other.runtimeType &&
-          comicInfoString == other.comicInfoString &&
-          processedComicInfoString == other.processedComicInfoString &&
-          originalImagePaths == other.originalImagePaths &&
-          packImagePaths == other.packImagePaths;
-}

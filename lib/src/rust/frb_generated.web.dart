@@ -7,8 +7,10 @@
 // ignore_for_file: argument_type_not_assignable
 
 import 'api/simple.dart';
+import 'compressed/compressed.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'decode/decode.dart';
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_web.dart';
 
@@ -27,16 +29,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String dco_decode_String(dynamic raw);
 
   @protected
+  ImageInfo dco_decode_box_autoadd_image_info(dynamic raw);
+
+  @protected
   PackInfo dco_decode_box_autoadd_pack_info(dynamic raw);
 
   @protected
   int dco_decode_i_32(dynamic raw);
 
   @protected
-  List<String> dco_decode_list_String(dynamic raw);
+  ImageInfo dco_decode_image_info(dynamic raw);
 
   @protected
-  List<int> dco_decode_list_prim_u_8_loose(dynamic raw);
+  List<String> dco_decode_list_String(dynamic raw);
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
@@ -57,16 +62,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String sse_decode_String(SseDeserializer deserializer);
 
   @protected
+  ImageInfo sse_decode_box_autoadd_image_info(SseDeserializer deserializer);
+
+  @protected
   PackInfo sse_decode_box_autoadd_pack_info(SseDeserializer deserializer);
 
   @protected
   int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
-  List<String> sse_decode_list_String(SseDeserializer deserializer);
+  ImageInfo sse_decode_image_info(SseDeserializer deserializer);
 
   @protected
-  List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer);
+  List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
@@ -93,6 +101,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_String(String self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_image_info(
+    ImageInfo self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_pack_info(
     PackInfo self,
     SseSerializer serializer,
@@ -102,10 +116,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_i_32(int self, SseSerializer serializer);
 
   @protected
-  void sse_encode_list_String(List<String> self, SseSerializer serializer);
+  void sse_encode_image_info(ImageInfo self, SseSerializer serializer);
 
   @protected
-  void sse_encode_list_prim_u_8_loose(List<int> self, SseSerializer serializer);
+  void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_prim_u_8_strict(

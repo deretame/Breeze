@@ -4,8 +4,10 @@
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
 import 'api/simple.dart';
+import 'compressed/compressed.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'decode/decode.dart';
 import 'frb_generated.dart';
 import 'frb_generated.io.dart'
     if (dart.library.js_interop) 'frb_generated.web.dart';
@@ -76,11 +78,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 
 abstract class RustLibApi extends BaseApi {
   Future<void> crateApiSimpleAntiObfuscationPicture({
-    required List<int> imgData,
-    required int chapterId,
-    required String url,
-    required int scrambleId,
-    required String fileName,
+    required ImageInfo imageInfo,
   });
 
   Future<String> crateApiSimpleAsyncHttpGet({required String url});
@@ -107,21 +105,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<void> crateApiSimpleAntiObfuscationPicture({
-    required List<int> imgData,
-    required int chapterId,
-    required String url,
-    required int scrambleId,
-    required String fileName,
+    required ImageInfo imageInfo,
   }) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_list_prim_u_8_loose(imgData, serializer);
-          sse_encode_i_32(chapterId, serializer);
-          sse_encode_String(url, serializer);
-          sse_encode_i_32(scrambleId, serializer);
-          sse_encode_String(fileName, serializer);
+          sse_encode_box_autoadd_image_info(imageInfo, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -134,7 +124,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiSimpleAntiObfuscationPictureConstMeta,
-        argValues: [imgData, chapterId, url, scrambleId, fileName],
+        argValues: [imageInfo],
         apiImpl: this,
       ),
     );
@@ -143,7 +133,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiSimpleAntiObfuscationPictureConstMeta =>
       const TaskConstMeta(
         debugName: "anti_obfuscation_picture",
-        argNames: ["imgData", "chapterId", "url", "scrambleId", "fileName"],
+        argNames: ["imageInfo"],
       );
 
   @override
@@ -303,6 +293,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ImageInfo dco_decode_box_autoadd_image_info(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_image_info(raw);
+  }
+
+  @protected
   PackInfo dco_decode_box_autoadd_pack_info(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_pack_info(raw);
@@ -315,15 +311,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  List<String> dco_decode_list_String(dynamic raw) {
+  ImageInfo dco_decode_image_info(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_String).toList();
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return ImageInfo(
+      imgData: dco_decode_list_prim_u_8_strict(arr[0]),
+      chapterId: dco_decode_i_32(arr[1]),
+      url: dco_decode_String(arr[2]),
+      scrambleId: dco_decode_i_32(arr[3]),
+      fileName: dco_decode_String(arr[4]),
+    );
   }
 
   @protected
-  List<int> dco_decode_list_prim_u_8_loose(dynamic raw) {
+  List<String> dco_decode_list_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw as List<int>;
+    return (raw as List<dynamic>).map(dco_decode_String).toList();
   }
 
   @protected
@@ -373,6 +378,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ImageInfo sse_decode_box_autoadd_image_info(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_image_info(deserializer));
+  }
+
+  @protected
   PackInfo sse_decode_box_autoadd_pack_info(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_pack_info(deserializer));
@@ -385,6 +396,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ImageInfo sse_decode_image_info(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_imgData = sse_decode_list_prim_u_8_strict(deserializer);
+    var var_chapterId = sse_decode_i_32(deserializer);
+    var var_url = sse_decode_String(deserializer);
+    var var_scrambleId = sse_decode_i_32(deserializer);
+    var var_fileName = sse_decode_String(deserializer);
+    return ImageInfo(
+      imgData: var_imgData,
+      chapterId: var_chapterId,
+      url: var_url,
+      scrambleId: var_scrambleId,
+      fileName: var_fileName,
+    );
+  }
+
+  @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -394,13 +422,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       ans_.add(sse_decode_String(deserializer));
     }
     return ans_;
-  }
-
-  @protected
-  List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var len_ = sse_decode_i_32(deserializer);
-    return deserializer.buffer.getUint8List(len_);
   }
 
   @protected
@@ -458,6 +479,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_image_info(
+    ImageInfo self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_image_info(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_pack_info(
     PackInfo self,
     SseSerializer serializer,
@@ -473,24 +503,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_image_info(ImageInfo self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_prim_u_8_strict(self.imgData, serializer);
+    sse_encode_i_32(self.chapterId, serializer);
+    sse_encode_String(self.url, serializer);
+    sse_encode_i_32(self.scrambleId, serializer);
+    sse_encode_String(self.fileName, serializer);
+  }
+
+  @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_String(item, serializer);
     }
-  }
-
-  @protected
-  void sse_encode_list_prim_u_8_loose(
-    List<int> self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    serializer.buffer.putUint8List(
-      self is Uint8List ? self : Uint8List.fromList(self),
-    );
   }
 
   @protected

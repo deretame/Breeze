@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -81,6 +82,14 @@ Future<Map<String, dynamic>> request(
 
   jmDio.interceptors.add(CookieManager(JmConfig.cookieJar));
 
+  var cancelToken = CancelToken();
+
+  Timer(Duration(seconds: 20), () {
+    if (!cancelToken.isCancelled) {
+      cancelToken.cancel('请求超时自动取消');
+    }
+  });
+
   try {
     var result = await jmDio
         .request(
@@ -93,6 +102,7 @@ Future<Map<String, dynamic>> request(
             receiveTimeout: const Duration(seconds: 10),
             responseType: byte ? ResponseType.bytes : null,
           ),
+          cancelToken: cancelToken,
         )
         .let((var res) => res.data as List<int>)
         .let(utf8.decode)
@@ -105,8 +115,12 @@ Future<Map<String, dynamic>> request(
   } on DioException catch (error) {
     logger.d(error, stackTrace: error.stackTrace);
 
+    if (cancelToken.isCancelled) {
+      throw Exception('请求超时自动取消');
+    }
+
     // 抛出封装后的错误信息
-    _handleDioError(error).let((var e) => throw Exception(e));
+    _handleDioError(error).let(throw Exception);
   } catch (e, s) {
     logger.e(e, stackTrace: s);
     rethrow;

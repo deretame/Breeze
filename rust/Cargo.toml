@@ -9,14 +9,11 @@ crate-type = ["cdylib", "staticlib"]
 [dependencies]
 flutter_rust_bridge = "=2.9.0"
 flutter_rust_bridge_macros = "2.9.0"
-image = { version = "0.25.6", default-features = false, features = [
-    "webp",
-    "jpeg",
-    "png",
-] }
+rayon = "1.10.0"
+image = { version = "0.25.6", default-features = false, features = ["webp"] }
 md5 = "0.7.0"
 anyhow = "1.0.98"
-serde = { version = "1.0.193", features = ["derive"] }
+crossbeam = "0.8.4"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }

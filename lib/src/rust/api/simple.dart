@@ -6,6 +6,8 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`
+
 Future<String> greet({required String name}) =>
     RustLib.instance.api.crateApiSimpleGreet(name: name);
 
@@ -25,5 +27,44 @@ Future<void> antiObfuscationPicture({
   fileName: fileName,
 );
 
-Future<String> syncHttpGet({required String url}) =>
-    RustLib.instance.api.crateApiSimpleSyncHttpGet(url: url);
+Future<String> asyncHttpGet({required String url}) =>
+    RustLib.instance.api.crateApiSimpleAsyncHttpGet(url: url);
+
+Future<void> packFolder({
+  required String destPath,
+  required PackInfo packInfo,
+}) => RustLib.instance.api.crateApiSimplePackFolder(
+  destPath: destPath,
+  packInfo: packInfo,
+);
+
+class PackInfo {
+  final String comicInfoString;
+  final String processedComicInfoString;
+  final List<String> originalImagePaths;
+  final List<String> packImagePaths;
+
+  const PackInfo({
+    required this.comicInfoString,
+    required this.processedComicInfoString,
+    required this.originalImagePaths,
+    required this.packImagePaths,
+  });
+
+  @override
+  int get hashCode =>
+      comicInfoString.hashCode ^
+      processedComicInfoString.hashCode ^
+      originalImagePaths.hashCode ^
+      packImagePaths.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PackInfo &&
+          runtimeType == other.runtimeType &&
+          comicInfoString == other.comicInfoString &&
+          processedComicInfoString == other.processedComicInfoString &&
+          originalImagePaths == other.originalImagePaths &&
+          packImagePaths == other.packImagePaths;
+}

@@ -9,6 +9,14 @@ use std::io::Write;
 use std::path::Path;
 use std::sync::Arc;
 
+pub struct ImageInfo {
+    pub img_data: Vec<u8>,
+    pub chapter_id: i32,
+    pub url: String,
+    pub scramble_id: i32,
+    pub file_name: String,
+}
+
 pub(crate) fn get_segmentation_num(eps_id: i32, scramble_id: i32, picture_name: &str) -> i32 {
     if eps_id < scramble_id {
         0
@@ -29,21 +37,32 @@ pub(crate) fn get_segmentation_num(eps_id: i32, scramble_id: i32, picture_name: 
     }
 }
 
-pub fn segmentation_picture_to_disk(
-    img_data: &[u8],
-    eps_id: i32,
-    scramble_id: i32,
-    picture_name: String,
-    file_name: String,
-) -> Result<()> {
+// 这个东西是给禁漫用的，用来反混淆图片
+pub fn segmentation_picture_to_disk(image_info: ImageInfo) -> Result<()> {
+    let processed_data = if image_info.img_data.last() == Some(&0) {
+        &image_info.img_data[..image_info.img_data.len() - 1]
+    } else {
+        &image_info.img_data[..]
+    };
     // 1. 初始逻辑保持不变
-    let num = get_segmentation_num(eps_id, scramble_id, &picture_name);
+    let num = get_segmentation_num(
+        image_info.chapter_id,
+        image_info.scramble_id,
+        &image_info
+            .url
+            .split('/')
+            .last()
+            .unwrap()
+            .split('.')
+            .next()
+            .unwrap(),
+    );
     if num <= 1 {
-        save_image(img_data, &file_name)?;
+        save_image(&processed_data, &image_info.file_name)?;
         return Ok(());
     }
     // 2. 解码图像
-    let src_img = image::load_from_memory(img_data).context("Failed to decode image")?;
+    let src_img = image::load_from_memory(processed_data).context("Failed to decode image")?;
     let (width, height) = src_img.dimensions();
     // 3. 计算分块
     let block_size = (height as f32 / num as f32).floor() as u32;
@@ -99,7 +118,7 @@ pub fn segmentation_picture_to_disk(
     // 7. 编码保存
     let mut bytes = Vec::new();
     des_img.write_to(&mut Cursor::new(&mut bytes), image::ImageFormat::WebP)?;
-    save_image(&bytes, &file_name)?;
+    save_image(&bytes, &image_info.file_name)?;
     Ok(())
 }
 

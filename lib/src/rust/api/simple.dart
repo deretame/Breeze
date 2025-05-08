@@ -24,3 +24,6 @@ Future<void> antiObfuscationPicture({
   scrambleId: scrambleId,
   fileName: fileName,
 );
+
+Future<String> syncHttpGet({required String url}) =>
+    RustLib.instance.api.crateApiSimpleSyncHttpGet(url: url);

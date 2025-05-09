@@ -1,4 +1,7 @@
 use anyhow::{Context, Result};
+use base64::{engine::general_purpose, Engine as _};
+use image::{codecs::jpeg::JpegEncoder, ExtendedColorType};
+use log::debug;
 use tokio::fs::File;
 use tokio_tar::Builder;
 use tokio_tar::Header;
@@ -108,4 +111,60 @@ pub async fn pack_folder(dest_path: &str, pack_info: PackInfo) -> Result<()> {
     builder.finish().await.context("完成压缩包失败")?;
 
     Ok(())
+}
+
+/// 压缩图像并返回base64编码字符串
+///
+/// # 参数
+/// * `file_path` - 原始图像文件路径
+///
+/// # 返回值
+/// * `Result<String>` - 压缩后的base64编码字符串
+pub async fn compress_image(file_path: &str) -> Result<String> {
+    let image_bytes = tokio::fs::read(file_path).await?;
+    let img = image::load_from_memory(&image_bytes)?;
+
+    let mut low = 1u8;
+    let mut high = 100u8;
+    let mut best_quality = 100;
+    let mut best_bytes = Vec::new();
+
+    // 二分法查找最佳 quality
+    while low <= high {
+        let mid = (low + high) / 2;
+        let mut compressed_bytes = Vec::new();
+
+        {
+            let rgb_img = img.to_rgb8();
+            let mut encoder = JpegEncoder::new_with_quality(&mut compressed_bytes, mid);
+            encoder.encode(
+                rgb_img.as_raw(),
+                rgb_img.width(),
+                rgb_img.height(),
+                ExtendedColorType::Rgb8,
+            )?;
+        }
+
+        let current_size = general_purpose::STANDARD.encode(&compressed_bytes).len();
+
+        if current_size <= 689493 {
+            // 当前 quality 满足条件，尝试更高 quality
+            best_quality = mid;
+            best_bytes = compressed_bytes;
+            low = mid + 1;
+        } else {
+            // 当前 quality 过大，尝试更低 quality
+            high = mid - 1;
+        }
+
+        debug!("Quality: {}, Size: {}", mid, current_size);
+    }
+
+    let final_base64 = general_purpose::STANDARD.encode(&best_bytes);
+    debug!(
+        "Final Quality: {}, Size: {}",
+        best_quality,
+        final_base64.len()
+    );
+    Ok(final_base64)
 }

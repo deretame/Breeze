@@ -25,6 +25,11 @@ pub fn anti_obfuscation_picture(image_info: decode::ImageInfo) -> Result<()> {
 }
 
 #[flutter_rust_bridge::frb]
+pub async fn compress_image(file_path: &str) -> Result<String> {
+    compressed::compress_image(file_path).await
+}
+
+#[flutter_rust_bridge::frb]
 pub async fn async_http_get(url: &str) -> Result<String> {
     let client = reqwest::Client::new();
     let response = client.get(url).send().await?;

@@ -30,6 +30,7 @@ Future<void> manageCacheSize() async {
     logger.d(
       'Current cache size: ${totalSize / (1024 * 1024)} MB',
     ); // 转换为 MB 输出
+    globalSetting.setNeedCleanCache(false);
   }
 }
 

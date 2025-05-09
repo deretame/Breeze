@@ -1,16 +1,14 @@
-import 'dart:io';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../../config/global/global.dart';
 import '../../../../main.dart';
 import '../../../../network/http/bika/http_request.dart';
-import 'method.dart';
 
 Widget divider() {
   return Align(
@@ -79,7 +77,7 @@ Widget changeProfilePicture(BuildContext context) {
 
       showInfoToast("正在上传头像...");
       try {
-        await updateAvatar(await compressImage(File(selectedImages)));
+        await updateAvatar(await compressImage(filePath: selectedImages));
         showSuccessToast("成功上传头像");
       } catch (e) {
         showErrorToast(

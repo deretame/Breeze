@@ -648,14 +648,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
-  image:
-    dependency: "direct main"
-    description:
-      name: image
-      sha256: "4e973fcf4caae1a4be2fa0a13157aa38a8f9cb049db6529aa00b4d71abc4d928"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.5.4"
   image_cropper:
     dependency: "direct main"
     description:

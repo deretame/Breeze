@@ -20,8 +20,9 @@ reqwest = { version = "0.12.15", default-features = false, features = [
     "stream",
 ] }
 tokio = { version = "1.45.0", features = ["full"] }
-serde = { version = "1.0.219", features = ["derive"] }
 tokio-tar = "0.3.1"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }

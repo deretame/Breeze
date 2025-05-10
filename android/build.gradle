@@ -11,7 +11,6 @@ subprojects {
         if (project.plugins.hasPlugin("com.android.application") || project.plugins.hasPlugin("com.android.library")) {
             project.android {
                 compileSdkVersion 36
-                buildToolsVersion "36.0.0"
             }
         }
     }

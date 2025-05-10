@@ -87,7 +87,7 @@ class PageBloc extends Bloc<PageEvent, PageState> {
     var result = c.CommonEpInfoJson(epId: '', epName: '', series: [], docs: []);
     await getEpInfo(
       epId,
-    ).let(replaceNestedNull).debug().let(JmEpInfoJson.fromJson).also((d) {
+    ).let(replaceNestedNull).let(JmEpInfoJson.fromJson).also((d) {
       for (var doc in d.images) {
         docsList.add(
           c.Doc(

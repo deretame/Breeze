@@ -190,7 +190,7 @@ class _JmSearchResultPageState extends State<_JmSearchResultPage> {
       itemCount: length,
       itemBuilder: (context, index) {
         switch (index) {
-          case _ when (index != length - 1):
+          case _ when (index < list.length):
             var key = list[index].map((item) => item.id).toList().toString();
             return ComicSimplifyEntryRow(
               key: ValueKey(key),

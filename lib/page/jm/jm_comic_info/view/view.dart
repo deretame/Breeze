@@ -212,6 +212,10 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
           epsNumber: state.comicInfo!.series.length,
         ),
       ],
+      if (comicInfo.relatedList.isNotEmpty) ...[
+        const SizedBox(height: 10),
+        RecommendWidget(comicInfo: comicInfo),
+      ],
     ];
 
     return Padding(

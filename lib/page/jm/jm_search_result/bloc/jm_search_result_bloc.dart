@@ -37,8 +37,6 @@ class JmSearchResultBloc
     JmSearchResultEvent event,
     Emitter<JmSearchResultState> emit,
   ) async {
-    if (hasReachedMax) return;
-
     if (event.keyword.isEmpty) {
       emit(
         state.copyWith(
@@ -56,7 +54,11 @@ class JmSearchResultBloc
       _searchResultList = [];
       page = 1;
       emit(state.copyWith(status: JmSearchResultStatus.initial));
-    } else if (event.status == JmSearchResultStatus.loadingMore) {
+    }
+
+    if (hasReachedMax) return;
+
+    if (event.status == JmSearchResultStatus.loadingMore) {
       emit(
         state.copyWith(
           status: JmSearchResultStatus.loadingMore,

@@ -1,9 +1,16 @@
+import 'dart:convert';
+
 import 'package:cookie_jar/cookie_jar.dart';
+import 'package:crypto/crypto.dart';
 
 class JmConfig {
   static final cookieJar = CookieJar(ignoreExpires: true);
 
   static String device = '';
+
+  static String _token = '';
+
+  static String _timestamp = '';
 
   static const webUA =
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36';
@@ -35,4 +42,21 @@ class JmConfig {
   static String get baseUrl => baseUrls[0];
 
   static String get imagesUrl => imagesUrls[0];
+
+  static String get token {
+    if (_token.isEmpty) {
+      _token =
+          md5
+              .convert(utf8.encode('$timestamp${JmConfig.jmVersion}'))
+              .toString();
+    }
+    return _token;
+  }
+
+  static String get timestamp {
+    if (_timestamp.isEmpty) {
+      _timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+    }
+    return _timestamp;
+  }
 }

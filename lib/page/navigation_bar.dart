@@ -231,7 +231,7 @@ class _NavigationBarState extends State<NavigationBar> {
     debouncer(() {
       if (!allRoutes.contains('LoginRoute')) {
         showErrorToast('登录失效，请重新登录');
-        context.navigateTo(const LoginRoute());
+        context.navigateTo(LoginRoute());
       }
     });
   }

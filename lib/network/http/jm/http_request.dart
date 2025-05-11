@@ -22,3 +22,10 @@ Future<Map<String, dynamic>> getEpInfo(String epId) async => await request(
   params: {'skip': '', 'id': epId},
   cache: true,
 );
+
+Future<Map<String, dynamic>> login(String account, String password) async =>
+    await request(
+      '${JmConfig.baseUrl}/login',
+      body: 'username=$account&password=$password&',
+      method: 'POST',
+    );

@@ -14,8 +14,6 @@ import '../../dio_cache.dart';
 
 final jmDio = Dio();
 
-String getTime() => (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
-
 final netCache = SimpleCacheService();
 
 String jmUA() {
@@ -34,9 +32,8 @@ Map<String, dynamic> getHeader(
   bool post,
   Map<String, dynamic>? headers,
 ) {
-  var token = md5.convert(utf8.encode('$time${JmConfig.jmVersion}'));
   return {
-    'token': token.toString(),
+    'token': JmConfig.token,
     'tokenparam': '$time,${JmConfig.jmVersion}',
     'use-agent': jmUA(),
     'accpet-encoding': 'gzip',
@@ -70,13 +67,15 @@ Future<Map<String, dynamic>> request(
   bool byte = true,
   bool cache = false,
 }) async {
-  final timestamp = getTime();
+  final timestamp = JmConfig.timestamp;
+  Map<String, dynamic> result = {};
 
   url = "$url/${_mapToUrlParams(params)}";
 
   if (cache) {
-    if (netCache.get(url) != null) {
-      return netCache.get(url)!;
+    result = netCache.get(url) ?? {};
+    if (result.isNotEmpty) {
+      return result;
     }
   }
 
@@ -91,7 +90,7 @@ Future<Map<String, dynamic>> request(
   });
 
   try {
-    var result = await jmDio
+    result = await jmDio
         .request(
           url,
           data: body,
@@ -120,10 +119,10 @@ Future<Map<String, dynamic>> request(
     }
 
     // 抛出封装后的错误信息
-    _handleDioError(error).let(throw Exception);
+    throw Exception(_handleDioError(error));
   } catch (e, s) {
     logger.e(e, stackTrace: s);
-    rethrow;
+    throw Exception(e);
   }
 }
 
@@ -173,6 +172,13 @@ String _mapToUrlParams(
 }
 
 String _handleDioError(DioException error) {
+  String message = '';
+  if (error.response != null) {
+    message = error.response!.data
+        .let((res) => res.data as List<int>)
+        .let(utf8.decode);
+  }
+
   switch (error.type) {
     case DioExceptionType.connectionTimeout:
       return '连接服务器超时（${error.requestOptions.connectTimeout}秒）';
@@ -181,13 +187,13 @@ String _handleDioError(DioException error) {
     case DioExceptionType.receiveTimeout:
       return '响应接收超时（${error.requestOptions.receiveTimeout}秒）';
     case DioExceptionType.badResponse:
-      return error.response?.toString() ?? '未知错误';
+      return message;
     case DioExceptionType.cancel:
       return '请求被取消';
     case DioExceptionType.connectionError:
       return '网络连接失败，请检查网络';
     case DioExceptionType.unknown:
-      return error.error?.toString() ?? '未知网络错误';
+      return '未知网络错误';
     case DioExceptionType.badCertificate:
       return '证书验证失败';
   }

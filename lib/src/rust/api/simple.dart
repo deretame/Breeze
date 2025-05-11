@@ -18,8 +18,8 @@ Future<void> antiObfuscationPicture({required ImageInfo imageInfo}) => RustLib
     .api
     .crateApiSimpleAntiObfuscationPicture(imageInfo: imageInfo);
 
-Future<String> compressImage({required String filePath}) =>
-    RustLib.instance.api.crateApiSimpleCompressImage(filePath: filePath);
+Future<String> compressImage({required List<int> imageBytes}) =>
+    RustLib.instance.api.crateApiSimpleCompressImage(imageBytes: imageBytes);
 
 Future<String> asyncHttpGet({required String url}) =>
     RustLib.instance.api.crateApiSimpleAsyncHttpGet(url: url);

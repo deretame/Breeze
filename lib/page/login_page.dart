@@ -1,16 +1,19 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/dialog.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../network/http/bika/http_request.dart';
-import '../util/router/router.dart';
+import '../network/http/jm/http_request.dart' as jm;
 import '../util/router/router.gr.dart';
 
 @RoutePage()
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final From? from;
+
+  const LoginPage({super.key, this.from});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -23,11 +26,23 @@ class _LoginPageState extends State<LoginPage> {
     minimumSize: const Size(200, 40),
   );
 
+  String title = "";
+  late From from;
+
   @override
   void initState() {
     super.initState();
-    _account.text = bikaSetting.getAccount();
-    _password.text = bikaSetting.getPassword();
+    from = widget.from ?? From.bika;
+    _account.text =
+        from == From.bika ? bikaSetting.getAccount() : jmSetting.getAccount();
+    _password.text =
+        from == From.bika ? bikaSetting.getPassword() : jmSetting.getPassword();
+
+    if (from == From.bika) {
+      title = "哔咔登录";
+    } else if (from == From.jm) {
+      title = "禁漫登录";
+    }
   }
 
   @override
@@ -52,12 +67,7 @@ class _LoginPageState extends State<LoginPage> {
             child: ListBody(children: <Widget>[Text(message)]),
           ),
           actions: <Widget>[
-            TextButton(
-              child: const Text('确定'),
-              onPressed: () {
-                title == "登录成功" ? popToRoot(context) : context.pop();
-              },
-            ),
+            TextButton(child: const Text('确定'), onPressed: () => context.pop()),
           ],
         );
       },
@@ -69,17 +79,28 @@ class _LoginPageState extends State<LoginPage> {
     showInfoToast("正在登录，请耐心等待...");
 
     try {
-      final result = await login(_account.text, _password.text);
+      Map<String, dynamic> result = {};
+
+      if (from == From.bika) {
+        result = await login(_account.text, _password.text);
+      } else if (from == From.jm) {
+        result = await jm.login(_account.text, _password.text);
+      }
 
       logger.d(result.toString());
 
-      bikaSetting.setAccount(_account.text);
-      bikaSetting.setPassword(_password.text);
-      bikaSetting.setAuthorization(result['data']['token']);
+      if (from == From.bika) {
+        bikaSetting.setAccount(_account.text);
+        bikaSetting.setPassword(_password.text);
+        bikaSetting.setAuthorization(result['data']['token']);
+      } else if (from == From.jm) {
+        jmSetting.setAccount(_account.text);
+        jmSetting.setPassword(_password.text);
+      }
       showSuccessToast("登录成功");
 
       if (!mounted) return;
-      AutoRouter.of(context).maybePop();
+      context.maybePop();
     } catch (e) {
       _showDialog("登录失败", e.toString());
     }
@@ -88,7 +109,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('登录')),
+      appBar: AppBar(title: Text(title)),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -97,9 +118,9 @@ class _LoginPageState extends State<LoginPage> {
             // 账号输入框
             TextField(
               controller: _account,
-              decoration: const InputDecoration(
-                labelText: '账号',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: from == From.bika ? '账号' : '用户名',
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 20), // 用于添加空间
@@ -134,19 +155,23 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   TextButton(
-                    onPressed: () {
-                      AutoRouter.of(context).push(RegisterRoute());
-                    },
+                    onPressed:
+                        from == From.bika
+                            ? () => context.pushRoute(RegisterRoute())
+                            : null,
                     child: const Text('注册账号'),
                   ),
                   TextButton(
-                    onPressed: () {
-                      commonDialog(
-                        context,
-                        "找回密码",
-                        "哔咔实际上已经无法找回密码，所以这个功能实际上不存在。",
-                      );
-                    },
+                    onPressed:
+                        from == From.bika
+                            ? () {
+                              commonDialog(
+                                context,
+                                "找回密码",
+                                "哔咔实际上已经无法找回密码，所以这个功能实际上不存在。",
+                              );
+                            }
+                            : null,
                     child: const Text('找回密码'),
                   ),
                 ],

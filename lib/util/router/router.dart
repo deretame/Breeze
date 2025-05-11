@@ -31,6 +31,7 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: JmSearchResultRoute.page),
     AutoRoute(page: JmComicInfoRoute.page),
     AutoRoute(page: FullRouteImageRoute.page),
+    AutoRoute(page: ImageCropRoute.page),
   ];
 
   @override

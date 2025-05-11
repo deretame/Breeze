@@ -51,7 +51,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
                 onTap: () async {
                   showErrorToast('暂不支持');
                   return;
-                  toggleAction('like');
+                  // toggleAction('like');
                 },
                 child: Icon(
                   isLiked ? Icons.favorite : Icons.favorite_border,
@@ -89,7 +89,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
                 onTap: () {
                   showErrorToast('暂不支持');
                   return;
-                  toggleAction('favorite');
+                  // toggleAction('favorite');
                 },
                 child: Icon(
                   isCollected ? Icons.star : Icons.star_border,

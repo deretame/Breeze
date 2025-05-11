@@ -1,10 +1,12 @@
 import 'dart:io';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/more/more.dart';
+import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../../../widgets/full_screen_image_view.dart';
 import '../../../../widgets/picture_bloc/bloc/picture_bloc.dart';
@@ -42,40 +44,75 @@ class _BikaUserInfoWidgetState extends State<_BikaUserInfoWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<UserProfileBloc, UserProfileState>(
-      builder: (context, state) {
-        switch (state.status) {
-          case UserProfileStatus.initial:
-            loadBikaProfile = false;
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: CircularProgressIndicator(),
-              ),
-            );
-          case UserProfileStatus.failure:
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+    return Column(
+      children: [
+        BlocBuilder<UserProfileBloc, UserProfileState>(
+          builder: (context, state) {
+            switch (state.status) {
+              case UserProfileStatus.initial:
+                loadBikaProfile = false;
+                return SizedBox(
+                  height: 130,
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                );
+              case UserProfileStatus.failure:
+                return SizedBox(
+                  height: 130,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '${state.result.toString()}\n加载失败',
+                          style: TextStyle(fontSize: 20),
+                        ),
+                        SizedBox(height: 10), // 添加间距
+                        ElevatedButton(
+                          onPressed: () {
+                            context.read<UserProfileBloc>().add(
+                              UserProfileEvent(),
+                            );
+                          },
+                          child: Text('点击重试'),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              case UserProfileStatus.success:
+                return Center(child: _BikaWidget(profile: state.profile!));
+            }
+          },
+        ),
+        GestureDetector(
+          onTap: () {
+            context.pushRoute(BikaSettingRoute());
+            logger.d("哔咔设置");
+          },
+          behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
+          child: SizedBox(
+            width: screenWidth - 16 - 16,
+            height: 40, // 设置固定高度
+            child: SizedBox(
+              width: screenWidth - 16 - 16,
+              height: 40, // 设置固定高度
+              child: Row(
                 children: [
-                  Text(
-                    '${state.result.toString()}\n加载失败',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  SizedBox(height: 10), // 添加间距
-                  ElevatedButton(
-                    onPressed: () {
-                      context.read<UserProfileBloc>().add(UserProfileEvent());
-                    },
-                    child: Text('点击重试'),
-                  ),
+                  Icon(Icons.person),
+                  SizedBox(width: 10),
+                  Text("哔咔设置", style: TextStyle(fontSize: 22)),
+                  Spacer(), // 填充剩余空间，但不影响点击
                 ],
               ),
-            );
-          case UserProfileStatus.success:
-            return Center(child: _BikaWidget(profile: state.profile!));
-        }
-      },
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -92,7 +129,7 @@ class _BikaWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center, // 添加此行以居中
         children: <Widget>[
@@ -131,7 +168,7 @@ class _BikaWidget extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: 20),
+          SizedBox(height: 5),
           buildCommentWidget(context),
         ],
       ),
@@ -185,16 +222,13 @@ class _UserAvatar extends StatelessWidget {
                       ),
                     );
                   },
-                  child: Hero(
-                    tag: state.imagePath!,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(50.0),
-                      child: Image.file(
-                        File(state.imagePath!),
-                        fit: BoxFit.cover,
-                        width: 75,
-                        height: 75,
-                      ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(50.0),
+                    child: Image.file(
+                      File(state.imagePath!),
+                      fit: BoxFit.cover,
+                      width: 75,
+                      height: 75,
                     ),
                   ),
                 );

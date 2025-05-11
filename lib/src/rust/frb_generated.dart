@@ -83,7 +83,7 @@ abstract class RustLibApi extends BaseApi {
 
   Future<String> crateApiSimpleAsyncHttpGet({required String url});
 
-  Future<String> crateApiSimpleCompressImage({required String filePath});
+  Future<String> crateApiSimpleCompressImage({required List<int> imageBytes});
 
   Future<String> crateApiSimpleGreet({required String name});
 
@@ -167,12 +167,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "async_http_get", argNames: ["url"]);
 
   @override
-  Future<String> crateApiSimpleCompressImage({required String filePath}) {
+  Future<String> crateApiSimpleCompressImage({required List<int> imageBytes}) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(filePath, serializer);
+          sse_encode_list_prim_u_8_loose(imageBytes, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -185,14 +185,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiSimpleCompressImageConstMeta,
-        argValues: [filePath],
+        argValues: [imageBytes],
         apiImpl: this,
       ),
     );
   }
 
   TaskConstMeta get kCrateApiSimpleCompressImageConstMeta =>
-      const TaskConstMeta(debugName: "compress_image", argNames: ["filePath"]);
+      const TaskConstMeta(
+        debugName: "compress_image",
+        argNames: ["imageBytes"],
+      );
 
   @override
   Future<String> crateApiSimpleGreet({required String name}) {
@@ -362,6 +365,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<int> dco_decode_list_prim_u_8_loose(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as List<int>;
+  }
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as Uint8List;
@@ -452,6 +461,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       ans_.add(sse_decode_String(deserializer));
     }
     return ans_;
+  }
+
+  @protected
+  List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var len_ = sse_decode_i_32(deserializer);
+    return deserializer.buffer.getUint8List(len_);
   }
 
   @protected
@@ -549,6 +565,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     for (final item in self) {
       sse_encode_String(item, serializer);
     }
+  }
+
+  @protected
+  void sse_encode_list_prim_u_8_loose(
+    List<int> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    serializer.buffer.putUint8List(
+      self is Uint8List ? self : Uint8List.fromList(self),
+    );
   }
 
   @protected

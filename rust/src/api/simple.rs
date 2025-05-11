@@ -25,8 +25,8 @@ pub fn anti_obfuscation_picture(image_info: decode::ImageInfo) -> Result<()> {
 }
 
 #[flutter_rust_bridge::frb]
-pub async fn compress_image(file_path: &str) -> Result<String> {
-    compressed::compress_image(file_path).await
+pub async fn compress_image(image_bytes: Vec<u8>) -> Result<String> {
+    compressed::compress_image(image_bytes).await
 }
 
 #[flutter_rust_bridge::frb]

@@ -2,7 +2,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
 import '../../../config/global/global.dart';
-import '../../../main.dart';
 import '../../../util/router/router.gr.dart';
 
 Widget buildCommentWidget(BuildContext context) {
@@ -11,7 +10,6 @@ Widget buildCommentWidget(BuildContext context) {
   return GestureDetector(
     onTap: () {
       router.push(UserCommentsRoute());
-      logger.d("全局设置");
     },
     behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
     child: Row(

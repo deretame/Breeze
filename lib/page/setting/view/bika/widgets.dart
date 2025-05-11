@@ -1,9 +1,11 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
+import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../../config/global/global.dart';
@@ -30,7 +32,7 @@ Widget divider() {
   );
 }
 
-Widget changeProfilePicture(BuildContext context) {
+Widget changeProfilePicture(StackRouter route) {
   final ImagePicker picker = ImagePicker();
   String selectedImages = '';
   return GestureDetector(
@@ -46,38 +48,38 @@ Widget changeProfilePicture(BuildContext context) {
           logger.d('Selected image path: $files'); // 输出选择的图片路径
         } else {
           logger.e('No files found.');
+          showErrorToast("请选择图片");
+          return;
+        }
+        var fileExtension = files.split(".").last;
+        if (fileExtension != "jpg" &&
+            fileExtension != "png" &&
+            fileExtension != "jpeg" &&
+            fileExtension != "webp") {
+          showErrorToast("仅支持jpg、png、jpeg、webp格式的图片");
           return;
         }
       } catch (e) {
         logger.e('Error retrieving lost data: ${e.toString()}');
+        showErrorToast("请选择图片");
+        return;
       }
-
-      if (selectedImages.isNotEmpty) {
-        final croppedFile = await ImageCropper().cropImage(
-          sourcePath: selectedImages,
-          compressFormat: ImageCompressFormat.jpg,
-          compressQuality: 100,
-          uiSettings: [
-            AndroidUiSettings(
-              toolbarTitle: '裁剪图片',
-              toolbarColor: Colors.deepOrange,
-              toolbarWidgetColor: Colors.white,
-              initAspectRatio: CropAspectRatioPreset.square,
-              lockAspectRatio: true,
-              aspectRatioPresets: [CustomizedAspectRatioPresetData()],
-            ),
-          ],
-        );
-        if (croppedFile != null) {
-          selectedImages = croppedFile.path;
-        } else {
+      try {
+        if (selectedImages.isEmpty) {
+          showErrorToast("请选择图片");
           return;
         }
-      }
+        final croppedFile = await route.push<List<int>>(
+          ImageCropRoute(imageData: await File(selectedImages).readAsBytes()),
+        );
+        if (croppedFile == null) {
+          showErrorToast("请选择图片");
+          return;
+        }
 
-      showInfoToast("正在上传头像...");
-      try {
-        await updateAvatar(await compressImage(filePath: selectedImages));
+        showInfoToast("正在上传头像...");
+
+        await updateAvatar(await compressImage(imageBytes: croppedFile));
         showSuccessToast("成功上传头像");
       } catch (e) {
         showErrorToast(
@@ -97,14 +99,6 @@ Widget changeProfilePicture(BuildContext context) {
       ],
     ),
   );
-}
-
-class CustomizedAspectRatioPresetData implements CropAspectRatioPresetData {
-  @override
-  (int, int)? get data => (1, 1);
-
-  @override
-  String get name => '1:1';
 }
 
 Widget changeBriefIntroduction(BuildContext context) {

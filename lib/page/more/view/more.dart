@@ -7,6 +7,12 @@ class MorePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> widgets = [
+      BikaUserInfoWidget(),
+      Delimiter(),
+      settings(context),
+    ];
+
     return Scaffold(
       appBar: AppBar(title: Text('更多')),
       body: RefreshIndicator(
@@ -14,16 +20,9 @@ class MorePage extends StatelessWidget {
           eventBus.fire(RefreshEvent());
         },
         child: ListView.builder(
-          itemCount: 2, // 这里固定为2，因为你有两个widget要显示
+          itemCount: widgets.length,
           itemBuilder: (context, index) {
-            if (index == 0) {
-              return Container(
-                constraints: BoxConstraints(minHeight: 155),
-                child: BikaUserInfoWidget(),
-              );
-            } else {
-              return settings(context);
-            }
+            return widgets[index];
           },
         ),
       ),

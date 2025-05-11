@@ -139,12 +139,12 @@ fn wire__crate__api__simple__compress_image_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_file_path = <String>::sse_decode(&mut deserializer);
+            let api_image_bytes = <Vec<u8>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
-                        let output_ok = crate::api::simple::compress_image(&api_file_path).await?;
+                        let output_ok = crate::api::simple::compress_image(api_image_bytes).await?;
                         Ok(output_ok)
                     })()
                     .await,

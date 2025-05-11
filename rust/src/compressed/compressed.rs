@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use base64::{engine::general_purpose, Engine as _};
-use image::{codecs::jpeg::JpegEncoder, ExtendedColorType};
+use image::{codecs::jpeg::JpegEncoder, load_from_memory, ExtendedColorType};
 use log::debug;
 use tokio::fs::File;
 use tokio_tar::Builder;
@@ -114,14 +114,7 @@ pub async fn pack_folder(dest_path: &str, pack_info: PackInfo) -> Result<()> {
 }
 
 /// 压缩图像并返回base64编码字符串
-///
-/// # 参数
-/// * `file_path` - 原始图像文件路径
-///
-/// # 返回值
-/// * `Result<String>` - 压缩后的base64编码字符串
-pub async fn compress_image(file_path: &str) -> Result<String> {
-    let image_bytes = tokio::fs::read(file_path).await?;
+pub async fn compress_image(image_bytes: Vec<u8>) -> Result<String> {
     let img = image::load_from_memory(&image_bytes)?;
 
     let mut low = 1u8;

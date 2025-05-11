@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../bookshelf/models/events.dart';
@@ -40,6 +41,7 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
 
   @override
   Widget build(BuildContext context) {
+    var route = context.router;
     return Scaffold(
       appBar: AppBar(title: const Text('哔咔设置')),
       body: Observer(
@@ -47,7 +49,7 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
           return Column(
             children: [
               SizedBox(height: 10),
-              changeProfilePicture(context),
+              changeProfilePicture(route),
               SizedBox(height: 15),
               changeBriefIntroduction(context),
               SizedBox(height: 15),
@@ -68,10 +70,8 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
               Center(
                 child: ElevatedButton(
                   onPressed: () {
-                    bikaSetting.deleteAuthorization();
-                    // bikaSetting.deleteAccount();
-                    // bikaSetting.deletePassword();
-                    AutoRouter.of(context).push(LoginRoute());
+                    // bikaSetting.deleteAuthorization();
+                    route.push(LoginRoute(from: From.jm));
                   },
                   child: Text("退出登录"),
                 ),

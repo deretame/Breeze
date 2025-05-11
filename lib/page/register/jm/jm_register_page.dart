@@ -7,18 +7,18 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/mobx/string_select.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../network/http/bika/http_request.dart';
-import '../util/dialog.dart';
+import '../../../network/http/bika/http_request.dart';
+import '../../../util/dialog.dart';
 
 @RoutePage()
-class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+class JmRegisterPage extends StatefulWidget {
+  const JmRegisterPage({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  State<JmRegisterPage> createState() => _JmRegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _JmRegisterPageState extends State<JmRegisterPage> {
   final TextEditingController _username = TextEditingController();
   final TextEditingController _account = TextEditingController();
   final TextEditingController _password = TextEditingController();

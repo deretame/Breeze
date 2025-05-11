@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use base64::{engine::general_purpose, Engine as _};
-use image::{codecs::jpeg::JpegEncoder, load_from_memory, ExtendedColorType};
+use image::{codecs::jpeg::JpegEncoder, ExtendedColorType};
 use log::debug;
 use tokio::fs::File;
 use tokio_tar::Builder;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../../config/global/global.dart';
@@ -87,9 +88,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
             children: <Widget>[
               GestureDetector(
                 onTap: () {
-                  showErrorToast('暂不支持');
-                  return;
-                  // toggleAction('favorite');
+                  toggleAction('favorite');
                 },
                 child: Icon(
                   isCollected ? Icons.star : Icons.star_border,
@@ -127,63 +126,63 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
   }
 
   void toggleAction(String actionType) async {
-    // late Future<Map<String, dynamic>> result;
-    // late bool isCurrentlyActive;
-    // late String actionVerb;
-    // late String successMessage;
-    // late String failureMessage;
-    //
-    // switch (actionType) {
-    //   case 'like':
-    //     result = likeComic(comicInfo.id);
-    //     isCurrentlyActive = isLiked;
-    //     actionVerb = '点赞';
-    //     break;
-    //   case 'favorite':
-    //     result = favouriteComic(comicInfo.id);
-    //     isCurrentlyActive = isCollected;
-    //     actionVerb = '收藏';
-    //     break;
-    //   default:
-    //     throw ArgumentError('Invalid action type: $actionType');
-    // }
-    //
-    // showInfoToast("请求中...");
-    //
-    // try {
-    //   final data = await result;
-    //
-    //   if (data["error"] != null) {
-    //     logger.d('$actionVerb失败: $data');
-    //     if (!mounted) return;
-    //     failureMessage =
-    //         actionType == 'like'
-    //             ? "请求失败: ${data["error"]}"
-    //             : (isCurrentlyActive ? '取消$actionVerb失败' : '$actionVerb失败');
-    //     showErrorToast(failureMessage, duration: const Duration(seconds: 5));
-    //   } else {
-    //     logger.d('$actionVerb成功: $data');
-    //     if (mounted) {
-    //       setState(() {
-    //         if (actionType == 'like') {
-    //           isLiked = !isLiked;
-    //         } else {
-    //           isCollected = !isCollected;
-    //         }
-    //       });
-    //     }
-    //
-    //     if (!mounted) return;
-    //     successMessage =
-    //         isCurrentlyActive ? '取消$actionVerb成功' : '$actionVerb成功';
-    //     showSuccessToast(successMessage);
-    //   }
-    // } catch (error) {
-    //   if (!mounted) return;
-    //   showErrorToast(
-    //     "请求过程中发生错误: ${error.toString()}",
-    //     duration: const Duration(seconds: 5),
-    //   );
-    // }
+    late Future<Map<String, dynamic>> result;
+    late bool isCurrentlyActive;
+    late String actionVerb;
+    late String successMessage;
+    late String failureMessage;
+
+    switch (actionType) {
+      case 'like':
+        // result = likeComic(comicInfo.id);
+        // isCurrentlyActive = isLiked;
+        // actionVerb = '点赞';
+        break;
+      case 'favorite':
+        result = favorite(comicInfo.id.toString());
+        isCurrentlyActive = isCollected;
+        actionVerb = '收藏';
+        break;
+      default:
+        throw ArgumentError('Invalid action type: $actionType');
+    }
+
+    showInfoToast("请求中...");
+
+    try {
+      final data = await result;
+
+      if (data["error"] != null) {
+        logger.d('$actionVerb失败: $data');
+        if (!mounted) return;
+        failureMessage =
+            actionType == 'like'
+                ? "请求失败: ${data["error"]}"
+                : (isCurrentlyActive ? '取消$actionVerb失败' : '$actionVerb失败');
+        showErrorToast(failureMessage, duration: const Duration(seconds: 5));
+      } else {
+        logger.d('$actionVerb成功: $data');
+        if (mounted) {
+          setState(() {
+            if (actionType == 'like') {
+              isLiked = !isLiked;
+            } else {
+              isCollected = !isCollected;
+            }
+          });
+        }
+
+        if (!mounted) return;
+        successMessage =
+            isCurrentlyActive ? '取消$actionVerb成功' : '$actionVerb成功';
+        showSuccessToast(successMessage);
+      }
+    } catch (error) {
+      if (!mounted) return;
+      showErrorToast(
+        "请求过程中发生错误: ${error.toString()}",
+        duration: const Duration(seconds: 5),
+      );
+    }
   }
 }

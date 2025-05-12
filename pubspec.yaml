@@ -1,7 +1,7 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
 publish_to: none
-version: 2.0.7+117
+version: 2.0.6+116
 
 environment:
   sdk: ^3.7.2
@@ -15,19 +15,20 @@ dependencies:
   ########################################
   #            UI 组件 & 动画            #
   ########################################
-  cupertino_icons: ^1.0.8                # Cupertino 风格图标
-  dynamic_color: ^1.7.0                  # Material You 动态主题
-  loading_animation_widget: ^1.2.1       # 60+ 加载动画集合
-  toggle_switch: ^2.3.0                  # 多状态切换开关
-  animated_search_bar: ^2.7.2            # 带动画的搜索栏组件
-  photo_view: ^0.15.0                    # 交互式图片查看器（缩放/平移）
-  scrollable_positioned_list: ^0.3.8     # 支持滚动定位的列表
-  persistent_bottom_nav_bar: ^6.2.1      # 可持久化的底部导航栏
-  flutter_markdown: ^0.7.5               # Markdown 渲染支持
-  dropdown_button2: ^2.3.9               # 增强型下拉菜单
-  toastification: ^3.0.1                 # 现代化通知提示系统
-  flutter_animate: ^4.5.2                # 声明式动画工具集
-  flutter_colorpicker: ^1.1.0            # 颜色选择器组件
+  cupertino_icons: ^1.0.8                    # Cupertino 风格图标
+  dynamic_color: ^1.7.0                      # Material You 动态主题
+  loading_animation_widget: ^1.2.1           # 60+ 加载动画集合
+  toggle_switch: ^2.3.0                      # 多状态切换开关
+  animated_search_bar: ^2.7.2                # 带动画的搜索栏组件
+  photo_view: ^0.15.0                        # 交互式图片查看器（缩放/平移）
+  scrollable_positioned_list: ^0.3.8         # 支持滚动定位的列表
+  persistent_bottom_nav_bar: ^6.2.1          # 可持久化的底部导航栏
+  flutter_markdown: ^0.7.5                   # Markdown 渲染支持
+  dropdown_button2: ^2.3.9                   # 增强型下拉菜单
+  toastification: ^3.0.1                     # 现代化通知提示系统
+  flutter_animate: ^4.5.2                    # 声明式动画工具集
+  flutter_colorpicker: ^1.1.0                # 颜色选择器组件
+  custom_sliding_segmented_control: ^1.8.5   # 自定义滑动分段控件
 
   ########################################
   #          状态管理 & 事件总线          #

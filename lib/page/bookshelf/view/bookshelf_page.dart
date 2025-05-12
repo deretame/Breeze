@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/mobx/string_select.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnterConst;
 
@@ -69,6 +70,15 @@ class _BookshelfPageState extends State<BookshelfPage>
       ),
       appBar: AppBar(
         title: const Text('书架'),
+        flexibleSpace: Column(
+          children: [
+            SizedBox(height: statusBarHeight),
+            const Spacer(),
+            Row(children: [const Spacer(), TopTabBar(), const Spacer()]),
+            const Spacer(),
+            const SizedBox(height: 48),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),

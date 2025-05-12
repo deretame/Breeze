@@ -70,8 +70,8 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
               Center(
                 child: ElevatedButton(
                   onPressed: () {
-                    // bikaSetting.deleteAuthorization();
-                    route.push(LoginRoute(from: From.jm));
+                    bikaSetting.deleteAuthorization();
+                    route.push(LoginRoute(from: From.bika));
                   },
                   child: Text("退出登录"),
                 ),

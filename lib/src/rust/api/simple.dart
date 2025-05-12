@@ -31,3 +31,5 @@ Future<void> packFolder({
   destPath: destPath,
   packInfo: packInfo,
 );
+
+Stream<String> streamTest() => RustLib.instance.api.crateApiSimpleStreamTest();

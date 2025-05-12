@@ -7,6 +7,7 @@ gradle-wrapper.jar
 /local.properties
 .kotlin/
 GeneratedPluginRegistrant.java
+/build/
 
 # Remember to never publicly share your keystore.
 # See https://flutter.dev/to/reference-keystore

@@ -599,6 +599,230 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(5, 935474930388766348),
+    name: 'JmFavorite',
+    lastPropertyId: const obx_int.IdUid(17, 4556914322339764391),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 8238621370323718857),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 6848366969663429401),
+        name: 'comicId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 4747178946819048376),
+        name: 'name',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 4408260146893299584),
+        name: 'description',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 6778736207635054783),
+        name: 'totalViews',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 2436092979667785535),
+        name: 'likes',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 4284114347928805754),
+        name: 'seriesId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 5390236611206652336),
+        name: 'commentTotal',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 6510848394897335322),
+        name: 'author',
+        type: 30,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 7577809075943100519),
+        name: 'tags',
+        type: 30,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 8891195087583062602),
+        name: 'works',
+        type: 30,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(12, 8161004310161530228),
+        name: 'actors',
+        type: 30,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(13, 1917622536650060886),
+        name: 'liked',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(14, 679651195903104600),
+        name: 'isFavorite',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(15, 2734038147256129565),
+        name: 'isAids',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(16, 8670080525958850172),
+        name: 'price',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(17, 4556914322339764391),
+        name: 'purchased',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(6, 2394746405223893996),
+    name: 'JmHistory',
+    lastPropertyId: const obx_int.IdUid(17, 6336715545991912719),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 243977226678469829),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 8052341030623430531),
+        name: 'comicId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 2147687892879504792),
+        name: 'name',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 6335731965284591656),
+        name: 'description',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 7241633560607517503),
+        name: 'totalViews',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 8756979861656362907),
+        name: 'likes',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 7745413414573935560),
+        name: 'seriesId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 2539916354184395562),
+        name: 'commentTotal',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 1963724856507306111),
+        name: 'author',
+        type: 30,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 6034415514121044596),
+        name: 'tags',
+        type: 30,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 8429581615071862184),
+        name: 'works',
+        type: 30,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(12, 5138935786140657554),
+        name: 'actors',
+        type: 30,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(13, 6642092471307987047),
+        name: 'liked',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(14, 4899917313719977098),
+        name: 'isFavorite',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(15, 4642554534347540651),
+        name: 'isAids',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(16, 5815498880762719149),
+        name: 'price',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(17, 6336715545991912719),
+        name: 'purchased',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -639,7 +863,7 @@ Future<obx.Store> openStore({
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(4, 1327783071807974029),
+    lastEntityId: const obx_int.IdUid(6, 2394746405223893996),
     lastIndexId: const obx_int.IdUid(4, 931357141992892300),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
@@ -1388,6 +1612,294 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    JmFavorite: obx_int.EntityDefinition<JmFavorite>(
+      model: _entities[2],
+      toOneRelations: (JmFavorite object) => [],
+      toManyRelations: (JmFavorite object) => {},
+      getId: (JmFavorite object) => object.id,
+      setId: (JmFavorite object, int id) {
+        object.id = id;
+      },
+      objectToFB: (JmFavorite object, fb.Builder fbb) {
+        final comicIdOffset = fbb.writeString(object.comicId);
+        final nameOffset = fbb.writeString(object.name);
+        final descriptionOffset = fbb.writeString(object.description);
+        final totalViewsOffset = fbb.writeString(object.totalViews);
+        final likesOffset = fbb.writeString(object.likes);
+        final seriesIdOffset = fbb.writeString(object.seriesId);
+        final commentTotalOffset = fbb.writeString(object.commentTotal);
+        final authorOffset = fbb.writeList(
+          object.author.map(fbb.writeString).toList(growable: false),
+        );
+        final tagsOffset = fbb.writeList(
+          object.tags.map(fbb.writeString).toList(growable: false),
+        );
+        final worksOffset = fbb.writeList(
+          object.works.map(fbb.writeString).toList(growable: false),
+        );
+        final actorsOffset = fbb.writeList(
+          object.actors.map(fbb.writeString).toList(growable: false),
+        );
+        final priceOffset = fbb.writeString(object.price);
+        final purchasedOffset = fbb.writeString(object.purchased);
+        fbb.startTable(18);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, comicIdOffset);
+        fbb.addOffset(2, nameOffset);
+        fbb.addOffset(3, descriptionOffset);
+        fbb.addOffset(4, totalViewsOffset);
+        fbb.addOffset(5, likesOffset);
+        fbb.addOffset(6, seriesIdOffset);
+        fbb.addOffset(7, commentTotalOffset);
+        fbb.addOffset(8, authorOffset);
+        fbb.addOffset(9, tagsOffset);
+        fbb.addOffset(10, worksOffset);
+        fbb.addOffset(11, actorsOffset);
+        fbb.addBool(12, object.liked);
+        fbb.addBool(13, object.isFavorite);
+        fbb.addBool(14, object.isAids);
+        fbb.addOffset(15, priceOffset);
+        fbb.addOffset(16, purchasedOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final comicIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final nameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final descriptionParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final totalViewsParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final likesParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 14, '');
+        final seriesIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 16, '');
+        final commentTotalParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 18, '');
+        final authorParam = const fb.ListReader<String>(
+          fb.StringReader(asciiOptimization: true),
+          lazy: false,
+        ).vTableGet(buffer, rootOffset, 20, []);
+        final tagsParam = const fb.ListReader<String>(
+          fb.StringReader(asciiOptimization: true),
+          lazy: false,
+        ).vTableGet(buffer, rootOffset, 22, []);
+        final worksParam = const fb.ListReader<String>(
+          fb.StringReader(asciiOptimization: true),
+          lazy: false,
+        ).vTableGet(buffer, rootOffset, 24, []);
+        final actorsParam = const fb.ListReader<String>(
+          fb.StringReader(asciiOptimization: true),
+          lazy: false,
+        ).vTableGet(buffer, rootOffset, 26, []);
+        final likedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          28,
+          false,
+        );
+        final isFavoriteParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          30,
+          false,
+        );
+        final isAidsParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          32,
+          false,
+        );
+        final priceParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 34, '');
+        final purchasedParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 36, '');
+        final object = JmFavorite(
+          id: idParam,
+          comicId: comicIdParam,
+          name: nameParam,
+          description: descriptionParam,
+          totalViews: totalViewsParam,
+          likes: likesParam,
+          seriesId: seriesIdParam,
+          commentTotal: commentTotalParam,
+          author: authorParam,
+          tags: tagsParam,
+          works: worksParam,
+          actors: actorsParam,
+          liked: likedParam,
+          isFavorite: isFavoriteParam,
+          isAids: isAidsParam,
+          price: priceParam,
+          purchased: purchasedParam,
+        );
+
+        return object;
+      },
+    ),
+    JmHistory: obx_int.EntityDefinition<JmHistory>(
+      model: _entities[3],
+      toOneRelations: (JmHistory object) => [],
+      toManyRelations: (JmHistory object) => {},
+      getId: (JmHistory object) => object.id,
+      setId: (JmHistory object, int id) {
+        object.id = id;
+      },
+      objectToFB: (JmHistory object, fb.Builder fbb) {
+        final comicIdOffset = fbb.writeString(object.comicId);
+        final nameOffset = fbb.writeString(object.name);
+        final descriptionOffset = fbb.writeString(object.description);
+        final totalViewsOffset = fbb.writeString(object.totalViews);
+        final likesOffset = fbb.writeString(object.likes);
+        final seriesIdOffset = fbb.writeString(object.seriesId);
+        final commentTotalOffset = fbb.writeString(object.commentTotal);
+        final authorOffset = fbb.writeList(
+          object.author.map(fbb.writeString).toList(growable: false),
+        );
+        final tagsOffset = fbb.writeList(
+          object.tags.map(fbb.writeString).toList(growable: false),
+        );
+        final worksOffset = fbb.writeList(
+          object.works.map(fbb.writeString).toList(growable: false),
+        );
+        final actorsOffset = fbb.writeList(
+          object.actors.map(fbb.writeString).toList(growable: false),
+        );
+        final priceOffset = fbb.writeString(object.price);
+        final purchasedOffset = fbb.writeString(object.purchased);
+        fbb.startTable(18);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, comicIdOffset);
+        fbb.addOffset(2, nameOffset);
+        fbb.addOffset(3, descriptionOffset);
+        fbb.addOffset(4, totalViewsOffset);
+        fbb.addOffset(5, likesOffset);
+        fbb.addOffset(6, seriesIdOffset);
+        fbb.addOffset(7, commentTotalOffset);
+        fbb.addOffset(8, authorOffset);
+        fbb.addOffset(9, tagsOffset);
+        fbb.addOffset(10, worksOffset);
+        fbb.addOffset(11, actorsOffset);
+        fbb.addBool(12, object.liked);
+        fbb.addBool(13, object.isFavorite);
+        fbb.addBool(14, object.isAids);
+        fbb.addOffset(15, priceOffset);
+        fbb.addOffset(16, purchasedOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final comicIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final nameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final descriptionParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final totalViewsParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final likesParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 14, '');
+        final seriesIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 16, '');
+        final commentTotalParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 18, '');
+        final authorParam = const fb.ListReader<String>(
+          fb.StringReader(asciiOptimization: true),
+          lazy: false,
+        ).vTableGet(buffer, rootOffset, 20, []);
+        final tagsParam = const fb.ListReader<String>(
+          fb.StringReader(asciiOptimization: true),
+          lazy: false,
+        ).vTableGet(buffer, rootOffset, 22, []);
+        final worksParam = const fb.ListReader<String>(
+          fb.StringReader(asciiOptimization: true),
+          lazy: false,
+        ).vTableGet(buffer, rootOffset, 24, []);
+        final actorsParam = const fb.ListReader<String>(
+          fb.StringReader(asciiOptimization: true),
+          lazy: false,
+        ).vTableGet(buffer, rootOffset, 26, []);
+        final likedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          28,
+          false,
+        );
+        final isFavoriteParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          30,
+          false,
+        );
+        final isAidsParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          32,
+          false,
+        );
+        final priceParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 34, '');
+        final purchasedParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 36, '');
+        final object = JmHistory(
+          id: idParam,
+          comicId: comicIdParam,
+          name: nameParam,
+          description: descriptionParam,
+          totalViews: totalViewsParam,
+          likes: likesParam,
+          seriesId: seriesIdParam,
+          commentTotal: commentTotalParam,
+          author: authorParam,
+          tags: tagsParam,
+          works: worksParam,
+          actors: actorsParam,
+          liked: likedParam,
+          isFavorite: isFavoriteParam,
+          isAids: isAidsParam,
+          price: priceParam,
+          purchased: purchasedParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -1857,5 +2369,181 @@ class BikaComicDownload_ {
   /// See [BikaComicDownload.downloadTime].
   static final downloadTime = obx.QueryDateProperty<BikaComicDownload>(
     _entities[1].properties[44],
+  );
+}
+
+/// [JmFavorite] entity fields to define ObjectBox queries.
+class JmFavorite_ {
+  /// See [JmFavorite.id].
+  static final id = obx.QueryIntegerProperty<JmFavorite>(
+    _entities[2].properties[0],
+  );
+
+  /// See [JmFavorite.comicId].
+  static final comicId = obx.QueryStringProperty<JmFavorite>(
+    _entities[2].properties[1],
+  );
+
+  /// See [JmFavorite.name].
+  static final name = obx.QueryStringProperty<JmFavorite>(
+    _entities[2].properties[2],
+  );
+
+  /// See [JmFavorite.description].
+  static final description = obx.QueryStringProperty<JmFavorite>(
+    _entities[2].properties[3],
+  );
+
+  /// See [JmFavorite.totalViews].
+  static final totalViews = obx.QueryStringProperty<JmFavorite>(
+    _entities[2].properties[4],
+  );
+
+  /// See [JmFavorite.likes].
+  static final likes = obx.QueryStringProperty<JmFavorite>(
+    _entities[2].properties[5],
+  );
+
+  /// See [JmFavorite.seriesId].
+  static final seriesId = obx.QueryStringProperty<JmFavorite>(
+    _entities[2].properties[6],
+  );
+
+  /// See [JmFavorite.commentTotal].
+  static final commentTotal = obx.QueryStringProperty<JmFavorite>(
+    _entities[2].properties[7],
+  );
+
+  /// See [JmFavorite.author].
+  static final author = obx.QueryStringVectorProperty<JmFavorite>(
+    _entities[2].properties[8],
+  );
+
+  /// See [JmFavorite.tags].
+  static final tags = obx.QueryStringVectorProperty<JmFavorite>(
+    _entities[2].properties[9],
+  );
+
+  /// See [JmFavorite.works].
+  static final works = obx.QueryStringVectorProperty<JmFavorite>(
+    _entities[2].properties[10],
+  );
+
+  /// See [JmFavorite.actors].
+  static final actors = obx.QueryStringVectorProperty<JmFavorite>(
+    _entities[2].properties[11],
+  );
+
+  /// See [JmFavorite.liked].
+  static final liked = obx.QueryBooleanProperty<JmFavorite>(
+    _entities[2].properties[12],
+  );
+
+  /// See [JmFavorite.isFavorite].
+  static final isFavorite = obx.QueryBooleanProperty<JmFavorite>(
+    _entities[2].properties[13],
+  );
+
+  /// See [JmFavorite.isAids].
+  static final isAids = obx.QueryBooleanProperty<JmFavorite>(
+    _entities[2].properties[14],
+  );
+
+  /// See [JmFavorite.price].
+  static final price = obx.QueryStringProperty<JmFavorite>(
+    _entities[2].properties[15],
+  );
+
+  /// See [JmFavorite.purchased].
+  static final purchased = obx.QueryStringProperty<JmFavorite>(
+    _entities[2].properties[16],
+  );
+}
+
+/// [JmHistory] entity fields to define ObjectBox queries.
+class JmHistory_ {
+  /// See [JmHistory.id].
+  static final id = obx.QueryIntegerProperty<JmHistory>(
+    _entities[3].properties[0],
+  );
+
+  /// See [JmHistory.comicId].
+  static final comicId = obx.QueryStringProperty<JmHistory>(
+    _entities[3].properties[1],
+  );
+
+  /// See [JmHistory.name].
+  static final name = obx.QueryStringProperty<JmHistory>(
+    _entities[3].properties[2],
+  );
+
+  /// See [JmHistory.description].
+  static final description = obx.QueryStringProperty<JmHistory>(
+    _entities[3].properties[3],
+  );
+
+  /// See [JmHistory.totalViews].
+  static final totalViews = obx.QueryStringProperty<JmHistory>(
+    _entities[3].properties[4],
+  );
+
+  /// See [JmHistory.likes].
+  static final likes = obx.QueryStringProperty<JmHistory>(
+    _entities[3].properties[5],
+  );
+
+  /// See [JmHistory.seriesId].
+  static final seriesId = obx.QueryStringProperty<JmHistory>(
+    _entities[3].properties[6],
+  );
+
+  /// See [JmHistory.commentTotal].
+  static final commentTotal = obx.QueryStringProperty<JmHistory>(
+    _entities[3].properties[7],
+  );
+
+  /// See [JmHistory.author].
+  static final author = obx.QueryStringVectorProperty<JmHistory>(
+    _entities[3].properties[8],
+  );
+
+  /// See [JmHistory.tags].
+  static final tags = obx.QueryStringVectorProperty<JmHistory>(
+    _entities[3].properties[9],
+  );
+
+  /// See [JmHistory.works].
+  static final works = obx.QueryStringVectorProperty<JmHistory>(
+    _entities[3].properties[10],
+  );
+
+  /// See [JmHistory.actors].
+  static final actors = obx.QueryStringVectorProperty<JmHistory>(
+    _entities[3].properties[11],
+  );
+
+  /// See [JmHistory.liked].
+  static final liked = obx.QueryBooleanProperty<JmHistory>(
+    _entities[3].properties[12],
+  );
+
+  /// See [JmHistory.isFavorite].
+  static final isFavorite = obx.QueryBooleanProperty<JmHistory>(
+    _entities[3].properties[13],
+  );
+
+  /// See [JmHistory.isAids].
+  static final isAids = obx.QueryBooleanProperty<JmHistory>(
+    _entities[3].properties[14],
+  );
+
+  /// See [JmHistory.price].
+  static final price = obx.QueryStringProperty<JmHistory>(
+    _entities[3].properties[15],
+  );
+
+  /// See [JmHistory.purchased].
+  static final purchased = obx.QueryStringProperty<JmHistory>(
+    _entities[3].properties[16],
   );
 }

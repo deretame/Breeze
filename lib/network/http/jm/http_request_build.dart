@@ -103,7 +103,7 @@ Future<Map<String, dynamic>> request(
           ),
           cancelToken: cancelToken,
         )
-        .let((var res) => res.data as List<int>)
+        .let((res) => res.data as List<int>)
         .let(utf8.decode)
         .let(jsonDecode)
         .let((var d) => decodeRespData(d['data'], timestamp));
@@ -174,9 +174,7 @@ String _mapToUrlParams(
 String _handleDioError(DioException error) {
   String message = '';
   if (error.response != null) {
-    message = error.response!.data
-        .let((res) => res.data as List<int>)
-        .let(utf8.decode);
+    message = (error.response!.data as List<int>).let(utf8.decode);
   }
 
   switch (error.type) {

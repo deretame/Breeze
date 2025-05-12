@@ -142,9 +142,13 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
       );
     }
 
-    List<Widget> comicInfoWidgets = [
+    List<Widget> comicInfoWidgets = []; // 先创建空列表
+
+    // 1. 添加封面和基本信息
+    comicInfoWidgets.addAll([
+      const SizedBox(height: 10),
       Row(
-        crossAxisAlignment: CrossAxisAlignment.start, // 让Row内部元素顶部对齐
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Cover(
             pictureInfo: PictureInfo(
@@ -162,7 +166,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
               children: [
                 Text(
                   comicInfo.name,
-                  style: TextStyle(fontSize: 18),
+                  style: const TextStyle(fontSize: 18),
                   softWrap: true,
                   overflow: TextOverflow.visible,
                 ),
@@ -184,46 +188,114 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
         ],
       ),
       const SizedBox(height: 10),
-      ComicOperationWidget(comicInfo: comicInfo),
-      const SizedBox(height: 10),
-      if (comicInfo.tags.isNotEmpty)
+    ]);
+
+    // 2. 添加操作按钮
+    comicInfoWidgets.add(ComicOperationWidget(comicInfo: comicInfo));
+    comicInfoWidgets.add(const SizedBox(height: 10));
+
+    // 3. 动态添加标签（tags、author、actors、works）
+    if (comicInfo.tags.isNotEmpty) {
+      comicInfoWidgets.add(
         AllChipWidget(comicId: id, type: 'tags', chips: comicInfo.tags),
-      if (comicInfo.author.isNotEmpty)
+      );
+    }
+    if (comicInfo.author.isNotEmpty) {
+      comicInfoWidgets.add(
         AllChipWidget(comicId: id, type: 'author', chips: comicInfo.author),
-      if (comicInfo.actors.isNotEmpty)
+      );
+    }
+    if (comicInfo.actors.isNotEmpty) {
+      comicInfoWidgets.add(
         AllChipWidget(comicId: id, type: 'actors', chips: comicInfo.actors),
-      if (comicInfo.works.isNotEmpty)
+      );
+    }
+    if (comicInfo.works.isNotEmpty) {
+      comicInfoWidgets.add(
         AllChipWidget(comicId: id, type: 'works', chips: comicInfo.works),
-      if (comicInfo.description.isNotEmpty) ...[
+      );
+    }
+
+    // 4. 添加描述（description）
+    if (comicInfo.description.isNotEmpty) {
+      comicInfoWidgets.addAll([
         const SizedBox(height: 3),
         Text(
           comicInfo.description,
-          style: TextStyle(fontSize: 16),
+          style: const TextStyle(fontSize: 16),
           softWrap: true,
           overflow: TextOverflow.visible,
         ),
-      ],
-      if (comicInfo.series.isNotEmpty) ...[
-        const SizedBox(height: 10),
-        EpsWidget(
-          comicId: id,
-          seriesList: comicInfo.series,
-          comicInfo: comicInfo,
-          epsNumber: state.comicInfo!.series.length,
-        ),
-      ],
-      if (comicInfo.relatedList.isNotEmpty) ...[
-        const SizedBox(height: 10),
-        RecommendWidget(comicInfo: comicInfo),
-      ],
-    ];
+      ]);
+    }
 
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 10, horizontal: screenWidth / 50),
-      child: ListView.builder(
-        itemCount: comicInfoWidgets.length,
-        itemBuilder: (context, index) => comicInfoWidgets[index],
-      ),
+    // 5. 章节（每行两个）
+    if (comicInfo.series.isNotEmpty) {
+      comicInfoWidgets.add(const SizedBox(height: 10));
+      for (int i = 0; i < comicInfo.series.length; i += 2) {
+        final series1 = comicInfo.series[i];
+        final series2 =
+            (i + 1 < comicInfo.series.length) ? comicInfo.series[i + 1] : null;
+        comicInfoWidgets.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Row(
+              children: [
+                SizedBox(width: 5),
+                Expanded(
+                  child: EpWidget(
+                    comicId: id,
+                    series: series1,
+                    comicInfo: comicInfo,
+                    epsNumber: comicInfo.series.length,
+                  ),
+                ),
+                if (series2 != null) const SizedBox(width: 8),
+                if (series2 != null)
+                  Expanded(
+                    child: EpWidget(
+                      comicId: id,
+                      series: series2,
+                      comicInfo: comicInfo,
+                      epsNumber: comicInfo.series.length,
+                    ),
+                  ),
+                SizedBox(width: 5),
+              ],
+            ),
+          ),
+        );
+      }
+    }
+
+    // 6. 添加推荐（relatedList）
+    if (comicInfo.relatedList.isNotEmpty) {
+      comicInfoWidgets.addAll([
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            SizedBox(width: 5),
+            Expanded(child: RecommendWidget(comicInfo: comicInfo)),
+            SizedBox(width: 5),
+          ],
+        ),
+      ]);
+    }
+
+    // 7. 最后添加底部间距
+    comicInfoWidgets.add(const SizedBox(height: 80));
+
+    return Row(
+      children: [
+        SizedBox(width: screenWidth / 50),
+        Expanded(
+          child: ListView.builder(
+            itemCount: comicInfoWidgets.length,
+            itemBuilder: (context, index) => comicInfoWidgets[index],
+          ),
+        ),
+        SizedBox(width: screenWidth / 50),
+      ],
     );
   }
 

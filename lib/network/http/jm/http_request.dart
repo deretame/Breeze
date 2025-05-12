@@ -29,3 +29,25 @@ Future<Map<String, dynamic>> login(String account, String password) async =>
       body: 'username=$account&password=$password&',
       method: 'POST',
     );
+
+Future<Map<String, dynamic>> favorite(
+  String comicId, {
+  String? folderId,
+}) async {
+  // type=move&folder_id=3711549&aid=742&
+  // aid=742&
+  String body = "";
+  if (folderId != null) {
+    body = "type=move&folder_id=$folderId&aid=$comicId&";
+  } else {
+    body = "aid=$comicId&";
+  }
+
+  final Map<String, dynamic> data = await request(
+    '${JmConfig.baseUrl}/favorite',
+    body: body,
+    method: 'POST',
+  );
+
+  return data;
+}

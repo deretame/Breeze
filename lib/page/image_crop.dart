@@ -45,7 +45,8 @@ class _ImageCropPageState extends State<ImageCropPage> {
                         context.maybePop(croppedImage);
                       case CropFailure(:final cause):
                         logger.e(cause);
-                        showErrorToast(cause.toString());
+                        showErrorToast("裁剪失败 ${cause.toString()}");
+                        context.maybePop(null);
                     }
                   },
                   aspectRatio: 1,

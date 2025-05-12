@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -47,8 +48,6 @@ Widget changeProfilePicture(StackRouter route) {
 
           logger.d('Selected image path: $files'); // 输出选择的图片路径
         } else {
-          logger.e('No files found.');
-          showErrorToast("请选择图片");
           return;
         }
         var fileExtension = files.split(".").last;
@@ -59,21 +58,17 @@ Widget changeProfilePicture(StackRouter route) {
           showErrorToast("仅支持jpg、png、jpeg、webp格式的图片");
           return;
         }
-      } catch (e) {
-        logger.e('Error retrieving lost data: ${e.toString()}');
-        showErrorToast("请选择图片");
+      } catch (_) {
         return;
       }
       try {
         if (selectedImages.isEmpty) {
-          showErrorToast("请选择图片");
           return;
         }
-        final croppedFile = await route.push<List<int>>(
+        final croppedFile = await route.push<Uint8List?>(
           ImageCropRoute(imageData: await File(selectedImages).readAsBytes()),
         );
         if (croppedFile == null) {
-          showErrorToast("请选择图片");
           return;
         }
 

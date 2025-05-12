@@ -10,6 +10,7 @@ class MorePage extends StatelessWidget {
     List<Widget> widgets = [
       BikaUserInfoWidget(),
       Delimiter(),
+      // TODO:这里需要添加JM的设置，以及登录什么之类的玩意儿
       settings(context),
     ];
 

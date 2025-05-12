@@ -2,7 +2,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/page/ranking_list/widgets/comic_picture.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/router/router.gr.dart';
+import 'package:zephyr/util/sundry.dart';
 
 import '../../../config/global/global.dart';
 import '../../../main.dart';
@@ -160,7 +162,7 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
           break;
         }
       }
-      return "分类: $temp";
+      return "分类: ${temp.let(t2s)}";
     }
   }
 

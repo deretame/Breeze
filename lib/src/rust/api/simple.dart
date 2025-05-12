@@ -33,3 +33,6 @@ Future<void> packFolder({
 );
 
 Stream<String> streamTest() => RustLib.instance.api.crateApiSimpleStreamTest();
+
+String traditionalToSimplified({required String text}) =>
+    RustLib.instance.api.crateApiSimpleTraditionalToSimplified(text: text);

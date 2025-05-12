@@ -1,6 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
+import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/sundry.dart';
 
 import '../../../config/bika/bika_setting.dart';
 import '../../../config/global/global.dart';
@@ -28,7 +30,7 @@ Future<Map<String, bool>?> showCategoryDialog(
             categoriesMap.forEach((key, value) {
               checkboxes.add(
                 CheckboxListTile(
-                  title: Text(key),
+                  title: Text(key.let(t2s)),
                   value: categoriesMap[key],
                   onChanged: (bool? newValue) {
                     setState(() {

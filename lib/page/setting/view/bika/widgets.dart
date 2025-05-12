@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/router/router.gr.dart';
+import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../../config/global/global.dart';
@@ -226,7 +228,7 @@ Future<Map<String, bool>?> showShieldCategoryDialog(
             shieldCategoriesMap.forEach((key, value) {
               checkboxes.add(
                 CheckboxListTile(
-                  title: Text(key),
+                  title: Text(key.let(t2s)),
                   value: shieldCategoriesMap[key],
                   onChanged: (bool? newValue) {
                     setState(() {

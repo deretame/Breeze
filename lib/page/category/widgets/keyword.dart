@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/page/search_result/models/search_enter.dart';
+import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../main.dart';
@@ -36,7 +38,7 @@ class KeywordWidget extends StatelessWidget {
                 },
                 onLongPress: () {
                   Clipboard.setData(ClipboardData(text: keywords[index]));
-                  showSuccessToast("${keywords[index]}已复制到剪贴板");
+                  showSuccessToast("${keywords[index].let(t2s)}已复制到剪贴板");
                 },
                 child: Chip(
                   backgroundColor: globalSetting.backgroundColor, // 设置背景颜色
@@ -44,7 +46,7 @@ class KeywordWidget extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10), // 设置圆角
                   ),
                   label: Text(
-                    keywords[index],
+                    keywords[index].let(t2s),
                     style: TextStyle(
                       fontSize: 12,
                       color: materialColorScheme.primary,

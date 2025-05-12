@@ -7,7 +7,9 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/router/router.gr.dart';
+import 'package:zephyr/util/sundry.dart';
 
 import '../../config/global/global.dart';
 import '../../main.dart';
@@ -56,7 +58,7 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
       for (var category in categories) {
         temp += "$category ";
       }
-      return "分类: $temp";
+      return "分类: ${temp.let(t2s)}";
     }
   }
 

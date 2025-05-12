@@ -132,3 +132,8 @@ fn save_image(data: &[u8], file_path: &str) -> Result<()> {
         .context(format!("Failed to write file: {}", file_path))?;
     Ok(())
 }
+
+// 繁体转简体
+pub fn traditional_to_simplified(text: &str) -> String {
+    zhconv::zhconv(text, zhconv::Variant::ZhCN)
+}

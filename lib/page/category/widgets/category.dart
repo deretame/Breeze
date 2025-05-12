@@ -6,7 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:zephyr/page/category/category.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/router/router.gr.dart';
+import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/picture_bloc/bloc/picture_bloc.dart';
 
 import '../../../config/global/global.dart';
@@ -97,7 +99,7 @@ class CategoryWidget extends StatelessWidget {
                     Observer(
                       builder: (context) {
                         return Text(
-                          category.title,
+                          category.title.let(t2s),
                           style: TextStyle(
                             color: globalSetting.textColor,
                             fontSize: 14,

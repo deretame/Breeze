@@ -16,6 +16,9 @@ $manifestPath = Join-Path $projectRoot "android\app\src\main\AndroidManifest.xml
 $releaseDir = Join-Path $projectRoot "build\app\outputs\apk\release"
 $skiaDir = Join-Path $projectRoot "build\app\outputs\apk\skia"
 
+# 启用 native assets
+flutter config --enable-native-assets
+
 try
 {
     Set-Location $projectRoot

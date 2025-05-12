@@ -66,7 +66,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.9.0';
 
   @override
-  int get rustContentHash => -871898929;
+  int get rustContentHash => -1014366366;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -97,6 +97,8 @@ abstract class RustLibApi extends BaseApi {
   Future<String> crateApiSimpleSleepTest();
 
   Stream<String> crateApiSimpleStreamTest();
+
+  String crateApiSimpleTraditionalToSimplified({required String text});
 }
 
 class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
@@ -346,6 +348,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   TaskConstMeta get kCrateApiSimpleStreamTestConstMeta =>
       const TaskConstMeta(debugName: "stream_test", argNames: ["stream"]);
+
+  @override
+  String crateApiSimpleTraditionalToSimplified({required String text}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(text, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 9)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiSimpleTraditionalToSimplifiedConstMeta,
+        argValues: [text],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiSimpleTraditionalToSimplifiedConstMeta =>
+      const TaskConstMeta(
+        debugName: "traditional_to_simplified",
+        argNames: ["text"],
+      );
 
   @protected
   AnyhowException dco_decode_AnyhowException(dynamic raw) {

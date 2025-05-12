@@ -53,3 +53,8 @@ pub fn stream_test(stream: StreamSink<String>) -> Result<()> {
     }
     Ok(())
 }
+
+#[frb(sync)]
+pub fn traditional_to_simplified(text: &str) -> String {
+    decode::traditional_to_simplified(text)
+}

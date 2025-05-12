@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/page/search_result/models/models.dart';
+import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/sundry.dart';
 
 import '../../../config/global/global.dart';
 import '../../../main.dart';
@@ -33,7 +35,7 @@ class CategoriesSelect extends StatelessWidget {
               categoriesMap.forEach((key, value) {
                 checkboxes.add(
                   CheckboxListTile(
-                    title: Text(key),
+                    title: Text(key.let(t2s)),
                     value: categoriesMap[key],
                     onChanged: (bool? newValue) {
                       setState(() {

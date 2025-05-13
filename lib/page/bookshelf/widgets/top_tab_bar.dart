@@ -2,6 +2,8 @@ import 'package:custom_sliding_segmented_control/custom_sliding_segmented_contro
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/page/bookshelf/mobx/search_status.dart';
+import 'package:zephyr/page/bookshelf/models/events.dart';
 import 'package:zephyr/page/bookshelf/view/bookshelf_page.dart';
 
 class TopTabBar extends StatelessWidget {
@@ -45,6 +47,13 @@ class TopTabBar extends StatelessWidget {
           ),
           onValueChanged: (int value) {
             bookshelfStore.topBarStore.setDate(value);
+            bookshelfStore.favoriteStore = SearchStatusStore();
+            bookshelfStore.historyStore = SearchStatusStore();
+            bookshelfStore.downloadStore = SearchStatusStore();
+            bookshelfStore.tabController!.animateTo(0);
+            eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 0));
+            eventBus.fire(HistoryEvent(EventType.refresh));
+            eventBus.fire(DownloadEvent(EventType.refresh));
           },
         );
       },

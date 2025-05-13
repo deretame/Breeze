@@ -221,8 +221,6 @@ class __HistoryPageState extends State<_HistoryPage>
     List<List<ComicSimplifyEntryInfo>>? elementsRows,
     List<dynamic>? comics,
   }) {
-    final temp = comics!.map((e) => e as BikaComicHistory).toList();
-
     if (index == dataLength) {
       return Column(
         children: [
@@ -236,36 +234,47 @@ class __HistoryPageState extends State<_HistoryPage>
       );
     }
 
-    return isBrevity
-        ? ComicSimplifyEntryRow(
+    if (bookshelfStore.topBarStore.date == 1) {
+      if (isBrevity) {
+        return ComicSimplifyEntryRow(
           key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
           entries: elementsRows[index],
           type: ComicEntryType.history,
           refresh: refreshCallback,
-        )
-        : ComicEntryWidget(
+        );
+      } else {
+        final temp = comics!.map((e) => e as BikaComicHistory).toList();
+        return ComicEntryWidget(
           comicEntryInfo: convertToComicEntryInfo(temp[index]),
           type: ComicEntryType.history,
           refresh: refreshCallback,
         );
+      }
+    } else {
+      return const SizedBox.shrink();
+    }
   }
 
   // 转换数据格式
   List<ComicSimplifyEntryInfo> _convertToEntryInfoList(List<dynamic> comics) {
-    final temp = comics.map((e) => e as BikaComicHistory).toList();
+    if (bookshelfStore.topBarStore.date == 1) {
+      final temp = comics.map((e) => e as BikaComicHistory).toList();
 
-    return temp
-        .map(
-          (element) => ComicSimplifyEntryInfo(
-            title: element.title,
-            id: element.comicId,
-            fileServer: element.thumbFileServer,
-            path: element.thumbPath,
-            pictureType: "cover",
-            from: "bika",
-          ),
-        )
-        .toList();
+      return temp
+          .map(
+            (element) => ComicSimplifyEntryInfo(
+              title: element.title,
+              id: element.comicId,
+              fileServer: element.thumbFileServer,
+              path: element.thumbPath,
+              pictureType: "cover",
+              from: "bika",
+            ),
+          )
+          .toList();
+    } else {
+      return [];
+    }
   }
 
   void _refresh(SearchStatusStore searchStatusStore) {

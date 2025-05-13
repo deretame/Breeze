@@ -56,7 +56,7 @@ class _ImageCropPageState extends State<ImageCropPage> {
                     imageRect,
                   ) {
                     // 初始裁剪区域为图片中心的正方形
-                    final size = viewportRect.shortestSide * 0.8;
+                    final size = viewportRect.shortestSide * 1.0;
                     final center = viewportRect.center;
                     return Rect.fromCenter(
                       center: center,

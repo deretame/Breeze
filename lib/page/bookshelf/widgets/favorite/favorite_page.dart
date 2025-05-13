@@ -198,14 +198,14 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
   // 构建详细模式列表
   Widget _buildDetailedList(UserFavouriteState state) {
-    final temp = state.comics.map((e) => e as Doc).toList();
+    final temp = state.comics.map((e) => e as ComicNumber).toList();
 
     return _buildCommonListView(
       state: state,
       itemCount: temp.length,
       itemBuilder:
           (context, index) =>
-              FavoriteComicEntryWidget(comicEntryInfo: temp[index]),
+              FavoriteComicEntryWidget(comicEntryInfo: temp[index].doc),
     );
   }
 
@@ -286,20 +286,24 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
   // 转换数据为简洁模式需要的格式
   List<ComicSimplifyEntryInfo> _convertToSimplifyList(List<dynamic> comics) {
-    final temp = comics.map((e) => e as ComicNumber).toList();
+    if (bookshelfStore.topBarStore.date == 1) {
+      final temp = comics.map((e) => e as ComicNumber).toList();
 
-    return temp
-        .map(
-          (element) => ComicSimplifyEntryInfo(
-            title: element.doc.title,
-            id: element.doc.id,
-            fileServer: element.doc.thumb.fileServer,
-            path: element.doc.thumb.path,
-            pictureType: "favourite",
-            from: "bika",
-          ),
-        )
-        .toList();
+      return temp
+          .map(
+            (element) => ComicSimplifyEntryInfo(
+              title: element.doc.title,
+              id: element.doc.id,
+              fileServer: element.doc.thumb.fileServer,
+              path: element.doc.thumb.path,
+              pictureType: "favourite",
+              from: "bika",
+            ),
+          )
+          .toList();
+    } else {
+      return [];
+    }
   }
 
   void _refresh({bool updateShield = false, bool initState = false}) {

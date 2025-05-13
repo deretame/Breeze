@@ -21,36 +21,35 @@ class BookshelfPage extends StatefulWidget {
 
 class _BookshelfPageState extends State<BookshelfPage>
     with TickerProviderStateMixin {
-  late final TabController _tabController;
-
   int _currentIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this)..addListener(() {
-      if (_tabController.index != _currentIndex) {
-        _currentIndex = _tabController.index;
-        bookshelfStore.indexStore.setDate(_currentIndex);
-        // logger.d('Current index: $_currentIndex');
-        if (_currentIndex == 0) {
-          eventBus.fire(
-            FavoriteEvent(EventType.showInfo, SortType.nullValue, 0),
-          );
-        } else if (_currentIndex == 1) {
-          eventBus.fire(HistoryEvent(EventType.showInfo));
-        } else if (_currentIndex == 2) {
-          eventBus.fire(DownloadEvent(EventType.showInfo));
+    bookshelfStore.tabController = TabController(length: 3, vsync: this)
+      ..addListener(() {
+        if (bookshelfStore.tabController!.index != _currentIndex) {
+          _currentIndex = bookshelfStore.tabController!.index;
+          bookshelfStore.indexStore.setDate(_currentIndex);
+          // logger.d('Current index: $_currentIndex');
+          if (_currentIndex == 0) {
+            eventBus.fire(
+              FavoriteEvent(EventType.showInfo, SortType.nullValue, 0),
+            );
+          } else if (_currentIndex == 1) {
+            eventBus.fire(HistoryEvent(EventType.showInfo));
+          } else if (_currentIndex == 2) {
+            eventBus.fire(DownloadEvent(EventType.showInfo));
+          }
         }
-      }
-    });
+      });
     bookshelfStore.stringSelectStore.setDate("");
     bookshelfStore.topBarStore.setDate(1);
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    bookshelfStore.tabController!.dispose();
     super.dispose();
   }
 
@@ -119,7 +118,7 @@ class _BookshelfPageState extends State<BookshelfPage>
             children: [
               Expanded(
                 child: TabBar(
-                  controller: _tabController,
+                  controller: bookshelfStore.tabController,
                   tabs: const [
                     Tab(text: "收藏"),
                     Tab(text: "历史"),
@@ -153,7 +152,7 @@ class _BookshelfPageState extends State<BookshelfPage>
         children: [
           Expanded(
             child: TabBarView(
-              controller: _tabController,
+              controller: bookshelfStore.tabController,
               children: [FavoritePage(), HistoryPage(), DownloadPage()],
             ),
           ),

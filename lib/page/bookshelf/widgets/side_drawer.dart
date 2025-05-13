@@ -8,31 +8,20 @@ import '../../../config/bika/bika_setting.dart';
 import '../../../mobx/int_select.dart';
 
 class SideDrawer extends StatefulWidget {
-  final IntSelectStore indexStore;
-  final SearchStatusStore favoriteStore;
-  final SearchStatusStore historyStore;
-  final SearchStatusStore downloadStore;
-
-  const SideDrawer({
-    super.key,
-    required this.indexStore,
-    required this.favoriteStore,
-    required this.historyStore,
-    required this.downloadStore,
-  });
+  const SideDrawer({super.key});
 
   @override
   State<SideDrawer> createState() => _SideDrawerState();
 }
 
 class _SideDrawerState extends State<SideDrawer> {
-  IntSelectStore get indexStore => widget.indexStore;
+  IntSelectStore get indexStore => bookshelfStore.indexStore;
 
-  SearchStatusStore get favoriteStore => widget.favoriteStore;
+  SearchStatusStore get favoriteStore => bookshelfStore.favoriteStore;
 
-  SearchStatusStore get historyStore => widget.historyStore;
+  SearchStatusStore get historyStore => bookshelfStore.historyStore;
 
-  SearchStatusStore get downloadStore => widget.downloadStore;
+  SearchStatusStore get downloadStore => bookshelfStore.downloadStore;
 
   Map<String, bool> _categoriesShield = Map.of(bikaSetting.shieldCategoryMap);
   List<String> categories = [];

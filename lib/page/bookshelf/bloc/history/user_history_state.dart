@@ -11,13 +11,13 @@ final class UserHistoryState extends Equatable {
   });
 
   final UserHistoryStatus status;
-  final List<BikaComicHistory> comics;
+  final List<dynamic> comics;
   final String result;
   final SearchEnterConst searchEnterConst;
 
   UserHistoryState copyWith({
     UserHistoryStatus? status,
-    List<BikaComicHistory>? comics,
+    List<dynamic>? comics,
     String? result,
     SearchEnterConst? searchEnterConst,
   }) {

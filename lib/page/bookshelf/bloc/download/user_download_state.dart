@@ -11,13 +11,13 @@ class UserDownloadState extends Equatable {
   });
 
   final UserDownloadStatus status;
-  final List<BikaComicDownload> comics;
+  final List<dynamic> comics;
   final String result;
   final SearchEnterConst searchEnterConst;
 
   UserDownloadState copyWith({
     UserDownloadStatus? status,
-    List<BikaComicDownload>? comics,
+    List<dynamic>? comics,
     String? result,
     SearchEnterConst? searchEnterConst,
   }) {

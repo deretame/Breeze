@@ -14,41 +14,20 @@ import '../../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 
 class DownloadPage extends StatelessWidget {
-  final SearchStatusStore searchStatusStore;
-  final StringSelectStore stringSelectStore;
-  final IntSelectStore indexStore;
-
-  const DownloadPage({
-    super.key,
-    required this.searchStatusStore,
-    required this.stringSelectStore,
-    required this.indexStore,
-  });
+  const DownloadPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create:
           (_) => UserDownloadBloc()..add(UserDownloadEvent(SearchEnterConst())),
-      child: _DownloadPage(
-        searchStatusStore: searchStatusStore,
-        stringSelectStore: stringSelectStore,
-        indexStore: indexStore,
-      ),
+      child: _DownloadPage(),
     );
   }
 }
 
 class _DownloadPage extends StatefulWidget {
-  final SearchStatusStore searchStatusStore;
-  final StringSelectStore stringSelectStore;
-  final IntSelectStore indexStore;
-
-  const _DownloadPage({
-    required this.searchStatusStore,
-    required this.stringSelectStore,
-    required this.indexStore,
-  });
+  const _DownloadPage();
 
   @override
   State<_DownloadPage> createState() => _DownloadPageState();
@@ -56,11 +35,11 @@ class _DownloadPage extends StatefulWidget {
 
 class _DownloadPageState extends State<_DownloadPage>
     with AutomaticKeepAliveClientMixin {
-  SearchStatusStore get searchStatusStore => widget.searchStatusStore;
+  SearchStatusStore get searchStatusStore => bookshelfStore.downloadStore;
 
-  StringSelectStore get stringSelectStore => widget.stringSelectStore;
+  StringSelectStore get stringSelectStore => bookshelfStore.stringSelectStore;
 
-  IntSelectStore get indexStore => widget.indexStore;
+  IntSelectStore get indexStore => bookshelfStore.indexStore;
 
   int totalComicCount = 0;
   bool notice = false;
@@ -87,7 +66,7 @@ class _DownloadPageState extends State<_DownloadPage>
   }
 
   void _scrollListener() {
-    if (widget.indexStore.date == 2) {
+    if (indexStore.date == 2) {
       stringSelectStore.setDate(totalComicCount.toString());
     }
   }
@@ -103,7 +82,7 @@ class _DownloadPageState extends State<_DownloadPage>
         return RefreshIndicator(
           displacement: 60.0,
           onRefresh: () async {
-            if (widget.indexStore.date == 2) {
+            if (indexStore.date == 2) {
               _refresh(searchStatusStore);
             }
           },
@@ -159,7 +138,7 @@ class _DownloadPageState extends State<_DownloadPage>
 
   // 显示通知（如果条件满足）
   void _showNoticeIfNeeded() {
-    if (!notice && widget.indexStore.date == 1) {
+    if (!notice && indexStore.date == 1) {
       eventBus.fire(DownloadEvent(EventType.showInfo));
       notice = true;
     }
@@ -244,8 +223,10 @@ class _DownloadPageState extends State<_DownloadPage>
     VoidCallback refreshCallback, {
     required bool isBrevity,
     List<List<ComicSimplifyEntryInfo>>? elementsRows,
-    List<BikaComicDownload>? comics,
+    List<dynamic>? comics,
   }) {
+    final temp = comics!.map((e) => e as BikaComicDownload).toList();
+
     if (index == dataLength) {
       return Column(
         children: [
@@ -267,17 +248,17 @@ class _DownloadPageState extends State<_DownloadPage>
           refresh: refreshCallback,
         )
         : ComicEntryWidget(
-          comicEntryInfo: downloadConvertToComicEntryInfo(comics![index]),
+          comicEntryInfo: downloadConvertToComicEntryInfo(temp[index]),
           type: ComicEntryType.download,
           refresh: refreshCallback,
         );
   }
 
   // 转换数据格式
-  List<ComicSimplifyEntryInfo> _convertToEntryInfoList(
-    List<BikaComicDownload> comics,
-  ) {
-    return comics
+  List<ComicSimplifyEntryInfo> _convertToEntryInfoList(List<dynamic> comics) {
+    final temp = comics.map((e) => e as BikaComicDownload).toList();
+
+    return temp
         .map(
           (element) => ComicSimplifyEntryInfo(
             title: element.title,

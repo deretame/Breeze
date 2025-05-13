@@ -10,7 +10,7 @@ enum UserFavouriteStatus {
 
 final class UserFavouriteState extends Equatable {
   final UserFavouriteStatus status;
-  final List<ComicNumber> comics;
+  final List<dynamic> comics;
   final bool hasReachedMax;
   final String result;
   final int pageCount;
@@ -29,7 +29,7 @@ final class UserFavouriteState extends Equatable {
 
   UserFavouriteState copyWith({
     UserFavouriteStatus? status,
-    List<ComicNumber>? comics,
+    List<dynamic>? comics,
     bool? hasReachedMax,
     String? result,
     int? pageCount,

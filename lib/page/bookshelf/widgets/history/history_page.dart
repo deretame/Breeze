@@ -14,41 +14,20 @@ import '../../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 
 class HistoryPage extends StatelessWidget {
-  final SearchStatusStore searchStatusStore;
-  final StringSelectStore stringSelectStore;
-  final IntSelectStore indexStore;
-
-  const HistoryPage({
-    super.key,
-    required this.searchStatusStore,
-    required this.stringSelectStore,
-    required this.indexStore,
-  });
+  const HistoryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create:
           (_) => UserHistoryBloc()..add(UserHistoryEvent(SearchEnterConst())),
-      child: _HistoryPage(
-        searchStatusStore: searchStatusStore,
-        stringSelectStore: stringSelectStore,
-        indexStore: indexStore,
-      ),
+      child: _HistoryPage(),
     );
   }
 }
 
 class _HistoryPage extends StatefulWidget {
-  final SearchStatusStore searchStatusStore;
-  final StringSelectStore stringSelectStore;
-  final IntSelectStore indexStore;
-
-  const _HistoryPage({
-    required this.searchStatusStore,
-    required this.stringSelectStore,
-    required this.indexStore,
-  });
+  const _HistoryPage();
 
   @override
   State<_HistoryPage> createState() => __HistoryPageState();
@@ -56,11 +35,11 @@ class _HistoryPage extends StatefulWidget {
 
 class __HistoryPageState extends State<_HistoryPage>
     with AutomaticKeepAliveClientMixin {
-  SearchStatusStore get searchStatusStore => widget.searchStatusStore;
+  SearchStatusStore get searchStatusStore => bookshelfStore.historyStore;
 
-  StringSelectStore get stringSelectStore => widget.stringSelectStore;
+  StringSelectStore get stringSelectStore => bookshelfStore.stringSelectStore;
 
-  IntSelectStore get indexStore => widget.indexStore;
+  IntSelectStore get indexStore => bookshelfStore.indexStore;
 
   int totalComicCount = 0;
   bool notice = false;
@@ -83,7 +62,7 @@ class __HistoryPageState extends State<_HistoryPage>
 
   // 滚动监听方法
   void _scrollListener() {
-    if (widget.indexStore.date == 1) {
+    if (bookshelfStore.indexStore.date == 1) {
       stringSelectStore.setDate(totalComicCount.toString());
     }
   }
@@ -99,8 +78,8 @@ class __HistoryPageState extends State<_HistoryPage>
         return RefreshIndicator(
           displacement: 60.0,
           onRefresh: () async {
-            if (widget.indexStore.date == 1) {
-              _refresh(searchStatusStore);
+            if (bookshelfStore.indexStore.date == 1) {
+              _refresh(bookshelfStore.historyStore);
             }
           },
           child: _buildContent(state),
@@ -155,7 +134,7 @@ class __HistoryPageState extends State<_HistoryPage>
 
   // 显示通知（如果条件满足）
   void _showNoticeIfNeeded() {
-    if (!notice && widget.indexStore.date == 1) {
+    if (!notice && bookshelfStore.indexStore.date == 1) {
       eventBus.fire(HistoryEvent(EventType.showInfo));
       notice = true;
     }
@@ -170,7 +149,7 @@ class __HistoryPageState extends State<_HistoryPage>
           const Text('啥都没有', style: TextStyle(fontSize: 20.0)),
           const SizedBox(height: 10),
           IconButton(
-            onPressed: () => _refresh(searchStatusStore),
+            onPressed: () => _refresh(bookshelfStore.historyStore),
             icon: const Icon(Icons.refresh),
           ),
           const Spacer(),
@@ -240,8 +219,10 @@ class __HistoryPageState extends State<_HistoryPage>
     VoidCallback refreshCallback, {
     required bool isBrevity,
     List<List<ComicSimplifyEntryInfo>>? elementsRows,
-    List<BikaComicHistory>? comics,
+    List<dynamic>? comics,
   }) {
+    final temp = comics!.map((e) => e as BikaComicHistory).toList();
+
     if (index == dataLength) {
       return Column(
         children: [
@@ -263,17 +244,17 @@ class __HistoryPageState extends State<_HistoryPage>
           refresh: refreshCallback,
         )
         : ComicEntryWidget(
-          comicEntryInfo: convertToComicEntryInfo(comics![index]),
+          comicEntryInfo: convertToComicEntryInfo(temp[index]),
           type: ComicEntryType.history,
           refresh: refreshCallback,
         );
   }
 
   // 转换数据格式
-  List<ComicSimplifyEntryInfo> _convertToEntryInfoList(
-    List<BikaComicHistory> comics,
-  ) {
-    return comics
+  List<ComicSimplifyEntryInfo> _convertToEntryInfoList(List<dynamic> comics) {
+    final temp = comics.map((e) => e as BikaComicHistory).toList();
+
+    return temp
         .map(
           (element) => ComicSimplifyEntryInfo(
             title: element.title,

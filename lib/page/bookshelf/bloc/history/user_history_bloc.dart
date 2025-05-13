@@ -48,47 +48,10 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
     }
 
     try {
-      late var comicList = objectbox.bikaHistoryBox.getAll();
-
-      totalComicCount = comicList.length;
-
-      comicList = _filterShieldedComics(comicList);
-
-      comicList = _fetchOfSort(comicList, event.searchEnterConst.sort);
-
-      if (event.searchEnterConst.categories.isNotEmpty) {
-        for (var category in event.searchEnterConst.categories) {
-          comicList =
-              comicList
-                  .where((comic) => comic.categories.contains(category))
-                  .toList();
-        }
-      }
-
-      if (event.searchEnterConst.keyword.isNotEmpty) {
-        final keyword = event.searchEnterConst.keyword.toLowerCase();
-
-        comicList =
-            comicList.where((comic) {
-              var allString =
-                  comic.title +
-                  comic.author +
-                  comic.chineseTeam +
-                  comic.categoriesString +
-                  comic.tagsString +
-                  comic.description +
-                  comic.creatorName;
-              return allString.toLowerCase().contains(keyword);
-            }).toList();
-      }
-
-      comicList = comicList.where((comic) => comic.deleted == false).toList();
-
-      // emit 状态更新
       emit(
         state.copyWith(
           status: UserHistoryStatus.success,
-          comics: comicList,
+          comics: _getComicList(event),
           searchEnterConst: event.searchEnterConst,
           result: totalComicCount.toString(),
         ),
@@ -124,6 +87,22 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
     return comicList;
   }
 
+  List<JmHistory> _fetchOfSortJm(List<JmHistory> comicList, String sort) {
+    if (sort == "dd") {
+      comicList.sort((a, b) => b.history.compareTo(a.history));
+    }
+    if (sort == "da") {
+      comicList.sort((a, b) => a.history.compareTo(b.history));
+    }
+    if (sort == "ld") {
+      comicList.sort((a, b) => b.likes.compareTo(a.likes));
+    }
+    if (sort == "vd") {
+      comicList.sort((a, b) => b.totalViews.compareTo(a.totalViews));
+    }
+    return comicList;
+  }
+
   List<BikaComicHistory> _filterShieldedComics(List<BikaComicHistory> comics) {
     // 获取所有被屏蔽的分类
     List<String> shieldedCategoriesList =
@@ -139,5 +118,72 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
         (category) => shieldedCategoriesList.contains(category),
       );
     }).toList();
+  }
+
+  List<dynamic> _getComicList(UserHistoryEvent event) {
+    List<dynamic> comics = [];
+    if (bookshelfStore.topBarStore.date == 1) {
+      late var comicList = objectbox.bikaHistoryBox.getAll();
+
+      totalComicCount = comicList.length;
+
+      comicList = _filterShieldedComics(comicList);
+
+      comicList = _fetchOfSort(comicList, event.searchEnterConst.sort);
+
+      if (event.searchEnterConst.categories.isNotEmpty) {
+        for (var category in event.searchEnterConst.categories) {
+          comicList =
+              comicList
+                  .where((comic) => comic.categories.contains(category))
+                  .toList();
+        }
+      }
+
+      if (event.searchEnterConst.keyword.isNotEmpty) {
+        final keyword = event.searchEnterConst.keyword.toLowerCase();
+
+        comicList =
+            comicList.where((comic) {
+              var allString =
+                  comic.title +
+                  comic.author +
+                  comic.chineseTeam +
+                  comic.categoriesString +
+                  comic.tagsString +
+                  comic.description +
+                  comic.creatorName;
+              return allString.toLowerCase().contains(keyword);
+            }).toList();
+      }
+
+      comics = comicList.where((comic) => comic.deleted == false).toList();
+    } else if (bookshelfStore.topBarStore.date == 2) {
+      late var comicList = objectbox.jmHistoryBox.getAll();
+
+      totalComicCount = comicList.length;
+
+      comicList = _fetchOfSortJm(comicList, event.searchEnterConst.sort);
+
+      if (event.searchEnterConst.keyword.isNotEmpty) {
+        final keyword = event.searchEnterConst.keyword.toLowerCase();
+
+        comicList =
+            comicList.where((comic) {
+              var allString =
+                  comic.comicId.toString() +
+                  comic.name +
+                  comic.description +
+                  comic.author.toString() +
+                  comic.tags.toString() +
+                  comic.works.toString() +
+                  comic.actors.toString();
+              return allString.toLowerCase().contains(keyword);
+            }).toList();
+      }
+
+      comics = comicList;
+    }
+    return comics;
   }
 }

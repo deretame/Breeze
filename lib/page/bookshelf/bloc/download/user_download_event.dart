@@ -1,7 +1,7 @@
 part of 'user_download_bloc.dart';
 
 final class UserDownloadEvent extends Equatable {
-  final SearchEnterConst searchEnterConst;
+  final SearchEnter searchEnterConst;
 
   const UserDownloadEvent(this.searchEnterConst);
 

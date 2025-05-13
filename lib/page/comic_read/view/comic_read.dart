@@ -87,6 +87,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   late final ItemPositionsListener _itemPositionsListener;
   final PageController _pageController = PageController(initialPage: 0);
   late BikaComicHistory? comicHistory; // 记录阅读记录
+  late JmHistory? jmHistory; // 记录阅读记录
   DateTime? _lastUpdateTime; // 记录上次更新时间
   bool _isInserting = false; // 检测数据插入状态
   int pageIndex = 0; // 当前页数
@@ -142,7 +143,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
               .findFirst();
       // 如果没有记录就先插入一条记录
       if (comicHistory == null) {
-        comicHistory = comicToBikaComicHistory(comicInfo, widget.order);
+        comicHistory = comicToBikaComicHistory(comicInfo);
         objectbox.bikaHistoryBox.put(comicHistory!);
       }
 
@@ -159,19 +160,30 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       }
 
       // logger.d(_type.toString().split('.').last);
-
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        if (globalSetting.readMode != 0) {
-          await Future.delayed(Duration(milliseconds: 200));
-          setState(() => _isVisible = false);
-        }
-
-        await Future.delayed(Duration(seconds: 1));
-        _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
-          if (_loading) writeToDatabase();
-        });
-      });
+    } else if (widget.from == From.jm) {
+      // 首先查询一下有没有记录
+      jmHistory =
+          objectbox.jmHistoryBox
+              .query(JmHistory_.comicId.equals(comicId))
+              .build()
+              .findFirst();
+      // 如果没有记录就先插入一条记录
+      if (jmHistory == null) {
+        jmHistory = jmToJmHistory(comicInfo);
+        objectbox.jmHistoryBox.put(jmHistory!);
+      }
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (globalSetting.readMode != 0) {
+        await Future.delayed(Duration(milliseconds: 200));
+        setState(() => _isVisible = false);
+      }
+
+      await Future.delayed(Duration(seconds: 1));
+      _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+        if (_loading) writeToDatabase();
+      });
+    });
   }
 
   @override
@@ -418,22 +430,34 @@ class _ComicReadPageState extends State<_ComicReadPage> {
             DateTime.now().difference(_lastUpdateTime!).inMilliseconds < 100) {
       return;
     }
-    if (widget.from != From.bika) return;
-    // 更新记录
-    _isInserting = true;
-    final temp = comicInfo as Comic;
-    // 我也不知道为啥部分漫画的封面会加载失败，所以这里干脆每次都更新一下
-    comicHistory!
-      ..thumbFileServer = temp.thumb.fileServer
-      ..thumbPath = temp.thumb.path
-      ..thumbOriginalName = temp.thumb.originalName
-      ..history = DateTime.now().toUtc()
-      ..order = widget.order
-      ..epPageCount = pageIndex
-      ..epTitle = epName
-      ..epId = epId
-      ..deleted = false;
-    await objectbox.bikaHistoryBox.putAsync(comicHistory!);
+    if (widget.from == From.bika) {
+      // 更新记录
+      _isInserting = true;
+      final temp = comicInfo as Comic;
+      // 有的时候漫画的封面会变动，所以这里干脆每次都更新一下
+      comicHistory!
+        ..thumbFileServer = temp.thumb.fileServer
+        ..thumbPath = temp.thumb.path
+        ..thumbOriginalName = temp.thumb.originalName
+        ..history = DateTime.now().toUtc()
+        ..order = widget.order
+        ..epPageCount = pageIndex
+        ..epTitle = epName
+        ..epId = epId
+        ..deleted = false;
+      await objectbox.bikaHistoryBox.putAsync(comicHistory!);
+    } else if (widget.from == From.jm) {
+      // 更新记录
+      _isInserting = true;
+      jmHistory!
+        ..history = DateTime.now().toUtc()
+        ..order = widget.order
+        ..epPageCount = pageIndex
+        ..epTitle = epName
+        ..epId = epId
+        ..deleted = false;
+      await objectbox.jmHistoryBox.putAsync(jmHistory!);
+    }
     _isInserting = false;
     _lastUpdateTime = DateTime.now();
   }
@@ -540,20 +564,27 @@ class _ComicReadPageState extends State<_ComicReadPage> {
 
   /// 处理历史记录滚动
   void _handleHistoryScroll() {
-    final shouldScroll =
-        _isHistory && (comicHistory!.epPageCount - 1 != 0) && !isSkipped;
+    var shouldScroll = _isHistory && !isSkipped;
+
+    if (widget.from == From.bika) {
+      shouldScroll &= (comicHistory!.epPageCount - 1 != 0);
+    } else {
+      shouldScroll &= (jmHistory!.epPageCount - 1 != 0);
+    }
+
+    final index =
+        widget.from == From.bika
+            ? comicHistory!.epPageCount
+            : jmHistory!.epPageCount;
 
     if (shouldScroll) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        setState(() => pageIndex = comicHistory!.epPageCount);
+        setState(() => pageIndex = index);
         // logger.d('历史记录：${comicHistory!.epPageCount}');
         if (globalSetting.readMode == 0) {
-          _itemScrollController.jumpTo(
-            index: comicHistory!.epPageCount - 1,
-            alignment: 0.0,
-          );
+          _itemScrollController.jumpTo(index: index - 1, alignment: 0.0);
         } else {
-          _pageController.jumpTo(comicHistory!.epPageCount - 2);
+          _pageController.jumpTo(index - 2);
         }
         isSkipped = true;
       });

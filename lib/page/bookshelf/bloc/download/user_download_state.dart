@@ -7,19 +7,19 @@ class UserDownloadState extends Equatable {
     this.status = UserDownloadStatus.initial,
     this.comics = const [],
     this.result = '',
-    this.searchEnterConst = const SearchEnterConst(),
+    this.searchEnterConst = const SearchEnter(),
   });
 
   final UserDownloadStatus status;
   final List<dynamic> comics;
   final String result;
-  final SearchEnterConst searchEnterConst;
+  final SearchEnter searchEnterConst;
 
   UserDownloadState copyWith({
     UserDownloadStatus? status,
     List<dynamic>? comics,
     String? result,
-    SearchEnterConst? searchEnterConst,
+    SearchEnter? searchEnterConst,
   }) {
     return UserDownloadState(
       status: status ?? this.status,

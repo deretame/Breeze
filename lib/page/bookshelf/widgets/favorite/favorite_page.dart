@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/network/http/picture/picture.dart';
+import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
-import 'package:zephyr/page/bookshelf/json/favorite/favourite_json.dart';
 
 import '../../../../config/global/global.dart';
 import '../../../../main.dart';
@@ -20,7 +21,12 @@ class FavoritePage extends StatelessWidget {
       create:
           (_) =>
               UserFavouriteBloc()..add(
-                UserFavouriteEvent(UserFavouriteStatus.initial, 1, Uuid().v4()),
+                UserFavouriteEvent(
+                  UserFavouriteStatus.initial,
+                  1,
+                  Uuid().v4(),
+                  SearchEnter(),
+                ),
               ),
       child: _FavoritePage(),
     );
@@ -40,6 +46,9 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
   StringSelectStore get stringSelectStore => bookshelfStore.stringSelectStore;
 
+  SearchStatusStore get favoriteStore => bookshelfStore.favoriteStore;
+
+  late SearchEnter searchEnterConst;
   late List<dynamic> comics;
   int pageCount = 0;
   String refresh = "";
@@ -55,6 +64,8 @@ class _UserFavoritePageState extends State<_FavoritePage>
   void initState() {
     super.initState();
     pageCount = 1;
+
+    searchEnterConst = SearchEnter();
 
     _scrollController.addListener(_scrollListener);
     eventBus.on<FavoriteEvent>().listen((event) {
@@ -141,12 +152,18 @@ class _UserFavoritePageState extends State<_FavoritePage>
   Widget _buildList(UserFavouriteState state) {
     _updateStateVariables(state);
 
-    if (_shouldFetchMore(state)) {
-      _fetchFavoriteResult();
+    if (bookshelfStore.topBarStore.date == 1) {
+      if (_shouldFetchMore(state)) {
+        _fetchFavoriteResult();
+      }
     }
 
     if (state.comics.isEmpty) {
       return _buildEmptyState();
+    }
+
+    if (bookshelfStore.topBarStore.date == 2) {
+      return _buildBrevityList(state);
     }
 
     return bikaSetting.brevity
@@ -287,23 +304,42 @@ class _UserFavoritePageState extends State<_FavoritePage>
   // 转换数据为简洁模式需要的格式
   List<ComicSimplifyEntryInfo> _convertToSimplifyList(List<dynamic> comics) {
     if (bookshelfStore.topBarStore.date == 1) {
-      final temp = comics.map((e) => e as ComicNumber).toList();
+      if (comics[0] is ComicNumber) {
+        final temp = comics.map((e) => e as ComicNumber).toList();
 
-      return temp
-          .map(
-            (element) => ComicSimplifyEntryInfo(
-              title: element.doc.title,
-              id: element.doc.id,
-              fileServer: element.doc.thumb.fileServer,
-              path: element.doc.thumb.path,
-              pictureType: "favourite",
-              from: "bika",
-            ),
-          )
-          .toList();
+        return temp
+            .map(
+              (element) => ComicSimplifyEntryInfo(
+                title: element.doc.title,
+                id: element.doc.id,
+                fileServer: element.doc.thumb.fileServer,
+                path: element.doc.thumb.path,
+                pictureType: "favourite",
+                from: "bika",
+              ),
+            )
+            .toList();
+      }
     } else {
-      return [];
+      if (comics[0] is JmFavorite) {
+        final temp = comics.map((e) => e as JmFavorite).toList();
+
+        return temp
+            .map(
+              (element) => ComicSimplifyEntryInfo(
+                title: element.name,
+                id: element.comicId.toString(),
+                fileServer: getJmCoverUrl(element.comicId.toString()),
+                path: ".jpg",
+                pictureType: 'cover',
+                from: 'jm',
+              ),
+            )
+            .toList();
+      }
     }
+
+    return [];
   }
 
   void _refresh({bool updateShield = false, bool initState = false}) {
@@ -313,24 +349,42 @@ class _UserFavoritePageState extends State<_FavoritePage>
           UserFavouriteStatus.loadingMore,
           pageCount,
           "updateShield",
+          searchEnterConst,
         ),
       );
       return;
     }
 
     if (initState) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          0,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
       context.read<UserFavouriteBloc>().add(
         UserFavouriteEvent(
           UserFavouriteStatus.initial,
           1,
           Uuid().v4().toString(),
+          SearchEnter(
+            keyword: favoriteStore.keyword,
+            sort: favoriteStore.sort,
+            categories: favoriteStore.categories,
+          ),
         ),
       );
     }
 
     if (pageCount != 1) {
       context.read<UserFavouriteBloc>().add(
-        UserFavouriteEvent(UserFavouriteStatus.loadingMore, pageCount, refresh),
+        UserFavouriteEvent(
+          UserFavouriteStatus.loadingMore,
+          pageCount,
+          refresh,
+          searchEnterConst,
+        ),
       );
     } else {
       context.read<UserFavouriteBloc>().add(
@@ -338,6 +392,7 @@ class _UserFavoritePageState extends State<_FavoritePage>
           UserFavouriteStatus.initial,
           1,
           Uuid().v4().toString(),
+          searchEnterConst,
         ),
       );
     }
@@ -349,6 +404,7 @@ class _UserFavoritePageState extends State<_FavoritePage>
         UserFavouriteStatus.initial,
         page,
         Uuid().v4().toString(),
+        searchEnterConst,
       ),
     );
   }
@@ -359,6 +415,7 @@ class _UserFavoritePageState extends State<_FavoritePage>
         UserFavouriteStatus.loadingMore,
         pageCount + 1,
         refresh,
+        searchEnterConst,
       ),
     );
   }
@@ -375,7 +432,9 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
     var currentTime = DateTime.now().millisecondsSinceEpoch;
 
-    if (currentTime - _lastExecutedTime > 100) {
+    if (currentTime - _lastExecutedTime > 100 &&
+        bookshelfStore.topBarStore.date == 1 &&
+        !bikaSetting.brevity) {
       final temp = comics.map((e) => e as ComicNumber).toList();
       if (itemIndex >= 0 && itemIndex < temp.length) {
         int buildNumber = temp[itemIndex].buildNumber;

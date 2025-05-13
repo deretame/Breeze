@@ -1,6 +1,5 @@
 import 'package:custom_sliding_segmented_control/custom_sliding_segmented_control.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/bookshelf/mobx/search_status.dart';
 import 'package:zephyr/page/bookshelf/models/events.dart';
@@ -11,51 +10,47 @@ class TopTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Observer(
-      builder: (context) {
-        return CustomSlidingSegmentedControl<int>(
-          // fromMax: true,
-          children: const {
-            1: Text('哔咔', textAlign: TextAlign.center),
-            2: Text('禁漫', textAlign: TextAlign.center),
-          },
-          dividerSettings: DividerSettings(
-            thickness: 2,
-            endIndent: 8,
-            indent: 8,
-            decoration: BoxDecoration(
-              color: materialColorScheme.surface,
-              borderRadius: BorderRadius.circular(20),
-            ),
+    return CustomSlidingSegmentedControl<int>(
+      // fromMax: true,
+      children: const {
+        1: Text('哔咔', textAlign: TextAlign.center),
+        2: Text('禁漫', textAlign: TextAlign.center),
+      },
+      dividerSettings: DividerSettings(
+        thickness: 2,
+        endIndent: 8,
+        indent: 8,
+        decoration: BoxDecoration(
+          color: materialColorScheme.surface,
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+      isShowDivider: true,
+      decoration: BoxDecoration(
+        color: materialColorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      thumbDecoration: BoxDecoration(
+        color: materialColorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: materialColorScheme.surface.withValues(alpha: .3),
+            blurRadius: 4.0,
+            spreadRadius: 1.0,
+            offset: const Offset(0.0, 2.0),
           ),
-          isShowDivider: true,
-          decoration: BoxDecoration(
-            color: materialColorScheme.surfaceContainerHigh,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          thumbDecoration: BoxDecoration(
-            color: materialColorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: .3),
-                blurRadius: 4.0,
-                spreadRadius: 1.0,
-                offset: const Offset(0.0, 2.0),
-              ),
-            ],
-          ),
-          onValueChanged: (int value) {
-            bookshelfStore.topBarStore.setDate(value);
-            bookshelfStore.favoriteStore = SearchStatusStore();
-            bookshelfStore.historyStore = SearchStatusStore();
-            bookshelfStore.downloadStore = SearchStatusStore();
-            bookshelfStore.tabController!.animateTo(0);
-            eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 0));
-            eventBus.fire(HistoryEvent(EventType.refresh));
-            eventBus.fire(DownloadEvent(EventType.refresh));
-          },
-        );
+        ],
+      ),
+      onValueChanged: (int value) {
+        bookshelfStore.topBarStore.setDate(value);
+        bookshelfStore.favoriteStore = SearchStatusStore();
+        bookshelfStore.historyStore = SearchStatusStore();
+        bookshelfStore.downloadStore = SearchStatusStore();
+        bookshelfStore.tabController!.animateTo(0);
+        eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 0));
+        eventBus.fire(HistoryEvent(EventType.refresh));
+        eventBus.fire(DownloadEvent(EventType.refresh));
       },
     );
   }

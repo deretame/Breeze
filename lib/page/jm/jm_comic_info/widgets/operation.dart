@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:zephyr/network/http/jm/http_request.dart';
+import 'package:zephyr/object_box/model.dart';
+import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../../config/global/global.dart';
@@ -23,7 +24,13 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
   @override
   void initState() {
     super.initState();
-    isCollected = comicInfo.isFavorite;
+
+    var data =
+        objectbox.jmFavoriteBox
+            .query(JmFavorite_.comicId.equals(comicInfo.id.toString()))
+            .build()
+            .findFirst();
+    isCollected = data?.deleted == false;
     isLiked = comicInfo.liked;
   }
 
@@ -139,7 +146,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         // actionVerb = '点赞';
         break;
       case 'favorite':
-        result = favorite(comicInfo.id.toString());
+        result = collect(comicInfo, isCollected);
         isCurrentlyActive = isCollected;
         actionVerb = '收藏';
         break;
@@ -147,7 +154,10 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         throw ArgumentError('Invalid action type: $actionType');
     }
 
-    showInfoToast("请求中...");
+    // 因为收藏只是往数据库里面写一下，速度很快，所以不需要显示请求中
+    if (actionType == 'like') {
+      showInfoToast("请求中...");
+    }
 
     try {
       final data = await result;
@@ -184,5 +194,47 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         duration: const Duration(seconds: 5),
       );
     }
+  }
+
+  Future<Map<String, dynamic>> collect(
+    JmComicInfoJson comicInfo,
+    bool isCollected,
+  ) async {
+    // 避免数据冲突
+    var data =
+        objectbox.jmFavoriteBox
+            .query(JmFavorite_.comicId.equals(comicInfo.id.toString()))
+            .build()
+            .find();
+
+    for (var item in data) {
+      objectbox.jmFavoriteBox.remove(item.id);
+    }
+
+    objectbox.jmFavoriteBox.put(
+      JmFavorite(
+        comicId: comicInfo.id.toString(),
+        name: comicInfo.name,
+        addtime: comicInfo.addtime,
+        description: comicInfo.description,
+        totalViews: comicInfo.totalViews,
+        likes: comicInfo.likes,
+        seriesId: comicInfo.seriesId,
+        commentTotal: comicInfo.commentTotal,
+        author: comicInfo.author,
+        tags: comicInfo.tags,
+        works: comicInfo.works,
+        actors: comicInfo.actors,
+        liked: comicInfo.liked,
+        isFavorite: comicInfo.isFavorite,
+        isAids: comicInfo.isAids,
+        price: comicInfo.price,
+        purchased: comicInfo.purchased,
+        deleted: isCollected,
+        history: DateTime.now().toUtc(),
+      ),
+    );
+
+    return {"error": null, "message": "收藏成功"};
   }
 }

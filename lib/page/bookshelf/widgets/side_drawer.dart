@@ -23,6 +23,8 @@ class _SideDrawerState extends State<SideDrawer> {
 
   SearchStatusStore get downloadStore => bookshelfStore.downloadStore;
 
+  IntSelectStore get topBarStore => bookshelfStore.topBarStore;
+
   Map<String, bool> _categoriesShield = Map.of(bikaSetting.shieldCategoryMap);
   List<String> categories = [];
   SortType sortType = SortType.nullValue;
@@ -77,18 +79,42 @@ class _SideDrawerState extends State<SideDrawer> {
               ),
               Container(color: globalSetting.textColor, height: 1),
               SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: _shieldCategory(),
-              ),
-              SizedBox(height: 16),
-              if (indexStore.date == 0) historyPageSkip(),
-              if (indexStore.date == 1) ...[
+              if (topBarStore.date == 1) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: _choiceCategory(historyStore),
+                  child: _shieldCategory(),
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: 16),
+              ],
+              if (indexStore.date == 0) ...[
+                if (topBarStore.date == 2) ...[
+                  Builder(
+                    builder: (context) {
+                      sort = favoriteStore.sort;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: SortWidget(
+                          searchStatusStore: favoriteStore,
+                          onSortChanged: (value) {
+                            sort = value;
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                  keywordSearch(favoriteStore),
+                ] else ...[
+                  historyPageSkip(),
+                ],
+              ],
+              if (indexStore.date == 1) ...[
+                if (bookshelfStore.topBarStore.date != 2) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: _choiceCategory(historyStore),
+                  ),
+                  SizedBox(height: 8),
+                ],
                 Builder(
                   builder: (context) {
                     sort = historyStore.sort;
@@ -106,11 +132,13 @@ class _SideDrawerState extends State<SideDrawer> {
                 keywordSearch(historyStore),
               ],
               if (indexStore.date == 2) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: _choiceCategory(downloadStore),
-                ),
-                SizedBox(height: 8),
+                if (bookshelfStore.topBarStore.date != 2) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: _choiceCategory(downloadStore),
+                  ),
+                  SizedBox(height: 8),
+                ],
                 Builder(
                   builder: (context) {
                     sort = downloadStore.sort;
@@ -219,19 +247,25 @@ class _SideDrawerState extends State<SideDrawer> {
   void _onTap() {
     if (indexStore.date == 0) {
       bikaSetting.setShieldCategoryMap(_categoriesShield);
+      favoriteStore.setSort(sort);
+      favoriteStore.setCategories(categories);
+      favoriteStore.setKeyword(keyword);
+      if (topBarStore.date == 2) {
+        eventBus.fire(FavoriteEvent(EventType.refresh, sortType, page));
+        return;
+      }
 
       if (page != -1 && page != 0) {
         eventBus.fire(FavoriteEvent(EventType.pageSkip, sortType, page));
       } else {
         eventBus.fire(FavoriteEvent(EventType.updateShield, sortType, page));
       }
-      favoriteStore.sort = SortType.dd.toString().split('.').last;
     }
 
     if (indexStore.date == 1) {
       bikaSetting.setShieldCategoryMap(_categoriesShield);
-      historyStore.setCategories(categories);
       historyStore.setSort(sort);
+      historyStore.setCategories(categories);
       historyStore.setKeyword(keyword);
 
       eventBus.fire(HistoryEvent(EventType.refresh));
@@ -239,8 +273,8 @@ class _SideDrawerState extends State<SideDrawer> {
 
     if (indexStore.date == 2) {
       bikaSetting.setShieldCategoryMap(_categoriesShield);
-      downloadStore.setCategories(categories);
       downloadStore.setSort(sort);
+      downloadStore.setCategories(categories);
       downloadStore.setKeyword(keyword);
 
       eventBus.fire(DownloadEvent(EventType.refresh));

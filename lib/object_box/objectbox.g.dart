@@ -333,8 +333,7 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(2, 3554959827736600362),
         name: 'comicId',
         type: 9,
-        flags: 2048,
-        indexId: const obx_int.IdUid(1, 6271388813384307204),
+        flags: 0,
       ),
       obx_int.ModelProperty(
         id: const obx_int.IdUid(3, 1427619926530511655),
@@ -592,8 +591,7 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(50, 6304474719919395059),
         name: 'downloadTime',
         type: 10,
-        flags: 8,
-        indexId: const obx_int.IdUid(2, 7862266475076102896),
+        flags: 0,
       ),
     ],
     relations: <obx_int.ModelRelation>[],
@@ -602,7 +600,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(5, 935474930388766348),
     name: 'JmFavorite',
-    lastPropertyId: const obx_int.IdUid(17, 4556914322339764391),
+    lastPropertyId: const obx_int.IdUid(20, 3953473968413949416),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -707,6 +705,24 @@ final _entities = <obx_int.ModelEntity>[
         type: 9,
         flags: 0,
       ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(18, 5760795543662066361),
+        name: 'addtime',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(19, 4968430664106217278),
+        name: 'deleted',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(20, 3953473968413949416),
+        name: 'history',
+        type: 10,
+        flags: 0,
+      ),
     ],
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
@@ -714,7 +730,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(6, 2394746405223893996),
     name: 'JmHistory',
-    lastPropertyId: const obx_int.IdUid(17, 6336715545991912719),
+    lastPropertyId: const obx_int.IdUid(24, 7811361914557208341),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -819,6 +835,48 @@ final _entities = <obx_int.ModelEntity>[
         type: 9,
         flags: 0,
       ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(18, 7130502971241271031),
+        name: 'addtime',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(19, 1918716894361763916),
+        name: 'order',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(20, 5479228132310925661),
+        name: 'epTitle',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(21, 8823633288100803908),
+        name: 'epPageCount',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(22, 4125179433453175582),
+        name: 'epId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(23, 2317122780728215325),
+        name: 'deleted',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(24, 7811361914557208341),
+        name: 'history',
+        type: 10,
+        flags: 0,
+      ),
     ],
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
@@ -868,7 +926,12 @@ obx_int.ModelDefinition getObjectBoxModel() {
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [264467845223121709, 1327783071807974029],
-    retiredIndexUids: const [3486826873856380308, 931357141992892300],
+    retiredIndexUids: const [
+      3486826873856380308,
+      931357141992892300,
+      6271388813384307204,
+      7862266475076102896,
+    ],
     retiredPropertyUids: const [
       4194924827811470754,
       6505186057625373131,
@@ -1642,7 +1705,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         );
         final priceOffset = fbb.writeString(object.price);
         final purchasedOffset = fbb.writeString(object.purchased);
-        fbb.startTable(18);
+        final addtimeOffset = fbb.writeString(object.addtime);
+        fbb.startTable(21);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, comicIdOffset);
         fbb.addOffset(2, nameOffset);
@@ -1660,6 +1724,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addBool(14, object.isAids);
         fbb.addOffset(15, priceOffset);
         fbb.addOffset(16, purchasedOffset);
+        fbb.addOffset(17, addtimeOffset);
+        fbb.addBool(18, object.deleted);
+        fbb.addInt64(19, object.history.millisecondsSinceEpoch);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -1678,6 +1745,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final nameParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 8, '');
+        final addtimeParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 38, '');
         final descriptionParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 10, '');
@@ -1733,10 +1803,20 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final purchasedParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 36, '');
+        final deletedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          40,
+          false,
+        );
+        final historyParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 42, 0),
+        );
         final object = JmFavorite(
           id: idParam,
           comicId: comicIdParam,
           name: nameParam,
+          addtime: addtimeParam,
           description: descriptionParam,
           totalViews: totalViewsParam,
           likes: likesParam,
@@ -1751,6 +1831,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
           isAids: isAidsParam,
           price: priceParam,
           purchased: purchasedParam,
+          deleted: deletedParam,
+          history: historyParam,
         );
 
         return object;
@@ -1786,7 +1868,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
         );
         final priceOffset = fbb.writeString(object.price);
         final purchasedOffset = fbb.writeString(object.purchased);
-        fbb.startTable(18);
+        final addtimeOffset = fbb.writeString(object.addtime);
+        final epTitleOffset = fbb.writeString(object.epTitle);
+        final epIdOffset = fbb.writeString(object.epId);
+        fbb.startTable(25);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, comicIdOffset);
         fbb.addOffset(2, nameOffset);
@@ -1804,6 +1889,13 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addBool(14, object.isAids);
         fbb.addOffset(15, priceOffset);
         fbb.addOffset(16, purchasedOffset);
+        fbb.addOffset(17, addtimeOffset);
+        fbb.addInt64(18, object.order);
+        fbb.addOffset(19, epTitleOffset);
+        fbb.addInt64(20, object.epPageCount);
+        fbb.addOffset(21, epIdOffset);
+        fbb.addBool(22, object.deleted);
+        fbb.addInt64(23, object.history.millisecondsSinceEpoch);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -1822,6 +1914,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final nameParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 8, '');
+        final addtimeParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 38, '');
         final descriptionParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 10, '');
@@ -1877,10 +1972,38 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final purchasedParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 36, '');
+        final orderParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          40,
+          0,
+        );
+        final epTitleParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 42, '');
+        final epPageCountParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          44,
+          0,
+        );
+        final epIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 46, '');
+        final deletedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          48,
+          false,
+        );
+        final historyParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 50, 0),
+        );
         final object = JmHistory(
           id: idParam,
           comicId: comicIdParam,
           name: nameParam,
+          addtime: addtimeParam,
           description: descriptionParam,
           totalViews: totalViewsParam,
           likes: likesParam,
@@ -1895,6 +2018,12 @@ obx_int.ModelDefinition getObjectBoxModel() {
           isAids: isAidsParam,
           price: priceParam,
           purchased: purchasedParam,
+          order: orderParam,
+          epTitle: epTitleParam,
+          epPageCount: epPageCountParam,
+          epId: epIdParam,
+          deleted: deletedParam,
+          history: historyParam,
         );
 
         return object;
@@ -2458,6 +2587,21 @@ class JmFavorite_ {
   static final purchased = obx.QueryStringProperty<JmFavorite>(
     _entities[2].properties[16],
   );
+
+  /// See [JmFavorite.addtime].
+  static final addtime = obx.QueryStringProperty<JmFavorite>(
+    _entities[2].properties[17],
+  );
+
+  /// See [JmFavorite.deleted].
+  static final deleted = obx.QueryBooleanProperty<JmFavorite>(
+    _entities[2].properties[18],
+  );
+
+  /// See [JmFavorite.history].
+  static final history = obx.QueryDateProperty<JmFavorite>(
+    _entities[2].properties[19],
+  );
 }
 
 /// [JmHistory] entity fields to define ObjectBox queries.
@@ -2545,5 +2689,40 @@ class JmHistory_ {
   /// See [JmHistory.purchased].
   static final purchased = obx.QueryStringProperty<JmHistory>(
     _entities[3].properties[16],
+  );
+
+  /// See [JmHistory.addtime].
+  static final addtime = obx.QueryStringProperty<JmHistory>(
+    _entities[3].properties[17],
+  );
+
+  /// See [JmHistory.order].
+  static final order = obx.QueryIntegerProperty<JmHistory>(
+    _entities[3].properties[18],
+  );
+
+  /// See [JmHistory.epTitle].
+  static final epTitle = obx.QueryStringProperty<JmHistory>(
+    _entities[3].properties[19],
+  );
+
+  /// See [JmHistory.epPageCount].
+  static final epPageCount = obx.QueryIntegerProperty<JmHistory>(
+    _entities[3].properties[20],
+  );
+
+  /// See [JmHistory.epId].
+  static final epId = obx.QueryStringProperty<JmHistory>(
+    _entities[3].properties[21],
+  );
+
+  /// See [JmHistory.deleted].
+  static final deleted = obx.QueryBooleanProperty<JmHistory>(
+    _entities[3].properties[22],
+  );
+
+  /// See [JmHistory.history].
+  static final history = obx.QueryDateProperty<JmHistory>(
+    _entities[3].properties[23],
   );
 }

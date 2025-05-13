@@ -64,23 +64,11 @@ class _BikaUserInfoWidgetState extends State<_BikaUserInfoWidget> {
                 return SizedBox(
                   height: 130,
                   child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${state.result.toString()}\n加载失败',
-                          style: TextStyle(fontSize: 20),
-                        ),
-                        SizedBox(height: 10), // 添加间距
-                        ElevatedButton(
-                          onPressed: () {
-                            context.read<UserProfileBloc>().add(
-                              UserProfileEvent(),
-                            );
-                          },
-                          child: Text('点击重试'),
-                        ),
-                      ],
+                    child: IconButton(
+                      icon: Icon(Icons.refresh),
+                      onPressed: () {
+                        context.read<UserProfileBloc>().add(UserProfileEvent());
+                      },
                     ),
                   ),
                 );
@@ -138,6 +126,7 @@ class _BikaWidget extends StatelessWidget {
               children: <Widget>[
                 _UserAvatar(
                   pictureInfo: PictureInfo(
+                    from: "bika",
                     url: profile.data.user.avatar.fileServer,
                     path: profile.data.user.avatar.path,
                     chapterId: "",
@@ -187,19 +176,7 @@ class _UserAvatar extends StatelessWidget {
       height: 75,
       width: 75,
       child: BlocProvider(
-        create:
-            (context) =>
-                PictureBloc()..add(
-                  GetPicture(
-                    PictureInfo(
-                      from: "bika",
-                      url: pictureInfo.url,
-                      path: pictureInfo.path,
-                      cartoonId: pictureInfo.cartoonId,
-                      pictureType: pictureInfo.pictureType,
-                    ),
-                  ),
-                ),
+        create: (context) => PictureBloc()..add(GetPicture(pictureInfo)),
         child: BlocBuilder<PictureBloc, PictureLoadState>(
           builder: (context, state) {
             switch (state.status) {
@@ -236,24 +213,13 @@ class _UserAvatar extends StatelessWidget {
                 loadBikaProfile = true;
                 if (state.result.toString().contains('404')) {
                   return Image.asset('asset/image/error_image/404.png');
-                } else {
-                  return InkWell(
-                    onTap: () {
-                      context.read<PictureBloc>().add(
-                        GetPicture(
-                          PictureInfo(
-                            from: "bika",
-                            url: pictureInfo.url,
-                            path: pictureInfo.path,
-                            cartoonId: pictureInfo.cartoonId,
-                            pictureType: pictureInfo.pictureType,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Icon(Icons.refresh),
-                  );
                 }
+                return InkWell(
+                  onTap: () {
+                    context.read<PictureBloc>().add(GetPicture(pictureInfo));
+                  },
+                  child: Icon(Icons.refresh),
+                );
             }
           },
         ),

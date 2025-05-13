@@ -225,6 +225,7 @@ JmFavorite _$JmFavoriteFromJson(Map<String, dynamic> json) => JmFavorite(
   id: (json['id'] as num?)?.toInt() ?? 0,
   comicId: json['comicId'] as String,
   name: json['name'] as String,
+  addtime: json['addtime'] as String,
   description: json['description'] as String,
   totalViews: json['totalViews'] as String,
   likes: json['likes'] as String,
@@ -239,6 +240,8 @@ JmFavorite _$JmFavoriteFromJson(Map<String, dynamic> json) => JmFavorite(
   isAids: json['isAids'] as bool,
   price: json['price'] as String,
   purchased: json['purchased'] as String,
+  deleted: json['deleted'] as bool,
+  history: DateTime.parse(json['history'] as String),
 );
 
 Map<String, dynamic> _$JmFavoriteToJson(JmFavorite instance) =>
@@ -246,6 +249,7 @@ Map<String, dynamic> _$JmFavoriteToJson(JmFavorite instance) =>
       'id': instance.id,
       'comicId': instance.comicId,
       'name': instance.name,
+      'addtime': instance.addtime,
       'description': instance.description,
       'totalViews': instance.totalViews,
       'likes': instance.likes,
@@ -260,12 +264,15 @@ Map<String, dynamic> _$JmFavoriteToJson(JmFavorite instance) =>
       'isAids': instance.isAids,
       'price': instance.price,
       'purchased': instance.purchased,
+      'deleted': instance.deleted,
+      'history': instance.history.toIso8601String(),
     };
 
 JmHistory _$JmHistoryFromJson(Map<String, dynamic> json) => JmHistory(
   id: (json['id'] as num?)?.toInt() ?? 0,
   comicId: json['comicId'] as String,
   name: json['name'] as String,
+  addtime: json['addtime'] as String,
   description: json['description'] as String,
   totalViews: json['totalViews'] as String,
   likes: json['likes'] as String,
@@ -280,12 +287,19 @@ JmHistory _$JmHistoryFromJson(Map<String, dynamic> json) => JmHistory(
   isAids: json['isAids'] as bool,
   price: json['price'] as String,
   purchased: json['purchased'] as String,
+  order: (json['order'] as num).toInt(),
+  epTitle: json['epTitle'] as String,
+  epPageCount: (json['epPageCount'] as num).toInt(),
+  epId: json['epId'] as String,
+  deleted: json['deleted'] as bool,
+  history: DateTime.parse(json['history'] as String),
 );
 
 Map<String, dynamic> _$JmHistoryToJson(JmHistory instance) => <String, dynamic>{
   'id': instance.id,
   'comicId': instance.comicId,
   'name': instance.name,
+  'addtime': instance.addtime,
   'description': instance.description,
   'totalViews': instance.totalViews,
   'likes': instance.likes,
@@ -300,4 +314,10 @@ Map<String, dynamic> _$JmHistoryToJson(JmHistory instance) => <String, dynamic>{
   'isAids': instance.isAids,
   'price': instance.price,
   'purchased': instance.purchased,
+  'order': instance.order,
+  'epTitle': instance.epTitle,
+  'epPageCount': instance.epPageCount,
+  'epId': instance.epId,
+  'deleted': instance.deleted,
+  'history': instance.history.toIso8601String(),
 };

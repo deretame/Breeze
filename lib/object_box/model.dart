@@ -11,7 +11,6 @@ class BikaComicHistory {
   @Id()
   int id;
 
-  // @Index()
   String comicId;
   String creatorId;
   String creatorGender;
@@ -20,10 +19,6 @@ class BikaComicHistory {
   int creatorExp;
   int creatorLevel;
   List<String> creatorCharacters;
-
-  // 为啥要写这个玩意儿呢？
-  // 因为List<String>使用contain的话，太耗时间了，所以用String拼接起来
-  // 这样会提高很多速度
   String creatorCharactersString;
   String creatorRole;
   String creatorTitle;
@@ -59,8 +54,6 @@ class BikaComicHistory {
   int commentsCount;
   bool isFavourite;
   bool isLiked;
-
-  // @Index()
   @Property(type: PropertyType.date)
   DateTime history;
 
@@ -141,7 +134,6 @@ class BikaComicDownload {
   @Id()
   int id;
 
-  @Index()
   String comicId;
   String creatorId;
   String creatorGender;
@@ -185,7 +177,6 @@ class BikaComicDownload {
   int commentsCount;
   bool isFavourite;
   bool isLiked;
-  @Index()
   @Property(type: PropertyType.date)
   DateTime downloadTime;
 
@@ -262,6 +253,7 @@ class JmFavorite {
 
   String comicId;
   String name;
+  String addtime;
   String description;
   String totalViews;
   String likes;
@@ -277,10 +269,15 @@ class JmFavorite {
   String price;
   String purchased;
 
+  bool deleted;
+  @Property(type: PropertyType.date)
+  DateTime history;
+
   JmFavorite({
     this.id = 0,
     required this.comicId,
     required this.name,
+    required this.addtime,
     required this.description,
     required this.totalViews,
     required this.likes,
@@ -295,6 +292,8 @@ class JmFavorite {
     required this.isAids,
     required this.price,
     required this.purchased,
+    required this.deleted,
+    required this.history,
   });
 
   Map<String, dynamic> toJson() => _$JmFavoriteToJson(this);
@@ -316,6 +315,7 @@ class JmHistory {
 
   String comicId;
   String name;
+  String addtime;
   String description;
   String totalViews;
   String likes;
@@ -331,10 +331,21 @@ class JmHistory {
   String price;
   String purchased;
 
+  // 下面都是章节的观看历史信息
+  int order;
+  String epTitle;
+  int epPageCount;
+  String epId;
+
+  bool deleted;
+  @Property(type: PropertyType.date)
+  DateTime history;
+
   JmHistory({
     this.id = 0,
     required this.comicId,
     required this.name,
+    required this.addtime,
     required this.description,
     required this.totalViews,
     required this.likes,
@@ -349,6 +360,12 @@ class JmHistory {
     required this.isAids,
     required this.price,
     required this.purchased,
+    required this.order,
+    required this.epTitle,
+    required this.epPageCount,
+    required this.epId,
+    required this.deleted,
+    required this.history,
   });
 
   Map<String, dynamic> toJson() => _$JmHistoryToJson(this);

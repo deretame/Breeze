@@ -1,7 +1,9 @@
+import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info/jm_comic_info_json.dart';
+
 import '../../../object_box/model.dart';
 import '../../comic_info/json/bika/comic_info/comic_info.dart';
 
-BikaComicHistory comicToBikaComicHistory(Comic comic, int order) {
+BikaComicHistory comicToBikaComicHistory(Comic comic) {
   String creatorCharactersString = "";
   for (var character in comic.creator.characters) {
     creatorCharactersString += character;
@@ -65,5 +67,33 @@ BikaComicHistory comicToBikaComicHistory(Comic comic, int order) {
     epPageCount: 0,
     epId: "",
     deleted: false,
+  );
+}
+
+JmHistory jmToJmHistory(JmComicInfoJson jmComic) {
+  return JmHistory(
+    comicId: jmComic.id.toString(),
+    name: jmComic.name,
+    addtime: jmComic.addtime,
+    description: jmComic.description,
+    totalViews: jmComic.totalViews,
+    likes: jmComic.likes,
+    seriesId: jmComic.seriesId,
+    commentTotal: jmComic.commentTotal,
+    author: jmComic.author,
+    tags: jmComic.tags,
+    works: jmComic.works,
+    actors: jmComic.actors,
+    liked: jmComic.liked,
+    isFavorite: jmComic.isFavorite,
+    isAids: jmComic.isAids,
+    price: jmComic.price,
+    purchased: jmComic.purchased,
+    order: 0,
+    epTitle: "",
+    epPageCount: 0,
+    epId: "",
+    deleted: false,
+    history: DateTime.now().toUtc(),
   );
 }

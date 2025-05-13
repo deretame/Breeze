@@ -2,6 +2,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/main.dart';
+import 'package:zephyr/object_box/model.dart';
+import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/jm/jm_comic_info/jm_comic_info.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/router/router.gr.dart';
@@ -49,10 +52,18 @@ class _JmComicInfoPage extends StatefulWidget {
 class __JmComicInfoPageState extends State<_JmComicInfoPage> {
   late JmComicInfoState _state;
   bool _init = false;
+  bool _hasHistory = false;
+  JmHistory? jmHistory;
 
   @override
   void initState() {
     super.initState();
+    jmHistory =
+        objectbox.jmHistoryBox
+            .query(JmHistory_.comicId.equals(widget.comicId))
+            .build()
+            .findFirst();
+    _hasHistory = jmHistory?.deleted == false;
   }
 
   @override
@@ -93,13 +104,16 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                         order: _state.comicInfo!.id,
                         epsNumber: _state.comicInfo!.series.length,
                         from: From.jm,
-                        type: ComicEntryType.normal,
+                        type:
+                            _hasHistory
+                                ? ComicEntryType.history
+                                : ComicEntryType.normal,
                         comicInfo: _state.comicInfo!,
                       ),
                     );
                   },
                   child: Text(
-                    '开始阅读',
+                    _hasHistory ? '继续阅读' : '开始阅读',
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                   ),
@@ -182,6 +196,12 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                   },
                   child: Text('禁漫车：JM${comicInfo.id}'),
                 ),
+                if (_hasHistory) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    '历史：${jmHistory!.epTitle}（${jmHistory!.epPageCount}）${jmHistory!.history.toLocal().toString().substring(0, 19)}',
+                  ),
+                ],
               ],
             ),
           ),

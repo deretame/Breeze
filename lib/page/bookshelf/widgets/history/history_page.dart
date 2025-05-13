@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/config/global/global.dart';
+import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 
 import '../../../../main.dart';
@@ -19,8 +20,7 @@ class HistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create:
-          (_) => UserHistoryBloc()..add(UserHistoryEvent(SearchEnterConst())),
+      create: (_) => UserHistoryBloc()..add(UserHistoryEvent(SearchEnter())),
       child: _HistoryPage(),
     );
   }
@@ -125,6 +125,10 @@ class __HistoryPageState extends State<_HistoryPage>
 
     if (state.comics.isEmpty) {
       return _buildEmptyState();
+    }
+
+    if (bookshelfStore.topBarStore.date == 2) {
+      return _buildBrevityList(state);
     }
 
     return bikaSetting.brevity
@@ -243,16 +247,25 @@ class __HistoryPageState extends State<_HistoryPage>
           refresh: refreshCallback,
         );
       } else {
-        final temp = comics!.map((e) => e as BikaComicHistory).toList();
-        return ComicEntryWidget(
-          comicEntryInfo: convertToComicEntryInfo(temp[index]),
-          type: ComicEntryType.history,
-          refresh: refreshCallback,
-        );
+        if (comics != null && comics[0] is BikaComicHistory) {
+          final temp = comics.map((e) => e as BikaComicHistory).toList();
+          return ComicEntryWidget(
+            comicEntryInfo: convertToComicEntryInfo(temp[index]),
+            type: ComicEntryType.history,
+            refresh: refreshCallback,
+          );
+        }
+        return const SizedBox.shrink();
       }
-    } else {
-      return const SizedBox.shrink();
+    } else if (bookshelfStore.topBarStore.date == 2) {
+      return ComicSimplifyEntryRow(
+        key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
+        entries: elementsRows[index],
+        type: ComicEntryType.history,
+        refresh: refreshCallback,
+      );
     }
+    return const SizedBox.shrink();
   }
 
   // 转换数据格式
@@ -272,22 +285,39 @@ class __HistoryPageState extends State<_HistoryPage>
             ),
           )
           .toList();
-    } else {
-      return [];
+    } else if (bookshelfStore.topBarStore.date == 2) {
+      final temp = comics.map((e) => e as JmHistory).toList();
+
+      return temp
+          .map(
+            (element) => ComicSimplifyEntryInfo(
+              title: element.name,
+              id: element.comicId.toString(),
+              fileServer: getJmCoverUrl(element.comicId.toString()),
+              path: ".jpg",
+              pictureType: 'cover',
+              from: 'jm',
+            ),
+          )
+          .toList();
     }
+
+    return [];
   }
 
   void _refresh(SearchStatusStore searchStatusStore) {
-    _scrollController.animateTo(
-      0,
-      duration: Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
     notice = false;
     eventBus.fire(HistoryEvent(EventType.showInfo));
     context.read<UserHistoryBloc>().add(
       UserHistoryEvent(
-        SearchEnterConst(
+        SearchEnter(
           keyword: searchStatusStore.keyword,
           sort: searchStatusStore.sort,
           categories: searchStatusStore.categories,

@@ -46,37 +46,7 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
       );
     }
     try {
-      late var comicList = objectbox.bikaDownloadBox.getAll();
-
-      comicList = _filterShieldedComics(comicList);
-
-      comicList = _fetchOfSort(comicList, event.searchEnterConst.sort);
-
-      if (event.searchEnterConst.categories.isNotEmpty) {
-        for (var category in event.searchEnterConst.categories) {
-          comicList =
-              comicList
-                  .where((comic) => comic.categories.contains(category))
-                  .toList();
-        }
-      }
-
-      if (event.searchEnterConst.keyword.isNotEmpty) {
-        final keyword = event.searchEnterConst.keyword.toLowerCase();
-
-        comicList =
-            comicList.where((comic) {
-              var allString =
-                  comic.title +
-                  comic.author +
-                  comic.chineseTeam +
-                  comic.categoriesString +
-                  comic.tagsString +
-                  comic.description +
-                  comic.creatorName;
-              return allString.toLowerCase().contains(keyword);
-            }).toList();
-      }
+      final comicList = _getComicList(event);
 
       // emit 状态更新
       emit(
@@ -134,5 +104,45 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
         (category) => shieldedCategoriesList.contains(category),
       );
     }).toList();
+  }
+
+  List<dynamic> _getComicList(UserDownloadEvent event) {
+    List<dynamic> comics = [];
+    if (bookshelfStore.topBarStore.date == 1) {
+      late var comicList = objectbox.bikaDownloadBox.getAll();
+
+      comicList = _filterShieldedComics(comicList);
+
+      comicList = _fetchOfSort(comicList, event.searchEnterConst.sort);
+
+      if (event.searchEnterConst.categories.isNotEmpty) {
+        for (var category in event.searchEnterConst.categories) {
+          comicList =
+              comicList
+                  .where((comic) => comic.categories.contains(category))
+                  .toList();
+        }
+      }
+
+      if (event.searchEnterConst.keyword.isNotEmpty) {
+        final keyword = event.searchEnterConst.keyword.toLowerCase();
+
+        comicList =
+            comicList.where((comic) {
+              var allString =
+                  comic.title +
+                  comic.author +
+                  comic.chineseTeam +
+                  comic.categoriesString +
+                  comic.tagsString +
+                  comic.description +
+                  comic.creatorName;
+              return allString.toLowerCase().contains(keyword);
+            }).toList();
+      }
+
+      comics = comicList;
+    }
+    return comics;
   }
 }

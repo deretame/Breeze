@@ -2,7 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/config/global/global.dart';
-import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnterConst;
+import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnter;
 
 import '../../../main.dart';
 import '../../../util/router/router.gr.dart';

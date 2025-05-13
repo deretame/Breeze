@@ -3,6 +3,7 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/network/http/bika/http_request.dart';
+import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/page/bookshelf/json/favorite/favourite_json.dart';
 
@@ -30,7 +31,7 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
 
   bool initial = true;
   bool hasReachedMax = false;
-  List<ComicNumber> comics = [];
+  List<dynamic> comics = [];
 
   // 这个的作用是用来记录收藏页面实际上有几页
   int pageCont = 0;
@@ -83,40 +84,43 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
     }
 
     try {
-      var temp = await getFavorites(event.pageCount);
-      var result = FavouriteJson.fromJson(temp);
+      comics = await _getComicList(event, comics);
 
-      pageCont = result.data.comics.total ~/ 20 + 1;
+      List<dynamic> temp = [];
 
-      if (result.data.comics.page >= pageCont) {
-        hasReachedMax = true;
-      }
-
-      for (var comic in result.data.comics.docs) {
-        comics.add(
-          ComicNumber(buildNumber: result.data.comics.page, doc: comic),
-        );
+      if (bookshelfStore.topBarStore.date == 1) {
+        temp = _filterShieldedComics(comics);
+      } else {
+        temp = comics;
       }
 
       emit(
         state.copyWith(
           status: UserFavouriteStatus.success,
-          comics: _filterShieldedComics(comics),
+          comics: temp,
           hasReachedMax: hasReachedMax,
           refresh: event.refresh,
           pageCount: event.pageCount,
-          pagesCount: result.data.comics.pages,
+          pagesCount: totalPages,
         ),
       );
       initial = false;
-      totalPages = result.data.comics.pages;
+      totalPages = totalPages;
     } catch (e) {
       logger.d(e);
       if (comics.isNotEmpty) {
+        List<dynamic> temp = [];
+
+        if (bookshelfStore.topBarStore.date == 1) {
+          temp = _filterShieldedComics(comics);
+        } else {
+          temp = comics;
+        }
+
         emit(
           state.copyWith(
             status: UserFavouriteStatus.getMoreFailure,
-            comics: _filterShieldedComics(comics),
+            comics: temp,
             hasReachedMax: hasReachedMax,
             refresh: event.refresh,
             pageCount: event.pageCount,
@@ -137,9 +141,9 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
     }
   }
 
-  List<ComicNumber> deduplicateComics(List<ComicNumber> comics) {
+  List<dynamic> deduplicateComics(List<dynamic> comics) {
     Set<String> seenIds = {};
-    List<ComicNumber> uniqueComics = [];
+    List<dynamic> uniqueComics = [];
 
     for (var comic in comics) {
       if (!seenIds.contains(comic.doc.id)) {
@@ -151,7 +155,7 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
     return uniqueComics;
   }
 
-  List<ComicNumber> _filterShieldedComics(List<ComicNumber> comics) {
+  List<dynamic> _filterShieldedComics(List<dynamic> comics) {
     // 获取所有被屏蔽的分类
     List<String> shieldedCategoriesList =
         bikaSetting.shieldCategoryMap.entries
@@ -166,5 +170,72 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
         (category) => shieldedCategoriesList.contains(category),
       );
     }).toList();
+  }
+
+  List<JmFavorite> _fetchOfSort(List<JmFavorite> comicList, String sort) {
+    if (sort == "dd") {
+      comicList.sort((a, b) => b.history.compareTo(a.history));
+    }
+    if (sort == "da") {
+      comicList.sort((a, b) => a.history.compareTo(b.history));
+    }
+    if (sort == "ld") {
+      comicList.sort((a, b) => b.likes.compareTo(a.likes));
+    }
+    if (sort == "vd") {
+      comicList.sort((a, b) => b.totalViews.compareTo(a.totalViews));
+    }
+    comicList.removeWhere((comic) => comic.deleted == true);
+
+    return comicList;
+  }
+
+  Future<List<dynamic>> _getComicList(
+    UserFavouriteEvent event,
+    List<dynamic> comics,
+  ) async {
+    List<dynamic> comicsList = [];
+    if (bookshelfStore.topBarStore.date == 1) {
+      var temp = await getFavorites(event.pageCount);
+      var result = FavouriteJson.fromJson(temp);
+
+      totalPages = result.data.comics.total ~/ 20 + 1;
+
+      if (result.data.comics.page >= totalPages) {
+        hasReachedMax = true;
+      }
+
+      for (var comic in result.data.comics.docs) {
+        comics.add(
+          ComicNumber(buildNumber: result.data.comics.page, doc: comic),
+        );
+      }
+
+      comicsList = comics;
+    } else if (bookshelfStore.topBarStore.date == 2) {
+      hasReachedMax = true;
+      var temp = objectbox.jmFavoriteBox.getAll();
+
+      if (event.searchEnterConst.keyword.isNotEmpty) {
+        final keyword = event.searchEnterConst.keyword.toLowerCase();
+
+        temp =
+            temp.where((comic) {
+              var allString =
+                  comic.comicId.toString() +
+                  comic.name +
+                  comic.description +
+                  comic.author.toString() +
+                  comic.tags.toString() +
+                  comic.works.toString() +
+                  comic.actors.toString();
+              return allString.toLowerCase().contains(keyword);
+            }).toList();
+      }
+
+      comicsList = _fetchOfSort(temp, event.searchEnterConst.sort);
+    }
+
+    return comicsList;
   }
 }

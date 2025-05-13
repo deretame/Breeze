@@ -7,19 +7,19 @@ final class UserHistoryState extends Equatable {
     this.status = UserHistoryStatus.initial,
     this.comics = const [],
     this.result = '',
-    this.searchEnterConst = const SearchEnterConst(),
+    this.searchEnterConst = const SearchEnter(),
   });
 
   final UserHistoryStatus status;
   final List<dynamic> comics;
   final String result;
-  final SearchEnterConst searchEnterConst;
+  final SearchEnter searchEnterConst;
 
   UserHistoryState copyWith({
     UserHistoryStatus? status,
     List<dynamic>? comics,
     String? result,
-    SearchEnterConst? searchEnterConst,
+    SearchEnter? searchEnterConst,
   }) {
     return UserHistoryState(
       status: status ?? this.status,

@@ -19,8 +19,7 @@ class DownloadPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create:
-          (_) => UserDownloadBloc()..add(UserDownloadEvent(SearchEnterConst())),
+      create: (_) => UserDownloadBloc()..add(UserDownloadEvent(SearchEnter())),
       child: _DownloadPage(),
     );
   }
@@ -284,16 +283,18 @@ class _DownloadPageState extends State<_DownloadPage>
   }
 
   void _refresh(SearchStatusStore searchStatusStore) {
-    _scrollController.animateTo(
-      0,
-      duration: Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
     notice = false;
     eventBus.fire(DownloadEvent(EventType.showInfo));
     context.read<UserDownloadBloc>().add(
       UserDownloadEvent(
-        SearchEnterConst(
+        SearchEnter(
           keyword: searchStatusStore.keyword,
           sort: searchStatusStore.sort,
           categories: searchStatusStore.categories,

@@ -2,15 +2,11 @@ import 'package:custom_sliding_segmented_control/custom_sliding_segmented_contro
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/page/bookshelf/view/bookshelf_page.dart';
 
-class TopTabBar extends StatefulWidget {
+class TopTabBar extends StatelessWidget {
   const TopTabBar({super.key});
 
-  @override
-  State<TopTabBar> createState() => _TopTabBarState();
-}
-
-class _TopTabBarState extends State<TopTabBar> {
   @override
   Widget build(BuildContext context) {
     return Observer(
@@ -48,7 +44,7 @@ class _TopTabBarState extends State<TopTabBar> {
             ],
           ),
           onValueChanged: (int value) {
-            logger.d(value);
+            bookshelfStore.topBarStore.setDate(value);
           },
         );
       },

@@ -2,26 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
+import 'package:zephyr/page/bookshelf/json/favorite/favourite_json.dart';
 
 import '../../../../config/global/global.dart';
 import '../../../../main.dart';
-import '../../../../mobx/int_select.dart';
 import '../../../../mobx/string_select.dart';
 import '../../../../type/enum.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 
 class FavoritePage extends StatelessWidget {
-  final SearchStatusStore searchStatusStore;
-  final StringSelectStore stringSelectStore;
-  final IntSelectStore indexStore;
-
-  const FavoritePage({
-    super.key,
-    required this.searchStatusStore,
-    required this.stringSelectStore,
-    required this.indexStore,
-  });
+  const FavoritePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -31,25 +22,13 @@ class FavoritePage extends StatelessWidget {
               UserFavouriteBloc()..add(
                 UserFavouriteEvent(UserFavouriteStatus.initial, 1, Uuid().v4()),
               ),
-      child: _FavoritePage(
-        searchStatusStore: searchStatusStore,
-        stringSelectStore: stringSelectStore,
-        indexStore: indexStore,
-      ),
+      child: _FavoritePage(),
     );
   }
 }
 
 class _FavoritePage extends StatefulWidget {
-  final SearchStatusStore searchStatusStore;
-  final StringSelectStore stringSelectStore;
-  final IntSelectStore indexStore;
-
-  const _FavoritePage({
-    required this.searchStatusStore,
-    required this.stringSelectStore,
-    required this.indexStore,
-  });
+  const _FavoritePage();
 
   @override
   State<_FavoritePage> createState() => _UserFavoritePageState();
@@ -57,11 +36,11 @@ class _FavoritePage extends StatefulWidget {
 
 class _UserFavoritePageState extends State<_FavoritePage>
     with AutomaticKeepAliveClientMixin {
-  SearchStatusStore get searchStatusStore => widget.searchStatusStore;
+  SearchStatusStore get searchStatusStore => bookshelfStore.favoriteStore;
 
-  StringSelectStore get stringSelectStore => widget.stringSelectStore;
+  StringSelectStore get stringSelectStore => bookshelfStore.stringSelectStore;
 
-  late List<ComicNumber> comics;
+  late List<dynamic> comics;
   int pageCount = 0;
   String refresh = "";
   int pagesCount = 0;
@@ -119,7 +98,7 @@ class _UserFavoritePageState extends State<_FavoritePage>
         return RefreshIndicator(
           displacement: 60.0,
           onRefresh: () async {
-            if (widget.indexStore.date == 0) {
+            if (bookshelfStore.indexStore.date == 0) {
               _refresh(initState: true);
             }
           },
@@ -219,12 +198,14 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
   // 构建详细模式列表
   Widget _buildDetailedList(UserFavouriteState state) {
+    final temp = state.comics.map((e) => e as Doc).toList();
+
     return _buildCommonListView(
       state: state,
-      itemCount: state.comics.length,
+      itemCount: temp.length,
       itemBuilder:
           (context, index) =>
-              FavoriteComicEntryWidget(comicEntryInfo: state.comics[index].doc),
+              FavoriteComicEntryWidget(comicEntryInfo: temp[index]),
     );
   }
 
@@ -304,10 +285,10 @@ class _UserFavoritePageState extends State<_FavoritePage>
   }
 
   // 转换数据为简洁模式需要的格式
-  List<ComicSimplifyEntryInfo> _convertToSimplifyList(
-    List<ComicNumber> comics,
-  ) {
-    return comics
+  List<ComicSimplifyEntryInfo> _convertToSimplifyList(List<dynamic> comics) {
+    final temp = comics.map((e) => e as ComicNumber).toList();
+
+    return temp
         .map(
           (element) => ComicSimplifyEntryInfo(
             title: element.doc.title,
@@ -391,8 +372,9 @@ class _UserFavoritePageState extends State<_FavoritePage>
     var currentTime = DateTime.now().millisecondsSinceEpoch;
 
     if (currentTime - _lastExecutedTime > 100) {
-      if (itemIndex >= 0 && itemIndex < comics.length) {
-        int buildNumber = comics[itemIndex].buildNumber;
+      final temp = comics.map((e) => e as ComicNumber).toList();
+      if (itemIndex >= 0 && itemIndex < temp.length) {
+        int buildNumber = temp[itemIndex].buildNumber;
         // logger.d(comics[itemIndex].doc.title);
         stringSelectStore.setDate("$buildNumber/$pagesCount");
         _currentIndex = buildNumber;

@@ -2,14 +2,14 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/config/global/global.dart';
-import 'package:zephyr/mobx/string_select.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnterConst;
 
 import '../../../main.dart';
-import '../../../mobx/int_select.dart';
 import '../../../util/router/router.gr.dart';
 import '../../jm/jm_search_result/bloc/jm_search_result_bloc.dart';
 import '../../search_result/models/search_enter.dart' show SearchEnterConst;
+
+final bookshelfStore = BookshelfStore.init();
 
 @RoutePage()
 class BookshelfPage extends StatefulWidget {
@@ -25,19 +25,13 @@ class _BookshelfPageState extends State<BookshelfPage>
 
   int _currentIndex = 0;
 
-  final IntSelectStore indexStore = IntSelectStore();
-  final StringSelectStore stringSelectStore = StringSelectStore();
-  final SearchStatusStore favoriteStore = SearchStatusStore();
-  final SearchStatusStore historyStore = SearchStatusStore();
-  final SearchStatusStore downloadStore = SearchStatusStore();
-
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this)..addListener(() {
       if (_tabController.index != _currentIndex) {
         _currentIndex = _tabController.index;
-        indexStore.setDate(_currentIndex);
+        bookshelfStore.indexStore.setDate(_currentIndex);
         // logger.d('Current index: $_currentIndex');
         if (_currentIndex == 0) {
           eventBus.fire(
@@ -50,7 +44,8 @@ class _BookshelfPageState extends State<BookshelfPage>
         }
       }
     });
-    stringSelectStore.setDate("");
+    bookshelfStore.stringSelectStore.setDate("");
+    bookshelfStore.topBarStore.setDate(1);
   }
 
   @override
@@ -62,12 +57,7 @@ class _BookshelfPageState extends State<BookshelfPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      endDrawer: SideDrawer(
-        indexStore: indexStore,
-        favoriteStore: favoriteStore,
-        historyStore: historyStore,
-        downloadStore: downloadStore,
-      ),
+      endDrawer: SideDrawer(),
       appBar: AppBar(
         title: const Text('书架'),
         flexibleSpace: Column(
@@ -86,13 +76,12 @@ class _BookshelfPageState extends State<BookshelfPage>
               showDialog(
                 context: context,
                 builder: (BuildContext context) {
+                  final router = AutoRouter.of(context);
                   return SimpleDialog(
                     children: [
-                      // 第一个 Chip
                       SimpleDialogOption(
                         onPressed: () {
-                          context.pop();
-                          context.pushRoute(
+                          router.popAndPush(
                             SearchResultRoute(
                               searchEnterConst: SearchEnterConst(),
                             ),
@@ -104,11 +93,9 @@ class _BookshelfPageState extends State<BookshelfPage>
                           labelStyle: TextStyle(color: Colors.white),
                         ),
                       ),
-                      // 第二个 Chip
                       SimpleDialogOption(
                         onPressed: () {
-                          context.pop();
-                          context.pushRoute(
+                          router.popAndPush(
                             JmSearchResultRoute(event: JmSearchResultEvent()),
                           );
                         },
@@ -144,7 +131,9 @@ class _BookshelfPageState extends State<BookshelfPage>
                 builder:
                     (context) => SizedBox(
                       width: 120,
-                      child: Center(child: Text(stringSelectStore.date)),
+                      child: Center(
+                        child: Text(bookshelfStore.stringSelectStore.date),
+                      ),
                     ),
               ),
               Builder(
@@ -165,23 +154,7 @@ class _BookshelfPageState extends State<BookshelfPage>
           Expanded(
             child: TabBarView(
               controller: _tabController,
-              children: [
-                FavoritePage(
-                  searchStatusStore: favoriteStore,
-                  stringSelectStore: stringSelectStore,
-                  indexStore: indexStore,
-                ),
-                HistoryPage(
-                  searchStatusStore: historyStore,
-                  stringSelectStore: stringSelectStore,
-                  indexStore: indexStore,
-                ),
-                DownloadPage(
-                  searchStatusStore: downloadStore,
-                  stringSelectStore: stringSelectStore,
-                  indexStore: indexStore,
-                ),
-              ],
+              children: [FavoritePage(), HistoryPage(), DownloadPage()],
             ),
           ),
         ],

@@ -228,7 +228,7 @@ class _NavigationBarState extends State<NavigationBar> {
       allRoutes += "${route.name} ";
     });
     // logger.d(allRoutes);
-    debouncer(() {
+    debouncer.run(() {
       if (!allRoutes.contains('LoginRoute')) {
         showErrorToast('登录失效，请重新登录');
         context.navigateTo(LoginRoute());

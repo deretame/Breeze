@@ -23,6 +23,8 @@ class _SideDrawerState extends State<SideDrawer> {
 
   SearchStatusStore get downloadStore => bookshelfStore.downloadStore;
 
+  SearchStatusStore get jmFavoriteStore => bookshelfStore.jmFavoriteStore;
+
   IntSelectStore get topBarStore => bookshelfStore.topBarStore;
 
   Map<String, bool> _categoriesShield = Map.of(bikaSetting.shieldCategoryMap);
@@ -90,11 +92,11 @@ class _SideDrawerState extends State<SideDrawer> {
                 if (topBarStore.date == 2) ...[
                   Builder(
                     builder: (context) {
-                      sort = favoriteStore.sort;
+                      sort = jmFavoriteStore.sort;
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: SortWidget(
-                          searchStatusStore: favoriteStore,
+                          searchStatusStore: jmFavoriteStore,
                           onSortChanged: (value) {
                             sort = value;
                           },
@@ -102,7 +104,7 @@ class _SideDrawerState extends State<SideDrawer> {
                       );
                     },
                   ),
-                  keywordSearch(favoriteStore),
+                  keywordSearch(jmFavoriteStore),
                 ] else ...[
                   historyPageSkip(),
                 ],
@@ -246,14 +248,15 @@ class _SideDrawerState extends State<SideDrawer> {
 
   void _onTap() {
     if (indexStore.date == 0) {
-      bikaSetting.setShieldCategoryMap(_categoriesShield);
-      favoriteStore.setSort(sort);
-      favoriteStore.setCategories(categories);
-      favoriteStore.setKeyword(keyword);
       if (topBarStore.date == 2) {
-        eventBus.fire(FavoriteEvent(EventType.refresh, sortType, page));
+        jmFavoriteStore.setSort(sort);
+        jmFavoriteStore.setKeyword(keyword);
+        eventBus.fire(JmFavoriteEvent(EventType.refresh));
         return;
       }
+
+      bikaSetting.setShieldCategoryMap(_categoriesShield);
+      favoriteStore.setKeyword(keyword);
 
       if (page != -1 && page != 0) {
         eventBus.fire(FavoriteEvent(EventType.pageSkip, sortType, page));
@@ -306,6 +309,8 @@ class _SideDrawerState extends State<SideDrawer> {
     final TextEditingController controller = TextEditingController(
       text: store.keyword,
     );
+
+    keyword = store.keyword;
 
     return Expanded(
       child: Padding(

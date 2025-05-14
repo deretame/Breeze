@@ -148,15 +148,24 @@ class _BookshelfPageState extends State<BookshelfPage>
           ),
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: TabBarView(
-              controller: bookshelfStore.tabController,
-              children: [FavoritePage(), HistoryPage(), DownloadPage()],
+      body: Observer(
+        builder:
+            (context) => Column(
+              children: [
+                Expanded(
+                  child: TabBarView(
+                    controller: bookshelfStore.tabController,
+                    children: [
+                      bookshelfStore.topBarStore.date == 1
+                          ? FavoritePage()
+                          : JmFavoritePage(),
+                      HistoryPage(),
+                      DownloadPage(),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
       ),
     );
   }

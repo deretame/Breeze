@@ -1,8 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
-import 'package:zephyr/network/http/picture/picture.dart';
-import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 
 import '../../../../config/global/global.dart';
@@ -21,12 +21,7 @@ class FavoritePage extends StatelessWidget {
       create:
           (_) =>
               UserFavouriteBloc()..add(
-                UserFavouriteEvent(
-                  UserFavouriteStatus.initial,
-                  1,
-                  Uuid().v4(),
-                  SearchEnter(),
-                ),
+                UserFavouriteEvent(UserFavouriteStatus.initial, 1, Uuid().v4()),
               ),
       child: _FavoritePage(),
     );
@@ -46,9 +41,6 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
   StringSelectStore get stringSelectStore => bookshelfStore.stringSelectStore;
 
-  SearchStatusStore get favoriteStore => bookshelfStore.favoriteStore;
-
-  late SearchEnter searchEnterConst;
   late List<dynamic> comics;
   int pageCount = 0;
   String refresh = "";
@@ -56,6 +48,9 @@ class _UserFavoritePageState extends State<_FavoritePage>
   int _currentIndex = 0;
 
   ScrollController get _scrollController => scrollControllers['favorite']!;
+
+  // 保存事件订阅，方便在dispose中取消
+  late final StreamSubscription _eventSubscription;
 
   @override
   bool get wantKeepAlive => true;
@@ -65,10 +60,8 @@ class _UserFavoritePageState extends State<_FavoritePage>
     super.initState();
     pageCount = 1;
 
-    searchEnterConst = SearchEnter();
-
     _scrollController.addListener(_scrollListener);
-    eventBus.on<FavoriteEvent>().listen((event) {
+    _eventSubscription = eventBus.on<FavoriteEvent>().listen((event) {
       if (event.type == EventType.refresh) {
         _refresh(initState: true);
       } else if (event.type == EventType.pageSkip) {
@@ -87,7 +80,8 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _scrollController.removeListener(_scrollListener);
+    _eventSubscription.cancel();
     super.dispose();
   }
 
@@ -152,18 +146,12 @@ class _UserFavoritePageState extends State<_FavoritePage>
   Widget _buildList(UserFavouriteState state) {
     _updateStateVariables(state);
 
-    if (bookshelfStore.topBarStore.date == 1) {
-      if (_shouldFetchMore(state)) {
-        _fetchFavoriteResult();
-      }
+    if (_shouldFetchMore(state)) {
+      _fetchFavoriteResult();
     }
 
     if (state.comics.isEmpty) {
       return _buildEmptyState();
-    }
-
-    if (bookshelfStore.topBarStore.date == 2) {
-      return _buildBrevityList(state);
     }
 
     return bikaSetting.brevity
@@ -304,42 +292,23 @@ class _UserFavoritePageState extends State<_FavoritePage>
   // 转换数据为简洁模式需要的格式
   List<ComicSimplifyEntryInfo> _convertToSimplifyList(List<dynamic> comics) {
     if (bookshelfStore.topBarStore.date == 1) {
-      if (comics[0] is ComicNumber) {
-        final temp = comics.map((e) => e as ComicNumber).toList();
+      final temp = comics.map((e) => e as ComicNumber).toList();
 
-        return temp
-            .map(
-              (element) => ComicSimplifyEntryInfo(
-                title: element.doc.title,
-                id: element.doc.id,
-                fileServer: element.doc.thumb.fileServer,
-                path: element.doc.thumb.path,
-                pictureType: "favourite",
-                from: "bika",
-              ),
-            )
-            .toList();
-      }
+      return temp
+          .map(
+            (element) => ComicSimplifyEntryInfo(
+              title: element.doc.title,
+              id: element.doc.id,
+              fileServer: element.doc.thumb.fileServer,
+              path: element.doc.thumb.path,
+              pictureType: "favourite",
+              from: "bika",
+            ),
+          )
+          .toList();
     } else {
-      if (comics[0] is JmFavorite) {
-        final temp = comics.map((e) => e as JmFavorite).toList();
-
-        return temp
-            .map(
-              (element) => ComicSimplifyEntryInfo(
-                title: element.name,
-                id: element.comicId.toString(),
-                fileServer: getJmCoverUrl(element.comicId.toString()),
-                path: ".jpg",
-                pictureType: 'cover',
-                from: 'jm',
-              ),
-            )
-            .toList();
-      }
+      return [];
     }
-
-    return [];
   }
 
   void _refresh({bool updateShield = false, bool initState = false}) {
@@ -349,42 +318,25 @@ class _UserFavoritePageState extends State<_FavoritePage>
           UserFavouriteStatus.loadingMore,
           pageCount,
           "updateShield",
-          searchEnterConst,
         ),
       );
       return;
     }
 
     if (initState) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          0,
-          duration: Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-      }
       context.read<UserFavouriteBloc>().add(
         UserFavouriteEvent(
           UserFavouriteStatus.initial,
           1,
           Uuid().v4().toString(),
-          SearchEnter(
-            keyword: favoriteStore.keyword,
-            sort: favoriteStore.sort,
-            categories: favoriteStore.categories,
-          ),
         ),
       );
+      return;
     }
 
     if (pageCount != 1) {
       context.read<UserFavouriteBloc>().add(
-        UserFavouriteEvent(
-          UserFavouriteStatus.loadingMore,
-          pageCount,
-          refresh,
-          searchEnterConst,
-        ),
+        UserFavouriteEvent(UserFavouriteStatus.loadingMore, pageCount, refresh),
       );
     } else {
       context.read<UserFavouriteBloc>().add(
@@ -392,7 +344,6 @@ class _UserFavoritePageState extends State<_FavoritePage>
           UserFavouriteStatus.initial,
           1,
           Uuid().v4().toString(),
-          searchEnterConst,
         ),
       );
     }
@@ -404,7 +355,6 @@ class _UserFavoritePageState extends State<_FavoritePage>
         UserFavouriteStatus.initial,
         page,
         Uuid().v4().toString(),
-        searchEnterConst,
       ),
     );
   }
@@ -415,7 +365,6 @@ class _UserFavoritePageState extends State<_FavoritePage>
         UserFavouriteStatus.loadingMore,
         pageCount + 1,
         refresh,
-        searchEnterConst,
       ),
     );
   }
@@ -432,9 +381,7 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
     var currentTime = DateTime.now().millisecondsSinceEpoch;
 
-    if (currentTime - _lastExecutedTime > 100 &&
-        bookshelfStore.topBarStore.date == 1 &&
-        !bikaSetting.brevity) {
+    if (currentTime - _lastExecutedTime > 100) {
       final temp = comics.map((e) => e as ComicNumber).toList();
       if (itemIndex >= 0 && itemIndex < temp.length) {
         int buildNumber = temp[itemIndex].buildNumber;

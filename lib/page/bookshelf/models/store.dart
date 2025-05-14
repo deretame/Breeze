@@ -10,6 +10,7 @@ class BookshelfStore {
   SearchStatusStore favoriteStore;
   SearchStatusStore historyStore;
   SearchStatusStore downloadStore;
+  SearchStatusStore jmFavoriteStore;
   TabController? tabController;
 
   BookshelfStore({
@@ -19,6 +20,7 @@ class BookshelfStore {
     required this.favoriteStore,
     required this.historyStore,
     required this.downloadStore,
+    required this.jmFavoriteStore,
     this.tabController,
   });
 
@@ -30,6 +32,7 @@ class BookshelfStore {
       favoriteStore: SearchStatusStore(),
       historyStore: SearchStatusStore(),
       downloadStore: SearchStatusStore(),
+      jmFavoriteStore: SearchStatusStore(),
     );
   }
 }

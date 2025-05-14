@@ -198,29 +198,45 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   Future<void> _deleteHistory() async {
-    final temp =
-        objectbox.bikaHistoryBox
-            .query(BikaComicHistory_.comicId.equals(info.id))
-            .build()
-            .findFirst();
+    if (info.from == 'bika') {
+      final temp =
+          objectbox.bikaHistoryBox
+              .query(BikaComicHistory_.comicId.equals(info.id))
+              .build()
+              .findFirst();
 
-    if (temp != null) {
-      temp.deleted = true;
-      temp.history = DateTime.now().toUtc();
-      objectbox.bikaHistoryBox.put(temp);
+      if (temp != null) {
+        temp.deleted = true;
+        temp.history = DateTime.now().toUtc();
+        objectbox.bikaHistoryBox.put(temp);
+      }
+    } else if (info.from == 'jm') {
+      final temp =
+          objectbox.jmHistoryBox
+              .query(JmHistory_.comicId.equals(info.id))
+              .build()
+              .findFirst();
+
+      if (temp != null) {
+        temp.deleted = true;
+        temp.history = DateTime.now().toUtc();
+        objectbox.jmHistoryBox.put(temp);
+      }
     }
   }
 
   Future<void> _deleteDownload() async {
-    final temp =
-        objectbox.bikaDownloadBox
-            .query(BikaComicDownload_.comicId.equals(info.id))
-            .build()
-            .findFirst();
+    if (info.from == 'bika') {
+      final temp =
+          objectbox.bikaDownloadBox
+              .query(BikaComicDownload_.comicId.equals(info.id))
+              .build()
+              .findFirst();
 
-    if (temp != null) {
-      objectbox.bikaDownloadBox.remove(temp.id);
-      await _deleteDownloadDirectory(info.id);
+      if (temp != null) {
+        objectbox.bikaDownloadBox.remove(temp.id);
+        await _deleteDownloadDirectory(info.id);
+      }
     }
   }
 

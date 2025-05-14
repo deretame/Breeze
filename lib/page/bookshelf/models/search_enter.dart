@@ -29,4 +29,9 @@ class SearchEnter extends Equatable {
       refresh: refresh ?? this.refresh,
     );
   }
+
+  @override
+  String toString() {
+    return 'SearchEnter(keyword: $keyword, sort: $sort, categories: $categories, refresh: $refresh)';
+  }
 }

@@ -6,7 +6,7 @@ class Debouncer {
 
   Debouncer({this.milliseconds = 500});
 
-  void call(void Function() action) {
+  void run(void Function() action) {
     _timer?.cancel();
     _timer = Timer(Duration(milliseconds: milliseconds), action);
   }

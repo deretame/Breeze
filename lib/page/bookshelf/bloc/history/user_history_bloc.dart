@@ -157,7 +157,9 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
             }).toList();
       }
 
-      comics = comicList.where((comic) => comic.deleted == false).toList();
+      comicList.removeWhere((comic) => comic.deleted == true);
+
+      comics = comicList;
     } else if (bookshelfStore.topBarStore.date == 2) {
       late var comicList = objectbox.jmHistoryBox.getAll();
 
@@ -181,6 +183,8 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
               return allString.toLowerCase().contains(keyword);
             }).toList();
       }
+
+      comicList.removeWhere((comic) => comic.deleted == true);
 
       comics = comicList;
     }

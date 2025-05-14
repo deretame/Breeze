@@ -37,14 +37,25 @@ Widget deletingDialog(BuildContext context, Function refresh, DeleteType type) {
                       );
                     } else {
                       // 执行清空操作
-                      var allHistory = objectbox.bikaHistoryBox.getAll();
+                      if (bookshelfStore.topBarStore.date == 1) {
+                        var allHistory = objectbox.bikaHistoryBox.getAll();
 
-                      for (var history in allHistory) {
-                        history.deleted = true;
-                        history.history = DateTime.now().toUtc();
+                        for (var history in allHistory) {
+                          history.deleted = true;
+                          history.history = DateTime.now().toUtc();
+                        }
+
+                        objectbox.bikaHistoryBox.putMany(allHistory);
+                      } else if (bookshelfStore.topBarStore.date == 2) {
+                        var allHistory = objectbox.jmHistoryBox.getAll();
+
+                        for (var history in allHistory) {
+                          history.deleted = true;
+                          history.history = DateTime.now().toUtc();
+                        }
+
+                        objectbox.jmHistoryBox.putMany(allHistory);
                       }
-
-                      objectbox.bikaHistoryBox.putMany(allHistory);
                     }
 
                     // 刷新页面

@@ -1,40 +1,40 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/config/global/global.dart';
+import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
-
-import '../../../../config/global/global.dart';
 import '../../../../main.dart';
 import '../../../../mobx/int_select.dart';
 import '../../../../mobx/string_select.dart';
 import '../../../../object_box/model.dart';
 import '../../../../type/enum.dart';
-import '../../../../widgets/comic_entry/comic_entry.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 
-class DownloadPage extends StatelessWidget {
-  const DownloadPage({super.key});
+class JmFavoritePage extends StatelessWidget {
+  const JmFavoritePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => UserDownloadBloc()..add(UserDownloadEvent(SearchEnter())),
-      child: _DownloadPage(),
+      create: (_) => JmFavouriteBloc()..add(JmFavouriteEvent()),
+      child: _FavoritePage(),
     );
   }
 }
 
-class _DownloadPage extends StatefulWidget {
-  const _DownloadPage();
+class _FavoritePage extends StatefulWidget {
+  const _FavoritePage();
 
   @override
-  State<_DownloadPage> createState() => _DownloadPageState();
+  State<_FavoritePage> createState() => __FavoritePageState();
 }
 
-class _DownloadPageState extends State<_DownloadPage>
+class __FavoritePageState extends State<_FavoritePage>
     with AutomaticKeepAliveClientMixin {
-  SearchStatusStore get searchStatusStore => bookshelfStore.downloadStore;
+  SearchStatusStore get searchStatusStore => bookshelfStore.jmFavoriteStore;
 
   StringSelectStore get stringSelectStore => bookshelfStore.stringSelectStore;
 
@@ -43,13 +43,19 @@ class _DownloadPageState extends State<_DownloadPage>
   int totalComicCount = 0;
   bool notice = false;
 
-  ScrollController get _scrollController => scrollControllers['download']!;
+  ScrollController get _scrollController => scrollControllers['jmFavorite']!;
+
+  // 保存事件订阅，方便在dispose中取消
+  late final StreamSubscription _eventSubscription;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_scrollListener);
-    eventBus.on<DownloadEvent>().listen((event) {
+
+    _eventSubscription = eventBus.on<JmFavoriteEvent>().listen((event) {
+      if (!mounted) return; // 确保组件仍然挂载
+
       if (event.type == EventType.showInfo) {
         stringSelectStore.setDate(totalComicCount.toString());
       } else if (event.type == EventType.refresh) {
@@ -60,11 +66,14 @@ class _DownloadPageState extends State<_DownloadPage>
 
   @override
   void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _eventSubscription.cancel(); // 取消事件订阅
     super.dispose();
   }
 
+  // 滚动监听方法
   void _scrollListener() {
-    if (indexStore.date == 2) {
+    if (bookshelfStore.indexStore.date == 1) {
       stringSelectStore.setDate(totalComicCount.toString());
     }
   }
@@ -75,17 +84,13 @@ class _DownloadPageState extends State<_DownloadPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-
-    if (bookshelfStore.topBarStore.date == 2) {
-      return const Center(child: Text('尚未支持', style: TextStyle(fontSize: 30)));
-    }
-    return BlocBuilder<UserDownloadBloc, UserDownloadState>(
+    return BlocBuilder<JmFavouriteBloc, JmFavouriteState>(
       builder: (context, state) {
         return RefreshIndicator(
           displacement: 60.0,
           onRefresh: () async {
-            if (indexStore.date == 2) {
-              _refresh(searchStatusStore);
+            if (bookshelfStore.indexStore.date == 0) {
+              _refresh(bookshelfStore.jmFavoriteStore);
             }
           },
           child: _buildContent(state),
@@ -94,18 +99,18 @@ class _DownloadPageState extends State<_DownloadPage>
     );
   }
 
-  Widget _buildContent(UserDownloadState state) {
+  Widget _buildContent(JmFavouriteState state) {
     switch (state.status) {
-      case UserDownloadStatus.initial:
+      case JmFavouriteStatus.initial:
         return const Center(child: CircularProgressIndicator());
-      case UserDownloadStatus.failure:
+      case JmFavouriteStatus.failure:
         return _buildError(state);
-      case UserDownloadStatus.success:
+      case JmFavouriteStatus.success:
         return _buildList(state);
     }
   }
 
-  Widget _buildError(UserDownloadState state) {
+  Widget _buildError(JmFavouriteState state) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -124,7 +129,7 @@ class _DownloadPageState extends State<_DownloadPage>
     );
   }
 
-  Widget _buildList(UserDownloadState state) {
+  Widget _buildList(JmFavouriteState state) {
     totalComicCount = state.comics.length;
 
     _showNoticeIfNeeded();
@@ -133,15 +138,13 @@ class _DownloadPageState extends State<_DownloadPage>
       return _buildEmptyState();
     }
 
-    return bikaSetting.brevity
-        ? _buildBrevityList(state)
-        : _buildDetailedList(state);
+    return _buildBrevityList(state);
   }
 
   // 显示通知（如果条件满足）
   void _showNoticeIfNeeded() {
-    if (!notice && indexStore.date == 1) {
-      eventBus.fire(DownloadEvent(EventType.showInfo));
+    if (!notice && bookshelfStore.indexStore.date == 1) {
+      eventBus.fire(JmFavoriteEvent(EventType.showInfo));
       notice = true;
     }
   }
@@ -155,7 +158,7 @@ class _DownloadPageState extends State<_DownloadPage>
           const Text('啥都没有', style: TextStyle(fontSize: 20.0)),
           const SizedBox(height: 10),
           IconButton(
-            onPressed: () => _refresh(searchStatusStore),
+            onPressed: () => _refresh(bookshelfStore.jmFavoriteStore),
             icon: const Icon(Icons.refresh),
           ),
           const Spacer(),
@@ -165,7 +168,7 @@ class _DownloadPageState extends State<_DownloadPage>
   }
 
   // 构建简洁模式列表
-  Widget _buildBrevityList(UserDownloadState state) {
+  Widget _buildBrevityList(JmFavouriteState state) {
     final elementsRows = generateElements(
       _convertToEntryInfoList(state.comics),
     );
@@ -184,22 +187,6 @@ class _DownloadPageState extends State<_DownloadPage>
     );
   }
 
-  // 构建详细模式列表
-  Widget _buildDetailedList(UserDownloadState state) {
-    return _buildCommonListView(
-      itemCount: state.comics.length + 1,
-      itemBuilder:
-          (context, index) => _buildListItem(
-            context,
-            index,
-            state.comics.length,
-            () => _refresh(searchStatusStore),
-            isBrevity: false,
-            comics: state.comics,
-          ),
-    );
-  }
-
   // 公共列表构建方法
   ListView _buildCommonListView({
     required int itemCount,
@@ -210,8 +197,8 @@ class _DownloadPageState extends State<_DownloadPage>
           bikaSetting.brevity
               ? screenWidth * 0.425
               : 180.0 + (screenHeight / 10) * 0.1,
-      controller: scrollControllers['download']!,
       physics: const AlwaysScrollableScrollPhysics(),
+      controller: _scrollController,
       itemCount: itemCount,
       itemBuilder: itemBuilder,
     );
@@ -225,67 +212,49 @@ class _DownloadPageState extends State<_DownloadPage>
     VoidCallback refreshCallback, {
     required bool isBrevity,
     List<List<ComicSimplifyEntryInfo>>? elementsRows,
-    List<dynamic>? comics,
   }) {
     if (index == dataLength) {
-      return Center(
-        child: Column(
-          children: [
-            SizedBox(height: 10),
-            IconButton(
-              onPressed: refreshCallback,
-              icon: const Icon(Icons.refresh),
-            ),
-            deletingDialog(context, refreshCallback, DeleteType.download),
-          ],
-        ),
+      return Column(
+        children: [
+          SizedBox(height: 10),
+          IconButton(
+            onPressed: refreshCallback,
+            icon: const Icon(Icons.refresh),
+          ),
+          deletingDialog(context, refreshCallback, DeleteType.history),
+        ],
       );
     }
 
-    if (bookshelfStore.topBarStore.date == 1) {
-      if (isBrevity) {
-        return ComicSimplifyEntryRow(
-          key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
-          entries: elementsRows[index],
-          type: ComicEntryType.download,
-          refresh: refreshCallback,
-        );
-      } else {
-        final temp = comics!.map((e) => e as BikaComicDownload).toList();
-        return ComicEntryWidget(
-          comicEntryInfo: downloadConvertToComicEntryInfo(temp[index]),
-          type: ComicEntryType.download,
-          refresh: refreshCallback,
-        );
-      }
-    } else {
-      return const SizedBox.shrink();
-    }
+    return ComicSimplifyEntryRow(
+      key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
+      entries: elementsRows[index],
+      type: ComicEntryType.history,
+      refresh: refreshCallback,
+    );
   }
 
   // 转换数据格式
   List<ComicSimplifyEntryInfo> _convertToEntryInfoList(List<dynamic> comics) {
-    if (bookshelfStore.topBarStore.date == 1) {
-      final temp = comics.map((e) => e as BikaComicDownload).toList();
+    final temp = comics.map((e) => e as JmFavorite).toList();
 
-      return temp
-          .map(
-            (element) => ComicSimplifyEntryInfo(
-              title: element.title,
-              id: element.comicId,
-              fileServer: element.thumbFileServer,
-              path: element.thumbPath,
-              pictureType: "cover",
-              from: "bika",
-            ),
-          )
-          .toList();
-    } else {
-      return [];
-    }
+    return temp
+        .map(
+          (element) => ComicSimplifyEntryInfo(
+            title: element.name,
+            id: element.comicId.toString(),
+            fileServer: getJmCoverUrl(element.comicId.toString()),
+            path: ".jpg",
+            pictureType: 'cover',
+            from: 'jm',
+          ),
+        )
+        .toList();
   }
 
   void _refresh(SearchStatusStore searchStatusStore) {
+    if (!mounted) return; // 确保组件仍然挂载
+
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
         0,
@@ -294,10 +263,10 @@ class _DownloadPageState extends State<_DownloadPage>
       );
     }
     notice = false;
-    eventBus.fire(DownloadEvent(EventType.showInfo));
-    context.read<UserDownloadBloc>().add(
-      UserDownloadEvent(
-        SearchEnter(
+    eventBus.fire(JmFavoriteEvent(EventType.showInfo));
+    context.read<JmFavouriteBloc>().add(
+      JmFavouriteEvent(
+        searchEnterConst: SearchEnter(
           keyword: searchStatusStore.keyword,
           sort: searchStatusStore.sort,
           categories: searchStatusStore.categories,

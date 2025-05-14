@@ -23,6 +23,7 @@ Map<String, ScrollController> scrollControllers = {
   'month': ScrollController(),
   'creator': ScrollController(),
   'category': ScrollController(),
+  'jmFavorite': ScrollController(),
 };
 
 class GlobalBIkaProfile {

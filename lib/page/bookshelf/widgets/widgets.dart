@@ -8,3 +8,4 @@ export './side_drawer.dart';
 export './sort.dart';
 export './delete_dialog.dart';
 export 'top_tab_bar.dart';
+export './jm/favorite_page.dart';

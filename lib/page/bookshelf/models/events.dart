@@ -22,6 +22,12 @@ class DownloadEvent {
   DownloadEvent(this.type);
 }
 
+class JmFavoriteEvent {
+  EventType type;
+
+  JmFavoriteEvent(this.type);
+}
+
 class TabViewEvent {
   int index;
 

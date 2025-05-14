@@ -42,15 +42,17 @@ class TopTabBar extends StatelessWidget {
           ),
         ],
       ),
-      onValueChanged: (int value) {
+      onValueChanged: (int value) async {
         bookshelfStore.topBarStore.setDate(value);
         bookshelfStore.favoriteStore = SearchStatusStore();
         bookshelfStore.historyStore = SearchStatusStore();
         bookshelfStore.downloadStore = SearchStatusStore();
-        bookshelfStore.tabController!.animateTo(0);
+        bookshelfStore.jmFavoriteStore = SearchStatusStore();
         eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 0));
         eventBus.fire(HistoryEvent(EventType.refresh));
         eventBus.fire(DownloadEvent(EventType.refresh));
+        eventBus.fire(JmFavoriteEvent(EventType.refresh));
+        bookshelfStore.tabController!.animateTo(0);
       },
     );
   }

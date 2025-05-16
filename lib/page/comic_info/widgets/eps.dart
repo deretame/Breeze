@@ -1,14 +1,11 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:zephyr/page/comic_info/bloc/bloc.dart';
 
 import '../../../main.dart';
 import '../../../object_box/model.dart';
 import '../../../type/enum.dart';
 import '../../../util/router/router.gr.dart';
-import '../../../widgets/error_view.dart';
 import '../json/bika/comic_info/comic_info.dart';
 import '../json/bika/eps/eps.dart';
 
@@ -17,7 +14,6 @@ class EpsWidget extends StatefulWidget {
   final BikaComicHistory? comicHistory;
   final List<Doc> epsInfo;
   final ComicEntryType type;
-  final ValueChanged<List<Doc>> epsCompleted;
 
   const EpsWidget({
     super.key,
@@ -25,7 +21,6 @@ class EpsWidget extends StatefulWidget {
     required this.comicHistory,
     required this.epsInfo,
     required this.type,
-    required this.epsCompleted,
   });
 
   @override
@@ -41,62 +36,15 @@ class _EpsWidgetState extends State<EpsWidget> {
 
   ComicEntryType get type => widget.type;
 
-  ValueChanged<List<Doc>> get epsCompleted => widget.epsCompleted;
-
-  List<Doc> docs = [];
-
-  bool isCompleted = false;
-
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => GetComicEpsBloc()..add(GetComicEpsEvent(comic: comicInfo)),
-      child:
-          type == ComicEntryType.download
-              ? buildEpsList(null)
-              : BlocBuilder<GetComicEpsBloc, GetComicEpsState>(
-                builder: (context, state) {
-                  switch (state.status) {
-                    case GetComicEpsStatus.initial:
-                      return Center(child: CircularProgressIndicator());
-                    case GetComicEpsStatus.failure:
-                      return ErrorView(
-                        errorMessage: '加载失败，请重试。',
-                        onRetry: () {
-                          context.read<GetComicEpsBloc>().add(
-                            GetComicEpsEvent(comic: comicInfo),
-                          );
-                        },
-                      );
-                    case GetComicEpsStatus.success:
-                      return buildEpsList(state);
-                  }
-                },
-              ),
-    );
-  }
-
-  Widget buildEpsList(GetComicEpsState? state) {
-    if (state != null) {
-      docs = state.eps;
-    } else {
-      docs = epsInfo;
-    }
-
-    if (!isCompleted) {
-      isCompleted = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        epsCompleted(docs);
-      });
-    }
-
     return ListView.builder(
       cacheExtent: 0,
       physics: const NeverScrollableScrollPhysics(),
       // 禁止内部滚动，交由外层处理
       shrinkWrap: true,
       // 让 ListView 根据内容调整高度
-      itemCount: docs.length + (comicHistory != null ? 1 : 0),
+      itemCount: epsInfo.length + (comicHistory != null ? 1 : 0),
       // 总数量 = eps数量 + 历史记录按钮
       itemBuilder: (context, index) {
         // 如果是历史记录按钮
@@ -112,7 +60,7 @@ class _EpsWidgetState extends State<EpsWidget> {
                 docId: (comicHistory!.epPageCount - 1).toString(),
               ),
               comicInfo: comicInfo,
-              epsInfo: docs,
+              epsInfo: epsInfo,
               isHistory: true,
               type:
                   type == ComicEntryType.download
@@ -124,14 +72,14 @@ class _EpsWidgetState extends State<EpsWidget> {
 
         // 调整索引，排除历史记录按钮
         final adjustedIndex = comicHistory != null ? index - 1 : index;
-        final doc = docs[adjustedIndex];
+        final doc = epsInfo[adjustedIndex];
 
         return Padding(
           padding: const EdgeInsets.all(5.0),
           child: EpButtonWidget(
             doc: doc,
             comicInfo: comicInfo,
-            epsInfo: docs,
+            epsInfo: epsInfo,
             isHistory: false,
             type: type == ComicEntryType.history ? ComicEntryType.normal : type,
           ),

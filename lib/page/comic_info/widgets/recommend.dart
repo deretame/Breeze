@@ -1,72 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/page/comic_info/json/bika/recommend/recommend_json.dart'
+    show Comic;
 
 import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../type/enum.dart';
 import '../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import '../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
-import '../../../widgets/error_view.dart';
-import '../bloc/bika/recommend/recommend_bloc.dart';
 
 class RecommendWidget extends StatelessWidget {
-  final String comicId;
+  final List<Comic> comicList;
 
-  final ComicEntryType type;
-
-  const RecommendWidget({super.key, required this.comicId, required this.type});
+  const RecommendWidget({super.key, required this.comicList});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create:
-          (_) =>
-              RecommendBloc()
-                ..add(RecommendEvent(comicId, RecommendStatus.initial)),
-      child: _RecommendWidget(comicId: comicId, type: type),
-    );
-  }
-}
-
-class _RecommendWidget extends StatelessWidget {
-  final String comicId;
-  final ComicEntryType type;
-
-  const _RecommendWidget({required this.comicId, required this.type});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<RecommendBloc, RecommendState>(
-      builder: (context, state) {
-        switch (state.status) {
-          case RecommendStatus.initial:
-            return Center(child: CircularProgressIndicator());
-          case RecommendStatus.failure:
-            return type == ComicEntryType.download
-                ? SizedBox.shrink()
-                : ErrorView(
-                  errorMessage: '${state.result.toString()}\n加载失败，请重试。',
-                  onRetry: () {
-                    context.read<RecommendBloc>().add(
-                      RecommendEvent(comicId, RecommendStatus.initial),
-                    );
-                  },
-                );
-          case RecommendStatus.success:
-            return successWidget(state);
-        }
-      },
-    );
-  }
-
-  Widget successWidget(RecommendState state) {
-    // logger.d('RecommendWidget successWidget');
-    if (state.comicList == null) {
+    if (comicList.isEmpty) {
       return SizedBox.shrink();
     }
     final comicInfoList =
-        state.comicList!
+        comicList
             .map(
               (e) => ComicSimplifyEntryInfo(
                 title: e.title,

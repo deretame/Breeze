@@ -18,8 +18,11 @@ import '../../../widgets/toast.dart';
 import '../../download/json/comic_all_info_json/comic_all_info_json.dart'
     as comic_all_info_json;
 import '../json/bika/comic_info/comic_info.dart';
+import 'package:zephyr/page/comic_info/json/bika/recommend/recommend_json.dart'
+    as recommend_json;
 import '../json/bika/eps/eps.dart';
 
+// TODO: 还没测试，没法测试，记得测试！
 @RoutePage()
 class ComicInfoPage extends StatelessWidget {
   final String comicId;
@@ -57,9 +60,11 @@ class _ComicInfoState extends State<_ComicInfo>
   BikaComicHistory? comicHistory;
   BikaComicDownload? comicDownload;
   comic_all_info_json.ComicAllInfoJson? comicAllInfo;
-  late Comic comicInfo; // 用来存储漫画信息
+  late AllInfo allInfo; // 用来存储漫画信息
+  late Comic comicInfo;
+  List<Doc> epsInfo = [];
+  List<recommend_json.Comic> comicList = [];
 
-  List<Doc> _epsInfo = [];
   late ComicEntryType _type;
   bool _loaddingComicInfo = false;
 
@@ -170,7 +175,10 @@ class _ComicInfoState extends State<_ComicInfo>
                         },
                       );
                     case GetComicInfoStatus.success:
-                      comicInfo = state.comicInfo!;
+                      allInfo = state.allInfo!;
+                      comicInfo = allInfo.comicInfo!.data.comic;
+                      epsInfo = allInfo.eps!;
+                      comicList = allInfo.recommendJson!;
                       return _infoView();
                   }
                 },
@@ -222,9 +230,9 @@ class _ComicInfoState extends State<_ComicInfo>
 
   Widget _infoView() {
     if (!_loaddingComicInfo) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        setState(() => _loaddingComicInfo = true);
-      });
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => setState(() => _loaddingComicInfo = true),
+      );
     }
 
     return RefreshIndicator(
@@ -281,18 +289,17 @@ class _ComicInfoState extends State<_ComicInfo>
                     const SizedBox(height: 10),
                     ComicOperationWidget(
                       comicInfo: comicInfo,
-                      epsInfo: _epsInfo,
+                      epsInfo: epsInfo,
                     ),
                     const SizedBox(height: 10),
                     EpsWidget(
                       comicInfo: comicInfo,
                       comicHistory: comicHistory,
-                      epsInfo: _epsInfo,
+                      epsInfo: epsInfo,
                       type: _type,
-                      epsCompleted: (docs) => setState(() => _epsInfo = docs),
                     ),
                     const SizedBox(height: 10),
-                    RecommendWidget(comicId: comicInfo.id, type: _type),
+                    RecommendWidget(comicList: comicList),
                     const SizedBox(height: 85),
                     const SizedBox(height: 30),
                   ],
@@ -356,7 +363,7 @@ class _ComicInfoState extends State<_ComicInfo>
 
       var epsDoc = comicAllInfo!.eps.docs;
       for (var epDoc in epsDoc) {
-        _epsInfo.add(
+        epsInfo.add(
           Doc(
             id: epDoc.id,
             title: epDoc.title,

@@ -1,2 +1,2 @@
-export './eps_info.dart';
+export 'all_info.dart';
 export './init.dart';

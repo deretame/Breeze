@@ -4,32 +4,32 @@ enum GetComicInfoStatus { initial, success, failure }
 
 final class GetComicInfoState extends Equatable {
   final GetComicInfoStatus status;
-  final Comic? comicInfo;
+  final AllInfo? allInfo;
   final String result;
 
   const GetComicInfoState({
     this.status = GetComicInfoStatus.initial,
-    this.comicInfo,
+    this.allInfo,
     this.result = '',
   });
 
   GetComicInfoState copyWith({
     GetComicInfoStatus? status,
-    Comic? comicInfo,
+    AllInfo? allInfo,
     String? result,
   }) {
     return GetComicInfoState(
       status: status ?? this.status,
-      comicInfo: comicInfo ?? this.comicInfo,
+      allInfo: allInfo ?? this.allInfo,
       result: result ?? this.result,
     );
   }
 
   @override
   String toString() {
-    return 'GetComicInfoState { status: $status, comicInfo: $comicInfo, result: $result }';
+    return 'GetComicInfoState { status: $status, allInfo: $allInfo, result: $result }';
   }
 
   @override
-  List<Object?> get props => [status, comicInfo, result];
+  List<Object?> get props => [status, allInfo, result];
 }

@@ -15,25 +15,25 @@ dependencies:
   ########################################
   #            UI 组件 & 动画            #
   ########################################
-  cupertino_icons: ^1.0.8                    # Cupertino 风格图标
-  dynamic_color: ^1.7.0                      # Material You 动态主题
-  loading_animation_widget: ^1.2.1           # 60+ 加载动画集合
-  toggle_switch: ^2.3.0                      # 多状态切换开关
-  animated_search_bar: ^2.7.2                # 带动画的搜索栏组件
-  photo_view: ^0.15.0                        # 交互式图片查看器（缩放/平移）
-  scrollable_positioned_list: ^0.3.8         # 支持滚动定位的列表
-  persistent_bottom_nav_bar: ^6.2.1          # 可持久化的底部导航栏
-  flutter_markdown: ^0.7.5                   # Markdown 渲染支持
-  dropdown_button2: ^2.3.9                   # 增强型下拉菜单
-  toastification: ^3.0.1                     # 现代化通知提示系统
-  flutter_animate: ^4.5.2                    # 声明式动画工具集
-  flutter_colorpicker: ^1.1.0                # 颜色选择器组件
-  custom_sliding_segmented_control: ^1.8.5   # 自定义滑动分段控件
+  cupertino_icons: ^1.0.8 # Cupertino 风格图标
+  dynamic_color: ^1.7.0 # Material You 动态主题
+  loading_animation_widget: ^1.2.1 # 60+ 加载动画集合
+  toggle_switch: ^2.3.0 # 多状态切换开关
+  animated_search_bar: ^2.7.2 # 带动画的搜索栏组件
+  photo_view: ^0.15.0 # 交互式图片查看器（缩放/平移）
+  scrollable_positioned_list: ^0.3.8 # 支持滚动定位的列表
+  persistent_bottom_nav_bar: ^6.2.1 # 可持久化的底部导航栏
+  flutter_markdown: ^0.7.5 # Markdown 渲染支持
+  dropdown_button2: ^2.3.9 # 增强型下拉菜单
+  toastification: ^3.0.1 # 现代化通知提示系统
+  flutter_animate: ^4.5.2 # 声明式动画工具集
+  flutter_colorpicker: ^1.1.0 # 颜色选择器组件
+  custom_sliding_segmented_control: ^1.8.5 # 自定义滑动分段控件
 
   ########################################
   #          状态管理 & 事件总线          #
   ########################################
-  mobx: ^2.5.0                  # 响应式状态管理核心
+  mobx: ^2.5.0 # 响应式状态管理核心
   mobx_codegen: # MobX 代码生成器
     git:
       url: https://github.com/sunbromarko/mobx.dart
@@ -44,76 +44,76 @@ dependencies:
       url: https://github.com/sunbromarko/mobx.dart
       ref: FEAT--Bump-source_get-version
       path: flutter_mobx
-  bloc: ^9.0.0                  # BLoC 核心库
-  flutter_bloc: ^9.0.0          # Flutter BLoC 实现
-  bloc_concurrency: ^0.3.0      # BLoC 并发策略（防抖/节流）
-  event_bus: ^2.0.1             # 全局事件总线
+  bloc: ^9.0.0 # BLoC 核心库
+  flutter_bloc: ^9.0.0 # Flutter BLoC 实现
+  bloc_concurrency: ^0.3.0 # BLoC 并发策略（防抖/节流）
+  event_bus: ^2.0.1 # 全局事件总线
 
   ########################################
   #       数据存储 & 本地持久化          #
   ########################################
-  hive_ce: ^2.10.1               # 轻量级键值数据库
-  hive_ce_flutter: ^2.2.0        # Hive 的 Flutter 适配
-  objectbox: ^4.2.0              # 高性能对象数据库
+  hive_ce: ^2.10.1 # 轻量级键值数据库
+  hive_ce_flutter: ^2.2.0 # Hive 的 Flutter 适配
+  objectbox: ^4.2.0 # 高性能对象数据库
   objectbox_flutter_libs: ^4.0.3 # ObjectBox Flutter 支持
-  json_annotation: ^4.9.0        # JSON 序列化注解
-  json_serializable: ^6.8.0      # JSON 序列化生成器
-  freezed: ^3.0.0                # 不可变数据类生成
-  freezed_annotation: ^3.0.0     # Freezed 注解支持
+  json_annotation: ^4.9.0 # JSON 序列化注解
+  json_serializable: ^6.8.0 # JSON 序列化生成器
+  freezed: ^3.0.0 # 不可变数据类生成
+  freezed_annotation: ^3.0.0 # Freezed 注解支持
 
   ########################################
   #        网络 & 通信 & WebView        #
   ########################################
-  dio: ^5.8.0                   # 强大的 HTTP 客户端
-  dio_cookie_manager: ^3.0.1    # Dio Cookie 管理器
-  webview_flutter: ^4.10.0      # WebView 组件
-  url_launcher: ^6.3.1          # URL 启动器（外部浏览器）
-  connectivity_plus: ^6.1.2     # 网络状态监测
-  html: ^0.15.5+1               # HTML 解析器
-  flutter_socks_proxy: ^0.0.3   # socks5代理配置
-  cookie_jar: ^4.0.8            # Cookie 管理器s
+  dio: ^5.8.0 # 强大的 HTTP 客户端
+  dio_cookie_manager: ^3.0.1 # Dio Cookie 管理器
+  webview_flutter: ^4.10.0 # WebView 组件
+  url_launcher: ^6.3.1 # URL 启动器（外部浏览器）
+  connectivity_plus: ^6.1.2 # 网络状态监测
+  html: ^0.15.5+1 # HTML 解析器
+  flutter_socks_proxy: ^0.0.3 # socks5代理配置
+  cookie_jar: ^4.0.8 # Cookie 管理器s
 
   ########################################
   #        文件 & 资源 & 多媒体          #
   ########################################
-  path_provider: ^2.1.5         # 文件系统路径获取
-  path: ^1.9.0                  # 跨平台路径处理
-  open_file: ^3.5.10            # 文件打开工具
-  image_picker: ^1.1.2          # 图片选择器
-  crop_your_image: ^2.0.0       # 图片裁剪工具
-  archive: ^4.0.0               # 压缩/解压工具集
+  path_provider: ^2.1.5 # 文件系统路径获取
+  path: ^1.9.0 # 跨平台路径处理
+  open_file: ^3.5.10 # 文件打开工具
+  image_picker: ^1.1.2 # 图片选择器
+  crop_your_image: ^2.0.0 # 图片裁剪工具
+  archive: ^4.0.0 # 压缩/解压工具集
 
   ########################################
   #         安全 & 加密 & 工具           #
   ########################################
-  encrypter_plus: ^5.1.0         # 加密算法库（AES/RSA）
-  crypto: ^3.0.6                 # 哈希算法（MD5/SHA）
-  permission_guard: ^2.0.1       # 权限管理工具
-  package_info_plus: ^8.1.2      # 应用包信息获取
-  uuid: ^4.4.2                   # UUID 生成器
+  encrypter_plus: ^5.1.0 # 加密算法库（AES/RSA）
+  crypto: ^3.0.6 # 哈希算法（MD5/SHA）
+  permission_guard: ^2.0.1 # 权限管理工具
+  package_info_plus: ^8.1.2 # 应用包信息获取
+  uuid: ^4.4.2 # UUID 生成器
 
   ########################################
   #        开发工具 & 辅助功能           #
   ########################################
-  auto_route: ^10.0.1           # 声明式路由管理
-  logger: ^2.5.0                # 分级日志记录器
-  stack_trace: ^1.12.0          # 异步堆栈追踪
-  collection: ^1.18.0           # 集合工具扩展
-  equatable: ^2.0.3             # 对象相等性简化
-  stream_transform: ^2.1.1      # Stream 转换工具
-  xml: ^6.5.0                   # XML 解析器
+  auto_route: ^10.0.1 # 声明式路由管理
+  logger: ^2.5.0 # 分级日志记录器
+  stack_trace: ^1.12.0 # 异步堆栈追踪
+  collection: ^1.18.0 # 集合工具扩展
+  equatable: ^2.0.3 # 对象相等性简化
+  stream_transform: ^2.1.1 # Stream 转换工具
+  xml: ^6.5.0 # XML 解析器
   rust_lib_zephyr:
     path: rust_builder
-  flutter_rust_bridge: ^2.10.0    # flutter 和 rust 通信桥
+  flutter_rust_bridge: ^2.10.0 # flutter 和 rust 通信桥
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0           # 代码规范检查
-  build_runner: ^2.4.14           # 代码生成器
-  auto_route_generator: ^10.0.1   # 路由代码生成
-  hive_ce_generator: ^1.8.1       # Hive 模型生成
-  objectbox_generator: ^4.2.0     # ObjectBox 代码生成
+  flutter_lints: ^5.0.0 # 代码规范检查
+  build_runner: ^2.4.14 # 代码生成器
+  auto_route_generator: ^10.0.1 # 路由代码生成
+  hive_ce_generator: ^1.8.1 # Hive 模型生成
+  objectbox_generator: ^4.2.0 # ObjectBox 代码生成
   integration_test:
     sdk: flutter
 
@@ -138,6 +138,7 @@ flutter:
     - asset/image/bika_image/cat_latest.jpg
     - asset/image/bika_image/cat_leaderboard.jpg
     - asset/image/bika_image/cat_random.jpg
+    - asset/image/assets/default_cover.png
 
 objectbox:
   # Writes objectbox-model.json and objectbox.g.dart to lib/custom (and test/custom).

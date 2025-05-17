@@ -7,8 +7,8 @@ edition = "2021"
 crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
-flutter_rust_bridge = "=2.9.0"
-flutter_rust_bridge_macros = "2.9.0"
+flutter_rust_bridge = "=2.10.0"
+flutter_rust_bridge_macros = "2.10.0"
 rayon = "1.10.0"
 image = { version = "0.25.6", default-features = false, features = [
     "jpeg",

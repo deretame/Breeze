@@ -205,7 +205,7 @@ class _UserAvatar extends StatelessWidget {
               case PictureLoadStatus.failure:
                 loadBikaProfile = true;
                 if (state.result.toString().contains('404')) {
-                  return Image.asset('asset/image/assets/默认头像.png');
+                  return Image.asset('asset/image/assets/default_cover.png');
                 }
                 return InkWell(
                   onTap: () {

@@ -59,7 +59,9 @@ class _ImagerWidgetState extends State<ImagerWidget> {
                         height: 50,
                         child:
                             pictureInfo.url.contains("nopic-Male.gif")
-                                ? Image.asset('asset/image/assets/默认头像.png')
+                                ? Image.asset(
+                                  'asset/image/assets/default_cover.png',
+                                )
                                 : Image.file(
                                   File(state.imagePath!),
                                   fit: BoxFit.cover,
@@ -76,7 +78,7 @@ class _ImagerWidgetState extends State<ImagerWidget> {
                         width: 50,
                         height: 50,
                         child: Image.asset(
-                          'asset/image/assets/默认头像.png',
+                          'asset/image/assets/default_cover.png',
                           fit: BoxFit.cover,
                         ),
                       ),

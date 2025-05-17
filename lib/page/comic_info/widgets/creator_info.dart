@@ -169,7 +169,7 @@ class _ImagerWidget extends StatelessWidget {
                         width: 50,
                         height: 50,
                         child: Image.asset(
-                          'asset/image/assets/默认头像.png',
+                          'asset/image/assets/default_cover.png',
                           fit: BoxFit.cover,
                         ),
                       ),

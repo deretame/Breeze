@@ -43,6 +43,8 @@ class JmConfig {
 
   static String get imagesUrl => imagesUrls[0];
 
+  static String get userImagesUrl => 'https://cdn-msp3.jmapinodeudzn.net';
+
   static String get token {
     if (_token.isEmpty) {
       _token =

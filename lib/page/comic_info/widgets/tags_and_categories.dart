@@ -67,7 +67,7 @@ class _TagsAndCategoriesWidgetState extends State<TagsAndCategoriesWidget> {
                     if (title == "分类") {
                       AutoRouter.of(context).push(
                         SearchResultRoute(
-                          searchEnterConst: SearchEnterConst(
+                          searchEnter: SearchEnter.initial().copyWith(
                             from: "bika",
                             type: title,
                             categories: [items[index - 1]],
@@ -77,7 +77,7 @@ class _TagsAndCategoriesWidgetState extends State<TagsAndCategoriesWidget> {
                     } else if (title == "标签") {
                       AutoRouter.of(context).push(
                         SearchResultRoute(
-                          searchEnterConst: SearchEnterConst(
+                          searchEnter: SearchEnter.initial().copyWith(
                             from: "bika",
                             type: title,
                             keyword: items[index - 1],

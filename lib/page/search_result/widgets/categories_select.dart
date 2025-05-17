@@ -9,13 +9,18 @@ import 'package:zephyr/util/sundry.dart';
 import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../bloc/search_bloc.dart';
-import '../method/search_enter_provider.dart';
 
 class CategoriesSelect extends StatelessWidget {
-  const CategoriesSelect({super.key});
+  final SearchEnter searchEnter;
+  final ValueChanged<SearchEnter> onChanged;
+
+  const CategoriesSelect({
+    super.key,
+    required this.searchEnter,
+    required this.onChanged,
+  });
 
   Future<Map<String, bool>?> showCategoryDialog(BuildContext context) async {
-    final searchEnter = SearchEnterProvider.of(context)!.searchEnter;
     Map<String, bool> categoriesMap = Map.from(categoryMap);
     for (String category in searchEnter.categories) {
       // 如果 categoriesMap 中存在该分类，则将其值设为 true
@@ -79,7 +84,6 @@ class CategoriesSelect extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final searchEnter = SearchEnterProvider.of(context)!.searchEnter;
     return InkWell(
       onTap: () async {
         var categoriesMap = Map.from(categoryMap);
@@ -108,22 +112,16 @@ class CategoriesSelect extends StatelessWidget {
 
         if (!context.mounted) return;
 
-        context.read<SearchBloc>().add(
-          FetchSearchResult(
-            SearchEnterConst(
-              url: searchEnter.url,
-              from: searchEnter.from,
-              keyword: searchEnter.keyword,
-              type: searchEnter.type,
-              state: searchEnter.state,
-              sort: searchEnter.sort,
-              categories: categoriesChoice,
-              pageCount: 1,
-              refresh: searchEnter.refresh,
-            ),
-            SearchStatus.initial,
-          ),
+        final newSearchEnter = searchEnter.copyWith(
+          categories: categoriesChoice,
+          pageCount: 1,
         );
+
+        context.read<SearchBloc>().add(
+          FetchSearchResult(newSearchEnter, SearchStatus.initial),
+        );
+
+        onChanged(newSearchEnter);
       },
       child: Row(
         children: <Widget>[

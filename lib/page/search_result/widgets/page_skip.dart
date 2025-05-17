@@ -5,17 +5,19 @@ import 'package:zephyr/page/search_result/models/models.dart';
 
 import '../../../mobx/string_select.dart';
 import '../bloc/search_bloc.dart';
-import '../method/search_enter_provider.dart';
 
 class PageSkip extends StatelessWidget {
   final StringSelectStore pageStore;
-
   final int pagesCount;
+  final SearchEnter searchEnter;
+  final ValueChanged<SearchEnter> onChanged;
 
   const PageSkip({
     super.key,
     required this.pageStore,
     required this.pagesCount,
+    required this.searchEnter,
+    required this.onChanged,
   });
 
   Future<int?> showNumberInputDialog(BuildContext context) async {
@@ -70,30 +72,21 @@ class PageSkip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final searchEnter = SearchEnterProvider.of(context)!.searchEnter;
     return FloatingActionButton.extended(
       onPressed: () async {
         final pageSkip = await showNumberInputDialog(context);
         if (pageSkip != 0) {
           if (!context.mounted) return;
 
+          final newSearchEnter = searchEnter.copyWith(
+            pageCount: pageSkip!,
+            refresh: searchEnter.refresh,
+          );
           context.read<SearchBloc>().add(
-            FetchSearchResult(
-              SearchEnterConst(
-                url: searchEnter.url,
-                from: searchEnter.from,
-                keyword: searchEnter.keyword,
-                type: searchEnter.type,
-                state: '',
-                sort: searchEnter.sort,
-                categories: searchEnter.categories,
-                pageCount: pageSkip!,
-                refresh: searchEnter.refresh,
-              ),
-              SearchStatus.initial,
-            ),
+            FetchSearchResult(newSearchEnter, SearchStatus.initial),
           );
 
+          onChanged(newSearchEnter);
           pageStore.setDate("$pageSkip/$pagesCount");
         }
       },

@@ -3,12 +3,10 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/page/comic_info/json/bika/eps/eps.dart'
-    show Doc, EpsClass, Eps;
+import 'package:zephyr/page/comic_info/json/bika/eps/eps.dart' show Doc, Eps;
 import 'package:zephyr/page/comic_info/json/bika/recommend/recommend_json.dart'
     as recommend_json;
 import 'package:zephyr/page/comic_info/models/all_info.dart';
-import 'package:zephyr/type/stack.dart';
 
 import '../../../../../network/http/bika/http_request.dart';
 import '../../../json/bika/comic_info/comic_info.dart';
@@ -45,7 +43,7 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
         _fetchRecommend(event.comicId),
       ]);
       var allInfo = AllInfo(
-        comicInfo: comicInfo,
+        comicInfo: comicInfo.data.comic,
         eps: eps as List<Doc>,
         recommendJson: recommendJson as List<recommend_json.Comic>,
       );
@@ -88,7 +86,6 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
 
   Future<List<Doc>> _getEps(Comic comic) async {
     List<Doc> eps = [];
-    StackList epsStack = StackList();
 
     // 计算需要请求的页数
     int totalPages = (comic.epsCount / 40 + 1).ceil();
@@ -104,35 +101,12 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
 
     // 处理结果
     for (var result in results) {
-      epsStack.push(Eps.fromJson(result).data.eps);
-    }
-
-    if (epsStack.isEmpty) {
-      throw Exception("获取数据失败");
-    }
-
-    List<EpsClass> epsList = [];
-    while (epsStack.isNotEmpty) {
-      epsList.add(epsStack.pop());
-    }
-
-    if (epsList.isEmpty) {
-      throw Exception("获取数据失败");
-    }
-
-    epsList.sort((a, b) => a.page.compareTo(b.page));
-
-    while (epsList.isNotEmpty) {
-      EpsClass ep = epsList.removeAt(0);
-      StackList epStackList = StackList();
-      for (int i = 0; i < ep.docs.length; i++) {
-        epStackList.push(ep.docs[i]);
-      }
-
-      while (epStackList.isNotEmpty) {
-        eps.add(epStackList.pop());
+      for (var ep in Eps.fromJson(result).data.eps.docs) {
+        eps.add(ep);
       }
     }
+
+    eps.sort((a, b) => a.order.compareTo(b.order));
     return eps;
   }
 

@@ -56,7 +56,7 @@ class ComicParticularsWidget extends StatelessWidget {
                         onTap: () {
                           AutoRouter.of(context).push(
                             SearchResultRoute(
-                              searchEnterConst: SearchEnterConst(
+                              searchEnter: SearchEnter.initial().copyWith(
                                 keyword: comicInfo.author,
                               ),
                             ),
@@ -80,11 +80,9 @@ class ComicParticularsWidget extends StatelessWidget {
                       GestureDetector(
                         onTap: () {
                           // 点击时触发的事件
-                          var enter = SearchEnter();
-                          enter.keyword = comicInfo.chineseTeam;
                           AutoRouter.of(context).push(
                             SearchResultRoute(
-                              searchEnterConst: SearchEnterConst(
+                              searchEnter: SearchEnter.initial().copyWith(
                                 keyword: comicInfo.chineseTeam,
                               ),
                             ),

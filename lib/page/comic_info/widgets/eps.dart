@@ -1,97 +1,16 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/page/comic_info/models/all_info.dart' show AllInfo;
 
 import '../../../main.dart';
-import '../../../object_box/model.dart';
 import '../../../type/enum.dart';
 import '../../../util/router/router.gr.dart';
-import '../json/bika/comic_info/comic_info.dart';
 import '../json/bika/eps/eps.dart';
-
-class EpsWidget extends StatefulWidget {
-  final Comic comicInfo;
-  final BikaComicHistory? comicHistory;
-  final List<Doc> epsInfo;
-  final ComicEntryType type;
-
-  const EpsWidget({
-    super.key,
-    required this.comicInfo,
-    required this.comicHistory,
-    required this.epsInfo,
-    required this.type,
-  });
-
-  @override
-  State<EpsWidget> createState() => _EpsWidgetState();
-}
-
-class _EpsWidgetState extends State<EpsWidget> {
-  Comic get comicInfo => widget.comicInfo;
-
-  BikaComicHistory? get comicHistory => widget.comicHistory;
-
-  List<Doc> get epsInfo => widget.epsInfo;
-
-  ComicEntryType get type => widget.type;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      cacheExtent: 0,
-      physics: const NeverScrollableScrollPhysics(),
-      // 禁止内部滚动，交由外层处理
-      shrinkWrap: true,
-      // 让 ListView 根据内容调整高度
-      itemCount: epsInfo.length + (comicHistory != null ? 1 : 0),
-      // 总数量 = eps数量 + 历史记录按钮
-      itemBuilder: (context, index) {
-        // 如果是历史记录按钮
-        if (comicHistory != null && index == 0) {
-          return Padding(
-            padding: const EdgeInsets.all(5.0),
-            child: EpButtonWidget(
-              doc: Doc(
-                id: "history",
-                title: comicHistory!.epTitle,
-                order: comicHistory!.order,
-                updatedAt: comicHistory!.history,
-                docId: (comicHistory!.epPageCount - 1).toString(),
-              ),
-              comicInfo: comicInfo,
-              epsInfo: epsInfo,
-              isHistory: true,
-              type:
-                  type == ComicEntryType.download
-                      ? ComicEntryType.historyAndDownload
-                      : ComicEntryType.history,
-            ),
-          );
-        }
-
-        // 调整索引，排除历史记录按钮
-        final adjustedIndex = comicHistory != null ? index - 1 : index;
-        final doc = epsInfo[adjustedIndex];
-
-        return Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: EpButtonWidget(
-            doc: doc,
-            comicInfo: comicInfo,
-            epsInfo: epsInfo,
-            isHistory: false,
-            type: type == ComicEntryType.history ? ComicEntryType.normal : type,
-          ),
-        );
-      },
-    );
-  }
-}
 
 class EpButtonWidget extends StatelessWidget {
   final Doc doc;
-  final Comic comicInfo;
+  final AllInfo allInfo;
   final List<Doc> epsInfo;
   final bool? isHistory;
   final ComicEntryType type;
@@ -99,7 +18,7 @@ class EpButtonWidget extends StatelessWidget {
   const EpButtonWidget({
     super.key,
     required this.doc,
-    required this.comicInfo,
+    required this.allInfo,
     required this.epsInfo,
     required this.isHistory,
     required this.type,
@@ -111,8 +30,8 @@ class EpButtonWidget extends StatelessWidget {
       onTap: () {
         AutoRouter.of(context).push(
           ComicReadRoute(
-            comicInfo: comicInfo,
-            comicId: comicInfo.id,
+            comicInfo: allInfo,
+            comicId: allInfo.comicInfo.id,
             type: type,
             order: doc.order,
             epsNumber: epsInfo.length,

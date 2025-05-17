@@ -1,13 +1,13 @@
 import 'dart:io';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:uuid/uuid.dart';
+import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../../config/global/global.dart';
 import '../../../main.dart';
-import '../../../widgets/full_screen_image_view.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 
@@ -27,7 +27,6 @@ class ComicPictureWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final uuid = Uuid().v4();
     return BlocProvider(
       create:
           (context) =>
@@ -61,30 +60,20 @@ class ComicPictureWidget extends StatelessWidget {
             case PictureLoadStatus.success:
               return InkWell(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) => FullScreenImagePage(
-                            imagePath: state.imagePath!,
-                            uuid: uuid,
-                          ),
-                    ),
+                  context.pushRoute(
+                    FullRouteImageRoute(imagePath: state.imagePath!),
                   );
                 },
-                child: Hero(
-                  tag: state.imagePath! + uuid,
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(10.0),
-                      bottomLeft: Radius.circular(10.0),
-                    ),
-                    child: Image.file(
-                      File(state.imagePath!),
-                      fit: BoxFit.cover,
-                      width: (screenWidth / 10) * 3,
-                      height: 180,
-                    ),
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(10.0),
+                    bottomLeft: Radius.circular(10.0),
+                  ),
+                  child: Image.file(
+                    File(state.imagePath!),
+                    fit: BoxFit.cover,
+                    width: (screenWidth / 10) * 3,
+                    height: 180,
                   ),
                 ),
               );

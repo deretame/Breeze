@@ -5,14 +5,19 @@ import 'package:zephyr/page/search_result/models/search_enter.dart';
 
 import '../../../main.dart';
 import '../bloc/search_bloc.dart';
-import '../method/search_enter_provider.dart';
 
 class BikaSearchBar extends StatelessWidget implements PreferredSizeWidget {
-  const BikaSearchBar({super.key});
+  final SearchEnter searchEnter;
+  final ValueChanged<SearchEnter> onChanged;
+
+  const BikaSearchBar({
+    super.key,
+    required this.searchEnter,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final searchEnter = SearchEnterProvider.of(context)!.searchEnter;
     late TextEditingController controller = TextEditingController(text: '');
     late String label = '搜索本子';
 
@@ -48,20 +53,14 @@ class BikaSearchBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         textInputAction: TextInputAction.search,
         onFieldSubmitted: (value) {
-          context.read<SearchBloc>().add(
-            FetchSearchResult(
-              SearchEnterConst(
-                url: searchEnter.url,
-                from: searchEnter.from,
-                keyword: value,
-                type: searchEnter.type,
-                sort: searchEnter.sort,
-                categories: searchEnter.categories,
-                pageCount: 1,
-              ),
-              SearchStatus.initial,
-            ),
+          final newSearchEnter = searchEnter.copyWith(
+            keyword: value,
+            pageCount: 1,
           );
+          context.read<SearchBloc>().add(
+            FetchSearchResult(newSearchEnter, SearchStatus.initial),
+          );
+          onChanged(newSearchEnter);
         },
       ),
     );

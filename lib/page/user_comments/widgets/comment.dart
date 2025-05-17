@@ -15,7 +15,6 @@ import '../../../mobx/int_select.dart';
 import '../../../network/http/bika/http_request.dart';
 import '../../../type/enum.dart';
 import '../../../util/router/router.gr.dart';
-import '../../../widgets/full_screen_image_view.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 import '../../comments/json/comments_json/comments_json.dart' as comments_json;
@@ -355,19 +354,7 @@ class _ImagerWidgetState extends State<ImagerWidget> {
       child: Padding(
         padding: const EdgeInsets.all(2),
         child: BlocProvider(
-          create:
-              (context) =>
-                  PictureBloc()..add(
-                    GetPicture(
-                      PictureInfo(
-                        from: "bika",
-                        url: pictureInfo.url,
-                        path: pictureInfo.path,
-                        cartoonId: pictureInfo.cartoonId,
-                        pictureType: pictureInfo.pictureType,
-                      ),
-                    ),
-                  ),
+          create: (context) => PictureBloc()..add(GetPicture(pictureInfo)),
           child: BlocBuilder<PictureBloc, PictureLoadState>(
             builder: (context, state) {
               switch (state.status) {
@@ -381,15 +368,8 @@ class _ImagerWidgetState extends State<ImagerWidget> {
                 case PictureLoadStatus.success:
                   return GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => FullScreenImagePage(
-                                imagePath: state.imagePath!,
-                                uuid: uuid,
-                              ),
-                        ),
+                      context.pushRoute(
+                        FullRouteImageRoute(imagePath: state.imagePath!),
                       );
                     },
                     child: Hero(
@@ -425,15 +405,7 @@ class _ImagerWidgetState extends State<ImagerWidget> {
                     return InkWell(
                       onTap: () {
                         context.read<PictureBloc>().add(
-                          GetPicture(
-                            PictureInfo(
-                              from: "bika",
-                              url: pictureInfo.url,
-                              path: pictureInfo.path,
-                              cartoonId: pictureInfo.cartoonId,
-                              pictureType: pictureInfo.pictureType,
-                            ),
-                          ),
+                          GetPicture(pictureInfo),
                         );
                       },
                       child: Icon(Icons.refresh),

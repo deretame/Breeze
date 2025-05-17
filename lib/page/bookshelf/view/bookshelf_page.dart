@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnter;
+import 'package:zephyr/page/search_result/models/models.dart' show SearchEnter;
 
 import '../../../main.dart';
 import '../../../util/router/router.gr.dart';
 import '../../jm/jm_search_result/bloc/jm_search_result_bloc.dart';
-import '../../search_result/models/search_enter.dart' show SearchEnterConst;
 
 final bookshelfStore = BookshelfStore.init();
 
@@ -82,7 +82,7 @@ class _BookshelfPageState extends State<BookshelfPage>
                         onPressed: () {
                           router.popAndPush(
                             SearchResultRoute(
-                              searchEnterConst: SearchEnterConst(),
+                              searchEnter: SearchEnter.initial(),
                             ),
                           );
                         },

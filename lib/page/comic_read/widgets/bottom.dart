@@ -2,8 +2,9 @@ import 'dart:ui';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/page/comic_info/comic_info.dart';
+import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info/jm_comic_info_json.dart';
 import 'package:zephyr/type/pipe.dart';
 
 import '../../../config/global/global.dart';
@@ -11,9 +12,6 @@ import '../../../main.dart';
 import '../../../type/enum.dart';
 import '../../../util/router/router.dart';
 import '../../../util/router/router.gr.dart';
-import '../../../widgets/error_view.dart';
-import '../../comic_info/bloc/bika/eps/get_comic_eps_bloc.dart';
-import '../json/common_ep_info_json/common_ep_info_json.dart';
 
 class BottomWidget extends StatefulWidget {
   final ComicEntryType type;
@@ -23,7 +21,6 @@ class BottomWidget extends StatefulWidget {
   final int order;
   final int epsNumber;
   final String comicId;
-  final List<Series> seriesList;
   final From from;
 
   const BottomWidget({
@@ -35,7 +32,6 @@ class BottomWidget extends StatefulWidget {
     required this.order,
     required this.epsNumber,
     required this.comicId,
-    required this.seriesList,
     required this.from,
   });
 
@@ -59,7 +55,6 @@ class _BottomWidgetState extends State<BottomWidget> {
     super.initState();
     tempType = widget.type;
     comicId = widget.comicId;
-    seriesList = widget.seriesList;
     if (tempType == ComicEntryType.historyAndDownload) {
       tempType = ComicEntryType.download;
     }
@@ -75,6 +70,7 @@ class _BottomWidgetState extends State<BottomWidget> {
       }
     }
     if (widget.from == From.jm) {
+      seriesList = (widget.comicInfo as JmComicInfoJson).series;
       if (seriesList.isEmpty) {
         havePrev = false;
         haveNext = false;
@@ -292,45 +288,27 @@ class _BottomWidgetState extends State<BottomWidget> {
     }
   }
 
-  Widget _bikaEpSelector(BuildContext context) => BlocProvider(
-    create:
-        (_) =>
-            GetComicEpsBloc()..add(GetComicEpsEvent(comic: widget.comicInfo)),
-    child: BlocBuilder<GetComicEpsBloc, GetComicEpsState>(
-      builder: (context, state) {
-        switch (state.status) {
-          case GetComicEpsStatus.initial:
-            return Center(child: CircularProgressIndicator());
-          case GetComicEpsStatus.failure:
-            return ErrorView(
-              errorMessage: '加载失败，请重试。',
-              onRetry: () {
-                context.read<GetComicEpsBloc>().add(
-                  GetComicEpsEvent(comic: widget.comicInfo),
-                );
-              },
-            );
-          case GetComicEpsStatus.success:
-            return ListBody(
-              children: [
-                for (final ep in state.eps)
-                  TextButton(
-                    child: Text(ep.title),
-                    onPressed: () => Navigator.of(context).pop(ep.order),
-                  ),
-              ],
-            );
-        }
-      },
-    ),
-  );
+  Widget _bikaEpSelector(BuildContext context) {
+    var epsList = (widget.comicInfo as AllInfo).eps;
+
+    return ListBody(
+      children: [
+        for (final ep in epsList)
+          TextButton(
+            child: Text(ep.title),
+            onPressed:
+                () => Navigator.of(context, rootNavigator: false).pop(ep.order),
+          ),
+      ],
+    );
+  }
 
   Widget _jmEpSelector(BuildContext context) => ListBody(
     children: [
       for (final series in seriesList)
         TextButton(
           child: Text(series.name),
-          onPressed: // 使用 rootNavigator: false 确保使用最近的对话框Navigator
+          onPressed:
               () => Navigator.of(
                 context,
                 rootNavigator: false,

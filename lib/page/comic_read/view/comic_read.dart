@@ -7,12 +7,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/page/comic_info/models/all_info.dart';
 import 'package:zephyr/page/comic_read/comic_read.dart';
+import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info/jm_comic_info_json.dart'
+    show JmComicInfoJson;
 
 import '../../../object_box/model.dart';
 import '../../../object_box/objectbox.g.dart';
 import '../../../type/enum.dart';
-import '../../comic_info/json/bika/comic_info/comic_info.dart';
 import '../../download/json/comic_all_info_json/comic_all_info_json.dart'
     show Eps, comicAllInfoJsonFromJson;
 import '../json/common_ep_info_json/common_ep_info_json.dart';
@@ -104,7 +106,6 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   var length = 0; // 组件总数
   List<Doc> docs = []; // 图片信息
   bool _loading = false; // 加载状态
-  List<Series> seriesList = []; // 章节列表，禁漫用的
 
   bool get _isHistory =>
       _type == ComicEntryType.history ||
@@ -135,6 +136,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     });
 
     if (widget.from == From.bika) {
+      var allInfo = comicInfo as AllInfo;
       // 首先查询一下有没有记录
       comicHistory =
           objectbox.bikaHistoryBox
@@ -143,12 +145,12 @@ class _ComicReadPageState extends State<_ComicReadPage> {
               .findFirst();
       // 如果没有记录就先插入一条记录
       if (comicHistory == null) {
-        comicHistory = comicToBikaComicHistory(comicInfo);
+        comicHistory = comicToBikaComicHistory(allInfo.comicInfo);
         objectbox.bikaHistoryBox.put(comicHistory!);
       }
 
       if (_isDownload) {
-        // 首先查询一下有没有记录
+        // 再查询一下有没有下载记录
         var temp =
             objectbox.bikaDownloadBox
                 .query(BikaComicDownload_.comicId.equals(comicId))
@@ -161,6 +163,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
 
       // logger.d(_type.toString().split('.').last);
     } else if (widget.from == From.jm) {
+      var jmComic = comicInfo as JmComicInfoJson;
       // 首先查询一下有没有记录
       jmHistory =
           objectbox.jmHistoryBox
@@ -169,7 +172,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
               .findFirst();
       // 如果没有记录就先插入一条记录
       if (jmHistory == null) {
-        jmHistory = jmToJmHistory(comicInfo);
+        jmHistory = jmToJmHistory(jmComic);
         objectbox.jmHistoryBox.put(jmHistory!);
       }
     }
@@ -304,7 +307,6 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     order: widget.order,
     epsNumber: widget.epsNumber,
     comicId: comicId,
-    seriesList: seriesList,
     from: widget.from,
   );
 
@@ -433,7 +435,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     if (widget.from == From.bika) {
       // 更新记录
       _isInserting = true;
-      final temp = comicInfo as Comic;
+      final temp = (comicInfo as AllInfo).comicInfo;
       // 有的时候漫画的封面会变动，所以这里干脆每次都更新一下
       comicHistory!
         ..thumbFileServer = temp.thumb.fileServer
@@ -524,7 +526,6 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     docs = state.epInfo!.docs;
     epId = state.epInfo!.epId;
     epName = state.epInfo!.epName;
-    seriesList = state.epInfo!.series;
   }
 
   /// 加载下载数据

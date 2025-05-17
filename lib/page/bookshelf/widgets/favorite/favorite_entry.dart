@@ -14,7 +14,6 @@ import 'package:zephyr/util/sundry.dart';
 import '../../../../config/global/global.dart';
 import '../../../../main.dart';
 import '../../../../type/enum.dart';
-import '../../../../widgets/full_screen_image_view.dart';
 import '../../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../../widgets/picture_bloc/models/picture_info.dart';
 
@@ -203,17 +202,11 @@ class _ImageWidget extends StatelessWidget {
               // 没有错误，正常显示图片
               return InkWell(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) => FullScreenImagePage(
-                            imagePath: state.imagePath!,
-                            uuid: uuid,
-                          ),
-                    ),
+                  context.pushRoute(
+                    FullRouteImageRoute(imagePath: state.imagePath!),
                   );
                 },
+
                 child: Hero(
                   tag: state.imagePath! + uuid,
                   child: ClipRRect(

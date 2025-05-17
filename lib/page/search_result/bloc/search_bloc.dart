@@ -29,7 +29,6 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
 
   bool initial = true;
   bool hasReachedMax = false;
-  int page = -1;
   int pagesCount = 0;
   List<ComicNumber> comics = [];
 
@@ -37,47 +36,29 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
     FetchSearchResult event,
     Emitter<SearchState> emit,
   ) async {
-    if (event.searchEnterConst.state == "更新屏蔽列表") {
+    if (event.searchEnter.state == "更新屏蔽列表") {
       emit(
         state.copyWith(
           status: SearchStatus.success,
           comics: _filterShieldedComics(comics),
           hasReachedMax: hasReachedMax,
-          searchEnterConst: SearchEnterConst(
-            url: event.searchEnterConst.url,
-            from: event.searchEnterConst.from,
-            keyword: event.searchEnterConst.keyword,
-            type: event.searchEnterConst.type,
-            state: "",
-            sort: event.searchEnterConst.sort,
-            categories: event.searchEnterConst.categories,
-            pageCount: event.searchEnterConst.pageCount,
-            refresh: event.searchEnterConst.refresh,
-          ),
+          searchEnter: event.searchEnter.copyWith(state: ""),
           pagesCount: pagesCount,
         ),
       );
       return;
     }
 
-    // logger.d('pagesCount: ${event.searchEnterConst.pageCount}');
-
-    if (state.searchEnterConst == event.searchEnterConst &&
-        event.searchStatus != SearchStatus.initial) {
-      return; // 如果状态相同，直接返回，避免再次请求
-    }
-
     if (event.searchStatus == SearchStatus.initial) {
-      if (event.searchEnterConst.pageCount > pagesCount && pagesCount != 0) {
-        return;
-      }
       comics = [];
       hasReachedMax = false;
-      emit(state.copyWith(status: SearchStatus.initial));
+      emit(
+        state.copyWith(
+          status: SearchStatus.initial,
+          searchEnter: event.searchEnter,
+        ),
+      );
     }
-
-    // 用来判断本子是第几次获取的
-    page = event.searchEnterConst.pageCount;
 
     if (hasReachedMax) return;
 
@@ -87,7 +68,7 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
           status: SearchStatus.loadingMore,
           comics: _filterShieldedComics(comics),
           hasReachedMax: hasReachedMax,
-          searchEnterConst: event.searchEnterConst,
+          searchEnter: event.searchEnter,
           pagesCount: pagesCount,
         ),
       );
@@ -95,12 +76,12 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
 
     try {
       final result = await search(
-        url: event.searchEnterConst.url,
-        from: event.searchEnterConst.from,
-        keyword: event.searchEnterConst.keyword,
-        sort: event.searchEnterConst.sort,
-        categories: event.searchEnterConst.categories,
-        pageCount: event.searchEnterConst.pageCount,
+        url: event.searchEnter.url,
+        from: event.searchEnter.from,
+        keyword: event.searchEnter.keyword,
+        sort: event.searchEnter.sort,
+        categories: event.searchEnter.categories,
+        pageCount: event.searchEnter.pageCount,
       );
 
       final processedResult = await _processSearchResult(result);
@@ -109,14 +90,12 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
 
       comics = [...comics, ...processedResult];
 
-      // logger.d('pagesCount: ${state.searchEnterConst.pageCount}');
-
       emit(
         state.copyWith(
           status: SearchStatus.success,
           comics: _filterShieldedComics(comics),
           hasReachedMax: hasReachedMax,
-          searchEnterConst: event.searchEnterConst,
+          searchEnter: event.searchEnter,
           pagesCount: pagesCount,
         ),
       );
@@ -127,7 +106,7 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
           state.copyWith(
             status: SearchStatus.getMoreFailure,
             comics: _filterShieldedComics(comics),
-            searchEnterConst: event.searchEnterConst,
+            searchEnter: event.searchEnter,
             pagesCount: pagesCount,
             result: e.toString(),
           ),
@@ -138,7 +117,7 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
       emit(
         state.copyWith(
           status: SearchStatus.failure,
-          searchEnterConst: event.searchEnterConst,
+          searchEnter: event.searchEnter,
           result: e.toString(),
         ),
       );
@@ -201,7 +180,9 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
     pagesCount = results.data.comics.pages;
 
     return results.data.comics.docs
-        .map((doc) => ComicNumber(buildNumber: page, doc: doc))
+        .map(
+          (doc) => ComicNumber(buildNumber: results.data.comics.page, doc: doc),
+        )
         .toList();
   }
 

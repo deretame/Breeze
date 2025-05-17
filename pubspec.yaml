@@ -1,7 +1,7 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
 publish_to: none
-version: 2.1.1+118
+version: 2.2.0+119
 
 environment:
   sdk: ^3.7.2
@@ -64,7 +64,7 @@ dependencies:
   ########################################
   #        网络 & 通信 & WebView        #
   ########################################
-  dio: ^5.6.0                   # 强大的 HTTP 客户端
+  dio: ^5.8.0                   # 强大的 HTTP 客户端
   dio_cookie_manager: ^3.0.1    # Dio Cookie 管理器
   webview_flutter: ^4.10.0      # WebView 组件
   url_launcher: ^6.3.1          # URL 启动器（外部浏览器）
@@ -104,7 +104,7 @@ dependencies:
   xml: ^6.5.0                   # XML 解析器
   rust_lib_zephyr:
     path: rust_builder
-  flutter_rust_bridge: 2.9.0    # flutter 和 rust 通信桥
+  flutter_rust_bridge: ^2.10.0    # flutter 和 rust 通信桥
 
 dev_dependencies:
   flutter_test:

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart' hide Thumb;
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:uuid/uuid.dart';
 import 'package:zephyr/page/search_result/search_result.dart';
 
 import '../../../config/global/global.dart';
@@ -18,27 +17,26 @@ import '../widgets/page_skip.dart';
 
 @RoutePage()
 class SearchResultPage extends StatelessWidget {
-  final SearchEnterConst searchEnterConst;
+  final SearchEnter searchEnter;
 
-  const SearchResultPage({super.key, required this.searchEnterConst});
+  const SearchResultPage({super.key, required this.searchEnter});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create:
           (_) =>
-              SearchBloc()..add(
-                FetchSearchResult(searchEnterConst, SearchStatus.initial),
-              ),
-      child: _SearchResultPage(searchEnterConst: searchEnterConst),
+              SearchBloc()
+                ..add(FetchSearchResult(searchEnter, SearchStatus.initial)),
+      child: _SearchResultPage(searchEnter: searchEnter),
     );
   }
 }
 
 class _SearchResultPage extends StatefulWidget {
-  final SearchEnterConst searchEnterConst;
+  final SearchEnter searchEnter;
 
-  const _SearchResultPage({required this.searchEnterConst});
+  const _SearchResultPage({required this.searchEnter});
 
   @override
   State<_SearchResultPage> createState() => _SearchResultPageState();
@@ -46,8 +44,6 @@ class _SearchResultPage extends StatefulWidget {
 
 class _SearchResultPageState extends State<_SearchResultPage>
     with SingleTickerProviderStateMixin {
-  get searchEnterConst => widget.searchEnterConst;
-
   final pageStore = StringSelectStore();
   late SearchEnter _searchEnter;
   final _scrollController = ScrollController();
@@ -74,7 +70,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
       ),
     );
 
-    _searchEnter = SearchEnter.fromConst(searchEnterConst);
+    _searchEnter = widget.searchEnter;
     _scrollController.addListener(_onScroll);
   }
 
@@ -87,65 +83,73 @@ class _SearchResultPageState extends State<_SearchResultPage>
 
   @override
   Widget build(BuildContext context) {
-    return SearchEnterProvider(
-      searchEnter: _searchEnter,
-      child: Scaffold(
-        appBar: BikaSearchBar(),
-        body: Stack(
-          children: <Widget>[
-            Positioned.fill(
-              child: Column(
-                children: <Widget>[
-                  SizedBox(height: 35), // 为顶部阴影容器预留空间
-                  Expanded(child: _bloc()),
+    return Scaffold(
+      appBar: BikaSearchBar(searchEnter: _searchEnter, onChanged: _update),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Column(
+              children: [
+                SizedBox(height: 35), // 为顶部阴影容器预留空间
+                Expanded(child: _bloc()),
+              ],
+            ),
+          ),
+          // 这里是操作栏
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 35,
+              decoration: BoxDecoration(
+                color: globalSetting.backgroundColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: materialColorScheme.secondaryFixedDim,
+                    spreadRadius: 0,
+                    blurRadius: 2,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  SizedBox(width: 5),
+                  SortWidget(searchEnter: _searchEnter, onChanged: _update),
+                  SizedBox(width: 5),
+                  CategoriesSelect(
+                    searchEnter: _searchEnter,
+                    onChanged: _update,
+                  ),
+                  SizedBox(width: 5),
+                  CategoriesShield(
+                    searchEnter: _searchEnter,
+                    onChanged: _update,
+                  ),
+                  Expanded(child: Container()),
+                  Observer(
+                    builder: (context) {
+                      return Text(
+                        pageStore.date,
+                        style: TextStyle(fontSize: 16),
+                      );
+                    },
+                  ),
+                  SizedBox(width: 5),
                 ],
               ),
             ),
-            // 这里是操作栏
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: 35,
-                decoration: BoxDecoration(
-                  color: globalSetting.backgroundColor,
-                  boxShadow: [
-                    BoxShadow(
-                      color: materialColorScheme.secondaryFixedDim,
-                      spreadRadius: 0,
-                      blurRadius: 2,
-                      offset: const Offset(0, 0),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: <Widget>[
-                    SizedBox(width: 5),
-                    SortWidget(),
-                    SizedBox(width: 5),
-                    CategoriesSelect(),
-                    SizedBox(width: 5),
-                    CategoriesShield(),
-                    Expanded(child: Container()),
-                    Observer(
-                      builder: (context) {
-                        return Text(
-                          pageStore.date,
-                          style: TextStyle(fontSize: 16),
-                        );
-                      },
-                    ),
-                    SizedBox(width: 5),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-        floatingActionButton: SlideTransition(
-          position: _slideAnimation,
-          child: PageSkip(pageStore: pageStore, pagesCount: pagesCount),
+          ),
+        ],
+      ),
+      floatingActionButton: SlideTransition(
+        position: _slideAnimation,
+        child: PageSkip(
+          pageStore: pageStore,
+          pagesCount: pagesCount,
+          searchEnter: _searchEnter,
+          onChanged: _update,
         ),
       ),
     );
@@ -153,7 +157,6 @@ class _SearchResultPageState extends State<_SearchResultPage>
 
   Widget _bloc() => BlocBuilder<SearchBloc, SearchState>(
     builder: (context, state) {
-      _update(state.searchEnterConst);
       switch (state.status) {
         case SearchStatus.initial:
           return const Center(child: CircularProgressIndicator());
@@ -169,10 +172,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
                 SizedBox(height: 10), // 添加间距
                 ElevatedButton(
                   onPressed: () {
-                    _refresh(
-                      SearchEnterConst.from(_searchEnter),
-                      SearchStatus.initial,
-                    );
+                    _refresh(_searchEnter, SearchStatus.initial);
                   },
                   child: Text('点击重试'),
                 ),
@@ -319,10 +319,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
               const SizedBox(height: 10),
               ElevatedButton(
                 onPressed:
-                    () => _refresh(
-                      SearchEnterConst.from(_searchEnter),
-                      SearchStatus.loadingMore,
-                    ),
+                    () => _refresh(_searchEnter, SearchStatus.loadingMore),
                 child: const Text('点击重试'),
               ),
             ],
@@ -334,41 +331,17 @@ class _SearchResultPageState extends State<_SearchResultPage>
     return const SizedBox.shrink();
   }
 
-  void _refresh(SearchEnterConst searchEnterConst, SearchStatus status) {
+  void _refresh(SearchEnter searchEnterConst, SearchStatus status) {
     // 使用原本输入参数进行重新搜索
     context.read<SearchBloc>().add(
-      FetchSearchResult(
-        SearchEnterConst(
-          url: searchEnterConst.url,
-          from: searchEnterConst.from,
-          keyword: searchEnterConst.keyword,
-          type: searchEnterConst.type,
-          state: searchEnterConst.state,
-          sort: searchEnterConst.sort,
-          categories: searchEnterConst.categories,
-          pageCount: searchEnterConst.pageCount,
-          refresh: Uuid().v4(), //传入一个不一样的值，来强行刷新
-        ),
-        status,
-      ),
+      FetchSearchResult(_searchEnter.copyWith(pageCount: 1), status),
     );
   }
 
   void _fetchSearchResult() {
-    // logger.d('pagesCount: ${_searchEnter.pageCount + 1}');
     context.read<SearchBloc>().add(
       FetchSearchResult(
-        SearchEnterConst(
-          url: _searchEnter.url,
-          from: _searchEnter.from,
-          keyword: _searchEnter.keyword,
-          type: _searchEnter.type,
-          state: _searchEnter.state,
-          sort: _searchEnter.sort,
-          categories: _searchEnter.categories,
-          pageCount: _searchEnter.pageCount + 1,
-          refresh: _searchEnter.refresh,
-        ),
+        _searchEnter.copyWith(pageCount: _searchEnter.pageCount + 1),
         SearchStatus.loadingMore,
       ),
     );
@@ -422,12 +395,12 @@ class _SearchResultPageState extends State<_SearchResultPage>
     return currentScroll >= (maxScroll * 0.9);
   }
 
-  void _update(SearchEnterConst searchEnterConst) {
-    if (SearchEnter.fromConst(searchEnterConst) == _searchEnter) return;
-    _searchEnter = SearchEnter.fromConst(searchEnterConst);
+  void _update(SearchEnter searchEnter) {
+    if (searchEnter == _searchEnter) return;
+    _searchEnter = searchEnter;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {
-        _searchEnter = SearchEnter.fromConst(searchEnterConst);
+        _searchEnter = searchEnter;
       });
     });
   }

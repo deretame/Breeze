@@ -89,7 +89,7 @@ Future<Map<String, dynamic>> request(
   var cancelToken = CancelToken();
 
   try {
-    // 使用优选 IP 替换原始域名
+    // 使用优选 IP 替换原始域名，没成功，代码先保留
     String requestUrl = url;
     // if (cfIpList.isNotEmpty) {
     //   final uri = Uri.parse(url);

@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../../config/global/global.dart';
 import '../../../main.dart';
@@ -14,7 +13,6 @@ import '../../../mobx/bool_select.dart';
 import '../../../mobx/int_select.dart';
 import '../../../network/http/bika/http_request.dart';
 import '../../../util/router/router.gr.dart';
-import '../../../widgets/full_screen_image_view.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 import '../../../widgets/toast.dart';
@@ -302,26 +300,13 @@ class _ImagerWidgetState extends State<ImagerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    var uuid = Uuid().v4();
     return SizedBox(
       height: 60,
       width: 60,
       child: Padding(
         padding: const EdgeInsets.all(2),
         child: BlocProvider(
-          create:
-              (context) =>
-                  PictureBloc()..add(
-                    GetPicture(
-                      PictureInfo(
-                        from: "bika",
-                        url: pictureInfo.url,
-                        path: pictureInfo.path,
-                        cartoonId: pictureInfo.cartoonId,
-                        pictureType: pictureInfo.pictureType,
-                      ),
-                    ),
-                  ),
+          create: (context) => PictureBloc()..add(GetPicture(pictureInfo)),
           child: BlocBuilder<PictureBloc, PictureLoadState>(
             builder: (context, state) {
               switch (state.status) {
@@ -335,28 +320,18 @@ class _ImagerWidgetState extends State<ImagerWidget> {
                 case PictureLoadStatus.success:
                   return GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => FullScreenImagePage(
-                                imagePath: state.imagePath!,
-                                uuid: uuid,
-                              ),
-                        ),
+                      context.pushRoute(
+                        FullRouteImageRoute(imagePath: state.imagePath!),
                       );
                     },
-                    child: Hero(
-                      tag: state.imagePath! + uuid,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(50),
-                        child: SizedBox(
-                          width: 50,
-                          height: 50,
-                          child: Image.file(
-                            File(state.imagePath!),
-                            fit: BoxFit.cover,
-                          ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(50),
+                      child: SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: Image.file(
+                          File(state.imagePath!),
+                          fit: BoxFit.cover,
                         ),
                       ),
                     ),
@@ -370,7 +345,7 @@ class _ImagerWidgetState extends State<ImagerWidget> {
                         width: 50,
                         height: 50,
                         child: Image.asset(
-                          'asset/image/error_image/404.png',
+                          'asset/image/assets/默认头像.png',
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -379,15 +354,7 @@ class _ImagerWidgetState extends State<ImagerWidget> {
                     return InkWell(
                       onTap: () {
                         context.read<PictureBloc>().add(
-                          GetPicture(
-                            PictureInfo(
-                              from: "bika",
-                              url: pictureInfo.url,
-                              path: pictureInfo.path,
-                              cartoonId: pictureInfo.cartoonId,
-                              pictureType: pictureInfo.pictureType,
-                            ),
-                          ),
+                          GetPicture(pictureInfo),
                         );
                       },
                       child: Icon(Icons.refresh),

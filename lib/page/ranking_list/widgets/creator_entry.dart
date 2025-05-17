@@ -36,7 +36,7 @@ class _CreatorEntryWidgetState extends State<CreatorEntryWidget>
           onTap: () {
             AutoRouter.of(context).push(
               SearchResultRoute(
-                searchEnterConst: SearchEnterConst(
+                searchEnter: SearchEnter.initial().copyWith(
                   from: "bika",
                   url:
                       "https://picaapi.picacomic.com/comics?ca=${user.id}&s=ld&page=1",

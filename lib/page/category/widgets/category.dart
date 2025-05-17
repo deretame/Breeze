@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:zephyr/page/category/category.dart';
+import 'package:zephyr/page/search_result/models/search_enter.dart'
+    show SearchEnter;
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/util/sundry.dart';
@@ -14,7 +16,6 @@ import 'package:zephyr/widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
-import '../../search_result/models/search_enter.dart';
 
 List<Widget> buildCategoriesWidget(List<HomeCategory> data) {
   List<Widget> widgets = List.generate(
@@ -138,11 +139,12 @@ class CategoryWidget extends StatelessWidget {
       onTap: () {
         // 根据类别处理点击事件
         if (category.title == '最近更新') {
-          router.push(SearchResultRoute(searchEnterConst: SearchEnterConst()));
+          router.push(SearchResultRoute(searchEnter: SearchEnter.initial()));
         } else if (category.title == '随机本子') {
           router.push(
             SearchResultRoute(
-              searchEnterConst: SearchEnterConst(
+              searchEnter: SearchEnter.initial().copyWith(
+                from: "bika",
                 url: "https://picaapi.picacomic.com/comics/random",
               ),
             ),
@@ -190,7 +192,7 @@ class CategoryWidget extends StatelessWidget {
     if (category.title == '大家都在看') {
       router.push(
         SearchResultRoute(
-          searchEnterConst: SearchEnterConst(
+          searchEnter: SearchEnter.initial().copyWith(
             url:
                 "https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E5%AE%B6%E9%83%BD%E5%9C%A8%E7%9C%8B&s=dd",
           ),
@@ -199,7 +201,7 @@ class CategoryWidget extends StatelessWidget {
     } else if (category.title == '大濕推薦') {
       router.push(
         SearchResultRoute(
-          searchEnterConst: SearchEnterConst(
+          searchEnter: SearchEnter.initial().copyWith(
             url:
                 "https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E6%BF%95%E6%8E%A8%E8%96%A6&s=dd",
           ),
@@ -208,7 +210,7 @@ class CategoryWidget extends StatelessWidget {
     } else if (category.title == '那年今天') {
       router.push(
         SearchResultRoute(
-          searchEnterConst: SearchEnterConst(
+          searchEnter: SearchEnter.initial().copyWith(
             url:
                 "https://picaapi.picacomic.com/comics?page=1&c=%E9%82%A3%E5%B9%B4%E4%BB%8A%E5%A4%A9&s=dd",
           ),
@@ -217,7 +219,7 @@ class CategoryWidget extends StatelessWidget {
     } else if (category.title == '官方都在看') {
       router.push(
         SearchResultRoute(
-          searchEnterConst: SearchEnterConst(
+          searchEnter: SearchEnter.initial().copyWith(
             url:
                 "https://picaapi.picacomic.com/comics?page=1&c=%E5%AE%98%E6%96%B9%E9%83%BD%E5%9C%A8%E7%9C%8B&s=dd",
           ),
@@ -229,7 +231,9 @@ class CategoryWidget extends StatelessWidget {
     } else {
       router.push(
         SearchResultRoute(
-          searchEnterConst: SearchEnterConst(categories: [category.title]),
+          searchEnter: SearchEnter.initial().copyWith(
+            categories: [category.title],
+          ),
         ),
       );
     }

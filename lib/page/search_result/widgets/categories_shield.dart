@@ -8,10 +8,16 @@ import 'package:zephyr/util/sundry.dart';
 import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../bloc/search_bloc.dart';
-import '../method/search_enter_provider.dart';
 
 class CategoriesShield extends StatelessWidget {
-  const CategoriesShield({super.key});
+  final SearchEnter searchEnter;
+  final ValueChanged<SearchEnter> onChanged;
+
+  const CategoriesShield({
+    super.key,
+    required this.searchEnter,
+    required this.onChanged,
+  });
 
   Future<Map<String, bool>?> showShieldCategoryDialog(BuildContext context) {
     late Map<String, bool> shieldCategoriesMap = Map.of(
@@ -70,7 +76,6 @@ class CategoriesShield extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final searchEnter = SearchEnterProvider.of(context)!.searchEnter;
     return InkWell(
       onTap: () async {
         late var oldCategoriesMap = Map.of(bikaSetting.getShieldCategoryMap());
@@ -88,21 +93,13 @@ class CategoriesShield extends StatelessWidget {
 
         if (!context.mounted) return;
 
+        final newSearchEnter = searchEnter.copyWith(state: "更新屏蔽列表");
+
         context.read<SearchBloc>().add(
-          FetchSearchResult(
-            SearchEnterConst(
-              url: searchEnter.url,
-              from: searchEnter.from,
-              keyword: searchEnter.keyword,
-              type: searchEnter.type,
-              state: "更新屏蔽列表",
-              sort: searchEnter.sort,
-              categories: searchEnter.categories,
-              pageCount: searchEnter.pageCount,
-            ),
-            SearchStatus.initial,
-          ),
+          FetchSearchResult(newSearchEnter, SearchStatus.initial),
         );
+
+        onChanged(newSearchEnter);
       },
       child: Row(
         children: <Widget>[

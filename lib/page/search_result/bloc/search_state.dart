@@ -8,7 +8,7 @@ final class SearchState extends Equatable {
     this.comics = const [],
     this.hasReachedMax = false,
     this.result = '',
-    this.searchEnterConst = const SearchEnterConst(),
+    this.searchEnter,
     this.pagesCount = 0,
   });
 
@@ -16,7 +16,7 @@ final class SearchState extends Equatable {
   final List<ComicNumber> comics;
   final bool hasReachedMax;
   final String result;
-  final SearchEnterConst searchEnterConst;
+  final SearchEnter? searchEnter;
   final int pagesCount;
 
   SearchState copyWith({
@@ -24,7 +24,7 @@ final class SearchState extends Equatable {
     List<ComicNumber>? comics,
     bool? hasReachedMax,
     String? result,
-    SearchEnterConst? searchEnterConst,
+    SearchEnter? searchEnter,
     int? pagesCount,
   }) {
     return SearchState(
@@ -32,23 +32,23 @@ final class SearchState extends Equatable {
       comics: comics ?? this.comics,
       hasReachedMax: hasReachedMax ?? this.hasReachedMax,
       result: result ?? this.result,
-      searchEnterConst: searchEnterConst ?? this.searchEnterConst,
+      searchEnter: searchEnter ?? this.searchEnter,
       pagesCount: pagesCount ?? this.pagesCount,
     );
   }
 
   @override
   String toString() {
-    return '''SearchState { status: $status, hasReachedMax: $hasReachedMax, posts: ${comics.length} , result: $result, searchEnter: $searchEnterConst, pagesCount: $pagesCount }''';
+    return '''SearchState { status: $status, hasReachedMax: $hasReachedMax, posts: ${comics.length} , result: $result, searchEnter: $searchEnter, pagesCount: $pagesCount }''';
   }
 
   @override
-  List<Object> get props => [
+  List<Object?> get props => [
     status,
     comics,
     hasReachedMax,
     result,
-    searchEnterConst,
+    searchEnter,
     pagesCount,
   ];
 }

@@ -8,7 +8,6 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/page/more/more.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
-import '../../../../widgets/full_screen_image_view.dart';
 import '../../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../../widgets/picture_bloc/models/picture_info.dart';
 import '../../../config/global/global.dart';
@@ -189,14 +188,8 @@ class _UserAvatar extends StatelessWidget {
               case PictureLoadStatus.success:
                 return GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => FullScreenImagePage(
-                              imagePath: state.imagePath!,
-                            ),
-                      ),
+                    context.pushRoute(
+                      FullRouteImageRoute(imagePath: state.imagePath!),
                     );
                   },
                   child: ClipRRect(
@@ -212,7 +205,7 @@ class _UserAvatar extends StatelessWidget {
               case PictureLoadStatus.failure:
                 loadBikaProfile = true;
                 if (state.result.toString().contains('404')) {
-                  return Image.asset('asset/image/error_image/404.png');
+                  return Image.asset('asset/image/assets/默认头像.png');
                 }
                 return InkWell(
                   onTap: () {

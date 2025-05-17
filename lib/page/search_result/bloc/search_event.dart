@@ -5,11 +5,11 @@ sealed class SearchEvent extends Equatable {
 }
 
 class FetchSearchResult extends SearchEvent {
-  final SearchEnterConst searchEnterConst;
+  final SearchEnter searchEnter;
   final SearchStatus searchStatus;
 
-  const FetchSearchResult(this.searchEnterConst, this.searchStatus);
+  const FetchSearchResult(this.searchEnter, this.searchStatus);
 
   @override
-  List<Object> get props => [searchEnterConst];
+  List<Object> get props => [searchEnter];
 }

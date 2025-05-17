@@ -22,7 +22,6 @@ import 'package:zephyr/page/comic_info/json/bika/recommend/recommend_json.dart'
     as recommend_json;
 import '../json/bika/eps/eps.dart';
 
-// TODO: 还没测试，没法测试，记得测试！
 @RoutePage()
 class ComicInfoPage extends StatelessWidget {
   final String comicId;
@@ -176,9 +175,9 @@ class _ComicInfoState extends State<_ComicInfo>
                       );
                     case GetComicInfoStatus.success:
                       allInfo = state.allInfo!;
-                      comicInfo = allInfo.comicInfo!.data.comic;
-                      epsInfo = allInfo.eps!;
-                      comicList = allInfo.recommendJson!;
+                      comicInfo = allInfo.comicInfo;
+                      epsInfo = allInfo.eps;
+                      comicList = allInfo.recommendJson;
                       return _infoView();
                   }
                 },
@@ -193,7 +192,7 @@ class _ComicInfoState extends State<_ComicInfo>
                     if (comicHistory != null) {
                       context.pushRoute(
                         ComicReadRoute(
-                          comicInfo: comicInfo,
+                          comicInfo: allInfo,
                           comicId: comicInfo.id,
                           type:
                               _type == ComicEntryType.download
@@ -207,7 +206,7 @@ class _ComicInfoState extends State<_ComicInfo>
                     } else {
                       context.pushRoute(
                         ComicReadRoute(
-                          comicInfo: comicInfo,
+                          comicInfo: allInfo,
                           comicId: comicInfo.id,
                           type: _type,
                           order: 1,
@@ -235,6 +234,72 @@ class _ComicInfoState extends State<_ComicInfo>
       );
     }
 
+    var widgets = [
+      const SizedBox(height: 10),
+      ComicParticularsWidget(comicInfo: comicInfo),
+      const SizedBox(height: 10),
+      TagsAndCategoriesWidget(comicInfo: comicInfo, type: 'categories'),
+      // const SizedBox(height: 3),
+      if (comicInfo.tags.isNotEmpty) ...[
+        TagsAndCategoriesWidget(comicInfo: comicInfo, type: 'tags'),
+        // const SizedBox(height: 3),
+      ],
+      if (comicInfo.description != '') ...[
+        const SizedBox(height: 3),
+        Text(comicInfo.description),
+      ],
+      const SizedBox(height: 10),
+      CreatorInfoWidget(comicInfo: comicInfo),
+      const SizedBox(height: 10),
+      const SizedBox(height: 10),
+      ComicOperationWidget(comicInfo: comicInfo, epsInfo: epsInfo),
+    ];
+
+    if (comicHistory != null) {
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: EpButtonWidget(
+            doc: Doc(
+              id: "history",
+              title: comicHistory!.epTitle,
+              order: comicHistory!.order,
+              updatedAt: comicHistory!.history,
+              docId: (comicHistory!.epPageCount - 1).toString(),
+            ),
+            allInfo: allInfo,
+            epsInfo: epsInfo,
+            isHistory: true,
+            type:
+                type == ComicEntryType.download
+                    ? ComicEntryType.historyAndDownload
+                    : ComicEntryType.history,
+          ),
+        ),
+      );
+    }
+
+    for (var e in epsInfo) {
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: EpButtonWidget(
+            doc: e,
+            allInfo: allInfo,
+            epsInfo: epsInfo,
+            isHistory: false,
+            type: type == ComicEntryType.history ? ComicEntryType.normal : type,
+          ),
+        ),
+      );
+    }
+
+    widgets.addAll([
+      const SizedBox(height: 10),
+      RecommendWidget(comicList: comicList),
+      const SizedBox(height: 180),
+    ]);
+
     return RefreshIndicator(
       onRefresh: () async {
         context.read<GetComicInfoBloc>().add(
@@ -249,66 +314,11 @@ class _ComicInfoState extends State<_ComicInfo>
           _loaddingComicInfo = false;
         });
       },
-      child: SingleChildScrollView(
+      child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
-        // 添加滚动视图包裹
-        child: SizedBox(
-          width: screenWidth,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              SizedBox(width: screenWidth / 50),
-              Flexible(
-                fit: FlexFit.loose,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    const SizedBox(height: 10),
-                    ComicParticularsWidget(comicInfo: comicInfo),
-                    const SizedBox(height: 10),
-                    TagsAndCategoriesWidget(
-                      comicInfo: comicInfo,
-                      type: 'categories',
-                    ),
-                    // const SizedBox(height: 3),
-                    if (comicInfo.tags.isNotEmpty) ...[
-                      TagsAndCategoriesWidget(
-                        comicInfo: comicInfo,
-                        type: 'tags',
-                      ),
-                      // const SizedBox(height: 3),
-                    ],
-                    if (comicInfo.description != '') ...[
-                      const SizedBox(height: 3),
-                      Text(comicInfo.description),
-                    ],
-                    const SizedBox(height: 10),
-                    CreatorInfoWidget(comicInfo: comicInfo),
-                    const SizedBox(height: 10),
-                    const SizedBox(height: 10),
-                    ComicOperationWidget(
-                      comicInfo: comicInfo,
-                      epsInfo: epsInfo,
-                    ),
-                    const SizedBox(height: 10),
-                    EpsWidget(
-                      comicInfo: comicInfo,
-                      comicHistory: comicHistory,
-                      epsInfo: epsInfo,
-                      type: _type,
-                    ),
-                    const SizedBox(height: 10),
-                    RecommendWidget(comicList: comicList),
-                    const SizedBox(height: 85),
-                    const SizedBox(height: 30),
-                  ],
-                ),
-              ),
-              SizedBox(width: screenWidth / 50),
-            ],
-          ),
-        ),
+        padding: EdgeInsets.symmetric(horizontal: screenWidth / 50),
+        itemCount: widgets.length,
+        itemBuilder: (context, index) => widgets[index],
       ),
     );
   }
@@ -373,6 +383,12 @@ class _ComicInfoState extends State<_ComicInfo>
           ),
         );
       }
+
+      allInfo = AllInfo(
+        comicInfo: comicInfo,
+        eps: epsInfo,
+        recommendJson: comicList,
+      );
     }
   }
 }

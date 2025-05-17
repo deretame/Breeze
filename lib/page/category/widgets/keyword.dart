@@ -29,7 +29,7 @@ class KeywordWidget extends StatelessWidget {
                 onTap: () {
                   AutoRouter.of(context).push(
                     SearchResultRoute(
-                      searchEnterConst: SearchEnterConst(
+                      searchEnter: SearchEnter.initial().copyWith(
                         from: "bika",
                         keyword: keywords[index],
                       ),

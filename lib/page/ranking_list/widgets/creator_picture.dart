@@ -1,11 +1,12 @@
 import 'dart:io';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../../main.dart';
-import '../../../widgets/full_screen_image_view.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 
@@ -54,27 +55,18 @@ class CreatorPictureWidget extends StatelessWidget {
               return Center(
                 child: InkWell(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => FullScreenImagePage(
-                              imagePath: state.imagePath!,
-                            ),
-                      ),
+                    context.pushRoute(
+                      FullRouteImageRoute(imagePath: state.imagePath!),
                     );
                   },
-                  child: Hero(
-                    tag: state.imagePath!,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(25),
-                      child: SizedBox(
-                        width: 50,
-                        height: 50,
-                        child: Image.file(
-                          File(state.imagePath!),
-                          fit: BoxFit.cover,
-                        ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(25),
+                    child: SizedBox(
+                      width: 50,
+                      height: 50,
+                      child: Image.file(
+                        File(state.imagePath!),
+                        fit: BoxFit.cover,
                       ),
                     ),
                   ),

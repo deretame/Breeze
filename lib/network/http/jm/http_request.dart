@@ -51,3 +51,9 @@ Future<Map<String, dynamic>> favorite(
 
   return data;
 }
+
+Future<Map<String, dynamic>> getComments(int page, String comicId) async =>
+    await request(
+      '${JmConfig.baseUrl}/forum',
+      params: {'page': page, 'mode': 'manhua', 'aid': comicId},
+    );

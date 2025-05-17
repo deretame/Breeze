@@ -1,6 +1,8 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../../config/global/global.dart';
@@ -75,12 +77,15 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
             children: <Widget>[
               GestureDetector(
                 onTap: () {
-                  showErrorToast('暂不支持');
-                  return;
+                  context.pushRoute(
+                    JmCommentsRoute(
+                      comicId: comicInfo.id.toString(),
+                      comicTitle: comicInfo.name,
+                    ),
+                  );
                 },
                 child: const Icon(
                   Icons.comment_sharp,
-                  // color: Colors.red,
                   size: 24.0, // 设置图标大小
                 ),
               ),

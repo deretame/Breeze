@@ -6,8 +6,6 @@ import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/type/pipe.dart';
 
-// ignore: unused_import
-import '../../../config/global/global_setting.dart';
 import '../../../config/jm/config.dart';
 import '../../../src/rust/api/simple.dart';
 import '../../../src/rust/decode/decode.dart';
@@ -23,6 +21,8 @@ Future<String> getCachePicture({
   String pictureType = '',
   String chapterId = '',
 }) async {
+  if (url.contains("nopic-Male.gif")) return "nopic-Male.gif";
+
   if (url.isEmpty) {
     throw Exception('URL 不能为空 404');
   }
@@ -368,6 +368,10 @@ String getJmCoverUrl(String id) {
 
 String getJmImagesUrl(String id, String imageName) {
   return '$baseUrl/media/photos/$id/$imageName';
+}
+
+String getUserCover(String imageName) {
+  return '$baseUrl/media/users/$imageName';
 }
 
 Future<void> decodeAndSaveImage(

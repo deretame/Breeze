@@ -33,41 +33,44 @@ class RecommendWidget extends StatelessWidget {
             )
             .toList();
 
-    return Observer(
-      builder: (context) {
-        return Container(
-          height: screenWidth * 0.3 / 0.75,
-          decoration: BoxDecoration(
-            color: globalSetting.backgroundColor,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: materialColorScheme.secondaryFixedDim,
-                spreadRadius: 0,
-                blurRadius: 2,
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            // 使用ClipRRect来裁剪子组件
-            borderRadius: BorderRadius.circular(10),
-            // 设置与外层Container相同的圆角
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: List.generate(comicInfoList.length, (index) {
-                  return ComicSimplifyEntry(
-                    info: comicInfoList[index],
-                    type: ComicEntryType.normal,
-                    topPadding: false,
-                    roundedCorner: false,
-                  );
-                }),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 5.0),
+      child: Observer(
+        builder: (context) {
+          return Container(
+            height: screenWidth * 0.3 / 0.75,
+            decoration: BoxDecoration(
+              color: globalSetting.backgroundColor,
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: materialColorScheme.secondaryFixedDim,
+                  spreadRadius: 0,
+                  blurRadius: 2,
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              // 使用ClipRRect来裁剪子组件
+              borderRadius: BorderRadius.circular(10),
+              // 设置与外层Container相同的圆角
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: List.generate(comicInfoList.length, (index) {
+                    return ComicSimplifyEntry(
+                      info: comicInfoList[index],
+                      type: ComicEntryType.normal,
+                      topPadding: false,
+                      roundedCorner: false,
+                    );
+                  }),
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

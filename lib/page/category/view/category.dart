@@ -32,7 +32,7 @@ class CategoryPage extends StatelessWidget {
                           context.pop();
                           context.pushRoute(
                             SearchResultRoute(
-                              searchEnterConst: SearchEnterConst(),
+                              searchEnter: SearchEnter.initial(),
                             ),
                           );
                         },

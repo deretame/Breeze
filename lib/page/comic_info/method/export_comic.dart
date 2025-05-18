@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/compressed/compressed.dart';
 
@@ -217,7 +218,7 @@ Future<String> createDownloadDir() async {
     Match? match = regExp.firstMatch(externalDir!.path);
     String userId = match!.group(1)!; // 提取到的用户ID
 
-    String filePath = "/storage/emulated/$userId/Download/Breeze";
+    String filePath = "/storage/emulated/$userId/Download/$appName";
 
     // 使用path库来确保路径的正确性
     final dir = Directory(filePath);

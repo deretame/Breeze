@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:uuid/uuid.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/router/router.gr.dart';
@@ -21,7 +20,7 @@ import 'comic_entry_info.dart';
 class ComicEntryWidget extends StatefulWidget {
   final ComicEntryInfo comicEntryInfo;
   final ComicEntryType? type;
-  final Function()? refresh;
+  final VoidCallback? refresh;
 
   const ComicEntryWidget({
     super.key,
@@ -39,7 +38,7 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
 
   ComicEntryType? get type => widget.type;
 
-  Function()? get refresh => widget.refresh;
+  VoidCallback? get refresh => widget.refresh;
 
   ComicEntryType? _type;
 
@@ -281,20 +280,16 @@ class ImageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pictureInfo = PictureInfo(
+      from: "bika",
+      url: fileServer,
+      path: path,
+      cartoonId: id,
+      pictureType: pictureType,
+    );
+
     return BlocProvider(
-      create:
-          (context) =>
-              PictureBloc()..add(
-                GetPicture(
-                  PictureInfo(
-                    from: "bika",
-                    url: fileServer,
-                    path: path,
-                    cartoonId: id,
-                    pictureType: pictureType,
-                  ),
-                ),
-              ),
+      create: (context) => PictureBloc()..add(GetPicture(pictureInfo)),
       child: BlocBuilder<PictureBloc, PictureLoadState>(
         builder: (context, state) {
           switch (state.status) {
@@ -312,7 +307,6 @@ class ImageWidget extends StatelessWidget {
                 ),
               );
             case PictureLoadStatus.success:
-              final uuid = Uuid().v4();
               // 没有错误，正常显示图片
               return InkWell(
                 onTap: () {
@@ -320,19 +314,16 @@ class ImageWidget extends StatelessWidget {
                     FullRouteImageRoute(imagePath: state.imagePath!),
                   );
                 },
-                child: Hero(
-                  tag: state.imagePath! + uuid,
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(10.0),
-                      bottomLeft: Radius.circular(10.0),
-                    ),
-                    child: Image.file(
-                      File(state.imagePath!),
-                      fit: BoxFit.cover,
-                      width: (screenWidth / 10) * 3,
-                      height: 180,
-                    ),
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(10.0),
+                    bottomLeft: Radius.circular(10.0),
+                  ),
+                  child: Image.file(
+                    File(state.imagePath!),
+                    fit: BoxFit.cover,
+                    width: (screenWidth / 10) * 3,
+                    height: 180,
                   ),
                 ),
               );
@@ -347,17 +338,7 @@ class ImageWidget extends StatelessWidget {
                   width: (screenWidth / 10) * 3,
                   child: InkWell(
                     onTap: () {
-                      context.read<PictureBloc>().add(
-                        GetPicture(
-                          PictureInfo(
-                            from: "bika",
-                            url: fileServer,
-                            path: path,
-                            cartoonId: id,
-                            pictureType: pictureType,
-                          ),
-                        ),
-                      );
+                      context.read<PictureBloc>().add(GetPicture(pictureInfo));
                     },
                     child: Center(
                       child: Text(

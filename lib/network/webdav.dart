@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:flutter/foundation.dart' show compute;
 import 'package:xml/xml.dart';
+import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/type/pipe.dart';
 
 import '../../../main.dart';
@@ -155,7 +156,7 @@ Future<bool> isDirectory(String path) async {
 // 检查固定目录是否存在，如果不存在则创建
 Future<void> checkOrCreateFixedDirectory() async {
   // 固定目录路径
-  const String dirPath = '/Breeze/';
+  String dirPath = '/$appName/';
 
   // 获取 Dio 实例
   Dio dio = getWebDavDio();
@@ -269,7 +270,7 @@ Future<List<String>> fetchWebDAVFiles() async {
 
     // 发送 PROPFIND 请求
     Response response = await dio.request(
-      '/Breeze/',
+      '/$appName/',
       options: Options(method: 'PROPFIND'),
     );
 
@@ -298,7 +299,7 @@ Future<List<String>> fetchWebDAVFiles() async {
               prop.findElements(displayNameElement).firstOrNull?.innerText;
 
           if (displayName != null && !xmlIsDirectory(prop, namespacePrefix)) {
-            urlList.add("/Breeze/$displayName");
+            urlList.add("/$appName/$displayName");
           }
         }
       } catch (e) {
@@ -344,7 +345,10 @@ Future<void> uploadFile2WebDav() async {
 
   var time = DateTime.now().toUtc().millisecondsSinceEpoch;
 
-  await _uploadDataToWebDav(compressedBytes, '/Breeze/BK_${time}_$version.gz');
+  await _uploadDataToWebDav(
+    compressedBytes,
+    '/$appName/${appName}_${time}_$version.gz',
+  );
 }
 
 List<int>? _encryptAndCompress(String data) {
@@ -401,7 +405,7 @@ Future<void> _uploadDataToWebDav(List<int> data, String remotePath) async {
 
 Future<String> getNeedDownloadUrl(List<String> urlList) async {
   List<String> timestampList = [];
-  final regex = RegExp(r'BK_(\d+)_' + version + r'\.gz');
+  final regex = RegExp(appName + r'_(\d+)_' + version + r'\.gz');
 
   for (var url in urlList) {
     // 匹配正则表达式
@@ -426,7 +430,7 @@ Future<String> getNeedDownloadUrl(List<String> urlList) async {
   // 找到最新时间戳对应的 URL
   String latestUrl = '';
   for (var url in urlList) {
-    if (url.contains('BK_${latestTimestamp}_$version.gz')) {
+    if (url.contains('${appName}_${latestTimestamp}_$version.gz')) {
       latestUrl = url;
       break;
     }

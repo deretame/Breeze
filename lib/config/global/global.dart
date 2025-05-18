@@ -8,6 +8,7 @@ double screenWidth = 0;
 double screenHeight = 0;
 double statusBarHeight = 0;
 bool useSkia = false;
+final String appName = 'Breeze';
 
 // 用来判断哔咔的用户信息是否加载完毕
 bool loadBikaProfile = false;

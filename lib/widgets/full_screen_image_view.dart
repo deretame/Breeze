@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_guard/permission_guard.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../main.dart';
@@ -11,15 +12,8 @@ import '../main.dart';
 @RoutePage()
 class FullScreenImagePage extends StatelessWidget {
   final String imagePath;
-  final String? uuid;
-  final bool? showShade;
 
-  const FullScreenImagePage({
-    super.key,
-    required this.imagePath,
-    this.uuid,
-    this.showShade,
-  });
+  const FullScreenImagePage({super.key, required this.imagePath});
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +70,7 @@ class FullScreenImagePage extends StatelessWidget {
     // 检查存储权限
     if (await Permission.storage.request().isGranted) {
       // 创建Pictures目录的完整路径
-      final picturesDir = '/storage/emulated/0/Pictures/Breeze';
+      final picturesDir = '/storage/emulated/0/Pictures/$appName';
       logger.d('Pictures directory: $picturesDir');
 
       // 确保Pictures目录存在

@@ -408,17 +408,10 @@ class FullRouteImageRoute extends _i27.PageRouteInfo<FullRouteImageRouteArgs> {
   FullRouteImageRoute({
     _i28.Key? key,
     required String imagePath,
-    String? uuid,
-    bool? showShade,
     List<_i27.PageRouteInfo>? children,
   }) : super(
          FullRouteImageRoute.name,
-         args: FullRouteImageRouteArgs(
-           key: key,
-           imagePath: imagePath,
-           uuid: uuid,
-           showShade: showShade,
-         ),
+         args: FullRouteImageRouteArgs(key: key, imagePath: imagePath),
          initialChildren: children,
        );
 
@@ -428,35 +421,21 @@ class FullRouteImageRoute extends _i27.PageRouteInfo<FullRouteImageRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<FullRouteImageRouteArgs>();
-      return _i10.FullScreenImagePage(
-        key: args.key,
-        imagePath: args.imagePath,
-        uuid: args.uuid,
-        showShade: args.showShade,
-      );
+      return _i10.FullScreenImagePage(key: args.key, imagePath: args.imagePath);
     },
   );
 }
 
 class FullRouteImageRouteArgs {
-  const FullRouteImageRouteArgs({
-    this.key,
-    required this.imagePath,
-    this.uuid,
-    this.showShade,
-  });
+  const FullRouteImageRouteArgs({this.key, required this.imagePath});
 
   final _i28.Key? key;
 
   final String imagePath;
 
-  final String? uuid;
-
-  final bool? showShade;
-
   @override
   String toString() {
-    return 'FullRouteImageRouteArgs{key: $key, imagePath: $imagePath, uuid: $uuid, showShade: $showShade}';
+    return 'FullRouteImageRouteArgs{key: $key, imagePath: $imagePath}';
   }
 }
 

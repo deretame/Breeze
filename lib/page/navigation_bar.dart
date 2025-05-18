@@ -202,7 +202,7 @@ class _NavigationBarState extends State<NavigationBar> {
 
     try {
       await testWebDavServer();
-      await createParentDirectory('/Breeze');
+      await createParentDirectory('/$appName');
       var files = await fetchWebDAVFiles();
       if (files.isNotEmpty) {
         var needDownloadUrl = await getNeedDownloadUrl(files);

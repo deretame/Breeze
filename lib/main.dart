@@ -206,7 +206,7 @@ class MyApp extends StatelessWidget {
             return MaterialApp.router(
               routerConfig: appRouter.config(),
               locale: globalSetting.locale,
-              title: 'BK comic',
+              title: appName,
               themeMode: globalSetting.themeMode,
               supportedLocales: [
                 Locale('en', 'US'), // English

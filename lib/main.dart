@@ -236,7 +236,7 @@ class MyApp extends StatelessWidget {
                     globalSetting.isAMOLED
                         ? Colors.black
                         : darkColorScheme.surface,
-                tabBarTheme: TabBarTheme(dividerColor: Colors.transparent),
+                tabBarTheme: TabBarThemeData(dividerColor: Colors.transparent),
                 colorScheme: darkColorScheme,
               ),
             );

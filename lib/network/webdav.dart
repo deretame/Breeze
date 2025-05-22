@@ -7,12 +7,11 @@ import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:flutter/foundation.dart' show compute;
 import 'package:xml/xml.dart';
 import 'package:zephyr/config/global/global.dart';
-import 'package:zephyr/type/pipe.dart';
 
 import '../../../main.dart';
 import '../object_box/model.dart';
 
-final String version = "1.29.3";
+final String version = "2.3.0";
 
 // 测试 WebDAV 服务是否可用
 Future<void> testWebDavServer() async {
@@ -328,16 +327,25 @@ Future<void> uploadFile2WebDav() async {
   var allHistory = await objectbox.bikaHistoryBox.getAllAsync();
   allHistory.sort((a, b) => b.history.compareTo(a.history));
 
-  var comicHistoriesJsonString = allHistory
-      .map((comic) => comic.toJson())
-      .toList()
-      .let(jsonEncode);
+  final comicHistoriesJsonString =
+      allHistory.map((comic) => comic.toJson()).toList();
+
+  final jmFavorite = await objectbox.jmFavoriteBox.getAllAsync();
+
+  final jmFavoritesJsonString = jmFavorite.map((jm) => jm.toJson()).toList();
+
+  final jmHistory = await objectbox.jmHistoryBox.getAllAsync();
+
+  final jmHistoriesJsonString = jmHistory.map((jm) => jm.toJson()).toList();
+
+  final data = {
+    'comicHistories': comicHistoriesJsonString,
+    'jmFavorites': jmFavoritesJsonString,
+    'jmHistories': jmHistoriesJsonString,
+  };
 
   // 使用 compute 在后台执行加密和压缩
-  final compressedBytes = await compute(
-    _encryptAndCompress,
-    comicHistoriesJsonString,
-  );
+  final compressedBytes = await compute(_encryptAndCompress, jsonEncode(data));
 
   if (compressedBytes == null) {
     throw Exception('加密压缩失败');
@@ -439,7 +447,7 @@ Future<String> getNeedDownloadUrl(List<String> urlList) async {
   return latestUrl;
 }
 
-Future<List<BikaComicHistory>> getHistoryFromWebdav(String remotePath) async {
+Future<Map<String, dynamic>> getHistoryFromWebdav(String remotePath) async {
   // 下载文件
   final compressedBytes = await _downloadFromWebDav(remotePath);
 
@@ -453,12 +461,12 @@ Future<List<BikaComicHistory>> getHistoryFromWebdav(String remotePath) async {
     throw Exception('下载数据为空');
   }
 
-  logger.d('解密后的数据条数: ${comicHistoriesJson.length}');
+  final data = jsonDecode(comicHistoriesJson) as Map<String, dynamic>;
 
-  return comicHistoriesJson;
+  return data;
 }
 
-List<BikaComicHistory> _decompressAndDecrypt(List<int> compressedBytes) {
+String _decompressAndDecrypt(List<int> compressedBytes) {
   try {
     // 解压缩数据
     final jsonBytes = GZipDecoder().decodeBytes(compressedBytes);
@@ -475,16 +483,10 @@ List<BikaComicHistory> _decompressAndDecrypt(List<int> compressedBytes) {
     final encrypted = Encrypted.fromBase64(encryptedBase64);
     final decrypted = encrypter.decrypt(encrypted, iv: iv);
 
-    // 将解密后的 JSON 字符串转换为对象
-    final temp = jsonDecode(decrypted) as List<dynamic>;
-
-    // 将 List<dynamic> 转换为 List<Map<String, dynamic>>
-    return temp.cast<Map<String, dynamic>>().map((comic) {
-      return BikaComicHistory.fromJson(comic);
-    }).toList();
+    return decrypted;
   } catch (e) {
     logger.d('解压或解密失败: $e');
-    return []; // 发生错误时返回空列表
+    return ''; // 发生错误时返回空列表
   }
 }
 
@@ -527,10 +529,14 @@ Future<List<int>> _downloadFromWebDav(String remotePath) async {
   throw Exception('文件下载失败，重试次数用尽');
 }
 
-Future<void> updateHistory(List<BikaComicHistory> comicHistories) async {
+Future<void> updateHistory(Map<String, dynamic> data) async {
   // 合并本地和云端历史记录
   final localHistories = await objectbox.bikaHistoryBox.getAllAsync();
-  final combined = [...comicHistories, ...localHistories];
+  final cloudHistories =
+      (data['comicHistories'] as List<dynamic>)
+          .map((comic) => BikaComicHistory.fromJson(comic))
+          .toList();
+  final combined = [...cloudHistories, ...localHistories];
 
   // 按时间降序排序（最新的在前）
   combined.sort((a, b) => b.history.compareTo(a.history));
@@ -554,7 +560,65 @@ Future<void> updateHistory(List<BikaComicHistory> comicHistories) async {
   await objectbox.bikaHistoryBox.removeAllAsync();
   await objectbox.bikaHistoryBox.putManyAsync(finalList);
 
-  logger.d('更新历史记录成功，共 ${finalList.length} 条记录');
+  final jmLocalFavorites = await objectbox.jmFavoriteBox.getAllAsync();
+  final jmCloudFavorites =
+      (data['jmFavorites'] as List<dynamic>)
+          .map((jm) => JmFavorite.fromJson(jm))
+          .toList();
+
+  final jmCombinedFavorites = [...jmCloudFavorites, ...jmLocalFavorites];
+
+  jmCombinedFavorites.sort((a, b) => b.history.compareTo(a.history));
+
+  final jmFavoriteUniqueMap = LinkedHashMap<String, JmFavorite>(
+    equals: (a, b) => a == b,
+    hashCode: (e) => e.hashCode,
+  );
+  for (var item in jmCombinedFavorites) {
+    jmFavoriteUniqueMap.putIfAbsent(item.comicId, () => item);
+  }
+
+  // 准备最终列表并重置 ID
+  final jmFavoriteFinalList = jmFavoriteUniqueMap.values.toList();
+  for (var item in jmFavoriteFinalList) {
+    item.id = 0; // ObjectBox 插入需要 ID 为 0
+  }
+
+  // 更新数据库
+  await objectbox.jmFavoriteBox.removeAllAsync();
+  await objectbox.jmFavoriteBox.putManyAsync(jmFavoriteFinalList);
+
+  final jmLocalHistories = await objectbox.jmHistoryBox.getAllAsync();
+  final jmCloudHistories =
+      (data['jmHistories'] as List<dynamic>)
+          .map((jm) => JmHistory.fromJson(jm))
+          .toList();
+
+  final jmCombinedHistories = [...jmCloudHistories, ...jmLocalHistories];
+
+  jmCombinedHistories.sort((a, b) => b.history.compareTo(a.history));
+
+  final jmHistoryUniqueMap = LinkedHashMap<String, JmHistory>(
+    equals: (a, b) => a == b,
+    hashCode: (e) => e.hashCode,
+  );
+  for (var item in jmCombinedHistories) {
+    jmHistoryUniqueMap.putIfAbsent(item.comicId, () => item);
+  }
+
+  // 准备最终列表并重置 ID
+  final jmHistoryFinalList = jmHistoryUniqueMap.values.toList();
+  for (var item in jmHistoryFinalList) {
+    item.id = 0; // ObjectBox 插入需要 ID 为 0
+  }
+
+  // 更新数据库
+  await objectbox.jmHistoryBox.removeAllAsync();
+  await objectbox.jmHistoryBox.putManyAsync(jmHistoryFinalList);
+
+  logger.d(
+    '更新历史记录成功，共 ${finalList.length + jmFavoriteFinalList.length + jmHistoryFinalList.length} 条记录',
+  );
 }
 
 Future<void> deleteFileFromWebDav(List<String> remotePath) async {

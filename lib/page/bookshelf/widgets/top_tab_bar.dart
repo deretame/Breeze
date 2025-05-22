@@ -53,6 +53,11 @@ class TopTabBar extends StatelessWidget {
         eventBus.fire(DownloadEvent(EventType.refresh));
         eventBus.fire(JmFavoriteEvent(EventType.refresh));
         bookshelfStore.tabController!.animateTo(0);
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (bookshelfStore.topBarStore.date == 2) {
+            eventBus.fire(JmFavoriteEvent(EventType.showInfo));
+          }
+        });
       },
     );
   }

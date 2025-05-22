@@ -33,9 +33,13 @@ class _BookshelfPageState extends State<BookshelfPage>
           bookshelfStore.indexStore.setDate(_currentIndex);
           // logger.d('Current index: $_currentIndex');
           if (_currentIndex == 0) {
-            eventBus.fire(
-              FavoriteEvent(EventType.showInfo, SortType.nullValue, 0),
-            );
+            if (bookshelfStore.topBarStore.date == 1) {
+              eventBus.fire(
+                FavoriteEvent(EventType.showInfo, SortType.nullValue, 0),
+              );
+            } else {
+              eventBus.fire(JmFavoriteEvent(EventType.showInfo));
+            }
           } else if (_currentIndex == 1) {
             eventBus.fire(HistoryEvent(EventType.showInfo));
           } else if (_currentIndex == 2) {

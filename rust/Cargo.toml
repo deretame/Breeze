@@ -9,7 +9,6 @@ crate-type = ["cdylib", "staticlib"]
 [dependencies]
 flutter_rust_bridge = "=2.10.0"
 flutter_rust_bridge_macros = "2.10.0"
-rayon = "1.10.0"
 image = { version = "0.25.6", default-features = false, features = [
     "jpeg",
     "png",
@@ -19,7 +18,6 @@ md5 = "0.7.0"
 base64 = "0.22.1"
 log = "0.4.27"
 anyhow = "1.0.98"
-crossbeam = "0.8.4"
 reqwest = { version = "0.12.15", default-features = false, features = [
     "rustls-tls",
     "json",

@@ -157,6 +157,11 @@ class _SearchResultPageState extends State<_SearchResultPage>
 
   Widget _bloc() => BlocBuilder<SearchBloc, SearchState>(
     builder: (context, state) {
+      if (state.searchEnter != null) {
+        _update(state.searchEnter!);
+      } else {
+        _update(_searchEnter);
+      }
       switch (state.status) {
         case SearchStatus.initial:
           return const Center(child: CircularProgressIndicator());

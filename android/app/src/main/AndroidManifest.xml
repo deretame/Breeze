@@ -1,25 +1,30 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" package="com.zephyr.breeze">
-
-    <uses-permission android:name="android.permission.INTERNET" /> <!-- 网络权限 -->
-    <!--    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/> &lt;!&ndash; 通知权限
-    &ndash;&gt;-->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- 读取存储权限，对于Android
-    13以下版本 -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!--
-    写入存储权限，对于Android 13以下版本 -->
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" /> <!-- 读取媒体图片权限，Android
-    13及以上 -->
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" /> <!-- 读取媒体视频权限，Android
-    13及以上 -->
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" /> <!-- 安装APK权限 -->
+    <!-- 网络权限 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 通知权限 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- 读取存储权限，对于Android 13以下版本 -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <!-- 写入存储权限，对于Android 13以下版本 -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- 读取媒体图片权限，Android 13及以上 -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- 读取媒体视频权限，Android 13及以上 -->
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <!-- 安装APK权限 -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- 管理外部存储权限，Android 11及以上 -->
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" /> <!-- 管理外部存储权限，Android 11及以上 -->
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /><!-- 网络状态权限 -->
-
-    <!--    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
-    &lt;!&ndash; 前台服务权限 &ndash;&gt;-->
-
+        tools:ignore="ScopedStorage" />
+    <!-- 网络状态权限 -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- 前台服务权限 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- 精确闹钟权限 -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- 忽略电池优化权限 -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
         android:label="Breeze"
@@ -47,27 +52,17 @@
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme"
             />
-            <!--            <meta-data-->
-            <!--                    android:name="io.flutter.embedding.android.EnableImpeller"-->
-            <!--                    android:value="true"/>-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!--图片裁剪库需要的声明-->
-        <activity
-            android:name="com.yalantis.ucrop.UCropActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/Ucrop.CropTheme" /> <!--this
-        line is updated-->
-
-        <!-- 前台服务声明 -->
-        <!--        <service-->
-        <!--                android:name="com.zephyr.breeze.DownloadService"-->
-        <!--                android:foregroundServiceType="dataSync"-->
-        <!--                android:exported="false"/>-->
+        <!-- 前台服务声明，flutter_foreground_task 库要求的声明 -->
+        <service
+            android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
+            android:foregroundServiceType="dataSync|remoteMessaging"
+            android:exported="false" />
 
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

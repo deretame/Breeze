@@ -321,3 +321,48 @@ Map<String, dynamic> _$JmHistoryToJson(JmHistory instance) => <String, dynamic>{
   'deleted': instance.deleted,
   'history': instance.history.toIso8601String(),
 };
+
+JmDownload _$JmDownloadFromJson(Map<String, dynamic> json) => JmDownload(
+  id: (json['id'] as num?)?.toInt() ?? 0,
+  comicId: json['comicId'] as String,
+  name: json['name'] as String,
+  addtime: json['addtime'] as String,
+  description: json['description'] as String,
+  totalViews: json['totalViews'] as String,
+  likes: json['likes'] as String,
+  seriesId: json['seriesId'] as String,
+  commentTotal: json['commentTotal'] as String,
+  author: (json['author'] as List<dynamic>).map((e) => e as String).toList(),
+  tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
+  works: (json['works'] as List<dynamic>).map((e) => e as String).toList(),
+  actors: (json['actors'] as List<dynamic>).map((e) => e as String).toList(),
+  liked: json['liked'] as bool,
+  isFavorite: json['isFavorite'] as bool,
+  isAids: json['isAids'] as bool,
+  price: json['price'] as String,
+  purchased: json['purchased'] as String,
+  allInfo: json['allInfo'] as String,
+);
+
+Map<String, dynamic> _$JmDownloadToJson(JmDownload instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'comicId': instance.comicId,
+      'name': instance.name,
+      'addtime': instance.addtime,
+      'description': instance.description,
+      'totalViews': instance.totalViews,
+      'likes': instance.likes,
+      'seriesId': instance.seriesId,
+      'commentTotal': instance.commentTotal,
+      'author': instance.author,
+      'tags': instance.tags,
+      'works': instance.works,
+      'actors': instance.actors,
+      'liked': instance.liked,
+      'isFavorite': instance.isFavorite,
+      'isAids': instance.isAids,
+      'price': instance.price,
+      'purchased': instance.purchased,
+      'allInfo': instance.allInfo,
+    };

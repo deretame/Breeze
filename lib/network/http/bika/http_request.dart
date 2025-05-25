@@ -172,10 +172,15 @@ Future<Map<String, dynamic>> getSearchKeywords() async {
   return data;
 }
 
-Future<Map<String, dynamic>> getComicInfo(String comicId) async {
+Future<Map<String, dynamic>> getComicInfo(
+  String comicId, {
+  String? authorization,
+  String? imageQuality,
+}) async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comics/$comicId',
     'GET',
+    authorization: authorization,
   );
 
   if (data['code'] != 200) {
@@ -300,11 +305,18 @@ Future<Map<String, dynamic>> reportComments(String commentId) async {
   return data;
 }
 
-Future<Map<String, dynamic>> getEps(String comicId, int pageCount) async {
+Future<Map<String, dynamic>> getEps(
+  String comicId,
+  int pageCount, {
+  String? authorization,
+  String? imageQuality,
+}) async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comics/$comicId/eps?page=$pageCount',
     'GET',
     cache: true,
+    authorization: authorization,
+    imageQuality: imageQuality,
   );
 
   if (data['code'] != 200) {
@@ -332,12 +344,15 @@ Future<Map<String, dynamic>> getPages(
   String comicId,
   int epId,
   int pageCount, {
-  String imageQuality = "",
+  String? authorization,
+  String? imageQuality,
 }) async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/comics/$comicId/order/$epId/pages?page=$pageCount',
     'GET',
     cache: true,
+    authorization: authorization,
+    imageQuality: imageQuality,
   );
 
   if (data['code'] != 200) {

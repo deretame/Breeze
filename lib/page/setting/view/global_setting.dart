@@ -1,8 +1,12 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/object_box/model.dart';
+import 'package:zephyr/object_box/object_box.dart';
+import 'package:zephyr/object_box/objectbox.g.dart';
 
 import '../../../util/event/event.dart';
 import '../../../util/router/router.gr.dart';
@@ -14,6 +18,13 @@ class GlobalSettingPage extends StatefulWidget {
 
   @override
   State<GlobalSettingPage> createState() => _GlobalSettingPageState();
+}
+
+class Test {
+  ObjectBox objectbox;
+  RootIsolateToken rootToken;
+
+  Test(this.objectbox, this.rootToken);
 }
 
 class _GlobalSettingPageState extends State<GlobalSettingPage> {
@@ -32,6 +43,9 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   bool _shadeValue = globalSetting.shade;
   bool _comicReadTopContainerValue = globalSetting.comicReadTopContainer;
   final keywordController = TextEditingController();
+  List<Map<String, dynamic>>? _backgroundData;
+  bool _isLoading = false;
+  String _status = "等待操作, 喵~";
 
   @override
   Widget build(BuildContext context) {
@@ -76,19 +90,126 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                   ),
                   ElevatedButton(
                     onPressed: () async {
-                      // objectbox.bikaHistoryBox.removeAll();
-                      // var result = await objectbox.bikaHistoryBox.getAllAsync();
-                      // var temp = result.map((e) => e.toJson()).toList();
-                      // var json = jsonEncode(temp);
-                      // await Clipboard.setData(ClipboardData(text: json));
+                      final RootIsolateToken? rootToken =
+                          RootIsolateToken.instance;
+                      if (!mounted) return; // 检查 widget 是否还在树中
+
+                      if (rootToken == null) {
+                        logger.e("糟糕喵！在主 Isolate 中无法获取 RootIsolateToken！");
+                        setState(() {
+                          _status = "无法获取 RootIsolateToken!";
+                        });
+                        return;
+                      }
+
+                      logger.d(
+                        "UI: 准备在后台 Isolate 中运行 performBackgroundDbOperations 函数，喵~",
+                      );
+                      setState(() {
+                        _isLoading = true;
+                        _status = "后台任务运行中...";
+                        _backgroundData = null;
+                      });
+
+                      try {
+                        // 调用 compute
+                        final List<Map<String, dynamic>>?
+                        resultData = await compute(
+                          performBackgroundDbOperations,
+                          rootToken, // 参数1: RootIsolateToken
+                          // 如果 performBackgroundDbOperations 需要其他参数，可以在这里加
+                          // 例如：(String, int){'dbPath': objectbox.store.directoryPath, 'someValue': 42}
+                          // 然后 performBackgroundDbOperations 接收一个 Map<String, dynamic>
+                        );
+
+                        if (!mounted) return;
+
+                        if (resultData != null) {
+                          logger.d("UI: 从后台获取到的数据 (转换后): $resultData");
+                          setState(() {
+                            _backgroundData = resultData;
+                            _status = "后台任务成功返回 ${resultData.length} 条数据, 喵!";
+                          });
+                        } else {
+                          logger.d("UI: 后台任务没有返回数据或出错了，喵。");
+                          setState(() {
+                            _status = "后台任务执行完毕，但没有数据或出错。";
+                          });
+                        }
+                      } catch (e, s) {
+                        if (!mounted) return;
+                        logger.e(
+                          "UI: 调用 compute 时捕获到错误:",
+                          error: e,
+                          stackTrace: s,
+                        );
+                        setState(() {
+                          _status = "调用 compute 时出错: $e";
+                        });
+                      } finally {
+                        setState(() {
+                          _isLoading = false;
+                        });
+                        logger.d("UI: compute 调用流程执行完毕，喵!");
+                      }
                     },
-                    child: Text("测试用的玩意儿"),
+                    child: Text('执行后台 ObjectBox 操作'),
                   ),
                 ],
               ],
             ),
       ),
     );
+  }
+
+  // 这个函数将在后台 Isolate 中运行
+  static Future<List<Map<String, dynamic>>?> performBackgroundDbOperations(
+    RootIsolateToken rootToken, // 参数1: RootIsolateToken
+    // 你也可以传递其他简单参数，比如 String dbPath (如果路径不是固定的)
+  ) async {
+    ObjectBox? localObxInstance;
+    try {
+      // 1. 初始化后台 Isolate 的 BinaryMessenger
+      BackgroundIsolateBinaryMessenger.ensureInitialized(rootToken);
+      logger.d("[Background] BinaryMessenger 初始化成功，喵!");
+
+      // 2. 在后台 Isolate 中创建自己的 ObjectBox 实例
+      // 这里会调用我们修改过的 ObjectBox.create()
+      localObxInstance = await ObjectBox.create();
+      logger.d(
+        "[Background] ObjectBox 实例创建成功 (Store isOpen: ${Store.isOpen(localObxInstance.store.directoryPath)}), 准备读取数据，喵!",
+      );
+
+      // 3. 执行数据库操作
+      final bikaHistoryBox = localObxInstance.bikaHistoryBox;
+      final List<BikaComicHistory> data = await bikaHistoryBox.getAllAsync();
+      logger.d("[Background] 从 ObjectBox 获取到的原始数据条数: ${data.length}，喵!");
+
+      // 4. 将结果数据转换为可发送的格式
+      final List<Map<String, dynamic>> sendableData =
+          data.map((historyItem) {
+            return {
+              'id': historyItem.id, // 假设 BikaComicHistory 有 id 属性
+              'title': historyItem.title, // 假设 BikaComicHistory 有 title 属性
+              // ... 其他需要返回的字段 ...
+            };
+          }).toList();
+
+      logger.d("[Background] 数据转换完毕，准备返回，喵!");
+      return sendableData;
+    } catch (e, stackTrace) {
+      logger.e("[Background] 后台函数中发生错误:", error: e, stackTrace: stackTrace);
+      return null;
+    } finally {
+      // 5. 至关重要：关闭在后台 Isolate 中打开的 ObjectBox Store 实例！
+      if (localObxInstance != null) {
+        final storePath = localObxInstance.store.directoryPath;
+        localObxInstance.store.close();
+        logger.d(
+          "[Background] 后台 ObjectBox Store 实例已关闭 (Path: $storePath). Is still open? ${Store.isOpen(storePath)}",
+        );
+      }
+    }
   }
 
   Widget _systemTheme() {

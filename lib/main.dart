@@ -6,6 +6,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_socks_proxy/socks_proxy.dart';
@@ -52,7 +53,12 @@ Future<void> main() async {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+      // 初始化rust
       await RustLib.init();
+
+      // 初始化flutter_foreground_task
+      FlutterForegroundTask.initCommunicationPort();
+
       // 重采样触控刷新率
       GestureBinding.instance.resamplingEnabled = false;
 

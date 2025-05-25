@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
@@ -64,6 +65,8 @@ class _NavigationBarState extends State<NavigationBar> {
     _signIn();
     // 先执行一次
     _autoSync();
+    _initForegroundTask();
+    FlutterForegroundTask.addTaskDataCallback(_onReceiveTaskData);
 
     // 每隔 5 分钟执行一次
     const duration = Duration(minutes: 5);
@@ -357,5 +360,31 @@ class _NavigationBarState extends State<NavigationBar> {
         continue;
       }
     }
+  }
+
+  Future<void> _initForegroundTask() async {
+    FlutterForegroundTask.init(
+      androidNotificationOptions: AndroidNotificationOptions(
+        channelId: '前台任务',
+        channelName: '前台下载任务',
+        channelDescription: '这个是用来保证下载任务在后台也能继续执行的',
+        onlyAlertOnce: true,
+      ),
+      iosNotificationOptions: const IOSNotificationOptions(
+        showNotification: false,
+        playSound: false,
+      ),
+      foregroundTaskOptions: ForegroundTaskOptions(
+        eventAction: ForegroundTaskEventAction.repeat(5000),
+        autoRunOnBoot: false,
+        autoRunOnMyPackageReplaced: false,
+        allowWakeLock: true,
+        allowWifiLock: true,
+      ),
+    );
+  }
+
+  void _onReceiveTaskData(Object data) {
+    showSuccessToast("$data下载完成");
   }
 }

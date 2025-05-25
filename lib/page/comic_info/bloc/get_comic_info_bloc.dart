@@ -8,8 +8,8 @@ import 'package:zephyr/page/comic_info/json/bika/recommend/recommend_json.dart'
     as recommend_json;
 import 'package:zephyr/page/comic_info/models/all_info.dart';
 
-import '../../../../../network/http/bika/http_request.dart';
-import '../../../json/bika/comic_info/comic_info.dart';
+import '../../../network/http/bika/http_request.dart';
+import '../json/bika/comic_info/comic_info.dart';
 
 part 'get_comic_info_event.dart';
 part 'get_comic_info_state.dart';

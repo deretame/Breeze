@@ -105,6 +105,7 @@ dependencies:
   rust_lib_zephyr:
     path: rust_builder
   flutter_rust_bridge: ^2.10.0 # flutter 和 rust 通信桥
+  flutter_foreground_task: ^9.1.0 # 前台任务
 
 dev_dependencies:
   flutter_test:

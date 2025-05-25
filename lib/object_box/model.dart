@@ -378,3 +378,61 @@ class JmHistory {
     return jsonEncode(toJson());
   }
 }
+
+@Entity()
+@JsonSerializable()
+class JmDownload {
+  @Id()
+  int id;
+
+  String comicId;
+  String name;
+  String addtime;
+  String description;
+  String totalViews;
+  String likes;
+  String seriesId;
+  String commentTotal;
+  List<String> author;
+  List<String> tags;
+  List<String> works;
+  List<String> actors;
+  bool liked;
+  bool isFavorite;
+  bool isAids;
+  String price;
+  String purchased;
+  String allInfo;
+
+  JmDownload({
+    this.id = 0,
+    required this.comicId,
+    required this.name,
+    required this.addtime,
+    required this.description,
+    required this.totalViews,
+    required this.likes,
+    required this.seriesId,
+    required this.commentTotal,
+    required this.author,
+    required this.tags,
+    required this.works,
+    required this.actors,
+    required this.liked,
+    required this.isFavorite,
+    required this.isAids,
+    required this.price,
+    required this.purchased,
+    required this.allInfo,
+  });
+
+  Map<String, dynamic> toJson() => _$JmDownloadToJson(this);
+
+  factory JmDownload.fromJson(Map<String, dynamic> json) =>
+      _$JmDownloadFromJson(json);
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+}

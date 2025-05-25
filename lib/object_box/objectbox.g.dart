@@ -881,6 +881,130 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(7, 4997035889958906360),
+    name: 'JmDownload',
+    lastPropertyId: const obx_int.IdUid(19, 6474958707679740292),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 7990702657297366229),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 2338895563668511818),
+        name: 'comicId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 4003609952350571951),
+        name: 'name',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 6380417132155324537),
+        name: 'addtime',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 3849776255016605060),
+        name: 'description',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 8016685904072047160),
+        name: 'totalViews',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 265657832584421996),
+        name: 'likes',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 8070735627335465314),
+        name: 'seriesId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 3971962799050276594),
+        name: 'commentTotal',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 6564428199555321066),
+        name: 'author',
+        type: 30,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 4517596450020864275),
+        name: 'tags',
+        type: 30,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(12, 3149229731227306241),
+        name: 'works',
+        type: 30,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(13, 6584474367487377275),
+        name: 'actors',
+        type: 30,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(14, 9020613128546551841),
+        name: 'liked',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(15, 8842611565206907042),
+        name: 'isFavorite',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(16, 1001402690225280130),
+        name: 'isAids',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(17, 8466155192258094116),
+        name: 'price',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(18, 935349401610418692),
+        name: 'purchased',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(19, 6474958707679740292),
+        name: 'allInfo',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -921,7 +1045,7 @@ Future<obx.Store> openStore({
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(6, 2394746405223893996),
+    lastEntityId: const obx_int.IdUid(7, 4997035889958906360),
     lastIndexId: const obx_int.IdUid(4, 931357141992892300),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
@@ -2029,6 +2153,162 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    JmDownload: obx_int.EntityDefinition<JmDownload>(
+      model: _entities[4],
+      toOneRelations: (JmDownload object) => [],
+      toManyRelations: (JmDownload object) => {},
+      getId: (JmDownload object) => object.id,
+      setId: (JmDownload object, int id) {
+        object.id = id;
+      },
+      objectToFB: (JmDownload object, fb.Builder fbb) {
+        final comicIdOffset = fbb.writeString(object.comicId);
+        final nameOffset = fbb.writeString(object.name);
+        final addtimeOffset = fbb.writeString(object.addtime);
+        final descriptionOffset = fbb.writeString(object.description);
+        final totalViewsOffset = fbb.writeString(object.totalViews);
+        final likesOffset = fbb.writeString(object.likes);
+        final seriesIdOffset = fbb.writeString(object.seriesId);
+        final commentTotalOffset = fbb.writeString(object.commentTotal);
+        final authorOffset = fbb.writeList(
+          object.author.map(fbb.writeString).toList(growable: false),
+        );
+        final tagsOffset = fbb.writeList(
+          object.tags.map(fbb.writeString).toList(growable: false),
+        );
+        final worksOffset = fbb.writeList(
+          object.works.map(fbb.writeString).toList(growable: false),
+        );
+        final actorsOffset = fbb.writeList(
+          object.actors.map(fbb.writeString).toList(growable: false),
+        );
+        final priceOffset = fbb.writeString(object.price);
+        final purchasedOffset = fbb.writeString(object.purchased);
+        final allInfoOffset = fbb.writeString(object.allInfo);
+        fbb.startTable(20);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, comicIdOffset);
+        fbb.addOffset(2, nameOffset);
+        fbb.addOffset(3, addtimeOffset);
+        fbb.addOffset(4, descriptionOffset);
+        fbb.addOffset(5, totalViewsOffset);
+        fbb.addOffset(6, likesOffset);
+        fbb.addOffset(7, seriesIdOffset);
+        fbb.addOffset(8, commentTotalOffset);
+        fbb.addOffset(9, authorOffset);
+        fbb.addOffset(10, tagsOffset);
+        fbb.addOffset(11, worksOffset);
+        fbb.addOffset(12, actorsOffset);
+        fbb.addBool(13, object.liked);
+        fbb.addBool(14, object.isFavorite);
+        fbb.addBool(15, object.isAids);
+        fbb.addOffset(16, priceOffset);
+        fbb.addOffset(17, purchasedOffset);
+        fbb.addOffset(18, allInfoOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final comicIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final nameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final addtimeParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final descriptionParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final totalViewsParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 14, '');
+        final likesParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 16, '');
+        final seriesIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 18, '');
+        final commentTotalParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 20, '');
+        final authorParam = const fb.ListReader<String>(
+          fb.StringReader(asciiOptimization: true),
+          lazy: false,
+        ).vTableGet(buffer, rootOffset, 22, []);
+        final tagsParam = const fb.ListReader<String>(
+          fb.StringReader(asciiOptimization: true),
+          lazy: false,
+        ).vTableGet(buffer, rootOffset, 24, []);
+        final worksParam = const fb.ListReader<String>(
+          fb.StringReader(asciiOptimization: true),
+          lazy: false,
+        ).vTableGet(buffer, rootOffset, 26, []);
+        final actorsParam = const fb.ListReader<String>(
+          fb.StringReader(asciiOptimization: true),
+          lazy: false,
+        ).vTableGet(buffer, rootOffset, 28, []);
+        final likedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          30,
+          false,
+        );
+        final isFavoriteParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          32,
+          false,
+        );
+        final isAidsParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          34,
+          false,
+        );
+        final priceParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 36, '');
+        final purchasedParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 38, '');
+        final allInfoParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 40, '');
+        final object = JmDownload(
+          id: idParam,
+          comicId: comicIdParam,
+          name: nameParam,
+          addtime: addtimeParam,
+          description: descriptionParam,
+          totalViews: totalViewsParam,
+          likes: likesParam,
+          seriesId: seriesIdParam,
+          commentTotal: commentTotalParam,
+          author: authorParam,
+          tags: tagsParam,
+          works: worksParam,
+          actors: actorsParam,
+          liked: likedParam,
+          isFavorite: isFavoriteParam,
+          isAids: isAidsParam,
+          price: priceParam,
+          purchased: purchasedParam,
+          allInfo: allInfoParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -2724,5 +3004,103 @@ class JmHistory_ {
   /// See [JmHistory.history].
   static final history = obx.QueryDateProperty<JmHistory>(
     _entities[3].properties[23],
+  );
+}
+
+/// [JmDownload] entity fields to define ObjectBox queries.
+class JmDownload_ {
+  /// See [JmDownload.id].
+  static final id = obx.QueryIntegerProperty<JmDownload>(
+    _entities[4].properties[0],
+  );
+
+  /// See [JmDownload.comicId].
+  static final comicId = obx.QueryStringProperty<JmDownload>(
+    _entities[4].properties[1],
+  );
+
+  /// See [JmDownload.name].
+  static final name = obx.QueryStringProperty<JmDownload>(
+    _entities[4].properties[2],
+  );
+
+  /// See [JmDownload.addtime].
+  static final addtime = obx.QueryStringProperty<JmDownload>(
+    _entities[4].properties[3],
+  );
+
+  /// See [JmDownload.description].
+  static final description = obx.QueryStringProperty<JmDownload>(
+    _entities[4].properties[4],
+  );
+
+  /// See [JmDownload.totalViews].
+  static final totalViews = obx.QueryStringProperty<JmDownload>(
+    _entities[4].properties[5],
+  );
+
+  /// See [JmDownload.likes].
+  static final likes = obx.QueryStringProperty<JmDownload>(
+    _entities[4].properties[6],
+  );
+
+  /// See [JmDownload.seriesId].
+  static final seriesId = obx.QueryStringProperty<JmDownload>(
+    _entities[4].properties[7],
+  );
+
+  /// See [JmDownload.commentTotal].
+  static final commentTotal = obx.QueryStringProperty<JmDownload>(
+    _entities[4].properties[8],
+  );
+
+  /// See [JmDownload.author].
+  static final author = obx.QueryStringVectorProperty<JmDownload>(
+    _entities[4].properties[9],
+  );
+
+  /// See [JmDownload.tags].
+  static final tags = obx.QueryStringVectorProperty<JmDownload>(
+    _entities[4].properties[10],
+  );
+
+  /// See [JmDownload.works].
+  static final works = obx.QueryStringVectorProperty<JmDownload>(
+    _entities[4].properties[11],
+  );
+
+  /// See [JmDownload.actors].
+  static final actors = obx.QueryStringVectorProperty<JmDownload>(
+    _entities[4].properties[12],
+  );
+
+  /// See [JmDownload.liked].
+  static final liked = obx.QueryBooleanProperty<JmDownload>(
+    _entities[4].properties[13],
+  );
+
+  /// See [JmDownload.isFavorite].
+  static final isFavorite = obx.QueryBooleanProperty<JmDownload>(
+    _entities[4].properties[14],
+  );
+
+  /// See [JmDownload.isAids].
+  static final isAids = obx.QueryBooleanProperty<JmDownload>(
+    _entities[4].properties[15],
+  );
+
+  /// See [JmDownload.price].
+  static final price = obx.QueryStringProperty<JmDownload>(
+    _entities[4].properties[16],
+  );
+
+  /// See [JmDownload.purchased].
+  static final purchased = obx.QueryStringProperty<JmDownload>(
+    _entities[4].properties[17],
+  );
+
+  /// See [JmDownload.allInfo].
+  static final allInfo = obx.QueryStringProperty<JmDownload>(
+    _entities[4].properties[18],
   );
 }

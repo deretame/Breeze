@@ -40,8 +40,9 @@ Map<String, dynamic> _getRequestHeaders(
   String url,
   String method,
   String? body,
-  String? imageQuality,
-) {
+  String? imageQuality, [
+  String? authorization,
+]) {
   var nonce = _getNonce();
   var timestamp = _getCurrentTimestamp();
   var signature = _getSignature(
@@ -67,7 +68,7 @@ Map<String, dynamic> _getRequestHeaders(
     'user-agent': 'okhttp/3.8.1',
     'content-type': 'application/json; charset=UTF-8',
     'image-quality': imageQuality ?? bikaSetting.imageQuality,
-    'authorization': bikaSetting.authorization,
+    'authorization': authorization ?? bikaSetting.authorization,
   };
 
   return headers;
@@ -79,6 +80,7 @@ Future<Map<String, dynamic>> request(
   String? body,
   bool cache = false,
   String? imageQuality,
+  String? authorization,
 }) async {
   if (cache) {
     dio.interceptors.add(cacheInterceptor);
@@ -117,7 +119,13 @@ Future<Map<String, dynamic>> request(
       data: body,
       options: Options(
         method: method,
-        headers: _getRequestHeaders(url, method, body, imageQuality),
+        headers: _getRequestHeaders(
+          url,
+          method,
+          body,
+          imageQuality,
+          authorization,
+        ),
         sendTimeout: const Duration(seconds: 10), // 连接超时时间
         receiveTimeout: const Duration(seconds: 10), // 接收超时时间
       ),

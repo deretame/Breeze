@@ -34,8 +34,6 @@ Future<Map<String, dynamic>> favorite(
   String comicId, {
   String? folderId,
 }) async {
-  // type=move&folder_id=3711549&aid=742&
-  // aid=742&
   String body = "";
   if (folderId != null) {
     body = "type=move&folder_id=$folderId&aid=$comicId&";

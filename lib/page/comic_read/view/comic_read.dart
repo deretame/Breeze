@@ -509,11 +509,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     if (state != null) {
       _loadOnlineData(state);
     } else {
-      try {
-        _loadDownloadedData();
-      } catch (e) {
-        _showDownloadError();
-      }
+      _loadDownloadedData();
     }
     _updateTotalSlots();
     _handleHistoryScroll();

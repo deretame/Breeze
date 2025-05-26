@@ -66,7 +66,7 @@ class _ComicInfoState extends State<_ComicInfo>
   List<recommend_json.Comic> comicList = [];
 
   late ComicEntryType _type;
-  bool _loaddingComicInfo = false;
+  bool _loadingComplete = false;
 
   @override
   void initState() {
@@ -184,7 +184,7 @@ class _ComicInfoState extends State<_ComicInfo>
                 },
               ),
       floatingActionButton:
-          _loaddingComicInfo // 条件显示按钮
+          _loadingComplete // 条件显示按钮
               ? SizedBox(
                 width: 100, // 设置容器宽度，以容纳更长的文本
                 height: 56, // 设置容器高度，与默认的FloatingActionButton高度一致
@@ -229,9 +229,9 @@ class _ComicInfoState extends State<_ComicInfo>
   }
 
   Widget _infoView() {
-    if (!_loaddingComicInfo) {
+    if (!_loadingComplete) {
       WidgetsBinding.instance.addPostFrameCallback(
-        (_) => setState(() => _loaddingComicInfo = true),
+        (_) => setState(() => _loadingComplete = true),
       );
     }
 
@@ -272,7 +272,7 @@ class _ComicInfoState extends State<_ComicInfo>
             epsInfo: epsInfo,
             isHistory: true,
             type:
-                type == ComicEntryType.download
+                _type == ComicEntryType.download
                     ? ComicEntryType.historyAndDownload
                     : ComicEntryType.history,
           ),
@@ -289,7 +289,8 @@ class _ComicInfoState extends State<_ComicInfo>
             allInfo: allInfo,
             epsInfo: epsInfo,
             isHistory: false,
-            type: type == ComicEntryType.history ? ComicEntryType.normal : type,
+            type:
+                _type == ComicEntryType.history ? ComicEntryType.normal : _type,
           ),
         ),
       );
@@ -303,6 +304,8 @@ class _ComicInfoState extends State<_ComicInfo>
 
     return RefreshIndicator(
       onRefresh: () async {
+        _type = ComicEntryType.normal;
+
         context.read<GetComicInfoBloc>().add(
           GetComicInfoEvent(comicId: widget.comicId),
         );
@@ -311,8 +314,7 @@ class _ComicInfoState extends State<_ComicInfo>
         );
         setState(() {
           comicHistory = query.build().findFirst();
-          _type = ComicEntryType.normal;
-          _loaddingComicInfo = false;
+          _loadingComplete = false;
         });
       },
       child: ListView.builder(

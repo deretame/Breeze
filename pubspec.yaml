@@ -13,7 +13,7 @@ dependencies:
     sdk: flutter
 
   ########################################
-  #            UI 组件 & 动画            #
+  #         UI 组件 & 动画              #
   ########################################
   cupertino_icons: ^1.0.8 # Cupertino 风格图标
   dynamic_color: ^1.7.0 # Material You 动态主题
@@ -31,7 +31,7 @@ dependencies:
   custom_sliding_segmented_control: ^1.8.5 # 自定义滑动分段控件
 
   ########################################
-  #          状态管理 & 事件总线          #
+  #        状态管理 & 事件总线           #
   ########################################
   mobx: ^2.5.0 # 响应式状态管理核心
   mobx_codegen: # MobX 代码生成器
@@ -62,7 +62,7 @@ dependencies:
   freezed_annotation: ^3.0.0 # Freezed 注解支持
 
   ########################################
-  #        网络 & 通信 & WebView        #
+  #        网络 & 通信 & WebView         #
   ########################################
   dio: ^5.8.0 # 强大的 HTTP 客户端
   dio_cookie_manager: ^3.0.1 # Dio Cookie 管理器
@@ -71,10 +71,10 @@ dependencies:
   connectivity_plus: ^6.1.2 # 网络状态监测
   html: ^0.15.5+1 # HTML 解析器
   flutter_socks_proxy: ^0.0.3 # socks5代理配置
-  cookie_jar: ^4.0.8 # Cookie 管理器s
+  cookie_jar: ^4.0.8 # Cookie 管理器
 
   ########################################
-  #        文件 & 资源 & 多媒体          #
+  #       文件 & 资源 & 多媒体          #
   ########################################
   path_provider: ^2.1.5 # 文件系统路径获取
   path: ^1.9.0 # 跨平台路径处理
@@ -84,7 +84,7 @@ dependencies:
   archive: ^4.0.0 # 压缩/解压工具集
 
   ########################################
-  #         安全 & 加密 & 工具           #
+  #        安全 & 加密 & 工具           #
   ########################################
   encrypter_plus: ^5.1.0 # 加密算法库（AES/RSA）
   crypto: ^3.0.6 # 哈希算法（MD5/SHA）
@@ -93,7 +93,7 @@ dependencies:
   uuid: ^4.4.2 # UUID 生成器
 
   ########################################
-  #        开发工具 & 辅助功能           #
+  #       开发工具 & 辅助功能           #
   ########################################
   auto_route: ^10.0.1 # 声明式路由管理
   logger: ^2.5.0 # 分级日志记录器
@@ -102,9 +102,9 @@ dependencies:
   equatable: ^2.0.3 # 对象相等性简化
   stream_transform: ^2.1.1 # Stream 转换工具
   xml: ^6.5.0 # XML 解析器
-  rust_lib_zephyr:
+  rust_lib_zephyr: # 项目的 Rust 核心逻辑模块 (通过 FFI 调用)
     path: rust_builder
-  flutter_rust_bridge: ^2.10.0 # flutter 和 rust 通信桥
+  flutter_rust_bridge: ^2.10.0 # Flutter 与 Rust FFI 通信桥梁
   flutter_foreground_task: ^9.1.0 # 前台任务
   flutter_local_notifications: ^19.2.1 # 本地通知
 

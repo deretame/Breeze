@@ -61,7 +61,6 @@ class _BottomWidgetState extends State<BottomWidget> {
   @override
   void initState() {
     super.initState();
-    logger.d(widget.order);
     if (widget.from == From.bika) {
       allInfo = widget.comicInfo as AllInfo;
     }

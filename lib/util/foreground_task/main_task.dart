@@ -51,23 +51,15 @@ class MyTaskHandler extends TaskHandler {
   // data: 从主 isolate 发送过来的数据。
   @override
   void onReceiveData(Object data) {
-    try {
-      downloadTasks = downloadTaskJsonFromJson(data as String);
-      logger.d(data);
-      if (downloadTasks.from == "bika") {
-        comicName = downloadTasks.comicName;
-        comicId = downloadTasks.comicId;
-        bikaDownloadTask(downloadTasks);
-      }
-    } catch (e, s) {
-      logger.e(
-        'Error receiving data: ${e.toString()}',
-        error: e,
-        stackTrace: s,
-      );
-      showErrorToast(e.toString());
-
-      FlutterForegroundTask.stopService();
+    downloadTasks = downloadTaskJsonFromJson(data as String);
+    logger.d(data);
+    if (downloadTasks.from == "bika") {
+      comicName = downloadTasks.comicName;
+      comicId = downloadTasks.comicId;
+      bikaDownloadTask(downloadTasks).catchError((e, s) {
+        logger.e(e, stackTrace: s);
+        showErrorToast(e.toString());
+      });
     }
   }
 

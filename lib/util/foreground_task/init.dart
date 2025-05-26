@@ -24,6 +24,7 @@ Future<void> initForegroundTask(String comicName) async {
 
   if (await FlutterForegroundTask.isRunningService) {
     showErrorToast("已有下载任务进行中");
+    throw Exception("已有下载任务进行中");
   } else {
     showSuccessToast("下载任务已启动");
     await FlutterForegroundTask.startService(

@@ -7,6 +7,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_socks_proxy/socks_proxy.dart';
@@ -48,6 +49,8 @@ var logger = Logger(printer: CustomPrinter());
 
 List<String> cfIpList = [];
 
+final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
 Future<void> main() async {
   // 捕获Dart异常
   runZonedGuarded(
@@ -56,7 +59,7 @@ Future<void> main() async {
       // 初始化rust
       await RustLib.init();
 
-      // 初始化flutter_foreground_task
+      // 初始化前台任务
       FlutterForegroundTask.initCommunicationPort();
 
       // 重采样触控刷新率

@@ -29,8 +29,8 @@ Future<void> initForegroundTask(String comicName) async {
     await FlutterForegroundTask.startService(
       serviceTypes: [ForegroundServiceTypes.dataSync],
       serviceId: Random().nextInt(1000),
-      notificationTitle: '后台下载',
-      notificationText: '下载任务进行中',
+      notificationTitle: '下载任务',
+      notificationText: '$comicName 下载中...',
       callback: startCallback,
       notificationButtons: [const NotificationButton(id: 'cancel', text: '取消')],
     );

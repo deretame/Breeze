@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:permission_guard/permission_guard.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:toastification/toastification.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -91,6 +93,8 @@ class _NavigationBarState extends State<NavigationBar> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _addOverlay();
     });
+
+    initializeNotifications();
   }
 
   @override
@@ -386,5 +390,27 @@ class _NavigationBarState extends State<NavigationBar> {
 
   void _onReceiveTaskData(Object data) {
     showSuccessToast("$data下载完成");
+  }
+
+  Future<void> initializeNotifications() async {
+    const initializationSettingsAndroid = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
+
+    const initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+    );
+
+    await flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse:
+          (NotificationResponse notificationResponse) async {},
+    );
+
+    final status = await Permission.notification.request();
+    if (!status.isGranted) {
+      showErrorToast("请开启通知权限");
+      return;
+    }
   }
 }

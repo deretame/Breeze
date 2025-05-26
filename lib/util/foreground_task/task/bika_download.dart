@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/bika/http_request.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
@@ -25,14 +26,14 @@ Future<void> bikaDownloadTask(DownloadTaskJson task) async {
   List<String> epsTitle = [];
 
   for (var ep in task.selectedChapters) {
-    logger.d(ep);
     final pages = await _fetchBKMedia(
       task.comicId,
       ep.let(toInt),
       authorization,
     );
-    logger.d(epsList.length);
-    final epInfo = epsList.firstWhere((element) => element.page == ep).doc;
+    final epInfo = epsList.firstWhere(
+      (element) => element.order.toString() == ep.toString(),
+    );
     epsDocs.add(
       EpsDoc(
         id: epInfo.id,
@@ -46,7 +47,7 @@ Future<void> bikaDownloadTask(DownloadTaskJson task) async {
     for (var page in pages.docs) {
       imageData.add(
         Pages(
-          docs: [PagesDoc(id: page.id, media: page.media, docId: page.docId)],
+          docs: [PagesDoc(id: page.id, media: page.media, docId: epInfo.id)],
         ),
       );
     }
@@ -58,7 +59,6 @@ Future<void> bikaDownloadTask(DownloadTaskJson task) async {
     eps: Eps(docs: epsDocs),
   );
 
-  // TODO: 这里图片下载路径有问题
   final coverPath = await downloadPicture(
     from: 'bika',
     url: comicInfo.thumb.fileServer,
@@ -68,7 +68,7 @@ Future<void> bikaDownloadTask(DownloadTaskJson task) async {
     chapterId: comicInfo.id,
   );
 
-  if (!coverPath.contains('404')) {
+  if (coverPath.contains('404')) {
     comicAllInfoJson = comicAllInfoJson.copyWith(
       comic: comicAllInfoJson.comic.copyWith(
         thumb: comicAllInfoJson.comic.thumb.copyWith(fileServer: ""),
@@ -76,33 +76,49 @@ Future<void> bikaDownloadTask(DownloadTaskJson task) async {
     );
   }
 
-  List<String> picturePaths = [];
+  List<PagesDoc> pagesDocs = [];
+
+  for (var media in imageData) {
+    for (var doc in media.docs) {
+      pagesDocs.add(doc);
+    }
+  }
 
   final List<Future<void>> downloadTasks =
-      imageData.map((media) async {
-        picturePaths.add(
-          await downloadPicture(
-            from: 'bika',
-            url: media.docs.first.media.fileServer,
-            path: media.docs.first.media.path,
-            cartoonId: comicInfo.id,
-            pictureType: 'comic',
-            chapterId: media.docs.first.docId,
-          ),
+      pagesDocs.map((doc) async {
+        await downloadPicture(
+          from: 'bika',
+          url: doc.media.fileServer,
+          path: doc.media.path,
+          cartoonId: comicInfo.id,
+          pictureType: 'comic',
+          chapterId: doc.docId,
         );
       }).toList();
 
   await Future.wait(downloadTasks);
 
   await _saveToDB(comicAllInfoJson, epsTitle);
+
+  await checkFile(comicAllInfoJson);
+
+  await sendSystemNotification("下载完成", "${comicInfo.title}下载完成");
+
+  FlutterForegroundTask.stopService();
 }
 
 Future<Comic> _getComicInfo(String comicId, String authorization) async {
-  var result = await getComicInfo(
-    comicId,
-    authorization: authorization,
-    imageQuality: "original",
-  );
+  Map<String, dynamic> result = {};
+  while (true) {
+    try {
+      result = await getComicInfo(
+        comicId,
+        authorization: authorization,
+        imageQuality: "original",
+      );
+      break;
+    } catch (_) {}
+  }
 
   // 打补丁
   result['data']['comic']['_creator']['slogan'] ??= "";
@@ -124,8 +140,8 @@ Future<Comic> _getComicInfo(String comicId, String authorization) async {
 }
 
 // 获取所有的章节基本信息
-Future<List<EpsData>> _getEps(Comic comic, String authorization) async {
-  List<EpsData> epsList = [];
+Future<List<eps.Doc>> _getEps(Comic comic, String authorization) async {
+  List<eps.Doc> epsList = [];
 
   // 计算需要请求的页数
   int totalPages = (comic.epsCount / 40 + 1).ceil();
@@ -144,17 +160,23 @@ Future<List<EpsData>> _getEps(Comic comic, String authorization) async {
   }
 
   // 并行执行所有请求
-  List<Map<String, dynamic>> results = await Future.wait(futures);
+  List<Map<String, dynamic>> results = [];
+  while (true) {
+    try {
+      results = await Future.wait(futures);
+      break;
+    } catch (_) {}
+  }
 
   // 处理结果
   for (var result in results) {
     final data = eps.Eps.fromJson(result).data;
     for (var ep in data.eps.docs) {
-      epsList.add(EpsData(doc: ep, page: data.eps.page.toString()));
+      epsList.add(ep);
     }
   }
 
-  epsList.sort((a, b) => a.doc.order.compareTo(b.doc.order));
+  epsList.sort((a, b) => a.order.compareTo(b.order));
   return epsList;
 }
 
@@ -273,11 +295,9 @@ Future<void> _saveToDB(
   await objectBox.bikaDownloadBox.putAsync(bikaComicDownload);
 }
 
-Future<void> checkFile(
-  ComicAllInfoJson comicAllInfoJson,
-  List<String> filePaths,
-) async {
+Future<void> checkFile(ComicAllInfoJson comicAllInfoJson) async {
   final comicInfo = comicAllInfoJson.comic;
+
   String downloadPath = await getDownloadPath();
   var epsDir = "$downloadPath/bika/original/${comicInfo.id}/comic/";
   // 创建 Directory 对象
@@ -364,9 +384,25 @@ Future<List<String>> getAllFilePaths(String directoryPath) async {
   return filePaths;
 }
 
-class EpsData {
-  final eps.Doc doc;
-  final String page;
+Future<void> sendSystemNotification(String title, String body) async {
+  const androidNotificationDetails = AndroidNotificationDetails(
+    'download_complete',
+    '下载完成通知',
+    channelDescription: '下载完成通知',
+    importance: Importance.max,
+    priority: Priority.high,
+    icon: '@mipmap/ic_launcher',
+  );
 
-  EpsData({required this.doc, required this.page});
+  const notificationDetails = NotificationDetails(
+    android: androidNotificationDetails,
+  );
+
+  await flutterLocalNotificationsPlugin.show(
+    256,
+    title,
+    body,
+    notificationDetails,
+    payload: 'download_complete',
+  );
 }

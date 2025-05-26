@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -51,6 +52,7 @@ Future<String> getCachePicture({
     cartoonId,
     chapterId,
     sanitizedPath,
+    "original",
   );
 
   // 检查文件是否存在
@@ -61,7 +63,6 @@ Future<String> getCachePicture({
   if (existingFilePath.isNotEmpty) {
     return existingFilePath;
   }
-  // logger.d('开始下载图片: $url');
 
   // 处理 URL
   String finalUrl =
@@ -121,6 +122,7 @@ Future<String> downloadPicture({
     cartoonId,
     chapterId,
     sanitizedPath,
+    "original",
   );
 
   String downloadFilePath = buildFilePath(
@@ -130,6 +132,7 @@ Future<String> downloadPicture({
     cartoonId,
     chapterId,
     sanitizedPath,
+    "original",
   );
 
   // 检查文件是否存在
@@ -187,13 +190,18 @@ String buildFilePath(
   String pictureType,
   String cartoonId,
   String chapterId,
-  String sanitizedPath,
-) {
+  String sanitizedPath, [
+  String? quality,
+]) {
+  String quality1 = '';
+  if (from == 'bika') {
+    quality1 = quality ?? bikaSetting.imageQuality;
+  }
   if (pictureType == 'comic') {
     return file_path.join(
       basePath,
       from,
-      from == 'bika' ? bikaSetting.imageQuality : '',
+      quality1,
       cartoonId,
       pictureType,
       chapterId,
@@ -203,7 +211,7 @@ String buildFilePath(
     return file_path.join(
       basePath,
       from,
-      from == 'bika' ? bikaSetting.imageQuality : '',
+      quality1,
       cartoonId,
       pictureType,
       sanitizedPath,
@@ -313,20 +321,33 @@ Future<Uint8List> downloadImageWithRetry(
 
   while (true) {
     try {
-      Response response = await pictureDio.get(
-        url,
-        options: Options(headers: headers, responseType: ResponseType.bytes),
-      );
+      Response response = await pictureDio
+          .get(
+            url,
+            options: Options(
+              headers: headers,
+              responseType: ResponseType.bytes,
+            ),
+          )
+          .timeout(Duration(seconds: 30));
       return response.data as Uint8List;
     } catch (e) {
-      if (e.toString().contains('422')) {
+      if (e is TimeoutException) {
+        logger.e('下载图片超时: $url, 准备重试...');
+      } else if (e is DioException && e.toString().contains('422')) {
+        logger.e('下载图片遇到 422 错误 (当作 404 处理): $url');
         throw Exception('404');
+      } else {
+        logger.e('下载图片失败: $e, URL: $url');
+        if (!retry) {
+          throw Exception('下载图片失败: $e');
+        }
       }
-      logger.e('下载图片失败: $e, URL: $url');
-      if (!retry) {
+      if (retry && !(e is DioException && e.toString().contains('422'))) {
+        await Future.delayed(Duration(seconds: 1));
+      } else if (!retry) {
         throw Exception('下载图片失败: $e');
       }
-      await Future.delayed(Duration(seconds: 1)); // 延迟 1 秒后重试
     }
   }
 }

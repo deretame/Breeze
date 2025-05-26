@@ -1,9 +1,7 @@
 use crate::compressed;
 use crate::decode;
-use anyhow::{anyhow, Result};
-use reqwest;
-
 use crate::frb_generated::StreamSink;
+use anyhow::{Result, anyhow};
 use flutter_rust_bridge::frb;
 
 #[frb(init)]
@@ -30,13 +28,6 @@ pub fn anti_obfuscation_picture(image_info: decode::ImageInfo) -> Result<()> {
 #[frb]
 pub async fn compress_image(image_bytes: Vec<u8>) -> Result<String> {
     compressed::compress_image(image_bytes).await
-}
-
-#[frb]
-pub async fn async_http_get(url: &str) -> Result<String> {
-    let client = reqwest::Client::new();
-    let response = client.get(url).send().await?;
-    response.text().await.map_err(Into::into)
 }
 
 #[frb]

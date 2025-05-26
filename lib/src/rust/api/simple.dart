@@ -21,9 +21,6 @@ Future<void> antiObfuscationPicture({required ImageInfo imageInfo}) => RustLib
 Future<String> compressImage({required List<int> imageBytes}) =>
     RustLib.instance.api.crateApiSimpleCompressImage(imageBytes: imageBytes);
 
-Future<String> asyncHttpGet({required String url}) =>
-    RustLib.instance.api.crateApiSimpleAsyncHttpGet(url: url);
-
 Future<void> packFolder({
   required String destPath,
   required PackInfo packInfo,

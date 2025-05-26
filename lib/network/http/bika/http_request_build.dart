@@ -53,10 +53,17 @@ Map<String, dynamic> _getRequestHeaders(
     "C69BAF41DA5ABD1FFEDC6D2FEA56B",
   );
 
+  int proxy = 0;
+  try {
+    proxy = bikaSetting.proxy;
+  } catch (e) {
+    proxy = 3;
+  }
+
   Map<String, dynamic> headers = {
     'api-key': "C69BAF41DA5ABD1FFEDC6D2FEA56B",
     'accept': 'application/vnd.picacomic.com.v1+json',
-    'app-channel': bikaSetting.proxy,
+    'app-channel': proxy,
     'time': timestamp,
     'nonce': nonce,
     'signature': signature,

@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
-import 'package:zephyr/util/foreground_task/task/bika_download.dart'; // 导入你的 ObjectBox 帮助类
+import 'package:zephyr/util/foreground_task/task/bika_download.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 // @pragma 这个注解告诉编译器，即使这个函数看起来没有被直接调用，也不要把它优化掉（摇树优化 Tree Shaking）
 // 'vm:entry-point' 表示这是Dart虚拟机的一个入口点，对于后台 isolate (隔离区/独立线程) 来说是必需的喵！
@@ -19,6 +22,8 @@ class MyTaskHandler extends TaskHandler {
   late final ObjectBox objectBox;
   // 下载任务列表
   late DownloadTaskJson downloadTasks;
+  late String comicName;
+  late String comicId;
 
   // 当任务第一次启动时，这个方法会被调用喵。
   @override
@@ -30,10 +35,9 @@ class MyTaskHandler extends TaskHandler {
   // 比如，如果设置了每5秒重复一次，那这个方法就会每5秒执行一次喵。
   @override
   void onRepeatEvent(DateTime timestamp) {
-    final downloadingComic = downloadTasks.comicName;
     FlutterForegroundTask.updateService(
       notificationTitle: '下载任务',
-      notificationText: '$downloadingComic 下载中...',
+      notificationText: '$comicName 下载中...',
     );
   }
 
@@ -49,7 +53,10 @@ class MyTaskHandler extends TaskHandler {
   void onReceiveData(Object data) {
     try {
       downloadTasks = downloadTaskJsonFromJson(data as String);
+      logger.d(data);
       if (downloadTasks.from == "bika") {
+        comicName = downloadTasks.comicName;
+        comicId = downloadTasks.comicId;
         bikaDownloadTask(downloadTasks);
       }
     } catch (e, s) {
@@ -58,9 +65,10 @@ class MyTaskHandler extends TaskHandler {
         error: e,
         stackTrace: s,
       );
-    }
+      showErrorToast(e.toString());
 
-    FlutterForegroundTask.stopService();
+      FlutterForegroundTask.stopService();
+    }
   }
 
   // 如果你在前台服务的通知上添加了按钮 (NotificationButton)，
@@ -86,5 +94,24 @@ class MyTaskHandler extends TaskHandler {
       notificationText: '下载任务已取消',
     );
     FlutterForegroundTask.stopService();
+  }
+}
+
+Future<void> deleteDirectory(String id) async {
+  String path =
+      '/data/data/com.zephyr.breeze/files/downloads/bika/original/$id';
+  final directory = Directory(path);
+
+  // 检查目录是否存在
+  if (await directory.exists()) {
+    try {
+      // 删除目录及其内容
+      await directory.delete(recursive: true);
+      logger.d('目录已成功删除: $path');
+    } catch (e) {
+      logger.e('删除目录时发生错误: $e');
+    }
+  } else {
+    logger.e('目录不存在: $path');
   }
 }

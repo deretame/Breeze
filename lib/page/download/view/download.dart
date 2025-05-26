@@ -127,7 +127,7 @@ class _DownloadPageState extends State<DownloadPage> {
 
   Future<void> download() async {
     await initForegroundTask(comicInfo.title);
-    await Future.delayed(Duration.zero);
+    await Future.delayed(const Duration(seconds: 1));
     FlutterForegroundTask.sendDataToTask(
       DownloadTaskJson(
         from: "bika",

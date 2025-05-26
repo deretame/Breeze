@@ -1,7 +1,7 @@
 [package]
 name = "rust_lib_zephyr"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [lib]
 crate-type = ["cdylib", "staticlib"]
@@ -18,15 +18,8 @@ md5 = "0.7.0"
 base64 = "0.22.1"
 log = "0.4.27"
 anyhow = "1.0.98"
-reqwest = { version = "0.12.15", default-features = false, features = [
-    "rustls-tls",
-    "json",
-    "stream",
-] }
-tokio = { version = "1.45.0", features = ["full"] }
+tokio = { version = "1", features = ["full"] }
 tokio-tar = "0.3.1"
-serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.140"
 zhconv = "0.3.3"
 
 [lints.rust]

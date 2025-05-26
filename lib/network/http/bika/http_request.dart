@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:dio/dio.dart';
 import 'package:zephyr/main.dart';
 
 import 'http_request_build.dart';
@@ -181,6 +182,7 @@ Future<Map<String, dynamic>> getComicInfo(
     'https://picaapi.picacomic.com/comics/$comicId',
     'GET',
     authorization: authorization,
+    imageQuality: imageQuality,
   );
 
   if (data['code'] != 200) {

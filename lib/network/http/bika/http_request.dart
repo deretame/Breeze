@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:dio/dio.dart';
 import 'package:zephyr/main.dart';
 
 import 'http_request_build.dart';

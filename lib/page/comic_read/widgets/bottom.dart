@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/object_box/model.dart';
+import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info/jm_comic_info_json.dart';
 import 'package:zephyr/type/pipe.dart';
@@ -40,6 +42,10 @@ class BottomWidget extends StatefulWidget {
 }
 
 class _BottomWidgetState extends State<BottomWidget> {
+  bool get isBikaDownload =>
+      widget.type == ComicEntryType.download ||
+      widget.type == ComicEntryType.historyAndDownload;
+
   final Duration _animationDuration = const Duration(milliseconds: 300); // 动画时长
   final int _bottomWidgetHeight = 100; // 底部悬浮组件高度
 
@@ -49,10 +55,17 @@ class _BottomWidgetState extends State<BottomWidget> {
   bool haveNext = true;
   late List<Series> seriesList;
   int? sort;
+  BikaComicDownload? bikaComicDownload;
+  late AllInfo allInfo;
 
   @override
   void initState() {
     super.initState();
+    logger.d(widget.order);
+    if (widget.from == From.bika) {
+      allInfo = widget.comicInfo as AllInfo;
+    }
+
     tempType = widget.type;
     comicId = widget.comicId;
     if (tempType == ComicEntryType.historyAndDownload) {
@@ -62,11 +75,31 @@ class _BottomWidgetState extends State<BottomWidget> {
       tempType = ComicEntryType.normal;
     }
     if (widget.from == From.bika) {
-      if (widget.order == 1) {
-        havePrev = false;
-      }
-      if (widget.order == widget.epsNumber) {
-        haveNext = false;
+      if (isBikaDownload) {
+        bikaComicDownload =
+            objectbox.bikaDownloadBox
+                .query(BikaComicDownload_.comicId.equals(comicId))
+                .build()
+                .findFirst();
+
+        if (bikaComicDownload?.epsTitle.length == 1) {
+          havePrev = false;
+          haveNext = false;
+        } else {
+          if (allInfo.eps.first.order == widget.order) {
+            havePrev = false;
+          }
+          if (allInfo.eps.last.order == widget.order) {
+            haveNext = false;
+          }
+        }
+      } else {
+        if (widget.order == 1) {
+          havePrev = false;
+        }
+        if (widget.order == widget.epsNumber) {
+          haveNext = false;
+        }
       }
     }
     if (widget.from == From.jm) {
@@ -221,10 +254,13 @@ class _BottomWidgetState extends State<BottomWidget> {
     );
     int order = 0;
     if (widget.from == From.bika) {
+      final index = allInfo.eps.indexOf(
+        allInfo.eps.firstWhere((ep) => ep.order == widget.order),
+      );
       if (isPrev) {
-        order = widget.order - 1;
+        order = allInfo.eps[index - 1].order;
       } else {
-        order = widget.order + 1;
+        order = allInfo.eps[index + 1].order;
       }
     } else {
       if (sort != null) {

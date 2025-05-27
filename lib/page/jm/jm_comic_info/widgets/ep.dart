@@ -7,7 +7,7 @@ import '../../../../config/global/global.dart';
 import '../../../../main.dart';
 import '../../../../type/enum.dart';
 import '../../../../util/router/router.gr.dart';
-import '../json/jm_comic_info/jm_comic_info_json.dart';
+import '../json/jm_comic_info_json.dart';
 
 class EpsWidget extends StatelessWidget {
   final String comicId;

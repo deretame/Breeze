@@ -55,7 +55,7 @@ class __HistoryPageState extends State<_HistoryPage>
       if (event.type == EventType.showInfo) {
         stringSelectStore.setDate(totalComicCount.toString());
       } else if (event.type == EventType.refresh) {
-        _refresh(searchStatusStore);
+        _refresh(searchStatusStore, true);
       }
     });
   }
@@ -153,7 +153,7 @@ class __HistoryPageState extends State<_HistoryPage>
           const Text('啥都没有', style: TextStyle(fontSize: 20.0)),
           const SizedBox(height: 10),
           IconButton(
-            onPressed: () => _refresh(bookshelfStore.historyStore),
+            onPressed: () => _refresh(bookshelfStore.historyStore, true),
             icon: const Icon(Icons.refresh),
           ),
           const Spacer(),
@@ -305,8 +305,8 @@ class __HistoryPageState extends State<_HistoryPage>
     return [];
   }
 
-  void _refresh(SearchStatusStore searchStatusStore) {
-    if (_scrollController.hasClients) {
+  void _refresh(SearchStatusStore searchStatusStore, [bool goToTop = false]) {
+    if (_scrollController.hasClients && goToTop) {
       _scrollController.animateTo(
         0,
         duration: Duration(milliseconds: 300),

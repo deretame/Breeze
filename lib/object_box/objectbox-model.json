@@ -726,7 +726,7 @@
     },
     {
       "id": "7:4997035889958906360",
-      "lastPropertyId": "19:6474958707679740292",
+      "lastPropertyId": "20:8923948370798076489",
       "name": "JmDownload",
       "properties": [
         {
@@ -824,6 +824,11 @@
           "id": "19:6474958707679740292",
           "name": "allInfo",
           "type": 9
+        },
+        {
+          "id": "20:8923948370798076489",
+          "name": "epsTitle",
+          "type": 30
         }
       ],
       "relations": []

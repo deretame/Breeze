@@ -85,7 +85,7 @@ class _DownloadPageState extends State<_DownloadPage>
           displacement: 60.0,
           onRefresh: () async {
             if (indexStore.date == 2) {
-              _refresh(searchStatusStore);
+              _refresh(searchStatusStore, true);
             }
           },
           child: _buildContent(state),
@@ -116,7 +116,7 @@ class _DownloadPageState extends State<_DownloadPage>
           ),
           SizedBox(height: 10),
           ElevatedButton(
-            onPressed: () => _refresh(searchStatusStore),
+            onPressed: () => _refresh(searchStatusStore, true),
             child: Text('点击重试'),
           ),
         ],
@@ -155,7 +155,7 @@ class _DownloadPageState extends State<_DownloadPage>
           const Text('啥都没有', style: TextStyle(fontSize: 20.0)),
           const SizedBox(height: 10),
           IconButton(
-            onPressed: () => _refresh(searchStatusStore),
+            onPressed: () => _refresh(searchStatusStore, true),
             icon: const Icon(Icons.refresh),
           ),
           const Spacer(),
@@ -285,8 +285,8 @@ class _DownloadPageState extends State<_DownloadPage>
     }
   }
 
-  void _refresh(SearchStatusStore searchStatusStore) {
-    if (_scrollController.hasClients) {
+  void _refresh(SearchStatusStore searchStatusStore, [bool goToTop = false]) {
+    if (_scrollController.hasClients && goToTop) {
       _scrollController.animateTo(
         0,
         duration: Duration(milliseconds: 300),

@@ -22,7 +22,6 @@ import 'package:zephyr/page/comic_info/json/bika/recommend/recommend_json.dart'
     as recommend_json;
 import '../json/bika/eps/eps.dart';
 
-// TODO: 目前会出在下载页的时候，刷新后也仍然无法加载出新的章节的问题，要修复一下
 @RoutePage()
 class ComicInfoPage extends StatelessWidget {
   final String comicId;

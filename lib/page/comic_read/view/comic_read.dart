@@ -9,7 +9,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_info/models/all_info.dart';
 import 'package:zephyr/page/comic_read/comic_read.dart';
-import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info/jm_comic_info_json.dart'
+import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart'
     show JmComicInfoJson;
 
 import '../../../object_box/model.dart';

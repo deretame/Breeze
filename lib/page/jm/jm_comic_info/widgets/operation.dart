@@ -7,7 +7,7 @@ import 'package:zephyr/widgets/toast.dart';
 
 import '../../../../config/global/global.dart';
 import '../../../../main.dart';
-import '../json/jm_comic_info/jm_comic_info_json.dart';
+import '../json/jm_comic_info_json.dart';
 
 class ComicOperationWidget extends StatefulWidget {
   final JmComicInfoJson comicInfo;
@@ -119,12 +119,12 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
             children: <Widget>[
               GestureDetector(
                 onTap: () {
-                  showErrorToast('暂不支持');
-                  return;
+                  context.pushRoute(
+                    JmDownloadRoute(jmComicInfoJson: comicInfo),
+                  );
                 },
                 child: const Icon(
                   Icons.cloud_download_outlined,
-                  // color: Colors.red,
                   size: 24.0, // 设置图标大小
                 ),
               ),

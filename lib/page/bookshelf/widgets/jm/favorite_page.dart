@@ -59,7 +59,7 @@ class __FavoritePageState extends State<_FavoritePage>
       if (event.type == EventType.showInfo) {
         stringSelectStore.setDate(totalComicCount.toString());
       } else if (event.type == EventType.refresh) {
-        _refresh(searchStatusStore);
+        _refresh(searchStatusStore, true);
       }
     });
   }
@@ -121,7 +121,7 @@ class __FavoritePageState extends State<_FavoritePage>
           ),
           SizedBox(height: 10),
           ElevatedButton(
-            onPressed: () => _refresh(searchStatusStore),
+            onPressed: () => _refresh(searchStatusStore, true),
             child: Text('点击重试'),
           ),
         ],
@@ -158,7 +158,7 @@ class __FavoritePageState extends State<_FavoritePage>
           const Text('啥都没有', style: TextStyle(fontSize: 20.0)),
           const SizedBox(height: 10),
           IconButton(
-            onPressed: () => _refresh(bookshelfStore.jmFavoriteStore),
+            onPressed: () => _refresh(bookshelfStore.jmFavoriteStore, true),
             icon: const Icon(Icons.refresh),
           ),
           const Spacer(),
@@ -252,10 +252,8 @@ class __FavoritePageState extends State<_FavoritePage>
         .toList();
   }
 
-  void _refresh(SearchStatusStore searchStatusStore) {
-    if (!mounted) return; // 确保组件仍然挂载
-
-    if (_scrollController.hasClients) {
+  void _refresh(SearchStatusStore searchStatusStore, [bool refresh = false]) {
+    if (_scrollController.hasClients && refresh) {
       _scrollController.animateTo(
         0,
         duration: Duration(milliseconds: 300),

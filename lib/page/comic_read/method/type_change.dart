@@ -1,4 +1,4 @@
-import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info/jm_comic_info_json.dart';
+import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart';
 
 import '../../../object_box/model.dart';
 import '../../comic_info/json/bika/comic_info/comic_info.dart';

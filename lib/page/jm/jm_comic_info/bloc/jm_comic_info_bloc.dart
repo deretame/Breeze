@@ -6,8 +6,8 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/type/pipe.dart';
 
-import '../../../../../util/json_dispose.dart';
-import '../../json/jm_comic_info/jm_comic_info_json.dart';
+import '../../../../util/json_dispose.dart';
+import '../json/jm_comic_info_json.dart';
 
 part 'jm_comic_info_event.dart';
 part 'jm_comic_info_state.dart';

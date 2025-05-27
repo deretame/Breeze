@@ -341,6 +341,8 @@ JmDownload _$JmDownloadFromJson(Map<String, dynamic> json) => JmDownload(
   isAids: json['isAids'] as bool,
   price: json['price'] as String,
   purchased: json['purchased'] as String,
+  epsTitle:
+      (json['epsTitle'] as List<dynamic>).map((e) => e as String).toList(),
   allInfo: json['allInfo'] as String,
 );
 
@@ -364,5 +366,6 @@ Map<String, dynamic> _$JmDownloadToJson(JmDownload instance) =>
       'isAids': instance.isAids,
       'price': instance.price,
       'purchased': instance.purchased,
+      'epsTitle': instance.epsTitle,
       'allInfo': instance.allInfo,
     };

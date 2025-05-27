@@ -119,7 +119,6 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
             comics: _filterShieldedComics(comics),
             hasReachedMax: hasReachedMax,
             refresh: event.refresh,
-            pageCount: event.pageCount,
             result: e.toString(),
             pagesCount: totalPages,
           ),

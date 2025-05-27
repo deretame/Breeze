@@ -884,7 +884,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(7, 4997035889958906360),
     name: 'JmDownload',
-    lastPropertyId: const obx_int.IdUid(19, 6474958707679740292),
+    lastPropertyId: const obx_int.IdUid(20, 8923948370798076489),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -999,6 +999,12 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(19, 6474958707679740292),
         name: 'allInfo',
         type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(20, 8923948370798076489),
+        name: 'epsTitle',
+        type: 30,
         flags: 0,
       ),
     ],
@@ -2185,7 +2191,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final priceOffset = fbb.writeString(object.price);
         final purchasedOffset = fbb.writeString(object.purchased);
         final allInfoOffset = fbb.writeString(object.allInfo);
-        fbb.startTable(20);
+        final epsTitleOffset = fbb.writeList(
+          object.epsTitle.map(fbb.writeString).toList(growable: false),
+        );
+        fbb.startTable(21);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, comicIdOffset);
         fbb.addOffset(2, nameOffset);
@@ -2205,6 +2214,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(16, priceOffset);
         fbb.addOffset(17, purchasedOffset);
         fbb.addOffset(18, allInfoOffset);
+        fbb.addOffset(19, epsTitleOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -2281,6 +2291,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final purchasedParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 38, '');
+        final epsTitleParam = const fb.ListReader<String>(
+          fb.StringReader(asciiOptimization: true),
+          lazy: false,
+        ).vTableGet(buffer, rootOffset, 42, []);
         final allInfoParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 40, '');
@@ -2303,6 +2317,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           isAids: isAidsParam,
           price: priceParam,
           purchased: purchasedParam,
+          epsTitle: epsTitleParam,
           allInfo: allInfoParam,
         );
 
@@ -3102,5 +3117,10 @@ class JmDownload_ {
   /// See [JmDownload.allInfo].
   static final allInfo = obx.QueryStringProperty<JmDownload>(
     _entities[4].properties[18],
+  );
+
+  /// See [JmDownload.epsTitle].
+  static final epsTitle = obx.QueryStringVectorProperty<JmDownload>(
+    _entities[4].properties[19],
   );
 }

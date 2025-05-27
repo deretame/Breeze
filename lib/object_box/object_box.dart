@@ -13,6 +13,7 @@ class ObjectBox {
 
   late final Box<JmFavorite> _jmFavoriteBox;
   late final Box<JmHistory> _jmHistoryBox;
+  late final Box<JmDownload> _jmDownloadBox;
 
   ObjectBox._create(this.store) {
     _bikaComicHistoryBox = store.box<BikaComicHistory>();
@@ -20,6 +21,7 @@ class ObjectBox {
 
     _jmFavoriteBox = store.box<JmFavorite>();
     _jmHistoryBox = store.box<JmHistory>();
+    _jmDownloadBox = store.box<JmDownload>();
   }
 
   static Future<ObjectBox> create() async {
@@ -53,4 +55,6 @@ class ObjectBox {
   Box<JmFavorite> get jmFavoriteBox => _jmFavoriteBox;
 
   Box<JmHistory> get jmHistoryBox => _jmHistoryBox;
+
+  Box<JmDownload> get jmDownloadBox => _jmDownloadBox;
 }

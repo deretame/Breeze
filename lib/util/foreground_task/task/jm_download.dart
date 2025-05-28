@@ -1,7 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
+import 'package:zephyr/object_box/model.dart';
+import 'package:zephyr/object_box/object_box.dart';
+import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/json/download/comic_all_info_json.dart';
 import 'package:zephyr/page/jm/download/json/download_info_json.dart';
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart'
@@ -10,6 +15,7 @@ import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/task/bika_download.dart';
+import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/json_dispose.dart';
 
 Future<void> jmDownloadTask(DownloadTaskJson task) async {
@@ -35,19 +41,32 @@ Future<void> jmDownloadTask(DownloadTaskJson task) async {
 
   logger.d("updatedDownloadInfo: $temp");
 
-  List<String> epsTitle = [];
+  List<String> epsIds = [];
 
   for (var series in updatedDownloadInfo.series) {
     if (task.selectedChapters.contains(series.id)) {
-      epsTitle.add(series.info.name);
+      epsIds.add(series.id.toString());
     }
   }
 
-  logger.d("epsTitle: $epsTitle");
+  logger.d("epsIds: $epsIds");
+
+  await downloadPicture(
+    from: 'jm',
+    url: getJmCoverUrl(comicInfo.id.toString()),
+    path: "${comicInfo.id}.jpg",
+    cartoonId: comicInfo.id.toString(),
+    pictureType: 'cover',
+    chapterId: comicInfo.id.toString(),
+  );
 
   await downloadComic(updatedDownloadInfo, task.selectedChapters);
 
+  await saveToDB(updatedDownloadInfo, epsIds, temp);
+
   await sendSystemNotification("下载完成", "${updatedDownloadInfo.name}下载完成");
+
+  FlutterForegroundTask.sendDataToMain(updatedDownloadInfo.name);
 
   FlutterForegroundTask.stopService();
 }
@@ -218,4 +237,126 @@ Future<void> downloadComic(
       }).toList();
 
   await Future.wait(downloadTasks);
+}
+
+Future<void> saveToDB(
+  DownloadInfoJson downloadInfoJson,
+  List<String> epsIds,
+  String allInfo,
+) async {
+  final objectBox = await ObjectBox.create();
+
+  final jmComicDownload = JmDownload(
+    comicId: downloadInfoJson.id.toString(),
+    name: downloadInfoJson.name,
+    addtime: downloadInfoJson.addtime,
+    description: downloadInfoJson.description,
+    totalViews: downloadInfoJson.totalViews,
+    likes: downloadInfoJson.likes,
+    seriesId: downloadInfoJson.seriesId,
+    commentTotal: downloadInfoJson.commentTotal,
+    author: downloadInfoJson.author,
+    tags: downloadInfoJson.tags,
+    works: downloadInfoJson.works,
+    actors: downloadInfoJson.actors,
+    liked: downloadInfoJson.liked,
+    isFavorite: downloadInfoJson.isFavorite,
+    isAids: downloadInfoJson.isAids,
+    price: downloadInfoJson.price,
+    purchased: downloadInfoJson.purchased,
+    epsIds: epsIds,
+    allInfo: allInfo,
+    downloadTime: DateTime.now(),
+  );
+
+  var temp =
+      objectBox.jmDownloadBox
+          .query(JmDownload_.comicId.equals(downloadInfoJson.id.toString()))
+          .build()
+          .find();
+
+  // 这个是为了避免重复放置数据
+  for (var item in temp) {
+    objectBox.jmDownloadBox.remove(item.id);
+  }
+
+  await objectBox.jmDownloadBox.putAsync(jmComicDownload);
+}
+
+Future<void> checkFile(DownloadInfoJson downloadInfoJson) async {
+  final comicInfo = downloadInfoJson;
+
+  String downloadPath = await getDownloadPath();
+  var epsDir = "$downloadPath/jm/${comicInfo.id}/comic/";
+  // 创建 Directory 对象
+  Directory directory = Directory(epsDir);
+
+  // 检查目录是否存在
+  if (!await directory.exists()) {
+    logger.d("目录不存在: $epsDir");
+  }
+
+  // 列出目录下的所有文件和子目录
+  List<FileSystemEntity> entities = directory.listSync();
+
+  // 过滤出子目录
+  List<Directory> epDirs = entities.whereType<Directory>().toList();
+
+  List<String> downloadEpsDir = [];
+  for (var element in comicInfo.series) {
+    downloadEpsDir.add("$epsDir${element.id}");
+  }
+
+  // 过滤出需要删除的目录
+  List<Directory> deleteDirs =
+      epDirs.where((element) {
+        return !downloadEpsDir.contains(element.path);
+      }).toList();
+
+  // 删除不需要的目录
+  for (var element in deleteDirs) {
+    await element.delete(recursive: true);
+  }
+
+  // 获取本次下载的图片
+  List<String> originalPicturePaths = [];
+  for (var element in comicInfo.series) {
+    for (var page in element.info.images) {
+      var tempPath = "$epsDir${element.id}/$page";
+      originalPicturePaths.add(tempPath);
+    }
+  }
+
+  var allPicturePaths = await getAllFilePaths(epsDir);
+
+  // 过滤出需要删除的图片
+  List<String> deletePictures =
+      allPicturePaths.where((element) {
+        return !originalPicturePaths.contains(element);
+      }).toList();
+
+  // 删除不需要的图片
+  for (var element in deletePictures) {
+    await File(element).delete();
+  }
+}
+
+// 递归获取目录下的所有文件路径
+Future<List<String>> getAllFilePaths(String directoryPath) async {
+  List<String> filePaths = [];
+  Directory directory = Directory(directoryPath);
+
+  // 检查目录是否存在
+  if (!await directory.exists()) {
+    throw Exception("目录不存在: $directoryPath");
+  }
+
+  // 遍历目录
+  await for (FileSystemEntity entity in directory.list(recursive: true)) {
+    if (entity is File) {
+      filePaths.add(entity.path); // 如果是文件，添加到列表中
+    }
+  }
+
+  return filePaths;
 }

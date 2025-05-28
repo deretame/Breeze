@@ -341,9 +341,9 @@ JmDownload _$JmDownloadFromJson(Map<String, dynamic> json) => JmDownload(
   isAids: json['isAids'] as bool,
   price: json['price'] as String,
   purchased: json['purchased'] as String,
-  epsTitle:
-      (json['epsTitle'] as List<dynamic>).map((e) => e as String).toList(),
+  epsIds: (json['epsIds'] as List<dynamic>).map((e) => e as String).toList(),
   allInfo: json['allInfo'] as String,
+  downloadTime: DateTime.parse(json['downloadTime'] as String),
 );
 
 Map<String, dynamic> _$JmDownloadToJson(JmDownload instance) =>
@@ -366,6 +366,7 @@ Map<String, dynamic> _$JmDownloadToJson(JmDownload instance) =>
       'isAids': instance.isAids,
       'price': instance.price,
       'purchased': instance.purchased,
-      'epsTitle': instance.epsTitle,
+      'epsIds': instance.epsIds,
       'allInfo': instance.allInfo,
+      'downloadTime': instance.downloadTime.toIso8601String(),
     };

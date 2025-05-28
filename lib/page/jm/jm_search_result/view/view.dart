@@ -176,7 +176,7 @@ class _JmSearchResultPageState extends State<_JmSearchResultPage> {
             title: item.name,
             id: item.id,
             fileServer: getJmCoverUrl(item.id),
-            path: ".jpg",
+            path: "${item.id}.jpg",
             pictureType: 'cover',
             from: 'jm',
           );

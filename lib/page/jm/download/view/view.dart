@@ -26,11 +26,10 @@ class JmDownloadPage extends StatefulWidget {
 }
 
 class _JmDownloadPageState extends State<JmDownloadPage> {
-  JmComicInfoJson get jmComicInfoJson => widget.jmComicInfoJson;
+  late JmComicInfoJson jmComicInfoJson;
 
   late Map<int, bool> _downloadInfo;
   late JmDownload? jmDownloadInfo;
-  int length = 0;
 
   void onUpdateDownloadInfo(int order) {
     setState(() {
@@ -41,28 +40,37 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
   @override
   void initState() {
     super.initState();
+    jmComicInfoJson = widget.jmComicInfoJson;
     _downloadInfo = {};
     if (jmComicInfoJson.series.isEmpty) {
-      _downloadInfo[jmComicInfoJson.id.let(toInt)] = false;
-    } else {
-      for (var ep in jmComicInfoJson.series) {
-        _downloadInfo[ep.id.let(toInt)] = false;
-      }
+      jmComicInfoJson = jmComicInfoJson.copyWith(
+        series: [
+          Series(
+            id: jmComicInfoJson.id.toString(),
+            name: jmComicInfoJson.name,
+            sort: "null",
+          ),
+        ],
+      );
     }
+
+    for (var ep in jmComicInfoJson.series) {
+      _downloadInfo[ep.id.let(toInt)] = false;
+    }
+
     final query = objectbox.jmDownloadBox.query(
       JmDownload_.comicId.equals(jmComicInfoJson.id.toString()),
     );
     jmDownloadInfo = query.build().findFirst();
     if (jmDownloadInfo != null) {
-      for (var epTitle in jmDownloadInfo!.epsTitle) {
+      for (var epId in jmDownloadInfo!.epsIds) {
         for (var ep in jmComicInfoJson.series) {
-          if (ep.name == epTitle) {
+          if (ep.id.toString() == epId) {
             _downloadInfo[ep.id.let(toInt)] = true;
           }
         }
       }
     }
-    length = _downloadInfo.length;
   }
 
   // 判断是否所有章节都被选中
@@ -98,22 +106,8 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
       body: ListView.builder(
         // 设置 ListView 的宽度为屏幕宽度
         padding: EdgeInsets.symmetric(horizontal: screenWidth / 50),
-        itemCount: length, // 列表项的数量
+        itemCount: jmComicInfoJson.series.length, // 列表项的数量
         itemBuilder: (context, index) {
-          if (jmComicInfoJson.series.isEmpty) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5.0),
-              child: EpsWidget(
-                series: Series(
-                  id: jmComicInfoJson.id.toString(),
-                  name: jmComicInfoJson.name,
-                  sort: "0",
-                ),
-                downloaded: _downloadInfo[jmComicInfoJson.id.let(toInt)]!,
-                onUpdateDownloadInfo: onUpdateDownloadInfo,
-              ),
-            );
-          }
           final series = jmComicInfoJson.series[index];
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 5.0),
@@ -140,8 +134,6 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
   }
 
   Future<void> download() async {
-    logger.d(_downloadInfo);
-    await FlutterForegroundTask.stopService();
     await initForegroundTask(jmComicInfoJson.name);
     await Future.delayed(const Duration(seconds: 1));
     FlutterForegroundTask.sendDataToTask(

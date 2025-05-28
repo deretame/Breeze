@@ -104,6 +104,8 @@ Future<void> bikaDownloadTask(DownloadTaskJson task) async {
 
   await sendSystemNotification("下载完成", "${comicInfo.title}下载完成");
 
+  FlutterForegroundTask.sendDataToMain(comicInfo.title);
+
   FlutterForegroundTask.stopService();
 }
 
@@ -316,9 +318,7 @@ Future<void> checkFile(ComicAllInfoJson comicAllInfoJson) async {
 
   List<String> downloadEpsDir = [];
   for (var element in comicAllInfoJson.eps.docs) {
-    downloadEpsDir.add(
-      "$downloadPath/bika/original/${comicInfo.id}/comic/${element.id}",
-    );
+    downloadEpsDir.add("$epsDir${element.id}");
   }
 
   // 过滤出需要删除的目录
@@ -340,15 +340,12 @@ Future<void> checkFile(ComicAllInfoJson comicAllInfoJson) async {
         RegExp(r'[^a-zA-Z0-9_\-.]'),
         '_',
       );
-      var tempPath =
-          "$downloadPath/bika/original/${comicInfo.id}/comic/${element.id}/$sanitizedPath";
+      var tempPath = "$epsDir${element.id}/$sanitizedPath";
       originalPicturePaths.add(tempPath);
     }
   }
 
-  var allPicturePaths = await getAllFilePaths(
-    "$downloadPath/bika/original/${comicInfo.id}/comic/",
-  );
+  var allPicturePaths = await getAllFilePaths(epsDir);
 
   // 过滤出需要删除的图片
   List<String> deletePictures =
@@ -360,8 +357,6 @@ Future<void> checkFile(ComicAllInfoJson comicAllInfoJson) async {
   for (var element in deletePictures) {
     await File(element).delete();
   }
-
-  FlutterForegroundTask.sendDataToMain(comicInfo.title);
 }
 
 // 递归获取目录下的所有文件路径

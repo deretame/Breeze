@@ -22,7 +22,7 @@ class RecommendWidget extends StatelessWidget {
                 title: e.name,
                 id: e.id,
                 fileServer: getJmCoverUrl(e.id),
-                path: ".jpg",
+                path: "${e.id}.jpg",
                 pictureType: "cover",
                 from: "jm",
               ),

@@ -237,6 +237,17 @@ class ComicSimplifyEntry extends StatelessWidget {
         objectbox.bikaDownloadBox.remove(temp.id);
         await _deleteDownloadDirectory(info.id);
       }
+    } else if (info.from == 'jm') {
+      final temp =
+          objectbox.jmDownloadBox
+              .query(JmDownload_.comicId.equals(info.id))
+              .build()
+              .findFirst();
+
+      if (temp != null) {
+        objectbox.jmDownloadBox.remove(temp.id);
+        await _deleteDownloadDirectory(info.id);
+      }
     }
   }
 

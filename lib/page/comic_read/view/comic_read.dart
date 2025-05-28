@@ -7,8 +7,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/comic_info/models/all_info.dart';
 import 'package:zephyr/page/comic_read/comic_read.dart';
+import 'package:zephyr/page/jm/download/json/download_info_json.dart'
+    show downloadInfoJsonFromJson, DownloadInfoJsonSeries;
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart'
     show JmComicInfoJson;
 
@@ -83,7 +86,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   String epId = '';
   String epName = '';
   late final ComicEntryType _type;
-  late final Eps _downloadEpsInfo;
+  late final dynamic _downloadEpsInfo;
   late bool isSkipped = false; // 是否跳转过
   late final ItemScrollController _itemScrollController;
   late final ItemPositionsListener _itemPositionsListener;
@@ -157,8 +160,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
                 .build()
                 .findFirst()!
                 .comicInfoAll;
-        var temp2 = comicAllInfoJsonFromJson(temp);
-        _downloadEpsInfo = temp2.eps;
+        _downloadEpsInfo = comicAllInfoJsonFromJson(temp).eps;
       }
 
       // logger.d(_type.toString().split('.').last);
@@ -174,6 +176,16 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       if (jmHistory == null) {
         jmHistory = jmToJmHistory(jmComic);
         objectbox.jmHistoryBox.put(jmHistory!);
+      }
+
+      if (_isDownload) {
+        var temp =
+            objectbox.jmDownloadBox
+                .query(JmDownload_.comicId.equals(comicId))
+                .build()
+                .findFirst()!
+                .allInfo;
+        _downloadEpsInfo = downloadInfoJsonFromJson(temp).series;
       }
     }
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -526,27 +538,50 @@ class _ComicReadPageState extends State<_ComicReadPage> {
 
   /// 加载下载数据
   void _loadDownloadedData() {
-    final temp = _downloadEpsInfo.docs.firstWhere(
-      (e) => e.order == widget.order,
-    );
+    if (widget.from == From.bika) {
+      final temp = (_downloadEpsInfo as Eps).docs.firstWhere(
+        (e) => e.order == widget.order,
+      );
 
-    epId = temp.id;
-    epName = temp.title;
+      epId = temp.id;
+      epName = temp.title;
 
-    docs =
-        temp.pages.docs
-            .map(
-              (e) => Doc(
-                originalName: e.media.originalName,
-                path: e.media.path,
-                fileServer: e.media.fileServer,
-                id: epId,
-              ),
-            )
-            .toList();
+      docs =
+          temp.pages.docs
+              .map(
+                (e) => Doc(
+                  originalName: e.media.originalName,
+                  path: e.media.path,
+                  fileServer: e.media.fileServer,
+                  id: epId,
+                ),
+              )
+              .toList();
 
-    length = temp.pages.docs.length;
-    epPages = temp.pages.docs.length.toString();
+      length = temp.pages.docs.length;
+      epPages = temp.pages.docs.length.toString();
+    } else {
+      final temp = (_downloadEpsInfo as List<DownloadInfoJsonSeries>)
+          .firstWhere((e) => e.id == jmHistory!.order.toString());
+
+      epId = temp.id;
+      epName = temp.name;
+
+      docs =
+          temp.info.images
+              .map(
+                (e) => Doc(
+                  originalName: e,
+                  path: e,
+                  fileServer: getJmImagesUrl(temp.id.toString(), e),
+                  id: epId,
+                ),
+              )
+              .toList();
+
+      length = temp.info.images.length;
+      epPages = temp.info.images.length.toString();
+    }
   }
 
   /// 显示下载错误

@@ -87,6 +87,22 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
     return comicList;
   }
 
+  List<JmDownload> _fetchOfSortJm(List<JmDownload> comicList, String sort) {
+    if (sort == "dd") {
+      comicList.sort((a, b) => b.downloadTime.compareTo(a.downloadTime));
+    }
+    if (sort == "da") {
+      comicList.sort((a, b) => a.downloadTime.compareTo(b.downloadTime));
+    }
+    if (sort == "ld") {
+      comicList.sort((a, b) => b.likes.compareTo(a.likes));
+    }
+    if (sort == "vd") {
+      comicList.sort((a, b) => b.totalViews.compareTo(a.totalViews));
+    }
+    return comicList;
+  }
+
   List<BikaComicDownload> _filterShieldedComics(
     List<BikaComicDownload> comics,
   ) {
@@ -137,6 +153,29 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
                   comic.tagsString +
                   comic.description +
                   comic.creatorName;
+              return allString.toLowerCase().contains(keyword);
+            }).toList();
+      }
+
+      comics = comicList;
+    } else if (bookshelfStore.topBarStore.date == 2) {
+      late var comicList = objectbox.jmDownloadBox.getAll();
+
+      comicList = _fetchOfSortJm(comicList, event.searchEnterConst.sort);
+
+      if (event.searchEnterConst.keyword.isNotEmpty) {
+        final keyword = event.searchEnterConst.keyword.toLowerCase();
+
+        comicList =
+            comicList.where((comic) {
+              var allString =
+                  comic.comicId.toString() +
+                  comic.name +
+                  comic.description +
+                  comic.author.toString() +
+                  comic.tags.toString() +
+                  comic.works.toString() +
+                  comic.actors.toString();
               return allString.toLowerCase().contains(keyword);
             }).toList();
       }

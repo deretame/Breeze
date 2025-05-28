@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 
 import '../../../../config/global/global.dart';
@@ -76,9 +77,6 @@ class _DownloadPageState extends State<_DownloadPage>
   Widget build(BuildContext context) {
     super.build(context);
 
-    if (bookshelfStore.topBarStore.date == 2) {
-      return const Center(child: Text('尚未支持', style: TextStyle(fontSize: 30)));
-    }
     return BlocBuilder<UserDownloadBloc, UserDownloadState>(
       builder: (context, state) {
         return RefreshIndicator(
@@ -131,6 +129,10 @@ class _DownloadPageState extends State<_DownloadPage>
 
     if (state.comics.isEmpty) {
       return _buildEmptyState();
+    }
+
+    if (bookshelfStore.topBarStore.date == 2) {
+      return _buildBrevityList(state);
     }
 
     return bikaSetting.brevity
@@ -259,7 +261,12 @@ class _DownloadPageState extends State<_DownloadPage>
         );
       }
     } else {
-      return const SizedBox.shrink();
+      return ComicSimplifyEntryRow(
+        key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
+        entries: elementsRows[index],
+        type: ComicEntryType.download,
+        refresh: refreshCallback,
+      );
     }
   }
 
@@ -281,7 +288,20 @@ class _DownloadPageState extends State<_DownloadPage>
           )
           .toList();
     } else {
-      return [];
+      final temp = comics.map((e) => e as JmDownload).toList();
+
+      return temp
+          .map(
+            (element) => ComicSimplifyEntryInfo(
+              title: element.name,
+              id: element.comicId.toString(),
+              fileServer: getJmCoverUrl(element.comicId.toString()),
+              path: "${element.comicId}.jpg",
+              pictureType: 'cover',
+              from: 'jm',
+            ),
+          )
+          .toList();
     }
   }
 

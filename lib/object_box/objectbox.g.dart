@@ -884,7 +884,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(7, 4997035889958906360),
     name: 'JmDownload',
-    lastPropertyId: const obx_int.IdUid(20, 8923948370798076489),
+    lastPropertyId: const obx_int.IdUid(22, 1972557089857570208),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -1002,9 +1002,15 @@ final _entities = <obx_int.ModelEntity>[
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(20, 8923948370798076489),
-        name: 'epsTitle',
+        id: const obx_int.IdUid(21, 3087131590180809490),
+        name: 'epsIds',
         type: 30,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(22, 1972557089857570208),
+        name: 'downloadTime',
+        type: 10,
         flags: 0,
       ),
     ],
@@ -1086,6 +1092,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
       7033982892274642636,
       5451171976689934386,
       4559793647698832271,
+      8923948370798076489,
     ],
     retiredRelationUids: const [],
     modelVersion: 5,
@@ -2191,10 +2198,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final priceOffset = fbb.writeString(object.price);
         final purchasedOffset = fbb.writeString(object.purchased);
         final allInfoOffset = fbb.writeString(object.allInfo);
-        final epsTitleOffset = fbb.writeList(
-          object.epsTitle.map(fbb.writeString).toList(growable: false),
+        final epsIdsOffset = fbb.writeList(
+          object.epsIds.map(fbb.writeString).toList(growable: false),
         );
-        fbb.startTable(21);
+        fbb.startTable(23);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, comicIdOffset);
         fbb.addOffset(2, nameOffset);
@@ -2214,7 +2221,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(16, priceOffset);
         fbb.addOffset(17, purchasedOffset);
         fbb.addOffset(18, allInfoOffset);
-        fbb.addOffset(19, epsTitleOffset);
+        fbb.addOffset(20, epsIdsOffset);
+        fbb.addInt64(21, object.downloadTime.millisecondsSinceEpoch);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -2291,13 +2299,16 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final purchasedParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 38, '');
-        final epsTitleParam = const fb.ListReader<String>(
+        final epsIdsParam = const fb.ListReader<String>(
           fb.StringReader(asciiOptimization: true),
           lazy: false,
-        ).vTableGet(buffer, rootOffset, 42, []);
+        ).vTableGet(buffer, rootOffset, 44, []);
         final allInfoParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 40, '');
+        final downloadTimeParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 46, 0),
+        );
         final object = JmDownload(
           id: idParam,
           comicId: comicIdParam,
@@ -2317,8 +2328,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
           isAids: isAidsParam,
           price: priceParam,
           purchased: purchasedParam,
-          epsTitle: epsTitleParam,
+          epsIds: epsIdsParam,
           allInfo: allInfoParam,
+          downloadTime: downloadTimeParam,
         );
 
         return object;
@@ -3119,8 +3131,13 @@ class JmDownload_ {
     _entities[4].properties[18],
   );
 
-  /// See [JmDownload.epsTitle].
-  static final epsTitle = obx.QueryStringVectorProperty<JmDownload>(
+  /// See [JmDownload.epsIds].
+  static final epsIds = obx.QueryStringVectorProperty<JmDownload>(
     _entities[4].properties[19],
+  );
+
+  /// See [JmDownload.downloadTime].
+  static final downloadTime = obx.QueryDateProperty<JmDownload>(
+    _entities[4].properties[20],
   );
 }

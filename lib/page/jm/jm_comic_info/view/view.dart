@@ -1,11 +1,16 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:encrypter_plus/encrypter_plus.dart' as _i29;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/page/jm/download/json/download_info_json.dart'
+    show downloadInfoJsonFromJson;
 import 'package:zephyr/page/jm/jm_comic_info/jm_comic_info.dart';
+import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart';
+import 'package:zephyr/type/enum.dart' as _i30;
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -50,10 +55,13 @@ class _JmComicInfoPage extends StatefulWidget {
 }
 
 class __JmComicInfoPageState extends State<_JmComicInfoPage> {
+  bool get isDownload => widget.type == ComicEntryType.download;
+
   late JmComicInfoState _state;
   bool _init = false;
   bool _hasHistory = false;
   JmHistory? jmHistory;
+  JmDownload? jmDownload;
 
   @override
   void initState() {
@@ -64,6 +72,12 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
             .build()
             .findFirst();
     _hasHistory = jmHistory?.deleted == false;
+
+    jmDownload =
+        objectbox.jmDownloadBox
+            .query(JmDownload_.comicId.equals(widget.comicId))
+            .build()
+            .findFirst();
   }
 
   @override
@@ -79,18 +93,21 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
           Expanded(child: Container()),
         ],
       ),
-      body: BlocBuilder<JmComicInfoBloc, JmComicInfoState>(
-        builder: (context, state) {
-          switch (state.status) {
-            case JmComicInfoStatus.initial:
-              return const Center(child: CircularProgressIndicator());
-            case JmComicInfoStatus.failure:
-              return _failureWidget(state);
-            case JmComicInfoStatus.success:
-              return _comicEntry(state);
-          }
-        },
-      ),
+      body:
+          !isDownload
+              ? BlocBuilder<JmComicInfoBloc, JmComicInfoState>(
+                builder: (context, state) {
+                  switch (state.status) {
+                    case JmComicInfoStatus.initial:
+                      return const Center(child: CircularProgressIndicator());
+                    case JmComicInfoStatus.failure:
+                      return _failureWidget(state);
+                    case JmComicInfoStatus.success:
+                      return _comicEntry(state);
+                  }
+                },
+              )
+              : _comicEntry(null),
       floatingActionButton:
           _init
               ? SizedBox(
@@ -98,17 +115,53 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                 height: 56,
                 child: FloatingActionButton(
                   onPressed: () {
+                    String comicId = '';
+                    int order = widget.comicId.let(toInt);
+                    int epsNumber = 0;
+                    From from = From.jm;
+                    ComicEntryType type = widget.type;
+                    dynamic comicInfo;
+                    if (isDownload) {
+                      comicId = jmDownload!.comicId;
+                      epsNumber =
+                          jmDownload!.allInfo
+                              .let(downloadInfoJsonFromJson)
+                              .series
+                              .first
+                              .info
+                              .series
+                              .length;
+                      from = From.jm;
+                      if (_hasHistory) {
+                        type = ComicEntryType.historyAndDownload;
+                      }
+                      comicInfo = jmDownload!.allInfo.let(
+                        jmComicInfoJsonFromJson,
+                      );
+                    } else {
+                      comicId = widget.comicId;
+
+                      epsNumber = _state.comicInfo!.series.length;
+                      from = From.jm;
+                      type =
+                          _hasHistory
+                              ? ComicEntryType.history
+                              : ComicEntryType.normal;
+                      comicInfo = _state.comicInfo!;
+                    }
+
+                    if (_hasHistory) {
+                      order = jmHistory!.order;
+                    }
+
                     context.pushRoute(
                       ComicReadRoute(
-                        comicId: widget.comicId,
-                        order: _state.comicInfo!.id,
-                        epsNumber: _state.comicInfo!.series.length,
-                        from: From.jm,
-                        type:
-                            _hasHistory
-                                ? ComicEntryType.history
-                                : ComicEntryType.normal,
-                        comicInfo: _state.comicInfo!,
+                        comicId: comicId,
+                        order: order,
+                        epsNumber: epsNumber,
+                        from: from,
+                        type: type,
+                        comicInfo: comicInfo,
                       ),
                     );
                   },
@@ -137,17 +190,29 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
     ),
   );
 
-  Widget _comicEntry(JmComicInfoState state) {
+  Widget _comicEntry(JmComicInfoState? state) {
     if (!_init) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         setState(() {
           _init = true;
-          _state = state;
+          if (!isDownload) {
+            _state = state!;
+          }
         });
       });
     }
 
-    final comicInfo = state.comicInfo!;
+    late JmComicInfoJson comicInfo;
+    if (!isDownload) {
+      comicInfo = state!.comicInfo!;
+    } else {
+      comicInfo = jmDownload!.allInfo.let(jmComicInfoJsonFromJson);
+      final temp = jmDownload!.allInfo.let(downloadInfoJsonFromJson);
+      if (temp.series.first.info.series.isEmpty) {
+        comicInfo = comicInfo.copyWith(series: []);
+      }
+    }
+
     final id = comicInfo.id.toString();
 
     if (comicInfo.name.isEmpty) {
@@ -168,7 +233,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
             pictureInfo: PictureInfo(
               from: 'jm',
               url: getJmCoverUrl(id),
-              path: '.jpg',
+              path: '$id.jpg',
               cartoonId: id,
               pictureType: 'cover',
             ),
@@ -268,9 +333,10 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                     series: series1,
                     comicInfo: comicInfo,
                     epsNumber: comicInfo.series.length,
+                    type: widget.type,
                   ),
                 ),
-                if (series2 != null) const SizedBox(width: 8),
+                const SizedBox(width: 8),
                 if (series2 != null)
                   Expanded(
                     child: EpWidget(
@@ -278,9 +344,10 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                       series: series2,
                       comicInfo: comicInfo,
                       epsNumber: comicInfo.series.length,
+                      type: widget.type,
                     ),
                   ),
-                SizedBox(width: 5),
+                if (series2 == null) ...[Expanded(child: Container())],
               ],
             ),
           ),

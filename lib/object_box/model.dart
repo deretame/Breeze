@@ -402,9 +402,11 @@ class JmDownload {
   bool isAids;
   String price;
   String purchased;
-  // 这个用来放已经下载好的章节的标题，用来检测是否下载了
-  List<String> epsTitle;
+  // 这个用来放已经下载好的章节的id，用来检测是否下载了
+  List<String> epsIds;
   String allInfo;
+  @Property(type: PropertyType.date)
+  DateTime downloadTime;
 
   JmDownload({
     this.id = 0,
@@ -425,8 +427,9 @@ class JmDownload {
     required this.isAids,
     required this.price,
     required this.purchased,
-    required this.epsTitle,
+    required this.epsIds,
     required this.allInfo,
+    required this.downloadTime,
   });
 
   Map<String, dynamic> toJson() => _$JmDownloadToJson(this);

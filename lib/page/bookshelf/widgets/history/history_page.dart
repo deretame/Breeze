@@ -294,7 +294,7 @@ class __HistoryPageState extends State<_HistoryPage>
               title: element.name,
               id: element.comicId.toString(),
               fileServer: getJmCoverUrl(element.comicId.toString()),
-              path: ".jpg",
+              path: "${element.comicId}.jpg",
               pictureType: 'cover',
               from: 'jm',
             ),

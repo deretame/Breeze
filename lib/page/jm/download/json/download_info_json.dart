@@ -17,25 +17,26 @@ String downloadInfoJsonToJson(DownloadInfoJson data) =>
 @freezed
 abstract class DownloadInfoJson with _$DownloadInfoJson {
   const factory DownloadInfoJson({
-    required int id,
-    required String name,
-    required List<dynamic> images,
-    required String addtime,
-    required String description,
-    required String totalViews,
-    required String likes,
-    required List<DownloadInfoJsonSeries> series,
-    required String seriesId,
-    required String commentTotal,
-    required List<String> author,
-    required List<String> tags,
-    required List<String> works,
-    required List<String> actors,
-    required bool liked,
-    required bool isFavorite,
-    required bool isAids,
-    required String price,
-    required String purchased,
+    @JsonKey(name: "id") required int id,
+    @JsonKey(name: "name") required String name,
+    @JsonKey(name: "images") required List<dynamic> images,
+    @JsonKey(name: "addtime") required String addtime,
+    @JsonKey(name: "description") required String description,
+    @JsonKey(name: "total_views") required String totalViews,
+    @JsonKey(name: "likes") required String likes,
+    @JsonKey(name: "series") required List<DownloadInfoJsonSeries> series,
+    @JsonKey(name: "series_id") required String seriesId,
+    @JsonKey(name: "comment_total") required String commentTotal,
+    @JsonKey(name: "author") required List<String> author,
+    @JsonKey(name: "tags") required List<String> tags,
+    @JsonKey(name: "works") required List<String> works,
+    @JsonKey(name: "actors") required List<String> actors,
+    @JsonKey(name: "related_list") required List<RelatedList> relatedList,
+    @JsonKey(name: "liked") required bool liked,
+    @JsonKey(name: "is_favorite") required bool isFavorite,
+    @JsonKey(name: "is_aids") required bool isAids,
+    @JsonKey(name: "price") required String price,
+    @JsonKey(name: "purchased") required String purchased,
   }) = _DownloadInfoJson;
 
   factory DownloadInfoJson.fromJson(Map<String, dynamic> json) =>
@@ -43,12 +44,25 @@ abstract class DownloadInfoJson with _$DownloadInfoJson {
 }
 
 @freezed
+abstract class RelatedList with _$RelatedList {
+  const factory RelatedList({
+    @JsonKey(name: "id") required String id,
+    @JsonKey(name: "author") required String author,
+    @JsonKey(name: "name") required String name,
+    @JsonKey(name: "image") required String image,
+  }) = _RelatedList;
+
+  factory RelatedList.fromJson(Map<String, dynamic> json) =>
+      _$RelatedListFromJson(json);
+}
+
+@freezed
 abstract class DownloadInfoJsonSeries with _$DownloadInfoJsonSeries {
   const factory DownloadInfoJsonSeries({
-    required String id,
-    required String name,
-    required String sort,
-    required Info info,
+    @JsonKey(name: "id") required String id,
+    @JsonKey(name: "name") required String name,
+    @JsonKey(name: "sort") required String sort,
+    @JsonKey(name: "info") required Info info,
   }) = _DownloadInfoJsonSeries;
 
   factory DownloadInfoJsonSeries.fromJson(Map<String, dynamic> json) =>
@@ -58,33 +72,26 @@ abstract class DownloadInfoJsonSeries with _$DownloadInfoJsonSeries {
 @freezed
 abstract class Info with _$Info {
   const factory Info({
-    required String epId,
-    required String epName,
-    required List<InfoSeries> series,
-    required List<Doc> docs,
+    @JsonKey(name: "id") required int id,
+    @JsonKey(name: "series") required List<InfoSeries> series,
+    @JsonKey(name: "tags") required String tags,
+    @JsonKey(name: "name") required String name,
+    @JsonKey(name: "images") required List<String> images,
+    @JsonKey(name: "addtime") required String addtime,
+    @JsonKey(name: "series_id") required String seriesId,
+    @JsonKey(name: "is_favorite") required bool isFavorite,
+    @JsonKey(name: "liked") required bool liked,
   }) = _Info;
 
   factory Info.fromJson(Map<String, dynamic> json) => _$InfoFromJson(json);
 }
 
 @freezed
-abstract class Doc with _$Doc {
-  const factory Doc({
-    required String originalName,
-    required String path,
-    required String fileServer,
-    required String id,
-  }) = _Doc;
-
-  factory Doc.fromJson(Map<String, dynamic> json) => _$DocFromJson(json);
-}
-
-@freezed
 abstract class InfoSeries with _$InfoSeries {
   const factory InfoSeries({
-    required String id,
-    required String name,
-    required String sort,
+    @JsonKey(name: "id") required String id,
+    @JsonKey(name: "name") required String name,
+    @JsonKey(name: "sort") required String sort,
   }) = _InfoSeries;
 
   factory InfoSeries.fromJson(Map<String, dynamic> json) =>

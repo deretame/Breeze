@@ -1,14 +1,12 @@
-import 'dart:convert';
-
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
-import 'package:zephyr/page/comic_read/json/common_ep_info_json/common_ep_info_json.dart'
-    as c;
-import 'package:zephyr/page/comic_read/json/jm_ep_info_json/jm_ep_info_json.dart';
+import 'package:zephyr/page/bookshelf/json/download/comic_all_info_json.dart';
 import 'package:zephyr/page/jm/download/json/download_info_json.dart';
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart'
     as base_info;
+import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/task/bika_download.dart';
@@ -17,81 +15,39 @@ import 'package:zephyr/util/json_dispose.dart';
 Future<void> jmDownloadTask(DownloadTaskJson task) async {
   // 先获取一下基本的信息
   final comicInfo = await getJmComicInfo(task.comicId);
-  final epsList = await fetchJMMedia(
-    comicInfo.series.map((s) => s.id).toList(),
-  );
+  List<String> epIds = task.selectedChapters.map((e) => e.toString()).toList();
+  if (epIds.isEmpty) epIds = [comicInfo.id.toString()];
 
-  if (comicInfo.series.isEmpty) {
-    final data = DownloadInfoJsonSeries(
-      id: '',
-      name: '',
-      sort: '',
-      info: Info(
-        epId: comicInfo.id.toString(),
-        epName: comicInfo.name,
-        series: [],
-        docs:
-            epsList.first.docs
-                .map(
-                  (d) => Doc(
-                    originalName: d.originalName,
-                    path: d.path,
-                    fileServer: d.fileServer,
-                    id: d.id,
-                  ),
-                )
-                .toList(),
-      ),
-    );
-  }
+  final epsList = await fetchJMMedia(epIds);
+
+  final downloadInfoJson = comicInfo2DownloadInfoJson(comicInfo);
+
+  final updatedSeries =
+      downloadInfoJson.series.map((series) {
+        return series.copyWith(
+          info: epsList.firstWhere((e) => e.id.toString() == series.id),
+        );
+      }).toList();
+
+  final updatedDownloadInfo = downloadInfoJson.copyWith(series: updatedSeries);
+
+  final temp = downloadInfoJsonToJson(updatedDownloadInfo);
+
+  logger.d("updatedDownloadInfo: $temp");
 
   List<String> epsTitle = [];
 
-  // var comicAllInfoJson = DownloadInfoJson(
-  //   comic: comicInfo,
-  //   eps: Eps(docs: epsDocs),
-  // );
+  for (var series in updatedDownloadInfo.series) {
+    if (task.selectedChapters.contains(series.id)) {
+      epsTitle.add(series.info.name);
+    }
+  }
 
-  // final coverPath = await downloadPicture(
-  //   from: 'bika',
-  //   url: comicInfo.thumb.fileServer,
-  //   path: comicInfo.thumb.path,
-  //   cartoonId: comicInfo.id,
-  //   pictureType: 'cover',
-  //   chapterId: comicInfo.id,
-  // );
+  logger.d("epsTitle: $epsTitle");
 
-  // if (coverPath.contains('404')) {
-  //   comicAllInfoJson = comicAllInfoJson.copyWith(
-  //     comic: comicAllInfoJson.comic.copyWith(
-  //       thumb: comicAllInfoJson.comic.thumb.copyWith(fileServer: ""),
-  //     ),
-  //   );
-  // }
+  await downloadComic(updatedDownloadInfo, task.selectedChapters);
 
-  // List<PagesDoc> pagesDocs = [];
-
-  // for (var media in imageData) {
-  //   for (var doc in media.docs) {
-  //     pagesDocs.add(doc);
-  //   }
-  // }
-
-  // final List<Future<void>> downloadTasks =
-  //     pagesDocs.map((doc) async {
-  //       await downloadPicture(
-  //         from: 'bika',
-  //         url: doc.media.fileServer,
-  //         path: doc.media.path,
-  //         cartoonId: comicInfo.id,
-  //         pictureType: 'comic',
-  //         chapterId: doc.docId,
-  //       );
-  //     }).toList();
-
-  // await Future.wait(downloadTasks);
-
-  await sendSystemNotification("下载完成", "${comicInfo.name}下载完成");
+  await sendSystemNotification("下载完成", "${updatedDownloadInfo.name}下载完成");
 
   FlutterForegroundTask.stopService();
 }
@@ -112,52 +68,154 @@ Future<base_info.JmComicInfoJson> getJmComicInfo(String comicId) async {
         return d.copyWith(series: newSeries);
       });
       break;
-    } catch (_) {}
+    } catch (e) {
+      logger.e(e);
+    }
   }
   return comicInfo!;
 }
 
-Future<List<c.CommonEpInfoJson>> fetchJMMedia(List<String> epIds) async {
-  List<c.Doc> docsList = [];
-  List<c.CommonEpInfoJson> results = [];
-  for (var epId in epIds) {
-    var result = c.CommonEpInfoJson(epId: '', epName: '', series: [], docs: []);
-    while (true) {
-      try {
-        await getEpInfo(
-          epId,
-        ).let(replaceNestedNull).let(JmEpInfoJson.fromJson).also((d) {
-          for (var doc in d.images) {
-            docsList.add(
-              c.Doc(
-                originalName: doc,
-                path: doc,
-                fileServer: getJmImagesUrl(epId, doc),
-                id: d.id.let(toString),
-              ),
-            );
+Future<List<Info>> fetchJMMedia(List<String> epIds) async {
+  final List<Future<Info>> fetchTasks =
+      epIds.map((epId) async {
+        while (true) {
+          try {
+            final rawInfo = await getEpInfo(epId);
+            final cleanedInfo = replaceNestedNull(rawInfo);
+            final infoObject = Info.fromJson(cleanedInfo);
+
+            var series = infoObject.series.toList();
+            series.removeWhere((s) => s.sort == '0');
+            final newSeries =
+                series
+                    .map((s) => s.copyWith(name: '第${s.sort}话 ${s.name}'))
+                    .toList();
+
+            return infoObject.copyWith(series: newSeries);
+          } catch (e) {
+            logger.e(e);
           }
-          result = result.copyWith(
-            epId: d.id.let(toString),
-            epName: d.name,
-            series: d.series
-                .map(
-                  (s) => c.Series(
-                    id: s.id.let(toString),
-                    name: "第${s.sort}话 ${s.name}",
-                    sort: s.sort,
-                  ),
-                )
-                .toList()
-                .let((d) => d..removeWhere((e) => e.sort == '0')),
-            docs: docsList,
-          );
-        });
-        break;
-      } catch (_) {}
-    }
-    results.add(result);
+        }
+      }).toList();
+  final List<Info> docsList = await Future.wait(fetchTasks);
+
+  docsList.sort((a, b) => a.id.compareTo(b.id));
+
+  return docsList;
+}
+
+DownloadInfoJson comicInfo2DownloadInfoJson(
+  base_info.JmComicInfoJson comicInfo,
+) {
+  var result = DownloadInfoJson(
+    id: comicInfo.id,
+    name: comicInfo.name,
+    images: comicInfo.images,
+    addtime: comicInfo.addtime,
+    description: comicInfo.description,
+    totalViews: comicInfo.totalViews,
+    likes: comicInfo.likes,
+    series: [],
+    seriesId: comicInfo.seriesId,
+    commentTotal: comicInfo.commentTotal,
+    author: comicInfo.author,
+    tags: comicInfo.tags,
+    works: comicInfo.works,
+    actors: comicInfo.actors,
+    liked: comicInfo.liked,
+    isFavorite: comicInfo.isFavorite,
+    isAids: comicInfo.isAids,
+    price: comicInfo.price,
+    purchased: comicInfo.purchased,
+    relatedList: [],
+  );
+
+  List<DownloadInfoJsonSeries> seriesList = [];
+
+  if (comicInfo.series.isEmpty) {
+    seriesList.add(
+      DownloadInfoJsonSeries(
+        id: comicInfo.id.toString(),
+        name: comicInfo.name,
+        sort: 'null',
+        info: Info(
+          id: 0,
+          series: [],
+          tags: '',
+          name: '',
+          images: [],
+          addtime: '',
+          seriesId: '',
+          isFavorite: false,
+          liked: false,
+        ),
+      ),
+    );
   }
 
-  return results;
+  for (var series in comicInfo.series) {
+    seriesList.add(
+      DownloadInfoJsonSeries(
+        id: series.id,
+        name: series.name,
+        sort: series.sort,
+        info: Info(
+          id: 0,
+          series: [],
+          tags: '',
+          name: '',
+          images: [],
+          addtime: '',
+          seriesId: '',
+          isFavorite: false,
+          liked: false,
+        ),
+      ),
+    );
+  }
+
+  return result.copyWith(series: seriesList);
+}
+
+Future<void> downloadComic(
+  DownloadInfoJson downloadInfoJson,
+  List<String> selectedChapters,
+) async {
+  await RustLib.init();
+  final selectedEps =
+      downloadInfoJson.series
+          .where((e) => selectedChapters.contains(e.id))
+          .toList();
+
+  final List<PagesDoc> docsList = [];
+
+  for (var series in selectedEps) {
+    for (var image in series.info.images) {
+      docsList.add(
+        PagesDoc(
+          id: series.id.toString(),
+          media: Thumb(
+            originalName: image,
+            path: image,
+            fileServer: getJmImagesUrl(series.id.toString(), image),
+          ),
+          docId: series.id.toString(),
+        ),
+      );
+    }
+  }
+
+  final List<Future<void>> downloadTasks =
+      docsList.map((doc) async {
+        await downloadPicture(
+          from: 'jm',
+          url: doc.media.fileServer,
+          path: doc.media.path,
+          cartoonId: downloadInfoJson.id.toString(),
+          pictureType: 'comic',
+          chapterId: doc.docId,
+        );
+      }).toList();
+
+  await Future.wait(downloadTasks);
 }

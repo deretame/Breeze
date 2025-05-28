@@ -14,7 +14,7 @@ _DownloadInfoJson _$DownloadInfoJsonFromJson(
   images: json['images'] as List<dynamic>,
   addtime: json['addtime'] as String,
   description: json['description'] as String,
-  totalViews: json['totalViews'] as String,
+  totalViews: json['total_views'] as String,
   likes: json['likes'] as String,
   series:
       (json['series'] as List<dynamic>)
@@ -22,15 +22,19 @@ _DownloadInfoJson _$DownloadInfoJsonFromJson(
             (e) => DownloadInfoJsonSeries.fromJson(e as Map<String, dynamic>),
           )
           .toList(),
-  seriesId: json['seriesId'] as String,
-  commentTotal: json['commentTotal'] as String,
+  seriesId: json['series_id'] as String,
+  commentTotal: json['comment_total'] as String,
   author: (json['author'] as List<dynamic>).map((e) => e as String).toList(),
   tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
   works: (json['works'] as List<dynamic>).map((e) => e as String).toList(),
   actors: (json['actors'] as List<dynamic>).map((e) => e as String).toList(),
+  relatedList:
+      (json['related_list'] as List<dynamic>)
+          .map((e) => RelatedList.fromJson(e as Map<String, dynamic>))
+          .toList(),
   liked: json['liked'] as bool,
-  isFavorite: json['isFavorite'] as bool,
-  isAids: json['isAids'] as bool,
+  isFavorite: json['is_favorite'] as bool,
+  isAids: json['is_aids'] as bool,
   price: json['price'] as String,
   purchased: json['purchased'] as String,
 );
@@ -42,20 +46,36 @@ Map<String, dynamic> _$DownloadInfoJsonToJson(_DownloadInfoJson instance) =>
       'images': instance.images,
       'addtime': instance.addtime,
       'description': instance.description,
-      'totalViews': instance.totalViews,
+      'total_views': instance.totalViews,
       'likes': instance.likes,
       'series': instance.series,
-      'seriesId': instance.seriesId,
-      'commentTotal': instance.commentTotal,
+      'series_id': instance.seriesId,
+      'comment_total': instance.commentTotal,
       'author': instance.author,
       'tags': instance.tags,
       'works': instance.works,
       'actors': instance.actors,
+      'related_list': instance.relatedList,
       'liked': instance.liked,
-      'isFavorite': instance.isFavorite,
-      'isAids': instance.isAids,
+      'is_favorite': instance.isFavorite,
+      'is_aids': instance.isAids,
       'price': instance.price,
       'purchased': instance.purchased,
+    };
+
+_RelatedList _$RelatedListFromJson(Map<String, dynamic> json) => _RelatedList(
+  id: json['id'] as String,
+  author: json['author'] as String,
+  name: json['name'] as String,
+  image: json['image'] as String,
+);
+
+Map<String, dynamic> _$RelatedListToJson(_RelatedList instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'author': instance.author,
+      'name': instance.name,
+      'image': instance.image,
     };
 
 _DownloadInfoJsonSeries _$DownloadInfoJsonSeriesFromJson(
@@ -77,37 +97,30 @@ Map<String, dynamic> _$DownloadInfoJsonSeriesToJson(
 };
 
 _Info _$InfoFromJson(Map<String, dynamic> json) => _Info(
-  epId: json['epId'] as String,
-  epName: json['epName'] as String,
+  id: (json['id'] as num).toInt(),
   series:
       (json['series'] as List<dynamic>)
           .map((e) => InfoSeries.fromJson(e as Map<String, dynamic>))
           .toList(),
-  docs:
-      (json['docs'] as List<dynamic>)
-          .map((e) => Doc.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  tags: json['tags'] as String,
+  name: json['name'] as String,
+  images: (json['images'] as List<dynamic>).map((e) => e as String).toList(),
+  addtime: json['addtime'] as String,
+  seriesId: json['series_id'] as String,
+  isFavorite: json['is_favorite'] as bool,
+  liked: json['liked'] as bool,
 );
 
 Map<String, dynamic> _$InfoToJson(_Info instance) => <String, dynamic>{
-  'epId': instance.epId,
-  'epName': instance.epName,
-  'series': instance.series,
-  'docs': instance.docs,
-};
-
-_Doc _$DocFromJson(Map<String, dynamic> json) => _Doc(
-  originalName: json['originalName'] as String,
-  path: json['path'] as String,
-  fileServer: json['fileServer'] as String,
-  id: json['id'] as String,
-);
-
-Map<String, dynamic> _$DocToJson(_Doc instance) => <String, dynamic>{
-  'originalName': instance.originalName,
-  'path': instance.path,
-  'fileServer': instance.fileServer,
   'id': instance.id,
+  'series': instance.series,
+  'tags': instance.tags,
+  'name': instance.name,
+  'images': instance.images,
+  'addtime': instance.addtime,
+  'series_id': instance.seriesId,
+  'is_favorite': instance.isFavorite,
+  'liked': instance.liked,
 };
 
 _InfoSeries _$InfoSeriesFromJson(Map<String, dynamic> json) => _InfoSeries(

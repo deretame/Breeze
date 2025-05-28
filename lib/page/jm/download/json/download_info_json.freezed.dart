@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DownloadInfoJson {
 
- int get id; String get name; List<dynamic> get images; String get addtime; String get description; String get totalViews; String get likes; List<DownloadInfoJsonSeries> get series; String get seriesId; String get commentTotal; List<String> get author; List<String> get tags; List<String> get works; List<String> get actors; bool get liked; bool get isFavorite; bool get isAids; String get price; String get purchased;
+@JsonKey(name: "id") int get id;@JsonKey(name: "name") String get name;@JsonKey(name: "images") List<dynamic> get images;@JsonKey(name: "addtime") String get addtime;@JsonKey(name: "description") String get description;@JsonKey(name: "total_views") String get totalViews;@JsonKey(name: "likes") String get likes;@JsonKey(name: "series") List<DownloadInfoJsonSeries> get series;@JsonKey(name: "series_id") String get seriesId;@JsonKey(name: "comment_total") String get commentTotal;@JsonKey(name: "author") List<String> get author;@JsonKey(name: "tags") List<String> get tags;@JsonKey(name: "works") List<String> get works;@JsonKey(name: "actors") List<String> get actors;@JsonKey(name: "related_list") List<RelatedList> get relatedList;@JsonKey(name: "liked") bool get liked;@JsonKey(name: "is_favorite") bool get isFavorite;@JsonKey(name: "is_aids") bool get isAids;@JsonKey(name: "price") String get price;@JsonKey(name: "purchased") String get purchased;
 /// Create a copy of DownloadInfoJson
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $DownloadInfoJsonCopyWith<DownloadInfoJson> get copyWith => _$DownloadInfoJsonCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadInfoJson&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.images, images)&&(identical(other.addtime, addtime) || other.addtime == addtime)&&(identical(other.description, description) || other.description == description)&&(identical(other.totalViews, totalViews) || other.totalViews == totalViews)&&(identical(other.likes, likes) || other.likes == likes)&&const DeepCollectionEquality().equals(other.series, series)&&(identical(other.seriesId, seriesId) || other.seriesId == seriesId)&&(identical(other.commentTotal, commentTotal) || other.commentTotal == commentTotal)&&const DeepCollectionEquality().equals(other.author, author)&&const DeepCollectionEquality().equals(other.tags, tags)&&const DeepCollectionEquality().equals(other.works, works)&&const DeepCollectionEquality().equals(other.actors, actors)&&(identical(other.liked, liked) || other.liked == liked)&&(identical(other.isFavorite, isFavorite) || other.isFavorite == isFavorite)&&(identical(other.isAids, isAids) || other.isAids == isAids)&&(identical(other.price, price) || other.price == price)&&(identical(other.purchased, purchased) || other.purchased == purchased));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadInfoJson&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.images, images)&&(identical(other.addtime, addtime) || other.addtime == addtime)&&(identical(other.description, description) || other.description == description)&&(identical(other.totalViews, totalViews) || other.totalViews == totalViews)&&(identical(other.likes, likes) || other.likes == likes)&&const DeepCollectionEquality().equals(other.series, series)&&(identical(other.seriesId, seriesId) || other.seriesId == seriesId)&&(identical(other.commentTotal, commentTotal) || other.commentTotal == commentTotal)&&const DeepCollectionEquality().equals(other.author, author)&&const DeepCollectionEquality().equals(other.tags, tags)&&const DeepCollectionEquality().equals(other.works, works)&&const DeepCollectionEquality().equals(other.actors, actors)&&const DeepCollectionEquality().equals(other.relatedList, relatedList)&&(identical(other.liked, liked) || other.liked == liked)&&(identical(other.isFavorite, isFavorite) || other.isFavorite == isFavorite)&&(identical(other.isAids, isAids) || other.isAids == isAids)&&(identical(other.price, price) || other.price == price)&&(identical(other.purchased, purchased) || other.purchased == purchased));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,name,const DeepCollectionEquality().hash(images),addtime,description,totalViews,likes,const DeepCollectionEquality().hash(series),seriesId,commentTotal,const DeepCollectionEquality().hash(author),const DeepCollectionEquality().hash(tags),const DeepCollectionEquality().hash(works),const DeepCollectionEquality().hash(actors),liked,isFavorite,isAids,price,purchased]);
+int get hashCode => Object.hashAll([runtimeType,id,name,const DeepCollectionEquality().hash(images),addtime,description,totalViews,likes,const DeepCollectionEquality().hash(series),seriesId,commentTotal,const DeepCollectionEquality().hash(author),const DeepCollectionEquality().hash(tags),const DeepCollectionEquality().hash(works),const DeepCollectionEquality().hash(actors),const DeepCollectionEquality().hash(relatedList),liked,isFavorite,isAids,price,purchased]);
 
 @override
 String toString() {
-  return 'DownloadInfoJson(id: $id, name: $name, images: $images, addtime: $addtime, description: $description, totalViews: $totalViews, likes: $likes, series: $series, seriesId: $seriesId, commentTotal: $commentTotal, author: $author, tags: $tags, works: $works, actors: $actors, liked: $liked, isFavorite: $isFavorite, isAids: $isAids, price: $price, purchased: $purchased)';
+  return 'DownloadInfoJson(id: $id, name: $name, images: $images, addtime: $addtime, description: $description, totalViews: $totalViews, likes: $likes, series: $series, seriesId: $seriesId, commentTotal: $commentTotal, author: $author, tags: $tags, works: $works, actors: $actors, relatedList: $relatedList, liked: $liked, isFavorite: $isFavorite, isAids: $isAids, price: $price, purchased: $purchased)';
 }
 
 
@@ -49,7 +49,7 @@ abstract mixin class $DownloadInfoJsonCopyWith<$Res>  {
   factory $DownloadInfoJsonCopyWith(DownloadInfoJson value, $Res Function(DownloadInfoJson) _then) = _$DownloadInfoJsonCopyWithImpl;
 @useResult
 $Res call({
- int id, String name, List<dynamic> images, String addtime, String description, String totalViews, String likes, List<DownloadInfoJsonSeries> series, String seriesId, String commentTotal, List<String> author, List<String> tags, List<String> works, List<String> actors, bool liked, bool isFavorite, bool isAids, String price, String purchased
+@JsonKey(name: "id") int id,@JsonKey(name: "name") String name,@JsonKey(name: "images") List<dynamic> images,@JsonKey(name: "addtime") String addtime,@JsonKey(name: "description") String description,@JsonKey(name: "total_views") String totalViews,@JsonKey(name: "likes") String likes,@JsonKey(name: "series") List<DownloadInfoJsonSeries> series,@JsonKey(name: "series_id") String seriesId,@JsonKey(name: "comment_total") String commentTotal,@JsonKey(name: "author") List<String> author,@JsonKey(name: "tags") List<String> tags,@JsonKey(name: "works") List<String> works,@JsonKey(name: "actors") List<String> actors,@JsonKey(name: "related_list") List<RelatedList> relatedList,@JsonKey(name: "liked") bool liked,@JsonKey(name: "is_favorite") bool isFavorite,@JsonKey(name: "is_aids") bool isAids,@JsonKey(name: "price") String price,@JsonKey(name: "purchased") String purchased
 });
 
 
@@ -66,7 +66,7 @@ class _$DownloadInfoJsonCopyWithImpl<$Res>
 
 /// Create a copy of DownloadInfoJson
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? images = null,Object? addtime = null,Object? description = null,Object? totalViews = null,Object? likes = null,Object? series = null,Object? seriesId = null,Object? commentTotal = null,Object? author = null,Object? tags = null,Object? works = null,Object? actors = null,Object? liked = null,Object? isFavorite = null,Object? isAids = null,Object? price = null,Object? purchased = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? images = null,Object? addtime = null,Object? description = null,Object? totalViews = null,Object? likes = null,Object? series = null,Object? seriesId = null,Object? commentTotal = null,Object? author = null,Object? tags = null,Object? works = null,Object? actors = null,Object? relatedList = null,Object? liked = null,Object? isFavorite = null,Object? isAids = null,Object? price = null,Object? purchased = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -82,7 +82,8 @@ as String,author: null == author ? _self.author : author // ignore: cast_nullabl
 as List<String>,tags: null == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
 as List<String>,works: null == works ? _self.works : works // ignore: cast_nullable_to_non_nullable
 as List<String>,actors: null == actors ? _self.actors : actors // ignore: cast_nullable_to_non_nullable
-as List<String>,liked: null == liked ? _self.liked : liked // ignore: cast_nullable_to_non_nullable
+as List<String>,relatedList: null == relatedList ? _self.relatedList : relatedList // ignore: cast_nullable_to_non_nullable
+as List<RelatedList>,liked: null == liked ? _self.liked : liked // ignore: cast_nullable_to_non_nullable
 as bool,isFavorite: null == isFavorite ? _self.isFavorite : isFavorite // ignore: cast_nullable_to_non_nullable
 as bool,isAids: null == isAids ? _self.isAids : isAids // ignore: cast_nullable_to_non_nullable
 as bool,price: null == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
@@ -98,64 +99,71 @@ as String,
 @JsonSerializable()
 
 class _DownloadInfoJson implements DownloadInfoJson {
-  const _DownloadInfoJson({required this.id, required this.name, required final  List<dynamic> images, required this.addtime, required this.description, required this.totalViews, required this.likes, required final  List<DownloadInfoJsonSeries> series, required this.seriesId, required this.commentTotal, required final  List<String> author, required final  List<String> tags, required final  List<String> works, required final  List<String> actors, required this.liked, required this.isFavorite, required this.isAids, required this.price, required this.purchased}): _images = images,_series = series,_author = author,_tags = tags,_works = works,_actors = actors;
+  const _DownloadInfoJson({@JsonKey(name: "id") required this.id, @JsonKey(name: "name") required this.name, @JsonKey(name: "images") required final  List<dynamic> images, @JsonKey(name: "addtime") required this.addtime, @JsonKey(name: "description") required this.description, @JsonKey(name: "total_views") required this.totalViews, @JsonKey(name: "likes") required this.likes, @JsonKey(name: "series") required final  List<DownloadInfoJsonSeries> series, @JsonKey(name: "series_id") required this.seriesId, @JsonKey(name: "comment_total") required this.commentTotal, @JsonKey(name: "author") required final  List<String> author, @JsonKey(name: "tags") required final  List<String> tags, @JsonKey(name: "works") required final  List<String> works, @JsonKey(name: "actors") required final  List<String> actors, @JsonKey(name: "related_list") required final  List<RelatedList> relatedList, @JsonKey(name: "liked") required this.liked, @JsonKey(name: "is_favorite") required this.isFavorite, @JsonKey(name: "is_aids") required this.isAids, @JsonKey(name: "price") required this.price, @JsonKey(name: "purchased") required this.purchased}): _images = images,_series = series,_author = author,_tags = tags,_works = works,_actors = actors,_relatedList = relatedList;
   factory _DownloadInfoJson.fromJson(Map<String, dynamic> json) => _$DownloadInfoJsonFromJson(json);
 
-@override final  int id;
-@override final  String name;
+@override@JsonKey(name: "id") final  int id;
+@override@JsonKey(name: "name") final  String name;
  final  List<dynamic> _images;
-@override List<dynamic> get images {
+@override@JsonKey(name: "images") List<dynamic> get images {
   if (_images is EqualUnmodifiableListView) return _images;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_images);
 }
 
-@override final  String addtime;
-@override final  String description;
-@override final  String totalViews;
-@override final  String likes;
+@override@JsonKey(name: "addtime") final  String addtime;
+@override@JsonKey(name: "description") final  String description;
+@override@JsonKey(name: "total_views") final  String totalViews;
+@override@JsonKey(name: "likes") final  String likes;
  final  List<DownloadInfoJsonSeries> _series;
-@override List<DownloadInfoJsonSeries> get series {
+@override@JsonKey(name: "series") List<DownloadInfoJsonSeries> get series {
   if (_series is EqualUnmodifiableListView) return _series;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_series);
 }
 
-@override final  String seriesId;
-@override final  String commentTotal;
+@override@JsonKey(name: "series_id") final  String seriesId;
+@override@JsonKey(name: "comment_total") final  String commentTotal;
  final  List<String> _author;
-@override List<String> get author {
+@override@JsonKey(name: "author") List<String> get author {
   if (_author is EqualUnmodifiableListView) return _author;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_author);
 }
 
  final  List<String> _tags;
-@override List<String> get tags {
+@override@JsonKey(name: "tags") List<String> get tags {
   if (_tags is EqualUnmodifiableListView) return _tags;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_tags);
 }
 
  final  List<String> _works;
-@override List<String> get works {
+@override@JsonKey(name: "works") List<String> get works {
   if (_works is EqualUnmodifiableListView) return _works;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_works);
 }
 
  final  List<String> _actors;
-@override List<String> get actors {
+@override@JsonKey(name: "actors") List<String> get actors {
   if (_actors is EqualUnmodifiableListView) return _actors;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_actors);
 }
 
-@override final  bool liked;
-@override final  bool isFavorite;
-@override final  bool isAids;
-@override final  String price;
-@override final  String purchased;
+ final  List<RelatedList> _relatedList;
+@override@JsonKey(name: "related_list") List<RelatedList> get relatedList {
+  if (_relatedList is EqualUnmodifiableListView) return _relatedList;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_relatedList);
+}
+
+@override@JsonKey(name: "liked") final  bool liked;
+@override@JsonKey(name: "is_favorite") final  bool isFavorite;
+@override@JsonKey(name: "is_aids") final  bool isAids;
+@override@JsonKey(name: "price") final  String price;
+@override@JsonKey(name: "purchased") final  String purchased;
 
 /// Create a copy of DownloadInfoJson
 /// with the given fields replaced by the non-null parameter values.
@@ -170,16 +178,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadInfoJson&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._images, _images)&&(identical(other.addtime, addtime) || other.addtime == addtime)&&(identical(other.description, description) || other.description == description)&&(identical(other.totalViews, totalViews) || other.totalViews == totalViews)&&(identical(other.likes, likes) || other.likes == likes)&&const DeepCollectionEquality().equals(other._series, _series)&&(identical(other.seriesId, seriesId) || other.seriesId == seriesId)&&(identical(other.commentTotal, commentTotal) || other.commentTotal == commentTotal)&&const DeepCollectionEquality().equals(other._author, _author)&&const DeepCollectionEquality().equals(other._tags, _tags)&&const DeepCollectionEquality().equals(other._works, _works)&&const DeepCollectionEquality().equals(other._actors, _actors)&&(identical(other.liked, liked) || other.liked == liked)&&(identical(other.isFavorite, isFavorite) || other.isFavorite == isFavorite)&&(identical(other.isAids, isAids) || other.isAids == isAids)&&(identical(other.price, price) || other.price == price)&&(identical(other.purchased, purchased) || other.purchased == purchased));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadInfoJson&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._images, _images)&&(identical(other.addtime, addtime) || other.addtime == addtime)&&(identical(other.description, description) || other.description == description)&&(identical(other.totalViews, totalViews) || other.totalViews == totalViews)&&(identical(other.likes, likes) || other.likes == likes)&&const DeepCollectionEquality().equals(other._series, _series)&&(identical(other.seriesId, seriesId) || other.seriesId == seriesId)&&(identical(other.commentTotal, commentTotal) || other.commentTotal == commentTotal)&&const DeepCollectionEquality().equals(other._author, _author)&&const DeepCollectionEquality().equals(other._tags, _tags)&&const DeepCollectionEquality().equals(other._works, _works)&&const DeepCollectionEquality().equals(other._actors, _actors)&&const DeepCollectionEquality().equals(other._relatedList, _relatedList)&&(identical(other.liked, liked) || other.liked == liked)&&(identical(other.isFavorite, isFavorite) || other.isFavorite == isFavorite)&&(identical(other.isAids, isAids) || other.isAids == isAids)&&(identical(other.price, price) || other.price == price)&&(identical(other.purchased, purchased) || other.purchased == purchased));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,name,const DeepCollectionEquality().hash(_images),addtime,description,totalViews,likes,const DeepCollectionEquality().hash(_series),seriesId,commentTotal,const DeepCollectionEquality().hash(_author),const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_works),const DeepCollectionEquality().hash(_actors),liked,isFavorite,isAids,price,purchased]);
+int get hashCode => Object.hashAll([runtimeType,id,name,const DeepCollectionEquality().hash(_images),addtime,description,totalViews,likes,const DeepCollectionEquality().hash(_series),seriesId,commentTotal,const DeepCollectionEquality().hash(_author),const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_works),const DeepCollectionEquality().hash(_actors),const DeepCollectionEquality().hash(_relatedList),liked,isFavorite,isAids,price,purchased]);
 
 @override
 String toString() {
-  return 'DownloadInfoJson(id: $id, name: $name, images: $images, addtime: $addtime, description: $description, totalViews: $totalViews, likes: $likes, series: $series, seriesId: $seriesId, commentTotal: $commentTotal, author: $author, tags: $tags, works: $works, actors: $actors, liked: $liked, isFavorite: $isFavorite, isAids: $isAids, price: $price, purchased: $purchased)';
+  return 'DownloadInfoJson(id: $id, name: $name, images: $images, addtime: $addtime, description: $description, totalViews: $totalViews, likes: $likes, series: $series, seriesId: $seriesId, commentTotal: $commentTotal, author: $author, tags: $tags, works: $works, actors: $actors, relatedList: $relatedList, liked: $liked, isFavorite: $isFavorite, isAids: $isAids, price: $price, purchased: $purchased)';
 }
 
 
@@ -190,7 +198,7 @@ abstract mixin class _$DownloadInfoJsonCopyWith<$Res> implements $DownloadInfoJs
   factory _$DownloadInfoJsonCopyWith(_DownloadInfoJson value, $Res Function(_DownloadInfoJson) _then) = __$DownloadInfoJsonCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String name, List<dynamic> images, String addtime, String description, String totalViews, String likes, List<DownloadInfoJsonSeries> series, String seriesId, String commentTotal, List<String> author, List<String> tags, List<String> works, List<String> actors, bool liked, bool isFavorite, bool isAids, String price, String purchased
+@JsonKey(name: "id") int id,@JsonKey(name: "name") String name,@JsonKey(name: "images") List<dynamic> images,@JsonKey(name: "addtime") String addtime,@JsonKey(name: "description") String description,@JsonKey(name: "total_views") String totalViews,@JsonKey(name: "likes") String likes,@JsonKey(name: "series") List<DownloadInfoJsonSeries> series,@JsonKey(name: "series_id") String seriesId,@JsonKey(name: "comment_total") String commentTotal,@JsonKey(name: "author") List<String> author,@JsonKey(name: "tags") List<String> tags,@JsonKey(name: "works") List<String> works,@JsonKey(name: "actors") List<String> actors,@JsonKey(name: "related_list") List<RelatedList> relatedList,@JsonKey(name: "liked") bool liked,@JsonKey(name: "is_favorite") bool isFavorite,@JsonKey(name: "is_aids") bool isAids,@JsonKey(name: "price") String price,@JsonKey(name: "purchased") String purchased
 });
 
 
@@ -207,7 +215,7 @@ class __$DownloadInfoJsonCopyWithImpl<$Res>
 
 /// Create a copy of DownloadInfoJson
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? images = null,Object? addtime = null,Object? description = null,Object? totalViews = null,Object? likes = null,Object? series = null,Object? seriesId = null,Object? commentTotal = null,Object? author = null,Object? tags = null,Object? works = null,Object? actors = null,Object? liked = null,Object? isFavorite = null,Object? isAids = null,Object? price = null,Object? purchased = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? images = null,Object? addtime = null,Object? description = null,Object? totalViews = null,Object? likes = null,Object? series = null,Object? seriesId = null,Object? commentTotal = null,Object? author = null,Object? tags = null,Object? works = null,Object? actors = null,Object? relatedList = null,Object? liked = null,Object? isFavorite = null,Object? isAids = null,Object? price = null,Object? purchased = null,}) {
   return _then(_DownloadInfoJson(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -223,7 +231,8 @@ as String,author: null == author ? _self._author : author // ignore: cast_nullab
 as List<String>,tags: null == tags ? _self._tags : tags // ignore: cast_nullable_to_non_nullable
 as List<String>,works: null == works ? _self._works : works // ignore: cast_nullable_to_non_nullable
 as List<String>,actors: null == actors ? _self._actors : actors // ignore: cast_nullable_to_non_nullable
-as List<String>,liked: null == liked ? _self.liked : liked // ignore: cast_nullable_to_non_nullable
+as List<String>,relatedList: null == relatedList ? _self._relatedList : relatedList // ignore: cast_nullable_to_non_nullable
+as List<RelatedList>,liked: null == liked ? _self.liked : liked // ignore: cast_nullable_to_non_nullable
 as bool,isFavorite: null == isFavorite ? _self.isFavorite : isFavorite // ignore: cast_nullable_to_non_nullable
 as bool,isAids: null == isAids ? _self.isAids : isAids // ignore: cast_nullable_to_non_nullable
 as bool,price: null == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
@@ -237,9 +246,151 @@ as String,
 
 
 /// @nodoc
+mixin _$RelatedList {
+
+@JsonKey(name: "id") String get id;@JsonKey(name: "author") String get author;@JsonKey(name: "name") String get name;@JsonKey(name: "image") String get image;
+/// Create a copy of RelatedList
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$RelatedListCopyWith<RelatedList> get copyWith => _$RelatedListCopyWithImpl<RelatedList>(this as RelatedList, _$identity);
+
+  /// Serializes this RelatedList to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RelatedList&&(identical(other.id, id) || other.id == id)&&(identical(other.author, author) || other.author == author)&&(identical(other.name, name) || other.name == name)&&(identical(other.image, image) || other.image == image));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,author,name,image);
+
+@override
+String toString() {
+  return 'RelatedList(id: $id, author: $author, name: $name, image: $image)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $RelatedListCopyWith<$Res>  {
+  factory $RelatedListCopyWith(RelatedList value, $Res Function(RelatedList) _then) = _$RelatedListCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: "id") String id,@JsonKey(name: "author") String author,@JsonKey(name: "name") String name,@JsonKey(name: "image") String image
+});
+
+
+
+
+}
+/// @nodoc
+class _$RelatedListCopyWithImpl<$Res>
+    implements $RelatedListCopyWith<$Res> {
+  _$RelatedListCopyWithImpl(this._self, this._then);
+
+  final RelatedList _self;
+  final $Res Function(RelatedList) _then;
+
+/// Create a copy of RelatedList
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? author = null,Object? name = null,Object? image = null,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,author: null == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,image: null == image ? _self.image : image // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// @nodoc
+@JsonSerializable()
+
+class _RelatedList implements RelatedList {
+  const _RelatedList({@JsonKey(name: "id") required this.id, @JsonKey(name: "author") required this.author, @JsonKey(name: "name") required this.name, @JsonKey(name: "image") required this.image});
+  factory _RelatedList.fromJson(Map<String, dynamic> json) => _$RelatedListFromJson(json);
+
+@override@JsonKey(name: "id") final  String id;
+@override@JsonKey(name: "author") final  String author;
+@override@JsonKey(name: "name") final  String name;
+@override@JsonKey(name: "image") final  String image;
+
+/// Create a copy of RelatedList
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$RelatedListCopyWith<_RelatedList> get copyWith => __$RelatedListCopyWithImpl<_RelatedList>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$RelatedListToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RelatedList&&(identical(other.id, id) || other.id == id)&&(identical(other.author, author) || other.author == author)&&(identical(other.name, name) || other.name == name)&&(identical(other.image, image) || other.image == image));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,author,name,image);
+
+@override
+String toString() {
+  return 'RelatedList(id: $id, author: $author, name: $name, image: $image)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$RelatedListCopyWith<$Res> implements $RelatedListCopyWith<$Res> {
+  factory _$RelatedListCopyWith(_RelatedList value, $Res Function(_RelatedList) _then) = __$RelatedListCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: "id") String id,@JsonKey(name: "author") String author,@JsonKey(name: "name") String name,@JsonKey(name: "image") String image
+});
+
+
+
+
+}
+/// @nodoc
+class __$RelatedListCopyWithImpl<$Res>
+    implements _$RelatedListCopyWith<$Res> {
+  __$RelatedListCopyWithImpl(this._self, this._then);
+
+  final _RelatedList _self;
+  final $Res Function(_RelatedList) _then;
+
+/// Create a copy of RelatedList
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? author = null,Object? name = null,Object? image = null,}) {
+  return _then(_RelatedList(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,author: null == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,image: null == image ? _self.image : image // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$DownloadInfoJsonSeries {
 
- String get id; String get name; String get sort; Info get info;
+@JsonKey(name: "id") String get id;@JsonKey(name: "name") String get name;@JsonKey(name: "sort") String get sort;@JsonKey(name: "info") Info get info;
 /// Create a copy of DownloadInfoJsonSeries
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -272,7 +423,7 @@ abstract mixin class $DownloadInfoJsonSeriesCopyWith<$Res>  {
   factory $DownloadInfoJsonSeriesCopyWith(DownloadInfoJsonSeries value, $Res Function(DownloadInfoJsonSeries) _then) = _$DownloadInfoJsonSeriesCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String sort, Info info
+@JsonKey(name: "id") String id,@JsonKey(name: "name") String name,@JsonKey(name: "sort") String sort,@JsonKey(name: "info") Info info
 });
 
 
@@ -315,13 +466,13 @@ $InfoCopyWith<$Res> get info {
 @JsonSerializable()
 
 class _DownloadInfoJsonSeries implements DownloadInfoJsonSeries {
-  const _DownloadInfoJsonSeries({required this.id, required this.name, required this.sort, required this.info});
+  const _DownloadInfoJsonSeries({@JsonKey(name: "id") required this.id, @JsonKey(name: "name") required this.name, @JsonKey(name: "sort") required this.sort, @JsonKey(name: "info") required this.info});
   factory _DownloadInfoJsonSeries.fromJson(Map<String, dynamic> json) => _$DownloadInfoJsonSeriesFromJson(json);
 
-@override final  String id;
-@override final  String name;
-@override final  String sort;
-@override final  Info info;
+@override@JsonKey(name: "id") final  String id;
+@override@JsonKey(name: "name") final  String name;
+@override@JsonKey(name: "sort") final  String sort;
+@override@JsonKey(name: "info") final  Info info;
 
 /// Create a copy of DownloadInfoJsonSeries
 /// with the given fields replaced by the non-null parameter values.
@@ -356,7 +507,7 @@ abstract mixin class _$DownloadInfoJsonSeriesCopyWith<$Res> implements $Download
   factory _$DownloadInfoJsonSeriesCopyWith(_DownloadInfoJsonSeries value, $Res Function(_DownloadInfoJsonSeries) _then) = __$DownloadInfoJsonSeriesCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String sort, Info info
+@JsonKey(name: "id") String id,@JsonKey(name: "name") String name,@JsonKey(name: "sort") String sort,@JsonKey(name: "info") Info info
 });
 
 
@@ -399,7 +550,7 @@ $InfoCopyWith<$Res> get info {
 /// @nodoc
 mixin _$Info {
 
- String get epId; String get epName; List<InfoSeries> get series; List<Doc> get docs;
+@JsonKey(name: "id") int get id;@JsonKey(name: "series") List<InfoSeries> get series;@JsonKey(name: "tags") String get tags;@JsonKey(name: "name") String get name;@JsonKey(name: "images") List<String> get images;@JsonKey(name: "addtime") String get addtime;@JsonKey(name: "series_id") String get seriesId;@JsonKey(name: "is_favorite") bool get isFavorite;@JsonKey(name: "liked") bool get liked;
 /// Create a copy of Info
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -412,16 +563,16 @@ $InfoCopyWith<Info> get copyWith => _$InfoCopyWithImpl<Info>(this as Info, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Info&&(identical(other.epId, epId) || other.epId == epId)&&(identical(other.epName, epName) || other.epName == epName)&&const DeepCollectionEquality().equals(other.series, series)&&const DeepCollectionEquality().equals(other.docs, docs));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Info&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.series, series)&&(identical(other.tags, tags) || other.tags == tags)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.images, images)&&(identical(other.addtime, addtime) || other.addtime == addtime)&&(identical(other.seriesId, seriesId) || other.seriesId == seriesId)&&(identical(other.isFavorite, isFavorite) || other.isFavorite == isFavorite)&&(identical(other.liked, liked) || other.liked == liked));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,epId,epName,const DeepCollectionEquality().hash(series),const DeepCollectionEquality().hash(docs));
+int get hashCode => Object.hash(runtimeType,id,const DeepCollectionEquality().hash(series),tags,name,const DeepCollectionEquality().hash(images),addtime,seriesId,isFavorite,liked);
 
 @override
 String toString() {
-  return 'Info(epId: $epId, epName: $epName, series: $series, docs: $docs)';
+  return 'Info(id: $id, series: $series, tags: $tags, name: $name, images: $images, addtime: $addtime, seriesId: $seriesId, isFavorite: $isFavorite, liked: $liked)';
 }
 
 
@@ -432,7 +583,7 @@ abstract mixin class $InfoCopyWith<$Res>  {
   factory $InfoCopyWith(Info value, $Res Function(Info) _then) = _$InfoCopyWithImpl;
 @useResult
 $Res call({
- String epId, String epName, List<InfoSeries> series, List<Doc> docs
+@JsonKey(name: "id") int id,@JsonKey(name: "series") List<InfoSeries> series,@JsonKey(name: "tags") String tags,@JsonKey(name: "name") String name,@JsonKey(name: "images") List<String> images,@JsonKey(name: "addtime") String addtime,@JsonKey(name: "series_id") String seriesId,@JsonKey(name: "is_favorite") bool isFavorite,@JsonKey(name: "liked") bool liked
 });
 
 
@@ -449,13 +600,18 @@ class _$InfoCopyWithImpl<$Res>
 
 /// Create a copy of Info
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? epId = null,Object? epName = null,Object? series = null,Object? docs = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? series = null,Object? tags = null,Object? name = null,Object? images = null,Object? addtime = null,Object? seriesId = null,Object? isFavorite = null,Object? liked = null,}) {
   return _then(_self.copyWith(
-epId: null == epId ? _self.epId : epId // ignore: cast_nullable_to_non_nullable
-as String,epName: null == epName ? _self.epName : epName // ignore: cast_nullable_to_non_nullable
-as String,series: null == series ? _self.series : series // ignore: cast_nullable_to_non_nullable
-as List<InfoSeries>,docs: null == docs ? _self.docs : docs // ignore: cast_nullable_to_non_nullable
-as List<Doc>,
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int,series: null == series ? _self.series : series // ignore: cast_nullable_to_non_nullable
+as List<InfoSeries>,tags: null == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,images: null == images ? _self.images : images // ignore: cast_nullable_to_non_nullable
+as List<String>,addtime: null == addtime ? _self.addtime : addtime // ignore: cast_nullable_to_non_nullable
+as String,seriesId: null == seriesId ? _self.seriesId : seriesId // ignore: cast_nullable_to_non_nullable
+as String,isFavorite: null == isFavorite ? _self.isFavorite : isFavorite // ignore: cast_nullable_to_non_nullable
+as bool,liked: null == liked ? _self.liked : liked // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -466,25 +622,30 @@ as List<Doc>,
 @JsonSerializable()
 
 class _Info implements Info {
-  const _Info({required this.epId, required this.epName, required final  List<InfoSeries> series, required final  List<Doc> docs}): _series = series,_docs = docs;
+  const _Info({@JsonKey(name: "id") required this.id, @JsonKey(name: "series") required final  List<InfoSeries> series, @JsonKey(name: "tags") required this.tags, @JsonKey(name: "name") required this.name, @JsonKey(name: "images") required final  List<String> images, @JsonKey(name: "addtime") required this.addtime, @JsonKey(name: "series_id") required this.seriesId, @JsonKey(name: "is_favorite") required this.isFavorite, @JsonKey(name: "liked") required this.liked}): _series = series,_images = images;
   factory _Info.fromJson(Map<String, dynamic> json) => _$InfoFromJson(json);
 
-@override final  String epId;
-@override final  String epName;
+@override@JsonKey(name: "id") final  int id;
  final  List<InfoSeries> _series;
-@override List<InfoSeries> get series {
+@override@JsonKey(name: "series") List<InfoSeries> get series {
   if (_series is EqualUnmodifiableListView) return _series;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_series);
 }
 
- final  List<Doc> _docs;
-@override List<Doc> get docs {
-  if (_docs is EqualUnmodifiableListView) return _docs;
+@override@JsonKey(name: "tags") final  String tags;
+@override@JsonKey(name: "name") final  String name;
+ final  List<String> _images;
+@override@JsonKey(name: "images") List<String> get images {
+  if (_images is EqualUnmodifiableListView) return _images;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_docs);
+  return EqualUnmodifiableListView(_images);
 }
 
+@override@JsonKey(name: "addtime") final  String addtime;
+@override@JsonKey(name: "series_id") final  String seriesId;
+@override@JsonKey(name: "is_favorite") final  bool isFavorite;
+@override@JsonKey(name: "liked") final  bool liked;
 
 /// Create a copy of Info
 /// with the given fields replaced by the non-null parameter values.
@@ -499,16 +660,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Info&&(identical(other.epId, epId) || other.epId == epId)&&(identical(other.epName, epName) || other.epName == epName)&&const DeepCollectionEquality().equals(other._series, _series)&&const DeepCollectionEquality().equals(other._docs, _docs));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Info&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other._series, _series)&&(identical(other.tags, tags) || other.tags == tags)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._images, _images)&&(identical(other.addtime, addtime) || other.addtime == addtime)&&(identical(other.seriesId, seriesId) || other.seriesId == seriesId)&&(identical(other.isFavorite, isFavorite) || other.isFavorite == isFavorite)&&(identical(other.liked, liked) || other.liked == liked));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,epId,epName,const DeepCollectionEquality().hash(_series),const DeepCollectionEquality().hash(_docs));
+int get hashCode => Object.hash(runtimeType,id,const DeepCollectionEquality().hash(_series),tags,name,const DeepCollectionEquality().hash(_images),addtime,seriesId,isFavorite,liked);
 
 @override
 String toString() {
-  return 'Info(epId: $epId, epName: $epName, series: $series, docs: $docs)';
+  return 'Info(id: $id, series: $series, tags: $tags, name: $name, images: $images, addtime: $addtime, seriesId: $seriesId, isFavorite: $isFavorite, liked: $liked)';
 }
 
 
@@ -519,7 +680,7 @@ abstract mixin class _$InfoCopyWith<$Res> implements $InfoCopyWith<$Res> {
   factory _$InfoCopyWith(_Info value, $Res Function(_Info) _then) = __$InfoCopyWithImpl;
 @override @useResult
 $Res call({
- String epId, String epName, List<InfoSeries> series, List<Doc> docs
+@JsonKey(name: "id") int id,@JsonKey(name: "series") List<InfoSeries> series,@JsonKey(name: "tags") String tags,@JsonKey(name: "name") String name,@JsonKey(name: "images") List<String> images,@JsonKey(name: "addtime") String addtime,@JsonKey(name: "series_id") String seriesId,@JsonKey(name: "is_favorite") bool isFavorite,@JsonKey(name: "liked") bool liked
 });
 
 
@@ -536,155 +697,18 @@ class __$InfoCopyWithImpl<$Res>
 
 /// Create a copy of Info
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? epId = null,Object? epName = null,Object? series = null,Object? docs = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? series = null,Object? tags = null,Object? name = null,Object? images = null,Object? addtime = null,Object? seriesId = null,Object? isFavorite = null,Object? liked = null,}) {
   return _then(_Info(
-epId: null == epId ? _self.epId : epId // ignore: cast_nullable_to_non_nullable
-as String,epName: null == epName ? _self.epName : epName // ignore: cast_nullable_to_non_nullable
-as String,series: null == series ? _self._series : series // ignore: cast_nullable_to_non_nullable
-as List<InfoSeries>,docs: null == docs ? _self._docs : docs // ignore: cast_nullable_to_non_nullable
-as List<Doc>,
-  ));
-}
-
-
-}
-
-
-/// @nodoc
-mixin _$Doc {
-
- String get originalName; String get path; String get fileServer; String get id;
-/// Create a copy of Doc
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$DocCopyWith<Doc> get copyWith => _$DocCopyWithImpl<Doc>(this as Doc, _$identity);
-
-  /// Serializes this Doc to a JSON map.
-  Map<String, dynamic> toJson();
-
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Doc&&(identical(other.originalName, originalName) || other.originalName == originalName)&&(identical(other.path, path) || other.path == path)&&(identical(other.fileServer, fileServer) || other.fileServer == fileServer)&&(identical(other.id, id) || other.id == id));
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,originalName,path,fileServer,id);
-
-@override
-String toString() {
-  return 'Doc(originalName: $originalName, path: $path, fileServer: $fileServer, id: $id)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class $DocCopyWith<$Res>  {
-  factory $DocCopyWith(Doc value, $Res Function(Doc) _then) = _$DocCopyWithImpl;
-@useResult
-$Res call({
- String originalName, String path, String fileServer, String id
-});
-
-
-
-
-}
-/// @nodoc
-class _$DocCopyWithImpl<$Res>
-    implements $DocCopyWith<$Res> {
-  _$DocCopyWithImpl(this._self, this._then);
-
-  final Doc _self;
-  final $Res Function(Doc) _then;
-
-/// Create a copy of Doc
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? originalName = null,Object? path = null,Object? fileServer = null,Object? id = null,}) {
-  return _then(_self.copyWith(
-originalName: null == originalName ? _self.originalName : originalName // ignore: cast_nullable_to_non_nullable
-as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
-as String,fileServer: null == fileServer ? _self.fileServer : fileServer // ignore: cast_nullable_to_non_nullable
-as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,
-  ));
-}
-
-}
-
-
-/// @nodoc
-@JsonSerializable()
-
-class _Doc implements Doc {
-  const _Doc({required this.originalName, required this.path, required this.fileServer, required this.id});
-  factory _Doc.fromJson(Map<String, dynamic> json) => _$DocFromJson(json);
-
-@override final  String originalName;
-@override final  String path;
-@override final  String fileServer;
-@override final  String id;
-
-/// Create a copy of Doc
-/// with the given fields replaced by the non-null parameter values.
-@override @JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$DocCopyWith<_Doc> get copyWith => __$DocCopyWithImpl<_Doc>(this, _$identity);
-
-@override
-Map<String, dynamic> toJson() {
-  return _$DocToJson(this, );
-}
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Doc&&(identical(other.originalName, originalName) || other.originalName == originalName)&&(identical(other.path, path) || other.path == path)&&(identical(other.fileServer, fileServer) || other.fileServer == fileServer)&&(identical(other.id, id) || other.id == id));
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,originalName,path,fileServer,id);
-
-@override
-String toString() {
-  return 'Doc(originalName: $originalName, path: $path, fileServer: $fileServer, id: $id)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class _$DocCopyWith<$Res> implements $DocCopyWith<$Res> {
-  factory _$DocCopyWith(_Doc value, $Res Function(_Doc) _then) = __$DocCopyWithImpl;
-@override @useResult
-$Res call({
- String originalName, String path, String fileServer, String id
-});
-
-
-
-
-}
-/// @nodoc
-class __$DocCopyWithImpl<$Res>
-    implements _$DocCopyWith<$Res> {
-  __$DocCopyWithImpl(this._self, this._then);
-
-  final _Doc _self;
-  final $Res Function(_Doc) _then;
-
-/// Create a copy of Doc
-/// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? originalName = null,Object? path = null,Object? fileServer = null,Object? id = null,}) {
-  return _then(_Doc(
-originalName: null == originalName ? _self.originalName : originalName // ignore: cast_nullable_to_non_nullable
-as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
-as String,fileServer: null == fileServer ? _self.fileServer : fileServer // ignore: cast_nullable_to_non_nullable
-as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as int,series: null == series ? _self._series : series // ignore: cast_nullable_to_non_nullable
+as List<InfoSeries>,tags: null == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,images: null == images ? _self._images : images // ignore: cast_nullable_to_non_nullable
+as List<String>,addtime: null == addtime ? _self.addtime : addtime // ignore: cast_nullable_to_non_nullable
+as String,seriesId: null == seriesId ? _self.seriesId : seriesId // ignore: cast_nullable_to_non_nullable
+as String,isFavorite: null == isFavorite ? _self.isFavorite : isFavorite // ignore: cast_nullable_to_non_nullable
+as bool,liked: null == liked ? _self.liked : liked // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -695,7 +719,7 @@ as String,
 /// @nodoc
 mixin _$InfoSeries {
 
- String get id; String get name; String get sort;
+@JsonKey(name: "id") String get id;@JsonKey(name: "name") String get name;@JsonKey(name: "sort") String get sort;
 /// Create a copy of InfoSeries
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -728,7 +752,7 @@ abstract mixin class $InfoSeriesCopyWith<$Res>  {
   factory $InfoSeriesCopyWith(InfoSeries value, $Res Function(InfoSeries) _then) = _$InfoSeriesCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String sort
+@JsonKey(name: "id") String id,@JsonKey(name: "name") String name,@JsonKey(name: "sort") String sort
 });
 
 
@@ -761,12 +785,12 @@ as String,
 @JsonSerializable()
 
 class _InfoSeries implements InfoSeries {
-  const _InfoSeries({required this.id, required this.name, required this.sort});
+  const _InfoSeries({@JsonKey(name: "id") required this.id, @JsonKey(name: "name") required this.name, @JsonKey(name: "sort") required this.sort});
   factory _InfoSeries.fromJson(Map<String, dynamic> json) => _$InfoSeriesFromJson(json);
 
-@override final  String id;
-@override final  String name;
-@override final  String sort;
+@override@JsonKey(name: "id") final  String id;
+@override@JsonKey(name: "name") final  String name;
+@override@JsonKey(name: "sort") final  String sort;
 
 /// Create a copy of InfoSeries
 /// with the given fields replaced by the non-null parameter values.
@@ -801,7 +825,7 @@ abstract mixin class _$InfoSeriesCopyWith<$Res> implements $InfoSeriesCopyWith<$
   factory _$InfoSeriesCopyWith(_InfoSeries value, $Res Function(_InfoSeries) _then) = __$InfoSeriesCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String sort
+@JsonKey(name: "id") String id,@JsonKey(name: "name") String name,@JsonKey(name: "sort") String sort
 });
 
 

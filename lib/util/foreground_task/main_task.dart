@@ -5,6 +5,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/task/bika_download.dart';
+import 'package:zephyr/util/foreground_task/task/jm_download.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 // @pragma 这个注解告诉编译器，即使这个函数看起来没有被直接调用，也不要把它优化掉（摇树优化 Tree Shaking）
@@ -57,6 +58,13 @@ class MyTaskHandler extends TaskHandler {
       comicName = downloadTasks.comicName;
       comicId = downloadTasks.comicId;
       bikaDownloadTask(downloadTasks).catchError((e, s) {
+        logger.e(e, stackTrace: s);
+        showErrorToast(e.toString());
+      });
+    } else if (downloadTasks.from == "jm") {
+      comicName = downloadTasks.comicName;
+      comicId = downloadTasks.comicId;
+      jmDownloadTask(downloadTasks).catchError((e, s) {
         logger.e(e, stackTrace: s);
         showErrorToast(e.toString());
       });

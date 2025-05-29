@@ -15,7 +15,7 @@ class JmConfig {
   static const webUA =
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36';
 
-  static const jmVersion = '1.7.2';
+  static const jmVersion = '1.8.0';
 
   static const jmAuthKey = '18comicAPPContent';
 

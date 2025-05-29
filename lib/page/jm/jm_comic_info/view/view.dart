@@ -1,16 +1,16 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:encrypter_plus/encrypter_plus.dart' as _i29;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/mobx/string_select.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/jm/download/json/download_info_json.dart'
     show downloadInfoJsonFromJson;
 import 'package:zephyr/page/jm/jm_comic_info/jm_comic_info.dart';
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart';
-import 'package:zephyr/type/enum.dart' as _i30;
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -55,23 +55,33 @@ class _JmComicInfoPage extends StatefulWidget {
 }
 
 class __JmComicInfoPageState extends State<_JmComicInfoPage> {
-  bool get isDownload => widget.type == ComicEntryType.download;
+  bool get isDownload => _type == ComicEntryType.download;
 
   late JmComicInfoState _state;
   bool _init = false;
   bool _hasHistory = false;
   JmHistory? jmHistory;
   JmDownload? jmDownload;
+  late ComicEntryType _type;
+  final store = StringSelectStore();
 
   @override
   void initState() {
     super.initState();
+    _type = widget.type;
     jmHistory =
         objectbox.jmHistoryBox
             .query(JmHistory_.comicId.equals(widget.comicId))
             .build()
             .findFirst();
     _hasHistory = jmHistory?.deleted == false;
+
+    if (_hasHistory) {
+      store.setDate(
+        '历史：${jmHistory!.epTitle}（${jmHistory!.epPageCount - 1}）'
+        '${jmHistory!.history.toLocal().toString().substring(0, 19)}',
+      );
+    }
 
     jmDownload =
         objectbox.jmDownloadBox
@@ -119,7 +129,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                     int order = widget.comicId.let(toInt);
                     int epsNumber = 0;
                     From from = From.jm;
-                    ComicEntryType type = widget.type;
+                    ComicEntryType type = _type;
                     dynamic comicInfo;
                     if (isDownload) {
                       comicId = jmDownload!.comicId;
@@ -162,6 +172,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                         from: from,
                         type: type,
                         comicInfo: comicInfo,
+                        store: store,
                       ),
                     );
                   },
@@ -207,9 +218,15 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
       comicInfo = state!.comicInfo!;
     } else {
       comicInfo = jmDownload!.allInfo.let(jmComicInfoJsonFromJson);
-      final temp = jmDownload!.allInfo.let(downloadInfoJsonFromJson);
+      var temp = jmDownload!.allInfo.let(downloadInfoJsonFromJson);
       if (temp.series.first.info.series.isEmpty) {
         comicInfo = comicInfo.copyWith(series: []);
+      } else {
+        final epsIds = jmDownload!.epsIds;
+        final series = comicInfo.series;
+        final newSeries =
+            series.where((s) => epsIds.contains(s.id.toString())).toList();
+        comicInfo = comicInfo.copyWith(series: newSeries);
       }
     }
 
@@ -263,9 +280,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                 ),
                 if (_hasHistory) ...[
                   const SizedBox(height: 2),
-                  Text(
-                    '历史：${jmHistory!.epTitle}（${jmHistory!.epPageCount}）${jmHistory!.history.toLocal().toString().substring(0, 19)}',
-                  ),
+                  Observer(builder: (context) => Text(store.date)),
                 ],
               ],
             ),
@@ -314,13 +329,11 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
       ]);
     }
 
-    // 5. 章节（每行两个）
+    // 5. 章节
     if (comicInfo.series.isNotEmpty) {
       comicInfoWidgets.add(const SizedBox(height: 10));
-      for (int i = 0; i < comicInfo.series.length; i += 2) {
-        final series1 = comicInfo.series[i];
-        final series2 =
-            (i + 1 < comicInfo.series.length) ? comicInfo.series[i + 1] : null;
+      for (int i = 0; i < comicInfo.series.length; i++) {
+        final series = comicInfo.series[i];
         comicInfoWidgets.add(
           Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
@@ -330,24 +343,14 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                 Expanded(
                   child: EpWidget(
                     comicId: id,
-                    series: series1,
+                    series: series,
                     comicInfo: comicInfo,
                     epsNumber: comicInfo.series.length,
-                    type: widget.type,
+                    type: _type,
+                    store: store,
                   ),
                 ),
-                const SizedBox(width: 8),
-                if (series2 != null)
-                  Expanded(
-                    child: EpWidget(
-                      comicId: id,
-                      series: series2,
-                      comicInfo: comicInfo,
-                      epsNumber: comicInfo.series.length,
-                      type: widget.type,
-                    ),
-                  ),
-                if (series2 == null) ...[Expanded(child: Container())],
+                SizedBox(width: 5),
               ],
             ),
           ),
@@ -372,17 +375,36 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
     // 7. 最后添加底部间距
     comicInfoWidgets.add(const SizedBox(height: 80));
 
-    return Row(
-      children: [
-        SizedBox(width: screenWidth / 50),
-        Expanded(
-          child: ListView.builder(
-            itemCount: comicInfoWidgets.length,
-            itemBuilder: (context, index) => comicInfoWidgets[index],
+    return RefreshIndicator(
+      onRefresh: () async {
+        _type = ComicEntryType.normal;
+
+        context.read<JmComicInfoBloc>().add(
+          JmComicInfoEvent(
+            comicId: widget.comicId,
+            status: JmComicInfoStatus.initial,
           ),
-        ),
-        SizedBox(width: screenWidth / 50),
-      ],
+        );
+        final query = objectbox.jmHistoryBox.query(
+          JmHistory_.comicId.equals(widget.comicId),
+        );
+        setState(() {
+          jmHistory = query.build().findFirst();
+          _init = false;
+        });
+      },
+      child: Row(
+        children: [
+          SizedBox(width: screenWidth / 50),
+          Expanded(
+            child: ListView.builder(
+              itemCount: comicInfoWidgets.length,
+              itemBuilder: (context, index) => comicInfoWidgets[index],
+            ),
+          ),
+          SizedBox(width: screenWidth / 50),
+        ],
+      ),
     );
   }
 
@@ -396,7 +418,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
   }
 
   String _dataFormat(String time) => time
-      .let(int.parse)
+      .let(toInt)
       .let(
         (timestamp) => DateTime.fromMillisecondsSinceEpoch(
           timestamp * 1000,

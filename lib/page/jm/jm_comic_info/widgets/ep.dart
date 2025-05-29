@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/mobx/string_select.dart';
 import 'package:zephyr/type/pipe.dart';
 
 import '../../../../main.dart';
@@ -14,6 +15,7 @@ class EpWidget extends StatelessWidget {
   final JmComicInfoJson comicInfo;
   final int epsNumber;
   final ComicEntryType type;
+  final StringSelectStore store;
 
   const EpWidget({
     super.key,
@@ -22,6 +24,7 @@ class EpWidget extends StatelessWidget {
     required this.comicInfo,
     required this.epsNumber,
     required this.type,
+    required this.store,
   });
 
   @override
@@ -39,6 +42,7 @@ class EpWidget extends StatelessWidget {
                     ? ComicEntryType.download
                     : ComicEntryType.normal,
             comicInfo: comicInfo,
+            store: store,
           ),
         );
       },

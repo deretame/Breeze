@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/mobx/string_select.dart';
 import 'package:zephyr/page/comic_info/models/all_info.dart' show AllInfo;
 
 import '../../../main.dart';
@@ -14,6 +15,7 @@ class EpButtonWidget extends StatelessWidget {
   final List<Doc> epsInfo;
   final bool? isHistory;
   final ComicEntryType type;
+  final StringSelectStore store;
 
   const EpButtonWidget({
     super.key,
@@ -22,6 +24,7 @@ class EpButtonWidget extends StatelessWidget {
     required this.epsInfo,
     required this.isHistory,
     required this.type,
+    required this.store,
   });
 
   @override
@@ -36,6 +39,7 @@ class EpButtonWidget extends StatelessWidget {
             order: doc.order,
             epsNumber: epsInfo.length,
             from: From.bika,
+            store: store,
           ),
         );
       },

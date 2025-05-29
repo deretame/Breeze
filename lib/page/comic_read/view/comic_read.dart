@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/mobx/string_select.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/comic_info/models/all_info.dart';
 import 'package:zephyr/page/comic_read/comic_read.dart';
@@ -30,6 +31,7 @@ class ComicReadPage extends StatelessWidget {
   final From from;
   final ComicEntryType type;
   final dynamic comicInfo; // 这个是比较方便的让禁漫和哔咔把漫画的数据传输过来，到时候强制转换类型就行了
+  final StringSelectStore store;
 
   const ComicReadPage({
     super.key,
@@ -39,6 +41,7 @@ class ComicReadPage extends StatelessWidget {
     required this.from,
     required this.type,
     required this.comicInfo,
+    required this.store,
   });
 
   @override
@@ -52,6 +55,7 @@ class ComicReadPage extends StatelessWidget {
         from: from,
         type: type,
         comicInfo: comicInfo,
+        store: store,
       ),
     );
   }
@@ -64,6 +68,7 @@ class _ComicReadPage extends StatefulWidget {
   final From from;
   final ComicEntryType type;
   final dynamic comicInfo;
+  final StringSelectStore store;
 
   const _ComicReadPage({
     required this.comicId,
@@ -72,6 +77,7 @@ class _ComicReadPage extends StatefulWidget {
     required this.from,
     required this.type,
     required this.comicInfo,
+    required this.store,
   });
 
   @override
@@ -82,6 +88,8 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   dynamic get comicInfo => widget.comicInfo;
 
   String get comicId => widget.comicId;
+
+  StringSelectStore get store => widget.store;
 
   String epId = '';
   String epName = '';
@@ -186,6 +194,8 @@ class _ComicReadPageState extends State<_ComicReadPage> {
                 .findFirst()!
                 .allInfo;
         _downloadEpsInfo = downloadInfoJsonFromJson(temp).series;
+
+        jmComic = jmComic;
       }
     }
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -260,11 +270,13 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     }
 
-    try {
-      _handleMediaData(state);
-    } catch (e) {
-      logger.e(e);
-      return _showDownloadError();
+    if (epName == '') {
+      try {
+        _handleMediaData(state);
+      } catch (e, s) {
+        logger.e(e, stackTrace: s);
+        return _showDownloadError();
+      }
     }
 
     return Container(
@@ -320,6 +332,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     epsNumber: widget.epsNumber,
     comicId: comicId,
     from: widget.from,
+    store: store,
   );
 
   /// 构建交互式查看器
@@ -444,6 +457,10 @@ class _ComicReadPageState extends State<_ComicReadPage> {
             DateTime.now().difference(_lastUpdateTime!).inMilliseconds < 100) {
       return;
     }
+    store.setDate(
+      '历史：$epName（${pageIndex - 1}）'
+      '${DateTime.now().toLocal().toString().substring(0, 19)}',
+    );
     if (widget.from == From.bika) {
       // 更新记录
       _isInserting = true;
@@ -461,6 +478,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
         ..deleted = false;
       await objectbox.bikaHistoryBox.putAsync(comicHistory!);
     } else if (widget.from == From.jm) {
+      // logger.d(pageIndex);
       // 更新记录
       _isInserting = true;
       jmHistory!
@@ -488,6 +506,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
           // logger.d('更新索引：$newIndex');
           setState(() {
             pageIndex = newIndex;
+            // logger.d('当前页数：${pageIndex - 1}');
             if (!_isComicRolling) {
               _currentSliderValue =
                   (pageIndex - 2).clamp(0, _totalSlots - 1).toDouble();
@@ -565,7 +584,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
           .firstWhere((e) => e.id == jmHistory!.order.toString());
 
       epId = temp.id;
-      epName = temp.name;
+      epName = temp.info.name;
 
       docs =
           temp.info.images
@@ -608,6 +627,8 @@ class _ComicReadPageState extends State<_ComicReadPage> {
         widget.from == From.bika
             ? comicHistory!.epPageCount
             : jmHistory!.epPageCount;
+
+    // logger.d('历史记录：$index');
 
     if (shouldScroll) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

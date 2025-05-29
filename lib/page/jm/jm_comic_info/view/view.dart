@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:permission_guard/permission_guard.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/mobx/string_select.dart';
 import 'package:zephyr/object_box/model.dart';
@@ -101,6 +102,41 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
             onPressed: () => popToRoot(context),
           ),
           Expanded(child: Container()),
+          if (_type == ComicEntryType.download) ...[
+            IconButton(
+              icon: const Icon(Icons.upload),
+              onPressed: () async {
+                try {
+                  if (!await Permission.manageExternalStorage
+                      .request()
+                      .isGranted) {
+                    showErrorToast("请授予存储权限！");
+                    return;
+                  }
+                  if (mounted) {
+                    var choice = await showExportTypeDialog();
+                    if (choice == ExportType.zip) {
+                      showInfoToast('正在导出漫画...');
+                      // exportComicAsZip(
+                      //   jmDownload!.allInfo.let(downloadInfoJsonFromJson),
+                      //   jmDownload!.epsIds,
+                      // );
+                    } else if (choice == ExportType.folder) {
+                      showInfoToast('正在导出漫画...');
+                      exportComicAsFolder(jmDownload!);
+                    } else {
+                      return;
+                    }
+                  }
+                } catch (e) {
+                  showErrorToast(
+                    "导出失败，请重试。\n${e.toString()}",
+                    duration: const Duration(seconds: 5),
+                  );
+                }
+              },
+            ),
+          ],
         ],
       ),
       body:
@@ -405,6 +441,39 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
           SizedBox(width: screenWidth / 50),
         ],
       ),
+    );
+  }
+
+  // 弹出选择对话框，让用户选择导出为压缩包还是文件夹
+  Future<ExportType?> showExportTypeDialog() async {
+    return await showDialog<ExportType>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('选择导出方式'),
+          content: Text('请选择将漫画导出为压缩包还是文件夹：'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(null);
+              },
+              child: Text('取消'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(ExportType.folder); // 返回文件夹选项
+              },
+              child: Text('文件夹'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(ExportType.zip); // 返回压缩包选项
+              },
+              child: Text('压缩包'),
+            ),
+          ],
+        );
+      },
     );
   }
 

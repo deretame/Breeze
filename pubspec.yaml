@@ -141,6 +141,7 @@ flutter:
     - asset/image/bika_image/cat_leaderboard.jpg
     - asset/image/bika_image/cat_random.jpg
     - asset/image/assets/default_cover.png
+    - asset/about_page.html
 
 objectbox:
   # Writes objectbox-model.json and objectbox.g.dart to lib/custom (and test/custom).

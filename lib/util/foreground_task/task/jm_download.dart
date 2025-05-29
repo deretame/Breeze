@@ -21,7 +21,7 @@ import 'package:zephyr/util/json_dispose.dart';
 Future<void> jmDownloadTask(DownloadTaskJson task) async {
   // 先获取一下基本的信息
   final comicInfo = await getJmComicInfo(task.comicId);
-  List<String> epIds = task.selectedChapters.map((e) => e.toString()).toList();
+  List<String> epIds = comicInfo.series.map((e) => e.id.toString()).toList();
   if (epIds.isEmpty) epIds = [comicInfo.id.toString()];
 
   final epsList = await fetchJMMedia(epIds);
@@ -35,7 +35,7 @@ Future<void> jmDownloadTask(DownloadTaskJson task) async {
         );
       }).toList();
 
-  final updatedDownloadInfo = downloadInfoJson.copyWith(series: updatedSeries);
+  var updatedDownloadInfo = downloadInfoJson.copyWith(series: updatedSeries);
 
   final temp = downloadInfoJsonToJson(updatedDownloadInfo);
 
@@ -51,14 +51,18 @@ Future<void> jmDownloadTask(DownloadTaskJson task) async {
 
   logger.d("epsIds: $epsIds");
 
-  await downloadPicture(
-    from: 'jm',
-    url: getJmCoverUrl(comicInfo.id.toString()),
-    path: "${comicInfo.id}.jpg",
-    cartoonId: comicInfo.id.toString(),
-    pictureType: 'cover',
-    chapterId: comicInfo.id.toString(),
-  );
+  try {
+    await downloadPicture(
+      from: 'jm',
+      url: getJmCoverUrl(comicInfo.id.toString()),
+      path: "${comicInfo.id}.jpg",
+      cartoonId: comicInfo.id.toString(),
+      pictureType: 'cover',
+      chapterId: comicInfo.id.toString(),
+    );
+  } catch (e, s) {
+    logger.e(e, stackTrace: s);
+  }
 
   await downloadComic(updatedDownloadInfo, task.selectedChapters);
 
@@ -87,8 +91,8 @@ Future<base_info.JmComicInfoJson> getJmComicInfo(String comicId) async {
         return d.copyWith(series: newSeries);
       });
       break;
-    } catch (e) {
-      logger.e(e);
+    } catch (e, s) {
+      logger.e(e, stackTrace: s);
     }
   }
   return comicInfo!;
@@ -111,8 +115,8 @@ Future<List<Info>> fetchJMMedia(List<String> epIds) async {
                     .toList();
 
             return infoObject.copyWith(series: newSeries);
-          } catch (e) {
-            logger.e(e);
+          } catch (e, s) {
+            logger.e(e, stackTrace: s);
           }
         }
       }).toList();
@@ -224,19 +228,20 @@ Future<void> downloadComic(
     }
   }
 
-  final List<Future<void>> downloadTasks =
-      docsList.map((doc) async {
-        await downloadPicture(
-          from: 'jm',
-          url: doc.media.fileServer,
-          path: doc.media.path,
-          cartoonId: downloadInfoJson.id.toString(),
-          pictureType: 'comic',
-          chapterId: doc.docId,
-        );
-      }).toList();
-
-  await Future.wait(downloadTasks);
+  for (var doc in docsList) {
+    try {
+      await downloadPicture(
+        from: 'jm',
+        url: doc.media.fileServer,
+        path: doc.media.path,
+        cartoonId: downloadInfoJson.id.toString(),
+        pictureType: 'comic',
+        chapterId: doc.docId,
+      );
+    } catch (e, s) {
+      logger.e(e, stackTrace: s);
+    }
+  }
 }
 
 Future<void> saveToDB(

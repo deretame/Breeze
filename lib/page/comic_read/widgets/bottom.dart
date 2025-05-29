@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/mobx/string_select.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
@@ -24,6 +25,7 @@ class BottomWidget extends StatefulWidget {
   final int epsNumber;
   final String comicId;
   final From from;
+  final StringSelectStore store;
 
   const BottomWidget({
     super.key,
@@ -35,6 +37,7 @@ class BottomWidget extends StatefulWidget {
     required this.epsNumber,
     required this.comicId,
     required this.from,
+    required this.store,
   });
 
   @override
@@ -42,7 +45,7 @@ class BottomWidget extends StatefulWidget {
 }
 
 class _BottomWidgetState extends State<BottomWidget> {
-  bool get isBikaDownload =>
+  bool get isDownload =>
       widget.type == ComicEntryType.download ||
       widget.type == ComicEntryType.historyAndDownload;
 
@@ -74,7 +77,7 @@ class _BottomWidgetState extends State<BottomWidget> {
       tempType = ComicEntryType.normal;
     }
     if (widget.from == From.bika) {
-      if (isBikaDownload) {
+      if (isDownload) {
         bikaComicDownload =
             objectbox.bikaDownloadBox
                 .query(BikaComicDownload_.comicId.equals(comicId))
@@ -103,6 +106,17 @@ class _BottomWidgetState extends State<BottomWidget> {
     }
     if (widget.from == From.jm) {
       seriesList = (widget.comicInfo as JmComicInfoJson).series;
+      if (isDownload) {
+        final epsIds =
+            objectbox.jmDownloadBox
+                .query(JmDownload_.comicId.equals(comicId))
+                .build()
+                .findFirst()!
+                .epsIds;
+        seriesList =
+            seriesList.toList()
+              ..removeWhere((series) => !epsIds.contains(series.id));
+      }
       if (seriesList.isEmpty) {
         havePrev = false;
         haveNext = false;
@@ -279,6 +293,7 @@ class _BottomWidgetState extends State<BottomWidget> {
           order: order,
           epsNumber: widget.epsNumber,
           from: widget.from,
+          store: widget.store,
         ),
       );
     }
@@ -318,6 +333,7 @@ class _BottomWidgetState extends State<BottomWidget> {
           order: result,
           epsNumber: widget.epsNumber,
           from: widget.from,
+          store: widget.store,
         ),
       );
     }

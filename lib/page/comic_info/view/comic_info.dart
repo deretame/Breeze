@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_guard/permission_guard.dart';
+import 'package:zephyr/mobx/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 
 import '../../../config/global/global.dart';
@@ -66,6 +67,7 @@ class _ComicInfoState extends State<_ComicInfo>
 
   late ComicEntryType _type;
   bool _loadingComplete = false;
+  final store = StringSelectStore();
 
   @override
   void initState() {
@@ -80,6 +82,13 @@ class _ComicInfoState extends State<_ComicInfo>
 
     if (comicHistory?.deleted == true) {
       comicHistory = null;
+    }
+
+    if (comicHistory != null) {
+      store.setDate(
+        '历史：${comicHistory!.epTitle}（${comicHistory!.epPageCount - 1}）'
+        '${comicHistory!.history.toLocal().toString().substring(0, 19)}',
+      );
     }
 
     _initDownloadInfo();
@@ -201,6 +210,7 @@ class _ComicInfoState extends State<_ComicInfo>
                           order: comicHistory!.order,
                           epsNumber: comicInfo.epsCount,
                           from: From.bika,
+                          store: store,
                         ),
                       );
                     } else {
@@ -212,6 +222,7 @@ class _ComicInfoState extends State<_ComicInfo>
                           order: 1,
                           epsNumber: comicInfo.epsCount,
                           from: From.bika,
+                          store: store,
                         ),
                       );
                     }
@@ -236,7 +247,7 @@ class _ComicInfoState extends State<_ComicInfo>
 
     var widgets = [
       const SizedBox(height: 10),
-      ComicParticularsWidget(comicInfo: comicInfo),
+      ComicParticularsWidget(comicInfo: comicInfo, store: store),
       const SizedBox(height: 10),
       TagsAndCategoriesWidget(comicInfo: comicInfo, type: 'categories'),
       // const SizedBox(height: 3),
@@ -255,29 +266,30 @@ class _ComicInfoState extends State<_ComicInfo>
       ComicOperationWidget(comicInfo: comicInfo, epsInfo: epsInfo),
     ];
 
-    if (comicHistory != null) {
-      widgets.add(
-        Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: EpButtonWidget(
-            doc: Doc(
-              id: "history",
-              title: comicHistory!.epTitle,
-              order: comicHistory!.order,
-              updatedAt: comicHistory!.history,
-              docId: (comicHistory!.epPageCount - 1).toString(),
-            ),
-            allInfo: allInfo,
-            epsInfo: epsInfo,
-            isHistory: true,
-            type:
-                _type == ComicEntryType.download
-                    ? ComicEntryType.historyAndDownload
-                    : ComicEntryType.history,
-          ),
-        ),
-      );
-    }
+    // if (comicHistory != null) {
+    //   widgets.add(
+    //     Padding(
+    //       padding: const EdgeInsets.all(5.0),
+    //       child: EpButtonWidget(
+    //         doc: Doc(
+    //           id: "history",
+    //           title: comicHistory!.epTitle,
+    //           order: comicHistory!.order,
+    //           updatedAt: comicHistory!.history,
+    //           docId: (comicHistory!.epPageCount - 1).toString(),
+    //         ),
+    //         allInfo: allInfo,
+    //         epsInfo: epsInfo,
+    //         isHistory: true,
+    //         type:
+    //             _type == ComicEntryType.download
+    //                 ? ComicEntryType.historyAndDownload
+    //                 : ComicEntryType.history,
+    //         store: store,
+    //       ),
+    //     ),
+    //   );
+    // }
 
     for (var e in epsInfo) {
       widgets.add(
@@ -290,6 +302,7 @@ class _ComicInfoState extends State<_ComicInfo>
             isHistory: false,
             type:
                 _type == ComicEntryType.history ? ComicEntryType.normal : _type,
+            store: store,
           ),
         ),
       );

@@ -9,24 +9,25 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:typed_data' as _i37;
+import 'dart:typed_data' as _i38;
 
 import 'package:auto_route/auto_route.dart' as _i28;
-import 'package:collection/collection.dart' as _i36;
+import 'package:collection/collection.dart' as _i37;
 import 'package:flutter/material.dart' as _i29;
 import 'package:zephyr/debug/show_color.dart' as _i23;
-import 'package:zephyr/mobx/bool_select.dart' as _i32;
-import 'package:zephyr/mobx/int_select.dart' as _i33;
+import 'package:zephyr/mobx/bool_select.dart' as _i33;
+import 'package:zephyr/mobx/int_select.dart' as _i34;
+import 'package:zephyr/mobx/string_select.dart' as _i31;
 import 'package:zephyr/page/about/view/about_page.dart' as _i1;
 import 'package:zephyr/page/bookshelf/view/bookshelf_page.dart' as _i3;
 import 'package:zephyr/page/category/view/category.dart' as _i4;
 import 'package:zephyr/page/comic_info/json/bika/comic_info/comic_info.dart'
-    as _i34;
-import 'package:zephyr/page/comic_info/json/bika/eps/eps.dart' as _i35;
+    as _i35;
+import 'package:zephyr/page/comic_info/json/bika/eps/eps.dart' as _i36;
 import 'package:zephyr/page/comic_info/view/comic_info.dart' as _i5;
 import 'package:zephyr/page/comic_read/view/comic_read.dart' as _i6;
 import 'package:zephyr/page/comments/json/comments_json/comments_json.dart'
-    as _i31;
+    as _i32;
 import 'package:zephyr/page/comments/view/comments.dart' as _i8;
 import 'package:zephyr/page/comments_children/view/comments_children_page.dart'
     as _i7;
@@ -34,17 +35,17 @@ import 'package:zephyr/page/download/view/download.dart' as _i9;
 import 'package:zephyr/page/image_crop.dart' as _i12;
 import 'package:zephyr/page/jm/download/view/view.dart' as _i15;
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart'
-    as _i38;
+    as _i39;
 import 'package:zephyr/page/jm/jm_comic_info/view/view.dart' as _i13;
 import 'package:zephyr/page/jm/jm_comments/view/jm_comments.dart' as _i14;
-import 'package:zephyr/page/jm/jm_search_result/jm_search_result.dart' as _i39;
+import 'package:zephyr/page/jm/jm_search_result/jm_search_result.dart' as _i40;
 import 'package:zephyr/page/jm/jm_search_result/view/view.dart' as _i17;
 import 'package:zephyr/page/login_page.dart' as _i18;
 import 'package:zephyr/page/navigation_bar.dart' as _i19;
 import 'package:zephyr/page/ranking_list/view/ranking_list_page.dart' as _i20;
 import 'package:zephyr/page/register/bika/register_page.dart' as _i21;
 import 'package:zephyr/page/register/jm/jm_register_page.dart' as _i16;
-import 'package:zephyr/page/search_result/search_result.dart' as _i40;
+import 'package:zephyr/page/search_result/search_result.dart' as _i41;
 import 'package:zephyr/page/search_result/view/search_result_page.dart' as _i22;
 import 'package:zephyr/page/setting/view/bika_setting.dart' as _i2;
 import 'package:zephyr/page/setting/view/global_setting.dart' as _i11;
@@ -188,6 +189,7 @@ class ComicReadRoute extends _i28.PageRouteInfo<ComicReadRouteArgs> {
     required _i30.From from,
     required _i30.ComicEntryType type,
     required dynamic comicInfo,
+    required _i31.StringSelectStore store,
     List<_i28.PageRouteInfo>? children,
   }) : super(
          ComicReadRoute.name,
@@ -199,6 +201,7 @@ class ComicReadRoute extends _i28.PageRouteInfo<ComicReadRouteArgs> {
            from: from,
            type: type,
            comicInfo: comicInfo,
+           store: store,
          ),
          initialChildren: children,
        );
@@ -217,6 +220,7 @@ class ComicReadRoute extends _i28.PageRouteInfo<ComicReadRouteArgs> {
         from: args.from,
         type: args.type,
         comicInfo: args.comicInfo,
+        store: args.store,
       );
     },
   );
@@ -231,6 +235,7 @@ class ComicReadRouteArgs {
     required this.from,
     required this.type,
     required this.comicInfo,
+    required this.store,
   });
 
   final _i29.Key? key;
@@ -247,9 +252,11 @@ class ComicReadRouteArgs {
 
   final dynamic comicInfo;
 
+  final _i31.StringSelectStore store;
+
   @override
   String toString() {
-    return 'ComicReadRouteArgs{key: $key, comicId: $comicId, order: $order, epsNumber: $epsNumber, from: $from, type: $type, comicInfo: $comicInfo}';
+    return 'ComicReadRouteArgs{key: $key, comicId: $comicId, order: $order, epsNumber: $epsNumber, from: $from, type: $type, comicInfo: $comicInfo, store: $store}';
   }
 
   @override
@@ -262,7 +269,8 @@ class ComicReadRouteArgs {
         epsNumber == other.epsNumber &&
         from == other.from &&
         type == other.type &&
-        comicInfo == other.comicInfo;
+        comicInfo == other.comicInfo &&
+        store == other.store;
   }
 
   @override
@@ -273,7 +281,8 @@ class ComicReadRouteArgs {
       epsNumber.hashCode ^
       from.hashCode ^
       type.hashCode ^
-      comicInfo.hashCode;
+      comicInfo.hashCode ^
+      store.hashCode;
 }
 
 /// generated route for
@@ -282,9 +291,9 @@ class CommentsChildrenRoute
     extends _i28.PageRouteInfo<CommentsChildrenRouteArgs> {
   CommentsChildrenRoute({
     _i29.Key? key,
-    required _i31.Doc fatherDoc,
-    required _i32.BoolSelectStore store,
-    required _i33.IntSelectStore likeCountStore,
+    required _i32.Doc fatherDoc,
+    required _i33.BoolSelectStore store,
+    required _i34.IntSelectStore likeCountStore,
     List<_i28.PageRouteInfo>? children,
   }) : super(
          CommentsChildrenRoute.name,
@@ -323,11 +332,11 @@ class CommentsChildrenRouteArgs {
 
   final _i29.Key? key;
 
-  final _i31.Doc fatherDoc;
+  final _i32.Doc fatherDoc;
 
-  final _i32.BoolSelectStore store;
+  final _i33.BoolSelectStore store;
 
-  final _i33.IntSelectStore likeCountStore;
+  final _i34.IntSelectStore likeCountStore;
 
   @override
   String toString() {
@@ -421,8 +430,8 @@ class CommentsRouteArgs {
 class DownloadRoute extends _i28.PageRouteInfo<DownloadRouteArgs> {
   DownloadRoute({
     _i29.Key? key,
-    required _i34.Comic comicInfo,
-    required List<_i35.Doc> epsInfo,
+    required _i35.Comic comicInfo,
+    required List<_i36.Doc> epsInfo,
     List<_i28.PageRouteInfo>? children,
   }) : super(
          DownloadRoute.name,
@@ -458,9 +467,9 @@ class DownloadRouteArgs {
 
   final _i29.Key? key;
 
-  final _i34.Comic comicInfo;
+  final _i35.Comic comicInfo;
 
-  final List<_i35.Doc> epsInfo;
+  final List<_i36.Doc> epsInfo;
 
   @override
   String toString() {
@@ -473,14 +482,14 @@ class DownloadRouteArgs {
     if (other is! DownloadRouteArgs) return false;
     return key == other.key &&
         comicInfo == other.comicInfo &&
-        const _i36.ListEquality().equals(epsInfo, other.epsInfo);
+        const _i37.ListEquality().equals(epsInfo, other.epsInfo);
   }
 
   @override
   int get hashCode =>
       key.hashCode ^
       comicInfo.hashCode ^
-      const _i36.ListEquality().hash(epsInfo);
+      const _i37.ListEquality().hash(epsInfo);
 }
 
 /// generated route for
@@ -551,7 +560,7 @@ class GlobalSettingRoute extends _i28.PageRouteInfo<void> {
 class ImageCropRoute extends _i28.PageRouteInfo<ImageCropRouteArgs> {
   ImageCropRoute({
     _i29.Key? key,
-    required _i37.Uint8List imageData,
+    required _i38.Uint8List imageData,
     List<_i28.PageRouteInfo>? children,
   }) : super(
          ImageCropRoute.name,
@@ -575,7 +584,7 @@ class ImageCropRouteArgs {
 
   final _i29.Key? key;
 
-  final _i37.Uint8List imageData;
+  final _i38.Uint8List imageData;
 
   @override
   String toString() {
@@ -720,7 +729,7 @@ class JmCommentsRouteArgs {
 class JmDownloadRoute extends _i28.PageRouteInfo<JmDownloadRouteArgs> {
   JmDownloadRoute({
     _i29.Key? key,
-    required _i38.JmComicInfoJson jmComicInfoJson,
+    required _i39.JmComicInfoJson jmComicInfoJson,
     List<_i28.PageRouteInfo>? children,
   }) : super(
          JmDownloadRoute.name,
@@ -747,7 +756,7 @@ class JmDownloadRouteArgs {
 
   final _i29.Key? key;
 
-  final _i38.JmComicInfoJson jmComicInfoJson;
+  final _i39.JmComicInfoJson jmComicInfoJson;
 
   @override
   String toString() {
@@ -786,7 +795,7 @@ class JmRegisterRoute extends _i28.PageRouteInfo<void> {
 class JmSearchResultRoute extends _i28.PageRouteInfo<JmSearchResultRouteArgs> {
   JmSearchResultRoute({
     _i29.Key? key,
-    required _i39.JmSearchResultEvent event,
+    required _i40.JmSearchResultEvent event,
     List<_i28.PageRouteInfo>? children,
   }) : super(
          JmSearchResultRoute.name,
@@ -810,7 +819,7 @@ class JmSearchResultRouteArgs {
 
   final _i29.Key? key;
 
-  final _i39.JmSearchResultEvent event;
+  final _i40.JmSearchResultEvent event;
 
   @override
   String toString() {
@@ -930,7 +939,7 @@ class RegisterRoute extends _i28.PageRouteInfo<void> {
 class SearchResultRoute extends _i28.PageRouteInfo<SearchResultRouteArgs> {
   SearchResultRoute({
     _i29.Key? key,
-    required _i40.SearchEnter searchEnter,
+    required _i41.SearchEnter searchEnter,
     List<_i28.PageRouteInfo>? children,
   }) : super(
          SearchResultRoute.name,
@@ -957,7 +966,7 @@ class SearchResultRouteArgs {
 
   final _i29.Key? key;
 
-  final _i40.SearchEnter searchEnter;
+  final _i41.SearchEnter searchEnter;
 
   @override
   String toString() {
@@ -1080,9 +1089,9 @@ class WebViewRouteArgs {
     if (identical(this, other)) return true;
     if (other is! WebViewRouteArgs) return false;
     return key == other.key &&
-        const _i36.ListEquality().equals(info, other.info);
+        const _i37.ListEquality().equals(info, other.info);
   }
 
   @override
-  int get hashCode => key.hashCode ^ const _i36.ListEquality().hash(info);
+  int get hashCode => key.hashCode ^ const _i37.ListEquality().hash(info);
 }

@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/mobx/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 
 import '../../../config/global/global.dart';
@@ -16,8 +17,13 @@ import '../json/bika/comic_info/comic_info.dart';
 // 封面，名字，作家，汉化组，收藏人数，章节信息
 class ComicParticularsWidget extends StatelessWidget {
   final Comic comicInfo;
+  final StringSelectStore store;
 
-  const ComicParticularsWidget({super.key, required this.comicInfo});
+  const ComicParticularsWidget({
+    super.key,
+    required this.comicInfo,
+    required this.store,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -104,6 +110,8 @@ class ComicParticularsWidget extends StatelessWidget {
                     Text("页数：${comicInfo.pagesCount}"),
                     const SizedBox(height: 2),
                     Text("章节数：${comicInfo.epsCount}"),
+                    const SizedBox(height: 2),
+                    Text(store.date),
                   ],
                 ),
               ),

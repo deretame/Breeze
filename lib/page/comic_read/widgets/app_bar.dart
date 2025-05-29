@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/page/comments/widgets/title.dart';
 
 class ComicReadAppBar extends StatelessWidget {
   final String title;
@@ -37,7 +38,7 @@ class ComicReadAppBar extends StatelessWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
           child: AppBar(
-            title: Text(title),
+            title: ScrollableTitle(text: title),
             backgroundColor: globalSetting.backgroundColor.withValues(
               alpha: 0.5,
             ),

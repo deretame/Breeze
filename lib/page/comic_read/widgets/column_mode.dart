@@ -30,7 +30,6 @@ class ColumnModeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    logger.d(length);
     return useSkia
         ? ScrollablePositionedList.separated(
           // 带分隔符的版本
@@ -52,7 +51,6 @@ class ColumnModeWidget extends StatelessWidget {
 
   Widget itemBuilder(BuildContext context, int index) {
     if (index == 0) {
-      logger.d(index);
       return Container(
         width: screenWidth,
         height: globalSetting.comicReadTopContainer ? statusBarHeight : 0,

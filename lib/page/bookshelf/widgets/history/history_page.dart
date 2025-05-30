@@ -230,7 +230,7 @@ class __HistoryPageState extends State<_HistoryPage>
         children: [
           SizedBox(height: 10),
           IconButton(
-            onPressed: refreshCallback,
+            onPressed: () => _refresh(searchStatusStore, true),
             icon: const Icon(Icons.refresh),
           ),
           deletingDialog(context, refreshCallback, DeleteType.history),

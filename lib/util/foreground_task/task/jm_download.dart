@@ -8,7 +8,7 @@ import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/json/download/comic_all_info_json.dart';
-import 'package:zephyr/page/jm/download/json/download_info_json.dart';
+import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart';
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart'
     as base_info;
 import 'package:zephyr/src/rust/frb_generated.dart';
@@ -200,7 +200,7 @@ DownloadInfoJson comicInfo2DownloadInfoJson(
   return result.copyWith(series: seriesList);
 }
 
-Future<void> downloadComic(
+Future<DownloadInfoJson> downloadComic(
   DownloadInfoJson downloadInfoJson,
   List<String> selectedChapters,
 ) async {
@@ -229,6 +229,15 @@ Future<void> downloadComic(
   }
 
   for (var doc in docsList) {
+    // 如果 doc.media.path (也就是原始的image名) 已经是 "404" 了，
+    // 可能是因为这个 downloadInfoJson 对象之前被处理过且这个图片已标记为404。
+    // 在这种情况下，我们可能要跳过下载。
+    if (doc.media.path == "404") {
+      logger.i(
+        'Skipping download for already marked 404 image in chapter ${doc.docId}',
+      );
+      continue;
+    }
     try {
       await downloadPicture(
         from: 'jm',
@@ -240,8 +249,37 @@ Future<void> downloadComic(
       );
     } catch (e, s) {
       logger.e(e, stackTrace: s);
+      if (e.toString().contains('404')) {
+        final chapterIdForUpdate = doc.docId;
+        final originalImageName = doc.media.originalName; // 使用 originalName 来查找
+
+        // 1. 在 downloadInfoJson.series 中找到对应的章节 (SeriesItem)
+        int seriesIndex = downloadInfoJson.series.indexWhere(
+          (s) => s.id.toString() == chapterIdForUpdate,
+        );
+
+        if (seriesIndex != -1) {
+          var targetSeriesItem = downloadInfoJson.series[seriesIndex];
+
+          // 2. 在该章节的 info.images 列表中找到对应的图片条目
+          //    我们要用 originalImageName (即 doc.media.path 或 doc.media.originalName) 来找
+          int imageIndex = targetSeriesItem.info.images.indexOf(
+            originalImageName,
+          );
+
+          if (imageIndex != -1) {
+            // 3. 把它替换成 "404" 字符串
+            targetSeriesItem.info.images[imageIndex] = "404";
+            logger.i(
+              '已将章节 $chapterIdForUpdate 中的图片 "$originalImageName" 标记为 "404"！',
+            );
+          }
+        }
+      }
     }
   }
+
+  return downloadInfoJson;
 }
 
 Future<void> saveToDB(

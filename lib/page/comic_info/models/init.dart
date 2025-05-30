@@ -8,7 +8,10 @@ import '../json/bika/comic_info/comic_info.dart' show Comic;
 import '../json/bika/eps/eps.dart' show Doc;
 import '../method/type_conversion.dart';
 
-initDownloadInfo(ComicEntryType type, String comicId) {
+(ComicAllInfoJson?, BikaComicDownload?, Comic?, List<Doc>) initDownloadInfo(
+  ComicEntryType type,
+  String comicId,
+) {
   ComicAllInfoJson? comicAllInfo;
   BikaComicDownload? comicDownload;
   Comic? comicInfo;

@@ -35,8 +35,7 @@ class ColumnModeWidget extends StatelessWidget {
           // 带分隔符的版本
           itemCount: length + 2,
           itemBuilder: itemBuilder,
-          separatorBuilder:
-              (_, __) => Container(height: 2, color: Colors.black),
+          separatorBuilder: (_, _) => Container(height: 2, color: Colors.black),
           itemScrollController: itemScrollController,
           itemPositionsListener: itemPositionsListener,
         )

@@ -44,9 +44,9 @@ class _ComicReadPage extends StatefulWidget {
 }
 
 class _ComicReadPageState extends State<_ComicReadPage> {
-  get comicTitle => widget.comicTitle;
+  String get comicTitle => widget.comicTitle;
 
-  get comicId => widget.comicId;
+  String get comicId => widget.comicId;
 
   int commentIndex = 1;
 

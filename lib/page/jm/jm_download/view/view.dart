@@ -5,7 +5,7 @@ import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
-import 'package:zephyr/page/jm/download/download.dart';
+import 'package:zephyr/page/jm/jm_download/download.dart';
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';

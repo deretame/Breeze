@@ -107,6 +107,9 @@ Future<String> downloadPicture({
   if (url.isEmpty) {
     throw Exception('URL 不能为空 404');
   }
+  if (url.contains("404") && from == "jm") {
+    return "404";
+  }
 
   // 清理路径
   String sanitizedPath = sanitizePath(path);

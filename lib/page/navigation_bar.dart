@@ -4,8 +4,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:markdown_widget/widget/markdown_block.dart';
 import 'package:permission_guard/permission_guard.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:toastification/toastification.dart';
@@ -257,10 +257,7 @@ class _NavigationBarState extends State<NavigationBar> {
           return AlertDialog(
             title: Text('发现新版本'),
             content: SingleChildScrollView(
-              child: SizedBox(
-                width: double.maxFinite, // 设置最大宽度
-                child: MarkdownBody(data: '# $cloudVersion\n$releaseInfo'),
-              ),
+              child: MarkdownBlock(data: '# $cloudVersion\n$releaseInfo'),
             ),
             actions: [
               TextButton(child: Text('取消'), onPressed: () => context.pop()),

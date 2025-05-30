@@ -157,7 +157,7 @@ class _DownloadPageState extends State<_DownloadPage>
           const Text('啥都没有', style: TextStyle(fontSize: 20.0)),
           const SizedBox(height: 10),
           IconButton(
-            onPressed: () => _refresh(searchStatusStore, true),
+            onPressed: () => _refresh(searchStatusStore),
             icon: const Icon(Icons.refresh),
           ),
           const Spacer(),
@@ -195,7 +195,7 @@ class _DownloadPageState extends State<_DownloadPage>
             context,
             index,
             state.comics.length,
-            () => _refresh(searchStatusStore),
+            () => _refresh(searchStatusStore, true),
             isBrevity: false,
             comics: state.comics,
           ),
@@ -235,7 +235,7 @@ class _DownloadPageState extends State<_DownloadPage>
           children: [
             SizedBox(height: 10),
             IconButton(
-              onPressed: refreshCallback,
+              onPressed: () => _refresh(searchStatusStore, true),
               icon: const Icon(Icons.refresh),
             ),
             deletingDialog(context, refreshCallback, DeleteType.download),

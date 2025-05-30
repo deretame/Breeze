@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:markdown_widget/widget/markdown_block.dart';
 import 'package:zephyr/page/webdav_sync/webdav_sync.dart';
 
 import '../../../main.dart';
@@ -172,7 +172,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
 ### 哪里有 webdav 服务器？
 - 国内可以使用坚果云，国外服务可以使用 InfiniCLOUD，或者自建服务器使用
 ### 可以同步那些东西？
-- 仅可以同步历史记录
+- 仅可以同步哔咔的历史记录，禁漫的收藏及历史
 ### 同步间隔时长是？
 - 五分钟
 ### 如何手动触发一次同步？
@@ -183,12 +183,8 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('常见问题'),
           content: SingleChildScrollView(
-            child: SizedBox(
-              width: double.maxFinite, // 设置最大宽度
-              child: MarkdownBody(data: disclaimerMarkdown),
-            ),
+            child: MarkdownBlock(data: disclaimerMarkdown),
           ),
           actions: [
             TextButton(

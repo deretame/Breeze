@@ -33,7 +33,7 @@ import 'package:zephyr/page/comments_children/view/comments_children_page.dart'
     as _i7;
 import 'package:zephyr/page/download/view/download.dart' as _i9;
 import 'package:zephyr/page/image_crop.dart' as _i12;
-import 'package:zephyr/page/jm/download/view/view.dart' as _i15;
+import 'package:zephyr/page/jm/jm_download/view/view.dart' as _i15;
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart'
     as _i39;
 import 'package:zephyr/page/jm/jm_comic_info/view/view.dart' as _i13;

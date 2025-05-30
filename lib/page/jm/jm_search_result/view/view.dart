@@ -250,7 +250,7 @@ class _JmSearchResultPageState extends State<_JmSearchResultPage> {
     ),
   );
 
-  void _searchCallback(value) {
+  void _searchCallback(dynamic value) {
     try {
       // 因为jm有搜id直接跳转到漫画详情的功能，从100开始的id会直接跳转到漫画详情
       final keyword = value as String;

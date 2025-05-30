@@ -8,7 +8,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/mobx/string_select.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
-import 'package:zephyr/page/jm/download/json/download_info_json.dart'
+import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart'
     show downloadInfoJsonFromJson;
 import 'package:zephyr/page/jm/jm_comic_info/jm_comic_info.dart';
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart';
@@ -117,10 +117,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                     var choice = await showExportTypeDialog();
                     if (choice == ExportType.zip) {
                       showInfoToast('正在导出漫画...');
-                      // exportComicAsZip(
-                      //   jmDownload!.allInfo.let(downloadInfoJsonFromJson),
-                      //   jmDownload!.epsIds,
-                      // );
+                      exportComicAsZip(jmDownload!);
                     } else if (choice == ExportType.folder) {
                       showInfoToast('正在导出漫画...');
                       exportComicAsFolder(jmDownload!);

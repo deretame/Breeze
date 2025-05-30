@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/src/rust/api/simple.dart';

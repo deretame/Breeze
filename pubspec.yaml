@@ -1,7 +1,7 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔应用。"
 publish_to: none
-version: 2.4.0+2121
+version: 2.5.0+2122
 
 environment:
   sdk: ^3.7.2
@@ -23,7 +23,7 @@ dependencies:
   photo_view: ^0.15.0 # 交互式图片查看器（缩放/平移）
   scrollable_positioned_list: ^0.3.8 # 支持滚动定位的列表
   persistent_bottom_nav_bar: ^6.2.1 # 可持久化的底部导航栏
-  flutter_markdown: ^0.7.5 # Markdown 渲染支持
+  markdown_widget: ^2.3.2+8 # Markdown 渲染支持
   dropdown_button2: ^2.3.9 # 增强型下拉菜单
   toastification: ^3.0.1 # 现代化通知提示系统
   flutter_animate: ^4.5.2 # 声明式动画工具集
@@ -95,7 +95,7 @@ dependencies:
   ########################################
   #       开发工具 & 辅助功能           #
   ########################################
-  auto_route: ^10.0.1 # 声明式路由管理
+  auto_route: ^10.0.0 # 声明式路由管理
   logger: ^2.5.0 # 分级日志记录器
   stack_trace: ^1.12.0 # 异步堆栈追踪
   collection: ^1.18.0 # 集合工具扩展
@@ -111,9 +111,9 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0 # 代码规范检查
+  flutter_lints: ^6.0.0 # 代码规范检查
   build_runner: ^2.4.14 # 代码生成器
-  auto_route_generator: ^10.0.1 # 路由代码生成
+  auto_route_generator: ^10.0.0 # 路由代码生成
   hive_ce_generator: ^1.8.1 # Hive 模型生成
   objectbox_generator: ^4.2.0 # ObjectBox 代码生成
   integration_test:

@@ -7,7 +7,9 @@ import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/page/jm/download/json/download_info_json.dart';
+import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart';
+import 'package:zephyr/src/rust/api/simple.dart';
+import 'package:zephyr/src/rust/compressed/compressed.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -43,7 +45,7 @@ Future<void> exportComicAsFolder(JmDownload jmDownload) async {
   var coverFile = File('$coverDir/cover.jpg');
   await coverFile.create(recursive: true);
   try {
-    var coverDownloadFile = await downloadPicture(
+    String coverDownloadFile = await downloadPicture(
       from: 'jm',
       url: getJmCoverUrl(processedComicInfo.id.toString()),
       path: "${processedComicInfo.id}.jpg",
@@ -64,8 +66,11 @@ Future<void> exportComicAsFolder(JmDownload jmDownload) async {
     var epDir = '$comicDir/eps/${ep.name}';
     for (var page in ep.info.images) {
       var pageFile = '$epDir/$page';
+      if (page == "404") {
+        continue;
+      }
       try {
-        var pageDownloadFile = await downloadPicture(
+        String pageDownloadFile = await downloadPicture(
           from: 'jm',
           url: getJmImagesUrl(comicInfo.id.toString(), page),
           path: page,
@@ -85,6 +90,76 @@ Future<void> exportComicAsFolder(JmDownload jmDownload) async {
 
   logger.d('漫画${comicInfo.name}导出为文件夹完成');
   showSuccessToast('漫画${comicInfo.name}导出为文件夹完成');
+}
+
+Future<void> exportComicAsZip(JmDownload jmDownload) async {
+  final comicInfo = jmDownload.allInfo.let(downloadInfoJsonFromJson);
+  final downloadedEpIds = jmDownload.epsIds;
+  var processedComicInfo = comicInfoProcess(comicInfo);
+
+  final downloadPath =
+      '${await createDownloadDir()}/${processedComicInfo.name.substring(0, min(processedComicInfo.name.length, 90))}';
+
+  final finalZipPath = '$downloadPath.tar';
+
+  var processedComicInfoString = processedComicInfo.toJson();
+  processedComicInfoString['epsIds'] = downloadedEpIds;
+
+  final packInfo = PackInfo(
+    comicInfoString: downloadInfoJsonToJson(comicInfo),
+    processedComicInfoString: processedComicInfoString.let(jsonEncode),
+    originalImagePaths: [],
+    packImagePaths: [],
+  );
+
+  // 下载封面
+  if (processedComicInfo.name.isNotEmpty) {
+    var coverFile = 'cover/cover.jpg';
+    var coverDownloadFile = await downloadPicture(
+      from: 'jm',
+      url: getJmCoverUrl(processedComicInfo.id.toString()),
+      path: "${processedComicInfo.id}.jpg",
+      cartoonId: processedComicInfo.id.toString(),
+      pictureType: 'cover',
+      chapterId: processedComicInfo.id.toString(),
+    );
+    packInfo.originalImagePaths.add(coverDownloadFile);
+    packInfo.packImagePaths.add(coverFile);
+  }
+
+  // 下载漫画章节
+  for (var ep in processedComicInfo.series) {
+    if (!downloadedEpIds.contains(ep.id)) {
+      continue;
+    }
+    var epDir = 'eps/${ep.name}';
+    for (var page in ep.info.images) {
+      var pageFile = '$epDir/$page';
+      if (page == "404") {
+        continue;
+      }
+      try {
+        var pageDownloadFile = await downloadPicture(
+          from: 'jm',
+          url: getJmImagesUrl(comicInfo.id.toString(), page),
+          path: page,
+          cartoonId: comicInfo.id.toString(),
+          pictureType: 'comic',
+          chapterId: ep.id,
+        );
+        packInfo.originalImagePaths.add(pageDownloadFile);
+        packInfo.packImagePaths.add(pageFile);
+      } catch (e) {
+        logger.e('Error downloading $page: $e');
+      }
+    }
+  }
+
+  // 压缩文件夹
+  await packFolder(destPath: finalZipPath, packInfo: packInfo);
+
+  showSuccessToast('漫画${comicInfo.name}导出为压缩包完成');
+  logger.d('漫画${comicInfo.name}导出为压缩包完成');
 }
 
 /// 创建下载目录

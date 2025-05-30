@@ -218,7 +218,7 @@ class __FavoritePageState extends State<_FavoritePage>
         children: [
           SizedBox(height: 10),
           IconButton(
-            onPressed: refreshCallback,
+            onPressed: () => _refresh(searchStatusStore, true),
             icon: const Icon(Icons.refresh),
           ),
           deletingDialog(context, refreshCallback, DeleteType.history),

@@ -157,58 +157,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                 width: 100,
                 height: 56,
                 child: FloatingActionButton(
-                  onPressed: () {
-                    String comicId = '';
-                    int order = widget.comicId.let(toInt);
-                    int epsNumber = 0;
-                    From from = From.jm;
-                    ComicEntryType type = _type;
-                    dynamic comicInfo;
-                    if (isDownload) {
-                      comicId = jmDownload!.comicId;
-                      epsNumber =
-                          jmDownload!.allInfo
-                              .let(downloadInfoJsonFromJson)
-                              .series
-                              .first
-                              .info
-                              .series
-                              .length;
-                      from = From.jm;
-                      if (_hasHistory) {
-                        type = ComicEntryType.historyAndDownload;
-                      }
-                      comicInfo = jmDownload!.allInfo.let(
-                        jmComicInfoJsonFromJson,
-                      );
-                    } else {
-                      comicId = widget.comicId;
-
-                      epsNumber = _state.comicInfo!.series.length;
-                      from = From.jm;
-                      type =
-                          _hasHistory
-                              ? ComicEntryType.history
-                              : ComicEntryType.normal;
-                      comicInfo = _state.comicInfo!;
-                    }
-
-                    if (_hasHistory) {
-                      order = jmHistory!.order;
-                    }
-
-                    context.pushRoute(
-                      ComicReadRoute(
-                        comicId: comicId,
-                        order: order,
-                        epsNumber: epsNumber,
-                        from: from,
-                        type: type,
-                        comicInfo: comicInfo,
-                        store: store,
-                      ),
-                    );
-                  },
+                  onPressed: _navigateToReader,
                   child: Text(
                     _hasHistory ? '继续阅读' : '开始阅读',
                     overflow: TextOverflow.ellipsis,
@@ -246,23 +195,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
       });
     }
 
-    late JmComicInfoJson comicInfo;
-    if (!isDownload) {
-      comicInfo = state!.comicInfo!;
-    } else {
-      comicInfo = jmDownload!.allInfo.let(jmComicInfoJsonFromJson);
-      var temp = jmDownload!.allInfo.let(downloadInfoJsonFromJson);
-      if (temp.series.first.info.series.isEmpty) {
-        comicInfo = comicInfo.copyWith(series: []);
-      } else {
-        final epsIds = jmDownload!.epsIds;
-        final series = comicInfo.series;
-        final newSeries =
-            series.where((s) => epsIds.contains(s.id.toString())).toList();
-        comicInfo = comicInfo.copyWith(series: newSeries);
-      }
-    }
-
+    final JmComicInfoJson comicInfo = _prepareComicInfo(state);
     final id = comicInfo.id.toString();
 
     if (comicInfo.name.isEmpty) {
@@ -363,32 +296,30 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
     }
 
     // 5. 章节
-    if (comicInfo.series.isNotEmpty) {
-      comicInfoWidgets.add(const SizedBox(height: 10));
-      for (int i = 0; i < comicInfo.series.length; i++) {
-        final series = comicInfo.series[i];
-        comicInfoWidgets.add(
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: Row(
-              children: [
-                SizedBox(width: 5),
-                Expanded(
-                  child: EpWidget(
-                    comicId: id,
-                    series: series,
-                    comicInfo: comicInfo,
-                    epsNumber: comicInfo.series.length,
-                    type: _type,
-                    store: store,
-                  ),
+    comicInfoWidgets.add(const SizedBox(height: 10));
+    for (int i = 0; i < comicInfo.series.length; i++) {
+      final series = comicInfo.series[i];
+      comicInfoWidgets.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Row(
+            children: [
+              SizedBox(width: 5),
+              Expanded(
+                child: EpWidget(
+                  comicId: id,
+                  series: series,
+                  comicInfo: comicInfo,
+                  epsNumber: comicInfo.series.length,
+                  type: _type,
+                  store: store,
                 ),
-                SizedBox(width: 5),
-              ],
-            ),
+              ),
+              SizedBox(width: 5),
+            ],
           ),
-        );
-      }
+        ),
+      );
     }
 
     // 6. 添加推荐（relatedList）
@@ -490,4 +421,76 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
           timestamp * 1000,
         ).toUtc().toString().let((str) => str.substring(0, str.length - 5)),
       );
+
+  void _navigateToReader() {
+    String comicIdVal;
+    int orderVal;
+    int epsNumberVal;
+    From fromVal = From.jm;
+    ComicEntryType typeVal = _type;
+    dynamic
+    comicInfoVal; // Consider using a common base type or interface if possible
+
+    if (isDownload) {
+      comicIdVal = jmDownload!.comicId;
+      epsNumberVal =
+          jmDownload!.allInfo
+              .let(downloadInfoJsonFromJson)
+              .series
+              .first
+              .info
+              .series
+              .length;
+      if (_hasHistory) {
+        typeVal = ComicEntryType.historyAndDownload;
+      }
+      comicInfoVal = jmDownload!.allInfo.let(jmComicInfoJsonFromJson);
+    } else {
+      comicIdVal = widget.comicId;
+      epsNumberVal = _state.comicInfo!.series.length;
+      typeVal = _hasHistory ? ComicEntryType.history : ComicEntryType.normal;
+      comicInfoVal = _state.comicInfo!;
+    }
+
+    orderVal = _hasHistory ? jmHistory!.order : widget.comicId.let(toInt);
+
+    context.pushRoute(
+      ComicReadRoute(
+        comicId: comicIdVal,
+        order: orderVal,
+        epsNumber: epsNumberVal,
+        from: fromVal,
+        type: typeVal,
+        comicInfo: comicInfoVal,
+        store: store,
+      ),
+    );
+  }
+
+  JmComicInfoJson _prepareComicInfo(JmComicInfoState? blocState) {
+    late JmComicInfoJson comicInfo;
+    if (!isDownload) {
+      comicInfo = blocState!.comicInfo!;
+      if (comicInfo.series.isEmpty) {
+        comicInfo = blocState.comicInfo!.copyWith(
+          series: [
+            Series(
+              id: comicInfo.id.toString(),
+              name: comicInfo.name,
+              sort: 'null',
+            ),
+          ],
+        );
+      }
+    } else {
+      comicInfo = jmDownload!.allInfo.let(jmComicInfoJsonFromJson);
+
+      final epsIds = jmDownload!.epsIds;
+      final series = comicInfo.series;
+      final newSeries =
+          series.where((s) => epsIds.contains(s.id.toString())).toList();
+      comicInfo = comicInfo.copyWith(series: newSeries);
+    }
+    return comicInfo;
+  }
 }

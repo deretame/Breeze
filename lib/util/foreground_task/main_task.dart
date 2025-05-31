@@ -8,6 +8,9 @@ import 'package:zephyr/util/foreground_task/task/bika_download.dart';
 import 'package:zephyr/util/foreground_task/task/jm_download.dart';
 import 'package:zephyr/widgets/toast.dart';
 
+// 下载任务列表
+List<String> downloadTasks = [];
+
 // @pragma 这个注解告诉编译器，即使这个函数看起来没有被直接调用，也不要把它优化掉（摇树优化 Tree Shaking）
 // 'vm:entry-point' 表示这是Dart虚拟机的一个入口点，对于后台 isolate (隔离区/独立线程) 来说是必需的喵！
 // 当启动前台服务时，这个函数会在一个新的 isolate 中被执行。
@@ -25,6 +28,7 @@ class MyTaskHandler extends TaskHandler {
   late DownloadTaskJson downloadTasks;
   late String comicName;
   late String comicId;
+  String message = '';
 
   // 当任务第一次启动时，这个方法会被调用喵。
   @override
@@ -37,8 +41,8 @@ class MyTaskHandler extends TaskHandler {
   @override
   void onRepeatEvent(DateTime timestamp) {
     FlutterForegroundTask.updateService(
-      notificationTitle: '下载任务',
-      notificationText: '$comicName 下载中...',
+      notificationTitle: '后台下载任务',
+      notificationText: message,
     );
   }
 
@@ -57,16 +61,18 @@ class MyTaskHandler extends TaskHandler {
     if (downloadTasks.from == "bika") {
       comicName = downloadTasks.comicName;
       comicId = downloadTasks.comicId;
-      bikaDownloadTask(downloadTasks).catchError((e, s) {
+      bikaDownloadTask(this, downloadTasks).catchError((e, s) {
         logger.e(e, stackTrace: s);
         showErrorToast(e.toString());
+        FlutterForegroundTask.stopService();
       });
     } else if (downloadTasks.from == "jm") {
       comicName = downloadTasks.comicName;
       comicId = downloadTasks.comicId;
-      jmDownloadTask(downloadTasks).catchError((e, s) {
+      jmDownloadTask(this, downloadTasks).catchError((e, s) {
         logger.e(e, stackTrace: s);
         showErrorToast(e.toString());
+        FlutterForegroundTask.stopService();
       });
     }
   }
@@ -77,6 +83,7 @@ class MyTaskHandler extends TaskHandler {
   @override
   void onNotificationButtonPressed(String id) {
     if (id == 'cancel') {
+      FlutterForegroundTask.sendDataToMain("clear");
       FlutterForegroundTask.stopService();
     }
   }
@@ -89,10 +96,7 @@ class MyTaskHandler extends TaskHandler {
   // 当用户从通知栏中清除或划掉这个服务的通知时，这个方法会被调用喵。
   @override
   void onNotificationDismissed() {
-    FlutterForegroundTask.updateService(
-      notificationTitle: '下载任务',
-      notificationText: '下载任务已取消',
-    );
+    FlutterForegroundTask.sendDataToMain("clear");
     FlutterForegroundTask.stopService();
   }
 }

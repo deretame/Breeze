@@ -220,6 +220,24 @@ mixin _$BikaSetting on _BikaSetting, Store {
     });
   }
 
+  late final _$slowDownloadAtom = Atom(
+    name: '_BikaSetting.slowDownload',
+    context: context,
+  );
+
+  @override
+  bool get slowDownload {
+    _$slowDownloadAtom.reportRead();
+    return super.slowDownload;
+  }
+
+  @override
+  set slowDownload(bool value) {
+    _$slowDownloadAtom.reportWrite(value, super.slowDownload, () {
+      super.slowDownload = value;
+    });
+  }
+
   late final _$_BikaSettingActionController = ActionController(
     name: '_BikaSetting',
     context: context,
@@ -658,6 +676,42 @@ mixin _$BikaSetting on _BikaSetting, Store {
   }
 
   @override
+  bool getSlowDownload() {
+    final _$actionInfo = _$_BikaSettingActionController.startAction(
+      name: '_BikaSetting.getSlowDownload',
+    );
+    try {
+      return super.getSlowDownload();
+    } finally {
+      _$_BikaSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void setSlowDownload(bool value) {
+    final _$actionInfo = _$_BikaSettingActionController.startAction(
+      name: '_BikaSetting.setSlowDownload',
+    );
+    try {
+      return super.setSlowDownload(value);
+    } finally {
+      _$_BikaSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void deleteSlowDownload() {
+    final _$actionInfo = _$_BikaSettingActionController.startAction(
+      name: '_BikaSetting.deleteSlowDownload',
+    );
+    try {
+      return super.deleteSlowDownload();
+    } finally {
+      _$_BikaSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     return '''
 account: ${account},
@@ -671,7 +725,8 @@ shieldCategoryMap: ${shieldCategoryMap},
 shieldHomePageCategoriesMap: ${shieldHomePageCategoriesMap},
 signIn: ${signIn},
 signInTime: ${signInTime},
-brevity: ${brevity}
+brevity: ${brevity},
+slowDownload: ${slowDownload}
     ''';
   }
 }

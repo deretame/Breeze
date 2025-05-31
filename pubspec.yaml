@@ -1,7 +1,7 @@
 name: zephyr
-description: "使用Flutter开发的三方哔咔应用。"
+description: "使用Flutter开发的三方哔咔及禁漫应用。"
 publish_to: none
-version: 2.5.1+2123
+version: 2.5.2+2124
 
 environment:
   sdk: ^3.7.2
@@ -134,6 +134,9 @@ flutter:
     - family: Courgette-Regular
       fonts:
         - asset: asset/fonts/Courgette-Regular.ttf
+    - family: JetBrainsMonoNL-Regular
+      fonts:
+        - asset: asset/fonts/JetBrainsMonoNL-Regular.ttf
 
   # 资源文件配置
   assets:

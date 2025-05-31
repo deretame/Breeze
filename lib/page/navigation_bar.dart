@@ -11,6 +11,8 @@ import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:toastification/toastification.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/page/ranking_list/ranking_list.dart';
+import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
+import 'package:zephyr/util/foreground_task/main_task.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -376,7 +378,7 @@ class _NavigationBarState extends State<NavigationBar> {
         playSound: false,
       ),
       foregroundTaskOptions: ForegroundTaskOptions(
-        eventAction: ForegroundTaskEventAction.repeat(5000),
+        eventAction: ForegroundTaskEventAction.repeat(1000),
         autoRunOnBoot: false,
         autoRunOnMyPackageReplaced: false,
         allowWakeLock: true,
@@ -386,7 +388,22 @@ class _NavigationBarState extends State<NavigationBar> {
   }
 
   void _onReceiveTaskData(Object data) {
-    showSuccessToast("$data下载完成");
+    if (data as String == "clear") {
+      downloadTasks.clear();
+      return;
+    }
+
+    showSuccessToast("${downloadTaskJsonFromJson(data).comicName}下载完成");
+    downloadTasks.remove(data);
+    logger.d(downloadTasks);
+    if (downloadTasks.isEmpty) {
+      FlutterForegroundTask.stopService();
+    } else {
+      showInfoToast(
+        "${downloadTaskJsonFromJson(downloadTasks.first).comicName}开始下载",
+      );
+      FlutterForegroundTask.sendDataToTask(downloadTasks.first);
+    }
   }
 
   Future<void> initializeNotifications() async {

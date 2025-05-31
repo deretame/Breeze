@@ -88,10 +88,7 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   Widget _buildCoverWithTitle(BuildContext context) {
-    final textStyle = Theme.of(
-      context,
-    ).textTheme.bodySmall?.copyWith(color: globalSetting.textColor);
-
+    double circular = roundedCorner ? 5.0 : 0.0;
     return Stack(
       children: [
         CoverWidget(
@@ -103,35 +100,45 @@ class ComicSimplifyEntry extends StatelessWidget {
           roundedCorner: roundedCorner,
         ),
         Positioned(
-          left: 5,
-          right: 5,
-          bottom: 5,
-          child: _buildTitleText(textStyle),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTitleText(TextStyle? textStyle) {
-    return Stack(
-      children: [
-        Text(
-          info.title,
-          style: textStyle?.copyWith(
-            foreground:
-                Paint()
-                  ..style = PaintingStyle.stroke
-                  ..strokeWidth = 3
-                  ..color = globalSetting.backgroundColor,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withValues(alpha: 0.7),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                stops: [0.0, 0.7],
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(circular),
+                bottomRight: Radius.circular(circular),
+              ),
+            ),
+            padding: const EdgeInsets.fromLTRB(5.0, 20.0, 5.0, 5.0),
+            child: Text(
+              info.title,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12.0,
+                fontWeight: FontWeight.w500,
+                shadows: [
+                  Shadow(
+                    offset: const Offset(0, 1),
+                    blurRadius: 2,
+                    color: Colors.black.withValues(alpha: 0.5),
+                  ),
+                ],
+              ),
+              maxLines: 3, // 最多显示3行
+              overflow: TextOverflow.ellipsis, // 超出部分显示省略号
+              textAlign: TextAlign.start, // 文字对齐方式，也可以用 TextAlign.center 居中显示
+            ),
           ),
-          maxLines: 3,
-          overflow: TextOverflow.ellipsis,
-        ),
-        Text(
-          info.title,
-          style: textStyle,
-          maxLines: 3,
-          overflow: TextOverflow.ellipsis,
         ),
       ],
     );

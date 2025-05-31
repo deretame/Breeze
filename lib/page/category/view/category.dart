@@ -71,11 +71,7 @@ class CategoryPage extends StatelessWidget {
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           controller: scrollControllers['category']!,
-          children: const [
-            SizedBox(height: 10),
-            KeywordPage(),
-            CategoryWidget1(),
-          ],
+          children: const [KeywordPage(), CategoryWidget()],
         ),
       ),
     );

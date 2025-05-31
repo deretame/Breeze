@@ -6,7 +6,7 @@ import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../bookshelf/models/events.dart';
-import 'bika/widgets.dart';
+import 'widgets.dart';
 
 @RoutePage()
 class BikaSettingPage extends StatefulWidget {
@@ -38,6 +38,7 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
         WidgetState.any: Icon(Icons.close),
       });
   bool _brevity = bikaSetting.brevity;
+  bool _slowDownload = bikaSetting.slowDownload;
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +67,8 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
               SizedBox(height: 10),
               divider(),
               _brevityWidget(),
+              divider(),
+              _slowDownloadWidget(),
               divider(),
               Center(
                 child: ElevatedButton(
@@ -158,6 +161,35 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
             eventBus.fire(HistoryEvent(EventType.refresh));
             eventBus.fire(DownloadEvent(EventType.refresh));
             eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 1));
+          },
+        ),
+        SizedBox(width: 10),
+      ],
+    );
+  }
+
+  Widget _slowDownloadWidget() {
+    return Row(
+      children: [
+        SizedBox(width: 10),
+        Text("慢速下载", style: TextStyle(fontSize: 18)),
+        SizedBox(width: 5), // 添加间距
+        Tooltip(
+          message: "慢速下载会降低下载图片的速度，以减少对低配手机的负担。",
+          triggerMode: TooltipTriggerMode.tap, // 点击触发
+          child: Icon(
+            Icons.help_outline, // 问号图标
+            size: 20,
+            color: materialColorScheme.outlineVariant,
+          ),
+        ),
+        Spacer(),
+        Switch(
+          thumbIcon: thumbIcon,
+          value: _slowDownload,
+          onChanged: (bool value) {
+            setState(() => _slowDownload = !_slowDownload);
+            bikaSetting.setSlowDownload(_slowDownload);
           },
         ),
         SizedBox(width: 10),

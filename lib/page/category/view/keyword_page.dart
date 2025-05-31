@@ -39,19 +39,7 @@ class _KeywordPage extends StatelessWidget {
                   },
                 );
               case SearchKeywordStatus.success:
-                return Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 15.0),
-                      // 左边距 10 像素
-                      child: Align(
-                        alignment: Alignment.centerLeft, // 左对齐
-                        child: Text("搜索热词", style: TextStyle(fontSize: 15)),
-                      ),
-                    ),
-                    KeywordWidget(state.keywords),
-                  ],
-                );
+                return KeywordWidget(state.keywords);
             }
           },
         ),

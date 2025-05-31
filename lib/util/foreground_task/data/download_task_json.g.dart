@@ -16,6 +16,7 @@ _DownloadTaskJson _$DownloadTaskJsonFromJson(Map<String, dynamic> json) =>
           (json['selectedChapters'] as List<dynamic>)
               .map((e) => e as String)
               .toList(),
+      slowDownload: json['slowDownload'] as bool,
     );
 
 Map<String, dynamic> _$DownloadTaskJsonToJson(_DownloadTaskJson instance) =>
@@ -25,6 +26,7 @@ Map<String, dynamic> _$DownloadTaskJsonToJson(_DownloadTaskJson instance) =>
       'comicName': instance.comicName,
       'bikaInfo': instance.bikaInfo,
       'selectedChapters': instance.selectedChapters,
+      'slowDownload': instance.slowDownload,
     };
 
 _BikaInfo _$BikaInfoFromJson(Map<String, dynamic> json) => _BikaInfo(

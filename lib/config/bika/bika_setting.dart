@@ -34,6 +34,8 @@ abstract class _BikaSetting with Store {
   DateTime signInTime = DateTime.now().subtract(Duration(hours: 24)); // 签到时间
   @observable
   bool brevity = false; // 精简漫画展示
+  @observable
+  bool slowDownload = false; // 慢速下载，用来给低配手机减负
 
   Future<void> initBox() async {
     _box = await Hive.openBox(BikaSettingBoxKeys.bikaSettingBox);
@@ -49,6 +51,7 @@ abstract class _BikaSetting with Store {
     signIn = getSignIn();
     signInTime = getSignInTime();
     brevity = getBrevity();
+    slowDownload = getSlowDownload();
   }
 
   @action
@@ -284,6 +287,27 @@ abstract class _BikaSetting with Store {
     brevity = false;
     _box.delete(BikaSettingBoxKeys.brevity);
   }
+
+  @action
+  bool getSlowDownload() {
+    slowDownload = _box.get(
+      BikaSettingBoxKeys.slowDownload,
+      defaultValue: false,
+    );
+    return slowDownload;
+  }
+
+  @action
+  void setSlowDownload(bool value) {
+    slowDownload = value;
+    _box.put(BikaSettingBoxKeys.slowDownload, value);
+  }
+
+  @action
+  void deleteSlowDownload() {
+    slowDownload = false;
+    _box.delete(BikaSettingBoxKeys.slowDownload);
+  }
 }
 
 class BikaSettingBoxKeys {
@@ -302,6 +326,7 @@ class BikaSettingBoxKeys {
   static const String signIn = 'signIn'; // 签到状态
   static const String signInTime = 'signInTime'; // 签到时间
   static const String brevity = 'brevity'; // 精简漫画展示
+  static const String slowDownload = 'slowDownload'; // 慢速下载
 }
 
 // 哔咔的漫画分类

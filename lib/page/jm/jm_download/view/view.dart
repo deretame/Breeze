@@ -10,6 +10,8 @@ import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/init.dart';
+import 'package:zephyr/util/foreground_task/main_task.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import '../../../../config/global/global.dart';
 import '../../../../object_box/model.dart';
@@ -134,20 +136,28 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
   }
 
   Future<void> download() async {
-    await initForegroundTask(jmComicInfoJson.name);
-    await Future.delayed(const Duration(seconds: 1));
-    FlutterForegroundTask.sendDataToTask(
-      DownloadTaskJson(
-        from: "jm",
-        comicId: jmComicInfoJson.id.toString(),
-        comicName: jmComicInfoJson.name,
-        bikaInfo: BikaInfo(authorization: "", proxy: ""),
-        selectedChapters:
-            _downloadInfo.entries
-                .where((entry) => entry.value)
-                .map((entry) => entry.key.toString())
-                .toList(),
-      ).toJson().let(jsonEncode),
-    );
+    final downloadTask = DownloadTaskJson(
+      from: "jm",
+      comicId: jmComicInfoJson.id.toString(),
+      comicName: jmComicInfoJson.name,
+      bikaInfo: BikaInfo(authorization: "", proxy: ""),
+      selectedChapters:
+          _downloadInfo.entries
+              .where((entry) => entry.value)
+              .map((entry) => entry.key.toString())
+              .toList(),
+      slowDownload: bikaSetting.getSlowDownload(),
+    ).toJson().let(jsonEncode);
+    try {
+      await initForegroundTask(jmComicInfoJson.name);
+      await Future.delayed(const Duration(seconds: 1));
+      FlutterForegroundTask.sendDataToTask(downloadTask);
+    } catch (e, s) {
+      logger.e(e, stackTrace: s);
+      if (e.toString().contains("已有下载任务进行中")) {
+        downloadTasks.add(downloadTask);
+      }
+    }
+    showInfoToast("下载任务已启动");
   }
 }

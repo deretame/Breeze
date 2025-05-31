@@ -153,7 +153,11 @@ class _PageCountWidgetState extends State<PageCountWidget> {
               // 显示当前页数
               Text(
                 "${widget.pageIndex - 1}/${widget.epPages}",
-                style: TextStyle(color: Colors.white, fontSize: 12),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontFamily: 'JetBrainsMonoNL-Regular',
+                ),
               ),
               SizedBox(width: 5), // 添加间距
               // 显示网络状态
@@ -165,7 +169,11 @@ class _PageCountWidgetState extends State<PageCountWidget> {
               SizedBox(width: 5), // 添加间距
               Text(
                 _currentTime,
-                style: TextStyle(color: Colors.white, fontSize: 12),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontFamily: 'JetBrainsMonoNL-Regular',
+                ),
               ),
             ],
           ),

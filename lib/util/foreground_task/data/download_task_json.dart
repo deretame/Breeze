@@ -22,6 +22,7 @@ abstract class DownloadTaskJson with _$DownloadTaskJson {
     required String comicName,
     required BikaInfo bikaInfo,
     required List<String> selectedChapters,
+    required bool slowDownload,
   }) = _DownloadTaskJson;
 
   factory DownloadTaskJson.fromJson(Map<String, dynamic> json) =>

@@ -33,11 +33,11 @@ import 'package:zephyr/page/comments_children/view/comments_children_page.dart'
     as _i7;
 import 'package:zephyr/page/download/view/download.dart' as _i9;
 import 'package:zephyr/page/image_crop.dart' as _i12;
-import 'package:zephyr/page/jm/jm_download/view/view.dart' as _i15;
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart'
     as _i39;
 import 'package:zephyr/page/jm/jm_comic_info/view/view.dart' as _i13;
 import 'package:zephyr/page/jm/jm_comments/view/jm_comments.dart' as _i14;
+import 'package:zephyr/page/jm/jm_download/view/view.dart' as _i15;
 import 'package:zephyr/page/jm/jm_search_result/jm_search_result.dart' as _i40;
 import 'package:zephyr/page/jm/jm_search_result/view/view.dart' as _i17;
 import 'package:zephyr/page/login_page.dart' as _i18;
@@ -47,8 +47,8 @@ import 'package:zephyr/page/register/bika/register_page.dart' as _i21;
 import 'package:zephyr/page/register/jm/jm_register_page.dart' as _i16;
 import 'package:zephyr/page/search_result/search_result.dart' as _i41;
 import 'package:zephyr/page/search_result/view/search_result_page.dart' as _i22;
-import 'package:zephyr/page/setting/view/bika_setting.dart' as _i2;
-import 'package:zephyr/page/setting/view/global_setting.dart' as _i11;
+import 'package:zephyr/page/setting/bika/bika_setting.dart' as _i2;
+import 'package:zephyr/page/setting/global/global_setting.dart' as _i11;
 import 'package:zephyr/page/theme_color/view/theme_color_page.dart' as _i24;
 import 'package:zephyr/page/user_comments/view/user_comments_page.dart' as _i25;
 import 'package:zephyr/page/webdav_sync/view/webdav_sync_page.dart' as _i26;

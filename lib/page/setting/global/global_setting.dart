@@ -6,7 +6,7 @@ import 'package:zephyr/main.dart';
 
 import '../../../util/event/event.dart';
 import '../../../util/router/router.gr.dart';
-import 'global/widgets.dart';
+import 'widgets.dart';
 
 @RoutePage()
 class GlobalSettingPage extends StatefulWidget {

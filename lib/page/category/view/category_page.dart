@@ -4,8 +4,8 @@ import 'package:zephyr/page/category/category.dart';
 
 import '../../../main.dart';
 
-class CategoryWidget1 extends StatelessWidget {
-  const CategoryWidget1({super.key});
+class CategoryWidget extends StatelessWidget {
+  const CategoryWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

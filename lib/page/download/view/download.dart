@@ -9,6 +9,8 @@ import 'package:zephyr/page/download/widgets/eps.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/init.dart';
+import 'package:zephyr/util/foreground_task/main_task.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import '../../../config/global/global.dart';
 import '../../../object_box/model.dart';
@@ -126,23 +128,31 @@ class _DownloadPageState extends State<DownloadPage> {
   }
 
   Future<void> download() async {
-    await initForegroundTask(comicInfo.title);
-    await Future.delayed(const Duration(seconds: 1));
-    FlutterForegroundTask.sendDataToTask(
-      DownloadTaskJson(
-        from: "bika",
-        comicId: comicInfo.id,
-        comicName: comicInfo.title,
-        bikaInfo: BikaInfo(
-          authorization: bikaSetting.authorization,
-          proxy: bikaSetting.proxy.toString(),
-        ),
-        selectedChapters:
-            _downloadInfo.entries
-                .where((entry) => entry.value)
-                .map((entry) => entry.key.toString())
-                .toList(),
-      ).toJson().let(jsonEncode),
-    );
+    final downloadTask = DownloadTaskJson(
+      from: "bika",
+      comicId: comicInfo.id,
+      comicName: comicInfo.title,
+      bikaInfo: BikaInfo(
+        authorization: bikaSetting.authorization,
+        proxy: bikaSetting.proxy.toString(),
+      ),
+      selectedChapters:
+          _downloadInfo.entries
+              .where((entry) => entry.value)
+              .map((entry) => entry.key.toString())
+              .toList(),
+      slowDownload: bikaSetting.getSlowDownload(),
+    ).toJson().let(jsonEncode);
+    try {
+      await initForegroundTask(comicInfo.title);
+      await Future.delayed(const Duration(seconds: 1));
+      FlutterForegroundTask.sendDataToTask(downloadTask);
+    } catch (e, s) {
+      logger.e(e, stackTrace: s);
+      if (e.toString().contains("已有下载任务进行中")) {
+        downloadTasks.add(downloadTask);
+      }
+    }
+    showInfoToast("下载任务已启动");
   }
 }

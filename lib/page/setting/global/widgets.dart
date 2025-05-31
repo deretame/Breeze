@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../../../config/global/global.dart';
-import '../../../../main.dart';
-import '../../../../util/router/router.gr.dart';
+import '../../../config/global/global.dart';
+import '../../../main.dart';
+import '../../../util/router/router.gr.dart';
 
 Widget divider() {
   return Align(

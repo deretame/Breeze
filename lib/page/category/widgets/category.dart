@@ -23,7 +23,7 @@ List<Widget> buildCategoriesWidget(List<HomeCategory> data) {
     (index) => SizedBox(
       width: screenWidth / 4,
       height: screenWidth / 4 + 50,
-      child: CategoryWidget(category: data[index]),
+      child: CategoryLineWidget(category: data[index]),
     ),
   );
 
@@ -56,10 +56,10 @@ List<Widget> buildCategoriesWidget(List<HomeCategory> data) {
   return rows;
 }
 
-class CategoryWidget extends StatelessWidget {
+class CategoryLineWidget extends StatelessWidget {
   final HomeCategory category;
 
-  const CategoryWidget({super.key, required this.category});
+  const CategoryLineWidget({super.key, required this.category});
 
   @override
   Widget build(BuildContext context) {

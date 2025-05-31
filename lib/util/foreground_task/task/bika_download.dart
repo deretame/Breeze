@@ -14,13 +14,16 @@ import 'package:zephyr/page/comic_read/json/bika_ep_info_json/page.dart' as p;
 import 'package:zephyr/page/download/json/comic_all_info_json/comic_all_info_json.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
+import 'package:zephyr/util/foreground_task/main_task.dart';
 import 'package:zephyr/util/get_path.dart';
 
-Future<void> bikaDownloadTask(DownloadTaskJson task) async {
+Future<void> bikaDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
   // 先获取一下基本的信息
   final authorization = task.bikaInfo.authorization;
+  self.message = "获取漫画信息中...";
   final comicInfo = await _getComicInfo(task.comicId, authorization);
-  final epsList = await _getEps(comicInfo, authorization);
+  self.message = "获取章节信息中...";
+  final epsList = await _getEps(comicInfo, authorization, task.slowDownload);
   List<EpsDoc> epsDocs = [];
   List<Pages> imageData = [];
   List<String> epsTitle = [];
@@ -84,19 +87,40 @@ Future<void> bikaDownloadTask(DownloadTaskJson task) async {
     }
   }
 
-  final List<Future<void>> downloadTasks =
-      pagesDocs.map((doc) async {
-        await downloadPicture(
-          from: 'bika',
-          url: doc.media.fileServer,
-          path: doc.media.path,
-          cartoonId: comicInfo.id,
-          pictureType: 'comic',
-          chapterId: doc.docId,
-        );
-      }).toList();
+  if (task.slowDownload) {
+    int progress = 0;
+    for (var doc in pagesDocs) {
+      await downloadPicture(
+        from: 'bika',
+        url: doc.media.fileServer,
+        path: doc.media.path,
+        cartoonId: comicInfo.id,
+        pictureType: 'comic',
+        chapterId: doc.docId,
+      );
+      progress++;
+      self.message =
+          "漫画下载进度: ${(progress / pagesDocs.length * 100).toStringAsFixed(2)}%";
+    }
+  } else {
+    int progress = 0;
+    final List<Future<void>> downloadTasks =
+        pagesDocs.map((doc) async {
+          await downloadPicture(
+            from: 'bika',
+            url: doc.media.fileServer,
+            path: doc.media.path,
+            cartoonId: comicInfo.id,
+            pictureType: 'comic',
+            chapterId: doc.docId,
+          );
+          progress++;
+          self.message =
+              "漫画下载进度: ${(progress / pagesDocs.length * 100).toStringAsFixed(2)}%";
+        }).toList();
 
-  await Future.wait(downloadTasks);
+    await Future.wait(downloadTasks);
+  }
 
   await _saveToDB(comicAllInfoJson, epsTitle);
 
@@ -104,9 +128,9 @@ Future<void> bikaDownloadTask(DownloadTaskJson task) async {
 
   await sendSystemNotification("下载完成", "${comicInfo.title}下载完成");
 
-  FlutterForegroundTask.sendDataToMain(comicInfo.title);
-
-  FlutterForegroundTask.stopService();
+  FlutterForegroundTask.sendDataToMain(
+    self.downloadTasks.toJson().let(jsonEncode),
+  );
 }
 
 Future<Comic> _getComicInfo(String comicId, String authorization) async {
@@ -119,7 +143,9 @@ Future<Comic> _getComicInfo(String comicId, String authorization) async {
         imageQuality: "original",
       );
       break;
-    } catch (_) {}
+    } catch (e, s) {
+      logger.e(e, stackTrace: s);
+    }
   }
 
   // 打补丁
@@ -142,32 +168,58 @@ Future<Comic> _getComicInfo(String comicId, String authorization) async {
 }
 
 // 获取所有的章节基本信息
-Future<List<eps.Doc>> _getEps(Comic comic, String authorization) async {
+Future<List<eps.Doc>> _getEps(
+  Comic comic,
+  String authorization,
+  bool slowDownload,
+) async {
   List<eps.Doc> epsList = [];
 
   // 计算需要请求的页数
   int totalPages = (comic.epsCount / 40 + 1).ceil();
 
-  // 创建一个Future列表，用于并行请求
-  List<Future<Map<String, dynamic>>> futures = [];
-  for (int i = 1; i <= totalPages; i++) {
-    futures.add(
-      getEps(
-        comic.id,
-        i,
-        authorization: authorization,
-        imageQuality: "original",
-      ),
-    );
-  }
-
-  // 并行执行所有请求
   List<Map<String, dynamic>> results = [];
-  while (true) {
-    try {
-      results = await Future.wait(futures);
-      break;
-    } catch (_) {}
+  if (slowDownload) {
+    for (int i = 1; i <= totalPages; i++) {
+      while (true) {
+        try {
+          results.add(
+            await getEps(
+              comic.id,
+              i,
+              authorization: authorization,
+              imageQuality: "original",
+            ),
+          );
+          break;
+        } catch (e, s) {
+          logger.e(e, stackTrace: s);
+        }
+      }
+    }
+  } else {
+    // 创建一个Future列表，用于并行请求
+    List<Future<Map<String, dynamic>>> futures = [];
+    for (int i = 1; i <= totalPages; i++) {
+      futures.add(
+        getEps(
+          comic.id,
+          i,
+          authorization: authorization,
+          imageQuality: "original",
+        ),
+      );
+    }
+
+    // 并行执行所有请求
+    while (true) {
+      try {
+        results = await Future.wait(futures);
+        break;
+      } catch (e, s) {
+        logger.e(e, stackTrace: s);
+      }
+    }
   }
 
   // 处理结果
@@ -201,7 +253,8 @@ Future<Pages> _fetchBKMedia(
         authorization: authorization,
         imageQuality: "original",
       );
-    } catch (_) {
+    } catch (e, s) {
+      logger.e(e, stackTrace: s);
       continue;
     }
     var temp = p.Page.fromJson(result);

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
@@ -14,17 +15,20 @@ import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart'
 import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
+import 'package:zephyr/util/foreground_task/main_task.dart';
 import 'package:zephyr/util/foreground_task/task/bika_download.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/json_dispose.dart';
 
-Future<void> jmDownloadTask(DownloadTaskJson task) async {
+Future<void> jmDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
   // 先获取一下基本的信息
+  self.message = "获取漫画信息中...";
   final comicInfo = await getJmComicInfo(task.comicId);
+  self.message = "获取章节信息中...";
   List<String> epIds = comicInfo.series.map((e) => e.id.toString()).toList();
   if (epIds.isEmpty) epIds = [comicInfo.id.toString()];
 
-  final epsList = await fetchJMMedia(epIds);
+  final epsList = await fetchJMMedia(epIds, task.slowDownload);
 
   final downloadInfoJson = comicInfo2DownloadInfoJson(comicInfo);
 
@@ -64,22 +68,21 @@ Future<void> jmDownloadTask(DownloadTaskJson task) async {
     logger.e(e, stackTrace: s);
   }
 
-  await downloadComic(updatedDownloadInfo, task.selectedChapters);
+  await downloadComic(self, updatedDownloadInfo, task.selectedChapters);
 
   await saveToDB(updatedDownloadInfo, epsIds, temp);
 
   await sendSystemNotification("下载完成", "${updatedDownloadInfo.name}下载完成");
 
-  FlutterForegroundTask.sendDataToMain(updatedDownloadInfo.name);
-
-  FlutterForegroundTask.stopService();
+  FlutterForegroundTask.sendDataToMain(
+    self.downloadTasks.toJson().let(jsonEncode),
+  );
 }
 
 Future<base_info.JmComicInfoJson> getJmComicInfo(String comicId) async {
-  base_info.JmComicInfoJson? comicInfo;
   while (true) {
     try {
-      comicInfo = await getComicInfo(
+      return await getComicInfo(
         comicId,
       ).let(replaceNestedNull).let(base_info.JmComicInfoJson.fromJson).let((d) {
         var series = d.series.toList();
@@ -90,41 +93,54 @@ Future<base_info.JmComicInfoJson> getJmComicInfo(String comicId) async {
                 .toList();
         return d.copyWith(series: newSeries);
       });
-      break;
     } catch (e, s) {
       logger.e(e, stackTrace: s);
     }
   }
-  return comicInfo!;
 }
 
-Future<List<Info>> fetchJMMedia(List<String> epIds) async {
-  final List<Future<Info>> fetchTasks =
-      epIds.map((epId) async {
-        while (true) {
-          try {
-            final rawInfo = await getEpInfo(epId);
-            final cleanedInfo = replaceNestedNull(rawInfo);
-            final infoObject = Info.fromJson(cleanedInfo);
-
-            var series = infoObject.series.toList();
-            series.removeWhere((s) => s.sort == '0');
-            final newSeries =
-                series
-                    .map((s) => s.copyWith(name: '第${s.sort}话 ${s.name}'))
-                    .toList();
-
-            return infoObject.copyWith(series: newSeries);
-          } catch (e, s) {
-            logger.e(e, stackTrace: s);
-          }
+Future<List<Info>> fetchJMMedia(List<String> epIds, bool slowDownload) async {
+  List<Info> docsList = [];
+  if (slowDownload) {
+    for (var epId in epIds) {
+      while (true) {
+        try {
+          docsList.add(await getEpInfo(epId).let(info2Info));
+          break;
+        } catch (e, s) {
+          logger.e(e, stackTrace: s);
         }
-      }).toList();
-  final List<Info> docsList = await Future.wait(fetchTasks);
+      }
+    }
+  } else {
+    final List<Future<Info>> fetchTasks =
+        epIds.map((epId) async {
+          while (true) {
+            try {
+              return await getEpInfo(epId).let(info2Info);
+            } catch (e, s) {
+              logger.e(e, stackTrace: s);
+            }
+          }
+        }).toList();
+    docsList = await Future.wait(fetchTasks);
+  }
 
   docsList.sort((a, b) => a.id.compareTo(b.id));
 
   return docsList;
+}
+
+Info info2Info(Map<String, dynamic> info) {
+  final cleanedInfo = replaceNestedNull(info);
+  final infoObject = Info.fromJson(cleanedInfo);
+
+  var series = infoObject.series.toList();
+  series.removeWhere((s) => s.sort == '0');
+  final newSeries =
+      series.map((s) => s.copyWith(name: '第${s.sort}话 ${s.name}')).toList();
+
+  return infoObject.copyWith(series: newSeries);
 }
 
 DownloadInfoJson comicInfo2DownloadInfoJson(
@@ -201,6 +217,7 @@ DownloadInfoJson comicInfo2DownloadInfoJson(
 }
 
 Future<DownloadInfoJson> downloadComic(
+  MyTaskHandler self,
   DownloadInfoJson downloadInfoJson,
   List<String> selectedChapters,
 ) async {
@@ -228,16 +245,8 @@ Future<DownloadInfoJson> downloadComic(
     }
   }
 
+  int progress = 0;
   for (var doc in docsList) {
-    // 如果 doc.media.path (也就是原始的image名) 已经是 "404" 了，
-    // 可能是因为这个 downloadInfoJson 对象之前被处理过且这个图片已标记为404。
-    // 在这种情况下，我们可能要跳过下载。
-    if (doc.media.path == "404") {
-      logger.i(
-        'Skipping download for already marked 404 image in chapter ${doc.docId}',
-      );
-      continue;
-    }
     try {
       await downloadPicture(
         from: 'jm',
@@ -247,6 +256,9 @@ Future<DownloadInfoJson> downloadComic(
         pictureType: 'comic',
         chapterId: doc.docId,
       );
+      progress++;
+      self.message =
+          "漫画下载进度: ${(progress / docsList.length * 100).toStringAsFixed(2)}%";
     } catch (e, s) {
       logger.e(e, stackTrace: s);
       if (e.toString().contains('404')) {

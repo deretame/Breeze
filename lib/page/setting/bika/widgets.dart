@@ -11,9 +11,9 @@ import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../../../config/global/global.dart';
-import '../../../../main.dart';
-import '../../../../network/http/bika/http_request.dart';
+import '../../../config/global/global.dart';
+import '../../../main.dart';
+import '../../../network/http/bika/http_request.dart';
 
 Widget divider() {
   return Align(

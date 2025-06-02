@@ -28,7 +28,7 @@ try {
 
     # 2. 第一次构建：使用 Skia
     Write-Host "第一次构建：使用 Skia" -ForegroundColor Cyan
-    flutter build apk --split-per-abi --split-debug-info=$projectRoot/symbols --dart-define=use_skia=true
+    flutter build apk --split-per-abi --dart-define=use_skia=true
 
     # 3. 复制第一次构建的文件到 skia 目录
     if (Test-Path $releaseDir) {

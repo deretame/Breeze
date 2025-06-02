@@ -29,6 +29,7 @@ dependencies:
   flutter_animate: ^4.5.2 # 声明式动画工具集
   flutter_colorpicker: ^1.1.0 # 颜色选择器组件
   custom_sliding_segmented_control: ^1.8.5 # 自定义滑动分段控件
+  material_pagination: ^1.0.3 # Material 底部分页组件
 
   ########################################
   #        状态管理 & 事件总线           #

@@ -1013,6 +1013,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.11.1"
+  material_pagination:
+    dependency: "direct main"
+    description:
+      name: material_pagination
+      sha256: a8c3e58052efe94959d0c0b562432c637e026cfc5f6022e52a583328cd6e6822
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.3"
   meta:
     dependency: transitive
     description:

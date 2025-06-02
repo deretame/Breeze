@@ -3,7 +3,6 @@ import 'dart:math';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:zephyr/util/foreground_task/main_task.dart';
-import 'package:zephyr/widgets/toast.dart';
 
 Future<void> initForegroundTask(String comicName) async {
   final notificationPermission =

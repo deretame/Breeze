@@ -4,7 +4,6 @@ import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/page/category/category.dart';
 
-import '../../../../main.dart';
 import '../../../../network/http/bika/http_request.dart';
 import '../../json/category/categories.dart';
 
@@ -67,7 +66,7 @@ class GetCategoryBloc extends Bloc<GetCategoryStarted, GetCategoryState> {
 
     try {
       var temp = Categories.fromJson(result);
-      logger.d(temp.toString());
+      // logger.d(temp.toString());
       // 下面两个不会出现在请求结果中，所以直接添加进去
       categoriesGlobal.add(
         HomeCategory(

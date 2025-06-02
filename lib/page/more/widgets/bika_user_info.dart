@@ -1,17 +1,22 @@
-import 'dart:io';
+import 'dart:convert';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/page/more/more.dart';
+import 'package:zephyr/page/more/widgets/user_avatar.dart';
+import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/json_dispose.dart';
 import 'package:zephyr/util/router/router.gr.dart';
+import 'package:zephyr/widgets/toast.dart';
 
-import '../../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../../widgets/picture_bloc/models/picture_info.dart';
 import '../../../config/global/global.dart';
-import '../json/profile.dart';
+import '../json/bika/profile.dart';
 
 class RefreshEvent {}
 
@@ -38,6 +43,18 @@ class _BikaUserInfoWidgetState extends State<_BikaUserInfoWidget> {
     super.initState();
     eventBus.on<RefreshEvent>().listen((event) {
       _onRefresh();
+      // 也在这里重新登录一下禁漫好了
+      jmSetting.setLoginStatus(LoginStatus.loggingIn);
+      login(jmSetting.account, jmSetting.password)
+          .then((value) {
+            jmSetting.setUserInfo(value.let(replaceNestedNull).let(jsonEncode));
+            jmSetting.setLoginStatus(LoginStatus.login);
+          })
+          .catchError((e, s) {
+            logger.e(e, stackTrace: s);
+            jmSetting.setLoginStatus(LoginStatus.logout);
+            showErrorToast("重新登录禁漫失败: ${e.toString()}");
+          });
     });
   }
 
@@ -49,7 +66,6 @@ class _BikaUserInfoWidgetState extends State<_BikaUserInfoWidget> {
           builder: (context, state) {
             switch (state.status) {
               case UserProfileStatus.initial:
-                loadBikaProfile = false;
                 return SizedBox(
                   height: 130,
                   child: Center(
@@ -79,7 +95,7 @@ class _BikaUserInfoWidgetState extends State<_BikaUserInfoWidget> {
         GestureDetector(
           onTap: () {
             context.pushRoute(BikaSettingRoute());
-            logger.d("哔咔设置");
+            // logger.d("哔咔设置");
           },
           behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
           child: SizedBox(
@@ -123,7 +139,7 @@ class _BikaWidget extends StatelessWidget {
           Center(
             child: Row(
               children: <Widget>[
-                _UserAvatar(
+                UserAvatar(
                   pictureInfo: PictureInfo(
                     from: "bika",
                     url: profile.data.user.avatar.fileServer,
@@ -159,63 +175,6 @@ class _BikaWidget extends StatelessWidget {
           SizedBox(height: 5),
           buildCommentWidget(context),
         ],
-      ),
-    );
-  }
-}
-
-class _UserAvatar extends StatelessWidget {
-  final PictureInfo pictureInfo;
-
-  const _UserAvatar({required this.pictureInfo});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 75,
-      width: 75,
-      child: BlocProvider(
-        create: (context) => PictureBloc()..add(GetPicture(pictureInfo)),
-        child: BlocBuilder<PictureBloc, PictureLoadState>(
-          builder: (context, state) {
-            switch (state.status) {
-              case PictureLoadStatus.initial:
-                loadBikaProfile = false;
-                return Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: CircularProgressIndicator(),
-                );
-              case PictureLoadStatus.success:
-                return GestureDetector(
-                  onTap: () {
-                    context.pushRoute(
-                      FullRouteImageRoute(imagePath: state.imagePath!),
-                    );
-                  },
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(50.0),
-                    child: Image.file(
-                      File(state.imagePath!),
-                      fit: BoxFit.cover,
-                      width: 75,
-                      height: 75,
-                    ),
-                  ),
-                );
-              case PictureLoadStatus.failure:
-                loadBikaProfile = true;
-                if (state.result.toString().contains('404')) {
-                  return Image.asset('asset/image/assets/default_cover.png');
-                }
-                return InkWell(
-                  onTap: () {
-                    context.read<PictureBloc>().add(GetPicture(pictureInfo));
-                  },
-                  child: Icon(Icons.refresh),
-                );
-            }
-          },
-        ),
       ),
     );
   }

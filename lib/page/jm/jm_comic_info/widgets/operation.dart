@@ -1,7 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/event/event.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -59,9 +62,20 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
             children: <Widget>[
               GestureDetector(
                 onTap: () async {
-                  showErrorToast('暂不支持');
-                  return;
-                  // toggleAction('like');
+                  if (isLiked) {
+                    showInfoToast("已点赞");
+                    return;
+                  }
+                  if (jmSetting.userInfo.isEmpty) {
+                    if (jmSetting.account.isEmpty) {
+                      showInfoToast("请先登录");
+                      eventBus.fire(NeedLogin(from: From.jm));
+                      return;
+                    }
+                    showInfoToast("请等待登录完毕");
+                    return;
+                  }
+                  toggleAction('like');
                 },
                 child: Icon(
                   isLiked ? Icons.favorite : Icons.favorite_border,
@@ -146,9 +160,9 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
 
     switch (actionType) {
       case 'like':
-        // result = likeComic(comicInfo.id);
-        // isCurrentlyActive = isLiked;
-        // actionVerb = '点赞';
+        result = like(comicInfo.id.toString());
+        isCurrentlyActive = isLiked;
+        actionVerb = '点赞';
         break;
       case 'favorite':
         result = collect(comicInfo, isCollected);

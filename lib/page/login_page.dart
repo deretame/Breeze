@@ -1,8 +1,15 @@
+import 'dart:convert';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/page/more/json/jm/jm_user_info_json.dart'
+    show JmUserInfoJson;
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/dialog.dart';
+import 'package:zephyr/util/json_dispose.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../network/http/bika/http_request.dart';
@@ -84,10 +91,16 @@ class _LoginPageState extends State<LoginPage> {
       if (from == From.bika) {
         result = await login(_account.text, _password.text);
       } else if (from == From.jm) {
+        jmSetting.setLoginStatus(LoginStatus.loggingIn);
         result = await jm.login(_account.text, _password.text);
+        jmSetting.setUserInfo(
+          JmUserInfoJson.fromJson(
+            result.let(replaceNestedNull),
+          ).let(jsonEncode),
+        );
       }
 
-      logger.d(result.toString());
+      logger.d(result.let(jsonEncode));
 
       if (from == From.bika) {
         bikaSetting.setAccount(_account.text);
@@ -96,6 +109,7 @@ class _LoginPageState extends State<LoginPage> {
       } else if (from == From.jm) {
         jmSetting.setAccount(_account.text);
         jmSetting.setPassword(_password.text);
+        jmSetting.setLoginStatus(LoginStatus.login);
       }
       showSuccessToast("登录成功");
 

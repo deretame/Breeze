@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:event_bus/event_bus.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -52,65 +54,88 @@ List<String> cfIpList = [];
 final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 Future<void> main() async {
-  // 捕获Dart异常
+  WidgetsFlutterBinding.ensureInitialized();
+  // 初始化rust
+  await RustLib.init();
+
+  // 初始化前台任务
+  FlutterForegroundTask.initCommunicationPort();
+
+  // 重采样触控刷新率
+  GestureBinding.instance.resamplingEnabled = true;
+
+  // 用来判断要不要使用skia
+  const skia = String.fromEnvironment('use_skia', defaultValue: 'false');
+  if (skia == 'true') {
+    useSkia = true;
+  } else {
+    useSkia = false;
+  }
+
+  objectbox = await ObjectBox.create();
+
+  // 初始化Hive
+  await Hive.initFlutter();
+  // 注册 Color 适配器
+  Hive.registerAdapter(ThemeModeAdapter());
+  await globalSetting.initBox();
+  await bikaSetting.initBox();
+  await jmSetting.initBox();
+  // await initCfIpList('https://ip.164746.xyz/ipTop.html');
+
+  if (globalSetting.needCleanCache) {
+    await clearCache(await getTemporaryDirectory());
+  }
+
+  manageCacheSize();
+
+  // logger.d(globalSetting.socks5Proxy);
+  if (globalSetting.socks5Proxy.isNotEmpty) {
+    // proxy -> "SOCKS5/SOCKS4/PROXY username:password@host:port;" or "DIRECT"
+    SocksProxy.initProxy(proxy: 'SOCKS5 ${globalSetting.socks5Proxy}');
+  }
+
+  if (kDebugMode) {
+    FlutterError.onError = (FlutterErrorDetails details) {
+      logger.e(
+        "Flutter 框架错误 (Debug模式)", // 为了清晰，你可以自定义消息
+        error: details.exception,
+        stackTrace: details.stack,
+      );
+    };
+
+    PlatformDispatcher.instance.onError = (error, stack) {
+      logger.e("未捕获的异步错误 (Debug模式)", error: error, stackTrace: stack);
+      return true; // 表示错误已处理
+    };
+  } else {
+    FlutterError.onError = (FlutterErrorDetails errorDetails) {
+      FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+    };
+
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true; // 表示错误已处理
+    };
+  }
   runZonedGuarded(
     () async {
-      WidgetsFlutterBinding.ensureInitialized();
-      // 初始化rust
-      await RustLib.init();
-
-      // 初始化前台任务
-      FlutterForegroundTask.initCommunicationPort();
-
-      // 重采样触控刷新率
-      GestureBinding.instance.resamplingEnabled = false;
-
-      // 用来判断要不要使用skia
-      const skia = String.fromEnvironment('use_skia', defaultValue: 'false');
-      if (skia == 'true') {
-        useSkia = true;
-      } else {
-        useSkia = false;
-      }
-
-      objectbox = await ObjectBox.create();
-
-      // 告诉系统应该用竖屏
-      await SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-      ]);
-
-      // 初始化Hive
-      await Hive.initFlutter();
-      // 注册 Color 适配器
-      Hive.registerAdapter(ThemeModeAdapter());
-      await globalSetting.initBox();
-      await bikaSetting.initBox();
-      await jmSetting.initBox();
-      // await initCfIpList('https://ip.164746.xyz/ipTop.html');
-
-      if (globalSetting.needCleanCache) {
-        await clearCache(await getTemporaryDirectory());
-      }
-
-      manageCacheSize();
-
-      // logger.d(globalSetting.socks5Proxy);
-      if (globalSetting.socks5Proxy.isNotEmpty) {
-        // proxy -> "SOCKS5/SOCKS4/PROXY username:password@host:port;" or "DIRECT"
-        SocksProxy.initProxy(proxy: 'SOCKS5 ${globalSetting.socks5Proxy}');
-      }
-
-      // 捕获Flutter框架异常
-      FlutterError.onError = (FlutterErrorDetails details) {
-        logger.e(details, error: details.exception, stackTrace: details.stack);
-      };
-
       runApp(MyApp());
     },
     (error, stackTrace) {
-      logger.e(error, stackTrace: stackTrace);
+      if (kDebugMode) {
+        logger.e(
+          "runZonedGuarded 捕获的错误 (Debug模式)",
+          error: error,
+          stackTrace: stackTrace,
+        );
+      } else {
+        FirebaseCrashlytics.instance.recordError(
+          error,
+          stackTrace,
+          fatal: true,
+        );
+      }
     },
   );
 }

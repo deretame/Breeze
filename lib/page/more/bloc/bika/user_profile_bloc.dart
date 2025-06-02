@@ -3,10 +3,10 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 
-import '../../../config/global/global.dart';
-import '../../../network/http/bika/http_request.dart';
-import '../../../main.dart';
-import '../json/profile.dart';
+import '../../../../config/global/global.dart';
+import '../../../../network/http/bika/http_request.dart';
+import '../../../../main.dart';
+import '../../json/bika/profile.dart';
 
 part 'user_profile_event.dart';
 
@@ -53,7 +53,7 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
 
   Future<Profile> _getUserProfile() async {
     var result = await getUserProfile();
-    logger.d(result.toString());
+    // logger.d(result.toString());
 
     result['data']['user']['_id'] ??= "";
     result['data']['user']['name'] ??= "";

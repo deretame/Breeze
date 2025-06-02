@@ -158,10 +158,13 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                 height: 56,
                 child: FloatingActionButton(
                   onPressed: _navigateToReader,
-                  child: Text(
-                    _hasHistory ? '继续阅读' : '开始阅读',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
+                  child: Observer(
+                    builder:
+                        (context) => Text(
+                          store.date.isNotEmpty ? '继续阅读' : '开始阅读',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
                   ),
                 ),
               )
@@ -226,14 +229,12 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                SelectableText(
                   comicInfo.name,
                   style: const TextStyle(fontSize: 18),
-                  softWrap: true,
-                  overflow: TextOverflow.visible,
                 ),
                 const SizedBox(height: 2),
-                Text('上传时间：${_dataFormat(comicInfo.addtime)}'),
+                Text('更新时间：${_dataFormat(comicInfo.addtime)}'),
                 const SizedBox(height: 2),
                 InkWell(
                   onLongPress: () {
@@ -244,10 +245,18 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                   },
                   child: Text('禁漫车：JM${comicInfo.id}'),
                 ),
-                if (_hasHistory) ...[
-                  const SizedBox(height: 2),
-                  Observer(builder: (context) => Text(store.date)),
-                ],
+                Observer(
+                  builder:
+                      (context) =>
+                          store.date.isNotEmpty
+                              ? Column(
+                                children: [
+                                  const SizedBox(height: 2),
+                                  Text(store.date),
+                                ],
+                              )
+                              : const SizedBox.shrink(),
+                ),
               ],
             ),
           ),

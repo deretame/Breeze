@@ -1,6 +1,5 @@
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:zephyr/main.dart';
 
 import 'model.dart';
 import 'objectbox.g.dart';
@@ -34,12 +33,10 @@ class ObjectBox {
     if (Store.isOpen(dbPath)) {
       // 如果底层 Store 已经通过其他实例打开了 (比如主 Isolate，或者另一个后台 Isolate)
       // 我们就安全地 "attach" 到它上面
-      logger.d("Attaching to existing ObjectBox store at $dbPath, Meow!");
       storeInstance = Store.attach(getObjectBoxModel(), dbPath);
     } else {
       // 如果底层 Store 还没有打开，那我们就正常地打开它
       // 这通常发生在应用第一次启动，或者所有之前的实例都已关闭后
-      logger.d("Opening new ObjectBox store at $dbPath, Meow!");
       storeInstance = await openStore(
         directory: dbPath,
       ); // openStore 是 objectbox.g.dart 中生成的

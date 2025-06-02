@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/type/enum.dart';
 
 import '../../../util/event/event.dart';
 
@@ -148,7 +149,7 @@ Future<Map<String, dynamic>> request(
     if (error.response?.data?['code'] == 401 &&
         error.response?.data?['message'] == 'unauthorized') {
       bikaSetting.deleteAuthorization();
-      eventBus.fire(NeedLogin());
+      eventBus.fire(NeedLogin(from: From.bika));
     }
 
     if (cancelToken.isCancelled) {

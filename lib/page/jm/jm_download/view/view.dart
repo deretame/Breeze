@@ -150,6 +150,7 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
     ).toJson().let(jsonEncode);
     try {
       await initForegroundTask(jmComicInfoJson.name);
+      showInfoToast("下载任务已启动");
       await Future.delayed(const Duration(seconds: 1));
       FlutterForegroundTask.sendDataToTask(downloadTask);
     } catch (e, s) {
@@ -157,7 +158,7 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
       if (e.toString().contains("已有下载任务进行中")) {
         downloadTasks.add(downloadTask);
       }
+      showInfoToast("已添加到下载列表");
     }
-    showInfoToast("下载任务已启动");
   }
 }

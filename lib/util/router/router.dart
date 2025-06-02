@@ -34,6 +34,7 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: ImageCropRoute.page),
     AutoRoute(page: JmCommentsRoute.page),
     AutoRoute(page: JmDownloadRoute.page),
+    AutoRoute(page: JMSettingRoute.page),
   ];
 
   @override

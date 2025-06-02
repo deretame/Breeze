@@ -1,7 +1,7 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔及禁漫应用。"
 publish_to: none
-version: 2.5.2+2124
+version: 2.6.0+2125
 
 environment:
   sdk: ^3.7.2
@@ -109,6 +109,8 @@ dependencies:
   flutter_local_notifications: ^19.2.1 # 本地通知
   firebase_core: ^3.13.1
   firebase_analytics: ^11.4.6
+  firebase_performance: ^0.10.1+6
+  firebase_crashlytics: ^4.3.6
 
 dev_dependencies:
   flutter_test:

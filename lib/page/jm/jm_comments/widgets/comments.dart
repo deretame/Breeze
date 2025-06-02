@@ -23,7 +23,9 @@ class CommentsWidget extends StatelessWidget {
             child: Column(
               children: [
                 InkWell(
-                  onTap: () {},
+                  onTap: () {
+                    // TODO: 添加发送评论功能
+                  },
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start, // 左对齐
                     children: [
@@ -55,7 +57,7 @@ class CommentsWidget extends StatelessWidget {
                                     color: materialColorScheme.tertiary,
                                   ),
                                 ),
-                                Text(
+                                SelectableText(
                                   element.content.let(stripAllHtmlTags),
                                   style: TextStyle(
                                     color: globalSetting.textColor,
@@ -125,52 +127,51 @@ class _CommentsWidget extends StatelessWidget {
             width: screenWidth * (48 / 50),
             child: Column(
               children: [
-                InkWell(
-                  onTap: () {},
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start, // 左对齐
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start, // 横向居左
-                        crossAxisAlignment: CrossAxisAlignment.start, // 顶部对齐
-                        children: [
-                          SizedBox(width: 30),
-                          ImagerWidget(
-                            pictureInfo: PictureInfo(
-                              from: 'jm',
-                              url: getUserCover(reply.photo),
-                              path: '${reply.uid}.jpg',
-                              cartoonId: '',
-                              chapterId: '',
-                              pictureType: 'user',
-                            ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start, // 左对齐
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start, // 横向居左
+                      crossAxisAlignment: CrossAxisAlignment.start, // 顶部对齐
+                      children: [
+                        SizedBox(width: 30),
+                        ImagerWidget(
+                          pictureInfo: PictureInfo(
+                            from: 'jm',
+                            url: getUserCover(reply.photo),
+                            path: '${reply.uid}.jpg',
+                            cartoonId: '',
+                            chapterId: '',
+                            pictureType: 'user',
                           ),
-                          SizedBox(width: 10),
-                          Flexible(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text("${reply.nickname} (${reply.addtime})"),
-                                Text(
-                                  "level:${reply.expinfo.level} (${reply.expinfo.levelName})",
-                                  style: TextStyle(
-                                    color: materialColorScheme.tertiary,
-                                  ),
+                        ),
+                        SizedBox(width: 10),
+                        Flexible(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SelectableText(
+                                "${reply.nickname} (${reply.addtime})",
+                              ),
+                              Text(
+                                "level:${reply.expinfo.level} (${reply.expinfo.levelName})",
+                                style: TextStyle(
+                                  color: materialColorScheme.tertiary,
                                 ),
-                                Text(
-                                  reply.content.let(stripAllHtmlTags),
-                                  style: TextStyle(
-                                    color: globalSetting.textColor,
-                                  ),
+                              ),
+                              Text(
+                                reply.content.let(stripAllHtmlTags),
+                                style: TextStyle(
+                                  color: globalSetting.textColor,
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
                 Align(
                   alignment: Alignment.center,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,12 @@ import 'package:permission_guard/permission_guard.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:toastification/toastification.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zephyr/config/jm/jm_setting.dart';
+import 'package:zephyr/network/http/jm/http_request.dart' as jm;
+import 'package:zephyr/page/more/json/jm/jm_user_info_json.dart';
 import 'package:zephyr/page/ranking_list/ranking_list.dart';
+import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/main_task.dart';
 import 'package:zephyr/util/router/router.gr.dart';
@@ -67,6 +73,8 @@ class _NavigationBarState extends State<NavigationBar> {
     );
     _checkUpdate();
     _signIn();
+    _jmLogin();
+    _jmSignIn();
     // 先执行一次
     _autoSync();
     _initForegroundTask();
@@ -84,7 +92,7 @@ class _NavigationBarState extends State<NavigationBar> {
     });
 
     eventBus.on<NeedLogin>().listen((event) {
-      _goToLoginPage();
+      _goToLoginPage(event.from);
     });
 
     eventBus.on<ToastEvent>().listen((event) {
@@ -231,7 +239,7 @@ class _NavigationBarState extends State<NavigationBar> {
     }
   }
 
-  void _goToLoginPage() {
+  void _goToLoginPage(From from) {
     String allRoutes = "";
     Navigator.of(context).widget.pages.forEach((route) {
       allRoutes += "${route.name} ";
@@ -239,8 +247,8 @@ class _NavigationBarState extends State<NavigationBar> {
     // logger.d(allRoutes);
     debouncer.run(() {
       if (!allRoutes.contains('LoginRoute')) {
-        showErrorToast('登录失效，请重新登录');
-        context.navigateTo(LoginRoute());
+        showErrorToast('登录过期，请重新登录');
+        context.navigateTo(LoginRoute(from: from));
       }
     });
   }
@@ -350,7 +358,7 @@ class _NavigationBarState extends State<NavigationBar> {
       try {
         var result = await signIn();
         if (result == '签到成功') {
-          showSuccessToast("自动签到成功！");
+          showSuccessToast("哔咔自动签到成功！");
           bikaSetting.setSignIn(true);
           break;
         } else {
@@ -425,6 +433,63 @@ class _NavigationBarState extends State<NavigationBar> {
     if (!status.isGranted) {
       showErrorToast("请开启通知权限");
       return;
+    }
+  }
+
+  Future<void> _jmLogin() async {
+    if (jmSetting.account.isEmpty || jmSetting.password.isEmpty) {
+      return;
+    }
+    jmSetting.setUserInfo('');
+    jmSetting.setLoginStatus(LoginStatus.loggingIn);
+
+    while (true) {
+      try {
+        final result = await jm.login(jmSetting.account, jmSetting.password);
+        jmSetting.setUserInfo(result.let(jsonEncode));
+        jmSetting.setLoginStatus(LoginStatus.login);
+        break;
+      } catch (e, s) {
+        logger.e(e, stackTrace: s);
+        await Future.delayed(Duration(seconds: 1));
+        continue;
+      }
+    }
+  }
+
+  Future<void> _jmSignIn() async {
+    while (true) {
+      if (jmSetting.loginStatus != LoginStatus.login) {
+        await Future.delayed(Duration(seconds: 1));
+        continue;
+      }
+      try {
+        var dailyList = await jm.getDailyList();
+        final id =
+            (List<Map<String, dynamic>>.from(
+              dailyList['list'].map((item) => item as Map<String, dynamic>),
+            ).last['id']);
+        final userId = jmUserInfoJsonFromJson(jmSetting.userInfo).uid;
+        while (true) {
+          try {
+            final result = await jm.dailyChk(userId, id);
+            logger.d(result);
+            if (result['msg'] != '今天已经签到过了') {
+              showSuccessToast("禁漫自动签到成功！");
+            }
+            break;
+          } catch (e, s) {
+            logger.e(e, stackTrace: s);
+            await Future.delayed(Duration(seconds: 1));
+            continue;
+          }
+        }
+        break;
+      } catch (e, s) {
+        logger.e(e, stackTrace: s);
+        await Future.delayed(Duration(seconds: 1));
+        continue;
+      }
     }
   }
 }

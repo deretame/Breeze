@@ -17,7 +17,7 @@ Widget settings(BuildContext context) {
           GestureDetector(
             onTap: () {
               router.push(GlobalSettingRoute());
-              logger.d("全局设置");
+              // logger.d("全局设置");
             },
             behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
             child: SizedBox(

@@ -75,8 +75,10 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                     child: Text("整点颜色看看"),
                   ),
                   ElevatedButton(
-                    onPressed: () async {},
-                    child: Text('执行后台 ObjectBox 操作'),
+                    onPressed: () async {
+                      jmSetting.deleteUserInfo();
+                    },
+                    child: Text('测试禁漫登录'),
                   ),
                 ],
               ],

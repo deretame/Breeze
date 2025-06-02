@@ -41,7 +41,7 @@ class MyTaskHandler extends TaskHandler {
   @override
   void onRepeatEvent(DateTime timestamp) {
     FlutterForegroundTask.updateService(
-      notificationTitle: '后台下载任务',
+      notificationTitle: '$comicName 下载中...',
       notificationText: message,
     );
   }

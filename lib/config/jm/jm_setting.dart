@@ -13,11 +13,17 @@ abstract class _JmSetting with Store {
   String account = '';
   @observable
   String password = '';
+  @observable
+  String userInfo = '';
+  @observable
+  LoginStatus loginStatus = LoginStatus.logout;
 
   Future<void> initBox() async {
     _box = await Hive.openBox(JmSettingBoxKeys.jmSettingBox);
     account = getAccount();
     password = getPassword();
+    userInfo = getUserInfo();
+    loginStatus = getLoginStatus();
   }
 
   @action
@@ -55,10 +61,32 @@ abstract class _JmSetting with Store {
     password = '';
     _box.delete(JmSettingBoxKeys.password);
   }
+
+  @action
+  void setUserInfo(String value) => userInfo = value;
+
+  @action
+  String getUserInfo() => userInfo;
+
+  @action
+  void deleteUserInfo() => userInfo = '';
+
+  @action
+  void setLoginStatus(LoginStatus value) => loginStatus = value;
+
+  @action
+  LoginStatus getLoginStatus() => loginStatus;
+
+  @action
+  void deleteLoginStatus() => loginStatus = LoginStatus.logout;
 }
 
 class JmSettingBoxKeys {
   static const String jmSettingBox = 'jmSettingBox'; // 禁漫设置存储盒
   static const String account = 'account'; // 账号
   static const String password = 'password'; // 密码
+  static const String userInfo = 'userInfo'; // 用户信息
+  static const String loginStatus = 'loginStatus'; // 登录状态
 }
+
+enum LoginStatus { login, loggingIn, logout }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:permission_guard/permission_guard.dart';
 import 'package:zephyr/mobx/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
@@ -198,7 +199,16 @@ class _ComicInfoState extends State<_ComicInfo>
                 height: 56, // 设置容器高度，与默认的FloatingActionButton高度一致
                 child: FloatingActionButton(
                   onPressed: () {
-                    if (comicHistory != null) {
+                    if (store.date.isNotEmpty) {
+                      comicHistory =
+                          objectbox.bikaHistoryBox
+                              .query(
+                                BikaComicHistory_.comicId.equals(
+                                  widget.comicId,
+                                ),
+                              )
+                              .build()
+                              .findFirst();
                       context.pushRoute(
                         ComicReadRoute(
                           comicInfo: allInfo,
@@ -227,10 +237,13 @@ class _ComicInfoState extends State<_ComicInfo>
                       );
                     }
                   },
-                  child: Text(
-                    comicHistory != null ? '继续阅读' : '开始阅读',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
+                  child: Observer(
+                    builder:
+                        (context) => Text(
+                          store.date.isNotEmpty ? '继续阅读' : '开始阅读',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
                   ),
                 ),
               )
@@ -265,31 +278,6 @@ class _ComicInfoState extends State<_ComicInfo>
       const SizedBox(height: 10),
       ComicOperationWidget(comicInfo: comicInfo, epsInfo: epsInfo),
     ];
-
-    // if (comicHistory != null) {
-    //   widgets.add(
-    //     Padding(
-    //       padding: const EdgeInsets.all(5.0),
-    //       child: EpButtonWidget(
-    //         doc: Doc(
-    //           id: "history",
-    //           title: comicHistory!.epTitle,
-    //           order: comicHistory!.order,
-    //           updatedAt: comicHistory!.history,
-    //           docId: (comicHistory!.epPageCount - 1).toString(),
-    //         ),
-    //         allInfo: allInfo,
-    //         epsInfo: epsInfo,
-    //         isHistory: true,
-    //         type:
-    //             _type == ComicEntryType.download
-    //                 ? ComicEntryType.historyAndDownload
-    //                 : ComicEntryType.history,
-    //         store: store,
-    //       ),
-    //     ),
-    //   );
-    // }
 
     for (var e in epsInfo) {
       widgets.add(

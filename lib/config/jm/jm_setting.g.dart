@@ -42,6 +42,42 @@ mixin _$JmSetting on _JmSetting, Store {
     });
   }
 
+  late final _$userInfoAtom = Atom(
+    name: '_JmSetting.userInfo',
+    context: context,
+  );
+
+  @override
+  String get userInfo {
+    _$userInfoAtom.reportRead();
+    return super.userInfo;
+  }
+
+  @override
+  set userInfo(String value) {
+    _$userInfoAtom.reportWrite(value, super.userInfo, () {
+      super.userInfo = value;
+    });
+  }
+
+  late final _$loginStatusAtom = Atom(
+    name: '_JmSetting.loginStatus',
+    context: context,
+  );
+
+  @override
+  LoginStatus get loginStatus {
+    _$loginStatusAtom.reportRead();
+    return super.loginStatus;
+  }
+
+  @override
+  set loginStatus(LoginStatus value) {
+    _$loginStatusAtom.reportWrite(value, super.loginStatus, () {
+      super.loginStatus = value;
+    });
+  }
+
   late final _$_JmSettingActionController = ActionController(
     name: '_JmSetting',
     context: context,
@@ -120,10 +156,84 @@ mixin _$JmSetting on _JmSetting, Store {
   }
 
   @override
+  void setUserInfo(String value) {
+    final _$actionInfo = _$_JmSettingActionController.startAction(
+      name: '_JmSetting.setUserInfo',
+    );
+    try {
+      return super.setUserInfo(value);
+    } finally {
+      _$_JmSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  String getUserInfo() {
+    final _$actionInfo = _$_JmSettingActionController.startAction(
+      name: '_JmSetting.getUserInfo',
+    );
+    try {
+      return super.getUserInfo();
+    } finally {
+      _$_JmSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void deleteUserInfo() {
+    final _$actionInfo = _$_JmSettingActionController.startAction(
+      name: '_JmSetting.deleteUserInfo',
+    );
+    try {
+      return super.deleteUserInfo();
+    } finally {
+      _$_JmSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void setLoginStatus(LoginStatus value) {
+    final _$actionInfo = _$_JmSettingActionController.startAction(
+      name: '_JmSetting.setLoginStatus',
+    );
+    try {
+      return super.setLoginStatus(value);
+    } finally {
+      _$_JmSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  LoginStatus getLoginStatus() {
+    final _$actionInfo = _$_JmSettingActionController.startAction(
+      name: '_JmSetting.getLoginStatus',
+    );
+    try {
+      return super.getLoginStatus();
+    } finally {
+      _$_JmSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void deleteLoginStatus() {
+    final _$actionInfo = _$_JmSettingActionController.startAction(
+      name: '_JmSetting.deleteLoginStatus',
+    );
+    try {
+      return super.deleteLoginStatus();
+    } finally {
+      _$_JmSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     return '''
 account: ${account},
-password: ${password}
+password: ${password},
+userInfo: ${userInfo},
+loginStatus: ${loginStatus}
     ''';
   }
 }

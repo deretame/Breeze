@@ -50,8 +50,49 @@ Future<Map<String, dynamic>> favorite(
   return data;
 }
 
+Future<Map<String, dynamic>> like(String comicId) async => await request(
+  '${JmConfig.baseUrl}/like',
+  body: 'id=$comicId&',
+  method: 'POST',
+);
+
 Future<Map<String, dynamic>> getComments(int page, String comicId) async =>
     await request(
       '${JmConfig.baseUrl}/forum',
       params: {'page': page, 'mode': 'manhua', 'aid': comicId},
+    );
+
+Future<Map<String, dynamic>> comment(
+  String comment,
+  String comicId, {
+  String? commentId,
+}) async {
+  String body = "comment=${Uri.encodeQueryComponent(comment)}&";
+
+  if (commentId != null) {
+    body += "aid=$comicId&comment_id=$commentId&";
+  } else {
+    body += "status=undefined&aid=$comicId&";
+  }
+
+  final Map<String, dynamic> data = await request(
+    '${JmConfig.baseUrl}/forum',
+    body: body,
+    method: 'POST',
+  );
+
+  return data;
+}
+
+Future<Map<String, dynamic>> getDailyList() async => await request(
+  '${JmConfig.baseUrl}/daily_list/filter',
+  body: 'data=${DateTime.now().year}&',
+  method: 'POST',
+);
+
+Future<Map<String, dynamic>> dailyChk(String userId, String dailyId) async =>
+    await request(
+      '${JmConfig.baseUrl}/daily_chk',
+      body: 'user_id=$userId&daily_id=$dailyId&',
+      method: 'POST',
     );

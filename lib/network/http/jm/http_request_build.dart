@@ -6,7 +6,9 @@ import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:encrypter_plus/encrypter_plus.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/event/event.dart';
 
 import '../../../config/jm/config.dart';
 import '../../../main.dart';
@@ -175,6 +177,12 @@ String _handleDioError(DioException error) {
   String message = '';
   if (error.response != null) {
     message = (error.response!.data as List<int>).let(utf8.decode);
+  }
+
+  if (message.let(jsonDecode)['errorMsg'] == '請先登入會員' &&
+      message.let(jsonDecode)['code'] == 401) {
+    eventBus.fire(NeedLogin(from: From.jm));
+    return '登录过期，请重新登录';
   }
 
   switch (error.type) {

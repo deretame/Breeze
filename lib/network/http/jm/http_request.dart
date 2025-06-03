@@ -96,3 +96,22 @@ Future<Map<String, dynamic>> dailyChk(String userId, String dailyId) async =>
       body: 'user_id=$userId&daily_id=$dailyId&',
       method: 'POST',
     );
+
+Future<Map<String, dynamic>> getPromote() async =>
+    await request('${JmConfig.baseUrl}/promote?page=0', method: 'GET');
+
+Future<Map<String, dynamic>> getSuggestion(int page) async => await request(
+  '${JmConfig.baseUrl}/latest?page=${page * 10}',
+  method: 'GET',
+);
+
+Future<Map<String, dynamic>> getRanking({
+  int page = 0,
+  String order = '',
+  String c = '',
+  String o = '',
+}) async => await request(
+  '${JmConfig.baseUrl}/categories/filter',
+  method: 'GET',
+  params: {'page': page, 'order': order, 'c': c, 'o': o},
+);

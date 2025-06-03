@@ -30,6 +30,7 @@ dependencies:
   flutter_colorpicker: ^1.1.0 # 颜色选择器组件
   custom_sliding_segmented_control: ^1.8.5 # 自定义滑动分段控件
   material_pagination: ^1.0.3 # Material 底部分页组件
+  dynamic_tabbar: ^1.0.9 # 动态可滚动的TabBar
 
   ########################################
   #        状态管理 & 事件总线           #

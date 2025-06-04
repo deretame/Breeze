@@ -67,7 +67,34 @@ class _BookshelfPageState extends State<BookshelfPage>
           children: [
             SizedBox(height: statusBarHeight),
             const Spacer(),
-            Row(children: [const Spacer(), TopTabBar(), const Spacer()]),
+            Row(
+              children: [
+                const Spacer(),
+                TopTabBar(
+                  onValueChanged: (int value) {
+                    bookshelfStore.topBarStore.setDate(value);
+                    bookshelfStore.favoriteStore = SearchStatusStore();
+                    bookshelfStore.historyStore = SearchStatusStore();
+                    bookshelfStore.downloadStore = SearchStatusStore();
+                    bookshelfStore.jmFavoriteStore = SearchStatusStore();
+                    eventBus.fire(
+                      FavoriteEvent(EventType.refresh, SortType.dd, 0),
+                    );
+                    eventBus.fire(HistoryEvent(EventType.refresh));
+                    eventBus.fire(DownloadEvent(EventType.refresh));
+                    eventBus.fire(JmFavoriteEvent(EventType.refresh));
+                    bookshelfStore.tabController!.animateTo(
+                      0,
+                      duration: const Duration(milliseconds: 0),
+                    );
+                    if (bookshelfStore.topBarStore.date == 2) {
+                      eventBus.fire(JmFavoriteEvent(EventType.showInfo));
+                    }
+                  },
+                ),
+                const Spacer(),
+              ],
+            ),
             const Spacer(),
             const SizedBox(height: 48),
           ],

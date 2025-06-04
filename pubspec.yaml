@@ -109,10 +109,10 @@ dependencies:
   flutter_rust_bridge: ^2.10.0 # Flutter 与 Rust FFI 通信桥梁
   flutter_foreground_task: ^9.1.0 # 前台任务
   flutter_local_notifications: ^19.2.1 # 本地通知
-  firebase_core: ^3.13.1
-  firebase_analytics: ^11.4.6
-  firebase_performance: ^0.10.1+6
-  firebase_crashlytics: ^4.3.6
+  firebase_core: ^3.13.1 # Firebase 核心
+  firebase_analytics: ^11.4.6 # Firebase 分析
+  firebase_performance: ^0.10.1+6 # Firebase 性能监控
+  firebase_crashlytics: ^4.3.6 # Firebase 异常监控
 
 dev_dependencies:
   flutter_test:

@@ -1,6 +1,8 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global.dart';
+import 'package:zephyr/page/bookshelf/widgets/top_tab_bar.dart';
 import 'package:zephyr/page/ranking_list/models/get_info.dart';
 
 import '../bloc/bloc.dart';
@@ -24,7 +26,17 @@ class _RankingListPageState extends State<RankingListPage>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('哔咔排行榜')),
+      appBar: AppBar(
+        title: const Text('哔咔排行榜'),
+        flexibleSpace: Column(
+          children: [
+            SizedBox(height: statusBarHeight),
+            const Spacer(),
+            Center(child: TopTabBar(onValueChanged: (value) {})),
+            const Spacer(),
+          ],
+        ),
+      ),
       body: const HotTabBar(),
     );
   }

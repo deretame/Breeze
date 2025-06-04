@@ -1,34 +1,34 @@
 // To parse this JSON data, do
 //
-//     final jmPromoteJson = jmPromoteJsonFromJson(jsonString);
+//     final jmWeekRankingJson = jmWeekRankingJsonFromJson(jsonString);
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'dart:convert';
 
-part 'jm_promote_json.freezed.dart';
-part 'jm_promote_json.g.dart';
+part 'jm_week_ranking_json.freezed.dart';
+part 'jm_week_ranking_json.g.dart';
 
-List<JmPromoteJson> jmPromoteJsonFromJson(String str) =>
-    List<JmPromoteJson>.from(
-      json.decode(str).map((x) => JmPromoteJson.fromJson(x)),
+List<JmWeekRankingJson> jmWeekRankingJsonFromJson(String str) =>
+    List<JmWeekRankingJson>.from(
+      json.decode(str).map((x) => JmWeekRankingJson.fromJson(x)),
     );
 
-String jmPromoteJsonToJson(List<JmPromoteJson> data) =>
+String jmWeekRankingJsonToJson(List<JmWeekRankingJson> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
 @freezed
-abstract class JmPromoteJson with _$JmPromoteJson {
-  const factory JmPromoteJson({
+abstract class JmWeekRankingJson with _$JmWeekRankingJson {
+  const factory JmWeekRankingJson({
     @JsonKey(name: "id") required dynamic id,
     @JsonKey(name: "title") required String title,
     @JsonKey(name: "slug") required String slug,
     @JsonKey(name: "type") required String type,
     @JsonKey(name: "filter_val") required dynamic filterVal,
     @JsonKey(name: "content") required List<Content> content,
-  }) = _JmPromoteJson;
+  }) = _JmWeekRankingJson;
 
-  factory JmPromoteJson.fromJson(Map<String, dynamic> json) =>
-      _$JmPromoteJsonFromJson(json);
+  factory JmWeekRankingJson.fromJson(Map<String, dynamic> json) =>
+      _$JmWeekRankingJsonFromJson(json);
 }
 
 @freezed

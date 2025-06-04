@@ -1,39 +1,33 @@
 // To parse this JSON data, do
 //
-//     final jmPromoteJson = jmPromoteJsonFromJson(jsonString);
+//     final jmPromoteListJson = jmPromoteListJsonFromJson(jsonString);
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'dart:convert';
 
-part 'jm_promote_json.freezed.dart';
-part 'jm_promote_json.g.dart';
+part 'jm_promote_list_json.freezed.dart';
+part 'jm_promote_list_json.g.dart';
 
-List<JmPromoteJson> jmPromoteJsonFromJson(String str) =>
-    List<JmPromoteJson>.from(
-      json.decode(str).map((x) => JmPromoteJson.fromJson(x)),
-    );
+JmPromoteListJson jmPromoteListJsonFromJson(String str) =>
+    JmPromoteListJson.fromJson(json.decode(str));
 
-String jmPromoteJsonToJson(List<JmPromoteJson> data) =>
-    json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
+String jmPromoteListJsonToJson(JmPromoteListJson data) =>
+    json.encode(data.toJson());
 
 @freezed
-abstract class JmPromoteJson with _$JmPromoteJson {
-  const factory JmPromoteJson({
-    @JsonKey(name: "id") required dynamic id,
-    @JsonKey(name: "title") required String title,
-    @JsonKey(name: "slug") required String slug,
-    @JsonKey(name: "type") required String type,
-    @JsonKey(name: "filter_val") required dynamic filterVal,
-    @JsonKey(name: "content") required List<Content> content,
-  }) = _JmPromoteJson;
+abstract class JmPromoteListJson with _$JmPromoteListJson {
+  const factory JmPromoteListJson({
+    @JsonKey(name: "total") required String total,
+    @JsonKey(name: "list") required List<ListElement> list,
+  }) = _JmPromoteListJson;
 
-  factory JmPromoteJson.fromJson(Map<String, dynamic> json) =>
-      _$JmPromoteJsonFromJson(json);
+  factory JmPromoteListJson.fromJson(Map<String, dynamic> json) =>
+      _$JmPromoteListJsonFromJson(json);
 }
 
 @freezed
-abstract class Content with _$Content {
-  const factory Content({
+abstract class ListElement with _$ListElement {
+  const factory ListElement({
     @JsonKey(name: "id") required String id,
     @JsonKey(name: "author") required String author,
     @JsonKey(name: "name") required String name,
@@ -43,10 +37,10 @@ abstract class Content with _$Content {
     @JsonKey(name: "liked") required bool liked,
     @JsonKey(name: "is_favorite") required bool isFavorite,
     @JsonKey(name: "update_at") required int updateAt,
-  }) = _Content;
+  }) = _ListElement;
 
-  factory Content.fromJson(Map<String, dynamic> json) =>
-      _$ContentFromJson(json);
+  factory ListElement.fromJson(Map<String, dynamic> json) =>
+      _$ListElementFromJson(json);
 }
 
 @freezed

@@ -67,6 +67,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                     globalSetting.autoSync) ...[
                   _syncNotify(),
                 ],
+                // TODO：添加开屏页设置
                 if (kDebugMode) ...[
                   ElevatedButton(
                     onPressed: () {

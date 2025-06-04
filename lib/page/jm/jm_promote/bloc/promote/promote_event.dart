@@ -1,0 +1,8 @@
+part of 'promote_bloc.dart';
+
+@freezed
+abstract class PromoteEvent with _$PromoteEvent {
+  const factory PromoteEvent({
+    @Default(PromoteStatus.initial) PromoteStatus status,
+  }) = _PromoteEvent;
+}

@@ -2,7 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
-import 'package:zephyr/page/category/category.dart';
+import 'package:zephyr/page/home/category.dart';
 
 import '../../../../network/http/bika/http_request.dart';
 import '../../json/category/categories.dart';

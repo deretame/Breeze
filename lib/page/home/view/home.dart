@@ -2,7 +2,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/bookshelf/widgets/top_tab_bar.dart';
-import 'package:zephyr/page/category/category.dart';
+import 'package:zephyr/page/home/category.dart';
+import 'package:zephyr/page/jm/jm_promote/view/jm_promote.dart';
 
 import '../../../config/global/global.dart';
 import '../../../util/router/router.gr.dart';
@@ -10,19 +11,32 @@ import '../../jm/jm_search_result/bloc/jm_search_result_bloc.dart';
 import '../../search_result/models/search_enter.dart';
 
 @RoutePage()
-class CategoryPage extends StatelessWidget {
-  const CategoryPage({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  int _currentIndex = 1;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("分类"),
+        title: Text("首页"),
         flexibleSpace: Column(
           children: [
             SizedBox(height: statusBarHeight),
             const Spacer(),
-            Center(child: TopTabBar(onValueChanged: (value) {})),
+            Center(
+              child: TopTabBar(
+                onValueChanged: (value) {
+                  setState(() => _currentIndex = value);
+                },
+              ),
+            ),
             const Spacer(),
           ],
         ),
@@ -75,13 +89,20 @@ class CategoryPage extends StatelessWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          eventBus.fire(RefreshCategories());
+          if (_currentIndex == 1) {
+            eventBus.fire(RefreshCategories());
+          } else {
+            // TODO
+          }
         },
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          controller: scrollControllers['category']!,
-          children: const [KeywordPage(), CategoryWidget()],
-        ),
+        child:
+            _currentIndex == 1
+                ? ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  controller: scrollControllers['category']!,
+                  children: const [KeywordPage(), CategoryWidget()],
+                )
+                : const JmPromotePage(),
       ),
     );
   }

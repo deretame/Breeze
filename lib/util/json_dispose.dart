@@ -25,3 +25,7 @@ dynamic _replaceNestedNull(dynamic value) {
 Map<String, dynamic> replaceNestedNull(Map<String, dynamic> json) {
   return _replaceNestedNull(json) as Map<String, dynamic>;
 }
+
+List<dynamic> replaceNestedNullList(dynamic json) {
+  return _replaceNestedNull(json) as List<dynamic>;
+}

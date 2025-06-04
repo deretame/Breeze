@@ -13,7 +13,7 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: LoginRoute.page),
     AutoRoute(page: RankingListRoute.page),
     AutoRoute(page: RegisterRoute.page),
-    AutoRoute(page: CategoryRoute.page),
+    AutoRoute(page: HomeRoute.page),
     AutoRoute(page: SearchResultRoute.page),
     AutoRoute(page: ComicInfoRoute.page),
     AutoRoute(page: DownloadRoute.page),

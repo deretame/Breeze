@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:zephyr/page/category/category.dart';
+import 'package:zephyr/page/home/category.dart';
 import 'package:zephyr/page/search_result/models/search_enter.dart'
     show SearchEnter;
 import 'package:zephyr/type/pipe.dart';

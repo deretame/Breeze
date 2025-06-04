@@ -4,7 +4,7 @@
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
-part of 'jm_promote_json.dart';
+part of 'jm_week_ranking_json.dart';
 
 // **************************************************************************
 // FreezedGenerator
@@ -14,22 +14,22 @@ part of 'jm_promote_json.dart';
 T _$identity<T>(T value) => value;
 
 /// @nodoc
-mixin _$JmPromoteJson {
+mixin _$JmWeekRankingJson {
 
 @JsonKey(name: "id") dynamic get id;@JsonKey(name: "title") String get title;@JsonKey(name: "slug") String get slug;@JsonKey(name: "type") String get type;@JsonKey(name: "filter_val") dynamic get filterVal;@JsonKey(name: "content") List<Content> get content;
-/// Create a copy of JmPromoteJson
+/// Create a copy of JmWeekRankingJson
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$JmPromoteJsonCopyWith<JmPromoteJson> get copyWith => _$JmPromoteJsonCopyWithImpl<JmPromoteJson>(this as JmPromoteJson, _$identity);
+$JmWeekRankingJsonCopyWith<JmWeekRankingJson> get copyWith => _$JmWeekRankingJsonCopyWithImpl<JmWeekRankingJson>(this as JmWeekRankingJson, _$identity);
 
-  /// Serializes this JmPromoteJson to a JSON map.
+  /// Serializes this JmWeekRankingJson to a JSON map.
   Map<String, dynamic> toJson();
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is JmPromoteJson&&const DeepCollectionEquality().equals(other.id, id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other.filterVal, filterVal)&&const DeepCollectionEquality().equals(other.content, content));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JmWeekRankingJson&&const DeepCollectionEquality().equals(other.id, id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other.filterVal, filterVal)&&const DeepCollectionEquality().equals(other.content, content));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -38,15 +38,15 @@ int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(
 
 @override
 String toString() {
-  return 'JmPromoteJson(id: $id, title: $title, slug: $slug, type: $type, filterVal: $filterVal, content: $content)';
+  return 'JmWeekRankingJson(id: $id, title: $title, slug: $slug, type: $type, filterVal: $filterVal, content: $content)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $JmPromoteJsonCopyWith<$Res>  {
-  factory $JmPromoteJsonCopyWith(JmPromoteJson value, $Res Function(JmPromoteJson) _then) = _$JmPromoteJsonCopyWithImpl;
+abstract mixin class $JmWeekRankingJsonCopyWith<$Res>  {
+  factory $JmWeekRankingJsonCopyWith(JmWeekRankingJson value, $Res Function(JmWeekRankingJson) _then) = _$JmWeekRankingJsonCopyWithImpl;
 @useResult
 $Res call({
 @JsonKey(name: "id") dynamic id,@JsonKey(name: "title") String title,@JsonKey(name: "slug") String slug,@JsonKey(name: "type") String type,@JsonKey(name: "filter_val") dynamic filterVal,@JsonKey(name: "content") List<Content> content
@@ -57,14 +57,14 @@ $Res call({
 
 }
 /// @nodoc
-class _$JmPromoteJsonCopyWithImpl<$Res>
-    implements $JmPromoteJsonCopyWith<$Res> {
-  _$JmPromoteJsonCopyWithImpl(this._self, this._then);
+class _$JmWeekRankingJsonCopyWithImpl<$Res>
+    implements $JmWeekRankingJsonCopyWith<$Res> {
+  _$JmWeekRankingJsonCopyWithImpl(this._self, this._then);
 
-  final JmPromoteJson _self;
-  final $Res Function(JmPromoteJson) _then;
+  final JmWeekRankingJson _self;
+  final $Res Function(JmWeekRankingJson) _then;
 
-/// Create a copy of JmPromoteJson
+/// Create a copy of JmWeekRankingJson
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? title = null,Object? slug = null,Object? type = null,Object? filterVal = freezed,Object? content = null,}) {
   return _then(_self.copyWith(
@@ -84,9 +84,9 @@ as List<Content>,
 /// @nodoc
 @JsonSerializable()
 
-class _JmPromoteJson implements JmPromoteJson {
-  const _JmPromoteJson({@JsonKey(name: "id") required this.id, @JsonKey(name: "title") required this.title, @JsonKey(name: "slug") required this.slug, @JsonKey(name: "type") required this.type, @JsonKey(name: "filter_val") required this.filterVal, @JsonKey(name: "content") required final  List<Content> content}): _content = content;
-  factory _JmPromoteJson.fromJson(Map<String, dynamic> json) => _$JmPromoteJsonFromJson(json);
+class _JmWeekRankingJson implements JmWeekRankingJson {
+  const _JmWeekRankingJson({@JsonKey(name: "id") required this.id, @JsonKey(name: "title") required this.title, @JsonKey(name: "slug") required this.slug, @JsonKey(name: "type") required this.type, @JsonKey(name: "filter_val") required this.filterVal, @JsonKey(name: "content") required final  List<Content> content}): _content = content;
+  factory _JmWeekRankingJson.fromJson(Map<String, dynamic> json) => _$JmWeekRankingJsonFromJson(json);
 
 @override@JsonKey(name: "id") final  dynamic id;
 @override@JsonKey(name: "title") final  String title;
@@ -101,20 +101,20 @@ class _JmPromoteJson implements JmPromoteJson {
 }
 
 
-/// Create a copy of JmPromoteJson
+/// Create a copy of JmWeekRankingJson
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$JmPromoteJsonCopyWith<_JmPromoteJson> get copyWith => __$JmPromoteJsonCopyWithImpl<_JmPromoteJson>(this, _$identity);
+_$JmWeekRankingJsonCopyWith<_JmWeekRankingJson> get copyWith => __$JmWeekRankingJsonCopyWithImpl<_JmWeekRankingJson>(this, _$identity);
 
 @override
 Map<String, dynamic> toJson() {
-  return _$JmPromoteJsonToJson(this, );
+  return _$JmWeekRankingJsonToJson(this, );
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JmPromoteJson&&const DeepCollectionEquality().equals(other.id, id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other.filterVal, filterVal)&&const DeepCollectionEquality().equals(other._content, _content));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JmWeekRankingJson&&const DeepCollectionEquality().equals(other.id, id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other.filterVal, filterVal)&&const DeepCollectionEquality().equals(other._content, _content));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -123,15 +123,15 @@ int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(
 
 @override
 String toString() {
-  return 'JmPromoteJson(id: $id, title: $title, slug: $slug, type: $type, filterVal: $filterVal, content: $content)';
+  return 'JmWeekRankingJson(id: $id, title: $title, slug: $slug, type: $type, filterVal: $filterVal, content: $content)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$JmPromoteJsonCopyWith<$Res> implements $JmPromoteJsonCopyWith<$Res> {
-  factory _$JmPromoteJsonCopyWith(_JmPromoteJson value, $Res Function(_JmPromoteJson) _then) = __$JmPromoteJsonCopyWithImpl;
+abstract mixin class _$JmWeekRankingJsonCopyWith<$Res> implements $JmWeekRankingJsonCopyWith<$Res> {
+  factory _$JmWeekRankingJsonCopyWith(_JmWeekRankingJson value, $Res Function(_JmWeekRankingJson) _then) = __$JmWeekRankingJsonCopyWithImpl;
 @override @useResult
 $Res call({
 @JsonKey(name: "id") dynamic id,@JsonKey(name: "title") String title,@JsonKey(name: "slug") String slug,@JsonKey(name: "type") String type,@JsonKey(name: "filter_val") dynamic filterVal,@JsonKey(name: "content") List<Content> content
@@ -142,17 +142,17 @@ $Res call({
 
 }
 /// @nodoc
-class __$JmPromoteJsonCopyWithImpl<$Res>
-    implements _$JmPromoteJsonCopyWith<$Res> {
-  __$JmPromoteJsonCopyWithImpl(this._self, this._then);
+class __$JmWeekRankingJsonCopyWithImpl<$Res>
+    implements _$JmWeekRankingJsonCopyWith<$Res> {
+  __$JmWeekRankingJsonCopyWithImpl(this._self, this._then);
 
-  final _JmPromoteJson _self;
-  final $Res Function(_JmPromoteJson) _then;
+  final _JmWeekRankingJson _self;
+  final $Res Function(_JmWeekRankingJson) _then;
 
-/// Create a copy of JmPromoteJson
+/// Create a copy of JmWeekRankingJson
 /// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? title = null,Object? slug = null,Object? type = null,Object? filterVal = freezed,Object? content = null,}) {
-  return _then(_JmPromoteJson(
+  return _then(_JmWeekRankingJson(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as dynamic,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable

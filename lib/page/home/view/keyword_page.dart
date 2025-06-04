@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/page/category/category.dart';
+import 'package:zephyr/page/home/category.dart';
 
 import '../../../widgets/error_view.dart';
 

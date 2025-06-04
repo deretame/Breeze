@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/page/bookshelf/widgets/top_tab_bar.dart';
 import 'package:zephyr/page/category/category.dart';
 
 import '../../../config/global/global.dart';
@@ -17,6 +18,14 @@ class CategoryPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text("分类"),
+        flexibleSpace: Column(
+          children: [
+            SizedBox(height: statusBarHeight),
+            const Spacer(),
+            Center(child: TopTabBar(onValueChanged: (value) {})),
+            const Spacer(),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),

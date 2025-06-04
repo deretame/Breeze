@@ -1,12 +1,11 @@
 import 'package:custom_sliding_segmented_control/custom_sliding_segmented_control.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/page/bookshelf/mobx/search_status.dart';
-import 'package:zephyr/page/bookshelf/models/events.dart';
-import 'package:zephyr/page/bookshelf/view/bookshelf_page.dart';
 
 class TopTabBar extends StatelessWidget {
-  const TopTabBar({super.key});
+  final ValueChanged<int> onValueChanged;
+
+  const TopTabBar({super.key, required this.onValueChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -42,23 +41,7 @@ class TopTabBar extends StatelessWidget {
           ),
         ],
       ),
-      onValueChanged: (int value) async {
-        bookshelfStore.topBarStore.setDate(value);
-        bookshelfStore.favoriteStore = SearchStatusStore();
-        bookshelfStore.historyStore = SearchStatusStore();
-        bookshelfStore.downloadStore = SearchStatusStore();
-        bookshelfStore.jmFavoriteStore = SearchStatusStore();
-        eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 0));
-        eventBus.fire(HistoryEvent(EventType.refresh));
-        eventBus.fire(DownloadEvent(EventType.refresh));
-        eventBus.fire(JmFavoriteEvent(EventType.refresh));
-        bookshelfStore.tabController!.animateTo(0);
-        Future.delayed(const Duration(milliseconds: 100), () {
-          if (bookshelfStore.topBarStore.date == 2) {
-            eventBus.fire(JmFavoriteEvent(EventType.showInfo));
-          }
-        });
-      },
+      onValueChanged: onValueChanged,
     );
   }
 }

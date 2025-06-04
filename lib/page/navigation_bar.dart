@@ -31,7 +31,7 @@ import '../util/dialog.dart';
 import '../util/event/event.dart';
 import '../util/update/check_update.dart';
 import 'bookshelf/bookshelf.dart';
-import 'category/view/category.dart';
+import 'home/view/home.dart';
 import 'more/view/more.dart';
 
 @RoutePage()
@@ -44,18 +44,18 @@ class NavigationBar extends StatefulWidget {
 
 class _NavigationBarState extends State<NavigationBar> {
   // PersistentTabController 用于控制底部导航栏
-  final PersistentTabController _controller = PersistentTabController(
-    initialIndex: 0,
+  final _controller = PersistentTabController(
+    initialIndex: globalSetting.welcomePageNum,
   );
   final debouncer = Debouncer(milliseconds: 100);
   final List<ScrollController> _scrollControllers = [];
   late HideOnScrollSettings hideOnScrollSettings;
 
   // 页面列表
-  final List<Widget> _pageList = [
-    BookshelfPage(),
+  final _pageList = [
+    HomePage(),
     RankingListPage(),
-    CategoryPage(),
+    BookshelfPage(),
     MorePage(),
   ];
 
@@ -182,8 +182,8 @@ class _NavigationBarState extends State<NavigationBar> {
   List<PersistentBottomNavBarItem> _navBarItems() {
     return [
       PersistentBottomNavBarItem(
-        icon: Icon(Icons.menu_book_sharp),
-        title: "书架",
+        icon: Icon(Icons.home),
+        title: "首页",
         activeColorPrimary: materialColorScheme.primary,
         inactiveColorPrimary: globalSetting.textColor,
       ),
@@ -194,8 +194,8 @@ class _NavigationBarState extends State<NavigationBar> {
         inactiveColorPrimary: globalSetting.textColor,
       ),
       PersistentBottomNavBarItem(
-        icon: Icon(Icons.class_outlined),
-        title: "分类",
+        icon: Icon(Icons.menu_book_sharp),
+        title: "书架",
         activeColorPrimary: materialColorScheme.primary,
         inactiveColorPrimary: globalSetting.textColor,
       ),

@@ -45,7 +45,7 @@ Map<String, dynamic> getHeader(
   };
 }
 
-Map<String, dynamic> decodeRespData(String data, String ts, [String? secret]) {
+dynamic decodeRespData(String data, String ts, [String? secret]) {
   final actualSecret = secret ?? JmConfig.kJmSecret;
 
   // 1. Base64解码
@@ -60,7 +60,7 @@ Map<String, dynamic> decodeRespData(String data, String ts, [String? secret]) {
   return json.decode(utf8.decode(dataAes));
 }
 
-Future<Map<String, dynamic>> request(
+Future<dynamic> request(
   String url, {
   String? body,
   String method = 'GET',
@@ -70,13 +70,13 @@ Future<Map<String, dynamic>> request(
   bool cache = false,
 }) async {
   final timestamp = JmConfig.timestamp;
-  Map<String, dynamic> result = {};
+  dynamic result;
 
   url = "$url/${_mapToUrlParams(params)}";
 
   if (cache) {
-    result = netCache.get(url) ?? {};
-    if (result.isNotEmpty) {
+    result = netCache.get(url);
+    if (result != null) {
       return result;
     }
   }

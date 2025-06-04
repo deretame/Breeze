@@ -1,13 +1,13 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'jm_promote_json.dart';
+part of 'jm_week_ranking_json.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-_JmPromoteJson _$JmPromoteJsonFromJson(Map<String, dynamic> json) =>
-    _JmPromoteJson(
+_JmWeekRankingJson _$JmWeekRankingJsonFromJson(Map<String, dynamic> json) =>
+    _JmWeekRankingJson(
       id: json['id'],
       title: json['title'] as String,
       slug: json['slug'] as String,
@@ -19,7 +19,7 @@ _JmPromoteJson _$JmPromoteJsonFromJson(Map<String, dynamic> json) =>
               .toList(),
     );
 
-Map<String, dynamic> _$JmPromoteJsonToJson(_JmPromoteJson instance) =>
+Map<String, dynamic> _$JmWeekRankingJsonToJson(_JmWeekRankingJson instance) =>
     <String, dynamic>{
       'id': instance.id,
       'title': instance.title,

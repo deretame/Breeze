@@ -92,14 +92,14 @@ class DioCacheInterceptor extends Interceptor {
 
 class SimpleCacheService {
   // 使用LinkedHashMap保持插入顺序，方便后续可能的LRU实现
-  final LinkedHashMap<String, Map<String, dynamic>> _cache = LinkedHashMap();
+  final LinkedHashMap<String, dynamic> _cache = LinkedHashMap();
   final Duration _expiryDuration;
 
   SimpleCacheService({Duration? expiryDuration})
     : _expiryDuration = expiryDuration ?? Duration(minutes: 5);
 
   /// 存入缓存
-  void set(String key, Map<String, dynamic> value) {
+  void set(String key, dynamic value) {
     final now = DateTime.now();
     _cache[key] = {
       'value': value,
@@ -109,7 +109,7 @@ class SimpleCacheService {
   }
 
   /// 获取缓存
-  Map<String, dynamic>? get(String key) {
+  dynamic get(String key) {
     final cachedItem = _cache[key];
     if (cachedItem == null || _isExpired(cachedItem)) {
       _cache.remove(key); // 如果过期则移除

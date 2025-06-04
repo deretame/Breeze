@@ -1,35 +1,24 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'jm_promote_json.dart';
+part of 'jm_promote_list_json.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-_JmPromoteJson _$JmPromoteJsonFromJson(Map<String, dynamic> json) =>
-    _JmPromoteJson(
-      id: json['id'],
-      title: json['title'] as String,
-      slug: json['slug'] as String,
-      type: json['type'] as String,
-      filterVal: json['filter_val'],
-      content:
-          (json['content'] as List<dynamic>)
-              .map((e) => Content.fromJson(e as Map<String, dynamic>))
+_JmPromoteListJson _$JmPromoteListJsonFromJson(Map<String, dynamic> json) =>
+    _JmPromoteListJson(
+      total: json['total'] as String,
+      list:
+          (json['list'] as List<dynamic>)
+              .map((e) => ListElement.fromJson(e as Map<String, dynamic>))
               .toList(),
     );
 
-Map<String, dynamic> _$JmPromoteJsonToJson(_JmPromoteJson instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'title': instance.title,
-      'slug': instance.slug,
-      'type': instance.type,
-      'filter_val': instance.filterVal,
-      'content': instance.content,
-    };
+Map<String, dynamic> _$JmPromoteListJsonToJson(_JmPromoteListJson instance) =>
+    <String, dynamic>{'total': instance.total, 'list': instance.list};
 
-_Content _$ContentFromJson(Map<String, dynamic> json) => _Content(
+_ListElement _$ListElementFromJson(Map<String, dynamic> json) => _ListElement(
   id: json['id'] as String,
   author: json['author'] as String,
   name: json['name'] as String,
@@ -43,17 +32,18 @@ _Content _$ContentFromJson(Map<String, dynamic> json) => _Content(
   updateAt: (json['update_at'] as num).toInt(),
 );
 
-Map<String, dynamic> _$ContentToJson(_Content instance) => <String, dynamic>{
-  'id': instance.id,
-  'author': instance.author,
-  'name': instance.name,
-  'image': instance.image,
-  'category': instance.category,
-  'category_sub': instance.categorySub,
-  'liked': instance.liked,
-  'is_favorite': instance.isFavorite,
-  'update_at': instance.updateAt,
-};
+Map<String, dynamic> _$ListElementToJson(_ListElement instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'author': instance.author,
+      'name': instance.name,
+      'image': instance.image,
+      'category': instance.category,
+      'category_sub': instance.categorySub,
+      'liked': instance.liked,
+      'is_favorite': instance.isFavorite,
+      'update_at': instance.updateAt,
+    };
 
 _Category _$CategoryFromJson(Map<String, dynamic> json) =>
     _Category(id: json['id'] as String, title: json['title'] as String);

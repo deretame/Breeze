@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/jm/jm_promote/json/promote/jm_promote_json.dart';
@@ -16,7 +17,7 @@ class PromoteWidget extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Container(
-        height: 233,
+        height: 33 + screenWidth * 0.3 / 0.75 + 14,
         decoration: BoxDecoration(
           border: Border(
             top: BorderSide(color: materialColorScheme.outline, width: 1),
@@ -27,7 +28,7 @@ class PromoteWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+              padding: const EdgeInsets.all(5),
               child: Row(
                 children: [
                   Text(
@@ -39,16 +40,16 @@ class PromoteWidget extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  // GestureDetector(
-                  //   onTap: () {
-                  //     // TODO：添加跳转到详情页的功能
-                  //   },
-                  //   child: Icon(
-                  //     Icons.arrow_forward_ios,
-                  //     size: 16,
-                  //     color: materialColorScheme.primary,
-                  //   ),
-                  // ),
+                  GestureDetector(
+                    onTap: () {
+                      // TODO：添加跳转到详情页的功能
+                    },
+                    child: Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
+                      color: materialColorScheme.onSurface,
+                    ),
+                  ),
                   const SizedBox(width: 5),
                 ],
               ),
@@ -68,7 +69,7 @@ class PromoteWidget extends StatelessWidget {
                   itemCount: element.content.length,
                   itemBuilder: (context, index) {
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      padding: const EdgeInsets.all(5),
                       child: ComicSimplifyEntry(
                         info: ComicSimplifyEntryInfo(
                           title: element.content[index].name,
@@ -79,6 +80,7 @@ class PromoteWidget extends StatelessWidget {
                           from: 'jm',
                         ),
                         type: ComicEntryType.normal,
+                        topPadding: false,
                       ),
                     );
                   },

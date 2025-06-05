@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/page/jm/jm_promote/jm_promote.dart';
 import 'package:zephyr/page/jm/jm_promote/json/promote/jm_promote_json.dart';
 import 'package:zephyr/widgets/error_view.dart';
@@ -26,7 +27,7 @@ class _JmPromotePage extends StatefulWidget {
 }
 
 class _JmPromotePageState extends State<_JmPromotePage> {
-  final ScrollController scrollController = ScrollController();
+  ScrollController get scrollController => scrollControllers['jmHome']!;
 
   @override
   void initState() {

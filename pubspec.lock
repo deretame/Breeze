@@ -1414,6 +1414,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.0"
+  reusable_speed_dial:
+    dependency: "direct main"
+    description:
+      name: reusable_speed_dial
+      sha256: "7dfb2e3f0901a74fc910f4b0920844df1db3c4aebdffbd3b00d54c3ddca8f058"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
   rust_lib_zephyr:
     dependency: "direct main"
     description:

@@ -32,6 +32,7 @@ dependencies:
   material_pagination: ^1.0.3 # Material 底部分页组件
   dynamic_tabbar: ^1.0.9 # 动态可滚动的TabBar
   flutter_expandable_fab: ^2.5.1 # 可折叠的FAB
+  reusable_speed_dial: ^0.0.1 # 可折叠的FAB
 
   ########################################
   #        状态管理 & 事件总线           #

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/home/category.dart';
@@ -22,12 +24,20 @@ class _CategoryPage extends StatefulWidget {
 }
 
 class _CategoryPageState extends State<_CategoryPage> {
+  late StreamSubscription subscription;
+
   @override
   void initState() {
-    eventBus.on<RefreshCategories>().listen((event) {
+    subscription = eventBus.on<RefreshCategories>().listen((event) {
       refreshCategories();
     });
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    subscription.cancel();
+    super.dispose();
   }
 
   @override

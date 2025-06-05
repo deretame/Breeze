@@ -579,6 +579,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_expandable_fab:
+    dependency: "direct main"
+    description:
+      name: flutter_expandable_fab
+      sha256: c2936d398169166064d025df91a3bb417109a859e725d9b80c6ef7f04e01b6ab
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.5.1"
   flutter_foreground_task:
     dependency: "direct main"
     description:

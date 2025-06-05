@@ -5,7 +5,6 @@ import 'package:zephyr/page/jm/jm_promote/json/promote/jm_promote_json.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
-import 'package:zephyr/widgets/toast.dart';
 
 class PromoteWidget extends StatelessWidget {
   final JmPromoteJson element;
@@ -42,7 +41,7 @@ class PromoteWidget extends StatelessWidget {
                   const Spacer(),
                   // GestureDetector(
                   //   onTap: () {
-                  //     // TODO
+                  //     // TODO：添加跳转到详情页的功能
                   //   },
                   //   child: Icon(
                   //     Icons.arrow_forward_ios,

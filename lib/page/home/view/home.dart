@@ -92,7 +92,7 @@ class _HomePageState extends State<HomePage> {
           if (_currentIndex == 1) {
             eventBus.fire(RefreshCategories());
           } else {
-            // TODO
+            // TODO：添加刷新禁漫界面的功能
           }
         },
         child:

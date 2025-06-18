@@ -22,6 +22,7 @@ class JMUserInfoWidget extends StatefulWidget {
 class _JMUserInfoWidgetState extends State<JMUserInfoWidget> {
   @override
   Widget build(BuildContext context) {
+    logger.d(jmSetting.userInfo);
     return Column(
       children: [
         Observer(

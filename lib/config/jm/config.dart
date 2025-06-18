@@ -24,7 +24,7 @@ class JmConfig {
   static const kJmSecret = '185Hcomic3PAPP7R';
 
   static const baseUrls = [
-    'https://www.jmeadpoolcdn.one',
+    'https://www.cdnmhwscc.vip',
     'https://www.jmeadpoolcdn.life',
     'https://www.jmapiproxyxxx.one',
     'https://www.jmfreedomproxy.xyz',

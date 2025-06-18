@@ -15,9 +15,8 @@ _JmUserInfoJson _$JmUserInfoJsonFromJson(Map<String, dynamic> json) =>
       photo: json['photo'] as String,
       fname: json['fname'] as String,
       gender: json['gender'] as String,
-      message: json['message'],
-      coin: (json['coin'] as num).toInt(),
-      ipcountry: json['ipcountry'] as String,
+      message: json['message'] as String,
+      coin: json['coin'],
       albumFavorites: (json['album_favorites'] as num).toInt(),
       s: json['s'] as String,
       levelName: json['level_name'] as String,
@@ -34,6 +33,7 @@ _JmUserInfoJson _$JmUserInfoJsonFromJson(Map<String, dynamic> json) =>
       invitationQrcode: json['invitation_qrcode'] as String,
       invitationUrl: json['invitation_url'] as String,
       invitedCnt: json['invited_cnt'] as String,
+      jwttoken: json['jwttoken'] as String,
     );
 
 Map<String, dynamic> _$JmUserInfoJsonToJson(_JmUserInfoJson instance) =>
@@ -47,7 +47,6 @@ Map<String, dynamic> _$JmUserInfoJsonToJson(_JmUserInfoJson instance) =>
       'gender': instance.gender,
       'message': instance.message,
       'coin': instance.coin,
-      'ipcountry': instance.ipcountry,
       'album_favorites': instance.albumFavorites,
       's': instance.s,
       'level_name': instance.levelName,
@@ -64,4 +63,5 @@ Map<String, dynamic> _$JmUserInfoJsonToJson(_JmUserInfoJson instance) =>
       'invitation_qrcode': instance.invitationQrcode,
       'invitation_url': instance.invitationUrl,
       'invited_cnt': instance.invitedCnt,
+      'jwttoken': instance.jwttoken,
     };

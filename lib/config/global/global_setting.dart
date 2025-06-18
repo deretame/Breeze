@@ -56,6 +56,8 @@ abstract class _GlobalSetting with Store {
   String socks5Proxy = '';
   @observable
   bool needCleanCache = false; // 是否需要清理缓存
+  @observable
+  int comicChoice = 0; // 漫画选择
 
   Future<void> initBox() async {
     _box = await Hive.openBox(GlobalSettingBoxKey.globalSetting);
@@ -80,6 +82,7 @@ abstract class _GlobalSetting with Store {
     maskedKeywords = getMaskedKeywords();
     socks5Proxy = getSocks5Proxy();
     needCleanCache = getNeedCleanCache();
+    comicChoice = getComicChoice();
   }
 
   @action
@@ -505,6 +508,24 @@ abstract class _GlobalSetting with Store {
     needCleanCache = false;
     _box.delete(GlobalSettingBoxKey.needCleanCache);
   }
+
+  @action
+  void setComicChoice(int value) {
+    comicChoice = value;
+    _box.put(GlobalSettingBoxKey.comicChoice, value);
+  }
+
+  @action
+  int getComicChoice() {
+    comicChoice = _box.get(GlobalSettingBoxKey.comicChoice, defaultValue: 1);
+    return comicChoice;
+  }
+
+  @action
+  void deleteComicChoice() {
+    comicChoice = 1;
+    _box.delete(GlobalSettingBoxKey.comicChoice);
+  }
 }
 
 class GlobalSettingBoxKey {
@@ -531,4 +552,5 @@ class GlobalSettingBoxKey {
   static const String maskedKeywords = 'maskedKeywords'; // 屏蔽关键词
   static const String socks5Proxy = 'socks5Proxy'; // socks5代理
   static const String needCleanCache = 'needCleanCache'; // 是否需要清理缓存
+  static const String comicChoice = 'comicChoice'; // 漫画选择
 }

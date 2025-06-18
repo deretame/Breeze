@@ -20,7 +20,6 @@ import 'package:zephyr/mobx/int_select.dart' as _i36;
 import 'package:zephyr/mobx/string_select.dart' as _i33;
 import 'package:zephyr/page/about/view/about_page.dart' as _i1;
 import 'package:zephyr/page/bookshelf/view/bookshelf_page.dart' as _i3;
-import 'package:zephyr/page/home/view/home.dart' as _i11;
 import 'package:zephyr/page/comic_info/json/bika/comic_info/comic_info.dart'
     as _i37;
 import 'package:zephyr/page/comic_info/json/bika/eps/eps.dart' as _i38;
@@ -32,6 +31,7 @@ import 'package:zephyr/page/comments/view/comments.dart' as _i7;
 import 'package:zephyr/page/comments_children/view/comments_children_page.dart'
     as _i6;
 import 'package:zephyr/page/download/view/download.dart' as _i8;
+import 'package:zephyr/page/home/view/home.dart' as _i11;
 import 'package:zephyr/page/image_crop.dart' as _i12;
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart'
     as _i41;

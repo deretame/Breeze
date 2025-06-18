@@ -388,6 +388,24 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
+  late final _$comicChoiceAtom = Atom(
+    name: '_GlobalSetting.comicChoice',
+    context: context,
+  );
+
+  @override
+  int get comicChoice {
+    _$comicChoiceAtom.reportRead();
+    return super.comicChoice;
+  }
+
+  @override
+  set comicChoice(int value) {
+    _$comicChoiceAtom.reportWrite(value, super.comicChoice, () {
+      super.comicChoice = value;
+    });
+  }
+
   late final _$_GlobalSettingActionController = ActionController(
     name: '_GlobalSetting',
     context: context,
@@ -1150,6 +1168,42 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   }
 
   @override
+  void setComicChoice(int value) {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+      name: '_GlobalSetting.setComicChoice',
+    );
+    try {
+      return super.setComicChoice(value);
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  int getComicChoice() {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+      name: '_GlobalSetting.getComicChoice',
+    );
+    try {
+      return super.getComicChoice();
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void deleteComicChoice() {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+      name: '_GlobalSetting.deleteComicChoice',
+    );
+    try {
+      return super.deleteComicChoice();
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     return '''
 dynamicColor: ${dynamicColor},
@@ -1172,7 +1226,8 @@ comicReadTopContainer: ${comicReadTopContainer},
 readMode: ${readMode},
 maskedKeywords: ${maskedKeywords},
 socks5Proxy: ${socks5Proxy},
-needCleanCache: ${needCleanCache}
+needCleanCache: ${needCleanCache},
+comicChoice: ${comicChoice}
     ''';
   }
 }

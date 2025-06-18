@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -18,8 +19,10 @@ import 'package:hive_ce_flutter/adapters.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
+import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/firebase_options.dart';
+import 'package:zephyr/network/http/jm/http_request_build.dart';
 import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/pretty_log.dart';
@@ -126,6 +129,8 @@ Future<void> main() async {
           return true; // 表示错误已处理
         };
       }
+
+      jmDio.interceptors.add(CookieManager(JmConfig.cookieJar));
 
       runApp(MyApp());
     },

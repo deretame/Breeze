@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global.dart';
+import 'package:zephyr/main.dart';
+import 'package:zephyr/page/home/models/event.dart';
 import 'package:zephyr/page/jm/jm_promote/jm_promote.dart';
 import 'package:zephyr/page/jm/jm_promote/json/promote/jm_promote_json.dart';
 import 'package:zephyr/widgets/error_view.dart';
@@ -28,16 +32,25 @@ class _JmPromotePage extends StatefulWidget {
 
 class _JmPromotePageState extends State<_JmPromotePage> {
   ScrollController get scrollController => scrollControllers['jmHome']!;
+  late StreamSubscription subscription;
 
   @override
   void initState() {
+    subscription = eventBus.on<RefreshCategories>().listen((event) {
+      refreshPromote();
+    });
     super.initState();
     // scrollController.addListener();
+  }
+
+  void refreshPromote() {
+    context.read<PromoteBloc>().add(PromoteEvent());
   }
 
   @override
   void dispose() {
     scrollController.dispose();
+    subscription.cancel();
     super.dispose();
   }
 

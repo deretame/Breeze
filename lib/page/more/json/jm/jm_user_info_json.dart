@@ -23,9 +23,8 @@ abstract class JmUserInfoJson with _$JmUserInfoJson {
     @JsonKey(name: "photo") required String photo,
     @JsonKey(name: "fname") required String fname,
     @JsonKey(name: "gender") required String gender,
-    @JsonKey(name: "message") required dynamic message,
-    @JsonKey(name: "coin") required int coin,
-    @JsonKey(name: "ipcountry") required String ipcountry,
+    @JsonKey(name: "message") required String message,
+    @JsonKey(name: "coin") required dynamic coin,
     @JsonKey(name: "album_favorites") required int albumFavorites,
     @JsonKey(name: "s") required String s,
     @JsonKey(name: "level_name") required String levelName,
@@ -42,6 +41,7 @@ abstract class JmUserInfoJson with _$JmUserInfoJson {
     @JsonKey(name: "invitation_qrcode") required String invitationQrcode,
     @JsonKey(name: "invitation_url") required String invitationUrl,
     @JsonKey(name: "invited_cnt") required String invitedCnt,
+    @JsonKey(name: "jwttoken") required String jwttoken,
   }) = _JmUserInfoJson;
 
   factory JmUserInfoJson.fromJson(Map<String, dynamic> json) =>

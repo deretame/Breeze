@@ -13,7 +13,6 @@ import 'package:toastification/toastification.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/network/http/jm/http_request.dart' as jm;
-import 'package:zephyr/page/more/json/jm/jm_user_info_json.dart';
 import 'package:zephyr/page/ranking_list/ranking_list.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
@@ -53,9 +52,9 @@ class _NavigationBarState extends State<NavigationBar> {
 
   // 页面列表
   final _pageList = [
-    HomePage(),
-    RankingListPage(),
     BookshelfPage(),
+    RankingListPage(),
+    HomePage(),
     MorePage(),
   ];
 
@@ -74,7 +73,7 @@ class _NavigationBarState extends State<NavigationBar> {
     _checkUpdate();
     _signIn();
     _jmLogin();
-    _jmSignIn();
+    // _jmSignIn();
     // 先执行一次
     _autoSync();
     _initForegroundTask();
@@ -182,8 +181,8 @@ class _NavigationBarState extends State<NavigationBar> {
   List<PersistentBottomNavBarItem> _navBarItems() {
     return [
       PersistentBottomNavBarItem(
-        icon: Icon(Icons.home),
-        title: "首页",
+        icon: Icon(Icons.menu_book_sharp),
+        title: "书架",
         activeColorPrimary: materialColorScheme.primary,
         inactiveColorPrimary: globalSetting.textColor,
       ),
@@ -194,8 +193,8 @@ class _NavigationBarState extends State<NavigationBar> {
         inactiveColorPrimary: globalSetting.textColor,
       ),
       PersistentBottomNavBarItem(
-        icon: Icon(Icons.menu_book_sharp),
-        title: "书架",
+        icon: Icon(Icons.category),
+        title: "分类",
         activeColorPrimary: materialColorScheme.primary,
         inactiveColorPrimary: globalSetting.textColor,
       ),
@@ -457,39 +456,39 @@ class _NavigationBarState extends State<NavigationBar> {
     }
   }
 
-  Future<void> _jmSignIn() async {
-    while (true) {
-      if (jmSetting.loginStatus != LoginStatus.login) {
-        await Future.delayed(Duration(seconds: 1));
-        continue;
-      }
-      try {
-        var dailyList = await jm.getDailyList();
-        final id =
-            (List<Map<String, dynamic>>.from(
-              dailyList['list'].map((item) => item as Map<String, dynamic>),
-            ).last['id']);
-        final userId = jmUserInfoJsonFromJson(jmSetting.userInfo).uid;
-        while (true) {
-          try {
-            final result = await jm.dailyChk(userId, id);
-            logger.d(result);
-            if (result['msg'] != '今天已经签到过了') {
-              showSuccessToast("禁漫自动签到成功！");
-            }
-            break;
-          } catch (e, s) {
-            logger.e(e, stackTrace: s);
-            await Future.delayed(Duration(seconds: 1));
-            continue;
-          }
-        }
-        break;
-      } catch (e, s) {
-        logger.e(e, stackTrace: s);
-        await Future.delayed(Duration(seconds: 1));
-        continue;
-      }
-    }
-  }
+  // Future<void> _jmSignIn() async {
+  //   while (true) {
+  //     if (jmSetting.loginStatus != LoginStatus.login) {
+  //       await Future.delayed(Duration(seconds: 1));
+  //       continue;
+  //     }
+  //     try {
+  //       var dailyList = await jm.getDailyList();
+  //       final id =
+  //           (List<Map<String, dynamic>>.from(
+  //             dailyList['list'].map((item) => item as Map<String, dynamic>),
+  //           ).last['id']);
+  //       final userId = jmUserInfoJsonFromJson(jmSetting.userInfo).uid;
+  //       while (true) {
+  //         try {
+  //           final result = await jm.dailyChk(userId, id);
+  //           logger.d(result);
+  //           if (result['msg'] != '今天已经签到过了') {
+  //             showSuccessToast("禁漫自动签到成功！");
+  //           }
+  //           break;
+  //         } catch (e, s) {
+  //           logger.e(e, stackTrace: s);
+  //           await Future.delayed(Duration(seconds: 1));
+  //           continue;
+  //         }
+  //       }
+  //       break;
+  //     } catch (e, s) {
+  //       logger.e(e, stackTrace: s);
+  //       await Future.delayed(Duration(seconds: 1));
+  //       continue;
+  //     }
+  //   }
+  // }
 }

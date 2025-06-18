@@ -4,7 +4,6 @@ import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
-import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
@@ -37,8 +36,7 @@ Map<String, dynamic> getHeader(
   return {
     'token': JmConfig.token,
     'tokenparam': '$time,${JmConfig.jmVersion}',
-    'use-agent': jmUA(),
-    'accpet-encoding': 'gzip',
+    'user-agent': jmUA(),
     'Host': JmConfig.baseUrl.replaceAll('https://', ''),
     ...headers ?? {},
     if (post) 'Content-Type': 'application/x-www-form-urlencoded',
@@ -69,10 +67,17 @@ Future<dynamic> request(
   bool byte = true,
   bool cache = false,
 }) async {
-  final timestamp = JmConfig.timestamp;
+  var timestamp = JmConfig.timestamp;
   dynamic result;
 
-  url = "$url/${_mapToUrlParams(params)}";
+  if (params != null) {
+    url = "$url/${_mapToUrlParams(params)}";
+  }
+
+  if (url.contains("/daily_list/filter")) {
+    timestamp =
+        (DateTime.now().millisecondsSinceEpoch / 1000).floor().toString();
+  }
 
   if (cache) {
     result = netCache.get(url);
@@ -80,8 +85,6 @@ Future<dynamic> request(
       return result;
     }
   }
-
-  jmDio.interceptors.add(CookieManager(JmConfig.cookieJar));
 
   var cancelToken = CancelToken();
 
@@ -177,6 +180,7 @@ String _handleDioError(DioException error) {
   String message = '';
   if (error.response != null) {
     message = (error.response!.data as List<int>).let(utf8.decode);
+    logger.d(message);
   }
 
   if (message.let(jsonDecode)['errorMsg'] == '請先登入會員' &&

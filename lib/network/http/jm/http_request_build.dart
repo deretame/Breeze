@@ -183,10 +183,14 @@ String _handleDioError(DioException error) {
     logger.d(message);
   }
 
-  if (message.let(jsonDecode)['errorMsg'] == '請先登入會員' &&
-      message.let(jsonDecode)['code'] == 401) {
-    eventBus.fire(NeedLogin(from: From.jm));
-    return '登录过期，请重新登录';
+  try {
+    if (message.let(jsonDecode)['errorMsg'] == '請先登入會員' &&
+        message.let(jsonDecode)['code'] == 401) {
+      eventBus.fire(NeedLogin(from: From.jm));
+      return '登录过期，请重新登录';
+    }
+  } catch (e) {
+    logger.e(e);
   }
 
   switch (error.type) {

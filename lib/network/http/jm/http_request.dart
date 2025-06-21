@@ -113,17 +113,18 @@ Future<Map<String, dynamic>> getWeekRanking(
   params: {'date': date, 'type': type, 'page': page},
 );
 
-Future<Map<String, dynamic>> getPromoteList(int id, int page) async =>
-    await request(
-      '${JmConfig.baseUrl}/promote_list',
-      method: 'GET',
-      params: {'id': id, 'page': page},
-    );
+Future<dynamic> getPromoteList(int id, int page) async => await request(
+  '${JmConfig.baseUrl}/promote_list',
+  method: 'GET',
+  params: {'id': id, 'page': page},
+  cache: true,
+);
 
-Future<Map<String, dynamic>> getSuggestion(int page) async => await request(
+Future<dynamic> getSuggestion(int page) async => await request(
   '${JmConfig.baseUrl}/latest',
   method: 'GET',
-  params: {'page': page * 10},
+  params: {'page': page},
+  cache: true,
 );
 
 Future<Map<String, dynamic>> getRanking({

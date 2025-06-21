@@ -30,7 +30,7 @@ abstract class ListElement with _$ListElement {
   const factory ListElement({
     @JsonKey(name: "id") required String id,
     @JsonKey(name: "author") required String author,
-    @JsonKey(name: "name") required String name,
+    @JsonKey(name: "name") required dynamic name,
     @JsonKey(name: "image") required String image,
     @JsonKey(name: "category") required Category category,
     @JsonKey(name: "category_sub") required CategorySub categorySub,

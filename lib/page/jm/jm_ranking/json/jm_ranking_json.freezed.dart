@@ -499,7 +499,7 @@ as String,
 /// @nodoc
 mixin _$CategorySub {
 
-@JsonKey(name: "id") String? get id;@JsonKey(name: "title") String? get title;
+@JsonKey(name: "id") dynamic get id;@JsonKey(name: "title") dynamic get title;
 /// Create a copy of CategorySub
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -512,12 +512,12 @@ $CategorySubCopyWith<CategorySub> get copyWith => _$CategorySubCopyWithImpl<Cate
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CategorySub&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CategorySub&&const DeepCollectionEquality().equals(other.id, id)&&const DeepCollectionEquality().equals(other.title, title));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(id),const DeepCollectionEquality().hash(title));
 
 @override
 String toString() {
@@ -532,7 +532,7 @@ abstract mixin class $CategorySubCopyWith<$Res>  {
   factory $CategorySubCopyWith(CategorySub value, $Res Function(CategorySub) _then) = _$CategorySubCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "id") String? id,@JsonKey(name: "title") String? title
+@JsonKey(name: "id") dynamic id,@JsonKey(name: "title") dynamic title
 });
 
 
@@ -552,8 +552,8 @@ class _$CategorySubCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? title = freezed,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
-as String?,
+as dynamic,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as dynamic,
   ));
 }
 
@@ -567,8 +567,8 @@ class _CategorySub implements CategorySub {
   const _CategorySub({@JsonKey(name: "id") required this.id, @JsonKey(name: "title") required this.title});
   factory _CategorySub.fromJson(Map<String, dynamic> json) => _$CategorySubFromJson(json);
 
-@override@JsonKey(name: "id") final  String? id;
-@override@JsonKey(name: "title") final  String? title;
+@override@JsonKey(name: "id") final  dynamic id;
+@override@JsonKey(name: "title") final  dynamic title;
 
 /// Create a copy of CategorySub
 /// with the given fields replaced by the non-null parameter values.
@@ -583,12 +583,12 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CategorySub&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CategorySub&&const DeepCollectionEquality().equals(other.id, id)&&const DeepCollectionEquality().equals(other.title, title));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(id),const DeepCollectionEquality().hash(title));
 
 @override
 String toString() {
@@ -603,7 +603,7 @@ abstract mixin class _$CategorySubCopyWith<$Res> implements $CategorySubCopyWith
   factory _$CategorySubCopyWith(_CategorySub value, $Res Function(_CategorySub) _then) = __$CategorySubCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "id") String? id,@JsonKey(name: "title") String? title
+@JsonKey(name: "id") dynamic id,@JsonKey(name: "title") dynamic title
 });
 
 
@@ -623,8 +623,8 @@ class __$CategorySubCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? title = freezed,}) {
   return _then(_CategorySub(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
-as String?,
+as dynamic,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as dynamic,
   ));
 }
 

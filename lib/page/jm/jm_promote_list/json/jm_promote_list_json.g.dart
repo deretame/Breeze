@@ -21,7 +21,7 @@ Map<String, dynamic> _$JmPromoteListJsonToJson(_JmPromoteListJson instance) =>
 _ListElement _$ListElementFromJson(Map<String, dynamic> json) => _ListElement(
   id: json['id'] as String,
   author: json['author'] as String,
-  name: json['name'],
+  name: json['name'] as String,
   image: json['image'] as String,
   category: Category.fromJson(json['category'] as Map<String, dynamic>),
   categorySub: CategorySub.fromJson(

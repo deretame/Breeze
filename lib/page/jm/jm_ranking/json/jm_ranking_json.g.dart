@@ -60,7 +60,7 @@ Map<String, dynamic> _$CategoryToJson(_Category instance) => <String, dynamic>{
 };
 
 _CategorySub _$CategorySubFromJson(Map<String, dynamic> json) =>
-    _CategorySub(id: json['id'] as String?, title: json['title'] as String?);
+    _CategorySub(id: json['id'], title: json['title']);
 
 Map<String, dynamic> _$CategorySubToJson(_CategorySub instance) =>
     <String, dynamic>{'id': instance.id, 'title': instance.title};

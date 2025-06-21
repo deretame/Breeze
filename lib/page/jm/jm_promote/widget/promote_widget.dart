@@ -61,6 +61,7 @@ class PromoteWidget extends StatelessWidget {
                         );
                         return;
                       }
+                      context.pushRoute(JmRankingRoute());
                     },
                     child: Icon(
                       Icons.arrow_forward_ios,

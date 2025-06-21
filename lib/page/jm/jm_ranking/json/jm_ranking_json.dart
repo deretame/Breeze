@@ -58,8 +58,8 @@ abstract class Category with _$Category {
 @freezed
 abstract class CategorySub with _$CategorySub {
   const factory CategorySub({
-    @JsonKey(name: "id") required String? id,
-    @JsonKey(name: "title") required String? title,
+    @JsonKey(name: "id") required dynamic id,
+    @JsonKey(name: "title") required dynamic title,
   }) = _CategorySub;
 
   factory CategorySub.fromJson(Map<String, dynamic> json) =>

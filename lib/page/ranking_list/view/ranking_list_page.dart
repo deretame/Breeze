@@ -1,11 +1,9 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/page/ranking_list/models/get_info.dart';
-
-import '../bloc/bloc.dart';
-import 'comic_ranking.dart';
-import 'creator_ranking.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/main.dart';
+import 'package:zephyr/page/jm/jm_ranking/view/jm_ranking.dart';
+import 'package:zephyr/page/ranking_list/ranking_list.dart';
 
 @RoutePage()
 class RankingListPage extends StatefulWidget {
@@ -23,20 +21,7 @@ class _RankingListPageState extends State<RankingListPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('哔咔排行榜'),
-        // flexibleSpace: Column(
-        //   children: [
-        //     SizedBox(height: statusBarHeight),
-        //     const Spacer(),
-        //     Center(child: TopTabBar(onValueChanged: (value) {})),
-        //     const Spacer(),
-        //   ],
-        // ),
-      ),
-      body: const HotTabBar(),
-    );
+    return const HotTabBar();
   }
 }
 
@@ -47,73 +32,39 @@ class HotTabBar extends StatefulWidget {
   State<HotTabBar> createState() => _HotTabBarState();
 }
 
-class _HotTabBarState extends State<HotTabBar> with TickerProviderStateMixin {
-  late final TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 4, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+class _HotTabBarState extends State<HotTabBar> {
+  String title = '哔咔排行榜';
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        TabBar(
-          controller: _tabController,
-          tabs: const <Widget>[
-            Tab(text: '日榜'),
-            Tab(text: '周榜'),
-            Tab(text: '月榜'),
-            Tab(text: '骑士榜'),
-          ],
-        ),
-        Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: <Widget>[
-              BlocProvider(
-                create:
-                    (_) =>
-                        ComicListBloc()..add(
-                          FetchComicList(GetInfo(days: "H24", type: "comic")),
-                        ),
-                child: const ComicRanking(type: "H24"),
-              ),
-              BlocProvider(
-                create:
-                    (_) =>
-                        ComicListBloc()..add(
-                          FetchComicList(GetInfo(days: "D7", type: "comic")),
-                        ),
-                child: const ComicRanking(type: "D7"),
-              ),
-              BlocProvider(
-                create:
-                    (_) =>
-                        ComicListBloc()..add(
-                          FetchComicList(GetInfo(days: "D30", type: "comic")),
-                        ),
-                child: const ComicRanking(type: "D30"),
-              ),
-              BlocProvider(
-                create:
-                    (_) =>
-                        CreatorListBloc()
-                          ..add(FetchCreatorList(GetInfo(type: "creator"))),
-                child: const CreatorRankingsWidget(),
-              ),
-            ],
+    return Observer(
+      builder:
+          (_) => Scaffold(
+            appBar: AppBar(title: Text(title)),
+            body:
+                globalSetting.comicChoice == 1
+                    ? const BikaRankList()
+                    : const JmRankingPage(),
+            floatingActionButton: FloatingActionButton(
+              child: const Icon(Icons.compare_arrows),
+              onPressed: () {
+                if (globalSetting.comicChoice == 1) {
+                  globalSetting.setComicChoice(2);
+                } else {
+                  globalSetting.setComicChoice(1);
+                }
+
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    setState(() {
+                      title =
+                          globalSetting.comicChoice == 1 ? "哔咔排行榜" : "禁漫排行榜";
+                    });
+                  }
+                });
+              },
+            ),
           ),
-        ),
-      ],
     );
   }
 }

@@ -71,6 +71,7 @@ class _NavigationBarState extends State<NavigationBar> {
     hideOnScrollSettings = HideOnScrollSettings(
       scrollControllers: _scrollControllers,
     );
+    hideOnScrollSettings = HideOnScrollSettings(); // 先去掉这个东西
     _checkUpdate();
     _signIn();
     _jmLogin();

@@ -117,9 +117,11 @@ class _JMWidget extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text(jmUserInfoJson.username),
                       Text(
-                        "level: ${jmUserInfoJson.level.toString()}  (${jmUserInfoJson.levelName})",
+                        "${jmUserInfoJson.username} (硬币：${jmUserInfoJson.coin})",
+                      ),
+                      Text(
+                        "level: ${jmUserInfoJson.level}  (${jmUserInfoJson.levelName})",
                       ),
                       Text(
                         "经验值: ${jmUserInfoJson.exp}/${jmUserInfoJson.nextLevelExp}",

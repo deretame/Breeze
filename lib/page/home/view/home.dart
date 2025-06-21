@@ -46,12 +46,13 @@ class _HomePageState extends State<HomePage>
       ),
     );
 
-    scrollControllers['jmHome']!.addListener(_handleScroll);
-    scrollControllers['category']!.addListener(_handleScroll);
+    // 根据初始状态添加正确的监听器
     if (globalSetting.comicChoice == 1) {
+      scrollControllers['category']?.addListener(_handleScroll);
       title = "哔咔漫画";
-    }
-    if (globalSetting.comicChoice == 2) {
+    } else {
+      // 假设只有 1 和 2 两种情况
+      scrollControllers['jmHome']?.addListener(_handleScroll);
       title = "禁漫首页";
     }
   }
@@ -92,52 +93,7 @@ class _HomePageState extends State<HomePage>
           appBar: AppBar(
             title: Text(title),
             actions: [
-              IconButton(
-                icon: const Icon(Icons.search),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return SimpleDialog(
-                        children: [
-                          // 第一个 Chip
-                          SimpleDialogOption(
-                            onPressed: () {
-                              context.pop();
-                              context.pushRoute(
-                                SearchResultRoute(
-                                  searchEnter: SearchEnter.initial(),
-                                ),
-                              );
-                            },
-                            child: const Chip(
-                              label: Text("哔咔漫画"),
-                              backgroundColor: Colors.pink,
-                              labelStyle: TextStyle(color: Colors.white),
-                            ),
-                          ),
-                          // 第二个 Chip
-                          SimpleDialogOption(
-                            onPressed: () {
-                              context.pop();
-                              context.pushRoute(
-                                JmSearchResultRoute(
-                                  event: JmSearchResultEvent(),
-                                ),
-                              );
-                            },
-                            child: const Chip(
-                              label: Text("禁漫天堂"),
-                              backgroundColor: Colors.orange,
-                              labelStyle: TextStyle(color: Colors.white),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-              ),
+              IconButton(icon: const Icon(Icons.search), onPressed: search),
             ],
           ),
           body: RefreshIndicator(
@@ -167,20 +123,7 @@ class _HomePageState extends State<HomePage>
                     SizedBox(width: 20),
                     FloatingActionButton.small(
                       heroTag: Uuid(),
-                      onPressed: () {
-                        if (globalSetting.comicChoice == 1) {
-                          globalSetting.setComicChoice(2);
-                          title = "禁漫首页";
-                        } else {
-                          globalSetting.setComicChoice(1);
-                          title = "哔咔漫画";
-                        }
-                        setState(() {});
-                        final state = _key.currentState;
-                        if (state != null) {
-                          state.toggle();
-                        }
-                      },
+                      onPressed: comicChange,
                       child: Icon(Icons.compare_arrows),
                     ),
                   ],
@@ -190,25 +133,7 @@ class _HomePageState extends State<HomePage>
                     SizedBox(width: 20),
                     FloatingActionButton.small(
                       heroTag: null,
-                      onPressed: () {
-                        if (globalSetting.comicChoice == 1) {
-                          scrollControllers['category']!.animateTo(
-                            0,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        } else {
-                          scrollControllers['jmHome']!.animateTo(
-                            0,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        }
-                        final state = _key.currentState;
-                        if (state != null) {
-                          state.toggle();
-                        }
-                      },
+                      onPressed: goTop,
                       child: Icon(Icons.arrow_upward),
                     ),
                   ],
@@ -219,5 +144,100 @@ class _HomePageState extends State<HomePage>
         );
       },
     );
+  }
+
+  void search() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return SimpleDialog(
+          children: [
+            // 第一个 Chip
+            SimpleDialogOption(
+              onPressed: () {
+                context.pop();
+                context.pushRoute(
+                  SearchResultRoute(searchEnter: SearchEnter.initial()),
+                );
+              },
+              child: const Chip(
+                label: Text("哔咔漫画"),
+                backgroundColor: Colors.pink,
+                labelStyle: TextStyle(color: Colors.white),
+              ),
+            ),
+            // 第二个 Chip
+            SimpleDialogOption(
+              onPressed: () {
+                context.pop();
+                context.pushRoute(
+                  JmSearchResultRoute(event: JmSearchResultEvent()),
+                );
+              },
+              child: const Chip(
+                label: Text("禁漫天堂"),
+                backgroundColor: Colors.orange,
+                labelStyle: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void comicChange() {
+    // 1. 获取当前活动的 controller 的 key
+    final currentKey = globalSetting.comicChoice == 1 ? 'category' : 'jmHome';
+    // 2. 在切换视图前，从【当前活动】的 controller 移除监听器
+    // 使用 ?. 安全调用，防止 controller 为 null 的情况
+    scrollControllers[currentKey]?.removeListener(_handleScroll);
+
+    // 3. 切换漫画源的状态
+    if (globalSetting.comicChoice == 1) {
+      globalSetting.setComicChoice(2);
+    } else {
+      globalSetting.setComicChoice(1);
+    }
+
+    // 4. 【关键】等待UI更新完成后，再为【新的】controller 添加监听器
+    // addPostFrameCallback 保证在下一帧绘制完成时执行，此时新的 Widget 和它的 controller 已准备好
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final newKey = globalSetting.comicChoice == 1 ? 'category' : 'jmHome';
+      scrollControllers[newKey]?.addListener(_handleScroll);
+
+      // 检查 Widget 是否还在树中，然后更新标题并刷新UI
+      if (mounted) {
+        setState(() {
+          title = globalSetting.comicChoice == 1 ? "哔咔漫画" : "禁漫首页";
+        });
+      }
+    });
+
+    // 5. 关闭 ExpandableFab
+    final state = _key.currentState;
+    if (state != null) {
+      state.toggle();
+    }
+  }
+
+  void goTop() {
+    if (globalSetting.comicChoice == 1) {
+      scrollControllers['category']!.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      scrollControllers['jmHome']!.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+    final state = _key.currentState;
+    if (state != null) {
+      state.toggle();
+    }
   }
 }

@@ -105,14 +105,14 @@ Future<void> main() async {
       if (kDebugMode) {
         FlutterError.onError = (FlutterErrorDetails details) {
           logger.e(
-            "Flutter 框架错误 (Debug模式)", // 为了清晰，你可以自定义消息
+            details,
             error: details.exception,
             stackTrace: details.stack,
           );
         };
 
         PlatformDispatcher.instance.onError = (error, stack) {
-          logger.e("未捕获的异步错误 (Debug模式)", error: error, stackTrace: stack);
+          logger.e(error, error: error, stackTrace: stack);
           return true; // 表示错误已处理
         };
       } else {
@@ -136,11 +136,7 @@ Future<void> main() async {
     },
     (error, stackTrace) {
       if (kDebugMode) {
-        logger.e(
-          "runZonedGuarded 捕获的错误 (Debug模式)",
-          error: error,
-          stackTrace: stackTrace,
-        );
+        logger.e(error, error: error, stackTrace: stackTrace);
       } else {
         FirebaseCrashlytics.instance.recordError(
           error,

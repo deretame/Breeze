@@ -10,7 +10,7 @@ _JmSuggestionJson _$JmSuggestionJsonFromJson(Map<String, dynamic> json) =>
     _JmSuggestionJson(
       id: json['id'] as String,
       author: json['author'] as String,
-      name: json['name'],
+      name: json['name'] as String,
       image: json['image'] as String,
       category: Category.fromJson(json['category'] as Map<String, dynamic>),
       categorySub: CategorySub.fromJson(

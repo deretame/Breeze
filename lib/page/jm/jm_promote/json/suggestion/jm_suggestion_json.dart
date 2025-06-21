@@ -21,7 +21,7 @@ abstract class JmSuggestionJson with _$JmSuggestionJson {
   const factory JmSuggestionJson({
     @JsonKey(name: "id") required String id,
     @JsonKey(name: "author") required String author,
-    @JsonKey(name: "name") required dynamic name,
+    @JsonKey(name: "name") required String name,
     @JsonKey(name: "image") required String image,
     @JsonKey(name: "category") required Category category,
     @JsonKey(name: "category_sub") required CategorySub categorySub,

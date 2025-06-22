@@ -49,6 +49,7 @@ class _BikaUserInfoWidgetState extends State<_BikaUserInfoWidget> {
           .then((value) {
             jmSetting.setUserInfo(value.let(replaceNestedNull).let(jsonEncode));
             jmSetting.setLoginStatus(LoginStatus.login);
+            logger.d(jmSetting.userInfo);
           })
           .catchError((e, s) {
             logger.e(e, stackTrace: s);

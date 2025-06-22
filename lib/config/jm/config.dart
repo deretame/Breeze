@@ -61,4 +61,65 @@ class JmConfig {
     }
     return _timestamp;
   }
+
+  static final categoryMap = {
+    '最新a漫': '0',
+    '同人': tongRenTypeMap,
+    '单本': danBenTypeMap,
+    '短篇': duanPianTypeMap,
+    '其他类': qiTaLeiTypeMap,
+    '韩漫': hanManTypeMap,
+    'English Manga': meiManTypeMap,
+    'Cosplay': 'another_cosplay',
+    '3D': '3D',
+    '禁漫汉化组': '禁漫汉化组',
+  };
+
+  static final rankingTypeMap = {
+    '最新': 'new',
+    '最多点赞': 'tf',
+    '总排行': 'mv',
+    '月排行': 'mv_m',
+    '周排行': 'mv_w',
+    '日排行': 'mv_t',
+  };
+
+  static final tongRenTypeMap = {
+    '全部': 'doujin',
+    '汉化': 'doujin_chinese',
+    '日语': 'doujin_japanese',
+    'CG图集': 'doujin_CG',
+  };
+
+  static final danBenTypeMap = {
+    '全部': 'single',
+    '汉化': 'single_chinese',
+    '日语': 'single_japanese',
+    '青年漫': 'single_youth',
+  };
+
+  static final duanPianTypeMap = {
+    '全部': 'short',
+    '汉化': 'short_chinese',
+    '日语': 'short_japanese',
+  };
+
+  static final qiTaLeiTypeMap = {
+    '全部': 'another',
+    '其他漫画': 'another_other',
+    '3D': 'another_3d',
+    '角色扮演': 'another_cosplay',
+  };
+
+  static final hanManTypeMap = {'全部': 'hanman', '汉化': 'hanman_chinese'};
+
+  static final meiManTypeMap = {
+    '全部': 'meiman',
+    'IRODORI': 'meiman_irodori',
+    'FAKKU': 'meiman_fakku',
+    '18scan': 'meiman_18scan',
+    'Manhwa': 'meiman_manhwa',
+    'Comic': 'meiman_comic',
+    'Other': 'meiman_other',
+  };
 }

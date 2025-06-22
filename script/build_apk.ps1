@@ -1,84 +1,138 @@
-# 用来在windows环境下构建flutter项目的APK
+# 脚本功能：自动化构建 Flutter APK，分别打包使用 Skia 和 Impeller 的版本，并可选地运行符号更新脚本。
+# 运行环境：Windows PowerShell
+#
+# 使用方法：
+# 1. 将此脚本保存到你的 Flutter 项目根目录下的一个子目录中，例如 `scripts\build_apk.ps1`。
+# 2. 打开 PowerShell，导航到该脚本所在的目录。
+# 3. 运行脚本:
+#    - 普通构建: .\build_apk.ps1
+#    - 构建并提示是否更新符号: .\build_apk.ps1 -RunUpdateSymbolsScript
 
-# 获取脚本所在目录
+[CmdletBinding()]
+param(
+    # 添加此开关参数，以便在需要时运行符号更新脚本
+    [Parameter(Mandatory = $false)]
+    [switch]$RunUpdateSymbolsScript
+)
+
+# --- 1. 初始化路径 ---
+# 获取脚本所在的确切目录
 $scriptPath = $PSScriptRoot
 
-# 项目根目录
-$projectRoot = Join-Path $scriptPath "..\"
+# 解析项目根目录的绝对路径 (脚本所在目录的上一级)
+$projectRoot = (Resolve-Path (Join-Path $scriptPath "..")).Path
 
 # AndroidManifest.xml 完整路径
 $manifestPath = Join-Path $projectRoot "android\app\src\main\AndroidManifest.xml"
 
-# 定义目录路径
+# 备份文件名
+$backupFile = "$manifestPath.bak"
+
+# 定义输出目录路径
 $releaseDir = Join-Path $projectRoot "build\app\outputs\apk\release"
-$skiaDir = Join-Path $projectRoot "build\app\outputs\apk\skia"
+$skiaDir = Join-Path $projectRoot "build\app\outputs\apk\skia" # 用于存放Skia构建产物
 
+# 符号更新脚本的路径
+$updateSymbolsScriptPath = Join-Path $projectRoot "symbols\update_symbols.ps1"
+
+
+# --- 2. 主流程 ---
 try {
+    # 切换当前工作目录到项目根目录，这是执行 flutter 命令的前提
     Set-Location $projectRoot
+    Write-Host "当前工作目录: $(Get-Location)" -ForegroundColor Yellow
 
-    # 0. 验证文件存在性
+    # 验证 AndroidManifest.xml 文件是否存在
     if (-not (Test-Path $manifestPath)) {
-        throw "无法找到 AndroidManifest.xml：$manifestPath"
+        throw "无法找到 AndroidManifest.xml 文件，请检查路径：$manifestPath"
     }
 
-    # 1. 备份原始文件
-    $backupFile = "$manifestPath.bak"
+    # 备份原始的 AndroidManifest.xml 文件
+    Write-Host "--- 正在备份 AndroidManifest.xml ---"
     Copy-Item -Path $manifestPath -Destination $backupFile -Force
     Write-Host "已创建备份文件：$backupFile"
 
-    # 2. 第一次构建：使用 Skia
-    Write-Host "第一次构建：使用 Skia" -ForegroundColor Cyan
+    # --- 第一次构建：使用 Skia 渲染引擎 ---
+    Write-Host "`n--- (1/4) 开始第一次构建：使用 Skia 渲染引擎 ---" -ForegroundColor Cyan
     flutter build apk --split-per-abi --dart-define=use_skia=true
+    # 检查上一个命令是否成功
+    if ($LASTEXITCODE -ne 0) { throw "第一次构建 (Skia) 失败！" }
 
-    # 3. 复制第一次构建的文件到 skia 目录
+
+    # --- 复制第一次构建的产物到 skia 目录 ---
+    Write-Host "`n--- (2/4) 正在整理 Skia 构建产物 ---" -ForegroundColor Cyan
     if (Test-Path $releaseDir) {
         if (-not (Test-Path $skiaDir)) {
             New-Item -ItemType Directory -Path $skiaDir | Out-Null
         }
         Copy-Item -Path "$releaseDir\*" -Destination $skiaDir -Recurse -Force
-        Write-Host "已将第一次构建的文件复制到 $skiaDir"
+        Write-Host "已将 Skia 构建的 APK 复制到: $skiaDir"
     }
     else {
         Write-Warning "未找到第一次构建的输出目录：$releaseDir"
     }
 
-    # 4. 修改配置
+    # --- 修改配置文件以启用 Impeller ---
+    # Impeller 是默认引擎，只需注释掉或删除禁用它的配置即可
+    Write-Host "`n--- (3/4) 正在修改配置以启用 Impeller 引擎 ---" -ForegroundColor Cyan
     $content = Get-Content $manifestPath -Raw
+    # 匹配禁用 Impeller 的 meta-data 标签
     $pattern = '<meta-data\s+android:name="io\.flutter\.embedding\.android\.EnableImpeller"\s+android:value="false"\s*/>'
+    # 准备替换为注释掉的内容
     $replacement = '<!--        <meta-data
                 android:name="io.flutter.embedding.android.EnableImpeller"
                 android:value="false"/>-->'
-    $modified = $content -replace $pattern, $replacement
-    if ($content -ne $modified) {
-        $modified | Set-Content $manifestPath
-        Write-Host "已注释掉 Impeller 配置"
+    
+    if ($content -match $pattern) {
+        $modified = $content -replace $pattern, $replacement
+        $modified | Set-Content -Path $manifestPath -Encoding UTF8
+        Write-Host "已注释 AndroidManifest.xml 中的 EnableImpeller=false 配置，以启用 Impeller."
     }
     else {
-        Write-Warning "未找到需要修改的配置项"
+        Write-Warning "在 AndroidManifest.xml 中未找到需要注释的 Impeller 配置项，将继续使用默认配置构建。"
     }
 
-    if ($content -ne $modified) {
-        $modified | Set-Content $manifestPath
-        Write-Host "已启用 Impeller 渲染引擎"
-    }
-    else {
-        Write-Warning "未找到需要修改的配置项"
-    }
+    # --- 第二次构建：使用 Impeller (默认) ---
+    Write-Host "`n--- (4/4) 开始第二次构建：使用 Impeller 渲染引擎 ---" -ForegroundColor Cyan
+    flutter build apk --split-per-abi --split-debug-info="$($projectRoot)\symbols"
+    # 检查上一个命令是否成功
+    if ($LASTEXITCODE -ne 0) { throw "第二次构建 (Impeller) 失败！" }
 
-    # 5. 第二次构建：不使用 Skia
-    Write-Host "第二次构建：不使用 Skia" -ForegroundColor Cyan
-    flutter build apk --split-per-abi --split-debug-info=$projectRoot/symbols 
+    # --- 可选：运行符号更新脚本 ---
+    if ($RunUpdateSymbolsScript.IsPresent) {
+        if (Test-Path $updateSymbolsScriptPath) {
+            # 弹出 Y/N 选项
+            $choice = Read-Host "`n是否要运行符号更新脚本 '$updateSymbolsScriptPath'? (y/N)"
+            if ($choice -eq 'y') {
+                Write-Host "--- 正在执行符号更新脚本... ---" -ForegroundColor Cyan
+                # 正确的调用外部脚本的方式
+                & $updateSymbolsScriptPath
+                if ($LASTEXITCODE -ne 0) { throw "符号更新脚本执行失败！" }
+            }
+            else {
+                Write-Host "已跳过执行符号更新脚本。" -ForegroundColor Yellow
+            }
+        }
+        else {
+            Write-Warning "找不到符号更新脚本: $updateSymbolsScriptPath"
+        }
+    }
 }
 catch {
-    Write-Host "发生错误：$_" -ForegroundColor Red
+    # 如果过程中发生任何错误，打印错误信息
+    Write-Host "`n构建过程中发生错误！" -ForegroundColor Red
+    Write-Host "错误信息: $($_.Exception.Message)" -ForegroundColor Red
+    # 退出脚本并返回非零退出码，表示失败
     exit 1
 }
 finally {
-    # 7. 恢复原始文件
+    # --- 恢复文件 ---
+    # 无论成功还是失败，这个块都会执行
     if (Test-Path $backupFile) {
+        Write-Host "`n--- 正在恢复原始 AndroidManifest.xml 文件 ---"
         Move-Item -Path $backupFile -Destination $manifestPath -Force
-        Write-Host "已恢复原始配置文件"
+        Write-Host "已从备份恢复原始配置文件。"
     }
 }
 
-Write-Host "构建流程完成" -ForegroundColor Green
+Write-Host "`n构建流程全部完成！" -ForegroundColor Green

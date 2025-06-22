@@ -33,7 +33,6 @@ _JmUserInfoJson _$JmUserInfoJsonFromJson(Map<String, dynamic> json) =>
       invitationQrcode: json['invitation_qrcode'] as String,
       invitationUrl: json['invitation_url'] as String,
       invitedCnt: json['invited_cnt'] as String,
-      jwttoken: json['jwttoken'] as String,
     );
 
 Map<String, dynamic> _$JmUserInfoJsonToJson(_JmUserInfoJson instance) =>
@@ -63,5 +62,4 @@ Map<String, dynamic> _$JmUserInfoJsonToJson(_JmUserInfoJson instance) =>
       'invitation_qrcode': instance.invitationQrcode,
       'invitation_url': instance.invitationUrl,
       'invited_cnt': instance.invitedCnt,
-      'jwttoken': instance.jwttoken,
     };

@@ -41,7 +41,6 @@ abstract class JmUserInfoJson with _$JmUserInfoJson {
     @JsonKey(name: "invitation_qrcode") required String invitationQrcode,
     @JsonKey(name: "invitation_url") required String invitationUrl,
     @JsonKey(name: "invited_cnt") required String invitedCnt,
-    @JsonKey(name: "jwttoken") required String jwttoken,
   }) = _JmUserInfoJson;
 
   factory JmUserInfoJson.fromJson(Map<String, dynamic> json) =>

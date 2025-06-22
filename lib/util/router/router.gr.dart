@@ -874,7 +874,7 @@ class JmPromoteRoute extends _i32.PageRouteInfo<void> {
 class JmRankingRoute extends _i32.PageRouteInfo<JmRankingRouteArgs> {
   JmRankingRoute({
     _i33.Key? key,
-    String type = '0',
+    String type = '',
     List<_i32.PageRouteInfo>? children,
   }) : super(
          JmRankingRoute.name,
@@ -896,7 +896,7 @@ class JmRankingRoute extends _i32.PageRouteInfo<JmRankingRouteArgs> {
 }
 
 class JmRankingRouteArgs {
-  const JmRankingRouteArgs({this.key, this.type = '0'});
+  const JmRankingRouteArgs({this.key, this.type = ''});
 
   final _i33.Key? key;
 

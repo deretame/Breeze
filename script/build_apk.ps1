@@ -1,20 +1,3 @@
-# 脚本功能：自动化构建 Flutter APK，分别打包使用 Skia 和 Impeller 的版本，并可选地运行符号更新脚本。
-# 运行环境：Windows PowerShell
-#
-# 使用方法：
-# 1. 将此脚本保存到你的 Flutter 项目根目录下的一个子目录中，例如 `scripts\build_apk.ps1`。
-# 2. 打开 PowerShell，导航到该脚本所在的目录。
-# 3. 运行脚本:
-#    - 普通构建: .\build_apk.ps1
-#    - 构建并提示是否更新符号: .\build_apk.ps1 -RunUpdateSymbolsScript
-
-[CmdletBinding()]
-param(
-    # 添加此开关参数，以便在需要时运行符号更新脚本
-    [Parameter(Mandatory = $false)]
-    [switch]$RunUpdateSymbolsScript
-)
-
 # --- 1. 初始化路径 ---
 # 获取脚本所在的确切目录
 $scriptPath = $PSScriptRoot
@@ -33,7 +16,8 @@ $releaseDir = Join-Path $projectRoot "build\app\outputs\apk\release"
 $skiaDir = Join-Path $projectRoot "build\app\outputs\apk\skia" # 用于存放Skia构建产物
 
 # 符号更新脚本的路径
-$updateSymbolsScriptPath = Join-Path $projectRoot "symbols\update_symbols.ps1"
+$updateSymbolsScriptFolderPath = Join-Path $projectRoot "symbols"
+$updateSymbolsScriptPath = Join-Path $updateSymbolsScriptFolderPath "update_symbols.ps1"
 
 
 # --- 2. 主流程 ---
@@ -99,25 +83,25 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "第二次构建 (Impeller) 失败！" }
 
     # --- 可选：运行符号更新脚本 ---
-    if ($RunUpdateSymbolsScript.IsPresent) {
-        if (Test-Path $updateSymbolsScriptPath) {
-            # 弹出 Y/N 选项
-            $choice = Read-Host "`n是否要运行符号更新脚本 '$updateSymbolsScriptPath'? (y/N)"
-            if ($choice -eq 'y') {
-                Write-Host "--- 正在执行符号更新脚本... ---" -ForegroundColor Cyan
-                # 正确的调用外部脚本的方式
-                & $updateSymbolsScriptPath
-                if ($LASTEXITCODE -ne 0) { throw "符号更新脚本执行失败！" }
-            }
-            else {
-                Write-Host "已跳过执行符号更新脚本。" -ForegroundColor Yellow
-            }
+ 
+    if (Test-Path $updateSymbolsScriptPath) {
+        # 弹出 Y/N 选项
+        $choice = Read-Host "`n是否要运行符号更新脚本 '$updateSymbolsScriptPath'? (y/N)"
+        if ($choice -eq 'y' -or $choice -eq 'Y' -or $choice -eq 'yes' -or $choice -eq 'Yes') {
+            Write-Host "--- 正在执行符号更新脚本... ---" -ForegroundColor Cyan
+            # 正确的调用外部脚本的方式
+            Set-Location $updateSymbolsScriptFolderPath
+            & .\update_symbols.ps1
+            if ($LASTEXITCODE -ne 0) { throw "符号更新脚本执行失败！" }
         }
         else {
-            Write-Warning "找不到符号更新脚本: $updateSymbolsScriptPath"
+            Write-Host "已跳过执行符号更新脚本。" -ForegroundColor Yellow
         }
     }
-}
+    else {
+        Write-Warning "找不到符号更新脚本: $updateSymbolsScriptPath"
+    }
+} 
 catch {
     # 如果过程中发生任何错误，打印错误信息
     Write-Host "`n构建过程中发生错误！" -ForegroundColor Red

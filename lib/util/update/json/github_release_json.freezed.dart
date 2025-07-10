@@ -1,6 +1,5 @@
-// dart format width=80
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -101,6 +100,136 @@ $AuthorCopyWith<$Res> get author {
 }
 }
 
+
+/// Adds pattern-matching-related methods to [GithubReleaseJson].
+extension GithubReleaseJsonPatterns on GithubReleaseJson {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _GithubReleaseJson value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _GithubReleaseJson() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _GithubReleaseJson value)  $default,){
+final _that = this;
+switch (_that) {
+case _GithubReleaseJson():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _GithubReleaseJson value)?  $default,){
+final _that = this;
+switch (_that) {
+case _GithubReleaseJson() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "url")  String url, @JsonKey(name: "assets_url")  String assetsUrl, @JsonKey(name: "upload_url")  String uploadUrl, @JsonKey(name: "html_url")  String htmlUrl, @JsonKey(name: "id")  int id, @JsonKey(name: "author")  Author author, @JsonKey(name: "node_id")  String nodeId, @JsonKey(name: "tag_name")  String tagName, @JsonKey(name: "target_commitish")  String targetCommitish, @JsonKey(name: "name")  String name, @JsonKey(name: "draft")  bool draft, @JsonKey(name: "prerelease")  bool prerelease, @JsonKey(name: "created_at")  DateTime createdAt, @JsonKey(name: "published_at")  DateTime publishedAt, @JsonKey(name: "assets")  List<Asset> assets, @JsonKey(name: "tarball_url")  String tarballUrl, @JsonKey(name: "zipball_url")  String zipballUrl, @JsonKey(name: "body")  String body)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _GithubReleaseJson() when $default != null:
+return $default(_that.url,_that.assetsUrl,_that.uploadUrl,_that.htmlUrl,_that.id,_that.author,_that.nodeId,_that.tagName,_that.targetCommitish,_that.name,_that.draft,_that.prerelease,_that.createdAt,_that.publishedAt,_that.assets,_that.tarballUrl,_that.zipballUrl,_that.body);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "url")  String url, @JsonKey(name: "assets_url")  String assetsUrl, @JsonKey(name: "upload_url")  String uploadUrl, @JsonKey(name: "html_url")  String htmlUrl, @JsonKey(name: "id")  int id, @JsonKey(name: "author")  Author author, @JsonKey(name: "node_id")  String nodeId, @JsonKey(name: "tag_name")  String tagName, @JsonKey(name: "target_commitish")  String targetCommitish, @JsonKey(name: "name")  String name, @JsonKey(name: "draft")  bool draft, @JsonKey(name: "prerelease")  bool prerelease, @JsonKey(name: "created_at")  DateTime createdAt, @JsonKey(name: "published_at")  DateTime publishedAt, @JsonKey(name: "assets")  List<Asset> assets, @JsonKey(name: "tarball_url")  String tarballUrl, @JsonKey(name: "zipball_url")  String zipballUrl, @JsonKey(name: "body")  String body)  $default,) {final _that = this;
+switch (_that) {
+case _GithubReleaseJson():
+return $default(_that.url,_that.assetsUrl,_that.uploadUrl,_that.htmlUrl,_that.id,_that.author,_that.nodeId,_that.tagName,_that.targetCommitish,_that.name,_that.draft,_that.prerelease,_that.createdAt,_that.publishedAt,_that.assets,_that.tarballUrl,_that.zipballUrl,_that.body);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "url")  String url, @JsonKey(name: "assets_url")  String assetsUrl, @JsonKey(name: "upload_url")  String uploadUrl, @JsonKey(name: "html_url")  String htmlUrl, @JsonKey(name: "id")  int id, @JsonKey(name: "author")  Author author, @JsonKey(name: "node_id")  String nodeId, @JsonKey(name: "tag_name")  String tagName, @JsonKey(name: "target_commitish")  String targetCommitish, @JsonKey(name: "name")  String name, @JsonKey(name: "draft")  bool draft, @JsonKey(name: "prerelease")  bool prerelease, @JsonKey(name: "created_at")  DateTime createdAt, @JsonKey(name: "published_at")  DateTime publishedAt, @JsonKey(name: "assets")  List<Asset> assets, @JsonKey(name: "tarball_url")  String tarballUrl, @JsonKey(name: "zipball_url")  String zipballUrl, @JsonKey(name: "body")  String body)?  $default,) {final _that = this;
+switch (_that) {
+case _GithubReleaseJson() when $default != null:
+return $default(_that.url,_that.assetsUrl,_that.uploadUrl,_that.htmlUrl,_that.id,_that.author,_that.nodeId,_that.tagName,_that.targetCommitish,_that.name,_that.draft,_that.prerelease,_that.createdAt,_that.publishedAt,_that.assets,_that.tarballUrl,_that.zipballUrl,_that.body);case _:
+  return null;
+
+}
+}
+
+}
 
 /// @nodoc
 @JsonSerializable()
@@ -305,6 +434,136 @@ $AuthorCopyWith<$Res> get uploader {
 }
 
 
+/// Adds pattern-matching-related methods to [Asset].
+extension AssetPatterns on Asset {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _Asset value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _Asset() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _Asset value)  $default,){
+final _that = this;
+switch (_that) {
+case _Asset():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _Asset value)?  $default,){
+final _that = this;
+switch (_that) {
+case _Asset() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "url")  String url, @JsonKey(name: "id")  int id, @JsonKey(name: "node_id")  String nodeId, @JsonKey(name: "name")  String name, @JsonKey(name: "label")  dynamic label, @JsonKey(name: "uploader")  Author uploader, @JsonKey(name: "content_type")  String contentType, @JsonKey(name: "state")  String state, @JsonKey(name: "size")  int size, @JsonKey(name: "download_count")  int downloadCount, @JsonKey(name: "created_at")  DateTime createdAt, @JsonKey(name: "updated_at")  DateTime updatedAt, @JsonKey(name: "browser_download_url")  String browserDownloadUrl)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _Asset() when $default != null:
+return $default(_that.url,_that.id,_that.nodeId,_that.name,_that.label,_that.uploader,_that.contentType,_that.state,_that.size,_that.downloadCount,_that.createdAt,_that.updatedAt,_that.browserDownloadUrl);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "url")  String url, @JsonKey(name: "id")  int id, @JsonKey(name: "node_id")  String nodeId, @JsonKey(name: "name")  String name, @JsonKey(name: "label")  dynamic label, @JsonKey(name: "uploader")  Author uploader, @JsonKey(name: "content_type")  String contentType, @JsonKey(name: "state")  String state, @JsonKey(name: "size")  int size, @JsonKey(name: "download_count")  int downloadCount, @JsonKey(name: "created_at")  DateTime createdAt, @JsonKey(name: "updated_at")  DateTime updatedAt, @JsonKey(name: "browser_download_url")  String browserDownloadUrl)  $default,) {final _that = this;
+switch (_that) {
+case _Asset():
+return $default(_that.url,_that.id,_that.nodeId,_that.name,_that.label,_that.uploader,_that.contentType,_that.state,_that.size,_that.downloadCount,_that.createdAt,_that.updatedAt,_that.browserDownloadUrl);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "url")  String url, @JsonKey(name: "id")  int id, @JsonKey(name: "node_id")  String nodeId, @JsonKey(name: "name")  String name, @JsonKey(name: "label")  dynamic label, @JsonKey(name: "uploader")  Author uploader, @JsonKey(name: "content_type")  String contentType, @JsonKey(name: "state")  String state, @JsonKey(name: "size")  int size, @JsonKey(name: "download_count")  int downloadCount, @JsonKey(name: "created_at")  DateTime createdAt, @JsonKey(name: "updated_at")  DateTime updatedAt, @JsonKey(name: "browser_download_url")  String browserDownloadUrl)?  $default,) {final _that = this;
+switch (_that) {
+case _Asset() when $default != null:
+return $default(_that.url,_that.id,_that.nodeId,_that.name,_that.label,_that.uploader,_that.contentType,_that.state,_that.size,_that.downloadCount,_that.createdAt,_that.updatedAt,_that.browserDownloadUrl);case _:
+  return null;
+
+}
+}
+
+}
+
 /// @nodoc
 @JsonSerializable()
 
@@ -488,6 +747,136 @@ as bool,
 
 }
 
+
+/// Adds pattern-matching-related methods to [Author].
+extension AuthorPatterns on Author {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _Author value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _Author() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _Author value)  $default,){
+final _that = this;
+switch (_that) {
+case _Author():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _Author value)?  $default,){
+final _that = this;
+switch (_that) {
+case _Author() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "login")  String login, @JsonKey(name: "id")  int id, @JsonKey(name: "node_id")  String nodeId, @JsonKey(name: "avatar_url")  String avatarUrl, @JsonKey(name: "gravatar_id")  String gravatarId, @JsonKey(name: "url")  String url, @JsonKey(name: "html_url")  String htmlUrl, @JsonKey(name: "followers_url")  String followersUrl, @JsonKey(name: "following_url")  String followingUrl, @JsonKey(name: "gists_url")  String gistsUrl, @JsonKey(name: "starred_url")  String starredUrl, @JsonKey(name: "subscriptions_url")  String subscriptionsUrl, @JsonKey(name: "organizations_url")  String organizationsUrl, @JsonKey(name: "repos_url")  String reposUrl, @JsonKey(name: "events_url")  String eventsUrl, @JsonKey(name: "received_events_url")  String receivedEventsUrl, @JsonKey(name: "type")  String type, @JsonKey(name: "user_view_type")  String userViewType, @JsonKey(name: "site_admin")  bool siteAdmin)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _Author() when $default != null:
+return $default(_that.login,_that.id,_that.nodeId,_that.avatarUrl,_that.gravatarId,_that.url,_that.htmlUrl,_that.followersUrl,_that.followingUrl,_that.gistsUrl,_that.starredUrl,_that.subscriptionsUrl,_that.organizationsUrl,_that.reposUrl,_that.eventsUrl,_that.receivedEventsUrl,_that.type,_that.userViewType,_that.siteAdmin);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "login")  String login, @JsonKey(name: "id")  int id, @JsonKey(name: "node_id")  String nodeId, @JsonKey(name: "avatar_url")  String avatarUrl, @JsonKey(name: "gravatar_id")  String gravatarId, @JsonKey(name: "url")  String url, @JsonKey(name: "html_url")  String htmlUrl, @JsonKey(name: "followers_url")  String followersUrl, @JsonKey(name: "following_url")  String followingUrl, @JsonKey(name: "gists_url")  String gistsUrl, @JsonKey(name: "starred_url")  String starredUrl, @JsonKey(name: "subscriptions_url")  String subscriptionsUrl, @JsonKey(name: "organizations_url")  String organizationsUrl, @JsonKey(name: "repos_url")  String reposUrl, @JsonKey(name: "events_url")  String eventsUrl, @JsonKey(name: "received_events_url")  String receivedEventsUrl, @JsonKey(name: "type")  String type, @JsonKey(name: "user_view_type")  String userViewType, @JsonKey(name: "site_admin")  bool siteAdmin)  $default,) {final _that = this;
+switch (_that) {
+case _Author():
+return $default(_that.login,_that.id,_that.nodeId,_that.avatarUrl,_that.gravatarId,_that.url,_that.htmlUrl,_that.followersUrl,_that.followingUrl,_that.gistsUrl,_that.starredUrl,_that.subscriptionsUrl,_that.organizationsUrl,_that.reposUrl,_that.eventsUrl,_that.receivedEventsUrl,_that.type,_that.userViewType,_that.siteAdmin);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "login")  String login, @JsonKey(name: "id")  int id, @JsonKey(name: "node_id")  String nodeId, @JsonKey(name: "avatar_url")  String avatarUrl, @JsonKey(name: "gravatar_id")  String gravatarId, @JsonKey(name: "url")  String url, @JsonKey(name: "html_url")  String htmlUrl, @JsonKey(name: "followers_url")  String followersUrl, @JsonKey(name: "following_url")  String followingUrl, @JsonKey(name: "gists_url")  String gistsUrl, @JsonKey(name: "starred_url")  String starredUrl, @JsonKey(name: "subscriptions_url")  String subscriptionsUrl, @JsonKey(name: "organizations_url")  String organizationsUrl, @JsonKey(name: "repos_url")  String reposUrl, @JsonKey(name: "events_url")  String eventsUrl, @JsonKey(name: "received_events_url")  String receivedEventsUrl, @JsonKey(name: "type")  String type, @JsonKey(name: "user_view_type")  String userViewType, @JsonKey(name: "site_admin")  bool siteAdmin)?  $default,) {final _that = this;
+switch (_that) {
+case _Author() when $default != null:
+return $default(_that.login,_that.id,_that.nodeId,_that.avatarUrl,_that.gravatarId,_that.url,_that.htmlUrl,_that.followersUrl,_that.followingUrl,_that.gistsUrl,_that.starredUrl,_that.subscriptionsUrl,_that.organizationsUrl,_that.reposUrl,_that.eventsUrl,_that.receivedEventsUrl,_that.type,_that.userViewType,_that.siteAdmin);case _:
+  return null;
+
+}
+}
+
+}
 
 /// @nodoc
 @JsonSerializable()

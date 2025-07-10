@@ -116,7 +116,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   TapDownDetails? _tapDownDetails; // 保存点击信息
   var length = 0; // 组件总数
   List<Doc> docs = []; // 图片信息
-  bool _loading = false; // 加载状态
+  bool _loading = true; // 加载状态
 
   bool get _isHistory =>
       _type == ComicEntryType.history ||
@@ -206,7 +206,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
 
       await Future.delayed(Duration(seconds: 1));
       _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
-        if (_loading) writeToDatabase();
+        if (!_loading) writeToDatabase();
       });
     });
   }
@@ -264,7 +264,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
 
   Widget _successWidget(PageState? state) {
     // logger.d(_currentSliderValue.toString());
-    if (!_loading) _loading = true;
+    if (_loading) _loading = false;
 
     if (_isVisible == false && globalSetting.readMode == 0) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);

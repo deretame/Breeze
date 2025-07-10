@@ -52,7 +52,7 @@ EventBus eventBus = EventBus();
 late ColorScheme materialColorScheme;
 late ColorScheme materialColorSchemeDark;
 
-var logger = Logger(printer: CustomPrinter());
+final logger = Logger(printer: CustomPrinter());
 
 List<String> cfIpList = [];
 

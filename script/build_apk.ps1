@@ -85,11 +85,10 @@ try {
     # --- 可选：运行符号更新脚本 ---
  
     if (Test-Path $updateSymbolsScriptPath) {
-        # 弹出 Y/N 选项
+        # 弹出 Y/N 选项，需要输入 y 或 yes 才会执行，不区分大小写
         $choice = Read-Host "`n是否要运行符号更新脚本 '$updateSymbolsScriptPath'? (y/N)"
-        if ($choice -eq 'y' -or $choice -eq 'Y' -or $choice -eq 'yes' -or $choice -eq 'Yes') {
+        if ($choice.ToLower() -in 'y', 'yes') {
             Write-Host "--- 正在执行符号更新脚本... ---" -ForegroundColor Cyan
-            # 正确的调用外部脚本的方式
             Set-Location $updateSymbolsScriptFolderPath
             & .\update_symbols.ps1
             if ($LASTEXITCODE -ne 0) { throw "符号更新脚本执行失败！" }

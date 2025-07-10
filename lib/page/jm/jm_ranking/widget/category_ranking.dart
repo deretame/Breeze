@@ -1,38 +1,34 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:zephyr/page/jm/jm_ranking/widget/widget.dart';
+import 'package:zephyr/config/jm/config.dart';
+import 'package:zephyr/page/jm/jm_ranking/widget/ranking.dart';
 
-@RoutePage()
-class JmRankingPage extends StatefulWidget {
-  final String type;
+class CategoryRankingWidget extends StatefulWidget {
+  final String title;
+  final String time;
 
-  const JmRankingPage({super.key, this.type = ''});
+  const CategoryRankingWidget({
+    super.key,
+    required this.title,
+    required this.time,
+  });
 
   @override
-  State<JmRankingPage> createState() => _JmRankingPageState();
+  State<CategoryRankingWidget> createState() => _CategoryRankingWidgetState();
 }
 
-class _JmRankingPageState extends State<JmRankingPage>
+class _CategoryRankingWidgetState extends State<CategoryRankingWidget>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late final TabController _tabController;
-  final List<String> tabs = [
-    '最新a漫',
-    '同人',
-    '单本',
-    '短篇',
-    '其他类',
-    '韩漫',
-    'English Manga',
-    'Cosplay',
-    '3D',
-    '禁漫汉化组',
-  ];
+  Map<String, String> categoryMap = {};
+  late final List<String> tabs;
 
   @override
   bool get wantKeepAlive => true;
 
   @override
   void initState() {
+    categoryMap = JmConfig.categoryMap[widget.title]! as Map<String, String>;
+    tabs = categoryMap.keys.toList();
     super.initState();
     _tabController = TabController(length: tabs.length, vsync: this);
   }
@@ -58,7 +54,10 @@ class _JmRankingPageState extends State<JmRankingPage>
             controller: _tabController,
             children:
                 tabs.map((String tab) {
-                  return Center(child: TimeRankingWidget(title: tab));
+                  return RankingWidget(
+                    title: widget.title,
+                    time: categoryMap[tab]! + widget.time,
+                  );
                 }).toList(),
           ),
         ),

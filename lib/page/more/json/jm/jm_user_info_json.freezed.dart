@@ -1,6 +1,5 @@
-// dart format width=80
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -99,6 +98,136 @@ as String,
 
 }
 
+
+/// Adds pattern-matching-related methods to [JmUserInfoJson].
+extension JmUserInfoJsonPatterns on JmUserInfoJson {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _JmUserInfoJson value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _JmUserInfoJson() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _JmUserInfoJson value)  $default,){
+final _that = this;
+switch (_that) {
+case _JmUserInfoJson():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _JmUserInfoJson value)?  $default,){
+final _that = this;
+switch (_that) {
+case _JmUserInfoJson() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "uid")  String uid, @JsonKey(name: "username")  String username, @JsonKey(name: "email")  String email, @JsonKey(name: "emailverified")  String emailverified, @JsonKey(name: "photo")  String photo, @JsonKey(name: "fname")  String fname, @JsonKey(name: "gender")  String gender, @JsonKey(name: "message")  String message, @JsonKey(name: "coin")  dynamic coin, @JsonKey(name: "album_favorites")  int albumFavorites, @JsonKey(name: "s")  String s, @JsonKey(name: "level_name")  String levelName, @JsonKey(name: "level")  int level, @JsonKey(name: "nextLevelExp")  int nextLevelExp, @JsonKey(name: "exp")  String exp, @JsonKey(name: "expPercent")  double expPercent, @JsonKey(name: "badges")  List<dynamic> badges, @JsonKey(name: "album_favorites_max")  int albumFavoritesMax, @JsonKey(name: "ad_free")  bool adFree, @JsonKey(name: "ad_free_before")  String adFreeBefore, @JsonKey(name: "charge")  String charge, @JsonKey(name: "jar")  String jar, @JsonKey(name: "invitation_qrcode")  String invitationQrcode, @JsonKey(name: "invitation_url")  String invitationUrl, @JsonKey(name: "invited_cnt")  String invitedCnt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _JmUserInfoJson() when $default != null:
+return $default(_that.uid,_that.username,_that.email,_that.emailverified,_that.photo,_that.fname,_that.gender,_that.message,_that.coin,_that.albumFavorites,_that.s,_that.levelName,_that.level,_that.nextLevelExp,_that.exp,_that.expPercent,_that.badges,_that.albumFavoritesMax,_that.adFree,_that.adFreeBefore,_that.charge,_that.jar,_that.invitationQrcode,_that.invitationUrl,_that.invitedCnt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "uid")  String uid, @JsonKey(name: "username")  String username, @JsonKey(name: "email")  String email, @JsonKey(name: "emailverified")  String emailverified, @JsonKey(name: "photo")  String photo, @JsonKey(name: "fname")  String fname, @JsonKey(name: "gender")  String gender, @JsonKey(name: "message")  String message, @JsonKey(name: "coin")  dynamic coin, @JsonKey(name: "album_favorites")  int albumFavorites, @JsonKey(name: "s")  String s, @JsonKey(name: "level_name")  String levelName, @JsonKey(name: "level")  int level, @JsonKey(name: "nextLevelExp")  int nextLevelExp, @JsonKey(name: "exp")  String exp, @JsonKey(name: "expPercent")  double expPercent, @JsonKey(name: "badges")  List<dynamic> badges, @JsonKey(name: "album_favorites_max")  int albumFavoritesMax, @JsonKey(name: "ad_free")  bool adFree, @JsonKey(name: "ad_free_before")  String adFreeBefore, @JsonKey(name: "charge")  String charge, @JsonKey(name: "jar")  String jar, @JsonKey(name: "invitation_qrcode")  String invitationQrcode, @JsonKey(name: "invitation_url")  String invitationUrl, @JsonKey(name: "invited_cnt")  String invitedCnt)  $default,) {final _that = this;
+switch (_that) {
+case _JmUserInfoJson():
+return $default(_that.uid,_that.username,_that.email,_that.emailverified,_that.photo,_that.fname,_that.gender,_that.message,_that.coin,_that.albumFavorites,_that.s,_that.levelName,_that.level,_that.nextLevelExp,_that.exp,_that.expPercent,_that.badges,_that.albumFavoritesMax,_that.adFree,_that.adFreeBefore,_that.charge,_that.jar,_that.invitationQrcode,_that.invitationUrl,_that.invitedCnt);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "uid")  String uid, @JsonKey(name: "username")  String username, @JsonKey(name: "email")  String email, @JsonKey(name: "emailverified")  String emailverified, @JsonKey(name: "photo")  String photo, @JsonKey(name: "fname")  String fname, @JsonKey(name: "gender")  String gender, @JsonKey(name: "message")  String message, @JsonKey(name: "coin")  dynamic coin, @JsonKey(name: "album_favorites")  int albumFavorites, @JsonKey(name: "s")  String s, @JsonKey(name: "level_name")  String levelName, @JsonKey(name: "level")  int level, @JsonKey(name: "nextLevelExp")  int nextLevelExp, @JsonKey(name: "exp")  String exp, @JsonKey(name: "expPercent")  double expPercent, @JsonKey(name: "badges")  List<dynamic> badges, @JsonKey(name: "album_favorites_max")  int albumFavoritesMax, @JsonKey(name: "ad_free")  bool adFree, @JsonKey(name: "ad_free_before")  String adFreeBefore, @JsonKey(name: "charge")  String charge, @JsonKey(name: "jar")  String jar, @JsonKey(name: "invitation_qrcode")  String invitationQrcode, @JsonKey(name: "invitation_url")  String invitationUrl, @JsonKey(name: "invited_cnt")  String invitedCnt)?  $default,) {final _that = this;
+switch (_that) {
+case _JmUserInfoJson() when $default != null:
+return $default(_that.uid,_that.username,_that.email,_that.emailverified,_that.photo,_that.fname,_that.gender,_that.message,_that.coin,_that.albumFavorites,_that.s,_that.levelName,_that.level,_that.nextLevelExp,_that.exp,_that.expPercent,_that.badges,_that.albumFavoritesMax,_that.adFree,_that.adFreeBefore,_that.charge,_that.jar,_that.invitationQrcode,_that.invitationUrl,_that.invitedCnt);case _:
+  return null;
+
+}
+}
+
+}
 
 /// @nodoc
 @JsonSerializable()

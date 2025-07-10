@@ -119,15 +119,11 @@ class _SettingsDialogState extends State<SettingsDialog> {
         groupValue: _selectedMode,
         onChanged: (String? newValue) {
           // logger.d('newValue: $newValue');
-          setState(() {
-            _selectedMode = newValue!; // 更新选中的阅读模式
-          });
+          setState(() => _selectedMode = newValue!); // 更新选中的阅读模式
         },
       ),
       onTap: () {
-        setState(() {
-          _selectedMode = value; // 更新选中的阅读模式
-        });
+        setState(() => _selectedMode = value); // 更新选中的阅读模式
         if (value == 'topToBottom') {
           globalSetting.setReadMode(0);
         } else if (value == 'leftToRight') {

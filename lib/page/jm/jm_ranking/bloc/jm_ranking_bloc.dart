@@ -44,6 +44,8 @@ class JmRankingBloc extends Bloc<JmRankingEvent, JmRankingState> {
       hasReachedMax = false;
     }
 
+    if (hasReachedMax) return;
+
     if (event.status == JmRankingStatus.loadingMore) {
       emit(state.copyWith(status: JmRankingStatus.loadingMore, list: list));
     }

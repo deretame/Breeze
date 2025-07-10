@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnter;
 import 'package:zephyr/page/search_result/models/models.dart' show SearchEnter;
 
@@ -22,6 +21,7 @@ class BookshelfPage extends StatefulWidget {
 class _BookshelfPageState extends State<BookshelfPage>
     with TickerProviderStateMixin {
   int _currentIndex = 0;
+  String title = '哔咔书架';
 
   @override
   void initState() {
@@ -48,7 +48,7 @@ class _BookshelfPageState extends State<BookshelfPage>
         }
       });
     bookshelfStore.stringSelectStore.setDate("");
-    bookshelfStore.topBarStore.setDate(1);
+    bookshelfStore.topBarStore.setDate(globalSetting.comicChoice);
   }
 
   @override
@@ -62,43 +62,7 @@ class _BookshelfPageState extends State<BookshelfPage>
     return Scaffold(
       endDrawer: SideDrawer(),
       appBar: AppBar(
-        title: const Text('书架'),
-        flexibleSpace: Column(
-          children: [
-            SizedBox(height: statusBarHeight),
-            const Spacer(),
-            Row(
-              children: [
-                const Spacer(),
-                TopTabBar(
-                  onValueChanged: (int value) {
-                    bookshelfStore.topBarStore.setDate(value);
-                    bookshelfStore.favoriteStore = SearchStatusStore();
-                    bookshelfStore.historyStore = SearchStatusStore();
-                    bookshelfStore.downloadStore = SearchStatusStore();
-                    bookshelfStore.jmFavoriteStore = SearchStatusStore();
-                    eventBus.fire(
-                      FavoriteEvent(EventType.refresh, SortType.dd, 0),
-                    );
-                    eventBus.fire(HistoryEvent(EventType.refresh));
-                    eventBus.fire(DownloadEvent(EventType.refresh));
-                    eventBus.fire(JmFavoriteEvent(EventType.refresh));
-                    bookshelfStore.tabController!.animateTo(
-                      0,
-                      duration: const Duration(milliseconds: 0),
-                    );
-                    if (bookshelfStore.topBarStore.date == 2) {
-                      eventBus.fire(JmFavoriteEvent(EventType.showInfo));
-                    }
-                  },
-                ),
-                const Spacer(),
-              ],
-            ),
-            const Spacer(),
-            const SizedBox(height: 48),
-          ],
-        ),
+        title: Text(title),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -197,6 +161,41 @@ class _BookshelfPageState extends State<BookshelfPage>
                 ),
               ],
             ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.compare_arrows),
+        onPressed: () {
+          logger.d(globalSetting.comicChoice);
+          if (globalSetting.comicChoice == 1) {
+            globalSetting.setComicChoice(2);
+          } else {
+            globalSetting.setComicChoice(1);
+          }
+
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                title = globalSetting.comicChoice == 1 ? "哔咔书架" : "禁漫书架";
+              });
+              bookshelfStore.topBarStore.setDate(globalSetting.comicChoice);
+              bookshelfStore.favoriteStore = SearchStatusStore();
+              bookshelfStore.historyStore = SearchStatusStore();
+              bookshelfStore.downloadStore = SearchStatusStore();
+              bookshelfStore.jmFavoriteStore = SearchStatusStore();
+              eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 0));
+              eventBus.fire(HistoryEvent(EventType.refresh));
+              eventBus.fire(DownloadEvent(EventType.refresh));
+              eventBus.fire(JmFavoriteEvent(EventType.refresh));
+              bookshelfStore.tabController!.animateTo(
+                0,
+                duration: const Duration(milliseconds: 0),
+              );
+              if (bookshelfStore.topBarStore.date == 2) {
+                eventBus.fire(JmFavoriteEvent(EventType.showInfo));
+              }
+            }
+          });
+        },
       ),
     );
   }

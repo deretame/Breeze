@@ -1,32 +1,21 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/page/jm/jm_ranking/widget/widget.dart';
 
-@RoutePage()
-class JmRankingPage extends StatefulWidget {
-  final String type;
+class TimeRankingWidget extends StatefulWidget {
+  final String title;
 
-  const JmRankingPage({super.key, this.type = ''});
+  const TimeRankingWidget({super.key, required this.title});
 
   @override
-  State<JmRankingPage> createState() => _JmRankingPageState();
+  State<TimeRankingWidget> createState() => _TimeRankingWidgetState();
 }
 
-class _JmRankingPageState extends State<JmRankingPage>
+class _TimeRankingWidgetState extends State<TimeRankingWidget>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late final TabController _tabController;
-  final List<String> tabs = [
-    '最新a漫',
-    '同人',
-    '单本',
-    '短篇',
-    '其他类',
-    '韩漫',
-    'English Manga',
-    'Cosplay',
-    '3D',
-    '禁漫汉化组',
-  ];
+  late final List<String> tabs;
+  String get title => widget.title;
 
   @override
   bool get wantKeepAlive => true;
@@ -34,6 +23,7 @@ class _JmRankingPageState extends State<JmRankingPage>
   @override
   void initState() {
     super.initState();
+    tabs = JmConfig.rankingTypeMap.keys.toList();
     _tabController = TabController(length: tabs.length, vsync: this);
   }
 
@@ -58,7 +48,16 @@ class _JmRankingPageState extends State<JmRankingPage>
             controller: _tabController,
             children:
                 tabs.map((String tab) {
-                  return Center(child: TimeRankingWidget(title: tab));
+                  if (JmConfig.categoryMap[title] is Map) {
+                    return CategoryRankingWidget(
+                      title: title,
+                      time: JmConfig.rankingTypeMap[tab]!,
+                    );
+                  }
+                  return RankingWidget(
+                    title: title,
+                    time: JmConfig.rankingTypeMap[tab]!,
+                  );
                 }).toList(),
           ),
         ),

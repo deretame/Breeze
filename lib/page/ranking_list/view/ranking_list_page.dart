@@ -33,14 +33,14 @@ class HotTabBar extends StatefulWidget {
 }
 
 class _HotTabBarState extends State<HotTabBar> {
-  String title = '哔咔排行榜';
-
   @override
   Widget build(BuildContext context) {
     return Observer(
       builder:
           (_) => Scaffold(
-            appBar: AppBar(title: Text(title)),
+            appBar: AppBar(
+              title: Text(globalSetting.comicChoice == 1 ? "哔咔排行榜" : "禁漫排行榜"),
+            ),
             body:
                 globalSetting.comicChoice == 1
                     ? const BikaRankList()
@@ -53,15 +53,6 @@ class _HotTabBarState extends State<HotTabBar> {
                 } else {
                   globalSetting.setComicChoice(1);
                 }
-
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) {
-                    setState(() {
-                      title =
-                          globalSetting.comicChoice == 1 ? "哔咔排行榜" : "禁漫排行榜";
-                    });
-                  }
-                });
               },
             ),
           ),

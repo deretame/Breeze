@@ -21,7 +21,6 @@ class BookshelfPage extends StatefulWidget {
 class _BookshelfPageState extends State<BookshelfPage>
     with TickerProviderStateMixin {
   int _currentIndex = 0;
-  String title = '哔咔书架';
 
   @override
   void initState() {
@@ -61,142 +60,119 @@ class _BookshelfPageState extends State<BookshelfPage>
   Widget build(BuildContext context) {
     return Scaffold(
       endDrawer: SideDrawer(),
-      appBar: AppBar(
-        title: Text(title),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  final router = AutoRouter.of(context);
-                  return SimpleDialog(
-                    children: [
-                      SimpleDialogOption(
-                        onPressed: () {
-                          router.popAndPush(
-                            SearchResultRoute(
-                              searchEnter: SearchEnter.initial(),
-                            ),
-                          );
-                        },
-                        child: const Chip(
-                          label: Text("哔咔漫画"),
-                          backgroundColor: Colors.pink,
-                          labelStyle: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      SimpleDialogOption(
-                        onPressed: () {
-                          router.popAndPush(
-                            JmSearchResultRoute(event: JmSearchResultEvent()),
-                          );
-                        },
-                        child: const Chip(
-                          label: Text("禁漫天堂"),
-                          backgroundColor: Colors.orange,
-                          labelStyle: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ],
-                  );
-                },
+      appBar: _appBar(),
+      body: _body(),
+      floatingActionButton: _floatingActionButton(),
+    );
+  }
+
+  PreferredSizeWidget _appBar() => AppBar(
+    title: Observer(
+      builder:
+          (context) => Text(globalSetting.comicChoice == 1 ? "哔咔漫画" : "禁漫首页"),
+    ),
+    actions: [
+      IconButton(
+        icon: const Icon(Icons.search),
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              final router = AutoRouter.of(context);
+              return SimpleDialog(
+                children: [
+                  SimpleDialogOption(
+                    onPressed: () {
+                      router.popAndPush(
+                        SearchResultRoute(searchEnter: SearchEnter.initial()),
+                      );
+                    },
+                    child: const Chip(
+                      label: Text("哔咔漫画"),
+                      backgroundColor: Colors.pink,
+                      labelStyle: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  SimpleDialogOption(
+                    onPressed: () {
+                      router.popAndPush(
+                        JmSearchResultRoute(event: JmSearchResultEvent()),
+                      );
+                    },
+                    child: const Chip(
+                      label: Text("禁漫天堂"),
+                      backgroundColor: Colors.orange,
+                      labelStyle: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    ],
+
+    bottom: PreferredSize(
+      preferredSize: const Size.fromHeight(kMinInteractiveDimension),
+      child: Row(
+        children: [
+          Expanded(
+            child: TabBar(
+              controller: bookshelfStore.tabController,
+              tabs: const [Tab(text: "收藏"), Tab(text: "历史"), Tab(text: "下载")],
+            ),
+          ),
+          Observer(
+            builder:
+                (context) => SizedBox(
+                  width: 120,
+                  child: Center(
+                    child: Text(bookshelfStore.stringSelectStore.date),
+                  ),
+                ),
+          ),
+          Builder(
+            builder: (BuildContext context) {
+              return IconButton(
+                icon: const Icon(Icons.sort),
+                onPressed: () => Scaffold.of(context).openEndDrawer(), // 打开右侧抽屉
               );
             },
           ),
         ],
-
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(kMinInteractiveDimension),
-          child: Row(
-            children: [
-              Expanded(
-                child: TabBar(
-                  controller: bookshelfStore.tabController,
-                  tabs: const [
-                    Tab(text: "收藏"),
-                    Tab(text: "历史"),
-                    Tab(text: "下载"),
-                  ],
-                ),
-              ),
-              Observer(
-                builder:
-                    (context) => SizedBox(
-                      width: 120,
-                      child: Center(
-                        child: Text(bookshelfStore.stringSelectStore.date),
-                      ),
-                    ),
-              ),
-              Builder(
-                builder: (BuildContext context) {
-                  return IconButton(
-                    icon: const Icon(Icons.sort),
-                    onPressed:
-                        () => Scaffold.of(context).openEndDrawer(), // 打开右侧抽屉
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
       ),
-      body: Observer(
-        builder:
-            (context) => Column(
-              children: [
-                Expanded(
-                  child: TabBarView(
-                    controller: bookshelfStore.tabController,
-                    children: [
-                      bookshelfStore.topBarStore.date == 1
-                          ? FavoritePage()
-                          : JmFavoritePage(),
-                      HistoryPage(),
-                      DownloadPage(),
-                    ],
-                  ),
-                ),
-              ],
+    ),
+  );
+
+  Widget _body() => Observer(
+    builder:
+        (context) => Column(
+          children: [
+            Expanded(
+              child: TabBarView(
+                controller: bookshelfStore.tabController,
+                children: [
+                  globalSetting.comicChoice == 1
+                      ? FavoritePage()
+                      : JmFavoritePage(),
+                  HistoryPage(),
+                  DownloadPage(),
+                ],
+              ),
             ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.compare_arrows),
-        onPressed: () {
-          logger.d(globalSetting.comicChoice);
-          if (globalSetting.comicChoice == 1) {
-            globalSetting.setComicChoice(2);
-          } else {
-            globalSetting.setComicChoice(1);
-          }
+          ],
+        ),
+  );
 
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              setState(() {
-                title = globalSetting.comicChoice == 1 ? "哔咔书架" : "禁漫书架";
-              });
-              bookshelfStore.topBarStore.setDate(globalSetting.comicChoice);
-              bookshelfStore.favoriteStore = SearchStatusStore();
-              bookshelfStore.historyStore = SearchStatusStore();
-              bookshelfStore.downloadStore = SearchStatusStore();
-              bookshelfStore.jmFavoriteStore = SearchStatusStore();
-              eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 0));
-              eventBus.fire(HistoryEvent(EventType.refresh));
-              eventBus.fire(DownloadEvent(EventType.refresh));
-              eventBus.fire(JmFavoriteEvent(EventType.refresh));
-              bookshelfStore.tabController!.animateTo(
-                0,
-                duration: const Duration(milliseconds: 0),
-              );
-              if (bookshelfStore.topBarStore.date == 2) {
-                eventBus.fire(JmFavoriteEvent(EventType.showInfo));
-              }
-            }
-          });
-        },
-      ),
-    );
-  }
+  Widget _floatingActionButton() => FloatingActionButton(
+    child: const Icon(Icons.compare_arrows),
+    onPressed: () {
+      if (globalSetting.comicChoice == 1) {
+        globalSetting.setComicChoice(2);
+      } else {
+        globalSetting.setComicChoice(1);
+      }
+    },
+  );
 }

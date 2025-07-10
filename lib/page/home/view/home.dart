@@ -20,18 +20,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String title = "哔咔漫画";
-
   @override
   void initState() {
     super.initState();
-
-    // 根据初始状态添加正确的监听器
-    if (globalSetting.comicChoice == 1) {
-      title = "哔咔漫画";
-    } else {
-      title = "禁漫首页";
-    }
   }
 
   @override
@@ -40,7 +31,7 @@ class _HomePageState extends State<HomePage> {
       builder: (_) {
         return Scaffold(
           appBar: AppBar(
-            title: Text(title),
+            title: Text(globalSetting.comicChoice == 1 ? "哔咔漫画" : "禁漫首页"),
             actions: [
               IconButton(icon: const Icon(Icons.search), onPressed: search),
             ],
@@ -64,14 +55,6 @@ class _HomePageState extends State<HomePage> {
               } else {
                 globalSetting.setComicChoice(1);
               }
-
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) {
-                  setState(() {
-                    title = globalSetting.comicChoice == 1 ? "哔咔漫画" : "禁漫首页";
-                  });
-                }
-              });
             },
           ),
         );

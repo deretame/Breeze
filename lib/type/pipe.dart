@@ -13,15 +13,6 @@ extension KotlinScopeFunctions<T> on T {
     block(this);
     return this;
   }
-
-  /// run: 在对象上下文中执行代码块
-  R run<R>(R Function(T) block) => block(this);
-
-  /// apply: 配置对象后返回自身
-  T apply(void Function(T) block) {
-    block(this);
-    return this;
-  }
 }
 
 extension KotlinAsyncScopeFunctions<T> on Future<T> {
@@ -30,15 +21,6 @@ extension KotlinAsyncScopeFunctions<T> on Future<T> {
 
   /// 异步版 also
   Future<T> also(FutureOr<void> Function(T) block) async {
-    await block(await this);
-    return this;
-  }
-
-  /// 异步版 run
-  Future<R> run<R>(FutureOr<R> Function(T) block) => then(block);
-
-  /// 异步版 apply
-  Future<T> apply(FutureOr<void> Function(T) block) async {
     await block(await this);
     return this;
   }

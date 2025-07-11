@@ -111,6 +111,7 @@ Future<Map<String, dynamic>> getWeekRanking(
   '${JmConfig.baseUrl}/serialization',
   method: 'GET',
   params: {'date': date, 'type': type, 'page': page},
+  cache: true,
 );
 
 Future<dynamic> getPromoteList(int id, int page) async => await request(
@@ -136,4 +137,5 @@ Future<Map<String, dynamic>> getRanking({
   '${JmConfig.baseUrl}/categories/filter',
   method: 'GET',
   params: {'page': page, 'order': order, 'c': c, 'o': o},
+  cache: true,
 );

@@ -116,6 +116,7 @@ finally {
         Move-Item -Path $backupFile -Destination $manifestPath -Force
         Write-Host "已从备份恢复原始配置文件。"
     }
+    Set-Location $scriptPath
 }
 
 Write-Host "`n构建流程全部完成！" -ForegroundColor Green

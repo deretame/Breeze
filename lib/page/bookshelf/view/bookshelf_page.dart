@@ -69,7 +69,7 @@ class _BookshelfPageState extends State<BookshelfPage>
   PreferredSizeWidget _appBar() => AppBar(
     title: Observer(
       builder:
-          (context) => Text(globalSetting.comicChoice == 1 ? "哔咔漫画" : "禁漫首页"),
+          (context) => Text(globalSetting.comicChoice == 1 ? "哔咔漫画" : "禁漫天堂"),
     ),
     actions: [
       IconButton(

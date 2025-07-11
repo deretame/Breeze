@@ -85,8 +85,10 @@ class _RankingWidgetState extends State<_RankingWidget>
   }
 
   Widget _commentItem(JmRankingState state) {
-    if (state.list.isEmpty) {
-      return const Center(child: Text('啥都没有'));
+    if (state.list.isEmpty && state.status == JmRankingStatus.success) {
+      return const Center(
+        child: Text('啥都没有', style: TextStyle(fontSize: 20.0)),
+      );
     }
 
     var list = state.list

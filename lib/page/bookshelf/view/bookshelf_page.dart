@@ -173,6 +173,23 @@ class _BookshelfPageState extends State<BookshelfPage>
       } else {
         globalSetting.setComicChoice(1);
       }
+
+      bookshelfStore.topBarStore.setDate(globalSetting.comicChoice);
+      bookshelfStore.favoriteStore = SearchStatusStore();
+      bookshelfStore.historyStore = SearchStatusStore();
+      bookshelfStore.downloadStore = SearchStatusStore();
+      bookshelfStore.jmFavoriteStore = SearchStatusStore();
+      eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 0));
+      eventBus.fire(HistoryEvent(EventType.refresh));
+      eventBus.fire(DownloadEvent(EventType.refresh));
+      eventBus.fire(JmFavoriteEvent(EventType.refresh));
+      bookshelfStore.tabController!.animateTo(
+        0,
+        duration: const Duration(milliseconds: 0),
+      );
+      if (bookshelfStore.topBarStore.date == 2) {
+        eventBus.fire(JmFavoriteEvent(EventType.showInfo));
+      }
     },
   );
 }

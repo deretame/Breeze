@@ -19,9 +19,7 @@ class RankingWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create:
-          (_) =>
-              JmRankingBloc()
-                ..add(JmRankingEvent(page: 1, type: title, order: time)),
+          (_) => JmRankingBloc()..add(JmRankingEvent(type: title, order: time)),
       child: _RankingWidget(title: title, time: time),
     );
   }
@@ -70,11 +68,7 @@ class _RankingWidgetState extends State<_RankingWidget>
               errorMessage: '${state.result.toString()}\n加载失败，请重试。',
               onRetry: () {
                 context.read<JmRankingBloc>().add(
-                  JmRankingEvent(
-                    page: 0,
-                    type: widget.title,
-                    order: widget.time,
-                  ),
+                  JmRankingEvent(type: widget.title, order: widget.time),
                 );
               },
             );
@@ -91,6 +85,10 @@ class _RankingWidgetState extends State<_RankingWidget>
   }
 
   Widget _commentItem(JmRankingState state) {
+    if (state.list.isEmpty) {
+      return const Center(child: Text('啥都没有'));
+    }
+
     var list = state.list
         .map((item) {
           return ComicSimplifyEntryInfo(

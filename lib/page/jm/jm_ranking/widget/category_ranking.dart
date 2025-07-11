@@ -56,7 +56,7 @@ class _CategoryRankingWidgetState extends State<CategoryRankingWidget>
                 tabs.map((String tab) {
                   return RankingWidget(
                     title: categoryMap[tab]!,
-                    time: categoryMap[tab]! + widget.time,
+                    time: widget.time,
                   );
                 }).toList(),
           ),

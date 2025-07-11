@@ -51,11 +51,16 @@ class JmRankingBloc extends Bloc<JmRankingEvent, JmRankingState> {
     }
 
     try {
+      // 神经，禁漫在没有结果的情况下，total字段是数字，而不是字符串
       final response = await getRanking(
-        page: event.page,
-        c: event.type,
-        o: event.order,
-      ).let(replaceNestedNullList).let(jsonEncode).let(jmRankingJsonFromJson);
+            page: event.page,
+            c: event.type,
+            o: event.order,
+          )
+          .let(replaceNestedNullList)
+          .let((d) => (d..['total'] = d['total'].toString()))
+          .let(jsonEncode)
+          .let(jmRankingJsonFromJson);
       list = [...list, ...response.content];
       total = response.total.let(toInt);
       if (total == list.length) hasReachedMax = true;

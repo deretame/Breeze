@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/jm/jm_week_ranking/bloc/week_ranking_bloc.dart';
 import 'package:zephyr/page/search_result/widgets/bottom_loader.dart';

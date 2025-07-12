@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -5,6 +6,7 @@ import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_guard/permission_guard.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../../main.dart';
@@ -25,15 +27,19 @@ Future<String> getAppVersion() async {
 }
 
 Future<GithubReleaseJson> getCloudVersion() async {
-  final response = await dio.get(
-    "https://api.github.com/repos/deretame/Breeze/releases",
-  );
+  while (true) {
+    try {
+      final response = await dio
+          .get("https://api.github.com/repos/deretame/Breeze/releases")
+          .let(jsonEncode)
+          .let(githubReleaseJsonFromJson);
 
-  final List<Map<String, dynamic>> releases = List<Map<String, dynamic>>.from(
-    response.data,
-  );
-
-  return GithubReleaseJson.fromJson(releases[0]);
+      return response[0];
+    } catch (e) {
+      logger.e(e);
+      await Future.delayed(const Duration(minutes: 1));
+    }
+  }
 }
 
 bool isUpdateAvailable(String cloudVersion, String localVersion) {

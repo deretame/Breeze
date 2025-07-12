@@ -41,7 +41,7 @@ class PromoteWidget extends StatelessWidget {
               child: Row(
                 children: [
                   Text(
-                    element.title,
+                    getTitle(),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -51,17 +51,31 @@ class PromoteWidget extends StatelessWidget {
                   const Spacer(),
                   GestureDetector(
                     onTap: () {
-                      if (element.title != "连载更新→右滑看更多→" &&
-                          element.title != "禁漫汉化组" &&
-                          element.title != "其他更新" &&
-                          element.title != "韩漫更新") {
+                      if (element.title.contains("推荐")) {
                         int id = element.id.toString().let(toInt);
                         context.pushRoute(
                           JmPromoteListRoute(id: id, name: element.title),
                         );
                         return;
                       }
-                      // context.pushRoute(JmRankingRoute());
+                      if (element.title == "连载更新→右滑看更多→") {
+                        context.pushRoute(JmWeekRankingRoute());
+                        return;
+                      }
+                      String tag = "";
+                      logger.d(element.title);
+                      if (element.title == "禁漫汉化组") {
+                        tag = "禁漫汉化组";
+                      }
+                      if (element.title == "韩漫更新") {
+                        tag = "hanManTypeMap";
+                      }
+                      if (element.title == "其他更新") {
+                        tag = "qiTaLeiTypeMap";
+                      }
+                      context.pushRoute(
+                        TimeRankingRoute(tag: tag, title: element.title),
+                      );
                     },
                     child: Icon(
                       Icons.arrow_forward_ios,
@@ -112,5 +126,44 @@ class PromoteWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String getTitle() {
+    DateTime now = DateTime.now();
+
+    int todayWeekday = now.weekday;
+    String weekStr;
+
+    switch (todayWeekday) {
+      case 1:
+        weekStr = "周一";
+        break;
+      case 2:
+        weekStr = "周二";
+        break;
+      case 3:
+        weekStr = "周三";
+        break;
+      case 4:
+        weekStr = "周四";
+        break;
+      case 5:
+        weekStr = "周五";
+        break;
+      case 6:
+        weekStr = "周六";
+        break;
+      case 7:
+        weekStr = "周日";
+        break;
+      default:
+        weekStr = "";
+    }
+
+    String title = element.title;
+    if (element.title == "连载更新→右滑看更多→") {
+      title = "$weekStr连载更新";
+    }
+    return title;
   }
 }

@@ -58,7 +58,7 @@ class _JmRankingPageState extends State<JmRankingPage>
             controller: _tabController,
             children:
                 tabs.map((String tab) {
-                  return Center(child: TimeRankingWidget(title: tab));
+                  return Center(child: TimeRankingPage(tag: tab));
                 }).toList(),
           ),
         ),

@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:uuid/uuid.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/home/category.dart';
 import 'package:zephyr/page/jm/jm_promote/view/jm_promote.dart';
@@ -48,6 +49,7 @@ class _HomePageState extends State<HomePage> {
                     : const JmPromotePage(),
           ),
           floatingActionButton: FloatingActionButton(
+            heroTag: Uuid().v4(),
             child: const Icon(Icons.compare_arrows),
             onPressed: () {
               if (globalSetting.comicChoice == 1) {

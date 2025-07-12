@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$JmWeekRankingJson {
 
-@JsonKey(name: "id") dynamic get id;@JsonKey(name: "title") String get title;@JsonKey(name: "slug") String get slug;@JsonKey(name: "type") String get type;@JsonKey(name: "filter_val") dynamic get filterVal;@JsonKey(name: "content") List<Content> get content;
+@JsonKey(name: "list") List<ListElement> get list;
 /// Create a copy of JmWeekRankingJson
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $JmWeekRankingJsonCopyWith<JmWeekRankingJson> get copyWith => _$JmWeekRankingJso
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is JmWeekRankingJson&&const DeepCollectionEquality().equals(other.id, id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other.filterVal, filterVal)&&const DeepCollectionEquality().equals(other.content, content));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JmWeekRankingJson&&const DeepCollectionEquality().equals(other.list, list));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(id),title,slug,type,const DeepCollectionEquality().hash(filterVal),const DeepCollectionEquality().hash(content));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(list));
 
 @override
 String toString() {
-  return 'JmWeekRankingJson(id: $id, title: $title, slug: $slug, type: $type, filterVal: $filterVal, content: $content)';
+  return 'JmWeekRankingJson(list: $list)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $JmWeekRankingJsonCopyWith<$Res>  {
   factory $JmWeekRankingJsonCopyWith(JmWeekRankingJson value, $Res Function(JmWeekRankingJson) _then) = _$JmWeekRankingJsonCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "id") dynamic id,@JsonKey(name: "title") String title,@JsonKey(name: "slug") String slug,@JsonKey(name: "type") String type,@JsonKey(name: "filter_val") dynamic filterVal,@JsonKey(name: "content") List<Content> content
+@JsonKey(name: "list") List<ListElement> list
 });
 
 
@@ -65,15 +65,10 @@ class _$JmWeekRankingJsonCopyWithImpl<$Res>
 
 /// Create a copy of JmWeekRankingJson
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? title = null,Object? slug = null,Object? type = null,Object? filterVal = freezed,Object? content = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? list = null,}) {
   return _then(_self.copyWith(
-id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as dynamic,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
-as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
-as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as String,filterVal: freezed == filterVal ? _self.filterVal : filterVal // ignore: cast_nullable_to_non_nullable
-as dynamic,content: null == content ? _self.content : content // ignore: cast_nullable_to_non_nullable
-as List<Content>,
+list: null == list ? _self.list : list // ignore: cast_nullable_to_non_nullable
+as List<ListElement>,
   ));
 }
 
@@ -158,10 +153,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  dynamic id, @JsonKey(name: "title")  String title, @JsonKey(name: "slug")  String slug, @JsonKey(name: "type")  String type, @JsonKey(name: "filter_val")  dynamic filterVal, @JsonKey(name: "content")  List<Content> content)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "list")  List<ListElement> list)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _JmWeekRankingJson() when $default != null:
-return $default(_that.id,_that.title,_that.slug,_that.type,_that.filterVal,_that.content);case _:
+return $default(_that.list);case _:
   return orElse();
 
 }
@@ -179,10 +174,10 @@ return $default(_that.id,_that.title,_that.slug,_that.type,_that.filterVal,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  dynamic id, @JsonKey(name: "title")  String title, @JsonKey(name: "slug")  String slug, @JsonKey(name: "type")  String type, @JsonKey(name: "filter_val")  dynamic filterVal, @JsonKey(name: "content")  List<Content> content)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "list")  List<ListElement> list)  $default,) {final _that = this;
 switch (_that) {
 case _JmWeekRankingJson():
-return $default(_that.id,_that.title,_that.slug,_that.type,_that.filterVal,_that.content);case _:
+return $default(_that.list);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +194,10 @@ return $default(_that.id,_that.title,_that.slug,_that.type,_that.filterVal,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  dynamic id, @JsonKey(name: "title")  String title, @JsonKey(name: "slug")  String slug, @JsonKey(name: "type")  String type, @JsonKey(name: "filter_val")  dynamic filterVal, @JsonKey(name: "content")  List<Content> content)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "list")  List<ListElement> list)?  $default,) {final _that = this;
 switch (_that) {
 case _JmWeekRankingJson() when $default != null:
-return $default(_that.id,_that.title,_that.slug,_that.type,_that.filterVal,_that.content);case _:
+return $default(_that.list);case _:
   return null;
 
 }
@@ -214,19 +209,14 @@ return $default(_that.id,_that.title,_that.slug,_that.type,_that.filterVal,_that
 @JsonSerializable()
 
 class _JmWeekRankingJson implements JmWeekRankingJson {
-  const _JmWeekRankingJson({@JsonKey(name: "id") required this.id, @JsonKey(name: "title") required this.title, @JsonKey(name: "slug") required this.slug, @JsonKey(name: "type") required this.type, @JsonKey(name: "filter_val") required this.filterVal, @JsonKey(name: "content") required final  List<Content> content}): _content = content;
+  const _JmWeekRankingJson({@JsonKey(name: "list") required final  List<ListElement> list}): _list = list;
   factory _JmWeekRankingJson.fromJson(Map<String, dynamic> json) => _$JmWeekRankingJsonFromJson(json);
 
-@override@JsonKey(name: "id") final  dynamic id;
-@override@JsonKey(name: "title") final  String title;
-@override@JsonKey(name: "slug") final  String slug;
-@override@JsonKey(name: "type") final  String type;
-@override@JsonKey(name: "filter_val") final  dynamic filterVal;
- final  List<Content> _content;
-@override@JsonKey(name: "content") List<Content> get content {
-  if (_content is EqualUnmodifiableListView) return _content;
+ final  List<ListElement> _list;
+@override@JsonKey(name: "list") List<ListElement> get list {
+  if (_list is EqualUnmodifiableListView) return _list;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_content);
+  return EqualUnmodifiableListView(_list);
 }
 
 
@@ -243,16 +233,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JmWeekRankingJson&&const DeepCollectionEquality().equals(other.id, id)&&(identical(other.title, title) || other.title == title)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.type, type) || other.type == type)&&const DeepCollectionEquality().equals(other.filterVal, filterVal)&&const DeepCollectionEquality().equals(other._content, _content));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JmWeekRankingJson&&const DeepCollectionEquality().equals(other._list, _list));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(id),title,slug,type,const DeepCollectionEquality().hash(filterVal),const DeepCollectionEquality().hash(_content));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_list));
 
 @override
 String toString() {
-  return 'JmWeekRankingJson(id: $id, title: $title, slug: $slug, type: $type, filterVal: $filterVal, content: $content)';
+  return 'JmWeekRankingJson(list: $list)';
 }
 
 
@@ -263,7 +253,7 @@ abstract mixin class _$JmWeekRankingJsonCopyWith<$Res> implements $JmWeekRanking
   factory _$JmWeekRankingJsonCopyWith(_JmWeekRankingJson value, $Res Function(_JmWeekRankingJson) _then) = __$JmWeekRankingJsonCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "id") dynamic id,@JsonKey(name: "title") String title,@JsonKey(name: "slug") String slug,@JsonKey(name: "type") String type,@JsonKey(name: "filter_val") dynamic filterVal,@JsonKey(name: "content") List<Content> content
+@JsonKey(name: "list") List<ListElement> list
 });
 
 
@@ -280,15 +270,10 @@ class __$JmWeekRankingJsonCopyWithImpl<$Res>
 
 /// Create a copy of JmWeekRankingJson
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? title = null,Object? slug = null,Object? type = null,Object? filterVal = freezed,Object? content = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? list = null,}) {
   return _then(_JmWeekRankingJson(
-id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as dynamic,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
-as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
-as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as String,filterVal: freezed == filterVal ? _self.filterVal : filterVal // ignore: cast_nullable_to_non_nullable
-as dynamic,content: null == content ? _self._content : content // ignore: cast_nullable_to_non_nullable
-as List<Content>,
+list: null == list ? _self._list : list // ignore: cast_nullable_to_non_nullable
+as List<ListElement>,
   ));
 }
 
@@ -297,42 +282,42 @@ as List<Content>,
 
 
 /// @nodoc
-mixin _$Content {
+mixin _$ListElement {
 
-@JsonKey(name: "id") String get id;@JsonKey(name: "author") String get author;@JsonKey(name: "name") String get name;@JsonKey(name: "image") String get image;@JsonKey(name: "category") Category get category;@JsonKey(name: "category_sub") CategorySub get categorySub;@JsonKey(name: "liked") bool get liked;@JsonKey(name: "is_favorite") bool get isFavorite;@JsonKey(name: "update_at") int get updateAt;
-/// Create a copy of Content
+@JsonKey(name: "id") String get id;@JsonKey(name: "author") String get author;@JsonKey(name: "description") dynamic get description;@JsonKey(name: "name") String get name;@JsonKey(name: "image") String get image;@JsonKey(name: "category") Category get category;@JsonKey(name: "category_sub") CategorySub get categorySub;@JsonKey(name: "liked") bool get liked;@JsonKey(name: "favorite") bool get favorite;@JsonKey(name: "update_at") String get updateAt;
+/// Create a copy of ListElement
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$ContentCopyWith<Content> get copyWith => _$ContentCopyWithImpl<Content>(this as Content, _$identity);
+$ListElementCopyWith<ListElement> get copyWith => _$ListElementCopyWithImpl<ListElement>(this as ListElement, _$identity);
 
-  /// Serializes this Content to a JSON map.
+  /// Serializes this ListElement to a JSON map.
   Map<String, dynamic> toJson();
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Content&&(identical(other.id, id) || other.id == id)&&(identical(other.author, author) || other.author == author)&&(identical(other.name, name) || other.name == name)&&(identical(other.image, image) || other.image == image)&&(identical(other.category, category) || other.category == category)&&(identical(other.categorySub, categorySub) || other.categorySub == categorySub)&&(identical(other.liked, liked) || other.liked == liked)&&(identical(other.isFavorite, isFavorite) || other.isFavorite == isFavorite)&&(identical(other.updateAt, updateAt) || other.updateAt == updateAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ListElement&&(identical(other.id, id) || other.id == id)&&(identical(other.author, author) || other.author == author)&&const DeepCollectionEquality().equals(other.description, description)&&(identical(other.name, name) || other.name == name)&&(identical(other.image, image) || other.image == image)&&(identical(other.category, category) || other.category == category)&&(identical(other.categorySub, categorySub) || other.categorySub == categorySub)&&(identical(other.liked, liked) || other.liked == liked)&&(identical(other.favorite, favorite) || other.favorite == favorite)&&(identical(other.updateAt, updateAt) || other.updateAt == updateAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,author,name,image,category,categorySub,liked,isFavorite,updateAt);
+int get hashCode => Object.hash(runtimeType,id,author,const DeepCollectionEquality().hash(description),name,image,category,categorySub,liked,favorite,updateAt);
 
 @override
 String toString() {
-  return 'Content(id: $id, author: $author, name: $name, image: $image, category: $category, categorySub: $categorySub, liked: $liked, isFavorite: $isFavorite, updateAt: $updateAt)';
+  return 'ListElement(id: $id, author: $author, description: $description, name: $name, image: $image, category: $category, categorySub: $categorySub, liked: $liked, favorite: $favorite, updateAt: $updateAt)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $ContentCopyWith<$Res>  {
-  factory $ContentCopyWith(Content value, $Res Function(Content) _then) = _$ContentCopyWithImpl;
+abstract mixin class $ListElementCopyWith<$Res>  {
+  factory $ListElementCopyWith(ListElement value, $Res Function(ListElement) _then) = _$ListElementCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "id") String id,@JsonKey(name: "author") String author,@JsonKey(name: "name") String name,@JsonKey(name: "image") String image,@JsonKey(name: "category") Category category,@JsonKey(name: "category_sub") CategorySub categorySub,@JsonKey(name: "liked") bool liked,@JsonKey(name: "is_favorite") bool isFavorite,@JsonKey(name: "update_at") int updateAt
+@JsonKey(name: "id") String id,@JsonKey(name: "author") String author,@JsonKey(name: "description") dynamic description,@JsonKey(name: "name") String name,@JsonKey(name: "image") String image,@JsonKey(name: "category") Category category,@JsonKey(name: "category_sub") CategorySub categorySub,@JsonKey(name: "liked") bool liked,@JsonKey(name: "favorite") bool favorite,@JsonKey(name: "update_at") String updateAt
 });
 
 
@@ -340,30 +325,31 @@ $CategoryCopyWith<$Res> get category;$CategorySubCopyWith<$Res> get categorySub;
 
 }
 /// @nodoc
-class _$ContentCopyWithImpl<$Res>
-    implements $ContentCopyWith<$Res> {
-  _$ContentCopyWithImpl(this._self, this._then);
+class _$ListElementCopyWithImpl<$Res>
+    implements $ListElementCopyWith<$Res> {
+  _$ListElementCopyWithImpl(this._self, this._then);
 
-  final Content _self;
-  final $Res Function(Content) _then;
+  final ListElement _self;
+  final $Res Function(ListElement) _then;
 
-/// Create a copy of Content
+/// Create a copy of ListElement
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? author = null,Object? name = null,Object? image = null,Object? category = null,Object? categorySub = null,Object? liked = null,Object? isFavorite = null,Object? updateAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? author = null,Object? description = freezed,Object? name = null,Object? image = null,Object? category = null,Object? categorySub = null,Object? liked = null,Object? favorite = null,Object? updateAt = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,author: null == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
-as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as dynamic,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,image: null == image ? _self.image : image // ignore: cast_nullable_to_non_nullable
 as String,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
 as Category,categorySub: null == categorySub ? _self.categorySub : categorySub // ignore: cast_nullable_to_non_nullable
 as CategorySub,liked: null == liked ? _self.liked : liked // ignore: cast_nullable_to_non_nullable
-as bool,isFavorite: null == isFavorite ? _self.isFavorite : isFavorite // ignore: cast_nullable_to_non_nullable
+as bool,favorite: null == favorite ? _self.favorite : favorite // ignore: cast_nullable_to_non_nullable
 as bool,updateAt: null == updateAt ? _self.updateAt : updateAt // ignore: cast_nullable_to_non_nullable
-as int,
+as String,
   ));
 }
-/// Create a copy of Content
+/// Create a copy of ListElement
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -372,7 +358,7 @@ $CategoryCopyWith<$Res> get category {
   return $CategoryCopyWith<$Res>(_self.category, (value) {
     return _then(_self.copyWith(category: value));
   });
-}/// Create a copy of Content
+}/// Create a copy of ListElement
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -385,8 +371,8 @@ $CategorySubCopyWith<$Res> get categorySub {
 }
 
 
-/// Adds pattern-matching-related methods to [Content].
-extension ContentPatterns on Content {
+/// Adds pattern-matching-related methods to [ListElement].
+extension ListElementPatterns on ListElement {
 /// A variant of `map` that fallback to returning `orElse`.
 ///
 /// It is equivalent to doing:
@@ -399,10 +385,10 @@ extension ContentPatterns on Content {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _Content value)?  $default,{required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ListElement value)?  $default,{required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _Content() when $default != null:
+case _ListElement() when $default != null:
 return $default(_that);case _:
   return orElse();
 
@@ -421,10 +407,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _Content value)  $default,){
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ListElement value)  $default,){
 final _that = this;
 switch (_that) {
-case _Content():
+case _ListElement():
 return $default(_that);case _:
   throw StateError('Unexpected subclass');
 
@@ -442,10 +428,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _Content value)?  $default,){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ListElement value)?  $default,){
 final _that = this;
 switch (_that) {
-case _Content() when $default != null:
+case _ListElement() when $default != null:
 return $default(_that);case _:
   return null;
 
@@ -463,10 +449,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "author")  String author, @JsonKey(name: "name")  String name, @JsonKey(name: "image")  String image, @JsonKey(name: "category")  Category category, @JsonKey(name: "category_sub")  CategorySub categorySub, @JsonKey(name: "liked")  bool liked, @JsonKey(name: "is_favorite")  bool isFavorite, @JsonKey(name: "update_at")  int updateAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "author")  String author, @JsonKey(name: "description")  dynamic description, @JsonKey(name: "name")  String name, @JsonKey(name: "image")  String image, @JsonKey(name: "category")  Category category, @JsonKey(name: "category_sub")  CategorySub categorySub, @JsonKey(name: "liked")  bool liked, @JsonKey(name: "favorite")  bool favorite, @JsonKey(name: "update_at")  String updateAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _Content() when $default != null:
-return $default(_that.id,_that.author,_that.name,_that.image,_that.category,_that.categorySub,_that.liked,_that.isFavorite,_that.updateAt);case _:
+case _ListElement() when $default != null:
+return $default(_that.id,_that.author,_that.description,_that.name,_that.image,_that.category,_that.categorySub,_that.liked,_that.favorite,_that.updateAt);case _:
   return orElse();
 
 }
@@ -484,10 +470,10 @@ return $default(_that.id,_that.author,_that.name,_that.image,_that.category,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "author")  String author, @JsonKey(name: "name")  String name, @JsonKey(name: "image")  String image, @JsonKey(name: "category")  Category category, @JsonKey(name: "category_sub")  CategorySub categorySub, @JsonKey(name: "liked")  bool liked, @JsonKey(name: "is_favorite")  bool isFavorite, @JsonKey(name: "update_at")  int updateAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "author")  String author, @JsonKey(name: "description")  dynamic description, @JsonKey(name: "name")  String name, @JsonKey(name: "image")  String image, @JsonKey(name: "category")  Category category, @JsonKey(name: "category_sub")  CategorySub categorySub, @JsonKey(name: "liked")  bool liked, @JsonKey(name: "favorite")  bool favorite, @JsonKey(name: "update_at")  String updateAt)  $default,) {final _that = this;
 switch (_that) {
-case _Content():
-return $default(_that.id,_that.author,_that.name,_that.image,_that.category,_that.categorySub,_that.liked,_that.isFavorite,_that.updateAt);case _:
+case _ListElement():
+return $default(_that.id,_that.author,_that.description,_that.name,_that.image,_that.category,_that.categorySub,_that.liked,_that.favorite,_that.updateAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -504,10 +490,10 @@ return $default(_that.id,_that.author,_that.name,_that.image,_that.category,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "author")  String author, @JsonKey(name: "name")  String name, @JsonKey(name: "image")  String image, @JsonKey(name: "category")  Category category, @JsonKey(name: "category_sub")  CategorySub categorySub, @JsonKey(name: "liked")  bool liked, @JsonKey(name: "is_favorite")  bool isFavorite, @JsonKey(name: "update_at")  int updateAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "author")  String author, @JsonKey(name: "description")  dynamic description, @JsonKey(name: "name")  String name, @JsonKey(name: "image")  String image, @JsonKey(name: "category")  Category category, @JsonKey(name: "category_sub")  CategorySub categorySub, @JsonKey(name: "liked")  bool liked, @JsonKey(name: "favorite")  bool favorite, @JsonKey(name: "update_at")  String updateAt)?  $default,) {final _that = this;
 switch (_that) {
-case _Content() when $default != null:
-return $default(_that.id,_that.author,_that.name,_that.image,_that.category,_that.categorySub,_that.liked,_that.isFavorite,_that.updateAt);case _:
+case _ListElement() when $default != null:
+return $default(_that.id,_that.author,_that.description,_that.name,_that.image,_that.category,_that.categorySub,_that.liked,_that.favorite,_that.updateAt);case _:
   return null;
 
 }
@@ -518,54 +504,55 @@ return $default(_that.id,_that.author,_that.name,_that.image,_that.category,_tha
 /// @nodoc
 @JsonSerializable()
 
-class _Content implements Content {
-  const _Content({@JsonKey(name: "id") required this.id, @JsonKey(name: "author") required this.author, @JsonKey(name: "name") required this.name, @JsonKey(name: "image") required this.image, @JsonKey(name: "category") required this.category, @JsonKey(name: "category_sub") required this.categorySub, @JsonKey(name: "liked") required this.liked, @JsonKey(name: "is_favorite") required this.isFavorite, @JsonKey(name: "update_at") required this.updateAt});
-  factory _Content.fromJson(Map<String, dynamic> json) => _$ContentFromJson(json);
+class _ListElement implements ListElement {
+  const _ListElement({@JsonKey(name: "id") required this.id, @JsonKey(name: "author") required this.author, @JsonKey(name: "description") required this.description, @JsonKey(name: "name") required this.name, @JsonKey(name: "image") required this.image, @JsonKey(name: "category") required this.category, @JsonKey(name: "category_sub") required this.categorySub, @JsonKey(name: "liked") required this.liked, @JsonKey(name: "favorite") required this.favorite, @JsonKey(name: "update_at") required this.updateAt});
+  factory _ListElement.fromJson(Map<String, dynamic> json) => _$ListElementFromJson(json);
 
 @override@JsonKey(name: "id") final  String id;
 @override@JsonKey(name: "author") final  String author;
+@override@JsonKey(name: "description") final  dynamic description;
 @override@JsonKey(name: "name") final  String name;
 @override@JsonKey(name: "image") final  String image;
 @override@JsonKey(name: "category") final  Category category;
 @override@JsonKey(name: "category_sub") final  CategorySub categorySub;
 @override@JsonKey(name: "liked") final  bool liked;
-@override@JsonKey(name: "is_favorite") final  bool isFavorite;
-@override@JsonKey(name: "update_at") final  int updateAt;
+@override@JsonKey(name: "favorite") final  bool favorite;
+@override@JsonKey(name: "update_at") final  String updateAt;
 
-/// Create a copy of Content
+/// Create a copy of ListElement
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$ContentCopyWith<_Content> get copyWith => __$ContentCopyWithImpl<_Content>(this, _$identity);
+_$ListElementCopyWith<_ListElement> get copyWith => __$ListElementCopyWithImpl<_ListElement>(this, _$identity);
 
 @override
 Map<String, dynamic> toJson() {
-  return _$ContentToJson(this, );
+  return _$ListElementToJson(this, );
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Content&&(identical(other.id, id) || other.id == id)&&(identical(other.author, author) || other.author == author)&&(identical(other.name, name) || other.name == name)&&(identical(other.image, image) || other.image == image)&&(identical(other.category, category) || other.category == category)&&(identical(other.categorySub, categorySub) || other.categorySub == categorySub)&&(identical(other.liked, liked) || other.liked == liked)&&(identical(other.isFavorite, isFavorite) || other.isFavorite == isFavorite)&&(identical(other.updateAt, updateAt) || other.updateAt == updateAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ListElement&&(identical(other.id, id) || other.id == id)&&(identical(other.author, author) || other.author == author)&&const DeepCollectionEquality().equals(other.description, description)&&(identical(other.name, name) || other.name == name)&&(identical(other.image, image) || other.image == image)&&(identical(other.category, category) || other.category == category)&&(identical(other.categorySub, categorySub) || other.categorySub == categorySub)&&(identical(other.liked, liked) || other.liked == liked)&&(identical(other.favorite, favorite) || other.favorite == favorite)&&(identical(other.updateAt, updateAt) || other.updateAt == updateAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,author,name,image,category,categorySub,liked,isFavorite,updateAt);
+int get hashCode => Object.hash(runtimeType,id,author,const DeepCollectionEquality().hash(description),name,image,category,categorySub,liked,favorite,updateAt);
 
 @override
 String toString() {
-  return 'Content(id: $id, author: $author, name: $name, image: $image, category: $category, categorySub: $categorySub, liked: $liked, isFavorite: $isFavorite, updateAt: $updateAt)';
+  return 'ListElement(id: $id, author: $author, description: $description, name: $name, image: $image, category: $category, categorySub: $categorySub, liked: $liked, favorite: $favorite, updateAt: $updateAt)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$ContentCopyWith<$Res> implements $ContentCopyWith<$Res> {
-  factory _$ContentCopyWith(_Content value, $Res Function(_Content) _then) = __$ContentCopyWithImpl;
+abstract mixin class _$ListElementCopyWith<$Res> implements $ListElementCopyWith<$Res> {
+  factory _$ListElementCopyWith(_ListElement value, $Res Function(_ListElement) _then) = __$ListElementCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "id") String id,@JsonKey(name: "author") String author,@JsonKey(name: "name") String name,@JsonKey(name: "image") String image,@JsonKey(name: "category") Category category,@JsonKey(name: "category_sub") CategorySub categorySub,@JsonKey(name: "liked") bool liked,@JsonKey(name: "is_favorite") bool isFavorite,@JsonKey(name: "update_at") int updateAt
+@JsonKey(name: "id") String id,@JsonKey(name: "author") String author,@JsonKey(name: "description") dynamic description,@JsonKey(name: "name") String name,@JsonKey(name: "image") String image,@JsonKey(name: "category") Category category,@JsonKey(name: "category_sub") CategorySub categorySub,@JsonKey(name: "liked") bool liked,@JsonKey(name: "favorite") bool favorite,@JsonKey(name: "update_at") String updateAt
 });
 
 
@@ -573,31 +560,32 @@ $Res call({
 
 }
 /// @nodoc
-class __$ContentCopyWithImpl<$Res>
-    implements _$ContentCopyWith<$Res> {
-  __$ContentCopyWithImpl(this._self, this._then);
+class __$ListElementCopyWithImpl<$Res>
+    implements _$ListElementCopyWith<$Res> {
+  __$ListElementCopyWithImpl(this._self, this._then);
 
-  final _Content _self;
-  final $Res Function(_Content) _then;
+  final _ListElement _self;
+  final $Res Function(_ListElement) _then;
 
-/// Create a copy of Content
+/// Create a copy of ListElement
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? author = null,Object? name = null,Object? image = null,Object? category = null,Object? categorySub = null,Object? liked = null,Object? isFavorite = null,Object? updateAt = null,}) {
-  return _then(_Content(
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? author = null,Object? description = freezed,Object? name = null,Object? image = null,Object? category = null,Object? categorySub = null,Object? liked = null,Object? favorite = null,Object? updateAt = null,}) {
+  return _then(_ListElement(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,author: null == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
-as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as dynamic,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,image: null == image ? _self.image : image // ignore: cast_nullable_to_non_nullable
 as String,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
 as Category,categorySub: null == categorySub ? _self.categorySub : categorySub // ignore: cast_nullable_to_non_nullable
 as CategorySub,liked: null == liked ? _self.liked : liked // ignore: cast_nullable_to_non_nullable
-as bool,isFavorite: null == isFavorite ? _self.isFavorite : isFavorite // ignore: cast_nullable_to_non_nullable
+as bool,favorite: null == favorite ? _self.favorite : favorite // ignore: cast_nullable_to_non_nullable
 as bool,updateAt: null == updateAt ? _self.updateAt : updateAt // ignore: cast_nullable_to_non_nullable
-as int,
+as String,
   ));
 }
 
-/// Create a copy of Content
+/// Create a copy of ListElement
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -606,7 +594,7 @@ $CategoryCopyWith<$Res> get category {
   return $CategoryCopyWith<$Res>(_self.category, (value) {
     return _then(_self.copyWith(category: value));
   });
-}/// Create a copy of Content
+}/// Create a copy of ListElement
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -888,7 +876,7 @@ as String,
 /// @nodoc
 mixin _$CategorySub {
 
-@JsonKey(name: "id") String? get id;@JsonKey(name: "title") String? get title;
+@JsonKey(name: "id") String get id;@JsonKey(name: "title") String? get title;
 /// Create a copy of CategorySub
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -921,7 +909,7 @@ abstract mixin class $CategorySubCopyWith<$Res>  {
   factory $CategorySubCopyWith(CategorySub value, $Res Function(CategorySub) _then) = _$CategorySubCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "id") String? id,@JsonKey(name: "title") String? title
+@JsonKey(name: "id") String id,@JsonKey(name: "title") String? title
 });
 
 
@@ -938,10 +926,10 @@ class _$CategorySubCopyWithImpl<$Res>
 
 /// Create a copy of CategorySub
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? title = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = freezed,}) {
   return _then(_self.copyWith(
-id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -1027,7 +1015,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String? id, @JsonKey(name: "title")  String? title)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "title")  String? title)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CategorySub() when $default != null:
 return $default(_that.id,_that.title);case _:
@@ -1048,7 +1036,7 @@ return $default(_that.id,_that.title);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String? id, @JsonKey(name: "title")  String? title)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "title")  String? title)  $default,) {final _that = this;
 switch (_that) {
 case _CategorySub():
 return $default(_that.id,_that.title);case _:
@@ -1068,7 +1056,7 @@ return $default(_that.id,_that.title);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String? id, @JsonKey(name: "title")  String? title)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "title")  String? title)?  $default,) {final _that = this;
 switch (_that) {
 case _CategorySub() when $default != null:
 return $default(_that.id,_that.title);case _:
@@ -1086,7 +1074,7 @@ class _CategorySub implements CategorySub {
   const _CategorySub({@JsonKey(name: "id") required this.id, @JsonKey(name: "title") required this.title});
   factory _CategorySub.fromJson(Map<String, dynamic> json) => _$CategorySubFromJson(json);
 
-@override@JsonKey(name: "id") final  String? id;
+@override@JsonKey(name: "id") final  String id;
 @override@JsonKey(name: "title") final  String? title;
 
 /// Create a copy of CategorySub
@@ -1122,7 +1110,7 @@ abstract mixin class _$CategorySubCopyWith<$Res> implements $CategorySubCopyWith
   factory _$CategorySubCopyWith(_CategorySub value, $Res Function(_CategorySub) _then) = __$CategorySubCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "id") String? id,@JsonKey(name: "title") String? title
+@JsonKey(name: "id") String id,@JsonKey(name: "title") String? title
 });
 
 
@@ -1139,10 +1127,10 @@ class __$CategorySubCopyWithImpl<$Res>
 
 /// Create a copy of CategorySub
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? title = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = freezed,}) {
   return _then(_CategorySub(
-id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

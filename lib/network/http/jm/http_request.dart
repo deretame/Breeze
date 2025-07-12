@@ -104,10 +104,10 @@ Future<dynamic> getPromote() async => await request(
 );
 
 Future<Map<String, dynamic>> getWeekRanking(
-  int date, {
-  String type = 'all',
-  int page = 1,
-}) async => await request(
+  int date,
+  String type,
+  int page,
+) async => await request(
   '${JmConfig.baseUrl}/serialization',
   method: 'GET',
   params: {'date': date, 'type': type, 'page': page},

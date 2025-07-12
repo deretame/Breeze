@@ -8,30 +8,19 @@ part of 'jm_week_ranking_json.dart';
 
 _JmWeekRankingJson _$JmWeekRankingJsonFromJson(Map<String, dynamic> json) =>
     _JmWeekRankingJson(
-      id: json['id'],
-      title: json['title'] as String,
-      slug: json['slug'] as String,
-      type: json['type'] as String,
-      filterVal: json['filter_val'],
-      content:
-          (json['content'] as List<dynamic>)
-              .map((e) => Content.fromJson(e as Map<String, dynamic>))
+      list:
+          (json['list'] as List<dynamic>)
+              .map((e) => ListElement.fromJson(e as Map<String, dynamic>))
               .toList(),
     );
 
 Map<String, dynamic> _$JmWeekRankingJsonToJson(_JmWeekRankingJson instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'title': instance.title,
-      'slug': instance.slug,
-      'type': instance.type,
-      'filter_val': instance.filterVal,
-      'content': instance.content,
-    };
+    <String, dynamic>{'list': instance.list};
 
-_Content _$ContentFromJson(Map<String, dynamic> json) => _Content(
+_ListElement _$ListElementFromJson(Map<String, dynamic> json) => _ListElement(
   id: json['id'] as String,
   author: json['author'] as String,
+  description: json['description'],
   name: json['name'] as String,
   image: json['image'] as String,
   category: Category.fromJson(json['category'] as Map<String, dynamic>),
@@ -39,21 +28,23 @@ _Content _$ContentFromJson(Map<String, dynamic> json) => _Content(
     json['category_sub'] as Map<String, dynamic>,
   ),
   liked: json['liked'] as bool,
-  isFavorite: json['is_favorite'] as bool,
-  updateAt: (json['update_at'] as num).toInt(),
+  favorite: json['favorite'] as bool,
+  updateAt: json['update_at'] as String,
 );
 
-Map<String, dynamic> _$ContentToJson(_Content instance) => <String, dynamic>{
-  'id': instance.id,
-  'author': instance.author,
-  'name': instance.name,
-  'image': instance.image,
-  'category': instance.category,
-  'category_sub': instance.categorySub,
-  'liked': instance.liked,
-  'is_favorite': instance.isFavorite,
-  'update_at': instance.updateAt,
-};
+Map<String, dynamic> _$ListElementToJson(_ListElement instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'author': instance.author,
+      'description': instance.description,
+      'name': instance.name,
+      'image': instance.image,
+      'category': instance.category,
+      'category_sub': instance.categorySub,
+      'liked': instance.liked,
+      'favorite': instance.favorite,
+      'update_at': instance.updateAt,
+    };
 
 _Category _$CategoryFromJson(Map<String, dynamic> json) =>
     _Category(id: json['id'] as String, title: json['title'] as String);
@@ -64,7 +55,7 @@ Map<String, dynamic> _$CategoryToJson(_Category instance) => <String, dynamic>{
 };
 
 _CategorySub _$CategorySubFromJson(Map<String, dynamic> json) =>
-    _CategorySub(id: json['id'] as String?, title: json['title'] as String?);
+    _CategorySub(id: json['id'] as String, title: json['title'] as String?);
 
 Map<String, dynamic> _$CategorySubToJson(_CategorySub instance) =>
     <String, dynamic>{'id': instance.id, 'title': instance.title};

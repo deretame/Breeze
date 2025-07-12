@@ -8,23 +8,16 @@ import 'dart:convert';
 part 'jm_week_ranking_json.freezed.dart';
 part 'jm_week_ranking_json.g.dart';
 
-List<JmWeekRankingJson> jmWeekRankingJsonFromJson(String str) =>
-    List<JmWeekRankingJson>.from(
-      json.decode(str).map((x) => JmWeekRankingJson.fromJson(x)),
-    );
+JmWeekRankingJson jmWeekRankingJsonFromJson(String str) =>
+    JmWeekRankingJson.fromJson(json.decode(str));
 
-String jmWeekRankingJsonToJson(List<JmWeekRankingJson> data) =>
-    json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
+String jmWeekRankingJsonToJson(JmWeekRankingJson data) =>
+    json.encode(data.toJson());
 
 @freezed
 abstract class JmWeekRankingJson with _$JmWeekRankingJson {
   const factory JmWeekRankingJson({
-    @JsonKey(name: "id") required dynamic id,
-    @JsonKey(name: "title") required String title,
-    @JsonKey(name: "slug") required String slug,
-    @JsonKey(name: "type") required String type,
-    @JsonKey(name: "filter_val") required dynamic filterVal,
-    @JsonKey(name: "content") required List<Content> content,
+    @JsonKey(name: "list") required List<ListElement> list,
   }) = _JmWeekRankingJson;
 
   factory JmWeekRankingJson.fromJson(Map<String, dynamic> json) =>
@@ -32,21 +25,22 @@ abstract class JmWeekRankingJson with _$JmWeekRankingJson {
 }
 
 @freezed
-abstract class Content with _$Content {
-  const factory Content({
+abstract class ListElement with _$ListElement {
+  const factory ListElement({
     @JsonKey(name: "id") required String id,
     @JsonKey(name: "author") required String author,
+    @JsonKey(name: "description") required dynamic description,
     @JsonKey(name: "name") required String name,
     @JsonKey(name: "image") required String image,
     @JsonKey(name: "category") required Category category,
     @JsonKey(name: "category_sub") required CategorySub categorySub,
     @JsonKey(name: "liked") required bool liked,
-    @JsonKey(name: "is_favorite") required bool isFavorite,
-    @JsonKey(name: "update_at") required int updateAt,
-  }) = _Content;
+    @JsonKey(name: "favorite") required bool favorite,
+    @JsonKey(name: "update_at") required String updateAt,
+  }) = _ListElement;
 
-  factory Content.fromJson(Map<String, dynamic> json) =>
-      _$ContentFromJson(json);
+  factory ListElement.fromJson(Map<String, dynamic> json) =>
+      _$ListElementFromJson(json);
 }
 
 @freezed
@@ -63,7 +57,7 @@ abstract class Category with _$Category {
 @freezed
 abstract class CategorySub with _$CategorySub {
   const factory CategorySub({
-    @JsonKey(name: "id") required String? id,
+    @JsonKey(name: "id") required String id,
     @JsonKey(name: "title") required String? title,
   }) = _CategorySub;
 

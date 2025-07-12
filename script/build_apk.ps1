@@ -109,14 +109,57 @@ catch {
     exit 1
 }
 finally {
-    # --- 恢复文件 ---
-    # 无论成功还是失败，这个块都会执行
+    # 这个块会在脚本被 Ctrl+C 中断时执行，从而清理子进程
+    Write-Host "`n--- 正在精确查找并停止任何残留的构建进程 ---" -ForegroundColor Yellow
+    
+    # 1. 精确停止 Flutter Build 的 Dart 进程
+    try {
+        # 使用 Get-CimInstance 查找 CommandLine 包含 'build' 和 'apk' 的 dart.exe 进程
+        $dartBuildProcess = Get-CimInstance Win32_Process | Where-Object { 
+            $_.Name -eq 'dart.exe' -and $_.CommandLine -like '*build*apk*'
+        }
+        
+        if ($dartBuildProcess) {
+            foreach ($process in $dartBuildProcess) {
+                Write-Host "正在停止 Flutter build 进程 (PID: $($process.ProcessId))..." -ForegroundColor Magenta
+                Stop-Process -Id $process.ProcessId -Force
+            }
+        }
+        else {
+            Write-Host "未找到残留的 Flutter build Dart 进程。"
+        }
+    }
+    catch {
+        Write-Host "检查 Dart 进程时出错: $($_.Exception.Message)" -ForegroundColor Red
+    }
+
+    # 2. 精确停止 Gradle 的 Java 进程
+    try {
+        # 查找命令行包含 'gradle' 的 Java 进程
+        $gradleProcess = Get-CimInstance Win32_Process | Where-Object {
+            ($_.Name -eq 'java.exe' -or $_.Name -eq 'OpenJDK Platform binary') -and $_.CommandLine -like '*gradle*'
+        }
+
+        if ($gradleProcess) {
+            foreach ($process in $gradleProcess) {
+                Write-Host "正在停止 Gradle 进程 (PID: $($process.ProcessId))..." -ForegroundColor Magenta
+                Stop-Process -Id $process.ProcessId -Force
+            }
+        }
+        else {
+            Write-Host "未找到残留的 Gradle 进程。"
+        }
+    }
+    catch {
+        Write-Host "检查 Gradle 进程时出错: $($_.Exception.Message)" -ForegroundColor Red
+    }
+
     if (Test-Path $backupFile) {
         Write-Host "`n--- 正在恢复原始 AndroidManifest.xml 文件 ---"
         Move-Item -Path $backupFile -Destination $manifestPath -Force
         Write-Host "已从备份恢复原始配置文件。"
     }
-    Set-Location $scriptPath
+    Set-Location $projectRoot
 }
 
 Write-Host "`n构建流程全部完成！" -ForegroundColor Green

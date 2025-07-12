@@ -6,13 +6,13 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
-import 'package:zephyr/page/jm/jm_ranking/json/jm_ranking_json.dart';
+import 'package:zephyr/page/jm/jm_week_ranking/json/jm_week_ranking_json.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/json_dispose.dart';
 
-part 'jm_ranking_event.dart';
-part 'jm_ranking_state.dart';
-part 'jm_ranking_bloc.freezed.dart';
+part 'week_ranking_event.dart';
+part 'week_ranking_state.dart';
+part 'week_ranking_bloc.freezed.dart';
 
 const _throttleDuration = Duration(milliseconds: 100);
 
@@ -22,21 +22,21 @@ EventTransformer<E> _throttleDroppable<E>(Duration duration) {
   };
 }
 
-class JmRankingBloc extends Bloc<JmRankingEvent, JmRankingState> {
-  JmRankingBloc() : super(JmRankingState()) {
-    on<JmRankingEvent>(
+class WeekRankingBloc extends Bloc<WeekRankingEvent, WeekRankingState> {
+  WeekRankingBloc() : super(WeekRankingState()) {
+    on<WeekRankingEvent>(
       _fetchList,
       transformer: _throttleDroppable(_throttleDuration),
     );
   }
 
-  List<Content> list = [];
+  List<ListElement> list = [];
   int total = 0;
   bool hasReachedMax = false;
 
   Future<void> _fetchList(
-    JmRankingEvent event,
-    Emitter<JmRankingState> emit,
+    WeekRankingEvent event,
+    Emitter<WeekRankingState> emit,
   ) async {
     if (event.status == JmRankingStatus.initial) {
       emit(state.copyWith(status: JmRankingStatus.initial));
@@ -52,18 +52,24 @@ class JmRankingBloc extends Bloc<JmRankingEvent, JmRankingState> {
 
     try {
       // 神经，禁漫在没有结果的情况下，total字段是数字，而不是字符串
-      final response = await getRanking(
-            page: event.page,
-            c: event.type,
-            o: event.order,
-          )
-          .let(replaceNestedNullList)
+      final response = await getWeekRanking(event.date, event.type, event.page);
+      if (response['error'] == '没有资料') {
+        hasReachedMax = true;
+        emit(
+          state.copyWith(
+            hasReachedMax: hasReachedMax,
+            status: JmRankingStatus.success,
+          ),
+        );
+        return;
+      }
+
+      final data = response
+          .let(replaceNestedNull)
           .let((d) => (d..['total'] = d['total'].toString()))
           .let(jsonEncode)
-          .let(jmRankingJsonFromJson);
-      list = [...list, ...response.content];
-      total = response.total.let(toInt);
-      if (total == list.length) hasReachedMax = true;
+          .let(jmWeekRankingJsonFromJson);
+      list = [...list, ...data.list];
 
       emit(
         state.copyWith(

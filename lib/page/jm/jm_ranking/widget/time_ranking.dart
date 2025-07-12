@@ -1,21 +1,24 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/page/jm/jm_ranking/widget/widget.dart';
 
-class TimeRankingWidget extends StatefulWidget {
-  final String title;
+@RoutePage()
+class TimeRankingPage extends StatefulWidget {
+  final String? title;
+  final String tag;
 
-  const TimeRankingWidget({super.key, required this.title});
+  const TimeRankingPage({super.key, required this.tag, this.title});
 
   @override
-  State<TimeRankingWidget> createState() => _TimeRankingWidgetState();
+  State<TimeRankingPage> createState() => _TimeRankingPageState();
 }
 
-class _TimeRankingWidgetState extends State<TimeRankingWidget>
+class _TimeRankingPageState extends State<TimeRankingPage>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late final TabController _tabController;
   late final List<String> tabs;
-  String get title => widget.title;
+  String get tag => widget.tag;
 
   @override
   bool get wantKeepAlive => true;
@@ -36,32 +39,40 @@ class _TimeRankingWidgetState extends State<TimeRankingWidget>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return Column(
-      children: [
-        TabBar(
-          isScrollable: true,
+    if (widget.title != null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(widget.title!)),
+        body: _body(),
+      );
+    }
+    return _body();
+  }
+
+  Widget _body() => Column(
+    children: [
+      TabBar(
+        isScrollable: true,
+        controller: _tabController,
+        tabs: tabs.map((e) => Tab(text: e)).toList(),
+      ),
+      Expanded(
+        child: TabBarView(
           controller: _tabController,
-          tabs: tabs.map((e) => Tab(text: e)).toList(),
-        ),
-        Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children:
-                tabs.map((String tab) {
-                  if (JmConfig.categoryMap[title] is Map) {
-                    return CategoryRankingWidget(
-                      title: title,
-                      time: JmConfig.rankingTypeMap[tab]!,
-                    );
-                  }
-                  return RankingWidget(
-                    title: title,
+          children:
+              tabs.map((String tab) {
+                if (JmConfig.categoryMap[tag] is Map) {
+                  return CategoryRankingWidget(
+                    tag: tag,
                     time: JmConfig.rankingTypeMap[tab]!,
                   );
-                }).toList(),
-          ),
+                }
+                return RankingWidget(
+                  tag: tag,
+                  time: JmConfig.rankingTypeMap[tab]!,
+                );
+              }).toList(),
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
 }

@@ -209,7 +209,7 @@ return $default(_that.status,_that.page,_that.type,_that.order);case _:
 
 
 class _JmRankingEvent implements JmRankingEvent {
-  const _JmRankingEvent({this.status = JmRankingStatus.initial, this.page = 0, this.type = "0", this.order = ""});
+  const _JmRankingEvent({this.status = JmRankingStatus.initial, this.page = 1, this.type = "0", this.order = ""});
   
 
 @override@JsonKey() final  JmRankingStatus status;

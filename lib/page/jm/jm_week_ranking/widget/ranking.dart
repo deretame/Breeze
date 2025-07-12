@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
-import 'package:zephyr/page/jm/jm_ranking/bloc/jm_ranking_bloc.dart';
+import 'package:zephyr/page/jm/jm_week_ranking/bloc/week_ranking_bloc.dart';
 import 'package:zephyr/page/search_result/widgets/bottom_loader.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
@@ -10,26 +11,27 @@ import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.da
 import 'package:zephyr/widgets/error_view.dart';
 
 class RankingWidget extends StatelessWidget {
+  final int week;
   final String tag;
-  final String time;
 
-  const RankingWidget({super.key, required this.tag, required this.time});
+  const RankingWidget({super.key, required this.week, required this.tag});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create:
-          (_) => JmRankingBloc()..add(JmRankingEvent(type: tag, order: time)),
-      child: _RankingWidget(tag: tag, time: time),
+          (_) =>
+              WeekRankingBloc()..add(WeekRankingEvent(date: week, type: tag)),
+      child: _RankingWidget(tag: tag, week: week),
     );
   }
 }
 
 class _RankingWidget extends StatefulWidget {
   final String tag;
-  final String time;
+  final int week;
 
-  const _RankingWidget({required this.tag, required this.time});
+  const _RankingWidget({required this.tag, required this.week});
 
   @override
   State<_RankingWidget> createState() => _RankingWidgetState();
@@ -39,9 +41,6 @@ class _RankingWidgetState extends State<_RankingWidget>
     with AutomaticKeepAliveClientMixin {
   final ScrollController scrollController = ScrollController();
   int page = 0;
-
-  @override
-  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -56,9 +55,12 @@ class _RankingWidgetState extends State<_RankingWidget>
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
     super.build(context);
-    return BlocBuilder<JmRankingBloc, JmRankingState>(
+    return BlocBuilder<WeekRankingBloc, WeekRankingState>(
       builder: (context, state) {
         switch (state.status) {
           case JmRankingStatus.initial:
@@ -67,8 +69,8 @@ class _RankingWidgetState extends State<_RankingWidget>
             return ErrorView(
               errorMessage: '${state.result.toString()}\n加载失败，请重试。',
               onRetry: () {
-                context.read<JmRankingBloc>().add(
-                  JmRankingEvent(type: widget.tag, order: widget.time),
+                context.read<WeekRankingBloc>().add(
+                  WeekRankingEvent(date: widget.week, type: widget.tag),
                 );
               },
             );
@@ -84,7 +86,7 @@ class _RankingWidgetState extends State<_RankingWidget>
     );
   }
 
-  Widget _commentItem(JmRankingState state) {
+  Widget _commentItem(WeekRankingState state) {
     if (state.list.isEmpty && state.status == JmRankingStatus.success) {
       return const Center(
         child: Text('啥都没有', style: TextStyle(fontSize: 20.0)),
@@ -145,11 +147,11 @@ class _RankingWidgetState extends State<_RankingWidget>
         const SizedBox(height: 10),
         ElevatedButton(
           onPressed:
-              () => context.read<JmRankingBloc>().add(
-                JmRankingEvent(
+              () => context.read<WeekRankingBloc>().add(
+                WeekRankingEvent(
+                  date: widget.week,
                   page: page + 1,
                   type: widget.tag,
-                  order: widget.time,
                   status: JmRankingStatus.loadingMore,
                 ),
               ),
@@ -161,11 +163,11 @@ class _RankingWidgetState extends State<_RankingWidget>
 
   void _onScroll() {
     if (_isBottom) {
-      context.read<JmRankingBloc>().add(
-        JmRankingEvent(
+      context.read<WeekRankingBloc>().add(
+        WeekRankingEvent(
+          date: widget.week,
           page: page + 1,
           type: widget.tag,
-          order: widget.time,
           status: JmRankingStatus.loadingMore,
         ),
       );
@@ -179,7 +181,7 @@ class _RankingWidgetState extends State<_RankingWidget>
     return currentScroll >= (maxScroll * 0.9);
   }
 
-  int _calculateItemCount(JmRankingState state, int dataLength) {
+  int _calculateItemCount(WeekRankingState state, int dataLength) {
     var count = dataLength + 1;
     if (!state.hasReachedMax) count--;
     if (state.status == JmRankingStatus.loadingMore ||

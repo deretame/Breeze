@@ -1,6 +1,7 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:uuid/uuid.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/jm/jm_ranking/view/jm_ranking.dart';
 import 'package:zephyr/page/ranking_list/ranking_list.dart';
@@ -46,6 +47,7 @@ class _HotTabBarState extends State<HotTabBar> {
                     ? const BikaRankList()
                     : const JmRankingPage(),
             floatingActionButton: FloatingActionButton(
+              heroTag: Uuid().v4(),
               child: const Icon(Icons.compare_arrows),
               onPressed: () {
                 if (globalSetting.comicChoice == 1) {

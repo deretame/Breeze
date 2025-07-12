@@ -145,24 +145,15 @@ class _BookshelfPageState extends State<BookshelfPage>
     ),
   );
 
-  Widget _body() => Observer(
-    builder:
-        (context) => Column(
-          children: [
-            Expanded(
-              child: TabBarView(
-                controller: bookshelfStore.tabController,
-                children: [
-                  globalSetting.comicChoice == 1
-                      ? FavoritePage()
-                      : JmFavoritePage(),
-                  HistoryPage(),
-                  DownloadPage(),
-                ],
-              ),
-            ),
-          ],
+  Widget _body() => Column(
+    children: [
+      Expanded(
+        child: TabBarView(
+          controller: bookshelfStore.tabController,
+          children: [const FavoritesTabPage(), HistoryPage(), DownloadPage()],
         ),
+      ),
+    ],
   );
 
   Widget _floatingActionButton() => FloatingActionButton(
@@ -192,4 +183,23 @@ class _BookshelfPageState extends State<BookshelfPage>
       }
     },
   );
+}
+
+class FavoritesTabPage extends StatelessWidget {
+  const FavoritesTabPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // 使用 Observer 监听全局设置的变化
+    return Observer(
+      builder: (_) {
+        // 根据 comicChoice 决定显示哪个页面的内容
+        if (globalSetting.comicChoice == 1) {
+          return FavoritePage();
+        } else {
+          return JmFavoritePage();
+        }
+      },
+    );
+  }
 }

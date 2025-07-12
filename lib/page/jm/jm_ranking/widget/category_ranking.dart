@@ -3,12 +3,12 @@ import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/page/jm/jm_ranking/widget/ranking.dart';
 
 class CategoryRankingWidget extends StatefulWidget {
-  final String title;
+  final String tag;
   final String time;
 
   const CategoryRankingWidget({
     super.key,
-    required this.title,
+    required this.tag,
     required this.time,
   });
 
@@ -27,9 +27,9 @@ class _CategoryRankingWidgetState extends State<CategoryRankingWidget>
 
   @override
   void initState() {
-    categoryMap = JmConfig.categoryMap[widget.title]! as Map<String, String>;
-    tabs = categoryMap.keys.toList();
     super.initState();
+    categoryMap = JmConfig.categoryMap[widget.tag]! as Map<String, String>;
+    tabs = categoryMap.keys.toList();
     _tabController = TabController(length: tabs.length, vsync: this);
   }
 
@@ -55,7 +55,7 @@ class _CategoryRankingWidgetState extends State<CategoryRankingWidget>
             children:
                 tabs.map((String tab) {
                   return RankingWidget(
-                    title: categoryMap[tab]!,
+                    tag: categoryMap[tab]!,
                     time: widget.time,
                   );
                 }).toList(),

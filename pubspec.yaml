@@ -94,6 +94,7 @@ dependencies:
   permission_guard: ^2.0.1 # 权限管理工具
   package_info_plus: ^8.1.2 # 应用包信息获取
   uuid: ^4.4.2 # UUID 生成器
+  device_info_plus: ^11.5.0 # 设备信息获取
 
   ########################################
   #       开发工具 & 辅助功能           #

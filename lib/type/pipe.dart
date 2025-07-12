@@ -13,20 +13,7 @@ extension KotlinScopeFunctions<T> on T {
     block(this);
     return this;
   }
-}
 
-extension KotlinAsyncScopeFunctions<T> on Future<T> {
-  /// 异步版 let
-  Future<R> let<R>(FutureOr<R> Function(T) block) => then(block);
-
-  /// 异步版 also
-  Future<T> also(FutureOr<void> Function(T) block) async {
-    await block(await this);
-    return this;
-  }
-}
-
-extension PipeX<T> on T {
   T debug([void Function(T)? logFn, String tag = 'DEBUG']) {
     final message = '[$tag] $this';
     if (logFn != null) {
@@ -38,7 +25,16 @@ extension PipeX<T> on T {
   }
 }
 
-extension FutureDebug<T> on Future<T> {
+extension KotlinAsyncScopeFunctions<T> on Future<T> {
+  /// 异步版 let
+  Future<R> let<R>(FutureOr<R> Function(T) block) => then(block);
+
+  /// 异步版 also
+  Future<T> also(FutureOr<void> Function(T) block) async {
+    await block(await this);
+    return this;
+  }
+
   Future<T> debug([void Function(T)? logFn, String tag = 'DEBUG']) async {
     if (!kDebugMode) return this;
     final value = await this;

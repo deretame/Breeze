@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -259,6 +261,21 @@ class _NavigationBarState extends State<NavigationBar> {
     final cloudVersion = temp.tagName;
     final releaseInfo = temp.body;
     final String localVersion = await getAppVersion();
+    final url = 'https://github.com/deretame/Breeze/releases/tag/$cloudVersion';
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    String arch = '未知';
+    try {
+      if (Platform.isAndroid) {
+        AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+        List<String> abis = androidInfo.supportedAbis;
+        if (abis.isNotEmpty) {
+          arch = abis.first;
+        }
+      }
+    } catch (e) {
+      logger.e(e);
+      return;
+    }
 
     if (isUpdateAvailable(cloudVersion, localVersion)) {
       if (!mounted) return;
@@ -275,11 +292,7 @@ class _NavigationBarState extends State<NavigationBar> {
               TextButton(
                 child: Text('前往GitHub'),
                 onPressed: () {
-                  launchUrl(
-                    Uri.parse(
-                      'https://github.com/deretame/Breeze/releases/tag/$cloudVersion',
-                    ),
-                  );
+                  launchUrl(Uri.parse(url));
                   context.pop();
                 },
               ),
@@ -288,9 +301,7 @@ class _NavigationBarState extends State<NavigationBar> {
                 onPressed: () async {
                   context.pop();
                   for (var apkUrl in temp.assets) {
-                    if (apkUrl.browserDownloadUrl.contains(
-                      "app-arm64-v8a-release.apk",
-                    )) {
+                    if (apkUrl.browserDownloadUrl.contains(arch)) {
                       await installApk(apkUrl.browserDownloadUrl);
                     }
                   }

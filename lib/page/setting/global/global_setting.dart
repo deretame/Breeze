@@ -306,7 +306,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           icon: const Icon(Icons.expand_more),
           onChanged: (String? value) {
             if (value != null) {
-              showSuccessToast("设置成功");
+              showSuccessToast("设置成功，重启生效");
               globalSetting.setWelcomePageNum(splashPage[value]!);
             }
           },

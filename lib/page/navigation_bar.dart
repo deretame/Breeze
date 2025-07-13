@@ -55,9 +55,9 @@ class _NavigationBarState extends State<NavigationBar> {
 
   // 页面列表
   final _pageList = [
-    BookshelfPage(),
-    RankingListPage(),
     HomePage(),
+    RankingListPage(),
+    BookshelfPage(),
     MorePage(),
   ];
 
@@ -185,8 +185,8 @@ class _NavigationBarState extends State<NavigationBar> {
   List<PersistentBottomNavBarItem> _navBarItems() {
     return [
       PersistentBottomNavBarItem(
-        icon: Icon(Icons.menu_book_sharp),
-        title: "书架",
+        icon: Icon(Icons.home),
+        title: "首页",
         activeColorPrimary: materialColorScheme.primary,
         inactiveColorPrimary: globalSetting.textColor,
       ),
@@ -197,8 +197,8 @@ class _NavigationBarState extends State<NavigationBar> {
         inactiveColorPrimary: globalSetting.textColor,
       ),
       PersistentBottomNavBarItem(
-        icon: Icon(Icons.category),
-        title: "分类",
+        icon: Icon(Icons.menu_book_sharp),
+        title: "书架",
         activeColorPrimary: materialColorScheme.primary,
         inactiveColorPrimary: globalSetting.textColor,
       ),

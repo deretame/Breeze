@@ -61,7 +61,7 @@ Future<Map<String, dynamic>> getCategories() async {
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/categories',
     'GET',
-    cache: false,
+    cache: true,
   );
 
   if (data['code'] != 200) {

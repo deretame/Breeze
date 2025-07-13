@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import '../../../util/event/event.dart';
 import '../../../util/router/router.gr.dart';
@@ -19,6 +20,8 @@ class GlobalSettingPage extends StatefulWidget {
 class _GlobalSettingPageState extends State<GlobalSettingPage> {
   late final List<String> systemThemeList = ["跟随系统", "浅色模式", "深色模式"];
   late final Map<String, int> systemTheme = {"跟随系统": 0, "浅色模式": 1, "深色模式": 2};
+  late final List<String> splashPageList = ["首页", "排行", "书架", "更多"];
+  late final Map<String, int> splashPage = {"首页": 0, "排行": 1, "书架": 2, "更多": 3};
 
   static const WidgetStateProperty<Icon> thumbIcon =
       WidgetStateProperty<Icon>.fromMap(<WidgetStatesConstraint, Icon>{
@@ -67,7 +70,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                     globalSetting.autoSync) ...[
                   _syncNotify(),
                 ],
-                // TODO：添加开屏页设置
+                divider(),
+                _splashPage(),
                 if (kDebugMode) ...[
                   ElevatedButton(
                     onPressed: () {
@@ -285,6 +289,35 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             );
             globalSetting.setComicReadTopContainer(_comicReadTopContainerValue);
           },
+        ),
+        SizedBox(width: 10),
+      ],
+    );
+  }
+
+  Widget _splashPage() {
+    return Row(
+      children: [
+        SizedBox(width: 10),
+        Text("开屏页", style: TextStyle(fontSize: 18)),
+        Spacer(),
+        DropdownButton<String>(
+          value: splashPageList[globalSetting.welcomePageNum],
+          icon: const Icon(Icons.expand_more),
+          onChanged: (String? value) {
+            if (value != null) {
+              showSuccessToast("设置成功");
+              globalSetting.setWelcomePageNum(splashPage[value]!);
+            }
+          },
+          items:
+              splashPageList.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+          style: TextStyle(color: globalSetting.textColor, fontSize: 18),
         ),
         SizedBox(width: 10),
       ],

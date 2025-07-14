@@ -185,11 +185,21 @@ class _BookshelfPageState extends State<BookshelfPage>
   );
 }
 
-class FavoritesTabPage extends StatelessWidget {
+class FavoritesTabPage extends StatefulWidget {
   const FavoritesTabPage({super.key});
 
   @override
+  State<FavoritesTabPage> createState() => _FavoritesTabPageState();
+}
+
+class _FavoritesTabPageState extends State<FavoritesTabPage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     // 使用 Observer 监听全局设置的变化
     return Observer(
       builder: (_) {

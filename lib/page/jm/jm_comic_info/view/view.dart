@@ -168,7 +168,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                   ),
                 ),
               )
-              : null,
+              : null, // TODO: 多章节情况下继续阅读只能定位到具体的页数但是无法定位到具体的章节，只会跳转到第一章
     );
   }
 

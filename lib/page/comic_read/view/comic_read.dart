@@ -457,10 +457,16 @@ class _ComicReadPageState extends State<_ComicReadPage> {
             DateTime.now().difference(_lastUpdateTime!).inMilliseconds < 100) {
       return;
     }
-    store.setDate(
-      '历史：$epName（${pageIndex - 1}）'
-      '${DateTime.now().toLocal().toString().substring(0, 19)}',
-    );
+
+    final currentTime = DateTime.now().toLocal().toString().substring(0, 19);
+
+    final isJmAndSeriesEmpty =
+        widget.from == From.jm && (comicInfo as JmComicInfoJson).series.isEmpty;
+
+    final historyPrefix = isJmAndSeriesEmpty ? '历史：第1话' : '历史：$epName';
+
+    store.setDate('$historyPrefix / ${pageIndex - 1} / $currentTime');
+
     if (widget.from == From.bika) {
       // 更新记录
       _isInserting = true;
@@ -485,7 +491,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
         ..history = DateTime.now().toUtc()
         ..order = widget.order
         ..epPageCount = pageIndex
-        ..epTitle = epName
+        ..epTitle = isJmAndSeriesEmpty ? '' : epName
         ..epId = epId
         ..deleted = false;
       await objectbox.jmHistoryBox.putAsync(jmHistory!);

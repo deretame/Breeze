@@ -79,7 +79,9 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
 
     if (_hasHistory) {
       store.setDate(
-        '历史：${jmHistory!.epTitle}（${jmHistory!.epPageCount - 1}）'
+        '历史：'
+        '${jmHistory!.epTitle.isNotEmpty ? jmHistory!.epTitle : "第1话"} / '
+        '${jmHistory!.epPageCount - 1} / '
         '${jmHistory!.history.toLocal().toString().substring(0, 19)}',
       );
     }
@@ -168,7 +170,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                   ),
                 ),
               )
-              : null, // TODO: 多章节情况下继续阅读只能定位到具体的页数但是无法定位到具体的章节，只会跳转到第一章
+              : null,
     );
   }
 
@@ -318,7 +320,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                 child: EpWidget(
                   comicId: id,
                   series: series,
-                  comicInfo: comicInfo,
+                  comicInfo: state!.comicInfo!,
                   epsNumber: comicInfo.series.length,
                   type: _type,
                   store: store,
@@ -437,8 +439,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
     int epsNumberVal;
     From fromVal = From.jm;
     ComicEntryType typeVal = _type;
-    dynamic
-    comicInfoVal; // Consider using a common base type or interface if possible
+    dynamic comicInfoVal;
 
     if (isDownload) {
       comicIdVal = jmDownload!.comicId;
@@ -457,11 +458,21 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
     } else {
       comicIdVal = widget.comicId;
       epsNumberVal = _state.comicInfo!.series.length;
-      typeVal = _hasHistory ? ComicEntryType.history : ComicEntryType.normal;
+      typeVal =
+          store.date.isNotEmpty
+              ? ComicEntryType.history
+              : ComicEntryType.normal;
       comicInfoVal = _state.comicInfo!;
     }
 
-    orderVal = _hasHistory ? jmHistory!.order : widget.comicId.let(toInt);
+    jmHistory =
+        objectbox.jmHistoryBox
+            .query(JmHistory_.comicId.equals(widget.comicId))
+            .build()
+            .findFirst();
+
+    orderVal =
+        store.date.isNotEmpty ? jmHistory!.order : widget.comicId.let(toInt);
 
     context.pushRoute(
       ComicReadRoute(
@@ -483,11 +494,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
       if (comicInfo.series.isEmpty) {
         comicInfo = blocState.comicInfo!.copyWith(
           series: [
-            Series(
-              id: comicInfo.id.toString(),
-              name: comicInfo.name,
-              sort: 'null',
-            ),
+            Series(id: comicInfo.id.toString(), name: "第1话", sort: 'null'),
           ],
         );
       }

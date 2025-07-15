@@ -56,7 +56,7 @@ class _BottomWidgetState extends State<BottomWidget> {
   late String comicId;
   bool havePrev = true;
   bool haveNext = true;
-  late List<Series> seriesList;
+  List<Series> seriesList = [];
   int? sort;
   BikaComicDownload? bikaComicDownload;
   late AllInfo allInfo;
@@ -187,8 +187,11 @@ class _BottomWidgetState extends State<BottomWidget> {
                         ),
                         SizedBox(
                           height: 51,
-                          child: GestureDetector(
-                            onTap: () async => await _selectJumpChapter(),
+                          child: TextButton(
+                            onPressed:
+                                seriesList.isEmpty && widget.from == From.jm
+                                    ? null
+                                    : () async => await _selectJumpChapter(),
                             child: Center(
                               child: Text(
                                 '跳转章节',

@@ -87,7 +87,9 @@ class _ComicInfoState extends State<_ComicInfo>
 
     if (comicHistory != null) {
       store.setDate(
-        '历史：${comicHistory!.epTitle}（${comicHistory!.epPageCount - 1}）'
+        '历史：'
+        '${comicHistory!.epTitle} / '
+        '${comicHistory!.epPageCount - 1} / '
         '${comicHistory!.history.toLocal().toString().substring(0, 19)}',
       );
     }

@@ -175,7 +175,7 @@ DownloadInfoJson comicInfo2DownloadInfoJson(
     seriesList.add(
       DownloadInfoJsonSeries(
         id: comicInfo.id.toString(),
-        name: comicInfo.name,
+        name: "第1话",
         sort: 'null',
         info: Info(
           id: 0,

@@ -104,7 +104,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
             onPressed: () => popToRoot(context),
           ),
           Expanded(child: Container()),
-          if (_type == ComicEntryType.download) ...[
+          if (isDownload)
             IconButton(
               icon: const Icon(Icons.upload),
               onPressed: () async {
@@ -135,7 +135,6 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                 }
               },
             ),
-          ],
         ],
       ),
       body:
@@ -320,7 +319,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                 child: EpWidget(
                   comicId: id,
                   series: series,
-                  comicInfo: state!.comicInfo!,
+                  comicInfo: comicInfo,
                   epsNumber: comicInfo.series.length,
                   type: _type,
                   store: store,

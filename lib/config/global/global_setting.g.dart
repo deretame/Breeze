@@ -406,6 +406,24 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
     });
   }
 
+  late final _$disableBikaAtom = Atom(
+    name: '_GlobalSetting.disableBika',
+    context: context,
+  );
+
+  @override
+  bool get disableBika {
+    _$disableBikaAtom.reportRead();
+    return super.disableBika;
+  }
+
+  @override
+  set disableBika(bool value) {
+    _$disableBikaAtom.reportWrite(value, super.disableBika, () {
+      super.disableBika = value;
+    });
+  }
+
   late final _$_GlobalSettingActionController = ActionController(
     name: '_GlobalSetting',
     context: context,
@@ -1204,6 +1222,42 @@ mixin _$GlobalSetting on _GlobalSetting, Store {
   }
 
   @override
+  bool getDisableBika() {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+      name: '_GlobalSetting.getDisableBika',
+    );
+    try {
+      return super.getDisableBika();
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void setDisableBika(bool value) {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+      name: '_GlobalSetting.setDisableBika',
+    );
+    try {
+      return super.setDisableBika(value);
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void deleteDisableBika() {
+    final _$actionInfo = _$_GlobalSettingActionController.startAction(
+      name: '_GlobalSetting.deleteDisableBika',
+    );
+    try {
+      return super.deleteDisableBika();
+    } finally {
+      _$_GlobalSettingActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     return '''
 dynamicColor: ${dynamicColor},
@@ -1227,7 +1281,8 @@ readMode: ${readMode},
 maskedKeywords: ${maskedKeywords},
 socks5Proxy: ${socks5Proxy},
 needCleanCache: ${needCleanCache},
-comicChoice: ${comicChoice}
+comicChoice: ${comicChoice},
+disableBika: ${disableBika}
     ''';
   }
 }

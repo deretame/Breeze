@@ -46,17 +46,20 @@ class _HotTabBarState extends State<HotTabBar> {
                 globalSetting.comicChoice == 1
                     ? const BikaRankList()
                     : const JmRankingPage(),
-            floatingActionButton: FloatingActionButton(
-              heroTag: Uuid().v4(),
-              child: const Icon(Icons.compare_arrows),
-              onPressed: () {
-                if (globalSetting.comicChoice == 1) {
-                  globalSetting.setComicChoice(2);
-                } else {
-                  globalSetting.setComicChoice(1);
-                }
-              },
-            ),
+            floatingActionButton:
+                globalSetting.disableBika
+                    ? null
+                    : FloatingActionButton(
+                      heroTag: Uuid().v4(),
+                      child: const Icon(Icons.compare_arrows),
+                      onPressed: () {
+                        if (globalSetting.comicChoice == 1) {
+                          globalSetting.setComicChoice(2);
+                        } else {
+                          globalSetting.setComicChoice(1);
+                        }
+                      },
+                    ),
           ),
     );
   }

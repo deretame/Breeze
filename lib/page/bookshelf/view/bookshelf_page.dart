@@ -62,7 +62,8 @@ class _BookshelfPageState extends State<BookshelfPage>
       endDrawer: SideDrawer(),
       appBar: _appBar(),
       body: _body(),
-      floatingActionButton: _floatingActionButton(),
+      floatingActionButton:
+          globalSetting.disableBika ? null : _floatingActionButton(),
     );
   }
 
@@ -81,18 +82,19 @@ class _BookshelfPageState extends State<BookshelfPage>
               final router = AutoRouter.of(context);
               return SimpleDialog(
                 children: [
-                  SimpleDialogOption(
-                    onPressed: () {
-                      router.popAndPush(
-                        SearchResultRoute(searchEnter: SearchEnter.initial()),
-                      );
-                    },
-                    child: const Chip(
-                      label: Text("哔咔漫画"),
-                      backgroundColor: Colors.pink,
-                      labelStyle: TextStyle(color: Colors.white),
+                  if (!globalSetting.disableBika)
+                    SimpleDialogOption(
+                      onPressed: () {
+                        router.popAndPush(
+                          SearchResultRoute(searchEnter: SearchEnter.initial()),
+                        );
+                      },
+                      child: const Chip(
+                        label: Text("哔咔漫画"),
+                        backgroundColor: Colors.pink,
+                        labelStyle: TextStyle(color: Colors.white),
+                      ),
                     ),
-                  ),
                   SimpleDialogOption(
                     onPressed: () {
                       router.popAndPush(

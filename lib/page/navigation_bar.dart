@@ -366,6 +366,7 @@ class _NavigationBarState extends State<NavigationBar> {
   }
 
   Future<void> _signIn() async {
+    if (globalSetting.disableBika) return;
     while (true) {
       try {
         var result = await signIn();

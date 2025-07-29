@@ -58,6 +58,8 @@ abstract class _GlobalSetting with Store {
   bool needCleanCache = false; // 是否需要清理缓存
   @observable
   int comicChoice = 0; // 漫画选择
+  @observable
+  bool disableBika = false; // 是否使用哔咔
 
   Future<void> initBox() async {
     _box = await Hive.openBox(GlobalSettingBoxKey.globalSetting);
@@ -83,6 +85,7 @@ abstract class _GlobalSetting with Store {
     socks5Proxy = getSocks5Proxy();
     needCleanCache = getNeedCleanCache();
     comicChoice = getComicChoice();
+    disableBika = getDisableBika();
   }
 
   @action
@@ -526,6 +529,27 @@ abstract class _GlobalSetting with Store {
     comicChoice = 1;
     _box.delete(GlobalSettingBoxKey.comicChoice);
   }
+
+  @action
+  bool getDisableBika() {
+    disableBika = _box.get(
+      GlobalSettingBoxKey.disableBika,
+      defaultValue: false,
+    );
+    return disableBika;
+  }
+
+  @action
+  void setDisableBika(bool value) {
+    disableBika = value;
+    _box.put(GlobalSettingBoxKey.disableBika, value);
+  }
+
+  @action
+  void deleteDisableBika() {
+    disableBika = false;
+    _box.delete(GlobalSettingBoxKey.disableBika);
+  }
 }
 
 class GlobalSettingBoxKey {
@@ -553,4 +577,5 @@ class GlobalSettingBoxKey {
   static const String socks5Proxy = 'socks5Proxy'; // socks5代理
   static const String needCleanCache = 'needCleanCache'; // 是否需要清理缓存
   static const String comicChoice = 'comicChoice'; // 漫画选择
+  static const String disableBika = 'disableBika'; // 禁用哔咔
 }

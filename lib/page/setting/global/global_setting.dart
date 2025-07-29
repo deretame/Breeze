@@ -34,6 +34,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   bool _autoSyncNotifyValue = globalSetting.syncNotify;
   bool _shadeValue = globalSetting.shade;
   bool _comicReadTopContainerValue = globalSetting.comicReadTopContainer;
+  bool _disableBikaValue = globalSetting.disableBika;
   final keywordController = TextEditingController();
 
   @override
@@ -72,6 +73,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                 ],
                 divider(),
                 _splashPage(),
+                _disableBika(),
                 if (kDebugMode) ...[
                   ElevatedButton(
                     onPressed: () {
@@ -318,6 +320,28 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                 );
               }).toList(),
           style: TextStyle(color: globalSetting.textColor, fontSize: 18),
+        ),
+        SizedBox(width: 10),
+      ],
+    );
+  }
+
+  Widget _disableBika() {
+    return Row(
+      children: [
+        SizedBox(width: 10),
+        Text("关闭哔咔", style: TextStyle(fontSize: 18)),
+        SizedBox(width: 5), // 添加间距
+        Spacer(),
+        Switch(
+          thumbIcon: thumbIcon,
+          value: _disableBikaValue,
+          onChanged: (bool value) {
+            setState(() => _disableBikaValue = !_disableBikaValue);
+            globalSetting.setDisableBika(_disableBikaValue);
+            globalSetting.setComicChoice(2);
+            showSuccessToast("设置成功，重启生效");
+          },
         ),
         SizedBox(width: 10),
       ],

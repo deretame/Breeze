@@ -123,7 +123,15 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(title),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () => context.pushRoute(GlobalSettingRoute()),
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -151,7 +159,7 @@ class _LoginPageState extends State<LoginPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center, // 设置Row中的内容水平居中
               children: [
-                ElevatedButton(
+                TextButton(
                   style: style,
                   onPressed: _submitForm,
                   child: const Text('登录'),

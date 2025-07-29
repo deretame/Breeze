@@ -43,19 +43,6 @@ class _BikaUserInfoWidgetState extends State<_BikaUserInfoWidget> {
     super.initState();
     eventBus.on<RefreshEvent>().listen((event) {
       _onRefresh();
-      // 也在这里重新登录一下禁漫好了
-      jmSetting.setLoginStatus(LoginStatus.loggingIn);
-      login(jmSetting.account, jmSetting.password)
-          .then((value) {
-            jmSetting.setUserInfo(value.let(replaceNestedNull).let(jsonEncode));
-            jmSetting.setLoginStatus(LoginStatus.login);
-            logger.d(jmSetting.userInfo);
-          })
-          .catchError((e, s) {
-            logger.e(e, stackTrace: s);
-            jmSetting.setLoginStatus(LoginStatus.logout);
-            showErrorToast("重新登录禁漫失败: ${e.toString()}");
-          });
     });
   }
 

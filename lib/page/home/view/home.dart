@@ -48,17 +48,20 @@ class _HomePageState extends State<HomePage> {
                     )
                     : const JmPromotePage(),
           ),
-          floatingActionButton: FloatingActionButton(
-            heroTag: Uuid().v4(),
-            child: const Icon(Icons.compare_arrows),
-            onPressed: () {
-              if (globalSetting.comicChoice == 1) {
-                globalSetting.setComicChoice(2);
-              } else {
-                globalSetting.setComicChoice(1);
-              }
-            },
-          ),
+          floatingActionButton:
+              globalSetting.disableBika
+                  ? null
+                  : FloatingActionButton(
+                    heroTag: Uuid().v4(),
+                    child: const Icon(Icons.compare_arrows),
+                    onPressed: () {
+                      if (globalSetting.comicChoice == 1) {
+                        globalSetting.setComicChoice(2);
+                      } else {
+                        globalSetting.setComicChoice(1);
+                      }
+                    },
+                  ),
         );
       },
     );
@@ -70,21 +73,20 @@ class _HomePageState extends State<HomePage> {
       builder: (BuildContext context) {
         return SimpleDialog(
           children: [
-            // 第一个 Chip
-            SimpleDialogOption(
-              onPressed: () {
-                context.pop();
-                context.pushRoute(
-                  SearchResultRoute(searchEnter: SearchEnter.initial()),
-                );
-              },
-              child: const Chip(
-                label: Text("哔咔漫画"),
-                backgroundColor: Colors.pink,
-                labelStyle: TextStyle(color: Colors.white),
+            if (!globalSetting.disableBika)
+              SimpleDialogOption(
+                onPressed: () {
+                  context.pop();
+                  context.pushRoute(
+                    SearchResultRoute(searchEnter: SearchEnter.initial()),
+                  );
+                },
+                child: const Chip(
+                  label: Text("哔咔漫画"),
+                  backgroundColor: Colors.pink,
+                  labelStyle: TextStyle(color: Colors.white),
+                ),
               ),
-            ),
-            // 第二个 Chip
             SimpleDialogOption(
               onPressed: () {
                 context.pop();

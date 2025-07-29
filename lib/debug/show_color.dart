@@ -9,13 +9,9 @@ class ShowColorPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Colors.blue[400]!;
     // 使用种子颜色创建颜色方案
-    final lightColorScheme = ColorScheme.fromSeed(seedColor: primary);
-    final darkColorScheme = ColorScheme.fromSeed(
-      seedColor: primary,
-      brightness: Brightness.dark,
-    );
+    final lightColorScheme = materialColorScheme;
+    final darkColorScheme = materialColorSchemeDark;
 
     ColorScheme allColors;
 

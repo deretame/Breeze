@@ -25,19 +25,18 @@ class _MorePageState extends State<MorePage> {
     if (!globalSetting.disableBika) {
       widgets.addAll([BikaUserInfoWidget(), Delimiter()]);
     }
-    eventBus.on<RefreshEvent>().listen((event) {
+    eventBus.on<RefreshEvent>().listen((event) async {
       jmSetting.setLoginStatus(LoginStatus.loggingIn);
-      login(jmSetting.account, jmSetting.password)
-          .then((value) {
-            jmSetting.setUserInfo(value.let(replaceNestedNull).let(jsonEncode));
-            jmSetting.setLoginStatus(LoginStatus.login);
-            logger.d(jmSetting.userInfo);
-          })
-          .catchError((e, s) {
-            logger.e(e, stackTrace: s);
-            jmSetting.setLoginStatus(LoginStatus.logout);
-            showErrorToast("重新登录禁漫失败: ${e.toString()}");
-          });
+      try {
+        final value = await login(jmSetting.account, jmSetting.password);
+        jmSetting.setUserInfo(value.let(replaceNestedNull).let(jsonEncode));
+        jmSetting.setLoginStatus(LoginStatus.login);
+        logger.d(jmSetting.userInfo);
+      } catch (e, s) {
+        logger.e(e, stackTrace: s);
+        jmSetting.setLoginStatus(LoginStatus.logout);
+        showErrorToast("重新登录禁漫失败: ${e.toString()}");
+      }
     });
     widgets.addAll([JMUserInfoWidget(), Delimiter(), settings(context)]);
   }

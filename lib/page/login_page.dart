@@ -29,9 +29,6 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _account = TextEditingController();
   final TextEditingController _password = TextEditingController();
-  final ButtonStyle style = ElevatedButton.styleFrom(
-    minimumSize: const Size(200, 40),
-  );
 
   String title = "";
   late From from;
@@ -159,11 +156,7 @@ class _LoginPageState extends State<LoginPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center, // 设置Row中的内容水平居中
               children: [
-                TextButton(
-                  style: style,
-                  onPressed: _submitForm,
-                  child: const Text('登录'),
-                ),
+                TextButton(onPressed: _submitForm, child: const Text('登录')),
               ],
             ),
             const SizedBox(height: 10), // 用于添加空间

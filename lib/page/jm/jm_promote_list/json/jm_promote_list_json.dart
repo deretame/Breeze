@@ -31,7 +31,6 @@ abstract class ListElement with _$ListElement {
     @JsonKey(name: "id") required String id,
     @JsonKey(name: "author") required String author,
     @JsonKey(name: "name") required String name,
-    @JsonKey(name: "image") required String image,
     @JsonKey(name: "category") required Category category,
     @JsonKey(name: "category_sub") required CategorySub categorySub,
     @JsonKey(name: "liked") required bool liked,

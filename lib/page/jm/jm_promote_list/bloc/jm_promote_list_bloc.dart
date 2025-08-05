@@ -54,9 +54,6 @@ class JmPromoteListBloc extends Bloc<JmPromoteListEvent, JmPromoteListState> {
     }
 
     try {
-      final data = await getPromoteList(event.id, event.page).let(jsonEncode);
-      logger.d(data);
-
       final response = await getPromoteList(event.id, event.page)
           .let(replaceNestedNullList)
           .let(jsonEncode)

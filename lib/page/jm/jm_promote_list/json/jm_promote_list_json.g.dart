@@ -22,7 +22,6 @@ _ListElement _$ListElementFromJson(Map<String, dynamic> json) => _ListElement(
   id: json['id'] as String,
   author: json['author'] as String,
   name: json['name'] as String,
-  image: json['image'] as String,
   category: Category.fromJson(json['category'] as Map<String, dynamic>),
   categorySub: CategorySub.fromJson(
     json['category_sub'] as Map<String, dynamic>,
@@ -37,7 +36,6 @@ Map<String, dynamic> _$ListElementToJson(_ListElement instance) =>
       'id': instance.id,
       'author': instance.author,
       'name': instance.name,
-      'image': instance.image,
       'category': instance.category,
       'category_sub': instance.categorySub,
       'liked': instance.liked,

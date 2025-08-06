@@ -15,7 +15,7 @@ class JmConfig {
   static const webUA =
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36';
 
-  static const jmVersion = '1.8.0';
+  static const jmVersion = '1.8.1';
 
   static const jmAuthKey = '18comicAPPContent';
 
@@ -24,7 +24,7 @@ class JmConfig {
   static const kJmSecret = '185Hcomic3PAPP7R';
 
   static const baseUrls = [
-    'https://www.jmeadpoolcdn.one',
+    'https://www.cdntwice.org',
     'https://www.jmeadpoolcdn.life',
     'https://www.jmapiproxyxxx.one',
     'https://www.jmfreedomproxy.xyz',

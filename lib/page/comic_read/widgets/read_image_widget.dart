@@ -24,18 +24,17 @@ class ReadImageWidget extends StatefulWidget {
   State<ReadImageWidget> createState() => _ReadImageWidgetState();
 }
 
-class _ReadImageWidgetState extends State<ReadImageWidget>
-    with AutomaticKeepAliveClientMixin {
+class _ReadImageWidgetState extends State<ReadImageWidget> {
   int get index => widget.index;
 
   bool get isColumn => widget.isColumn;
 
-  @override
-  bool get wantKeepAlive => true;
+  // @override
+  // bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
+    // super.build(context);
     return BlocProvider(
       create: (context) => PictureBloc()..add(GetPicture(widget.pictureInfo)),
       child: SizedBox(

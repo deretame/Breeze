@@ -1,7 +1,5 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-
 import '../../../config/global/global.dart';
 
 class ImageDisplay extends StatefulWidget {
@@ -18,39 +16,53 @@ class ImageDisplay extends StatefulWidget {
   State<ImageDisplay> createState() => _ImageDisplayState();
 }
 
-class _ImageDisplayState extends State<ImageDisplay> {
+class _ImageDisplayState extends State<ImageDisplay>
+    with AutomaticKeepAliveClientMixin {
+  ImageStream? _imageStream;
+  late final ImageStreamListener _imageListener;
+
   bool get isColumn => widget.isColumn;
 
   double imageWidth = screenWidth;
   double imageHeight = screenWidth;
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   void initState() {
     super.initState();
-    // logger.d(isColumn);
-    if (isColumn) _getImageResolution(widget.imagePath);
+    _imageListener = ImageStreamListener((ImageInfo imageInfo, _) {
+      if (mounted) {
+        setState(() {
+          imageWidth = imageInfo.image.width.toDouble();
+          imageHeight = imageInfo.image.height.toDouble();
+        });
+      }
+    });
   }
 
-  void _getImageResolution(String imagePath) {
-    final Image image = Image.file(File(imagePath));
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (isColumn) {
+      final imageProvider = FileImage(File(widget.imagePath));
+      _imageStream = imageProvider.resolve(
+        createLocalImageConfiguration(context),
+      );
+      _imageStream!.addListener(_imageListener);
+    }
+  }
 
-    // 监听图片解析完成
-    image.image
-        .resolve(ImageConfiguration())
-        .addListener(
-          ImageStreamListener((ImageInfo imageInfo, _) {
-            if (mounted) {
-              setState(() {
-                imageWidth = imageInfo.image.width.toDouble();
-                imageHeight = imageInfo.image.height.toDouble();
-              });
-            }
-          }),
-        );
+  @override
+  void dispose() {
+    _imageStream?.removeListener(_imageListener);
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Container(
       color: Colors.black,
       width: screenWidth,

@@ -24,6 +24,7 @@ import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/firebase_options.dart';
 import 'package:zephyr/network/http/jm/http_request_build.dart';
 import 'package:zephyr/src/rust/frb_generated.dart';
+import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/pretty_log.dart';
 import 'package:zephyr/util/router/router.dart';
@@ -61,7 +62,7 @@ final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 Future<void> main() async {
   runZonedGuarded(
     () async {
-      WidgetsFlutterBinding.ensureInitialized();
+      final WidgetsBinding binding = WidgetsFlutterBinding.ensureInitialized();
       // 初始化rust
       await RustLib.init();
 
@@ -70,6 +71,14 @@ Future<void> main() async {
 
       // 重采样触控刷新率
       GestureBinding.instance.resamplingEnabled = true;
+
+      // 如果是手机的话就固定为只能使用横屏模式
+      if (!isTabletWithOutContext(binding)) {
+        await SystemChrome.setPreferredOrientations([
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+        ]);
+      }
 
       // 用来判断要不要使用skia
       const skia = String.fromEnvironment('use_skia', defaultValue: 'false');

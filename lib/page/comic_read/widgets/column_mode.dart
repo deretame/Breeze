@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:zephyr/page/comic_read/widgets/read_image_widget.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../config/global/global.dart';
 import '../../../main.dart';
@@ -51,14 +52,15 @@ class ColumnModeWidget extends StatelessWidget {
   Widget itemBuilder(BuildContext context, int index) {
     if (index == 0) {
       return Container(
-        width: screenWidth,
-        height: globalSetting.comicReadTopContainer ? statusBarHeight : 0,
+        width: context.screenWidth,
+        height:
+            globalSetting.comicReadTopContainer ? context.statusBarHeight : 0,
         color: Colors.black,
       );
     } else if (index == length + 1) {
       return Container(
         height: 75,
-        width: screenWidth,
+        width: context.screenWidth,
         alignment: Alignment.center,
         color: Colors.black,
         child: Text(

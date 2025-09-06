@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../config/global/global.dart';
@@ -54,7 +55,7 @@ class _CommentsWidgetState extends State<CommentsWidget>
       builder: (context) {
         return Center(
           child: SizedBox(
-            width: screenWidth * (48 / 50),
+            width: context.screenWidth * (48 / 50),
             child: Column(
               children: [
                 InkWell(
@@ -207,7 +208,7 @@ class _CommentsWidgetState extends State<CommentsWidget>
                 Align(
                   alignment: Alignment.center,
                   child: SizedBox(
-                    width: screenWidth * (48 / 50), // 设置宽度
+                    width: context.screenWidth * (48 / 50), // 设置宽度
                     child: Divider(
                       color:
                           globalSetting.themeType

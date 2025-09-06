@@ -7,12 +7,12 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/download/widgets/eps.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/init.dart';
 import 'package:zephyr/util/foreground_task/main_task.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../../config/global/global.dart';
 import '../../../object_box/model.dart';
 import '../../comic_info/json/bika/comic_info/comic_info.dart';
 import '../../comic_info/json/bika/eps/eps.dart';
@@ -99,7 +99,7 @@ class _DownloadPageState extends State<DownloadPage> {
       ),
       body: ListView.builder(
         // 设置 ListView 的宽度为屏幕宽度
-        padding: EdgeInsets.symmetric(horizontal: screenWidth / 50),
+        padding: EdgeInsets.symmetric(horizontal: context.screenWidth / 50),
         itemCount: epsInfo.length, // 列表项的数量
         itemBuilder: (context, index) {
           final doc = epsInfo[index];

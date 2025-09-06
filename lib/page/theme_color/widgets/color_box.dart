@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zephyr/config/global/global.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../config/global/color_theme_types.dart';
 
@@ -18,7 +18,7 @@ class ColorThemeItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: screenWidth / 4 - 30, // 每个颜色块的宽度
+      width: context.screenWidth / 4 - 30, // 每个颜色块的宽度
       child: Material(
         color: Colors.transparent,
         child: InkWell(

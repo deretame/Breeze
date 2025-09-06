@@ -4,9 +4,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
-import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
@@ -47,7 +47,7 @@ class ComicPictureWidget extends StatelessWidget {
             case PictureLoadStatus.initial:
               return Center(
                 child: SizedBox(
-                  width: (screenWidth / 10) * 3,
+                  width: (context.screenWidth / 10) * 3,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: LoadingAnimationWidget.waveDots(
@@ -72,7 +72,7 @@ class ComicPictureWidget extends StatelessWidget {
                   child: Image.file(
                     File(state.imagePath!),
                     fit: BoxFit.cover,
-                    width: (screenWidth / 10) * 3,
+                    width: (context.screenWidth / 10) * 3,
                     height: 180,
                   ),
                 ),
@@ -80,12 +80,12 @@ class ComicPictureWidget extends StatelessWidget {
             case PictureLoadStatus.failure:
               if (state.result.toString().contains('404')) {
                 return SizedBox(
-                  width: (screenWidth / 10) * 3,
+                  width: (context.screenWidth / 10) * 3,
                   child: Image.asset('asset/image/error_image/404.png'),
                 );
               } else {
                 return SizedBox(
-                  width: (screenWidth / 10) * 3,
+                  width: (context.screenWidth / 10) * 3,
                   child: InkWell(
                     onTap: () {
                       context.read<PictureBloc>().add(

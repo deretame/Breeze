@@ -4,9 +4,9 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
-import 'package:zephyr/config/global/global.dart';
 
 class RecommendWidget extends StatelessWidget {
   final JmComicInfoJson comicInfo;
@@ -32,7 +32,7 @@ class RecommendWidget extends StatelessWidget {
     return Observer(
       builder: (context) {
         return Container(
-          height: screenWidth * 0.3 / 0.75,
+          height: context.screenWidth * 0.3 / 0.75,
           decoration: BoxDecoration(
             color: globalSetting.backgroundColor,
             borderRadius: BorderRadius.circular(10),

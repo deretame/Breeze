@@ -70,8 +70,8 @@ class _CategoryPageState extends State<_CategoryPage> {
                     )
                     .toList();
             // 构建并返回组件
-            var rows = buildCategoriesWidget(homeCategories);
-            return Column(children: [...rows]);
+            var grid = buildCategoriesGrid(context, homeCategories);
+            return Column(children: [grid]);
 
           case GetCategoryStatus.initial:
             return const Padding(

@@ -1,9 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/sundry.dart';
 
-import '../../../config/global/global.dart';
 import '../../../main.dart';
 
 Future<Map<String, bool>?> showShieldCategoryDialog(BuildContext context) {
@@ -33,8 +33,8 @@ Future<Map<String, bool>?> showShieldCategoryDialog(BuildContext context) {
               );
             });
             return SizedBox(
-              width: screenWidth * 0.8, // 设置对话框宽度
-              height: screenHeight * 0.6, // 设置对话框高度
+              width: context.screenWidth * 0.8, // 设置对话框宽度
+              height: context.screenHeight * 0.6, // 设置对话框高度
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,

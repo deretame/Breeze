@@ -9,8 +9,8 @@ import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../type/enum.dart';
 import '../../../util/router/router.dart';
@@ -149,7 +149,7 @@ class _BottomWidgetState extends State<BottomWidget> {
               filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // 高斯模糊强度
               child: Container(
                 height: _bottomWidgetHeight.toDouble(),
-                width: screenWidth,
+                width: context.screenWidth,
                 color: globalSetting.backgroundColor.withValues(alpha: 0.5),
                 // 半透明背景
                 child: Column(
@@ -174,7 +174,7 @@ class _BottomWidgetState extends State<BottomWidget> {
                     Center(
                       child: Container(
                         height: 1, // 设置高度为1像素
-                        width: screenWidth * 48 / 50,
+                        width: context.screenWidth * 48 / 50,
                         color: materialColorScheme.secondaryFixedDim,
                       ),
                     ),

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../../config/global/global.dart';
 import '../../../../main.dart';
@@ -210,8 +211,8 @@ class _DownloadPageState extends State<_DownloadPage>
     return ListView.builder(
       itemExtent:
           bikaSetting.brevity
-              ? screenWidth * 0.425
-              : 180.0 + (screenHeight / 10) * 0.1,
+              ? context.screenWidth * 0.425
+              : 180.0 + (context.screenHeight / 10) * 0.1,
       controller: scrollControllers['download']!,
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: itemCount,

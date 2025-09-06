@@ -43,7 +43,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       appBar: AppBar(title: const Text('全局设置')),
       body: Observer(
         builder:
-            (context) => Column(
+            (context) => ListView(
               children: [
                 _systemTheme(),
                 _dynamicColor(),
@@ -55,11 +55,11 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                 _comicReadTopContainer(),
                 _shade(),
                 _isAMOLED(),
-                divider(),
+                DividerWidget(),
                 SizedBox(height: 11),
                 editMaskedKeywords(context, keywordController),
                 SizedBox(height: 11),
-                divider(),
+                DividerWidget(),
                 SizedBox(height: 11),
                 socks5ProxyEdit(context),
                 SizedBox(height: 11),
@@ -71,7 +71,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                     globalSetting.autoSync) ...[
                   _syncNotify(),
                 ],
-                divider(),
+                DividerWidget(),
                 _splashPage(),
                 _disableBika(),
                 if (kDebugMode) ...[

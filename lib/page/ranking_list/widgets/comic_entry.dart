@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/page/ranking_list/widgets/comic_picture.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/util/sundry.dart';
 
-import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../type/enum.dart';
 import '../json/leaderboard.dart';
@@ -51,14 +51,14 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
       },
       child: Column(
         children: <Widget>[
-          SizedBox(height: (screenHeight / 10) * 0.1),
+          SizedBox(height: (context.screenHeight / 10) * 0.1),
           Observer(
             builder: (context) {
               return Container(
                 height: 180,
-                width: ((screenWidth / 10) * 9.5),
+                width: ((context.screenWidth / 10) * 9.5),
                 margin: EdgeInsets.symmetric(
-                  horizontal: (screenWidth / 10) * 0.25,
+                  horizontal: (context.screenWidth / 10) * 0.25,
                 ),
                 decoration: BoxDecoration(
                   color: globalSetting.backgroundColor,
@@ -80,12 +80,12 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                       id: comic.id,
                       pictureType: "cover",
                     ),
-                    SizedBox(width: screenWidth / 60),
+                    SizedBox(width: context.screenWidth / 60),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          SizedBox(height: screenWidth / 200),
+                          SizedBox(height: context.screenWidth / 200),
                           Text(
                             comic.title,
                             style: TextStyle(
@@ -132,11 +132,11 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                               ),
                             ],
                           ),
-                          SizedBox(height: screenWidth / 200),
+                          SizedBox(height: context.screenWidth / 200),
                         ],
                       ),
                     ),
-                    SizedBox(width: screenWidth / 50),
+                    SizedBox(width: context.screenWidth / 50),
                   ],
                 ),
               );

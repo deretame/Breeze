@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/search_result/models/models.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/sundry.dart';
 
-import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../bloc/search_bloc.dart';
 
@@ -46,8 +46,8 @@ class CategoriesShield extends StatelessWidget {
                 );
               });
               return SizedBox(
-                width: screenWidth * 0.8, // 设置对话框宽度
-                height: screenHeight * 0.6, // 设置对话框高度
+                width: context.screenWidth * 0.8, // 设置对话框宽度
+                height: context.screenHeight * 0.6, // 设置对话框高度
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,

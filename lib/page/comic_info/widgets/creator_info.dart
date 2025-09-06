@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
@@ -59,7 +59,7 @@ class CreatorInfoWidget extends StatelessWidget {
           builder: (context) {
             return Container(
               height: 75,
-              width: screenWidth * (48 / 50),
+              width: context.screenWidth * (48 / 50),
               decoration: BoxDecoration(
                 color: globalSetting.backgroundColor,
                 borderRadius: BorderRadius.circular(10),

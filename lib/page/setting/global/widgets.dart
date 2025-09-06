@@ -1,24 +1,29 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../util/router/router.gr.dart';
 
-Widget divider() {
-  return Align(
-    alignment: Alignment.center,
-    child: SizedBox(
-      width: screenWidth * (48 / 50), // 设置宽度
-      child: Divider(
-        color: materialColorScheme.secondaryFixedDim,
-        thickness: 1,
-        height: 10,
+class DividerWidget extends StatelessWidget {
+  const DividerWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.center,
+      child: SizedBox(
+        width: context.screenWidth * (48 / 50), // 设置宽度
+        child: Divider(
+          color: materialColorScheme.secondaryFixedDim,
+          thickness: 1,
+          height: 10,
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 Widget changeThemeColor(BuildContext context) {

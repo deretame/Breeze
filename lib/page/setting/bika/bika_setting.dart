@@ -46,7 +46,7 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
       appBar: AppBar(title: const Text('哔咔设置')),
       body: Observer(
         builder: (context) {
-          return Column(
+          return ListView(
             children: [
               SizedBox(height: 10),
               changeProfilePicture(route),
@@ -55,20 +55,20 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
               SizedBox(height: 15),
               changePassword(context),
               SizedBox(height: 10),
-              divider(),
+              DividerWidget(),
               _shuntWidget(),
               _imageQualityWidget(),
-              divider(),
+              DividerWidget(),
               SizedBox(height: 10),
               changeShieldedCategories(context, "home"),
               SizedBox(height: 15),
               changeShieldedCategories(context, "categories"),
               SizedBox(height: 10),
-              divider(),
+              DividerWidget(),
               _brevityWidget(),
-              divider(),
+              DividerWidget(),
               _slowDownloadWidget(),
-              divider(),
+              DividerWidget(),
               Center(
                 child: ElevatedButton(
                   onPressed: () {

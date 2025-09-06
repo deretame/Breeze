@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../../config/global/global.dart';
 import '../../../../main.dart';
@@ -229,8 +230,8 @@ class _UserFavoritePageState extends State<_FavoritePage>
     return ListView.builder(
       itemExtent:
           bikaSetting.brevity
-              ? screenWidth * 0.425
-              : 180.0 + (screenHeight / 10) * 0.1,
+              ? context.screenWidth * 0.425
+              : 180.0 + (context.screenHeight / 10) * 0.1,
       controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: totalItemCount,
@@ -372,9 +373,9 @@ class _UserFavoritePageState extends State<_FavoritePage>
   var _lastExecutedTime = 0;
 
   void _handleScrollPosition(ScrollMetrics metrics) {
-    double itemHeight = 180.0 + ((screenHeight / 10) * 0.1);
+    double itemHeight = 180.0 + ((context.screenHeight / 10) * 0.1);
     double currentScrollPosition = metrics.pixels;
-    double middlePosition = currentScrollPosition + (screenHeight / 3);
+    double middlePosition = currentScrollPosition + (context.screenHeight / 3);
     double listViewStartOffset = 0.0;
     int itemIndex =
         ((middlePosition - listViewStartOffset) / itemHeight).floor();

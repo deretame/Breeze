@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
@@ -9,6 +8,7 @@ import 'package:zephyr/page/more/json/jm/jm_user_info_json.dart';
 import 'package:zephyr/page/more/widgets/user_avatar.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
 
@@ -67,10 +67,10 @@ class _JMUserInfoWidgetState extends State<JMUserInfoWidget> {
           },
           behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
           child: SizedBox(
-            width: screenWidth - 16 - 16,
+            width: context.screenWidth - 16 - 16,
             height: 40, // 设置固定高度
             child: SizedBox(
-              width: screenWidth - 16 - 16,
+              width: context.screenWidth - 16 - 16,
               height: 40, // 设置固定高度
               child: Row(
                 children: [

@@ -2,8 +2,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/page/comments_children/comments_children.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../main.dart';
@@ -412,7 +412,7 @@ class _CommentWidgetState extends State<_CommentWidget> {
 
   Widget _divider() {
     return Container(
-      width: screenHeight,
+      width: context.screenHeight,
       height: 5,
       color: materialColorScheme.onInverseSurface,
     );

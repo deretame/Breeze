@@ -4,8 +4,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/page/search_result/search_result.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../mobx/string_select.dart';
 import '../../../type/enum.dart';
@@ -253,8 +253,8 @@ class _SearchResultPageState extends State<_SearchResultPage>
     return ListView.builder(
       itemExtent:
           bikaSetting.brevity
-              ? screenWidth * 0.425
-              : 180.0 + (screenHeight / 10) * 0.1,
+              ? context.screenWidth * 0.425
+              : 180.0 + (context.screenHeight / 10) * 0.1,
       itemBuilder: (context, index) => _buildListItem(context, index, state),
       itemCount: itemCount,
       controller: _scrollController,
@@ -358,9 +358,10 @@ class _SearchResultPageState extends State<_SearchResultPage>
     // logger.d(bikaSetting.brevity);
     // 只有当距离上一次执行超过50ms且漫画展示不为简略时，才执行
     if (currentTime - _lastExecutedTime > 100 && !bikaSetting.brevity) {
-      double itemHeight = 180.0 + ((screenHeight / 10) * 0.1);
+      double itemHeight = 180.0 + ((context.screenHeight / 10) * 0.1);
       double currentScrollPosition = _scrollController.position.pixels;
-      double middlePosition = currentScrollPosition + (screenHeight / 3);
+      double middlePosition =
+          currentScrollPosition + (context.screenHeight / 3);
       double listViewStartOffset = 0.0;
       int itemIndex =
           ((middlePosition - listViewStartOffset) / itemHeight).floor();

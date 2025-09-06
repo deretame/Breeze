@@ -38,7 +38,7 @@ class _MorePageState extends State<MorePage> {
         showErrorToast("重新登录禁漫失败: ${e.toString()}");
       }
     });
-    widgets.addAll([JMUserInfoWidget(), Delimiter(), settings(context)]);
+    widgets.addAll([JMUserInfoWidget(), Delimiter(), SettingsWidget()]);
   }
 
   @override

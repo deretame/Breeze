@@ -9,51 +9,35 @@ import 'package:zephyr/page/home/category.dart';
 import 'package:zephyr/page/search_result/models/search_enter.dart'
     show SearchEnter;
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/picture_bloc/bloc/picture_bloc.dart';
 
-import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 
-List<Widget> buildCategoriesWidget(List<HomeCategory> data) {
-  List<Widget> widgets = List.generate(
-    data.length,
-    (index) => SizedBox(
-      width: screenWidth / 4,
-      height: screenWidth / 4 + 50,
-      child: CategoryLineWidget(category: data[index]),
-    ),
+Widget buildCategoriesGrid(BuildContext context, List<HomeCategory> data) {
+  final double itemWidth = context.screenWidth / 3;
+  final double itemHeight = itemWidth + 50;
+  final double aspectRatio = itemWidth / itemHeight;
+
+  return GridView.count(
+    crossAxisCount: 3,
+
+    childAspectRatio: aspectRatio,
+
+    // 3. 可以轻松添加间距
+    mainAxisSpacing: 8.0, // 垂直间距
+    crossAxisSpacing: 8.0,
+
+    physics: const NeverScrollableScrollPhysics(),
+    shrinkWrap: true,
+    children:
+        data.map((category) {
+          return CategoryLineWidget(category: category);
+        }).toList(),
   );
-
-  // 确定需要多少行，以及最后一行是否需要填充
-  int rowsCount = (widgets.length / 3).ceil();
-  int remainingItems = widgets.length % 3;
-
-  // 如果最后一行不足三个组件，则添加占位符
-  if (remainingItems != 0) {
-    int placeholdersToAdd = 3 - remainingItems;
-    widgets.addAll(
-      List.generate(
-        placeholdersToAdd,
-        (index) => SizedBox(width: screenWidth / 4, height: screenWidth / 4),
-      ),
-    );
-  }
-
-  // 将列表分成每三个一组
-  List<Widget> rows = [];
-  for (var i = 0; i < rowsCount; i++) {
-    rows.add(
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [widgets[i * 3], widgets[i * 3 + 1], widgets[i * 3 + 2]],
-      ),
-    );
-  }
-
-  return rows;
 }
 
 class CategoryLineWidget extends StatelessWidget {
@@ -95,7 +79,7 @@ class CategoryLineWidget extends StatelessWidget {
                 onTap: () => _navigateBasedOnTitle(context),
                 child: Column(
                   children: <Widget>[
-                    _buildImage(state.imagePath!),
+                    _buildImage(context, state.imagePath!),
                     SizedBox(height: 5),
                     Observer(
                       builder: (context) {
@@ -156,8 +140,8 @@ class CategoryLineWidget extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(10.0),
             child: SizedBox(
-              width: screenWidth / 4,
-              height: screenWidth / 4,
+              width: context.screenWidth / 4,
+              height: context.screenWidth / 4,
               child: Image.asset(category.link, fit: BoxFit.cover),
             ),
           ),
@@ -175,12 +159,12 @@ class CategoryLineWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildImage(String imagePath) {
+  Widget _buildImage(BuildContext context, String imagePath) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(10.0),
       child: SizedBox(
-        width: screenWidth / 4,
-        height: screenWidth / 4,
+        width: context.screenWidth / 4,
+        height: context.screenWidth / 4,
         child: Image.file(File(imagePath), fit: BoxFit.cover),
       ),
     );

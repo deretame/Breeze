@@ -43,14 +43,31 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "第一次构建 (Skia) 失败！" }
 
 
-    # --- 复制第一次构建的产物到 skia 目录 ---
+    # --- 整理第一次构建的产物到 skia 目录 (已更新) ---
     Write-Host "`n--- (2/4) 正在整理 Skia 构建产物 ---" -ForegroundColor Cyan
     if (Test-Path $releaseDir) {
-        if (-not (Test-Path $skiaDir)) {
+        # 确保 skia 目录存在且为空
+        if (Test-Path $skiaDir) {
+            Write-Host "正在清空旧的 Skia 产物目录..."
+            Remove-Item -Path "$skiaDir\*" -Recurse -Force
+        }
+        else {
+            # 如果目录不存在则创建
             New-Item -ItemType Directory -Path $skiaDir | Out-Null
         }
-        Copy-Item -Path "$releaseDir\*" -Destination $skiaDir -Recurse -Force
-        Write-Host "已将 Skia 构建的 APK 复制到: $skiaDir"
+
+        # 遍历 release 目录下的所有 apk 文件
+        Get-ChildItem -Path $releaseDir -Filter "*.apk" -Recurse | ForEach-Object {
+            # 构建新的文件名 (例如: app-armeabi-v7a-release-skia.apk)
+            $baseName = $_.BaseName
+            $newName = "$baseName-skia.apk"
+            $destinationPath = Join-Path $skiaDir $newName
+
+            # 复制文件到新位置并重命名
+            Copy-Item -Path $_.FullName -Destination $destinationPath -Force
+            Write-Host "已处理: $newName"
+        }
+        Write-Host "已将 Skia 构建的 APK 添加 '-skia' 后缀并复制到: $skiaDir"
     }
     else {
         Write-Warning "未找到第一次构建的输出目录：$releaseDir"
@@ -64,8 +81,8 @@ try {
     $pattern = '<meta-data\s+android:name="io\.flutter\.embedding\.android\.EnableImpeller"\s+android:value="false"\s*/>'
     # 准备替换为注释掉的内容
     $replacement = '<!--        <meta-data
-                android:name="io.flutter.embedding.android.EnableImpeller"
-                android:value="false"/>-->'
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="false"/>-->'
     
     if ($content -match $pattern) {
         $modified = $content -replace $pattern, $replacement

@@ -169,7 +169,8 @@ class _DownloadPageState extends State<_DownloadPage>
 
   // 构建简洁模式列表
   Widget _buildBrevityList(UserDownloadState state) {
-    final elementsRows = generateElements(
+    final elementsRows = generateResponsiveRows(
+      context,
       _convertToEntryInfoList(state.comics),
     );
 
@@ -209,10 +210,6 @@ class _DownloadPageState extends State<_DownloadPage>
     required IndexedWidgetBuilder itemBuilder,
   }) {
     return ListView.builder(
-      itemExtent:
-          bikaSetting.brevity
-              ? context.screenWidth * 0.425
-              : 180.0 + (context.screenHeight / 10) * 0.1,
       controller: scrollControllers['download']!,
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: itemCount,

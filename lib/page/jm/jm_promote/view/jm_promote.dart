@@ -181,7 +181,8 @@ class _JmPromotePageState extends State<_JmPromotePage> {
   List<List<ComicSimplifyEntryInfo>> _convertToEntryInfoList(
     List<JmSuggestionJson> comics,
   ) {
-    return generateElements(
+    return generateResponsiveRows(
+      context,
       comics
           .map(
             (element) => ComicSimplifyEntryInfo(

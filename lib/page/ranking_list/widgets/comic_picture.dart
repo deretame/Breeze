@@ -27,6 +27,8 @@ class ComicPictureWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const double height = 180;
+    const double width = height / 4 * 3;
     return BlocProvider(
       create:
           (context) =>
@@ -47,7 +49,7 @@ class ComicPictureWidget extends StatelessWidget {
             case PictureLoadStatus.initial:
               return Center(
                 child: SizedBox(
-                  width: (context.screenWidth / 10) * 3,
+                  width: width,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: LoadingAnimationWidget.waveDots(
@@ -72,20 +74,20 @@ class ComicPictureWidget extends StatelessWidget {
                   child: Image.file(
                     File(state.imagePath!),
                     fit: BoxFit.cover,
-                    width: (context.screenWidth / 10) * 3,
-                    height: 180,
+                    width: width,
+                    height: height,
                   ),
                 ),
               );
             case PictureLoadStatus.failure:
               if (state.result.toString().contains('404')) {
                 return SizedBox(
-                  width: (context.screenWidth / 10) * 3,
+                  width: width,
                   child: Image.asset('asset/image/error_image/404.png'),
                 );
               } else {
                 return SizedBox(
-                  width: (context.screenWidth / 10) * 3,
+                  width: width,
                   child: InkWell(
                     onTap: () {
                       context.read<PictureBloc>().add(

@@ -104,7 +104,7 @@ class _RankingWidgetState extends State<_RankingWidget>
           );
         })
         .toList()
-        .let(generateElements);
+        .let((list) => generateResponsiveRows(context, list));
 
     var length = _calculateItemCount(state, list.length);
 

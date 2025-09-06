@@ -14,6 +14,8 @@ class CoverWidget extends StatelessWidget {
   final String pictureType;
   final String from;
   final bool roundedCorner;
+  final double? width;
+  final double? height;
 
   const CoverWidget({
     super.key,
@@ -23,6 +25,8 @@ class CoverWidget extends StatelessWidget {
     required this.pictureType,
     required this.from,
     this.roundedCorner = true,
+    this.width,
+    this.height,
   });
 
   @override
@@ -38,8 +42,8 @@ class CoverWidget extends StatelessWidget {
     return BlocProvider(
       create: (context) => PictureBloc()..add(GetPicture(pictureInfo)),
       child: SizedBox(
-        width: context.screenWidth * 0.3,
-        height: (context.screenWidth * 0.3) / 0.75,
+        width: width ?? context.screenWidth * 0.3,
+        height: height ?? (context.screenWidth * 0.3) / 0.75,
         child: BlocBuilder<PictureBloc, PictureLoadState>(
           builder: (context, state) {
             switch (state.status) {

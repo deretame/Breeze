@@ -45,10 +45,10 @@ class NavigationBar extends StatefulWidget {
 }
 
 class _NavigationBarState extends State<NavigationBar> {
-  // PersistentTabController 用于控制底部导航栏
-  final _controller = PersistentTabController(
-    initialIndex: globalSetting.welcomePageNum,
-  );
+  // _controller 用于控制手机底部导航栏和页面切换
+  late PersistentTabController _controller;
+  // _selectedIndex 用于控制平板侧边导航栏和页面切换
+  int _selectedIndex = 0;
   final debouncer = Debouncer(milliseconds: 100);
   final List<ScrollController> _scrollControllers = [];
   late HideOnScrollSettings hideOnScrollSettings;
@@ -67,6 +67,8 @@ class _NavigationBarState extends State<NavigationBar> {
   @override
   void initState() {
     super.initState();
+    _selectedIndex = globalSetting.welcomePageNum;
+    _controller = PersistentTabController(initialIndex: _selectedIndex);
     scrollControllers.forEach((key, value) {
       _scrollControllers.add(value);
     });
@@ -113,38 +115,68 @@ class _NavigationBarState extends State<NavigationBar> {
   @override
   void dispose() {
     _removeOverlay(); // 移除遮罩层
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (isTablet(context)) {
+      return _buildTabletLayout();
+    } else {
+      return _buildMobileLayout();
+    }
+  }
+
+  Widget _buildMobileLayout() {
     return Observer(
       builder: (context) {
         return PersistentTabView(
           context,
           controller: _controller,
-          // 页面列表
           screens: _pageList,
-          // 导航栏项
           items: _navBarItems(),
-          // 导航栏背景颜色
           backgroundColor: globalSetting.backgroundColor,
-          // 处理 Android 返回按钮
           handleAndroidBackButtonPress: true,
-          // 调整布局以避免键盘遮挡
           resizeToAvoidBottomInset: false,
-          // 避免在键盘弹出时隐藏导航栏
           hideNavigationBarWhenKeyboardAppears: false,
-          // 保持页面状态
           stateManagement: true,
-          // decoration: NavBarDecoration(
-          //   // borderRadius: BorderRadius.circular(10.0), // 导航栏圆角
-          //   colorBehindNavBar: globalSetting.backgroundColor, // 导航栏后面的颜色
-          // ),
           navBarStyle: NavBarStyle.style3,
-          // 导航栏样式
-          hideOnScrollSettings: hideOnScrollSettings,
-          // 自动隐藏导航栏
+          onItemSelected: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+        );
+      },
+    );
+  }
+
+  // 平板布局 (使用 NavigationRail)
+  Widget _buildTabletLayout() {
+    return Observer(
+      builder: (context) {
+        return Scaffold(
+          backgroundColor: globalSetting.backgroundColor,
+          body: Row(
+            children: [
+              NavigationRail(
+                selectedIndex: _selectedIndex,
+                onDestinationSelected: (int index) {
+                  setState(() {
+                    _selectedIndex = index;
+                  });
+                },
+                labelType: NavigationRailLabelType.all,
+                backgroundColor: globalSetting.backgroundColor,
+                destinations: _navRailDestinations(),
+              ),
+              const VerticalDivider(thickness: 1, width: 1),
+              Expanded(
+                child: IndexedStack(index: _selectedIndex, children: _pageList),
+              ),
+            ],
+          ),
         );
       },
     );
@@ -207,6 +239,32 @@ class _NavigationBarState extends State<NavigationBar> {
         title: "更多",
         activeColorPrimary: materialColorScheme.primary,
         inactiveColorPrimary: globalSetting.textColor,
+      ),
+    ];
+  }
+
+  // 为平板侧边导航栏生成 NavigationRailDestination
+  List<NavigationRailDestination> _navRailDestinations() {
+    return [
+      NavigationRailDestination(
+        icon: Icon(Icons.home_outlined),
+        selectedIcon: Icon(Icons.home),
+        label: Text("首页"),
+      ),
+      NavigationRailDestination(
+        icon: Icon(Icons.leaderboard_outlined),
+        selectedIcon: Icon(Icons.leaderboard),
+        label: Text("排行"),
+      ),
+      NavigationRailDestination(
+        icon: Icon(Icons.menu_book_outlined),
+        selectedIcon: Icon(Icons.menu_book_sharp),
+        label: Text("书架"),
+      ),
+      NavigationRailDestination(
+        icon: Icon(Icons.more_horiz_outlined),
+        selectedIcon: Icon(Icons.more_horiz),
+        label: Text("更多"),
       ),
     ];
   }

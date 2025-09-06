@@ -32,7 +32,6 @@ class RecommendWidget extends StatelessWidget {
     return Observer(
       builder: (context) {
         return Container(
-          height: context.screenWidth * 0.3 / 0.75,
           decoration: BoxDecoration(
             color: globalSetting.backgroundColor,
             borderRadius: BorderRadius.circular(10),

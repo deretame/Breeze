@@ -62,7 +62,7 @@ final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 Future<void> main() async {
   runZonedGuarded(
     () async {
-      final WidgetsBinding binding = WidgetsFlutterBinding.ensureInitialized();
+      WidgetsFlutterBinding.ensureInitialized();
       // 初始化rust
       await RustLib.init();
 
@@ -73,7 +73,7 @@ Future<void> main() async {
       GestureBinding.instance.resamplingEnabled = true;
 
       // 如果是手机的话就固定为只能使用横屏模式
-      if (!isTabletWithOutContext(binding)) {
+      if (!isTabletWithOutContext()) {
         await SystemChrome.setPreferredOrientations([
           DeviceOrientation.portraitUp,
           DeviceOrientation.portraitDown,

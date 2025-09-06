@@ -18,9 +18,12 @@ class Cover extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const double height = 180;
+    const double width = height / 4 * 3;
+
     return SizedBox(
-      height: 180,
-      width: (context.screenWidth / 10) * 3,
+      height: height,
+      width: width,
       child: BlocProvider(
         create: (context) => PictureBloc()..add(GetPicture(pictureInfo)),
         child: BlocBuilder<PictureBloc, PictureLoadState>(
@@ -46,8 +49,8 @@ class Cover extends StatelessWidget {
                     child: Image.file(
                       File(state.imagePath!),
                       fit: BoxFit.cover,
-                      width: (context.screenWidth / 10) * 3,
-                      height: 180,
+                      width: width,
+                      height: height,
                     ),
                   ),
                 );

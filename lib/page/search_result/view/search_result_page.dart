@@ -221,7 +221,8 @@ class _SearchResultPageState extends State<_SearchResultPage>
             )
             .toList();
 
-    final elementsRows = generateElements(list);
+    final elementsRows = generateResponsiveRows(context, list);
+
     final itemCount = _calculateItemCount(state, elementsRows.length);
 
     return ListView.builder(
@@ -251,10 +252,6 @@ class _SearchResultPageState extends State<_SearchResultPage>
     final itemCount = _calculateItemCount(state, state.comics.length);
 
     return ListView.builder(
-      itemExtent:
-          bikaSetting.brevity
-              ? context.screenWidth * 0.425
-              : 180.0 + (context.screenHeight / 10) * 0.1,
       itemBuilder: (context, index) => _buildListItem(context, index, state),
       itemCount: itemCount,
       controller: _scrollController,

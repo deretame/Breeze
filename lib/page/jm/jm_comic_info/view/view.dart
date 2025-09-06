@@ -13,10 +13,10 @@ import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart'
 import 'package:zephyr/page/jm/jm_comic_info/jm_comic_info.dart';
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../../../config/global/global.dart';
 import '../../../../network/http/picture/picture.dart';
 import '../../../../type/enum.dart';
 import '../../../../util/router/router.dart';
@@ -225,7 +225,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
               pictureType: 'cover',
             ),
           ),
-          SizedBox(width: screenWidth / 60),
+          SizedBox(width: context.screenWidth / 60),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -369,14 +369,14 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
       },
       child: Row(
         children: [
-          SizedBox(width: screenWidth / 50),
+          SizedBox(width: context.screenWidth / 50),
           Expanded(
             child: ListView.builder(
               itemCount: comicInfoWidgets.length,
               itemBuilder: (context, index) => comicInfoWidgets[index],
             ),
           ),
-          SizedBox(width: screenWidth / 50),
+          SizedBox(width: context.screenWidth / 50),
         ],
       ),
     );

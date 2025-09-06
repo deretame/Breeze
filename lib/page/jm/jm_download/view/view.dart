@@ -8,12 +8,12 @@ import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/jm/jm_download/download.dart';
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/init.dart';
 import 'package:zephyr/util/foreground_task/main_task.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../../../config/global/global.dart';
 import '../../../../object_box/model.dart';
 import '../../../comments/widgets/title.dart';
 
@@ -107,7 +107,7 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
       ),
       body: ListView.builder(
         // 设置 ListView 的宽度为屏幕宽度
-        padding: EdgeInsets.symmetric(horizontal: screenWidth / 50),
+        padding: EdgeInsets.symmetric(horizontal: context.screenWidth / 50),
         itemCount: jmComicInfoJson.series.length, // 列表项的数量
         itemBuilder: (context, index) {
           final series = jmComicInfoJson.series[index];

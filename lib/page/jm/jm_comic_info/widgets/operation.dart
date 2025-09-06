@@ -4,11 +4,11 @@ import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/event/event.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../../../config/global/global.dart';
 import '../../../../main.dart';
 import '../json/jm_comic_info_json.dart';
 
@@ -42,7 +42,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
   @override
   Widget build(BuildContext context) {
     return LimitedBox(
-      maxWidth: screenWidth * (48 / 50),
+      maxWidth: context.screenWidth * (48 / 50),
       maxHeight: 50,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,

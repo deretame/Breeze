@@ -2,8 +2,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/comic_read/comic_read.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../config/global/global.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
@@ -38,15 +38,15 @@ class _ReadImageWidgetState extends State<ReadImageWidget> {
     return BlocProvider(
       create: (context) => PictureBloc()..add(GetPicture(widget.pictureInfo)),
       child: SizedBox(
-        width: screenWidth,
+        width: context.screenWidth,
         child: BlocBuilder<PictureBloc, PictureLoadState>(
           builder: (context, state) {
             switch (state.status) {
               case PictureLoadStatus.initial:
                 return Container(
                   color: isColumn ? Color(0xFF2D2D2D) : Colors.black,
-                  width: screenWidth,
-                  height: screenWidth,
+                  width: context.screenWidth,
+                  height: context.screenWidth,
                   child: Center(
                     child: Text(
                       (index + 1).toString(),
@@ -73,8 +73,8 @@ class _ReadImageWidgetState extends State<ReadImageWidget> {
               case PictureLoadStatus.failure:
                 if (state.result.toString().contains('404')) {
                   return SizedBox(
-                    height: screenWidth,
-                    width: screenWidth,
+                    height: context.screenWidth,
+                    width: context.screenWidth,
                     child: Image.asset(
                       'asset/image/error_image/404.png',
                       fit: BoxFit.fill,
@@ -83,8 +83,8 @@ class _ReadImageWidgetState extends State<ReadImageWidget> {
                 } else {
                   return Container(
                     color: isColumn ? Color(0xFF2D2D2D) : Colors.black,
-                    height: screenWidth,
-                    width: screenWidth,
+                    height: context.screenWidth,
+                    width: context.screenWidth,
                     child: InkWell(
                       onTap: () {
                         context.read<PictureBloc>().add(

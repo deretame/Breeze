@@ -2,9 +2,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/page/search_result/models/models.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
-import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../json/knight_leaderboard.dart';
 import 'creator_picture.dart';
@@ -31,7 +31,7 @@ class _CreatorEntryWidgetState extends State<CreatorEntryWidget>
 
     return Column(
       children: <Widget>[
-        SizedBox(height: (screenHeight / 10) * 0.1),
+        SizedBox(height: (context.screenHeight / 10) * 0.1),
         GestureDetector(
           onTap: () {
             AutoRouter.of(context).push(
@@ -50,7 +50,7 @@ class _CreatorEntryWidgetState extends State<CreatorEntryWidget>
             builder: (context) {
               return Container(
                 height: 75,
-                width: screenWidth * (48 / 50),
+                width: context.screenWidth * (48 / 50),
                 decoration: BoxDecoration(
                   color: globalSetting.backgroundColor,
                   borderRadius: BorderRadius.circular(10),

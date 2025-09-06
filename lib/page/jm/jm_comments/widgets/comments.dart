@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/jm/jm_comments/json/comments_json.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
 import 'cover.dart';
 
@@ -19,7 +19,7 @@ class CommentsWidget extends StatelessWidget {
       builder: (context) {
         return Center(
           child: SizedBox(
-            width: screenWidth * (48 / 50),
+            width: context.screenWidth * (48 / 50),
             child: Column(
               children: [
                 InkWell(
@@ -85,12 +85,9 @@ class CommentsWidget extends StatelessWidget {
                 Align(
                   alignment: Alignment.center,
                   child: SizedBox(
-                    width: screenWidth * (48 / 50), // 设置宽度
+                    width: context.screenWidth * (48 / 50), // 设置宽度
                     child: Divider(
-                      color:
-                          globalSetting.themeType
-                              ? materialColorScheme.secondaryFixedDim
-                              : materialColorScheme.secondaryFixedDim,
+                      color: materialColorScheme.secondaryFixedDim,
                       thickness: 1,
                       height: 10,
                     ),
@@ -124,7 +121,7 @@ class _CommentsWidget extends StatelessWidget {
       builder: (context) {
         return Center(
           child: SizedBox(
-            width: screenWidth * (48 / 50),
+            width: context.screenWidth * (48 / 50),
             child: Column(
               children: [
                 Column(
@@ -176,7 +173,7 @@ class _CommentsWidget extends StatelessWidget {
                 Align(
                   alignment: Alignment.center,
                   child: SizedBox(
-                    width: screenWidth * (48 / 50), // 设置宽度
+                    width: context.screenWidth * (48 / 50), // 设置宽度
                     child: Divider(
                       color:
                           globalSetting.themeType

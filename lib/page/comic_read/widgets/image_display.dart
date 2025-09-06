@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../../../config/global/global.dart';
+import 'package:zephyr/config/global/global.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
 class ImageDisplay extends StatefulWidget {
   final String imagePath;
@@ -65,14 +66,15 @@ class _ImageDisplayState extends State<ImageDisplay>
     super.build(context);
     return Container(
       color: Colors.black,
-      width: screenWidth,
+      width: context.screenWidth,
       height:
-          imageHeight != screenWidth
-              ? (imageHeight * (screenWidth / imageWidth))
-              : screenWidth,
+          imageHeight != context.screenWidth
+              ? (imageHeight * (context.screenWidth / imageWidth))
+              : context.screenWidth,
       child:
           isColumn
-              ? imageWidth != screenWidth && imageHeight != screenWidth
+              ? imageWidth != context.screenWidth &&
+                      imageHeight != context.screenWidth
                   ? Image.file(File(widget.imagePath), fit: BoxFit.fill)
                   : Container(color: const Color(0xFF2D2D2D))
               : Image.file(File(widget.imagePath), fit: BoxFit.contain),

@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
-import '../../config/global/global.dart';
 
 class CoverWidget extends StatelessWidget {
   final String fileServer;
@@ -38,8 +38,8 @@ class CoverWidget extends StatelessWidget {
     return BlocProvider(
       create: (context) => PictureBloc()..add(GetPicture(pictureInfo)),
       child: SizedBox(
-        width: screenWidth * 0.3,
-        height: (screenWidth * 0.3) / 0.75,
+        width: context.screenWidth * 0.3,
+        height: (context.screenWidth * 0.3) / 0.75,
         child: BlocBuilder<PictureBloc, PictureLoadState>(
           builder: (context, state) {
             switch (state.status) {

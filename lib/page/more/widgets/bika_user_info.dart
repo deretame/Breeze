@@ -5,10 +5,10 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/more/more.dart';
 import 'package:zephyr/page/more/widgets/user_avatar.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../../../widgets/picture_bloc/models/picture_info.dart';
-import '../../../config/global/global.dart';
 import '../json/bika/profile.dart';
 
 class RefreshEvent {}
@@ -80,10 +80,10 @@ class _BikaUserInfoWidgetState extends State<_BikaUserInfoWidget> {
           },
           behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
           child: SizedBox(
-            width: screenWidth - 16 - 16,
+            width: context.screenWidth - 16 - 16,
             height: 40, // 设置固定高度
             child: SizedBox(
-              width: screenWidth - 16 - 16,
+              width: context.screenWidth - 16 - 16,
               height: 40, // 设置固定高度
               child: Row(
                 children: [

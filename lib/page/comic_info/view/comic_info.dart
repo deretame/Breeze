@@ -7,8 +7,8 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:permission_guard/permission_guard.dart';
 import 'package:zephyr/mobx/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../object_box/model.dart';
 import '../../../object_box/objectbox.g.dart';
@@ -321,7 +321,7 @@ class _ComicInfoState extends State<_ComicInfo>
       },
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.symmetric(horizontal: screenWidth / 50),
+        padding: EdgeInsets.symmetric(horizontal: context.screenWidth / 50),
         itemCount: widgets.length,
         itemBuilder: (context, index) => widgets[index],
       ),

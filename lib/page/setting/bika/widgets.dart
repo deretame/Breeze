@@ -3,36 +3,34 @@ import 'dart:typed_data';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../network/http/bika/http_request.dart';
 
-Widget divider() {
-  return Align(
-    alignment: Alignment.center,
-    child: SizedBox(
-      width: screenWidth * (48 / 50), // 设置宽度
-      child: Observer(
-        builder:
-            (context) => Divider(
-              color:
-                  globalSetting.themeType
-                      ? materialColorScheme.secondaryFixedDim
-                      : materialColorScheme.secondaryFixedDim,
-              thickness: 1,
-              height: 10,
-            ),
+class DividerWidget extends StatelessWidget {
+  const DividerWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.center,
+      child: SizedBox(
+        width: context.screenWidth * (48 / 50), // 设置宽度
+        child: Divider(
+          color: materialColorScheme.secondaryFixedDim,
+          thickness: 1,
+          height: 10,
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 Widget changeProfilePicture(StackRouter route) {
@@ -239,8 +237,8 @@ Future<Map<String, bool>?> showShieldCategoryDialog(
               );
             });
             return SizedBox(
-              width: screenWidth * 0.8, // 设置对话框宽度
-              height: screenHeight * 0.6, // 设置对话框高度
+              width: context.screenWidth * 0.8, // 设置对话框宽度
+              height: context.screenHeight * 0.6, // 设置对话框高度
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,

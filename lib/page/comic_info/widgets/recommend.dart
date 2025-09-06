@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/page/comic_info/json/bika/recommend/recommend_json.dart'
     show Comic;
+import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../type/enum.dart';
 import '../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
@@ -38,7 +38,7 @@ class RecommendWidget extends StatelessWidget {
       child: Observer(
         builder: (context) {
           return Container(
-            height: screenWidth * 0.3 / 0.75,
+            height: context.screenWidth * 0.3 / 0.75,
             decoration: BoxDecoration(
               color: globalSetting.backgroundColor,
               borderRadius: BorderRadius.circular(10),

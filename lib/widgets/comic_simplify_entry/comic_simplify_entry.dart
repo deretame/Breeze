@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../config/global/global.dart';
 import '../../main.dart';
 import '../../object_box/objectbox.g.dart';
 import '../../type/enum.dart';
@@ -63,7 +63,7 @@ class ComicSimplifyEntry extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (info.title == "无数据") {
-      return SizedBox(width: screenWidth * 0.3);
+      return SizedBox(width: context.screenWidth * 0.3);
     }
 
     return GestureDetector(
@@ -73,7 +73,7 @@ class ComicSimplifyEntry extends StatelessWidget {
           () =>
               type != ComicEntryType.normal ? _showDeleteDialog(context) : null,
       child: SizedBox(
-        width: screenWidth * 0.3,
+        width: context.screenWidth * 0.3,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

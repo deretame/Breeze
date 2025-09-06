@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import '../../../../main.dart';
 import '../../../../mobx/int_select.dart';
 import '../../../../mobx/string_select.dart';
@@ -195,8 +196,8 @@ class __FavoritePageState extends State<_FavoritePage>
     return ListView.builder(
       itemExtent:
           bikaSetting.brevity
-              ? screenWidth * 0.425
-              : 180.0 + (screenHeight / 10) * 0.1,
+              ? context.screenWidth * 0.425
+              : 180.0 + (context.screenHeight / 10) * 0.1,
       physics: const AlwaysScrollableScrollPhysics(),
       controller: _scrollController,
       itemCount: itemCount,

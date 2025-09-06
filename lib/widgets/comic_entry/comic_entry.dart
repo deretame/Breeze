@@ -7,10 +7,10 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/util/sundry.dart';
 
-import '../../config/global/global.dart';
 import '../../main.dart';
 import '../../type/enum.dart';
 import '../picture_bloc/bloc/picture_bloc.dart';
@@ -78,14 +78,14 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
       },
       child: Column(
         children: <Widget>[
-          SizedBox(height: (screenHeight / 10) * 0.1),
+          SizedBox(height: (context.screenHeight / 10) * 0.1),
           Observer(
             builder: (context) {
               return Container(
                 height: 180,
-                width: ((screenWidth / 10) * 9.5),
+                width: ((context.screenWidth / 10) * 9.5),
                 margin: EdgeInsets.symmetric(
-                  horizontal: (screenWidth / 10) * 0.25,
+                  horizontal: (context.screenWidth / 10) * 0.25,
                 ),
                 decoration: BoxDecoration(
                   color: globalSetting.backgroundColor,
@@ -112,12 +112,12 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                         );
                       },
                     ),
-                    SizedBox(width: screenWidth / 60),
+                    SizedBox(width: context.screenWidth / 60),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          SizedBox(height: screenWidth / 200),
+                          SizedBox(height: context.screenWidth / 200),
                           Text(
                             comicEntryInfo.title,
                             style: TextStyle(
@@ -164,11 +164,11 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                               ),
                             ],
                           ),
-                          SizedBox(height: screenWidth / 200),
+                          SizedBox(height: context.screenWidth / 200),
                         ],
                       ),
                     ),
-                    SizedBox(width: screenWidth / 50),
+                    SizedBox(width: context.screenWidth / 50),
                   ],
                 ),
               );
@@ -296,7 +296,7 @@ class ImageWidget extends StatelessWidget {
             case PictureLoadStatus.initial:
               return Center(
                 child: SizedBox(
-                  width: (screenWidth / 10) * 3,
+                  width: (context.screenWidth / 10) * 3,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: LoadingAnimationWidget.waveDots(
@@ -322,7 +322,7 @@ class ImageWidget extends StatelessWidget {
                   child: Image.file(
                     File(state.imagePath!),
                     fit: BoxFit.cover,
-                    width: (screenWidth / 10) * 3,
+                    width: (context.screenWidth / 10) * 3,
                     height: 180,
                   ),
                 ),
@@ -330,12 +330,12 @@ class ImageWidget extends StatelessWidget {
             case PictureLoadStatus.failure:
               if (state.result.toString().contains('404')) {
                 return SizedBox(
-                  width: (screenWidth / 10) * 3,
+                  width: (context.screenWidth / 10) * 3,
                   child: Image.asset('asset/image/error_image/404.png'),
                 );
               } else {
                 return SizedBox(
-                  width: (screenWidth / 10) * 3,
+                  width: (context.screenWidth / 10) * 3,
                   child: InkWell(
                     onTap: () {
                       context.read<PictureBloc>().add(GetPicture(pictureInfo));

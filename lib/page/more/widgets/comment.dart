@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../config/global/global.dart';
 import '../../../util/router/router.gr.dart';
 
 Widget buildCommentWidget(BuildContext context) {
@@ -16,7 +16,7 @@ Widget buildCommentWidget(BuildContext context) {
       children: [
         SizedBox(width: 6),
         SizedBox(
-          width: screenWidth - 34,
+          width: context.screenWidth - 34,
           height: 40, // 设置固定高度
           child: Row(
             children: [

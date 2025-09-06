@@ -1,8 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
-import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../network/http/bika/http_request.dart';
 import '../../../util/dialog.dart';
@@ -39,7 +39,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
   @override
   Widget build(BuildContext context) {
     return LimitedBox(
-      maxWidth: screenWidth * (48 / 50),
+      maxWidth: context.screenWidth * (48 / 50),
       maxHeight: 50,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,

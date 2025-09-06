@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/mobx/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../config/global/global.dart';
 import '../../../main.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
@@ -28,7 +28,7 @@ class ComicParticularsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: screenWidth * (48 / 50),
+      width: context.screenWidth * (48 / 50),
       child: Observer(
         builder: (context) {
           return Row(
@@ -44,7 +44,7 @@ class ComicParticularsWidget extends StatelessWidget {
                   cartoonId: comicInfo.id,
                 ),
               ),
-              SizedBox(width: screenWidth / 60),
+              SizedBox(width: context.screenWidth / 60),
               Flexible(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

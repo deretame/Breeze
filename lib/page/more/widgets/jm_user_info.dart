@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
@@ -60,24 +61,22 @@ class _JMUserInfoWidgetState extends State<JMUserInfoWidget> {
             }
           },
         ),
-        GestureDetector(
-          onTap: () {
-            context.pushRoute(JMSettingRoute());
-            // logger.d("禁漫设置");
-          },
-          behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
-          child: SizedBox(
-            width: context.screenWidth - 16 - 16,
-            height: 40, // 设置固定高度
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0), // 左右各添加 16 边距
+          child: GestureDetector(
+            onTap: () {
+              context.pushRoute(JMSettingRoute());
+            },
+            behavior: HitTestBehavior.opaque,
             child: SizedBox(
               width: context.screenWidth - 16 - 16,
-              height: 40, // 设置固定高度
+              height: 40,
               child: Row(
                 children: [
                   Icon(Icons.person),
                   SizedBox(width: 10),
                   Text("禁漫设置", style: TextStyle(fontSize: 22)),
-                  Spacer(), // 填充剩余空间，但不影响点击
+                  Spacer(),
                 ],
               ),
             ),

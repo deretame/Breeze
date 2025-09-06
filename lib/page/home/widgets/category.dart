@@ -10,6 +10,7 @@ import 'package:zephyr/page/search_result/models/search_enter.dart'
     show SearchEnter;
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/picture_bloc/bloc/picture_bloc.dart';
@@ -18,18 +19,31 @@ import '../../../main.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 
 Widget buildCategoriesGrid(BuildContext context, List<HomeCategory> data) {
-  final double itemWidth = context.screenWidth / 3;
+  double screenWidth = 0;
+  int itemCount = 0;
+
+  if (isTablet(context)) {
+    screenWidth = context.screenWidth / 5;
+    itemCount = 5;
+  } else {
+    screenWidth = context.screenWidth / 3;
+    itemCount = 3;
+  }
+
+  final double itemWidth = screenWidth;
   final double itemHeight = itemWidth + 50;
   final double aspectRatio = itemWidth / itemHeight;
 
-  return GridView.count(
-    crossAxisCount: 3,
+  const double gridSpacing = 8.0;
 
+  return GridView.count(
+    padding: const EdgeInsets.all(gridSpacing),
+
+    crossAxisCount: itemCount,
     childAspectRatio: aspectRatio,
 
-    // 3. 可以轻松添加间距
-    mainAxisSpacing: 8.0, // 垂直间距
-    crossAxisSpacing: 8.0,
+    mainAxisSpacing: gridSpacing,
+    crossAxisSpacing: gridSpacing,
 
     physics: const NeverScrollableScrollPhysics(),
     shrinkWrap: true,
@@ -139,10 +153,21 @@ class CategoryLineWidget extends StatelessWidget {
         children: <Widget>[
           ClipRRect(
             borderRadius: BorderRadius.circular(10.0),
-            child: SizedBox(
-              width: context.screenWidth / 4,
-              height: context.screenWidth / 4,
-              child: Image.asset(category.link, fit: BoxFit.cover),
+            child: Builder(
+              builder: (context) {
+                double screenWidth = 0;
+
+                if (isTablet(context)) {
+                  screenWidth = context.screenWidth / 6;
+                } else {
+                  screenWidth = context.screenWidth / 4;
+                }
+                return SizedBox(
+                  width: screenWidth,
+                  height: screenWidth,
+                  child: Image.asset(category.link, fit: BoxFit.cover),
+                );
+              },
             ),
           ),
           SizedBox(height: 5),
@@ -160,11 +185,18 @@ class CategoryLineWidget extends StatelessWidget {
   }
 
   Widget _buildImage(BuildContext context, String imagePath) {
+    double screenWidth = 0;
+
+    if (isTablet(context)) {
+      screenWidth = context.screenWidth / 6;
+    } else {
+      screenWidth = context.screenWidth / 4;
+    }
     return ClipRRect(
       borderRadius: BorderRadius.circular(10.0),
       child: SizedBox(
-        width: context.screenWidth / 4,
-        height: context.screenWidth / 4,
+        width: screenWidth,
+        height: screenWidth,
         child: Image.file(File(imagePath), fit: BoxFit.cover),
       ),
     );

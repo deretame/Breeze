@@ -6,6 +6,7 @@ import 'package:zephyr/page/jm/jm_promote/json/promote/jm_promote_json.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
@@ -17,8 +18,19 @@ class PromoteWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isTablet = isTabletWithOutContext();
+    final isLandscapes = isLandscape(context);
+    double height;
+    if (isTablet) {
+      height = (context.screenWidth * 0.2) / 0.75;
+      if (isLandscapes) {
+        height = (context.screenWidth * 0.15) / 0.75;
+      }
+    } else {
+      height = (context.screenWidth * 0.3) / 0.75;
+    }
     return SizedBox(
-      height: 33 + context.screenWidth * 0.3 / 0.75 + 14,
+      height: 33 + height + 20,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -92,17 +104,20 @@ class PromoteWidget extends StatelessWidget {
               itemBuilder: (context, index) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 5),
-                  child: ComicSimplifyEntry(
-                    info: ComicSimplifyEntryInfo(
-                      title: element.content[index].name,
-                      id: element.content[index].id,
-                      fileServer: getJmCoverUrl(element.content[index].id),
-                      path: '${element.content[index].id}.jpg',
-                      pictureType: 'cover',
-                      from: 'jm',
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 5),
+                    child: ComicSimplifyEntry(
+                      info: ComicSimplifyEntryInfo(
+                        title: element.content[index].name,
+                        id: element.content[index].id,
+                        fileServer: getJmCoverUrl(element.content[index].id),
+                        path: '${element.content[index].id}.jpg',
+                        pictureType: 'cover',
+                        from: 'jm',
+                      ),
+                      type: ComicEntryType.normal,
+                      topPadding: false,
                     ),
-                    type: ComicEntryType.normal,
-                    topPadding: false,
                   ),
                 );
               },

@@ -194,7 +194,10 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
   // 构建简洁模式列表
   Widget _buildBrevityList(UserFavouriteState state) {
-    final elementsRows = generateElements(_convertToSimplifyList(state.comics));
+    final elementsRows = generateResponsiveRows(
+      context,
+      _convertToSimplifyList(state.comics),
+    );
     return _buildCommonListView(
       state: state,
       itemCount: elementsRows.length,
@@ -228,10 +231,6 @@ class _UserFavoritePageState extends State<_FavoritePage>
         itemCount + (showLoadingMore || showError || showEnd ? 1 : 0);
 
     return ListView.builder(
-      itemExtent:
-          bikaSetting.brevity
-              ? context.screenWidth * 0.425
-              : 180.0 + (context.screenHeight / 10) * 0.1,
       controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: totalItemCount,

@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../main.dart';
@@ -62,8 +63,19 @@ class ComicSimplifyEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double width;
+    if (isTabletWithOutContext()) {
+      if (isLandscape(context)) {
+        width = context.screenWidth * 0.15;
+      } else {
+        width = context.screenWidth * 0.2;
+      }
+    } else {
+      width = context.screenWidth * 0.3;
+    }
+
     if (info.title == "无数据") {
-      return SizedBox(width: context.screenWidth * 0.3);
+      return SizedBox(width: width);
     }
 
     return GestureDetector(
@@ -73,7 +85,7 @@ class ComicSimplifyEntry extends StatelessWidget {
           () =>
               type != ComicEntryType.normal ? _showDeleteDialog(context) : null,
       child: SizedBox(
-        width: context.screenWidth * 0.3,
+        width: width,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -88,6 +100,21 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   Widget _buildCoverWithTitle(BuildContext context) {
+    final isTablet = isTabletWithOutContext();
+    final isLandscapes = isLandscape(context);
+    double width;
+    double height;
+    if (isTablet) {
+      width = context.screenWidth * 0.2;
+      height = (context.screenWidth * 0.2) / 0.75;
+      if (isLandscapes) {
+        width = context.screenWidth * 0.15;
+        height = (context.screenWidth * 0.15) / 0.75;
+      }
+    } else {
+      width = context.screenWidth * 0.3;
+      height = (context.screenWidth * 0.3) / 0.75;
+    }
     double circular = roundedCorner ? 5.0 : 0.0;
     return Stack(
       children: [
@@ -98,6 +125,8 @@ class ComicSimplifyEntry extends StatelessWidget {
           pictureType: info.pictureType,
           from: info.from,
           roundedCorner: roundedCorner,
+          width: width,
+          height: height,
         ),
         Positioned(
           left: 0,
@@ -275,20 +304,41 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 }
 
-List<List<ComicSimplifyEntryInfo>> generateElements(
+/// [context] 用于获取屏幕方向和尺寸。
+/// [list] 是原始的数据列表。
+List<List<ComicSimplifyEntryInfo>> generateResponsiveRows(
+  BuildContext context,
   List<ComicSimplifyEntryInfo> list,
 ) {
-  final filledList = _fillListWithPlaceholders(list);
-  return _chunkList(filledList, 3);
+  // 1. 根据 context 动态获取每行的项目数
+  final int itemCount = _getCrossAxisCount(context);
+
+  // 2. 填充占位符
+  final filledList = _fillListWithPlaceholders(list, itemCount);
+
+  // 3. 将列表分割成行
+  return _chunkList(filledList, itemCount);
 }
 
+/// 根据上下文获取每行的项目数 (crossAxisCount)。
+int _getCrossAxisCount(BuildContext context) {
+  final orientation = MediaQuery.of(context).orientation;
+  if (isTablet(context)) {
+    return (orientation == Orientation.landscape) ? 5 : 4;
+  } else {
+    return 3;
+  }
+}
+
+/// 用占位符填充列表，确保最后一行是满的。
 List<ComicSimplifyEntryInfo> _fillListWithPlaceholders(
   List<ComicSimplifyEntryInfo> list,
+  int itemCountPerRow,
 ) {
-  final remainder = list.length % 3;
+  final remainder = list.length % itemCountPerRow;
   if (remainder == 0) return List.from(list);
 
-  final placeholderCount = 3 - remainder;
+  final placeholderCount = itemCountPerRow - remainder;
   final placeholders = List.generate(
     placeholderCount,
     (_) => _createPlaceholder(),
@@ -297,9 +347,10 @@ List<ComicSimplifyEntryInfo> _fillListWithPlaceholders(
   return [...list, ...placeholders];
 }
 
+/// 创建一个用于UI占位的条目。
 ComicSimplifyEntryInfo _createPlaceholder() {
   return ComicSimplifyEntryInfo(
-    title: '无数据',
+    title: '无数据', // 特殊标题，用于UI判断
     id: const Uuid().v4(),
     fileServer: '',
     path: '',
@@ -308,6 +359,7 @@ ComicSimplifyEntryInfo _createPlaceholder() {
   );
 }
 
+/// 将一个长列表分割成一个包含多个子列表的列表。
 List<List<T>> _chunkList<T>(List<T> list, int chunkSize) {
   return List.generate(
     (list.length / chunkSize).ceil(),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
@@ -165,7 +166,8 @@ class __HistoryPageState extends State<_HistoryPage>
 
   // 构建简洁模式列表
   Widget _buildBrevityList(UserHistoryState state) {
-    final elementsRows = generateElements(
+    final elementsRows = generateResponsiveRows(
+      context,
       _convertToEntryInfoList(state.comics),
     );
 
@@ -185,16 +187,19 @@ class __HistoryPageState extends State<_HistoryPage>
 
   // 构建详细模式列表
   Widget _buildDetailedList(UserHistoryState state) {
-    return _buildCommonListView(
-      itemCount: state.comics.length + 1,
-      itemBuilder:
-          (context, index) => _buildListItem(
-            context,
-            index,
-            state.comics.length,
-            () => _refresh(searchStatusStore),
-            isBrevity: false,
-            comics: state.comics,
+    return Observer(
+      builder:
+          (_) => _buildCommonListView(
+            itemCount: state.comics.length + 1,
+            itemBuilder:
+                (context, index) => _buildListItem(
+                  context,
+                  index,
+                  state.comics.length,
+                  () => _refresh(searchStatusStore),
+                  isBrevity: false,
+                  comics: state.comics,
+                ),
           ),
     );
   }
@@ -205,10 +210,6 @@ class __HistoryPageState extends State<_HistoryPage>
     required IndexedWidgetBuilder itemBuilder,
   }) {
     return ListView.builder(
-      itemExtent:
-          bikaSetting.brevity
-              ? context.screenWidth * 0.425
-              : 180.0 + (context.screenHeight / 10) * 0.1,
       physics: const AlwaysScrollableScrollPhysics(),
       controller: _scrollController,
       itemCount: itemCount,

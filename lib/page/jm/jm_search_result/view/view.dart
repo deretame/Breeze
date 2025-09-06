@@ -182,7 +182,7 @@ class _JmSearchResultPageState extends State<_JmSearchResultPage> {
           );
         })
         .toList()
-        .let(generateElements);
+        .let((list) => generateResponsiveRows(context, list));
 
     var length = _calculateItemCount(state, list.length);
 

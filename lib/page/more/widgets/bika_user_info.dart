@@ -73,15 +73,14 @@ class _BikaUserInfoWidgetState extends State<_BikaUserInfoWidget> {
             }
           },
         ),
-        GestureDetector(
-          onTap: () {
-            context.pushRoute(BikaSettingRoute());
-            // logger.d("哔咔设置");
-          },
-          behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
-          child: SizedBox(
-            width: context.screenWidth - 16 - 16,
-            height: 40, // 设置固定高度
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0), // 左右各添加 16 边距
+          child: GestureDetector(
+            onTap: () {
+              context.pushRoute(BikaSettingRoute());
+              // logger.d("哔咔设置");
+            },
+            behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
             child: SizedBox(
               width: context.screenWidth - 16 - 16,
               height: 40, // 设置固定高度

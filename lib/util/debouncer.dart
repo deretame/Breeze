@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 
 class Debouncer {
   final int milliseconds;
@@ -35,7 +36,7 @@ bool isTablet(BuildContext context) {
 }
 
 /// 检查当前设备是否为平板
-bool isTabletWithOutContext(WidgetsBinding binding) {
+bool isTabletWithOutContext() {
   // 在 runApp 之前，手动计算屏幕的 shortestSide
   // 使用 PlatformDispatcher 来获取屏幕的物理尺寸和设备像素密度
   // 这是现代 Flutter 中推荐的方式
@@ -51,4 +52,17 @@ bool isTabletWithOutContext(WidgetsBinding binding) {
   const double tabletBreakpoint = 600.0;
 
   return shortestSide >= tabletBreakpoint;
+}
+
+// 检测是否是横屏
+bool isLandscapeWithOutContext() {
+  final view = PlatformDispatcher.instance.views.first;
+
+  return view.physicalSize.width > view.physicalSize.height;
+}
+
+bool isLandscape(BuildContext context) {
+  final MediaQueryData mediaQuery = MediaQuery.of(context);
+
+  return mediaQuery.orientation == Orientation.landscape;
 }

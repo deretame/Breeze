@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 class ImageDisplay extends StatefulWidget {
@@ -17,22 +16,19 @@ class ImageDisplay extends StatefulWidget {
   State<ImageDisplay> createState() => _ImageDisplayState();
 }
 
-class _ImageDisplayState extends State<ImageDisplay>
-    with AutomaticKeepAliveClientMixin {
+class _ImageDisplayState extends State<ImageDisplay> {
   ImageStream? _imageStream;
   late final ImageStreamListener _imageListener;
 
   bool get isColumn => widget.isColumn;
 
-  double imageWidth = screenWidth;
-  double imageHeight = screenWidth;
-
-  @override
-  bool get wantKeepAlive => true;
+  double imageWidth = 0;
+  double imageHeight = 0;
 
   @override
   void initState() {
     super.initState();
+
     _imageListener = ImageStreamListener((ImageInfo imageInfo, _) {
       if (mounted) {
         setState(() {
@@ -63,18 +59,16 @@ class _ImageDisplayState extends State<ImageDisplay>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return Container(
       color: Colors.black,
       width: context.screenWidth,
       height:
-          imageHeight != context.screenWidth
+          imageHeight != 0
               ? (imageHeight * (context.screenWidth / imageWidth))
               : context.screenWidth,
       child:
           isColumn
-              ? imageWidth != context.screenWidth &&
-                      imageHeight != context.screenWidth
+              ? imageWidth != 0 && imageHeight != 0
                   ? Image.file(File(widget.imagePath), fit: BoxFit.fill)
                   : Container(color: const Color(0xFF2D2D2D))
               : Image.file(File(widget.imagePath), fit: BoxFit.contain),

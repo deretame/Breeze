@@ -11,6 +11,7 @@ import 'package:zephyr/mobx/string_select.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/comic_info/models/all_info.dart';
 import 'package:zephyr/page/comic_read/comic_read.dart';
+import 'package:zephyr/page/comic_read/method/history_writer.dart';
 import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart'
     show downloadInfoJsonFromJson, DownloadInfoJsonSeries;
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart'
@@ -117,6 +118,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   var length = 0; // 组件总数
   List<Doc> docs = []; // 图片信息
   bool _loading = true; // 加载状态
+  final _historyWriter = HistoryWriter();
 
   bool get _isHistory =>
       _type == ComicEntryType.history ||
@@ -198,6 +200,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
         jmComic = jmComic;
       }
     }
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (globalSetting.readMode != 0) {
         await Future.delayed(Duration(milliseconds: 200));
@@ -205,6 +208,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       }
 
       await Future.delayed(Duration(seconds: 1));
+      await _historyWriter.start();
       _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
         if (!_loading) writeToDatabase();
       });
@@ -217,6 +221,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     _pageController.dispose();
     _itemPositionsListener.itemPositions.removeListener(() {});
     _timer?.cancel();
+    _historyWriter.stop();
     super.dispose();
   }
 
@@ -482,7 +487,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
         ..epTitle = epName
         ..epId = epId
         ..deleted = false;
-      await objectbox.bikaHistoryBox.putAsync(comicHistory!);
+      _historyWriter.updateBikaHistory(comicHistory!);
     } else if (widget.from == From.jm) {
       // logger.d(pageIndex);
       // 更新记录
@@ -494,7 +499,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
         ..epTitle = isJmAndSeriesEmpty ? '' : epName
         ..epId = epId
         ..deleted = false;
-      await objectbox.jmHistoryBox.putAsync(jmHistory!);
+      _historyWriter.updateJmHistory(jmHistory!);
     }
     _isInserting = false;
     _lastUpdateTime = DateTime.now();

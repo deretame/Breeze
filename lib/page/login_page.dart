@@ -61,6 +61,8 @@ class _LoginPageState extends State<LoginPage> {
       message = "用户名或密码错误，请重新输入";
     }
 
+    if (!mounted) return;
+
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!

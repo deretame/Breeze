@@ -75,11 +75,11 @@ class PageSkip extends StatelessWidget {
     return FloatingActionButton.extended(
       onPressed: () async {
         final pageSkip = await showNumberInputDialog(context);
-        if (pageSkip != 0) {
+        if (pageSkip != null) {
           if (!context.mounted) return;
 
           final newSearchEnter = searchEnter.copyWith(
-            pageCount: pageSkip!,
+            pageCount: pageSkip,
             refresh: searchEnter.refresh,
           );
           context.read<SearchBloc>().add(

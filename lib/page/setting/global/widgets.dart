@@ -176,9 +176,16 @@ void showKeywordDialog(
                 children: [
                   // 关键词列表（Wrap布局自动换行）
                   _buildKeywordChips(globalSetting.maskedKeywords, (index) {
-                    globalSetting.setMaskedKeywords([
-                      ...globalSetting.maskedKeywords..removeAt(index),
-                    ]);
+                    // 1. 先从原始列表中创建一个可修改的副本
+                    final newList = List<String>.from(
+                      globalSetting.maskedKeywords,
+                    );
+
+                    // 2. 在副本上执行删除操作
+                    newList.removeAt(index);
+
+                    // 3. 将这个全新的、修改后的列表设置回去
+                    globalSetting.setMaskedKeywords(newList);
                   }),
                   const SizedBox(height: 16),
                   // 添加关键词的输入行

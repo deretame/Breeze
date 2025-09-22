@@ -13,6 +13,10 @@ extension ContextExtensions on BuildContext {
   // 获取状态栏高度
   double get statusBarHeight => MediaQuery.of(this).padding.top;
 
+  // 获取底部安全区域高度
+  double get bottomSafeHeight => MediaQuery.of(this).padding.bottom;
+  double get devicePixelRatio => MediaQuery.of(this).devicePixelRatio;
+
   // 获取主题
   ThemeData get theme => Theme.of(this);
 }

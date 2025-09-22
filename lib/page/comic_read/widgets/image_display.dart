@@ -59,6 +59,9 @@ class _ImageDisplayState extends State<ImageDisplay> {
 
   @override
   Widget build(BuildContext context) {
+    final int cacheSize =
+        (context.screenWidth * MediaQuery.of(context).devicePixelRatio).round();
+
     return Container(
       color: Colors.black,
       width: context.screenWidth,
@@ -69,9 +72,17 @@ class _ImageDisplayState extends State<ImageDisplay> {
       child:
           isColumn
               ? imageWidth != 0 && imageHeight != 0
-                  ? Image.file(File(widget.imagePath), fit: BoxFit.fill)
+                  ? Image.file(
+                    File(widget.imagePath),
+                    fit: BoxFit.fill,
+                    cacheWidth: cacheSize,
+                  )
                   : Container(color: const Color(0xFF2D2D2D))
-              : Image.file(File(widget.imagePath), fit: BoxFit.contain),
+              : Image.file(
+                File(widget.imagePath),
+                fit: BoxFit.contain,
+                cacheWidth: cacheSize,
+              ),
     );
   }
 }

@@ -39,6 +39,7 @@ class ColumnModeWidget extends StatelessWidget {
           separatorBuilder: (_, _) => Container(height: 2, color: Colors.black),
           itemScrollController: itemScrollController,
           itemPositionsListener: itemPositionsListener,
+          minCacheExtent: context.screenHeight * 2.0,
         )
         : ScrollablePositionedList.builder(
           // 不带分隔符的版本
@@ -46,6 +47,7 @@ class ColumnModeWidget extends StatelessWidget {
           itemBuilder: itemBuilder,
           itemScrollController: itemScrollController,
           itemPositionsListener: itemPositionsListener,
+          minCacheExtent: context.screenHeight * 2.0,
         );
   }
 

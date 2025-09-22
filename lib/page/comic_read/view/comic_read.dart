@@ -643,6 +643,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
 
     if (shouldScroll) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
         setState(() => pageIndex = index);
         // logger.d('历史记录：${comicHistory!.epPageCount}');
         if (globalSetting.readMode == 0) {

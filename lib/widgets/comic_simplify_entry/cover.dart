@@ -39,11 +39,14 @@ class CoverWidget extends StatelessWidget {
       pictureType: pictureType,
     );
 
+    final width = this.width ?? context.screenWidth * 0.3;
+    final height = this.height ?? (context.screenWidth * 0.3) / 0.75;
+
     return BlocProvider(
       create: (context) => PictureBloc()..add(GetPicture(pictureInfo)),
       child: SizedBox(
-        width: width ?? context.screenWidth * 0.3,
-        height: height ?? (context.screenWidth * 0.3) / 0.75,
+        width: width,
+        height: height,
         child: BlocBuilder<PictureBloc, PictureLoadState>(
           builder: (context, state) {
             switch (state.status) {
@@ -54,7 +57,12 @@ class CoverWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(
                     roundedCorner ? 5.0 : 0.0,
                   ),
-                  child: Image.file(File(state.imagePath!), fit: BoxFit.cover),
+                  child: Image.file(
+                    File(state.imagePath!),
+                    fit: BoxFit.cover,
+                    cacheHeight: height.toInt() * 2,
+                    cacheWidth: width.toInt() * 2,
+                  ),
                 );
               case PictureLoadStatus.failure:
                 if (state.result.toString().contains('404')) {

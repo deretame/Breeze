@@ -21,6 +21,7 @@ dependencies:
   toggle_switch: ^2.3.0 # 多状态切换开关
   animated_search_bar: ^2.7.2 # 带动画的搜索栏组件
   photo_view: ^0.15.0 # 交互式图片查看器（缩放/平移）
+  extended_image: ^10.0.1 # 高性能图片缓存与展示组件
   scrollable_positioned_list: ^0.3.8 # 支持滚动定位的列表
   persistent_bottom_nav_bar: ^6.2.1 # 可持久化的底部导航栏
   markdown_widget: ^2.3.2+8 # Markdown 渲染支持
@@ -63,7 +64,7 @@ dependencies:
   dio_cookie_manager: ^3.0.1 # Dio Cookie 管理器
   webview_flutter: ^4.10.0 # WebView 组件
   url_launcher: ^6.3.1 # URL 启动器（外部浏览器）
-  connectivity_plus: ^6.1.2 # 网络状态监测
+  connectivity_plus: ^7.0.0 # 网络状态监测
   html: ^0.15.5+1 # HTML 解析器
   flutter_socks_proxy: ^0.0.3 # socks5代理配置
   cookie_jar: ^4.0.8 # Cookie 管理器
@@ -84,9 +85,9 @@ dependencies:
   encrypter_plus: ^5.1.0 # 加密算法库（AES/RSA）
   crypto: ^3.0.6 # 哈希算法（MD5/SHA）
   permission_guard: ^2.0.1 # 权限管理工具
-  package_info_plus: ^8.1.2 # 应用包信息获取
+  package_info_plus: ^9.0.0 # 应用包信息获取
   uuid: ^4.4.2 # UUID 生成器
-  device_info_plus: ^11.5.0 # 设备信息获取
+  device_info_plus: ^12.1.0 # 设备信息获取
 
   ########################################
   #       开发工具 & 辅助功能           #

@@ -59,8 +59,7 @@ class _ImageDisplayState extends State<ImageDisplay> {
 
   @override
   Widget build(BuildContext context) {
-    final int cacheSize =
-        (context.screenWidth * MediaQuery.of(context).devicePixelRatio).round();
+    final cacheSize = (context.screenWidth * context.devicePixelRatio).round();
 
     return Container(
       color: Colors.black,

@@ -26,3 +26,5 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
+
+apply plugin: "com.github.ben-manes.versions" // 应用插件

@@ -48,7 +48,6 @@ class _JmPromotePageState extends State<_JmPromotePage> {
     subscription = eventBus.on<RefreshCategories>().listen((event) {
       refreshPromote();
     });
-    scrollController.addListener(_onScroll);
   }
 
   void refreshPromote() {
@@ -58,7 +57,6 @@ class _JmPromotePageState extends State<_JmPromotePage> {
   @override
   void dispose() {
     subscription.cancel();
-    scrollController.removeListener(_onScroll);
     super.dispose();
   }
 
@@ -103,66 +101,87 @@ class _JmPromotePageState extends State<_JmPromotePage> {
         (state.status == PromoteStatus.loadingMore ? 1 : 0) +
         (state.status == PromoteStatus.loadingMoreFailure ? 1 : 0);
 
-    return ListView.builder(
-      itemCount: length,
-      itemBuilder: (context, index) {
-        if (index == length - 1) {
-          if (state.status == PromoteStatus.loadingMore) {
-            return const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Center(child: CircularProgressIndicator()),
-            );
-          } else if (state.status == PromoteStatus.loadingMoreFailure) {
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: () {
-                  context.read<PromoteBloc>().add(PromoteEvent(page: page + 1));
-                },
-              ),
+    return NotificationListener<ScrollNotification>(
+      onNotification: (ScrollNotification scrollInfo) {
+        if (scrollInfo is ScrollUpdateNotification &&
+            context.read<PromoteBloc>().state.status !=
+                PromoteStatus.loadingMore) {
+          final metrics = scrollInfo.metrics;
+
+          if (metrics.maxScrollExtent > 0 &&
+              metrics.pixels >= metrics.maxScrollExtent * 0.9) {
+            context.read<PromoteBloc>().add(
+              PromoteEvent(status: PromoteStatus.loadingMore, page: page + 1),
             );
           }
         }
+        return false;
+      },
+      child: list(length, state, elementsRows),
+    );
+  }
 
-        if (index < state.list.length) {
-          return _commentItem(state.list[index]);
-        }
-
-        if (index == state.list.length) {
+  Widget list(
+    int length,
+    PromoteState state,
+    List<List<ComicSimplifyEntryInfo>> elementsRows,
+  ) => ListView.builder(
+    itemCount: length,
+    itemBuilder: (context, index) {
+      if (index == length - 1) {
+        if (state.status == PromoteStatus.loadingMore) {
+          return const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        } else if (state.status == PromoteStatus.loadingMoreFailure) {
           return Padding(
-            padding: const EdgeInsets.all(5),
-            child: Container(
-              decoration: BoxDecoration(
-                color: materialColorScheme.secondaryFixed.withValues(
-                  alpha: 0.1,
-                ),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              width: double.infinity,
-              child: Row(
-                children: [
-                  Text(
-                    '最新上传',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: materialColorScheme.onSurface,
-                    ),
-                  ),
-                  const Spacer(),
-                ],
-              ),
+            padding: const EdgeInsets.all(8.0),
+            child: IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () {
+                context.read<PromoteBloc>().add(PromoteEvent(page: page + 1));
+              },
             ),
           );
         }
+      }
 
-        return _suggestionItem(elementsRows[index - state.list.length - 1]);
-      },
-      controller: scrollController,
-    );
-  }
+      if (index < state.list.length) {
+        return _commentItem(state.list[index]);
+      }
+
+      if (index == state.list.length) {
+        return Padding(
+          padding: const EdgeInsets.all(5),
+          child: Container(
+            decoration: BoxDecoration(
+              color: materialColorScheme.secondaryFixed.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            width: double.infinity,
+            child: Row(
+              children: [
+                Text(
+                  '最新上传',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: materialColorScheme.onSurface,
+                  ),
+                ),
+                const Spacer(),
+              ],
+            ),
+          ),
+        );
+      }
+
+      return _suggestionItem(elementsRows[index - state.list.length - 1]);
+    },
+    controller: scrollController,
+  );
 
   Widget _commentItem(JmPromoteJson element) {
     return PromoteWidget(element: element);
@@ -196,20 +215,5 @@ class _JmPromotePageState extends State<_JmPromotePage> {
           )
           .toList(),
     );
-  }
-
-  void _onScroll() {
-    if (_isBottom) {
-      context.read<PromoteBloc>().add(
-        PromoteEvent(status: PromoteStatus.loadingMore, page: page + 1),
-      );
-    }
-  }
-
-  bool get _isBottom {
-    if (!scrollController.hasClients) return false;
-    final maxScroll = scrollController.position.maxScrollExtent;
-    final currentScroll = scrollController.offset;
-    return currentScroll >= (maxScroll * 0.9);
   }
 }

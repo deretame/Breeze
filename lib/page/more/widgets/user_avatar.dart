@@ -34,19 +34,33 @@ class UserAvatar extends StatelessWidget {
                       FullRouteImageRoute(imagePath: state.imagePath!),
                     );
                   },
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(50.0),
-                    child: Image.file(
-                      File(state.imagePath!),
-                      fit: BoxFit.cover,
-                      width: 75,
-                      height: 75,
+                  child: SizedBox(
+                    height: 75,
+                    width: 75,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(50.0),
+                      child:
+                          pictureInfo.url.contains("nopic-Male.gif")
+                              ? Image.asset(
+                                'asset/image/assets/default_cover.png',
+                                fit: BoxFit.cover,
+                              )
+                              : Image.file(
+                                File(state.imagePath!),
+                                fit: BoxFit.cover,
+                              ),
                     ),
                   ),
                 );
               case PictureLoadStatus.failure:
                 if (state.result.toString().contains('404')) {
-                  return Image.asset('asset/image/assets/default_cover.png');
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(50.0),
+                    child: Image.asset(
+                      'asset/image/assets/default_cover.png',
+                      fit: BoxFit.cover,
+                    ),
+                  );
                 }
                 return InkWell(
                   onTap: () {

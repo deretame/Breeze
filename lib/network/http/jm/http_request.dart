@@ -136,6 +136,6 @@ Future<Map<String, dynamic>> getRanking({
 }) async => await request(
   '${JmConfig.baseUrl}/categories/filter',
   method: 'GET',
-  params: {'page': page, 'order': order, 'c': c, 'o': o},
+  params: {'page': page, 'c': c, 'o': o},
   cache: true,
 );

@@ -226,7 +226,7 @@ class __FavoritePageState extends State<_FavoritePage>
     return ComicSimplifyEntryRow(
       key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
       entries: elementsRows[index],
-      type: ComicEntryType.history,
+      type: ComicEntryType.favorite,
       refresh: refreshCallback,
     );
   }

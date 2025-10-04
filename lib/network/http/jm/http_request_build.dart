@@ -71,7 +71,7 @@ Future<dynamic> request(
   dynamic result;
 
   if (params != null) {
-    url = "$url/${_mapToUrlParams(params)}";
+    url = "$url${_mapToUrlParams(params)}";
   }
 
   if (url.contains("/daily_list/filter")) {

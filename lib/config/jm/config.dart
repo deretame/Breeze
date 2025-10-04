@@ -23,25 +23,35 @@ class JmConfig {
 
   static const kJmSecret = '185Hcomic3PAPP7R';
 
+  static int baseUrlIndex = 0;
+
   static const baseUrls = [
-    'https://www.cdntwice.org',
-    'https://www.jmeadpoolcdn.life',
-    'https://www.jmapiproxyxxx.one',
-    'https://www.jmfreedomproxy.xyz',
+    'https://www.cdnzack.cc',
+    'https://www.cdnsha.org',
+    'https://www.cdnliu.org',
+    'https://www.cdnntr.cc',
   ];
+
+  static void setBaseUrlIndex(int index) {
+    baseUrlIndex = index;
+  }
+
+  static int imagesUrlIndex = 0;
 
   static const imagesUrls = [
-    'https://cdn-msp.jmapiproxy3.cc',
-    'https://cdn-msp3.jmapiproxy3.cc',
-    'https://cdn-msp2.jmapiproxy1.cc',
-    'https://cdn-msp3.jmapiproxy3.cc',
-    'https://cdn-msp2.jmapiproxy4.cc',
-    'https://cdn-msp2.jmapiproxy3.cc',
+    'https://cdn-msp12.jmdanjonproxy.xyz',
+    'https://tencent.jmdanjonproxy.xyz',
+    'https://cdn-msp3.jmapiproxy1.cc',
+    'https://cdn-msp.jmapiproxy1.cc',
   ];
 
-  static String get baseUrl => baseUrls[0];
+  static void setImagesUrlIndex(int index) {
+    imagesUrlIndex = index;
+  }
 
-  static String get imagesUrl => imagesUrls[0];
+  static String get baseUrl => baseUrls[baseUrlIndex];
+
+  static String get imagesUrl => imagesUrls[imagesUrlIndex];
 
   static String get userImagesUrl => 'https://cdn-msp3.jmapinodeudzn.net';
 

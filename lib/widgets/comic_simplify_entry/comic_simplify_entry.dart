@@ -209,7 +209,10 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   (String, String) _getDialogContent() {
+    logger.d(type);
     switch (type) {
+      case ComicEntryType.favorite:
+        return ("删除收藏", "确定要删除（${info.title}）的收藏记录吗？");
       case ComicEntryType.history:
         return ("删除历史记录", "确定要删除（${info.title}）的历史记录吗？");
       case ComicEntryType.download:
@@ -225,6 +228,8 @@ class ComicSimplifyEntry extends StatelessWidget {
         await _deleteHistory();
       } else if (type == ComicEntryType.download) {
         await _deleteDownload();
+      } else if (type == ComicEntryType.favorite) {
+        await _deleteFavorite();
       }
       refresh!();
     } catch (e, s) {
@@ -283,6 +288,21 @@ class ComicSimplifyEntry extends StatelessWidget {
       if (temp != null) {
         objectbox.jmDownloadBox.remove(temp.id);
         await _deleteDownloadDirectory(info.id);
+      }
+    }
+  }
+
+  Future<void> _deleteFavorite() async {
+    if (info.from == 'bika') {
+    } else if (info.from == 'jm') {
+      final temp =
+          objectbox.jmFavoriteBox
+              .query(JmFavorite_.comicId.equals(info.id))
+              .build()
+              .findFirst();
+
+      if (temp != null) {
+        objectbox.jmFavoriteBox.remove(temp.id);
       }
     }
   }

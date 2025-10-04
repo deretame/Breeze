@@ -21,6 +21,7 @@ import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/main_task.dart';
+import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -110,6 +111,15 @@ class _NavigationBarState extends State<NavigationBar> {
     });
 
     initializeNotifications();
+
+    Future.delayed(const Duration(seconds: 1), () async {
+      try {
+        await setFastestUrlIndex();
+        await setFastestImagesUrlIndex();
+      } catch (e) {
+        logger.e(e);
+      }
+    });
   }
 
   @override

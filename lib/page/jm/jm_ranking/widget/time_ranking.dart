@@ -67,7 +67,7 @@ class _TimeRankingPageState extends State<TimeRankingPage>
                   );
                 }
                 return RankingWidget(
-                  tag: JmConfig.categoryMap[tag] as String,
+                  tag: JmConfig.categoryMap[tag].toString(),
                   time: JmConfig.rankingTypeMap[tab]!,
                 );
               }).toList(),

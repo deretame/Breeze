@@ -338,6 +338,7 @@ class _NavigationBarState extends State<NavigationBar> {
         List<String> abis = androidInfo.supportedAbis;
         if (abis.isNotEmpty) {
           arch = abis.first;
+          logger.d(arch);
         }
       }
     } catch (e) {
@@ -369,7 +370,8 @@ class _NavigationBarState extends State<NavigationBar> {
                 onPressed: () async {
                   context.pop();
                   for (var apkUrl in temp.assets) {
-                    if (apkUrl.browserDownloadUrl.contains(arch)) {
+                    if (apkUrl.browserDownloadUrl.contains(arch) &&
+                        !apkUrl.browserDownloadUrl.contains("skia")) {
                       await installApk(apkUrl.browserDownloadUrl);
                     }
                   }

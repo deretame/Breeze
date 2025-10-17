@@ -136,6 +136,7 @@ class _DownloadPageState extends State<DownloadPage> {
         authorization: bikaSetting.authorization,
         proxy: bikaSetting.proxy.toString(),
       ),
+      globalProxy: globalSetting.socks5Proxy,
       selectedChapters:
           _downloadInfo.entries
               .where((entry) => entry.value)

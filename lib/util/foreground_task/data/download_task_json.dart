@@ -23,6 +23,7 @@ abstract class DownloadTaskJson with _$DownloadTaskJson {
     required BikaInfo bikaInfo,
     required List<String> selectedChapters,
     required bool slowDownload,
+    required String globalProxy,
   }) = _DownloadTaskJson;
 
   factory DownloadTaskJson.fromJson(Map<String, dynamic> json) =>

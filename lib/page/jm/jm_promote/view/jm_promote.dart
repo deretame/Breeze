@@ -45,7 +45,9 @@ class _JmPromotePageState extends State<_JmPromotePage> {
   void initState() {
     super.initState();
     subscription = eventBus.on<RefreshCategories>().listen((event) {
-      refreshPromote();
+      if (mounted) {
+        refreshPromote();
+      }
     });
     scrollController = ScrollController();
     scrollController.addListener(_onScroll);
@@ -207,10 +209,20 @@ class _JmPromotePageState extends State<_JmPromotePage> {
     }
   }
 
+  // jm_promote.dart - 已经修复
   bool get _isBottom {
     if (!scrollController.hasClients) return false;
-    final maxScroll = scrollController.position.maxScrollExtent;
-    final currentScroll = scrollController.offset;
+
+    final positions = scrollController.positions;
+    if (positions.isEmpty) return false;
+
+    final position = positions.first;
+
+    final maxScroll = position.maxScrollExtent;
+    final currentScroll = position.pixels;
+
+    if (maxScroll <= 0) return false;
+
     return currentScroll >= (maxScroll * 0.9);
   }
 }

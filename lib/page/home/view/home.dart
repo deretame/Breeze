@@ -2,7 +2,6 @@ import 'package:auto_route/auto_route.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:uuid/uuid.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/home/category.dart';
 import 'package:zephyr/page/jm/jm_promote/view/jm_promote.dart';
@@ -39,32 +38,41 @@ class _HomePageState extends State<HomePage> {
           ),
           body: RefreshIndicator(
             onRefresh: () async => eventBus.fire(RefreshCategories()),
-            child:
-                globalSetting.comicChoice == 1
-                    ? ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      controller: scrollControllers['category']!,
-                      children: const [KeywordPage(), CategoryWidget()],
-                    )
-                    : const JmPromotePage(),
+            child: _buildBody(),
           ),
           floatingActionButton:
               globalSetting.disableBika
                   ? null
                   : FloatingActionButton(
-                    heroTag: Uuid().v4(),
+                    heroTag: const ValueKey('switch_comic'),
+                    onPressed: _switchComic,
                     child: const Icon(Icons.compare_arrows),
-                    onPressed: () {
-                      if (globalSetting.comicChoice == 1) {
-                        globalSetting.setComicChoice(2);
-                      } else {
-                        globalSetting.setComicChoice(1);
-                      }
-                    },
                   ),
         );
       },
     );
+  }
+
+  Widget _buildBody() {
+    // 使用 Key 确保完全重建
+    if (globalSetting.comicChoice == 1) {
+      return ListView(
+        key: const ValueKey('bika_list'),
+        physics: const AlwaysScrollableScrollPhysics(),
+        controller: scrollControllers['category']!,
+        children: const [KeywordPage(), CategoryWidget()],
+      );
+    } else {
+      return const JmPromotePage(key: ValueKey('jm_promote'));
+    }
+  }
+
+  void _switchComic() {
+    if (globalSetting.comicChoice == 1) {
+      globalSetting.setComicChoice(2);
+    } else {
+      globalSetting.setComicChoice(1);
+    }
   }
 
   void search() {

@@ -141,6 +141,7 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
       comicId: jmComicInfoJson.id.toString(),
       comicName: jmComicInfoJson.name,
       bikaInfo: BikaInfo(authorization: "", proxy: ""),
+      globalProxy: globalSetting.socks5Proxy,
       selectedChapters:
           _downloadInfo.entries
               .where((entry) => entry.value)

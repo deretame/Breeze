@@ -54,6 +54,9 @@ class _NavigationBarState extends State<NavigationBar> {
   final List<ScrollController> _scrollControllers = [];
   late HideOnScrollSettings hideOnScrollSettings;
 
+  static bool _notificationsInitialized = false; // ← 使用静态变量，跨实例共享
+  bool _isInitializingNotifications = false;
+
   // 页面列表
   final _pageList = [
     HomePage(),
@@ -86,6 +89,8 @@ class _NavigationBarState extends State<NavigationBar> {
     _initForegroundTask();
     FlutterForegroundTask.addTaskDataCallback(_onReceiveTaskData);
 
+    _initializeNotificationsOnce();
+
     // 每隔 5 分钟执行一次
     const duration = Duration(minutes: 5);
     Timer.periodic(duration, (Timer timer) async {
@@ -109,8 +114,6 @@ class _NavigationBarState extends State<NavigationBar> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _addOverlay();
     });
-
-    initializeNotifications();
 
     Future.delayed(const Duration(seconds: 1), () async {
       try {
@@ -311,17 +314,35 @@ class _NavigationBarState extends State<NavigationBar> {
   }
 
   void _goToLoginPage(From from) {
-    String allRoutes = "";
-    Navigator.of(context).widget.pages.forEach((route) {
-      allRoutes += "${route.name} ";
-    });
-    // logger.d(allRoutes);
-    debouncer.run(() {
-      if (!allRoutes.contains('LoginRoute')) {
-        showErrorToast('登录过期，请重新登录');
-        context.navigateTo(LoginRoute(from: from));
+    try {
+      final navigator = Navigator.maybeOf(context); // ← 使用 maybeOf
+      if (navigator == null) {
+        logger.w('Navigator not available');
+        return;
       }
-    });
+
+      String allRoutes = "";
+      for (final route in navigator.widget.pages) {
+        // 安全访问 route.name
+        final routeName = route.name ?? 'UnknownRoute'; // ← 处理 null
+        allRoutes += "$routeName ";
+      }
+
+      logger.d('All routes: $allRoutes');
+
+      debouncer.run(() {
+        if (!allRoutes.contains('LoginRoute')) {
+          showErrorToast('登录过期，请重新登录');
+
+          // 确保 mounted
+          if (mounted) {
+            context.navigateTo(LoginRoute(from: from));
+          }
+        }
+      });
+    } catch (e, stackTrace) {
+      logger.e('Failed to navigate to login', error: e, stackTrace: stackTrace);
+    }
   }
 
   Future<void> _checkUpdate() async {
@@ -497,25 +518,90 @@ class _NavigationBarState extends State<NavigationBar> {
     }
   }
 
-  Future<void> initializeNotifications() async {
+  Future<void> _initializeNotificationsOnce() async {
+    // 应用级别检查
+    if (_notificationsInitialized) {
+      logger.d('Notifications already initialized globally');
+      return;
+    }
+
+    // 实例级别检查
+    if (_isInitializingNotifications) {
+      logger.w('Notification initialization already in progress');
+      return;
+    }
+
+    try {
+      _isInitializingNotifications = true;
+
+      // 延迟执行，避免与其他初始化冲突
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      if (!mounted) return;
+
+      await _initializeNotifications();
+
+      _notificationsInitialized = true;
+      logger.d('Notifications initialized successfully');
+    } catch (e, stackTrace) {
+      logger.e(
+        'Failed to initialize notifications',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    } finally {
+      _isInitializingNotifications = false;
+    }
+  }
+
+  Future<void> _initializeNotifications() async {
     const initializationSettingsAndroid = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
-
     const initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
     );
-
     await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse:
           (NotificationResponse notificationResponse) async {},
     );
+    // 先检查当前状态
+    try {
+      final currentStatus = await Permission.notification.status;
 
-    final status = await Permission.notification.request();
-    if (!status.isGranted) {
-      showErrorToast("请开启通知权限");
-      return;
+      if (currentStatus.isGranted) {
+        logger.d('Notification permission already granted');
+        return;
+      }
+
+      if (currentStatus.isPermanentlyDenied) {
+        logger.w('Notification permission permanently denied');
+        if (mounted) {
+          showErrorToast("通知权限已被永久拒绝，请在系统设置中开启");
+        }
+        return;
+      }
+      // 只在需要时请求权限
+      final status = await Permission.notification.request();
+
+      if (!status.isGranted) {
+        logger.w('Notification permission denied');
+        if (mounted) {
+          showErrorToast("请开启通知权限");
+        }
+      } else {
+        logger.d('Notification permission granted');
+      }
+    } catch (e, stackTrace) {
+      logger.e('Permission request failed', error: e, stackTrace: stackTrace);
+
+      // 如果是并发冲突，静默处理
+      if (e.toString().contains('already running')) {
+        logger.w('Permission request already running, ignoring...');
+      } else {
+        rethrow;
+      }
     }
   }
 

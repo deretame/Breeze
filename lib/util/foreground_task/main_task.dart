@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
-import 'package:flutter_socks_proxy/socks_proxy.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
@@ -35,9 +34,6 @@ class MyTaskHandler extends TaskHandler {
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
     objectBox = await ObjectBox.create();
-    if (globalSetting.socks5Proxy.isNotEmpty) {
-      SocksProxy.initProxy(proxy: 'SOCKS5 ${globalSetting.socks5Proxy}');
-    }
   }
 
   // 这个方法会根据你在 ForegroundTaskOptions 中设置的 eventAction 来重复调用。

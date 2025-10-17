@@ -17,6 +17,7 @@ _DownloadTaskJson _$DownloadTaskJsonFromJson(Map<String, dynamic> json) =>
               .map((e) => e as String)
               .toList(),
       slowDownload: json['slowDownload'] as bool,
+      globalProxy: json['globalProxy'] as String,
     );
 
 Map<String, dynamic> _$DownloadTaskJsonToJson(_DownloadTaskJson instance) =>
@@ -27,6 +28,7 @@ Map<String, dynamic> _$DownloadTaskJsonToJson(_DownloadTaskJson instance) =>
       'bikaInfo': instance.bikaInfo,
       'selectedChapters': instance.selectedChapters,
       'slowDownload': instance.slowDownload,
+      'globalProxy': instance.globalProxy,
     };
 
 _BikaInfo _$BikaInfoFromJson(Map<String, dynamic> json) => _BikaInfo(

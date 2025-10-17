@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:flutter_socks_proxy/socks_proxy.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
@@ -22,6 +23,9 @@ import 'package:zephyr/util/json_dispose.dart';
 
 Future<void> jmDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
   // 先获取一下基本的信息
+  if (task.globalProxy.isNotEmpty) {
+    SocksProxy.initProxy(proxy: 'SOCKS5 ${task.globalProxy}');
+  }
   self.message = "获取漫画信息中...";
   final comicInfo = await getJmComicInfo(task.comicId);
   self.message = "获取章节信息中...";

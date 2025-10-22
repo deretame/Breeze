@@ -38,26 +38,37 @@ Future<void> exportComicAsFolder(ComicAllInfoJson comicInfo) async {
   }
   await processedComicInfoFile.writeAsString(processedComicInfoString);
 
-  if (processedComicInfo.comic.thumb.path.isNotEmpty) {
-    var coverDir = '$comicDir/cover';
-    var coverFile = File('$coverDir/cover.jpg');
-    if (!await coverFile.exists()) {
-      await coverFile.create(recursive: true);
+  if (processedComicInfo.comic.thumb.path.isNotEmpty &&
+      processedComicInfo.comic.thumb.fileServer.isNotEmpty) {
+    try {
+      var coverDir = '$comicDir/cover';
+      var coverFile = File('$coverDir/cover.jpg');
+      if (!await coverFile.exists()) {
+        await coverFile.create(recursive: true);
+      }
+      var coverDownloadFile = await downloadPicture(
+        from: 'bika',
+        url: processedComicInfo.comic.thumb.fileServer,
+        path: processedComicInfo.comic.thumb.path,
+        cartoonId: processedComicInfo.comic.id,
+        pictureType: 'cover',
+        chapterId: processedComicInfo.comic.id,
+      );
+      await File(coverDownloadFile).copy(coverFile.path);
+    } catch (e) {
+      logger.e('Error downloading cover: $e');
     }
-    var coverDownloadFile = await downloadPicture(
-      from: 'bika',
-      url: processedComicInfo.comic.thumb.fileServer,
-      path: processedComicInfo.comic.thumb.path,
-      cartoonId: processedComicInfo.comic.id,
-      pictureType: 'cover',
-      chapterId: processedComicInfo.comic.id,
-    );
-    await File(coverDownloadFile).copy(coverFile.path);
   }
 
   for (var ep in processedComicInfo.eps.docs) {
     var epDir = '$comicDir/eps/${ep.title}';
     for (var page in ep.pages.docs) {
+      // 跳过空 URL 或路径
+      if (page.media.fileServer.isEmpty || page.media.path.isEmpty) {
+        logger.w('跳过空 URL 的图片: ${page.media.originalName}');
+        continue;
+      }
+
       var pageFile = '$epDir/${page.media.originalName}';
       try {
         var pageDownloadFile = await downloadPicture(
@@ -73,7 +84,10 @@ Future<void> exportComicAsFolder(ComicAllInfoJson comicInfo) async {
         }
         await File(pageDownloadFile).copy(pageFile);
       } catch (e) {
-        logger.e('Error downloading ${page.media.fileServer}: $e');
+        logger.e(
+          'Error downloading ${page.media.fileServer}/${page.media.path}: $e',
+        );
+        // 继续处理下一张图片，不中断整个导出过程
       }
     }
   }
@@ -105,24 +119,35 @@ Future<void> exportComicAsZip(ComicAllInfoJson comicInfo) async {
   );
 
   // 下载封面
-  if (processedComicInfo.comic.thumb.path.isNotEmpty) {
-    var coverFile = 'cover/cover.jpg';
-    var coverDownloadFile = await downloadPicture(
-      from: 'bika',
-      url: processedComicInfo.comic.thumb.fileServer,
-      path: processedComicInfo.comic.thumb.path,
-      cartoonId: processedComicInfo.comic.id,
-      pictureType: 'cover',
-      chapterId: processedComicInfo.comic.id,
-    );
-    packInfo.originalImagePaths.add(coverDownloadFile);
-    packInfo.packImagePaths.add(coverFile);
+  if (processedComicInfo.comic.thumb.path.isNotEmpty &&
+      processedComicInfo.comic.thumb.fileServer.isNotEmpty) {
+    try {
+      var coverFile = 'cover/cover.jpg';
+      var coverDownloadFile = await downloadPicture(
+        from: 'bika',
+        url: processedComicInfo.comic.thumb.fileServer,
+        path: processedComicInfo.comic.thumb.path,
+        cartoonId: processedComicInfo.comic.id,
+        pictureType: 'cover',
+        chapterId: processedComicInfo.comic.id,
+      );
+      packInfo.originalImagePaths.add(coverDownloadFile);
+      packInfo.packImagePaths.add(coverFile);
+    } catch (e) {
+      logger.e('Error downloading cover: $e');
+    }
   }
 
   // 下载漫画章节
   for (var ep in processedComicInfo.eps.docs) {
     var epDir = 'eps/${ep.title}';
     for (var page in ep.pages.docs) {
+      // 跳过空 URL 或路径
+      if (page.media.fileServer.isEmpty || page.media.path.isEmpty) {
+        logger.w('跳过空 URL 的图片: ${page.media.originalName}');
+        continue;
+      }
+
       var pageFile = '$epDir/${page.media.originalName}';
       try {
         var pageDownloadFile = await downloadPicture(
@@ -136,7 +161,10 @@ Future<void> exportComicAsZip(ComicAllInfoJson comicInfo) async {
         packInfo.originalImagePaths.add(pageDownloadFile);
         packInfo.packImagePaths.add(pageFile);
       } catch (e) {
-        logger.e('Error downloading ${page.media.fileServer}: $e');
+        logger.e(
+          'Error downloading ${page.media.fileServer}/${page.media.path}: $e',
+        );
+        // 继续处理下一张图片，不中断整个导出过程
       }
     }
   }

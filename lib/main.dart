@@ -185,8 +185,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 设置这个的目的是为了缓解图片重载
-    PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 1024;
+    // 优化图片缓存配置，防止 GPU 内存溢出
+    // 减少最大缓存大小从 1GB 到 256MB
+    PaintingBinding.instance.imageCache.maximumSizeBytes = 256 * 1024 * 1024;
+    // 限制缓存图片数量
+    PaintingBinding.instance.imageCache.maximumSize = 100;
 
     statusBarHeight = MediaQuery.of(context).padding.top;
     screenWidth = MediaQuery.of(context).size.width;

@@ -53,6 +53,8 @@ class CoverWidget extends StatelessWidget {
               case PictureLoadStatus.initial:
                 return Center(child: CircularProgressIndicator());
               case PictureLoadStatus.success:
+                // 限制封面缓存大小，避免 GPU 内存溢出
+                final maxCacheSize = 600; // 封面最大缓存尺寸
                 return ClipRRect(
                   borderRadius: BorderRadius.circular(
                     roundedCorner ? 5.0 : 0.0,
@@ -60,8 +62,27 @@ class CoverWidget extends StatelessWidget {
                   child: Image.file(
                     File(state.imagePath!),
                     fit: BoxFit.cover,
-                    cacheHeight: height.toInt() * 2,
-                    cacheWidth: width.toInt() * 2,
+                    cacheHeight: (height.toInt() * 2).clamp(0, maxCacheSize),
+                    cacheWidth: (width.toInt() * 2).clamp(0, maxCacheSize),
+                    gaplessPlayback: true,
+                    errorBuilder: (context, error, stackTrace) {
+                      // 图片解码失败时显示错误图标
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(
+                            roundedCorner ? 5.0 : 0.0,
+                          ),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.broken_image,
+                            size: 48,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 );
               case PictureLoadStatus.failure:

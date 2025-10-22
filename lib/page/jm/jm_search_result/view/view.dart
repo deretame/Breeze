@@ -146,7 +146,9 @@ class _JmSearchResultPageState extends State<_JmSearchResultPage> {
         try {
           int.parse(state.result);
           setState(() => totalCount = state.result);
-        } catch (_) {}
+        } catch (e) {
+          logger.w('解析搜索结果总数失败: ${state.result}', error: e);
+        }
       });
     }
 
@@ -251,10 +253,10 @@ class _JmSearchResultPageState extends State<_JmSearchResultPage> {
   );
 
   void _searchCallback(dynamic value) {
-    try {
-      // 因为jm有搜id直接跳转到漫画详情的功能，从100开始的id会直接跳转到漫画详情
-      final keyword = value as String;
+    // 因为jm有搜id直接跳转到漫画详情的功能，从100开始的id会直接跳转到漫画详情
+    final keyword = value as String;
 
+    try {
       if (int.parse(keyword) >= 100) {
         // 说明应该搜的是漫画id，直接跳转到详情页
         context.pushRoute(
@@ -262,7 +264,10 @@ class _JmSearchResultPageState extends State<_JmSearchResultPage> {
         );
         return;
       }
-    } catch (_) {}
+    } catch (e) {
+      // 不是纯数字，继续正常搜索流程
+      logger.d('关键词不是漫画ID，继续搜索: $keyword');
+    }
     if (event != event.copyWith(keyword: value)) {
       setState(() => event = event.copyWith(keyword: value));
       _fetchSearchResult(event.copyWith(status: JmSearchResultStatus.initial));

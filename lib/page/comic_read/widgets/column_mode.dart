@@ -31,6 +31,8 @@ class ColumnModeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 减少预加载范围，避免 GPU 内存溢出
+    // 从 2.0 倍屏幕高度减少到 1.0 倍
     return useSkia
         ? ScrollablePositionedList.separated(
           // 带分隔符的版本
@@ -39,7 +41,7 @@ class ColumnModeWidget extends StatelessWidget {
           separatorBuilder: (_, _) => Container(height: 2, color: Colors.black),
           itemScrollController: itemScrollController,
           itemPositionsListener: itemPositionsListener,
-          minCacheExtent: context.screenHeight * 2.0,
+          minCacheExtent: context.screenHeight * 1.0,
         )
         : ScrollablePositionedList.builder(
           // 不带分隔符的版本
@@ -47,7 +49,7 @@ class ColumnModeWidget extends StatelessWidget {
           itemBuilder: itemBuilder,
           itemScrollController: itemScrollController,
           itemPositionsListener: itemPositionsListener,
-          minCacheExtent: context.screenHeight * 2.0,
+          minCacheExtent: context.screenHeight * 1.0,
         );
   }
 

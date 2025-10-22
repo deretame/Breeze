@@ -30,8 +30,9 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
 
   bool get isColumn => widget.isColumn;
 
+  // 只在列模式下保持存活，行模式不保持以减少内存占用
   @override
-  bool get wantKeepAlive => true;
+  bool get wantKeepAlive => isColumn;
 
   @override
   Widget build(BuildContext context) {

@@ -61,7 +61,30 @@ Future<String> getCachePicture({
     downloadFilePath,
   );
   if (existingFilePath.isNotEmpty) {
-    return existingFilePath;
+    // 双重检查文件确实存在且可读
+    final file = File(existingFilePath);
+    if (await file.exists()) {
+      try {
+        // 尝试读取文件大小以确保文件可访问
+        await file.length();
+        return existingFilePath;
+      } catch (e) {
+        // 文件存在但无法访问，删除并重新下载
+        logger.w(
+          'getCachePicture: 文件存在但无法访问，删除并重新下载: $existingFilePath',
+          error: e,
+        );
+        try {
+          await file.delete();
+        } catch (deleteError) {
+          logger.e(
+            'getCachePicture: 删除损坏文件失败: $existingFilePath',
+            error: deleteError,
+          );
+        }
+        // 继续下载流程
+      }
+    }
   }
 
   // 处理 URL
@@ -87,13 +110,23 @@ Future<String> getCachePicture({
       cacheFilePath,
       url,
     );
-    return cacheFilePath;
+    // 验证文件已成功保存
+    if (await File(cacheFilePath).exists()) {
+      return cacheFilePath;
+    } else {
+      throw Exception('图片保存失败');
+    }
   }
 
   // 保存图片
   await saveImage(imageData, cacheFilePath);
 
-  return cacheFilePath;
+  // 验证文件已成功保存
+  if (await File(cacheFilePath).exists()) {
+    return cacheFilePath;
+  } else {
+    throw Exception('图片保存失败');
+  }
 }
 
 Future<String> downloadPicture({
@@ -145,10 +178,33 @@ Future<String> downloadPicture({
   );
 
   if (existingFilePath.isNotEmpty) {
-    if (existingFilePath != downloadFilePath) {
-      await copyFile(cacheFilePath, downloadFilePath);
+    // 双重检查文件确实存在且可读
+    final file = File(existingFilePath);
+    if (await file.exists()) {
+      try {
+        // 尝试读取文件大小以确保文件可访问
+        await file.length();
+        if (existingFilePath != downloadFilePath) {
+          await copyFile(cacheFilePath, downloadFilePath);
+        }
+        return downloadFilePath;
+      } catch (e) {
+        // 文件存在但无法访问，删除并重新下载
+        logger.w(
+          'downloadPicture: 文件存在但无法访问，删除并重新下载: $existingFilePath',
+          error: e,
+        );
+        try {
+          await file.delete();
+        } catch (deleteError) {
+          logger.e(
+            'downloadPicture: 删除损坏文件失败: $existingFilePath',
+            error: deleteError,
+          );
+        }
+        // 继续下载流程
+      }
     }
-    return downloadFilePath;
   }
 
   // 处理 URL
@@ -174,13 +230,23 @@ Future<String> downloadPicture({
       downloadFilePath,
       url,
     );
-    return downloadFilePath;
+    // 验证文件已成功保存
+    if (await File(downloadFilePath).exists()) {
+      return downloadFilePath;
+    } else {
+      throw Exception('图片保存失败');
+    }
   }
 
   // 保存图片
   await saveImage(imageData, downloadFilePath);
 
-  return downloadFilePath;
+  // 验证文件已成功保存
+  if (await File(downloadFilePath).exists()) {
+    return downloadFilePath;
+  } else {
+    throw Exception('图片保存失败');
+  }
 }
 
 String sanitizePath(String path) {
@@ -360,6 +426,16 @@ Future<void> saveImage(Uint8List imageData, String filePath) async {
   final targetFile = File(filePath);
 
   try {
+    // 验证图片数据不为空
+    if (imageData.isEmpty) {
+      throw Exception('图片数据为空');
+    }
+
+    // 基本的图片格式验证（检查文件头）
+    if (!_isValidImageData(imageData)) {
+      logger.w('警告：图片数据可能无效，但仍尝试保存: $filePath');
+    }
+
     // 确保目录存在
     await ensureDirectoryExists(filePath);
 
@@ -375,6 +451,42 @@ Future<void> saveImage(Uint8List imageData, String filePath) async {
     logger.e('保存图片失败: $e');
     throw Exception('保存图片失败: $e');
   }
+}
+
+/// 验证图片数据是否有效（检查常见图片格式的文件头）
+bool _isValidImageData(Uint8List data) {
+  if (data.length < 4) return false;
+
+  // JPEG: FF D8 FF
+  if (data[0] == 0xFF && data[1] == 0xD8 && data[2] == 0xFF) {
+    return true;
+  }
+
+  // PNG: 89 50 4E 47
+  if (data[0] == 0x89 &&
+      data[1] == 0x50 &&
+      data[2] == 0x4E &&
+      data[3] == 0x47) {
+    return true;
+  }
+
+  // GIF: 47 49 46 38
+  if (data[0] == 0x47 &&
+      data[1] == 0x49 &&
+      data[2] == 0x46 &&
+      data[3] == 0x38) {
+    return true;
+  }
+
+  // WebP: 52 49 46 46 (RIFF)
+  if (data[0] == 0x52 &&
+      data[1] == 0x49 &&
+      data[2] == 0x46 &&
+      data[3] == 0x46) {
+    return true;
+  }
+
+  return false;
 }
 
 Future<void> ensureDirectoryExists(String filePath) async {

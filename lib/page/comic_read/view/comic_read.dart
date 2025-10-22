@@ -397,8 +397,9 @@ class _ComicReadPageState extends State<_ComicReadPage> {
 
         // logger.d('当前页数：${pageIndex - 1}');
         if (!_isComicRolling) {
-          _currentSliderValue =
-              (pageIndex).clamp(0, _totalSlots - 1).toDouble() - 1;
+          // 确保 clamp 的最大值不小于最小值，避免 Invalid argument 错误
+          final maxSlot = (_totalSlots - 1).clamp(0, double.maxFinite.toInt());
+          _currentSliderValue = (pageIndex).clamp(0, maxSlot).toDouble() - 1;
           _isVisible = false;
         }
       });
@@ -507,6 +508,9 @@ class _ComicReadPageState extends State<_ComicReadPage> {
 
   Future<void> getTopThirdItemIndex(Iterable<ItemPosition> positions) async {
     if (globalSetting.readMode != 0) return;
+    // 在数据加载完成前不处理滚动位置更新
+    if (_totalSlots == 0) return;
+
     ScrollPositionHelper.handleUpdate(
       context: context,
       positions: positions,
@@ -519,8 +523,13 @@ class _ComicReadPageState extends State<_ComicReadPage> {
             pageIndex = newIndex;
             // logger.d('当前页数：${pageIndex - 1}');
             if (!_isComicRolling) {
+              // 确保 clamp 的最大值不小于最小值，避免 Invalid argument 错误
+              final maxSlot = (_totalSlots - 1).clamp(
+                0,
+                double.maxFinite.toInt(),
+              );
               _currentSliderValue =
-                  (pageIndex - 2).clamp(0, _totalSlots - 1).toDouble();
+                  (pageIndex - 2).clamp(0, maxSlot).toDouble();
             }
           });
         }

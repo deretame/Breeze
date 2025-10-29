@@ -8,7 +8,7 @@ import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../../config/global/global.dart';
 import '../../../../main.dart';
-import '../../../../mobx/string_select.dart';
+import '../../../../cubit/string_select.dart';
 import '../../../../type/enum.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
@@ -19,11 +19,8 @@ class FavoritePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create:
-          (_) =>
-              UserFavouriteBloc()..add(
-                UserFavouriteEvent(UserFavouriteStatus.initial, 1, Uuid().v4()),
-              ),
+      create: (_) => UserFavouriteBloc()
+        ..add(UserFavouriteEvent(UserFavouriteStatus.initial, 1, Uuid().v4())),
       child: _FavoritePage(),
     );
   }
@@ -212,9 +209,8 @@ class _UserFavoritePageState extends State<_FavoritePage>
     return _buildCommonListView(
       state: state,
       itemCount: temp.length,
-      itemBuilder:
-          (context, index) =>
-              FavoriteComicEntryWidget(comicEntryInfo: temp[index].doc),
+      itemBuilder: (context, index) =>
+          FavoriteComicEntryWidget(comicEntryInfo: temp[index].doc),
     );
   }
 
@@ -376,8 +372,8 @@ class _UserFavoritePageState extends State<_FavoritePage>
     double currentScrollPosition = metrics.pixels;
     double middlePosition = currentScrollPosition + (context.screenHeight / 3);
     double listViewStartOffset = 0.0;
-    int itemIndex =
-        ((middlePosition - listViewStartOffset) / itemHeight).floor();
+    int itemIndex = ((middlePosition - listViewStartOffset) / itemHeight)
+        .floor();
 
     var currentTime = DateTime.now().millisecondsSinceEpoch;
 

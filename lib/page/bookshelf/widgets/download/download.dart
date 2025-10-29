@@ -6,8 +6,8 @@ import 'package:zephyr/page/bookshelf/bookshelf.dart';
 
 import '../../../../config/global/global.dart';
 import '../../../../main.dart';
-import '../../../../mobx/int_select.dart';
-import '../../../../mobx/string_select.dart';
+import '../../../../cubit/int_select.dart';
+import '../../../../cubit/string_select.dart';
 import '../../../../object_box/model.dart';
 import '../../../../type/enum.dart';
 import '../../../../widgets/comic_entry/comic_entry.dart';
@@ -175,15 +175,14 @@ class _DownloadPageState extends State<_DownloadPage>
 
     return _buildCommonListView(
       itemCount: elementsRows.length + 1,
-      itemBuilder:
-          (context, index) => _buildListItem(
-            context,
-            index,
-            elementsRows.length,
-            () => _refresh(searchStatusStore),
-            isBrevity: true,
-            elementsRows: elementsRows,
-          ),
+      itemBuilder: (context, index) => _buildListItem(
+        context,
+        index,
+        elementsRows.length,
+        () => _refresh(searchStatusStore),
+        isBrevity: true,
+        elementsRows: elementsRows,
+      ),
     );
   }
 
@@ -191,15 +190,14 @@ class _DownloadPageState extends State<_DownloadPage>
   Widget _buildDetailedList(UserDownloadState state) {
     return _buildCommonListView(
       itemCount: state.comics.length + 1,
-      itemBuilder:
-          (context, index) => _buildListItem(
-            context,
-            index,
-            state.comics.length,
-            () => _refresh(searchStatusStore, true),
-            isBrevity: false,
-            comics: state.comics,
-          ),
+      itemBuilder: (context, index) => _buildListItem(
+        context,
+        index,
+        state.comics.length,
+        () => _refresh(searchStatusStore, true),
+        isBrevity: false,
+        comics: state.comics,
+      ),
     );
   }
 

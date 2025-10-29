@@ -33,8 +33,9 @@ class SearchKeywordBloc extends Bloc<SearchKeywordEvent, SearchKeywordState> {
     emit(state.copyWith(status: SearchKeywordStatus.initial));
 
     try {
-      final keywords =
-          KeywordsJson.fromJson(await getSearchKeywords()).data.keywords;
+      final keywords = KeywordsJson.fromJson(
+        await getSearchKeywords(),
+      ).data.keywords;
 
       emit(
         state.copyWith(status: SearchKeywordStatus.success, keywords: keywords),

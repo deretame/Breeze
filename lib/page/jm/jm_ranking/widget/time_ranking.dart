@@ -58,19 +58,18 @@ class _TimeRankingPageState extends State<TimeRankingPage>
       Expanded(
         child: TabBarView(
           controller: _tabController,
-          children:
-              tabs.map((String tab) {
-                if (JmConfig.categoryMap[tag] is Map) {
-                  return CategoryRankingWidget(
-                    tag: tag,
-                    time: JmConfig.rankingTypeMap[tab]!,
-                  );
-                }
-                return RankingWidget(
-                  tag: JmConfig.categoryMap[tag].toString(),
-                  time: JmConfig.rankingTypeMap[tab]!,
-                );
-              }).toList(),
+          children: tabs.map((String tab) {
+            if (JmConfig.categoryMap[tag] is Map) {
+              return CategoryRankingWidget(
+                tag: tag,
+                time: JmConfig.rankingTypeMap[tab]!,
+              );
+            }
+            return RankingWidget(
+              tag: JmConfig.categoryMap[tag].toString(),
+              time: JmConfig.rankingTypeMap[tab]!,
+            );
+          }).toList(),
         ),
       ),
     ],

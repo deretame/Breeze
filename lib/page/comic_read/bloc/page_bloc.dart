@@ -8,7 +8,7 @@ import '../../../network/http/bika/http_request.dart';
 import '../../../network/http/jm/http_request.dart';
 import '../../../network/http/picture/picture.dart';
 import '../../../type/enum.dart';
-import '../../../util/json_dispose.dart';
+import '../../../util/json/json_dispose.dart';
 import '../json/bika_ep_info_json/page.dart';
 import '../json/common_ep_info_json/common_ep_info_json.dart' as c;
 import '../json/jm_ep_info_json/jm_ep_info_json.dart';

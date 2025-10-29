@@ -56,10 +56,9 @@ class _JmRankingPageState extends State<JmRankingPage>
         Expanded(
           child: TabBarView(
             controller: _tabController,
-            children:
-                tabs.map((String tab) {
-                  return Center(child: TimeRankingPage(tag: tab));
-                }).toList(),
+            children: tabs.map((String tab) {
+              return Center(child: TimeRankingPage(tag: tab));
+            }).toList(),
           ),
         ),
       ],

@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:zephyr/mobx/string_select.dart';
+import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/models/all_info.dart' show AllInfo;
 
 import '../../../main.dart';
@@ -83,12 +83,12 @@ class EpButtonWidget extends StatelessWidget {
                     doc.id == 'history'
                         ? Text("观看历史", style: TextStyle(fontSize: 14))
                         : Text(
-                          "number : ${doc.order.toString()}",
-                          style: TextStyle(
-                            fontFamily: "Pacifico-Regular",
-                            fontSize: 14,
+                            "number : ${doc.order.toString()}",
+                            style: TextStyle(
+                              fontFamily: "Pacifico-Regular",
+                              fontSize: 14,
+                            ),
                           ),
-                        ),
                   ],
                 ),
               ],

@@ -32,53 +32,51 @@ class _ImageCropPageState extends State<ImageCropPage> {
         ],
       ),
       body: Center(
-        child:
-            _isCropping
-                ? const CircularProgressIndicator()
-                : Crop(
-                  controller: _cropController,
-                  image: widget.imageData,
-                  onCropped: (result) {
-                    setState(() => _isCropping = false);
-                    switch (result) {
-                      case CropSuccess(:final croppedImage):
-                        context.maybePop(croppedImage);
-                      case CropFailure(:final cause):
-                        logger.e(cause);
-                        showErrorToast("裁剪失败 ${cause.toString()}");
-                        context.maybePop(null);
-                    }
-                  },
-                  aspectRatio: 1,
-                  fixCropRect: false,
-                  initialRectBuilder: InitialRectBuilder.withBuilder((
-                    viewportRect,
-                    imageRect,
-                  ) {
-                    // 初始裁剪区域为图片中心的正方形
-                    final size = viewportRect.shortestSide * 1.0;
-                    final center = viewportRect.center;
-                    return Rect.fromCenter(
-                      center: center,
-                      width: size,
-                      height: size,
-                    );
-                  }),
-                  onStatusChanged:
-                      (status) => setState(() {
-                        _statusText =
-                            <CropStatus, String>{
-                              CropStatus.nothing: '没有图片数据',
-                              CropStatus.loading: '正在加载图片',
-                              CropStatus.ready: '图片加载成功',
-                              CropStatus.cropping: '正在裁剪',
-                            }[status] ??
-                            '';
-                      }),
-                  overlayBuilder: (context, rect) {
-                    return CustomPaint(painter: _GridPainter());
-                  },
-                ),
+        child: _isCropping
+            ? const CircularProgressIndicator()
+            : Crop(
+                controller: _cropController,
+                image: widget.imageData,
+                onCropped: (result) {
+                  setState(() => _isCropping = false);
+                  switch (result) {
+                    case CropSuccess(:final croppedImage):
+                      context.maybePop(croppedImage);
+                    case CropFailure(:final cause):
+                      logger.e(cause);
+                      showErrorToast("裁剪失败 ${cause.toString()}");
+                      context.maybePop(null);
+                  }
+                },
+                aspectRatio: 1,
+                fixCropRect: false,
+                initialRectBuilder: InitialRectBuilder.withBuilder((
+                  viewportRect,
+                  imageRect,
+                ) {
+                  // 初始裁剪区域为图片中心的正方形
+                  final size = viewportRect.shortestSide * 1.0;
+                  final center = viewportRect.center;
+                  return Rect.fromCenter(
+                    center: center,
+                    width: size,
+                    height: size,
+                  );
+                }),
+                onStatusChanged: (status) => setState(() {
+                  _statusText =
+                      <CropStatus, String>{
+                        CropStatus.nothing: '没有图片数据',
+                        CropStatus.loading: '正在加载图片',
+                        CropStatus.ready: '图片加载成功',
+                        CropStatus.cropping: '正在裁剪',
+                      }[status] ??
+                      '';
+                }),
+                overlayBuilder: (context, rect) {
+                  return CustomPaint(painter: _GridPainter());
+                },
+              ),
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -102,10 +100,9 @@ class _GridPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint =
-        Paint()
-          ..strokeWidth = strokeWidth
-          ..color = color;
+    final paint = Paint()
+      ..strokeWidth = strokeWidth
+      ..color = color;
 
     final spacing = size / (divisions + 1);
     for (var i = 1; i < divisions + 1; i++) {

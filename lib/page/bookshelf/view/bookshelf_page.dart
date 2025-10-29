@@ -62,15 +62,16 @@ class _BookshelfPageState extends State<BookshelfPage>
       endDrawer: SideDrawer(),
       appBar: _appBar(),
       body: _body(),
-      floatingActionButton:
-          globalSetting.disableBika ? null : _floatingActionButton(),
+      floatingActionButton: globalSetting.disableBika
+          ? null
+          : _floatingActionButton(),
     );
   }
 
   PreferredSizeWidget _appBar() => AppBar(
     title: Observer(
-      builder:
-          (context) => Text(globalSetting.comicChoice == 1 ? "哔咔漫画" : "禁漫天堂"),
+      builder: (context) =>
+          Text(globalSetting.comicChoice == 1 ? "哔咔漫画" : "禁漫天堂"),
     ),
     actions: [
       IconButton(
@@ -122,17 +123,18 @@ class _BookshelfPageState extends State<BookshelfPage>
           Expanded(
             child: TabBar(
               controller: bookshelfStore.tabController,
-              tabs: const [Tab(text: "收藏"), Tab(text: "历史"), Tab(text: "下载")],
+              tabs: const [
+                Tab(text: "收藏"),
+                Tab(text: "历史"),
+                Tab(text: "下载"),
+              ],
             ),
           ),
           Observer(
-            builder:
-                (context) => SizedBox(
-                  width: 120,
-                  child: Center(
-                    child: Text(bookshelfStore.stringSelectStore.date),
-                  ),
-                ),
+            builder: (context) => SizedBox(
+              width: 120,
+              child: Center(child: Text(bookshelfStore.stringSelectStore.date)),
+            ),
           ),
           Builder(
             builder: (BuildContext context) {

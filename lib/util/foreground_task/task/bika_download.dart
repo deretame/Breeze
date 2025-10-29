@@ -108,20 +108,19 @@ Future<void> bikaDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
     }
   } else {
     int progress = 0;
-    final List<Future<void>> downloadTasks =
-        pagesDocs.map((doc) async {
-          await downloadPicture(
-            from: 'bika',
-            url: doc.media.fileServer,
-            path: doc.media.path,
-            cartoonId: comicInfo.id,
-            pictureType: 'comic',
-            chapterId: doc.docId,
-          );
-          progress++;
-          self.message =
-              "漫画下载进度: ${(progress / pagesDocs.length * 100).toStringAsFixed(2)}%";
-        }).toList();
+    final List<Future<void>> downloadTasks = pagesDocs.map((doc) async {
+      await downloadPicture(
+        from: 'bika',
+        url: doc.media.fileServer,
+        path: doc.media.path,
+        cartoonId: comicInfo.id,
+        pictureType: 'comic',
+        chapterId: doc.docId,
+      );
+      progress++;
+      self.message =
+          "漫画下载进度: ${(progress / pagesDocs.length * 100).toStringAsFixed(2)}%";
+    }).toList();
 
     await Future.wait(downloadTasks);
   }
@@ -340,11 +339,10 @@ Future<void> _saveToDB(
     comicInfoAll: comicAllInfoJson.toJson().let(jsonEncode),
   );
 
-  var temp =
-      objectBox.bikaDownloadBox
-          .query(BikaComicDownload_.comicId.equals(comicInfo.id))
-          .build()
-          .find();
+  var temp = objectBox.bikaDownloadBox
+      .query(BikaComicDownload_.comicId.equals(comicInfo.id))
+      .build()
+      .find();
 
   // 这个是为了避免重复放置数据
   for (var item in temp) {
@@ -379,10 +377,9 @@ Future<void> checkFile(ComicAllInfoJson comicAllInfoJson) async {
   }
 
   // 过滤出需要删除的目录
-  List<Directory> deleteDirs =
-      epDirs.where((element) {
-        return !downloadEpsDir.contains(element.path);
-      }).toList();
+  List<Directory> deleteDirs = epDirs.where((element) {
+    return !downloadEpsDir.contains(element.path);
+  }).toList();
 
   // 删除不需要的目录
   for (var element in deleteDirs) {
@@ -405,10 +402,9 @@ Future<void> checkFile(ComicAllInfoJson comicAllInfoJson) async {
   var allPicturePaths = await getAllFilePaths(epsDir);
 
   // 过滤出需要删除的图片
-  List<String> deletePictures =
-      allPicturePaths.where((element) {
-        return !originalPicturePaths.contains(element);
-      }).toList();
+  List<String> deletePictures = allPicturePaths.where((element) {
+    return !originalPicturePaths.contains(element);
+  }).toList();
 
   // 删除不需要的图片
   for (var element in deletePictures) {

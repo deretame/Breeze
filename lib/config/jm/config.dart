@@ -57,10 +57,9 @@ class JmConfig {
 
   static String get token {
     if (_token.isEmpty) {
-      _token =
-          md5
-              .convert(utf8.encode('$timestamp${JmConfig.jmVersion}'))
-              .toString();
+      _token = md5
+          .convert(utf8.encode('$timestamp${JmConfig.jmVersion}'))
+          .toString();
     }
     return _token;
   }

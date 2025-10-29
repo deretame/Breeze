@@ -30,11 +30,10 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
   void initState() {
     super.initState();
 
-    var data =
-        objectbox.jmFavoriteBox
-            .query(JmFavorite_.comicId.equals(comicInfo.id.toString()))
-            .build()
-            .findFirst();
+    var data = objectbox.jmFavoriteBox
+        .query(JmFavorite_.comicId.equals(comicInfo.id.toString()))
+        .build()
+        .findFirst();
     isCollected = data?.deleted == false;
     isLiked = comicInfo.liked;
   }
@@ -184,10 +183,9 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
       if (data["error"] != null) {
         logger.d('$actionVerb失败: $data');
         if (!mounted) return;
-        failureMessage =
-            actionType == 'like'
-                ? "请求失败: ${data["error"]}"
-                : (isCurrentlyActive ? '取消$actionVerb失败' : '$actionVerb失败');
+        failureMessage = actionType == 'like'
+            ? "请求失败: ${data["error"]}"
+            : (isCurrentlyActive ? '取消$actionVerb失败' : '$actionVerb失败');
         showErrorToast(failureMessage, duration: const Duration(seconds: 5));
       } else {
         logger.d('$actionVerb成功: $data');
@@ -202,8 +200,9 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         }
 
         if (!mounted) return;
-        successMessage =
-            isCurrentlyActive ? '取消$actionVerb成功' : '$actionVerb成功';
+        successMessage = isCurrentlyActive
+            ? '取消$actionVerb成功'
+            : '$actionVerb成功';
         showSuccessToast(successMessage);
       }
     } catch (error) {
@@ -220,11 +219,10 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
     bool isCollected,
   ) async {
     // 避免数据冲突
-    var data =
-        objectbox.jmFavoriteBox
-            .query(JmFavorite_.comicId.equals(comicInfo.id.toString()))
-            .build()
-            .find();
+    var data = objectbox.jmFavoriteBox
+        .query(JmFavorite_.comicId.equals(comicInfo.id.toString()))
+        .build()
+        .find();
 
     for (var item in data) {
       objectbox.jmFavoriteBox.remove(item.id);

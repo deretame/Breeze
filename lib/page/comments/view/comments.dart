@@ -24,10 +24,9 @@ class CommentsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create:
-          (_) =>
-              CommentsBloc()
-                ..add(CommentsEvent(comicId, CommentsStatus.initial, 1)),
+      create: (_) =>
+          CommentsBloc()
+            ..add(CommentsEvent(comicId, CommentsStatus.initial, 1)),
       child: _ComicReadPage(comicId: comicId, comicTitle: comicTitle),
     );
   }
@@ -147,10 +146,9 @@ class _ComicReadPageState extends State<_ComicReadPage> {
                       decoration: BoxDecoration(
                         // color: Colors.grey[200], // 背景色
                         border: Border.all(
-                          color:
-                              globalSetting.themeType
-                                  ? materialColorScheme.secondaryFixedDim
-                                  : materialColorScheme.secondaryFixedDim,
+                          color: globalSetting.themeType
+                              ? materialColorScheme.secondaryFixedDim
+                              : materialColorScheme.secondaryFixedDim,
                         ), // 边框
                         borderRadius: BorderRadius.circular(8.0), // 圆角
                       ),

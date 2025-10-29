@@ -10,10 +10,9 @@ _JmSearchResultJson _$JmSearchResultJsonFromJson(Map<String, dynamic> json) =>
     _JmSearchResultJson(
       searchQuery: json['search_query'] as String,
       total: json['total'] as String,
-      content:
-          (json['content'] as List<dynamic>)
-              .map((e) => Content.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      content: (json['content'] as List<dynamic>)
+          .map((e) => Content.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$JmSearchResultJsonToJson(_JmSearchResultJson instance) =>

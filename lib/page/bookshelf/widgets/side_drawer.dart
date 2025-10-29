@@ -5,7 +5,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 
 import '../../../config/bika/bika_setting.dart';
-import '../../../mobx/int_select.dart';
+import '../../../cubit/int_select.dart';
 
 class SideDrawer extends StatefulWidget {
   const SideDrawer({super.key});
@@ -231,11 +231,10 @@ class _SideDrawerState extends State<SideDrawer> {
           return;
         }
 
-        var temp =
-            categoriesSelected.entries
-                .where((entry) => entry.value == true)
-                .map((entry) => entry.key)
-                .toList();
+        var temp = categoriesSelected.entries
+            .where((entry) => entry.value == true)
+            .map((entry) => entry.key)
+            .toList();
 
         categories = temp;
       },

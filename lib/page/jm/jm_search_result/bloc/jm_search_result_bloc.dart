@@ -6,7 +6,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/type/pipe.dart';
 
-import '../../../../util/json_dispose.dart';
+import '../../../../util/json/json_dispose.dart';
 import '../json/jm_search_result_json.dart';
 
 part 'jm_search_result_event.dart';

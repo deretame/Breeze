@@ -95,18 +95,17 @@ class JmFavouriteBloc extends Bloc<JmFavouriteEvent, JmFavouriteState> {
     if (event.searchEnterConst.keyword.isNotEmpty) {
       final keyword = event.searchEnterConst.keyword.toLowerCase();
 
-      temp =
-          temp.where((comic) {
-            var allString =
-                comic.comicId.toString() +
-                comic.name +
-                comic.description +
-                comic.author.toString() +
-                comic.tags.toString() +
-                comic.works.toString() +
-                comic.actors.toString();
-            return allString.toLowerCase().contains(keyword);
-          }).toList();
+      temp = temp.where((comic) {
+        var allString =
+            comic.comicId.toString() +
+            comic.name +
+            comic.description +
+            comic.author.toString() +
+            comic.tags.toString() +
+            comic.works.toString() +
+            comic.actors.toString();
+        return allString.toLowerCase().contains(keyword);
+      }).toList();
     }
 
     comicsList = _fetchOfSort(temp, event.searchEnterConst.sort);

@@ -37,13 +37,12 @@ class _SortWidgetState extends State<SortWidget> {
       elevation: 16,
       underline: Container(height: 2),
       onChanged: searchCallback,
-      items:
-          sortList.map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(sortMap[value]!),
-            );
-          }).toList(),
+      items: sortList.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(sortMap[value]!),
+        );
+      }).toList(),
     );
   }
 }

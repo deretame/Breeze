@@ -62,13 +62,12 @@ class _CategoryPageState extends State<_CategoryPage> {
             final Map<String, bool> shieldHomePageCategoryMap =
                 bikaSetting.shieldHomePageCategoriesMap;
 
-            List<HomeCategory> homeCategories =
-                state.categories!
-                    .where(
-                      (category) =>
-                          !(shieldHomePageCategoryMap[category.title] ?? false),
-                    )
-                    .toList();
+            List<HomeCategory> homeCategories = state.categories!
+                .where(
+                  (category) =>
+                      !(shieldHomePageCategoryMap[category.title] ?? false),
+                )
+                .toList();
             // 构建并返回组件
             var grid = buildCategoriesGrid(context, homeCategories);
             return Column(children: [grid]);

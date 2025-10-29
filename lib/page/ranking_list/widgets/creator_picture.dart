@@ -25,18 +25,17 @@ class CreatorPictureWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create:
-          (context) =>
-              PictureBloc()..add(
-                GetPicture(
-                  PictureInfo(
-                    from: "bika",
-                    url: fileServer,
-                    path: path,
-                    pictureType: pictureType,
-                  ),
-                ),
-              ),
+      create: (context) => PictureBloc()
+        ..add(
+          GetPicture(
+            PictureInfo(
+              from: "bika",
+              url: fileServer,
+              path: path,
+              pictureType: pictureType,
+            ),
+          ),
+        ),
       child: BlocBuilder<PictureBloc, PictureLoadState>(
         builder: (context, state) {
           switch (state.status) {

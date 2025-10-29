@@ -21,10 +21,9 @@ Map<String, dynamic> _$KnightLeaderboardToJson(_KnightLeaderboard instance) =>
     };
 
 _Data _$DataFromJson(Map<String, dynamic> json) => _Data(
-  users:
-      (json['users'] as List<dynamic>)
-          .map((e) => User.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  users: (json['users'] as List<dynamic>)
+      .map((e) => User.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$DataToJson(_Data instance) => <String, dynamic>{
@@ -40,8 +39,9 @@ _User _$UserFromJson(Map<String, dynamic> json) => _User(
   verified: json['verified'] as bool,
   exp: (json['exp'] as num).toInt(),
   level: (json['level'] as num).toInt(),
-  characters:
-      (json['characters'] as List<dynamic>).map((e) => e as String).toList(),
+  characters: (json['characters'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   role: json['role'] as String,
   avatar: Avatar.fromJson(json['avatar'] as Map<String, dynamic>),
   comicsUploaded: (json['comicsUploaded'] as num).toInt(),

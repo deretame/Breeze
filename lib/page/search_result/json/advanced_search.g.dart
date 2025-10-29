@@ -31,10 +31,9 @@ _Comics _$ComicsFromJson(Map<String, dynamic> json) => _Comics(
   total: (json['total'] as num).toInt(),
   page: (json['page'] as num).toInt(),
   pages: (json['pages'] as num).toInt(),
-  docs:
-      (json['docs'] as List<dynamic>)
-          .map((e) => Doc.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  docs: (json['docs'] as List<dynamic>)
+      .map((e) => Doc.fromJson(e as Map<String, dynamic>))
+      .toList(),
   limit: (json['limit'] as num).toInt(),
 );
 
@@ -54,8 +53,9 @@ _Doc _$DocFromJson(Map<String, dynamic> json) => _Doc(
   chineseTeam: json['chineseTeam'] as String,
   createdAt: DateTime.parse(json['created_at'] as String),
   finished: json['finished'] as bool,
-  categories:
-      (json['categories'] as List<dynamic>).map((e) => e as String).toList(),
+  categories: (json['categories'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   title: json['title'] as String,
   tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
   id: json['_id'] as String,

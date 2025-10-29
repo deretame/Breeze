@@ -29,10 +29,9 @@ Map<String, dynamic> _$DataToJson(_Data instance) => <String, dynamic>{
 };
 
 _Comments _$CommentsFromJson(Map<String, dynamic> json) => _Comments(
-  docs:
-      (json['docs'] as List<dynamic>)
-          .map((e) => Doc.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  docs: (json['docs'] as List<dynamic>)
+      .map((e) => Doc.fromJson(e as Map<String, dynamic>))
+      .toList(),
   total: (json['total'] as num).toInt(),
   limit: (json['limit'] as num).toInt(),
   page: json['page'] as String,

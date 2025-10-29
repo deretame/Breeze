@@ -65,10 +65,9 @@ class CreatorInfoWidget extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
                   BoxShadow(
-                    color:
-                        globalSetting.themeType
-                            ? materialColorScheme.secondaryFixedDim
-                            : materialColorScheme.secondaryFixedDim,
+                    color: globalSetting.themeType
+                        ? materialColorScheme.secondaryFixedDim
+                        : materialColorScheme.secondaryFixedDim,
                     spreadRadius: 0,
                     blurRadius: 2,
                   ),
@@ -98,10 +97,9 @@ class CreatorInfoWidget extends StatelessWidget {
                         Text(
                           comicInfo.creator.name,
                           style: TextStyle(
-                            color:
-                                globalSetting.themeType
-                                    ? materialColorScheme.tertiary
-                                    : materialColorScheme.tertiary,
+                            color: globalSetting.themeType
+                                ? materialColorScheme.tertiary
+                                : materialColorScheme.tertiary,
                           ),
                         ),
                         Text(timeDecode(comicInfo.updatedAt)),

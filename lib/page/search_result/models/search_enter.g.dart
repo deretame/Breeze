@@ -13,8 +13,9 @@ _SearchEnter _$SearchEnterFromJson(Map<String, dynamic> json) => _SearchEnter(
   type: json['type'] as String,
   state: json['state'] as String,
   sort: json['sort'] as String,
-  categories:
-      (json['categories'] as List<dynamic>).map((e) => e as String).toList(),
+  categories: (json['categories'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   pageCount: (json['pageCount'] as num).toInt(),
   refresh: json['refresh'] as String,
 );

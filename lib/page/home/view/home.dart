@@ -40,14 +40,13 @@ class _HomePageState extends State<HomePage> {
             onRefresh: () async => eventBus.fire(RefreshCategories()),
             child: _buildBody(),
           ),
-          floatingActionButton:
-              globalSetting.disableBika
-                  ? null
-                  : FloatingActionButton(
-                    heroTag: const ValueKey('switch_comic'),
-                    onPressed: _switchComic,
-                    child: const Icon(Icons.compare_arrows),
-                  ),
+          floatingActionButton: globalSetting.disableBika
+              ? null
+              : FloatingActionButton(
+                  heroTag: const ValueKey('switch_comic'),
+                  onPressed: _switchComic,
+                  child: const Icon(Icons.compare_arrows),
+                ),
         );
       },
     );

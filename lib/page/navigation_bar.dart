@@ -5,24 +5,29 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:hive_ce/hive.dart';
 import 'package:markdown_widget/widget/markdown_block.dart';
 import 'package:permission_guard/permission_guard.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:toastification/toastification.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zephyr/config/bika/bika_setting.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/network/http/jm/http_request.dart' as jm;
 import 'package:zephyr/page/more/json/jm/jm_user_info_json.dart';
 import 'package:zephyr/page/ranking_list/ranking_list.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/main_task.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/router/router.gr.dart';
+import 'package:zephyr/util/settings_hive_utils.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../config/global/global.dart';
@@ -71,8 +76,16 @@ class _NavigationBarState extends State<NavigationBar> {
   @override
   void initState() {
     super.initState();
-    _selectedIndex = globalSetting.welcomePageNum;
-    _controller = PersistentTabController(initialIndex: _selectedIndex);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _addOverlay();
+      _checkUpdate();
+      _signIn();
+      _jmLogin();
+      _autoSync();
+    });
+    _controller = PersistentTabController(
+      initialIndex: SettingsHiveUtils.welcomePageNum,
+    );
     scrollControllers.forEach((key, value) {
       _scrollControllers.add(value);
     });
@@ -80,12 +93,6 @@ class _NavigationBarState extends State<NavigationBar> {
       scrollControllers: _scrollControllers,
     );
     hideOnScrollSettings = HideOnScrollSettings(); // 先去掉这个东西
-    _checkUpdate();
-    _signIn();
-    _jmLogin();
-    _jmSignIn();
-    // 先执行一次
-    _autoSync();
     _initForegroundTask();
     FlutterForegroundTask.addTaskDataCallback(_onReceiveTaskData);
 
@@ -108,11 +115,6 @@ class _NavigationBarState extends State<NavigationBar> {
 
     eventBus.on<ToastEvent>().listen((event) {
       _showToast(event);
-    });
-
-    // 添加遮罩层
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _addOverlay();
     });
 
     Future.delayed(const Duration(seconds: 1), () async {
@@ -142,81 +144,74 @@ class _NavigationBarState extends State<NavigationBar> {
   }
 
   Widget _buildMobileLayout() {
-    return Observer(
-      builder: (context) {
-        return PersistentTabView(
-          context,
-          controller: _controller,
-          screens: _pageList,
-          items: _navBarItems(),
-          backgroundColor: globalSetting.backgroundColor,
-          handleAndroidBackButtonPress: true,
-          resizeToAvoidBottomInset: false,
-          hideNavigationBarWhenKeyboardAppears: false,
-          stateManagement: true,
-          navBarStyle: NavBarStyle.style3,
-          onItemSelected: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-        );
+    return PersistentTabView(
+      context,
+      controller: _controller,
+      screens: _pageList,
+      items: _navBarItems(),
+      backgroundColor: context.backgroundColor,
+      handleAndroidBackButtonPress: true,
+      resizeToAvoidBottomInset: false,
+      hideNavigationBarWhenKeyboardAppears: false,
+      stateManagement: true,
+      navBarStyle: NavBarStyle.style3,
+      onItemSelected: (index) {
+        setState(() {
+          _selectedIndex = index;
+        });
       },
     );
   }
 
   // 平板布局 (使用 NavigationRail)
   Widget _buildTabletLayout() {
-    return Observer(
-      builder: (context) {
-        return Scaffold(
-          backgroundColor: globalSetting.backgroundColor,
-          body: Row(
-            children: [
-              NavigationRail(
-                selectedIndex: _selectedIndex,
-                onDestinationSelected: (int index) {
-                  setState(() {
-                    _selectedIndex = index;
-                  });
-                },
-                labelType: NavigationRailLabelType.all,
-                backgroundColor: globalSetting.backgroundColor,
-                destinations: _navRailDestinations(),
-              ),
-              const VerticalDivider(thickness: 1, width: 1),
-              Expanded(
-                child: IndexedStack(index: _selectedIndex, children: _pageList),
-              ),
-            ],
+    return Scaffold(
+      backgroundColor: context.backgroundColor,
+      body: Row(
+        children: [
+          NavigationRail(
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: (int index) {
+              setState(() {
+                _selectedIndex = index;
+              });
+            },
+            labelType: NavigationRailLabelType.all,
+            backgroundColor: context.backgroundColor,
+            destinations: _navRailDestinations(),
           ),
-        );
-      },
+          const VerticalDivider(thickness: 1, width: 1),
+          Expanded(
+            child: IndexedStack(index: _selectedIndex, children: _pageList),
+          ),
+        ],
+      ),
     );
   }
 
-  // 添加遮罩层
   void _addOverlay() {
     _overlayEntry = OverlayEntry(
       builder: (context) {
-        return Observer(
-          builder:
-              (context) => Positioned.fill(
-                child: IgnorePointer(
-                  ignoring: true, // 不拦截触控事件
-                  child: Container(
-                    color:
-                        globalSetting.shade && !globalSetting.themeType
-                            ? Colors.black.withValues(alpha: 0.5)
-                            : Colors.transparent,
-                  ),
+        return BlocBuilder<GlobalSettingCubit, GlobalSettingState>(
+          builder: (context, globalState) {
+            final bool isDarkMode = !context.isLightMode;
+            final bool shadeEnabled = globalState.shade;
+
+            return Positioned.fill(
+              child: IgnorePointer(
+                ignoring: true,
+                child: Container(
+                  color: shadeEnabled && isDarkMode
+                      ? Colors.black.withValues(alpha: 0.5)
+                      : Colors.transparent,
                 ),
               ),
+            );
+          },
         );
       },
     );
 
-    // 将遮罩层插入到 Overlay 中
     Overlay.of(context).insert(_overlayEntry!);
   }
 
@@ -228,30 +223,33 @@ class _NavigationBarState extends State<NavigationBar> {
 
   // 底部导航栏的配置项
   List<PersistentBottomNavBarItem> _navBarItems() {
+    final activeColor = context.theme.colorScheme.primary;
+    final inactiveColor = context.textColor;
+
     return [
       PersistentBottomNavBarItem(
         icon: Icon(Icons.home),
         title: "首页",
-        activeColorPrimary: materialColorScheme.primary,
-        inactiveColorPrimary: globalSetting.textColor,
+        activeColorPrimary: activeColor,
+        inactiveColorPrimary: inactiveColor,
       ),
       PersistentBottomNavBarItem(
         icon: Icon(Icons.leaderboard),
         title: "排行",
-        activeColorPrimary: materialColorScheme.primary,
-        inactiveColorPrimary: globalSetting.textColor,
+        activeColorPrimary: activeColor,
+        inactiveColorPrimary: inactiveColor,
       ),
       PersistentBottomNavBarItem(
         icon: Icon(Icons.menu_book_sharp),
         title: "书架",
-        activeColorPrimary: materialColorScheme.primary,
-        inactiveColorPrimary: globalSetting.textColor,
+        activeColorPrimary: activeColor,
+        inactiveColorPrimary: inactiveColor,
       ),
       PersistentBottomNavBarItem(
         icon: Icon(Icons.more_horiz),
         title: "更多",
-        activeColorPrimary: materialColorScheme.primary,
-        inactiveColorPrimary: globalSetting.textColor,
+        activeColorPrimary: activeColor,
+        inactiveColorPrimary: inactiveColor,
       ),
     ];
   }
@@ -283,11 +281,13 @@ class _NavigationBarState extends State<NavigationBar> {
   }
 
   Future<void> _autoSync() async {
-    if (globalSetting.autoSync == false) {
+    final globalState = context.read<GlobalSettingCubit>().state;
+
+    if (globalState.autoSync == false) {
       return;
     }
 
-    if (globalSetting.webdavHost.isEmpty) {
+    if (globalState.webdavHost.isEmpty) {
       return;
     }
 
@@ -304,7 +304,7 @@ class _NavigationBarState extends State<NavigationBar> {
       }
       await uploadFile2WebDav();
       await deleteFileFromWebDav(files);
-      if (globalSetting.syncNotify) {
+      if (globalState.syncNotify) {
         showSuccessToast("自动同步成功！");
       }
     } catch (e) {
@@ -457,13 +457,21 @@ class _NavigationBarState extends State<NavigationBar> {
   }
 
   Future<void> _signIn() async {
-    if (globalSetting.disableBika) return;
+    final globalState = context.read<GlobalSettingCubit>().state;
+    if (globalState.disableBika) return;
+
+    if (!mounted) return;
+
+    final bikaCubit = context.read<BikaSettingCubit>();
+
     while (true) {
       try {
         var result = await signIn();
         if (result == '签到成功') {
           showSuccessToast("哔咔自动签到成功！");
-          bikaSetting.setSignIn(true);
+
+          bikaCubit.updateSignIn(true);
+
           break;
         } else {
           logger.d(result);
@@ -606,17 +614,23 @@ class _NavigationBarState extends State<NavigationBar> {
   }
 
   Future<void> _jmLogin() async {
-    if (jmSetting.account.isEmpty || jmSetting.password.isEmpty) {
+    final jmCubit = context.read<JmSettingCubit>();
+    final jmState = jmCubit.state;
+
+    if (jmState.account.isEmpty || jmState.password.isEmpty) {
       return;
     }
-    jmSetting.setUserInfo('');
-    jmSetting.setLoginStatus(LoginStatus.loggingIn);
+
+    jmCubit.updateUserInfo('');
+    jmCubit.updateLoginStatus(LoginStatus.loggingIn);
 
     while (true) {
       try {
-        final result = await jm.login(jmSetting.account, jmSetting.password);
-        jmSetting.setUserInfo(result.let(jsonEncode));
-        jmSetting.setLoginStatus(LoginStatus.login);
+        final result = await jm.login(jmState.account, jmState.password);
+        jmCubit.updateUserInfo(result.let(jsonEncode));
+        jmCubit.updateLoginStatus(LoginStatus.login);
+
+        await _jmSignIn(); // 登录成功后自动签到
         break;
       } catch (e, s) {
         logger.e(e, stackTrace: s);
@@ -627,6 +641,8 @@ class _NavigationBarState extends State<NavigationBar> {
   }
 
   Future<void> _jmSignIn() async {
+    final jmCubit = context.read<JmSettingCubit>();
+    final jmState = jmCubit.state;
     int retryCount = 0;
     const max = 3; // 最大重试次数
     while (true) {
@@ -636,17 +652,12 @@ class _NavigationBarState extends State<NavigationBar> {
         break;
       }
 
-      if (jmSetting.loginStatus != LoginStatus.login) {
-        await Future.delayed(Duration(seconds: 1));
-        continue;
-      }
       try {
         var dailyList = await jm.getDailyList();
-        final id =
-            (List<Map<String, dynamic>>.from(
-              dailyList['list'].map((item) => item as Map<String, dynamic>),
-            ).last['id']);
-        final userId = jmUserInfoJsonFromJson(jmSetting.userInfo).uid;
+        final id = (List<Map<String, dynamic>>.from(
+          dailyList['list'].map((item) => item as Map<String, dynamic>),
+        ).last['id']);
+        final userId = jmUserInfoJsonFromJson(jmState.userInfo).uid;
         int retryCount2 = 0;
         const max2 = 3; // 最大重试次数
         while (true) {

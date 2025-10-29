@@ -170,19 +170,18 @@ class _ImageWidget extends StatelessWidget {
     const double height = 180;
     const double width = height / 4 * 3;
     return BlocProvider(
-      create:
-          (context) =>
-              PictureBloc()..add(
-                GetPicture(
-                  PictureInfo(
-                    from: "bika",
-                    url: fileServer,
-                    path: path,
-                    cartoonId: id,
-                    pictureType: pictureType,
-                  ),
-                ),
-              ),
+      create: (context) => PictureBloc()
+        ..add(
+          GetPicture(
+            PictureInfo(
+              from: "bika",
+              url: fileServer,
+              path: path,
+              cartoonId: id,
+              pictureType: pictureType,
+            ),
+          ),
+        ),
       child: BlocBuilder<PictureBloc, PictureLoadState>(
         builder: (context, state) {
           switch (state.status) {

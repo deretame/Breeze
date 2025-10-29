@@ -10,8 +10,8 @@ import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../../main.dart';
-import '../../../mobx/bool_select.dart';
-import '../../../mobx/int_select.dart';
+import '../../../cubit/bool_select.dart';
+import '../../../cubit/int_select.dart';
 import '../../../network/http/bika/http_request.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
@@ -138,10 +138,9 @@ class _FatherCommentsWidgetState extends State<FatherCommentsWidget>
                           child: Icon(
                             store.date ? Icons.favorite : Icons.favorite_border,
                             size: 14,
-                            color:
-                                store.date
-                                    ? Colors.red
-                                    : globalSetting.textColor,
+                            color: store.date
+                                ? Colors.red
+                                : globalSetting.textColor,
                           ),
                         ),
                         SizedBox(width: 5),

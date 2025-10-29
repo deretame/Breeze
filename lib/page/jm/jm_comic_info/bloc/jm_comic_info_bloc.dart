@@ -6,7 +6,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/type/pipe.dart';
 
-import '../../../../util/json_dispose.dart';
+import '../../../../util/json/json_dispose.dart';
 import '../json/jm_comic_info_json.dart';
 
 part 'jm_comic_info_event.dart';
@@ -37,17 +37,17 @@ class JmComicInfoBloc extends Bloc<JmComicInfoEvent, JmComicInfoState> {
     }
 
     try {
-      final comicInfo = await getComicInfo(
-        event.comicId,
-      ).let(replaceNestedNull).let(JmComicInfoJson.fromJson).let((d) {
-        var series = d.series.toList();
-        series.removeWhere((s) => s.sort == '0');
-        final newSeries =
-            series
+      final comicInfo = await getComicInfo(event.comicId)
+          .let(replaceNestedNull)
+          .let(JmComicInfoJson.fromJson)
+          .let((d) {
+            var series = d.series.toList();
+            series.removeWhere((s) => s.sort == '0');
+            final newSeries = series
                 .map((s) => s.copyWith(name: '第${s.sort}话 ${s.name}'))
                 .toList();
-        return d.copyWith(series: newSeries);
-      });
+            return d.copyWith(series: newSeries);
+          });
 
       emit(
         state.copyWith(status: JmComicInfoStatus.success, comicInfo: comicInfo),

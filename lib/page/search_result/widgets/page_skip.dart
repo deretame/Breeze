@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/search_result/models/models.dart';
 
-import '../../../mobx/string_select.dart';
+import '../../../cubit/string_select.dart';
 import '../bloc/search_bloc.dart';
 
 class PageSkip extends StatelessWidget {

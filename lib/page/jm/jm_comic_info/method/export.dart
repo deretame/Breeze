@@ -211,20 +211,19 @@ DownloadInfoJson comicInfoProcess(DownloadInfoJson comicInfo) {
 
   int i = 1;
   // 修改 eps 的 docs
-  final updatedSeries =
-      comicInfo.series.map((ep) {
-        // 修改 epsDoc 的 title
-        String originalEpName =
-            "$i.${ep.info.name.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}";
-        final updatedEp = ep.copyWith(
-          name: originalEpName.substring(0, min(originalEpName.length, 90)),
-        );
+  final updatedSeries = comicInfo.series.map((ep) {
+    // 修改 epsDoc 的 title
+    String originalEpName =
+        "$i.${ep.info.name.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}";
+    final updatedEp = ep.copyWith(
+      name: originalEpName.substring(0, min(originalEpName.length, 90)),
+    );
 
-        i++;
+    i++;
 
-        // 更新 epsDoc 的 pages
-        return updatedEp;
-      }).toList();
+    // 更新 epsDoc 的 pages
+    return updatedEp;
+  }).toList();
 
   // 返回更新后的 ComicAllInfoJson
   return comicInfo.copyWith(name: updatedComic, series: updatedSeries);

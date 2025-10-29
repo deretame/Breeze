@@ -37,10 +37,9 @@ Map<String, dynamic> _$EpToJson(_Ep instance) => <String, dynamic>{
 };
 
 _Pages _$PagesFromJson(Map<String, dynamic> json) => _Pages(
-  docs:
-      (json['docs'] as List<dynamic>)
-          .map((e) => Doc.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  docs: (json['docs'] as List<dynamic>)
+      .map((e) => Doc.fromJson(e as Map<String, dynamic>))
+      .toList(),
   total: (json['total'] as num).toInt(),
   limit: (json['limit'] as num).toInt(),
   page: (json['page'] as num).toInt(),

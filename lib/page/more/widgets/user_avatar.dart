@@ -39,16 +39,15 @@ class UserAvatar extends StatelessWidget {
                     width: 75,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(50.0),
-                      child:
-                          pictureInfo.url.contains("nopic-Male.gif")
-                              ? Image.asset(
-                                'asset/image/assets/default_cover.png',
-                                fit: BoxFit.cover,
-                              )
-                              : Image.file(
-                                File(state.imagePath!),
-                                fit: BoxFit.cover,
-                              ),
+                      child: pictureInfo.url.contains("nopic-Male.gif")
+                          ? Image.asset(
+                              'asset/image/assets/default_cover.png',
+                              fit: BoxFit.cover,
+                            )
+                          : Image.file(
+                              File(state.imagePath!),
+                              fit: BoxFit.cover,
+                            ),
                     ),
                   ),
                 );

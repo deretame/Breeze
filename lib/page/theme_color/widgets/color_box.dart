@@ -34,10 +34,9 @@ class ColorThemeItem extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: colorInfo.color,
                   borderRadius: BorderRadius.circular(8), // 圆角
-                  border:
-                      currentColor == colorInfo.color
-                          ? Border.all(color: Colors.black, width: 2) // 选中状态
-                          : null,
+                  border: currentColor == colorInfo.color
+                      ? Border.all(color: Colors.black, width: 2) // 选中状态
+                      : null,
                 ),
               ),
               SizedBox(height: 8), // 颜色块和文字的间距

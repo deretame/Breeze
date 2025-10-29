@@ -42,13 +42,12 @@ class _SortWidgetState extends State<SortWidget> {
         });
         widget.onChanged(newSearchEnter);
       },
-      items:
-          sortList.map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(sortMap[value]!),
-            );
-          }).toList(),
+      items: sortList.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(sortMap[value]!),
+        );
+      }).toList(),
     );
   }
 }

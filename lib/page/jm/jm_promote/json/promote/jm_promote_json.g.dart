@@ -13,10 +13,9 @@ _JmPromoteJson _$JmPromoteJsonFromJson(Map<String, dynamic> json) =>
       slug: json['slug'] as String,
       type: json['type'] as String,
       filterVal: json['filter_val'],
-      content:
-          (json['content'] as List<dynamic>)
-              .map((e) => Content.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      content: (json['content'] as List<dynamic>)
+          .map((e) => Content.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$JmPromoteJsonToJson(_JmPromoteJson instance) =>

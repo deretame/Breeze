@@ -22,9 +22,8 @@ String _getSignature(
   String apiKey,
 ) {
   String baseUrl = "https://picaapi.picacomic.com/";
-  String raw =
-      "${url.replaceAll(baseUrl, '')}$timestamp$nonce$method$apiKey"
-          .toLowerCase();
+  String raw = "${url.replaceAll(baseUrl, '')}$timestamp$nonce$method$apiKey"
+      .toLowerCase();
   String hashKey =
       r"~d}$Q7$eIni=V)9\RK/P.RM4;9[7|@/CA}b~OW!3?EV`:<>M7pddUBL5n|0/*Cn";
 

@@ -7,7 +7,7 @@ import 'package:zephyr/page/search_result/search_result.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../main.dart';
-import '../../../mobx/string_select.dart';
+import '../../../cubit/string_select.dart';
 import '../../../type/enum.dart';
 import '../../../widgets/comic_entry/comic_entry.dart';
 import '../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
@@ -24,10 +24,9 @@ class SearchResultPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create:
-          (_) =>
-              SearchBloc()
-                ..add(FetchSearchResult(searchEnter, SearchStatus.initial)),
+      create: (_) =>
+          SearchBloc()
+            ..add(FetchSearchResult(searchEnter, SearchStatus.initial)),
       child: _SearchResultPage(searchEnter: searchEnter),
     );
   }
@@ -60,15 +59,16 @@ class _SearchResultPageState extends State<_SearchResultPage>
       vsync: this,
       duration: const Duration(milliseconds: 300), // 动画持续时间
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0), // 初始位置
-      end: const Offset(0, 2),
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeInOut, // 动画曲线
-      ),
-    );
+    _slideAnimation =
+        Tween<Offset>(
+          begin: const Offset(0, 0), // 初始位置
+          end: const Offset(0, 2),
+        ).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeInOut, // 动画曲线
+          ),
+        );
 
     _searchEnter = widget.searchEnter;
     _scrollController.addListener(_onScroll);
@@ -207,28 +207,26 @@ class _SearchResultPageState extends State<_SearchResultPage>
       }
     }
 
-    final list =
-        state.comics
-            .map(
-              (element) => ComicSimplifyEntryInfo(
-                title: element.doc.title,
-                id: element.doc.id,
-                fileServer: element.doc.thumb.fileServer,
-                path: element.doc.thumb.path,
-                pictureType: "cover",
-                from: "bika",
-              ),
-            )
-            .toList();
+    final list = state.comics
+        .map(
+          (element) => ComicSimplifyEntryInfo(
+            title: element.doc.title,
+            id: element.doc.id,
+            fileServer: element.doc.thumb.fileServer,
+            path: element.doc.thumb.path,
+            pictureType: "cover",
+            from: "bika",
+          ),
+        )
+        .toList();
 
     final elementsRows = generateResponsiveRows(context, list);
 
     final itemCount = _calculateItemCount(state, elementsRows.length);
 
     return ListView.builder(
-      itemBuilder:
-          (context, index) =>
-              _buildListItem(context, index, state, elementsRows),
+      itemBuilder: (context, index) =>
+          _buildListItem(context, index, state, elementsRows),
       itemCount: itemCount,
       controller: _scrollController,
     );
@@ -320,8 +318,8 @@ class _SearchResultPageState extends State<_SearchResultPage>
             children: [
               const SizedBox(height: 10),
               ElevatedButton(
-                onPressed:
-                    () => _refresh(_searchEnter, SearchStatus.loadingMore),
+                onPressed: () =>
+                    _refresh(_searchEnter, SearchStatus.loadingMore),
                 child: const Text('点击重试'),
               ),
             ],
@@ -360,8 +358,8 @@ class _SearchResultPageState extends State<_SearchResultPage>
       double middlePosition =
           currentScrollPosition + (context.screenHeight / 3);
       double listViewStartOffset = 0.0;
-      int itemIndex =
-          ((middlePosition - listViewStartOffset) / itemHeight).floor();
+      int itemIndex = ((middlePosition - listViewStartOffset) / itemHeight)
+          .floor();
 
       if (itemIndex >= 0 && itemIndex < comics.length) {
         int buildNumber = comics[itemIndex].buildNumber;

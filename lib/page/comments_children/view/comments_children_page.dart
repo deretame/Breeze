@@ -7,8 +7,8 @@ import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../main.dart';
-import '../../../mobx/bool_select.dart';
-import '../../../mobx/int_select.dart';
+import '../../../cubit/bool_select.dart';
+import '../../../cubit/int_select.dart';
 import '../../../network/http/bika/http_request.dart';
 import '../../../widgets/error_view.dart';
 import '../../comments/json/comments_json/comments_json.dart' as comments_json;
@@ -30,15 +30,14 @@ class CommentsChildrenPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create:
-          (_) =>
-              CommentsChildrenBloc()..add(
-                CommentsChildrenEvent(
-                  fatherDoc.id,
-                  CommentsChildrenStatus.initial,
-                  1,
-                ),
-              ),
+      create: (_) => CommentsChildrenBloc()
+        ..add(
+          CommentsChildrenEvent(
+            fatherDoc.id,
+            CommentsChildrenStatus.initial,
+            1,
+          ),
+        ),
       child: _CommentsChildrenPage(
         fatherDoc: fatherDoc,
         store: store,
@@ -153,10 +152,9 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
                       decoration: BoxDecoration(
                         // color: Colors.grey[200], // 背景色
                         border: Border.all(
-                          color:
-                              globalSetting.themeType
-                                  ? materialColorScheme.secondaryFixedDim
-                                  : materialColorScheme.secondaryFixedDim,
+                          color: globalSetting.themeType
+                              ? materialColorScheme.secondaryFixedDim
+                              : materialColorScheme.secondaryFixedDim,
                         ), // 边框
                         borderRadius: BorderRadius.circular(8.0), // 圆角
                       ),
@@ -180,8 +178,8 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
                         ),
                         SizedBox(width: 8),
                         ElevatedButton(
-                          onPressed:
-                              () => context.pop(controller.text), // 返回输入内容
+                          onPressed: () =>
+                              context.pop(controller.text), // 返回输入内容
                           child: Text('确认'),
                         ),
                       ],

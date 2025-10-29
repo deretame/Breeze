@@ -6,7 +6,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/page/jm/jm_comments/json/comments_json.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/json_dispose.dart';
+import 'package:zephyr/util/json/json_dispose.dart';
 
 part 'comments_event.dart';
 part 'comments_state.dart';

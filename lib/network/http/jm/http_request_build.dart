@@ -75,8 +75,9 @@ Future<dynamic> request(
   }
 
   if (url.contains("/daily_list/filter")) {
-    timestamp =
-        (DateTime.now().millisecondsSinceEpoch / 1000).floor().toString();
+    timestamp = (DateTime.now().millisecondsSinceEpoch / 1000)
+        .floor()
+        .toString();
   }
 
   if (cache) {

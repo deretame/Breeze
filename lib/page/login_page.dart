@@ -9,7 +9,7 @@ import 'package:zephyr/page/more/json/jm/jm_user_info_json.dart'
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/dialog.dart';
-import 'package:zephyr/util/json_dispose.dart';
+import 'package:zephyr/util/json/json_dispose.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../network/http/bika/http_request.dart';
@@ -37,10 +37,12 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     from = widget.from ?? From.bika;
-    _account.text =
-        from == From.bika ? bikaSetting.getAccount() : jmSetting.getAccount();
-    _password.text =
-        from == From.bika ? bikaSetting.getPassword() : jmSetting.getPassword();
+    _account.text = from == From.bika
+        ? bikaSetting.getAccount()
+        : jmSetting.getAccount();
+    _password.text = from == From.bika
+        ? bikaSetting.getPassword()
+        : jmSetting.getPassword();
 
     if (from == From.bika) {
       title = "哔咔登录";
@@ -172,23 +174,21 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   TextButton(
-                    onPressed:
-                        from == From.bika
-                            ? () => context.pushRoute(RegisterRoute())
-                            : null,
+                    onPressed: from == From.bika
+                        ? () => context.pushRoute(RegisterRoute())
+                        : null,
                     child: const Text('注册账号'),
                   ),
                   TextButton(
-                    onPressed:
-                        from == From.bika
-                            ? () {
-                              commonDialog(
-                                context,
-                                "找回密码",
-                                "哔咔实际上已经无法找回密码，所以这个功能实际上不存在。",
-                              );
-                            }
-                            : null,
+                    onPressed: from == From.bika
+                        ? () {
+                            commonDialog(
+                              context,
+                              "找回密码",
+                              "哔咔实际上已经无法找回密码，所以这个功能实际上不存在。",
+                            );
+                          }
+                        : null,
                     child: const Text('找回密码'),
                   ),
                 ],

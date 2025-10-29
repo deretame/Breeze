@@ -34,8 +34,9 @@ _Comic _$ComicFromJson(Map<String, dynamic> json) => _Comic(
   thumb: Thumb.fromJson(json['thumb'] as Map<String, dynamic>),
   author: json['author'] as String,
   chineseTeam: json['chineseTeam'] as String,
-  categories:
-      (json['categories'] as List<dynamic>).map((e) => e as String).toList(),
+  categories: (json['categories'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
   pagesCount: (json['pagesCount'] as num).toInt(),
   epsCount: (json['epsCount'] as num).toInt(),
@@ -88,8 +89,9 @@ _Creator _$CreatorFromJson(Map<String, dynamic> json) => _Creator(
   verified: json['verified'] as bool,
   exp: (json['exp'] as num).toInt(),
   level: (json['level'] as num).toInt(),
-  characters:
-      (json['characters'] as List<dynamic>).map((e) => e as String).toList(),
+  characters: (json['characters'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   role: json['role'] as String,
   title: json['title'] as String,
   avatar: Thumb.fromJson(json['avatar'] as Map<String, dynamic>),

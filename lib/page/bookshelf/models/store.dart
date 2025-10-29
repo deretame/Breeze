@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:zephyr/mobx/int_select.dart';
+import 'package:zephyr/cubit/int_select.dart';
 import 'package:zephyr/page/bookshelf/mobx/search_status.dart';
-import 'package:zephyr/mobx/string_select.dart';
+import 'package:zephyr/cubit/string_select.dart';
 
 class BookshelfStore {
   IntSelectStore indexStore;

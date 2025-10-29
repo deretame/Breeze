@@ -10,10 +10,9 @@ _JmRankingJson _$JmRankingJsonFromJson(Map<String, dynamic> json) =>
     _JmRankingJson(
       searchQuery: json['search_query'] as String,
       total: json['total'] as String,
-      content:
-          (json['content'] as List<dynamic>)
-              .map((e) => Content.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      content: (json['content'] as List<dynamic>)
+          .map((e) => Content.fromJson(e as Map<String, dynamic>))
+          .toList(),
       tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
     );
 

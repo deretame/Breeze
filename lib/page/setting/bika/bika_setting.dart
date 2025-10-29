@@ -99,13 +99,12 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
               bikaSetting.setProxy(int.parse(value!));
             });
           },
-          items:
-              shuntList.map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(shunt[value]!),
-                );
-              }).toList(),
+          items: shuntList.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(shunt[value]!),
+            );
+          }).toList(),
           style: TextStyle(color: globalSetting.textColor, fontSize: 18),
         ),
         SizedBox(width: 10),
@@ -129,13 +128,12 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
               bikaSetting.setImageQuality(value!);
             });
           },
-          items:
-              imageQualityList.map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(imageQuality[value]!),
-                );
-              }).toList(),
+          items: imageQualityList.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(imageQuality[value]!),
+            );
+          }).toList(),
           style: TextStyle(color: globalSetting.textColor, fontSize: 18),
         ),
         SizedBox(width: 10),

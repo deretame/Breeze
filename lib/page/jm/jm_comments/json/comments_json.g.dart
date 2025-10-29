@@ -8,10 +8,9 @@ part of 'comments_json.dart';
 
 _CommentsJson _$CommentsJsonFromJson(Map<String, dynamic> json) =>
     _CommentsJson(
-      list:
-          (json['list'] as List<dynamic>)
-              .map((e) => ListElement.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      list: (json['list'] as List<dynamic>)
+          .map((e) => ListElement.fromJson(e as Map<String, dynamic>))
+          .toList(),
       total: json['total'] as String,
     );
 
@@ -35,10 +34,9 @@ _ListElement _$ListElementFromJson(Map<String, dynamic> json) => _ListElement(
   content: json['content'] as String,
   photo: json['photo'] as String,
   spoiler: json['spoiler'] as String,
-  replys:
-      (json['replys'] as List<dynamic>?)
-          ?.map((e) => Reply.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  replys: (json['replys'] as List<dynamic>?)
+      ?.map((e) => Reply.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$ListElementToJson(_ListElement instance) =>
@@ -69,10 +67,9 @@ _Expinfo _$ExpinfoFromJson(Map<String, dynamic> json) => _Expinfo(
   exp: json['exp'] as String,
   expPercent: (json['expPercent'] as num).toDouble(),
   uid: json['uid'] as String,
-  badges:
-      (json['badges'] as List<dynamic>)
-          .map((e) => Badge.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  badges: (json['badges'] as List<dynamic>)
+      .map((e) => Badge.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$ExpinfoToJson(_Expinfo instance) => <String, dynamic>{

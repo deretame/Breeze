@@ -26,10 +26,9 @@ Map<String, dynamic> _$DataToJson(_Data instance) => <String, dynamic>{
 };
 
 _EpsClass _$EpsClassFromJson(Map<String, dynamic> json) => _EpsClass(
-  docs:
-      (json['docs'] as List<dynamic>)
-          .map((e) => Doc.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  docs: (json['docs'] as List<dynamic>)
+      .map((e) => Doc.fromJson(e as Map<String, dynamic>))
+      .toList(),
   total: (json['total'] as num).toInt(),
   limit: (json['limit'] as num).toInt(),
   page: (json['page'] as num).toInt(),

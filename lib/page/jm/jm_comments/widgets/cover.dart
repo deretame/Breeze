@@ -42,30 +42,26 @@ class _ImagerWidgetState extends State<ImagerWidget> {
                   );
                 case PictureLoadStatus.success:
                   return GestureDetector(
-                    onTap:
-                        !pictureInfo.url.contains("nopic-Male.gif")
-                            ? () {
-                              context.pushRoute(
-                                FullRouteImageRoute(
-                                  imagePath: state.imagePath!,
-                                ),
-                              );
-                            }
-                            : null,
+                    onTap: !pictureInfo.url.contains("nopic-Male.gif")
+                        ? () {
+                            context.pushRoute(
+                              FullRouteImageRoute(imagePath: state.imagePath!),
+                            );
+                          }
+                        : null,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(50),
                       child: SizedBox(
                         width: 50,
                         height: 50,
-                        child:
-                            pictureInfo.url.contains("nopic-Male.gif")
-                                ? Image.asset(
-                                  'asset/image/assets/default_cover.png',
-                                )
-                                : Image.file(
-                                  File(state.imagePath!),
-                                  fit: BoxFit.cover,
-                                ),
+                        child: pictureInfo.url.contains("nopic-Male.gif")
+                            ? Image.asset(
+                                'asset/image/assets/default_cover.png',
+                              )
+                            : Image.file(
+                                File(state.imagePath!),
+                                fit: BoxFit.cover,
+                              ),
                       ),
                     ),
                   );
@@ -85,10 +81,9 @@ class _ImagerWidgetState extends State<ImagerWidget> {
                     );
                   } else {
                     return InkWell(
-                      onTap:
-                          () => context.read<PictureBloc>().add(
-                            GetPicture(pictureInfo),
-                          ),
+                      onTap: () => context.read<PictureBloc>().add(
+                        GetPicture(pictureInfo),
+                      ),
                       child: Icon(Icons.refresh),
                     );
                   }

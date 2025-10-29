@@ -19,19 +19,18 @@ class RecommendWidget extends StatelessWidget {
     if (comicList.isEmpty) {
       return SizedBox.shrink();
     }
-    final comicInfoList =
-        comicList
-            .map(
-              (e) => ComicSimplifyEntryInfo(
-                title: e.title,
-                id: e.id,
-                fileServer: e.thumb.fileServer,
-                path: e.thumb.path,
-                pictureType: "cover",
-                from: "bika",
-              ),
-            )
-            .toList();
+    final comicInfoList = comicList
+        .map(
+          (e) => ComicSimplifyEntryInfo(
+            title: e.title,
+            id: e.id,
+            fileServer: e.thumb.fileServer,
+            path: e.thumb.path,
+            pictureType: "cover",
+            from: "bika",
+          ),
+        )
+        .toList();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 5.0),

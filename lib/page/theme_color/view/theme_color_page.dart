@@ -38,19 +38,18 @@ class _ThemeColorPageState extends State<ThemeColorPage> {
               child: Wrap(
                 spacing: 16.0, // 水平间距
                 runSpacing: 16.0, // 垂直间距
-                children:
-                    colorThemeList.map((colorInfo) {
-                      return ColorThemeItem(
-                        colorInfo: colorInfo,
-                        currentColor: _currentColor,
-                        onColorSelected: (color) {
-                          setState(() {
-                            _currentColor = color; // 更新颜色状态
-                          });
-                          _setThemeColor(color); // 更新全局主题颜色
-                        },
-                      );
-                    }).toList(),
+                children: colorThemeList.map((colorInfo) {
+                  return ColorThemeItem(
+                    colorInfo: colorInfo,
+                    currentColor: _currentColor,
+                    onColorSelected: (color) {
+                      setState(() {
+                        _currentColor = color; // 更新颜色状态
+                      });
+                      _setThemeColor(color); // 更新全局主题颜色
+                    },
+                  );
+                }).toList(),
               ),
             ),
           ],

@@ -18,11 +18,10 @@ import '../method/type_conversion.dart';
 
   List<Doc> epsInfo = [];
   if (type == ComicEntryType.download) {
-    comicDownload =
-        objectbox.bikaDownloadBox
-            .query(BikaComicDownload_.comicId.equals(comicId))
-            .build()
-            .findFirst();
+    comicDownload = objectbox.bikaDownloadBox
+        .query(BikaComicDownload_.comicId.equals(comicId))
+        .build()
+        .findFirst();
 
     if (comicDownload != null) {
       comicAllInfo = comicAllInfoJsonFromJson(comicDownload.comicInfoAll);

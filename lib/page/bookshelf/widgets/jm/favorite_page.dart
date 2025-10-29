@@ -6,8 +6,8 @@ import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import '../../../../main.dart';
-import '../../../../mobx/int_select.dart';
-import '../../../../mobx/string_select.dart';
+import '../../../../cubit/int_select.dart';
+import '../../../../cubit/string_select.dart';
 import '../../../../object_box/model.dart';
 import '../../../../type/enum.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
@@ -176,15 +176,14 @@ class __FavoritePageState extends State<_FavoritePage>
 
     return _buildCommonListView(
       itemCount: elementsRows.length + 1,
-      itemBuilder:
-          (context, index) => _buildListItem(
-            context,
-            index,
-            elementsRows.length,
-            () => _refresh(searchStatusStore),
-            isBrevity: true,
-            elementsRows: elementsRows,
-          ),
+      itemBuilder: (context, index) => _buildListItem(
+        context,
+        index,
+        elementsRows.length,
+        () => _refresh(searchStatusStore),
+        isBrevity: true,
+        elementsRows: elementsRows,
+      ),
     );
   }
 

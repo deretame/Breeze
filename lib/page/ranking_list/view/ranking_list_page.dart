@@ -37,30 +37,27 @@ class _HotTabBarState extends State<HotTabBar> {
   @override
   Widget build(BuildContext context) {
     return Observer(
-      builder:
-          (_) => Scaffold(
-            appBar: AppBar(
-              title: Text(globalSetting.comicChoice == 1 ? "哔咔排行榜" : "禁漫排行榜"),
-            ),
-            body:
-                globalSetting.comicChoice == 1
-                    ? const BikaRankList()
-                    : const JmRankingPage(),
-            floatingActionButton:
-                globalSetting.disableBika
-                    ? null
-                    : FloatingActionButton(
-                      heroTag: Uuid().v4(),
-                      child: const Icon(Icons.compare_arrows),
-                      onPressed: () {
-                        if (globalSetting.comicChoice == 1) {
-                          globalSetting.setComicChoice(2);
-                        } else {
-                          globalSetting.setComicChoice(1);
-                        }
-                      },
-                    ),
-          ),
+      builder: (_) => Scaffold(
+        appBar: AppBar(
+          title: Text(globalSetting.comicChoice == 1 ? "哔咔排行榜" : "禁漫排行榜"),
+        ),
+        body: globalSetting.comicChoice == 1
+            ? const BikaRankList()
+            : const JmRankingPage(),
+        floatingActionButton: globalSetting.disableBika
+            ? null
+            : FloatingActionButton(
+                heroTag: Uuid().v4(),
+                child: const Icon(Icons.compare_arrows),
+                onPressed: () {
+                  if (globalSetting.comicChoice == 1) {
+                    globalSetting.setComicChoice(2);
+                  } else {
+                    globalSetting.setComicChoice(1);
+                  }
+                },
+              ),
+      ),
     );
   }
 }

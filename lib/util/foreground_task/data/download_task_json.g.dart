@@ -12,10 +12,9 @@ _DownloadTaskJson _$DownloadTaskJsonFromJson(Map<String, dynamic> json) =>
       comicId: json['comicId'] as String,
       comicName: json['comicName'] as String,
       bikaInfo: BikaInfo.fromJson(json['bikaInfo'] as Map<String, dynamic>),
-      selectedChapters:
-          (json['selectedChapters'] as List<dynamic>)
-              .map((e) => e as String)
-              .toList(),
+      selectedChapters: (json['selectedChapters'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
       slowDownload: json['slowDownload'] as bool,
       globalProxy: json['globalProxy'] as String,
     );

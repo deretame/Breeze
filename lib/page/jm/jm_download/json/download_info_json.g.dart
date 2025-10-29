@@ -16,22 +16,18 @@ _DownloadInfoJson _$DownloadInfoJsonFromJson(
   description: json['description'] as String,
   totalViews: json['total_views'] as String,
   likes: json['likes'] as String,
-  series:
-      (json['series'] as List<dynamic>)
-          .map(
-            (e) => DownloadInfoJsonSeries.fromJson(e as Map<String, dynamic>),
-          )
-          .toList(),
+  series: (json['series'] as List<dynamic>)
+      .map((e) => DownloadInfoJsonSeries.fromJson(e as Map<String, dynamic>))
+      .toList(),
   seriesId: json['series_id'] as String,
   commentTotal: json['comment_total'] as String,
   author: (json['author'] as List<dynamic>).map((e) => e as String).toList(),
   tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
   works: (json['works'] as List<dynamic>).map((e) => e as String).toList(),
   actors: (json['actors'] as List<dynamic>).map((e) => e as String).toList(),
-  relatedList:
-      (json['related_list'] as List<dynamic>)
-          .map((e) => RelatedList.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  relatedList: (json['related_list'] as List<dynamic>)
+      .map((e) => RelatedList.fromJson(e as Map<String, dynamic>))
+      .toList(),
   liked: json['liked'] as bool,
   isFavorite: json['is_favorite'] as bool,
   isAids: json['is_aids'] as bool,
@@ -98,10 +94,9 @@ Map<String, dynamic> _$DownloadInfoJsonSeriesToJson(
 
 _Info _$InfoFromJson(Map<String, dynamic> json) => _Info(
   id: (json['id'] as num).toInt(),
-  series:
-      (json['series'] as List<dynamic>)
-          .map((e) => InfoSeries.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  series: (json['series'] as List<dynamic>)
+      .map((e) => InfoSeries.fromJson(e as Map<String, dynamic>))
+      .toList(),
   tags: json['tags'] as String,
   name: json['name'] as String,
   images: (json['images'] as List<dynamic>).map((e) => e as String).toList(),

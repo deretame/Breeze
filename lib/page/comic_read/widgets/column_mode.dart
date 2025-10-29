@@ -35,30 +35,32 @@ class ColumnModeWidget extends StatelessWidget {
     // 从 2.0 倍屏幕高度减少到 1.0 倍
     return useSkia
         ? ScrollablePositionedList.separated(
-          // 带分隔符的版本
-          itemCount: length + 2,
-          itemBuilder: itemBuilder,
-          separatorBuilder: (_, _) => Container(height: 2, color: Colors.black),
-          itemScrollController: itemScrollController,
-          itemPositionsListener: itemPositionsListener,
-          minCacheExtent: context.screenHeight * 1.0,
-        )
+            // 带分隔符的版本
+            itemCount: length + 2,
+            itemBuilder: itemBuilder,
+            separatorBuilder: (_, _) =>
+                Container(height: 2, color: Colors.black),
+            itemScrollController: itemScrollController,
+            itemPositionsListener: itemPositionsListener,
+            minCacheExtent: context.screenHeight * 1.0,
+          )
         : ScrollablePositionedList.builder(
-          // 不带分隔符的版本
-          itemCount: length + 2,
-          itemBuilder: itemBuilder,
-          itemScrollController: itemScrollController,
-          itemPositionsListener: itemPositionsListener,
-          minCacheExtent: context.screenHeight * 1.0,
-        );
+            // 不带分隔符的版本
+            itemCount: length + 2,
+            itemBuilder: itemBuilder,
+            itemScrollController: itemScrollController,
+            itemPositionsListener: itemPositionsListener,
+            minCacheExtent: context.screenHeight * 1.0,
+          );
   }
 
   Widget itemBuilder(BuildContext context, int index) {
     if (index == 0) {
       return Container(
         width: context.screenWidth,
-        height:
-            globalSetting.comicReadTopContainer ? context.statusBarHeight : 0,
+        height: globalSetting.comicReadTopContainer
+            ? context.statusBarHeight
+            : 0,
         color: Colors.black,
       );
     } else if (index == length + 1) {

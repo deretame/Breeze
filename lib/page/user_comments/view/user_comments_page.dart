@@ -13,11 +13,8 @@ class UserCommentsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create:
-          (_) =>
-              UserCommentsBloc()..add(
-                UserCommentsEvent(status: UserCommentsStatus.initial, count: 1),
-              ),
+      create: (_) => UserCommentsBloc()
+        ..add(UserCommentsEvent(status: UserCommentsStatus.initial, count: 1)),
       child: _UserCommentsPage(),
     );
   }

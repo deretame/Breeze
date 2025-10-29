@@ -1,312 +1,234 @@
 // 存储哔咔的设置和账号信息
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hive_ce/hive.dart';
-import 'package:mobx/mobx.dart';
 
+part 'bika_setting.freezed.dart';
 part 'bika_setting.g.dart';
 
-// ignore: library_private_types_in_public_api
-class BikaSetting = _BikaSetting with _$BikaSetting;
+@freezed
+abstract class BikaSettingState with _$BikaSettingState {
+  const factory BikaSettingState({
+    @Default('') String account,
+    @Default('') String password,
+    @Default('') String authorization,
+    @Default(0) int level,
+    @Default(false) bool checkIn,
+    @Default(3) int proxy,
+    @Default('original') String imageQuality,
+    @Default(<String, bool>{}) Map<String, bool> shieldCategoryMap,
+    @Default(<String, bool>{}) Map<String, bool> shieldHomePageCategoriesMap,
+    @Default(false) bool signIn,
+    @Default(false) bool brevity,
+    @Default(false) bool slowDownload,
+  }) = _BikaSettingState;
 
-abstract class _BikaSetting with Store {
+  factory BikaSettingState.fromJson(Map<String, dynamic> json) =>
+      _$BikaSettingStateFromJson(json);
+}
+
+// -----------------------------------------------------------------
+// 步骤 4: Cubit 逻辑类
+// -----------------------------------------------------------------
+class BikaSettingCubit extends Cubit<BikaSettingState> {
   late final Box<dynamic> _box;
 
-  @observable
-  String account = ''; // 账号
-  @observable
-  String password = ''; // 密码
-  @observable
-  String authorization = ''; // 授权码
-  @observable
-  int level = 0; // 用户等级
-  @observable
-  bool checkIn = false; // 签到状态
-  @observable
-  int proxy = 3; // 分流设置
-  @observable
-  String imageQuality = 'original'; // 图片质量
-  @observable
-  Map<String, bool> shieldCategoryMap = Map.of(categoryMap); // 分类设置
-  @observable
-  Map<String, bool> shieldHomePageCategoriesMap = Map.of(homePageCategoriesMap); // 存储首页的屏蔽分类
-  @observable
-  bool signIn = false; // 签到状态
-  @observable
-  DateTime signInTime = DateTime.now().subtract(Duration(hours: 24)); // 签到时间
-  @observable
-  bool brevity = false; // 精简漫画展示
-  @observable
-  bool slowDownload = false; // 慢速下载，用来给低配手机减负
+  BikaSettingCubit() : super(const BikaSettingState());
+
+  static const _constDefaults = BikaSettingState();
+  static final Map<String, bool> _defaultShieldCategoryMap = Map.of(
+    categoryMap,
+  );
+  static final Map<String, bool> _defaultShieldHomePageCategoriesMap = Map.of(
+    homePageCategoriesMap,
+  );
+
+  static const String _defaultImageQuality = 'original';
+  static const int _defaultProxy = 3;
 
   Future<void> initBox() async {
     _box = await Hive.openBox(BikaSettingBoxKeys.bikaSettingBox);
-    account = getAccount();
-    password = getPassword();
-    authorization = getAuthorization();
-    level = getLevel();
-    checkIn = getCheckIn();
-    proxy = getProxy();
-    imageQuality = getImageQuality();
-    shieldCategoryMap = getShieldCategoryMap();
-    shieldHomePageCategoriesMap = getShieldHomePageCategories();
-    signIn = getSignIn();
-    signInTime = getSignInTime();
-    brevity = getBrevity();
-    slowDownload = getSlowDownload();
-  }
 
-  @action
-  String getAccount() {
-    account = _box.get(BikaSettingBoxKeys.account, defaultValue: '');
-    return account;
-  }
-
-  @action
-  void setAccount(String value) {
-    account = value;
-    _box.put(BikaSettingBoxKeys.account, value);
-  }
-
-  @action
-  void deleteAccount() {
-    account = '';
-    _box.delete(BikaSettingBoxKeys.account);
-  }
-
-  @action
-  String getPassword() {
-    password = _box.get(BikaSettingBoxKeys.password, defaultValue: '');
-    return password;
-  }
-
-  @action
-  void setPassword(String value) {
-    password = value;
-    _box.put(BikaSettingBoxKeys.password, value);
-  }
-
-  @action
-  void deletePassword() {
-    password = '';
-    _box.delete(BikaSettingBoxKeys.password);
-  }
-
-  @action
-  String getAuthorization() {
-    authorization = _box.get(
-      BikaSettingBoxKeys.authorization,
-      defaultValue: '',
-    );
-    return authorization;
-  }
-
-  @action
-  void setAuthorization(String value) {
-    authorization = value;
-    _box.put(BikaSettingBoxKeys.authorization, value);
-  }
-
-  @action
-  void deleteAuthorization() {
-    authorization = '';
-    _box.delete(BikaSettingBoxKeys.authorization);
-  }
-
-  @action
-  int getLevel() {
-    level = _box.get(BikaSettingBoxKeys.level, defaultValue: 0);
-    return level;
-  }
-
-  @action
-  void setLevel(int value) {
-    level = value;
-    _box.put(BikaSettingBoxKeys.level, value);
-  }
-
-  @action
-  void deleteLevel() {
-    level = 0;
-    _box.delete(BikaSettingBoxKeys.level);
-  }
-
-  @action
-  bool getCheckIn() {
-    checkIn = _box.get(BikaSettingBoxKeys.checkIn, defaultValue: false);
-    return checkIn;
-  }
-
-  @action
-  void setCheckIn(bool value) {
-    checkIn = value;
-    _box.put(BikaSettingBoxKeys.checkIn, value);
-  }
-
-  @action
-  void deleteCheckIn() {
-    checkIn = false;
-    _box.delete(BikaSettingBoxKeys.checkIn);
-  }
-
-  @action
-  int getProxy() {
-    proxy = _box.get(BikaSettingBoxKeys.proxy, defaultValue: 3);
-    return proxy;
-  }
-
-  @action
-  void setProxy(int value) {
-    proxy = value;
-    _box.put(BikaSettingBoxKeys.proxy, value);
-  }
-
-  @action
-  void deleteProxy() {
-    proxy = 3;
-    _box.delete(BikaSettingBoxKeys.proxy);
-  }
-
-  @action
-  String getImageQuality() {
-    imageQuality = _box.get(
-      BikaSettingBoxKeys.imageQuality,
-      defaultValue: 'original',
-    );
-    return imageQuality;
-  }
-
-  @action
-  void setImageQuality(String value) {
-    imageQuality = value;
-    _box.put(BikaSettingBoxKeys.imageQuality, value);
-  }
-
-  @action
-  void deleteImageQuality() {
-    imageQuality = 'original';
-    _box.delete(BikaSettingBoxKeys.imageQuality);
-  }
-
-  @action
-  Map<String, bool> getShieldCategoryMap() {
-    var map = _box.get(
+    final dynamic shieldMapRaw = _box.get(
       BikaSettingBoxKeys.shieldCategoryMap,
-      defaultValue: Map.of(categoryMap),
+      defaultValue: _defaultShieldCategoryMap,
     );
-    shieldCategoryMap = Map<String, bool>.from(map); // 转换为 Map<String, bool>
-    return shieldCategoryMap;
-  }
-
-  @action
-  void setShieldCategoryMap(Map<String, bool> value) {
-    shieldCategoryMap = Map<String, bool>.of(value);
-    _box.put(BikaSettingBoxKeys.shieldCategoryMap, value);
-  }
-
-  @action
-  void deleteShieldCategoryMap() {
-    shieldCategoryMap = Map<String, bool>.of(categoryMap);
-    _box.delete(BikaSettingBoxKeys.shieldCategoryMap);
-  }
-
-  @action
-  Map<String, bool> getShieldHomePageCategories() {
-    var map = _box.get(
+    final dynamic homeShieldMapRaw = _box.get(
       BikaSettingBoxKeys.shieldHomePageCategories,
-      defaultValue: Map.of(homePageCategoriesMap),
+      defaultValue: _defaultShieldHomePageCategoriesMap,
     );
-    var categories = Map<String, bool>.from(map); // 转换为 Map<String, bool>
-    return categories;
+
+    emit(
+      state.copyWith(
+        account: _box.get(
+          BikaSettingBoxKeys.account,
+          defaultValue: _constDefaults.account,
+        ),
+        password: _box.get(
+          BikaSettingBoxKeys.password,
+          defaultValue: _constDefaults.password,
+        ),
+        authorization: _box.get(
+          BikaSettingBoxKeys.authorization,
+          defaultValue: _constDefaults.authorization,
+        ),
+        level: _box.get(
+          BikaSettingBoxKeys.level,
+          defaultValue: _constDefaults.level,
+        ),
+        checkIn: _box.get(
+          BikaSettingBoxKeys.checkIn,
+          defaultValue: _constDefaults.checkIn,
+        ),
+        proxy: _box.get(BikaSettingBoxKeys.proxy, defaultValue: _defaultProxy),
+        imageQuality: _box.get(
+          BikaSettingBoxKeys.imageQuality,
+          defaultValue: _defaultImageQuality,
+        ),
+        shieldCategoryMap: Map<String, bool>.from(shieldMapRaw),
+        shieldHomePageCategoriesMap: Map<String, bool>.from(homeShieldMapRaw),
+        signIn: _box.get(
+          BikaSettingBoxKeys.signIn,
+          defaultValue: _constDefaults.signIn,
+        ),
+        brevity: _box.get(
+          BikaSettingBoxKeys.brevity,
+          defaultValue: _constDefaults.brevity,
+        ),
+        slowDownload: _box.get(
+          BikaSettingBoxKeys.slowDownload,
+          defaultValue: _constDefaults.slowDownload,
+        ),
+      ),
+    );
   }
 
-  @action
-  void setShieldHomeCategories(Map<String, bool> value) {
-    shieldHomePageCategoriesMap = Map<String, bool>.of(value);
+  // --- update / reset 方法 ---
+
+  void updateAccount(String value) {
+    _box.put(BikaSettingBoxKeys.account, value);
+    emit(state.copyWith(account: value));
+  }
+
+  void resetAccount() {
+    _box.delete(BikaSettingBoxKeys.account);
+    emit(state.copyWith(account: _constDefaults.account));
+  }
+
+  void updatePassword(String value) {
+    _box.put(BikaSettingBoxKeys.password, value);
+    emit(state.copyWith(password: value));
+  }
+
+  void resetPassword() {
+    _box.delete(BikaSettingBoxKeys.password);
+    emit(state.copyWith(password: _constDefaults.password));
+  }
+
+  void updateAuthorization(String value) {
+    _box.put(BikaSettingBoxKeys.authorization, value);
+    emit(state.copyWith(authorization: value));
+  }
+
+  void resetAuthorization() {
+    _box.delete(BikaSettingBoxKeys.authorization);
+    emit(state.copyWith(authorization: _constDefaults.authorization));
+  }
+
+  void updateLevel(int value) {
+    _box.put(BikaSettingBoxKeys.level, value);
+    emit(state.copyWith(level: value));
+  }
+
+  void resetLevel() {
+    _box.delete(BikaSettingBoxKeys.level);
+    emit(state.copyWith(level: _constDefaults.level));
+  }
+
+  void updateCheckIn(bool value) {
+    _box.put(BikaSettingBoxKeys.checkIn, value);
+    emit(state.copyWith(checkIn: value));
+  }
+
+  void resetCheckIn() {
+    _box.delete(BikaSettingBoxKeys.checkIn);
+    emit(state.copyWith(checkIn: _constDefaults.checkIn));
+  }
+
+  void updateProxy(int value) {
+    _box.put(BikaSettingBoxKeys.proxy, value);
+    emit(state.copyWith(proxy: value));
+  }
+
+  void resetProxy() {
+    _box.delete(BikaSettingBoxKeys.proxy);
+    emit(state.copyWith(proxy: _defaultProxy));
+  }
+
+  void updateImageQuality(String value) {
+    _box.put(BikaSettingBoxKeys.imageQuality, value);
+    emit(state.copyWith(imageQuality: value));
+  }
+
+  void resetImageQuality() {
+    _box.delete(BikaSettingBoxKeys.imageQuality);
+    emit(state.copyWith(imageQuality: _defaultImageQuality));
+  }
+
+  void updateShieldCategoryMap(Map<String, bool> value) {
+    _box.put(BikaSettingBoxKeys.shieldCategoryMap, value);
+    emit(state.copyWith(shieldCategoryMap: value));
+  }
+
+  void resetShieldCategoryMap() {
+    _box.delete(BikaSettingBoxKeys.shieldCategoryMap);
+    emit(state.copyWith(shieldCategoryMap: _defaultShieldCategoryMap));
+  }
+
+  void updateShieldHomePageCategoriesMap(Map<String, bool> value) {
+    // 你的 MobX store 有一个拼写错误 (setShieldHomeCategories)
+    // 我在这里纠正了: shieldHomePageCategoriesMap
     _box.put(BikaSettingBoxKeys.shieldHomePageCategories, value);
+    emit(state.copyWith(shieldHomePageCategoriesMap: value));
   }
 
-  @action
-  void deleteShieldHomeCategories() {
-    shieldHomePageCategoriesMap = Map<String, bool>.of(homePageCategoriesMap);
+  void resetShieldHomePageCategoriesMap() {
     _box.delete(BikaSettingBoxKeys.shieldHomePageCategories);
+    emit(
+      state.copyWith(
+        shieldHomePageCategoriesMap: _defaultShieldHomePageCategoriesMap,
+      ),
+    );
   }
 
-  @action
-  bool getSignIn() {
-    signIn = _box.get(BikaSettingBoxKeys.signIn, defaultValue: false);
-    return signIn;
-  }
-
-  @action
-  void deleteSignIn() {
-    signIn = false;
-    _box.delete(BikaSettingBoxKeys.signIn);
-  }
-
-  @action
-  void setSignIn(bool value) {
-    signIn = value;
+  void updateSignIn(bool value) {
     _box.put(BikaSettingBoxKeys.signIn, value);
+    emit(state.copyWith(signIn: value));
   }
 
-  @action
-  DateTime getSignInTime() {
-    var dateTime = _box.get(
-      BikaSettingBoxKeys.signInTime,
-      defaultValue: DateTime.now().subtract(Duration(hours: 24)),
-    );
-    signInTime = dateTime;
-    return signInTime;
+  void resetSignIn() {
+    _box.delete(BikaSettingBoxKeys.signIn);
+    emit(state.copyWith(signIn: _constDefaults.signIn));
   }
 
-  @action
-  void setSignInTime(DateTime value) {
-    signInTime = value;
-    _box.put(BikaSettingBoxKeys.signInTime, value);
-  }
-
-  @action
-  void deleteSignInTime() {
-    signInTime = DateTime.utc(1970, 1, 1);
-    _box.delete(BikaSettingBoxKeys.signInTime);
-  }
-
-  @action
-  bool getBrevity() {
-    brevity = _box.get(BikaSettingBoxKeys.brevity, defaultValue: false);
-    return brevity;
-  }
-
-  @action
-  void setBrevity(bool value) {
-    brevity = value;
+  void updateBrevity(bool value) {
     _box.put(BikaSettingBoxKeys.brevity, value);
+    emit(state.copyWith(brevity: value));
   }
 
-  @action
-  void deleteBrevity() {
-    brevity = false;
+  void resetBrevity() {
     _box.delete(BikaSettingBoxKeys.brevity);
+    emit(state.copyWith(brevity: _constDefaults.brevity));
   }
 
-  @action
-  bool getSlowDownload() {
-    slowDownload = _box.get(
-      BikaSettingBoxKeys.slowDownload,
-      defaultValue: false,
-    );
-    return slowDownload;
-  }
-
-  @action
-  void setSlowDownload(bool value) {
-    slowDownload = value;
+  void updateSlowDownload(bool value) {
     _box.put(BikaSettingBoxKeys.slowDownload, value);
+    emit(state.copyWith(slowDownload: value));
   }
 
-  @action
-  void deleteSlowDownload() {
-    slowDownload = false;
+  void resetSlowDownload() {
     _box.delete(BikaSettingBoxKeys.slowDownload);
+    emit(state.copyWith(slowDownload: _constDefaults.slowDownload));
   }
 }
 
@@ -324,7 +246,6 @@ class BikaSettingBoxKeys {
   static const String shieldHomePageCategories =
       'shieldHomePageCategories'; // 首页屏蔽分类
   static const String signIn = 'signIn'; // 签到状态
-  static const String signInTime = 'signInTime'; // 签到时间
   static const String brevity = 'brevity'; // 精简漫画展示
   static const String slowDownload = 'slowDownload'; // 慢速下载
 }

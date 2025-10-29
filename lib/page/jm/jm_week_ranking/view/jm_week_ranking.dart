@@ -60,10 +60,9 @@ class _JmWeekRankingPageState extends State<JmWeekRankingPage>
       ),
       body: TabBarView(
         controller: _tabController,
-        children:
-            tags.map((e) {
-              return CategoryRankingWidget(week: weekMap[e]!);
-            }).toList(),
+        children: tags.map((e) {
+          return CategoryRankingWidget(week: weekMap[e]!);
+        }).toList(),
       ),
     );
   }
@@ -112,10 +111,9 @@ class _CategoryRankingWidgetState extends State<CategoryRankingWidget>
         Expanded(
           child: TabBarView(
             controller: _tabController,
-            children:
-                tags.map((e) {
-                  return RankingWidget(tag: categoryMap[e]!, week: widget.week);
-                }).toList(),
+            children: tags.map((e) {
+              return RankingWidget(tag: categoryMap[e]!, week: widget.week);
+            }).toList(),
           ),
         ),
       ],

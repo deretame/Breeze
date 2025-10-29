@@ -1,92 +1,91 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hive_ce/hive.dart';
-import 'package:mobx/mobx.dart';
+import 'package:zephyr/type/enum.dart';
 
+part 'jm_setting.freezed.dart';
 part 'jm_setting.g.dart';
 
-// ignore: library_private_types_in_public_api
-class JmSetting = _JmSetting with _$JmSetting;
+@freezed
+abstract class JmSettingState with _$JmSettingState {
+  const factory JmSettingState({
+    @Default('') String account,
+    @Default('') String password,
+    @Default('') String userInfo,
+    @Default(LoginStatus.logout) LoginStatus loginStatus,
+  }) = _JmSettingState;
 
-abstract class _JmSetting with Store {
+  factory JmSettingState.fromJson(Map<String, dynamic> json) =>
+      _$JmSettingStateFromJson(json);
+}
+
+class JmSettingCubit extends Cubit<JmSettingState> {
   late final Box<dynamic> _box;
 
-  @observable
-  String account = '';
-  @observable
-  String password = '';
-  @observable
-  String userInfo = '';
-  @observable
-  LoginStatus loginStatus = LoginStatus.logout;
+  JmSettingCubit() : super(const JmSettingState());
+
+  static const _defaults = JmSettingState();
 
   Future<void> initBox() async {
     _box = await Hive.openBox(JmSettingBoxKeys.jmSettingBox);
-    account = getAccount();
-    password = getPassword();
-    userInfo = getUserInfo();
-    loginStatus = getLoginStatus();
+
+    emit(
+      state.copyWith(
+        account: _box.get(
+          JmSettingBoxKeys.account,
+          defaultValue: _defaults.account,
+        ),
+        password: _box.get(
+          JmSettingBoxKeys.password,
+          defaultValue: _defaults.password,
+        ),
+      ),
+    );
   }
 
-  @action
-  void setAccount(String value) {
-    account = value;
+  // --- 持久化状态 (Account / Password) ---
+
+  void updateAccount(String value) {
     _box.put(JmSettingBoxKeys.account, value);
+    emit(state.copyWith(account: value));
   }
 
-  @action
-  String getAccount() {
-    account = _box.get(JmSettingBoxKeys.account, defaultValue: '');
-    return account;
-  }
-
-  @action
-  void deleteAccount() {
-    account = '';
+  void resetAccount() {
     _box.delete(JmSettingBoxKeys.account);
+    emit(state.copyWith(account: _defaults.account));
   }
 
-  @action
-  void setPassword(String value) {
-    password = value;
+  void updatePassword(String value) {
     _box.put(JmSettingBoxKeys.password, value);
+    emit(state.copyWith(password: value));
   }
 
-  @action
-  String getPassword() {
-    password = _box.get(JmSettingBoxKeys.password, defaultValue: '');
-    return password;
-  }
-
-  @action
-  void deletePassword() {
-    password = '';
+  void resetPassword() {
     _box.delete(JmSettingBoxKeys.password);
+    emit(state.copyWith(password: _defaults.password));
   }
 
-  @action
-  void setUserInfo(String value) => userInfo = value;
+  void updateUserInfo(String value) {
+    emit(state.copyWith(userInfo: value));
+  }
 
-  @action
-  String getUserInfo() => userInfo;
+  void resetUserInfo() {
+    emit(state.copyWith(userInfo: _defaults.userInfo));
+  }
 
-  @action
-  void deleteUserInfo() => userInfo = '';
+  void updateLoginStatus(LoginStatus value) {
+    emit(state.copyWith(loginStatus: value));
+  }
 
-  @action
-  void setLoginStatus(LoginStatus value) => loginStatus = value;
-
-  @action
-  LoginStatus getLoginStatus() => loginStatus;
-
-  @action
-  void deleteLoginStatus() => loginStatus = LoginStatus.logout;
+  void resetLoginStatus() {
+    emit(state.copyWith(loginStatus: _defaults.loginStatus));
+  }
 }
 
 class JmSettingBoxKeys {
-  static const String jmSettingBox = 'jmSettingBox'; // 禁漫设置存储盒
-  static const String account = 'account'; // 账号
-  static const String password = 'password'; // 密码
-  static const String userInfo = 'userInfo'; // 用户信息
-  static const String loginStatus = 'loginStatus'; // 登录状态
+  static const String jmSettingBox = 'jmSettingBox';
+  static const String account = 'account';
+  static const String password = 'password';
+  static const String userInfo = 'userInfo';
+  static const String loginStatus = 'loginStatus';
 }
-
-enum LoginStatus { login, loggingIn, logout }

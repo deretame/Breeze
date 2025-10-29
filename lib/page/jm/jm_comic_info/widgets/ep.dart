@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:zephyr/mobx/string_select.dart';
+import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/type/pipe.dart';
 
 import '../../../../main.dart';
@@ -37,10 +37,9 @@ class EpWidget extends StatelessWidget {
             order: series.id.let(int.parse),
             epsNumber: epsNumber,
             from: From.jm,
-            type:
-                type == ComicEntryType.download
-                    ? ComicEntryType.download
-                    : ComicEntryType.normal,
+            type: type == ComicEntryType.download
+                ? ComicEntryType.download
+                : ComicEntryType.normal,
             comicInfo: comicInfo,
             store: store,
           ),

@@ -1,554 +1,344 @@
 // 全局设置
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hive_ce/hive.dart';
-import 'package:mobx/mobx.dart';
+import 'package:zephyr/config/global/color_theme_types.dart';
+import 'package:zephyr/util/json/converter.dart';
 
-import 'color_theme_types.dart';
-
+part 'global_setting.freezed.dart';
 part 'global_setting.g.dart';
 
-// ignore: library_private_types_in_public_api
-class GlobalSetting = _GlobalSetting with _$GlobalSetting;
+@freezed
+abstract class GlobalSettingState with _$GlobalSettingState {
+  const factory GlobalSettingState({
+    @Default(true) bool dynamicColor,
+    @Default(ThemeMode.system) ThemeMode themeMode,
+    @Default(true) bool isAMOLED,
+    @ColorConverter() @Default(Color(0xFFEF5350)) Color seedColor,
+    @Default(0) int themeInitState,
+    @LocaleConverter() @Default(Locale('zh', 'CN')) Locale locale,
+    @Default(0) int welcomePageNum,
+    @Default('') String webdavHost,
+    @Default('') String webdavUsername,
+    @Default('') String webdavPassword,
+    @Default(true) bool autoSync,
+    @Default(true) bool syncNotify,
+    @Default(true) bool shade,
+    @Default(true) bool comicReadTopContainer,
+    @Default(0) int readMode,
+    @Default([""]) List<String> maskedKeywords,
+    @Default('') String socks5Proxy,
+    @Default(false) bool needCleanCache,
+    @Default(1) int comicChoice,
+    @Default(false) bool disableBika,
+  }) = _GlobalSettingState;
 
-abstract class _GlobalSetting with Store {
+  factory GlobalSettingState.fromJson(Map<String, dynamic> json) =>
+      _$GlobalSettingStateFromJson(json);
+}
+
+class GlobalSettingCubit extends Cubit<GlobalSettingState> {
   late final Box<dynamic> _box;
 
-  @observable
-  bool dynamicColor = true; // 是否开启动态颜色
-  @observable
-  ThemeMode themeMode = ThemeMode.system; // 主题模式
-  @observable
-  bool themeType = true; // 是否是浅色主题
-  @observable
-  bool isAMOLED = true; // 是否是AMOLED屏幕
-  @observable
-  Color seedColor = Colors.red[400]!; // 种子颜色
-  @observable
-  Color backgroundColor = Colors.white; // 背景颜色
-  @observable
-  Color textColor = Colors.black; // 文字颜色
-  @observable
-  int themeInitState = 0; // 主题初始状态
-  @observable
-  Locale locale = Locale('zh', 'CN'); // 语言
-  @observable
-  int welcomePageNum = 0; // 开屏页序号
-  @observable
-  String webdavHost = ''; // webdav地址
-  @observable
-  String webdavUsername = ''; // webdav用户名
-  @observable
-  String webdavPassword = ''; // webdav密码
-  @observable
-  bool autoSync = true; // 是否自动同步
-  @observable
-  bool syncNotify = true; // 同步提示
-  @observable
-  bool shade = true; // 夜间模式遮罩
-  @observable
-  bool comicReadTopContainer = true; // 漫画阅读器顶部占位容器
-  @observable
-  int readMode = 0; // 阅读模式 0：竖向阅读 1：横向阅读（从左到右） 2：横向阅读（从右到左）
-  @observable
-  List<String> maskedKeywords = [""]; // 屏蔽关键词
-  @observable
-  String socks5Proxy = '';
-  @observable
-  bool needCleanCache = false; // 是否需要清理缓存
-  @observable
-  int comicChoice = 0; // 漫画选择
-  @observable
-  bool disableBika = false; // 是否使用哔咔
+  // 构造函数，传入由 freezed 生成的默认 state
+  GlobalSettingCubit() : super(const GlobalSettingState());
+
+  // 用于获取 freezed 中定义的默认值的便捷实例
+  static const _defaults = GlobalSettingState();
+  // colorThemeList[6].color 是动态的，不能在 const 中，单独处理
+  late final Color _defaultSeedColor = colorThemeList[6].color;
 
   Future<void> initBox() async {
     _box = await Hive.openBox(GlobalSettingBoxKey.globalSetting);
-    dynamicColor = getDynamicColor();
-    themeMode = getThemeMode();
-    themeType = getThemeType();
-    isAMOLED = getIsAMOLED();
-    seedColor = getSeedColor();
-    backgroundColor = getBackgroundColor();
-    textColor = getTextColor();
-    themeInitState = getThemeInitState();
-    locale = getLocale();
-    welcomePageNum = getWelcomePageNum();
-    webdavHost = getWebdavHost();
-    webdavUsername = getWebdavUsername();
-    webdavPassword = getWebdavPassword();
-    autoSync = getAutoSync();
-    syncNotify = getSyncNotify();
-    shade = getShade();
-    comicReadTopContainer = getComicReadTopContainer();
-    readMode = getReadMode();
-    maskedKeywords = getMaskedKeywords();
-    socks5Proxy = getSocks5Proxy();
-    needCleanCache = getNeedCleanCache();
-    comicChoice = getComicChoice();
-    disableBika = getDisableBika();
-  }
 
-  @action
-  bool getDynamicColor() {
-    dynamicColor = _box.get(
-      GlobalSettingBoxKey.dynamicColor,
-      defaultValue: true,
+    // 从 Hive 加载数据
+    // 我们使用 state.fieldName (来自 freezed 的 @Default) 作为 Hive.get 的 defaultValue
+    emit(
+      state.copyWith(
+        dynamicColor: _box.get(
+          GlobalSettingBoxKey.dynamicColor,
+          defaultValue: state.dynamicColor,
+        ),
+        themeMode:
+            ThemeMode.values[_box.get(
+              GlobalSettingBoxKey.themeMode,
+              defaultValue: state.themeMode.index,
+            )],
+        isAMOLED: _box.get(
+          GlobalSettingBoxKey.isAMOLED,
+          defaultValue: state.isAMOLED,
+        ),
+        seedColor: _box.get(
+          GlobalSettingBoxKey.seedColor,
+          defaultValue: _defaultSeedColor,
+        ),
+        themeInitState: _box.get(
+          GlobalSettingBoxKey.themeInitState,
+          defaultValue: state.themeInitState,
+        ),
+        locale: _box.get(
+          GlobalSettingBoxKey.locale,
+          defaultValue: state.locale,
+        ),
+        welcomePageNum: _box.get(
+          GlobalSettingBoxKey.welcomePageNum,
+          defaultValue: state.welcomePageNum,
+        ),
+        webdavHost: _box.get(
+          GlobalSettingBoxKey.webdavHost,
+          defaultValue: state.webdavHost,
+        ),
+        webdavUsername: _box.get(
+          GlobalSettingBoxKey.webdavUsername,
+          defaultValue: state.webdavUsername,
+        ),
+        webdavPassword: _box.get(
+          GlobalSettingBoxKey.webdavPassword,
+          defaultValue: state.webdavPassword,
+        ),
+        autoSync: _box.get(
+          GlobalSettingBoxKey.autoSync,
+          defaultValue: state.autoSync,
+        ),
+        syncNotify: _box.get(
+          GlobalSettingBoxKey.syncNotify,
+          defaultValue: state.syncNotify,
+        ),
+        shade: _box.get(GlobalSettingBoxKey.shade, defaultValue: state.shade),
+        comicReadTopContainer: _box.get(
+          GlobalSettingBoxKey.comicReadTopContainer,
+          defaultValue: state.comicReadTopContainer,
+        ),
+        readMode: _box.get(
+          GlobalSettingBoxKey.readMode,
+          defaultValue: state.readMode,
+        ),
+        maskedKeywords: _box.get(
+          GlobalSettingBoxKey.maskedKeywords,
+          defaultValue: state.maskedKeywords,
+        ),
+        socks5Proxy: _box.get(
+          GlobalSettingBoxKey.socks5Proxy,
+          defaultValue: state.socks5Proxy,
+        ),
+        needCleanCache: _box.get(
+          GlobalSettingBoxKey.needCleanCache,
+          defaultValue: state.needCleanCache,
+        ),
+        comicChoice: _box.get(
+          GlobalSettingBoxKey.comicChoice,
+          defaultValue: state.comicChoice,
+        ),
+        disableBika: _box.get(
+          GlobalSettingBoxKey.disableBika,
+          defaultValue: state.disableBika,
+        ),
+      ),
     );
-    return dynamicColor;
   }
 
-  @action
-  void setDynamicColor(bool value) {
-    dynamicColor = value;
+  void updateDynamicColor(bool value) {
     _box.put(GlobalSettingBoxKey.dynamicColor, value);
+    emit(state.copyWith(dynamicColor: value));
   }
 
-  @action
-  void deleteDynamicColor() {
-    dynamicColor = true;
+  void resetDynamicColor() {
     _box.delete(GlobalSettingBoxKey.dynamicColor);
+    emit(state.copyWith(dynamicColor: _defaults.dynamicColor));
   }
 
-  @action
-  ThemeMode getThemeMode() {
-    final themeModeIndex = _box.get(
-      GlobalSettingBoxKey.themeMode,
-      defaultValue: ThemeMode.system.index,
-    ); // 确保这里获取的是 int 类型
-    themeMode = ThemeMode.values[themeModeIndex]; // 转换为 ThemeMode
-    return themeMode;
+  void updateThemeMode(ThemeMode value) {
+    _box.put(GlobalSettingBoxKey.themeMode, value.index);
+    emit(state.copyWith(themeMode: value));
   }
 
-  @action
-  void setThemeMode(int value) {
-    themeMode = ThemeMode.values[value]; // 根据索引设置 ThemeMode
-    _box.put(GlobalSettingBoxKey.themeMode, value); // 存储 int 值
-  }
-
-  @action
-  void deleteThemeMode() {
-    themeMode = ThemeMode.system;
+  void resetThemeMode() {
     _box.delete(GlobalSettingBoxKey.themeMode);
+    emit(state.copyWith(themeMode: _defaults.themeMode));
   }
 
-  @action
-  bool getThemeType() {
-    themeType = _box.get(GlobalSettingBoxKey.themeType, defaultValue: true);
-    return themeType;
-  }
-
-  @action
-  void setThemeType(bool value) {
-    themeType = value;
-    _box.put(GlobalSettingBoxKey.themeType, value);
-  }
-
-  @action
-  void deleteThemeType() {
-    themeType = true;
-    _box.delete(GlobalSettingBoxKey.themeType);
-  }
-
-  @action
-  bool getIsAMOLED() {
-    isAMOLED = _box.get(GlobalSettingBoxKey.isAMOLED, defaultValue: true);
-    return isAMOLED;
-  }
-
-  @action
-  void setIsAMOLED(bool value) {
-    isAMOLED = value;
+  void updateIsAMOLED(bool value) {
     _box.put(GlobalSettingBoxKey.isAMOLED, value);
+    emit(state.copyWith(isAMOLED: value));
   }
 
-  @action
-  void deleteIsAMOLED() {
-    isAMOLED = true;
+  void resetIsAMOLED() {
     _box.delete(GlobalSettingBoxKey.isAMOLED);
+    emit(state.copyWith(isAMOLED: _defaults.isAMOLED));
   }
 
-  @action
-  Color getSeedColor() {
-    seedColor = _box.get(
-      GlobalSettingBoxKey.seedColor,
-      defaultValue: colorThemeList[6].color,
-    );
-    return seedColor;
-  }
-
-  @action
-  void setSeedColor(Color value) {
-    seedColor = value;
+  void updateSeedColor(Color value) {
     _box.put(GlobalSettingBoxKey.seedColor, value);
+    emit(state.copyWith(seedColor: value));
   }
 
-  @action
-  void deleteSeedColor() {
-    seedColor = _box.get(
-      GlobalSettingBoxKey.seedColor,
-      defaultValue: colorThemeList[6].color,
-    );
+  void resetSeedColor() {
     _box.delete(GlobalSettingBoxKey.seedColor);
+    emit(state.copyWith(seedColor: _defaultSeedColor));
   }
 
-  @action
-  Color getBackgroundColor() {
-    backgroundColor = _box.get(
-      GlobalSettingBoxKey.backgroundColor,
-      defaultValue: Colors.white,
-    );
-    return backgroundColor;
-  }
-
-  @action
-  void setBackgroundColor(Color value) {
-    backgroundColor = value;
-    _box.put(GlobalSettingBoxKey.backgroundColor, value);
-  }
-
-  @action
-  void deleteBackgroundColor() {
-    backgroundColor = Colors.white;
-    _box.delete(GlobalSettingBoxKey.backgroundColor);
-  }
-
-  @action
-  Color getTextColor() {
-    textColor = _box.get(
-      GlobalSettingBoxKey.textColor,
-      defaultValue: Colors.black,
-    );
-    return textColor;
-  }
-
-  @action
-  void setTextColor(Color value) {
-    textColor = value;
-    _box.put(GlobalSettingBoxKey.textColor, value);
-  }
-
-  @action
-  void deleteTextColor() {
-    textColor = _box.get(
-      GlobalSettingBoxKey.textColor,
-      defaultValue: Colors.black,
-    );
-    _box.delete(GlobalSettingBoxKey.textColor);
-  }
-
-  @action
-  int getThemeInitState() {
-    themeInitState = _box.get(
-      GlobalSettingBoxKey.themeInitState,
-      defaultValue: 0,
-    );
-    return themeInitState;
-  }
-
-  @action
-  void setThemeInitState(int value) {
-    themeInitState = value;
+  void updateThemeInitState(int value) {
     _box.put(GlobalSettingBoxKey.themeInitState, value);
+    emit(state.copyWith(themeInitState: value));
   }
 
-  @action
-  void deleteThemeInitState() {
-    themeInitState = 0;
+  void resetThemeInitState() {
     _box.delete(GlobalSettingBoxKey.themeInitState);
+    emit(state.copyWith(themeInitState: _defaults.themeInitState));
   }
 
-  @action
-  Locale getLocale() {
-    locale = _box.get(
-      GlobalSettingBoxKey.locale,
-      defaultValue: Locale('zh', 'CN'),
-    );
-    return locale;
-  }
-
-  @action
-  void setLocale(Locale value) {
-    locale = value;
+  void updateLocale(Locale value) {
     _box.put(GlobalSettingBoxKey.locale, value);
+    emit(state.copyWith(locale: value));
   }
 
-  @action
-  void deleteLocale() {
-    locale = Locale('zh', 'CN');
+  void resetLocale() {
     _box.delete(GlobalSettingBoxKey.locale);
+    emit(state.copyWith(locale: _defaults.locale));
   }
 
-  @action
-  int getWelcomePageNum() {
-    welcomePageNum = _box.get(
-      GlobalSettingBoxKey.welcomePageNum,
-      defaultValue: 0,
-    );
-    return welcomePageNum;
-  }
-
-  @action
-  void setWelcomePageNum(int value) {
-    welcomePageNum = value;
+  void updateWelcomePageNum(int value) {
     _box.put(GlobalSettingBoxKey.welcomePageNum, value);
+    emit(state.copyWith(welcomePageNum: value));
   }
 
-  @action
-  void deleteWelcomePageNum() {
-    welcomePageNum = 0;
+  void resetWelcomePageNum() {
     _box.delete(GlobalSettingBoxKey.welcomePageNum);
+    emit(state.copyWith(welcomePageNum: _defaults.welcomePageNum));
   }
 
-  @action
-  String getWebdavHost() {
-    webdavHost = _box.get(GlobalSettingBoxKey.webdavHost, defaultValue: '');
-    return webdavHost;
-  }
-
-  @action
-  void setWebdavHost(String value) {
-    webdavHost = value;
+  void updateWebdavHost(String value) {
     _box.put(GlobalSettingBoxKey.webdavHost, value);
+    emit(state.copyWith(webdavHost: value));
   }
 
-  @action
-  void deleteWebdavHost() {
-    webdavHost = '';
+  void resetWebdavHost() {
     _box.delete(GlobalSettingBoxKey.webdavHost);
+    emit(state.copyWith(webdavHost: _defaults.webdavHost));
   }
 
-  @action
-  String getWebdavUsername() {
-    webdavUsername = _box.get(
-      GlobalSettingBoxKey.webdavUsername,
-      defaultValue: '',
-    );
-    return webdavUsername;
-  }
-
-  @action
-  void setWebdavUsername(String value) {
-    webdavUsername = value;
+  void updateWebdavUsername(String value) {
     _box.put(GlobalSettingBoxKey.webdavUsername, value);
+    emit(state.copyWith(webdavUsername: value));
   }
 
-  @action
-  void deleteWebdavUsername() {
-    webdavUsername = '';
+  void resetWebdavUsername() {
     _box.delete(GlobalSettingBoxKey.webdavUsername);
+    emit(state.copyWith(webdavUsername: _defaults.webdavUsername));
   }
 
-  @action
-  String getWebdavPassword() {
-    webdavPassword = _box.get(
-      GlobalSettingBoxKey.webdavPassword,
-      defaultValue: '',
-    );
-    return webdavPassword;
-  }
-
-  @action
-  void setWebdavPassword(String value) {
-    webdavPassword = value;
+  void updateWebdavPassword(String value) {
     _box.put(GlobalSettingBoxKey.webdavPassword, value);
+    emit(state.copyWith(webdavPassword: value));
   }
 
-  @action
-  void deleteWebdavPassword() {
-    webdavPassword = '';
+  void resetWebdavPassword() {
     _box.delete(GlobalSettingBoxKey.webdavPassword);
+    emit(state.copyWith(webdavPassword: _defaults.webdavPassword));
   }
 
-  @action
-  bool getAutoSync() {
-    autoSync = _box.get(GlobalSettingBoxKey.autoSync, defaultValue: true);
-    return autoSync;
-  }
-
-  @action
-  void setAutoSync(bool value) {
-    autoSync = value;
+  void updateAutoSync(bool value) {
     _box.put(GlobalSettingBoxKey.autoSync, value);
+    emit(state.copyWith(autoSync: value));
   }
 
-  @action
-  void deleteAutoSync() {
-    autoSync = true;
+  void resetAutoSync() {
     _box.delete(GlobalSettingBoxKey.autoSync);
+    emit(state.copyWith(autoSync: _defaults.autoSync));
   }
 
-  @action
-  void setSyncNotify(bool value) {
-    syncNotify = value;
+  void updateSyncNotify(bool value) {
     _box.put(GlobalSettingBoxKey.syncNotify, value);
+    emit(state.copyWith(syncNotify: value));
   }
 
-  @action
-  bool getSyncNotify() {
-    syncNotify = _box.get(GlobalSettingBoxKey.syncNotify, defaultValue: true);
-    return syncNotify;
-  }
-
-  @action
-  void deleteSyncNotify() {
-    syncNotify = true;
+  void resetSyncNotify() {
     _box.delete(GlobalSettingBoxKey.syncNotify);
+    emit(state.copyWith(syncNotify: _defaults.syncNotify));
   }
 
-  @action
-  void setShade(bool value) {
-    shade = value;
+  void updateShade(bool value) {
     _box.put(GlobalSettingBoxKey.shade, value);
+    emit(state.copyWith(shade: value));
   }
 
-  @action
-  bool getShade() {
-    shade = _box.get(GlobalSettingBoxKey.shade, defaultValue: true);
-    return shade;
-  }
-
-  @action
-  void deleteShade() {
-    shade = true;
+  void resetShade() {
     _box.delete(GlobalSettingBoxKey.shade);
+    emit(state.copyWith(shade: _defaults.shade));
   }
 
-  @action
-  bool getComicReadTopContainer() {
-    comicReadTopContainer = _box.get(
-      GlobalSettingBoxKey.comicReadTopContainer,
-      defaultValue: true,
-    );
-    return comicReadTopContainer;
-  }
-
-  @action
-  void setComicReadTopContainer(bool value) {
-    comicReadTopContainer = value;
+  void updateComicReadTopContainer(bool value) {
     _box.put(GlobalSettingBoxKey.comicReadTopContainer, value);
+    emit(state.copyWith(comicReadTopContainer: value));
   }
 
-  @action
-  void deleteComicReadTopContainer() {
-    comicReadTopContainer = true;
+  void resetComicReadTopContainer() {
     _box.delete(GlobalSettingBoxKey.comicReadTopContainer);
+    emit(
+      state.copyWith(comicReadTopContainer: _defaults.comicReadTopContainer),
+    );
   }
 
-  @action
-  int getReadMode() {
-    readMode = _box.get(GlobalSettingBoxKey.readMode, defaultValue: 0);
-    return readMode;
-  }
-
-  @action
-  void setReadMode(int value) {
-    readMode = value;
+  void updateReadMode(int value) {
     _box.put(GlobalSettingBoxKey.readMode, value);
+    emit(state.copyWith(readMode: value));
   }
 
-  @action
-  void deleteReadMode() {
-    readMode = 0;
+  void resetReadMode() {
     _box.delete(GlobalSettingBoxKey.readMode);
+    emit(state.copyWith(readMode: _defaults.readMode));
   }
 
-  @action
-  List<String> getMaskedKeywords() {
-    maskedKeywords = _box.get(
-      GlobalSettingBoxKey.maskedKeywords,
-      defaultValue: [""],
-    );
-    return maskedKeywords;
-  }
-
-  @action
-  void setMaskedKeywords(List<String> value) {
-    maskedKeywords = value;
+  void updateMaskedKeywords(List<String> value) {
     _box.put(GlobalSettingBoxKey.maskedKeywords, value);
+    emit(state.copyWith(maskedKeywords: value));
   }
 
-  @action
-  void deleteMaskedKeywords() {
-    maskedKeywords = [""];
+  void resetMaskedKeywords() {
     _box.delete(GlobalSettingBoxKey.maskedKeywords);
+    emit(state.copyWith(maskedKeywords: _defaults.maskedKeywords));
   }
 
-  @action
-  void setSocks5Proxy(String value) {
-    socks5Proxy = value;
+  void updateSocks5Proxy(String value) {
     _box.put(GlobalSettingBoxKey.socks5Proxy, value);
+    emit(state.copyWith(socks5Proxy: value));
   }
 
-  @action
-  String getSocks5Proxy() {
-    socks5Proxy = _box.get(GlobalSettingBoxKey.socks5Proxy, defaultValue: '');
-    return socks5Proxy;
-  }
-
-  @action
-  void deleteSocks5Proxy() {
-    socks5Proxy = '';
+  void resetSocks5Proxy() {
     _box.delete(GlobalSettingBoxKey.socks5Proxy);
+    emit(state.copyWith(socks5Proxy: _defaults.socks5Proxy));
   }
 
-  @action
-  void setNeedCleanCache(bool value) {
-    needCleanCache = value;
+  void updateNeedCleanCache(bool value) {
     _box.put(GlobalSettingBoxKey.needCleanCache, value);
+    emit(state.copyWith(needCleanCache: value));
   }
 
-  @action
-  bool getNeedCleanCache() {
-    needCleanCache = _box.get(
-      GlobalSettingBoxKey.needCleanCache,
-      defaultValue: false,
-    );
-    return needCleanCache;
-  }
-
-  @action
-  void deleteNeedCleanCache() {
-    needCleanCache = false;
+  void resetNeedCleanCache() {
     _box.delete(GlobalSettingBoxKey.needCleanCache);
+    emit(state.copyWith(needCleanCache: _defaults.needCleanCache));
   }
 
-  @action
-  void setComicChoice(int value) {
-    comicChoice = value;
+  void updateComicChoice(int value) {
     _box.put(GlobalSettingBoxKey.comicChoice, value);
+    emit(state.copyWith(comicChoice: value));
   }
 
-  @action
-  int getComicChoice() {
-    comicChoice = _box.get(GlobalSettingBoxKey.comicChoice, defaultValue: 1);
-    return comicChoice;
-  }
-
-  @action
-  void deleteComicChoice() {
-    comicChoice = 1;
+  void resetComicChoice() {
     _box.delete(GlobalSettingBoxKey.comicChoice);
+    emit(state.copyWith(comicChoice: _defaults.comicChoice));
   }
 
-  @action
-  bool getDisableBika() {
-    disableBika = _box.get(
-      GlobalSettingBoxKey.disableBika,
-      defaultValue: false,
-    );
-    return disableBika;
-  }
-
-  @action
-  void setDisableBika(bool value) {
-    disableBika = value;
+  void updateDisableBika(bool value) {
     _box.put(GlobalSettingBoxKey.disableBika, value);
+    emit(state.copyWith(disableBika: value));
   }
 
-  @action
-  void deleteDisableBika() {
-    disableBika = false;
+  void resetDisableBika() {
     _box.delete(GlobalSettingBoxKey.disableBika);
+    emit(state.copyWith(disableBika: _defaults.disableBika));
   }
 }
 
@@ -556,13 +346,10 @@ class GlobalSettingBoxKey {
   static const String globalSetting = 'globalSetting';
   static const String dynamicColor = 'dynamicColor'; // 是否开启动态颜色
   static const String themeMode = 'themeMode1'; // 主题模式
-  static const String themeType = 'themeType'; // 是否是浅色主题
   static const String isAMOLED = 'isAMOLED'; // 是否是AMOLED屏幕
   static const String seedColor = 'seedColor'; // 种子颜色
   static const String themeInitState = 'themeInitState'; // 主题初始状态
   static const String locale = 'locale'; // 语言
-  static const String backgroundColor = 'backgroundColor'; // 背景颜色
-  static const String textColor = 'textColor'; // 文字颜色
   static const String welcomePageNum = 'welcomePageNum'; // 开屏页序号
   static const String webdavHost = 'webdavHost'; // webdav地址
   static const String webdavUsername = 'webdavUsername'; // webdav用户名

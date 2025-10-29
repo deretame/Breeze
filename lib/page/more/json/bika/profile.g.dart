@@ -36,8 +36,9 @@ _User _$UserFromJson(Map<String, dynamic> json) => _User(
   verified: json['verified'] as bool,
   exp: (json['exp'] as num).toInt(),
   level: (json['level'] as num).toInt(),
-  characters:
-      (json['characters'] as List<dynamic>).map((e) => e as String).toList(),
+  characters: (json['characters'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   createdAt: DateTime.parse(json['created_at'] as String),
   avatar: Avatar.fromJson(json['avatar'] as Map<String, dynamic>),
   isPunched: json['isPunched'] as bool,

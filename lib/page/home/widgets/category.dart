@@ -47,10 +47,9 @@ Widget buildCategoriesGrid(BuildContext context, List<HomeCategory> data) {
 
     physics: const NeverScrollableScrollPhysics(),
     shrinkWrap: true,
-    children:
-        data.map((category) {
-          return CategoryLineWidget(category: category);
-        }).toList(),
+    children: data.map((category) {
+      return CategoryLineWidget(category: category);
+    }).toList(),
   );
 }
 
@@ -62,18 +61,17 @@ class CategoryLineWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create:
-          (context) =>
-              PictureBloc()..add(
-                GetPicture(
-                  PictureInfo(
-                    from: "bika",
-                    url: category.homeThumb.fileServer,
-                    path: category.homeThumb.path,
-                    pictureType: "category",
-                  ),
-                ),
-              ),
+      create: (context) => PictureBloc()
+        ..add(
+          GetPicture(
+            PictureInfo(
+              from: "bika",
+              url: category.homeThumb.fileServer,
+              path: category.homeThumb.path,
+              pictureType: "category",
+            ),
+          ),
+        ),
       child: BlocBuilder<PictureBloc, PictureLoadState>(
         builder: (context, state) {
           if (category.homeThumb.path.isEmpty) {

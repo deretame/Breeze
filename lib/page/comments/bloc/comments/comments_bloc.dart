@@ -180,8 +180,9 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
       topComment['isLiked'] ??= false;
     }
 
-    temp['data']['topComments'] =
-        List<dynamic>.from(temp['data']['topComments']).reversed.toList();
+    temp['data']['topComments'] = List<dynamic>.from(
+      temp['data']['topComments'],
+    ).reversed.toList();
 
     var commentsJson = CommentsJson.fromJson(temp);
     return commentsJson;

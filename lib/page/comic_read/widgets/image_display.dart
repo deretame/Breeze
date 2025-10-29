@@ -116,10 +116,9 @@ class _ImageDisplayState extends State<ImageDisplay> {
                 '图片数据可能已损坏',
                 style: TextStyle(
                   fontSize: 12,
-                  color:
-                      isColumn
-                          ? const Color(0xFFCCCCCC).withValues(alpha: 0.7)
-                          : Colors.white.withValues(alpha: 0.7),
+                  color: isColumn
+                      ? const Color(0xFFCCCCCC).withValues(alpha: 0.7)
+                      : Colors.white.withValues(alpha: 0.7),
                 ),
               ),
               const SizedBox(height: 16),
@@ -171,14 +170,12 @@ class _ImageDisplayState extends State<ImageDisplay> {
     return Container(
       color: Colors.black,
       width: context.screenWidth,
-      height:
-          imageHeight != 0
-              ? (imageHeight * (context.screenWidth / imageWidth))
-              : context.screenWidth,
-      child:
-          isColumn
-              ? imageWidth != 0 && imageHeight != 0
-                  ? Image.file(
+      height: imageHeight != 0
+          ? (imageHeight * (context.screenWidth / imageWidth))
+          : context.screenWidth,
+      child: isColumn
+          ? imageWidth != 0 && imageHeight != 0
+                ? Image.file(
                     File(widget.imagePath),
                     fit: BoxFit.fill,
                     cacheWidth: cacheSize,
@@ -196,25 +193,25 @@ class _ImageDisplayState extends State<ImageDisplay> {
                       );
                     },
                   )
-                  : Container(color: const Color(0xFF2D2D2D))
-              : Image.file(
-                File(widget.imagePath),
-                fit: BoxFit.contain,
-                cacheWidth: cacheSize,
-                gaplessPlayback: true,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.black,
-                    child: Center(
-                      child: Icon(
-                        Icons.broken_image,
-                        size: 64,
-                        color: Colors.white,
-                      ),
+                : Container(color: const Color(0xFF2D2D2D))
+          : Image.file(
+              File(widget.imagePath),
+              fit: BoxFit.contain,
+              cacheWidth: cacheSize,
+              gaplessPlayback: true,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: Colors.black,
+                  child: Center(
+                    child: Icon(
+                      Icons.broken_image,
+                      size: 64,
+                      color: Colors.white,
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
+            ),
     );
   }
 }

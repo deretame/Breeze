@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:zephyr/mobx/string_select.dart';
+import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
@@ -78,11 +78,10 @@ class _BottomWidgetState extends State<BottomWidget> {
     }
     if (widget.from == From.bika) {
       if (isDownload) {
-        bikaComicDownload =
-            objectbox.bikaDownloadBox
-                .query(BikaComicDownload_.comicId.equals(comicId))
-                .build()
-                .findFirst();
+        bikaComicDownload = objectbox.bikaDownloadBox
+            .query(BikaComicDownload_.comicId.equals(comicId))
+            .build()
+            .findFirst();
 
         if (bikaComicDownload?.epsTitle.length == 1) {
           havePrev = false;
@@ -107,15 +106,13 @@ class _BottomWidgetState extends State<BottomWidget> {
     if (widget.from == From.jm) {
       seriesList = (widget.comicInfo as JmComicInfoJson).series;
       if (isDownload) {
-        final epsIds =
-            objectbox.jmDownloadBox
-                .query(JmDownload_.comicId.equals(comicId))
-                .build()
-                .findFirst()!
-                .epsIds;
-        seriesList =
-            seriesList.toList()
-              ..removeWhere((series) => !epsIds.contains(series.id));
+        final epsIds = objectbox.jmDownloadBox
+            .query(JmDownload_.comicId.equals(comicId))
+            .build()
+            .findFirst()!
+            .epsIds;
+        seriesList = seriesList.toList()
+          ..removeWhere((series) => !epsIds.contains(series.id));
       }
       if (seriesList.isEmpty) {
         havePrev = false;
@@ -190,8 +187,8 @@ class _BottomWidgetState extends State<BottomWidget> {
                           child: TextButton(
                             onPressed:
                                 seriesList.isEmpty && widget.from == From.jm
-                                    ? null
-                                    : () async => await _selectJumpChapter(),
+                                ? null
+                                : () async => await _selectJumpChapter(),
                             child: Center(
                               child: Text(
                                 '跳转章节',
@@ -311,10 +308,9 @@ class _BottomWidgetState extends State<BottomWidget> {
         return AlertDialog(
           title: Text('选择章节'),
           content: SingleChildScrollView(
-            child:
-                widget.from == From.bika
-                    ? _bikaEpSelector(context)
-                    : _jmEpSelector(context),
+            child: widget.from == From.bika
+                ? _bikaEpSelector(context)
+                : _jmEpSelector(context),
           ),
           actions: [
             TextButton(
@@ -350,8 +346,8 @@ class _BottomWidgetState extends State<BottomWidget> {
         for (final ep in epsList)
           TextButton(
             child: Text(ep.title),
-            onPressed:
-                () => Navigator.of(context, rootNavigator: false).pop(ep.order),
+            onPressed: () =>
+                Navigator.of(context, rootNavigator: false).pop(ep.order),
           ),
       ],
     );
@@ -362,11 +358,10 @@ class _BottomWidgetState extends State<BottomWidget> {
       for (final series in seriesList)
         TextButton(
           child: Text(series.name),
-          onPressed:
-              () => Navigator.of(
-                context,
-                rootNavigator: false,
-              ).pop(series.id.let(toInt)),
+          onPressed: () => Navigator.of(
+            context,
+            rootNavigator: false,
+          ).pop(series.id.let(toInt)),
         ),
     ],
   );

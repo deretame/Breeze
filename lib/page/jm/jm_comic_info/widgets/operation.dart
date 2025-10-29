@@ -1,5 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -40,6 +42,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final jmSettingState = context.watch<JmSettingCubit>().state;
     return LimitedBox(
       maxWidth: context.screenWidth * (48 / 50),
       maxHeight: 50,
@@ -65,8 +68,8 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
                     showInfoToast("已点赞");
                     return;
                   }
-                  if (jmSetting.userInfo.isEmpty) {
-                    if (jmSetting.account.isEmpty) {
+                  if (jmSettingState.userInfo.isEmpty) {
+                    if (jmSettingState.account.isEmpty) {
                       showInfoToast("请先登录");
                       eventBus.fire(NeedLogin(from: From.jm));
                       return;
@@ -78,7 +81,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
                 },
                 child: Icon(
                   isLiked ? Icons.favorite : Icons.favorite_border,
-                  color: isLiked ? Colors.red : globalSetting.textColor,
+                  color: isLiked ? Colors.red : context.textColor,
                   size: 24.0,
                 ),
               ),
@@ -117,7 +120,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
                 },
                 child: Icon(
                   isCollected ? Icons.star : Icons.star_border,
-                  color: isCollected ? Colors.yellow : globalSetting.textColor,
+                  color: isCollected ? Colors.yellow : context.textColor,
                   size: 24.0, // 设置图标大小
                 ),
               ),

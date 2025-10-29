@@ -3,7 +3,9 @@ import 'dart:typed_data';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -24,7 +26,7 @@ class DividerWidget extends StatelessWidget {
       child: SizedBox(
         width: context.screenWidth * (48 / 50), // 设置宽度
         child: Divider(
-          color: materialColorScheme.secondaryFixedDim,
+          color: context.theme.colorScheme.secondaryFixedDim,
           thickness: 1,
           height: 10,
         ),
@@ -157,11 +159,13 @@ Widget changePassword(BuildContext context) {
 }
 
 Widget changeShieldedCategories(BuildContext context, String type) {
+  final bikaCubit = context.read<BikaSettingCubit>();
+  final bikaState = context.watch<BikaSettingCubit>().state;
   return GestureDetector(
     onTap: () async {
       if (type == "home") {
         late var oldCategoriesMap = Map.of(
-          bikaSetting.shieldHomePageCategoriesMap,
+          bikaState.shieldHomePageCategoriesMap,
         );
         var categoriesShield = await showShieldCategoryDialog(context, type);
         if (categoriesShield == null) {
@@ -172,11 +176,11 @@ Widget changeShieldedCategories(BuildContext context, String type) {
           return;
         }
 
-        bikaSetting.setShieldHomeCategories(categoriesShield);
+        bikaCubit.updateShieldHomePageCategoriesMap(categoriesShield);
 
         showSuccessToast("成功更新首页屏蔽项，请刷新首页查看效果");
       } else if (type == "categories") {
-        late var oldCategoriesMap = Map.of(bikaSetting.shieldCategoryMap);
+        late var oldCategoriesMap = Map.of(bikaState.shieldCategoryMap);
         var categoriesShield = await showShieldCategoryDialog(context, type);
         if (categoriesShield == null) {
           return;
@@ -186,7 +190,7 @@ Widget changeShieldedCategories(BuildContext context, String type) {
           return;
         }
 
-        bikaSetting.setShieldCategoryMap(categoriesShield);
+        bikaCubit.updateShieldCategoryMap(categoriesShield);
 
         showSuccessToast("成功更新屏蔽分类");
       }
@@ -208,11 +212,12 @@ Future<Map<String, bool>?> showShieldCategoryDialog(
   BuildContext context,
   String type,
 ) {
+  final bikaCubit = context.read<BikaSettingCubit>();
   Map<String, bool> shieldCategoriesMap = {};
   if (type == "home") {
-    shieldCategoriesMap = Map.of(bikaSetting.shieldHomePageCategoriesMap);
+    shieldCategoriesMap = Map.of(bikaCubit.state.shieldHomePageCategoriesMap);
   } else if (type == "categories") {
-    shieldCategoriesMap = Map.of(bikaSetting.shieldCategoryMap);
+    shieldCategoriesMap = Map.of(bikaCubit.state.shieldCategoryMap);
   }
 
   return showDialog(

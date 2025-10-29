@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/picture_bloc/bloc/picture_bloc.dart';
 import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
@@ -36,7 +37,7 @@ class _ImagerWidgetState extends State<ImagerWidget> {
                 case PictureLoadStatus.initial:
                   return Center(
                     child: LoadingAnimationWidget.waveDots(
-                      color: materialColorScheme.primaryFixedDim,
+                      color: context.theme.colorScheme.primaryFixedDim,
                       size: 25,
                     ),
                   );

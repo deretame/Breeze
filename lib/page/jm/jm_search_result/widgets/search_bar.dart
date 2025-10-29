@@ -1,6 +1,7 @@
 import 'package:animated_search_bar/animated_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/page/jm/jm_search_result/jm_search_result.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../../main.dart';
 
@@ -29,11 +30,11 @@ class BikaSearchBar extends StatelessWidget implements PreferredSizeWidget {
         label: '搜索本子',
         controller: controller,
         labelStyle: TextStyle(
-          color: globalSetting.textColor,
+          color: context.textColor,
           fontWeight: FontWeight.normal,
         ),
-        searchStyle: TextStyle(color: globalSetting.textColor),
-        cursorColor: globalSetting.textColor,
+        searchStyle: TextStyle(color: context.textColor),
+        cursorColor: context.textColor,
         searchDecoration: InputDecoration(
           labelText: '最多8个汉字/字母/数字/符号',
           alignLabelWithHint: true,

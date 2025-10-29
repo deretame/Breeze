@@ -197,7 +197,6 @@ class MyApp extends StatelessWidget {
         globalSettingState.dynamicColor.toString() +
             globalSettingState.seedColor.toString() +
             globalSettingState.themeMode.toString() +
-            globalSettingState.themeType.toString() +
             globalSettingState.isAMOLED.toString(),
       ), // 强制重建
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {

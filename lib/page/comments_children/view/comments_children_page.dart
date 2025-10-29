@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/page/comments_children/comments_children.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -17,14 +16,14 @@ import '../json/comments_children_json.dart';
 @RoutePage()
 class CommentsChildrenPage extends StatelessWidget {
   final comments_json.Doc fatherDoc;
-  final BoolSelectStore store;
-  final IntSelectStore likeCountStore;
+  final BoolSelectCubit boolSelectCubit;
+  final IntSelectCubit intSelectCubit;
 
   const CommentsChildrenPage({
     super.key,
     required this.fatherDoc,
-    required this.store,
-    required this.likeCountStore,
+    required this.boolSelectCubit,
+    required this.intSelectCubit,
   });
 
   @override

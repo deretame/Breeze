@@ -2,7 +2,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:permission_guard/permission_guard.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/cubit/string_select.dart';
@@ -31,11 +30,19 @@ class JmComicInfoPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => JmComicInfoBloc()
-        ..add(
-          JmComicInfoEvent(status: JmComicInfoStatus.initial, comicId: comicId),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => JmComicInfoBloc()
+            ..add(
+              JmComicInfoEvent(
+                status: JmComicInfoStatus.initial,
+                comicId: comicId,
+              ),
+            ),
         ),
+        BlocProvider(create: (_) => StringSelectCubit()),
+      ],
       child: _JmComicInfoPage(comicId: comicId, type: type),
     );
   }
@@ -60,7 +67,6 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
   JmHistory? jmHistory;
   JmDownload? jmDownload;
   late ComicEntryType _type;
-  final store = StringSelectStore();
 
   @override
   void initState() {
@@ -72,15 +78,6 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
         .findFirst();
     _hasHistory = jmHistory?.deleted == false;
 
-    if (_hasHistory) {
-      store.setDate(
-        '历史：'
-        '${jmHistory!.epTitle.isNotEmpty ? jmHistory!.epTitle : "第1话"} / '
-        '${jmHistory!.epPageCount - 1} / '
-        '${jmHistory!.history.toLocal().toString().substring(0, 19)}',
-      );
-    }
-
     jmDownload = objectbox.jmDownloadBox
         .query(JmDownload_.comicId.equals(widget.comicId))
         .build()
@@ -88,7 +85,28 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (!_init && _hasHistory) {
+      final String historyText =
+          '历史：'
+          '${jmHistory!.epTitle.isNotEmpty ? jmHistory!.epTitle : "第1话"} / '
+          '${jmHistory!.epPageCount - 1} / '
+          '${jmHistory!.history.toLocal().toString().substring(0, 19)}';
+
+      // 4. (修改) 检查 mounted 并使用 context.read 更新 Cubit 状态
+      if (mounted) {
+        context.read<StringSelectCubit>().updateDate(historyText);
+        _init = true;
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final String storeDate = context.watch<StringSelectCubit>().state;
+
     return Scaffold(
       appBar: AppBar(
         actions: <Widget>[
@@ -151,12 +169,10 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
               height: 56,
               child: FloatingActionButton(
                 onPressed: _navigateToReader,
-                child: Observer(
-                  builder: (context) => Text(
-                    store.date.isNotEmpty ? '继续阅读' : '开始阅读',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
+                child: Text(
+                  storeDate.isNotEmpty ? '继续阅读' : '开始阅读',
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
               ),
             )
@@ -179,6 +195,8 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
   );
 
   Widget _comicEntry(JmComicInfoState? state) {
+    final String storeDate = context.watch<StringSelectCubit>().state;
+
     if (!_init) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         setState(() {
@@ -237,16 +255,11 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                   },
                   child: Text('禁漫车：JM${comicInfo.id}'),
                 ),
-                Observer(
-                  builder: (context) => store.date.isNotEmpty
-                      ? Column(
-                          children: [
-                            const SizedBox(height: 2),
-                            Text(store.date),
-                          ],
-                        )
-                      : const SizedBox.shrink(),
-                ),
+                storeDate.isNotEmpty
+                    ? Column(
+                        children: [const SizedBox(height: 2), Text(storeDate)],
+                      )
+                    : const SizedBox.shrink(),
               ],
             ),
           ),
@@ -311,7 +324,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                   comicInfo: comicInfo,
                   epsNumber: comicInfo.series.length,
                   type: _type,
-                  store: store,
+                  cubit: context.read<StringSelectCubit>(),
                 ),
               ),
               SizedBox(width: 5),
@@ -422,6 +435,8 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
       );
 
   void _navigateToReader() {
+    final String storeDate = context.watch<StringSelectCubit>().state;
+
     String comicIdVal;
     int orderVal;
     int epsNumberVal;
@@ -445,7 +460,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
     } else {
       comicIdVal = widget.comicId;
       epsNumberVal = _state.comicInfo!.series.length;
-      typeVal = store.date.isNotEmpty
+      typeVal = storeDate.isNotEmpty
           ? ComicEntryType.history
           : ComicEntryType.normal;
       comicInfoVal = _state.comicInfo!;
@@ -456,7 +471,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
         .build()
         .findFirst();
 
-    orderVal = store.date.isNotEmpty
+    orderVal = storeDate.isNotEmpty
         ? jmHistory!.order
         : widget.comicId.let(toInt);
 
@@ -468,7 +483,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
         from: fromVal,
         type: typeVal,
         comicInfo: comicInfoVal,
-        store: store,
+        stringSelectCubit: context.read<StringSelectCubit>(),
       ),
     );
   }

@@ -7,14 +7,12 @@ import '../../../cubit/string_select.dart';
 import '../bloc/search_bloc.dart';
 
 class PageSkip extends StatelessWidget {
-  final StringSelectStore pageStore;
   final int pagesCount;
   final SearchEnter searchEnter;
   final ValueChanged<SearchEnter> onChanged;
 
   const PageSkip({
     super.key,
-    required this.pageStore,
     required this.pagesCount,
     required this.searchEnter,
     required this.onChanged,
@@ -72,6 +70,7 @@ class PageSkip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pageCubit = context.read<StringSelectCubit>();
     return FloatingActionButton.extended(
       onPressed: () async {
         final pageSkip = await showNumberInputDialog(context);
@@ -87,7 +86,7 @@ class PageSkip extends StatelessWidget {
           );
 
           onChanged(newSearchEnter);
-          pageStore.setDate("$pageSkip/$pagesCount");
+          pageCubit.updateDate("$pageSkip/$pagesCount");
         }
       },
       label: Text('跳页'),

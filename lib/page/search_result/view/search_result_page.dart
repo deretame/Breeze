@@ -2,11 +2,10 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart' hide Thumb;
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/page/search_result/search_result.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../main.dart';
 import '../../../cubit/string_select.dart';
 import '../../../type/enum.dart';
 import '../../../widgets/comic_entry/comic_entry.dart';
@@ -23,10 +22,15 @@ class SearchResultPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) =>
-          SearchBloc()
-            ..add(FetchSearchResult(searchEnter, SearchStatus.initial)),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) =>
+              SearchBloc()
+                ..add(FetchSearchResult(searchEnter, SearchStatus.initial)),
+        ),
+        BlocProvider(create: (_) => StringSelectCubit()),
+      ],
       child: _SearchResultPage(searchEnter: searchEnter),
     );
   }
@@ -43,7 +47,6 @@ class _SearchResultPage extends StatefulWidget {
 
 class _SearchResultPageState extends State<_SearchResultPage>
     with SingleTickerProviderStateMixin {
-  final pageStore = StringSelectStore();
   late SearchEnter _searchEnter;
   final _scrollController = ScrollController();
   late List<ComicNumber> comics;
@@ -77,12 +80,16 @@ class _SearchResultPageState extends State<_SearchResultPage>
   @override
   void dispose() {
     _animationController.dispose();
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.theme;
+    final backgroundColor = context.backgroundColor;
+
     return Scaffold(
       appBar: BikaSearchBar(searchEnter: _searchEnter, onChanged: _update),
       body: Stack(
@@ -103,10 +110,10 @@ class _SearchResultPageState extends State<_SearchResultPage>
             child: Container(
               height: 35,
               decoration: BoxDecoration(
-                color: globalSetting.backgroundColor,
+                color: backgroundColor,
                 boxShadow: [
                   BoxShadow(
-                    color: materialColorScheme.secondaryFixedDim,
+                    color: theme.colorScheme.secondaryFixedDim,
                     spreadRadius: 0,
                     blurRadius: 2,
                     offset: const Offset(0, 0),
@@ -128,12 +135,9 @@ class _SearchResultPageState extends State<_SearchResultPage>
                     onChanged: _update,
                   ),
                   Expanded(child: Container()),
-                  Observer(
-                    builder: (context) {
-                      return Text(
-                        pageStore.date,
-                        style: TextStyle(fontSize: 16),
-                      );
+                  BlocBuilder<StringSelectCubit, String>(
+                    builder: (context, pageState) {
+                      return Text(pageState, style: TextStyle(fontSize: 16));
                     },
                   ),
                   SizedBox(width: 5),
@@ -146,7 +150,6 @@ class _SearchResultPageState extends State<_SearchResultPage>
       floatingActionButton: SlideTransition(
         position: _slideAnimation,
         child: PageSkip(
-          pageStore: pageStore,
           pagesCount: pagesCount,
           searchEnter: _searchEnter,
           onChanged: _update,
@@ -192,8 +195,10 @@ class _SearchResultPageState extends State<_SearchResultPage>
     },
   );
 
-  Widget _comicList(SearchState state) =>
-      bikaSetting.brevity ? _brevityList(state) : _detailedList(state);
+  Widget _comicList(SearchState state) {
+    final bool isBrevity = context.watch<BikaSettingCubit>().state.brevity;
+    return isBrevity ? _brevityList(state) : _detailedList(state);
+  }
 
   Widget _brevityList(SearchState state) {
     if (state.status == SearchStatus.success) {
@@ -352,7 +357,8 @@ class _SearchResultPageState extends State<_SearchResultPage>
 
     // logger.d(bikaSetting.brevity);
     // 只有当距离上一次执行超过50ms且漫画展示不为简略时，才执行
-    if (currentTime - _lastExecutedTime > 100 && !bikaSetting.brevity) {
+    final bool isBrevity = context.read<BikaSettingCubit>().state.brevity;
+    if (currentTime - _lastExecutedTime > 100 && !isBrevity) {
       double itemHeight = 180.0 + ((context.screenHeight / 10) * 0.1);
       double currentScrollPosition = _scrollController.position.pixels;
       double middlePosition =
@@ -364,7 +370,9 @@ class _SearchResultPageState extends State<_SearchResultPage>
       if (itemIndex >= 0 && itemIndex < comics.length) {
         int buildNumber = comics[itemIndex].buildNumber;
         // logger.d(comics[itemIndex].doc.title);
-        pageStore.setDate("$buildNumber/$pagesCount");
+        context.read<StringSelectCubit>().updateDate(
+          "$buildNumber/$pagesCount",
+        );
       }
 
       // 更新上次执行时间

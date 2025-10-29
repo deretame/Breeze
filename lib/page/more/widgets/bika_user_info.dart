@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/more/more.dart';
 import 'package:zephyr/page/more/widgets/user_avatar.dart';
@@ -111,6 +111,10 @@ class _BikaWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bikaSettingCUbit = context.watch<BikaSettingCubit>();
+
+    bikaSettingCUbit.updateSignIn(profile.data.user.isPunched);
+
     return Padding(
       padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
       child: Column(
@@ -139,12 +143,9 @@ class _BikaWidget extends StatelessWidget {
                       Text(
                         "level: ${profile.data.user.level.toString()}  (${profile.data.user.title})",
                       ),
-                      Observer(
-                        builder: (context) {
-                          return Text(
-                            "经验值: ${profile.data.user.exp.toString()} (${bikaSetting.signIn ? "已签到" : "未签到"})",
-                          );
-                        },
+                      Text(
+                        "经验值: ${profile.data.user.exp.toString()}"
+                        " (${context.watch<BikaSettingCubit>().state.signIn ? "已签到" : "未签到"})",
                       ),
                     ],
                   ),

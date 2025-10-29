@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/more/json/jm/jm_user_info_json.dart'
@@ -10,6 +12,7 @@ import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/dialog.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
+import 'package:zephyr/util/settings_hive_utils.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../network/http/bika/http_request.dart';
@@ -38,11 +41,11 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
     from = widget.from ?? From.bika;
     _account.text = from == From.bika
-        ? bikaSetting.getAccount()
-        : jmSetting.getAccount();
+        ? SettingsHiveUtils.bikaAccount
+        : SettingsHiveUtils.jmAccount;
     _password.text = from == From.bika
-        ? bikaSetting.getPassword()
-        : jmSetting.getPassword();
+        ? SettingsHiveUtils.bikaPassword
+        : SettingsHiveUtils.jmPassword;
 
     if (from == From.bika) {
       title = "哔咔登录";
@@ -86,15 +89,18 @@ class _LoginPageState extends State<LoginPage> {
     if (!mounted) return;
     showInfoToast("正在登录，请耐心等待...");
 
+    final jmCubit = context.read<JmSettingCubit>();
+    final bikaCubit = context.read<BikaSettingCubit>();
+
     try {
       Map<String, dynamic> result = {};
 
       if (from == From.bika) {
         result = await login(_account.text, _password.text);
       } else if (from == From.jm) {
-        jmSetting.setLoginStatus(LoginStatus.loggingIn);
+        jmCubit.updateLoginStatus(LoginStatus.loggingIn);
         result = await jm.login(_account.text, _password.text);
-        jmSetting.setUserInfo(
+        jmCubit.updateUserInfo(
           JmUserInfoJson.fromJson(
             result.let(replaceNestedNull),
           ).let(jsonEncode),
@@ -104,13 +110,13 @@ class _LoginPageState extends State<LoginPage> {
       logger.d(result.let(jsonEncode));
 
       if (from == From.bika) {
-        bikaSetting.setAccount(_account.text);
-        bikaSetting.setPassword(_password.text);
-        bikaSetting.setAuthorization(result['data']['token']);
+        bikaCubit.updateAccount(_account.text);
+        bikaCubit.updatePassword(_password.text);
+        bikaCubit.updateAuthorization(result['data']['token']);
       } else if (from == From.jm) {
-        jmSetting.setAccount(_account.text);
-        jmSetting.setPassword(_password.text);
-        jmSetting.setLoginStatus(LoginStatus.login);
+        jmCubit.updateAccount(_account.text);
+        jmCubit.updatePassword(_password.text);
+        jmCubit.updateLoginStatus(LoginStatus.login);
       }
       showSuccessToast("登录成功");
 

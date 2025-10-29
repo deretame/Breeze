@@ -1,13 +1,11 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/page/ranking_list/widgets/comic_picture.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/util/sundry.dart';
 
-import '../../../main.dart';
 import '../../../type/enum.dart';
 import '../json/leaderboard.dart';
 
@@ -42,6 +40,8 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final materialColorScheme = context.theme.colorScheme;
+
     return GestureDetector(
       onTap: () {
         // 跳转到漫画详情页
@@ -52,95 +52,87 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
       child: Column(
         children: <Widget>[
           SizedBox(height: (context.screenHeight / 10) * 0.1),
-          Observer(
-            builder: (context) {
-              return Container(
-                height: 180,
-                width: ((context.screenWidth / 10) * 9.5),
-                margin: EdgeInsets.symmetric(
-                  horizontal: (context.screenWidth / 10) * 0.25,
+          Container(
+            height: 180,
+            width: ((context.screenWidth / 10) * 9.5),
+            margin: EdgeInsets.symmetric(
+              horizontal: (context.screenWidth / 10) * 0.25,
+            ),
+            decoration: BoxDecoration(
+              color: context.backgroundColor,
+              borderRadius: BorderRadius.circular(10.0),
+              boxShadow: [
+                BoxShadow(
+                  color: materialColorScheme.secondaryFixedDim,
+                  spreadRadius: 0,
+                  blurRadius: 2,
+                  offset: const Offset(0, 0),
                 ),
-                decoration: BoxDecoration(
-                  color: globalSetting.backgroundColor,
-                  borderRadius: BorderRadius.circular(10.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: materialColorScheme.secondaryFixedDim,
-                      spreadRadius: 0,
-                      blurRadius: 2,
-                      offset: const Offset(0, 0),
-                    ),
-                  ],
+              ],
+            ),
+            child: Row(
+              children: <Widget>[
+                ComicPictureWidget(
+                  fileServer: comic.thumb.fileServer,
+                  path: comic.thumb.path,
+                  id: comic.id,
+                  pictureType: "cover",
                 ),
-                child: Row(
-                  children: <Widget>[
-                    ComicPictureWidget(
-                      fileServer: comic.thumb.fileServer,
-                      path: comic.thumb.path,
-                      id: comic.id,
-                      pictureType: "cover",
-                    ),
-                    SizedBox(width: context.screenWidth / 60),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                SizedBox(width: context.screenWidth / 60),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      SizedBox(height: context.screenWidth / 200),
+                      Text(
+                        comic.title,
+                        style: TextStyle(
+                          color: context.textColor,
+                          fontSize: 18,
+                        ),
+                        maxLines: 3, // 最大行数
+                        overflow: TextOverflow.ellipsis, // 超出时使用省略号
+                      ),
+                      if (comic.author.toString() != '') ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          _getLimitedTitle(comic.author.toString(), 40),
+                          style: TextStyle(color: materialColorScheme.primary),
+                        ),
+                      ],
+                      const SizedBox(height: 5),
+                      Text(
+                        _getCategories(comic.categories),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                        style: TextStyle(color: context.textColor),
+                      ),
+                      Spacer(),
+                      Row(
                         children: <Widget>[
-                          SizedBox(height: context.screenWidth / 200),
+                          const Icon(
+                            Icons.favorite,
+                            color: Colors.red,
+                            size: 24.0,
+                          ),
+                          // const SizedBox(width: 10.0),
+                          Text("$_type：${comic.leaderboardCount.toString()}"),
+                          SizedBox(width: 10.0),
                           Text(
-                            comic.title,
+                            comic.finished ? "完结" : "",
                             style: TextStyle(
-                              color: globalSetting.textColor,
-                              fontSize: 18,
+                              color: materialColorScheme.tertiary,
                             ),
-                            maxLines: 3, // 最大行数
-                            overflow: TextOverflow.ellipsis, // 超出时使用省略号
                           ),
-                          if (comic.author.toString() != '') ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              _getLimitedTitle(comic.author.toString(), 40),
-                              style: TextStyle(
-                                color: materialColorScheme.primary,
-                              ),
-                            ),
-                          ],
-                          const SizedBox(height: 5),
-                          Text(
-                            _getCategories(comic.categories),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 2,
-                            style: TextStyle(color: globalSetting.textColor),
-                          ),
-                          Spacer(),
-                          Row(
-                            children: <Widget>[
-                              const Icon(
-                                Icons.favorite,
-                                color: Colors.red,
-                                size: 24.0,
-                              ),
-                              // const SizedBox(width: 10.0),
-                              Text(
-                                "$_type：${comic.leaderboardCount.toString()}",
-                              ),
-                              SizedBox(width: 10.0),
-                              Text(
-                                comic.finished ? "完结" : "",
-                                style: TextStyle(
-                                  color: materialColorScheme.tertiary,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: context.screenWidth / 200),
                         ],
                       ),
-                    ),
-                    SizedBox(width: context.screenWidth / 50),
-                  ],
+                      SizedBox(height: context.screenWidth / 200),
+                    ],
+                  ),
                 ),
-              );
-            },
+                SizedBox(width: context.screenWidth / 50),
+              ],
+            ),
           ),
         ],
       ),

@@ -1,10 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../../main.dart';
 import '../../../util/router/router.gr.dart';
 
 class DividerWidget extends StatelessWidget {
@@ -17,7 +17,7 @@ class DividerWidget extends StatelessWidget {
       child: SizedBox(
         width: context.screenWidth * (48 / 50), // 设置宽度
         child: Divider(
-          color: materialColorScheme.secondaryFixedDim,
+          color: context.theme.colorScheme.secondaryFixedDim,
           thickness: 1,
           height: 10,
         ),
@@ -46,8 +46,10 @@ Widget changeThemeColor(BuildContext context) {
 }
 
 Widget socks5ProxyEdit(BuildContext context) {
+  final globalSettingCubit = context.read<GlobalSettingCubit>();
+  final globalSettingState = context.watch<GlobalSettingCubit>().state;
   // 默认代理参数
-  String defaultProxy = globalSetting.socks5Proxy;
+  String defaultProxy = globalSettingCubit.state.socks5Proxy;
   String currentProxy = defaultProxy; // 当前使用的代理
 
   return GestureDetector(
@@ -89,7 +91,7 @@ Widget socks5ProxyEdit(BuildContext context) {
 
       if (result != null) {
         currentProxy = result;
-        globalSetting.setSocks5Proxy(currentProxy);
+        globalSettingCubit.updateSocks5Proxy(currentProxy);
         showSuccessToast('设置成功，重启生效');
       }
     },
@@ -101,14 +103,10 @@ Widget socks5ProxyEdit(BuildContext context) {
         Expanded(
           child: Padding(
             padding: EdgeInsets.only(right: 10),
-            child: Observer(
-              builder: (context) {
-                return Text(
-                  globalSetting.socks5Proxy,
-                  textAlign: TextAlign.end,
-                  style: TextStyle(color: Colors.grey),
-                );
-              },
+            child: Text(
+              globalSettingState.socks5Proxy,
+              textAlign: TextAlign.end,
+              style: TextStyle(color: Colors.grey),
             ),
           ),
         ),
@@ -163,67 +161,65 @@ void showKeywordDialog(
   BuildContext context,
   TextEditingController keywordController,
 ) {
+  final globalSettingCubit = context.read<GlobalSettingCubit>();
+
   showDialog(
     context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('屏蔽关键词管理'),
-        content: SingleChildScrollView(
-          // 支持滚动
-          child: Observer(
-            builder: (context) {
-              return Column(
+    builder: (dialogContext) {
+      return BlocBuilder<GlobalSettingCubit, GlobalSettingState>(
+        builder: (builderContext, globalState) {
+          return AlertDialog(
+            title: const Text('屏蔽关键词管理'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // 关键词列表（Wrap布局自动换行）
-                  _buildKeywordChips(globalSetting.maskedKeywords, (index) {
-                    // 1. 先从原始列表中创建一个可修改的副本
+                  _buildKeywordChips(globalState.maskedKeywords, (index) {
                     final newList = List<String>.from(
-                      globalSetting.maskedKeywords,
+                      globalState.maskedKeywords,
                     );
-
-                    // 2. 在副本上执行删除操作
                     newList.removeAt(index);
-
-                    // 3. 将这个全新的、修改后的列表设置回去
-                    globalSetting.setMaskedKeywords(newList);
+                    globalSettingCubit.updateMaskedKeywords(newList);
                   }),
                   const SizedBox(height: 16),
-                  // 添加关键词的输入行
-                  _buildAddKeywordRow(context, keywordController, () {
+                  _buildAddKeywordRow(builderContext, keywordController, () {
                     if (keywordController.text.isNotEmpty) {
-                      globalSetting.setMaskedKeywords([
-                        ...globalSetting.maskedKeywords,
+                      final newList = [
+                        ...globalState.maskedKeywords,
                         keywordController.text,
-                      ]);
+                      ];
+                      globalSettingCubit.updateMaskedKeywords(newList);
                       keywordController.clear();
                     }
                   }),
                 ],
-              );
-            },
-          ),
-        ),
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('关闭'),
+                onPressed: () => Navigator.of(dialogContext).pop(),
+              ),
+            ],
+          );
+        },
       );
     },
   );
 }
 
 Widget _buildKeywordChips(List<String> keywords, Function(int) onDelete) {
-  return Observer(
-    builder: (context) {
-      return Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: List.generate(
-          globalSetting.maskedKeywords.length,
-          (index) => Chip(
-            label: Text(globalSetting.maskedKeywords[index]),
-            deleteIcon: const Icon(Icons.close, size: 18),
-            onDeleted: () => onDelete(index),
-          ),
-        ),
-      );
-    },
+  return Wrap(
+    spacing: 8,
+    runSpacing: 8,
+    children: List.generate(
+      keywords.length,
+      (index) => Chip(
+        label: Text(keywords[index]),
+        deleteIcon: const Icon(Icons.close, size: 18),
+        onDeleted: () => onDelete(index),
+      ),
+    ),
   );
 }
 

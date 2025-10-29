@@ -1,9 +1,11 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/page/search_result/models/models.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/settings_hive_utils.dart';
 import 'package:zephyr/util/sundry.dart';
 
 import '../../../main.dart';
@@ -21,7 +23,7 @@ class CategoriesShield extends StatelessWidget {
 
   Future<Map<String, bool>?> showShieldCategoryDialog(BuildContext context) {
     late Map<String, bool> shieldCategoriesMap = Map.of(
-      bikaSetting.getShieldCategoryMap(),
+      SettingsHiveUtils.bikaShieldCategoryMap,
     );
 
     return showDialog(
@@ -78,7 +80,9 @@ class CategoriesShield extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () async {
-        late var oldCategoriesMap = Map.of(bikaSetting.getShieldCategoryMap());
+        late var oldCategoriesMap = Map.of(
+          SettingsHiveUtils.bikaShieldCategoryMap,
+        );
         final categoriesShield = await showShieldCategoryDialog(context);
 
         if (categoriesShield == null) {
@@ -89,7 +93,11 @@ class CategoriesShield extends StatelessWidget {
           return;
         }
 
-        bikaSetting.setShieldCategoryMap(categoriesShield);
+        if (!context.mounted) return;
+
+        final bikaCubit = context.read<BikaSettingCubit>();
+
+        bikaCubit.updateShieldCategoryMap(categoriesShield);
 
         if (!context.mounted) return;
 

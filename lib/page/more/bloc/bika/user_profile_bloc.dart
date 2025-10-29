@@ -5,7 +5,6 @@ import 'package:stream_transform/stream_transform.dart';
 
 import '../../../../config/global/global.dart';
 import '../../../../network/http/bika/http_request.dart';
-import '../../../../main.dart';
 import '../../json/bika/profile.dart';
 
 part 'user_profile_event.dart';
@@ -81,8 +80,6 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
     result['data']['user']['character'] ??= "";
 
     var temp = Profile.fromJson(result);
-
-    bikaSetting.setSignIn(temp.data.user.isPunched);
 
     globalBikaProfile = GlobalBIkaProfile(
       code: temp.code,

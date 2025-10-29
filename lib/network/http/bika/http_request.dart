@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:zephyr/main.dart';
+import 'package:zephyr/util/settings_hive_utils.dart';
 
 import 'http_request_build.dart';
 
@@ -411,7 +412,7 @@ Future<Map<String, dynamic>> updatePassword(String newPassword) async {
     'PUT',
     body: json.encode({
       "new_password": newPassword,
-      "old_password": bikaSetting.password,
+      "old_password": SettingsHiveUtils.bikaPassword,
     }),
   );
 

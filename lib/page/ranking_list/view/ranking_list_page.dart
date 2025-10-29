@@ -1,8 +1,8 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
-import 'package:zephyr/main.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/jm/jm_ranking/view/jm_ranking.dart';
 import 'package:zephyr/page/ranking_list/ranking_list.dart';
 
@@ -36,28 +36,29 @@ class HotTabBar extends StatefulWidget {
 class _HotTabBarState extends State<HotTabBar> {
   @override
   Widget build(BuildContext context) {
-    return Observer(
-      builder: (_) => Scaffold(
-        appBar: AppBar(
-          title: Text(globalSetting.comicChoice == 1 ? "哔咔排行榜" : "禁漫排行榜"),
-        ),
-        body: globalSetting.comicChoice == 1
-            ? const BikaRankList()
-            : const JmRankingPage(),
-        floatingActionButton: globalSetting.disableBika
-            ? null
-            : FloatingActionButton(
-                heroTag: Uuid().v4(),
-                child: const Icon(Icons.compare_arrows),
-                onPressed: () {
-                  if (globalSetting.comicChoice == 1) {
-                    globalSetting.setComicChoice(2);
-                  } else {
-                    globalSetting.setComicChoice(1);
-                  }
-                },
-              ),
+    final globlalSettingCubit = context.read<GlobalSettingCubit>();
+    final globalSettingState = context.watch<GlobalSettingCubit>().state;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(globalSettingState.comicChoice == 1 ? "哔咔排行榜" : "禁漫排行榜"),
       ),
+      body: globalSettingState.comicChoice == 1
+          ? const BikaRankList()
+          : const JmRankingPage(),
+      floatingActionButton: globalSettingState.disableBika
+          ? null
+          : FloatingActionButton(
+              heroTag: Uuid().v4(),
+              child: const Icon(Icons.compare_arrows),
+              onPressed: () {
+                if (globalSettingState.comicChoice == 1) {
+                  globlalSettingCubit.updateComicChoice(2);
+                } else {
+                  globlalSettingCubit.updateComicChoice(1);
+                }
+              },
+            ),
     );
   }
 }

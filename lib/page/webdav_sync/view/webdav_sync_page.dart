@@ -1,7 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:markdown_widget/widget/markdown_block.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/webdav_sync/webdav_sync.dart';
+import 'package:zephyr/util/settings_hive_utils.dart';
 
 import '../../../main.dart';
 import '../../../util/dialog.dart';
@@ -23,9 +26,9 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
   @override
   void initState() {
     super.initState();
-    _webdavHost.text = globalSetting.webdavHost;
-    _webdavUsername.text = globalSetting.webdavUsername;
-    _webdavPassword.text = globalSetting.webdavPassword;
+    _webdavHost.text = SettingsHiveUtils.webdavHost;
+    _webdavUsername.text = SettingsHiveUtils.webdavUsername;
+    _webdavPassword.text = SettingsHiveUtils.webdavPassword;
   }
 
   @override
@@ -38,6 +41,8 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
 
   @override
   Widget build(BuildContext context) {
+    final globalSettingCubit = context.watch<GlobalSettingCubit>();
+
     return Scaffold(
       appBar: AppBar(title: const Text('webdav 同步')),
       body: Padding(
@@ -78,9 +83,9 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
                 Spacer(),
                 ElevatedButton(
                   onPressed: () async {
-                    globalSetting.deleteWebdavHost();
-                    globalSetting.deleteWebdavUsername();
-                    globalSetting.deleteWebdavPassword();
+                    globalSettingCubit.resetWebdavHost();
+                    globalSettingCubit.resetWebdavUsername();
+                    globalSettingCubit.resetWebdavPassword();
                     _webdavHost.clear();
                     _webdavUsername.clear();
                     _webdavPassword.clear();
@@ -145,9 +150,14 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
       }
 
       logger.d('webdav连接成功');
-      globalSetting.setWebdavHost(_webdavHost.text);
-      globalSetting.setWebdavUsername(_webdavUsername.text);
-      globalSetting.setWebdavPassword(_webdavPassword.text);
+
+      if (!mounted) return;
+
+      final globalSettingCubit = context.read<GlobalSettingCubit>();
+
+      globalSettingCubit.updateWebdavHost(_webdavHost.text);
+      globalSettingCubit.updateWebdavUsername(_webdavUsername.text);
+      globalSettingCubit.updateWebdavPassword(_webdavPassword.text);
 
       eventBus.fire(NoticeSync());
 

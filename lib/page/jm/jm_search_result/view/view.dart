@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/jm/jm_search_result/jm_search_result.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../../network/http/picture/picture.dart';
 import '../../../../type/enum.dart';
@@ -76,10 +77,10 @@ class _JmSearchResultPageState extends State<_JmSearchResultPage> {
             child: Container(
               height: 35,
               decoration: BoxDecoration(
-                color: globalSetting.backgroundColor,
+                color: context.backgroundColor,
                 boxShadow: [
                   BoxShadow(
-                    color: materialColorScheme.secondaryFixedDim,
+                    color: context.theme.colorScheme.secondaryFixedDim,
                     blurRadius: 2,
                   ),
                 ],
@@ -110,10 +111,7 @@ class _JmSearchResultPageState extends State<_JmSearchResultPage> {
                   Expanded(child: Container()),
                   Text(
                     totalCount != '0' ? '共 $totalCount 个结果' : '',
-                    style: TextStyle(
-                      color: globalSetting.textColor,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: context.textColor, fontSize: 14),
                   ),
                   SizedBox(width: 5),
                 ],

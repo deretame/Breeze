@@ -1,8 +1,11 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/settings_hive_utils.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../util/event/event.dart';
@@ -28,76 +31,77 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
         WidgetState.selected: Icon(Icons.check),
         WidgetState.any: Icon(Icons.close),
       });
-  bool _dynamicColorValue = globalSetting.dynamicColor;
-  bool _isAMOLEDValue = globalSetting.isAMOLED;
-  bool _autoSyncValue = globalSetting.autoSync;
-  bool _autoSyncNotifyValue = globalSetting.syncNotify;
-  bool _shadeValue = globalSetting.shade;
-  bool _comicReadTopContainerValue = globalSetting.comicReadTopContainer;
-  bool _disableBikaValue = globalSetting.disableBika;
+  bool _dynamicColorValue = SettingsHiveUtils.dynamicColor;
+  bool _isAMOLEDValue = SettingsHiveUtils.isAMOLED;
+  bool _autoSyncValue = SettingsHiveUtils.autoSync;
+  bool _autoSyncNotifyValue = SettingsHiveUtils.syncNotify;
+  bool _shadeValue = SettingsHiveUtils.shade;
+  bool _comicReadTopContainerValue = SettingsHiveUtils.comicReadTopContainer;
+  bool _disableBikaValue = SettingsHiveUtils.disableBika;
   final keywordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('全局设置')),
-      body: Observer(
-        builder: (context) => ListView(
-          children: [
-            _systemTheme(),
-            _dynamicColor(),
-            if (!globalSetting.dynamicColor) ...[
-              SizedBox(height: 11),
-              changeThemeColor(context),
-              SizedBox(height: 11),
-            ],
-            _comicReadTopContainer(),
-            _shade(),
-            _isAMOLED(),
-            DividerWidget(),
+      body: ListView(
+        children: [
+          _systemTheme(),
+          _dynamicColor(),
+          if (!SettingsHiveUtils.dynamicColor) ...[
             SizedBox(height: 11),
-            editMaskedKeywords(context, keywordController),
+            changeThemeColor(context),
             SizedBox(height: 11),
-            DividerWidget(),
-            SizedBox(height: 11),
-            socks5ProxyEdit(context),
-            SizedBox(height: 11),
-            SizedBox(height: 11),
-            webdavSync(context),
-            SizedBox(height: 11),
-            if (globalSetting.webdavHost.isNotEmpty) ...[_autoSync()],
-            if (globalSetting.webdavHost.isNotEmpty &&
-                globalSetting.autoSync) ...[
-              _syncNotify(),
-            ],
-            DividerWidget(),
-            _splashPage(),
-            _disableBika(),
-            if (kDebugMode) ...[
-              ElevatedButton(
-                onPressed: () {
-                  AutoRouter.of(context).push(ShowColorRoute());
-                },
-                child: Text("整点颜色看看"),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  jmSetting.deleteUserInfo();
-                },
-                child: Text('测试禁漫登录'),
-              ),
-            ],
           ],
-        ),
+          _comicReadTopContainer(),
+          _shade(),
+          _isAMOLED(),
+          DividerWidget(),
+          SizedBox(height: 11),
+          editMaskedKeywords(context, keywordController),
+          SizedBox(height: 11),
+          DividerWidget(),
+          SizedBox(height: 11),
+          socks5ProxyEdit(context),
+          SizedBox(height: 11),
+          SizedBox(height: 11),
+          webdavSync(context),
+          SizedBox(height: 11),
+          if (SettingsHiveUtils.webdavHost.isNotEmpty) ...[_autoSync()],
+          if (SettingsHiveUtils.webdavHost.isNotEmpty &&
+              SettingsHiveUtils.autoSync) ...[
+            _syncNotify(),
+          ],
+          DividerWidget(),
+          _splashPage(),
+          _disableBika(),
+          if (kDebugMode) ...[
+            ElevatedButton(
+              onPressed: () {
+                AutoRouter.of(context).push(ShowColorRoute());
+              },
+              child: Text("整点颜色看看"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                // jmSetting.deleteUserInfo();
+              },
+              child: Text('测试禁漫登录'),
+            ),
+          ],
+        ],
       ),
     );
   }
 
   Widget _systemTheme() {
+    final globalSettingCubit = context.read<GlobalSettingCubit>();
+    final globalSettingState = context.watch<GlobalSettingCubit>().state;
+
     String currentTheme = "";
 
     // 通过 int 类型的主题模式获取对应的字符串
-    switch (globalSetting.getThemeMode()) {
+    switch (globalSettingState.themeMode) {
       case ThemeMode.system:
         currentTheme = "跟随系统";
         break;
@@ -114,31 +118,29 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
         SizedBox(width: 10),
         Text("主题模式", style: TextStyle(fontSize: 18)),
         Expanded(child: Container()),
-        Observer(
-          builder: (context) {
-            return DropdownButton<String>(
-              value: currentTheme,
-              // 根据获取的主题设置当前值
-              icon: const Icon(Icons.expand_more),
-              onChanged: (String? value) {
-                if (value != null) {
-                  setState(() {
-                    // 根据选择的主题更新设置
-                    globalSetting.setThemeMode(systemTheme[value]!);
-                  });
-                }
-              },
-              items: systemThemeList.map<DropdownMenuItem<String>>((
-                String value,
-              ) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              style: TextStyle(color: globalSetting.textColor, fontSize: 18),
-            );
+        DropdownButton<String>(
+          value: currentTheme,
+          // 根据获取的主题设置当前值
+          icon: const Icon(Icons.expand_more),
+          onChanged: (String? value) {
+            if (value != null) {
+              switch (value) {
+                case "跟随系统":
+                  globalSettingCubit.updateThemeMode(ThemeMode.system);
+                  break;
+                case "浅色模式":
+                  globalSettingCubit.updateThemeMode(ThemeMode.light);
+                  break;
+                case "深色模式":
+                  globalSettingCubit.updateThemeMode(ThemeMode.dark);
+                  break;
+              }
+            }
           },
+          items: systemThemeList.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(value: value, child: Text(value));
+          }).toList(),
+          style: TextStyle(color: context.textColor, fontSize: 18),
         ),
         SizedBox(width: 10),
       ],
@@ -146,6 +148,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   }
 
   Widget _dynamicColor() {
+    final globalSettingCubit = context.read<GlobalSettingCubit>();
+
     return Row(
       children: [
         SizedBox(width: 10),
@@ -159,7 +163,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           child: Icon(
             Icons.help_outline, // 问号图标
             size: 20,
-            color: materialColorScheme.outlineVariant,
+            color: context.theme.colorScheme.outlineVariant,
           ),
         ),
         Spacer(),
@@ -168,7 +172,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           value: _dynamicColorValue,
           onChanged: (bool value) {
             setState(() => _dynamicColorValue = !_dynamicColorValue);
-            globalSetting.setDynamicColor(_dynamicColorValue);
+            globalSettingCubit.updateDynamicColor(_dynamicColorValue);
           },
         ),
         SizedBox(width: 10),
@@ -177,6 +181,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   }
 
   Widget _isAMOLED() {
+    final globalSettingCubit = context.read<GlobalSettingCubit>();
     return Row(
       children: [
         SizedBox(width: 10),
@@ -191,7 +196,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           child: Icon(
             Icons.help_outline, // 问号图标
             size: 20,
-            color: materialColorScheme.outlineVariant,
+            color: context.theme.colorScheme.outlineVariant,
           ),
         ),
         Spacer(),
@@ -200,7 +205,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           value: _isAMOLEDValue,
           onChanged: (bool value) {
             setState(() => _isAMOLEDValue = !_isAMOLEDValue);
-            globalSetting.setIsAMOLED(_isAMOLEDValue);
+            globalSettingCubit.updateIsAMOLED(_isAMOLEDValue);
           },
         ),
         SizedBox(width: 10),
@@ -209,6 +214,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   }
 
   Widget _autoSync() {
+    final globalSettingCubit = context.read<GlobalSettingCubit>();
     return Row(
       children: [
         SizedBox(width: 10),
@@ -219,7 +225,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           value: _autoSyncValue,
           onChanged: (bool value) {
             setState(() => _autoSyncValue = !_autoSyncValue);
-            globalSetting.setAutoSync(_autoSyncValue);
+            globalSettingCubit.updateAutoSync(_autoSyncValue);
             if (_autoSyncValue) eventBus.fire(NoticeSync());
           },
         ),
@@ -229,6 +235,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   }
 
   Widget _syncNotify() {
+    final globalSettingCubit = context.read<GlobalSettingCubit>();
     return Row(
       children: [
         SizedBox(width: 10),
@@ -239,7 +246,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           value: _autoSyncNotifyValue,
           onChanged: (bool value) {
             setState(() => _autoSyncNotifyValue = !_autoSyncNotifyValue);
-            globalSetting.setSyncNotify(_autoSyncNotifyValue);
+            globalSettingCubit.updateAutoSync(_autoSyncNotifyValue);
           },
         ),
         SizedBox(width: 10),
@@ -248,6 +255,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   }
 
   Widget _shade() {
+    final globalSettingCubit = context.read<GlobalSettingCubit>();
     return Row(
       children: [
         SizedBox(width: 10),
@@ -257,8 +265,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           thumbIcon: thumbIcon,
           value: _shadeValue,
           onChanged: (bool value) {
+            globalSettingCubit.updateShade(_shadeValue);
             setState(() => _shadeValue = !_shadeValue);
-            globalSetting.setShade(_shadeValue);
           },
         ),
         SizedBox(width: 10),
@@ -267,6 +275,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   }
 
   Widget _comicReadTopContainer() {
+    final globalSettingCubit = context.read<GlobalSettingCubit>();
     return Row(
       children: [
         SizedBox(width: 10),
@@ -278,7 +287,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           child: Icon(
             Icons.help_outline, // 问号图标
             size: 20,
-            color: materialColorScheme.outlineVariant,
+            color: context.theme.colorScheme.outlineVariant,
           ),
         ),
         Spacer(),
@@ -289,7 +298,9 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             setState(
               () => _comicReadTopContainerValue = !_comicReadTopContainerValue,
             );
-            globalSetting.setComicReadTopContainer(_comicReadTopContainerValue);
+            globalSettingCubit.updateComicReadTopContainer(
+              _comicReadTopContainerValue,
+            );
           },
         ),
         SizedBox(width: 10),
@@ -298,24 +309,25 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   }
 
   Widget _splashPage() {
+    final globalSettingCubit = context.read<GlobalSettingCubit>();
     return Row(
       children: [
         SizedBox(width: 10),
         Text("开屏页", style: TextStyle(fontSize: 18)),
         Spacer(),
         DropdownButton<String>(
-          value: splashPageList[globalSetting.welcomePageNum],
+          value: splashPageList[SettingsHiveUtils.welcomePageNum],
           icon: const Icon(Icons.expand_more),
           onChanged: (String? value) {
             if (value != null) {
               showSuccessToast("设置成功，重启生效");
-              globalSetting.setWelcomePageNum(splashPage[value]!);
+              globalSettingCubit.updateWelcomePageNum(splashPage[value]!);
             }
           },
           items: splashPageList.map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(value: value, child: Text(value));
           }).toList(),
-          style: TextStyle(color: globalSetting.textColor, fontSize: 18),
+          style: TextStyle(color: context.textColor, fontSize: 18),
         ),
         SizedBox(width: 10),
       ],
@@ -323,6 +335,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   }
 
   Widget _disableBika() {
+    final globalSettingCubit = context.read<GlobalSettingCubit>();
     return Row(
       children: [
         SizedBox(width: 10),
@@ -334,8 +347,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           value: _disableBikaValue,
           onChanged: (bool value) {
             setState(() => _disableBikaValue = !_disableBikaValue);
-            globalSetting.setDisableBika(_disableBikaValue);
-            globalSetting.setComicChoice(2);
+            globalSettingCubit.updateDisableBika(_disableBikaValue);
+            globalSettingCubit.updateComicChoice(2);
             showSuccessToast("设置成功，重启生效");
           },
         ),

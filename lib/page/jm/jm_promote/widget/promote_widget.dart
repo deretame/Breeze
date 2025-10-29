@@ -18,6 +18,8 @@ class PromoteWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final materialColorScheme = context.theme.colorScheme;
+
     final isTablet = isTabletWithOutContext();
     final isLandscapes = isLandscape(context);
     double height;

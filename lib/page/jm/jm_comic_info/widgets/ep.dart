@@ -1,10 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../../main.dart';
 import '../../../../type/enum.dart';
 import '../../../../util/router/router.gr.dart';
 import '../json/jm_comic_info_json.dart';
@@ -15,7 +14,7 @@ class EpWidget extends StatelessWidget {
   final JmComicInfoJson comicInfo;
   final int epsNumber;
   final ComicEntryType type;
-  final StringSelectStore store;
+  final StringSelectCubit cubit;
 
   const EpWidget({
     super.key,
@@ -24,7 +23,7 @@ class EpWidget extends StatelessWidget {
     required this.comicInfo,
     required this.epsNumber,
     required this.type,
-    required this.store,
+    required this.cubit,
   });
 
   @override
@@ -41,28 +40,24 @@ class EpWidget extends StatelessWidget {
                 ? ComicEntryType.download
                 : ComicEntryType.normal,
             comicInfo: comicInfo,
-            store: store,
+            stringSelectCubit: cubit,
           ),
         );
       },
-      child: Observer(
-        builder: (context) {
-          return Container(
-            padding: EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: globalSetting.backgroundColor,
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: materialColorScheme.secondaryFixedDim,
-                  spreadRadius: 0,
-                  blurRadius: 2,
-                ),
-              ],
+      child: Container(
+        padding: EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: context.backgroundColor,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: context.theme.colorScheme.secondaryFixedDim,
+              spreadRadius: 0,
+              blurRadius: 2,
             ),
-            child: Text(series.name, style: TextStyle(fontSize: 16)),
-          );
-        },
+          ],
+        ),
+        child: Text(series.name, style: TextStyle(fontSize: 16)),
       ),
     );
   }

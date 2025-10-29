@@ -12,6 +12,7 @@ import 'package:zephyr/page/jm/jm_promote/json/suggestion/jm_suggestion_json.dar
     show JmSuggestionJson;
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 import 'package:zephyr/widgets/error_view.dart';
@@ -97,6 +98,8 @@ class _JmPromotePageState extends State<_JmPromotePage> {
   }
 
   Widget _successWidget(PromoteState state) {
+    final materialColorScheme = context.theme.colorScheme;
+
     final elementsRows = _convertToEntryInfoList(state.suggestionList);
 
     final length =

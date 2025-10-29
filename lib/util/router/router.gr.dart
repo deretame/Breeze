@@ -9,21 +9,24 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:typed_data' as _i41;
+import 'dart:typed_data' as _i44;
 
 import 'package:auto_route/auto_route.dart' as _i34;
-import 'package:collection/collection.dart' as _i40;
+import 'package:collection/collection.dart' as _i43;
 import 'package:flutter/material.dart' as _i35;
+import 'package:zephyr/cubit/bool_select.dart' as _i39;
+import 'package:zephyr/cubit/int_select.dart' as _i40;
+import 'package:zephyr/cubit/string_select.dart' as _i37;
 import 'package:zephyr/debug/show_color.dart' as _i28;
 import 'package:zephyr/page/about/view/about_page.dart' as _i1;
 import 'package:zephyr/page/bookshelf/view/bookshelf_page.dart' as _i3;
 import 'package:zephyr/page/comic_info/json/bika/comic_info/comic_info.dart'
-    as _i38;
-import 'package:zephyr/page/comic_info/json/bika/eps/eps.dart' as _i39;
+    as _i41;
+import 'package:zephyr/page/comic_info/json/bika/eps/eps.dart' as _i42;
 import 'package:zephyr/page/comic_info/view/comic_info.dart' as _i4;
 import 'package:zephyr/page/comic_read/view/comic_read.dart' as _i5;
 import 'package:zephyr/page/comments/json/comments_json/comments_json.dart'
-    as _i37;
+    as _i38;
 import 'package:zephyr/page/comments/view/comments.dart' as _i7;
 import 'package:zephyr/page/comments_children/view/comments_children_page.dart'
     as _i6;
@@ -31,7 +34,7 @@ import 'package:zephyr/page/download/view/download.dart' as _i8;
 import 'package:zephyr/page/home/view/home.dart' as _i11;
 import 'package:zephyr/page/image_crop.dart' as _i12;
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart'
-    as _i42;
+    as _i45;
 import 'package:zephyr/page/jm/jm_comic_info/view/view.dart' as _i14;
 import 'package:zephyr/page/jm/jm_comments/view/jm_comments.dart' as _i15;
 import 'package:zephyr/page/jm/jm_download/view/view.dart' as _i16;
@@ -40,7 +43,7 @@ import 'package:zephyr/page/jm/jm_promote_list/view/jm_promote_list.dart'
     as _i17;
 import 'package:zephyr/page/jm/jm_ranking/view/jm_ranking.dart' as _i19;
 import 'package:zephyr/page/jm/jm_ranking/widget/time_ranking.dart' as _i30;
-import 'package:zephyr/page/jm/jm_search_result/jm_search_result.dart' as _i43;
+import 'package:zephyr/page/jm/jm_search_result/jm_search_result.dart' as _i46;
 import 'package:zephyr/page/jm/jm_search_result/view/view.dart' as _i21;
 import 'package:zephyr/page/jm/jm_week_ranking/view/jm_week_ranking.dart'
     as _i22;
@@ -49,7 +52,7 @@ import 'package:zephyr/page/navigation_bar.dart' as _i24;
 import 'package:zephyr/page/ranking_list/view/ranking_list_page.dart' as _i25;
 import 'package:zephyr/page/register/bika/register_page.dart' as _i26;
 import 'package:zephyr/page/register/jm/jm_register_page.dart' as _i20;
-import 'package:zephyr/page/search_result/search_result.dart' as _i44;
+import 'package:zephyr/page/search_result/search_result.dart' as _i47;
 import 'package:zephyr/page/search_result/view/search_result_page.dart' as _i27;
 import 'package:zephyr/page/setting/bika/bika_setting.dart' as _i2;
 import 'package:zephyr/page/setting/global/global_setting.dart' as _i10;
@@ -176,9 +179,9 @@ class ComicReadRoute extends _i34.PageRouteInfo<ComicReadRouteArgs> {
     required int order,
     required int epsNumber,
     required _i36.From from,
+    required _i37.StringSelectCubit stringSelectCubit,
     required _i36.ComicEntryType type,
     required dynamic comicInfo,
-    required InvalidType store,
     List<_i34.PageRouteInfo>? children,
   }) : super(
          ComicReadRoute.name,
@@ -188,9 +191,9 @@ class ComicReadRoute extends _i34.PageRouteInfo<ComicReadRouteArgs> {
            order: order,
            epsNumber: epsNumber,
            from: from,
+           stringSelectCubit: stringSelectCubit,
            type: type,
            comicInfo: comicInfo,
-           store: store,
          ),
          initialChildren: children,
        );
@@ -207,9 +210,9 @@ class ComicReadRoute extends _i34.PageRouteInfo<ComicReadRouteArgs> {
         order: args.order,
         epsNumber: args.epsNumber,
         from: args.from,
+        stringSelectCubit: args.stringSelectCubit,
         type: args.type,
         comicInfo: args.comicInfo,
-        store: args.store,
       );
     },
   );
@@ -222,9 +225,9 @@ class ComicReadRouteArgs {
     required this.order,
     required this.epsNumber,
     required this.from,
+    required this.stringSelectCubit,
     required this.type,
     required this.comicInfo,
-    required this.store,
   });
 
   final _i35.Key? key;
@@ -237,15 +240,15 @@ class ComicReadRouteArgs {
 
   final _i36.From from;
 
+  final _i37.StringSelectCubit stringSelectCubit;
+
   final _i36.ComicEntryType type;
 
   final dynamic comicInfo;
 
-  final InvalidType store;
-
   @override
   String toString() {
-    return 'ComicReadRouteArgs{key: $key, comicId: $comicId, order: $order, epsNumber: $epsNumber, from: $from, type: $type, comicInfo: $comicInfo, store: $store}';
+    return 'ComicReadRouteArgs{key: $key, comicId: $comicId, order: $order, epsNumber: $epsNumber, from: $from, stringSelectCubit: $stringSelectCubit, type: $type, comicInfo: $comicInfo}';
   }
 
   @override
@@ -257,9 +260,9 @@ class ComicReadRouteArgs {
         order == other.order &&
         epsNumber == other.epsNumber &&
         from == other.from &&
+        stringSelectCubit == other.stringSelectCubit &&
         type == other.type &&
-        comicInfo == other.comicInfo &&
-        store == other.store;
+        comicInfo == other.comicInfo;
   }
 
   @override
@@ -269,9 +272,9 @@ class ComicReadRouteArgs {
       order.hashCode ^
       epsNumber.hashCode ^
       from.hashCode ^
+      stringSelectCubit.hashCode ^
       type.hashCode ^
-      comicInfo.hashCode ^
-      store.hashCode;
+      comicInfo.hashCode;
 }
 
 /// generated route for
@@ -280,17 +283,17 @@ class CommentsChildrenRoute
     extends _i34.PageRouteInfo<CommentsChildrenRouteArgs> {
   CommentsChildrenRoute({
     _i35.Key? key,
-    required _i37.Doc fatherDoc,
-    required InvalidType store,
-    required InvalidType likeCountStore,
+    required _i38.Doc fatherDoc,
+    required _i39.BoolSelectCubit boolSelectCubit,
+    required _i40.IntSelectCubit intSelectCubit,
     List<_i34.PageRouteInfo>? children,
   }) : super(
          CommentsChildrenRoute.name,
          args: CommentsChildrenRouteArgs(
            key: key,
            fatherDoc: fatherDoc,
-           store: store,
-           likeCountStore: likeCountStore,
+           boolSelectCubit: boolSelectCubit,
+           intSelectCubit: intSelectCubit,
          ),
          initialChildren: children,
        );
@@ -304,8 +307,8 @@ class CommentsChildrenRoute
       return _i6.CommentsChildrenPage(
         key: args.key,
         fatherDoc: args.fatherDoc,
-        store: args.store,
-        likeCountStore: args.likeCountStore,
+        boolSelectCubit: args.boolSelectCubit,
+        intSelectCubit: args.intSelectCubit,
       );
     },
   );
@@ -315,21 +318,21 @@ class CommentsChildrenRouteArgs {
   const CommentsChildrenRouteArgs({
     this.key,
     required this.fatherDoc,
-    required this.store,
-    required this.likeCountStore,
+    required this.boolSelectCubit,
+    required this.intSelectCubit,
   });
 
   final _i35.Key? key;
 
-  final _i37.Doc fatherDoc;
+  final _i38.Doc fatherDoc;
 
-  final InvalidType store;
+  final _i39.BoolSelectCubit boolSelectCubit;
 
-  final InvalidType likeCountStore;
+  final _i40.IntSelectCubit intSelectCubit;
 
   @override
   String toString() {
-    return 'CommentsChildrenRouteArgs{key: $key, fatherDoc: $fatherDoc, store: $store, likeCountStore: $likeCountStore}';
+    return 'CommentsChildrenRouteArgs{key: $key, fatherDoc: $fatherDoc, boolSelectCubit: $boolSelectCubit, intSelectCubit: $intSelectCubit}';
   }
 
   @override
@@ -338,16 +341,16 @@ class CommentsChildrenRouteArgs {
     if (other is! CommentsChildrenRouteArgs) return false;
     return key == other.key &&
         fatherDoc == other.fatherDoc &&
-        store == other.store &&
-        likeCountStore == other.likeCountStore;
+        boolSelectCubit == other.boolSelectCubit &&
+        intSelectCubit == other.intSelectCubit;
   }
 
   @override
   int get hashCode =>
       key.hashCode ^
       fatherDoc.hashCode ^
-      store.hashCode ^
-      likeCountStore.hashCode;
+      boolSelectCubit.hashCode ^
+      intSelectCubit.hashCode;
 }
 
 /// generated route for
@@ -419,8 +422,8 @@ class CommentsRouteArgs {
 class DownloadRoute extends _i34.PageRouteInfo<DownloadRouteArgs> {
   DownloadRoute({
     _i35.Key? key,
-    required _i38.Comic comicInfo,
-    required List<_i39.Doc> epsInfo,
+    required _i41.Comic comicInfo,
+    required List<_i42.Doc> epsInfo,
     List<_i34.PageRouteInfo>? children,
   }) : super(
          DownloadRoute.name,
@@ -456,9 +459,9 @@ class DownloadRouteArgs {
 
   final _i35.Key? key;
 
-  final _i38.Comic comicInfo;
+  final _i41.Comic comicInfo;
 
-  final List<_i39.Doc> epsInfo;
+  final List<_i42.Doc> epsInfo;
 
   @override
   String toString() {
@@ -471,14 +474,14 @@ class DownloadRouteArgs {
     if (other is! DownloadRouteArgs) return false;
     return key == other.key &&
         comicInfo == other.comicInfo &&
-        const _i40.ListEquality<_i39.Doc>().equals(epsInfo, other.epsInfo);
+        const _i43.ListEquality<_i42.Doc>().equals(epsInfo, other.epsInfo);
   }
 
   @override
   int get hashCode =>
       key.hashCode ^
       comicInfo.hashCode ^
-      const _i40.ListEquality<_i39.Doc>().hash(epsInfo);
+      const _i43.ListEquality<_i42.Doc>().hash(epsInfo);
 }
 
 /// generated route for
@@ -565,7 +568,7 @@ class HomeRoute extends _i34.PageRouteInfo<void> {
 class ImageCropRoute extends _i34.PageRouteInfo<ImageCropRouteArgs> {
   ImageCropRoute({
     _i35.Key? key,
-    required _i41.Uint8List imageData,
+    required _i44.Uint8List imageData,
     List<_i34.PageRouteInfo>? children,
   }) : super(
          ImageCropRoute.name,
@@ -589,7 +592,7 @@ class ImageCropRouteArgs {
 
   final _i35.Key? key;
 
-  final _i41.Uint8List imageData;
+  final _i44.Uint8List imageData;
 
   @override
   String toString() {
@@ -750,7 +753,7 @@ class JmCommentsRouteArgs {
 class JmDownloadRoute extends _i34.PageRouteInfo<JmDownloadRouteArgs> {
   JmDownloadRoute({
     _i35.Key? key,
-    required _i42.JmComicInfoJson jmComicInfoJson,
+    required _i45.JmComicInfoJson jmComicInfoJson,
     List<_i34.PageRouteInfo>? children,
   }) : super(
          JmDownloadRoute.name,
@@ -777,7 +780,7 @@ class JmDownloadRouteArgs {
 
   final _i35.Key? key;
 
-  final _i42.JmComicInfoJson jmComicInfoJson;
+  final _i45.JmComicInfoJson jmComicInfoJson;
 
   @override
   String toString() {
@@ -939,7 +942,7 @@ class JmRegisterRoute extends _i34.PageRouteInfo<void> {
 class JmSearchResultRoute extends _i34.PageRouteInfo<JmSearchResultRouteArgs> {
   JmSearchResultRoute({
     _i35.Key? key,
-    required _i43.JmSearchResultEvent event,
+    required _i46.JmSearchResultEvent event,
     List<_i34.PageRouteInfo>? children,
   }) : super(
          JmSearchResultRoute.name,
@@ -963,7 +966,7 @@ class JmSearchResultRouteArgs {
 
   final _i35.Key? key;
 
-  final _i43.JmSearchResultEvent event;
+  final _i46.JmSearchResultEvent event;
 
   @override
   String toString() {
@@ -1099,7 +1102,7 @@ class RegisterRoute extends _i34.PageRouteInfo<void> {
 class SearchResultRoute extends _i34.PageRouteInfo<SearchResultRouteArgs> {
   SearchResultRoute({
     _i35.Key? key,
-    required _i44.SearchEnter searchEnter,
+    required _i47.SearchEnter searchEnter,
     List<_i34.PageRouteInfo>? children,
   }) : super(
          SearchResultRoute.name,
@@ -1126,7 +1129,7 @@ class SearchResultRouteArgs {
 
   final _i35.Key? key;
 
-  final _i44.SearchEnter searchEnter;
+  final _i47.SearchEnter searchEnter;
 
   @override
   String toString() {
@@ -1303,10 +1306,10 @@ class WebViewRouteArgs {
     if (identical(this, other)) return true;
     if (other is! WebViewRouteArgs) return false;
     return key == other.key &&
-        const _i40.ListEquality<String>().equals(info, other.info);
+        const _i43.ListEquality<String>().equals(info, other.info);
   }
 
   @override
   int get hashCode =>
-      key.hashCode ^ const _i40.ListEquality<String>().hash(info);
+      key.hashCode ^ const _i43.ListEquality<String>().hash(info);
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
 class EpsWidget extends StatefulWidget {
   final Series series;
@@ -49,55 +49,48 @@ class _EpsWidgetState extends State<EpsWidget> {
         });
         widget.onUpdateDownloadInfo(widget.series.id.let(toInt));
       },
-      child: Observer(
-        builder: (context) {
-          return Container(
-            width: double.infinity,
-            margin: EdgeInsets.symmetric(horizontal: 0),
-            padding: EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: globalSetting.backgroundColor,
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: materialColorScheme.secondaryFixedDim,
-                  spreadRadius: 0,
-                  blurRadius: 2,
-                ),
-              ],
+      child: Container(
+        width: double.infinity,
+        margin: EdgeInsets.symmetric(horizontal: 0),
+        padding: EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: context.backgroundColor,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: context.theme.colorScheme.secondaryFixedDim,
+              spreadRadius: 0,
+              blurRadius: 2,
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center, // 改为整体居中
-              children: <Widget>[
-                Checkbox(
-                  value: _isChecked,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      _isChecked = value ?? false; // 更新复选框状态
-                    });
-                    widget.onUpdateDownloadInfo(widget.series.id.let(toInt));
-                  },
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        widget.series.name,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                    ],
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center, // 改为整体居中
+          children: <Widget>[
+            Checkbox(
+              value: _isChecked,
+              onChanged: (bool? value) {
+                setState(() {
+                  _isChecked = value ?? false; // 更新复选框状态
+                });
+                widget.onUpdateDownloadInfo(widget.series.id.let(toInt));
+              },
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    widget.series.name,
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                ),
-              ],
+                  SizedBox(height: 4),
+                ],
+              ),
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }

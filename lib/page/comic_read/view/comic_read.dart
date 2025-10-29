@@ -32,7 +32,7 @@ class ComicReadPage extends StatelessWidget {
   final From from;
   final ComicEntryType type;
   final dynamic comicInfo; // 这个是比较方便的让禁漫和哔咔把漫画的数据传输过来，到时候强制转换类型就行了
-  final StringSelectStore store;
+  final StringSelectCubit stringSelectCubit;
 
   const ComicReadPage({
     super.key,
@@ -40,9 +40,9 @@ class ComicReadPage extends StatelessWidget {
     required this.order,
     required this.epsNumber,
     required this.from,
+    required this.stringSelectCubit,
     required this.type,
     required this.comicInfo,
-    required this.store,
   });
 
   @override
@@ -56,7 +56,7 @@ class ComicReadPage extends StatelessWidget {
         from: from,
         type: type,
         comicInfo: comicInfo,
-        store: store,
+        stringSelectCubit: stringSelectCubit,
       ),
     );
   }

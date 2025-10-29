@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:hive_ce/hive.dart';
 import 'package:markdown_widget/widget/markdown_block.dart';
 import 'package:permission_guard/permission_guard.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';

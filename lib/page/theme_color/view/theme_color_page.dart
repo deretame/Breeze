@@ -1,7 +1,9 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/color_theme_types.dart';
-import 'package:zephyr/main.dart';
+import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/util/settings_hive_utils.dart';
 import 'package:zephyr/page/theme_color/theme_color.dart';
 
 @RoutePage()
@@ -13,7 +15,13 @@ class ThemeColorPage extends StatefulWidget {
 }
 
 class _ThemeColorPageState extends State<ThemeColorPage> {
-  Color _currentColor = globalSetting.seedColor; // 当前选择的颜色
+  late Color _currentColor;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentColor = SettingsHiveUtils.seedColor;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,27 +34,29 @@ class _ThemeColorPageState extends State<ThemeColorPage> {
             ColorPickerPage(
               currentColor: _currentColor,
               onColorChanged: (color) {
+                // 更新本地 UI 状态
                 setState(() {
-                  _currentColor = color; // 更新颜色状态
+                  _currentColor = color;
                 });
-                _setThemeColor(color); // 更新全局主题颜色
+                // 更新全局 Cubit 状态
+                _setThemeColor(color);
               },
             ),
             // 颜色块网格
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Wrap(
-                spacing: 16.0, // 水平间距
-                runSpacing: 16.0, // 垂直间距
+                spacing: 16.0,
+                runSpacing: 16.0,
                 children: colorThemeList.map((colorInfo) {
                   return ColorThemeItem(
                     colorInfo: colorInfo,
                     currentColor: _currentColor,
                     onColorSelected: (color) {
                       setState(() {
-                        _currentColor = color; // 更新颜色状态
+                        _currentColor = color;
                       });
-                      _setThemeColor(color); // 更新全局主题颜色
+                      _setThemeColor(color);
                     },
                   );
                 }).toList(),
@@ -59,6 +69,6 @@ class _ThemeColorPageState extends State<ThemeColorPage> {
   }
 
   void _setThemeColor(Color color) {
-    globalSetting.setSeedColor(color);
+    context.read<GlobalSettingCubit>().updateSeedColor(color);
   }
 }

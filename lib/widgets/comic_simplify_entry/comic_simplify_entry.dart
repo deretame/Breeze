@@ -31,16 +31,12 @@ class ComicSimplifyEntryRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children:
-          entries
-              .map(
-                (entry) => ComicSimplifyEntry(
-                  info: entry,
-                  type: type,
-                  refresh: refresh,
-                ),
-              )
-              .toList(),
+      children: entries
+          .map(
+            (entry) =>
+                ComicSimplifyEntry(info: entry, type: type, refresh: refresh),
+          )
+          .toList(),
     );
   }
 }
@@ -81,9 +77,8 @@ class ComicSimplifyEntry extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => _navigateToComicInfo(context),
-      onLongPress:
-          () =>
-              type != ComicEntryType.normal ? _showDeleteDialog(context) : null,
+      onLongPress: () =>
+          type != ComicEntryType.normal ? _showDeleteDialog(context) : null,
       child: SizedBox(
         width: width,
         child: Column(
@@ -187,24 +182,20 @@ class ComicSimplifyEntry extends StatelessWidget {
 
     return showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text(title),
-            content: Text(content),
-            actions: [
-              TextButton(
-                onPressed: () => context.pop(),
-                child: const Text("取消"),
-              ),
-              TextButton(
-                onPressed: () {
-                  context.router.pop();
-                  _handleDeleteAction(context);
-                },
-                child: const Text("确定"),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(onPressed: () => context.pop(), child: const Text("取消")),
+          TextButton(
+            onPressed: () {
+              context.router.pop();
+              _handleDeleteAction(context);
+            },
+            child: const Text("确定"),
           ),
+        ],
+      ),
     );
   }
 
@@ -240,11 +231,10 @@ class ComicSimplifyEntry extends StatelessWidget {
 
   Future<void> _deleteHistory() async {
     if (info.from == 'bika') {
-      final temp =
-          objectbox.bikaHistoryBox
-              .query(BikaComicHistory_.comicId.equals(info.id))
-              .build()
-              .findFirst();
+      final temp = objectbox.bikaHistoryBox
+          .query(BikaComicHistory_.comicId.equals(info.id))
+          .build()
+          .findFirst();
 
       if (temp != null) {
         temp.deleted = true;
@@ -252,11 +242,10 @@ class ComicSimplifyEntry extends StatelessWidget {
         objectbox.bikaHistoryBox.put(temp);
       }
     } else if (info.from == 'jm') {
-      final temp =
-          objectbox.jmHistoryBox
-              .query(JmHistory_.comicId.equals(info.id))
-              .build()
-              .findFirst();
+      final temp = objectbox.jmHistoryBox
+          .query(JmHistory_.comicId.equals(info.id))
+          .build()
+          .findFirst();
 
       if (temp != null) {
         temp.deleted = true;
@@ -268,22 +257,20 @@ class ComicSimplifyEntry extends StatelessWidget {
 
   Future<void> _deleteDownload() async {
     if (info.from == 'bika') {
-      final temp =
-          objectbox.bikaDownloadBox
-              .query(BikaComicDownload_.comicId.equals(info.id))
-              .build()
-              .findFirst();
+      final temp = objectbox.bikaDownloadBox
+          .query(BikaComicDownload_.comicId.equals(info.id))
+          .build()
+          .findFirst();
 
       if (temp != null) {
         objectbox.bikaDownloadBox.remove(temp.id);
         await _deleteDownloadDirectory(info.id);
       }
     } else if (info.from == 'jm') {
-      final temp =
-          objectbox.jmDownloadBox
-              .query(JmDownload_.comicId.equals(info.id))
-              .build()
-              .findFirst();
+      final temp = objectbox.jmDownloadBox
+          .query(JmDownload_.comicId.equals(info.id))
+          .build()
+          .findFirst();
 
       if (temp != null) {
         objectbox.jmDownloadBox.remove(temp.id);
@@ -295,11 +282,10 @@ class ComicSimplifyEntry extends StatelessWidget {
   Future<void> _deleteFavorite() async {
     if (info.from == 'bika') {
     } else if (info.from == 'jm') {
-      final temp =
-          objectbox.jmFavoriteBox
-              .query(JmFavorite_.comicId.equals(info.id))
-              .build()
-              .findFirst();
+      final temp = objectbox.jmFavoriteBox
+          .query(JmFavorite_.comicId.equals(info.id))
+          .build()
+          .findFirst();
 
       if (temp != null) {
         objectbox.jmFavoriteBox.remove(temp.id);

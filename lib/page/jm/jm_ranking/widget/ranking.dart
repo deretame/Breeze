@@ -18,8 +18,8 @@ class RankingWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create:
-          (_) => JmRankingBloc()..add(JmRankingEvent(type: tag, order: time)),
+      create: (_) =>
+          JmRankingBloc()..add(JmRankingEvent(type: tag, order: time)),
       child: _RankingWidget(tag: tag, time: time),
     );
   }
@@ -144,15 +144,14 @@ class _RankingWidgetState extends State<_RankingWidget>
       children: [
         const SizedBox(height: 10),
         ElevatedButton(
-          onPressed:
-              () => context.read<JmRankingBloc>().add(
-                JmRankingEvent(
-                  page: page + 1,
-                  type: widget.tag,
-                  order: widget.time,
-                  status: JmRankingStatus.loadingMore,
-                ),
-              ),
+          onPressed: () => context.read<JmRankingBloc>().add(
+            JmRankingEvent(
+              page: page + 1,
+              type: widget.tag,
+              order: widget.time,
+              status: JmRankingStatus.loadingMore,
+            ),
+          ),
           child: const Text('点击重试'),
         ),
       ],

@@ -8,10 +8,9 @@ part of 'jm_week_ranking_json.dart';
 
 _JmWeekRankingJson _$JmWeekRankingJsonFromJson(Map<String, dynamic> json) =>
     _JmWeekRankingJson(
-      list:
-          (json['list'] as List<dynamic>)
-              .map((e) => ListElement.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      list: (json['list'] as List<dynamic>)
+          .map((e) => ListElement.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$JmWeekRankingJsonToJson(_JmWeekRankingJson instance) =>

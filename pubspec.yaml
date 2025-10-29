@@ -4,7 +4,7 @@ publish_to: none
 version: 2.8.16+2148
 
 environment:
-  sdk: ^3.7.2
+  sdk: ^3.9.2
 
 dependencies:
   flutter:
@@ -37,9 +37,6 @@ dependencies:
   ########################################
   #        状态管理 & 事件总线           #
   ########################################
-  mobx: ^2.5.0 # 响应式状态管理核心
-  mobx_codegen: ^2.7.1
-  flutter_mobx: ^2.3.0
   bloc: ^9.0.0 # BLoC 核心库
   flutter_bloc: ^9.0.0 # Flutter BLoC 实现
   bloc_concurrency: ^0.3.0 # BLoC 并发策略（防抖/节流）

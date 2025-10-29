@@ -19,7 +19,7 @@ import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/main_task.dart';
 import 'package:zephyr/util/foreground_task/task/bika_download.dart';
 import 'package:zephyr/util/get_path.dart';
-import 'package:zephyr/util/json_dispose.dart';
+import 'package:zephyr/util/json/json_dispose.dart';
 
 Future<void> jmDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
   // 先获取一下基本的信息
@@ -36,12 +36,11 @@ Future<void> jmDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
 
   final downloadInfoJson = comicInfo2DownloadInfoJson(comicInfo);
 
-  final updatedSeries =
-      downloadInfoJson.series.map((series) {
-        return series.copyWith(
-          info: epsList.firstWhere((e) => e.id.toString() == series.id),
-        );
-      }).toList();
+  final updatedSeries = downloadInfoJson.series.map((series) {
+    return series.copyWith(
+      info: epsList.firstWhere((e) => e.id.toString() == series.id),
+    );
+  }).toList();
 
   var updatedDownloadInfo = downloadInfoJson.copyWith(series: updatedSeries);
 
@@ -91,10 +90,9 @@ Future<base_info.JmComicInfoJson> getJmComicInfo(String comicId) async {
       ).let(replaceNestedNull).let(base_info.JmComicInfoJson.fromJson).let((d) {
         var series = d.series.toList();
         series.removeWhere((s) => s.sort == '0');
-        final newSeries =
-            series
-                .map((s) => s.copyWith(name: '第${s.sort}话 ${s.name}'))
-                .toList();
+        final newSeries = series
+            .map((s) => s.copyWith(name: '第${s.sort}话 ${s.name}'))
+            .toList();
         return d.copyWith(series: newSeries);
       });
     } catch (e, s) {
@@ -117,16 +115,15 @@ Future<List<Info>> fetchJMMedia(List<String> epIds, bool slowDownload) async {
       }
     }
   } else {
-    final List<Future<Info>> fetchTasks =
-        epIds.map((epId) async {
-          while (true) {
-            try {
-              return await getEpInfo(epId).let(info2Info);
-            } catch (e, s) {
-              logger.e(e, stackTrace: s);
-            }
-          }
-        }).toList();
+    final List<Future<Info>> fetchTasks = epIds.map((epId) async {
+      while (true) {
+        try {
+          return await getEpInfo(epId).let(info2Info);
+        } catch (e, s) {
+          logger.e(e, stackTrace: s);
+        }
+      }
+    }).toList();
     docsList = await Future.wait(fetchTasks);
   }
 
@@ -141,8 +138,9 @@ Info info2Info(Map<String, dynamic> info) {
 
   var series = infoObject.series.toList();
   series.removeWhere((s) => s.sort == '0');
-  final newSeries =
-      series.map((s) => s.copyWith(name: '第${s.sort}话 ${s.name}')).toList();
+  final newSeries = series
+      .map((s) => s.copyWith(name: '第${s.sort}话 ${s.name}'))
+      .toList();
 
   return infoObject.copyWith(series: newSeries);
 }
@@ -226,10 +224,9 @@ Future<DownloadInfoJson> downloadComic(
   List<String> selectedChapters,
 ) async {
   await RustLib.init();
-  final selectedEps =
-      downloadInfoJson.series
-          .where((e) => selectedChapters.contains(e.id))
-          .toList();
+  final selectedEps = downloadInfoJson.series
+      .where((e) => selectedChapters.contains(e.id))
+      .toList();
 
   final List<PagesDoc> docsList = [];
 
@@ -328,11 +325,10 @@ Future<void> saveToDB(
     downloadTime: DateTime.now(),
   );
 
-  var temp =
-      objectBox.jmDownloadBox
-          .query(JmDownload_.comicId.equals(downloadInfoJson.id.toString()))
-          .build()
-          .find();
+  var temp = objectBox.jmDownloadBox
+      .query(JmDownload_.comicId.equals(downloadInfoJson.id.toString()))
+      .build()
+      .find();
 
   // 这个是为了避免重复放置数据
   for (var item in temp) {
@@ -367,10 +363,9 @@ Future<void> checkFile(DownloadInfoJson downloadInfoJson) async {
   }
 
   // 过滤出需要删除的目录
-  List<Directory> deleteDirs =
-      epDirs.where((element) {
-        return !downloadEpsDir.contains(element.path);
-      }).toList();
+  List<Directory> deleteDirs = epDirs.where((element) {
+    return !downloadEpsDir.contains(element.path);
+  }).toList();
 
   // 删除不需要的目录
   for (var element in deleteDirs) {
@@ -389,10 +384,9 @@ Future<void> checkFile(DownloadInfoJson downloadInfoJson) async {
   var allPicturePaths = await getAllFilePaths(epsDir);
 
   // 过滤出需要删除的图片
-  List<String> deletePictures =
-      allPicturePaths.where((element) {
-        return !originalPicturePaths.contains(element);
-      }).toList();
+  List<String> deletePictures = allPicturePaths.where((element) {
+    return !originalPicturePaths.contains(element);
+  }).toList();
 
   // 删除不需要的图片
   for (var element in deletePictures) {

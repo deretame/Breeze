@@ -27,15 +27,14 @@ Future<void> initCfIpList(String url) async {
   // 获取 HTML body 内容
   final htmlBody = await downloadHtmlBody(url);
   // 处理返回的内容
-  final ips =
-      htmlBody
-          .split(',')
-          .map((e) => e.trim())
-          .where((e) => e.isNotEmpty) // 过滤空字符串
-          .where(
-            (e) => RegExp(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$').hasMatch(e),
-          ) // 验证 IP 格式
-          .toList(); // 转换为列表以执行操作
+  final ips = htmlBody
+      .split(',')
+      .map((e) => e.trim())
+      .where((e) => e.isNotEmpty) // 过滤空字符串
+      .where(
+        (e) => RegExp(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$').hasMatch(e),
+      ) // 验证 IP 格式
+      .toList(); // 转换为列表以执行操作
   // 添加到 cfIpList
   cfIpList.addAll(ips);
   logger.d('cfIpList: $cfIpList');

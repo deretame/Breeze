@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:permission_guard/permission_guard.dart';
-import 'package:zephyr/mobx/string_select.dart';
+import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
@@ -34,8 +34,8 @@ class ComicInfoPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create:
-          (_) => GetComicInfoBloc()..add(GetComicInfoEvent(comicId: comicId)),
+      create: (_) =>
+          GetComicInfoBloc()..add(GetComicInfoEvent(comicId: comicId)),
       child: _ComicInfo(comicId: comicId, type: type),
     );
   }
@@ -75,11 +75,10 @@ class _ComicInfoState extends State<_ComicInfo>
     super.initState();
     _type = type;
     // 首先查询一下有没有记录
-    comicHistory =
-        objectbox.bikaHistoryBox
-            .query(BikaComicHistory_.comicId.equals(widget.comicId))
-            .build()
-            .findFirst();
+    comicHistory = objectbox.bikaHistoryBox
+        .query(BikaComicHistory_.comicId.equals(widget.comicId))
+        .build()
+        .findFirst();
 
     if (comicHistory?.deleted == true) {
       comicHistory = null;
@@ -152,104 +151,96 @@ class _ComicInfoState extends State<_ComicInfo>
           ],
         ],
       ),
-      body:
-          _type == ComicEntryType.download
-              ? _infoView()
-              : BlocBuilder<GetComicInfoBloc, GetComicInfoState>(
-                builder: (context, state) {
-                  switch (state.status) {
-                    case GetComicInfoStatus.initial:
-                      return Center(child: CircularProgressIndicator());
-                    case GetComicInfoStatus.failure:
-                      if (state.result.contains("under review") &&
-                          state.result.contains("1014")) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text('此漫画已下架', style: TextStyle(fontSize: 20)),
-                              SizedBox(height: 10),
-                              ElevatedButton(
-                                onPressed: () => context.pop(),
-                                child: Text('返回'),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-                      return ErrorView(
-                        errorMessage: '${state.result.toString()}\n加载失败，请重试。',
-                        onRetry: () {
-                          context.read<GetComicInfoBloc>().add(
-                            GetComicInfoEvent(comicId: widget.comicId),
-                          );
-                        },
-                      );
-                    case GetComicInfoStatus.success:
-                      allInfo = state.allInfo!;
-                      comicInfo = allInfo.comicInfo;
-                      epsInfo = allInfo.eps;
-                      comicList = allInfo.recommendJson;
-                      return _infoView();
-                  }
-                },
-              ),
-      floatingActionButton:
-          _loadingComplete // 条件显示按钮
-              ? SizedBox(
-                width: 100, // 设置容器宽度，以容纳更长的文本
-                height: 56, // 设置容器高度，与默认的FloatingActionButton高度一致
-                child: FloatingActionButton(
-                  onPressed: () {
-                    if (store.date.isNotEmpty) {
-                      comicHistory =
-                          objectbox.bikaHistoryBox
-                              .query(
-                                BikaComicHistory_.comicId.equals(
-                                  widget.comicId,
-                                ),
-                              )
-                              .build()
-                              .findFirst();
-                      context.pushRoute(
-                        ComicReadRoute(
-                          comicInfo: allInfo,
-                          comicId: comicInfo.id,
-                          type:
-                              _type == ComicEntryType.download
-                                  ? ComicEntryType.historyAndDownload
-                                  : ComicEntryType.history,
-                          order: comicHistory!.order,
-                          epsNumber: comicInfo.epsCount,
-                          from: From.bika,
-                          store: store,
-                        ),
-                      );
-                    } else {
-                      context.pushRoute(
-                        ComicReadRoute(
-                          comicInfo: allInfo,
-                          comicId: comicInfo.id,
-                          type: _type,
-                          order: 1,
-                          epsNumber: comicInfo.epsCount,
-                          from: From.bika,
-                          store: store,
+      body: _type == ComicEntryType.download
+          ? _infoView()
+          : BlocBuilder<GetComicInfoBloc, GetComicInfoState>(
+              builder: (context, state) {
+                switch (state.status) {
+                  case GetComicInfoStatus.initial:
+                    return Center(child: CircularProgressIndicator());
+                  case GetComicInfoStatus.failure:
+                    if (state.result.contains("under review") &&
+                        state.result.contains("1014")) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text('此漫画已下架', style: TextStyle(fontSize: 20)),
+                            SizedBox(height: 10),
+                            ElevatedButton(
+                              onPressed: () => context.pop(),
+                              child: Text('返回'),
+                            ),
+                          ],
                         ),
                       );
                     }
-                  },
-                  child: Observer(
-                    builder:
-                        (context) => Text(
-                          store.date.isNotEmpty ? '继续阅读' : '开始阅读',
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
+                    return ErrorView(
+                      errorMessage: '${state.result.toString()}\n加载失败，请重试。',
+                      onRetry: () {
+                        context.read<GetComicInfoBloc>().add(
+                          GetComicInfoEvent(comicId: widget.comicId),
+                        );
+                      },
+                    );
+                  case GetComicInfoStatus.success:
+                    allInfo = state.allInfo!;
+                    comicInfo = allInfo.comicInfo;
+                    epsInfo = allInfo.eps;
+                    comicList = allInfo.recommendJson;
+                    return _infoView();
+                }
+              },
+            ),
+      floatingActionButton:
+          _loadingComplete // 条件显示按钮
+          ? SizedBox(
+              width: 100, // 设置容器宽度，以容纳更长的文本
+              height: 56, // 设置容器高度，与默认的FloatingActionButton高度一致
+              child: FloatingActionButton(
+                onPressed: () {
+                  if (store.date.isNotEmpty) {
+                    comicHistory = objectbox.bikaHistoryBox
+                        .query(BikaComicHistory_.comicId.equals(widget.comicId))
+                        .build()
+                        .findFirst();
+                    context.pushRoute(
+                      ComicReadRoute(
+                        comicInfo: allInfo,
+                        comicId: comicInfo.id,
+                        type: _type == ComicEntryType.download
+                            ? ComicEntryType.historyAndDownload
+                            : ComicEntryType.history,
+                        order: comicHistory!.order,
+                        epsNumber: comicInfo.epsCount,
+                        from: From.bika,
+                        store: store,
+                      ),
+                    );
+                  } else {
+                    context.pushRoute(
+                      ComicReadRoute(
+                        comicInfo: allInfo,
+                        comicId: comicInfo.id,
+                        type: _type,
+                        order: 1,
+                        epsNumber: comicInfo.epsCount,
+                        from: From.bika,
+                        store: store,
+                      ),
+                    );
+                  }
+                },
+                child: Observer(
+                  builder: (context) => Text(
+                    store.date.isNotEmpty ? '继续阅读' : '开始阅读',
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
-              )
-              : null, // 如果为false，则隐藏// 如果为false，则隐藏
+              ),
+            )
+          : null, // 如果为false，则隐藏// 如果为false，则隐藏
     );
   }
 
@@ -290,8 +281,9 @@ class _ComicInfoState extends State<_ComicInfo>
             allInfo: allInfo,
             epsInfo: epsInfo,
             isHistory: false,
-            type:
-                _type == ComicEntryType.history ? ComicEntryType.normal : _type,
+            type: _type == ComicEntryType.history
+                ? ComicEntryType.normal
+                : _type,
             store: store,
           ),
         ),
@@ -363,11 +355,10 @@ class _ComicInfoState extends State<_ComicInfo>
 
   void _initDownloadInfo() {
     if (_type == ComicEntryType.download) {
-      comicDownload =
-          objectbox.bikaDownloadBox
-              .query(BikaComicDownload_.comicId.equals(widget.comicId))
-              .build()
-              .findFirst();
+      comicDownload = objectbox.bikaDownloadBox
+          .query(BikaComicDownload_.comicId.equals(widget.comicId))
+          .build()
+          .findFirst();
 
       if (comicDownload != null) {
         comicAllInfo = comic_all_info_json.comicAllInfoJsonFromJson(

@@ -9,14 +9,14 @@ part of 'jm_ep_info_json.dart';
 _JmEpInfoJson _$JmEpInfoJsonFromJson(Map<String, dynamic> json) =>
     _JmEpInfoJson(
       id: (json['id'] as num).toInt(),
-      series:
-          (json['series'] as List<dynamic>)
-              .map((e) => Series.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      series: (json['series'] as List<dynamic>)
+          .map((e) => Series.fromJson(e as Map<String, dynamic>))
+          .toList(),
       tags: json['tags'] as String,
       name: json['name'] as String,
-      images:
-          (json['images'] as List<dynamic>).map((e) => e as String).toList(),
+      images: (json['images'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
       addtime: json['addtime'] as String,
       seriesId: json['series_id'] as String,
       isFavorite: json['is_favorite'] as bool,

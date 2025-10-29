@@ -21,10 +21,9 @@ Map<String, dynamic> _$RecommendJsonToJson(_RecommendJson instance) =>
     };
 
 _Data _$DataFromJson(Map<String, dynamic> json) => _Data(
-  comics:
-      (json['comics'] as List<dynamic>)
-          .map((e) => Comic.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  comics: (json['comics'] as List<dynamic>)
+      .map((e) => Comic.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$DataToJson(_Data instance) => <String, dynamic>{
@@ -36,8 +35,9 @@ _Comic _$ComicFromJson(Map<String, dynamic> json) => _Comic(
   title: json['title'] as String,
   thumb: Thumb.fromJson(json['thumb'] as Map<String, dynamic>),
   author: json['author'] as String,
-  categories:
-      (json['categories'] as List<dynamic>).map((e) => e as String).toList(),
+  categories: (json['categories'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   finished: json['finished'] as bool,
   epsCount: (json['epsCount'] as num).toInt(),
   pagesCount: (json['pagesCount'] as num).toInt(),

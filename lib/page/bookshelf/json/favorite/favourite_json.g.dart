@@ -30,10 +30,9 @@ Map<String, dynamic> _$DataToJson(_Data instance) => <String, dynamic>{
 _Comics _$ComicsFromJson(Map<String, dynamic> json) => _Comics(
   pages: (json['pages'] as num).toInt(),
   total: (json['total'] as num).toInt(),
-  docs:
-      (json['docs'] as List<dynamic>)
-          .map((e) => Doc.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  docs: (json['docs'] as List<dynamic>)
+      .map((e) => Doc.fromJson(e as Map<String, dynamic>))
+      .toList(),
   page: (json['page'] as num).toInt(),
   limit: (json['limit'] as num).toInt(),
 );
@@ -55,8 +54,9 @@ _Doc _$DocFromJson(Map<String, dynamic> json) => _Doc(
   pagesCount: (json['pagesCount'] as num).toInt(),
   epsCount: (json['epsCount'] as num).toInt(),
   finished: json['finished'] as bool,
-  categories:
-      (json['categories'] as List<dynamic>).map((e) => e as String).toList(),
+  categories: (json['categories'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   thumb: Thumb.fromJson(json['thumb'] as Map<String, dynamic>),
   likesCount: (json['likesCount'] as num).toInt(),
 );

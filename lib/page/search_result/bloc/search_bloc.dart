@@ -126,17 +126,15 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
 
   List<ComicNumber> _filterShieldedComics(List<ComicNumber> comics) {
     // 获取有效屏蔽关键词（非空）
-    final maskedKeywords =
-        globalSetting.maskedKeywords
-            .where((keyword) => keyword.trim().isNotEmpty)
-            .toList();
+    final maskedKeywords = globalSetting.maskedKeywords
+        .where((keyword) => keyword.trim().isNotEmpty)
+        .toList();
 
     // 获取屏蔽分类
-    final shieldedCategories =
-        bikaSetting.shieldCategoryMap.entries
-            .where((entry) => entry.value)
-            .map((entry) => entry.key)
-            .toList();
+    final shieldedCategories = bikaSetting.shieldCategoryMap.entries
+        .where((entry) => entry.value)
+        .map((entry) => entry.key)
+        .toList();
 
     return comics.where((comic) {
       // 1. 检查屏蔽分类
@@ -146,15 +144,14 @@ class SearchBloc extends Bloc<FetchSearchResult, SearchState> {
       if (hasShieldedCategory) return false;
 
       // 2. 检查屏蔽关键词
-      final allText =
-          [
-            comic.doc.title,
-            comic.doc.author,
-            comic.doc.chineseTeam,
-            comic.doc.categories.join(),
-            comic.doc.tags.join(),
-            comic.doc.description,
-          ].join().toLowerCase();
+      final allText = [
+        comic.doc.title,
+        comic.doc.author,
+        comic.doc.chineseTeam,
+        comic.doc.categories.join(),
+        comic.doc.tags.join(),
+        comic.doc.description,
+      ].join().toLowerCase();
 
       final containsKeyword = maskedKeywords.any(
         (keyword) => allText.contains(keyword.toLowerCase()),

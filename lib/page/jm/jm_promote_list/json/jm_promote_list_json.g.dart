@@ -9,10 +9,9 @@ part of 'jm_promote_list_json.dart';
 _JmPromoteListJson _$JmPromoteListJsonFromJson(Map<String, dynamic> json) =>
     _JmPromoteListJson(
       total: json['total'] as String,
-      list:
-          (json['list'] as List<dynamic>)
-              .map((e) => ListElement.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      list: (json['list'] as List<dynamic>)
+          .map((e) => ListElement.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$JmPromoteListJsonToJson(_JmPromoteListJson instance) =>

@@ -52,13 +52,9 @@ class _CategoryRankingWidgetState extends State<CategoryRankingWidget>
         Expanded(
           child: TabBarView(
             controller: _tabController,
-            children:
-                tabs.map((String tab) {
-                  return RankingWidget(
-                    tag: categoryMap[tab]!,
-                    time: widget.time,
-                  );
-                }).toList(),
+            children: tabs.map((String tab) {
+              return RankingWidget(tag: categoryMap[tab]!, time: widget.time);
+            }).toList(),
           ),
         ),
       ],

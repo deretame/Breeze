@@ -88,16 +88,15 @@ Future<String> getCachePicture({
   }
 
   // 处理 URL
-  String finalUrl =
-      from == 'jm'
-          ? url
-          : buildImageUrl(
-            url,
-            path,
-            pictureType,
-            bikaSetting.imageQuality,
-            bikaSetting.proxy,
-          );
+  String finalUrl = from == 'jm'
+      ? url
+      : buildImageUrl(
+          url,
+          path,
+          pictureType,
+          bikaSetting.imageQuality,
+          bikaSetting.proxy,
+        );
 
   // 下载图片
   Uint8List imageData = await downloadImageWithRetry(finalUrl);
@@ -208,16 +207,9 @@ Future<String> downloadPicture({
   }
 
   // 处理 URL
-  String finalUrl =
-      from == 'jm'
-          ? url
-          : buildImageUrl(
-            url,
-            path,
-            pictureType,
-            "original",
-            bikaSetting.proxy,
-          );
+  String finalUrl = from == 'jm'
+      ? url
+      : buildImageUrl(url, path, pictureType, "original", bikaSetting.proxy);
 
   // 下载图片
   Uint8List imageData = await downloadImageWithRetry(finalUrl, retry: true);
@@ -332,18 +324,16 @@ String buildImageUrl(
     if (pictureType == "cover") {
       url = "https://img.picacomic.com";
     } else if (pictureType == "creator" || pictureType == "favourite") {
-      url =
-          proxy == 1
-              ? "https://storage.diwodiwo.xyz"
-              : "https://s3.picacomic.com";
+      url = proxy == 1
+          ? "https://storage.diwodiwo.xyz"
+          : "https://s3.picacomic.com";
     } else {
       if (imageQuality != "original") {
         url = "https://img.picacomic.com";
       } else {
-        url =
-            proxy == 1
-                ? "https://storage.diwodiwo.xyz"
-                : "https://s3.picacomic.com";
+        url = proxy == 1
+            ? "https://storage.diwodiwo.xyz"
+            : "https://s3.picacomic.com";
       }
     }
   } else if (url == "https://storage-b.picacomic.com") {
@@ -360,10 +350,9 @@ String buildImageUrl(
 
   if (path.contains("picacomic-paint.jpg") ||
       path.contains("picacomic-gift.jpg")) {
-    url =
-        proxy == 1
-            ? "https://storage.diwodiwo.xyz/static"
-            : "https://s3.picacomic.com/static";
+    url = proxy == 1
+        ? "https://storage.diwodiwo.xyz/static"
+        : "https://s3.picacomic.com/static";
   }
 
   if (path.contains("tobeimg/")) {

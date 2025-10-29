@@ -21,8 +21,9 @@ Map<String, dynamic> _$KeywordsJsonToJson(_KeywordsJson instance) =>
     };
 
 _Data _$DataFromJson(Map<String, dynamic> json) => _Data(
-  keywords:
-      (json['keywords'] as List<dynamic>).map((e) => e as String).toList(),
+  keywords: (json['keywords'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
 );
 
 Map<String, dynamic> _$DataToJson(_Data instance) => <String, dynamic>{

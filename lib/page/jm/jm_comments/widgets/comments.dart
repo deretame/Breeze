@@ -175,10 +175,9 @@ class _CommentsWidget extends StatelessWidget {
                   child: SizedBox(
                     width: context.screenWidth * (48 / 50), // 设置宽度
                     child: Divider(
-                      color:
-                          globalSetting.themeType
-                              ? materialColorScheme.secondaryFixedDim
-                              : materialColorScheme.secondaryFixedDim,
+                      color: globalSetting.themeType
+                          ? materialColorScheme.secondaryFixedDim
+                          : materialColorScheme.secondaryFixedDim,
                       thickness: 1,
                       height: 10,
                     ),

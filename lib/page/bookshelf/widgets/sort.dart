@@ -47,15 +47,14 @@ class _SortWidgetState extends State<SortWidget> {
       child: DropdownButton2<String>(
         isExpanded: true,
         hint: Text('选择排序', style: TextStyle(fontSize: 16)),
-        items:
-            sortList
-                .map(
-                  (String item) => DropdownMenuItem<String>(
-                    value: item,
-                    child: Text(item, style: const TextStyle(fontSize: 16)),
-                  ),
-                )
-                .toList(),
+        items: sortList
+            .map(
+              (String item) => DropdownMenuItem<String>(
+                value: item,
+                child: Text(item, style: const TextStyle(fontSize: 16)),
+              ),
+            )
+            .toList(),
         value: selectedValue,
         onChanged: (String? value) {
           setState(() {

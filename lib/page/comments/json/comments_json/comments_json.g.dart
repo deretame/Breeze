@@ -22,10 +22,9 @@ Map<String, dynamic> _$CommentsJsonToJson(_CommentsJson instance) =>
 
 _Data _$DataFromJson(Map<String, dynamic> json) => _Data(
   comments: Comments.fromJson(json['comments'] as Map<String, dynamic>),
-  topComments:
-      (json['topComments'] as List<dynamic>)
-          .map((e) => TopComment.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  topComments: (json['topComments'] as List<dynamic>)
+      .map((e) => TopComment.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$DataToJson(_Data instance) => <String, dynamic>{
@@ -34,10 +33,9 @@ Map<String, dynamic> _$DataToJson(_Data instance) => <String, dynamic>{
 };
 
 _Comments _$CommentsFromJson(Map<String, dynamic> json) => _Comments(
-  docs:
-      (json['docs'] as List<dynamic>)
-          .map((e) => Doc.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  docs: (json['docs'] as List<dynamic>)
+      .map((e) => Doc.fromJson(e as Map<String, dynamic>))
+      .toList(),
   total: (json['total'] as num).toInt(),
   limit: (json['limit'] as num).toInt(),
   page: json['page'] as String,
@@ -90,13 +88,13 @@ _User _$UserFromJson(Map<String, dynamic> json) => _User(
   verified: json['verified'] as bool,
   exp: (json['exp'] as num).toInt(),
   level: (json['level'] as num).toInt(),
-  characters:
-      (json['characters'] as List<dynamic>).map((e) => e as String).toList(),
+  characters: (json['characters'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   role: json['role'] as String,
-  avatar:
-      json['avatar'] == null
-          ? null
-          : Avatar.fromJson(json['avatar'] as Map<String, dynamic>),
+  avatar: json['avatar'] == null
+      ? null
+      : Avatar.fromJson(json['avatar'] as Map<String, dynamic>),
   slogan: json['slogan'] as String?,
   character: json['character'] as String?,
 );

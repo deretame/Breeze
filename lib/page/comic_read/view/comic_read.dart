@@ -7,7 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/mobx/string_select.dart';
+import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/comic_info/models/all_info.dart';
 import 'package:zephyr/page/comic_read/comic_read.dart';
@@ -151,11 +151,10 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     if (widget.from == From.bika) {
       var allInfo = comicInfo as AllInfo;
       // 首先查询一下有没有记录
-      comicHistory =
-          objectbox.bikaHistoryBox
-              .query(BikaComicHistory_.comicId.equals(comicId))
-              .build()
-              .findFirst();
+      comicHistory = objectbox.bikaHistoryBox
+          .query(BikaComicHistory_.comicId.equals(comicId))
+          .build()
+          .findFirst();
       // 如果没有记录就先插入一条记录
       if (comicHistory == null) {
         comicHistory = comicToBikaComicHistory(allInfo.comicInfo);
@@ -164,12 +163,11 @@ class _ComicReadPageState extends State<_ComicReadPage> {
 
       if (_isDownload) {
         // 再查询一下有没有下载记录
-        var temp =
-            objectbox.bikaDownloadBox
-                .query(BikaComicDownload_.comicId.equals(comicId))
-                .build()
-                .findFirst()!
-                .comicInfoAll;
+        var temp = objectbox.bikaDownloadBox
+            .query(BikaComicDownload_.comicId.equals(comicId))
+            .build()
+            .findFirst()!
+            .comicInfoAll;
         _downloadEpsInfo = comicAllInfoJsonFromJson(temp).eps;
       }
 
@@ -177,11 +175,10 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     } else if (widget.from == From.jm) {
       var jmComic = comicInfo as JmComicInfoJson;
       // 首先查询一下有没有记录
-      jmHistory =
-          objectbox.jmHistoryBox
-              .query(JmHistory_.comicId.equals(comicId))
-              .build()
-              .findFirst();
+      jmHistory = objectbox.jmHistoryBox
+          .query(JmHistory_.comicId.equals(comicId))
+          .build()
+          .findFirst();
       // 如果没有记录就先插入一条记录
       if (jmHistory == null) {
         jmHistory = jmToJmHistory(jmComic);
@@ -189,12 +186,11 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       }
 
       if (_isDownload) {
-        var temp =
-            objectbox.jmDownloadBox
-                .query(JmDownload_.comicId.equals(comicId))
-                .build()
-                .findFirst()!
-                .allInfo;
+        var temp = objectbox.jmDownloadBox
+            .query(JmDownload_.comicId.equals(comicId))
+            .build()
+            .findFirst()!
+            .allInfo;
         _downloadEpsInfo = downloadInfoJsonFromJson(temp).series;
 
         jmComic = jmComic;
@@ -227,21 +223,20 @@ class _ComicReadPageState extends State<_ComicReadPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    body:
-        _isDownload
-            ? _successWidget(null)
-            : BlocBuilder<PageBloc, PageState>(
-              builder: (context, state) {
-                switch (state.status) {
-                  case PageStatus.initial:
-                    return const Center(child: CircularProgressIndicator());
-                  case PageStatus.failure:
-                    return _failureWidget(state);
-                  case PageStatus.success:
-                    return _successWidget(state);
-                }
-              },
-            ),
+    body: _isDownload
+        ? _successWidget(null)
+        : BlocBuilder<PageBloc, PageState>(
+            builder: (context, state) {
+              switch (state.status) {
+                case PageStatus.initial:
+                  return const Center(child: CircularProgressIndicator());
+                case PageStatus.failure:
+                  return _failureWidget(state);
+                case PageStatus.success:
+                  return _successWidget(state);
+              }
+            },
+          ),
   );
 
   Widget _failureWidget(PageState state) {
@@ -304,11 +299,10 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   Widget _comicReadAppBar() => ComicReadAppBar(
     title: epName,
     isVisible: _isVisible,
-    changePageIndex:
-        (int value) => setState(() {
-          _currentSliderValue = 1.0;
-          pageIndex = value;
-        }),
+    changePageIndex: (int value) => setState(() {
+      _currentSliderValue = 1.0;
+      pageIndex = value;
+    }),
   );
 
   Widget _pageCountWidget() =>
@@ -528,8 +522,9 @@ class _ComicReadPageState extends State<_ComicReadPage> {
                 0,
                 double.maxFinite.toInt(),
               );
-              _currentSliderValue =
-                  (pageIndex - 2).clamp(0, maxSlot).toDouble();
+              _currentSliderValue = (pageIndex - 2)
+                  .clamp(0, maxSlot)
+                  .toDouble();
             }
           });
         }
@@ -585,17 +580,16 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       epId = temp.id;
       epName = temp.title;
 
-      docs =
-          temp.pages.docs
-              .map(
-                (e) => Doc(
-                  originalName: e.media.originalName,
-                  path: e.media.path,
-                  fileServer: e.media.fileServer,
-                  id: epId,
-                ),
-              )
-              .toList();
+      docs = temp.pages.docs
+          .map(
+            (e) => Doc(
+              originalName: e.media.originalName,
+              path: e.media.path,
+              fileServer: e.media.fileServer,
+              id: epId,
+            ),
+          )
+          .toList();
 
       length = temp.pages.docs.length;
       epPages = temp.pages.docs.length.toString();
@@ -606,17 +600,16 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       epId = temp.id;
       epName = temp.info.name;
 
-      docs =
-          temp.info.images
-              .map(
-                (e) => Doc(
-                  originalName: e,
-                  path: e,
-                  fileServer: getJmImagesUrl(temp.id.toString(), e),
-                  id: epId,
-                ),
-              )
-              .toList();
+      docs = temp.info.images
+          .map(
+            (e) => Doc(
+              originalName: e,
+              path: e,
+              fileServer: getJmImagesUrl(temp.id.toString(), e),
+              id: epId,
+            ),
+          )
+          .toList();
 
       length = temp.info.images.length;
       epPages = temp.info.images.length.toString();
@@ -643,10 +636,9 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       shouldScroll &= (jmHistory!.epPageCount - 1 != 0);
     }
 
-    final index =
-        widget.from == From.bika
-            ? comicHistory!.epPageCount
-            : jmHistory!.epPageCount;
+    final index = widget.from == From.bika
+        ? comicHistory!.epPageCount
+        : jmHistory!.epPageCount;
 
     // logger.d('历史记录：$index');
 

@@ -225,10 +225,9 @@ class _JmSearchResultPageState extends State<_JmSearchResultPage> {
       children: [
         const SizedBox(height: 10),
         ElevatedButton(
-          onPressed:
-              () => _fetchSearchResult(
-                event.copyWith(status: JmSearchResultStatus.loadingMore),
-              ),
+          onPressed: () => _fetchSearchResult(
+            event.copyWith(status: JmSearchResultStatus.loadingMore),
+          ),
           child: const Text('点击重试'),
         ),
       ],

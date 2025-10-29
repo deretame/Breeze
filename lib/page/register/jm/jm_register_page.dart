@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/mobx/string_select.dart';
+import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../network/http/bika/http_request.dart';

@@ -42,54 +42,53 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('全局设置')),
       body: Observer(
-        builder:
-            (context) => ListView(
-              children: [
-                _systemTheme(),
-                _dynamicColor(),
-                if (!globalSetting.dynamicColor) ...[
-                  SizedBox(height: 11),
-                  changeThemeColor(context),
-                  SizedBox(height: 11),
-                ],
-                _comicReadTopContainer(),
-                _shade(),
-                _isAMOLED(),
-                DividerWidget(),
-                SizedBox(height: 11),
-                editMaskedKeywords(context, keywordController),
-                SizedBox(height: 11),
-                DividerWidget(),
-                SizedBox(height: 11),
-                socks5ProxyEdit(context),
-                SizedBox(height: 11),
-                SizedBox(height: 11),
-                webdavSync(context),
-                SizedBox(height: 11),
-                if (globalSetting.webdavHost.isNotEmpty) ...[_autoSync()],
-                if (globalSetting.webdavHost.isNotEmpty &&
-                    globalSetting.autoSync) ...[
-                  _syncNotify(),
-                ],
-                DividerWidget(),
-                _splashPage(),
-                _disableBika(),
-                if (kDebugMode) ...[
-                  ElevatedButton(
-                    onPressed: () {
-                      AutoRouter.of(context).push(ShowColorRoute());
-                    },
-                    child: Text("整点颜色看看"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      jmSetting.deleteUserInfo();
-                    },
-                    child: Text('测试禁漫登录'),
-                  ),
-                ],
-              ],
-            ),
+        builder: (context) => ListView(
+          children: [
+            _systemTheme(),
+            _dynamicColor(),
+            if (!globalSetting.dynamicColor) ...[
+              SizedBox(height: 11),
+              changeThemeColor(context),
+              SizedBox(height: 11),
+            ],
+            _comicReadTopContainer(),
+            _shade(),
+            _isAMOLED(),
+            DividerWidget(),
+            SizedBox(height: 11),
+            editMaskedKeywords(context, keywordController),
+            SizedBox(height: 11),
+            DividerWidget(),
+            SizedBox(height: 11),
+            socks5ProxyEdit(context),
+            SizedBox(height: 11),
+            SizedBox(height: 11),
+            webdavSync(context),
+            SizedBox(height: 11),
+            if (globalSetting.webdavHost.isNotEmpty) ...[_autoSync()],
+            if (globalSetting.webdavHost.isNotEmpty &&
+                globalSetting.autoSync) ...[
+              _syncNotify(),
+            ],
+            DividerWidget(),
+            _splashPage(),
+            _disableBika(),
+            if (kDebugMode) ...[
+              ElevatedButton(
+                onPressed: () {
+                  AutoRouter.of(context).push(ShowColorRoute());
+                },
+                child: Text("整点颜色看看"),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  jmSetting.deleteUserInfo();
+                },
+                child: Text('测试禁漫登录'),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -129,13 +128,14 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                   });
                 }
               },
-              items:
-                  systemThemeList.map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
+              items: systemThemeList.map<DropdownMenuItem<String>>((
+                String value,
+              ) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
               style: TextStyle(color: globalSetting.textColor, fontSize: 18),
             );
           },
@@ -312,13 +312,9 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               globalSetting.setWelcomePageNum(splashPage[value]!);
             }
           },
-          items:
-              splashPageList.map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
+          items: splashPageList.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(value: value, child: Text(value));
+          }).toList(),
           style: TextStyle(color: globalSetting.textColor, fontSize: 18),
         ),
         SizedBox(width: 10),

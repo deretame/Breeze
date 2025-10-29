@@ -20,10 +20,9 @@ Map<String, dynamic> _$LeaderboardToJson(_Leaderboard instance) =>
     };
 
 _Data _$DataFromJson(Map<String, dynamic> json) => _Data(
-  comics:
-      (json['comics'] as List<dynamic>)
-          .map((e) => Comic.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  comics: (json['comics'] as List<dynamic>)
+      .map((e) => Comic.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$DataToJson(_Data instance) => <String, dynamic>{
@@ -39,8 +38,9 @@ _Comic _$ComicFromJson(Map<String, dynamic> json) => _Comic(
   pagesCount: (json['pagesCount'] as num).toInt(),
   epsCount: (json['epsCount'] as num).toInt(),
   finished: json['finished'] as bool,
-  categories:
-      (json['categories'] as List<dynamic>).map((e) => e as String).toList(),
+  categories: (json['categories'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   thumb: Thumb.fromJson(json['thumb'] as Map<String, dynamic>),
   viewsCount: (json['viewsCount'] as num).toInt(),
   leaderboardCount: (json['leaderboardCount'] as num).toInt(),

@@ -1,54 +1,53 @@
-import 'package:mobx/mobx.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'search_status.g.dart';
+part 'search_status.freezed.dart'; // 运行 build_runner 生成
 
 enum BookShelfStatus { favourite, history, download }
 
-// ignore: library_private_types_in_public_api
-class SearchStatusStore = _SearchStatusStore with _$SearchStatusStore;
+@freezed
+abstract class SearchStatusState with _$SearchStatusState {
+  // const factory 允许我们定义 @Default 值，
+  // 这对应了你 MobX store 中的所有初始值
+  const factory SearchStatusState({
+    @Default(BookShelfStatus.favourite) BookShelfStatus status,
+    @Default(0) int pageCount,
+    @Default("") String refresh,
+    @Default("") String keyword,
+    @Default("dd") String sort,
+    @Default(<String>[]) List<String> categories,
+  }) = _SearchStatusState;
+}
 
-abstract class _SearchStatusStore with Store {
-  @observable
-  BookShelfStatus status = BookShelfStatus.favourite;
-  @observable
-  int pageCount = 0;
-  @observable
-  String refresh = "";
-  @observable
-  String keyword = "";
-  @observable
-  String sort = "dd";
-  @observable
-  List<String> categories = ObservableList<String>();
+class SearchStatusCubit extends Cubit<SearchStatusState> {
+  // 构造函数，传入由 freezed 生成的默认 state
+  SearchStatusCubit() : super(const SearchStatusState());
 
-  @action
   void setStatus(BookShelfStatus status) {
-    this.status = status;
+    emit(state.copyWith(status: status));
   }
 
-  @action
   void setPageCount(int pageCount) {
-    this.pageCount = pageCount;
+    emit(state.copyWith(pageCount: pageCount));
   }
 
-  @action
   void setRefresh(String refresh) {
-    this.refresh = refresh;
+    emit(state.copyWith(refresh: refresh));
   }
 
-  @action
   void setKeyword(String keyword) {
-    this.keyword = keyword;
+    emit(state.copyWith(keyword: keyword));
   }
 
-  @action
   void setSort(String sort) {
-    this.sort = sort;
+    emit(state.copyWith(sort: sort));
   }
 
-  @action
   void setCategories(List<String> categories) {
-    this.categories = ObservableList<String>();
-    this.categories = ObservableList<String>.of(categories);
+    emit(state.copyWith(categories: categories));
+  }
+
+  void resetSearch() {
+    emit(const SearchStatusState());
   }
 }

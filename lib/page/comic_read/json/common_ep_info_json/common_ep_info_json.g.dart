@@ -10,14 +10,12 @@ _CommonEpInfoJson _$CommonEpInfoJsonFromJson(Map<String, dynamic> json) =>
     _CommonEpInfoJson(
       epId: json['epId'] as String,
       epName: json['epName'] as String,
-      series:
-          (json['series'] as List<dynamic>)
-              .map((e) => Series.fromJson(e as Map<String, dynamic>))
-              .toList(),
-      docs:
-          (json['docs'] as List<dynamic>)
-              .map((e) => Doc.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      series: (json['series'] as List<dynamic>)
+          .map((e) => Series.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      docs: (json['docs'] as List<dynamic>)
+          .map((e) => Doc.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$CommonEpInfoJsonToJson(_CommonEpInfoJson instance) =>

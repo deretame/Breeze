@@ -7,8 +7,8 @@ import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 
 import '../../../../main.dart';
-import '../../../../mobx/int_select.dart';
-import '../../../../mobx/string_select.dart';
+import '../../../../cubit/int_select.dart';
+import '../../../../cubit/string_select.dart';
 import '../../../../object_box/model.dart';
 import '../../../../type/enum.dart';
 import '../../../../widgets/comic_entry/comic_entry.dart';
@@ -172,34 +172,31 @@ class __HistoryPageState extends State<_HistoryPage>
 
     return _buildCommonListView(
       itemCount: elementsRows.length + 1,
-      itemBuilder:
-          (context, index) => _buildListItem(
-            context,
-            index,
-            elementsRows.length,
-            () => _refresh(searchStatusStore),
-            isBrevity: true,
-            elementsRows: elementsRows,
-          ),
+      itemBuilder: (context, index) => _buildListItem(
+        context,
+        index,
+        elementsRows.length,
+        () => _refresh(searchStatusStore),
+        isBrevity: true,
+        elementsRows: elementsRows,
+      ),
     );
   }
 
   // 构建详细模式列表
   Widget _buildDetailedList(UserHistoryState state) {
     return Observer(
-      builder:
-          (_) => _buildCommonListView(
-            itemCount: state.comics.length + 1,
-            itemBuilder:
-                (context, index) => _buildListItem(
-                  context,
-                  index,
-                  state.comics.length,
-                  () => _refresh(searchStatusStore),
-                  isBrevity: false,
-                  comics: state.comics,
-                ),
-          ),
+      builder: (_) => _buildCommonListView(
+        itemCount: state.comics.length + 1,
+        itemBuilder: (context, index) => _buildListItem(
+          context,
+          index,
+          state.comics.length,
+          () => _refresh(searchStatusStore),
+          isBrevity: false,
+          comics: state.comics,
+        ),
+      ),
     );
   }
 

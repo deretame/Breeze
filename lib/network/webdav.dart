@@ -294,8 +294,10 @@ Future<List<String>> fetchWebDAVFiles() async {
           var prop = propstat.findElements(propElement).first;
 
           // 获取 displayname
-          var displayName =
-              prop.findElements(displayNameElement).firstOrNull?.innerText;
+          var displayName = prop
+              .findElements(displayNameElement)
+              .firstOrNull
+              ?.innerText;
 
           if (displayName != null && !xmlIsDirectory(prop, namespacePrefix)) {
             urlList.add("/$appName/$displayName");
@@ -327,8 +329,9 @@ Future<void> uploadFile2WebDav() async {
   var allHistory = await objectbox.bikaHistoryBox.getAllAsync();
   allHistory.sort((a, b) => b.history.compareTo(a.history));
 
-  final comicHistoriesJsonString =
-      allHistory.map((comic) => comic.toJson()).toList();
+  final comicHistoriesJsonString = allHistory
+      .map((comic) => comic.toJson())
+      .toList();
 
   final jmFavorite = await objectbox.jmFavoriteBox.getAllAsync();
 
@@ -532,10 +535,9 @@ Future<List<int>> _downloadFromWebDav(String remotePath) async {
 Future<void> updateHistory(Map<String, dynamic> data) async {
   // 合并本地和云端历史记录
   final localHistories = await objectbox.bikaHistoryBox.getAllAsync();
-  final cloudHistories =
-      (data['comicHistories'] as List<dynamic>)
-          .map((comic) => BikaComicHistory.fromJson(comic))
-          .toList();
+  final cloudHistories = (data['comicHistories'] as List<dynamic>)
+      .map((comic) => BikaComicHistory.fromJson(comic))
+      .toList();
   final combined = [...cloudHistories, ...localHistories];
 
   // 按时间降序排序（最新的在前）
@@ -561,10 +563,9 @@ Future<void> updateHistory(Map<String, dynamic> data) async {
   await objectbox.bikaHistoryBox.putManyAsync(finalList);
 
   final jmLocalFavorites = await objectbox.jmFavoriteBox.getAllAsync();
-  final jmCloudFavorites =
-      (data['jmFavorites'] as List<dynamic>)
-          .map((jm) => JmFavorite.fromJson(jm))
-          .toList();
+  final jmCloudFavorites = (data['jmFavorites'] as List<dynamic>)
+      .map((jm) => JmFavorite.fromJson(jm))
+      .toList();
 
   final jmCombinedFavorites = [...jmCloudFavorites, ...jmLocalFavorites];
 
@@ -589,10 +590,9 @@ Future<void> updateHistory(Map<String, dynamic> data) async {
   await objectbox.jmFavoriteBox.putManyAsync(jmFavoriteFinalList);
 
   final jmLocalHistories = await objectbox.jmHistoryBox.getAllAsync();
-  final jmCloudHistories =
-      (data['jmHistories'] as List<dynamic>)
-          .map((jm) => JmHistory.fromJson(jm))
-          .toList();
+  final jmCloudHistories = (data['jmHistories'] as List<dynamic>)
+      .map((jm) => JmHistory.fromJson(jm))
+      .toList();
 
   final jmCombinedHistories = [...jmCloudHistories, ...jmLocalHistories];
 
@@ -635,10 +635,9 @@ Future<void> deleteFileFromWebDav(List<String> remotePath) async {
 
       logger.d('文件删除成功: $path');
     } on DioException catch (e) {
-      final errorMessage =
-          e.response != null
-              ? '文件删除失败: ${e.message}\n${e.response?.statusCode}\n${e.response?.data}'
-              : '文件删除失败: ${e.message}';
+      final errorMessage = e.response != null
+          ? '文件删除失败: ${e.message}\n${e.response?.statusCode}\n${e.response?.data}'
+          : '文件删除失败: ${e.message}';
 
       throw Exception(errorMessage);
     } catch (e, stackTrace) {

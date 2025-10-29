@@ -10,7 +10,7 @@ import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../../main.dart';
-import '../../../mobx/int_select.dart';
+import '../../../cubit/int_select.dart';
 import '../../../network/http/bika/http_request.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
@@ -109,10 +109,9 @@ class _CommentsChildrenWidgetState extends State<CommentsChildrenWidget>
                                 Text(
                                   "level:${commentInfo.user.level} (${commentInfo.user.title})",
                                   style: TextStyle(
-                                    color:
-                                        globalSetting.themeType
-                                            ? Colors.red
-                                            : Colors.yellow,
+                                    color: globalSetting.themeType
+                                        ? Colors.red
+                                        : Colors.yellow,
                                   ),
                                 ),
                                 Text(
@@ -146,8 +145,9 @@ class _CommentsChildrenWidgetState extends State<CommentsChildrenWidget>
                             child: Icon(
                               like ? Icons.favorite : Icons.favorite_border,
                               size: 14,
-                              color:
-                                  like ? Colors.red : globalSetting.textColor,
+                              color: like
+                                  ? Colors.red
+                                  : globalSetting.textColor,
                             ),
                           ),
                           SizedBox(width: 5),

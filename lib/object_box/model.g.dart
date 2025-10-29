@@ -16,10 +16,9 @@ BikaComicHistory _$BikaComicHistoryFromJson(Map<String, dynamic> json) =>
       creatorVerified: json['creatorVerified'] as bool,
       creatorExp: (json['creatorExp'] as num).toInt(),
       creatorLevel: (json['creatorLevel'] as num).toInt(),
-      creatorCharacters:
-          (json['creatorCharacters'] as List<dynamic>)
-              .map((e) => e as String)
-              .toList(),
+      creatorCharacters: (json['creatorCharacters'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
       creatorCharactersString: json['creatorCharactersString'] as String,
       creatorRole: json['creatorRole'] as String,
       creatorTitle: json['creatorTitle'] as String,
@@ -34,10 +33,9 @@ BikaComicHistory _$BikaComicHistoryFromJson(Map<String, dynamic> json) =>
       thumbFileServer: json['thumbFileServer'] as String,
       author: json['author'] as String,
       chineseTeam: json['chineseTeam'] as String,
-      categories:
-          (json['categories'] as List<dynamic>)
-              .map((e) => e as String)
-              .toList(),
+      categories: (json['categories'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
       categoriesString: json['categoriesString'] as String,
       tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
       tagsString: json['tagsString'] as String,
@@ -126,10 +124,9 @@ BikaComicDownload _$BikaComicDownloadFromJson(Map<String, dynamic> json) =>
       creatorVerified: json['creatorVerified'] as bool,
       creatorExp: (json['creatorExp'] as num).toInt(),
       creatorLevel: (json['creatorLevel'] as num).toInt(),
-      creatorCharacters:
-          (json['creatorCharacters'] as List<dynamic>)
-              .map((e) => e as String)
-              .toList(),
+      creatorCharacters: (json['creatorCharacters'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
       creatorCharactersString: json['creatorCharactersString'] as String,
       creatorRole: json['creatorRole'] as String,
       creatorTitle: json['creatorTitle'] as String,
@@ -144,10 +141,9 @@ BikaComicDownload _$BikaComicDownloadFromJson(Map<String, dynamic> json) =>
       thumbFileServer: json['thumbFileServer'] as String,
       author: json['author'] as String,
       chineseTeam: json['chineseTeam'] as String,
-      categories:
-          (json['categories'] as List<dynamic>)
-              .map((e) => e as String)
-              .toList(),
+      categories: (json['categories'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
       categoriesString: json['categoriesString'] as String,
       tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
       tagsString: json['tagsString'] as String,
@@ -167,8 +163,9 @@ BikaComicDownload _$BikaComicDownloadFromJson(Map<String, dynamic> json) =>
       isFavourite: json['isFavourite'] as bool,
       isLiked: json['isLiked'] as bool,
       downloadTime: DateTime.parse(json['downloadTime'] as String),
-      epsTitle:
-          (json['epsTitle'] as List<dynamic>).map((e) => e as String).toList(),
+      epsTitle: (json['epsTitle'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
       comicInfoAll: json['comicInfoAll'] as String,
     );
 

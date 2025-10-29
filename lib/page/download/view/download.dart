@@ -137,11 +137,10 @@ class _DownloadPageState extends State<DownloadPage> {
         proxy: bikaSetting.proxy.toString(),
       ),
       globalProxy: globalSetting.socks5Proxy,
-      selectedChapters:
-          _downloadInfo.entries
-              .where((entry) => entry.value)
-              .map((entry) => entry.key.toString())
-              .toList(),
+      selectedChapters: _downloadInfo.entries
+          .where((entry) => entry.value)
+          .map((entry) => entry.key.toString())
+          .toList(),
       slowDownload: bikaSetting.getSlowDownload(),
     ).toJson().let(jsonEncode);
     try {

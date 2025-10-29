@@ -41,40 +41,38 @@ class ComicListBloc extends Bloc<FetchComicList, ComicListState> {
       );
 
       // 获取有效屏蔽关键词（非空）
-      final maskedKeywords =
-          globalSetting.maskedKeywords
-              .where((keyword) => keyword.trim().isNotEmpty)
-              .toList();
+      final maskedKeywords = globalSetting.maskedKeywords
+          .where((keyword) => keyword.trim().isNotEmpty)
+          .toList();
 
       // 获取屏蔽分类
-      final shieldedCategories =
-          bikaSetting.shieldCategoryMap.entries
-              .where((entry) => entry.value)
-              .map((entry) => entry.key)
-              .toList();
+      final shieldedCategories = bikaSetting.shieldCategoryMap.entries
+          .where((entry) => entry.value)
+          .map((entry) => entry.key)
+          .toList();
 
-      List<Comic> result =
-          Leaderboard.fromJson(temp).data.comics.where((comic) {
-            // 1. 检查屏蔽分类
-            final hasShieldedCategory = comic.categories.any(
-              (category) => shieldedCategories.contains(category),
-            );
-            if (hasShieldedCategory) return false;
+      List<Comic> result = Leaderboard.fromJson(temp).data.comics.where((
+        comic,
+      ) {
+        // 1. 检查屏蔽分类
+        final hasShieldedCategory = comic.categories.any(
+          (category) => shieldedCategories.contains(category),
+        );
+        if (hasShieldedCategory) return false;
 
-            // 2. 检查屏蔽关键词
-            final allText =
-                [
-                  comic.title,
-                  comic.author,
-                  comic.categories.join(),
-                ].join().toLowerCase();
+        // 2. 检查屏蔽关键词
+        final allText = [
+          comic.title,
+          comic.author,
+          comic.categories.join(),
+        ].join().toLowerCase();
 
-            final containsKeyword = maskedKeywords.any(
-              (keyword) => allText.contains(keyword.toLowerCase()),
-            );
+        final containsKeyword = maskedKeywords.any(
+          (keyword) => allText.contains(keyword.toLowerCase()),
+        );
 
-            return !containsKeyword;
-          }).toList();
+        return !containsKeyword;
+      }).toList();
 
       emit(state.copyWith(status: ComicListStatus.success, comicList: result));
     } catch (e) {

@@ -20,10 +20,9 @@ Map<String, dynamic> _$CategoriesToJson(_Categories instance) =>
     };
 
 _Data _$DataFromJson(Map<String, dynamic> json) => _Data(
-  categories:
-      (json['categories'] as List<dynamic>)
-          .map((e) => Category.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  categories: (json['categories'] as List<dynamic>)
+      .map((e) => Category.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$DataToJson(_Data instance) => <String, dynamic>{

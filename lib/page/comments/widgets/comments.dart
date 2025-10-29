@@ -9,8 +9,8 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../main.dart';
-import '../../../mobx/bool_select.dart';
-import '../../../mobx/int_select.dart';
+import '../../../cubit/bool_select.dart';
+import '../../../cubit/int_select.dart';
 import '../../../network/http/bika/http_request.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
@@ -160,10 +160,9 @@ class _CommentsWidgetState extends State<CommentsWidget>
                                     ? Icons.favorite
                                     : Icons.favorite_border,
                                 size: 14,
-                                color:
-                                    likeStore.date
-                                        ? Colors.red
-                                        : globalSetting.textColor,
+                                color: likeStore.date
+                                    ? Colors.red
+                                    : globalSetting.textColor,
                               ),
                             ),
                             SizedBox(width: 5),
@@ -183,10 +182,9 @@ class _CommentsWidgetState extends State<CommentsWidget>
                   child: SizedBox(
                     width: context.screenWidth * (48 / 50), // 设置宽度
                     child: Divider(
-                      color:
-                          globalSetting.themeType
-                              ? materialColorScheme.secondaryFixedDim
-                              : materialColorScheme.secondaryFixedDim,
+                      color: globalSetting.themeType
+                          ? materialColorScheme.secondaryFixedDim
+                          : materialColorScheme.secondaryFixedDim,
                       thickness: 1,
                       height: 10,
                     ),

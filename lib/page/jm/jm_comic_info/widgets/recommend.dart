@@ -14,19 +14,18 @@ class RecommendWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final comicInfoList =
-        comicInfo.relatedList
-            .map(
-              (e) => ComicSimplifyEntryInfo(
-                title: e.name,
-                id: e.id,
-                fileServer: getJmCoverUrl(e.id),
-                path: "${e.id}.jpg",
-                pictureType: "cover",
-                from: "jm",
-              ),
-            )
-            .toList();
+    final comicInfoList = comicInfo.relatedList
+        .map(
+          (e) => ComicSimplifyEntryInfo(
+            title: e.name,
+            id: e.id,
+            fileServer: getJmCoverUrl(e.id),
+            path: "${e.id}.jpg",
+            pictureType: "cover",
+            from: "jm",
+          ),
+        )
+        .toList();
 
     return Observer(
       builder: (context) {

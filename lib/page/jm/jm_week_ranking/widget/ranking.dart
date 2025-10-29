@@ -18,9 +18,8 @@ class RankingWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create:
-          (_) =>
-              WeekRankingBloc()..add(WeekRankingEvent(date: week, type: tag)),
+      create: (_) =>
+          WeekRankingBloc()..add(WeekRankingEvent(date: week, type: tag)),
       child: _RankingWidget(tag: tag, week: week),
     );
   }
@@ -145,15 +144,14 @@ class _RankingWidgetState extends State<_RankingWidget>
       children: [
         const SizedBox(height: 10),
         ElevatedButton(
-          onPressed:
-              () => context.read<WeekRankingBloc>().add(
-                WeekRankingEvent(
-                  date: widget.week,
-                  page: page + 1,
-                  type: widget.tag,
-                  status: JmRankingStatus.loadingMore,
-                ),
-              ),
+          onPressed: () => context.read<WeekRankingBloc>().add(
+            WeekRankingEvent(
+              date: widget.week,
+              page: page + 1,
+              type: widget.tag,
+              status: JmRankingStatus.loadingMore,
+            ),
+          ),
           child: const Text('点击重试'),
         ),
       ],

@@ -9,7 +9,7 @@ import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/page/jm/jm_promote/json/promote/jm_promote_json.dart';
 import 'package:zephyr/page/jm/jm_promote/json/suggestion/jm_suggestion_json.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/json_dispose.dart';
+import 'package:zephyr/util/json/json_dispose.dart';
 
 part 'promote_event.dart';
 part 'promote_state.dart';
@@ -61,8 +61,9 @@ class PromoteBloc extends Bloc<PromoteEvent, PromoteState> {
         list = await getPromote()
             .let(replaceNestedNullList)
             .let((d) {
-              var data =
-                  (d).map((item) => item as Map<String, dynamic>).toList();
+              var data = (d)
+                  .map((item) => item as Map<String, dynamic>)
+                  .toList();
 
               data.removeWhere((e) => e['title'] == '禁漫书库');
               data.removeWhere((e) => e['title'] == '禁漫去码&全彩化');

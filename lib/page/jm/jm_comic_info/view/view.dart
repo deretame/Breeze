@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:permission_guard/permission_guard.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/mobx/string_select.dart';
+import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart'
@@ -32,14 +32,10 @@ class JmComicInfoPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create:
-          (_) =>
-              JmComicInfoBloc()..add(
-                JmComicInfoEvent(
-                  status: JmComicInfoStatus.initial,
-                  comicId: comicId,
-                ),
-              ),
+      create: (_) => JmComicInfoBloc()
+        ..add(
+          JmComicInfoEvent(status: JmComicInfoStatus.initial, comicId: comicId),
+        ),
       child: _JmComicInfoPage(comicId: comicId, type: type),
     );
   }
@@ -70,11 +66,10 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
   void initState() {
     super.initState();
     _type = widget.type;
-    jmHistory =
-        objectbox.jmHistoryBox
-            .query(JmHistory_.comicId.equals(widget.comicId))
-            .build()
-            .findFirst();
+    jmHistory = objectbox.jmHistoryBox
+        .query(JmHistory_.comicId.equals(widget.comicId))
+        .build()
+        .findFirst();
     _hasHistory = jmHistory?.deleted == false;
 
     if (_hasHistory) {
@@ -86,11 +81,10 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
       );
     }
 
-    jmDownload =
-        objectbox.jmDownloadBox
-            .query(JmDownload_.comicId.equals(widget.comicId))
-            .build()
-            .findFirst();
+    jmDownload = objectbox.jmDownloadBox
+        .query(JmDownload_.comicId.equals(widget.comicId))
+        .build()
+        .findFirst();
   }
 
   @override
@@ -137,39 +131,36 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
             ),
         ],
       ),
-      body:
-          !isDownload
-              ? BlocBuilder<JmComicInfoBloc, JmComicInfoState>(
-                builder: (context, state) {
-                  switch (state.status) {
-                    case JmComicInfoStatus.initial:
-                      return const Center(child: CircularProgressIndicator());
-                    case JmComicInfoStatus.failure:
-                      return _failureWidget(state);
-                    case JmComicInfoStatus.success:
-                      return _comicEntry(state);
-                  }
-                },
-              )
-              : _comicEntry(null),
-      floatingActionButton:
-          _init
-              ? SizedBox(
-                width: 100,
-                height: 56,
-                child: FloatingActionButton(
-                  onPressed: _navigateToReader,
-                  child: Observer(
-                    builder:
-                        (context) => Text(
-                          store.date.isNotEmpty ? '继续阅读' : '开始阅读',
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
+      body: !isDownload
+          ? BlocBuilder<JmComicInfoBloc, JmComicInfoState>(
+              builder: (context, state) {
+                switch (state.status) {
+                  case JmComicInfoStatus.initial:
+                    return const Center(child: CircularProgressIndicator());
+                  case JmComicInfoStatus.failure:
+                    return _failureWidget(state);
+                  case JmComicInfoStatus.success:
+                    return _comicEntry(state);
+                }
+              },
+            )
+          : _comicEntry(null),
+      floatingActionButton: _init
+          ? SizedBox(
+              width: 100,
+              height: 56,
+              child: FloatingActionButton(
+                onPressed: _navigateToReader,
+                child: Observer(
+                  builder: (context) => Text(
+                    store.date.isNotEmpty ? '继续阅读' : '开始阅读',
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
-              )
-              : null,
+              ),
+            )
+          : null,
     );
   }
 
@@ -247,16 +238,14 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                   child: Text('禁漫车：JM${comicInfo.id}'),
                 ),
                 Observer(
-                  builder:
-                      (context) =>
-                          store.date.isNotEmpty
-                              ? Column(
-                                children: [
-                                  const SizedBox(height: 2),
-                                  Text(store.date),
-                                ],
-                              )
-                              : const SizedBox.shrink(),
+                  builder: (context) => store.date.isNotEmpty
+                      ? Column(
+                          children: [
+                            const SizedBox(height: 2),
+                            Text(store.date),
+                          ],
+                        )
+                      : const SizedBox.shrink(),
                 ),
               ],
             ),
@@ -442,14 +431,13 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
 
     if (isDownload) {
       comicIdVal = jmDownload!.comicId;
-      epsNumberVal =
-          jmDownload!.allInfo
-              .let(downloadInfoJsonFromJson)
-              .series
-              .first
-              .info
-              .series
-              .length;
+      epsNumberVal = jmDownload!.allInfo
+          .let(downloadInfoJsonFromJson)
+          .series
+          .first
+          .info
+          .series
+          .length;
       if (_hasHistory) {
         typeVal = ComicEntryType.historyAndDownload;
       }
@@ -457,21 +445,20 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
     } else {
       comicIdVal = widget.comicId;
       epsNumberVal = _state.comicInfo!.series.length;
-      typeVal =
-          store.date.isNotEmpty
-              ? ComicEntryType.history
-              : ComicEntryType.normal;
+      typeVal = store.date.isNotEmpty
+          ? ComicEntryType.history
+          : ComicEntryType.normal;
       comicInfoVal = _state.comicInfo!;
     }
 
-    jmHistory =
-        objectbox.jmHistoryBox
-            .query(JmHistory_.comicId.equals(widget.comicId))
-            .build()
-            .findFirst();
+    jmHistory = objectbox.jmHistoryBox
+        .query(JmHistory_.comicId.equals(widget.comicId))
+        .build()
+        .findFirst();
 
-    orderVal =
-        store.date.isNotEmpty ? jmHistory!.order : widget.comicId.let(toInt);
+    orderVal = store.date.isNotEmpty
+        ? jmHistory!.order
+        : widget.comicId.let(toInt);
 
     context.pushRoute(
       ComicReadRoute(
@@ -502,8 +489,9 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
 
       final epsIds = jmDownload!.epsIds;
       final series = comicInfo.series;
-      final newSeries =
-          series.where((s) => epsIds.contains(s.id.toString())).toList();
+      final newSeries = series
+          .where((s) => epsIds.contains(s.id.toString()))
+          .toList();
       comicInfo = comicInfo.copyWith(series: newSeries);
     }
     return comicInfo;

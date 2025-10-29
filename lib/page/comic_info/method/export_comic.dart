@@ -224,31 +224,29 @@ ComicAllInfoJson comicInfoProcess(ComicAllInfoJson comicInfo) {
   );
 
   // 修改 eps 的 docs
-  final updatedEpsDocs =
-      comicInfo.eps.docs.map((ep) {
-        // 修改 epsDoc 的 title
-        final updatedEp = ep.copyWith(
-          title:
-              "${ep.order}.${ep.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}",
-        );
+  final updatedEpsDocs = comicInfo.eps.docs.map((ep) {
+    // 修改 epsDoc 的 title
+    final updatedEp = ep.copyWith(
+      title:
+          "${ep.order}.${ep.title.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}",
+    );
 
-        // 修改 pages 的 docs
-        final updatedPagesDocs =
-            updatedEp.pages.docs.map((page) {
-              // 修改 page 的 media
-              final updatedMedia = page.media.copyWith(
-                originalName: page.media.originalName.replaceAll(
-                  RegExp(r'[<>:"/\\|?* ]'),
-                  '_',
-                ),
-              );
+    // 修改 pages 的 docs
+    final updatedPagesDocs = updatedEp.pages.docs.map((page) {
+      // 修改 page 的 media
+      final updatedMedia = page.media.copyWith(
+        originalName: page.media.originalName.replaceAll(
+          RegExp(r'[<>:"/\\|?* ]'),
+          '_',
+        ),
+      );
 
-              return page.copyWith(media: updatedMedia);
-            }).toList();
+      return page.copyWith(media: updatedMedia);
+    }).toList();
 
-        // 更新 epsDoc 的 pages
-        return updatedEp.copyWith(pages: Pages(docs: updatedPagesDocs));
-      }).toList();
+    // 更新 epsDoc 的 pages
+    return updatedEp.copyWith(pages: Pages(docs: updatedPagesDocs));
+  }).toList();
 
   // 更新 eps 的 docs
   final updatedEps = comicInfo.eps.copyWith(docs: updatedEpsDocs);

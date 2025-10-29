@@ -7,7 +7,7 @@ import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/json_dispose.dart';
+import 'package:zephyr/util/json/json_dispose.dart';
 
 import '../json/jm_promote_list_json.dart';
 

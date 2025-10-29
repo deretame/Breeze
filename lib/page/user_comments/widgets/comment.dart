@@ -11,8 +11,8 @@ import 'package:zephyr/widgets/toast.dart';
 
 import '../../../config/global/global.dart';
 import '../../../main.dart';
-import '../../../mobx/bool_select.dart';
-import '../../../mobx/int_select.dart';
+import '../../../cubit/bool_select.dart';
+import '../../../cubit/int_select.dart';
 import '../../../network/http/bika/http_request.dart';
 import '../../../type/enum.dart';
 import '../../../util/router/router.gr.dart';
@@ -107,10 +107,9 @@ class _CommentsWidgetState extends State<CommentsWidget>
                                 Text(
                                   "level:${userInfo.level} (${userInfo.title})",
                                   style: TextStyle(
-                                    color:
-                                        globalSetting.themeType
-                                            ? materialColorScheme.tertiary
-                                            : materialColorScheme.tertiary,
+                                    color: globalSetting.themeType
+                                        ? materialColorScheme.tertiary
+                                        : materialColorScheme.tertiary,
                                   ),
                                 ),
                                 SelectableText(
@@ -180,17 +179,15 @@ class _CommentsWidgetState extends State<CommentsWidget>
                                 _likeComment(commentInfo.id);
                               },
                               child: Observer(
-                                builder:
-                                    (context) => Icon(
-                                      likeStore.date
-                                          ? Icons.favorite
-                                          : Icons.favorite_border,
-                                      size: 14,
-                                      color:
-                                          likeStore.date
-                                              ? Colors.red
-                                              : globalSetting.textColor,
-                                    ),
+                                builder: (context) => Icon(
+                                  likeStore.date
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  size: 14,
+                                  color: likeStore.date
+                                      ? Colors.red
+                                      : globalSetting.textColor,
+                                ),
                               ),
                             ),
                             SizedBox(width: 5),
@@ -210,10 +207,9 @@ class _CommentsWidgetState extends State<CommentsWidget>
                   child: SizedBox(
                     width: context.screenWidth * (48 / 50), // 设置宽度
                     child: Divider(
-                      color:
-                          globalSetting.themeType
-                              ? materialColorScheme.secondaryFixedDim
-                              : materialColorScheme.secondaryFixedDim,
+                      color: globalSetting.themeType
+                          ? materialColorScheme.secondaryFixedDim
+                          : materialColorScheme.secondaryFixedDim,
                       thickness: 1,
                       height: 10,
                     ),

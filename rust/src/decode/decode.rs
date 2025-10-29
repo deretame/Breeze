@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use image::{GenericImageView, ImageBuffer, Rgba};
+use image::{GenericImageView, ImageBuffer, ImageFormat, Rgba};
 use md5;
 use std::fs::{self, File};
 use std::io::Cursor;
@@ -36,6 +36,9 @@ pub(crate) fn get_segmentation_num(eps_id: i32, scramble_id: i32, picture_name: 
 
 // 这个东西是给禁漫用的，用来反混淆图片
 pub fn segmentation_picture_to_disk(image_info: ImageInfo) -> Result<()> {
+    let format =
+        image::guess_format(&image_info.img_data).context("Failed to guess image format")?;
+
     let num = get_segmentation_num(
         image_info.chapter_id,
         image_info.scramble_id,
@@ -48,7 +51,7 @@ pub fn segmentation_picture_to_disk(image_info: ImageInfo) -> Result<()> {
             .next()
             .unwrap(),
     );
-    if num <= 1 {
+    if format == ImageFormat::Gif || num <= 1 {
         save_image(&image_info.img_data, &image_info.file_name)?;
         return Ok(());
     }

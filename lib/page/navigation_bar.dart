@@ -627,7 +627,15 @@ class _NavigationBarState extends State<NavigationBar> {
   }
 
   Future<void> _jmSignIn() async {
+    int retryCount = 0;
+    const max = 3; // 最大重试次数
     while (true) {
+      retryCount++;
+      if (retryCount > max) {
+        logger.d("签到失败");
+        break;
+      }
+
       if (jmSetting.loginStatus != LoginStatus.login) {
         await Future.delayed(Duration(seconds: 1));
         continue;
@@ -639,8 +647,14 @@ class _NavigationBarState extends State<NavigationBar> {
               dailyList['list'].map((item) => item as Map<String, dynamic>),
             ).last['id']);
         final userId = jmUserInfoJsonFromJson(jmSetting.userInfo).uid;
+        int retryCount2 = 0;
+        const max2 = 3; // 最大重试次数
         while (true) {
           try {
+            if (retryCount2 > max2) {
+              logger.e("签到失败");
+              break;
+            }
             final result = await jm.dailyChk(userId, id);
             logger.d(result);
             if (result['msg'] != '今天已经签到过了') {
@@ -650,13 +664,15 @@ class _NavigationBarState extends State<NavigationBar> {
           } catch (e, s) {
             logger.e(e, stackTrace: s);
             await Future.delayed(Duration(seconds: 1));
+            retryCount2++;
             continue;
           }
         }
         break;
       } catch (e, s) {
         logger.e(e, stackTrace: s);
-        await Future.delayed(Duration(seconds: 1));
+        await Future.delayed(Duration(seconds: 5));
+        retryCount++;
         continue;
       }
     }

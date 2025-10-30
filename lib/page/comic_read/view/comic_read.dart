@@ -200,7 +200,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final globalSettingState = context.watch<GlobalSettingCubit>().state;
+      final globalSettingState = context.read<GlobalSettingCubit>().state;
       if (globalSettingState.readMode != 0) {
         await Future.delayed(Duration(milliseconds: 200));
         setState(() => _isVisible = false);
@@ -357,7 +357,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   }
 
   Future<void> _onTap() async {
-    final globalSettingState = context.watch<GlobalSettingCubit>().state;
+    final globalSettingState = context.read<GlobalSettingCubit>().state;
 
     if (globalSettingState.readMode != 0) {
       // 延迟到下一个循环中执行，避免点击事件冲突
@@ -422,7 +422,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   }
 
   void _handleTap(TapDownDetails details) {
-    final globalSettingState = context.watch<GlobalSettingCubit>().state;
+    final globalSettingState = context.read<GlobalSettingCubit>().state;
 
     // 获取点击的全局坐标
     final Offset tapPosition = details.globalPosition;
@@ -518,7 +518,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   }
 
   Future<void> getTopThirdItemIndex(Iterable<ItemPosition> positions) async {
-    final globalSettingState = context.watch<GlobalSettingCubit>().state;
+    final globalSettingState = context.read<GlobalSettingCubit>().state;
 
     if (globalSettingState.readMode != 0) return;
     // 在数据加载完成前不处理滚动位置更新
@@ -666,7 +666,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
         if (!mounted) return;
         setState(() => pageIndex = index);
         // logger.d('历史记录：${comicHistory!.epPageCount}');
-        final globalSettingState = context.watch<GlobalSettingCubit>().state;
+        final globalSettingState = context.read<GlobalSettingCubit>().state;
         if (globalSettingState.readMode == 0) {
           _itemScrollController.jumpTo(index: index - 1, alignment: 0.0);
         } else {

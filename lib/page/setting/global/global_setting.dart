@@ -255,6 +255,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   }
 
   Widget _shade() {
+    logger.d(SettingsHiveUtils.shade);
     final globalSettingCubit = context.read<GlobalSettingCubit>();
     return Row(
       children: [
@@ -265,8 +266,10 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           thumbIcon: thumbIcon,
           value: _shadeValue,
           onChanged: (bool value) {
-            globalSettingCubit.updateShade(_shadeValue);
             setState(() => _shadeValue = !_shadeValue);
+            globalSettingCubit.updateShade(_shadeValue);
+            logger.d(globalSettingCubit);
+            logger.d(SettingsHiveUtils.shade);
           },
         ),
         SizedBox(width: 10),

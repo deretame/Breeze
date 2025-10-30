@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:permission_guard/permission_guard.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/permission.dart';
 
 import '../../../main.dart';
 import '../../../object_box/model.dart';
@@ -128,9 +128,7 @@ class _ComicInfoState extends State<_ComicInfo>
               icon: const Icon(Icons.upload),
               onPressed: () async {
                 try {
-                  if (!await Permission.manageExternalStorage
-                      .request()
-                      .isGranted) {
+                  if (!await requestStoragePermission()) {
                     showErrorToast("请授予存储权限！");
                     return;
                   }

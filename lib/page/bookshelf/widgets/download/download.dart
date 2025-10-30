@@ -325,7 +325,6 @@ class _DownloadPageState extends State<_DownloadPage>
     notice = false;
 
     final searchStatus = context.read<DownloadCubit>().state;
-    final topBarState = context.read<TopBarCubit>().state;
 
     context.read<UserDownloadBloc>().add(
       UserDownloadEvent(

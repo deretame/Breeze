@@ -5,7 +5,6 @@ import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/network/http/bika/http_request.dart';
 import 'package:zephyr/util/settings_hive_utils.dart';
 
-import '../../../../main.dart';
 import '../../json/leaderboard.dart';
 import '../../models/models.dart';
 

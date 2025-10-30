@@ -46,7 +46,10 @@ final appRouter = AppRouter();
 // 全局事件总线实例
 EventBus eventBus = EventBus();
 
-final logger = Logger(printer: CustomPrinter());
+final logger = Logger(
+  level: kReleaseMode ? Level.off : Level.trace,
+  printer: CustomPrinter(),
+);
 
 List<String> cfIpList = [];
 
@@ -64,6 +67,20 @@ Future<void> main() async {
 
       // 重采样触控刷新率
       GestureBinding.instance.resamplingEnabled = true;
+
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarDividerColor: Colors.transparent,
+          statusBarColor: Colors.transparent,
+        ),
+      );
+
+      // 优化图片缓存配置
+      PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 1024;
+      // 限制缓存图片数量
+      PaintingBinding.instance.imageCache.maximumSize = 100;
 
       // 如果是手机的话就固定为只能使用横屏模式
       if (!isTabletWithOutContext()) {
@@ -100,8 +117,6 @@ Future<void> main() async {
       if (globalSettingCubit.state.needCleanCache) {
         await clearCache(await getTemporaryDirectory());
       }
-
-      manageCacheSize(globalSettingCubit);
 
       // logger.d(globalSetting.socks5Proxy);
       if (globalSettingCubit.state.socks5Proxy.isNotEmpty) {
@@ -171,34 +186,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 优化图片缓存配置，防止 GPU 内存溢出
-    // 减少最大缓存大小从 1GB 到 256MB
-    PaintingBinding.instance.imageCache.maximumSizeBytes = 256 * 1024 * 1024;
-    // 限制缓存图片数量
-    PaintingBinding.instance.imageCache.maximumSize = 100;
-
-    statusBarHeight = MediaQuery.of(context).padding.top;
-    screenWidth = MediaQuery.of(context).size.width;
-    screenHeight = MediaQuery.of(context).size.height;
-
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        systemNavigationBarColor: Colors.transparent,
-        systemNavigationBarDividerColor: Colors.transparent,
-        statusBarColor: Colors.transparent,
-      ),
-    );
-
     final globalSettingState = context.watch<GlobalSettingCubit>().state;
 
     return DynamicColorBuilder(
-      key: ValueKey(
-        globalSettingState.dynamicColor.toString() +
-            globalSettingState.seedColor.toString() +
-            globalSettingState.themeMode.toString() +
-            globalSettingState.isAMOLED.toString(),
-      ), // 强制重建
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
         ColorScheme lightColorScheme;
         ColorScheme darkColorScheme;
@@ -229,11 +219,6 @@ class MyApp extends StatelessWidget {
             brightness: Brightness.dark,
           );
         }
-
-        // 根据当前主题模式选择对应的 ColorScheme
-        globalSettingState.themeMode == ThemeMode.dark
-            ? darkColorScheme
-            : lightColorScheme;
 
         return MaterialApp.router(
           routerConfig: appRouter.config(),

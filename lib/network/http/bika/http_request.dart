@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:zephyr/main.dart';
 import 'package:zephyr/util/settings_hive_utils.dart';
 
 import 'http_request_build.dart';

@@ -4,9 +4,6 @@
 // 用于在不同页面之间传递数据
 import 'package:flutter/cupertino.dart';
 
-double screenWidth = 0;
-double screenHeight = 0;
-double statusBarHeight = 0;
 bool useSkia = false;
 final String appName = 'Breeze';
 

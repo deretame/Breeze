@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/jm/jm_comments/json/comments_json.dart';
 import 'package:zephyr/type/pipe.dart';

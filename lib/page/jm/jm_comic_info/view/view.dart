@@ -2,7 +2,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:permission_guard/permission_guard.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/object_box/model.dart';
@@ -13,6 +12,7 @@ import 'package:zephyr/page/jm/jm_comic_info/jm_comic_info.dart';
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/permission.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -61,8 +61,6 @@ class _JmComicInfoPage extends StatefulWidget {
 class __JmComicInfoPageState extends State<_JmComicInfoPage> {
   bool get isDownload => _type == ComicEntryType.download;
 
-  late JmComicInfoState _state;
-  bool _init = false;
   bool _hasHistory = false;
   JmHistory? jmHistory;
   JmDownload? jmDownload;
@@ -88,24 +86,23 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    if (!_init && _hasHistory) {
+    if (_hasHistory) {
       final String historyText =
           '历史：'
           '${jmHistory!.epTitle.isNotEmpty ? jmHistory!.epTitle : "第1话"} / '
           '${jmHistory!.epPageCount - 1} / '
           '${jmHistory!.history.toLocal().toString().substring(0, 19)}';
 
-      // 4. (修改) 检查 mounted 并使用 context.read 更新 Cubit 状态
       if (mounted) {
         context.read<StringSelectCubit>().setDate(historyText);
-        _init = true;
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final String storeDate = context.watch<StringSelectCubit>().state;
+    final storeDate = context.watch<StringSelectCubit>().state;
+    final jmComicState = context.watch<JmComicInfoBloc>().state;
 
     return Scaffold(
       appBar: AppBar(
@@ -121,9 +118,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
               icon: const Icon(Icons.upload),
               onPressed: () async {
                 try {
-                  if (!await Permission.manageExternalStorage
-                      .request()
-                      .isGranted) {
+                  if (!await requestStoragePermission()) {
                     showErrorToast("请授予存储权限！");
                     return;
                   }
@@ -149,26 +144,16 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
             ),
         ],
       ),
-      body: !isDownload
-          ? BlocBuilder<JmComicInfoBloc, JmComicInfoState>(
-              builder: (context, state) {
-                switch (state.status) {
-                  case JmComicInfoStatus.initial:
-                    return const Center(child: CircularProgressIndicator());
-                  case JmComicInfoStatus.failure:
-                    return _failureWidget(state);
-                  case JmComicInfoStatus.success:
-                    return _comicEntry(state);
-                }
-              },
-            )
-          : _comicEntry(null),
-      floatingActionButton: _init
+      body: !isDownload ? _buildBody(jmComicState) : _comicEntry(null),
+      floatingActionButton:
+          // 🔽 (修改) FAB 的可见性现在由 BLoC 状态或 Download 模式决定
+          (isDownload || jmComicState.status == JmComicInfoStatus.success)
           ? SizedBox(
               width: 100,
               height: 56,
               child: FloatingActionButton(
-                onPressed: _navigateToReader,
+                // 🔽 (修改) onPressed 现在传入 BLoC 状态
+                onPressed: () => _navigateToReader(jmComicState),
                 child: Text(
                   storeDate.isNotEmpty ? '继续阅读' : '开始阅读',
                   overflow: TextOverflow.ellipsis,
@@ -176,8 +161,20 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                 ),
               ),
             )
-          : null,
+          : null, // BLoC 未加载成功时，FAB 为 null
     );
+  }
+
+  Widget _buildBody(JmComicInfoState state) {
+    switch (state.status) {
+      case JmComicInfoStatus.initial:
+        return const Center(child: CircularProgressIndicator());
+      case JmComicInfoStatus.failure:
+        return _failureWidget(state);
+      case JmComicInfoStatus.success:
+        // 当 BLoC 成功时，构建 comicEntry
+        return _comicEntry(state);
+    }
   }
 
   Widget _failureWidget(JmComicInfoState state) => Center(
@@ -196,17 +193,6 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
 
   Widget _comicEntry(JmComicInfoState? state) {
     final String storeDate = context.watch<StringSelectCubit>().state;
-
-    if (!_init) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        setState(() {
-          _init = true;
-          if (!isDownload) {
-            _state = state!;
-          }
-        });
-      });
-    }
 
     final JmComicInfoJson comicInfo = _prepareComicInfo(state);
     final id = comicInfo.id.toString();
@@ -366,7 +352,6 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
         );
         setState(() {
           jmHistory = query.build().findFirst();
-          _init = false;
         });
       },
       child: Row(
@@ -434,8 +419,8 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
         ).toUtc().toString().let((str) => str.substring(0, str.length - 5)),
       );
 
-  void _navigateToReader() {
-    final String storeDate = context.watch<StringSelectCubit>().state;
+  void _navigateToReader(JmComicInfoState blocState) {
+    final String storeDate = context.read<StringSelectCubit>().state;
 
     String comicIdVal;
     int orderVal;
@@ -459,11 +444,11 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
       comicInfoVal = jmDownload!.allInfo.let(jmComicInfoJsonFromJson);
     } else {
       comicIdVal = widget.comicId;
-      epsNumberVal = _state.comicInfo!.series.length;
+      epsNumberVal = blocState.comicInfo!.series.length;
       typeVal = storeDate.isNotEmpty
           ? ComicEntryType.history
           : ComicEntryType.normal;
-      comicInfoVal = _state.comicInfo!;
+      comicInfoVal = blocState.comicInfo!;
     }
 
     jmHistory = objectbox.jmHistoryBox

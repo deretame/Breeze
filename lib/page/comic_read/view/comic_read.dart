@@ -6,16 +6,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:zephyr/config/global/global_setting.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/cubit/string_select.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/comic_info/models/all_info.dart';
 import 'package:zephyr/page/comic_read/comic_read.dart';
 import 'package:zephyr/page/comic_read/method/history_writer.dart';
-import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart'
-    show downloadInfoJsonFromJson, DownloadInfoJsonSeries;
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart'
     show JmComicInfoJson;
+import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart'
+    show downloadInfoJsonFromJson, DownloadInfoJsonSeries;
 import 'package:zephyr/util/settings_hive_utils.dart';
 
 import '../../../object_box/model.dart';
@@ -665,12 +665,12 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         setState(() => pageIndex = index);
-        // logger.d('历史记录：${comicHistory!.epPageCount}');
+        // logger.d('历史记录：$index');
         final globalSettingState = context.read<GlobalSettingCubit>().state;
         if (globalSettingState.readMode == 0) {
           _itemScrollController.jumpTo(index: index - 1, alignment: 0.0);
         } else {
-          _pageController.jumpTo(index - 2);
+          _pageController.jumpToPage(index - 2);
         }
         isSkipped = true;
       });

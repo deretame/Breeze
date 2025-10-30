@@ -3,6 +3,7 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
+import 'package:zephyr/util/settings_hive_utils.dart';
 
 import '../../../../main.dart';
 import '../../../../object_box/model.dart';
@@ -105,7 +106,9 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
 
   List<BikaComicHistory> _filterShieldedComics(List<BikaComicHistory> comics) {
     // 获取所有被屏蔽的分类
-    List<String> shieldedCategoriesList = bikaSetting.shieldCategoryMap.entries
+    List<String> shieldedCategoriesList = SettingsHiveUtils
+        .bikaShieldCategoryMap
+        .entries
         .where((entry) => entry.value) // 只选择值为 true 的条目
         .map((entry) => entry.key) // 提取键（分类名）
         .toList();
@@ -121,7 +124,7 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
 
   List<dynamic> _getComicList(UserHistoryEvent event) {
     List<dynamic> comics = [];
-    if (bookshelfStore.topBarStore.date == 1) {
+    if (SettingsHiveUtils.comicChoice == 1) {
       late var comicList = objectbox.bikaHistoryBox.getAll();
 
       totalComicCount = comicList.length;
@@ -157,7 +160,7 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
       comicList.removeWhere((comic) => comic.deleted == true);
 
       comics = comicList;
-    } else if (bookshelfStore.topBarStore.date == 2) {
+    } else if (SettingsHiveUtils.comicChoice == 2) {
       late var comicList = objectbox.jmHistoryBox.getAll();
 
       totalComicCount = comicList.length;

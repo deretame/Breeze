@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/settings_hive_utils.dart';
 
 import '../../../util/event/event.dart';
 
@@ -55,7 +56,7 @@ Map<String, dynamic> _getRequestHeaders(
 
   int proxy = 0;
   try {
-    proxy = bikaSetting.proxy;
+    proxy = SettingsHiveUtils.bikaProxy;
   } catch (e) {
     proxy = 3;
   }
@@ -74,8 +75,8 @@ Map<String, dynamic> _getRequestHeaders(
     'accept-encoding': 'gzip',
     'user-agent': 'okhttp/3.8.1',
     'content-type': 'application/json; charset=UTF-8',
-    'image-quality': imageQuality ?? bikaSetting.imageQuality,
-    'authorization': authorization ?? bikaSetting.authorization,
+    'image-quality': imageQuality ?? SettingsHiveUtils.bikaImageQuality,
+    'authorization': authorization ?? SettingsHiveUtils.bikaAuthorization,
   };
 
   return headers;
@@ -147,7 +148,7 @@ Future<Map<String, dynamic>> request(
     // 如果是掉登录了
     if (error.response?.data?['code'] == 401 &&
         error.response?.data?['message'] == 'unauthorized') {
-      bikaSetting.deleteAuthorization();
+      // SettingsHiveUtils.deleteAuthorization();
       eventBus.fire(NeedLogin(from: From.bika));
     }
 

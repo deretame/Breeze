@@ -63,7 +63,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
                 },
                 child: Icon(
                   isLiked ? Icons.favorite : Icons.favorite_border,
-                  color: isLiked ? Colors.red : globalSetting.textColor,
+                  color: isLiked ? Colors.red : context.textColor,
                   size: 24.0,
                 ),
               ),
@@ -107,7 +107,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
                 },
                 child: Icon(
                   isCollected ? Icons.star : Icons.star_border,
-                  color: isCollected ? Colors.yellow : globalSetting.textColor,
+                  color: isCollected ? Colors.yellow : context.textColor,
                   size: 24.0, // 设置图标大小
                 ),
               ),

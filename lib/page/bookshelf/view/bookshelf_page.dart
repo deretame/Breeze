@@ -1,38 +1,72 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/cubit/int_select.dart';
+import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnter;
 import 'package:zephyr/page/search_result/models/models.dart' show SearchEnter;
+import 'package:zephyr/util/settings_hive_utils.dart';
 
 import '../../../main.dart';
 import '../../../util/router/router.gr.dart';
 import '../../jm/jm_search_result/bloc/jm_search_result_bloc.dart';
 
-final bookshelfStore = BookshelfStore.init();
-
 @RoutePage()
-class BookshelfPage extends StatefulWidget {
+class BookshelfPage extends StatelessWidget {
   const BookshelfPage({super.key});
 
   @override
-  State<BookshelfPage> createState() => _BookshelfPageState();
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<IntSelectCubit>(create: (context) => IntSelectCubit()),
+        BlocProvider<TopBarCubit>(
+          create: (context) =>
+              TopBarCubit()..setDate(SettingsHiveUtils.comicChoice),
+        ),
+        BlocProvider<StringSelectCubit>(
+          create: (context) => StringSelectCubit(),
+        ),
+
+        BlocProvider<FavoriteCubit>(create: (context) => FavoriteCubit()),
+        BlocProvider<HistoryCubit>(create: (context) => HistoryCubit()),
+        BlocProvider<DownloadCubit>(create: (context) => DownloadCubit()),
+        BlocProvider<JmFavoriteCubit>(create: (context) => JmFavoriteCubit()),
+      ],
+      child: const _BookshelfPageContent(),
+    );
+  }
 }
 
-class _BookshelfPageState extends State<BookshelfPage>
+@RoutePage()
+class _BookshelfPageContent extends StatefulWidget {
+  const _BookshelfPageContent();
+
+  @override
+  State<_BookshelfPageContent> createState() => _BookshelfPageContentState();
+}
+
+class _BookshelfPageContentState extends State<_BookshelfPageContent>
     with TickerProviderStateMixin {
+  late final TabController _tabController; // TabController 现在是本地变量
   int _currentIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    bookshelfStore.tabController = TabController(length: 3, vsync: this)
+    _tabController = TabController(length: 3, vsync: this)
       ..addListener(() {
-        if (bookshelfStore.tabController!.index != _currentIndex) {
-          _currentIndex = bookshelfStore.tabController!.index;
-          bookshelfStore.indexStore.setDate(_currentIndex);
-          // logger.d('Current index: $_currentIndex');
+        if (_tabController.index != _currentIndex) {
+          _currentIndex = _tabController.index;
+
+          final indexCubit = context.read<IntSelectCubit>();
+          final topBarState = context.read<TopBarCubit>().state; // 直接读取状态
+
+          indexCubit.setDate(_currentIndex);
+
           if (_currentIndex == 0) {
-            if (bookshelfStore.topBarStore.date == 1) {
+            if (topBarState == 1) {
               eventBus.fire(
                 FavoriteEvent(EventType.showInfo, SortType.nullValue, 0),
               );
@@ -46,13 +80,11 @@ class _BookshelfPageState extends State<BookshelfPage>
           }
         }
       });
-    bookshelfStore.stringSelectStore.setDate("");
-    bookshelfStore.topBarStore.setDate(globalSetting.comicChoice);
   }
 
   @override
   void dispose() {
-    bookshelfStore.tabController!.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -62,16 +94,17 @@ class _BookshelfPageState extends State<BookshelfPage>
       endDrawer: SideDrawer(),
       appBar: _appBar(),
       body: _body(),
-      floatingActionButton: globalSetting.disableBika
+      floatingActionButton: SettingsHiveUtils.disableBika
           ? null
           : _floatingActionButton(),
     );
   }
 
   PreferredSizeWidget _appBar() => AppBar(
-    title: Observer(
-      builder: (context) =>
-          Text(globalSetting.comicChoice == 1 ? "哔咔漫画" : "禁漫天堂"),
+    title: Text(
+      context.watch<GlobalSettingCubit>().state.comicChoice == 1
+          ? "哔咔漫画"
+          : "禁漫天堂",
     ),
     actions: [
       IconButton(
@@ -83,7 +116,7 @@ class _BookshelfPageState extends State<BookshelfPage>
               final router = AutoRouter.of(context);
               return SimpleDialog(
                 children: [
-                  if (!globalSetting.disableBika)
+                  if (!SettingsHiveUtils.disableBika)
                     SimpleDialogOption(
                       onPressed: () {
                         router.popAndPush(
@@ -122,7 +155,7 @@ class _BookshelfPageState extends State<BookshelfPage>
         children: [
           Expanded(
             child: TabBar(
-              controller: bookshelfStore.tabController,
+              controller: _tabController,
               tabs: const [
                 Tab(text: "收藏"),
                 Tab(text: "历史"),
@@ -130,11 +163,14 @@ class _BookshelfPageState extends State<BookshelfPage>
               ],
             ),
           ),
-          Observer(
-            builder: (context) => SizedBox(
-              width: 120,
-              child: Center(child: Text(bookshelfStore.stringSelectStore.date)),
-            ),
+          BlocBuilder<StringSelectCubit, String>(
+            builder: (context, selectedString) {
+              // selectedString 就是 Cubit 的 state (即之前的 .date)
+              return SizedBox(
+                width: 120,
+                child: Center(child: Text(selectedString)),
+              );
+            },
           ),
           Builder(
             builder: (BuildContext context) {
@@ -153,7 +189,7 @@ class _BookshelfPageState extends State<BookshelfPage>
     children: [
       Expanded(
         child: TabBarView(
-          controller: bookshelfStore.tabController,
+          controller: _tabController,
           children: [const FavoritesTabPage(), HistoryPage(), DownloadPage()],
         ),
       ),
@@ -163,26 +199,27 @@ class _BookshelfPageState extends State<BookshelfPage>
   Widget _floatingActionButton() => FloatingActionButton(
     child: const Icon(Icons.compare_arrows),
     onPressed: () {
-      if (globalSetting.comicChoice == 1) {
-        globalSetting.setComicChoice(2);
-      } else {
-        globalSetting.setComicChoice(1);
-      }
+      final globalSettingCubit = context.read<GlobalSettingCubit>();
 
-      bookshelfStore.topBarStore.setDate(globalSetting.comicChoice);
-      bookshelfStore.favoriteStore = SearchStatusStore();
-      bookshelfStore.historyStore = SearchStatusStore();
-      bookshelfStore.downloadStore = SearchStatusStore();
-      bookshelfStore.jmFavoriteStore = SearchStatusStore();
+      final int newChoice = globalSettingCubit.state.comicChoice == 1 ? 2 : 1;
+
+      globalSettingCubit.updateComicChoice(newChoice);
+
+      context.read<TopBarCubit>().setDate(newChoice);
+
+      context.read<FavoriteCubit>().resetSearch();
+      context.read<HistoryCubit>().resetSearch();
+      context.read<DownloadCubit>().resetSearch();
+      context.read<JmFavoriteCubit>().resetSearch();
+
       eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 0));
       eventBus.fire(HistoryEvent(EventType.refresh));
       eventBus.fire(DownloadEvent(EventType.refresh));
       eventBus.fire(JmFavoriteEvent(EventType.refresh));
-      bookshelfStore.tabController!.animateTo(
-        0,
-        duration: const Duration(milliseconds: 0),
-      );
-      if (bookshelfStore.topBarStore.date == 2) {
+
+      _tabController.animateTo(0, duration: const Duration(milliseconds: 0));
+
+      if (context.read<TopBarCubit>().state == 2) {
         eventBus.fire(JmFavoriteEvent(EventType.showInfo));
       }
     },
@@ -204,11 +241,10 @@ class _FavoritesTabPageState extends State<FavoritesTabPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    // 使用 Observer 监听全局设置的变化
-    return Observer(
-      builder: (_) {
-        // 根据 comicChoice 决定显示哪个页面的内容
-        if (globalSetting.comicChoice == 1) {
+
+    return BlocBuilder<TopBarCubit, int>(
+      builder: (context, comicChoiceState) {
+        if (comicChoiceState == 1) {
           return FavoritePage();
         } else {
           return JmFavoritePage();

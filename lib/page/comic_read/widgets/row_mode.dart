@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:zephyr/main.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_read/widgets/read_image_widget.dart';
 
 import '../../../type/enum.dart';
@@ -48,8 +49,10 @@ class _RowModeWidgetState extends State<RowModeWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final globalSettingState = context.watch<GlobalSettingCubit>().state;
+
     return PageView.custom(
-      reverse: globalSetting.readMode != 1,
+      reverse: globalSettingState.readMode != 1,
       controller: widget.pageController,
       onPageChanged: (page) {
         if (widget.isSliderRolling) {

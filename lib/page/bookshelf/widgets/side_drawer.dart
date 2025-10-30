@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/settings_hive_utils.dart';
 
 import '../../../config/bika/bika_setting.dart';
 import '../../../cubit/int_select.dart';
@@ -15,19 +17,9 @@ class SideDrawer extends StatefulWidget {
 }
 
 class _SideDrawerState extends State<SideDrawer> {
-  IntSelectStore get indexStore => bookshelfStore.indexStore;
-
-  SearchStatusStore get favoriteStore => bookshelfStore.favoriteStore;
-
-  SearchStatusStore get historyStore => bookshelfStore.historyStore;
-
-  SearchStatusStore get downloadStore => bookshelfStore.downloadStore;
-
-  SearchStatusStore get jmFavoriteStore => bookshelfStore.jmFavoriteStore;
-
-  IntSelectStore get topBarStore => bookshelfStore.topBarStore;
-
-  Map<String, bool> _categoriesShield = Map.of(bikaSetting.shieldCategoryMap);
+  Map<String, bool> _categoriesShield = Map.of(
+    SettingsHiveUtils.bikaShieldCategoryMap,
+  );
   List<String> categories = [];
   SortType sortType = SortType.nullValue;
   int page = 0;
@@ -38,11 +30,13 @@ class _SideDrawerState extends State<SideDrawer> {
   void initState() {
     super.initState();
     eventBus.on<HistoryEvent>().listen((event) {
+      if (!mounted) return;
       if (event.type == EventType.showInfo) {
-        if (indexStore.date == 1) {
-          sort = historyStore.sort;
-        } else if (indexStore.date == 2) {
-          sort = downloadStore.sort;
+        final tabIndex = context.read<IntSelectCubit>().state;
+        if (tabIndex == 1) {
+          sort = context.read<HistoryCubit>().state.sort;
+        } else if (tabIndex == 2) {
+          sort = context.read<DownloadCubit>().state.sort;
         }
       }
     });
@@ -55,142 +49,194 @@ class _SideDrawerState extends State<SideDrawer> {
 
   @override
   Widget build(BuildContext context) {
+    final tabIndex = context.watch<IntSelectCubit>().state;
+    final topBarState = context.watch<TopBarCubit>().state;
+
     return Drawer(
-      child: Observer(
-        builder: (context) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppBar(
-                title: Text(
-                  indexStore.date == 0
-                      ? "收藏"
-                      : indexStore.date == 1
-                      ? "历史"
-                      : "下载",
-                ),
-                automaticallyImplyLeading: false, // 不显示默认的返回按钮
-                actions: [
-                  IconButton(
-                    icon: Icon(Icons.close),
-                    onPressed: () {
-                      Navigator.pop(context); // 关闭Drawer
-                    },
-                  ),
-                ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppBar(
+            title: Text(
+              tabIndex == 0
+                  ? "收藏"
+                  : tabIndex == 1
+                  ? "历史"
+                  : "下载",
+            ),
+            automaticallyImplyLeading: false, // 不显示默认的返回按钮
+            actions: [
+              IconButton(
+                icon: Icon(Icons.close),
+                onPressed: () {
+                  Navigator.pop(context); // 关闭Drawer
+                },
               ),
-              Container(color: globalSetting.textColor, height: 1),
-              SizedBox(height: 16),
-              if (topBarStore.date == 1) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: _shieldCategory(),
+            ],
+          ),
+          Container(color: context.textColor, height: 1),
+          SizedBox(height: 16),
+          if (topBarState == 1) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: _shieldCategory(),
+            ),
+            SizedBox(height: 16),
+          ],
+          if (topBarState == 0) ...[
+            if (tabIndex == 0) ...[
+              // 收藏
+              if (topBarState == 2) ...[
+                // 禁漫
+                Builder(
+                  builder: (context) {
+                    // 读取 JmFavoriteCubit 的状态
+                    final jmState = context.watch<JmFavoriteCubit>().state;
+                    // 用 Cubit 状态初始化本地 `sort` 变量
+                    sort = jmState.sort;
+
+                    return Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          // 假设 SortWidget 已被重构
+                          child: SortWidget(
+                            initialSort: jmState.sort, // 传递初始值
+                            onSortChanged: (value) {
+                              sort = value; // 更新本地 state
+                            },
+                          ),
+                        ),
+                        // 假设 keywordSearch 已被重构
+                        keywordSearch(
+                          initialKeyword: jmState.keyword, // 传递初始值
+                          onSubmitted: (value) {
+                            keyword = value; // 更新本地 state
+                          },
+                        ),
+                      ],
+                    );
+                  },
                 ),
-                SizedBox(height: 16),
+              ] else ...[
+                historyPageSkip(),
               ],
-              if (indexStore.date == 0) ...[
-                if (topBarStore.date == 2) ...[
-                  Builder(
-                    builder: (context) {
-                      sort = jmFavoriteStore.sort;
-                      return Padding(
+            ],
+            if (tabIndex == 1) ...[
+              // 历史
+              Builder(
+                builder: (context) {
+                  final historyState = context.watch<HistoryCubit>().state;
+                  sort = historyState.sort; // 初始化本地 sort
+                  categories = historyState.categories; // 初始化本地 categories
+
+                  return Column(
+                    children: [
+                      if (topBarState != 2) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          // 10. _choiceCategory 现在接收 List<String>
+                          child: _choiceCategory(historyState.categories),
+                        ),
+                        SizedBox(height: 8),
+                      ],
+                      Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: SortWidget(
-                          searchStatusStore: jmFavoriteStore,
+                          initialSort: historyState.sort,
                           onSortChanged: (value) {
                             sort = value;
                           },
                         ),
-                      );
-                    },
-                  ),
-                  keywordSearch(jmFavoriteStore),
-                ] else ...[
-                  historyPageSkip(),
-                ],
-              ],
-              if (indexStore.date == 1) ...[
-                if (bookshelfStore.topBarStore.date != 2) ...[
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: _choiceCategory(historyStore),
-                  ),
-                  SizedBox(height: 8),
-                ],
-                Builder(
-                  builder: (context) {
-                    sort = historyStore.sort;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: SortWidget(
-                        searchStatusStore: historyStore,
-                        onSortChanged: (value) {
-                          sort = value;
+                      ),
+                      keywordSearch(
+                        initialKeyword: historyState.keyword,
+                        onSubmitted: (value) {
+                          keyword = value;
                         },
                       ),
-                    );
-                  },
-                ),
-                keywordSearch(historyStore),
-              ],
-              if (indexStore.date == 2) ...[
-                if (bookshelfStore.topBarStore.date != 2) ...[
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: _choiceCategory(downloadStore),
-                  ),
-                  SizedBox(height: 8),
-                ],
-                Builder(
-                  builder: (context) {
-                    sort = downloadStore.sort;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: SortWidget(
-                        searchStatusStore: downloadStore,
-                        onSortChanged: (value) {
-                          sort = value;
-                        },
-                      ),
-                    );
-                  },
-                ),
-                keywordSearch(downloadStore),
-              ],
-              Spacer(),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  // 确保按钮水平居中且间距均匀
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: Text('取消'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        _onTap();
-                        Navigator.pop(context);
-                      },
-                      child: Text('确定'),
-                    ),
-                  ],
-                ),
+                    ],
+                  );
+                },
               ),
             ],
-          );
-        },
+
+            if (tabIndex == 2) ...[
+              // 下载
+              Builder(
+                builder: (context) {
+                  final downloadState = context.watch<DownloadCubit>().state;
+                  sort = downloadState.sort; // 初始化
+                  categories = downloadState.categories; // 初始化
+
+                  return Column(
+                    children: [
+                      if (topBarState != 2) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: _choiceCategory(
+                            downloadState.categories,
+                          ), // 传递数据
+                        ),
+                        SizedBox(height: 8),
+                      ],
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: SortWidget(
+                          initialSort: downloadState.sort,
+                          onSortChanged: (value) {
+                            sort = value;
+                          },
+                        ),
+                      ),
+                      keywordSearch(
+                        initialKeyword: downloadState.keyword,
+                        onSubmitted: (value) {
+                          keyword = value;
+                        },
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
+
+            Spacer(),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text('取消'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      // --- 11. _onTap 逻辑会重构 ---
+                      _onTap();
+                      Navigator.pop(context);
+                    },
+                    child: Text('确定'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
 
   Widget _shieldCategory() {
+    final bikaSettingCubit = context.read<BikaSettingCubit>();
     return GestureDetector(
       onTap: () async {
-        late var oldCategoriesMap = Map.of(bikaSetting.shieldCategoryMap);
+        late var oldCategoriesMap = Map.of(
+          bikaSettingCubit.state.shieldCategoryMap,
+        );
         final categoriesShield = await showShieldCategoryDialog(context);
 
         if (categoriesShield == null) {
@@ -205,29 +251,33 @@ class _SideDrawerState extends State<SideDrawer> {
       },
       child: Text(
         '屏蔽分类',
-        style: TextStyle(fontSize: 16, color: materialColorScheme.primary),
+        style: TextStyle(
+          fontSize: 16,
+          color: context.theme.colorScheme.primary,
+        ),
       ),
     );
   }
 
-  Widget _choiceCategory(SearchStatusStore store) {
+  Widget _choiceCategory(List<String> initialCategories) {
     return GestureDetector(
       onTap: () async {
-        categories = store.categories;
+        // 1. 从 `initialCategories` (来自 Cubit) 初始化 oldCategoriesMap
         Map<String, bool> oldCategoriesMap = Map.from(categoryMap);
-        for (String category in store.categories) {
+        for (String category in initialCategories) {
           if (oldCategoriesMap.containsKey(category)) {
             oldCategoriesMap[category] = true;
           }
         }
 
-        final categoriesSelected = await showCategoryDialog(context, store);
+        // 2. 调用重构后的 showCategoryDialog
+        final categoriesSelected = await showCategoryDialog(
+          context,
+          initialCategories, // 传递数据
+        );
 
-        if (categoriesSelected == null) {
-          return;
-        }
-
-        if (oldCategoriesMap == categoriesSelected) {
+        if (categoriesSelected == null ||
+            oldCategoriesMap == categoriesSelected) {
           return;
         }
 
@@ -236,26 +286,42 @@ class _SideDrawerState extends State<SideDrawer> {
             .map((entry) => entry.key)
             .toList();
 
-        categories = temp;
+        // 3. 更新本地 state
+        setState(() {
+          categories = temp;
+        });
       },
       child: Text(
         '选择分类',
-        style: TextStyle(fontSize: 16, color: materialColorScheme.primary),
+        style: TextStyle(
+          fontSize: 16,
+          color: context.theme.colorScheme.primary,
+        ),
       ),
     );
   }
 
+  // --- 13. _onTap (提交) 重构 ---
   void _onTap() {
-    if (indexStore.date == 0) {
-      if (topBarStore.date == 2) {
-        jmFavoriteStore.setSort(sort);
-        jmFavoriteStore.setKeyword(keyword);
+    // 1. 读取 Cubit 状态来决定要更新 *哪个* Cubit
+    final bikaSettingCubit = context.read<BikaSettingCubit>();
+    final tabIndex = context.read<IntSelectCubit>().state;
+    final topBarState = context.read<TopBarCubit>().state;
+
+    if (tabIndex == 0) {
+      // 收藏
+      if (topBarState == 2) {
+        // 禁漫
+        // 2. 使用 context.read 更新 Cubit
+        final cubit = context.read<JmFavoriteCubit>();
+        cubit.setSort(sort);
+        cubit.setKeyword(keyword);
         eventBus.fire(JmFavoriteEvent(EventType.refresh));
         return;
       }
-
-      bikaSetting.setShieldCategoryMap(_categoriesShield);
-      favoriteStore.setKeyword(keyword);
+      // 哔咔
+      bikaSettingCubit.updateShieldCategoryMap(_categoriesShield);
+      context.read<FavoriteCubit>().setKeyword(keyword);
 
       if (page != -1 && page != 0) {
         eventBus.fire(FavoriteEvent(EventType.pageSkip, sortType, page));
@@ -264,20 +330,22 @@ class _SideDrawerState extends State<SideDrawer> {
       }
     }
 
-    if (indexStore.date == 1) {
-      bikaSetting.setShieldCategoryMap(_categoriesShield);
-      historyStore.setSort(sort);
-      historyStore.setCategories(categories);
-      historyStore.setKeyword(keyword);
+    if (tabIndex == 1) {
+      bikaSettingCubit.updateShieldCategoryMap(_categoriesShield);
+      final cubit = context.read<HistoryCubit>();
+      cubit.setSort(sort);
+      cubit.setCategories(categories);
+      cubit.setKeyword(keyword);
 
       eventBus.fire(HistoryEvent(EventType.refresh));
     }
 
-    if (indexStore.date == 2) {
-      bikaSetting.setShieldCategoryMap(_categoriesShield);
-      downloadStore.setSort(sort);
-      downloadStore.setCategories(categories);
-      downloadStore.setKeyword(keyword);
+    if (tabIndex == 2) {
+      bikaSettingCubit.updateShieldCategoryMap(_categoriesShield);
+      final cubit = context.read<DownloadCubit>();
+      cubit.setSort(sort);
+      cubit.setCategories(categories);
+      cubit.setKeyword(keyword);
 
       eventBus.fire(DownloadEvent(EventType.refresh));
     }
@@ -288,9 +356,9 @@ class _SideDrawerState extends State<SideDrawer> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: TextField(
-          keyboardType: TextInputType.number, // 设置键盘类型为数字
+          keyboardType: TextInputType.number,
           inputFormatters: <TextInputFormatter>[
-            FilteringTextInputFormatter.digitsOnly, // 只允许输入数字
+            FilteringTextInputFormatter.digitsOnly,
           ],
           decoration: InputDecoration(hintText: '跳页，请输入页数'),
           onSubmitted: (value) {
@@ -304,12 +372,15 @@ class _SideDrawerState extends State<SideDrawer> {
     );
   }
 
-  Widget keywordSearch(SearchStatusStore store) {
+  Widget keywordSearch({
+    required String initialKeyword,
+    required ValueChanged<String> onSubmitted,
+  }) {
     final TextEditingController controller = TextEditingController(
-      text: store.keyword,
+      text: initialKeyword,
     );
 
-    keyword = store.keyword;
+    keyword = initialKeyword;
 
     return Expanded(
       child: Padding(
@@ -317,7 +388,7 @@ class _SideDrawerState extends State<SideDrawer> {
         child: TextField(
           controller: controller,
           decoration: InputDecoration(hintText: '搜索漫画，请输入关键字'),
-          onSubmitted: (value) => keyword = value,
+          onSubmitted: onSubmitted,
         ),
       ),
     );

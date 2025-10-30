@@ -4,7 +4,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
@@ -31,170 +30,186 @@ class CommentsWidget extends StatefulWidget {
 class _CommentsWidgetState extends State<CommentsWidget>
     with SingleTickerProviderStateMixin {
   Doc get commentInfo => widget.doc;
-
   int get index => widget.index;
-  final likeCountStore = IntSelectStore();
-  bool like = false;
-  final BoolSelectStore likeStore = BoolSelectStore();
+
+  final IntSelectCubit likeCountCubit = IntSelectCubit();
+  final BoolSelectCubit likeCubit = BoolSelectCubit();
 
   @override
   void initState() {
     super.initState();
-    likeCountStore.setDate(commentInfo.likesCount);
-    like = commentInfo.isLiked;
-    likeStore.setDate(like);
+    likeCountCubit.setDate(commentInfo.likesCount);
+    likeCubit.setDate(commentInfo.isLiked);
+  }
+
+  @override
+  void dispose() {
+    likeCountCubit.close();
+    likeCubit.close();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Observer(
-      builder: (context) {
-        return Center(
-          child: SizedBox(
-            width: context.screenWidth * (48 / 50),
-            child: Column(
-              children: [
-                InkWell(
-                  onTap: () {
-                    AutoRouter.of(context).push(
-                      CommentsChildrenRoute(
-                        fatherDoc: commentInfo,
-                        store: likeStore,
-                        likeCountStore: likeCountStore,
-                      ),
-                    );
-                  },
-                  onLongPress: () async {
-                    var result = await showConfirmationDialog();
-                    logger.d(result.toString());
-                    if (result) {
-                      try {
-                        showInfoToast("正在举报");
-                        await reportComments(commentInfo.id);
-                        showSuccessToast("举报成功");
-                      } catch (e) {
-                        showErrorToast(
-                          "举报失败：${e.toString()}",
-                          duration: const Duration(seconds: 5),
-                        );
-                        logger.e(e.toString());
+    final theme = context.theme;
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: likeCubit),
+        BlocProvider.value(value: likeCountCubit),
+      ],
+      child: Builder(
+        builder: (context) {
+          return Center(
+            child: SizedBox(
+              width: context.screenWidth * (48 / 50),
+              child: Column(
+                children: [
+                  InkWell(
+                    onTap: () {
+                      AutoRouter.of(context).push(
+                        CommentsChildrenRoute(
+                          fatherDoc: commentInfo,
+                          boolSelectCubit: likeCubit,
+                          intSelectCubit: likeCountCubit,
+                        ),
+                      );
+                    },
+                    onLongPress: () async {
+                      var result = await showConfirmationDialog();
+                      logger.d(result.toString());
+                      if (result) {
+                        try {
+                          showInfoToast("正在举报");
+                          await reportComments(commentInfo.id);
+                          showSuccessToast("举报成功");
+                        } catch (e) {
+                          showErrorToast(
+                            "举报失败：${e.toString()}",
+                            duration: const Duration(seconds: 5),
+                          );
+                          logger.e(e.toString());
+                        }
                       }
-                    }
-                  },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start, // 左对齐
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.start, // 横向居左
-                        crossAxisAlignment: CrossAxisAlignment.start, // 顶部对齐
-                        children: [
-                          ImagerWidget(
-                            key: ValueKey(commentInfo.toString()),
-                            pictureInfo: PictureInfo(
-                              url: commentInfo.user.avatar!.fileServer,
-                              path: commentInfo.user.avatar!.path,
-                              cartoonId: commentInfo.user.id,
-                              pictureType: "creator",
-                              chapterId: commentInfo.id,
-                              from: "bika",
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start, // 左对齐
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.start, // 横向居左
+                          crossAxisAlignment: CrossAxisAlignment.start, // 顶部对齐
+                          children: [
+                            ImagerWidget(
+                              key: ValueKey(commentInfo.toString()),
+                              pictureInfo: PictureInfo(
+                                url: commentInfo.user.avatar!.fileServer,
+                                path: commentInfo.user.avatar!.path,
+                                cartoonId: commentInfo.user.id,
+                                pictureType: "creator",
+                                chapterId: commentInfo.id,
+                                from: "bika",
+                              ),
+                              commentId: commentInfo.id,
                             ),
-                            commentId: commentInfo.id,
-                          ),
-                          SizedBox(width: 10),
-                          Flexible(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(commentInfo.user.name),
-                                Text(
-                                  "level:${commentInfo.user.level} (${commentInfo.user.title})",
-                                  style: TextStyle(
-                                    color: materialColorScheme.tertiary,
+                            SizedBox(width: 10),
+                            Flexible(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(commentInfo.user.name),
+                                  Text(
+                                    "level:${commentInfo.user.level} (${commentInfo.user.title})",
+                                    style: TextStyle(
+                                      color: theme.colorScheme.tertiary,
+                                    ),
                                   ),
-                                ),
+                                  Text(
+                                    commentInfo.content,
+                                    style: TextStyle(color: context.textColor),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 5),
+                        Center(
+                          child: Row(
+                            children: [
+                              if (commentInfo.isTop) ...[
                                 Text(
-                                  commentInfo.content,
+                                  "TOP",
                                   style: TextStyle(
-                                    color: globalSetting.textColor,
+                                    fontFamily: "LeckerliOne-Regular",
+                                    // fontSize: 14,
                                   ),
                                 ),
                               ],
-                            ),
+                              if (!commentInfo.isTop) ...[
+                                Text(
+                                  index.toString(),
+                                  style: TextStyle(
+                                    fontFamily: "Courgette-Regular",
+                                    // fontStyle: FontStyle.italic,
+                                    // fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                              Text(" / "),
+                              Text(timeDecode(commentInfo.createdAt)),
+                              Spacer(),
+                              GestureDetector(
+                                onTap: () {
+                                  _likeComment(commentInfo.id);
+                                },
+                                child: BlocBuilder<BoolSelectCubit, bool>(
+                                  builder: (context, isLiked) {
+                                    return Icon(
+                                      isLiked
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      size: 14,
+                                      color: isLiked
+                                          ? Colors.red
+                                          : context.textColor,
+                                    );
+                                  },
+                                ),
+                              ),
+                              SizedBox(width: 5),
+                              BlocBuilder<IntSelectCubit, int>(
+                                builder: (context, likeCount) {
+                                  return Text(likeCount.toString());
+                                },
+                              ),
+                              SizedBox(width: 5),
+                              Icon(Icons.comment, size: 14),
+                              SizedBox(width: 5),
+                              Text(commentInfo.commentsCount.toString()),
+                            ],
                           ),
-                        ],
-                      ),
-                      SizedBox(height: 5),
-                      Center(
-                        child: Row(
-                          children: [
-                            if (commentInfo.isTop) ...[
-                              Text(
-                                "TOP",
-                                style: TextStyle(
-                                  fontFamily: "LeckerliOne-Regular",
-                                  // fontSize: 14,
-                                ),
-                              ),
-                            ],
-                            if (!commentInfo.isTop) ...[
-                              Text(
-                                index.toString(),
-                                style: TextStyle(
-                                  fontFamily: "Courgette-Regular",
-                                  // fontStyle: FontStyle.italic,
-                                  // fontSize: 16,
-                                ),
-                              ),
-                            ],
-                            Text(" / "),
-                            Text(timeDecode(commentInfo.createdAt)),
-                            Spacer(),
-                            GestureDetector(
-                              onTap: () {
-                                _likeComment(commentInfo.id);
-                              },
-                              child: Icon(
-                                likeStore.date
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                size: 14,
-                                color: likeStore.date
-                                    ? Colors.red
-                                    : globalSetting.textColor,
-                              ),
-                            ),
-                            SizedBox(width: 5),
-                            Text(likeCountStore.date.toString()),
-                            SizedBox(width: 5),
-                            Icon(Icons.comment, size: 14),
-                            SizedBox(width: 5),
-                            Text(commentInfo.commentsCount.toString()),
-                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.center,
-                  child: SizedBox(
-                    width: context.screenWidth * (48 / 50), // 设置宽度
-                    child: Divider(
-                      color: globalSetting.themeType
-                          ? materialColorScheme.secondaryFixedDim
-                          : materialColorScheme.secondaryFixedDim,
-                      thickness: 1,
-                      height: 10,
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  Align(
+                    alignment: Alignment.center,
+                    child: SizedBox(
+                      width: context.screenWidth * (48 / 50), // 设置宽度
+                      child: Divider(
+                        color: theme.colorScheme.secondaryFixedDim,
+                        thickness: 1,
+                        height: 10,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -251,22 +266,29 @@ class _CommentsWidgetState extends State<CommentsWidget>
   }
 
   void _likeComment(String commentId) async {
+    // 从 Cubit 中获取当前状态
+    final bool currentLikeState = likeCubit.state;
+
     try {
-      if (like) {
+      if (currentLikeState) {
         showInfoToast("正在取消点赞");
       } else {
         showInfoToast("正在点赞");
       }
+
       await likeComment(commentId);
-      like = !like;
-      if (like) {
-        showSuccessToast("点赞成功");
-        likeCountStore.setDate(likeCountStore.date + 1);
-      } else {
+
+      if (currentLikeState) {
+        // 之前是点赞，现在取消点赞
         showSuccessToast("取消点赞成功");
-        likeCountStore.setDate(likeCountStore.date - 1);
+        likeCountCubit.setDate(likeCountCubit.state - 1);
+        likeCubit.setDate(false);
+      } else {
+        // 之前未点赞，现在点赞
+        showSuccessToast("点赞成功");
+        likeCountCubit.setDate(likeCountCubit.state + 1);
+        likeCubit.setDate(true);
       }
-      likeStore.setDate(like);
     } catch (e) {
       showErrorToast(
         "点赞失败：${e.toString()}",
@@ -311,7 +333,7 @@ class _ImagerWidgetState extends State<ImagerWidget> {
                 case PictureLoadStatus.initial:
                   return Center(
                     child: LoadingAnimationWidget.waveDots(
-                      color: materialColorScheme.primaryFixedDim,
+                      color: context.theme.colorScheme.primaryFixedDim,
                       size: 25,
                     ),
                   );

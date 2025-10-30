@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 
 import '../json/bika/comic_info/comic_info.dart';
 
@@ -11,10 +10,6 @@ class SynopsisWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Observer(
-      builder: (context) {
-        return Text(comicInfo.description);
-      },
-    );
+    return Text(comicInfo.description);
   }
 }

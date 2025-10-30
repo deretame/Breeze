@@ -2,12 +2,11 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../../main.dart';
 import '../../../util/router/router.gr.dart';
 import '../../search_result/models/search_enter.dart';
 import '../json/bika/comic_info/comic_info.dart';
@@ -37,80 +36,73 @@ class _TagsAndCategoriesWidgetState extends State<TagsAndCategoriesWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Observer(
-      builder: (context) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Wrap(
-              spacing: 10,
-              // runSpacing: 10,
-              children: List.generate(items.length + 1, (index) {
-                if (index == 0) {
-                  return Chip(
-                    backgroundColor: globalSetting.backgroundColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Wrap(
+          spacing: 10,
+          // runSpacing: 10,
+          children: List.generate(items.length + 1, (index) {
+            if (index == 0) {
+              return Chip(
+                backgroundColor: context.backgroundColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                side: BorderSide(color: context.textColor),
+                label: Text(
+                  title,
+                  style: TextStyle(fontSize: 12, color: context.textColor),
+                ),
+              );
+            }
+            return GestureDetector(
+              onTap: () {
+                if (title == "分类") {
+                  AutoRouter.of(context).push(
+                    SearchResultRoute(
+                      searchEnter: SearchEnter.initial().copyWith(
+                        from: "bika",
+                        type: title,
+                        categories: [items[index - 1]],
+                      ),
                     ),
-                    side: BorderSide(color: globalSetting.textColor),
-                    label: Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: globalSetting.textColor,
+                  );
+                } else if (title == "标签") {
+                  AutoRouter.of(context).push(
+                    SearchResultRoute(
+                      searchEnter: SearchEnter.initial().copyWith(
+                        from: "bika",
+                        type: title,
+                        keyword: items[index - 1],
                       ),
                     ),
                   );
                 }
-                return GestureDetector(
-                  onTap: () {
-                    if (title == "分类") {
-                      AutoRouter.of(context).push(
-                        SearchResultRoute(
-                          searchEnter: SearchEnter.initial().copyWith(
-                            from: "bika",
-                            type: title,
-                            categories: [items[index - 1]],
-                          ),
-                        ),
-                      );
-                    } else if (title == "标签") {
-                      AutoRouter.of(context).push(
-                        SearchResultRoute(
-                          searchEnter: SearchEnter.initial().copyWith(
-                            from: "bika",
-                            type: title,
-                            keyword: items[index - 1],
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                  onLongPress: () {
-                    Clipboard.setData(
-                      ClipboardData(text: processText(items[index - 1])),
-                    );
-                    showSuccessToast("已将${items[index - 1].let(t2s)}复制到剪贴板");
-                  },
-                  child: Chip(
-                    backgroundColor: globalSetting.backgroundColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    label: Text(
-                      processText(items[index - 1].let(t2s)),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: materialColorScheme.primary,
-                      ),
-                    ),
-                  ),
+              },
+              onLongPress: () {
+                Clipboard.setData(
+                  ClipboardData(text: processText(items[index - 1])),
                 );
-              }),
-            ),
-          ],
-        );
-      },
+                showSuccessToast("已将${items[index - 1].let(t2s)}复制到剪贴板");
+              },
+              child: Chip(
+                backgroundColor: context.backgroundColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                label: Text(
+                  processText(items[index - 1].let(t2s)),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: context.theme.colorScheme.primary,
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ],
     );
   }
 

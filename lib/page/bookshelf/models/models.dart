@@ -1,4 +1,4 @@
 export './comic_number.dart';
 export './events.dart';
 export './search_enter.dart';
-export './store.dart';
+export 'cubit.dart';

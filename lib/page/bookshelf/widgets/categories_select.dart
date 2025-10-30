@@ -1,6 +1,5 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/sundry.dart';
@@ -10,10 +9,10 @@ import '../../../main.dart';
 
 Future<Map<String, bool>?> showCategoryDialog(
   BuildContext context,
-  SearchStatusStore searchStatusStore,
+  List<String> initialCategories,
 ) {
   Map<String, bool> categoriesMap = Map.from(categoryMap);
-  for (String category in searchStatusStore.categories) {
+  for (String category in initialCategories) {
     if (categoriesMap.containsKey(category)) {
       categoriesMap[category] = true;
     }

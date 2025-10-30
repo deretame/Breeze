@@ -5,6 +5,7 @@ import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/network/http/bika/http_request.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/page/bookshelf/json/favorite/favourite_json.dart';
+import 'package:zephyr/util/settings_hive_utils.dart';
 
 import '../../../../main.dart';
 
@@ -152,7 +153,9 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
 
   List<ComicNumber> _filterShieldedComics(List<ComicNumber> comics) {
     // 获取所有被屏蔽的分类
-    List<String> shieldedCategoriesList = bikaSetting.shieldCategoryMap.entries
+    List<String> shieldedCategoriesList = SettingsHiveUtils
+        .bikaShieldCategoryMap
+        .entries
         .where((entry) => entry.value) // 只选择值为 true 的条目
         .map((entry) => entry.key) // 提取键（分类名）
         .toList();

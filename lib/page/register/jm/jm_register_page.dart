@@ -13,14 +13,14 @@ import '../../../network/http/bika/http_request.dart';
 import '../../../util/dialog.dart';
 
 @RoutePage()
-class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+class JmRegisterPage extends StatefulWidget {
+  const JmRegisterPage({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  State<JmRegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterPageState extends State<JmRegisterPage> {
   final TextEditingController _username = TextEditingController();
   final TextEditingController _account = TextEditingController();
   final TextEditingController _password = TextEditingController();
@@ -234,7 +234,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           );
                           if (result != null) {
                             if (!innerContext.mounted) return;
-                            innerContext.read<StringSelectCubit>().updateDate(
+                            innerContext.read<StringSelectCubit>().setDate(
                               result.toString().split(' ')[0],
                             );
                           }
@@ -258,6 +258,5 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 }
-
 
 // TODO: 禁漫的注册没写来着，所以这个其实就是复制的哔咔的注册页面

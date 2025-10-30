@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_read/widgets/read_image_widget.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../config/global/global.dart';
-import '../../../main.dart';
 import '../../../type/enum.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 import '../json/common_ep_info_json/common_ep_info_json.dart';
@@ -55,10 +56,12 @@ class ColumnModeWidget extends StatelessWidget {
   }
 
   Widget itemBuilder(BuildContext context, int index) {
+    final globalSettingState = context.watch<GlobalSettingCubit>().state;
+
     if (index == 0) {
       return Container(
         width: context.screenWidth,
-        height: globalSetting.comicReadTopContainer
+        height: globalSettingState.comicReadTopContainer
             ? context.statusBarHeight
             : 0,
         color: Colors.black,

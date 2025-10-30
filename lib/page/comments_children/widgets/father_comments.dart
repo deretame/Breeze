@@ -4,7 +4,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
@@ -18,146 +17,123 @@ import '../../../widgets/picture_bloc/models/picture_info.dart';
 import '../../../widgets/toast.dart';
 import '../../comments/json/comments_json/comments_json.dart' as comments_json;
 
-class FatherCommentsWidget extends StatefulWidget {
+class FatherCommentsWidget extends StatelessWidget {
   final comments_json.Doc doc;
-  final BoolSelectStore store;
-  final IntSelectStore likeCountStore;
+  final BoolSelectCubit boolSelectCubit;
+  final IntSelectCubit intSelectCubit;
 
   const FatherCommentsWidget({
     super.key,
     required this.doc,
-    required this.store,
-    required this.likeCountStore,
+    required this.boolSelectCubit,
+    required this.intSelectCubit,
   });
 
   @override
-  State<FatherCommentsWidget> createState() => _FatherCommentsWidgetState();
-}
-
-class _FatherCommentsWidgetState extends State<FatherCommentsWidget>
-    with SingleTickerProviderStateMixin {
-  comments_json.Doc get commentInfo => widget.doc;
-
-  BoolSelectStore get store => widget.store;
-
-  IntSelectStore get likeCountStore => widget.likeCountStore;
-
-  bool like = false;
-
-  @override
-  void initState() {
-    super.initState();
-    like = store.date;
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Observer(
-      builder: (context) {
-        return Center(
-          child: SizedBox(
-            width: context.screenWidth * (48 / 50),
-            child: InkWell(
-              // behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
-              onLongPress: () async {
-                var result = await showConfirmationDialog();
-                logger.d(result.toString());
-                if (result) {
-                  try {
-                    showInfoToast("正在举报");
-                    await reportComments(commentInfo.id);
-                    showSuccessToast("举报成功");
-                  } catch (e) {
-                    showErrorToast(
-                      "举报失败：${e.toString()}",
-                      duration: const Duration(seconds: 5),
-                    );
-                    logger.e(e.toString());
-                  }
-                }
-              },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start, // 左对齐
+    final bool isLiked = context.watch<BoolSelectCubit>().state;
+    final int likeCount = context.watch<IntSelectCubit>().state;
+
+    return Center(
+      child: SizedBox(
+        width: context.screenWidth * (48 / 50),
+        child: InkWell(
+          // behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
+          onLongPress: () async {
+            var result = await showConfirmationDialog(context);
+            logger.d(result.toString());
+            if (result) {
+              try {
+                showInfoToast("正在举报");
+                await reportComments(doc.id);
+                showSuccessToast("举报成功");
+              } catch (e) {
+                showErrorToast(
+                  "举报失败：${e.toString()}",
+                  duration: const Duration(seconds: 5),
+                );
+                logger.e(e.toString());
+              }
+            }
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start, // 左对齐
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start, // 横向居左
+                crossAxisAlignment: CrossAxisAlignment.start, // 顶部对齐
                 children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.start, // 横向居左
-                    crossAxisAlignment: CrossAxisAlignment.start, // 顶部对齐
-                    children: [
-                      _ImagerWidget(
-                        pictureInfo: PictureInfo(
-                          url: commentInfo.user.avatar!.fileServer,
-                          path: commentInfo.user.avatar!.path,
-                          cartoonId: commentInfo.user.id,
-                          pictureType: "creator",
-                          chapterId: commentInfo.id,
-                          from: "bika",
-                        ),
-                        commentId: commentInfo.id,
-                      ),
-                      SizedBox(width: 10),
-                      Flexible(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(commentInfo.user.name),
-                            Text(
-                              "level:${commentInfo.user.level} (${commentInfo.user.title})",
-                              style: TextStyle(
-                                color: materialColorScheme.tertiary,
-                              ),
-                            ),
-                            Text(
-                              commentInfo.content,
-                              style: TextStyle(color: globalSetting.textColor),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  _ImagerWidget(
+                    pictureInfo: PictureInfo(
+                      url: doc.user.avatar!.fileServer,
+                      path: doc.user.avatar!.path,
+                      cartoonId: doc.user.id,
+                      pictureType: "creator",
+                      chapterId: doc.id,
+                      from: "bika",
+                    ),
+                    commentId: doc.id,
                   ),
-                  SizedBox(height: 5),
-                  Center(
-                    child: Row(
+                  SizedBox(width: 10),
+                  Flexible(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Text(doc.user.name),
                         Text(
-                          "TOP",
+                          "level:${doc.user.level} (${doc.user.title})",
                           style: TextStyle(
-                            fontFamily: "LeckerliOne-Regular",
-                            // fontSize: 14,
+                            color: context.theme.colorScheme.tertiary,
                           ),
                         ),
-                        Text(" / "),
-                        Text(timeDecode(commentInfo.createdAt)),
-                        Spacer(),
-                        GestureDetector(
-                          onTap: () {
-                            _likeComment(commentInfo.id);
-                          },
-                          child: Icon(
-                            store.date ? Icons.favorite : Icons.favorite_border,
-                            size: 14,
-                            color: store.date
-                                ? Colors.red
-                                : globalSetting.textColor,
-                          ),
+                        Text(
+                          doc.content,
+                          style: TextStyle(color: context.textColor),
                         ),
-                        SizedBox(width: 5),
-                        Text(likeCountStore.date.toString()),
-                        SizedBox(width: 5),
-                        Icon(Icons.comment, size: 14),
-                        SizedBox(width: 5),
-                        Text(commentInfo.commentsCount.toString()),
                       ],
                     ),
                   ),
                 ],
               ),
-            ),
+              SizedBox(height: 5),
+              Center(
+                child: Row(
+                  children: [
+                    Text(
+                      "TOP",
+                      style: TextStyle(
+                        fontFamily: "LeckerliOne-Regular",
+                        // fontSize: 14,
+                      ),
+                    ),
+                    Text(" / "),
+                    Text(timeDecode(doc.createdAt)),
+                    Spacer(),
+                    GestureDetector(
+                      onTap: () {
+                        _likeComment(context, doc.id);
+                      },
+                      child: Icon(
+                        isLiked ? Icons.favorite : Icons.favorite_border,
+                        size: 14,
+                        color: isLiked ? Colors.red : context.textColor,
+                      ),
+                    ),
+                    SizedBox(width: 5),
+                    Text(likeCount.toString()),
+                    SizedBox(width: 5),
+                    Icon(Icons.comment, size: 14),
+                    SizedBox(width: 5),
+                    Text(doc.commentsCount.toString()),
+                  ],
+                ),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -178,13 +154,13 @@ class _FatherCommentsWidgetState extends State<FatherCommentsWidget>
     return formattedTime;
   }
 
-  Future<bool> showConfirmationDialog() async {
+  Future<bool> showConfirmationDialog(BuildContext context) async {
     return await showDialog<bool>(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
               title: Text('选择操作'),
-              content: SelectableText(commentInfo.content),
+              content: SelectableText(doc.content),
               actions: <Widget>[
                 TextButton(
                   child: Text('取消'),
@@ -201,7 +177,7 @@ class _FatherCommentsWidgetState extends State<FatherCommentsWidget>
                 TextButton(
                   child: Text('复制评论'),
                   onPressed: () {
-                    Clipboard.setData(ClipboardData(text: commentInfo.content));
+                    Clipboard.setData(ClipboardData(text: doc.content));
                     showSuccessToast("复制成功");
                     Navigator.of(context).pop(false);
                   },
@@ -213,29 +189,48 @@ class _FatherCommentsWidgetState extends State<FatherCommentsWidget>
         false; // 如果用户直接关闭对话框，返回 false
   }
 
-  void _likeComment(String commentId) async {
+  void _likeComment(BuildContext context, String commentId) async {
+    // 13. 使用 context.read 获取 Cubit 实例
+    final boolCubit = context.read<BoolSelectCubit>();
+    final intCubit = context.read<IntSelectCubit>();
+    final bool currentLike = boolCubit.state; // 获取当前状态
+    final int currentCount = intCubit.state;
+
     try {
-      if (like) {
+      if (currentLike) {
         showInfoToast("正在取消点赞");
       } else {
         showInfoToast("正在点赞");
       }
-      await likeComment(commentId);
-      like = !like;
-      if (like) {
+      await likeComment(commentId); // 异步操作
+
+      // --- 异步间隙 ---
+      // 14. (重要) 检查 mounted
+      if (!context.mounted) return;
+
+      final bool newLike = !currentLike;
+      final int newCount = currentLike ? currentCount - 1 : currentCount + 1;
+
+      // 15. 调用 Cubit 方法更新状态
+      boolCubit.setDate(newLike);
+      intCubit.setDate(newCount);
+
+      if (newLike) {
         showSuccessToast("点赞成功");
-        likeCountStore.setDate(likeCountStore.date + 1);
       } else {
         showSuccessToast("取消点赞成功");
-        likeCountStore.setDate(likeCountStore.date - 1);
       }
-      store.setDate(like);
     } catch (e) {
       showErrorToast(
-        "点赞失败：${e.toString()}",
+        "点赞/取消失败：${e.toString()}",
         duration: const Duration(seconds: 5),
       );
       logger.e(e.toString());
+      // (可选) 失败时回滚状态
+      // if (context.mounted) {
+      //   boolCubit.setDate(currentLike);
+      //   intCubit.setDate(currentCount);
+      // }
     }
   }
 }
@@ -261,7 +256,7 @@ class _ImagerWidget extends StatelessWidget {
                 case PictureLoadStatus.initial:
                   return Center(
                     child: LoadingAnimationWidget.waveDots(
-                      color: materialColorScheme.primaryFixedDim,
+                      color: context.theme.colorScheme.primaryFixedDim,
                       size: 25,
                     ),
                   );

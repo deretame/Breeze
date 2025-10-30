@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:permission_guard/permission_guard.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
@@ -33,9 +32,14 @@ class ComicInfoPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) =>
-          GetComicInfoBloc()..add(GetComicInfoEvent(comicId: comicId)),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) =>
+              GetComicInfoBloc()..add(GetComicInfoEvent(comicId: comicId)),
+        ),
+        BlocProvider(create: (_) => StringSelectCubit()),
+      ],
       child: _ComicInfo(comicId: comicId, type: type),
     );
   }
@@ -68,7 +72,6 @@ class _ComicInfoState extends State<_ComicInfo>
 
   late ComicEntryType _type;
   bool _loadingComplete = false;
-  final store = StringSelectStore();
 
   @override
   void initState() {
@@ -83,15 +86,17 @@ class _ComicInfoState extends State<_ComicInfo>
     if (comicHistory?.deleted == true) {
       comicHistory = null;
     }
-
-    if (comicHistory != null) {
-      store.setDate(
-        '历史：'
-        '${comicHistory!.epTitle} / '
-        '${comicHistory!.epPageCount - 1} / '
-        '${comicHistory!.history.toLocal().toString().substring(0, 19)}',
-      );
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final stringSelectCubit = context.read<StringSelectCubit>();
+      if (comicHistory != null) {
+        stringSelectCubit.setDate(
+          '历史：'
+          '${comicHistory!.epTitle} / '
+          '${comicHistory!.epPageCount - 1} / '
+          '${comicHistory!.history.toLocal().toString().substring(0, 19)}',
+        );
+      }
+    });
 
     _initDownloadInfo();
   }
@@ -103,6 +108,7 @@ class _ComicInfoState extends State<_ComicInfo>
 
   @override
   Widget build(BuildContext context) {
+    final stringSelectDate = context.watch<StringSelectCubit>().state;
     super.build(context);
     return Scaffold(
       appBar: AppBar(
@@ -199,7 +205,7 @@ class _ComicInfoState extends State<_ComicInfo>
               height: 56, // 设置容器高度，与默认的FloatingActionButton高度一致
               child: FloatingActionButton(
                 onPressed: () {
-                  if (store.date.isNotEmpty) {
+                  if (stringSelectDate.isNotEmpty) {
                     comicHistory = objectbox.bikaHistoryBox
                         .query(BikaComicHistory_.comicId.equals(widget.comicId))
                         .build()
@@ -214,7 +220,7 @@ class _ComicInfoState extends State<_ComicInfo>
                         order: comicHistory!.order,
                         epsNumber: comicInfo.epsCount,
                         from: From.bika,
-                        store: store,
+                        stringSelectCubit: context.read<StringSelectCubit>(),
                       ),
                     );
                   } else {
@@ -226,17 +232,15 @@ class _ComicInfoState extends State<_ComicInfo>
                         order: 1,
                         epsNumber: comicInfo.epsCount,
                         from: From.bika,
-                        store: store,
+                        stringSelectCubit: context.read<StringSelectCubit>(),
                       ),
                     );
                   }
                 },
-                child: Observer(
-                  builder: (context) => Text(
-                    store.date.isNotEmpty ? '继续阅读' : '开始阅读',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
+                child: Text(
+                  stringSelectDate.isNotEmpty ? '继续阅读' : '开始阅读',
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
               ),
             )
@@ -253,7 +257,7 @@ class _ComicInfoState extends State<_ComicInfo>
 
     var widgets = [
       const SizedBox(height: 10),
-      ComicParticularsWidget(comicInfo: comicInfo, store: store),
+      ComicParticularsWidget(comicInfo: comicInfo),
       const SizedBox(height: 10),
       TagsAndCategoriesWidget(comicInfo: comicInfo, type: 'categories'),
       // const SizedBox(height: 3),
@@ -284,7 +288,6 @@ class _ComicInfoState extends State<_ComicInfo>
             type: _type == ComicEntryType.history
                 ? ComicEntryType.normal
                 : _type,
-            store: store,
           ),
         ),
       );

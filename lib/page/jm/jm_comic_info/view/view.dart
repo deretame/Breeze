@@ -97,7 +97,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
 
       // 4. (修改) 检查 mounted 并使用 context.read 更新 Cubit 状态
       if (mounted) {
-        context.read<StringSelectCubit>().updateDate(historyText);
+        context.read<StringSelectCubit>().setDate(historyText);
         _init = true;
       }
     }

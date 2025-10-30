@@ -2,8 +2,11 @@ import 'dart:ui';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:zephyr/main.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comments/widgets/title.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/settings_hive_utils.dart';
 
 class ComicReadAppBar extends StatelessWidget {
   final String title;
@@ -39,9 +42,7 @@ class ComicReadAppBar extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
           child: AppBar(
             title: ScrollableTitle(text: title),
-            backgroundColor: globalSetting.backgroundColor.withValues(
-              alpha: 0.5,
-            ),
+            backgroundColor: context.backgroundColor.withValues(alpha: 0.5),
             elevation: isVisible ? 4.0 : 0.0,
             actions: [
               IconButton(
@@ -72,7 +73,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
   @override
   void initState() {
     super.initState();
-    _selectedMode = _getReadModeLabel(globalSetting.readMode);
+    _selectedMode = _getReadModeLabel(SettingsHiveUtils.readMode);
   }
 
   // 获取阅读模式的标签
@@ -116,14 +117,15 @@ class _SettingsDialogState extends State<SettingsDialog> {
   }
 
   void _onModeChanged(String newValue) {
+    final gloablSettingCubit = context.read<GlobalSettingCubit>();
     setState(() => _selectedMode = newValue); // 更新选中的阅读模式
 
     if (newValue == 'topToBottom') {
-      globalSetting.setReadMode(0);
+      gloablSettingCubit.updateReadMode(0);
     } else if (newValue == 'leftToRight') {
-      globalSetting.setReadMode(1);
+      gloablSettingCubit.updateReadMode(1);
     } else if (newValue == 'rightToLeft') {
-      globalSetting.setReadMode(2);
+      gloablSettingCubit.updateReadMode(2);
     }
     widget.changePageIndex(2);
   }

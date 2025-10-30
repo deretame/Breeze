@@ -1,10 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/models/all_info.dart' show AllInfo;
+import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../main.dart';
 import '../../../type/enum.dart';
 import '../../../util/router/router.gr.dart';
 import '../json/bika/eps/eps.dart';
@@ -15,7 +15,6 @@ class EpButtonWidget extends StatelessWidget {
   final List<Doc> epsInfo;
   final bool? isHistory;
   final ComicEntryType type;
-  final StringSelectStore store;
 
   const EpButtonWidget({
     super.key,
@@ -24,7 +23,6 @@ class EpButtonWidget extends StatelessWidget {
     required this.epsInfo,
     required this.isHistory,
     required this.type,
-    required this.store,
   });
 
   @override
@@ -39,62 +37,56 @@ class EpButtonWidget extends StatelessWidget {
             order: doc.order,
             epsNumber: epsInfo.length,
             from: From.bika,
-            store: store,
+            stringSelectCubit: context.read<StringSelectCubit>(),
           ),
         );
       },
-      child: Observer(
-        builder: (context) {
-          return Container(
-            width: double.infinity,
-            margin: EdgeInsets.symmetric(horizontal: 0),
-            // Add horizontal margin
-            padding: EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: globalSetting.backgroundColor,
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: materialColorScheme.secondaryFixedDim,
-                  spreadRadius: 0,
-                  blurRadius: 2,
-                ),
-              ],
+      child: Container(
+        width: double.infinity,
+        margin: EdgeInsets.symmetric(horizontal: 0),
+        // Add horizontal margin
+        padding: EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: context.backgroundColor,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: context.theme.colorScheme.secondaryFixedDim,
+              spreadRadius: 0,
+              blurRadius: 2,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              doc.id == 'history' ? "${doc.title}（${doc.docId}）" : doc.title,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 4),
+            Row(
               children: <Widget>[
                 Text(
                   doc.id == 'history'
-                      ? "${doc.title}（${doc.docId}）"
-                      : doc.title,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ? timeDecode(doc.updatedAt, history: true)
+                      : timeDecode(doc.updatedAt),
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
-                SizedBox(height: 4),
-                Row(
-                  children: <Widget>[
-                    Text(
-                      doc.id == 'history'
-                          ? timeDecode(doc.updatedAt, history: true)
-                          : timeDecode(doc.updatedAt),
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                    Expanded(child: Container()),
-                    doc.id == 'history'
-                        ? Text("观看历史", style: TextStyle(fontSize: 14))
-                        : Text(
-                            "number : ${doc.order.toString()}",
-                            style: TextStyle(
-                              fontFamily: "Pacifico-Regular",
-                              fontSize: 14,
-                            ),
-                          ),
-                  ],
-                ),
+                Expanded(child: Container()),
+                doc.id == 'history'
+                    ? Text("观看历史", style: TextStyle(fontSize: 14))
+                    : Text(
+                        "number : ${doc.order.toString()}",
+                        style: TextStyle(
+                          fontFamily: "Pacifico-Regular",
+                          fontSize: 14,
+                        ),
+                      ),
               ],
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }

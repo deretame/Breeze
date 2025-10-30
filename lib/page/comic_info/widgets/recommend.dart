@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/page/comic_info/json/bika/recommend/recommend_json.dart'
     show Comic;
 import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../main.dart';
 import '../../../type/enum.dart';
 import '../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import '../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
@@ -34,41 +32,37 @@ class RecommendWidget extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 5.0),
-      child: Observer(
-        builder: (context) {
-          return Container(
-            height: context.screenWidth * 0.3 / 0.75,
-            decoration: BoxDecoration(
-              color: globalSetting.backgroundColor,
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: materialColorScheme.secondaryFixedDim,
-                  spreadRadius: 0,
-                  blurRadius: 2,
-                ),
-              ],
+      child: Container(
+        height: context.screenWidth * 0.3 / 0.75,
+        decoration: BoxDecoration(
+          color: context.backgroundColor,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: context.theme.colorScheme.secondaryFixedDim,
+              spreadRadius: 0,
+              blurRadius: 2,
             ),
-            child: ClipRRect(
-              // 使用ClipRRect来裁剪子组件
-              borderRadius: BorderRadius.circular(10),
-              // 设置与外层Container相同的圆角
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: List.generate(comicInfoList.length, (index) {
-                    return ComicSimplifyEntry(
-                      info: comicInfoList[index],
-                      type: ComicEntryType.normal,
-                      topPadding: false,
-                      roundedCorner: false,
-                    );
-                  }),
-                ),
-              ),
+          ],
+        ),
+        child: ClipRRect(
+          // 使用ClipRRect来裁剪子组件
+          borderRadius: BorderRadius.circular(10),
+          // 设置与外层Container相同的圆角
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: List.generate(comicInfoList.length, (index) {
+                return ComicSimplifyEntry(
+                  info: comicInfoList[index],
+                  type: ComicEntryType.normal,
+                  topPadding: false,
+                  roundedCorner: false,
+                );
+              }),
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }

@@ -73,6 +73,7 @@ Future<void> bikaDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
     cartoonId: comicInfo.id,
     pictureType: 'cover',
     chapterId: comicInfo.id,
+    proxy: task.bikaInfo.proxy.let(toInt),
   );
 
   if (coverPath.contains('404')) {
@@ -101,6 +102,7 @@ Future<void> bikaDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
         cartoonId: comicInfo.id,
         pictureType: 'comic',
         chapterId: doc.docId,
+        proxy: task.bikaInfo.proxy.let(toInt),
       );
       progress++;
       self.message =
@@ -116,6 +118,7 @@ Future<void> bikaDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
         cartoonId: comicInfo.id,
         pictureType: 'comic',
         chapterId: doc.docId,
+        proxy: task.bikaInfo.proxy.let(toInt),
       );
       progress++;
       self.message =

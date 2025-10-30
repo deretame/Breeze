@@ -136,6 +136,7 @@ Future<String> downloadPicture({
   String cartoonId = '',
   String pictureType = '',
   String chapterId = '',
+  int? proxy,
 }) async {
   if (url.isEmpty) {
     throw Exception('URL 不能为空 404');
@@ -215,7 +216,7 @@ Future<String> downloadPicture({
           path,
           pictureType,
           "original",
-          SettingsHiveUtils.bikaProxy,
+          proxy ?? SettingsHiveUtils.bikaProxy,
         );
 
   // 下载图片

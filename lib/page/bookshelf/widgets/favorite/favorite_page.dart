@@ -8,7 +8,6 @@ import 'package:zephyr/cubit/int_select.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../../config/global/global.dart';
 import '../../../../main.dart';
 import '../../../../cubit/string_select.dart';
 import '../../../../type/enum.dart';
@@ -43,7 +42,7 @@ class _UserFavoritePageState extends State<_FavoritePage>
   int pagesCount = 0;
   int _currentIndex = 0;
 
-  ScrollController get _scrollController => scrollControllers['favorite']!;
+  late final ScrollController _scrollController;
 
   late final StreamSubscription _eventSubscription;
 
@@ -54,6 +53,8 @@ class _UserFavoritePageState extends State<_FavoritePage>
   void initState() {
     super.initState();
     pageCount = 1;
+
+    _scrollController = ScrollController();
 
     _scrollController.addListener(_scrollListener);
     _eventSubscription = eventBus.on<FavoriteEvent>().listen((event) {

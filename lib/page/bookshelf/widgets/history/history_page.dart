@@ -317,6 +317,8 @@ class __HistoryPageState extends State<_HistoryPage>
 
     final searchStatus = context.read<HistoryCubit>().state;
 
+    logger.d(searchStatus.toString());
+
     context.read<UserHistoryBloc>().add(
       UserHistoryEvent(
         SearchEnter(

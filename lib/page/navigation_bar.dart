@@ -25,6 +25,7 @@ import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/main_task.dart';
 import 'package:zephyr/util/jm_url_set.dart';
+import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/util/settings_hive_utils.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -81,6 +82,7 @@ class _NavigationBarState extends State<NavigationBar> {
       _signIn();
       _jmLogin();
       _autoSync();
+      manageCacheSize(context);
     });
     _controller = PersistentTabController(
       initialIndex: SettingsHiveUtils.welcomePageNum,

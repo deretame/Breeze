@@ -69,9 +69,8 @@ class _HomePageState extends State<HomePage> {
 
   void _switchComic() {
     final globalSettingCubit = context.read<GlobalSettingCubit>();
-    final globalSettingState = context.watch<GlobalSettingCubit>().state;
 
-    if (globalSettingState.comicChoice == 1) {
+    if (globalSettingCubit.state.comicChoice == 1) {
       globalSettingCubit.updateComicChoice(2);
     } else {
       globalSettingCubit.updateComicChoice(1);

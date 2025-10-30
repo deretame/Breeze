@@ -1,11 +1,13 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 
 import '../main.dart';
 
-Future<void> manageCacheSize(Cubit setting) async {
+Future<void> manageCacheSize(BuildContext context) async {
   // 获取缓存目录
   final Directory cacheDirectory = await getTemporaryDirectory();
   // logger.d('Cache directory: ${cacheDirectory.path}');
@@ -22,16 +24,20 @@ Future<void> manageCacheSize(Cubit setting) async {
     }
   }
 
+  if (!context.mounted) return;
+
+  final settinCubit = context.read<GlobalSettingCubit>();
+
   // 检查总大小是否达到 1GB (1GB = 1024 * 1024 * 1024 bytes)
   const int maxSize = 1 * 1024 * 1024 * 1024; // 1GB
   if (totalSize >= maxSize) {
     logger.d('Cache size exceeded 1GB, clearing cache...');
-    setting.state.setNeedCleanCache(true);
+    settinCubit.updateNeedCleanCache(true);
   } else {
     logger.d(
       'Current cache size: ${totalSize / (1024 * 1024)} MB',
     ); // 转换为 MB 输出
-    setting.state.setNeedCleanCache(false);
+    settinCubit.updateNeedCleanCache(false);
   }
 }
 

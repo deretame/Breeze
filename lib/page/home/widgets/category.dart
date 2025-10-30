@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:zephyr/page/home/category.dart';
 import 'package:zephyr/page/search_result/models/search_enter.dart'
@@ -15,7 +14,6 @@ import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/picture_bloc/bloc/picture_bloc.dart';
 
-import '../../../main.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 
 Widget buildCategoriesGrid(BuildContext context, List<HomeCategory> data) {
@@ -82,7 +80,7 @@ class CategoryLineWidget extends StatelessWidget {
             case PictureLoadStatus.initial:
               return Center(
                 child: LoadingAnimationWidget.waveDots(
-                  color: materialColorScheme.primaryFixedDim,
+                  color: context.theme.colorScheme.primaryFixedDim,
                   size: 25,
                 ),
               );
@@ -93,16 +91,9 @@ class CategoryLineWidget extends StatelessWidget {
                   children: <Widget>[
                     _buildImage(context, state.imagePath!),
                     SizedBox(height: 5),
-                    Observer(
-                      builder: (context) {
-                        return Text(
-                          category.title.let(t2s),
-                          style: TextStyle(
-                            color: globalSetting.textColor,
-                            fontSize: 14,
-                          ),
-                        );
-                      },
+                    Text(
+                      category.title.let(t2s),
+                      style: TextStyle(color: context.textColor, fontSize: 14),
                     ),
                   ],
                 ),
@@ -169,13 +160,9 @@ class CategoryLineWidget extends StatelessWidget {
             ),
           ),
           SizedBox(height: 5),
-          Observer(
-            builder: (context) {
-              return Text(
-                category.title,
-                style: TextStyle(color: globalSetting.textColor, fontSize: 14),
-              );
-            },
+          Text(
+            category.title,
+            style: TextStyle(color: context.textColor, fontSize: 14),
           ),
         ],
       ),

@@ -1,7 +1,6 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
-
-import '../main.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
 @RoutePage()
 class ShowColorPage extends StatelessWidget {
@@ -10,16 +9,8 @@ class ShowColorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // 使用种子颜色创建颜色方案
-    final lightColorScheme = materialColorScheme;
-    final darkColorScheme = materialColorSchemeDark;
+    final allColors = context.theme.colorScheme;
 
-    ColorScheme allColors;
-
-    if (globalSetting.themeType) {
-      allColors = lightColorScheme;
-    } else {
-      allColors = darkColorScheme;
-    }
     final screenWidth = MediaQuery.of(context).size.width;
     final colorBoxSize = screenWidth / 3;
 

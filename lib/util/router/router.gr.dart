@@ -1313,3 +1313,19 @@ class WebViewRouteArgs {
   int get hashCode =>
       key.hashCode ^ const _i43.ListEquality<String>().hash(info);
 }
+
+/// generated route for
+/// [_BookshelfPageContent]
+class _BookshelfRouteContent extends _i34.PageRouteInfo<void> {
+  const _BookshelfRouteContent({List<_i34.PageRouteInfo>? children})
+    : super(_BookshelfRouteContent.name, initialChildren: children);
+
+  static const String name = '_BookshelfRouteContent';
+
+  static _i34.PageInfo page = _i34.PageInfo(
+    name,
+    builder: (data) {
+      return _BookshelfPageContent();
+    },
+  );
+}

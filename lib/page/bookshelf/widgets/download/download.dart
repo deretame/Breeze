@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 
@@ -21,7 +22,7 @@ class DownloadPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => UserDownloadBloc()..add(UserDownloadEvent(SearchEnter())),
-      child: _DownloadPage(),
+      child: const _DownloadPage(),
     );
   }
 }
@@ -35,12 +36,6 @@ class _DownloadPage extends StatefulWidget {
 
 class _DownloadPageState extends State<_DownloadPage>
     with AutomaticKeepAliveClientMixin {
-  SearchStatusStore get searchStatusStore => bookshelfStore.downloadStore;
-
-  StringSelectStore get stringSelectStore => bookshelfStore.stringSelectStore;
-
-  IntSelectStore get indexStore => bookshelfStore.indexStore;
-
   int totalComicCount = 0;
   bool notice = false;
 
@@ -51,10 +46,12 @@ class _DownloadPageState extends State<_DownloadPage>
     super.initState();
     _scrollController.addListener(_scrollListener);
     eventBus.on<DownloadEvent>().listen((event) {
+      if (!mounted) return;
+
       if (event.type == EventType.showInfo) {
-        stringSelectStore.setDate(totalComicCount.toString());
+        context.read<StringSelectCubit>().setDate(totalComicCount.toString());
       } else if (event.type == EventType.refresh) {
-        _refresh(searchStatusStore);
+        _refresh();
       }
     });
   }
@@ -65,8 +62,9 @@ class _DownloadPageState extends State<_DownloadPage>
   }
 
   void _scrollListener() {
-    if (indexStore.date == 2) {
-      stringSelectStore.setDate(totalComicCount.toString());
+    final currentTabIndex = context.read<IntSelectCubit>().state;
+    if (currentTabIndex == 2) {
+      context.read<StringSelectCubit>().setDate(totalComicCount.toString());
     }
   }
 
@@ -77,18 +75,39 @@ class _DownloadPageState extends State<_DownloadPage>
   Widget build(BuildContext context) {
     super.build(context);
 
-    return BlocBuilder<UserDownloadBloc, UserDownloadState>(
-      builder: (context, state) {
-        return RefreshIndicator(
-          displacement: 60.0,
-          onRefresh: () async {
-            if (indexStore.date == 2) {
-              _refresh(searchStatusStore, true);
-            }
-          },
-          child: _buildContent(state),
-        );
+    final currentTabIndex = context.watch<IntSelectCubit>().state;
+
+    return BlocListener<UserDownloadBloc, UserDownloadState>(
+      listener: (context, state) {
+        if (state.status == UserDownloadStatus.success) {
+          totalComicCount = state.comics.length;
+
+          final tabIndex = context.read<IntSelectCubit>().state;
+          if (tabIndex == 2) {
+            context.read<StringSelectCubit>().setDate(
+              totalComicCount.toString(),
+            );
+          }
+
+          if (!notice && tabIndex == 1) {
+            eventBus.fire(DownloadEvent(EventType.showInfo));
+            notice = true;
+          }
+        }
       },
+      child: BlocBuilder<UserDownloadBloc, UserDownloadState>(
+        builder: (context, state) {
+          return RefreshIndicator(
+            displacement: 60.0,
+            onRefresh: () async {
+              if (currentTabIndex == 2) {
+                _refresh(true);
+              }
+            },
+            child: _buildContent(state),
+          );
+        },
+      ),
     );
   }
 
@@ -113,39 +132,30 @@ class _DownloadPageState extends State<_DownloadPage>
             style: TextStyle(fontSize: 20),
           ),
           SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () => _refresh(searchStatusStore, true),
-            child: Text('点击重试'),
-          ),
+          ElevatedButton(onPressed: () => _refresh(true), child: Text('点击重试')),
         ],
       ),
     );
   }
 
   Widget _buildList(UserDownloadState state) {
-    totalComicCount = state.comics.length;
-
-    _showNoticeIfNeeded();
+    final bikaSettingState = context.watch<BikaSettingCubit>().state;
 
     if (state.comics.isEmpty) {
       return _buildEmptyState();
     }
 
-    if (bookshelfStore.topBarStore.date == 2) {
+    // --- 9. 使用 context.watch 监听 TopBarCubit ---
+    final topBarState = context.watch<TopBarCubit>().state;
+
+    if (topBarState == 2) {
+      // 使用 Cubit 状态
       return _buildBrevityList(state);
     }
 
-    return bikaSetting.brevity
+    return bikaSettingState.brevity
         ? _buildBrevityList(state)
         : _buildDetailedList(state);
-  }
-
-  // 显示通知（如果条件满足）
-  void _showNoticeIfNeeded() {
-    if (!notice && indexStore.date == 1) {
-      eventBus.fire(DownloadEvent(EventType.showInfo));
-      notice = true;
-    }
   }
 
   // 构建空状态UI
@@ -157,7 +167,7 @@ class _DownloadPageState extends State<_DownloadPage>
           const Text('啥都没有', style: TextStyle(fontSize: 20.0)),
           const SizedBox(height: 10),
           IconButton(
-            onPressed: () => _refresh(searchStatusStore),
+            onPressed: () => _refresh(),
             icon: const Icon(Icons.refresh),
           ),
           const Spacer(),
@@ -179,7 +189,7 @@ class _DownloadPageState extends State<_DownloadPage>
         context,
         index,
         elementsRows.length,
-        () => _refresh(searchStatusStore),
+        () => _refresh(),
         isBrevity: true,
         elementsRows: elementsRows,
       ),
@@ -194,7 +204,7 @@ class _DownloadPageState extends State<_DownloadPage>
         context,
         index,
         state.comics.length,
-        () => _refresh(searchStatusStore, true),
+        () => _refresh(true),
         isBrevity: false,
         comics: state.comics,
       ),
@@ -224,13 +234,15 @@ class _DownloadPageState extends State<_DownloadPage>
     List<List<ComicSimplifyEntryInfo>>? elementsRows,
     List<dynamic>? comics,
   }) {
+    final topBarState = context.read<TopBarCubit>().state;
+
     if (index == dataLength) {
       return Center(
         child: Column(
           children: [
             SizedBox(height: 10),
             IconButton(
-              onPressed: () => _refresh(searchStatusStore, true),
+              onPressed: () => _refresh(true),
               icon: const Icon(Icons.refresh),
             ),
             deletingDialog(context, refreshCallback, DeleteType.download),
@@ -239,7 +251,7 @@ class _DownloadPageState extends State<_DownloadPage>
       );
     }
 
-    if (bookshelfStore.topBarStore.date == 1) {
+    if (topBarState == 1) {
       if (isBrevity) {
         return ComicSimplifyEntryRow(
           key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
@@ -267,7 +279,9 @@ class _DownloadPageState extends State<_DownloadPage>
 
   // 转换数据格式
   List<ComicSimplifyEntryInfo> _convertToEntryInfoList(List<dynamic> comics) {
-    if (bookshelfStore.topBarStore.date == 1) {
+    final topBarState = context.read<TopBarCubit>().state;
+
+    if (topBarState == 1) {
       final temp = comics.map((e) => e as BikaComicDownload).toList();
 
       return temp
@@ -300,7 +314,7 @@ class _DownloadPageState extends State<_DownloadPage>
     }
   }
 
-  void _refresh(SearchStatusStore searchStatusStore, [bool goToTop = false]) {
+  void _refresh([bool goToTop = false]) {
     if (_scrollController.hasClients && goToTop) {
       _scrollController.animateTo(
         0,
@@ -309,13 +323,16 @@ class _DownloadPageState extends State<_DownloadPage>
       );
     }
     notice = false;
-    eventBus.fire(DownloadEvent(EventType.showInfo));
+
+    final searchStatus = context.read<DownloadCubit>().state;
+    final topBarState = context.read<TopBarCubit>().state;
+
     context.read<UserDownloadBloc>().add(
       UserDownloadEvent(
         SearchEnter(
-          keyword: searchStatusStore.keyword,
-          sort: searchStatusStore.sort,
-          categories: searchStatusStore.categories,
+          keyword: searchStatus.keyword,
+          sort: searchStatus.sort,
+          categories: searchStatus.categories,
           refresh: Uuid().v4(),
         ),
       ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../main.dart';
 import '../../comic_info/json/bika/eps/eps.dart';
 
 class EpsWidget extends StatefulWidget {
@@ -49,73 +48,66 @@ class _EpsWidgetState extends State<EpsWidget> {
         });
         widget.onUpdateDownloadInfo(widget.doc.order);
       },
-      child: Observer(
-        builder: (context) {
-          return Container(
-            width: double.infinity,
-            margin: EdgeInsets.symmetric(horizontal: 0),
-            padding: EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: globalSetting.backgroundColor,
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: materialColorScheme.secondaryFixedDim,
-                  spreadRadius: 0,
-                  blurRadius: 2,
-                ),
-              ],
+      child: Container(
+        width: double.infinity,
+        margin: EdgeInsets.symmetric(horizontal: 0),
+        padding: EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: context.backgroundColor,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: context.theme.colorScheme.secondaryFixedDim,
+              spreadRadius: 0,
+              blurRadius: 2,
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center, // 改为整体居中
-              children: <Widget>[
-                Checkbox(
-                  value: _isChecked,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      _isChecked = value ?? false; // 更新复选框状态
-                    });
-                    widget.onUpdateDownloadInfo(widget.doc.order);
-                  },
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center, // 改为整体居中
+          children: <Widget>[
+            Checkbox(
+              value: _isChecked,
+              onChanged: (bool? value) {
+                setState(() {
+                  _isChecked = value ?? false; // 更新复选框状态
+                });
+                widget.onUpdateDownloadInfo(widget.doc.order);
+              },
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    widget.doc.title,
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 4),
+                  Row(
                     children: <Widget>[
                       Text(
-                        widget.doc.title,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        timeDecode(widget.doc.updatedAt),
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
                       ),
-                      SizedBox(height: 4),
-                      Row(
-                        children: <Widget>[
-                          Text(
-                            timeDecode(widget.doc.updatedAt),
-                            style: TextStyle(fontSize: 14, color: Colors.grey),
-                          ),
-                          Expanded(child: Container()),
-                          widget.doc.id == 'history'
-                              ? Text("观看历史", style: TextStyle(fontSize: 14))
-                              : Text(
-                                  "number : ${widget.doc.order.toString()}",
-                                  style: TextStyle(
-                                    fontFamily: "Pacifico-Regular",
-                                    fontSize: 14,
-                                  ),
-                                ),
-                        ],
-                      ),
+                      Expanded(child: Container()),
+                      widget.doc.id == 'history'
+                          ? Text("观看历史", style: TextStyle(fontSize: 14))
+                          : Text(
+                              "number : ${widget.doc.order.toString()}",
+                              style: TextStyle(
+                                fontFamily: "Pacifico-Regular",
+                                fontSize: 14,
+                              ),
+                            ),
                     ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }

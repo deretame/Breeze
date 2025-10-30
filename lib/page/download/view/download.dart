@@ -11,6 +11,7 @@ import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/init.dart';
 import 'package:zephyr/util/foreground_task/main_task.dart';
+import 'package:zephyr/util/settings_hive_utils.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../object_box/model.dart';
@@ -133,15 +134,15 @@ class _DownloadPageState extends State<DownloadPage> {
       comicId: comicInfo.id,
       comicName: comicInfo.title,
       bikaInfo: BikaInfo(
-        authorization: bikaSetting.authorization,
-        proxy: bikaSetting.proxy.toString(),
+        authorization: SettingsHiveUtils.bikaAuthorization,
+        proxy: SettingsHiveUtils.bikaProxy.toString(),
       ),
-      globalProxy: globalSetting.socks5Proxy,
+      globalProxy: SettingsHiveUtils.socks5Proxy,
       selectedChapters: _downloadInfo.entries
           .where((entry) => entry.value)
           .map((entry) => entry.key.toString())
           .toList(),
-      slowDownload: bikaSetting.getSlowDownload(),
+      slowDownload: SettingsHiveUtils.bikaSlowDownload,
     ).toJson().let(jsonEncode);
     try {
       await initForegroundTask(comicInfo.title);

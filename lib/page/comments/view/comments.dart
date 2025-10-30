@@ -1,8 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:zephyr/page/comments/comments.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../main.dart';
@@ -129,65 +129,57 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     String? result = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
-        return Observer(
-          builder: (context) {
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.0), // 圆角
-              ),
-              child: Container(
-                padding: EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min, // 使对话框根据内容调整大小
-                  children: [
-                    Text(title),
-                    SizedBox(height: 16),
-                    Container(
-                      decoration: BoxDecoration(
-                        // color: Colors.grey[200], // 背景色
-                        border: Border.all(
-                          color: globalSetting.themeType
-                              ? materialColorScheme.secondaryFixedDim
-                              : materialColorScheme.secondaryFixedDim,
-                        ), // 边框
-                        borderRadius: BorderRadius.circular(8.0), // 圆角
-                      ),
-                      padding: EdgeInsets.symmetric(horizontal: 8.0),
-                      child: TextField(
-                        controller: controller,
-                        maxLines: null, // 设置多行输入
-                        decoration: InputDecoration(
-                          border: InputBorder.none, // 去掉默认的输入框边框
-                          hintText: defaultText,
-                        ),
-                      ),
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0), // 圆角
+          ),
+          child: Container(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // 使对话框根据内容调整大小
+              children: [
+                Text(title),
+                SizedBox(height: 16),
+                Container(
+                  decoration: BoxDecoration(
+                    // color: Colors.grey[200], // 背景色
+                    border: Border.all(
+                      color: context.theme.colorScheme.secondaryFixedDim,
+                    ), // 边框
+                    borderRadius: BorderRadius.circular(8.0), // 圆角
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  child: TextField(
+                    controller: controller,
+                    maxLines: null, // 设置多行输入
+                    decoration: InputDecoration(
+                      border: InputBorder.none, // 去掉默认的输入框边框
+                      hintText: defaultText,
                     ),
-                    SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          onPressed: () {
-                            context.pop(); // 关闭对话框
-                          },
-                          child: Text('取消'),
-                        ),
-                        SizedBox(width: 8),
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(
-                              context,
-                            ).pop(controller.text); // 返回输入内容
-                          },
-                          child: Text('确认'),
-                        ),
-                      ],
+                  ),
+                ),
+                SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        context.pop(); // 关闭对话框
+                      },
+                      child: Text('取消'),
+                    ),
+                    SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(controller.text); // 返回输入内容
+                      },
+                      child: Text('确认'),
                     ),
                   ],
                 ),
-              ),
-            );
-          },
+              ],
+            ),
+          ),
         );
       },
     );

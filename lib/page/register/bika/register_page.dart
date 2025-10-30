@@ -234,7 +234,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           );
                           if (result != null) {
                             if (!innerContext.mounted) return;
-                            innerContext.read<StringSelectCubit>().updateDate(
+                            innerContext.read<StringSelectCubit>().setDate(
                               result.toString().split(' ')[0],
                             );
                           }

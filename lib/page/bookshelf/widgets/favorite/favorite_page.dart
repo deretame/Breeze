@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/config/bika/bika_setting.dart';
+import 'package:zephyr/cubit/int_select.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
@@ -35,10 +37,6 @@ class _FavoritePage extends StatefulWidget {
 
 class _UserFavoritePageState extends State<_FavoritePage>
     with AutomaticKeepAliveClientMixin {
-  SearchStatusStore get searchStatusStore => bookshelfStore.favoriteStore;
-
-  StringSelectStore get stringSelectStore => bookshelfStore.stringSelectStore;
-
   late List<dynamic> comics;
   int pageCount = 0;
   String refresh = "";
@@ -47,7 +45,6 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
   ScrollController get _scrollController => scrollControllers['favorite']!;
 
-  // 保存事件订阅，方便在dispose中取消
   late final StreamSubscription _eventSubscription;
 
   @override
@@ -60,6 +57,8 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
     _scrollController.addListener(_scrollListener);
     _eventSubscription = eventBus.on<FavoriteEvent>().listen((event) {
+      if (!mounted) return; // 增加 mounted 检查
+
       if (event.type == EventType.refresh) {
         _refresh(initState: true);
       } else if (event.type == EventType.pageSkip) {
@@ -67,10 +66,13 @@ class _UserFavoritePageState extends State<_FavoritePage>
       } else if (event.type == EventType.updateShield) {
         _refresh(updateShield: true);
       } else if (event.type == EventType.showInfo) {
-        if (!bikaSetting.brevity) {
-          stringSelectStore.setDate("$_currentIndex/$pagesCount");
+        final bikaSettingState = context.read<BikaSettingCubit>().state;
+        if (!bikaSettingState.brevity) {
+          context.read<StringSelectCubit>().setDate(
+            "$_currentIndex/$pagesCount",
+          );
         } else {
-          stringSelectStore.setDate("");
+          context.read<StringSelectCubit>().setDate("");
         }
       }
     });
@@ -79,6 +81,7 @@ class _UserFavoritePageState extends State<_FavoritePage>
   @override
   void dispose() {
     _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
     _eventSubscription.cancel();
     super.dispose();
   }
@@ -88,7 +91,8 @@ class _UserFavoritePageState extends State<_FavoritePage>
         _scrollController.position.maxScrollExtent * 0.9) {
       _fetchFavoriteResult();
     }
-    if (!bikaSetting.brevity) {
+    final bikaSettingState = context.read<BikaSettingCubit>().state;
+    if (!bikaSettingState.brevity) {
       _handleScrollPosition(_scrollController.position);
     }
   }
@@ -96,25 +100,34 @@ class _UserFavoritePageState extends State<_FavoritePage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return BlocBuilder<UserFavouriteBloc, UserFavouriteState>(
-      builder: (context, state) {
-        return RefreshIndicator(
-          displacement: 60.0,
-          onRefresh: () async {
-            if (bookshelfStore.indexStore.date == 0) {
-              _refresh(initState: true);
-            }
-          },
-          child: _buildContent(state),
-        );
+
+    return BlocListener<UserFavouriteBloc, UserFavouriteState>(
+      listener: (context, state) {
+        if (state.status == UserFavouriteStatus.initial) {
+          context.read<StringSelectCubit>().setDate("");
+        }
       },
+      child: BlocBuilder<UserFavouriteBloc, UserFavouriteState>(
+        builder: (context, state) {
+          return RefreshIndicator(
+            displacement: 60.0,
+            onRefresh: () async {
+              if (context.read<IntSelectCubit>().state == 0) {
+                _refresh(initState: true);
+              }
+            },
+            child: _buildContent(state),
+          );
+        },
+      ),
     );
   }
 
   Widget _buildContent(UserFavouriteState state) {
     switch (state.status) {
       case UserFavouriteStatus.initial:
-        stringSelectStore.setDate("");
+        // --- 8. 移除这里的副作用 (已移至 BlocListener) ---
+        // stringSelectStore.setDate("");
         return const Center(child: CircularProgressIndicator());
       case UserFavouriteStatus.failure:
         return _buildError(state);
@@ -152,7 +165,9 @@ class _UserFavoritePageState extends State<_FavoritePage>
       return _buildEmptyState();
     }
 
-    return bikaSetting.brevity
+    final bikaSettingState = context.watch<BikaSettingCubit>().state;
+
+    return bikaSettingState.brevity
         ? _buildBrevityList(state)
         : _buildDetailedList(state);
   }
@@ -167,7 +182,9 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
   // 判断是否需要获取更多
   bool _shouldFetchMore(UserFavouriteState state) {
-    if (bikaSetting.brevity) {
+    final bikaSettingState = context.watch<BikaSettingCubit>().state;
+
+    if (bikaSettingState.brevity) {
       return state.comics.length < 30 && !state.hasReachedMax;
     } else {
       return state.comics.length < 8 && !state.hasReachedMax;
@@ -287,7 +304,9 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
   // 转换数据为简洁模式需要的格式
   List<ComicSimplifyEntryInfo> _convertToSimplifyList(List<dynamic> comics) {
-    if (bookshelfStore.topBarStore.date == 1) {
+    final topBarState = context.read<TopBarCubit>().state;
+
+    if (topBarState == 1) {
       final temp = comics.map((e) => e as ComicNumber).toList();
 
       return temp
@@ -382,7 +401,7 @@ class _UserFavoritePageState extends State<_FavoritePage>
       if (itemIndex >= 0 && itemIndex < temp.length) {
         int buildNumber = temp[itemIndex].buildNumber;
         // logger.d(comics[itemIndex].doc.title);
-        stringSelectStore.setDate("$buildNumber/$pagesCount");
+        context.read<StringSelectCubit>().setDate("$buildNumber/$pagesCount");
         _currentIndex = buildNumber;
         // 更新上次执行时间
         _lastExecutedTime = currentTime;

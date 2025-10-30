@@ -20,7 +20,7 @@ class JmFavoritePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => JmFavouriteBloc()..add(JmFavouriteEvent()),
-      child: _FavoritePage(),
+      child: const _FavoritePage(),
     );
   }
 }
@@ -34,12 +34,6 @@ class _FavoritePage extends StatefulWidget {
 
 class __FavoritePageState extends State<_FavoritePage>
     with AutomaticKeepAliveClientMixin {
-  SearchStatusStore get searchStatusStore => bookshelfStore.jmFavoriteStore;
-
-  StringSelectStore get stringSelectStore => bookshelfStore.stringSelectStore;
-
-  IntSelectStore get indexStore => bookshelfStore.indexStore;
-
   int totalComicCount = 0;
   bool notice = false;
 
@@ -54,12 +48,14 @@ class __FavoritePageState extends State<_FavoritePage>
     _scrollController.addListener(_scrollListener);
 
     _eventSubscription = eventBus.on<JmFavoriteEvent>().listen((event) {
-      if (!mounted) return; // 确保组件仍然挂载
+      if (!mounted) return;
 
       if (event.type == EventType.showInfo) {
-        stringSelectStore.setDate(totalComicCount.toString());
+        // --- 5. 使用 context.read 更新 Cubit ---
+        context.read<StringSelectCubit>().setDate(totalComicCount.toString());
       } else if (event.type == EventType.refresh) {
-        _refresh(searchStatusStore, true);
+        // --- 6. 调用重构后的 _refresh ---
+        _refresh(true);
       }
     });
   }
@@ -71,10 +67,9 @@ class __FavoritePageState extends State<_FavoritePage>
     super.dispose();
   }
 
-  // 滚动监听方法
   void _scrollListener() {
-    if (bookshelfStore.indexStore.date == 1) {
-      stringSelectStore.setDate(totalComicCount.toString());
+    if (context.read<IntSelectCubit>().state == 0) {
+      context.read<StringSelectCubit>().setDate(totalComicCount.toString());
     }
   }
 
@@ -84,18 +79,33 @@ class __FavoritePageState extends State<_FavoritePage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return BlocBuilder<JmFavouriteBloc, JmFavouriteState>(
-      builder: (context, state) {
-        return RefreshIndicator(
-          displacement: 60.0,
-          onRefresh: () async {
-            if (bookshelfStore.indexStore.date == 0) {
-              _refresh(bookshelfStore.jmFavoriteStore);
-            }
-          },
-          child: _buildContent(state),
-        );
+    // --- 8. 添加 BlocListener 来处理副作用 ---
+    return BlocListener<JmFavouriteBloc, JmFavouriteState>(
+      listener: (context, state) {
+        if (state.status == JmFavouriteStatus.success) {
+          totalComicCount = state.comics.length;
+
+          if (context.read<IntSelectCubit>().state == 0) {
+            context.read<StringSelectCubit>().setDate(
+              totalComicCount.toString(),
+            );
+          }
+        }
       },
+      child: BlocBuilder<JmFavouriteBloc, JmFavouriteState>(
+        builder: (context, state) {
+          return RefreshIndicator(
+            displacement: 60.0,
+            onRefresh: () async {
+              // --- 9. 使用 context.read 并调用新 _refresh ---
+              if (context.read<IntSelectCubit>().state == 0) {
+                _refresh(true); // 传入 goToTop
+              }
+            },
+            child: _buildContent(state),
+          );
+        },
+      ),
     );
   }
 
@@ -120,10 +130,7 @@ class __FavoritePageState extends State<_FavoritePage>
             style: TextStyle(fontSize: 20),
           ),
           SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () => _refresh(searchStatusStore, true),
-            child: Text('点击重试'),
-          ),
+          ElevatedButton(onPressed: () => _refresh(true), child: Text('点击重试')),
         ],
       ),
     );
@@ -132,21 +139,11 @@ class __FavoritePageState extends State<_FavoritePage>
   Widget _buildList(JmFavouriteState state) {
     totalComicCount = state.comics.length;
 
-    _showNoticeIfNeeded();
-
     if (state.comics.isEmpty) {
       return _buildEmptyState();
     }
 
     return _buildBrevityList(state);
-  }
-
-  // 显示通知（如果条件满足）
-  void _showNoticeIfNeeded() {
-    if (!notice && bookshelfStore.indexStore.date == 1) {
-      eventBus.fire(JmFavoriteEvent(EventType.showInfo));
-      notice = true;
-    }
   }
 
   // 构建空状态UI
@@ -158,7 +155,7 @@ class __FavoritePageState extends State<_FavoritePage>
           const Text('啥都没有', style: TextStyle(fontSize: 20.0)),
           const SizedBox(height: 10),
           IconButton(
-            onPressed: () => _refresh(bookshelfStore.jmFavoriteStore, true),
+            onPressed: () => _refresh(true),
             icon: const Icon(Icons.refresh),
           ),
           const Spacer(),
@@ -180,7 +177,7 @@ class __FavoritePageState extends State<_FavoritePage>
         context,
         index,
         elementsRows.length,
-        () => _refresh(searchStatusStore),
+        () => _refresh(),
         isBrevity: true,
         elementsRows: elementsRows,
       ),
@@ -214,7 +211,7 @@ class __FavoritePageState extends State<_FavoritePage>
         children: [
           SizedBox(height: 10),
           IconButton(
-            onPressed: () => _refresh(searchStatusStore, true),
+            onPressed: () => _refresh(true),
             icon: const Icon(Icons.refresh),
           ),
           deletingDialog(context, refreshCallback, DeleteType.history),
@@ -248,22 +245,22 @@ class __FavoritePageState extends State<_FavoritePage>
         .toList();
   }
 
-  void _refresh(SearchStatusStore searchStatusStore, [bool refresh = false]) {
-    if (_scrollController.hasClients && refresh) {
+  void _refresh([bool goToTop = false]) {
+    if (_scrollController.hasClients && goToTop) {
       _scrollController.animateTo(
         0,
         duration: Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     }
-    notice = false;
-    eventBus.fire(JmFavoriteEvent(EventType.showInfo));
+    final searchStatus = context.read<JmFavoriteCubit>().state;
+
     context.read<JmFavouriteBloc>().add(
       JmFavouriteEvent(
         searchEnterConst: SearchEnter(
-          keyword: searchStatusStore.keyword,
-          sort: searchStatusStore.sort,
-          categories: searchStatusStore.categories,
+          keyword: searchStatus.keyword,
+          sort: searchStatus.sort,
+          categories: searchStatus.categories,
           refresh: Uuid().v4(),
         ),
       ),

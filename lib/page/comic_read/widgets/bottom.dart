@@ -2,7 +2,8 @@ import 'dart:ui';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -25,7 +26,6 @@ class BottomWidget extends StatefulWidget {
   final int epsNumber;
   final String comicId;
   final From from;
-  final StringSelectStore store;
 
   const BottomWidget({
     super.key,
@@ -37,7 +37,6 @@ class BottomWidget extends StatefulWidget {
     required this.epsNumber,
     required this.comicId,
     required this.from,
-    required this.store,
   });
 
   @override
@@ -134,91 +133,93 @@ class _BottomWidgetState extends State<BottomWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Observer(
-      builder: (context) {
-        return AnimatedPositioned(
-          duration: _animationDuration,
-          bottom: widget.isVisible ? 0 : -_bottomWidgetHeight.toDouble(),
-          left: 0,
-          right: 0,
-          child: ClipRect(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // 高斯模糊强度
-              child: Container(
-                height: _bottomWidgetHeight.toDouble(),
-                width: context.screenWidth,
-                color: globalSetting.backgroundColor.withValues(alpha: 0.5),
-                // 半透明背景
-                child: Column(
+    final gloablSettingCubit = context.read<GlobalSettingCubit>();
+    final globalSettingState = context.watch<GlobalSettingCubit>().state;
+
+    return AnimatedPositioned(
+      duration: _animationDuration,
+      bottom: widget.isVisible ? 0 : -_bottomWidgetHeight.toDouble(),
+      left: 0,
+      right: 0,
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // 高斯模糊强度
+          child: Container(
+            height: _bottomWidgetHeight.toDouble(),
+            width: context.screenWidth,
+            color: context.backgroundColor.withValues(alpha: 0.5),
+            // 半透明背景
+            child: Column(
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        const SizedBox(width: 10),
-                        ChapterNavigationButton(
-                          label: "上一章",
-                          isEnabled: havePrev,
-                          onTap: () => _jumpToChapter(true),
-                        ),
-                        widget.sliderWidget,
-                        ChapterNavigationButton(
-                          label: "下一章",
-                          isEnabled: haveNext,
-                          onTap: () => _jumpToChapter(false),
-                        ),
-                        const SizedBox(width: 10),
-                      ],
+                    const SizedBox(width: 10),
+                    ChapterNavigationButton(
+                      label: "上一章",
+                      isEnabled: havePrev,
+                      onTap: () => _jumpToChapter(true),
                     ),
-                    Center(
-                      child: Container(
-                        height: 1, // 设置高度为1像素
-                        width: context.screenWidth * 48 / 50,
-                        color: materialColorScheme.secondaryFixedDim,
+                    widget.sliderWidget,
+                    ChapterNavigationButton(
+                      label: "下一章",
+                      isEnabled: haveNext,
+                      onTap: () => _jumpToChapter(false),
+                    ),
+                    const SizedBox(width: 10),
+                  ],
+                ),
+                Center(
+                  child: Container(
+                    height: 1, // 设置高度为1像素
+                    width: context.screenWidth * 48 / 50,
+                    color: context.theme.colorScheme.secondaryFixedDim,
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.home),
+                      onPressed: () => popToRoot(context),
+                    ),
+                    SizedBox(
+                      height: 51,
+                      child: TextButton(
+                        onPressed: seriesList.isEmpty && widget.from == From.jm
+                            ? null
+                            : () async => await _selectJumpChapter(),
+                        child: Center(
+                          child: Text('跳转章节', style: TextStyle(fontSize: 16)),
+                        ),
                       ),
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.home),
-                          onPressed: () => popToRoot(context),
-                        ),
-                        SizedBox(
-                          height: 51,
-                          child: TextButton(
-                            onPressed:
-                                seriesList.isEmpty && widget.from == From.jm
-                                ? null
-                                : () async => await _selectJumpChapter(),
-                            child: Center(
-                              child: Text(
-                                '跳转章节',
-                                style: TextStyle(fontSize: 16),
-                              ),
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          icon: _getThemeIcon(),
-                          onPressed: () {
-                            final nextMode =
-                                (globalSetting.themeMode.index + 1) % 3;
-                            globalSetting.setThemeMode(nextMode);
-                          },
-                        ),
-                      ],
+                    IconButton(
+                      icon: _getThemeIcon(),
+                      onPressed: () {
+                        final ThemeMode nextMode =
+                            switch (globalSettingState.themeMode) {
+                              ThemeMode.system => ThemeMode.light,
+                              ThemeMode.light => ThemeMode.dark,
+                              ThemeMode.dark => ThemeMode.system,
+                            };
+
+                        gloablSettingCubit.updateThemeMode(nextMode);
+                      },
                     ),
                   ],
                 ),
-              ),
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
   Icon _getThemeIcon() {
-    return switch (globalSetting.themeMode) {
+    final globalSettingState = context.watch<GlobalSettingCubit>().state;
+
+    return switch (globalSettingState.themeMode) {
       ThemeMode.system => const Icon(Icons.brightness_auto_outlined),
       ThemeMode.light => const Icon(Icons.brightness_7),
       ThemeMode.dark => const Icon(Icons.brightness_2_rounded),
@@ -285,6 +286,7 @@ class _BottomWidgetState extends State<BottomWidget> {
       }
     }
     if (result) {
+      if (!mounted) return;
       router.popAndPush(
         ComicReadRoute(
           comicInfo: widget.comicInfo,
@@ -293,7 +295,7 @@ class _BottomWidgetState extends State<BottomWidget> {
           order: order,
           epsNumber: widget.epsNumber,
           from: widget.from,
-          store: widget.store,
+          stringSelectCubit: context.read<StringSelectCubit>(),
         ),
       );
     }
@@ -332,7 +334,7 @@ class _BottomWidgetState extends State<BottomWidget> {
           order: result,
           epsNumber: widget.epsNumber,
           from: widget.from,
-          store: widget.store,
+          stringSelectCubit: context.read<StringSelectCubit>(),
         ),
       );
     }

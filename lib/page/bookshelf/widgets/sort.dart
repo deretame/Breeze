@@ -1,14 +1,13 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
-import 'package:zephyr/page/bookshelf/bookshelf.dart';
 
 class SortWidget extends StatefulWidget {
-  final SearchStatusStore searchStatusStore;
+  final String initialSort;
   final Function(String) onSortChanged;
 
   const SortWidget({
     super.key,
-    required this.searchStatusStore,
+    required this.initialSort,
     required this.onSortChanged,
   });
 
@@ -17,8 +16,6 @@ class SortWidget extends StatefulWidget {
 }
 
 class _SortWidgetState extends State<SortWidget> {
-  SearchStatusStore get searchStatusStore => widget.searchStatusStore;
-
   late final List<String> sortList = ["从新到旧", "从旧到新", "最多点赞", "最多观看"];
   late final Map<String, String> sortMap = {
     "dd": "从新到旧",
@@ -38,7 +35,7 @@ class _SortWidgetState extends State<SortWidget> {
   @override
   void initState() {
     super.initState();
-    selectedValue = sortMap[searchStatusStore.sort]!;
+    selectedValue = sortMap[widget.initialSort]!;
   }
 
   @override

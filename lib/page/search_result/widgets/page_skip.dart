@@ -86,7 +86,7 @@ class PageSkip extends StatelessWidget {
           );
 
           onChanged(newSearchEnter);
-          pageCubit.updateDate("$pageSkip/$pagesCount");
+          pageCubit.setDate("$pageSkip/$pagesCount");
         }
       },
       label: Text('跳页'),

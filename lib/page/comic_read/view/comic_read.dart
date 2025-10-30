@@ -4,8 +4,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
@@ -16,6 +16,7 @@ import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart'
     show downloadInfoJsonFromJson, DownloadInfoJsonSeries;
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart'
     show JmComicInfoJson;
+import 'package:zephyr/util/settings_hive_utils.dart';
 
 import '../../../object_box/model.dart';
 import '../../../object_box/objectbox.g.dart';
@@ -28,10 +29,11 @@ import '../json/common_ep_info_json/common_ep_info_json.dart';
 class ComicReadPage extends StatelessWidget {
   final String comicId;
   final int order;
-  final int epsNumber; // 这个的意思是一共有多少章
+  final int epsNumber;
   final From from;
   final ComicEntryType type;
-  final dynamic comicInfo; // 这个是比较方便的让禁漫和哔咔把漫画的数据传输过来，到时候强制转换类型就行了
+  final dynamic comicInfo;
+  // 这个 Cubit 仍然需要从路由参数中接收
   final StringSelectCubit stringSelectCubit;
 
   const ComicReadPage({
@@ -40,15 +42,20 @@ class ComicReadPage extends StatelessWidget {
     required this.order,
     required this.epsNumber,
     required this.from,
-    required this.stringSelectCubit,
+    required this.stringSelectCubit, // 仍然是必需的
     required this.type,
     required this.comicInfo,
   });
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => PageBloc()..add(PageEvent(comicId, order, from)),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => PageBloc()..add(PageEvent(comicId, order, from)),
+        ),
+        BlocProvider.value(value: stringSelectCubit),
+      ],
       child: _ComicReadPage(
         comicId: comicId,
         order: order,
@@ -56,7 +63,6 @@ class ComicReadPage extends StatelessWidget {
         from: from,
         type: type,
         comicInfo: comicInfo,
-        stringSelectCubit: stringSelectCubit,
       ),
     );
   }
@@ -69,7 +75,6 @@ class _ComicReadPage extends StatefulWidget {
   final From from;
   final ComicEntryType type;
   final dynamic comicInfo;
-  final StringSelectStore store;
 
   const _ComicReadPage({
     required this.comicId,
@@ -78,7 +83,6 @@ class _ComicReadPage extends StatefulWidget {
     required this.from,
     required this.type,
     required this.comicInfo,
-    required this.store,
   });
 
   @override
@@ -89,8 +93,6 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   dynamic get comicInfo => widget.comicInfo;
 
   String get comicId => widget.comicId;
-
-  StringSelectStore get store => widget.store;
 
   String epId = '';
   String epName = '';
@@ -132,7 +134,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   void initState() {
     super.initState();
     // logger.d(widget.epsNumber.toString());
-    if (globalSetting.readMode != 0) {
+    if (SettingsHiveUtils.readMode != 0) {
       pageIndex = 2;
     }
     _currentSliderValue = 0;
@@ -198,7 +200,8 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (globalSetting.readMode != 0) {
+      final globalSettingState = context.watch<GlobalSettingCubit>().state;
+      if (globalSettingState.readMode != 0) {
         await Future.delayed(Duration(milliseconds: 200));
         setState(() => _isVisible = false);
       }
@@ -266,7 +269,9 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     // logger.d(_currentSliderValue.toString());
     if (_loading) _loading = false;
 
-    if (_isVisible == false && globalSetting.readMode == 0) {
+    final globalSettingState = context.watch<GlobalSettingCubit>().state;
+
+    if (_isVisible == false && globalSettingState.readMode == 0) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     }
 
@@ -331,11 +336,12 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     epsNumber: widget.epsNumber,
     comicId: comicId,
     from: widget.from,
-    store: store,
   );
 
   /// 构建交互式查看器
   Widget _buildInteractiveViewer() {
+    final globalSettingState = context.watch<GlobalSettingCubit>().state;
+
     return GestureDetector(
       onTap: _onTap,
       onTapDown: (TapDownDetails details) => _tapDownDetails = details,
@@ -343,19 +349,17 @@ class _ComicReadPageState extends State<_ComicReadPage> {
         boundaryMargin: EdgeInsets.zero,
         minScale: 1.0,
         maxScale: 4.0,
-        child: Observer(
-          builder: (context) {
-            return globalSetting.readMode == 0
-                ? _columnModeWidget()
-                : _rowModeWidget();
-          },
-        ),
+        child: globalSettingState.readMode == 0
+            ? _columnModeWidget()
+            : _rowModeWidget(),
       ),
     );
   }
 
   Future<void> _onTap() async {
-    if (globalSetting.readMode != 0) {
+    final globalSettingState = context.watch<GlobalSettingCubit>().state;
+
+    if (globalSettingState.readMode != 0) {
       // 延迟到下一个循环中执行，避免点击事件冲突
       await Future.delayed(Duration.zero);
       if (_tapDownDetails != null) {
@@ -379,28 +383,35 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     from: widget.from,
   );
 
-  Widget _rowModeWidget() => RowModeWidget(
-    key: ValueKey(globalSetting.readMode.toString()),
-    comicId: comicId,
-    epsId: epId,
-    docs: docs,
-    pageController: _pageController,
-    onPageChanged: (int index) {
-      setState(() {
-        pageIndex = index + 2;
+  Widget _rowModeWidget() {
+    final globalSettingState = context.watch<GlobalSettingCubit>().state;
 
-        // logger.d('当前页数：${pageIndex - 1}');
-        if (!_isComicRolling) {
-          // 确保 clamp 的最大值不小于最小值，避免 Invalid argument 错误
-          final maxSlot = (_totalSlots - 1).clamp(0, double.maxFinite.toInt());
-          _currentSliderValue = (pageIndex).clamp(0, maxSlot).toDouble() - 1;
-          _isVisible = false;
-        }
-      });
-    },
-    isSliderRolling: _isSliderRolling,
-    from: widget.from,
-  );
+    return RowModeWidget(
+      key: ValueKey(globalSettingState.readMode.toString()),
+      comicId: comicId,
+      epsId: epId,
+      docs: docs,
+      pageController: _pageController,
+      onPageChanged: (int index) {
+        setState(() {
+          pageIndex = index + 2;
+
+          // logger.d('当前页数：${pageIndex - 1}');
+          if (!_isComicRolling) {
+            // 确保 clamp 的最大值不小于最小值，避免 Invalid argument 错误
+            final maxSlot = (_totalSlots - 1).clamp(
+              0,
+              double.maxFinite.toInt(),
+            );
+            _currentSliderValue = (pageIndex).clamp(0, maxSlot).toDouble() - 1;
+            _isVisible = false;
+          }
+        });
+      },
+      isSliderRolling: _isSliderRolling,
+      from: widget.from,
+    );
+  }
 
   /// 切换UI可见性
   void _toggleVisibility() {
@@ -411,6 +422,8 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   }
 
   void _handleTap(TapDownDetails details) {
+    final globalSettingState = context.watch<GlobalSettingCubit>().state;
+
     // 获取点击的全局坐标
     final Offset tapPosition = details.globalPosition;
     // 将屏幕宽度分为三等份
@@ -421,7 +434,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     final double middleBottomHeight =
         MediaQuery.of(context).size.height * 2 / 3; // 下三分之一
 
-    final readMode = globalSetting.readMode == 1 ? true : false;
+    final readMode = globalSettingState.readMode == 1 ? true : false;
 
     // 判断点击区域
     if (tapPosition.dx < thirdWidth) {
@@ -465,7 +478,11 @@ class _ComicReadPageState extends State<_ComicReadPage> {
 
     final historyPrefix = isJmAndSeriesEmpty ? '历史：第1话' : '历史：$epName';
 
-    store.setDate('$historyPrefix / ${pageIndex - 1} / $currentTime');
+    final stringSelectCubit = context.read<StringSelectCubit>();
+
+    stringSelectCubit.setDate(
+      '$historyPrefix / ${pageIndex - 1} / $currentTime',
+    );
 
     if (widget.from == From.bika) {
       // 更新记录
@@ -501,7 +518,9 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   }
 
   Future<void> getTopThirdItemIndex(Iterable<ItemPosition> positions) async {
-    if (globalSetting.readMode != 0) return;
+    final globalSettingState = context.watch<GlobalSettingCubit>().state;
+
+    if (globalSettingState.readMode != 0) return;
     // 在数据加载完成前不处理滚动位置更新
     if (_totalSlots == 0) return;
 
@@ -647,7 +666,8 @@ class _ComicReadPageState extends State<_ComicReadPage> {
         if (!mounted) return;
         setState(() => pageIndex = index);
         // logger.d('历史记录：${comicHistory!.epPageCount}');
-        if (globalSetting.readMode == 0) {
+        final globalSettingState = context.watch<GlobalSettingCubit>().state;
+        if (globalSettingState.readMode == 0) {
           _itemScrollController.jumpTo(index: index - 1, alignment: 0.0);
         } else {
           _pageController.jumpTo(index - 2);

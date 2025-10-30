@@ -28,45 +28,30 @@ class CommentsChildrenPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => CommentsChildrenBloc()
-        ..add(
-          CommentsChildrenEvent(
-            fatherDoc.id,
-            CommentsChildrenStatus.initial,
-            1,
-          ),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => CommentsChildrenBloc()
+            ..add(
+              CommentsChildrenEvent(
+                fatherDoc.id,
+                CommentsChildrenStatus.initial,
+                1,
+              ),
+            ),
         ),
-      child: _CommentsChildrenPage(
-        fatherDoc: fatherDoc,
-        store: store,
-        likeCountStore: likeCountStore,
-      ),
+        BlocProvider.value(value: boolSelectCubit),
+        BlocProvider.value(value: intSelectCubit),
+      ],
+      child: _CommentsChildrenPage(fatherDoc: fatherDoc),
     );
   }
 }
 
-class _CommentsChildrenPage extends StatefulWidget {
+class _CommentsChildrenPage extends StatelessWidget {
   final comments_json.Doc fatherDoc;
-  final BoolSelectStore store;
-  final IntSelectStore likeCountStore;
 
-  const _CommentsChildrenPage({
-    required this.fatherDoc,
-    required this.store,
-    required this.likeCountStore,
-  });
-
-  @override
-  _CommentsChildrenPageState createState() => _CommentsChildrenPageState();
-}
-
-class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
-  comments_json.Doc get fatherDoc => widget.fatherDoc;
-
-  BoolSelectStore get store => widget.store;
-
-  IntSelectStore get likeCountStore => widget.likeCountStore;
+  const _CommentsChildrenPage({required this.fatherDoc});
 
   @override
   Widget build(BuildContext context) {
@@ -81,12 +66,7 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
             case CommentsChildrenStatus.getMoreFailure:
             case CommentsChildrenStatus.loadingMore:
             case CommentsChildrenStatus.comment:
-              return _CommentWidget(
-                fatherDoc: fatherDoc,
-                state: state,
-                store: store,
-                likeCountStore: likeCountStore,
-              );
+              return _CommentWidget(fatherDoc: fatherDoc, state: state);
           }
         },
       ),
@@ -97,19 +77,23 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
           if (text.isEmpty) {
             return;
           }
-          _writeCommentChildren(fatherDoc.id, text);
+          if (!context.mounted) return;
+          _writeCommentChildren(context, fatherDoc.id, text);
         },
       ),
     );
   }
 
-  Future<void> _writeCommentChildren(String comicId, String text) async {
+  Future<void> _writeCommentChildren(
+    BuildContext context,
+    String comicId,
+    String text,
+  ) async {
     try {
       showInfoToast("正在评论...");
       await writeCommentChildren(comicId, text);
 
-      // 检查 State 是否仍然挂载
-      if (!mounted) return;
+      if (!context.mounted) return;
 
       context.read<CommentsChildrenBloc>().add(
         CommentsChildrenEvent(comicId, CommentsChildrenStatus.comment, 1),
@@ -134,60 +118,53 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
     String? result = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
-        return Observer(
-          builder: (context) {
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.0), // 圆角
-              ),
-              child: Container(
-                padding: EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min, // 使对话框根据内容调整大小
-                  children: [
-                    Text(title),
-                    SizedBox(height: 16),
-                    Container(
-                      decoration: BoxDecoration(
-                        // color: Colors.grey[200], // 背景色
-                        border: Border.all(
-                          color: globalSetting.themeType
-                              ? materialColorScheme.secondaryFixedDim
-                              : materialColorScheme.secondaryFixedDim,
-                        ), // 边框
-                        borderRadius: BorderRadius.circular(8.0), // 圆角
-                      ),
-                      padding: EdgeInsets.symmetric(horizontal: 8.0),
-                      child: TextField(
-                        controller: controller,
-                        maxLines: null, // 设置多行输入
-                        decoration: InputDecoration(
-                          border: InputBorder.none, // 去掉默认的输入框边框
-                          hintText: defaultText,
-                        ),
-                      ),
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0), // 圆角
+          ),
+          child: Container(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // 使对话框根据内容调整大小
+              children: [
+                Text(title),
+                SizedBox(height: 16),
+                Container(
+                  decoration: BoxDecoration(
+                    // color: Colors.grey[200], // 背景色
+                    border: Border.all(
+                      color: context.theme.colorScheme.onInverseSurface,
+                    ), // 边框
+                    borderRadius: BorderRadius.circular(8.0), // 圆角
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  child: TextField(
+                    controller: controller,
+                    maxLines: null, // 设置多行输入
+                    decoration: InputDecoration(
+                      border: InputBorder.none, // 去掉默认的输入框边框
+                      hintText: defaultText,
                     ),
-                    SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          onPressed: () => context.pop(), // 关闭对话框
-                          child: Text('取消'),
-                        ),
-                        SizedBox(width: 8),
-                        ElevatedButton(
-                          onPressed: () =>
-                              context.pop(controller.text), // 返回输入内容
-                          child: Text('确认'),
-                        ),
-                      ],
+                  ),
+                ),
+                SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => context.pop(), // 关闭对话框
+                      child: Text('取消'),
+                    ),
+                    SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () => context.pop(controller.text), // 返回输入内容
+                      child: Text('确认'),
                     ),
                   ],
                 ),
-              ),
-            );
-          },
+              ],
+            ),
+          ),
         );
       },
     );
@@ -199,15 +176,8 @@ class _CommentsChildrenPageState extends State<_CommentsChildrenPage> {
 class _CommentWidget extends StatefulWidget {
   final comments_json.Doc fatherDoc;
   final CommentsChildrenState state;
-  final BoolSelectStore store;
-  final IntSelectStore likeCountStore;
 
-  const _CommentWidget({
-    required this.fatherDoc,
-    required this.state,
-    required this.store,
-    required this.likeCountStore,
-  });
+  const _CommentWidget({required this.fatherDoc, required this.state});
 
   @override
   State<_CommentWidget> createState() => _CommentWidgetState();
@@ -217,10 +187,6 @@ class _CommentWidgetState extends State<_CommentWidget> {
   comments_json.Doc get fatherDoc => widget.fatherDoc;
 
   CommentsChildrenState get state => widget.state;
-
-  BoolSelectStore get store => widget.store;
-
-  IntSelectStore get likeCountStore => widget.likeCountStore;
 
   List<CommentsChildrenJson> comments = [];
 
@@ -244,13 +210,16 @@ class _CommentWidgetState extends State<_CommentWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final BoolSelectCubit boolCubit = context.read<BoolSelectCubit>();
+    final IntSelectCubit intCubit = context.read<IntSelectCubit>();
+
     if (state.status == CommentsChildrenStatus.initial) {
       return Column(
         children: [
           FatherCommentsWidget(
             doc: fatherDoc,
-            store: store,
-            likeCountStore: likeCountStore,
+            boolSelectCubit: boolCubit,
+            intSelectCubit: intCubit,
           ),
           _divider(),
           Padding(
@@ -266,8 +235,8 @@ class _CommentWidgetState extends State<_CommentWidget> {
         children: [
           FatherCommentsWidget(
             doc: fatherDoc,
-            store: store,
-            likeCountStore: likeCountStore,
+            boolSelectCubit: boolCubit,
+            intSelectCubit: intCubit,
           ),
           _divider(),
           ErrorView(
@@ -316,8 +285,8 @@ class _CommentWidgetState extends State<_CommentWidget> {
             children: [
               FatherCommentsWidget(
                 doc: fatherDoc,
-                store: store,
-                likeCountStore: likeCountStore,
+                boolSelectCubit: boolCubit,
+                intSelectCubit: intCubit,
               ),
               _divider(),
               SizedBox(height: 5),
@@ -411,7 +380,7 @@ class _CommentWidgetState extends State<_CommentWidget> {
     return Container(
       width: context.screenHeight,
       height: 5,
-      color: materialColorScheme.onInverseSurface,
+      color: context.theme.colorScheme.onInverseSurface,
     );
   }
 }

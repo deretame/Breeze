@@ -370,9 +370,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
       if (itemIndex >= 0 && itemIndex < comics.length) {
         int buildNumber = comics[itemIndex].buildNumber;
         // logger.d(comics[itemIndex].doc.title);
-        context.read<StringSelectCubit>().updateDate(
-          "$buildNumber/$pagesCount",
-        );
+        context.read<StringSelectCubit>().setDate("$buildNumber/$pagesCount");
       }
 
       // 更新上次执行时间

@@ -1,6 +1,6 @@
 import 'package:custom_sliding_segmented_control/custom_sliding_segmented_control.dart';
 import 'package:flutter/material.dart';
-import 'package:zephyr/main.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
 class TopTabBar extends StatelessWidget {
   final ValueChanged<int> onValueChanged;
@@ -9,6 +9,8 @@ class TopTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final materialColorScheme = context.theme.colorScheme;
+
     return CustomSlidingSegmentedControl<int>(
       // fromMax: true,
       children: const {

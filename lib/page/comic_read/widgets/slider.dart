@@ -2,7 +2,10 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../main.dart';
 
@@ -82,8 +85,10 @@ class _SliderWidgetState extends State<SliderWidget> {
               _overlayEntry = null;
             });
 
+            final globalSettingState = context.read<GlobalSettingCubit>().state;
+
             // 滚动到指定的索引
-            if (globalSetting.readMode == 0) {
+            if (globalSettingState.readMode == 0) {
               widget.itemScrollController.scrollTo(
                 index: currentSliderValue.toInt() + 1,
                 alignment: 0.0,
@@ -125,7 +130,7 @@ class _SliderWidgetState extends State<SliderWidget> {
                       vertical: 24.0,
                     ),
                     decoration: BoxDecoration(
-                      color: materialColorScheme.surfaceBright.withValues(
+                      color: context.theme.colorScheme.surfaceBright.withValues(
                         alpha: 0.5,
                       ),
                       borderRadius: BorderRadius.circular(10),
@@ -135,7 +140,7 @@ class _SliderWidgetState extends State<SliderWidget> {
                         text: message,
                         style: TextStyle(
                           fontSize: 60,
-                          color: globalSetting.textColor.withValues(alpha: 0.8),
+                          color: context.textColor.withValues(alpha: 0.8),
                         ),
                       ),
                     ),

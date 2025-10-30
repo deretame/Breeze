@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart'; // 1. 导入 Bloc
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -17,26 +18,34 @@ Widget deletingDialog(BuildContext context, Function refresh, DeleteType type) {
   return Center(
     child: TextButton(
       onPressed: () {
-        // 弹出确认对话框
+        // 这里的 `context` 是 `deletingDialog` 被调用时传入的 context,
+        // 它可以访问到 BlocProvider
         showDialog(
           context: context,
-          builder: (BuildContext context) {
+          builder: (BuildContext dialogContext) {
+            // dialogContext 是对话框自己的 context，
+            // 它是 `context` 的子级，所以它也可以访问到 BlocProvider
             return AlertDialog(
               title: Text('确认删除'),
               content: Text(bodyText),
               actions: [
-                TextButton(onPressed: () => context.pop(), child: Text('取消')),
+                TextButton(
+                  onPressed: () => dialogContext.pop(), // 使用 dialogContext
+                  child: Text('取消'),
+                ),
                 TextButton(
                   onPressed: () {
                     if (type == DeleteType.download) {
-                      // 执行删除操作
                       objectbox.bikaDownloadBox.removeAll();
                       deleteDirectory(
                         '/data/data/com.zephyr.breeze/files/downloads',
                       );
                     } else {
-                      // 执行清空操作
-                      if (bookshelfStore.topBarStore.date == 1) {
+                      final topBarState = dialogContext
+                          .read<TopBarCubit>()
+                          .state;
+
+                      if (topBarState == 1) {
                         var allHistory = objectbox.bikaHistoryBox.getAll();
 
                         for (var history in allHistory) {
@@ -45,7 +54,7 @@ Widget deletingDialog(BuildContext context, Function refresh, DeleteType type) {
                         }
 
                         objectbox.bikaHistoryBox.putMany(allHistory);
-                      } else if (bookshelfStore.topBarStore.date == 2) {
+                      } else if (topBarState == 2) {
                         var allHistory = objectbox.jmHistoryBox.getAll();
 
                         for (var history in allHistory) {
@@ -68,7 +77,7 @@ Widget deletingDialog(BuildContext context, Function refresh, DeleteType type) {
                     }
 
                     // 关闭对话框
-                    context.pop();
+                    dialogContext.pop(); // 使用 dialogContext
                   },
                   child: Text('确认'),
                 ),

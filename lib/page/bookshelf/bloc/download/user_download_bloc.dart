@@ -3,6 +3,7 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
+import 'package:zephyr/util/settings_hive_utils.dart';
 
 import '../../../../main.dart';
 import '../../../../object_box/model.dart';
@@ -107,7 +108,9 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
     List<BikaComicDownload> comics,
   ) {
     // 获取所有被屏蔽的分类
-    List<String> shieldedCategoriesList = bikaSetting.shieldCategoryMap.entries
+    List<String> shieldedCategoriesList = SettingsHiveUtils
+        .bikaShieldCategoryMap
+        .entries
         .where((entry) => entry.value) // 只选择值为 true 的条目
         .map((entry) => entry.key) // 提取键（分类名）
         .toList();
@@ -123,7 +126,7 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
 
   List<dynamic> _getComicList(UserDownloadEvent event) {
     List<dynamic> comics = [];
-    if (bookshelfStore.topBarStore.date == 1) {
+    if (SettingsHiveUtils.comicChoice == 1) {
       late var comicList = objectbox.bikaDownloadBox.getAll();
 
       comicList = _filterShieldedComics(comicList);
@@ -155,7 +158,7 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
       }
 
       comics = comicList;
-    } else if (bookshelfStore.topBarStore.date == 2) {
+    } else if (SettingsHiveUtils.comicChoice == 2) {
       late var comicList = objectbox.jmDownloadBox.getAll();
 
       comicList = _fetchOfSortJm(comicList, event.searchEnterConst.sort);

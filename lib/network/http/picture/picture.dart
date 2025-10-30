@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/settings_hive_utils.dart';
 
 import '../../../config/jm/config.dart';
 import '../../../src/rust/api/simple.dart';
@@ -94,8 +95,8 @@ Future<String> getCachePicture({
           url,
           path,
           pictureType,
-          bikaSetting.imageQuality,
-          bikaSetting.proxy,
+          SettingsHiveUtils.bikaImageQuality,
+          SettingsHiveUtils.bikaProxy,
         );
 
   // 下载图片
@@ -209,7 +210,13 @@ Future<String> downloadPicture({
   // 处理 URL
   String finalUrl = from == 'jm'
       ? url
-      : buildImageUrl(url, path, pictureType, "original", bikaSetting.proxy);
+      : buildImageUrl(
+          url,
+          path,
+          pictureType,
+          "original",
+          SettingsHiveUtils.bikaProxy,
+        );
 
   // 下载图片
   Uint8List imageData = await downloadImageWithRetry(finalUrl, retry: true);
@@ -256,7 +263,7 @@ String buildFilePath(
 ]) {
   String quality1 = '';
   if (from == 'bika') {
-    quality1 = quality ?? bikaSetting.imageQuality;
+    quality1 = quality ?? SettingsHiveUtils.bikaImageQuality;
   }
   if (pictureType == 'comic') {
     return file_path.join(

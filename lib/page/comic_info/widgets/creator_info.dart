@@ -3,11 +3,9 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../main.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
@@ -39,6 +37,7 @@ class CreatorInfoWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final materialColorScheme = context.theme.colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 5.0),
       child: InkWell(
@@ -55,61 +54,51 @@ class CreatorInfoWidget extends StatelessWidget {
             ),
           );
         },
-        child: Observer(
-          builder: (context) {
-            return Container(
-              height: 75,
-              width: context.screenWidth * (48 / 50),
-              decoration: BoxDecoration(
-                color: globalSetting.backgroundColor,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: globalSetting.themeType
-                        ? materialColorScheme.secondaryFixedDim
-                        : materialColorScheme.secondaryFixedDim,
-                    spreadRadius: 0,
-                    blurRadius: 2,
-                  ),
-                ],
+        child: Container(
+          height: 75,
+          width: context.screenWidth * (48 / 50),
+          decoration: BoxDecoration(
+            color: context.backgroundColor,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: materialColorScheme.secondaryFixedDim,
+                spreadRadius: 0,
+                blurRadius: 2,
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  _ImagerWidget(
-                    pictureInfo: PictureInfo(
-                      url: comicInfo.creator.avatar.fileServer,
-                      path: comicInfo.creator.avatar.path,
-                      cartoonId: comicInfo.id,
-                      pictureType: "creator",
-                      chapterId: comicInfo.id,
-                      from: "bika",
-                    ),
-                  ),
-                  const SizedBox(width: 15),
-                  Flexible(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          comicInfo.creator.name,
-                          style: TextStyle(
-                            color: globalSetting.themeType
-                                ? materialColorScheme.tertiary
-                                : materialColorScheme.tertiary,
-                          ),
-                        ),
-                        Text(timeDecode(comicInfo.updatedAt)),
-                      ],
-                    ),
-                  ),
-                ],
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              _ImagerWidget(
+                pictureInfo: PictureInfo(
+                  url: comicInfo.creator.avatar.fileServer,
+                  path: comicInfo.creator.avatar.path,
+                  cartoonId: comicInfo.id,
+                  pictureType: "creator",
+                  chapterId: comicInfo.id,
+                  from: "bika",
+                ),
               ),
-            );
-          },
+              const SizedBox(width: 15),
+              Flexible(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      comicInfo.creator.name,
+                      style: TextStyle(color: materialColorScheme.tertiary),
+                    ),
+                    Text(timeDecode(comicInfo.updatedAt)),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -136,7 +125,7 @@ class _ImagerWidget extends StatelessWidget {
                 case PictureLoadStatus.initial:
                   return Center(
                     child: LoadingAnimationWidget.waveDots(
-                      color: globalSetting.textColor,
+                      color: context.textColor,
                       size: 25,
                     ),
                   );

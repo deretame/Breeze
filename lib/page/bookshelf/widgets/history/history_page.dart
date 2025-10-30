@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
@@ -36,12 +36,6 @@ class _HistoryPage extends StatefulWidget {
 
 class __HistoryPageState extends State<_HistoryPage>
     with AutomaticKeepAliveClientMixin {
-  SearchStatusStore get searchStatusStore => bookshelfStore.historyStore;
-
-  StringSelectStore get stringSelectStore => bookshelfStore.stringSelectStore;
-
-  IntSelectStore get indexStore => bookshelfStore.indexStore;
-
   int totalComicCount = 0;
   bool notice = false;
 
@@ -53,18 +47,19 @@ class __HistoryPageState extends State<_HistoryPage>
     _scrollController.addListener(_scrollListener);
 
     eventBus.on<HistoryEvent>().listen((event) {
+      if (!mounted) return;
       if (event.type == EventType.showInfo) {
-        stringSelectStore.setDate(totalComicCount.toString());
+        context.read<StringSelectCubit>().setDate(totalComicCount.toString());
       } else if (event.type == EventType.refresh) {
-        _refresh(searchStatusStore, true);
+        _refresh(true);
       }
     });
   }
 
   // 滚动监听方法
   void _scrollListener() {
-    if (bookshelfStore.indexStore.date == 1) {
-      stringSelectStore.setDate(totalComicCount.toString());
+    if (context.read<IntSelectCubit>().state == 1) {
+      context.read<StringSelectCubit>().setDate(totalComicCount.toString());
     }
   }
 
@@ -74,18 +69,35 @@ class __HistoryPageState extends State<_HistoryPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return BlocBuilder<UserHistoryBloc, UserHistoryState>(
-      builder: (context, state) {
-        return RefreshIndicator(
-          displacement: 60.0,
-          onRefresh: () async {
-            if (bookshelfStore.indexStore.date == 1) {
-              _refresh(bookshelfStore.historyStore);
-            }
-          },
-          child: _buildContent(state),
-        );
+
+    final currentTabIndex = context.watch<IntSelectCubit>().state;
+
+    return BlocListener<UserHistoryBloc, UserHistoryState>(
+      listener: (context, state) {
+        if (state.status == UserHistoryStatus.success) {
+          totalComicCount = state.comics.length;
+
+          if (context.read<IntSelectCubit>().state == 1) {
+            context.read<StringSelectCubit>().setDate(
+              totalComicCount.toString(),
+            );
+          }
+        }
       },
+      child: BlocBuilder<UserHistoryBloc, UserHistoryState>(
+        builder: (context, state) {
+          return RefreshIndicator(
+            displacement: 60.0,
+            onRefresh: () async {
+              if (currentTabIndex == 1) {
+                // 使用 watch 到的状态
+                _refresh(); // _refresh 不再需要参数
+              }
+            },
+            child: _buildContent(state),
+          );
+        },
+      ),
     );
   }
 
@@ -110,39 +122,28 @@ class __HistoryPageState extends State<_HistoryPage>
             style: TextStyle(fontSize: 20),
           ),
           SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () => _refresh(searchStatusStore),
-            child: Text('点击重试'),
-          ),
+          ElevatedButton(onPressed: () => _refresh(), child: Text('点击重试')),
         ],
       ),
     );
   }
 
   Widget _buildList(UserHistoryState state) {
-    totalComicCount = state.comics.length;
-
-    _showNoticeIfNeeded();
-
     if (state.comics.isEmpty) {
       return _buildEmptyState();
     }
 
-    if (bookshelfStore.topBarStore.date == 2) {
+    final topBarState = context.watch<TopBarCubit>().state;
+
+    if (topBarState == 2) {
       return _buildBrevityList(state);
     }
 
-    return bikaSetting.brevity
+    final bikaSettingCubit = context.read<BikaSettingCubit>();
+
+    return bikaSettingCubit.state.brevity
         ? _buildBrevityList(state)
         : _buildDetailedList(state);
-  }
-
-  // 显示通知（如果条件满足）
-  void _showNoticeIfNeeded() {
-    if (!notice && bookshelfStore.indexStore.date == 1) {
-      eventBus.fire(HistoryEvent(EventType.showInfo));
-      notice = true;
-    }
   }
 
   // 构建空状态UI
@@ -154,7 +155,7 @@ class __HistoryPageState extends State<_HistoryPage>
           const Text('啥都没有', style: TextStyle(fontSize: 20.0)),
           const SizedBox(height: 10),
           IconButton(
-            onPressed: () => _refresh(bookshelfStore.historyStore, true),
+            onPressed: () => _refresh(true),
             icon: const Icon(Icons.refresh),
           ),
           const Spacer(),
@@ -176,7 +177,7 @@ class __HistoryPageState extends State<_HistoryPage>
         context,
         index,
         elementsRows.length,
-        () => _refresh(searchStatusStore),
+        () => _refresh(),
         isBrevity: true,
         elementsRows: elementsRows,
       ),
@@ -185,17 +186,15 @@ class __HistoryPageState extends State<_HistoryPage>
 
   // 构建详细模式列表
   Widget _buildDetailedList(UserHistoryState state) {
-    return Observer(
-      builder: (_) => _buildCommonListView(
-        itemCount: state.comics.length + 1,
-        itemBuilder: (context, index) => _buildListItem(
-          context,
-          index,
-          state.comics.length,
-          () => _refresh(searchStatusStore),
-          isBrevity: false,
-          comics: state.comics,
-        ),
+    return _buildCommonListView(
+      itemCount: state.comics.length + 1,
+      itemBuilder: (context, index) => _buildListItem(
+        context,
+        index,
+        state.comics.length,
+        () => _refresh(),
+        isBrevity: false,
+        comics: state.comics,
       ),
     );
   }
@@ -228,7 +227,7 @@ class __HistoryPageState extends State<_HistoryPage>
         children: [
           SizedBox(height: 10),
           IconButton(
-            onPressed: () => _refresh(searchStatusStore, true),
+            onPressed: () => _refresh(true),
             icon: const Icon(Icons.refresh),
           ),
           deletingDialog(context, refreshCallback, DeleteType.history),
@@ -236,7 +235,9 @@ class __HistoryPageState extends State<_HistoryPage>
       );
     }
 
-    if (bookshelfStore.topBarStore.date == 1) {
+    final topBarState = context.read<TopBarCubit>().state;
+
+    if (topBarState == 1) {
       if (isBrevity) {
         return ComicSimplifyEntryRow(
           key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
@@ -255,7 +256,7 @@ class __HistoryPageState extends State<_HistoryPage>
         }
         return const SizedBox.shrink();
       }
-    } else if (bookshelfStore.topBarStore.date == 2) {
+    } else if (topBarState == 2) {
       return ComicSimplifyEntryRow(
         key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
         entries: elementsRows[index],
@@ -268,7 +269,8 @@ class __HistoryPageState extends State<_HistoryPage>
 
   // 转换数据格式
   List<ComicSimplifyEntryInfo> _convertToEntryInfoList(List<dynamic> comics) {
-    if (bookshelfStore.topBarStore.date == 1) {
+    final topBarState = context.read<TopBarCubit>().state;
+    if (topBarState == 1) {
       final temp = comics.map((e) => e as BikaComicHistory).toList();
 
       return temp
@@ -283,7 +285,7 @@ class __HistoryPageState extends State<_HistoryPage>
             ),
           )
           .toList();
-    } else if (bookshelfStore.topBarStore.date == 2) {
+    } else if (topBarState == 2) {
       final temp = comics.map((e) => e as JmHistory).toList();
 
       return temp
@@ -303,7 +305,7 @@ class __HistoryPageState extends State<_HistoryPage>
     return [];
   }
 
-  void _refresh(SearchStatusStore searchStatusStore, [bool goToTop = false]) {
+  void _refresh([bool goToTop = false]) {
     if (_scrollController.hasClients && goToTop) {
       _scrollController.animateTo(
         0,
@@ -311,14 +313,16 @@ class __HistoryPageState extends State<_HistoryPage>
         curve: Curves.easeInOut,
       );
     }
-    notice = false;
     eventBus.fire(HistoryEvent(EventType.showInfo));
+
+    final searchStatus = context.read<HistoryCubit>().state;
+
     context.read<UserHistoryBloc>().add(
       UserHistoryEvent(
         SearchEnter(
-          keyword: searchStatusStore.keyword,
-          sort: searchStatusStore.sort,
-          categories: searchStatusStore.categories,
+          keyword: searchStatus.keyword,
+          sort: searchStatus.sort,
+          categories: searchStatus.categories,
           refresh: Uuid().v4(),
         ),
       ),

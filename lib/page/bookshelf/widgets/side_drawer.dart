@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -39,7 +40,7 @@ class _SideDrawerState extends State<SideDrawer> {
   @override
   Widget build(BuildContext context) {
     final tabIndex = context.watch<IntSelectCubit>().state;
-    final topBarState = context.watch<TopBarCubit>().state;
+    final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
 
     return Drawer(
       child: Column(
@@ -69,7 +70,7 @@ class _SideDrawerState extends State<SideDrawer> {
                 ),
                 Container(color: context.textColor, height: 1),
                 SizedBox(height: 16),
-                if (topBarState == 1) ...[
+                if (comicChoice == 1) ...[
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: _shieldCategory(),
@@ -78,11 +79,11 @@ class _SideDrawerState extends State<SideDrawer> {
                 ],
 
                 if (tabIndex == 0)
-                  _buildFavoriteContent(context, topBarState)
+                  _buildFavoriteContent(context, comicChoice)
                 else if (tabIndex == 1)
-                  _buildHistoryContent(context, topBarState)
+                  _buildHistoryContent(context, comicChoice)
                 else if (tabIndex == 2)
-                  _buildDownloadContent(context, topBarState),
+                  _buildDownloadContent(context, comicChoice),
               ],
             ),
           ),
@@ -297,10 +298,10 @@ class _SideDrawerState extends State<SideDrawer> {
   void _onTap() {
     final bikaSettingCubit = context.read<BikaSettingCubit>();
     final tabIndex = context.read<IntSelectCubit>().state;
-    final topBarState = context.read<TopBarCubit>().state;
+    final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
 
     if (tabIndex == 0) {
-      if (topBarState == 2) {
+      if (comicChoice == 2) {
         final cubit = context.read<JmFavoriteCubit>();
         cubit.setSort(sort);
         cubit.setKeyword(keyword);
@@ -327,7 +328,7 @@ class _SideDrawerState extends State<SideDrawer> {
 
       logger.d(categories);
 
-      eventBus.fire(HistoryEvent(EventType.refresh));
+      eventBus.fire(HistoryEvent(EventType.refresh, false));
     }
 
     if (tabIndex == 2) {
@@ -337,7 +338,7 @@ class _SideDrawerState extends State<SideDrawer> {
       cubit.setCategories(categories);
       cubit.setKeyword(keyword);
 
-      eventBus.fire(DownloadEvent(EventType.refresh));
+      eventBus.fire(DownloadEvent(EventType.refresh, false));
     }
   }
 }

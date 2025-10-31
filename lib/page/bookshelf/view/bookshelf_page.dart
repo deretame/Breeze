@@ -21,10 +21,6 @@ class BookshelfPage extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<IntSelectCubit>(create: (context) => IntSelectCubit()),
-        BlocProvider<TopBarCubit>(
-          create: (context) =>
-              TopBarCubit()..setDate(SettingsHiveUtils.comicChoice),
-        ),
         BlocProvider<StringSelectCubit>(
           create: (context) => StringSelectCubit(),
         ),
@@ -61,12 +57,15 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
           _currentIndex = _tabController.index;
 
           final indexCubit = context.read<IntSelectCubit>();
-          final topBarState = context.read<TopBarCubit>().state; // 直接读取状态
+          final comicChoice = context
+              .read<GlobalSettingCubit>()
+              .state
+              .comicChoice; // 直接读取状态
 
           indexCubit.setDate(_currentIndex);
 
           if (_currentIndex == 0) {
-            if (topBarState == 1) {
+            if (comicChoice == 1) {
               eventBus.fire(
                 FavoriteEvent(EventType.showInfo, SortType.nullValue, 0),
               );
@@ -74,9 +73,9 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
               eventBus.fire(JmFavoriteEvent(EventType.showInfo));
             }
           } else if (_currentIndex == 1) {
-            eventBus.fire(HistoryEvent(EventType.showInfo));
+            eventBus.fire(HistoryEvent(EventType.showInfo, false));
           } else if (_currentIndex == 2) {
-            eventBus.fire(DownloadEvent(EventType.showInfo));
+            eventBus.fire(DownloadEvent(EventType.showInfo, false));
           }
         }
       });
@@ -205,7 +204,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
 
       globalSettingCubit.updateComicChoice(newChoice);
 
-      context.read<TopBarCubit>().setDate(newChoice);
+      context.read<GlobalSettingCubit>().updateComicChoice(newChoice);
 
       context.read<FavoriteCubit>().resetSearch();
       context.read<HistoryCubit>().resetSearch();
@@ -213,13 +212,13 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
       context.read<JmFavoriteCubit>().resetSearch();
 
       eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 0));
-      eventBus.fire(HistoryEvent(EventType.refresh));
-      eventBus.fire(DownloadEvent(EventType.refresh));
       eventBus.fire(JmFavoriteEvent(EventType.refresh));
+      eventBus.fire(HistoryEvent(EventType.refresh, true));
+      eventBus.fire(DownloadEvent(EventType.refresh, true));
 
       _tabController.animateTo(0, duration: const Duration(milliseconds: 0));
 
-      if (context.read<TopBarCubit>().state == 2) {
+      if (context.read<GlobalSettingCubit>().state.comicChoice == 2) {
         eventBus.fire(JmFavoriteEvent(EventType.showInfo));
       }
     },
@@ -242,14 +241,15 @@ class _FavoritesTabPageState extends State<FavoritesTabPage>
   Widget build(BuildContext context) {
     super.build(context);
 
-    return BlocBuilder<TopBarCubit, int>(
-      builder: (context, comicChoiceState) {
-        if (comicChoiceState == 1) {
-          return FavoritePage();
-        } else {
-          return JmFavoritePage();
-        }
-      },
+    final comicChoice = context.select(
+      (GlobalSettingCubit cubit) => cubit.state.comicChoice,
+    );
+
+    final int pageIndex = (comicChoice == 1) ? 0 : 1;
+
+    return IndexedStack(
+      index: pageIndex,
+      children: <Widget>[FavoritePage(), JmFavoritePage()],
     );
   }
 }

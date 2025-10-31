@@ -66,6 +66,8 @@ Future<void> bikaDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
     eps: Eps(docs: epsDocs),
   );
 
+  logger.d(comicInfo.toJson());
+
   final coverPath = await downloadPicture(
     from: 'bika',
     url: comicInfo.thumb.fileServer,
@@ -76,7 +78,7 @@ Future<void> bikaDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
     proxy: task.bikaInfo.proxy.let(toInt),
   );
 
-  if (coverPath.contains('404')) {
+  if (coverPath.startsWith('404')) {
     comicAllInfoJson = comicAllInfoJson.copyWith(
       comic: comicAllInfoJson.comic.copyWith(
         thumb: comicAllInfoJson.comic.thumb.copyWith(fileServer: ""),

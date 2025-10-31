@@ -163,8 +163,8 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
             setState(() => _brevity = value);
             bikaCubit.updateBrevity(value);
 
-            eventBus.fire(HistoryEvent(EventType.refresh));
-            eventBus.fire(DownloadEvent(EventType.refresh));
+            eventBus.fire(HistoryEvent(EventType.refresh, false));
+            eventBus.fire(DownloadEvent(EventType.refresh, false));
             eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 1));
           },
         ),

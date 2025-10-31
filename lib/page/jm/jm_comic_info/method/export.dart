@@ -147,10 +147,16 @@ Future<void> exportComicAsZip(JmDownload jmDownload) async {
           pictureType: 'comic',
           chapterId: ep.id,
         );
+
+        if (pageDownloadFile == "404") {
+          logger.w("跳过 404 页面: $page");
+          continue;
+        }
+
         packInfo.originalImagePaths.add(pageDownloadFile);
         packInfo.packImagePaths.add(pageFile);
-      } catch (e) {
-        logger.e('Error downloading $page: $e');
+      } catch (e, s) {
+        logger.e('Error downloading $page: $e', stackTrace: s);
       }
     }
   }

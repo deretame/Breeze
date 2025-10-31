@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/main.dart';
+import 'package:zephyr/page/bookshelf/models/events.dart';
 import 'package:zephyr/page/jm/jm_ranking/view/jm_ranking.dart';
 import 'package:zephyr/page/ranking_list/ranking_list.dart';
 
@@ -57,6 +59,11 @@ class _HotTabBarState extends State<HotTabBar> {
                 } else {
                   globlalSettingCubit.updateComicChoice(1);
                 }
+
+                eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 0));
+                eventBus.fire(JmFavoriteEvent(EventType.refresh));
+                eventBus.fire(HistoryEvent(EventType.refresh, true));
+                eventBus.fire(DownloadEvent(EventType.refresh, true));
               },
             ),
     );

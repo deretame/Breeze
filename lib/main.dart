@@ -45,7 +45,7 @@ final appRouter = AppRouter();
 // 全局事件总线实例
 EventBus eventBus = EventBus();
 
-final logger = Logger(level: kReleaseMode ? Level.off : Level.trace);
+final logger = Logger();
 
 List<String> cfIpList = [];
 

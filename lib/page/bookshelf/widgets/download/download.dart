@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 
 import '../../../../config/global/global.dart';
-import '../../../../main.dart';
 import '../../../../cubit/int_select.dart';
 import '../../../../cubit/string_select.dart';
+import '../../../../main.dart';
 import '../../../../object_box/model.dart';
 import '../../../../type/enum.dart';
 import '../../../../widgets/comic_entry/comic_entry.dart';
@@ -20,8 +21,16 @@ class DownloadPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
+
     return BlocProvider(
-      create: (_) => UserDownloadBloc()..add(UserDownloadEvent(SearchEnter())),
+      create: (_) => UserDownloadBloc()
+        ..add(
+          UserDownloadEvent(
+            SearchEnter().copyWith(refresh: Uuid().v4()),
+            comicChoice,
+          ),
+        ),
       child: const _DownloadPage(),
     );
   }
@@ -51,7 +60,7 @@ class _DownloadPageState extends State<_DownloadPage>
       if (event.type == EventType.showInfo) {
         context.read<StringSelectCubit>().setDate(totalComicCount.toString());
       } else if (event.type == EventType.refresh) {
-        _refresh();
+        _refresh(true);
       }
     });
   }
@@ -90,7 +99,7 @@ class _DownloadPageState extends State<_DownloadPage>
           }
 
           if (!notice && tabIndex == 1) {
-            eventBus.fire(DownloadEvent(EventType.showInfo));
+            eventBus.fire(DownloadEvent(EventType.showInfo, false));
             notice = true;
           }
         }
@@ -146,9 +155,9 @@ class _DownloadPageState extends State<_DownloadPage>
     }
 
     // --- 9. 使用 context.watch 监听 TopBarCubit ---
-    final topBarState = context.watch<TopBarCubit>().state;
+    final comicChoice = context.watch<GlobalSettingCubit>().state.comicChoice;
 
-    if (topBarState == 2) {
+    if (comicChoice == 2) {
       // 使用 Cubit 状态
       return _buildBrevityList(state);
     }
@@ -234,7 +243,7 @@ class _DownloadPageState extends State<_DownloadPage>
     List<List<ComicSimplifyEntryInfo>>? elementsRows,
     List<dynamic>? comics,
   }) {
-    final topBarState = context.read<TopBarCubit>().state;
+    final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
 
     if (index == dataLength) {
       return Center(
@@ -251,7 +260,7 @@ class _DownloadPageState extends State<_DownloadPage>
       );
     }
 
-    if (topBarState == 1) {
+    if (comicChoice == 1) {
       if (isBrevity) {
         return ComicSimplifyEntryRow(
           key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
@@ -279,9 +288,9 @@ class _DownloadPageState extends State<_DownloadPage>
 
   // 转换数据格式
   List<ComicSimplifyEntryInfo> _convertToEntryInfoList(List<dynamic> comics) {
-    final topBarState = context.read<TopBarCubit>().state;
+    final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
 
-    if (topBarState == 1) {
+    if (comicChoice == 1) {
       final temp = comics.map((e) => e as BikaComicDownload).toList();
 
       return temp
@@ -314,17 +323,13 @@ class _DownloadPageState extends State<_DownloadPage>
     }
   }
 
-  void _refresh([bool goToTop = false]) {
-    if (_scrollController.hasClients && goToTop) {
-      _scrollController.animateTo(
-        0,
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
-    notice = false;
+  void _refresh([bool goToTop = false, bool clean = false]) {
+    final downloadCubit = context.read<DownloadCubit>();
+
+    if (clean) downloadCubit.resetSearch();
 
     final searchStatus = context.read<DownloadCubit>().state;
+    final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
 
     context.read<UserDownloadBloc>().add(
       UserDownloadEvent(
@@ -334,7 +339,19 @@ class _DownloadPageState extends State<_DownloadPage>
           categories: searchStatus.categories,
           refresh: Uuid().v4(),
         ),
+        comicChoice,
       ),
     );
+
+    Future.delayed(Duration.zero).then((_) {
+      if (_scrollController.hasClients && goToTop) {
+        _scrollController.animateTo(
+          0,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+      notice = false;
+    });
   }
 }

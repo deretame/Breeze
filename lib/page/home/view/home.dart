@@ -1,9 +1,9 @@
 import 'package:auto_route/auto_route.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/page/bookshelf/models/events.dart';
 import 'package:zephyr/page/home/category.dart';
 import 'package:zephyr/page/jm/jm_promote/view/jm_promote.dart';
 
@@ -75,6 +75,11 @@ class _HomePageState extends State<HomePage> {
     } else {
       globalSettingCubit.updateComicChoice(1);
     }
+
+    eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 0));
+    eventBus.fire(JmFavoriteEvent(EventType.refresh));
+    eventBus.fire(HistoryEvent(EventType.refresh, true));
+    eventBus.fire(DownloadEvent(EventType.refresh, true));
   }
 
   void search() {

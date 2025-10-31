@@ -3,12 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 
-import '../../../../main.dart';
 import '../../../../cubit/int_select.dart';
 import '../../../../cubit/string_select.dart';
+import '../../../../main.dart';
 import '../../../../object_box/model.dart';
 import '../../../../type/enum.dart';
 import '../../../../widgets/comic_entry/comic_entry.dart';
@@ -20,8 +21,16 @@ class HistoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final comicChoice = context.watch<GlobalSettingCubit>().state.comicChoice;
+
     return BlocProvider(
-      create: (_) => UserHistoryBloc()..add(UserHistoryEvent(SearchEnter())),
+      create: (_) => UserHistoryBloc()
+        ..add(
+          UserHistoryEvent(
+            SearchEnter().copyWith(refresh: Uuid().v4()),
+            comicChoice,
+          ),
+        ),
       child: _HistoryPage(),
     );
   }
@@ -47,6 +56,7 @@ class __HistoryPageState extends State<_HistoryPage>
     _scrollController.addListener(_scrollListener);
 
     eventBus.on<HistoryEvent>().listen((event) {
+      logger.d("event: $event");
       if (!mounted) return;
       if (event.type == EventType.showInfo) {
         context.read<StringSelectCubit>().setDate(totalComicCount.toString());
@@ -133,9 +143,9 @@ class __HistoryPageState extends State<_HistoryPage>
       return _buildEmptyState();
     }
 
-    final topBarState = context.watch<TopBarCubit>().state;
+    final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
 
-    if (topBarState == 2) {
+    if (comicChoice == 2) {
       return _buildBrevityList(state);
     }
 
@@ -235,9 +245,9 @@ class __HistoryPageState extends State<_HistoryPage>
       );
     }
 
-    final topBarState = context.read<TopBarCubit>().state;
+    final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
 
-    if (topBarState == 1) {
+    if (comicChoice == 1) {
       if (isBrevity) {
         return ComicSimplifyEntryRow(
           key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
@@ -256,7 +266,7 @@ class __HistoryPageState extends State<_HistoryPage>
         }
         return const SizedBox.shrink();
       }
-    } else if (topBarState == 2) {
+    } else if (comicChoice == 2) {
       return ComicSimplifyEntryRow(
         key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
         entries: elementsRows[index],
@@ -269,8 +279,11 @@ class __HistoryPageState extends State<_HistoryPage>
 
   // 转换数据格式
   List<ComicSimplifyEntryInfo> _convertToEntryInfoList(List<dynamic> comics) {
-    final topBarState = context.read<TopBarCubit>().state;
-    if (topBarState == 1) {
+    final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
+
+    logger.d(comicChoice.toString());
+
+    if (comicChoice == 1) {
       final temp = comics.map((e) => e as BikaComicHistory).toList();
 
       return temp
@@ -285,7 +298,7 @@ class __HistoryPageState extends State<_HistoryPage>
             ),
           )
           .toList();
-    } else if (topBarState == 2) {
+    } else if (comicChoice == 2) {
       final temp = comics.map((e) => e as JmHistory).toList();
 
       return temp
@@ -305,17 +318,13 @@ class __HistoryPageState extends State<_HistoryPage>
     return [];
   }
 
-  void _refresh([bool goToTop = false]) {
-    if (_scrollController.hasClients && goToTop) {
-      _scrollController.animateTo(
-        0,
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
-    eventBus.fire(HistoryEvent(EventType.showInfo));
+  void _refresh([bool goToTop = false, bool clean = false]) {
+    final searchStatusCubit = context.read<HistoryCubit>();
+
+    if (clean) searchStatusCubit.resetSearch();
 
     final searchStatus = context.read<HistoryCubit>().state;
+    final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
 
     logger.d(searchStatus.toString());
 
@@ -327,7 +336,19 @@ class __HistoryPageState extends State<_HistoryPage>
           categories: searchStatus.categories,
           refresh: Uuid().v4(),
         ),
+        comicChoice,
       ),
     );
+
+    Future.delayed(Duration.zero).then((_) {
+      if (_scrollController.hasClients && goToTop) {
+        _scrollController.animateTo(
+          0,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+      eventBus.fire(HistoryEvent(EventType.showInfo, false));
+    });
   }
 }

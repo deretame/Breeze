@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/cubit/string_select.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -121,21 +121,20 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     final theme = context.theme;
 
     return BlocProvider(
-      create: (_) => StringSelectCubit(), // 默认值是 ''
-      child: Scaffold(
-        appBar: AppBar(title: const Text('注册账号')),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Builder(
-            // 使用 Builder 获取 BlocProvider 下的 context
-            builder: (innerContext) {
-              // 使用 innerContext 避免 shadowing
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start, // 子组件在水平方向上靠左对齐
+      create: (_) => StringSelectCubit(),
+      child: Builder(
+        builder: (innerContext) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('注册账号')),
+            body: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   TextField(
                     controller: _username,
@@ -144,20 +143,19 @@ class _RegisterPageState extends State<RegisterPage> {
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  const SizedBox(height: 20), // 用于添加空间
+                  const SizedBox(height: 20),
                   TextField(
                     controller: _account,
                     decoration: const InputDecoration(
                       labelText: '账号',
                       border: OutlineInputBorder(),
                     ),
-                    keyboardType: TextInputType.text, // 设置键盘类型为文本输入
+                    keyboardType: TextInputType.text,
                     inputFormatters: <TextInputFormatter>[
                       FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
-                      // 只允许输入数字和字母
                     ],
                   ),
-                  const SizedBox(height: 20), // 用于添加空间
+                  const SizedBox(height: 20),
                   TextField(
                     controller: _password,
                     obscureText: true,
@@ -166,7 +164,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  const SizedBox(height: 20), // 用于添加空间
+                  const SizedBox(height: 20),
                   TextField(
                     controller: _passwordAgain,
                     obscureText: true,
@@ -175,15 +173,14 @@ class _RegisterPageState extends State<RegisterPage> {
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  const SizedBox(height: 10), // 用于添加空间
-
+                  const SizedBox(height: 10),
                   Row(
                     children: <Widget>[
                       SizedBox(width: 10),
                       Text("请选择您的性别: ", style: TextStyle(fontSize: 16)),
                     ],
                   ),
-                  const SizedBox(height: 10), // 用于添加空间
+                  const SizedBox(height: 10),
                   Row(
                     children: <Widget>[
                       Expanded(
@@ -227,7 +224,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       TextButton(
                         onPressed: () async {
                           var result = await showDatePicker(
-                            context: innerContext, // 使用 Builder 的 context
+                            context: innerContext, // 3. 确保这里也使用 innerContext
                             initialDate: DateTime.now(),
                             firstDate: DateTime(1900),
                             lastDate: DateTime(2100),
@@ -244,16 +241,16 @@ class _RegisterPageState extends State<RegisterPage> {
                     ],
                   ),
                 ],
-              );
-            },
-          ),
-        ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {
-            _register(context);
-          },
-          label: Text('注册'),
-        ),
+              ),
+            ),
+            floatingActionButton: FloatingActionButton.extended(
+              onPressed: () {
+                _register(innerContext);
+              },
+              label: Text('注册'),
+            ),
+          );
+        },
       ),
     );
   }

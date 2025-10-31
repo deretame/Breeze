@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart'; // 1. 导入 Bloc
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -41,11 +42,12 @@ Widget deletingDialog(BuildContext context, Function refresh, DeleteType type) {
                         '/data/data/com.zephyr.breeze/files/downloads',
                       );
                     } else {
-                      final topBarState = dialogContext
-                          .read<TopBarCubit>()
-                          .state;
+                      final comicChoice = context
+                          .read<GlobalSettingCubit>()
+                          .state
+                          .comicChoice;
 
-                      if (topBarState == 1) {
+                      if (comicChoice == 1) {
                         var allHistory = objectbox.bikaHistoryBox.getAll();
 
                         for (var history in allHistory) {
@@ -54,7 +56,7 @@ Widget deletingDialog(BuildContext context, Function refresh, DeleteType type) {
                         }
 
                         objectbox.bikaHistoryBox.putMany(allHistory);
-                      } else if (topBarState == 2) {
+                      } else if (comicChoice == 2) {
                         var allHistory = objectbox.jmHistoryBox.getAll();
 
                         for (var history in allHistory) {
@@ -71,9 +73,9 @@ Widget deletingDialog(BuildContext context, Function refresh, DeleteType type) {
                     showSuccessToast(deletedText);
 
                     if (type == DeleteType.download) {
-                      eventBus.fire(DownloadEvent(EventType.showInfo));
+                      eventBus.fire(DownloadEvent(EventType.showInfo, false));
                     } else {
-                      eventBus.fire(HistoryEvent(EventType.showInfo));
+                      eventBus.fire(HistoryEvent(EventType.showInfo, false));
                     }
 
                     // 关闭对话框

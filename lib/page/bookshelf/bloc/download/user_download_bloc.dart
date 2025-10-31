@@ -126,7 +126,7 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
 
   List<dynamic> _getComicList(UserDownloadEvent event) {
     List<dynamic> comics = [];
-    if (SettingsHiveUtils.comicChoice == 1) {
+    if (event.comicChoice == 1) {
       late var comicList = objectbox.bikaDownloadBox.getAll();
 
       comicList = _filterShieldedComics(comicList);
@@ -158,7 +158,7 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
       }
 
       comics = comicList;
-    } else if (SettingsHiveUtils.comicChoice == 2) {
+    } else if (event.comicChoice == 2) {
       late var comicList = objectbox.jmDownloadBox.getAll();
 
       comicList = _fetchOfSortJm(comicList, event.searchEnterConst.sort);

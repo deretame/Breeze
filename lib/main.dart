@@ -26,7 +26,6 @@ import 'package:zephyr/network/http/jm/http_request_build.dart';
 import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/util/manage_cache.dart';
-import 'package:zephyr/util/pretty_log.dart';
 import 'package:zephyr/util/router/router.dart';
 
 import 'config/global/global.dart';
@@ -46,10 +45,7 @@ final appRouter = AppRouter();
 // 全局事件总线实例
 EventBus eventBus = EventBus();
 
-final logger = Logger(
-  level: kReleaseMode ? Level.off : Level.trace,
-  printer: CustomPrinter(),
-);
+final logger = Logger(level: kReleaseMode ? Level.off : Level.trace);
 
 List<String> cfIpList = [];
 

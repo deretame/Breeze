@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/int_select.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../../main.dart';
 import '../../../../cubit/string_select.dart';
+import '../../../../main.dart';
 import '../../../../type/enum.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
@@ -305,9 +306,9 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
   // 转换数据为简洁模式需要的格式
   List<ComicSimplifyEntryInfo> _convertToSimplifyList(List<dynamic> comics) {
-    final topBarState = context.read<TopBarCubit>().state;
+    final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
 
-    if (topBarState == 1) {
+    if (comicChoice == 1) {
       final temp = comics.map((e) => e as ComicNumber).toList();
 
       return temp

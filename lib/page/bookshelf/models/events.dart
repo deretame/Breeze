@@ -12,14 +12,16 @@ class FavoriteEvent {
 
 class HistoryEvent {
   EventType type;
+  bool clean;
 
-  HistoryEvent(this.type);
+  HistoryEvent(this.type, this.clean);
 }
 
 class DownloadEvent {
   EventType type;
+  bool clean;
 
-  DownloadEvent(this.type);
+  DownloadEvent(this.type, this.clean);
 }
 
 class JmFavoriteEvent {

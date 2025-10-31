@@ -123,8 +123,9 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
   }
 
   List<dynamic> _getComicList(UserHistoryEvent event) {
+    logger.d("event: $event");
     List<dynamic> comics = [];
-    if (SettingsHiveUtils.comicChoice == 1) {
+    if (event.comicChoice == 1) {
       late var comicList = objectbox.bikaHistoryBox.getAll();
 
       totalComicCount = comicList.length;
@@ -160,7 +161,7 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
       comicList.removeWhere((comic) => comic.deleted == true);
 
       comics = comicList;
-    } else if (SettingsHiveUtils.comicChoice == 2) {
+    } else if (event.comicChoice == 2) {
       late var comicList = objectbox.jmHistoryBox.getAll();
 
       totalComicCount = comicList.length;

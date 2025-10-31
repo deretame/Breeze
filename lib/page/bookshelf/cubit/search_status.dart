@@ -7,8 +7,6 @@ enum BookShelfStatus { favourite, history, download }
 
 @freezed
 abstract class SearchStatusState with _$SearchStatusState {
-  // const factory 允许我们定义 @Default 值，
-  // 这对应了你 MobX store 中的所有初始值
   const factory SearchStatusState({
     @Default(BookShelfStatus.favourite) BookShelfStatus status,
     @Default(0) int pageCount,

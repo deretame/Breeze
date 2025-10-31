@@ -209,7 +209,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       await Future.delayed(Duration(seconds: 1));
       await _historyWriter.start();
       _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
-        if (!_loading) writeToDatabase();
+        if (!_loading && comicInfo != null) writeToDatabase();
       });
     });
   }
@@ -465,6 +465,10 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   );
 
   Future<void> writeToDatabase() async {
+    if (!mounted) {
+      return;
+    }
+
     if (_isInserting ||
         _lastUpdateTime != null &&
             DateTime.now().difference(_lastUpdateTime!).inMilliseconds < 100) {

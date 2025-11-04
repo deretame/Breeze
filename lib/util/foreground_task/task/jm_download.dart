@@ -20,6 +20,10 @@ import 'package:zephyr/util/foreground_task/main_task.dart';
 import 'package:zephyr/util/foreground_task/task/bika_download.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
+import 'package:zephyr/util/memory/combined_memory_monitor.dart';
+import 'package:zephyr/util/memory/rust_memory_monitor.dart';
+import 'package:zephyr/util/memory/loop_memory_monitor.dart';
+import 'package:flutter/foundation.dart';
 
 Future<void> jmDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
   // 先获取一下基本的信息
@@ -224,6 +228,15 @@ Future<DownloadInfoJson> downloadComic(
   List<String> selectedChapters,
 ) async {
   await RustLib.init();
+
+  // 记录开始时的内存状态
+  if (kDebugMode) {
+    await CombinedMemoryMonitor.logCompleteMemoryUsage(
+      'Download Comic Started',
+    );
+    await RustMemoryMonitor.resetRustMemoryStats(); // 重置 Rust 内存统计
+  }
+
   final selectedEps = downloadInfoJson.series
       .where((e) => selectedChapters.contains(e.id))
       .toList();
@@ -246,51 +259,57 @@ Future<DownloadInfoJson> downloadComic(
     }
   }
 
-  int progress = 0;
-  for (var doc in docsList) {
-    try {
-      await downloadPicture(
-        from: 'jm',
-        url: doc.media.fileServer,
-        path: doc.media.path,
-        cartoonId: downloadInfoJson.id.toString(),
-        pictureType: 'comic',
-        chapterId: doc.docId,
-      );
-      progress++;
-      self.message =
-          "漫画下载进度: ${(progress / docsList.length * 100).toStringAsFixed(2)}%";
-    } catch (e, s) {
-      logger.e(e, stackTrace: s);
-      if (e.toString().contains('404')) {
-        final chapterIdForUpdate = doc.docId;
-        final originalImageName = doc.media.originalName; // 使用 originalName 来查找
-
-        // 1. 在 downloadInfoJson.series 中找到对应的章节 (SeriesItem)
-        int seriesIndex = downloadInfoJson.series.indexWhere(
-          (s) => s.id.toString() == chapterIdForUpdate,
+  // 使用循环内存监控器
+  await LoopMemoryHelper.monitorDownloadLoop(
+    docsList,
+    (doc, index) async {
+      try {
+        await downloadPicture(
+          from: 'jm',
+          url: doc.media.fileServer,
+          path: doc.media.path,
+          cartoonId: downloadInfoJson.id.toString(),
+          pictureType: 'comic',
+          chapterId: doc.docId,
         );
 
-        if (seriesIndex != -1) {
-          var targetSeriesItem = downloadInfoJson.series[seriesIndex];
+        final progress = index + 1;
+        self.message =
+            "漫画下载进度: ${(progress / docsList.length * 100).toStringAsFixed(2)}%";
+      } catch (e, s) {
+        logger.e(e, stackTrace: s);
+        if (e.toString().contains('404')) {
+          final chapterIdForUpdate = doc.docId;
+          final originalImageName =
+              doc.media.originalName; // 使用 originalName 来查找
 
-          // 2. 在该章节的 info.images 列表中找到对应的图片条目
-          //    我们要用 originalImageName (即 doc.media.path 或 doc.media.originalName) 来找
-          int imageIndex = targetSeriesItem.info.images.indexOf(
-            originalImageName,
+          // 1. 在 downloadInfoJson.series 中找到对应的章节 (SeriesItem)
+          int seriesIndex = downloadInfoJson.series.indexWhere(
+            (s) => s.id.toString() == chapterIdForUpdate,
           );
 
-          if (imageIndex != -1) {
-            // 3. 把它替换成 "404" 字符串
-            targetSeriesItem.info.images[imageIndex] = "404";
-            logger.i(
-              '已将章节 $chapterIdForUpdate 中的图片 "$originalImageName" 标记为 "404"！',
+          if (seriesIndex != -1) {
+            var targetSeriesItem = downloadInfoJson.series[seriesIndex];
+
+            // 2. 在该章节的 info.images 列表中找到对应的图片条目
+            //    我们要用 originalImageName (即 doc.media.path 或 doc.media.originalName) 来找
+            int imageIndex = targetSeriesItem.info.images.indexOf(
+              originalImageName,
             );
+
+            if (imageIndex != -1) {
+              // 3. 把它替换成 "404" 字符串
+              targetSeriesItem.info.images[imageIndex] = "404";
+              logger.i(
+                '已将章节 $chapterIdForUpdate 中的图片 "$originalImageName" 标记为 "404"！',
+              );
+            }
           }
         }
       }
-    }
-  }
+    },
+    logInterval: 5, // 每5张图片记录一次内存
+  );
 
   return downloadInfoJson;
 }

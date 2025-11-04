@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:zephyr/page/jm/jm_search_result/jm_search_result.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
-
 class BikaSearchBar extends StatelessWidget implements PreferredSizeWidget {
   final JmSearchResultEvent event;
   final ValueChanged searchCallback;

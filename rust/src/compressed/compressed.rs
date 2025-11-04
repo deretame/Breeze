@@ -1,10 +1,13 @@
 use anyhow::{Context, Result};
-use base64::{engine::general_purpose, Engine as _};
-use image::{codecs::jpeg::JpegEncoder, ExtendedColorType};
+use base64::{Engine as _, engine::general_purpose};
+use image::{ExtendedColorType, codecs::jpeg::JpegEncoder};
 use log::debug;
 use tokio::fs::File;
+
+use crate::memory::{MEMORY_TRACKER, TrackedAllocation};
 use tokio_tar::Builder;
 use tokio_tar::Header;
+use zip::{CompressionMethod, ZipWriter, write::FileOptions};
 
 #[derive(Debug)]
 pub struct PackInfo {
@@ -69,14 +72,14 @@ pub async fn pack_folder(dest_path: &str, pack_info: PackInfo) -> Result<()> {
             .await
             .with_context(|| format!("获取{}的元数据失败", original_path))?;
 
-        // 读取原始图片
-        let image_data = tokio::fs::read(original_path)
+        // 流式读取原始图片文件，避免一次性加载到内存
+        let file = File::open(original_path)
             .await
-            .with_context(|| format!("从{}读取图片失败", original_path))?;
+            .with_context(|| format!("打开文件{}失败", original_path))?;
 
         // 使用打包路径将图片添加到压缩包
         let mut header = Header::new_gnu();
-        header.set_size(image_data.len() as u64);
+        header.set_size(metadata.len());
 
         // 保留文件权限
         #[cfg(unix)]
@@ -100,9 +103,9 @@ pub async fn pack_folder(dest_path: &str, pack_info: PackInfo) -> Result<()> {
             .as_secs();
         header.set_mtime(mtime);
 
-        let reader = tokio::io::BufReader::new(std::io::Cursor::new(image_data));
+        // 使用流式读取，减少内存占用
         builder
-            .append_data(&mut header, pack_path, reader)
+            .append_data(&mut header, pack_path, file)
             .await
             .with_context(|| format!("将{}添加到压缩包失败", pack_path))?;
     }
@@ -113,8 +116,105 @@ pub async fn pack_folder(dest_path: &str, pack_info: PackInfo) -> Result<()> {
     Ok(())
 }
 
+// 使用ZIP格式进行压缩，内存占用更低，压缩率更好
+pub async fn pack_folder_zip(dest_path: &str, pack_info: PackInfo) -> Result<()> {
+    // 记录开始时的内存状态
+    let start_memory = MEMORY_TRACKER.get_memory_info();
+    debug!(
+        "ZIP compression started. Current memory: {}",
+        start_memory.total_allocated
+    );
+
+    let dest_path = dest_path.to_string();
+    let pack_info_clone = pack_info;
+
+    // 在 spawn_blocking 中运行同步的 ZIP 操作
+    tokio::task::spawn_blocking(move || {
+        use std::fs::File;
+        use std::io::{BufWriter, Read, Write};
+
+        // 创建ZIP文件
+        let file = File::create(&dest_path).context("创建ZIP文件失败")?;
+        let writer = BufWriter::new(file);
+        let mut zip = ZipWriter::new(writer);
+
+        let options = FileOptions::<()>::default()
+            .compression_method(CompressionMethod::Deflated)
+            .unix_permissions(0o644);
+
+        // 将comic_info_string.json添加到压缩包
+        zip.start_file("comic_info.json", options)
+            .context("创建comic_info.json条目失败")?;
+        zip.write_all(pack_info_clone.comic_info_string.as_bytes())
+            .context("写入comic_info.json失败")?;
+
+        // 将processed_comic_info_string.json添加到压缩包
+        zip.start_file("processed_comic_info.json", options)
+            .context("创建processed_comic_info.json条目失败")?;
+        zip.write_all(pack_info_clone.processed_comic_info_string.as_bytes())
+            .context("写入processed_comic_info.json失败")?;
+
+        // 处理每对图片路径
+        for (i, original_path) in pack_info_clone.original_image_paths.iter().enumerate() {
+            if i >= pack_info_clone.pack_image_paths.len() {
+                break;
+            }
+
+            let pack_path = &pack_info_clone.pack_image_paths[i];
+
+            // 打开源文件
+            let mut source_file = File::open(original_path)
+                .with_context(|| format!("打开文件{}失败", original_path))?;
+
+            // 在ZIP中创建文件条目
+            zip.start_file(pack_path, options)
+                .with_context(|| format!("创建ZIP条目{}失败", pack_path))?;
+
+            // 流式复制文件内容，使用缓冲区减少内存占用
+            let mut buffer = [0u8; 8192]; // 8KB 缓冲区
+            let _buffer_tracker = TrackedAllocation::new(8192, Some("zip_buffer"));
+            loop {
+                let bytes_read = source_file
+                    .read(&mut buffer)
+                    .with_context(|| format!("读取文件{}失败", original_path))?;
+
+                if bytes_read == 0 {
+                    break;
+                }
+
+                zip.write_all(&buffer[..bytes_read])
+                    .with_context(|| format!("写入ZIP条目{}失败", pack_path))?;
+            }
+        }
+
+        // 完成ZIP文件
+        zip.finish().context("完成ZIP文件失败")?;
+
+        Ok::<(), anyhow::Error>(())
+    })
+    .await
+    .context("ZIP任务执行失败")?
+    .context("ZIP压缩失败")?;
+
+    // 记录结束时的内存状态
+    let end_memory = MEMORY_TRACKER.get_memory_info();
+    debug!(
+        "ZIP compression completed. Final memory: {}",
+        end_memory.total_allocated
+    );
+    debug!(
+        "Memory diff: {} bytes",
+        end_memory.total_allocated as i64 - start_memory.total_allocated as i64
+    );
+
+    Ok(())
+}
+
 /// 压缩图像并返回base64编码字符串
 pub async fn compress_image(image_bytes: Vec<u8>) -> Result<String> {
+    // 跟踪输入图片的内存使用
+    let _input_tracker = TrackedAllocation::new(image_bytes.len(), Some("image_input"));
+
     let img = image::load_from_memory(&image_bytes)?;
 
     let mut low = 1u8;
@@ -129,6 +229,9 @@ pub async fn compress_image(image_bytes: Vec<u8>) -> Result<String> {
 
         {
             let rgb_img = img.to_rgb8();
+            let _rgb_tracker =
+                TrackedAllocation::new(rgb_img.as_raw().len(), Some("rgb_conversion"));
+
             let mut encoder = JpegEncoder::new_with_quality(&mut compressed_bytes, mid);
             encoder.encode(
                 rgb_img.as_raw(),
@@ -136,6 +239,10 @@ pub async fn compress_image(image_bytes: Vec<u8>) -> Result<String> {
                 rgb_img.height(),
                 ExtendedColorType::Rgb8,
             )?;
+
+            // 跟踪压缩后的字节
+            let _compressed_tracker =
+                TrackedAllocation::new(compressed_bytes.len(), Some("jpeg_compressed"));
         }
 
         let current_size = general_purpose::STANDARD.encode(&compressed_bytes).len();

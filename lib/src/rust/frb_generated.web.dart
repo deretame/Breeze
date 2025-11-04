@@ -6,6 +6,7 @@
 // Static analysis wrongly picks the IO variant, thus ignore this
 // ignore_for_file: argument_type_not_assignable
 
+import 'api/memory.dart';
 import 'api/simple.dart';
 import 'compressed/compressed.dart';
 import 'dart:async';
@@ -53,7 +54,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
+  List<TaggedAllocation> dco_decode_list_tagged_allocation(dynamic raw);
+
+  @protected
   PackInfo dco_decode_pack_info(dynamic raw);
+
+  @protected
+  RustMemoryInfo dco_decode_rust_memory_info(dynamic raw);
+
+  @protected
+  TaggedAllocation dco_decode_tagged_allocation(dynamic raw);
+
+  @protected
+  BigInt dco_decode_u_64(dynamic raw);
 
   @protected
   int dco_decode_u_8(dynamic raw);
@@ -94,7 +107,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
+  List<TaggedAllocation> sse_decode_list_tagged_allocation(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   PackInfo sse_decode_pack_info(SseDeserializer deserializer);
+
+  @protected
+  RustMemoryInfo sse_decode_rust_memory_info(SseDeserializer deserializer);
+
+  @protected
+  TaggedAllocation sse_decode_tagged_allocation(SseDeserializer deserializer);
+
+  @protected
+  BigInt sse_decode_u_64(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_8(SseDeserializer deserializer);
@@ -151,7 +178,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_tagged_allocation(
+    List<TaggedAllocation> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_pack_info(PackInfo self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_rust_memory_info(
+    RustMemoryInfo self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_tagged_allocation(
+    TaggedAllocation self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_u_64(BigInt self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_8(int self, SseSerializer serializer);

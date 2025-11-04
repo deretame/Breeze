@@ -32,7 +32,12 @@ pub async fn compress_image(image_bytes: Vec<u8>) -> Result<String> {
 
 #[frb]
 pub async fn pack_folder(dest_path: &str, pack_info: compressed::PackInfo) -> Result<()> {
-    compressed::pack_folder(dest_path, pack_info).await
+    compressed::pack_folder_zip(dest_path, pack_info).await
+}
+
+#[frb]
+pub async fn pack_folder_zip(dest_path: &str, pack_info: compressed::PackInfo) -> Result<()> {
+    compressed::pack_folder_zip(dest_path, pack_info).await
 }
 
 #[frb]

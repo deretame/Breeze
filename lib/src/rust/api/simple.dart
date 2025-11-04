@@ -29,6 +29,14 @@ Future<void> packFolder({
   packInfo: packInfo,
 );
 
+Future<void> packFolderZip({
+  required String destPath,
+  required PackInfo packInfo,
+}) => RustLib.instance.api.crateApiSimplePackFolderZip(
+  destPath: destPath,
+  packInfo: packInfo,
+);
+
 Stream<String> streamTest() => RustLib.instance.api.crateApiSimpleStreamTest();
 
 String traditionalToSimplified({required String text}) =>

@@ -1,5 +1,7 @@
+use crate::memory::{MEMORY_TRACKER, TrackedAllocation};
 use anyhow::{Context, Result};
 use image::{GenericImageView, ImageBuffer, ImageFormat, Rgba};
+use log::debug;
 use md5;
 use std::fs::{self, File};
 use std::io::Cursor;
@@ -36,6 +38,16 @@ pub(crate) fn get_segmentation_num(eps_id: i32, scramble_id: i32, picture_name: 
 
 // 这个东西是给禁漫用的，用来反混淆图片
 pub fn segmentation_picture_to_disk(image_info: ImageInfo) -> Result<()> {
+    // 记录开始时的内存状态
+    let start_memory = MEMORY_TRACKER.get_memory_info();
+    debug!(
+        "Segmentation started for {}. Current memory: {}",
+        image_info.file_name, start_memory.total_allocated
+    );
+
+    // 跟踪输入图片数据的内存
+    let _input_tracker = TrackedAllocation::new(image_info.img_data.len(), Some("decode_input"));
+
     let format =
         image::guess_format(&image_info.img_data).context("Failed to guess image format")?;
 
@@ -58,6 +70,11 @@ pub fn segmentation_picture_to_disk(image_info: ImageInfo) -> Result<()> {
     let src_img =
         image::load_from_memory(&image_info.img_data).context("Failed to decode image")?;
     let (width, height) = src_img.dimensions();
+
+    // 跟踪解码后的图片内存
+    let image_memory_size = (width * height * 4) as usize; // RGBA
+    let _decoded_tracker = TrackedAllocation::new(image_memory_size, Some("decoded_image"));
+
     let block_size = (height as f32 / num as f32).floor() as u32;
     let remainder = height % num as u32;
     let mut blocks = Vec::new();
@@ -71,6 +88,10 @@ pub fn segmentation_picture_to_disk(image_info: ImageInfo) -> Result<()> {
         blocks.push((start, end));
     }
     let mut des_img = ImageBuffer::<Rgba<u8>, Vec<u8>>::new(width, height);
+
+    // 跟踪目标图片缓冲区内存
+    let _dest_tracker = TrackedAllocation::new(image_memory_size, Some("dest_image_buffer"));
+
     let mut y_pos = 0;
     for (start, end) in blocks.iter().rev() {
         let block_height = end - start;
@@ -85,7 +106,23 @@ pub fn segmentation_picture_to_disk(image_info: ImageInfo) -> Result<()> {
     let mut bytes = Vec::new();
     let mut cursor = Cursor::new(&mut bytes);
     des_img.write_to(&mut cursor, image::ImageFormat::WebP)?;
+
+    // 跟踪编码后的字节数据
+    let _encoded_tracker = TrackedAllocation::new(bytes.len(), Some("encoded_webp"));
+
     save_image(&bytes, &image_info.file_name)?;
+
+    // 记录结束时的内存状态
+    let end_memory = MEMORY_TRACKER.get_memory_info();
+    debug!(
+        "Segmentation completed for {}. Final memory: {}",
+        image_info.file_name, end_memory.total_allocated
+    );
+    debug!(
+        "Memory diff: {} bytes",
+        end_memory.total_allocated as i64 - start_memory.total_allocated as i64
+    );
+
     Ok(())
 }
 

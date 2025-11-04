@@ -3,6 +3,7 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
+import 'api/memory.dart';
 import 'api/simple.dart';
 import 'compressed/compressed.dart';
 import 'dart:async';
@@ -68,7 +69,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => 203885957;
+  int get rustContentHash => 645815432;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -85,6 +86,10 @@ abstract class RustLibApi extends BaseApi {
 
   Future<String> crateApiSimpleCompressImage({required List<int> imageBytes});
 
+  Future<RustMemoryInfo> crateApiMemoryGetRustMemoryInfo();
+
+  Future<String> crateApiMemoryGetRustMemorySummary();
+
   Future<String> crateApiSimpleGreet({required String name});
 
   Future<void> crateApiSimpleInitApp();
@@ -93,6 +98,13 @@ abstract class RustLibApi extends BaseApi {
     required String destPath,
     required PackInfo packInfo,
   });
+
+  Future<void> crateApiSimplePackFolderZip({
+    required String destPath,
+    required PackInfo packInfo,
+  });
+
+  Future<void> crateApiMemoryResetRustMemoryStats();
 
   Future<String> crateApiSimpleSleepTest();
 
@@ -174,6 +186,60 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<RustMemoryInfo> crateApiMemoryGetRustMemoryInfo() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 3,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_rust_memory_info,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiMemoryGetRustMemoryInfoConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiMemoryGetRustMemoryInfoConstMeta =>
+      const TaskConstMeta(debugName: "get_rust_memory_info", argNames: []);
+
+  @override
+  Future<String> crateApiMemoryGetRustMemorySummary() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 4,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiMemoryGetRustMemorySummaryConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiMemoryGetRustMemorySummaryConstMeta =>
+      const TaskConstMeta(debugName: "get_rust_memory_summary", argNames: []);
+
+  @override
   Future<String> crateApiSimpleGreet({required String name}) {
     return handler.executeNormal(
       NormalTask(
@@ -183,7 +249,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 3,
+            funcId: 5,
             port: port_,
           );
         },
@@ -210,7 +276,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 4,
+            funcId: 6,
             port: port_,
           );
         },
@@ -242,7 +308,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 5,
+            funcId: 7,
             port: port_,
           );
         },
@@ -263,6 +329,68 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
+  Future<void> crateApiSimplePackFolderZip({
+    required String destPath,
+    required PackInfo packInfo,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(destPath, serializer);
+          sse_encode_box_autoadd_pack_info(packInfo, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 8,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiSimplePackFolderZipConstMeta,
+        argValues: [destPath, packInfo],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiSimplePackFolderZipConstMeta =>
+      const TaskConstMeta(
+        debugName: "pack_folder_zip",
+        argNames: ["destPath", "packInfo"],
+      );
+
+  @override
+  Future<void> crateApiMemoryResetRustMemoryStats() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 9,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiMemoryResetRustMemoryStatsConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiMemoryResetRustMemoryStatsConstMeta =>
+      const TaskConstMeta(debugName: "reset_rust_memory_stats", argNames: []);
+
+  @override
   Future<String> crateApiSimpleSleepTest() {
     return handler.executeNormal(
       NormalTask(
@@ -271,7 +399,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 6,
+            funcId: 10,
             port: port_,
           );
         },
@@ -301,7 +429,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 7,
+              funcId: 11,
               port: port_,
             );
           },
@@ -328,7 +456,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(text, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 8)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -417,6 +545,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<TaggedAllocation> dco_decode_list_tagged_allocation(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_tagged_allocation).toList();
+  }
+
+  @protected
   PackInfo dco_decode_pack_info(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -428,6 +562,39 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       originalImagePaths: dco_decode_list_String(arr[2]),
       packImagePaths: dco_decode_list_String(arr[3]),
     );
+  }
+
+  @protected
+  RustMemoryInfo dco_decode_rust_memory_info(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return RustMemoryInfo(
+      totalAllocated: dco_decode_u_64(arr[0]),
+      peakAllocated: dco_decode_u_64(arr[1]),
+      allocationCount: dco_decode_u_64(arr[2]),
+      deallocationCount: dco_decode_u_64(arr[3]),
+      taggedAllocations: dco_decode_list_tagged_allocation(arr[4]),
+    );
+  }
+
+  @protected
+  TaggedAllocation dco_decode_tagged_allocation(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return TaggedAllocation(
+      tag: dco_decode_String(arr[0]),
+      size: dco_decode_u_64(arr[1]),
+    );
+  }
+
+  @protected
+  BigInt dco_decode_u_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeU64(raw);
   }
 
   @protected
@@ -526,6 +693,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<TaggedAllocation> sse_decode_list_tagged_allocation(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <TaggedAllocation>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_tagged_allocation(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   PackInfo sse_decode_pack_info(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_comicInfoString = sse_decode_String(deserializer);
@@ -538,6 +719,37 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       originalImagePaths: var_originalImagePaths,
       packImagePaths: var_packImagePaths,
     );
+  }
+
+  @protected
+  RustMemoryInfo sse_decode_rust_memory_info(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_totalAllocated = sse_decode_u_64(deserializer);
+    var var_peakAllocated = sse_decode_u_64(deserializer);
+    var var_allocationCount = sse_decode_u_64(deserializer);
+    var var_deallocationCount = sse_decode_u_64(deserializer);
+    var var_taggedAllocations = sse_decode_list_tagged_allocation(deserializer);
+    return RustMemoryInfo(
+      totalAllocated: var_totalAllocated,
+      peakAllocated: var_peakAllocated,
+      allocationCount: var_allocationCount,
+      deallocationCount: var_deallocationCount,
+      taggedAllocations: var_taggedAllocations,
+    );
+  }
+
+  @protected
+  TaggedAllocation sse_decode_tagged_allocation(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_tag = sse_decode_String(deserializer);
+    var var_size = sse_decode_u_64(deserializer);
+    return TaggedAllocation(tag: var_tag, size: var_size);
+  }
+
+  @protected
+  BigInt sse_decode_u_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getBigUint64();
   }
 
   @protected
@@ -655,12 +867,53 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_tagged_allocation(
+    List<TaggedAllocation> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_tagged_allocation(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_pack_info(PackInfo self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.comicInfoString, serializer);
     sse_encode_String(self.processedComicInfoString, serializer);
     sse_encode_list_String(self.originalImagePaths, serializer);
     sse_encode_list_String(self.packImagePaths, serializer);
+  }
+
+  @protected
+  void sse_encode_rust_memory_info(
+    RustMemoryInfo self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_64(self.totalAllocated, serializer);
+    sse_encode_u_64(self.peakAllocated, serializer);
+    sse_encode_u_64(self.allocationCount, serializer);
+    sse_encode_u_64(self.deallocationCount, serializer);
+    sse_encode_list_tagged_allocation(self.taggedAllocations, serializer);
+  }
+
+  @protected
+  void sse_encode_tagged_allocation(
+    TaggedAllocation self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.tag, serializer);
+    sse_encode_u_64(self.size, serializer);
+  }
+
+  @protected
+  void sse_encode_u_64(BigInt self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putBigUint64(self);
   }
 
   @protected

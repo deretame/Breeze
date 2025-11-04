@@ -35,7 +35,6 @@ class BookshelfPage extends StatelessWidget {
   }
 }
 
-@RoutePage()
 class _BookshelfPageContent extends StatefulWidget {
   const _BookshelfPageContent();
 

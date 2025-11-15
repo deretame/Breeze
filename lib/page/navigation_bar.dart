@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
@@ -27,7 +26,6 @@ import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/main_task.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/manage_cache.dart';
-import 'package:zephyr/util/memory/simple_memory_monitor.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/util/settings_hive_utils.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -107,12 +105,12 @@ class _NavigationBarState extends State<NavigationBar> {
       await _autoSync();
     });
 
-    if (kDebugMode) {
-      Timer.periodic(Duration(seconds: 5), (Timer timer) async {
-        var data = await SimpleMemoryMonitor.getMemoryInfo();
-        logger.d(data);
-      });
-    }
+    // if (kDebugMode) {
+    //   Timer.periodic(Duration(seconds: 5), (Timer timer) async {
+    //     var data = await SimpleMemoryMonitor.getMemoryInfo();
+    //     logger.d(data);
+    //   });
+    // }
 
     // 用来手动触发同步
     eventBus.on<NoticeSync>().listen((event) {

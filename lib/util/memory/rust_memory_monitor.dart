@@ -1,14 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:zephyr/main.dart';
 
-import '../../src/rust/api/memory.dart';
+import '../../src/rust/api/memory.dart' as rust;
 
 /// Rust 端内存监控器
 class RustMemoryMonitor {
   /// 获取 Rust 端内存使用情况
-  static Future<RustMemoryInfo> getRustMemoryInfo() async {
+  static Future<rust.RustMemoryInfo> getRustMemoryInfo() async {
     try {
-      return await getRustMemoryInfo();
+      return await rust.getRustMemoryInfo();
     } catch (e) {
       if (kDebugMode) logger.d('Failed to get Rust memory info: $e');
       rethrow;
@@ -18,7 +18,7 @@ class RustMemoryMonitor {
   /// 重置 Rust 内存统计
   static Future<void> resetRustMemoryStats() async {
     try {
-      await resetRustMemoryStats();
+      await rust.resetRustMemoryStats();
     } catch (e) {
       if (kDebugMode) logger.d('Failed to reset Rust memory stats: $e');
       rethrow;
@@ -28,7 +28,7 @@ class RustMemoryMonitor {
   /// 获取 Rust 内存使用的格式化字符串
   static Future<String> getRustMemorySummary() async {
     try {
-      return await getRustMemorySummary();
+      return await rust.getRustMemorySummary();
     } catch (e) {
       if (kDebugMode) logger.d('Failed to get Rust memory summary: $e');
       return 'Failed to get Rust memory info: $e';

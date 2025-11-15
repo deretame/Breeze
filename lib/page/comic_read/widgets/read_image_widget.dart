@@ -7,6 +7,7 @@ import 'package:zephyr/util/context/context_extensions.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
+import 'image_size_cache.dart';
 
 class ReadImageWidget extends StatefulWidget {
   final PictureInfo pictureInfo;
@@ -24,19 +25,32 @@ class ReadImageWidget extends StatefulWidget {
   State<ReadImageWidget> createState() => _ReadImageWidgetState();
 }
 
-class _ReadImageWidgetState extends State<ReadImageWidget>
-    with AutomaticKeepAliveClientMixin {
-  int get index => widget.index;
+class _ReadImageWidgetState extends State<ReadImageWidget> {
+  final _sizeCache = ImageSizeCache();
 
+  int get index => widget.index;
   bool get isColumn => widget.isColumn;
 
-  // 只在列模式下保持存活，行模式不保持以减少内存占用
-  @override
-  bool get wantKeepAlive => isColumn;
+  /// 生成缓存 key（基于 PictureInfo）
+  String get _cacheKey {
+    final info = widget.pictureInfo;
+    return '${info.cartoonId}_${info.chapterId}_${info.path}';
+  }
+
+  /// 计算占位高度
+  double _getPlaceholderHeight(BuildContext context) {
+    final cachedSize = _sizeCache.getSize(_cacheKey);
+    if (cachedSize != null && cachedSize.width > 0) {
+      // 根据缓存的尺寸计算高度
+      return cachedSize.height * (context.screenWidth / cachedSize.width);
+    }
+
+    // 默认使用正方形占位
+    return context.screenWidth;
+  }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return BlocProvider(
       create: (context) => PictureBloc()..add(GetPicture(widget.pictureInfo)),
       child: SizedBox(
@@ -45,10 +59,13 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
           builder: (context, state) {
             switch (state.status) {
               case PictureLoadStatus.initial:
+                // 使用缓存的高度作为占位高度
+                final placeholderHeight = _getPlaceholderHeight(context);
+
                 return Container(
                   color: isColumn ? Color(0xFF2D2D2D) : Colors.black,
                   width: context.screenWidth,
-                  height: context.screenWidth,
+                  height: placeholderHeight,
                   child: Center(
                     child: Text(
                       (index + 1).toString(),
@@ -70,6 +87,7 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
                   child: ImageDisplay(
                     imagePath: state.imagePath!,
                     isColumn: isColumn,
+                    cacheKey: _cacheKey,
                   ),
                 );
               case PictureLoadStatus.failure:

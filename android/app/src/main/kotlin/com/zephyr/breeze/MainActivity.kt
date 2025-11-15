@@ -3,12 +3,19 @@ package com.zephyr.breeze
 import android.app.ActivityManager
 import android.content.Context
 import android.os.Debug
+import android.view.KeyEvent
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity: FlutterActivity() {
     private val CHANNEL = "memory_monitor"
+    private val VOLUME_CHANNEL = "volume_key_handler"
+    private val VOLUME_EVENT_CHANNEL = "volume_key_events"
+    
+    private var volumeKeyInterceptionEnabled = false
+    private var volumeEventSink: EventChannel.EventSink? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -36,6 +43,36 @@ class MainActivity: FlutterActivity() {
                 }
             }
         }
+
+        // 音量键拦截 MethodChannel
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, VOLUME_CHANNEL).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "enableInterception" -> {
+                    volumeKeyInterceptionEnabled = true
+                    result.success(null)
+                }
+                "disableInterception" -> {
+                    volumeKeyInterceptionEnabled = false
+                    result.success(null)
+                }
+                else -> {
+                    result.notImplemented()
+                }
+            }
+        }
+
+        // 音量键事件 EventChannel
+        EventChannel(flutterEngine.dartExecutor.binaryMessenger, VOLUME_EVENT_CHANNEL).setStreamHandler(
+            object : EventChannel.StreamHandler {
+                override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                    volumeEventSink = events
+                }
+
+                override fun onCancel(arguments: Any?) {
+                    volumeEventSink = null
+                }
+            }
+        )
     }
 
     private fun getMemoryInfo(): Map<String, Long> {
@@ -104,5 +141,21 @@ class MainActivity: FlutterActivity() {
             "processPrivateDirty" to (pmi?.totalPrivateDirty?.toLong()?.times(1024) ?: 0L),
             "processSharedDirty" to (pmi?.totalSharedDirty?.toLong()?.times(1024) ?: 0L)
         )
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (volumeKeyInterceptionEnabled) {
+            when (keyCode) {
+                KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                    volumeEventSink?.success("volume_down")
+                    return true // 拦截事件
+                }
+                KeyEvent.KEYCODE_VOLUME_UP -> {
+                    volumeEventSink?.success("volume_up")
+                    return true // 拦截事件
+                }
+            }
+        }
+        return super.onKeyDown(keyCode, event)
     }
 }

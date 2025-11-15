@@ -8,9 +8,9 @@ import 'package:zephyr/page/jm/jm_comments/json/comments_json.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
 
+part 'comments_bloc.freezed.dart';
 part 'comments_event.dart';
 part 'comments_state.dart';
-part 'comments_bloc.freezed.dart';
 
 const _throttleDuration = Duration(milliseconds: 100);
 
@@ -50,10 +50,13 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
     }
 
     try {
-      final response = await getComments(
-        page,
-        event.comicId,
-      ).let(replaceNestedNull).let(CommentsJson.fromJson);
+      final response = await getComments(page, event.comicId)
+          .let(replaceNestedNull)
+          .let((it) {
+            it["total"] = (it["total"] as int).toString();
+            return it;
+          })
+          .let(CommentsJson.fromJson);
 
       comments = [...comments, ...response.list];
 

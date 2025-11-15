@@ -16,7 +16,9 @@ import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart'
     show JmComicInfoJson;
 import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart'
     show downloadInfoJsonFromJson, DownloadInfoJsonSeries;
+import 'package:zephyr/util/memory/memory_overlay_widget.dart';
 import 'package:zephyr/util/settings_hive_utils.dart';
+import 'package:zephyr/util/volume_key_handler.dart';
 
 import '../../../object_box/model.dart';
 import '../../../object_box/objectbox.g.dart';
@@ -89,7 +91,8 @@ class _ComicReadPage extends StatefulWidget {
   State<_ComicReadPage> createState() => _ComicReadPageState();
 }
 
-class _ComicReadPageState extends State<_ComicReadPage> {
+class _ComicReadPageState extends State<_ComicReadPage>
+    with WidgetsBindingObserver {
   dynamic get comicInfo => widget.comicInfo;
 
   String get comicId => widget.comicId;
@@ -121,6 +124,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   List<Doc> docs = []; // 图片信息
   bool _loading = true; // 加载状态
   final _historyWriter = HistoryWriter();
+  Timer? _cleanTimer;
 
   bool get _isHistory =>
       _type == ComicEntryType.history ||
@@ -134,6 +138,12 @@ class _ComicReadPageState extends State<_ComicReadPage> {
   void initState() {
     super.initState();
     // logger.d(widget.epsNumber.toString());
+    _cleanTimer = Timer(const Duration(seconds: 5), () {
+      // 腾出空间供阅读器使用
+      PaintingBinding.instance.imageCache.clear();
+      PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 1024;
+    });
+
     if (SettingsHiveUtils.readMode != 0) {
       pageIndex = 2;
     }
@@ -204,6 +214,8 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       if (globalSettingState.readMode != 0) {
         await Future.delayed(Duration(milliseconds: 200));
         setState(() => _isVisible = false);
+        // 横版模式下自动隐藏 AppBar 后启用音量键拦截
+        VolumeKeyHandler.enableVolumeKeyInterception();
       }
 
       await Future.delayed(Duration(seconds: 1));
@@ -211,6 +223,64 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
         if (!_loading && comicInfo != null) writeToDatabase();
       });
+    });
+
+    // 设置音量键监听
+    _setupVolumeKeyListener();
+  }
+
+  void _setupVolumeKeyListener() {
+    VolumeKeyHandler.volumeKeyEvents.listen((event) {
+      if (!mounted) return;
+
+      final globalSettingState = context.read<GlobalSettingCubit>().state;
+
+      if (event == 'volume_down') {
+        // 音量减键：下一页
+        if (globalSettingState.readMode == 0) {
+          // 纵向模式：滚动到下一页
+          // 使用 _currentSliderValue 来计算，与 slider 逻辑保持一致
+          final newSliderValue = _currentSliderValue + 1;
+          final scrollIndex = newSliderValue.toInt() + 1;
+          logger.d(
+            '音量减键 - pageIndex: $pageIndex, _currentSliderValue: $_currentSliderValue, newSliderValue: $newSliderValue, scrollIndex: $scrollIndex, length: $length',
+          );
+          // 检查是否还有下一页
+          if (newSliderValue < _totalSlots) {
+            _itemScrollController.scrollTo(
+              index: scrollIndex,
+              alignment: 0.0,
+              duration: const Duration(milliseconds: 300),
+            );
+          } else {
+            logger.d('已经是最后一页了');
+          }
+        } else {
+          // 横向模式：翻到下一页
+          _jumpToPage(pageIndex - 1);
+        }
+      } else if (event == 'volume_up') {
+        // 音量加键：上一页
+        if (globalSettingState.readMode == 0) {
+          // 纵向模式：滚动到上一页
+          // 使用 _currentSliderValue 来计算
+          final newSliderValue = _currentSliderValue - 1;
+          final scrollIndex = newSliderValue.toInt() + 1;
+          logger.d(
+            '音量加键 - pageIndex: $pageIndex, _currentSliderValue: $_currentSliderValue, newSliderValue: $newSliderValue, scrollIndex: $scrollIndex',
+          );
+          if (newSliderValue >= 0) {
+            _itemScrollController.scrollTo(
+              index: scrollIndex,
+              alignment: 0.0,
+              duration: const Duration(milliseconds: 300),
+            );
+          }
+        } else {
+          // 横向模式：翻到上一页
+          _jumpToPage(pageIndex - 3);
+        }
+      }
     });
   }
 
@@ -221,6 +291,9 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     _itemPositionsListener.itemPositions.removeListener(() {});
     _timer?.cancel();
     _historyWriter.stop();
+    _cleanTimer?.cancel();
+    VolumeKeyHandler.disableVolumeKeyInterception();
+    PaintingBinding.instance.imageCache.maximumSizeBytes = 300 * 1024 * 1024;
     super.dispose();
   }
 
@@ -284,14 +357,18 @@ class _ComicReadPageState extends State<_ComicReadPage> {
       }
     }
 
-    return Container(
-      color: Colors.black,
-      child: SafeArea(
-        top: false,
-        bottom: false,
+    return MemoryOverlayWidget(
+      enabled: false,
+      updateInterval: Duration(seconds: 1),
+      child: Container(
+        color: Colors.black,
         child: Stack(
           children: [
-            _buildInteractiveViewer(),
+            // 主内容区域，当UI隐藏时留出底部系统手势区域
+            Positioned.fill(
+              bottom: _isVisible ? 0 : MediaQuery.of(context).padding.bottom,
+              child: _buildInteractiveViewer(),
+            ),
             _comicReadAppBar(),
             _pageCountWidget(),
             _bottomWidget(),
@@ -418,6 +495,9 @@ class _ComicReadPageState extends State<_ComicReadPage> {
     setState(() => _isVisible = !_isVisible);
     if (_isVisible) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      VolumeKeyHandler.disableVolumeKeyInterception();
+    } else {
+      VolumeKeyHandler.enableVolumeKeyInterception();
     }
   }
 
@@ -566,6 +646,7 @@ class _ComicReadPageState extends State<_ComicReadPage> {
         setState(() {
           _isVisible = false; // 只要滚动了就隐藏组件
         });
+        VolumeKeyHandler.enableVolumeKeyInterception();
       }
 
       // 更新记录的滚动索引

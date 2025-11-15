@@ -74,9 +74,7 @@ Future<void> main() async {
       );
 
       // 优化图片缓存配置
-      PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 1024;
-      // 限制缓存图片数量
-      PaintingBinding.instance.imageCache.maximumSize = 100;
+      PaintingBinding.instance.imageCache.maximumSizeBytes = 300 * 1024 * 1024;
 
       // 如果是手机的话就固定为只能使用横屏模式
       if (!isTabletWithOutContext()) {

@@ -2,15 +2,18 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'image_size_cache.dart';
 
 class ImageDisplay extends StatefulWidget {
   final String imagePath;
   final bool isColumn;
+  final String cacheKey;
 
   const ImageDisplay({
     super.key,
     required this.imagePath,
     required this.isColumn,
+    required this.cacheKey,
   });
 
   @override
@@ -20,6 +23,7 @@ class ImageDisplay extends StatefulWidget {
 class _ImageDisplayState extends State<ImageDisplay> {
   ImageStream? _imageStream;
   late final ImageStreamListener _imageListener;
+  final _sizeCache = ImageSizeCache();
 
   bool get isColumn => widget.isColumn;
 
@@ -31,12 +35,31 @@ class _ImageDisplayState extends State<ImageDisplay> {
   void initState() {
     super.initState();
 
+    // 尝试从缓存中获取图片尺寸（优先使用 cacheKey）
+    final cachedSize =
+        _sizeCache.getSize(widget.cacheKey) ??
+        _sizeCache.getSize(widget.imagePath);
+    if (cachedSize != null) {
+      imageWidth = cachedSize.width;
+      imageHeight = cachedSize.height;
+    }
+
     _imageListener = ImageStreamListener(
       (ImageInfo imageInfo, _) {
         if (mounted) {
+          final width = imageInfo.image.width.toDouble();
+          final height = imageInfo.image.height.toDouble();
+
+          // 缓存图片尺寸（同时用 cacheKey 和 imagePath）
+          _sizeCache.cacheSize(
+            widget.cacheKey,
+            Size(width, height),
+            additionalKeys: [widget.imagePath],
+          );
+
           setState(() {
-            imageWidth = imageInfo.image.width.toDouble();
-            imageHeight = imageInfo.image.height.toDouble();
+            imageWidth = width;
+            imageHeight = height;
             _hasError = false;
           });
         }

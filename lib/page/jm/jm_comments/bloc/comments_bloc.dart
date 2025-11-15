@@ -53,7 +53,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
       final response = await getComments(page, event.comicId)
           .let(replaceNestedNull)
           .let((it) {
-            it["total"] = (it["total"] as int).toString();
+            it["total"] = it["total"].toString();
             return it;
           })
           .let(CommentsJson.fromJson);
@@ -71,8 +71,8 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
         ),
       );
       page++;
-    } catch (e) {
-      logger.e(e);
+    } catch (e, s) {
+      logger.e(e, stackTrace: s);
 
       if (comments.isNotEmpty) {
         emit(

@@ -7,7 +7,6 @@ import 'package:zephyr/util/context/context_extensions.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
-import 'image_size_cache.dart';
 
 class ReadImageWidget extends StatefulWidget {
   final PictureInfo pictureInfo;

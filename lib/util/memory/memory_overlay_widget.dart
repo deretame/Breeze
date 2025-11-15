@@ -1,5 +1,7 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+
 import 'simple_memory_monitor.dart';
 
 /// 内存监控悬浮窗组件
@@ -149,7 +151,7 @@ class _MemoryOverlayWidgetState extends State<MemoryOverlayWidget>
               child: Material(
                 elevation: _isDragging ? 8 : 4,
                 borderRadius: BorderRadius.circular(12),
-                color: Colors.black.withOpacity(0.85),
+                color: Colors.black.withValues(alpha: 0.85),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
@@ -183,7 +185,7 @@ class _MemoryOverlayWidgetState extends State<MemoryOverlayWidget>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.blue.withOpacity(0.3),
+          color: Colors.blue.withValues(alpha: 0.3),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
         ),
         child: Row(
@@ -393,7 +395,7 @@ class _MemoryOverlayWidgetState extends State<MemoryOverlayWidget>
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: percentage / 100,
-              backgroundColor: Colors.white.withOpacity(0.2),
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
               valueColor: AlwaysStoppedAnimation<Color>(progressColor),
               minHeight: 6,
             ),
@@ -412,7 +414,7 @@ class _MemoryOverlayWidgetState extends State<MemoryOverlayWidget>
                 Text(
                   '$label:',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                     fontSize: 10,
                   ),
                 ),

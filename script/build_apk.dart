@@ -75,9 +75,9 @@ Future<Map<String, dynamic>> _initializePaths() async {
   final String symbolsScriptFolderPath = "$projectRoot${sep}symbols";
   // --- 修改 ---
   // 将脚本从 .ps1 更改为 .dart
-  // 假设你已经将 `upload_symbols.dart` (在右侧编辑器中) 放在了 `project_root/symbols/` 目录下
+  // 假设你已经将 `update_symbols.dart` (在右侧编辑器中) 放在了 `project_root/symbols/` 目录下
   final String symbolsScriptPath =
-      "$symbolsScriptFolderPath${sep}upload_symbols.dart";
+      "$symbolsScriptFolderPath${sep}update_symbols.dart";
 
   return {
     'sep': sep,

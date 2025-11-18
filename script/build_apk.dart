@@ -1,3 +1,4 @@
+#!/usr/bin/env dart
 // ignore_for_file: avoid_print
 
 import 'dart:async'; // 导入 'dart:async'
@@ -13,6 +14,8 @@ const String _magenta = '\x1B[35m';
 const String _reset = '\x1B[0m';
 
 Process? _currentProcess; // 用于跟踪当前运行的子进程
+
+bool _isRestored = false;
 
 /// 彩色打印
 void _printColor(String text, String color) {
@@ -45,6 +48,38 @@ Future<int> _runCommand(
   return exitCode;
 }
 
+/// 跨平台强力杀进程函数
+Future<void> _killProcessTree(Process process) async {
+  final pid = process.pid;
+
+  if (Platform.isWindows) {
+    // Windows: 使用 taskkill 杀进程树
+    try {
+      await Process.run('taskkill', ['/F', '/T', '/PID', pid.toString()]);
+    } catch (e) {
+      _printColor('Windows 杀进程失败: $e', _red);
+    }
+  } else {
+    // Unix (Linux/macOS):
+    // runInShell: true 会启动一个 shell (sh/bash/zsh) 作为父进程。
+    // 我们不仅要杀掉 shell，还要杀掉 shell 启动的子进程 (如 java/gradle)。
+    try {
+      // 1. 尝试使用 pkill -P <pid> 杀掉该 PID 的所有子进程
+      await Process.run('pkill', ['-P', pid.toString()]);
+    } catch (e) {
+      // pkill 可能不存在或失败，忽略
+      print('pkill 失败: $e');
+    }
+
+    // 2. 杀掉当前的 Shell 进程本身
+    process.kill(ProcessSignal.sigkill);
+
+    // 3. (可选保险措施) 如果知道 gradlew 会启动 java，
+    // 有时候在极端情况下可能需要 killall java，但这样做太暴力，容易误伤，
+    // 通常 pkill -P 配合 sigkill 已经足够。
+  }
+}
+
 /// --- 1. 初始化路径 ---
 Future<Map<String, dynamic>> _initializePaths() async {
   final sep = Platform.pathSeparator;
@@ -54,9 +89,11 @@ Future<Map<String, dynamic>> _initializePaths() async {
   // 项目根目录 (tool 目录的上一级)
   final String projectRoot = Directory(scriptDir).parent.path;
 
-  // Flutter 执行路径
+  // 判断是否为 Windows 来决定是否加 .bat
+  final String flutterBinName = Platform.isWindows ? 'flutter.bat' : 'flutter';
+
   final String flutterExecutable =
-      "$projectRoot$sep.fvm${sep}flutter_sdk${sep}bin${sep}flutter.bat";
+      "$projectRoot$sep.fvm${sep}flutter_sdk${sep}bin$sep$flutterBinName";
 
   // AndroidManifest.xml 路径
   final String manifestPath =
@@ -92,21 +129,37 @@ Future<Map<String, dynamic>> _initializePaths() async {
   };
 }
 
-/// 帮助函数：恢复 Manifest 文件
-/// 无论成功、失败还是中断，都应调用此函数
-Future<void> _performCleanup(
+/// 核心修复：幂等恢复函数
+/// 这个函数可以被安全地调用多次，但只会执行一次恢复操作
+Future<void> _performRestore(
   bool backupExists,
   File backupFile,
   File manifestFile,
 ) async {
+  // 如果已经恢复过，直接返回
+  if (_isRestored) return;
+
   if (backupExists && await backupFile.exists()) {
     _printColor('\n--- 正在恢复原始 AndroidManifest.xml 文件... ---', _magenta);
     try {
-      // 'rename' 在 Dart:io 中就是 'move' 的意思
-      await backupFile.rename(manifestFile.path);
+      // 关键点：在杀进程后，文件系统可能短暂锁定
+      // 如果第一次失败，稍微等待后重试一次
+      try {
+        await backupFile.rename(manifestFile.path);
+      } catch (e) {
+        print('文件可能被锁定，等待 500ms 后重试...');
+        await Future.delayed(Duration(milliseconds: 500));
+        // 再次尝试，如果这次失败就真的失败了
+        // 使用 copy + delete 作为 rename 的备选方案，在跨分区或权限复杂时更稳
+        await backupFile.copy(manifestFile.path);
+        await backupFile.delete();
+      }
+
       print('已从备份恢复原始配置文件。');
+      _isRestored = true; // 标记为已恢复
     } catch (e) {
       _printColor('恢复 Manifest 文件失败: $e', _red);
+      _printColor('请手动检查: ${backupFile.path}', _red);
     }
   }
 }
@@ -130,19 +183,22 @@ Future<void> main() async {
     _printColor('\n\n检测到 Ctrl+C。正在停止并清理...', _yellow);
 
     if (_currentProcess != null) {
-      _printColor('正在停止当前运行的命令...', _yellow);
-      _currentProcess?.kill(ProcessSignal.sigint); // 终止子进程
+      _printColor('正在强制终止子进程...', _yellow);
+      await _killProcessTree(_currentProcess!);
+      // 给文件系统一点喘息时间，释放 gradle 占用的锁
+      await Future.delayed(Duration(milliseconds: 200));
     }
 
-    // 立即执行清理
-    // 此时 late final 变量可能未初始化，但 backupExists 会保护我们
+    // 2. 立即在信号处理器中尝试恢复
+    // 此时我们不依赖 finally，因为 OS 可能会马上杀掉我们
     if (backupExists) {
-      await _performCleanup(backupExists, backupFile, manifestFile);
+      await _performRestore(backupExists, backupFile, manifestFile);
     }
 
-    _printColor('清理完成。退出。', _magenta);
+    _printColor('退出脚本。', _magenta);
+    // 取消监听，防止多次触发
     await sigintSubscription.cancel();
-    exit(130); // Ctrl+C 的标准退出代码
+    exit(130);
   });
 
   try {
@@ -285,28 +341,24 @@ Future<void> main() async {
       _printColor('找不到符号更新脚本: $symbolsScriptPath (已跳过)', _yellow);
     }
   } catch (e) {
-    _printColor('\n构建过程中发生错误！', _red);
-    _printColor('错误信息: ${e.toString()}', _red);
-    // 发生错误时，设置退出代码为 1
-    if (exitCode == 0) {
-      exitCode = 1; // 确保错误被捕获
+    // 只有当不是用户主动 Ctrl+C 导致的错误时，才打印红色错误
+    // 如果 _isRestored 为 true，说明可能是 Ctrl+C 已经处理过了，或者正在处理
+    if (!_isRestored) {
+      _printColor('\n构建过程中发生错误！: $e', _red);
     }
+    if (exitCode == 0) exitCode = 1;
   } finally {
-    // 无论成功还是失败（非 Ctrl+C），都恢复 Manifest 文件
-    // 如果是 Ctrl+C，isCleaningUp 会为 true，避免重复执行
-    if (!isCleaningUp) {
-      await _performCleanup(backupExists, backupFile, manifestFile);
+    // 无论上面发生了什么：
+    // 1. 正常跑完
+    // 2. 报错进入 catch
+    // 3. Ctrl+C 触发，但在 kill 之后主线程抛错进入这里
+    // 我们都尝试恢复。如果 SIGINT 已经恢复过了，_performRestore 内部会直接返回。
+    if (backupExists) {
+      await _performRestore(backupExists, backupFile, manifestFile);
     }
   }
 
-  // 正常退出前取消监听
   await sigintSubscription.cancel();
-
-  if (exitCode == 0) {
-    _printColor('\n构建流程全部完成！', _green);
-  } else {
-    _printColor('\n构建流程失败。 (Exit code: $exitCode)', _red);
-    // 传播错误，以便CI/CD工具可以捕获
-    exit(exitCode);
-  }
+  if (exitCode != 0) exit(exitCode);
+  _printColor('\n构建流程全部完成！', _green);
 }

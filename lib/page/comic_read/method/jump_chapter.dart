@@ -46,6 +46,7 @@ class JumpChapter {
       final index = allInfo!.eps.indexOf(
         allInfo!.eps.firstWhere((ep) => ep.order == order),
       );
+      logger.d(index);
       if (isPrev) {
         order = allInfo!.eps[index - 1].order;
       } else {

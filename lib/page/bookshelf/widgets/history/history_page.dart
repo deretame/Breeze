@@ -281,7 +281,7 @@ class __HistoryPageState extends State<_HistoryPage>
   List<ComicSimplifyEntryInfo> _convertToEntryInfoList(List<dynamic> comics) {
     final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
 
-    logger.d(comicChoice.toString());
+    // logger.d(comicChoice.toString());
 
     if (comicChoice == 1) {
       final temp = comics.map((e) => e as BikaComicHistory).toList();

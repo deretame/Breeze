@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
-import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
+import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -26,6 +26,7 @@ class BottomWidget extends StatefulWidget {
   final int epsNumber;
   final String comicId;
   final From from;
+  final JumpChapter jumpChapter;
 
   const BottomWidget({
     super.key,
@@ -37,6 +38,7 @@ class BottomWidget extends StatefulWidget {
     required this.epsNumber,
     required this.comicId,
     required this.from,
+    required this.jumpChapter,
   });
 
   @override
@@ -48,24 +50,18 @@ class _BottomWidgetState extends State<BottomWidget> {
       widget.type == ComicEntryType.download ||
       widget.type == ComicEntryType.historyAndDownload;
 
+  JumpChapter get jumpChapter => widget.jumpChapter;
+
   final Duration _animationDuration = const Duration(milliseconds: 300); // 动画时长
   final int _bottomWidgetHeight = 100; // 底部悬浮组件高度
 
   late ComicEntryType tempType;
   late String comicId;
-  bool havePrev = true;
-  bool haveNext = true;
   List<Series> seriesList = [];
-  int? sort;
-  BikaComicDownload? bikaComicDownload;
-  late AllInfo allInfo;
 
   @override
   void initState() {
     super.initState();
-    if (widget.from == From.bika) {
-      allInfo = widget.comicInfo as AllInfo;
-    }
 
     tempType = widget.type;
     comicId = widget.comicId;
@@ -74,33 +70,6 @@ class _BottomWidgetState extends State<BottomWidget> {
     }
     if (tempType == ComicEntryType.history) {
       tempType = ComicEntryType.normal;
-    }
-    if (widget.from == From.bika) {
-      if (isDownload) {
-        bikaComicDownload = objectbox.bikaDownloadBox
-            .query(BikaComicDownload_.comicId.equals(comicId))
-            .build()
-            .findFirst();
-
-        if (bikaComicDownload?.epsTitle.length == 1) {
-          havePrev = false;
-          haveNext = false;
-        } else {
-          if (allInfo.eps.first.order == widget.order) {
-            havePrev = false;
-          }
-          if (allInfo.eps.last.order == widget.order) {
-            haveNext = false;
-          }
-        }
-      } else {
-        if (widget.order == 1) {
-          havePrev = false;
-        }
-        if (widget.order == widget.epsNumber) {
-          haveNext = false;
-        }
-      }
     }
     if (widget.from == From.jm) {
       seriesList = (widget.comicInfo as JmComicInfoJson).series;
@@ -112,21 +81,6 @@ class _BottomWidgetState extends State<BottomWidget> {
             .epsIds;
         seriesList = seriesList.toList()
           ..removeWhere((series) => !epsIds.contains(series.id));
-      }
-      if (seriesList.isEmpty) {
-        havePrev = false;
-        haveNext = false;
-      } else {
-        sort = seriesList
-            .firstWhere((series) => series.id == widget.order.toString())
-            .sort
-            .let(toInt);
-        if (sort == seriesList.first.sort.let(toInt)) {
-          havePrev = false;
-        }
-        if (sort == seriesList.last.sort.let(toInt)) {
-          haveNext = false;
-        }
       }
     }
   }
@@ -156,13 +110,13 @@ class _BottomWidgetState extends State<BottomWidget> {
                     const SizedBox(width: 10),
                     ChapterNavigationButton(
                       label: "上一章",
-                      isEnabled: havePrev,
+                      isEnabled: jumpChapter.havePrev,
                       onTap: () => _jumpToChapter(true),
                     ),
                     widget.sliderWidget,
                     ChapterNavigationButton(
                       label: "下一章",
-                      isEnabled: haveNext,
+                      isEnabled: jumpChapter.haveNext,
                       onTap: () => _jumpToChapter(false),
                     ),
                     const SizedBox(width: 10),
@@ -260,45 +214,14 @@ class _BottomWidgetState extends State<BottomWidget> {
 
   Future<void> _jumpToChapter(bool isPrev) async {
     final dialogMessage = isPrev ? '上一章' : '下一章';
-    final router = AutoRouter.of(context);
     final result = await _bottomButtonDialog(
       context,
       '跳转',
       '是否要跳转到$dialogMessage？',
     );
-    int order = 0;
-    if (widget.from == From.bika) {
-      final index = allInfo.eps.indexOf(
-        allInfo.eps.firstWhere((ep) => ep.order == widget.order),
-      );
-      if (isPrev) {
-        order = allInfo.eps[index - 1].order;
-      } else {
-        order = allInfo.eps[index + 1].order;
-      }
-    } else {
-      if (sort != null) {
-        if (haveNext && !isPrev) {
-          order = findNeighborOrder(false, seriesList, widget.order);
-        } else if (havePrev && isPrev) {
-          order = findNeighborOrder(true, seriesList, widget.order);
-        }
-      }
-    }
-    if (result) {
-      if (!mounted) return;
-      router.popAndPush(
-        ComicReadRoute(
-          comicInfo: widget.comicInfo,
-          comicId: comicId,
-          type: tempType,
-          order: order,
-          epsNumber: widget.epsNumber,
-          from: widget.from,
-          stringSelectCubit: context.read<StringSelectCubit>(),
-        ),
-      );
-    }
+    if (!result) return;
+    if (!mounted) return;
+    jumpChapter.jumpToChapter(context, isPrev);
   }
 
   Future<void> _selectJumpChapter() async {
@@ -367,33 +290,6 @@ class _BottomWidgetState extends State<BottomWidget> {
         ),
     ],
   );
-
-  int findNeighborOrder(bool isPrev, List<Series> seriesList, int currentSort) {
-    int neighborOrder = 0;
-    int currentIndex = 0;
-
-    // 首先找到当前项的索引
-    for (int i = 0; i < seriesList.length; i++) {
-      if (seriesList[i].id.let(toInt) == currentSort) {
-        currentIndex = i;
-        break;
-      }
-    }
-
-    if (isPrev) {
-      // 查找上一个项
-      if (currentIndex > 0) {
-        neighborOrder = seriesList[currentIndex - 1].id.let(toInt);
-      }
-    } else {
-      // 查找下一个项
-      if (currentIndex < seriesList.length - 1) {
-        neighborOrder = seriesList[currentIndex + 1].id.let(toInt);
-      }
-    }
-
-    return neighborOrder;
-  }
 }
 
 class ChapterNavigationButton extends StatelessWidget {

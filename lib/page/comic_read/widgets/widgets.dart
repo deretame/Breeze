@@ -1,5 +1,6 @@
 export './app_bar.dart';
 export './bottom.dart';
+export './button_dialog.dart';
 export './column_mode.dart';
 export './image_display.dart';
 export './image_size_cache.dart';

@@ -18,6 +18,7 @@ import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart'
     show JmComicInfoJson;
 import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart'
     show downloadInfoJsonFromJson, DownloadInfoJsonSeries;
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/memory/memory_overlay_widget.dart';
 import 'package:zephyr/util/settings_hive_utils.dart';
 import 'package:zephyr/util/volume_key_handler.dart';
@@ -472,14 +473,16 @@ class _ComicReadPageState extends State<_ComicReadPage>
     final haveNext = _jumpChapter.haveNext;
     final havePrev = _jumpChapter.havePrev;
 
-    logger.d('是否有上一章：$havePrev, 是否有下一章：$haveNext');
+    final triggerOffset = context.screenHeight / 4;
+
+    // logger.d('是否有上一章：$havePrev, 是否有下一章：$haveNext');
 
     // 1. 定义正常的 Header（保持你之前的防误触和样式配置）
-    const activeHeader = ClassicHeader(
+    final activeHeader = ClassicHeader(
       dragText: '下拉上一章',
       armedText: '松手跳转上一章',
-      readyText: '',
-      processingText: '',
+      readyText: '松手加载上一章',
+      processingText: '加载中...',
       processedText: '',
       showText: true,
       showMessage: false,
@@ -487,14 +490,15 @@ class _ComicReadPageState extends State<_ComicReadPage>
       spacing: 0,
       processedDuration: Duration.zero,
       textStyle: TextStyle(color: Colors.white),
+      triggerOffset: triggerOffset,
     );
 
     // 2. 定义正常的 Footer
-    const activeFooter = ClassicFooter(
+    final activeFooter = ClassicFooter(
       dragText: '上拉下一章',
       armedText: '松手跳转下一章',
-      readyText: '',
-      processingText: '',
+      readyText: '松手加载下一章',
+      processingText: '加载中...',
       processedText: '',
       showText: true,
       showMessage: false,
@@ -503,6 +507,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
       processedDuration: Duration.zero,
       infiniteOffset: null,
       textStyle: TextStyle(color: Colors.white),
+      triggerOffset: triggerOffset,
     );
 
     return EasyRefresh.builder(
@@ -511,7 +516,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
 
       onRefresh: havePrev
           ? () async {
-              final result = await _bottomButtonDialog('跳转', '是否要跳转到上一章？');
+              final result = await buttonDialog(context, '跳转', '是否要跳转到上一章？');
               if (!result) return;
               if (!mounted) return;
               _jumpChapter.jumpToChapter(context, true);
@@ -520,7 +525,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
 
       onLoad: haveNext
           ? () async {
-              final result = await _bottomButtonDialog('跳转', '是否要跳转到下一章？');
+              final result = await buttonDialog(context, '跳转', '是否要跳转到下一章？');
               if (!result) return;
               if (!mounted) return;
               _jumpChapter.jumpToChapter(context, false);
@@ -557,34 +562,6 @@ class _ComicReadPageState extends State<_ComicReadPage>
     );
   }
 
-  Future<bool> _bottomButtonDialog(String title, String content) async {
-    return await showDialog<bool>(
-          context: context,
-          barrierDismissible: false, // 不允许点击外部区域关闭对话框
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text(title),
-              content: Text(content),
-              actions: [
-                TextButton(
-                  child: Text('取消'),
-                  onPressed: () {
-                    Navigator.of(context).pop(false); // 返回 false
-                  },
-                ),
-                TextButton(
-                  child: Text('确定'),
-                  onPressed: () {
-                    Navigator.of(context).pop(true); // 返回 true
-                  },
-                ),
-              ],
-            );
-          },
-        ) ??
-        false; // 处理返回值为空的情况
-  }
-
   Widget _rowModeWidget() {
     final globalSettingState = context.watch<GlobalSettingCubit>().state;
 
@@ -612,6 +589,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
       },
       isSliderRolling: _isSliderRolling,
       from: widget.from,
+      jumpChapter: _jumpChapter,
     );
   }
 

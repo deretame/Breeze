@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,6 +13,7 @@ import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/comic_info/models/all_info.dart';
 import 'package:zephyr/page/comic_read/comic_read.dart';
 import 'package:zephyr/page/comic_read/method/history_writer.dart';
+import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart'
     show JmComicInfoJson;
 import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart'
@@ -125,6 +127,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
   bool _loading = true; // 加载状态
   final _historyWriter = HistoryWriter();
   Timer? _cleanTimer;
+  late JumpChapter _jumpChapter;
 
   bool get _isHistory =>
       _type == ComicEntryType.history ||
@@ -224,6 +227,16 @@ class _ComicReadPageState extends State<_ComicReadPage>
         if (!_loading && comicInfo != null) writeToDatabase();
       });
     });
+
+    _jumpChapter = JumpChapter.create(
+      _type,
+      _isVisible,
+      comicInfo,
+      widget.order,
+      widget.epsNumber,
+      comicId,
+      widget.from,
+    );
 
     // 设置音量键监听
     _setupVolumeKeyListener();
@@ -390,11 +403,8 @@ class _ComicReadPageState extends State<_ComicReadPage>
   Widget _pageCountWidget() =>
       PageCountWidget(pageIndex: pageIndex, epPages: epPages);
 
-  Widget _bottomWidget() => BottomWidget(
-    type: _type,
-    isVisible: _isVisible,
-    comicInfo: comicInfo,
-    sliderWidget: SliderWidget(
+  Widget _bottomWidget() {
+    final silder = SliderWidget(
       totalSlots: _totalSlots,
       currentSliderValue: _currentSliderValue,
       changeSliderValue: (double newValue) {
@@ -408,12 +418,20 @@ class _ComicReadPageState extends State<_ComicReadPage>
       },
       itemScrollController: _itemScrollController,
       pageController: _pageController,
-    ),
-    order: widget.order,
-    epsNumber: widget.epsNumber,
-    comicId: comicId,
-    from: widget.from,
-  );
+    );
+
+    return BottomWidget(
+      type: _type,
+      isVisible: _isVisible,
+      comicInfo: comicInfo,
+      sliderWidget: silder,
+      order: widget.order,
+      epsNumber: widget.epsNumber,
+      comicId: comicId,
+      from: widget.from,
+      jumpChapter: _jumpChapter,
+    );
+  }
 
   /// 构建交互式查看器
   Widget _buildInteractiveViewer() {
@@ -450,15 +468,122 @@ class _ComicReadPageState extends State<_ComicReadPage>
     }
   }
 
-  Widget _columnModeWidget() => ColumnModeWidget(
-    comicId: comicId,
-    epsId: epId,
-    length: length,
-    docs: docs,
-    itemScrollController: _itemScrollController,
-    itemPositionsListener: _itemPositionsListener,
-    from: widget.from,
-  );
+  Widget _columnModeWidget() {
+    final haveNext = _jumpChapter.haveNext;
+    final havePrev = _jumpChapter.havePrev;
+
+    logger.d('是否有上一章：$havePrev, 是否有下一章：$haveNext');
+
+    // 1. 定义正常的 Header（保持你之前的防误触和样式配置）
+    const activeHeader = ClassicHeader(
+      dragText: '下拉上一章',
+      armedText: '松手跳转上一章',
+      readyText: '',
+      processingText: '',
+      processedText: '',
+      showText: true,
+      showMessage: false,
+      iconDimension: 0,
+      spacing: 0,
+      processedDuration: Duration.zero,
+      textStyle: TextStyle(color: Colors.white),
+    );
+
+    // 2. 定义正常的 Footer
+    const activeFooter = ClassicFooter(
+      dragText: '上拉下一章',
+      armedText: '松手跳转下一章',
+      readyText: '',
+      processingText: '',
+      processedText: '',
+      showText: true,
+      showMessage: false,
+      iconDimension: 0,
+      spacing: 0,
+      processedDuration: Duration.zero,
+      infiniteOffset: null,
+      textStyle: TextStyle(color: Colors.white),
+    );
+
+    return EasyRefresh.builder(
+      header: activeHeader,
+      footer: activeFooter,
+
+      onRefresh: havePrev
+          ? () async {
+              final result = await _bottomButtonDialog('跳转', '是否要跳转到上一章？');
+              if (!result) return;
+              if (!mounted) return;
+              _jumpChapter.jumpToChapter(context, true);
+            }
+          : null,
+
+      onLoad: haveNext
+          ? () async {
+              final result = await _bottomButtonDialog('跳转', '是否要跳转到下一章？');
+              if (!result) return;
+              if (!mounted) return;
+              _jumpChapter.jumpToChapter(context, false);
+            }
+          : null,
+
+      triggerAxis: Axis.vertical,
+
+      notRefreshHeader: const NotRefreshHeader(
+        clamping: false,
+        hitOver: true,
+        position: IndicatorPosition.locator,
+      ),
+
+      notLoadFooter: const NotLoadFooter(
+        clamping: false,
+        hitOver: true,
+        position: IndicatorPosition.locator,
+      ),
+
+      // 保持之前的 childBuilder 写法
+      childBuilder: (context, physics) {
+        return ColumnModeWidget(
+          comicId: comicId,
+          epsId: epId,
+          length: length,
+          docs: docs,
+          itemScrollController: _itemScrollController,
+          itemPositionsListener: _itemPositionsListener,
+          from: widget.from,
+          parentPhysics: physics,
+        );
+      },
+    );
+  }
+
+  Future<bool> _bottomButtonDialog(String title, String content) async {
+    return await showDialog<bool>(
+          context: context,
+          barrierDismissible: false, // 不允许点击外部区域关闭对话框
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(title),
+              content: Text(content),
+              actions: [
+                TextButton(
+                  child: Text('取消'),
+                  onPressed: () {
+                    Navigator.of(context).pop(false); // 返回 false
+                  },
+                ),
+                TextButton(
+                  child: Text('确定'),
+                  onPressed: () {
+                    Navigator.of(context).pop(true); // 返回 true
+                  },
+                ),
+              ],
+            );
+          },
+        ) ??
+        false; // 处理返回值为空的情况
+  }
 
   Widget _rowModeWidget() {
     final globalSettingState = context.watch<GlobalSettingCubit>().state;

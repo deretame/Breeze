@@ -19,6 +19,7 @@ class ColumnModeWidget extends StatefulWidget {
   final ItemScrollController itemScrollController;
   final ItemPositionsListener itemPositionsListener;
   final From from;
+  final ScrollPhysics? parentPhysics;
 
   const ColumnModeWidget({
     super.key,
@@ -29,6 +30,7 @@ class ColumnModeWidget extends StatefulWidget {
     required this.itemScrollController,
     required this.itemPositionsListener,
     required this.from,
+    this.parentPhysics,
   });
 
   @override
@@ -87,11 +89,13 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // 减少预加载范围，避免 GPU 内存溢出
-    // 从 2.0 倍屏幕高度减少到 1.0 倍
+    final physics = widget.parentPhysics != null
+        ? widget.parentPhysics!.applyTo(const AlwaysScrollableScrollPhysics())
+        : const AlwaysScrollableScrollPhysics();
     return useSkia
         ? ScrollablePositionedList.separated(
             // 带分隔符的版本
+            physics: physics,
             itemCount: widget.length + 2,
             itemBuilder: itemBuilder,
             separatorBuilder: (_, _) =>
@@ -102,6 +106,7 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
           )
         : ScrollablePositionedList.builder(
             // 不带分隔符的版本
+            physics: physics,
             itemCount: widget.length + 2,
             itemBuilder: itemBuilder,
             itemScrollController: widget.itemScrollController,

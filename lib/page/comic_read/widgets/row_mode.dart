@@ -59,6 +59,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
   Widget build(BuildContext context) {
     final globalSettingState = context.watch<GlobalSettingCubit>().state;
     final jumpChapter = widget.jumpChapter;
+    const offset = 4;
 
     return NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification notification) {
@@ -92,14 +93,14 @@ class _RowModeWidgetState extends State<RowModeWidget> {
           final maxPixels = metrics.maxScrollExtent;
 
           if (currentPixels < 0) {
-            if (currentPixels < -context.screenWidth / 2 &&
+            if (currentPixels < -context.screenWidth / offset &&
                 jumpChapter.havePrev) {
               jumpToPrev();
             }
           }
 
           if (currentPixels > maxPixels) {
-            if (currentPixels > maxPixels + context.screenWidth / 2 &&
+            if (currentPixels > maxPixels + context.screenWidth / offset &&
                 jumpChapter.haveNext) {
               jumpToNext();
             }

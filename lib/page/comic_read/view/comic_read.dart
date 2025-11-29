@@ -469,11 +469,12 @@ class _ComicReadPageState extends State<_ComicReadPage>
     }
   }
 
+  final offset = 8;
   Widget _columnModeWidget() {
     final haveNext = _jumpChapter.haveNext;
     final havePrev = _jumpChapter.havePrev;
 
-    final triggerOffset = context.screenHeight / 4;
+    final triggerOffset = context.screenHeight / offset;
 
     // logger.d('是否有上一章：$havePrev, 是否有下一章：$haveNext');
 
@@ -516,8 +517,8 @@ class _ComicReadPageState extends State<_ComicReadPage>
 
       onRefresh: havePrev
           ? () async {
-              final result = await buttonDialog(context, '跳转', '是否要跳转到上一章？');
-              if (!result) return;
+              // final result = await buttonDialog(context, '跳转', '是否要跳转到上一章？');
+              // if (!result) return;
               if (!mounted) return;
               _jumpChapter.jumpToChapter(context, true);
             }
@@ -525,8 +526,8 @@ class _ComicReadPageState extends State<_ComicReadPage>
 
       onLoad: haveNext
           ? () async {
-              final result = await buttonDialog(context, '跳转', '是否要跳转到下一章？');
-              if (!result) return;
+              // final result = await buttonDialog(context, '跳转', '是否要跳转到下一章？');
+              // if (!result) return;
               if (!mounted) return;
               _jumpChapter.jumpToChapter(context, false);
             }

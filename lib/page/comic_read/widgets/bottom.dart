@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uuid/uuid.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -249,8 +250,9 @@ class _BottomWidgetState extends State<BottomWidget> {
       },
     );
     if (result != null && mounted) {
-      router.popAndPush(
+      router.replace(
         ComicReadRoute(
+          key: Key(Uuid().v4()),
           comicInfo: widget.comicInfo,
           comicId: comicId,
           type: tempType,

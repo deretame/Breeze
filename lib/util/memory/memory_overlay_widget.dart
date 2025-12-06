@@ -158,7 +158,7 @@ class _MemoryOverlayWidgetState extends State<MemoryOverlayWidget>
                   width: _isExpanded ? 300 : null,
                   constraints: BoxConstraints(
                     minWidth: _isExpanded ? 300 : 140,
-                    maxWidth: _isExpanded ? 300 : 150,
+                    maxWidth: _isExpanded ? 300 : 160,
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,

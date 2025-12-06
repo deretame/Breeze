@@ -38,6 +38,7 @@ _GlobalSettingState _$GlobalSettingStateFromJson(Map<String, dynamic> json) =>
       needCleanCache: json['needCleanCache'] as bool? ?? false,
       comicChoice: (json['comicChoice'] as num?)?.toInt() ?? 1,
       disableBika: json['disableBika'] as bool? ?? false,
+      enableMemoryDebug: json['enableMemoryDebug'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
@@ -62,6 +63,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'needCleanCache': instance.needCleanCache,
       'comicChoice': instance.comicChoice,
       'disableBika': instance.disableBika,
+      'enableMemoryDebug': instance.enableMemoryDebug,
     };
 
 const _$ThemeModeEnumMap = {

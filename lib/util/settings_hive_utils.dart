@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart'; // 需要导入 Locale 和 ThemeMode
 import 'package:hive_ce/hive.dart';
-
+import 'package:zephyr/config/bika/bika_setting.dart';
 // 1. 导入你所有的 BoxKey 定义文件
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
-import 'package:zephyr/config/bika/bika_setting.dart';
 
 /// 一个简单的工具类，用于在没有 BuildContext 时直接从 Hive 读取设置的 *初始* 值。
 ///
@@ -79,6 +78,10 @@ class SettingsHiveUtils {
       _globalBox.get(GlobalSettingBoxKey.comicChoice, defaultValue: 1);
   static bool get disableBika =>
       _globalBox.get(GlobalSettingBoxKey.disableBika, defaultValue: false);
+  static bool get enableMemoryDebug => _globalBox.get(
+    GlobalSettingBoxKey.enableMemoryDebug,
+    defaultValue: false,
+  );
 
   // --- JM Setting Getters ---
 

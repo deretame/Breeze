@@ -126,9 +126,9 @@ class _ComicReadPageState extends State<_ComicReadPage>
   var length = 0; // 组件总数
   List<Doc> docs = []; // 图片信息
   bool _loading = true; // 加载状态
-  final _historyWriter = HistoryWriter();
-  Timer? _cleanTimer;
-  late JumpChapter _jumpChapter;
+  final _historyWriter = HistoryWriter(); // 用来后台存储阅读记录
+  Timer? _cleanTimer; // 用来清理图片缓存的定时器
+  late JumpChapter _jumpChapter; // 用来跳转章节的通用类
 
   bool get _isHistory =>
       _type == ComicEntryType.history ||

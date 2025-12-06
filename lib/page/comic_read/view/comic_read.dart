@@ -372,7 +372,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
     }
 
     return MemoryOverlayWidget(
-      enabled: false,
+      enabled: globalSettingState.enableMemoryDebug,
       updateInterval: Duration(seconds: 1),
       child: Container(
         color: Colors.black,

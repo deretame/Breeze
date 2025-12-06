@@ -33,6 +33,7 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(false) bool needCleanCache,
     @Default(1) int comicChoice,
     @Default(false) bool disableBika,
+    @Default(false) bool enableMemoryDebug,
   }) = _GlobalSettingState;
 
   factory GlobalSettingState.fromJson(Map<String, dynamic> json) =>
@@ -134,6 +135,10 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
         disableBika: _box.get(
           GlobalSettingBoxKey.disableBika,
           defaultValue: state.disableBika,
+        ),
+        enableMemoryDebug: _box.get(
+          GlobalSettingBoxKey.enableMemoryDebug,
+          defaultValue: state.enableMemoryDebug,
         ),
       ),
     );
@@ -340,6 +345,16 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
     _box.delete(GlobalSettingBoxKey.disableBika);
     emit(state.copyWith(disableBika: _defaults.disableBika));
   }
+
+  void updateEnableMemoryDebug(bool value) {
+    _box.put(GlobalSettingBoxKey.enableMemoryDebug, value);
+    emit(state.copyWith(enableMemoryDebug: value));
+  }
+
+  void resetEnableMemoryDebug() {
+    _box.delete(GlobalSettingBoxKey.enableMemoryDebug);
+    emit(state.copyWith(enableMemoryDebug: _defaults.enableMemoryDebug));
+  }
 }
 
 class GlobalSettingBoxKey {
@@ -365,4 +380,5 @@ class GlobalSettingBoxKey {
   static const String needCleanCache = 'needCleanCache'; // 是否需要清理缓存
   static const String comicChoice = 'comicChoice'; // 漫画选择
   static const String disableBika = 'disableBika'; // 禁用哔咔
+  static const String enableMemoryDebug = 'enableMemoryDebug'; // 是否启用内存调试
 }

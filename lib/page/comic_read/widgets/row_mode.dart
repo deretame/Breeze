@@ -63,7 +63,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
 
     return NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification notification) {
-        logger.d("isJumping: $isJumping");
+        // logger.d("isJumping: $isJumping");
 
         void jumpToPrev() {
           isJumping = true;

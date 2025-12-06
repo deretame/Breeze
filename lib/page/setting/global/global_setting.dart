@@ -38,6 +38,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   bool _shadeValue = SettingsHiveUtils.shade;
   bool _comicReadTopContainerValue = SettingsHiveUtils.comicReadTopContainer;
   bool _disableBikaValue = SettingsHiveUtils.disableBika;
+  bool _enableMemoryDebugValue = SettingsHiveUtils.enableMemoryDebug;
   final keywordController = TextEditingController();
 
   @override
@@ -75,6 +76,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           DividerWidget(),
           _splashPage(),
           _disableBika(),
+          _enableMemoryDebug(),
           if (kDebugMode) ...[
             ElevatedButton(
               onPressed: () {
@@ -255,7 +257,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   }
 
   Widget _shade() {
-    logger.d(SettingsHiveUtils.shade);
+    // logger.d(SettingsHiveUtils.shade);
     final globalSettingCubit = context.read<GlobalSettingCubit>();
     return Row(
       children: [
@@ -353,6 +355,27 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             globalSettingCubit.updateDisableBika(_disableBikaValue);
             globalSettingCubit.updateComicChoice(2);
             showSuccessToast("设置成功，重启生效");
+          },
+        ),
+        SizedBox(width: 10),
+      ],
+    );
+  }
+
+  Widget _enableMemoryDebug() {
+    final globalSettingCubit = context.read<GlobalSettingCubit>();
+    return Row(
+      children: [
+        SizedBox(width: 10),
+        Text("启用内存调试", style: TextStyle(fontSize: 18)),
+        SizedBox(width: 5), // 添加间距
+        Spacer(),
+        Switch(
+          thumbIcon: thumbIcon,
+          value: _enableMemoryDebugValue,
+          onChanged: (bool value) {
+            setState(() => _enableMemoryDebugValue = !_enableMemoryDebugValue);
+            globalSettingCubit.updateEnableMemoryDebug(_enableMemoryDebugValue);
           },
         ),
         SizedBox(width: 10),

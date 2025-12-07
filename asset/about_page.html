@@ -134,8 +134,13 @@
             animation: fadeInUp 0.5s ease-out forwards;
             opacity: 0;
             /* 初始透明 */
+            transform: translateY(20px);
+            will-change: opacity, transform;
         }
-
+        .section.show {
+            animation: fadeInUp 0.5s ease-out forwards;
+            animation-delay: var(--delay, 0ms);
+        }
         .section:nth-child(1) {
             animation-delay: 0.2s;
         }
@@ -556,22 +561,28 @@
         }
 
 
-        const sections = document.querySelectorAll('.section');
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, { threshold: 0.1 });
+    const sections = document.querySelectorAll('.section');
 
-        sections.forEach(section => {
-            observer.observe(section);
+    const observer = new IntersectionObserver((entries, obs) => {
+        const visibleEntries = entries
+            .filter(e => e.isIntersecting)
+            .sort((a, b) => {
+                return Array.prototype.indexOf.call(sections, a.target) - Array.prototype.indexOf.call(sections, b.target);
+            });
+
+        visibleEntries.forEach((entry, idx) => {
+            const el = entry.target;
+            const index = Array.prototype.indexOf.call(sections, el);
+            const baseDelay = 120;
+            el.style.setProperty('--delay', `${index * baseDelay}ms`);
+            el.classList.add('show');
+            obs.unobserve(el);
         });
 
+    }, { threshold: 0.15 });
 
-    </script>
+    sections.forEach(section => observer.observe(section));
+</script>
 </body>
 
 </html>

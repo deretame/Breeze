@@ -127,7 +127,7 @@ Widget webdavSync(BuildContext context) {
     child: Row(
       children: [
         SizedBox(width: 10),
-        Text("webdav 同步", style: TextStyle(fontSize: 18)),
+        Text("WebDAV 同步", style: TextStyle(fontSize: 18)),
         Expanded(child: Container()),
         Icon(Icons.chevron_right),
         SizedBox(width: 10),

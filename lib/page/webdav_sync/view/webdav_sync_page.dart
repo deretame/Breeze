@@ -44,7 +44,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
     final globalSettingCubit = context.watch<GlobalSettingCubit>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('webdav 同步')),
+      appBar: AppBar(title: const Text('WebDAV 同步')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -53,7 +53,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
             TextField(
               controller: _webdavHost,
               decoration: const InputDecoration(
-                labelText: 'webdav 地址',
+                labelText: 'WebDAV 地址',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -149,7 +149,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
         context.pop();
       }
 
-      logger.d('webdav连接成功');
+      logger.d('WebDAV连接成功');
 
       if (!mounted) return;
 
@@ -162,7 +162,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
       eventBus.fire(NoticeSync());
 
       if (!mounted) return;
-      commonDialog(context, "成功", "webdav连接成功，已保存设置。");
+      commonDialog(context, "成功", "WebDAV连接成功，已保存设置。");
     } catch (e) {
       logger.e(e);
       // 关闭加载框
@@ -171,15 +171,16 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
       }
 
       if (!mounted) return;
-      commonDialog(context, "错误", "连接失败，请检查网络连接或webdav地址是否正确。\n$e");
+      commonDialog(context, "错误", "连接失败，请检查网络连接或WebDAV地址是否正确。\n$e");
     }
   }
 
   void _showQA(BuildContext context) {
     final String disclaimerMarkdown = '''
-### 什么是 webdav？怎么用？
-- 请百度
-### 哪里有 webdav 服务器？
+### 什么是 WebDAV？怎么用？
+- WebDAV 是基于 HTTP 的文件管理协议，支持远程创建、编辑、移动文件。可通过支持 WebDAV 的客户端（如 Windows 资源管理器、rclone、Breeze）连接服务器使用。
+- 更详细的信息请查询百度等搜索引擎。
+### 哪里有 WebDAV 服务器？
 - 国内可以使用坚果云，国外服务可以使用 InfiniCLOUD，或者自建服务器使用
 ### 可以同步那些东西？
 - 仅可以同步哔咔的历史记录，禁漫的收藏及历史

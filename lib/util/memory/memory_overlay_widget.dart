@@ -37,6 +37,7 @@ class _MemoryOverlayWidgetState extends State<MemoryOverlayWidget>
   bool _isDragging = false;
   bool _isExpanded = false;
   late AnimationController _animationController;
+  OverlayEntry? _overlayEntry;
 
   @override
   void initState() {
@@ -48,6 +49,10 @@ class _MemoryOverlayWidgetState extends State<MemoryOverlayWidget>
 
     if (widget.enabled) {
       _startMonitoring();
+      // 延迟插入 Overlay 以确保 context 可用
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _insertOverlay();
+      });
     }
   }
 
@@ -57,8 +62,16 @@ class _MemoryOverlayWidgetState extends State<MemoryOverlayWidget>
     if (widget.enabled != oldWidget.enabled) {
       if (widget.enabled) {
         _startMonitoring();
+        // 延迟插入 Overlay 以避免在构建阶段修改状态
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _insertOverlay();
+        });
       } else {
         _stopMonitoring();
+        // 延迟移除 Overlay 以避免在构建阶段修改状态
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _removeOverlay();
+        });
       }
     }
   }
@@ -66,8 +79,26 @@ class _MemoryOverlayWidgetState extends State<MemoryOverlayWidget>
   @override
   void dispose() {
     _stopMonitoring();
+    _removeOverlay();
     _animationController.dispose();
     super.dispose();
+  }
+
+  void _insertOverlay() {
+    if (_overlayEntry != null) return;
+
+    _overlayEntry = OverlayEntry(builder: (context) => _buildOverlayContent());
+
+    Overlay.of(context).insert(_overlayEntry!);
+  }
+
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
+  void _updateOverlay() {
+    _overlayEntry?.markNeedsBuild();
   }
 
   void _startMonitoring() {
@@ -85,6 +116,7 @@ class _MemoryOverlayWidgetState extends State<MemoryOverlayWidget>
       final info = await SimpleMemoryMonitor.getMemoryInfo();
       if (mounted) {
         setState(() => _memoryInfo = info);
+        _updateOverlay();
       }
     } catch (e) {
       // 忽略错误
@@ -98,6 +130,7 @@ class _MemoryOverlayWidgetState extends State<MemoryOverlayWidget>
     } else {
       _animationController.reverse();
     }
+    _updateOverlay();
   }
 
   String _formatBytes(int bytes) {
@@ -122,59 +155,70 @@ class _MemoryOverlayWidgetState extends State<MemoryOverlayWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        widget.child,
-        if (widget.enabled && _memoryInfo != null)
-          Positioned(
-            left: _position.dx,
-            top: _position.dy,
-            child: GestureDetector(
-              onPanStart: (_) => setState(() => _isDragging = true),
-              onPanUpdate: (details) {
-                setState(() {
-                  final maxWidth = _isExpanded ? 320.0 : 150.0;
-                  final maxHeight = _isExpanded ? 400.0 : 100.0;
-                  _position = Offset(
-                    (_position.dx + details.delta.dx).clamp(
-                      0,
-                      MediaQuery.of(context).size.width - maxWidth,
-                    ),
-                    (_position.dy + details.delta.dy).clamp(
-                      0,
-                      MediaQuery.of(context).size.height - maxHeight,
-                    ),
-                  );
-                });
-              },
-              onPanEnd: (_) => setState(() => _isDragging = false),
-              child: Material(
-                elevation: _isDragging ? 8 : 4,
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.black.withValues(alpha: 0.85),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                  width: _isExpanded ? 300 : null,
-                  constraints: BoxConstraints(
-                    minWidth: _isExpanded ? 300 : 140,
-                    maxWidth: _isExpanded ? 300 : 160,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildHeader(),
-                      if (_isExpanded)
-                        _buildExpandedContent()
-                      else
-                        _buildCompactContent(),
-                    ],
-                  ),
-                ),
+    // 只返回 child，内存监控 UI 通过 Overlay 显示在最上层
+    return widget.child;
+  }
+
+  // 构建 Overlay 内容
+  Widget _buildOverlayContent() {
+    if (!widget.enabled || _memoryInfo == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Positioned(
+      left: _position.dx,
+      top: _position.dy,
+      child: GestureDetector(
+        onPanStart: (_) {
+          setState(() => _isDragging = true);
+          _updateOverlay();
+        },
+        onPanUpdate: (details) {
+          setState(() {
+            final maxWidth = _isExpanded ? 320.0 : 150.0;
+            final maxHeight = _isExpanded ? 400.0 : 100.0;
+            _position = Offset(
+              (_position.dx + details.delta.dx).clamp(
+                0,
+                MediaQuery.of(context).size.width - maxWidth,
               ),
+              (_position.dy + details.delta.dy).clamp(
+                0,
+                MediaQuery.of(context).size.height - maxHeight,
+              ),
+            );
+          });
+          _updateOverlay();
+        },
+        onPanEnd: (_) {
+          setState(() => _isDragging = false);
+          _updateOverlay();
+        },
+        child: Material(
+          elevation: _isDragging ? 8 : 4,
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.black.withValues(alpha: 0.85),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            width: _isExpanded ? 300 : null,
+            constraints: BoxConstraints(
+              minWidth: _isExpanded ? 300 : 140,
+              maxWidth: _isExpanded ? 300 : 160,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildHeader(),
+                if (_isExpanded)
+                  _buildExpandedContent()
+                else
+                  _buildCompactContent(),
+              ],
             ),
           ),
-      ],
+        ),
+      ),
     );
   }
 

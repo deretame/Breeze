@@ -26,6 +26,7 @@ import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/main_task.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/manage_cache.dart';
+import 'package:zephyr/util/memory/memory_overlay_widget.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/util/settings_hive_utils.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -144,11 +145,20 @@ class _NavigationBarState extends State<NavigationBar> {
 
   @override
   Widget build(BuildContext context) {
-    if (isTablet(context)) {
-      return _buildTabletLayout();
-    } else {
-      return _buildMobileLayout();
-    }
+    final globalSettingState = context.read<GlobalSettingCubit>().state;
+    return MemoryOverlayWidget(
+      enabled: globalSettingState.enableMemoryDebug,
+      updateInterval: Duration(seconds: 1),
+      child: Builder(
+        builder: (context) {
+          if (isTablet(context)) {
+            return _buildTabletLayout();
+          } else {
+            return _buildMobileLayout();
+          }
+        },
+      ),
+    );
   }
 
   Widget _buildMobileLayout() {

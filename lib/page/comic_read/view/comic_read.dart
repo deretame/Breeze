@@ -19,7 +19,6 @@ import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart'
 import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart'
     show downloadInfoJsonFromJson, DownloadInfoJsonSeries;
 import 'package:zephyr/util/context/context_extensions.dart';
-import 'package:zephyr/util/memory/memory_overlay_widget.dart';
 import 'package:zephyr/util/settings_hive_utils.dart';
 import 'package:zephyr/util/volume_key_handler.dart';
 
@@ -371,23 +370,19 @@ class _ComicReadPageState extends State<_ComicReadPage>
       }
     }
 
-    return MemoryOverlayWidget(
-      enabled: globalSettingState.enableMemoryDebug,
-      updateInterval: Duration(seconds: 1),
-      child: Container(
-        color: Colors.black,
-        child: Stack(
-          children: [
-            // 主内容区域，当UI隐藏时留出底部系统手势区域
-            Positioned.fill(
-              bottom: _isVisible ? 0 : MediaQuery.of(context).padding.bottom,
-              child: _buildInteractiveViewer(),
-            ),
-            _comicReadAppBar(),
-            _pageCountWidget(),
-            _bottomWidget(),
-          ],
-        ),
+    return Container(
+      color: Colors.black,
+      child: Stack(
+        children: [
+          // 主内容区域，当UI隐藏时留出底部系统手势区域
+          Positioned.fill(
+            bottom: _isVisible ? 0 : MediaQuery.of(context).padding.bottom,
+            child: _buildInteractiveViewer(),
+          ),
+          _comicReadAppBar(),
+          _pageCountWidget(),
+          _bottomWidget(),
+        ],
       ),
     );
   }

@@ -244,11 +244,19 @@ class _FavoritesTabPageState extends State<FavoritesTabPage>
       (GlobalSettingCubit cubit) => cubit.state.comicChoice,
     );
 
-    final int pageIndex = (comicChoice == 1) ? 0 : 1;
+    var pageIndex = (comicChoice == 1) ? 0 : 1;
 
-    return IndexedStack(
-      index: pageIndex,
-      children: <Widget>[FavoritePage(), JmFavoritePage()],
-    );
+    final globalState = context.read<GlobalSettingCubit>().state;
+
+    var widgets = <Widget>[];
+
+    if (!globalState.disableBika) {
+      widgets.add(FavoritePage());
+    } else {
+      pageIndex = 0;
+    }
+    widgets.add(JmFavoritePage());
+
+    return IndexedStack(index: pageIndex, children: widgets);
   }
 }

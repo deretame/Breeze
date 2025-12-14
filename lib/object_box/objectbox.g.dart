@@ -1017,6 +1017,40 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(8, 3979284532864250006),
+    name: 'UserSetting',
+    lastPropertyId: const obx_int.IdUid(4, 2132078167028332043),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 3645021291821039637),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 9020228439186094422),
+        name: 'globalSettingData',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 370219948799525817),
+        name: 'bikaSettingData',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 2132078167028332043),
+        name: 'jmSettingData',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -1057,7 +1091,7 @@ Future<obx.Store> openStore({
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(7, 4997035889958906360),
+    lastEntityId: const obx_int.IdUid(8, 3979284532864250006),
     lastIndexId: const obx_int.IdUid(4, 931357141992892300),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
@@ -2336,6 +2370,60 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    UserSetting: obx_int.EntityDefinition<UserSetting>(
+      model: _entities[5],
+      toOneRelations: (UserSetting object) => [],
+      toManyRelations: (UserSetting object) => {},
+      getId: (UserSetting object) => object.id,
+      setId: (UserSetting object, int id) {
+        object.id = id;
+      },
+      objectToFB: (UserSetting object, fb.Builder fbb) {
+        final globalSettingDataOffset = object.globalSettingData == null
+            ? null
+            : fbb.writeString(object.globalSettingData!);
+        final bikaSettingDataOffset = object.bikaSettingData == null
+            ? null
+            : fbb.writeString(object.bikaSettingData!);
+        final jmSettingDataOffset = object.jmSettingData == null
+            ? null
+            : fbb.writeString(object.jmSettingData!);
+        fbb.startTable(5);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, globalSettingDataOffset);
+        fbb.addOffset(2, bikaSettingDataOffset);
+        fbb.addOffset(3, jmSettingDataOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final globalSettingDataParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 6);
+        final bikaSettingDataParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 8);
+        final jmSettingDataParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 10);
+        final object = UserSetting(
+          id: idParam,
+          globalSettingData: globalSettingDataParam,
+          bikaSettingData: bikaSettingDataParam,
+          jmSettingData: jmSettingDataParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -3139,5 +3227,28 @@ class JmDownload_ {
   /// See [JmDownload.downloadTime].
   static final downloadTime = obx.QueryDateProperty<JmDownload>(
     _entities[4].properties[20],
+  );
+}
+
+/// [UserSetting] entity fields to define ObjectBox queries.
+class UserSetting_ {
+  /// See [UserSetting.id].
+  static final id = obx.QueryIntegerProperty<UserSetting>(
+    _entities[5].properties[0],
+  );
+
+  /// See [UserSetting.globalSettingData].
+  static final globalSettingData = obx.QueryStringProperty<UserSetting>(
+    _entities[5].properties[1],
+  );
+
+  /// See [UserSetting.bikaSettingData].
+  static final bikaSettingData = obx.QueryStringProperty<UserSetting>(
+    _entities[5].properties[2],
+  );
+
+  /// See [UserSetting.jmSettingData].
+  static final jmSettingData = obx.QueryStringProperty<UserSetting>(
+    _entities[5].properties[3],
   );
 }

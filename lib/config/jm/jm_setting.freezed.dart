@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$JmSettingState {
 
- String get account; String get password; String get userInfo; LoginStatus get loginStatus;
+ String get account; String get password; String get userInfo; LoginStatus get loginStatus; int get favoriteSet;
 /// Create a copy of JmSettingState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $JmSettingStateCopyWith<JmSettingState> get copyWith => _$JmSettingStateCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is JmSettingState&&(identical(other.account, account) || other.account == account)&&(identical(other.password, password) || other.password == password)&&(identical(other.userInfo, userInfo) || other.userInfo == userInfo)&&(identical(other.loginStatus, loginStatus) || other.loginStatus == loginStatus));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JmSettingState&&(identical(other.account, account) || other.account == account)&&(identical(other.password, password) || other.password == password)&&(identical(other.userInfo, userInfo) || other.userInfo == userInfo)&&(identical(other.loginStatus, loginStatus) || other.loginStatus == loginStatus)&&(identical(other.favoriteSet, favoriteSet) || other.favoriteSet == favoriteSet));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,account,password,userInfo,loginStatus);
+int get hashCode => Object.hash(runtimeType,account,password,userInfo,loginStatus,favoriteSet);
 
 @override
 String toString() {
-  return 'JmSettingState(account: $account, password: $password, userInfo: $userInfo, loginStatus: $loginStatus)';
+  return 'JmSettingState(account: $account, password: $password, userInfo: $userInfo, loginStatus: $loginStatus, favoriteSet: $favoriteSet)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $JmSettingStateCopyWith<$Res>  {
   factory $JmSettingStateCopyWith(JmSettingState value, $Res Function(JmSettingState) _then) = _$JmSettingStateCopyWithImpl;
 @useResult
 $Res call({
- String account, String password, String userInfo, LoginStatus loginStatus
+ String account, String password, String userInfo, LoginStatus loginStatus, int favoriteSet
 });
 
 
@@ -65,13 +65,14 @@ class _$JmSettingStateCopyWithImpl<$Res>
 
 /// Create a copy of JmSettingState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? account = null,Object? password = null,Object? userInfo = null,Object? loginStatus = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? account = null,Object? password = null,Object? userInfo = null,Object? loginStatus = null,Object? favoriteSet = null,}) {
   return _then(_self.copyWith(
 account: null == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
 as String,password: null == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
 as String,userInfo: null == userInfo ? _self.userInfo : userInfo // ignore: cast_nullable_to_non_nullable
 as String,loginStatus: null == loginStatus ? _self.loginStatus : loginStatus // ignore: cast_nullable_to_non_nullable
-as LoginStatus,
+as LoginStatus,favoriteSet: null == favoriteSet ? _self.favoriteSet : favoriteSet // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
@@ -156,10 +157,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String account,  String password,  String userInfo,  LoginStatus loginStatus)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String account,  String password,  String userInfo,  LoginStatus loginStatus,  int favoriteSet)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _JmSettingState() when $default != null:
-return $default(_that.account,_that.password,_that.userInfo,_that.loginStatus);case _:
+return $default(_that.account,_that.password,_that.userInfo,_that.loginStatus,_that.favoriteSet);case _:
   return orElse();
 
 }
@@ -177,10 +178,10 @@ return $default(_that.account,_that.password,_that.userInfo,_that.loginStatus);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String account,  String password,  String userInfo,  LoginStatus loginStatus)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String account,  String password,  String userInfo,  LoginStatus loginStatus,  int favoriteSet)  $default,) {final _that = this;
 switch (_that) {
 case _JmSettingState():
-return $default(_that.account,_that.password,_that.userInfo,_that.loginStatus);case _:
+return $default(_that.account,_that.password,_that.userInfo,_that.loginStatus,_that.favoriteSet);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -197,10 +198,10 @@ return $default(_that.account,_that.password,_that.userInfo,_that.loginStatus);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String account,  String password,  String userInfo,  LoginStatus loginStatus)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String account,  String password,  String userInfo,  LoginStatus loginStatus,  int favoriteSet)?  $default,) {final _that = this;
 switch (_that) {
 case _JmSettingState() when $default != null:
-return $default(_that.account,_that.password,_that.userInfo,_that.loginStatus);case _:
+return $default(_that.account,_that.password,_that.userInfo,_that.loginStatus,_that.favoriteSet);case _:
   return null;
 
 }
@@ -212,13 +213,14 @@ return $default(_that.account,_that.password,_that.userInfo,_that.loginStatus);c
 @JsonSerializable()
 
 class _JmSettingState implements JmSettingState {
-  const _JmSettingState({this.account = '', this.password = '', this.userInfo = '', this.loginStatus = LoginStatus.logout});
+  const _JmSettingState({this.account = '', this.password = '', this.userInfo = '', this.loginStatus = LoginStatus.logout, this.favoriteSet = 0});
   factory _JmSettingState.fromJson(Map<String, dynamic> json) => _$JmSettingStateFromJson(json);
 
 @override@JsonKey() final  String account;
 @override@JsonKey() final  String password;
 @override@JsonKey() final  String userInfo;
 @override@JsonKey() final  LoginStatus loginStatus;
+@override@JsonKey() final  int favoriteSet;
 
 /// Create a copy of JmSettingState
 /// with the given fields replaced by the non-null parameter values.
@@ -233,16 +235,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JmSettingState&&(identical(other.account, account) || other.account == account)&&(identical(other.password, password) || other.password == password)&&(identical(other.userInfo, userInfo) || other.userInfo == userInfo)&&(identical(other.loginStatus, loginStatus) || other.loginStatus == loginStatus));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JmSettingState&&(identical(other.account, account) || other.account == account)&&(identical(other.password, password) || other.password == password)&&(identical(other.userInfo, userInfo) || other.userInfo == userInfo)&&(identical(other.loginStatus, loginStatus) || other.loginStatus == loginStatus)&&(identical(other.favoriteSet, favoriteSet) || other.favoriteSet == favoriteSet));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,account,password,userInfo,loginStatus);
+int get hashCode => Object.hash(runtimeType,account,password,userInfo,loginStatus,favoriteSet);
 
 @override
 String toString() {
-  return 'JmSettingState(account: $account, password: $password, userInfo: $userInfo, loginStatus: $loginStatus)';
+  return 'JmSettingState(account: $account, password: $password, userInfo: $userInfo, loginStatus: $loginStatus, favoriteSet: $favoriteSet)';
 }
 
 
@@ -253,7 +255,7 @@ abstract mixin class _$JmSettingStateCopyWith<$Res> implements $JmSettingStateCo
   factory _$JmSettingStateCopyWith(_JmSettingState value, $Res Function(_JmSettingState) _then) = __$JmSettingStateCopyWithImpl;
 @override @useResult
 $Res call({
- String account, String password, String userInfo, LoginStatus loginStatus
+ String account, String password, String userInfo, LoginStatus loginStatus, int favoriteSet
 });
 
 
@@ -270,13 +272,14 @@ class __$JmSettingStateCopyWithImpl<$Res>
 
 /// Create a copy of JmSettingState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? account = null,Object? password = null,Object? userInfo = null,Object? loginStatus = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? account = null,Object? password = null,Object? userInfo = null,Object? loginStatus = null,Object? favoriteSet = null,}) {
   return _then(_JmSettingState(
 account: null == account ? _self.account : account // ignore: cast_nullable_to_non_nullable
 as String,password: null == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
 as String,userInfo: null == userInfo ? _self.userInfo : userInfo // ignore: cast_nullable_to_non_nullable
 as String,loginStatus: null == loginStatus ? _self.loginStatus : loginStatus // ignore: cast_nullable_to_non_nullable
-as LoginStatus,
+as LoginStatus,favoriteSet: null == favoriteSet ? _self.favoriteSet : favoriteSet // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

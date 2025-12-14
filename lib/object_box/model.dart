@@ -2,6 +2,9 @@ import 'dart:convert';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:objectbox/objectbox.dart';
+import 'package:zephyr/config/bika/bika_setting.dart';
+import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/config/jm/jm_setting.dart';
 
 part 'model.g.dart';
 
@@ -436,6 +439,81 @@ class JmDownload {
 
   factory JmDownload.fromJson(Map<String, dynamic> json) =>
       _$JmDownloadFromJson(json);
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+}
+
+@Entity()
+@JsonSerializable()
+class UserSetting {
+  @Id()
+  int id;
+
+  // 1. ObjectBox 存储字段 (String 类型)
+  String? globalSettingData;
+  String? bikaSettingData;
+  String? jmSettingData;
+
+  // 2. 内存缓存字段 (@Transient)
+  @Transient()
+  GlobalSettingState? _globalSetting;
+  @Transient()
+  BikaSettingState? _bikaSetting;
+  @Transient()
+  JmSettingState? _jmSetting;
+
+  UserSetting({
+    this.id = 0,
+    this.globalSettingData,
+    this.bikaSettingData,
+    this.jmSettingData,
+  });
+
+  GlobalSettingState get globalSetting {
+    if (_globalSetting == null && globalSettingData != null) {
+      _globalSetting = GlobalSettingState.fromJson(
+        jsonDecode(globalSettingData!),
+      );
+    }
+    return _globalSetting ??= GlobalSettingState();
+  }
+
+  set globalSetting(GlobalSettingState value) {
+    _globalSetting = value;
+    globalSettingData = jsonEncode(value.toJson());
+  }
+
+  BikaSettingState get bikaSetting {
+    if (_bikaSetting == null && bikaSettingData != null) {
+      _bikaSetting = BikaSettingState.fromJson(jsonDecode(bikaSettingData!));
+    }
+    return _bikaSetting ??= BikaSettingState();
+  }
+
+  set bikaSetting(BikaSettingState value) {
+    _bikaSetting = value;
+    bikaSettingData = jsonEncode(value.toJson());
+  }
+
+  JmSettingState get jmSetting {
+    if (_jmSetting == null && jmSettingData != null) {
+      _jmSetting = JmSettingState.fromJson(jsonDecode(jmSettingData!));
+    }
+    return _jmSetting ??= JmSettingState();
+  }
+
+  set jmSetting(JmSettingState value) {
+    _jmSetting = value;
+    jmSettingData = jsonEncode(value.toJson());
+  }
+
+  Map<String, dynamic> toJson() => _$UserSettingToJson(this);
+
+  factory UserSetting.fromJson(Map<String, dynamic> json) =>
+      _$UserSettingFromJson(json);
 
   @override
   String toString() {

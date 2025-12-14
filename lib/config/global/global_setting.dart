@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:zephyr/config/global/color_theme_types.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/util/json/converter.dart';
 
 part 'global_setting.freezed.dart';
@@ -146,214 +147,305 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
 
   void updateDynamicColor(bool value) {
     _box.put(GlobalSettingBoxKey.dynamicColor, value);
-    emit(state.copyWith(dynamicColor: value));
+    final temp = state.copyWith(dynamicColor: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetDynamicColor() {
     _box.delete(GlobalSettingBoxKey.dynamicColor);
-    emit(state.copyWith(dynamicColor: _defaults.dynamicColor));
+    final temp = state.copyWith(dynamicColor: _defaults.dynamicColor);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateThemeMode(ThemeMode value) {
     _box.put(GlobalSettingBoxKey.themeMode, value.index);
-    emit(state.copyWith(themeMode: value));
+    final temp = state.copyWith(themeMode: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetThemeMode() {
     _box.delete(GlobalSettingBoxKey.themeMode);
-    emit(state.copyWith(themeMode: _defaults.themeMode));
+    final temp = state.copyWith(themeMode: _defaults.themeMode);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateIsAMOLED(bool value) {
     _box.put(GlobalSettingBoxKey.isAMOLED, value);
-    emit(state.copyWith(isAMOLED: value));
+    final temp = state.copyWith(isAMOLED: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetIsAMOLED() {
     _box.delete(GlobalSettingBoxKey.isAMOLED);
-    emit(state.copyWith(isAMOLED: _defaults.isAMOLED));
+    final temp = state.copyWith(isAMOLED: _defaults.isAMOLED);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateSeedColor(Color value) {
     _box.put(GlobalSettingBoxKey.seedColor, value);
-    emit(state.copyWith(seedColor: value));
+    final temp = state.copyWith(seedColor: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetSeedColor() {
     _box.delete(GlobalSettingBoxKey.seedColor);
-    emit(state.copyWith(seedColor: _defaultSeedColor));
+    final temp = state.copyWith(seedColor: _defaultSeedColor);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateThemeInitState(int value) {
     _box.put(GlobalSettingBoxKey.themeInitState, value);
-    emit(state.copyWith(themeInitState: value));
+    final temp = state.copyWith(themeInitState: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetThemeInitState() {
     _box.delete(GlobalSettingBoxKey.themeInitState);
-    emit(state.copyWith(themeInitState: _defaults.themeInitState));
+    final temp = state.copyWith(themeInitState: _defaults.themeInitState);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateLocale(Locale value) {
     _box.put(GlobalSettingBoxKey.locale, value);
-    emit(state.copyWith(locale: value));
+    final temp = state.copyWith(locale: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetLocale() {
     _box.delete(GlobalSettingBoxKey.locale);
-    emit(state.copyWith(locale: _defaults.locale));
+    final temp = state.copyWith(locale: _defaults.locale);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateWelcomePageNum(int value) {
     _box.put(GlobalSettingBoxKey.welcomePageNum, value);
-    emit(state.copyWith(welcomePageNum: value));
+    final temp = state.copyWith(welcomePageNum: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetWelcomePageNum() {
     _box.delete(GlobalSettingBoxKey.welcomePageNum);
-    emit(state.copyWith(welcomePageNum: _defaults.welcomePageNum));
+    final temp = state.copyWith(welcomePageNum: _defaults.welcomePageNum);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateWebdavHost(String value) {
     _box.put(GlobalSettingBoxKey.webdavHost, value);
-    emit(state.copyWith(webdavHost: value));
+    final temp = state.copyWith(webdavHost: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetWebdavHost() {
     _box.delete(GlobalSettingBoxKey.webdavHost);
-    emit(state.copyWith(webdavHost: _defaults.webdavHost));
+    final temp = state.copyWith(webdavHost: _defaults.webdavHost);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateWebdavUsername(String value) {
     _box.put(GlobalSettingBoxKey.webdavUsername, value);
-    emit(state.copyWith(webdavUsername: value));
+    final temp = state.copyWith(webdavUsername: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetWebdavUsername() {
     _box.delete(GlobalSettingBoxKey.webdavUsername);
-    emit(state.copyWith(webdavUsername: _defaults.webdavUsername));
+    final temp = state.copyWith(webdavUsername: _defaults.webdavUsername);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateWebdavPassword(String value) {
     _box.put(GlobalSettingBoxKey.webdavPassword, value);
-    emit(state.copyWith(webdavPassword: value));
+    final temp = state.copyWith(webdavPassword: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetWebdavPassword() {
     _box.delete(GlobalSettingBoxKey.webdavPassword);
-    emit(state.copyWith(webdavPassword: _defaults.webdavPassword));
+    final temp = state.copyWith(webdavPassword: _defaults.webdavPassword);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateAutoSync(bool value) {
     _box.put(GlobalSettingBoxKey.autoSync, value);
-    emit(state.copyWith(autoSync: value));
+    final temp = state.copyWith(autoSync: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetAutoSync() {
     _box.delete(GlobalSettingBoxKey.autoSync);
-    emit(state.copyWith(autoSync: _defaults.autoSync));
+    final temp = state.copyWith(autoSync: _defaults.autoSync);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateSyncNotify(bool value) {
     _box.put(GlobalSettingBoxKey.syncNotify, value);
-    emit(state.copyWith(syncNotify: value));
+    final temp = state.copyWith(syncNotify: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetSyncNotify() {
     _box.delete(GlobalSettingBoxKey.syncNotify);
-    emit(state.copyWith(syncNotify: _defaults.syncNotify));
+    final temp = state.copyWith(syncNotify: _defaults.syncNotify);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateShade(bool value) {
     _box.put(GlobalSettingBoxKey.shade, value);
-    emit(state.copyWith(shade: value));
+    final temp = state.copyWith(shade: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetShade() {
     _box.delete(GlobalSettingBoxKey.shade);
-    emit(state.copyWith(shade: _defaults.shade));
+    final temp = state.copyWith(shade: _defaults.shade);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateComicReadTopContainer(bool value) {
     _box.put(GlobalSettingBoxKey.comicReadTopContainer, value);
-    emit(state.copyWith(comicReadTopContainer: value));
+    final temp = state.copyWith(comicReadTopContainer: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetComicReadTopContainer() {
     _box.delete(GlobalSettingBoxKey.comicReadTopContainer);
-    emit(
-      state.copyWith(comicReadTopContainer: _defaults.comicReadTopContainer),
+    final temp = state.copyWith(
+      comicReadTopContainer: _defaults.comicReadTopContainer,
     );
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateReadMode(int value) {
     _box.put(GlobalSettingBoxKey.readMode, value);
-    emit(state.copyWith(readMode: value));
+    final temp = state.copyWith(readMode: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetReadMode() {
     _box.delete(GlobalSettingBoxKey.readMode);
-    emit(state.copyWith(readMode: _defaults.readMode));
+    final temp = state.copyWith(readMode: _defaults.readMode);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateMaskedKeywords(List<String> value) {
     _box.put(GlobalSettingBoxKey.maskedKeywords, value);
-    emit(state.copyWith(maskedKeywords: value));
+    final temp = state.copyWith(maskedKeywords: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetMaskedKeywords() {
     _box.delete(GlobalSettingBoxKey.maskedKeywords);
-    emit(state.copyWith(maskedKeywords: _defaults.maskedKeywords));
+    final temp = state.copyWith(maskedKeywords: _defaults.maskedKeywords);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateSocks5Proxy(String value) {
     _box.put(GlobalSettingBoxKey.socks5Proxy, value);
-    emit(state.copyWith(socks5Proxy: value));
+    final temp = state.copyWith(socks5Proxy: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetSocks5Proxy() {
     _box.delete(GlobalSettingBoxKey.socks5Proxy);
-    emit(state.copyWith(socks5Proxy: _defaults.socks5Proxy));
+    final temp = state.copyWith(socks5Proxy: _defaults.socks5Proxy);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateNeedCleanCache(bool value) {
     _box.put(GlobalSettingBoxKey.needCleanCache, value);
-    emit(state.copyWith(needCleanCache: value));
+    final temp = state.copyWith(needCleanCache: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetNeedCleanCache() {
     _box.delete(GlobalSettingBoxKey.needCleanCache);
-    emit(state.copyWith(needCleanCache: _defaults.needCleanCache));
+    final temp = state.copyWith(needCleanCache: _defaults.needCleanCache);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateComicChoice(int value) {
     _box.put(GlobalSettingBoxKey.comicChoice, value);
-    emit(state.copyWith(comicChoice: value));
+    final temp = state.copyWith(comicChoice: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetComicChoice() {
     _box.delete(GlobalSettingBoxKey.comicChoice);
-    emit(state.copyWith(comicChoice: _defaults.comicChoice));
+    final temp = state.copyWith(comicChoice: _defaults.comicChoice);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateDisableBika(bool value) {
     _box.put(GlobalSettingBoxKey.disableBika, value);
-    emit(state.copyWith(disableBika: value));
+    final temp = state.copyWith(disableBika: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetDisableBika() {
     _box.delete(GlobalSettingBoxKey.disableBika);
-    emit(state.copyWith(disableBika: _defaults.disableBika));
+    final temp = state.copyWith(disableBika: _defaults.disableBika);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateEnableMemoryDebug(bool value) {
     _box.put(GlobalSettingBoxKey.enableMemoryDebug, value);
-    emit(state.copyWith(enableMemoryDebug: value));
+    final temp = state.copyWith(enableMemoryDebug: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetEnableMemoryDebug() {
     _box.delete(GlobalSettingBoxKey.enableMemoryDebug);
-    emit(state.copyWith(enableMemoryDebug: _defaults.enableMemoryDebug));
+    final temp = state.copyWith(enableMemoryDebug: _defaults.enableMemoryDebug);
+    updateDataBase(temp);
+    emit(temp);
+  }
+
+  void updateDataBase(GlobalSettingState state) {
+    final userBox = objectbox.userSettingBox;
+    var dbSettings = userBox.get(1)!;
+    dbSettings.globalSetting = state;
+    userBox.put(dbSettings);
   }
 }
 

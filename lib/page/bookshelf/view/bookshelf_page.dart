@@ -5,6 +5,7 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/int_select.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnter;
+import 'package:zephyr/page/bookshelf/widgets/jm/jm_tab_bar.dart';
 import 'package:zephyr/page/search_result/models/models.dart' show SearchEnter;
 import 'package:zephyr/util/settings_hive_utils.dart';
 
@@ -104,49 +105,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
           ? "哔咔漫画"
           : "禁漫天堂",
     ),
-    actions: [
-      IconButton(
-        icon: const Icon(Icons.search),
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              final router = AutoRouter.of(context);
-              return SimpleDialog(
-                children: [
-                  if (!SettingsHiveUtils.disableBika)
-                    SimpleDialogOption(
-                      onPressed: () {
-                        router.popAndPush(
-                          SearchResultRoute(searchEnter: SearchEnter.initial()),
-                        );
-                      },
-                      child: const Chip(
-                        label: Text("哔咔漫画"),
-                        backgroundColor: Colors.pink,
-                        labelStyle: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  SimpleDialogOption(
-                    onPressed: () {
-                      router.popAndPush(
-                        JmSearchResultRoute(event: JmSearchResultEvent()),
-                      );
-                    },
-                    child: const Chip(
-                      label: Text("禁漫天堂"),
-                      backgroundColor: Colors.orange,
-                      labelStyle: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ],
-              );
-            },
-          );
-        },
-      ),
-    ],
-
+    actions: _action(),
     bottom: PreferredSize(
       preferredSize: const Size.fromHeight(kMinInteractiveDimension),
       child: Row(
@@ -163,7 +122,6 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
           ),
           BlocBuilder<StringSelectCubit, String>(
             builder: (context, selectedString) {
-              // selectedString 就是 Cubit 的 state (即之前的 .date)
               return SizedBox(
                 width: 120,
                 child: Center(child: Text(selectedString)),
@@ -182,6 +140,49 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
       ),
     ),
   );
+
+  List<Widget> _action() => [
+    IconButton(
+      icon: const Icon(Icons.search),
+      onPressed: () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            final router = AutoRouter.of(context);
+            return SimpleDialog(
+              children: [
+                if (!SettingsHiveUtils.disableBika)
+                  SimpleDialogOption(
+                    onPressed: () {
+                      router.popAndPush(
+                        SearchResultRoute(searchEnter: SearchEnter.initial()),
+                      );
+                    },
+                    child: const Chip(
+                      label: Text("哔咔漫画"),
+                      backgroundColor: Colors.pink,
+                      labelStyle: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                SimpleDialogOption(
+                  onPressed: () {
+                    router.popAndPush(
+                      JmSearchResultRoute(event: JmSearchResultEvent()),
+                    );
+                  },
+                  child: const Chip(
+                    label: Text("禁漫天堂"),
+                    backgroundColor: Colors.orange,
+                    labelStyle: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    ),
+  ];
 
   Widget _body() => Column(
     children: [
@@ -255,7 +256,7 @@ class _FavoritesTabPageState extends State<FavoritesTabPage>
     } else {
       pageIndex = 0;
     }
-    widgets.add(JmFavoritePage());
+    widgets.add(JmTabBar());
 
     return IndexedStack(index: pageIndex, children: widgets);
   }

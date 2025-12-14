@@ -837,9 +837,38 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "8:3979284532864250006",
+      "lastPropertyId": "4:2132078167028332043",
+      "name": "UserSetting",
+      "properties": [
+        {
+          "id": "1:3645021291821039637",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:9020228439186094422",
+          "name": "globalSettingData",
+          "type": 9
+        },
+        {
+          "id": "3:370219948799525817",
+          "name": "bikaSettingData",
+          "type": 9
+        },
+        {
+          "id": "4:2132078167028332043",
+          "name": "jmSettingData",
+          "type": 9
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "7:4997035889958906360",
+  "lastEntityId": "8:3979284532864250006",
   "lastIndexId": "4:931357141992892300",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",

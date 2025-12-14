@@ -2,8 +2,9 @@
 //
 //     final jmUserInfoJson = jmUserInfoJsonFromJson(jsonString);
 
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'dart:convert';
+
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'jm_user_info_json.freezed.dart';
 part 'jm_user_info_json.g.dart';
@@ -24,7 +25,7 @@ abstract class JmUserInfoJson with _$JmUserInfoJson {
     @JsonKey(name: "fname") required String fname,
     @JsonKey(name: "gender") required String gender,
     @JsonKey(name: "message") required String message,
-    @JsonKey(name: "coin") required dynamic coin,
+    @JsonKey(name: "coin") required int coin,
     @JsonKey(name: "album_favorites") required int albumFavorites,
     @JsonKey(name: "s") required String s,
     @JsonKey(name: "level_name") required String levelName,
@@ -41,6 +42,7 @@ abstract class JmUserInfoJson with _$JmUserInfoJson {
     @JsonKey(name: "invitation_qrcode") required String invitationQrcode,
     @JsonKey(name: "invitation_url") required String invitationUrl,
     @JsonKey(name: "invited_cnt") required String invitedCnt,
+    @JsonKey(name: "jwttoken") required String jwttoken,
   }) = _JmUserInfoJson;
 
   factory JmUserInfoJson.fromJson(Map<String, dynamic> json) =>

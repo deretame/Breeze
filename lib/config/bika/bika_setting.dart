@@ -2,6 +2,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:zephyr/main.dart';
 
 part 'bika_setting.freezed.dart';
 part 'bika_setting.g.dart';
@@ -107,128 +108,179 @@ class BikaSettingCubit extends Cubit<BikaSettingState> {
 
   void updateAccount(String value) {
     _box.put(BikaSettingBoxKeys.account, value);
-    emit(state.copyWith(account: value));
+    final temp = state.copyWith(account: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetAccount() {
     _box.delete(BikaSettingBoxKeys.account);
-    emit(state.copyWith(account: _constDefaults.account));
+    final temp = state.copyWith(account: _constDefaults.account);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updatePassword(String value) {
     _box.put(BikaSettingBoxKeys.password, value);
-    emit(state.copyWith(password: value));
+    final temp = state.copyWith(password: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetPassword() {
     _box.delete(BikaSettingBoxKeys.password);
-    emit(state.copyWith(password: _constDefaults.password));
+    final temp = state.copyWith(password: _constDefaults.password);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateAuthorization(String value) {
     _box.put(BikaSettingBoxKeys.authorization, value);
-    emit(state.copyWith(authorization: value));
+    final temp = state.copyWith(authorization: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetAuthorization() {
     _box.delete(BikaSettingBoxKeys.authorization);
-    emit(state.copyWith(authorization: _constDefaults.authorization));
+    final temp = state.copyWith(authorization: _constDefaults.authorization);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateLevel(int value) {
     _box.put(BikaSettingBoxKeys.level, value);
-    emit(state.copyWith(level: value));
+    final temp = state.copyWith(level: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetLevel() {
     _box.delete(BikaSettingBoxKeys.level);
-    emit(state.copyWith(level: _constDefaults.level));
+    final temp = state.copyWith(level: _constDefaults.level);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateCheckIn(bool value) {
     _box.put(BikaSettingBoxKeys.checkIn, value);
-    emit(state.copyWith(checkIn: value));
+    final temp = state.copyWith(checkIn: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetCheckIn() {
     _box.delete(BikaSettingBoxKeys.checkIn);
-    emit(state.copyWith(checkIn: _constDefaults.checkIn));
+    final temp = state.copyWith(checkIn: _constDefaults.checkIn);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateProxy(int value) {
     _box.put(BikaSettingBoxKeys.proxy, value);
-    emit(state.copyWith(proxy: value));
+    final temp = state.copyWith(proxy: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetProxy() {
     _box.delete(BikaSettingBoxKeys.proxy);
-    emit(state.copyWith(proxy: _defaultProxy));
+    final temp = state.copyWith(proxy: _defaultProxy);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateImageQuality(String value) {
     _box.put(BikaSettingBoxKeys.imageQuality, value);
-    emit(state.copyWith(imageQuality: value));
+    final temp = state.copyWith(imageQuality: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetImageQuality() {
     _box.delete(BikaSettingBoxKeys.imageQuality);
-    emit(state.copyWith(imageQuality: _defaultImageQuality));
+    final temp = state.copyWith(imageQuality: _defaultImageQuality);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateShieldCategoryMap(Map<String, bool> value) {
     _box.put(BikaSettingBoxKeys.shieldCategoryMap, value);
-    emit(state.copyWith(shieldCategoryMap: value));
+    final temp = state.copyWith(shieldCategoryMap: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetShieldCategoryMap() {
     _box.delete(BikaSettingBoxKeys.shieldCategoryMap);
-    emit(state.copyWith(shieldCategoryMap: _defaultShieldCategoryMap));
+    final temp = state.copyWith(shieldCategoryMap: _defaultShieldCategoryMap);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateShieldHomePageCategoriesMap(Map<String, bool> value) {
-    // 你的 MobX store 有一个拼写错误 (setShieldHomeCategories)
-    // 我在这里纠正了: shieldHomePageCategoriesMap
     _box.put(BikaSettingBoxKeys.shieldHomePageCategories, value);
-    emit(state.copyWith(shieldHomePageCategoriesMap: value));
+    final temp = state.copyWith(shieldHomePageCategoriesMap: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetShieldHomePageCategoriesMap() {
     _box.delete(BikaSettingBoxKeys.shieldHomePageCategories);
-    emit(
-      state.copyWith(
-        shieldHomePageCategoriesMap: _defaultShieldHomePageCategoriesMap,
-      ),
+    final temp = state.copyWith(
+      shieldHomePageCategoriesMap: _defaultShieldHomePageCategoriesMap,
     );
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateSignIn(bool value) {
     _box.put(BikaSettingBoxKeys.signIn, value);
-    emit(state.copyWith(signIn: value));
+    final temp = state.copyWith(signIn: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetSignIn() {
     _box.delete(BikaSettingBoxKeys.signIn);
-    emit(state.copyWith(signIn: _constDefaults.signIn));
+    final temp = state.copyWith(signIn: _constDefaults.signIn);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateBrevity(bool value) {
     _box.put(BikaSettingBoxKeys.brevity, value);
-    emit(state.copyWith(brevity: value));
+    final temp = state.copyWith(brevity: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetBrevity() {
     _box.delete(BikaSettingBoxKeys.brevity);
-    emit(state.copyWith(brevity: _constDefaults.brevity));
+    final temp = state.copyWith(brevity: _constDefaults.brevity);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void updateSlowDownload(bool value) {
     _box.put(BikaSettingBoxKeys.slowDownload, value);
-    emit(state.copyWith(slowDownload: value));
+    final temp = state.copyWith(slowDownload: value);
+    updateDataBase(temp);
+    emit(temp);
   }
 
   void resetSlowDownload() {
     _box.delete(BikaSettingBoxKeys.slowDownload);
-    emit(state.copyWith(slowDownload: _constDefaults.slowDownload));
+    final temp = state.copyWith(slowDownload: _constDefaults.slowDownload);
+    updateDataBase(temp);
+    emit(temp);
+  }
+
+  void updateDataBase(BikaSettingState state) {
+    final userBox = objectbox.userSettingBox;
+    var dbSettings = userBox.get(1)!;
+    dbSettings.bikaSetting = state;
+    userBox.put(dbSettings);
   }
 }
 

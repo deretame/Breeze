@@ -23,6 +23,7 @@ import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/firebase_options.dart';
 import 'package:zephyr/network/http/jm/http_request_build.dart';
+import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/util/manage_cache.dart';
@@ -98,6 +99,12 @@ Future<void> main() async {
       await Hive.initFlutter();
       // 注册 Color 适配器
       Hive.registerAdapter(ThemeModeAdapter());
+
+      final setting = objectbox.userSettingBox.get(1);
+      if (setting == null) {
+        objectbox.userSettingBox.put(UserSetting());
+      }
+
       final globalSettingCubit = GlobalSettingCubit();
       await globalSettingCubit.initBox();
 

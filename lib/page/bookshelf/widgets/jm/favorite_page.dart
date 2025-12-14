@@ -1,13 +1,15 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
-import '../../../../main.dart';
+
 import '../../../../cubit/int_select.dart';
 import '../../../../cubit/string_select.dart';
+import '../../../../main.dart';
 import '../../../../object_box/model.dart';
 import '../../../../type/enum.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';

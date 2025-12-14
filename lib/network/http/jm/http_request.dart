@@ -23,12 +23,18 @@ Future<Map<String, dynamic>> getEpInfo(String epId) async => await request(
   cache: true,
 );
 
-Future<Map<String, dynamic>> login(String account, String password) async =>
-    await request(
-      '${JmConfig.baseUrl}/login',
-      body: 'username=$account&password=$password&',
-      method: 'POST',
-    );
+Future<Map<String, dynamic>> login(String account, String password) async {
+  final Map<String, dynamic> loginData = await request(
+    '${JmConfig.baseUrl}/login',
+    formData: {'username': account, 'password': password},
+    method: 'POST',
+    useJwt: false,
+  );
+
+  JmConfig.jwt = loginData['jwttoken'];
+
+  return loginData;
+}
 
 Future<Map<String, dynamic>> favorite(
   String comicId, {
@@ -86,14 +92,14 @@ Future<Map<String, dynamic>> comment(
 
 Future<Map<String, dynamic>> getDailyList() async => await request(
   '${JmConfig.baseUrl}/daily_list/filter',
-  body: 'data=${DateTime.now().year}&',
+  formData: {'data': DateTime.now().year},
   method: 'POST',
 );
 
 Future<Map<String, dynamic>> dailyChk(String userId, String dailyId) async =>
     await request(
       '${JmConfig.baseUrl}/daily_chk',
-      body: 'user_id=$userId&daily_id=$dailyId&',
+      formData: {'user_id': userId, 'daily_id': dailyId},
       method: 'POST',
     );
 
@@ -138,4 +144,14 @@ Future<Map<String, dynamic>> getRanking({
   method: 'GET',
   params: {'page': page, 'c': c, 'o': o},
   cache: true,
+);
+
+Future<Map<String, dynamic>> getFavoriteList({
+  int page = 1,
+  String id = '',
+  String order = 'mr',
+}) async => await request(
+  '${JmConfig.baseUrl}/favorite',
+  method: 'GET',
+  params: {'page': page, 'folder_id': id, 'o': order},
 );

@@ -31,8 +31,9 @@ String jmUA() {
 Map<String, dynamic> getHeader(
   String time,
   bool post,
-  Map<String, dynamic>? headers,
-) {
+  Map<String, dynamic>? headers, {
+  useJwt = true,
+}) {
   return {
     'token': JmConfig.token,
     'tokenparam': '$time,${JmConfig.jmVersion}',
@@ -40,6 +41,7 @@ Map<String, dynamic> getHeader(
     'Host': JmConfig.baseUrl.replaceAll('https://', ''),
     ...headers ?? {},
     if (post) 'Content-Type': 'application/x-www-form-urlencoded',
+    if (useJwt) 'Authorization': 'Bearer ${JmConfig.jwt}',
   };
 }
 
@@ -64,20 +66,20 @@ Future<dynamic> request(
   String method = 'GET',
   Map<String, dynamic>? headers,
   Map<String, dynamic>? params,
+  Map<String, dynamic>? formData,
   bool byte = true,
   bool cache = false,
+  bool useJwt = true,
 }) async {
   var timestamp = JmConfig.timestamp;
   dynamic result;
 
-  if (params != null) {
-    url = "$url${_mapToUrlParams(params)}";
-  }
+  var data = FormData();
 
-  if (url.contains("/daily_list/filter")) {
-    timestamp = (DateTime.now().millisecondsSinceEpoch / 1000)
-        .floor()
-        .toString();
+  if (params != null && method == 'GET') {
+    url = "$url${_mapToUrlParams(params)}";
+  } else if (formData != null && method == 'POST') {
+    data = FormData.fromMap(formData);
   }
 
   if (cache) {
@@ -99,10 +101,15 @@ Future<dynamic> request(
     result = await jmDio
         .request(
           url,
-          data: body,
+          data: data,
           options: Options(
             method: method,
-            headers: getHeader(timestamp, method == 'POST', headers),
+            headers: getHeader(
+              timestamp,
+              method == 'POST',
+              headers,
+              useJwt: useJwt,
+            ),
             sendTimeout: const Duration(seconds: 10),
             receiveTimeout: const Duration(seconds: 10),
             responseType: byte ? ResponseType.bytes : null,

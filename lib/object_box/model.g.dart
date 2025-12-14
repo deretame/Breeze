@@ -367,3 +367,31 @@ Map<String, dynamic> _$JmDownloadToJson(JmDownload instance) =>
       'allInfo': instance.allInfo,
       'downloadTime': instance.downloadTime.toIso8601String(),
     };
+
+UserSetting _$UserSettingFromJson(Map<String, dynamic> json) =>
+    UserSetting(
+        id: (json['id'] as num?)?.toInt() ?? 0,
+        globalSettingData: json['globalSettingData'] as String?,
+        bikaSettingData: json['bikaSettingData'] as String?,
+        jmSettingData: json['jmSettingData'] as String?,
+      )
+      ..globalSetting = GlobalSettingState.fromJson(
+        json['globalSetting'] as Map<String, dynamic>,
+      )
+      ..bikaSetting = BikaSettingState.fromJson(
+        json['bikaSetting'] as Map<String, dynamic>,
+      )
+      ..jmSetting = JmSettingState.fromJson(
+        json['jmSetting'] as Map<String, dynamic>,
+      );
+
+Map<String, dynamic> _$UserSettingToJson(UserSetting instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'globalSettingData': instance.globalSettingData,
+      'bikaSettingData': instance.bikaSettingData,
+      'jmSettingData': instance.jmSettingData,
+      'globalSetting': instance.globalSetting,
+      'bikaSetting': instance.bikaSetting,
+      'jmSetting': instance.jmSetting,
+    };

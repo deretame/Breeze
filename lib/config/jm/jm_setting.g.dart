@@ -14,6 +14,7 @@ _JmSettingState _$JmSettingStateFromJson(Map<String, dynamic> json) =>
       loginStatus:
           $enumDecodeNullable(_$LoginStatusEnumMap, json['loginStatus']) ??
           LoginStatus.logout,
+      favoriteSet: (json['favoriteSet'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$JmSettingStateToJson(_JmSettingState instance) =>
@@ -22,6 +23,7 @@ Map<String, dynamic> _$JmSettingStateToJson(_JmSettingState instance) =>
       'password': instance.password,
       'userInfo': instance.userInfo,
       'loginStatus': _$LoginStatusEnumMap[instance.loginStatus]!,
+      'favoriteSet': instance.favoriteSet,
     };
 
 const _$LoginStatusEnumMap = {

@@ -12,10 +12,12 @@ class JmConfig {
 
   static String _timestamp = '';
 
+  static String jwt = '';
+
   static const webUA =
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36';
 
-  static const jmVersion = '1.8.1';
+  static const jmVersion = '2.0.13';
 
   static const jmAuthKey = '18comicAPPContent';
 

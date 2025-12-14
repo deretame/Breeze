@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -118,34 +119,40 @@ class _SideDrawerState extends State<SideDrawer> {
   Widget _buildFavoriteContent(BuildContext context, int topBarState) {
     if (topBarState == 2) {
       // 禁漫
-      return Builder(
-        builder: (context) {
-          final jmState = context.watch<JmFavoriteCubit>().state;
-          sort = jmState.sort; // 仍然在 build 时初始化本地 state
+      final jmState = context.watch<JmSettingCubit>().state;
+      if (jmState.favoriteSet == 0) {
+        return Builder(
+          builder: (context) {
+            final jmState = context.watch<JmFavoriteCubit>().state;
+            sort = jmState.sort; // 仍然在 build 时初始化本地 state
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: SortWidget(
-                  initialSort: jmState.sort,
-                  onSortChanged: (value) {
-                    sort = value; // 更新本地 state
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: SortWidget(
+                    initialSort: jmState.sort,
+                    onSortChanged: (value) {
+                      sort = value; // 更新本地 state
+                    },
+                  ),
+                ),
+                // --- 4. 使用新的 Stateful Widget ---
+                _KeywordSearchField(
+                  initialKeyword: jmState.keyword,
+                  onSubmitted: (value) {
+                    keyword = value; // 更新本地 state
                   },
                 ),
-              ),
-              // --- 4. 使用新的 Stateful Widget ---
-              _KeywordSearchField(
-                initialKeyword: jmState.keyword,
-                onSubmitted: (value) {
-                  keyword = value; // 更新本地 state
-                },
-              ),
-            ],
-          );
-        },
-      );
+              ],
+            );
+          },
+        );
+      } else {
+        // TODO: 云端收藏操作
+        return SizedBox.shrink();
+      }
     } else {
       // 哔咔 (收藏)
       // --- 4. 使用新的 Stateful Widget ---

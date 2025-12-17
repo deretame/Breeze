@@ -374,6 +374,7 @@ UserSetting _$UserSettingFromJson(Map<String, dynamic> json) =>
         globalSettingData: json['globalSettingData'] as String?,
         bikaSettingData: json['bikaSettingData'] as String?,
         jmSettingData: json['jmSettingData'] as String?,
+        jmJwt: json['jmJwt'] as String? ?? '',
       )
       ..globalSetting = GlobalSettingState.fromJson(
         json['globalSetting'] as Map<String, dynamic>,
@@ -391,6 +392,7 @@ Map<String, dynamic> _$UserSettingToJson(UserSetting instance) =>
       'globalSettingData': instance.globalSettingData,
       'bikaSettingData': instance.bikaSettingData,
       'jmSettingData': instance.jmSettingData,
+      'jmJwt': instance.jmJwt,
       'globalSetting': instance.globalSetting,
       'bikaSetting': instance.bikaSetting,
       'jmSetting': instance.jmSetting,

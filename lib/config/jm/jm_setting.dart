@@ -43,7 +43,10 @@ class JmSettingCubit extends Cubit<JmSettingState> {
           JmSettingBoxKeys.password,
           defaultValue: _defaults.password,
         ),
-        userInfo: _defaults.userInfo,
+        userInfo: _box.get(
+          JmSettingBoxKeys.userInfo,
+          defaultValue: _defaults.userInfo,
+        ),
         loginStatus: _defaults.loginStatus,
         favoriteSet: _defaults.favoriteSet,
       ),

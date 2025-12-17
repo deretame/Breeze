@@ -21,7 +21,7 @@ class JMUserInfoWidget extends StatelessWidget {
           prev.loginStatus != curr.loginStatus ||
           prev.userInfo != curr.userInfo,
       builder: (context, jmState) {
-        logger.d('JM User Info Raw: ${jmState.userInfo}');
+        // logger.d('JM User Info Raw: ${jmState.userInfo}');
 
         Widget contentWidget;
 

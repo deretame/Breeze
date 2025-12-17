@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/page/more/json/jm/jm_user_info_json.dart'
     show JmUserInfoJson;
 import 'package:zephyr/type/enum.dart';
@@ -106,8 +105,6 @@ class _LoginPageState extends State<LoginPage> {
           ).let(jsonEncode),
         );
       }
-
-      logger.d(result.let(jsonEncode));
 
       if (from == From.bika) {
         bikaCubit.updateAccount(_account.text);

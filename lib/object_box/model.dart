@@ -456,6 +456,7 @@ class UserSetting {
   String? globalSettingData;
   String? bikaSettingData;
   String? jmSettingData;
+  String jmJwt;
 
   // 2. 内存缓存字段 (@Transient)
   @Transient()
@@ -470,6 +471,7 @@ class UserSetting {
     this.globalSettingData,
     this.bikaSettingData,
     this.jmSettingData,
+    this.jmJwt = '',
   });
 
   GlobalSettingState get globalSetting {

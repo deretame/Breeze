@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:crypto/crypto.dart';
+import 'package:zephyr/main.dart';
 
 class JmConfig {
   static final cookieJar = CookieJar(ignoreExpires: true);
@@ -12,7 +13,7 @@ class JmConfig {
 
   static String _timestamp = '';
 
-  static String jwt = '';
+  static String _jwt = '';
 
   static const webUA =
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36';
@@ -30,8 +31,9 @@ class JmConfig {
   static const baseUrls = [
     'https://www.cdnzack.cc',
     'https://www.cdnsha.org',
-    'https://www.cdnliu.org',
-    'https://www.cdnntr.cc',
+    'https://www.cdnbea.cc',
+    'https://www.cdnbea.net',
+    'https://www.cdn-mspjmapiproxy.xyz',
   ];
 
   static void setBaseUrlIndex(int index) {
@@ -42,8 +44,9 @@ class JmConfig {
 
   static const imagesUrls = [
     'https://cdn-msp12.jmdanjonproxy.xyz',
-    'https://tencent.jmdanjonproxy.xyz',
-    'https://cdn-msp3.jmapiproxy1.cc',
+    'https://cdn-msp.jmapiproxy1.cc',
+    'https://cdn-msp2.jmdanjonproxy.vip',
+    'https://cdn-msp.jmdanjonproxy.vip',
     'https://cdn-msp.jmapiproxy1.cc',
   ];
 
@@ -71,6 +74,25 @@ class JmConfig {
       _timestamp = DateTime.now().millisecondsSinceEpoch.toString();
     }
     return _timestamp;
+  }
+
+  static String get jwt {
+    try {
+      if (_jwt.isEmpty) {
+        _jwt = objectbox.userSettingBox.get(1)!.jmJwt;
+      }
+      return _jwt;
+    } catch (e) {
+      logger.e("数据获取失败$e");
+      return '';
+    }
+  }
+
+  static set jwt(String jwt) {
+    final jmSettingData = objectbox.userSettingBox.get(1)!;
+    jmSettingData.jmJwt = jwt;
+    objectbox.userSettingBox.put(jmSettingData);
+    _jwt = jwt;
   }
 
   static final categoryMap = {

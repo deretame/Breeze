@@ -31,7 +31,7 @@ Future<Map<String, dynamic>> login(String account, String password) async {
     useJwt: false,
   );
 
-  JmConfig.jwt = loginData['jwttoken'];
+  JmConfig.jwt = (loginData['jwttoken'] ??= JmConfig.jwt);
 
   return loginData;
 }

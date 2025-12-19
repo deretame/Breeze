@@ -299,12 +299,14 @@ class _ComicReadPageState extends State<_ComicReadPage>
 
   @override
   void dispose() {
+    // 首先取消定时器，防止后续操作中定时器仍在触发
+    _timer?.cancel();
+    _cleanTimer?.cancel();
+
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _pageController.dispose();
     _itemPositionsListener.itemPositions.removeListener(() {});
-    _timer?.cancel();
     _historyWriter.stop();
-    _cleanTimer?.cancel();
     VolumeKeyHandler.disableVolumeKeyInterception();
     PaintingBinding.instance.imageCache.maximumSizeBytes = 300 * 1024 * 1024;
     super.dispose();
@@ -662,6 +664,11 @@ class _ComicReadPageState extends State<_ComicReadPage>
     final historyPrefix = isJmAndSeriesEmpty ? '历史：第1话' : '历史：$epName';
 
     final stringSelectCubit = context.read<StringSelectCubit>();
+
+    // 检查 Cubit 是否已经关闭，避免在已关闭的 Cubit 上 emit
+    if (stringSelectCubit.isClosed) {
+      return;
+    }
 
     stringSelectCubit.setDate(
       '$historyPrefix / ${pageIndex - 1} / $currentTime',

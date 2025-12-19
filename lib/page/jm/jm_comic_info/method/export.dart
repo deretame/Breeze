@@ -177,9 +177,27 @@ Future<String> createDownloadDir() async {
       logger.d('downloadPath: ${externalDir.path}');
     }
 
+    // 检查 externalDir 是否为 null
+    if (externalDir == null) {
+      throw Exception('无法获取外部存储目录');
+    }
+
+    // 尝试从路径中提取用户ID
     RegExp regExp = RegExp(r'/(\d+)/');
-    Match? match = regExp.firstMatch(externalDir!.path);
-    String userId = match!.group(1)!; // 提取到的用户ID
+    Match? match = regExp.firstMatch(externalDir.path);
+
+    // 安全地提取用户ID，如果匹配失败则使用默认值
+    String userId = '0';
+    if (match != null && match.groupCount >= 1) {
+      final extractedUserId = match.group(1);
+      if (extractedUserId != null) {
+        userId = extractedUserId;
+      } else {
+        logger.w('无法提取用户ID，使用默认值: 0');
+      }
+    } else {
+      logger.w('路径格式不匹配，使用默认用户ID: 0，路径: ${externalDir.path}');
+    }
 
     String filePath = "/storage/emulated/$userId/Download/$appName";
 

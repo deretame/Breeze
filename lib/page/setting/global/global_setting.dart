@@ -43,13 +43,16 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final globalSettingCubit = context.watch<GlobalSettingCubit>();
+    final globalSettingState = globalSettingCubit.state;
+
     return Scaffold(
       appBar: AppBar(title: const Text('全局设置')),
       body: ListView(
         children: [
           _systemTheme(),
           _dynamicColor(),
-          if (!SettingsHiveUtils.dynamicColor) ...[
+          if (!globalSettingState.dynamicColor) ...[
             SizedBox(height: 11),
             changeThemeColor(context),
             SizedBox(height: 11),
@@ -68,9 +71,9 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           SizedBox(height: 11),
           webdavSync(context),
           SizedBox(height: 11),
-          if (SettingsHiveUtils.webdavHost.isNotEmpty) ...[_autoSync()],
-          if (SettingsHiveUtils.webdavHost.isNotEmpty &&
-              SettingsHiveUtils.autoSync) ...[
+          if (globalSettingState.webdavHost.isNotEmpty) ...[_autoSync()],
+          if (globalSettingState.webdavHost.isNotEmpty &&
+              globalSettingState.autoSync) ...[
             _syncNotify(),
           ],
           DividerWidget(),
@@ -248,7 +251,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           value: _autoSyncNotifyValue,
           onChanged: (bool value) {
             setState(() => _autoSyncNotifyValue = !_autoSyncNotifyValue);
-            globalSettingCubit.updateAutoSync(_autoSyncNotifyValue);
+            globalSettingCubit.updateSyncNotify(_autoSyncNotifyValue);
           },
         ),
         SizedBox(width: 10),
@@ -270,8 +273,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           onChanged: (bool value) {
             setState(() => _shadeValue = !_shadeValue);
             globalSettingCubit.updateShade(_shadeValue);
-            logger.d(globalSettingCubit);
-            logger.d(SettingsHiveUtils.shade);
+            logger.d(globalSettingCubit.state.shade);
           },
         ),
         SizedBox(width: 10),

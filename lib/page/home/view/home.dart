@@ -76,10 +76,7 @@ class _HomePageState extends State<HomePage> {
       globalSettingCubit.updateComicChoice(1);
     }
 
-    eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 0));
-    eventBus.fire(JmFavoriteEvent(EventType.refresh));
-    eventBus.fire(HistoryEvent(EventType.refresh, true));
-    eventBus.fire(DownloadEvent(EventType.refresh, true));
+    eventBus.fire(BookShelfEvent());
   }
 
   void search() {

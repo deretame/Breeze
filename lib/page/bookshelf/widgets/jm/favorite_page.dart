@@ -255,6 +255,7 @@ class __FavoritePageState extends State<_FavoritePage>
         curve: Curves.easeInOut,
       );
     }
+
     final searchStatus = context.read<JmFavoriteCubit>().state;
 
     context.read<JmFavouriteBloc>().add(

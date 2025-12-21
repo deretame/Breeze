@@ -3,8 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
+import 'package:zephyr/cubit/list_select.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
+import 'package:zephyr/page/bookshelf/json/jm_cloud_favorite/jm_cloud_favorite_json.dart'
+    show FolderList;
+import 'package:zephyr/page/bookshelf/widgets/jm/cloud_favorite_category.dart';
+import 'package:zephyr/page/bookshelf/widgets/jm/cloud_favorite_sort.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/settings_hive_utils.dart';
 
@@ -150,8 +155,39 @@ class _SideDrawerState extends State<SideDrawer> {
           },
         );
       } else {
-        // TODO: 云端收藏操作
-        return SizedBox.shrink();
+        final jmState = context.watch<ListSelectCubit<FolderList>>().state;
+        final jmSortState = context.watch<JmCloudFavoriteCubit>().state;
+        late final String initialState;
+        if (jmSortState.categories.isNotEmpty) {
+          initialState = jmSortState.categories.first;
+        } else {
+          initialState = "";
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: CloudFavoriteCategory(
+                initialSort: initialState,
+                list: jmState,
+                onSortChanged: (value) {
+                  categories = [value];
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: CloudFavoriteSort(
+                initialSort: jmSortState.sort,
+                onSortChanged: (value) {
+                  sort = value;
+                },
+              ),
+            ),
+          ],
+        );
       }
     } else {
       // 哔咔 (收藏)
@@ -304,16 +340,25 @@ class _SideDrawerState extends State<SideDrawer> {
 
   void _onTap() {
     final bikaSettingCubit = context.read<BikaSettingCubit>();
+    final jmSettingCubit = context.read<JmSettingCubit>();
     final tabIndex = context.read<IntSelectCubit>().state;
     final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
 
     if (tabIndex == 0) {
       if (comicChoice == 2) {
-        final cubit = context.read<JmFavoriteCubit>();
-        cubit.setSort(sort);
-        cubit.setKeyword(keyword);
-        eventBus.fire(JmFavoriteEvent(EventType.refresh));
-        return;
+        if (jmSettingCubit.state.favoriteSet == 0) {
+          final cubit = context.read<JmFavoriteCubit>();
+          cubit.setSort(sort);
+          cubit.setKeyword(keyword);
+          eventBus.fire(JmFavoriteEvent(EventType.refresh));
+          return;
+        } else {
+          final cubit = context.read<JmCloudFavoriteCubit>();
+          cubit.setCategories(categories);
+          cubit.setSort(sort);
+          eventBus.fire(JmCloudFavoriteEvent(EventType.refresh));
+          return;
+        }
       }
       // 哔咔
       bikaSettingCubit.updateShieldCategoryMap(_categoriesShield);

@@ -8,3 +8,5 @@ class HistoryCubit extends SearchStatusCubit {}
 class DownloadCubit extends SearchStatusCubit {}
 
 class JmFavoriteCubit extends SearchStatusCubit {}
+
+class JmCloudFavoriteCubit extends SearchStatusCubit {}

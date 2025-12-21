@@ -60,10 +60,7 @@ class _HotTabBarState extends State<HotTabBar> {
                   globlalSettingCubit.updateComicChoice(1);
                 }
 
-                eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 0));
-                eventBus.fire(JmFavoriteEvent(EventType.refresh));
-                eventBus.fire(HistoryEvent(EventType.refresh, true));
-                eventBus.fire(DownloadEvent(EventType.refresh, true));
+                eventBus.fire(BookShelfEvent());
               },
             ),
     );

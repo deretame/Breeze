@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/cubit/int_select.dart';
+import 'package:zephyr/cubit/list_select.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnter;
 import 'package:zephyr/page/bookshelf/widgets/jm/jm_tab_bar.dart';
@@ -12,6 +16,7 @@ import 'package:zephyr/util/settings_hive_utils.dart';
 import '../../../main.dart';
 import '../../../util/router/router.gr.dart';
 import '../../jm/jm_search_result/bloc/jm_search_result_bloc.dart';
+import '../json/jm_cloud_favorite/jm_cloud_favorite_json.dart' show FolderList;
 
 @RoutePage()
 class BookshelfPage extends StatelessWidget {
@@ -25,11 +30,16 @@ class BookshelfPage extends StatelessWidget {
         BlocProvider<StringSelectCubit>(
           create: (context) => StringSelectCubit(),
         ),
-
+        BlocProvider<ListSelectCubit<FolderList>>(
+          create: (context) => ListSelectCubit<FolderList>(),
+        ),
         BlocProvider<FavoriteCubit>(create: (context) => FavoriteCubit()),
         BlocProvider<HistoryCubit>(create: (context) => HistoryCubit()),
         BlocProvider<DownloadCubit>(create: (context) => DownloadCubit()),
         BlocProvider<JmFavoriteCubit>(create: (context) => JmFavoriteCubit()),
+        BlocProvider<JmCloudFavoriteCubit>(
+          create: (context) => JmCloudFavoriteCubit(),
+        ),
       ],
       child: const _BookshelfPageContent(),
     );
@@ -45,8 +55,9 @@ class _BookshelfPageContent extends StatefulWidget {
 
 class _BookshelfPageContentState extends State<_BookshelfPageContent>
     with TickerProviderStateMixin {
-  late final TabController _tabController; // TabController 现在是本地变量
+  late final TabController _tabController;
   int _currentIndex = 0;
+  late final StreamSubscription _eventSubscription;
 
   @override
   void initState() {
@@ -79,11 +90,16 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
           }
         }
       });
+
+    _eventSubscription = eventBus.on<BookShelfEvent>().listen((event) {
+      refreshBookShelf();
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _eventSubscription.cancel();
     super.dispose();
   }
 
@@ -197,32 +213,36 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
 
   Widget _floatingActionButton() => FloatingActionButton(
     child: const Icon(Icons.compare_arrows),
-    onPressed: () {
-      final globalSettingCubit = context.read<GlobalSettingCubit>();
-
-      final int newChoice = globalSettingCubit.state.comicChoice == 1 ? 2 : 1;
-
-      globalSettingCubit.updateComicChoice(newChoice);
-
-      context.read<GlobalSettingCubit>().updateComicChoice(newChoice);
-
-      context.read<FavoriteCubit>().resetSearch();
-      context.read<HistoryCubit>().resetSearch();
-      context.read<DownloadCubit>().resetSearch();
-      context.read<JmFavoriteCubit>().resetSearch();
-
-      eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 0));
-      eventBus.fire(JmFavoriteEvent(EventType.refresh));
-      eventBus.fire(HistoryEvent(EventType.refresh, true));
-      eventBus.fire(DownloadEvent(EventType.refresh, true));
-
-      _tabController.animateTo(0, duration: const Duration(milliseconds: 0));
-
-      if (context.read<GlobalSettingCubit>().state.comicChoice == 2) {
-        eventBus.fire(JmFavoriteEvent(EventType.showInfo));
-      }
-    },
+    onPressed: () => eventBus.fire(BookShelfEvent()),
   );
+
+  void refreshBookShelf() {
+    final globalSettingCubit = context.read<GlobalSettingCubit>();
+    final jmSettingCubit = context.read<JmSettingCubit>();
+
+    final int newChoice = globalSettingCubit.state.comicChoice == 1 ? 2 : 1;
+
+    globalSettingCubit.updateComicChoice(newChoice);
+    jmSettingCubit.updateFavoriteSet(0);
+
+    context.read<FavoriteCubit>().resetSearch();
+    context.read<HistoryCubit>().resetSearch();
+    context.read<DownloadCubit>().resetSearch();
+    context.read<JmFavoriteCubit>().resetSearch();
+    context.read<JmCloudFavoriteCubit>().resetSearch();
+
+    eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 0));
+    eventBus.fire(JmFavoriteEvent(EventType.refresh));
+    eventBus.fire(HistoryEvent(EventType.refresh, true));
+    eventBus.fire(DownloadEvent(EventType.refresh, true));
+    eventBus.fire(JmCloudFavoriteEvent(EventType.refresh));
+
+    _tabController.animateTo(0, duration: const Duration(milliseconds: 0));
+
+    if (context.read<GlobalSettingCubit>().state.comicChoice == 2) {
+      eventBus.fire(JmFavoriteEvent(EventType.showInfo));
+    }
+  }
 }
 
 class FavoritesTabPage extends StatefulWidget {
@@ -260,4 +280,6 @@ class _FavoritesTabPageState extends State<FavoritesTabPage>
 
     return IndexedStack(index: pageIndex, children: widgets);
   }
+
+  void refreshBookShelf() {}
 }

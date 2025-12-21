@@ -1,9 +1,15 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
+import 'package:zephyr/cubit/list_select.dart';
+import 'package:zephyr/cubit/string_select.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/bookshelf/bloc/jm/cloud_favourite/bloc/jm_cloud_favourite_bloc.dart';
+import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/page/bookshelf/json/jm_cloud_favorite/jm_cloud_favorite_json.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/router/router.gr.dart';
@@ -51,16 +57,28 @@ class _JmCloudFavoritePageState extends State<_JmCloudFavoritePage>
 
   final ScrollController _scrollController = ScrollController();
   var jmCloudFavouriState = JmCloudFavouriteState();
+  late final StreamSubscription _eventSubscription;
+  int totalComicCount = 0;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _eventSubscription = eventBus.on<JmCloudFavoriteEvent>().listen((event) {
+      if (!mounted) return;
+
+      if (event.type == EventType.showInfo) {
+        context.read<StringSelectCubit>().setDate(totalComicCount.toString());
+      } else if (event.type == EventType.refresh) {
+        _refresh(goTop: true);
+      }
+    });
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _eventSubscription.cancel();
     super.dispose();
   }
 
@@ -107,6 +125,8 @@ class _JmCloudFavoritePageState extends State<_JmCloudFavoritePage>
   Widget _buildList(JmCloudFavouriteState state) {
     if (state.status == JmCloudFavouriteStatus.success && state.list.isEmpty) {
       return _buildEmptyState();
+    } else {
+      context.read<ListSelectCubit<FolderList>>().setList(state.folderList);
     }
 
     return _buildBrevityList(state);
@@ -168,7 +188,7 @@ class _JmCloudFavoritePageState extends State<_JmCloudFavoritePage>
               children: [
                 const SizedBox(height: 10),
                 IconButton(
-                  onPressed: () => _refresh(),
+                  onPressed: () => _refresh(goTop: true),
                   icon: const Icon(Icons.refresh),
                 ),
                 const Center(
@@ -254,8 +274,34 @@ class _JmCloudFavoritePageState extends State<_JmCloudFavoritePage>
         .toList();
   }
 
-  void _refresh() {
-    context.read<JmCloudFavouriteBloc>().add(JmCloudFavouriteEvent());
+  void _refresh({bool goTop = false}) {
+    final searchStatus = context.read<JmCloudFavoriteCubit>().state;
+
+    String order;
+    if (searchStatus.sort != 'mr' && searchStatus.sort != 'mp') {
+      order = 'mr';
+    } else {
+      order = searchStatus.sort;
+    }
+
+    String id;
+    if (searchStatus.categories.isEmpty) {
+      id = '';
+    } else {
+      id = searchStatus.categories.first;
+    }
+
+    context.read<JmCloudFavouriteBloc>().add(
+      JmCloudFavouriteEvent(id: id, order: order),
+    );
+
+    if (goTop) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   void _onScroll() {

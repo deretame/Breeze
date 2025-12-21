@@ -36,7 +36,7 @@ class JmCloudFavouriteBloc
     Emitter<JmCloudFavouriteState> emit,
   ) async {
     if (event.status == JmCloudFavouriteStatus.initial) {
-      emit(state.copyWith(status: JmCloudFavouriteStatus.initial));
+      emit(state.copyWith(status: JmCloudFavouriteStatus.initial, list: []));
     }
 
     if (state.hasMore == false &&

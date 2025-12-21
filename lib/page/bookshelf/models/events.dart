@@ -2,6 +2,8 @@ enum EventType { none, updateShield, updateSort, refresh, pageSkip, showInfo }
 
 enum SortType { nullValue, dd, da, ld, vd }
 
+class BookShelfEvent {}
+
 class FavoriteEvent {
   EventType type;
   SortType sortType;
@@ -28,6 +30,12 @@ class JmFavoriteEvent {
   EventType type;
 
   JmFavoriteEvent(this.type);
+}
+
+class JmCloudFavoriteEvent {
+  EventType type;
+
+  JmCloudFavoriteEvent(this.type);
 }
 
 class TabViewEvent {

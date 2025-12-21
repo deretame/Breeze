@@ -1,36 +1,33 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 
-class SortWidget extends StatefulWidget {
+class CloudFavoriteSort extends StatefulWidget {
   final String initialSort;
   final Function(String) onSortChanged;
 
-  const SortWidget({
+  const CloudFavoriteSort({
     super.key,
     required this.initialSort,
     required this.onSortChanged,
   });
 
   @override
-  State<SortWidget> createState() => _SortWidgetState();
+  State<CloudFavoriteSort> createState() => _CloudFavoriteSortState();
 }
 
-class _SortWidgetState extends State<SortWidget> {
-  final Map<String, String> sortMap = {
-    "dd": "从新到旧",
-    "da": "从旧到新",
-    "ld": "最多点赞",
-    "vd": "最多观看",
-  };
+class _CloudFavoriteSortState extends State<CloudFavoriteSort> {
+  final Map<String, String> sortMap = {'mr': '收藏时间', 'mp': '更新时间'};
 
   late String selectedValue;
 
   @override
   void initState() {
     super.initState();
-    selectedValue = sortMap.containsKey(widget.initialSort)
-        ? widget.initialSort
-        : "dd";
+    if (sortMap.containsKey(widget.initialSort)) {
+      selectedValue = widget.initialSort;
+    } else {
+      selectedValue = 'mr';
+    }
   }
 
   @override
@@ -38,7 +35,7 @@ class _SortWidgetState extends State<SortWidget> {
     return DropdownButtonHideUnderline(
       child: DropdownButton2<String>(
         isExpanded: true,
-        hint: const Text('选择排序', style: TextStyle(fontSize: 16)),
+        hint: const Text('排序方式', style: TextStyle(fontSize: 16)),
         items: sortMap.entries.map((entry) {
           return DropdownMenuItem<String>(
             value: entry.key,
@@ -48,13 +45,12 @@ class _SortWidgetState extends State<SortWidget> {
         value: selectedValue,
         onChanged: (String? value) {
           if (value == null) return;
-
           setState(() {
             selectedValue = value;
           });
           widget.onSortChanged(value);
         },
-        buttonStyleData: const ButtonStyleData(width: 100),
+        buttonStyleData: const ButtonStyleData(width: 120),
         menuItemStyleData: const MenuItemStyleData(height: 40),
       ),
     );

@@ -100,7 +100,7 @@ Future<void> exportComicAsZip(JmDownload jmDownload) async {
   final downloadPath =
       '${await createDownloadDir()}/${processedComicInfo.name.substring(0, min(processedComicInfo.name.length, 90))}';
 
-  final finalZipPath = '$downloadPath.tar';
+  final finalZipPath = '$downloadPath.zip';
 
   var processedComicInfoString = processedComicInfo.toJson();
   processedComicInfoString['epsIds'] = downloadedEpIds;
@@ -162,7 +162,7 @@ Future<void> exportComicAsZip(JmDownload jmDownload) async {
   }
 
   // 压缩文件夹
-  await packFolder(destPath: finalZipPath, packInfo: packInfo);
+  await packFolderZip(destPath: finalZipPath, packInfo: packInfo);
 
   showSuccessToast('漫画${comicInfo.name}导出为压缩包完成');
   logger.d('漫画${comicInfo.name}导出为压缩包完成');

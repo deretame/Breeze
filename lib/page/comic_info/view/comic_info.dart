@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
+import 'package:zephyr/page/comic_info/json/bika/recommend/recommend_json.dart'
+    as recommend_json;
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/permission.dart';
 
@@ -19,9 +21,9 @@ import '../../../widgets/toast.dart';
 import '../../download/json/comic_all_info_json/comic_all_info_json.dart'
     as comic_all_info_json;
 import '../json/bika/comic_info/comic_info.dart';
-import 'package:zephyr/page/comic_info/json/bika/recommend/recommend_json.dart'
-    as recommend_json;
 import '../json/bika/eps/eps.dart';
+
+enum MenuOption { export, reverseOrder }
 
 @RoutePage()
 class ComicInfoPage extends StatelessWidget {
@@ -72,6 +74,8 @@ class _ComicInfoState extends State<_ComicInfo>
 
   late ComicEntryType _type;
   bool _loadingComplete = false;
+  // 添加一个状态变量记录是否倒序，用于更新菜单文字
+  bool _isReversed = false;
 
   @override
   void initState() {
@@ -116,43 +120,60 @@ class _ComicInfoState extends State<_ComicInfo>
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
-        actions: <Widget>[
+        actions: [
           const SizedBox(width: 50),
           IconButton(
             icon: const Icon(Icons.home),
             onPressed: () => popToRoot(context),
           ),
           Expanded(child: Container()),
-          if (_type == ComicEntryType.download) ...[
-            IconButton(
-              icon: const Icon(Icons.upload),
-              onPressed: () async {
-                try {
-                  if (!await requestStoragePermission()) {
-                    showErrorToast("请授予存储权限！");
-                    return;
-                  }
-                  if (mounted) {
-                    var choice = await showExportTypeDialog();
-                    if (choice == ExportType.zip) {
-                      showInfoToast('正在导出漫画...');
-                      exportComicAsZip(comicAllInfo!);
-                    } else if (choice == ExportType.folder) {
-                      showInfoToast('正在导出漫画...');
-                      exportComicAsFolder(comicAllInfo!);
-                    } else {
-                      return;
-                    }
-                  }
-                } catch (e) {
-                  showErrorToast(
-                    "导出失败，请重试。\n${e.toString()}",
-                    duration: const Duration(seconds: 5),
-                  );
-                }
-              },
-            ),
-          ],
+          PopupMenuButton<MenuOption>(
+            onSelected: (MenuOption item) {
+              switch (item) {
+                case MenuOption.export:
+                  _handleExport();
+                  break;
+                case MenuOption.reverseOrder:
+                  _toggleOrder();
+                  break;
+              }
+            },
+            // 使用 itemBuilder 动态构建菜单
+            itemBuilder: (BuildContext context) {
+              List<PopupMenuEntry<MenuOption>> menuItems = [];
+
+              // 倒序功能
+              menuItems.add(
+                PopupMenuItem<MenuOption>(
+                  value: MenuOption.reverseOrder,
+                  child: Row(
+                    children: [
+                      Icon(Icons.sort, color: Colors.black54),
+                      SizedBox(width: 10),
+                      Text(_isReversed ? '章节正序' : '章节倒序'),
+                    ],
+                  ),
+                ),
+              );
+
+              if (_type == ComicEntryType.download) {
+                menuItems.add(
+                  const PopupMenuItem<MenuOption>(
+                    value: MenuOption.export,
+                    child: Row(
+                      children: [
+                        Icon(Icons.save_alt, color: Colors.black54),
+                        SizedBox(width: 10),
+                        Text('导出漫画'),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              return menuItems;
+            },
+          ),
         ],
       ),
       body: _type == ComicEntryType.download
@@ -354,6 +375,31 @@ class _ComicInfoState extends State<_ComicInfo>
     );
   }
 
+  // 导出逻辑
+  Future<void> _handleExport() async {
+    try {
+      if (!await requestStoragePermission()) {
+        showErrorToast("请授予存储权限！");
+        return;
+      }
+      if (mounted) {
+        var choice = await showExportTypeDialog();
+        if (choice == ExportType.zip) {
+          showInfoToast('正在导出漫画...');
+          exportComicAsZip(comicAllInfo!);
+        } else if (choice == ExportType.folder) {
+          showInfoToast('正在导出漫画...');
+          exportComicAsFolder(comicAllInfo!);
+        }
+      }
+    } catch (e) {
+      showErrorToast(
+        "导出失败，请重试。\n${e.toString()}",
+        duration: const Duration(seconds: 5),
+      );
+    }
+  }
+
   void _initDownloadInfo() {
     if (_type == ComicEntryType.download) {
       comicDownload = objectbox.bikaDownloadBox
@@ -387,5 +433,14 @@ class _ComicInfoState extends State<_ComicInfo>
         recommendJson: comicList,
       );
     }
+  }
+
+  // 实现章节倒序逻辑
+  void _toggleOrder() {
+    setState(() {
+      epsInfo = epsInfo.reversed.toList();
+      _isReversed = !_isReversed;
+    });
+    allInfo.eps = epsInfo;
   }
 }

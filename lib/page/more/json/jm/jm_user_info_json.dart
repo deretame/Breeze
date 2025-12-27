@@ -25,7 +25,7 @@ abstract class JmUserInfoJson with _$JmUserInfoJson {
     @JsonKey(name: "fname") required String fname,
     @JsonKey(name: "gender") required String gender,
     @JsonKey(name: "message") required String message,
-    @JsonKey(name: "coin") required int coin,
+    @JsonKey(name: "coin") required dynamic coin,
     @JsonKey(name: "album_favorites") required int albumFavorites,
     @JsonKey(name: "s") required String s,
     @JsonKey(name: "level_name") required String levelName,

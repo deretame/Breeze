@@ -80,27 +80,31 @@ class _HomePageState extends State<HomePage> {
   }
 
   void search() {
-    final globalSettingState = context.watch<GlobalSettingCubit>().state;
+    final globalSettingState = context.read<GlobalSettingCubit>().state;
+
+    if (globalSettingState.disableBika) {
+      context.pushRoute(JmSearchResultRoute(event: JmSearchResultEvent()));
+      return;
+    }
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return SimpleDialog(
           children: [
-            if (!globalSettingState.disableBika)
-              SimpleDialogOption(
-                onPressed: () {
-                  context.pop();
-                  context.pushRoute(
-                    SearchResultRoute(searchEnter: SearchEnter.initial()),
-                  );
-                },
-                child: const Chip(
-                  label: Text("哔咔漫画"),
-                  backgroundColor: Colors.pink,
-                  labelStyle: TextStyle(color: Colors.white),
-                ),
+            SimpleDialogOption(
+              onPressed: () {
+                context.pop();
+                context.pushRoute(
+                  SearchResultRoute(searchEnter: SearchEnter.initial()),
+                );
+              },
+              child: const Chip(
+                label: Text("哔咔漫画"),
+                backgroundColor: Colors.pink,
+                labelStyle: TextStyle(color: Colors.white),
               ),
+            ),
             SimpleDialogOption(
               onPressed: () {
                 context.pop();

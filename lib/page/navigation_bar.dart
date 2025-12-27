@@ -594,20 +594,20 @@ class _NavigationBarState extends State<NavigationBar> {
     );
     // 先检查当前状态
     try {
-      final currentStatus = await Permission.notification.status;
+      // final currentStatus = await Permission.notification.status;
 
-      if (currentStatus.isGranted) {
-        logger.d('Notification permission already granted');
-        return;
-      }
+      // if (currentStatus.isGranted) {
+      //   logger.d('Notification permission already granted');
+      //   return;
+      // }
 
-      if (currentStatus.isPermanentlyDenied) {
-        logger.w('Notification permission permanently denied');
-        if (mounted) {
-          showErrorToast("通知权限已被永久拒绝，请在系统设置中开启");
-        }
-        return;
-      }
+      // if (currentStatus.isPermanentlyDenied) {
+      //   logger.w('Notification permission permanently denied');
+      //   if (mounted) {
+      //     showErrorToast("通知权限已被永久拒绝，请在系统设置中开启");
+      //   }
+      //   return;
+      // }
       // 只在需要时请求权限
       final status = await Permission.notification.request();
 

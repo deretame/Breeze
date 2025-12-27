@@ -16,7 +16,7 @@ _JmUserInfoJson _$JmUserInfoJsonFromJson(Map<String, dynamic> json) =>
       fname: json['fname'] as String,
       gender: json['gender'] as String,
       message: json['message'] as String,
-      coin: (json['coin'] as num).toInt(),
+      coin: json['coin'],
       albumFavorites: (json['album_favorites'] as num).toInt(),
       s: json['s'] as String,
       levelName: json['level_name'] as String,

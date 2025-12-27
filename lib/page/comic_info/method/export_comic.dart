@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:path_provider/path_provider.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
@@ -102,7 +103,7 @@ Future<void> exportComicAsZip(ComicAllInfoJson comicInfo) async {
   final downloadPath =
       '${await createDownloadDir()}/${processedComicInfo.comic.title}';
 
-  final finalZipPath = '$downloadPath.tar';
+  final finalZipPath = '$downloadPath.zip';
 
   if (!await File(finalZipPath).exists()) {
     await File(finalZipPath).create(recursive: true);
@@ -170,7 +171,7 @@ Future<void> exportComicAsZip(ComicAllInfoJson comicInfo) async {
   }
 
   // 压缩文件夹
-  await packFolder(destPath: finalZipPath, packInfo: packInfo);
+  await packFolderZip(destPath: finalZipPath, packInfo: packInfo);
 
   final endTime = DateTime.now().millisecondsSinceEpoch;
   final duration = endTime - startTime;

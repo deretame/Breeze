@@ -2,14 +2,14 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/cubit/string_select.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
-import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart'
-    show downloadInfoJsonFromJson;
 import 'package:zephyr/page/jm/jm_comic_info/jm_comic_info.dart';
 import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart';
+import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart'
+    show downloadInfoJsonFromJson;
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/permission.dart';
@@ -20,6 +20,8 @@ import '../../../../network/http/picture/picture.dart';
 import '../../../../type/enum.dart';
 import '../../../../util/router/router.dart';
 import '../../../../widgets/picture_bloc/models/picture_info.dart';
+
+enum MenuOption { export, reverseOrder }
 
 @RoutePage()
 class JmComicInfoPage extends StatelessWidget {
@@ -65,6 +67,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
   JmHistory? jmHistory;
   JmDownload? jmDownload;
   late ComicEntryType _type;
+  bool _isReversed = false;
 
   @override
   void initState() {
@@ -113,35 +116,53 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
             onPressed: () => popToRoot(context),
           ),
           Expanded(child: Container()),
-          if (isDownload)
-            IconButton(
-              icon: const Icon(Icons.upload),
-              onPressed: () async {
-                try {
-                  if (!await requestStoragePermission()) {
-                    showErrorToast("请授予存储权限！");
-                    return;
-                  }
-                  if (mounted) {
-                    var choice = await showExportTypeDialog();
-                    if (choice == ExportType.zip) {
-                      showInfoToast('正在导出漫画...');
-                      exportComicAsZip(jmDownload!);
-                    } else if (choice == ExportType.folder) {
-                      showInfoToast('正在导出漫画...');
-                      exportComicAsFolder(jmDownload!);
-                    } else {
-                      return;
-                    }
-                  }
-                } catch (e) {
-                  showErrorToast(
-                    "导出失败，请重试。\n${e.toString()}",
-                    duration: const Duration(seconds: 5),
-                  );
-                }
-              },
-            ),
+          PopupMenuButton<MenuOption>(
+            onSelected: (MenuOption item) {
+              switch (item) {
+                case MenuOption.reverseOrder:
+                  _toggleOrder();
+                  break;
+                case MenuOption.export:
+                  _handleExport();
+                  break;
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              List<PopupMenuEntry<MenuOption>> items = [];
+
+              // 倒序选项
+              items.add(
+                PopupMenuItem<MenuOption>(
+                  value: MenuOption.reverseOrder,
+                  child: Row(
+                    children: [
+                      Icon(Icons.sort, color: Colors.black54),
+                      SizedBox(width: 10),
+                      Text(_isReversed ? '章节正序' : '章节倒序'),
+                    ],
+                  ),
+                ),
+              );
+
+              // 导出选项 (仅在下载模式下显示)
+              if (isDownload) {
+                items.add(
+                  PopupMenuItem<MenuOption>(
+                    value: MenuOption.export,
+                    child: Row(
+                      children: [
+                        Icon(Icons.upload, color: Colors.black54),
+                        SizedBox(width: 10),
+                        Text('导出漫画'),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              return items;
+            },
+          ),
         ],
       ),
       body: !isDownload ? _buildBody(jmComicState) : _comicEntry(null),
@@ -293,10 +314,18 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
       ]);
     }
 
+    // 5. 章节 (修改部分：根据 _isReversed 处理顺序)
+    comicInfoWidgets.add(const SizedBox(height: 10));
+
+    // 获取需要显示的列表
+    var displaySeries = comicInfo.series;
+    if (_isReversed) {
+      displaySeries = displaySeries.reversed.toList();
+    }
+
     // 5. 章节
     comicInfoWidgets.add(const SizedBox(height: 10));
-    for (int i = 0; i < comicInfo.series.length; i++) {
-      final series = comicInfo.series[i];
+    for (int i = 0; i < displaySeries.length; i++) {
       comicInfoWidgets.add(
         Padding(
           padding: const EdgeInsets.only(bottom: 8.0),
@@ -306,7 +335,7 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
               Expanded(
                 child: EpWidget(
                   comicId: id,
-                  series: series,
+                  series: displaySeries[i],
                   comicInfo: comicInfo,
                   epsNumber: comicInfo.series.length,
                   type: _type,
@@ -400,6 +429,38 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
         );
       },
     );
+  }
+
+  // 导出逻辑
+  Future<void> _handleExport() async {
+    try {
+      if (!await requestStoragePermission()) {
+        showErrorToast("请授予存储权限！");
+        return;
+      }
+      if (mounted) {
+        var choice = await showExportTypeDialog();
+        if (choice == ExportType.zip) {
+          showInfoToast('正在导出漫画...');
+          exportComicAsZip(jmDownload!);
+        } else if (choice == ExportType.folder) {
+          showInfoToast('正在导出漫画...');
+          exportComicAsFolder(jmDownload!);
+        }
+      }
+    } catch (e) {
+      showErrorToast(
+        "导出失败，请重试。\n${e.toString()}",
+        duration: const Duration(seconds: 5),
+      );
+    }
+  }
+
+  // 切换倒序逻辑
+  void _toggleOrder() {
+    setState(() {
+      _isReversed = !_isReversed;
+    });
   }
 
   void _onRefresh() {

@@ -161,25 +161,30 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     IconButton(
       icon: const Icon(Icons.search),
       onPressed: () {
+        final globalSettingState = context.read<GlobalSettingCubit>().state;
+        if (globalSettingState.disableBika) {
+          context.pushRoute(JmSearchResultRoute(event: JmSearchResultEvent()));
+          return;
+        }
+
         showDialog(
           context: context,
           builder: (BuildContext context) {
             final router = AutoRouter.of(context);
             return SimpleDialog(
               children: [
-                if (!SettingsHiveUtils.disableBika)
-                  SimpleDialogOption(
-                    onPressed: () {
-                      router.popAndPush(
-                        SearchResultRoute(searchEnter: SearchEnter.initial()),
-                      );
-                    },
-                    child: const Chip(
-                      label: Text("哔咔漫画"),
-                      backgroundColor: Colors.pink,
-                      labelStyle: TextStyle(color: Colors.white),
-                    ),
+                SimpleDialogOption(
+                  onPressed: () {
+                    router.popAndPush(
+                      SearchResultRoute(searchEnter: SearchEnter.initial()),
+                    );
+                  },
+                  child: const Chip(
+                    label: Text("哔咔漫画"),
+                    backgroundColor: Colors.pink,
+                    labelStyle: TextStyle(color: Colors.white),
                   ),
+                ),
                 SimpleDialogOption(
                   onPressed: () {
                     router.popAndPush(

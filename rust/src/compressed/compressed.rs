@@ -4,10 +4,10 @@ use image::{ExtendedColorType, codecs::jpeg::JpegEncoder};
 use log::debug;
 use tokio::fs::File;
 
-use crate::memory::{MEMORY_TRACKER, TrackedAllocation};
+use crate::memory::TrackedAllocation;
 use tokio_tar::Builder;
 use tokio_tar::Header;
-use zip::{CompressionMethod, ZipWriter, write::FileOptions};
+use zip::{CompressionMethod, ZipWriter};
 
 #[derive(Debug)]
 pub struct PackInfo {
@@ -118,61 +118,59 @@ pub async fn pack_folder(dest_path: &str, pack_info: PackInfo) -> Result<()> {
 
 // 使用ZIP格式进行压缩，内存占用更低，压缩率更好
 pub async fn pack_folder_zip(dest_path: &str, pack_info: PackInfo) -> Result<()> {
-    // 记录开始时的内存状态
-    let start_memory = MEMORY_TRACKER.get_memory_info();
-    debug!(
-        "ZIP compression started. Current memory: {}",
-        start_memory.total_allocated
-    );
-
     let dest_path = dest_path.to_string();
     let pack_info_clone = pack_info;
 
-    // 在 spawn_blocking 中运行同步的 ZIP 操作
     tokio::task::spawn_blocking(move || {
         use std::fs::File;
         use std::io::{BufWriter, Read, Write};
+        use zip::write::FileOptions;
 
         // 创建ZIP文件
         let file = File::create(&dest_path).context("创建ZIP文件失败")?;
-        let writer = BufWriter::new(file);
+        // 优化点：BufWriter 依然保留，减少系统调用，但可以考虑调整 buffer 大小
+        // 默认 8KB 是比较平衡的，如果要进一步降低系统调用频率，可以设为 64KB-128KB，但会增加少量堆内存
+        let writer = BufWriter::with_capacity(64 * 1024, file);
         let mut zip = ZipWriter::new(writer);
 
-        let options = FileOptions::<()>::default()
-            .compression_method(CompressionMethod::Deflated)
+        // 基础配置：使用 Stored (不压缩)
+        let base_options = FileOptions::<()>::default()
+            .compression_method(CompressionMethod::Stored)
             .unix_permissions(0o644);
 
-        // 将comic_info_string.json添加到压缩包
-        zip.start_file("comic_info.json", options)
+        // --- 写入元数据 JSON (这些可以用 Deflated，因为文本压缩率高，但为了统一逻辑也可以 Stored) ---
+        // 文本很小，这里用 Stored 也没关系，或者单独对 JSON 用 Deflated
+        zip.start_file("comic_info.json", base_options)
             .context("创建comic_info.json条目失败")?;
         zip.write_all(pack_info_clone.comic_info_string.as_bytes())
             .context("写入comic_info.json失败")?;
 
-        // 将processed_comic_info_string.json添加到压缩包
-        zip.start_file("processed_comic_info.json", options)
+        zip.start_file("processed_comic_info.json", base_options)
             .context("创建processed_comic_info.json条目失败")?;
         zip.write_all(pack_info_clone.processed_comic_info_string.as_bytes())
             .context("写入processed_comic_info.json失败")?;
 
-        // 处理每对图片路径
+        // --- 处理图片 ---
+        // 复用缓冲区，避免在循环中反复分配
+        let mut buffer = [0u8; 64 * 1024]; // 提升到 64KB，提升大文件拷贝速度
+        let _buffer_tracker = TrackedAllocation::new(64 * 1024, Some("zip_buffer"));
+
         for (i, original_path) in pack_info_clone.original_image_paths.iter().enumerate() {
             if i >= pack_info_clone.pack_image_paths.len() {
                 break;
             }
-
             let pack_path = &pack_info_clone.pack_image_paths[i];
 
             // 打开源文件
             let mut source_file = File::open(original_path)
                 .with_context(|| format!("打开文件{}失败", original_path))?;
 
-            // 在ZIP中创建文件条目
-            zip.start_file(pack_path, options)
+            let current_options = base_options;
+
+            zip.start_file(pack_path, current_options)
                 .with_context(|| format!("创建ZIP条目{}失败", pack_path))?;
 
-            // 流式复制文件内容，使用缓冲区减少内存占用
-            let mut buffer = [0u8; 8192]; // 8KB 缓冲区
-            let _buffer_tracker = TrackedAllocation::new(8192, Some("zip_buffer"));
+            // 流式拷贝
             loop {
                 let bytes_read = source_file
                     .read(&mut buffer)
@@ -181,13 +179,11 @@ pub async fn pack_folder_zip(dest_path: &str, pack_info: PackInfo) -> Result<()>
                 if bytes_read == 0 {
                     break;
                 }
-
                 zip.write_all(&buffer[..bytes_read])
                     .with_context(|| format!("写入ZIP条目{}失败", pack_path))?;
             }
         }
 
-        // 完成ZIP文件
         zip.finish().context("完成ZIP文件失败")?;
 
         Ok::<(), anyhow::Error>(())
@@ -195,17 +191,6 @@ pub async fn pack_folder_zip(dest_path: &str, pack_info: PackInfo) -> Result<()>
     .await
     .context("ZIP任务执行失败")?
     .context("ZIP压缩失败")?;
-
-    // 记录结束时的内存状态
-    let end_memory = MEMORY_TRACKER.get_memory_info();
-    debug!(
-        "ZIP compression completed. Final memory: {}",
-        end_memory.total_allocated
-    );
-    debug!(
-        "Memory diff: {} bytes",
-        end_memory.total_allocated as i64 - start_memory.total_allocated as i64
-    );
 
     Ok(())
 }

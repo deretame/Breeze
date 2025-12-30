@@ -2,7 +2,11 @@ enum EventType { none, updateShield, updateSort, refresh, pageSkip, showInfo }
 
 enum SortType { nullValue, dd, da, ld, vd }
 
-class BookShelfEvent {}
+class BookShelfEvent {
+  bool switchComicChoice;
+
+  BookShelfEvent({this.switchComicChoice = false});
+}
 
 class FavoriteEvent {
   EventType type;

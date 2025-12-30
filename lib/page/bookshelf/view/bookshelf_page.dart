@@ -92,7 +92,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
       });
 
     _eventSubscription = eventBus.on<BookShelfEvent>().listen((event) {
-      refreshBookShelf();
+      refreshBookShelf(event.switchComicChoice);
     });
   }
 
@@ -218,16 +218,18 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
 
   Widget _floatingActionButton() => FloatingActionButton(
     child: const Icon(Icons.compare_arrows),
-    onPressed: () => eventBus.fire(BookShelfEvent()),
+    onPressed: () => eventBus.fire(BookShelfEvent(switchComicChoice: true)),
   );
 
-  void refreshBookShelf() {
+  void refreshBookShelf(bool switchComicChoice) {
     final globalSettingCubit = context.read<GlobalSettingCubit>();
     final jmSettingCubit = context.read<JmSettingCubit>();
 
-    final int newChoice = globalSettingCubit.state.comicChoice == 1 ? 2 : 1;
+    if (switchComicChoice) {
+      final int newChoice = globalSettingCubit.state.comicChoice == 1 ? 2 : 1;
 
-    globalSettingCubit.updateComicChoice(newChoice);
+      globalSettingCubit.updateComicChoice(newChoice);
+    }
     jmSettingCubit.updateFavoriteSet(0);
 
     context.read<FavoriteCubit>().resetSearch();

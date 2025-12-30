@@ -101,7 +101,12 @@ class ComicParticularsWidget extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text("章节数：${comicInfo.epsCount}"),
                 const SizedBox(height: 2),
-                Text(stringSelectDate),
+                Text(
+                  stringSelectDate,
+                  style: TextStyle(
+                    color: context.theme.colorScheme.onPrimaryFixedVariant,
+                  ),
+                ),
               ],
             ),
           ),

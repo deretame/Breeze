@@ -264,7 +264,18 @@ class __JmComicInfoPageState extends State<_JmComicInfoPage> {
                 ),
                 storeDate.isNotEmpty
                     ? Column(
-                        children: [const SizedBox(height: 2), Text(storeDate)],
+                        children: [
+                          const SizedBox(height: 2),
+                          Text(
+                            storeDate,
+                            style: TextStyle(
+                              color: context
+                                  .theme
+                                  .colorScheme
+                                  .onPrimaryFixedVariant,
+                            ),
+                          ),
+                        ],
                       )
                     : const SizedBox.shrink(),
               ],

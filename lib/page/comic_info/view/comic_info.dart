@@ -67,7 +67,7 @@ class _ComicInfoState extends State<_ComicInfo>
   BikaComicHistory? comicHistory;
   BikaComicDownload? comicDownload;
   comic_all_info_json.ComicAllInfoJson? comicAllInfo;
-  late AllInfo allInfo; // 用来存储漫画信息
+  AllInfo? allInfo; // 用来存储漫画信息
   late Comic comicInfo;
   List<Doc> epsInfo = [];
   List<recommend_json.Comic> comicList = [];
@@ -210,9 +210,9 @@ class _ComicInfoState extends State<_ComicInfo>
                     );
                   case GetComicInfoStatus.success:
                     allInfo = state.allInfo!;
-                    comicInfo = allInfo.comicInfo;
-                    epsInfo = allInfo.eps;
-                    comicList = allInfo.recommendJson;
+                    comicInfo = allInfo!.comicInfo;
+                    epsInfo = allInfo!.eps;
+                    comicList = allInfo!.recommendJson;
                     return _infoView();
                 }
               },
@@ -301,7 +301,7 @@ class _ComicInfoState extends State<_ComicInfo>
           padding: const EdgeInsets.all(5.0),
           child: EpButtonWidget(
             doc: e,
-            allInfo: allInfo,
+            allInfo: allInfo!,
             epsInfo: epsInfo,
             isHistory: false,
             type: _type == ComicEntryType.history
@@ -441,6 +441,8 @@ class _ComicInfoState extends State<_ComicInfo>
       epsInfo = epsInfo.reversed.toList();
       _isReversed = !_isReversed;
     });
-    allInfo.eps = epsInfo;
+    if (allInfo != null) {
+      allInfo!.eps = epsInfo;
+    }
   }
 }

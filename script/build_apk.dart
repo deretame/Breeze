@@ -329,7 +329,7 @@ Future<void> main() async {
         exitCode = await _runCommand('dart', [
           'run',
           symbolsScriptPath,
-        ], workingDirectory: paths['symbolsScriptFolderPath']); // 工作目录保持不变
+        ], workingDirectory: projectRoot);
 
         if (exitCode != 0) {
           throw Exception('符号更新脚本执行失败！ (Exit code: $exitCode)');

@@ -213,6 +213,8 @@ class _ComicReadPageState extends State<_ComicReadPage>
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+
       final globalSettingState = context.read<GlobalSettingCubit>().state;
       if (globalSettingState.readMode != 0) {
         await Future.delayed(Duration(milliseconds: 200));

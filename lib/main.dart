@@ -19,21 +19,20 @@ import 'package:hive_ce_flutter/adapters.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
+import 'package:zephyr/config/global/global.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
+import 'package:zephyr/config/mobx/theme_mode_adapter.dart';
 import 'package:zephyr/firebase_options.dart';
+import 'package:zephyr/network/dio_cache.dart';
 import 'package:zephyr/network/http/jm/http_request_build.dart';
 import 'package:zephyr/object_box/model.dart';
+import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/router/router.dart';
-
-import 'config/global/global.dart';
-import 'config/global/global_setting.dart';
-import 'config/mobx/theme_mode_adapter.dart';
-import 'network/dio_cache.dart';
-import 'object_box/object_box.dart';
 
 late final ObjectBox objectbox;
 

@@ -29,7 +29,6 @@ class JmConfig {
   static int baseUrlIndex = 0;
 
   static const baseUrls = [
-    'https://www.cdnzack.cc',
     'https://www.cdnsha.org',
     'https://www.cdnbea.cc',
     'https://www.cdnbea.net',

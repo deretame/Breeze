@@ -19,6 +19,7 @@ import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/main_task.dart';
 import 'package:zephyr/util/foreground_task/task/bika_download.dart';
 import 'package:zephyr/util/get_path.dart';
+import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
 
 Future<void> jmDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
@@ -27,6 +28,8 @@ Future<void> jmDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
     SocksProxy.initProxy(proxy: 'SOCKS5 ${task.globalProxy}');
   }
   self.message = "获取漫画信息中...";
+  await setFastestUrlIndex();
+  await setFastestImagesUrlIndex();
   final comicInfo = await getJmComicInfo(task.comicId);
   self.message = "获取章节信息中...";
   List<String> epIds = comicInfo.series.map((e) => e.id.toString()).toList();

@@ -62,9 +62,12 @@ class ComicParticularsWidget extends StatelessWidget {
                   style: TextStyle(color: context.textColor, fontSize: 18),
                 ),
                 const SizedBox(height: 2),
-                if (comicInfo.pagesCount != 0)
-                  Text("页数：${comicInfo.pagesCount}"),
+                Text("更新时间：${comicInfo.updatedAt}"),
                 const SizedBox(height: 2),
+                if (comicInfo.pagesCount != 0) ...[
+                  Text("页数：${comicInfo.pagesCount}"),
+                  const SizedBox(height: 2),
+                ],
                 Text("章节数：${comicInfo.epsCount}"),
                 const SizedBox(height: 2),
                 Text(

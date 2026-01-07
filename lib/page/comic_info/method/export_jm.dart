@@ -6,7 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
-import 'package:zephyr/object_box/model.dart';
+import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/compressed/compressed.dart';
@@ -14,7 +14,11 @@ import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 /// 导出漫画为文件夹
-Future<void> exportComicAsFolder(JmDownload jmDownload) async {
+Future<void> jmExportComicAsFolder(String comicId) async {
+  final jmDownload = objectbox.jmDownloadBox
+      .query(JmDownload_.comicId.equals(comicId))
+      .build()
+      .findFirst()!;
   final comicInfo = jmDownload.allInfo.let(downloadInfoJsonFromJson);
   final downloadedEpIds = jmDownload.epsIds;
   var processedComicInfo = comicInfoProcess(comicInfo);
@@ -92,7 +96,11 @@ Future<void> exportComicAsFolder(JmDownload jmDownload) async {
   showSuccessToast('漫画${comicInfo.name}导出为文件夹完成');
 }
 
-Future<void> exportComicAsZip(JmDownload jmDownload) async {
+Future<void> jmExportComicAsZip(String comicId) async {
+  final jmDownload = objectbox.jmDownloadBox
+      .query(JmDownload_.comicId.equals(comicId))
+      .build()
+      .findFirst()!;
   final comicInfo = jmDownload.allInfo.let(downloadInfoJsonFromJson);
   final downloadedEpIds = jmDownload.epsIds;
   var processedComicInfo = comicInfoProcess(comicInfo);

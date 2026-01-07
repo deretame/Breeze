@@ -8,8 +8,8 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
+import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart';
 import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
-import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 

@@ -10,12 +10,12 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
+import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart'
+    show JmComicInfoJson;
 import 'package:zephyr/page/comic_info/models/all_info.dart';
 import 'package:zephyr/page/comic_read/comic_read.dart';
 import 'package:zephyr/page/comic_read/method/history_writer.dart';
 import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
-import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart'
-    show JmComicInfoJson;
 import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart'
     show downloadInfoJsonFromJson, DownloadInfoJsonSeries;
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -37,7 +37,6 @@ class ComicReadPage extends StatelessWidget {
   final From from;
   final ComicEntryType type;
   final dynamic comicInfo;
-  // 这个 Cubit 仍然需要从路由参数中接收
   final StringSelectCubit stringSelectCubit;
 
   const ComicReadPage({

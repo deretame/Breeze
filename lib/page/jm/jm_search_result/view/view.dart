@@ -257,7 +257,11 @@ class _JmSearchResultPageState extends State<_JmSearchResultPage> {
       if (int.parse(keyword) >= 100) {
         // 说明应该搜的是漫画id，直接跳转到详情页
         context.pushRoute(
-          JmComicInfoRoute(comicId: keyword, type: ComicEntryType.normal),
+          ComicInfoRoute(
+            comicId: keyword,
+            type: ComicEntryType.normal,
+            from: From.jm,
+          ),
         );
         return;
       }

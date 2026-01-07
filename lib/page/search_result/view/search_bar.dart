@@ -19,7 +19,7 @@ class BikaSearchBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     late TextEditingController controller = TextEditingController(text: '');
-    late String label = '搜索本子';
+    late String label = '搜索漫画';
 
     if (searchEnter.categories.isNotEmpty) {
       String temp = searchEnter.categories.join('、');
@@ -44,7 +44,7 @@ class BikaSearchBar extends StatelessWidget implements PreferredSizeWidget {
         searchStyle: TextStyle(color: context.textColor),
         cursorColor: context.textColor,
         searchDecoration: InputDecoration(
-          labelText: '搜索本子',
+          labelText: '搜索漫画',
           alignLabelWithHint: true,
           contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
           border: OutlineInputBorder(

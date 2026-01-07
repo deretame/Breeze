@@ -25,7 +25,7 @@ class BikaSearchBar extends StatelessWidget implements PreferredSizeWidget {
       titleSpacing: 0,
       elevation: 0,
       title: AnimatedSearchBar(
-        label: '搜索本子',
+        label: '搜索漫画',
         controller: controller,
         labelStyle: TextStyle(
           color: context.textColor,

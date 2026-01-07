@@ -5,44 +5,43 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
-import 'package:zephyr/page/comic_info/json/bika/recommend/recommend_json.dart'
-    as recommend_json;
+import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/permission.dart';
+import 'package:zephyr/util/sundry.dart';
 
-import '../../../main.dart';
-import '../../../object_box/model.dart';
-import '../../../object_box/objectbox.g.dart';
 import '../../../type/enum.dart';
 import '../../../util/router/router.dart';
-import '../../../util/router/router.gr.dart';
 import '../../../widgets/error_view.dart';
 import '../../../widgets/toast.dart';
-import '../../download/json/comic_all_info_json/comic_all_info_json.dart'
-    as comic_all_info_json;
-import '../json/bika/comic_info/comic_info.dart';
-import '../json/bika/eps/eps.dart';
 
 enum MenuOption { export, reverseOrder }
 
 @RoutePage()
 class ComicInfoPage extends StatelessWidget {
   final String comicId;
+  final From from;
   final ComicEntryType type;
 
-  const ComicInfoPage({super.key, required this.comicId, required this.type});
+  const ComicInfoPage({
+    super.key,
+    required this.comicId,
+    required this.from,
+    required this.type,
+  });
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) =>
-              GetComicInfoBloc()..add(GetComicInfoEvent(comicId: comicId)),
+          create: (_) => GetComicInfoBloc()
+            ..add(GetComicInfoEvent(comicId: comicId, from: from, type: type)),
         ),
         BlocProvider(create: (_) => StringSelectCubit()),
       ],
-      child: _ComicInfo(comicId: comicId, type: type),
+      child: _ComicInfo(comicId: comicId, type: type, from: from),
     );
   }
 }
@@ -50,8 +49,13 @@ class ComicInfoPage extends StatelessWidget {
 class _ComicInfo extends StatefulWidget {
   final String comicId;
   final ComicEntryType type;
+  final From from;
 
-  const _ComicInfo({required this.comicId, required this.type});
+  const _ComicInfo({
+    required this.comicId,
+    required this.type,
+    required this.from,
+  });
 
   @override
   _ComicInfoState createState() => _ComicInfoState();
@@ -64,14 +68,7 @@ class _ComicInfoState extends State<_ComicInfo>
   @override
   bool get wantKeepAlive => true;
 
-  BikaComicHistory? comicHistory;
-  BikaComicDownload? comicDownload;
-  comic_all_info_json.ComicAllInfoJson? comicAllInfo;
-  AllInfo? allInfo; // 用来存储漫画信息
-  late Comic comicInfo;
-  List<Doc> epsInfo = [];
-  List<recommend_json.Comic> comicList = [];
-
+  dynamic comicInfoDyn;
   late ComicEntryType _type;
   bool _loadingComplete = false;
   // 添加一个状态变量记录是否倒序，用于更新菜单文字
@@ -81,28 +78,7 @@ class _ComicInfoState extends State<_ComicInfo>
   void initState() {
     super.initState();
     _type = type;
-    // 首先查询一下有没有记录
-    comicHistory = objectbox.bikaHistoryBox
-        .query(BikaComicHistory_.comicId.equals(widget.comicId))
-        .build()
-        .findFirst();
-
-    if (comicHistory?.deleted == true) {
-      comicHistory = null;
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final stringSelectCubit = context.read<StringSelectCubit>();
-      if (comicHistory != null) {
-        stringSelectCubit.setDate(
-          '历史：'
-          '${comicHistory!.epTitle} / '
-          '${comicHistory!.epPageCount - 1} / '
-          '${comicHistory!.history.toLocal().toString().substring(0, 19)}',
-        );
-      }
-    });
-
-    _initDownloadInfo();
+    initHistory(context, widget.comicId, widget.from);
   }
 
   @override
@@ -138,11 +114,9 @@ class _ComicInfoState extends State<_ComicInfo>
                   break;
               }
             },
-            // 使用 itemBuilder 动态构建菜单
             itemBuilder: (BuildContext context) {
               List<PopupMenuEntry<MenuOption>> menuItems = [];
 
-              // 倒序功能
               menuItems.add(
                 PopupMenuItem<MenuOption>(
                   value: MenuOption.reverseOrder,
@@ -176,86 +150,58 @@ class _ComicInfoState extends State<_ComicInfo>
           ),
         ],
       ),
-      body: _type == ComicEntryType.download
-          ? _infoView()
-          : BlocBuilder<GetComicInfoBloc, GetComicInfoState>(
-              builder: (context, state) {
-                switch (state.status) {
-                  case GetComicInfoStatus.initial:
-                    return Center(child: CircularProgressIndicator());
-                  case GetComicInfoStatus.failure:
-                    if (state.result.contains("under review") &&
-                        state.result.contains("1014")) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text('此漫画已下架', style: TextStyle(fontSize: 20)),
-                            SizedBox(height: 10),
-                            ElevatedButton(
-                              onPressed: () => context.pop(),
-                              child: Text('返回'),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-                    return ErrorView(
-                      errorMessage: '${state.result.toString()}\n加载失败，请重试。',
-                      onRetry: () {
-                        context.read<GetComicInfoBloc>().add(
-                          GetComicInfoEvent(comicId: widget.comicId),
-                        );
-                      },
-                    );
-                  case GetComicInfoStatus.success:
-                    allInfo = state.allInfo!;
-                    comicInfo = allInfo!.comicInfo;
-                    epsInfo = allInfo!.eps;
-                    comicList = allInfo!.recommendJson;
-                    return _infoView();
-                }
-              },
-            ),
-      floatingActionButton:
-          _loadingComplete // 条件显示按钮
-          ? SizedBox(
-              width: 100, // 设置容器宽度，以容纳更长的文本
-              height: 56, // 设置容器高度，与默认的FloatingActionButton高度一致
-              child: FloatingActionButton(
-                onPressed: () {
-                  if (stringSelectDate.isNotEmpty) {
-                    comicHistory = objectbox.bikaHistoryBox
-                        .query(BikaComicHistory_.comicId.equals(widget.comicId))
-                        .build()
-                        .findFirst();
-                    context.pushRoute(
-                      ComicReadRoute(
-                        comicInfo: allInfo,
-                        comicId: comicInfo.id,
-                        type: _type == ComicEntryType.download
-                            ? ComicEntryType.historyAndDownload
-                            : ComicEntryType.history,
-                        order: comicHistory!.order,
-                        epsNumber: comicInfo.epsCount,
-                        from: From.bika,
-                        stringSelectCubit: context.read<StringSelectCubit>(),
+      body: BlocBuilder<GetComicInfoBloc, GetComicInfoState>(
+        builder: (context, state) {
+          switch (state.status) {
+            case GetComicInfoStatus.initial:
+              return Center(child: CircularProgressIndicator());
+            case GetComicInfoStatus.failure:
+              if (state.result.contains("under review") &&
+                  state.result.contains("1014")) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('此漫画已下架', style: TextStyle(fontSize: 20)),
+                      SizedBox(height: 10),
+                      ElevatedButton(
+                        onPressed: () => context.pop(),
+                        child: Text('返回'),
                       ),
-                    );
-                  } else {
-                    context.pushRoute(
-                      ComicReadRoute(
-                        comicInfo: allInfo,
-                        comicId: comicInfo.id,
-                        type: _type,
-                        order: 1,
-                        epsNumber: comicInfo.epsCount,
-                        from: From.bika,
-                        stringSelectCubit: context.read<StringSelectCubit>(),
-                      ),
-                    );
-                  }
+                    ],
+                  ),
+                );
+              }
+              return ErrorView(
+                errorMessage: '${state.result.toString()}\n加载失败，请重试。',
+                onRetry: () {
+                  context.read<GetComicInfoBloc>().add(
+                    GetComicInfoEvent(
+                      comicId: widget.comicId,
+                      from: widget.from,
+                      type: _type,
+                    ),
+                  );
                 },
+              );
+            case GetComicInfoStatus.success:
+              comicInfoDyn = state.comicInfo;
+              return _infoView(state.allInfo!);
+          }
+        },
+      ),
+      floatingActionButton: _loadingComplete
+          ? SizedBox(
+              width: 100,
+              height: 56,
+              child: FloatingActionButton(
+                onPressed: () => goToComicRead(
+                  context,
+                  widget.comicId,
+                  widget.type,
+                  comicInfoDyn,
+                  widget.from,
+                ),
                 child: Text(
                   stringSelectDate.isNotEmpty ? '继续阅读' : '开始阅读',
                   overflow: TextOverflow.ellipsis,
@@ -263,50 +209,126 @@ class _ComicInfoState extends State<_ComicInfo>
                 ),
               ),
             )
-          : null, // 如果为false，则隐藏// 如果为false，则隐藏
+          : null,
     );
   }
 
-  Widget _infoView() {
+  Widget _infoView(NormalComicAllInfo normalComicAllInfo) {
+    final comicInfo = normalComicAllInfo.comicInfo;
+
     if (!_loadingComplete) {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => setState(() => _loadingComplete = true),
       );
     }
 
+    var displayEps = List.from(normalComicAllInfo.eps);
+    if (_isReversed) {
+      displayEps = displayEps.reversed.toList();
+    }
+
     var widgets = [
       const SizedBox(height: 10),
-      ComicParticularsWidget(comicInfo: comicInfo),
+      ComicParticularsWidget(comicInfo: comicInfo, from: widget.from),
       const SizedBox(height: 10),
-      TagsAndCategoriesWidget(comicInfo: comicInfo, type: 'categories'),
-      // const SizedBox(height: 3),
-      if (comicInfo.tags.isNotEmpty) ...[
-        TagsAndCategoriesWidget(comicInfo: comicInfo, type: 'tags'),
-        // const SizedBox(height: 3),
-      ],
-      if (comicInfo.description != '') ...[
-        const SizedBox(height: 3),
-        Text(comicInfo.description),
-      ],
-      const SizedBox(height: 10),
-      CreatorInfoWidget(comicInfo: comicInfo),
-      const SizedBox(height: 10),
-      const SizedBox(height: 10),
-      ComicOperationWidget(comicInfo: comicInfo, epsInfo: epsInfo),
     ];
 
-    for (var e in epsInfo) {
+    if (comicInfo.author.isNotEmpty) {
+      widgets.add(
+        AllChipWidget(
+          comicId: comicInfo.id,
+          type: 'author',
+          chips: comicInfo.author,
+          from: widget.from,
+        ),
+      );
+    }
+
+    if (comicInfo.chineseTeam.isNotEmpty) {
+      widgets.add(
+        AllChipWidget(
+          comicId: comicInfo.id,
+          type: 'chineseTeam',
+          chips: comicInfo.chineseTeam,
+          from: widget.from,
+        ),
+      );
+    }
+
+    if (comicInfo.categories.isNotEmpty) {
+      widgets.add(
+        AllChipWidget(
+          comicId: comicInfo.id,
+          type: 'categories',
+          chips: comicInfo.categories,
+          from: widget.from,
+        ),
+      );
+    }
+
+    if (comicInfo.tags.isNotEmpty) {
+      widgets.add(
+        AllChipWidget(
+          comicId: comicInfo.id,
+          type: 'tags',
+          chips: comicInfo.tags,
+          from: widget.from,
+        ),
+      );
+    }
+
+    if (comicInfo.actors.isNotEmpty) {
+      widgets.add(
+        AllChipWidget(
+          comicId: comicInfo.id,
+          type: 'actors',
+          chips: comicInfo.actors,
+          from: widget.from,
+        ),
+      );
+    }
+
+    if (comicInfo.works.isNotEmpty) {
+      widgets.add(
+        AllChipWidget(
+          comicId: comicInfo.id,
+          type: 'works',
+          chips: comicInfo.works,
+          from: widget.from,
+        ),
+      );
+    }
+
+    if (comicInfo.description != '') {
+      widgets.add(const SizedBox(height: 3));
+      widgets.add(Text(comicInfo.description.let(t2s)));
+    }
+
+    if (widget.from == From.bika) {
+      widgets.add(const SizedBox(height: 10));
+      widgets.add(CreatorInfoWidget(comicInfo: comicInfo));
+    }
+
+    widgets.add(const SizedBox(height: 10));
+    widgets.add(
+      ComicOperationWidget(
+        normalComicInfo: comicInfo,
+        from: widget.from,
+        comicInfo: comicInfoDyn,
+      ),
+    );
+
+    for (var e in displayEps) {
       widgets.add(
         Padding(
           padding: const EdgeInsets.all(5.0),
           child: EpButtonWidget(
             doc: e,
-            allInfo: allInfo!,
-            epsInfo: epsInfo,
-            isHistory: false,
-            type: _type == ComicEntryType.history
-                ? ComicEntryType.normal
-                : _type,
+            allInfo: comicInfoDyn,
+            epsLength: normalComicAllInfo.eps.length,
+            type: _type,
+            comicId: widget.comicId,
+            from: widget.from,
           ),
         ),
       );
@@ -314,22 +336,27 @@ class _ComicInfoState extends State<_ComicInfo>
 
     widgets.addAll([
       const SizedBox(height: 10),
-      RecommendWidget(comicList: comicList),
+      RecommendWidget(
+        comicList: normalComicAllInfo.recommend,
+        from: widget.from,
+      ),
       const SizedBox(height: 180),
     ]);
 
     return RefreshIndicator(
       onRefresh: () async {
         _type = ComicEntryType.normal;
+        _isReversed = false;
 
         context.read<GetComicInfoBloc>().add(
-          GetComicInfoEvent(comicId: widget.comicId),
-        );
-        final query = objectbox.bikaHistoryBox.query(
-          BikaComicHistory_.comicId.equals(widget.comicId),
+          GetComicInfoEvent(
+            comicId: widget.comicId,
+            from: widget.from,
+            type: _type,
+          ),
         );
         setState(() {
-          comicHistory = query.build().findFirst();
+          initHistory(context, widget.comicId, widget.from);
           _loadingComplete = false;
         });
       },
@@ -384,13 +411,7 @@ class _ComicInfoState extends State<_ComicInfo>
       }
       if (mounted) {
         var choice = await showExportTypeDialog();
-        if (choice == ExportType.zip) {
-          showInfoToast('正在导出漫画...');
-          exportComicAsZip(comicAllInfo!);
-        } else if (choice == ExportType.folder) {
-          showInfoToast('正在导出漫画...');
-          exportComicAsFolder(comicAllInfo!);
-        }
+        exportComic(widget.comicId, choice!, widget.from);
       }
     } catch (e) {
       showErrorToast(
@@ -400,49 +421,6 @@ class _ComicInfoState extends State<_ComicInfo>
     }
   }
 
-  void _initDownloadInfo() {
-    if (_type == ComicEntryType.download) {
-      comicDownload = objectbox.bikaDownloadBox
-          .query(BikaComicDownload_.comicId.equals(widget.comicId))
-          .build()
-          .findFirst();
-
-      if (comicDownload != null) {
-        comicAllInfo = comic_all_info_json.comicAllInfoJsonFromJson(
-          comicDownload!.comicInfoAll,
-        );
-        comicInfo = comicAllInfo2Comic(comicAllInfo!);
-      }
-
-      var epsDoc = comicAllInfo!.eps.docs;
-      for (var epDoc in epsDoc) {
-        epsInfo.add(
-          Doc(
-            id: epDoc.id,
-            title: epDoc.title,
-            order: epDoc.order,
-            updatedAt: epDoc.updatedAt,
-            docId: epDoc.docId,
-          ),
-        );
-      }
-
-      allInfo = AllInfo(
-        comicInfo: comicInfo,
-        eps: epsInfo,
-        recommendJson: comicList,
-      );
-    }
-  }
-
   // 实现章节倒序逻辑
-  void _toggleOrder() {
-    setState(() {
-      epsInfo = epsInfo.reversed.toList();
-      _isReversed = !_isReversed;
-    });
-    if (allInfo != null) {
-      allInfo!.eps = epsInfo;
-    }
-  }
+  void _toggleOrder() => setState(() => _isReversed = !_isReversed);
 }

@@ -6,4 +6,4 @@ export 'export_type_dialog.dart';
 export 'particulars.dart';
 export 'recommend.dart';
 export 'synopsis.dart';
-export 'tags_and_categories.dart';
+export 'all_chip.dart';

@@ -4,17 +4,17 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 import '../../search_result/models/search_enter.dart';
-import '../json/bika/comic_info/comic_info.dart';
 
 // 显示上传者信息
 class CreatorInfoWidget extends StatelessWidget {
-  final Comic comicInfo;
+  final ComicInfo comicInfo;
 
   const CreatorInfoWidget({super.key, required this.comicInfo});
 
@@ -75,7 +75,7 @@ class CreatorInfoWidget extends StatelessWidget {
             children: <Widget>[
               _ImagerWidget(
                 pictureInfo: PictureInfo(
-                  url: comicInfo.creator.avatar.fileServer,
+                  url: comicInfo.creator.avatar.url,
                   path: comicInfo.creator.avatar.path,
                   cartoonId: comicInfo.id,
                   pictureType: "creator",

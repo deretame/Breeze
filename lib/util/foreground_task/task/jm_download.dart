@@ -10,7 +10,7 @@ import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/json/download/comic_all_info_json.dart';
-import 'package:zephyr/page/jm/jm_comic_info/json/jm_comic_info_json.dart'
+import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart'
     as base_info;
 import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart';
 import 'package:zephyr/src/rust/frb_generated.dart';

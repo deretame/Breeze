@@ -67,7 +67,11 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
       onTap: () {
         // 跳转到漫画详情页
         context.pushRoute(
-          ComicInfoRoute(comicId: comicEntryInfo.id, type: _type!),
+          ComicInfoRoute(
+            comicId: comicEntryInfo.id,
+            type: _type!,
+            from: From.bika,
+          ),
         );
       },
       onLongPress: () {

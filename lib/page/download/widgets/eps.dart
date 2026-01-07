@@ -32,10 +32,7 @@ class _EpsWidgetState extends State<EpsWidget> {
   void didUpdateWidget(EpsWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.downloaded != widget.downloaded) {
-      // 当父组件的状态变化时，更新复选框状态
-      setState(() {
-        _isChecked = widget.downloaded;
-      });
+      setState(() => _isChecked = widget.downloaded);
     }
   }
 
@@ -43,14 +40,11 @@ class _EpsWidgetState extends State<EpsWidget> {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        setState(() {
-          _isChecked = !_isChecked; // 切换复选框状态
-        });
+        setState(() => _isChecked = !_isChecked);
         widget.onUpdateDownloadInfo(widget.doc.order);
       },
       child: Container(
         width: double.infinity,
-        margin: EdgeInsets.symmetric(horizontal: 0),
         padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: context.backgroundColor,
@@ -69,9 +63,7 @@ class _EpsWidgetState extends State<EpsWidget> {
             Checkbox(
               value: _isChecked,
               onChanged: (bool? value) {
-                setState(() {
-                  _isChecked = value ?? false; // 更新复选框状态
-                });
+                setState(() => _isChecked = value ?? false);
                 widget.onUpdateDownloadInfo(widget.doc.order);
               },
             ),
@@ -84,25 +76,6 @@ class _EpsWidgetState extends State<EpsWidget> {
                     widget.doc.title,
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 4),
-                  Row(
-                    children: <Widget>[
-                      Text(
-                        timeDecode(widget.doc.updatedAt),
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
-                      Expanded(child: Container()),
-                      widget.doc.id == 'history'
-                          ? Text("观看历史", style: TextStyle(fontSize: 14))
-                          : Text(
-                              "number : ${widget.doc.order.toString()}",
-                              style: TextStyle(
-                                fontFamily: "Pacifico-Regular",
-                                fontSize: 14,
-                              ),
-                            ),
-                    ],
-                  ),
                 ],
               ),
             ),
@@ -110,22 +83,5 @@ class _EpsWidgetState extends State<EpsWidget> {
         ),
       ),
     );
-  }
-
-  String timeDecode(DateTime originalTime) {
-    // 获取当前设备的时区偏移量
-    Duration timeZoneOffset = DateTime.now().timeZoneOffset;
-
-    // 根据时区偏移量调整时间
-    DateTime newDateTime = originalTime.add(timeZoneOffset);
-
-    // 按照指定格式输出
-    String formattedTime =
-        '${newDateTime.year}年${newDateTime.month}月${newDateTime.day}日 '
-        '${newDateTime.hour.toString().padLeft(2, '0')}:'
-        '${newDateTime.minute.toString().padLeft(2, '0')}:'
-        '${newDateTime.second.toString().padLeft(2, '0')}';
-
-    return "$formattedTime 更新";
   }
 }

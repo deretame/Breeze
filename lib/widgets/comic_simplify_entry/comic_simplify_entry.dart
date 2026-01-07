@@ -170,10 +170,14 @@ class ComicSimplifyEntry extends StatelessWidget {
 
   void _navigateToComicInfo(BuildContext context) {
     if (info.from == 'bika') {
-      context.pushRoute(ComicInfoRoute(comicId: info.id, type: type));
+      context.pushRoute(
+        ComicInfoRoute(comicId: info.id, type: type, from: From.bika),
+      );
     }
     if (info.from == 'jm') {
-      context.pushRoute(JmComicInfoRoute(comicId: info.id, type: type));
+      context.pushRoute(
+        ComicInfoRoute(comicId: info.id, type: type, from: From.jm),
+      );
     }
   }
 

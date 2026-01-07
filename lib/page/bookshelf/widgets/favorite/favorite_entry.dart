@@ -50,6 +50,7 @@ class FavoriteComicEntryWidget extends StatelessWidget {
           ComicInfoRoute(
             comicId: comicEntryInfo.id,
             type: ComicEntryType.normal,
+            from: From.bika,
           ),
         );
       },

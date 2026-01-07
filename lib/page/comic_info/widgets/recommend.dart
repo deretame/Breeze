@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:zephyr/page/comic_info/json/bika/recommend/recommend_json.dart'
-    show Comic;
+import 'package:zephyr/network/http/picture/picture.dart';
+import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../type/enum.dart';
@@ -8,27 +8,41 @@ import '../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import '../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 
 class RecommendWidget extends StatelessWidget {
-  final List<Comic> comicList;
+  final List<Recommend> comicList;
+  final From from;
 
-  const RecommendWidget({super.key, required this.comicList});
+  const RecommendWidget({
+    super.key,
+    required this.comicList,
+    required this.from,
+  });
 
   @override
   Widget build(BuildContext context) {
     if (comicList.isEmpty) {
       return SizedBox.shrink();
     }
-    final comicInfoList = comicList
-        .map(
-          (e) => ComicSimplifyEntryInfo(
-            title: e.title,
-            id: e.id,
-            fileServer: e.thumb.fileServer,
-            path: e.thumb.path,
-            pictureType: "cover",
-            from: "bika",
-          ),
-        )
-        .toList();
+    final comicInfoList = comicList.map((e) {
+      if (from == From.bika) {
+        return ComicSimplifyEntryInfo(
+          title: e.title,
+          id: e.id,
+          fileServer: e.cover.url,
+          path: e.cover.path,
+          pictureType: "cover",
+          from: "bika",
+        );
+      } else {
+        return ComicSimplifyEntryInfo(
+          title: e.title,
+          id: e.id,
+          fileServer: getJmCoverUrl(e.id),
+          path: "${e.id}.jpg",
+          pictureType: "cover",
+          from: "jm",
+        );
+      }
+    }).toList();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 5.0),
@@ -46,9 +60,7 @@ class RecommendWidget extends StatelessWidget {
           ],
         ),
         child: ClipRRect(
-          // 使用ClipRRect来裁剪子组件
           borderRadius: BorderRadius.circular(10),
-          // 设置与外层Container相同的圆角
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(

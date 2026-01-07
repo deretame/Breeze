@@ -9,9 +9,9 @@ import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../config/global/global.dart';
-import '../../../main.dart';
 import '../../../cubit/bool_select.dart';
 import '../../../cubit/int_select.dart';
+import '../../../main.dart';
 import '../../../network/http/bika/http_request.dart';
 import '../../../type/enum.dart';
 import '../../../util/router/router.gr.dart';
@@ -128,6 +128,7 @@ class _CommentsWidgetContent extends StatelessWidget {
                               ComicInfoRoute(
                                 comicId: doc.comic.id,
                                 type: ComicEntryType.normal,
+                                from: From.bika,
                               ),
                             );
                           },

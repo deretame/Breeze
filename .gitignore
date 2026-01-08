@@ -51,3 +51,4 @@ firebase.json
 
 # FVM Version Cache
 .fvm/
+.crashlytics

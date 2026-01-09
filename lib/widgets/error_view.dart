@@ -12,37 +12,21 @@ class ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: IntrinsicHeight(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text(
-                        errorMessage,
-                        style: const TextStyle(fontSize: 20),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: onRetry,
-                        child: const Text('重新加载'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            errorMessage,
+            maxLines: 5,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 20),
+            textAlign: TextAlign.center,
           ),
-        );
-      },
+          const SizedBox(height: 20),
+          ElevatedButton(onPressed: onRetry, child: const Text('重新加载')),
+        ],
+      ),
     );
   }
 }

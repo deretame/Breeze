@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
@@ -7,6 +8,7 @@ import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     show ComicInfo;
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 
@@ -69,7 +71,17 @@ class ComicParticularsWidget extends StatelessWidget {
                   const SizedBox(height: 2),
                 ],
                 Text("章节数：${comicInfo.epsCount}"),
-                const SizedBox(height: 2),
+                if (from == From.jm) ...[
+                  GestureDetector(
+                    onLongPress: () async {
+                      final String copyText = comicInfo.id;
+                      await Clipboard.setData(ClipboardData(text: copyText));
+                      showSuccessToast("已复制id：$copyText");
+                    },
+                    child: Text("禁漫车：JM${comicInfo.id}"),
+                  ),
+                  const SizedBox(height: 2),
+                ],
                 Text(
                   stringSelectDate,
                   style: TextStyle(color: context.theme.colorScheme.primary),

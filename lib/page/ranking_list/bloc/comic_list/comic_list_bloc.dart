@@ -3,13 +3,14 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/network/http/bika/http_request.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/settings_hive_utils.dart';
+import 'package:zephyr/util/sundry.dart';
 
 import '../../json/leaderboard.dart';
 import '../../models/models.dart';
 
 part 'comic_list_event.dart';
-
 part 'comic_list_state.dart';
 
 const throttleDurationComic = Duration(milliseconds: 100);
@@ -65,10 +66,10 @@ class ComicListBloc extends Bloc<FetchComicList, ComicListState> {
           comic.title,
           comic.author,
           comic.categories.join(),
-        ].join().toLowerCase();
+        ].join().toLowerCase().let(t2s);
 
         final containsKeyword = maskedKeywords.any(
-          (keyword) => allText.contains(keyword.toLowerCase()),
+          (keyword) => allText.contains(keyword.toLowerCase().let(t2s)),
         );
 
         return !containsKeyword;

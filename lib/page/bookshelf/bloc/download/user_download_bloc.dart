@@ -3,7 +3,9 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/settings_hive_utils.dart';
+import 'package:zephyr/util/sundry.dart';
 
 import '../../../../main.dart';
 import '../../../../object_box/model.dart';
@@ -142,7 +144,7 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
       }
 
       if (event.searchEnterConst.keyword.isNotEmpty) {
-        final keyword = event.searchEnterConst.keyword.toLowerCase();
+        final keyword = event.searchEnterConst.keyword.toLowerCase().let(t2s);
 
         comicList = comicList.where((comic) {
           var allString =
@@ -153,7 +155,7 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
               comic.tagsString +
               comic.description +
               comic.creatorName;
-          return allString.toLowerCase().contains(keyword);
+          return allString.toLowerCase().let(t2s).contains(keyword);
         }).toList();
       }
 
@@ -164,7 +166,7 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
       comicList = _fetchOfSortJm(comicList, event.searchEnterConst.sort);
 
       if (event.searchEnterConst.keyword.isNotEmpty) {
-        final keyword = event.searchEnterConst.keyword.toLowerCase();
+        final keyword = event.searchEnterConst.keyword.toLowerCase().let(t2s);
 
         comicList = comicList.where((comic) {
           var allString =
@@ -175,7 +177,7 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
               comic.tags.toString() +
               comic.works.toString() +
               comic.actors.toString();
-          return allString.toLowerCase().contains(keyword);
+          return allString.toLowerCase().let(t2s).contains(keyword);
         }).toList();
       }
 

@@ -4,12 +4,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/cubit/list_select.dart';
+import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/page/bookshelf/json/jm_cloud_favorite/jm_cloud_favorite_json.dart'
     show FolderList;
 import 'package:zephyr/page/bookshelf/widgets/jm/cloud_favorite_category.dart';
 import 'package:zephyr/page/bookshelf/widgets/jm/cloud_favorite_sort.dart';
+import 'package:zephyr/page/bookshelf/widgets/jm/favorite_switch.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/settings_hive_utils.dart';
 
@@ -122,51 +125,34 @@ class _SideDrawerState extends State<SideDrawer> {
 
   /// 构建“收藏”Tab对应的表单
   Widget _buildFavoriteContent(BuildContext context, int topBarState) {
+    logger.d("topBarState: $topBarState");
     if (topBarState == 2) {
       // 禁漫
-      final jmState = context.watch<JmSettingCubit>().state;
-      if (jmState.favoriteSet == 0) {
-        return Builder(
-          builder: (context) {
-            final jmState = context.watch<JmFavoriteCubit>().state;
-            sort = jmState.sort; // 仍然在 build 时初始化本地 state
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: SortWidget(
-                    initialSort: jmState.sort,
-                    onSortChanged: (value) {
-                      sort = value; // 更新本地 state
-                    },
-                  ),
-                ),
-                // --- 4. 使用新的 Stateful Widget ---
-                _KeywordSearchField(
-                  initialKeyword: jmState.keyword,
-                  onSubmitted: (value) {
-                    keyword = value; // 更新本地 state
-                  },
-                ),
-              ],
-            );
-          },
-        );
+      final jmState = context.watch<ListSelectCubit<FolderList>>().state;
+      final jmSortState = context.watch<JmCloudFavoriteCubit>().state;
+      late final String initialState;
+      if (jmSortState.categories.isNotEmpty) {
+        initialState = jmSortState.categories.first;
       } else {
-        final jmState = context.watch<ListSelectCubit<FolderList>>().state;
-        final jmSortState = context.watch<JmCloudFavoriteCubit>().state;
-        late final String initialState;
-        if (jmSortState.categories.isNotEmpty) {
-          initialState = jmSortState.categories.first;
-        } else {
-          initialState = "";
-        }
+        initialState = "";
+      }
+      final jmCubitState = context.watch<JmSettingCubit>().state;
+      final jmCubit = context.read<JmSettingCubit>();
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: FavoriteSwitch(
+              initialSort: jmCubitState.favoriteSet.toString(),
+              onSortChanged: (value) {
+                jmCubit.updateFavoriteSet(value.let(toInt));
+                context.read<StringSelectCubit>().setDate("");
+              },
+            ),
+          ),
+          if (jmCubitState.favoriteSet == 0)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: CloudFavoriteCategory(
@@ -177,6 +163,7 @@ class _SideDrawerState extends State<SideDrawer> {
                 },
               ),
             ),
+          if (jmCubitState.favoriteSet == 0)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: CloudFavoriteSort(
@@ -186,9 +173,8 @@ class _SideDrawerState extends State<SideDrawer> {
                 },
               ),
             ),
-          ],
-        );
-      }
+        ],
+      );
     } else {
       // 哔咔 (收藏)
       // --- 4. 使用新的 Stateful Widget ---

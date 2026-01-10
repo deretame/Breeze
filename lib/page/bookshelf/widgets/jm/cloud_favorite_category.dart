@@ -55,7 +55,7 @@ class _CloudFavoriteCategoryState extends State<CloudFavoriteCategory> {
           });
           widget.onSortChanged(value);
         },
-        buttonStyleData: const ButtonStyleData(width: 100),
+        buttonStyleData: const ButtonStyleData(width: 120),
         menuItemStyleData: const MenuItemStyleData(height: 40),
       ),
     );

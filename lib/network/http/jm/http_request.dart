@@ -40,16 +40,42 @@ Future<Map<String, dynamic>> favorite(
   String comicId, {
   String? folderId,
 }) async {
-  String body = "";
-  if (folderId != null) {
-    body = "type=move&folder_id=$folderId&aid=$comicId&";
-  } else {
-    body = "aid=$comicId&";
-  }
+  final formData = {"aid": comicId};
 
   final Map<String, dynamic> data = await request(
     '${JmConfig.baseUrl}/favorite',
-    body: body,
+    formData: formData,
+    method: 'POST',
+  );
+
+  return data;
+}
+
+Future<Map<String, dynamic>> getFavoriteList({
+  int page = 1,
+  String id = '',
+  String order = 'mr',
+}) async => await request(
+  '${JmConfig.baseUrl}/favorite',
+  method: 'GET',
+  params: {'page': page, 'folder_id': id, 'o': order},
+);
+
+Future<Map<String, dynamic>> favoriteMoveFolder(
+  String comicId,
+  String folderId,
+  String folderName,
+) async {
+  var formData = {
+    "type": "move",
+    "folder_id": folderId,
+    "folder_name": folderName,
+    "aid": comicId,
+  };
+
+  final Map<String, dynamic> data = await request(
+    '${JmConfig.baseUrl}/favorite_folder',
+    formData: formData,
     method: 'POST',
   );
 
@@ -58,7 +84,7 @@ Future<Map<String, dynamic>> favorite(
 
 Future<Map<String, dynamic>> like(String comicId) async => await request(
   '${JmConfig.baseUrl}/like',
-  body: 'id=$comicId&',
+  formData: {'id': comicId},
   method: 'POST',
 );
 
@@ -144,14 +170,4 @@ Future<Map<String, dynamic>> getRanking({
   method: 'GET',
   params: {'page': page, 'c': c, 'o': o},
   cache: true,
-);
-
-Future<Map<String, dynamic>> getFavoriteList({
-  int page = 1,
-  String id = '',
-  String order = 'mr',
-}) async => await request(
-  '${JmConfig.baseUrl}/favorite',
-  method: 'GET',
-  params: {'page': page, 'folder_id': id, 'o': order},
 );

@@ -1,13 +1,16 @@
+import 'dart:convert';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/network/http/jm/http_request.dart' as jm;
-import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/page/bookshelf/json/jm_cloud_favorite/jm_cloud_favorite_json.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/json/json_dispose.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../../main.dart';
@@ -225,15 +228,23 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
 
     switch (actionType) {
       case 'like':
+        if (isLiked) {
+          showInfoToast("无法取消点赞");
+          return;
+        }
         result = jm.like(normalComicInfo.id.toString());
         isCurrentlyActive = isLiked;
         actionVerb = '点赞';
         break;
       case 'favorite':
-        result = jmCollect(comicInfo as JmComicInfoJson, isCollected);
-        isCurrentlyActive = isCollected;
-        actionVerb = '收藏';
-        break;
+        final text = isCollected ? '取消收藏' : '收藏';
+        showInfoToast("$text中...");
+        await handleCollectLogic(
+          context,
+          comicInfo as JmComicInfoJson,
+          isCollected,
+        );
+        return;
       default:
         throw ArgumentError('Invalid action type: $actionType');
     }
@@ -273,6 +284,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
       }
     } catch (error) {
       if (!mounted) return;
+      logger.e(error);
       showErrorToast(
         "请求过程中发生错误: ${error.toString()}",
         duration: const Duration(seconds: 5),
@@ -280,44 +292,192 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
     }
   }
 
-  Future<Map<String, dynamic>> jmCollect(
-    JmComicInfoJson comicInfo,
-    bool isCollected,
-  ) async {
-    // 避免数据冲突
-    var data = objectbox.jmFavoriteBox
-        .query(JmFavorite_.comicId.equals(comicInfo.id.toString()))
-        .build()
-        .find();
+  Future<String> jmCollect(JmComicInfoJson comicInfo) async {
+    final data = await jm.favorite(comicInfo.id.toString());
+    if (mounted) {
+      setState(() => isCollected = !isCollected);
+    }
+    return data['msg'] ?? "操作成功";
+  }
 
-    for (var item in data) {
-      objectbox.jmFavoriteBox.remove(item.id);
+  Future<List<FolderList>> getFolderList() async {
+    return await jm
+        .getFavoriteList(page: 1, id: '', order: 'mr')
+        .let(replaceNestedNullList)
+        .let(jsonEncode)
+        .let(jmCloudFavoriteJsonFromJson)
+        .let((data) => data.folderList);
+  }
+
+  Future<String> addFolder(
+    JmComicInfoJson comicInfo,
+    FolderList folderList,
+  ) async {
+    final data = await jm.favoriteMoveFolder(
+      comicInfo.id.toString(),
+      folderList.fid.toString(),
+      folderList.name,
+    );
+    return data['msg'];
+  }
+
+  Future<void> handleCollectLogic(
+    BuildContext context,
+    JmComicInfoJson comicInfo,
+    bool currentStatus,
+  ) async {
+    // 1. 如果已经收藏，执行“取消收藏”
+    if (currentStatus) {
+      final msg = await _safeExecute(
+        context,
+        () => jmCollect(comicInfo),
+        title: "取消收藏",
+      );
+      if (msg != null) {
+        showSuccessToast("取消收藏成功");
+      }
+      return;
     }
 
-    objectbox.jmFavoriteBox.put(
-      JmFavorite(
-        comicId: comicInfo.id.toString(),
-        name: comicInfo.name,
-        addtime: comicInfo.addtime,
-        description: comicInfo.description,
-        totalViews: comicInfo.totalViews,
-        likes: comicInfo.likes,
-        seriesId: comicInfo.seriesId,
-        commentTotal: comicInfo.commentTotal,
-        author: comicInfo.author,
-        tags: comicInfo.tags,
-        works: comicInfo.works,
-        actors: comicInfo.actors,
-        liked: comicInfo.liked,
-        isFavorite: comicInfo.isFavorite,
-        isAids: comicInfo.isAids,
-        price: comicInfo.price,
-        purchased: comicInfo.purchased,
-        deleted: isCollected,
-        history: DateTime.now().toUtc(),
-      ),
-    );
+    // 2. 如果未收藏，并行执行：收藏接口 + 获取收藏夹列表
+    String? collectMsg;
+    List<FolderList>? folders;
 
-    return {"error": null, "message": "收藏成功"};
+    final collectFuture =
+        _safeExecute(context, () => jmCollect(comicInfo), title: "收藏操作").then((
+          val,
+        ) {
+          collectMsg = val;
+          if (val != null) showSuccessToast("收藏成功"); // 基础收藏成功提示
+        });
+
+    final folderFuture = _safeExecute(
+      context,
+      () => getFolderList(),
+      title: "获取收藏夹列表",
+      canSkip: true,
+    ).then((val) => folders = val);
+
+    await Future.wait([collectFuture, folderFuture]);
+
+    // 3. 收藏成功后，如果有自定义收藏夹，弹出选择框
+    if (collectMsg != null && folders != null && folders!.isNotEmpty) {
+      if (!context.mounted) return;
+      final selectedFolder = await showFolderSelectionDialog(context, folders!);
+
+      if (selectedFolder != null && context.mounted) {
+        // 4. 执行移动到特定收藏夹
+        final moveMsg = await _safeExecute(
+          context,
+          () => addFolder(comicInfo, selectedFolder),
+          title: "移动到收藏夹",
+        );
+
+        if (moveMsg != null) {
+          showSuccessToast("已添加到收藏夹: ${selectedFolder.name}");
+        }
+      }
+    }
+  }
+
+  /// 通用的重试执行器
+  Future<T?> _safeExecute<T>(
+    BuildContext context,
+    Future<T> Function() task, {
+    required String title,
+    bool canSkip = false,
+  }) async {
+    while (true) {
+      try {
+        return await task();
+      } catch (e) {
+        logger.e(e);
+        // 弹出重试对话框
+        final retry = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text('$title失败'),
+            content: Text('错误信息: $e\n是否重试？'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('取消'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('重试'),
+              ),
+            ],
+          ),
+        );
+
+        if (retry != true) {
+          if (canSkip) return null; // 允许跳过则返回空
+          throw Exception("用户取消了$title"); // 不允许跳过则中断
+        }
+      }
+    }
+  }
+
+  Future<FolderList?> showFolderSelectionDialog(
+    BuildContext context,
+    List<FolderList> folders,
+  ) {
+    FolderList? tempSelected;
+
+    return showDialog<FolderList>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('添加到自定义收藏夹'),
+              // 限制高度，防止列表太长超出屏幕
+              content: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.5,
+                ),
+                child: SizedBox(
+                  width: double.maxFinite,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: folders.length,
+                    itemBuilder: (ctx, index) {
+                      final folder = folders[index];
+                      return RadioListTile<String>(
+                        title: Text(folder.name),
+                        subtitle: Text("ID: ${folder.fid}"),
+                        value: folder.fid,
+                        // --- 改回手动管理状态 ---
+                        // ignore: deprecated_member_use
+                        groupValue: tempSelected?.fid,
+                        // ignore: deprecated_member_use
+                        onChanged: (val) {
+                          setState(() => tempSelected = folder);
+                        },
+                        // -----------------------
+                      );
+                    },
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('跳过/不添加'),
+                ),
+                ElevatedButton(
+                  // 只有选中了才能点击确定
+                  onPressed: tempSelected == null
+                      ? null
+                      : () => Navigator.pop(dialogContext, tempSelected),
+                  child: const Text('确定添加'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 }

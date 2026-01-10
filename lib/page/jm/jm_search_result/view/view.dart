@@ -168,6 +168,12 @@ class _JmSearchResultPageState extends State<_JmSearchResultPage> {
       );
     }
 
+    if (state.jmSearchResults!.length < 20) {
+      _fetchSearchResult(
+        event.copyWith(status: JmSearchResultStatus.loadingMore),
+      );
+    }
+
     // logger.d(state.status);
 
     var list = state.jmSearchResults!

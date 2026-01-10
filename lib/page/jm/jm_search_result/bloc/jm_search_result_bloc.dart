@@ -5,6 +5,8 @@ import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/settings_hive_utils.dart';
+import 'package:zephyr/util/sundry.dart';
 
 import '../../../../util/json/json_dispose.dart';
 import '../json/jm_search_result_json.dart';
@@ -78,10 +80,12 @@ class JmSearchResultBloc
 
       hasReachedMax = _searchResultList.length == int.parse(data.total);
 
+      logger.d(_searchResultList[0].toJson());
+
       emit(
         state.copyWith(
           status: JmSearchResultStatus.success,
-          jmSearchResults: _searchResultList,
+          jmSearchResults: _searchResultList.let(deleteMaskedContent),
           hasReachedMax: hasReachedMax,
           result: data.total,
         ),
@@ -103,10 +107,31 @@ class JmSearchResultBloc
       emit(
         state.copyWith(
           status: JmSearchResultStatus.loadingMoreFailure,
-          jmSearchResults: _searchResultList,
+          jmSearchResults: _searchResultList.let(deleteMaskedContent),
           result: e.toString(),
         ),
       );
     }
+  }
+
+  List<Content> deleteMaskedContent(List<Content> contentList) {
+    final maskedKeywords = SettingsHiveUtils.maskedKeywords
+        .where((keyword) => keyword.trim().isNotEmpty)
+        .toList();
+
+    return contentList.where((content) {
+      final allText = [
+        content.name,
+        content.author,
+        content.category.title,
+        content.categorySub.title,
+      ].join().toLowerCase().let(t2s);
+
+      final containsKeyword = maskedKeywords.any(
+        (keyword) => allText.contains(keyword.toLowerCase().let(t2s)),
+      );
+
+      return !containsKeyword;
+    }).toList();
   }
 }

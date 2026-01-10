@@ -63,6 +63,7 @@ class _JmCloudFavoritePageState extends State<_JmCloudFavoritePage>
   @override
   void initState() {
     super.initState();
+
     _scrollController.addListener(_onScroll);
     _eventSubscription = eventBus.on<JmCloudFavoriteEvent>().listen((event) {
       if (!mounted) return;
@@ -215,15 +216,18 @@ class _JmCloudFavoritePageState extends State<_JmCloudFavoritePage>
   );
 
   // 公共列表构建方法
-  ListView _buildCommonListView({
+  Widget _buildCommonListView({
     required int itemCount,
     required IndexedWidgetBuilder itemBuilder,
   }) {
-    return ListView.builder(
-      physics: const AlwaysScrollableScrollPhysics(),
-      controller: _scrollController,
-      itemCount: itemCount,
-      itemBuilder: itemBuilder,
+    return RefreshIndicator(
+      onRefresh: () async => _refresh(goTop: false),
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        controller: _scrollController,
+        itemCount: itemCount,
+        itemBuilder: itemBuilder,
+      ),
     );
   }
 

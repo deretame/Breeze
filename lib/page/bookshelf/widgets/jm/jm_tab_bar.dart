@@ -12,49 +12,16 @@ class JmTabBar extends StatefulWidget {
 }
 
 class _JmTabBarState extends State<JmTabBar>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  late final TabController _tabController;
-
+    with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
   @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this)
-      ..addListener(() {
-        int index = _tabController.index;
-        final jmCubit = context.read<JmSettingCubit>();
-        jmCubit.updateFavoriteSet(index);
-      });
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     super.build(context);
-    return Column(
-      children: [
-        TabBar(
-          controller: _tabController,
-          labelPadding: EdgeInsets.symmetric(horizontal: 10),
-          tabs: [
-            Tab(text: '本地'),
-            Tab(text: '云端'),
-          ],
-        ),
-        Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: [const JmFavoritePage(), const JmCloudFavoritePage()],
-          ),
-        ),
-      ],
-    );
+    final jmCubit = context.watch<JmSettingCubit>();
+    return jmCubit.state.favoriteSet == 1
+        ? const JmFavoritePage()
+        : const JmCloudFavoritePage();
   }
 }

@@ -58,17 +58,24 @@ String toString(Object? object) {
 }
 
 int toInt(Object? object) {
-  try {
-    return int.parse(object.toString());
-  } catch (e) {
-    return 0; // 兜底处理
-  }
+  if (object == null) return 0;
+  if (object is int) return object; // 已经是 int 直接返回，最快
+  if (object is double) return object.toInt(); // 处理浮点数转整数
+
+  // 仅对字符串进行解析，并忽略前后空格
+  return int.tryParse(object.toString().trim()) ?? 0;
 }
 
 double toDouble(Object? object) {
-  try {
-    return double.parse(object.toString());
-  } catch (e) {
-    return 0.0; // 兜底处理
-  }
+  if (object == null) return 0.0;
+  if (object is double) return object; // 已经是 double 直接返回
+  if (object is int) return object.toDouble(); // 处理整数转浮点
+
+  return double.tryParse(object.toString().trim()) ?? 0.0;
+}
+
+bool toBool(Object? object) {
+  if (object is bool) return object;
+
+  return bool.tryParse(object.toString(), caseSensitive: false) ?? false;
 }

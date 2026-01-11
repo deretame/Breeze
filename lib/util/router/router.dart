@@ -38,6 +38,7 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: JmRankingRoute.page),
     AutoRoute(page: TimeRankingRoute.page),
     AutoRoute(page: JmWeekRankingRoute.page),
+    AutoRoute(page: ChangelogRoute.page),
   ];
 
   @override

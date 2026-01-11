@@ -17,6 +17,11 @@ Future<jm.JmComicInfoJson> getJmComicAllInfo(
 
   return await getComicInfo(comicId)
       .let(replaceNestedNull)
+      .let((d) {
+        d['price'] = d['price'].toString();
+        d['purchased'] = d['purchased'].toString();
+        return d;
+      })
       .let(jm.JmComicInfoJson.fromJson)
       .let((d) {
         var series = d.series.toList();

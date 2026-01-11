@@ -33,9 +33,10 @@ Future<GithubReleaseJson> getCloudVersion() async {
           .get("https://api.github.com/repos/deretame/Breeze/releases")
           .let((d) => d.data)
           .let(jsonEncode)
-          .let(githubReleaseJsonFromJson);
+          .let(githubReleaseJsonFromJson)
+          .let((d) => d[0]);
 
-      return response[0];
+      return response;
     } catch (e) {
       logger.e(e);
       await Future.delayed(const Duration(minutes: 1));

@@ -21,6 +21,13 @@ class SettingsWidget extends StatelessWidget {
           SizedBox(height: 8),
           _buildSettingsItem(
             context: context,
+            icon: Icons.history,
+            text: "更新日志",
+            onTap: () => context.pushRoute(ChangelogRoute()),
+          ),
+          SizedBox(height: 8),
+          _buildSettingsItem(
+            context: context,
             icon: Icons.info,
             text: "关于",
             onTap: () => context.pushRoute(AboutRoute()),

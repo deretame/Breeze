@@ -80,8 +80,6 @@ class JmSearchResultBloc
 
       hasReachedMax = _searchResultList.length == int.parse(data.total);
 
-      logger.d(_searchResultList[0].toJson());
-
       emit(
         state.copyWith(
           status: JmSearchResultStatus.success,
@@ -92,8 +90,8 @@ class JmSearchResultBloc
       );
       page++;
       return;
-    } catch (e) {
-      logger.e(e);
+    } catch (e, s) {
+      logger.e(e, stackTrace: s);
       if (_searchResultList.isEmpty) {
         emit(
           state.copyWith(

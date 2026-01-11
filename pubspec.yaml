@@ -1,7 +1,7 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔及禁漫应用。"
 publish_to: none
-version: 2.11.0+2166
+version: 2.11.1+2167
 
 environment:
   sdk: ^3.9.2
@@ -97,6 +97,7 @@ dependencies:
   equatable: ^2.0.3 # 对象相等性简化
   stream_transform: ^2.1.1 # Stream 转换工具
   xml: ^6.5.0 # XML 解析器
+  intl: ^0.20.2 # 国际化支持
   rust_lib_zephyr: # 项目的 Rust 核心逻辑模块 (通过 FFI 调用)
     path: rust_builder
   flutter_rust_bridge: ^2.10.0 # Flutter 与 Rust FFI 通信桥梁

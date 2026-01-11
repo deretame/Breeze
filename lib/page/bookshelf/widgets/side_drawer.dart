@@ -326,25 +326,16 @@ class _SideDrawerState extends State<SideDrawer> {
 
   void _onTap() {
     final bikaSettingCubit = context.read<BikaSettingCubit>();
-    final jmSettingCubit = context.read<JmSettingCubit>();
     final tabIndex = context.read<IntSelectCubit>().state;
     final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
 
     if (tabIndex == 0) {
       if (comicChoice == 2) {
-        if (jmSettingCubit.state.favoriteSet == 0) {
-          final cubit = context.read<JmFavoriteCubit>();
-          cubit.setSort(sort);
-          cubit.setKeyword(keyword);
-          eventBus.fire(JmFavoriteEvent(EventType.refresh));
-          return;
-        } else {
-          final cubit = context.read<JmCloudFavoriteCubit>();
-          cubit.setCategories(categories);
-          cubit.setSort(sort);
-          eventBus.fire(JmCloudFavoriteEvent(EventType.refresh));
-          return;
-        }
+        final cubit = context.read<JmCloudFavoriteCubit>();
+        cubit.setCategories(categories);
+        cubit.setSort(sort);
+        eventBus.fire(JmCloudFavoriteEvent(EventType.refresh));
+        return;
       }
       // 哔咔
       bikaSettingCubit.updateShieldCategoryMap(_categoriesShield);

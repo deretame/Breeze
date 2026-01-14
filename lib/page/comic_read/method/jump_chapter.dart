@@ -136,7 +136,7 @@ class JumpChapter {
     }
 
     List<Series> seriesList = [];
-    int? sort;
+    int sort = 0;
     if (from == From.jm) {
       seriesList = (comicInfo as JmComicInfoJson).series;
       if (isDownload) {
@@ -152,15 +152,19 @@ class JumpChapter {
         havePrev = false;
         haveNext = false;
       } else {
-        sort = seriesList
-            .firstWhere((series) => series.id == order.toString())
-            .sort
-            .let(toInt);
-        if (sort == seriesList.first.sort.let(toInt)) {
-          havePrev = false;
-        }
-        if (sort == seriesList.last.sort.let(toInt)) {
-          haveNext = false;
+        try {
+          sort = seriesList
+              .firstWhere((series) => series.id == order.toString())
+              .sort
+              .let(toInt);
+          if (sort == seriesList.first.sort.let(toInt)) {
+            havePrev = false;
+          }
+          if (sort == seriesList.last.sort.let(toInt)) {
+            haveNext = false;
+          }
+        } catch (e) {
+          logger.d(e);
         }
       }
     }

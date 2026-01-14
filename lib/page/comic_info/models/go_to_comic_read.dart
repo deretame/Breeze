@@ -32,7 +32,7 @@ void goToBikaRead(
   dynamic allInfo,
 ) {
   var info = allInfo as AllInfo;
-  final stringSelectDate = context.watch<StringSelectCubit>().state;
+  final stringSelectDate = context.read<StringSelectCubit>().state;
   if (stringSelectDate.isNotEmpty) {
     var comicHistory = objectbox.bikaHistoryBox
         .query(BikaComicHistory_.comicId.equals(comicId))

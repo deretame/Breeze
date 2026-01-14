@@ -4,7 +4,7 @@ enum PageStatus { initial, success, failure }
 
 final class PageState extends Equatable {
   final PageStatus status;
-  final c.CommonEpInfoJson? epInfo;
+  final NormalComicEpInfo? epInfo;
   final String result;
 
   const PageState({
@@ -15,7 +15,7 @@ final class PageState extends Equatable {
 
   PageState copyWith({
     PageStatus? status,
-    c.CommonEpInfoJson? epInfo,
+    NormalComicEpInfo? epInfo,
     String? result,
   }) {
     return PageState(

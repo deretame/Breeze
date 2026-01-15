@@ -245,22 +245,28 @@ class _ReleaseCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
+      elevation: 0,
       shadowColor: Colors.transparent,
-      color: colorScheme.surfaceContainer,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+          width: 1,
+        ),
+      ),
+
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          initiallyExpanded: release == release, // 逻辑保留
+          initiallyExpanded: true,
           shape: const Border(),
           collapsedShape: const Border(),
           tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           title: Row(
-            crossAxisAlignment: CrossAxisAlignment.start, // 顶部对齐
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 左侧版本信息
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -296,7 +302,6 @@ class _ReleaseCard extends StatelessWidget {
                   ],
                 ),
               ),
-              // 右侧跳转按钮
               Tooltip(
                 message: '在浏览器中查看',
                 child: IconButton(
@@ -309,7 +314,10 @@ class _ReleaseCard extends StatelessWidget {
             ],
           ),
           children: [
-            const Divider(height: 1),
+            Divider(
+              height: 1,
+              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+            ),
             const SizedBox(height: 12),
             MarkdownWidget(
               data: release.body,
@@ -331,14 +339,19 @@ class _ReleaseCard extends StatelessWidget {
                   ),
                   CodeConfig(
                     style: TextStyle(
-                      backgroundColor: colorScheme.surfaceContainerHighest,
+                      backgroundColor: colorScheme.surface,
                       fontFamily: 'monospace',
                     ),
                   ),
                   PreConfig(
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest,
+                      color: colorScheme.surface, // 代码块背景
                       borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: colorScheme.outlineVariant.withValues(
+                          alpha: 0.3,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -349,9 +362,12 @@ class _ReleaseCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: colorScheme.surface.withValues(alpha: 0.5),
+                  // 附件区域背景色，使用 surface 形成凹陷感，或者 secondaryContainer 形成凸起感
+                  color: colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: colorScheme.outlineVariant),
+                  border: Border.all(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

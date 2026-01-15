@@ -5,10 +5,12 @@ import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/bookshelf/models/search_enter.dart';
+import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/sundry.dart';
 
+part 'jm_favourite_bloc.freezed.dart';
 part 'jm_favourite_event.dart';
 part 'jm_favourite_state.dart';
-part 'jm_favourite_bloc.freezed.dart';
 
 const _throttleDuration = Duration(milliseconds: 100);
 
@@ -104,7 +106,7 @@ class JmFavouriteBloc extends Bloc<JmFavouriteEvent, JmFavouriteState> {
             comic.tags.toString() +
             comic.works.toString() +
             comic.actors.toString();
-        return allString.toLowerCase().contains(keyword);
+        return allString.toLowerCase().let(t2s).contains(keyword.let(t2s));
       }).toList();
     }
 

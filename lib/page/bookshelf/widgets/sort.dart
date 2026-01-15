@@ -54,7 +54,7 @@ class _SortWidgetState extends State<SortWidget> {
           });
           widget.onSortChanged(value);
         },
-        buttonStyleData: const ButtonStyleData(width: 100),
+        buttonStyleData: const ButtonStyleData(width: 120),
         menuItemStyleData: const MenuItemStyleData(height: 40),
       ),
     );

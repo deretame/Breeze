@@ -147,12 +147,14 @@ class _SideDrawerState extends State<SideDrawer> {
             child: FavoriteSwitch(
               initialSort: jmCubitState.favoriteSet.toString(),
               onSortChanged: (value) {
+                final jmFavoriteCubit = context.read<JmFavoriteCubit>();
+                jmFavoriteCubit.resetSearch();
                 jmCubit.updateFavoriteSet(value.let(toInt));
                 context.read<StringSelectCubit>().setDate("");
               },
             ),
           ),
-          if (jmCubitState.favoriteSet == 0)
+          if (jmCubitState.favoriteSet == 0) ...[
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: CloudFavoriteCategory(
@@ -163,7 +165,6 @@ class _SideDrawerState extends State<SideDrawer> {
                 },
               ),
             ),
-          if (jmCubitState.favoriteSet == 0)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: CloudFavoriteSort(
@@ -173,6 +174,35 @@ class _SideDrawerState extends State<SideDrawer> {
                 },
               ),
             ),
+          ] else ...[
+            Builder(
+              builder: (context) {
+                final jmState = context.watch<JmFavoriteCubit>().state;
+                sort = jmState.sort;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: SortWidget(
+                        initialSort: jmState.sort,
+                        onSortChanged: (value) {
+                          sort = value;
+                        },
+                      ),
+                    ),
+                    _KeywordSearchField(
+                      initialKeyword: jmState.keyword,
+                      onSubmitted: (value) {
+                        keyword = value;
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
         ],
       );
     } else {
@@ -305,7 +335,7 @@ class _SideDrawerState extends State<SideDrawer> {
           context,
           initialCategories,
         );
-        if (categoriesSelected == null /* ... */ ) {
+        if (categoriesSelected == null) {
           return;
         }
         var temp = categoriesSelected.entries
@@ -328,14 +358,23 @@ class _SideDrawerState extends State<SideDrawer> {
     final bikaSettingCubit = context.read<BikaSettingCubit>();
     final tabIndex = context.read<IntSelectCubit>().state;
     final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
+    final jmSettingCubit = context.read<JmSettingCubit>();
 
     if (tabIndex == 0) {
       if (comicChoice == 2) {
-        final cubit = context.read<JmCloudFavoriteCubit>();
-        cubit.setCategories(categories);
-        cubit.setSort(sort);
-        eventBus.fire(JmCloudFavoriteEvent(EventType.refresh));
-        return;
+        if (jmSettingCubit.state.favoriteSet == 1) {
+          final cubit = context.read<JmFavoriteCubit>();
+          cubit.setSort(sort);
+          cubit.setKeyword(keyword);
+          eventBus.fire(JmFavoriteEvent(EventType.refresh));
+          return;
+        } else {
+          final cubit = context.read<JmCloudFavoriteCubit>();
+          cubit.setCategories(categories);
+          cubit.setSort(sort);
+          eventBus.fire(JmCloudFavoriteEvent(EventType.refresh));
+          return;
+        }
       }
       // 哔咔
       bikaSettingCubit.updateShieldCategoryMap(_categoriesShield);

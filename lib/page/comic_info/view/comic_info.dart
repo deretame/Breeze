@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
+import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart'
+    show JmComicInfoJson;
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -16,7 +18,7 @@ import '../../../util/router/router.dart';
 import '../../../widgets/error_view.dart';
 import '../../../widgets/toast.dart';
 
-enum MenuOption { export, reverseOrder }
+enum MenuOption { export, collect, reverseOrder }
 
 @RoutePage()
 class ComicInfoPage extends StatelessWidget {
@@ -109,6 +111,9 @@ class _ComicInfoState extends State<_ComicInfo>
                 case MenuOption.export:
                   _handleExport();
                   break;
+                case MenuOption.collect:
+                  collectJmComicToLocal(comicInfoDyn as JmComicInfoJson);
+                  break;
                 case MenuOption.reverseOrder:
                   _toggleOrder();
                   break;
@@ -139,6 +144,21 @@ class _ComicInfoState extends State<_ComicInfo>
                         Icon(Icons.save_alt, color: Colors.black54),
                         SizedBox(width: 10),
                         Text('导出漫画'),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              if (widget.from == From.jm) {
+                menuItems.add(
+                  const PopupMenuItem<MenuOption>(
+                    value: MenuOption.collect,
+                    child: Row(
+                      children: [
+                        Icon(Icons.star, color: Colors.black54),
+                        SizedBox(width: 10),
+                        Text('收藏到本地'),
                       ],
                     ),
                   ),

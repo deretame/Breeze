@@ -232,7 +232,8 @@ class _ComicReadPageState extends State<_ComicReadPage>
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
     }
 
-    _handleMediaData(state);
+    _totalSlots = state.epInfo!.length;
+    _handleHistoryScroll();
 
     return Container(
       color: Colors.black,
@@ -334,7 +335,6 @@ class _ComicReadPageState extends State<_ComicReadPage>
     }
   }
 
-  final offset = 8;
   Widget _columnModeWidget() {
     return VerticalPullNavigator(
       havePrev: _jumpChapter.havePrev,
@@ -464,12 +464,6 @@ class _ComicReadPageState extends State<_ComicReadPage>
       // 更新记录的滚动索引
       _lastScrollIndex = firstItemIndex;
     }
-  }
-
-  /// 处理媒体数据加载
-  void _handleMediaData(PageState state) {
-    _totalSlots = state.epInfo!.length;
-    _handleHistoryScroll();
   }
 
   /// 处理历史记录滚动

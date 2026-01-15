@@ -44,9 +44,6 @@ app.*.map.json
 /android/app/release
 
 # Firebase
-firebase.json
-*google-services.json
-*firebase_options.dart
 /target/
 
 # FVM Version Cache

@@ -1,6 +1,8 @@
 name: Build Android debug APK
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -35,7 +37,10 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          targets: aarch64-linux-android
+          targets: |
+            aarch64-linux-android
+            armv7-linux-androideabi
+            x86_64-linux-android
 
       - name: 设置 Android NDK
         uses: nttld/setup-ndk@v1
@@ -59,5 +64,5 @@ jobs:
       - name: 上传 APK
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk
+          name: debug-apk
           path: build/app/outputs/flutter-apk/*.apk

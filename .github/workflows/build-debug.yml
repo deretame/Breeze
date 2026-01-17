@@ -13,6 +13,18 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
+      - name: 解密敏感文件 (git-crypt)
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git-crypt
+          
+          echo "$GIT_CRYPT_KEY" | base64 -d > ./git-crypt-key
+          git-crypt unlock ./git-crypt-key
+          rm ./git-crypt-key
+          echo "文件解密完成。"
+
       - name: 设置 Java 21
         uses: actions/setup-java@v4
         with:
@@ -60,6 +72,12 @@ jobs:
 
       - name: 构建 APK (Debug)
         run: flutter build apk --debug --split-per-abi
+
+      - name: 清理敏感文件
+        if: always() # 无论构建成功还是失败都执行
+        run: |
+          git-crypt lock
+          rm android/key.properties
 
       - name: 上传 APK
         uses: actions/upload-artifact@v4

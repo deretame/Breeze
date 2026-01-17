@@ -8,10 +8,37 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    
+    env:
+      CARGO_PROFILE_DEV_DEBUG: 1 
+      CARGO_INCREMENTAL: 0
 
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
+
+      - name: 释放磁盘空间 (Nuclear Mode)
+        run: |
+          echo "清理前空间:"
+          df -h
+          
+          sudo rm -rf /opt/hostedtoolcache
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/codeql
+          
+          docker system prune -a -f
+          
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /usr/share/sbt
+          sudo rm -rf /usr/local/share/powershell
+          sudo rm -rf /usr/lib/jvm
+          
+          sudo apt-get clean
+          
+          echo "清理后空间:"
+          df -h
 
       - name: 解密敏感文件 (git-crypt)
         env:
@@ -60,24 +87,14 @@ jobs:
           ndk-version: r29
           add-to-path: true
 
-      - name: 释放磁盘空间
-        run: |
-          echo "清理前："
-          df -h
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/share/boost
-          echo "清理后："
-          df -h
-
       - name: 构建 APK (Debug)
         run: flutter build apk --debug --split-per-abi
 
       - name: 清理敏感文件
-        if: always() # 无论构建成功还是失败都执行
+        if: always() 
         run: |
-          git-crypt lock
-          rm android/key.properties
+          git-crypt lock || true
+          rm -f android/key.properties
 
       - name: 上传 APK
         uses: actions/upload-artifact@v4

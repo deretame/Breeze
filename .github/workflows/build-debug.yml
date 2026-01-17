@@ -19,9 +19,11 @@ jobs:
 
       - name: 释放磁盘空间 (Nuclear Mode)
         run: |
-          echo "清理前空间:" && df -h
-          sudo rm -rf /opt/hostedtoolcache
-          sudo rm -rf /usr/local/lib/android
+          echo "清理前空间:" && df -h 
+          sudo rm -rf /opt/hostedtoolcache 
+          sudo rm -rf /usr/local/lib/android 
+          sudo mkdir -p /usr/local/lib/android/sdk
+          sudo chown -R $USER:$USER /usr/local/lib/android 
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/codeql
           docker system prune -a -f

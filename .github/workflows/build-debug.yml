@@ -19,44 +19,32 @@ jobs:
 
       - name: 释放磁盘空间 (Nuclear Mode)
         run: |
-          echo "清理前空间:"
-          df -h
-          
+          echo "清理前空间:" && df -h
           sudo rm -rf /opt/hostedtoolcache
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/codeql
-          
           docker system prune -a -f
-          
-          sudo rm -rf /usr/share/swift
-          sudo rm -rf /usr/local/.ghcup
-          sudo rm -rf /usr/share/sbt
-          sudo rm -rf /usr/local/share/powershell
-          sudo rm -rf /usr/lib/jvm
-          
           sudo apt-get clean
-          
-          echo "清理后空间:"
-          df -h
+          echo "清理后空间:" && df -h
 
       - name: 解密敏感文件 (git-crypt)
         env:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
         run: |
-          sudo apt-get update
-          sudo apt-get install -y git-crypt
-          
+          sudo apt-get update && sudo apt-get install -y git-crypt
           echo "$GIT_CRYPT_KEY" | base64 -d > ./git-crypt-key
           git-crypt unlock ./git-crypt-key
           rm ./git-crypt-key
-          echo "文件解密完成。"
 
       - name: 设置 Java 21
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
           java-version: "21"
+
+      - name: 设置 Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: 设置 Dart SDK
         uses: dart-lang/setup-dart@v1
@@ -86,6 +74,9 @@ jobs:
         with:
           ndk-version: r29
           add-to-path: true
+
+      - name: 接受 Android Licenses
+        run: yes | flutter doctor --android-licenses || true
 
       - name: 构建 APK (Debug)
         run: flutter build apk --debug --split-per-abi

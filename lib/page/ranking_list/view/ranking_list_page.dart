@@ -42,9 +42,6 @@ class _HotTabBarState extends State<HotTabBar> {
     final globalSettingState = context.watch<GlobalSettingCubit>().state;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(globalSettingState.comicChoice == 1 ? "哔咔排行榜" : "禁漫排行榜"),
-      ),
       body: globalSettingState.comicChoice == 1
           ? const BikaRankList()
           : const JmRankingPage(),

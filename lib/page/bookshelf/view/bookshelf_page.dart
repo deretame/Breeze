@@ -10,12 +10,9 @@ import 'package:zephyr/cubit/list_select.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnter;
 import 'package:zephyr/page/bookshelf/widgets/jm/jm_tab_bar.dart';
-import 'package:zephyr/page/search_result/models/models.dart' show SearchEnter;
 import 'package:zephyr/util/settings_hive_utils.dart';
 
 import '../../../main.dart';
-import '../../../util/router/router.gr.dart';
-import '../../jm/jm_search_result/bloc/jm_search_result_bloc.dart';
 import '../json/jm_cloud_favorite/jm_cloud_favorite_json.dart' show FolderList;
 
 @RoutePage()
@@ -116,12 +113,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
   }
 
   PreferredSizeWidget _appBar() => AppBar(
-    title: Text(
-      context.watch<GlobalSettingCubit>().state.comicChoice == 1
-          ? "哔咔漫画"
-          : "禁漫天堂",
-    ),
-    actions: _action(),
+    toolbarHeight: 0,
     bottom: PreferredSize(
       preferredSize: const Size.fromHeight(kMinInteractiveDimension),
       child: Row(
@@ -156,54 +148,6 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
       ),
     ),
   );
-
-  List<Widget> _action() => [
-    IconButton(
-      icon: const Icon(Icons.search),
-      onPressed: () {
-        final globalSettingState = context.read<GlobalSettingCubit>().state;
-        if (globalSettingState.disableBika) {
-          context.pushRoute(JmSearchResultRoute(event: JmSearchResultEvent()));
-          return;
-        }
-
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            final router = AutoRouter.of(context);
-            return SimpleDialog(
-              children: [
-                SimpleDialogOption(
-                  onPressed: () {
-                    router.popAndPush(
-                      SearchResultRoute(searchEnter: SearchEnter.initial()),
-                    );
-                  },
-                  child: const Chip(
-                    label: Text("哔咔漫画"),
-                    backgroundColor: Colors.pink,
-                    labelStyle: TextStyle(color: Colors.white),
-                  ),
-                ),
-                SimpleDialogOption(
-                  onPressed: () {
-                    router.popAndPush(
-                      JmSearchResultRoute(event: JmSearchResultEvent()),
-                    );
-                  },
-                  child: const Chip(
-                    label: Text("禁漫天堂"),
-                    backgroundColor: Colors.orange,
-                    labelStyle: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    ),
-  ];
 
   Widget _body() => Column(
     children: [

@@ -34,9 +34,10 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text(globalSettingState.comicChoice == 1 ? "哔咔漫画" : "禁漫首页"),
         actions: [
-          IconButton(icon: const Icon(Icons.search), onPressed: search),
+          IconButton(icon: const Icon(Icons.search), onPressed: () => search()),
         ],
       ),
+      resizeToAvoidBottomInset: false,
       body: RefreshIndicator(
         onRefresh: () async => eventBus.fire(RefreshCategories()),
         child: _buildBody(),

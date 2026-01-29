@@ -24,7 +24,7 @@ class KeywordWidget extends StatelessWidget {
         children: List.generate(keywords.length, (index) {
           return GestureDetector(
             onTap: () {
-              AutoRouter.of(context).push(
+              context.pushRoute(
                 SearchResultRoute(
                   searchEnter: SearchEnter.initial().copyWith(
                     from: "bika",

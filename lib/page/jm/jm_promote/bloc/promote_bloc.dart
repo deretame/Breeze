@@ -11,9 +11,9 @@ import 'package:zephyr/page/jm/jm_promote/json/suggestion/jm_suggestion_json.dar
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
 
+part 'promote_bloc.freezed.dart';
 part 'promote_event.dart';
 part 'promote_state.dart';
-part 'promote_bloc.freezed.dart';
 
 const _throttleDuration = Duration(milliseconds: 100);
 
@@ -59,6 +59,7 @@ class PromoteBloc extends Bloc<PromoteEvent, PromoteState> {
     try {
       if (page == -1) {
         list = await getPromote()
+            .debug()
             .let(replaceNestedNullList)
             .let((d) {
               var data = (d)

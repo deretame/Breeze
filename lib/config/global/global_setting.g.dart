@@ -39,6 +39,11 @@ _GlobalSettingState _$GlobalSettingStateFromJson(Map<String, dynamic> json) =>
       comicChoice: (json['comicChoice'] as num?)?.toInt() ?? 1,
       disableBika: json['disableBika'] as bool? ?? false,
       enableMemoryDebug: json['enableMemoryDebug'] as bool? ?? false,
+      searchHistory:
+          (json['searchHistory'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
@@ -64,6 +69,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'comicChoice': instance.comicChoice,
       'disableBika': instance.disableBika,
       'enableMemoryDebug': instance.enableMemoryDebug,
+      'searchHistory': instance.searchHistory,
     };
 
 const _$ThemeModeEnumMap = {

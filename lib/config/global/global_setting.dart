@@ -35,6 +35,7 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(1) int comicChoice,
     @Default(false) bool disableBika,
     @Default(false) bool enableMemoryDebug,
+    @Default([]) List<String> searchHistory,
   }) = _GlobalSettingState;
 
   factory GlobalSettingState.fromJson(Map<String, dynamic> json) =>
@@ -140,6 +141,10 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
         enableMemoryDebug: _box.get(
           GlobalSettingBoxKey.enableMemoryDebug,
           defaultValue: state.enableMemoryDebug,
+        ),
+        searchHistory: _box.get(
+          GlobalSettingBoxKey.searchHistory,
+          defaultValue: state.searchHistory,
         ),
       ),
     );
@@ -441,6 +446,20 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
     emit(temp);
   }
 
+  void updateSearchHistory(List<String> value) {
+    _box.put(GlobalSettingBoxKey.searchHistory, value);
+    final temp = state.copyWith(searchHistory: value);
+    updateDataBase(temp);
+    emit(temp);
+  }
+
+  void resetSearchHistory() {
+    _box.delete(GlobalSettingBoxKey.searchHistory);
+    final temp = state.copyWith(searchHistory: _defaults.searchHistory);
+    updateDataBase(temp);
+    emit(temp);
+  }
+
   void updateDataBase(GlobalSettingState state) {
     logger.d(state.toJson());
     final userBox = objectbox.userSettingBox;
@@ -474,4 +493,5 @@ class GlobalSettingBoxKey {
   static const String comicChoice = 'comicChoice'; // 漫画选择
   static const String disableBika = 'disableBika'; // 禁用哔咔
   static const String enableMemoryDebug = 'enableMemoryDebug'; // 是否启用内存调试
+  static const String searchHistory = 'searchHistory'; // 搜索历史
 }

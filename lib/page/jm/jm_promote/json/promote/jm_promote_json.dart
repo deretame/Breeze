@@ -2,8 +2,9 @@
 //
 //     final jmPromoteJson = jmPromoteJsonFromJson(jsonString);
 
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'dart:convert';
+
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'jm_promote_json.freezed.dart';
 part 'jm_promote_json.g.dart';
@@ -38,11 +39,10 @@ abstract class Content with _$Content {
     @JsonKey(name: "author") required String author,
     @JsonKey(name: "name") required String name,
     @JsonKey(name: "image") required String image,
-    @JsonKey(name: "category") required Category category,
-    @JsonKey(name: "category_sub") required CategorySub categorySub,
-    @JsonKey(name: "liked") required bool liked,
-    @JsonKey(name: "is_favorite") required bool isFavorite,
-    @JsonKey(name: "update_at") required int updateAt,
+    @JsonKey(name: "category") required Category? category,
+    @JsonKey(name: "category_sub") required CategorySub? categorySub,
+    @JsonKey(name: "liked") required bool? liked,
+    @JsonKey(name: "is_favorite") required bool? isFavorite,
   }) = _Content;
 
   factory Content.fromJson(Map<String, dynamic> json) =>

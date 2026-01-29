@@ -33,13 +33,14 @@ _Content _$ContentFromJson(Map<String, dynamic> json) => _Content(
   author: json['author'] as String,
   name: json['name'] as String,
   image: json['image'] as String,
-  category: Category.fromJson(json['category'] as Map<String, dynamic>),
-  categorySub: CategorySub.fromJson(
-    json['category_sub'] as Map<String, dynamic>,
-  ),
-  liked: json['liked'] as bool,
-  isFavorite: json['is_favorite'] as bool,
-  updateAt: (json['update_at'] as num).toInt(),
+  category: json['category'] == null
+      ? null
+      : Category.fromJson(json['category'] as Map<String, dynamic>),
+  categorySub: json['category_sub'] == null
+      ? null
+      : CategorySub.fromJson(json['category_sub'] as Map<String, dynamic>),
+  liked: json['liked'] as bool?,
+  isFavorite: json['is_favorite'] as bool?,
 );
 
 Map<String, dynamic> _$ContentToJson(_Content instance) => <String, dynamic>{
@@ -51,7 +52,6 @@ Map<String, dynamic> _$ContentToJson(_Content instance) => <String, dynamic>{
   'category_sub': instance.categorySub,
   'liked': instance.liked,
   'is_favorite': instance.isFavorite,
-  'update_at': instance.updateAt,
 };
 
 _Category _$CategoryFromJson(Map<String, dynamic> json) =>

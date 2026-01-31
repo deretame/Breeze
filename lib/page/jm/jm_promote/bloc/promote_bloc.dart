@@ -59,7 +59,6 @@ class PromoteBloc extends Bloc<PromoteEvent, PromoteState> {
     try {
       if (page == -1) {
         list = await getPromote()
-            .also((d) => logger.d(d))
             .let(replaceNestedNullList)
             .let((d) {
               var data = (d)

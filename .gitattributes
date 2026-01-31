@@ -3,3 +3,4 @@ lib/firebase_options.dart filter=git-crypt diff=git-crypt
 android/key.properties filter=git-crypt diff=git-crypt
 android/Breeze-key.keystore filter=git-crypt diff=git-crypt
 android/app/google-services.json filter=git-crypt diff=git-crypt
+symbols/update_symbols.dart filter=git-crypt diff=git-crypt

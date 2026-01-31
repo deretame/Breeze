@@ -850,11 +850,16 @@ class JmPromoteRoute extends _i35.PageRouteInfo<void> {
 class JmRankingRoute extends _i35.PageRouteInfo<JmRankingRouteArgs> {
   JmRankingRoute({
     _i36.Key? key,
-    String type = '',
+    String categoryId = '0',
+    String sortId = 'new',
     List<_i35.PageRouteInfo>? children,
   }) : super(
          JmRankingRoute.name,
-         args: JmRankingRouteArgs(key: key, type: type),
+         args: JmRankingRouteArgs(
+           key: key,
+           categoryId: categoryId,
+           sortId: sortId,
+         ),
          initialChildren: children,
        );
 
@@ -866,32 +871,44 @@ class JmRankingRoute extends _i35.PageRouteInfo<JmRankingRouteArgs> {
       final args = data.argsAs<JmRankingRouteArgs>(
         orElse: () => const JmRankingRouteArgs(),
       );
-      return _i19.JmRankingPage(key: args.key, type: args.type);
+      return _i19.JmRankingPage(
+        key: args.key,
+        categoryId: args.categoryId,
+        sortId: args.sortId,
+      );
     },
   );
 }
 
 class JmRankingRouteArgs {
-  const JmRankingRouteArgs({this.key, this.type = ''});
+  const JmRankingRouteArgs({
+    this.key,
+    this.categoryId = '0',
+    this.sortId = 'new',
+  });
 
   final _i36.Key? key;
 
-  final String type;
+  final String categoryId;
+
+  final String sortId;
 
   @override
   String toString() {
-    return 'JmRankingRouteArgs{key: $key, type: $type}';
+    return 'JmRankingRouteArgs{key: $key, categoryId: $categoryId, sortId: $sortId}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! JmRankingRouteArgs) return false;
-    return key == other.key && type == other.type;
+    return key == other.key &&
+        categoryId == other.categoryId &&
+        sortId == other.sortId;
   }
 
   @override
-  int get hashCode => key.hashCode ^ type.hashCode;
+  int get hashCode => key.hashCode ^ categoryId.hashCode ^ sortId.hashCode;
 }
 
 /// generated route for

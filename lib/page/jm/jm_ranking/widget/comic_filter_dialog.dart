@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/ranking_list/cubit/comic_filter_cubit.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
 class ComicFilterDialog extends StatelessWidget {
   const ComicFilterDialog({super.key});
@@ -75,7 +76,8 @@ class ComicFilterDialog extends StatelessWidget {
     bool isSelected,
     VoidCallback onSelected,
   ) {
-    final theme = Theme.of(context);
+    final colorScheme = context.theme.colorScheme;
+
     return ChoiceChip(
       label: Text(label),
       selected: isSelected,
@@ -83,19 +85,19 @@ class ComicFilterDialog extends StatelessWidget {
         if (selected) onSelected();
       },
       showCheckmark: false,
-      selectedColor: theme.colorScheme.primary,
-      backgroundColor: Colors.grey[100],
+      selectedColor: colorScheme.primary,
+      backgroundColor: colorScheme.surfaceContainerHighest,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(6.0), // 圆角矩形
+        borderRadius: BorderRadius.circular(6.0),
         side: BorderSide(
-          color: isSelected ? Colors.transparent : Colors.grey.shade300,
+          color: isSelected ? Colors.transparent : colorScheme.outlineVariant,
           width: 1,
         ),
       ),
       labelStyle: TextStyle(
         color: isSelected
-            ? theme.colorScheme.onPrimary
-            : theme.colorScheme.onSurface,
+            ? colorScheme.onPrimary
+            : colorScheme.onSurfaceVariant,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
       ),
     );

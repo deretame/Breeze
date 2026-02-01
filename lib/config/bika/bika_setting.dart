@@ -102,6 +102,8 @@ class BikaSettingCubit extends Cubit<BikaSettingState> {
         ),
       ),
     );
+
+    updateDataBase(state);
   }
 
   // --- update / reset 方法 ---

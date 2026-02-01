@@ -148,6 +148,8 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
         ),
       ),
     );
+
+    updateDataBase(state);
   }
 
   void updateDynamicColor(bool value) {

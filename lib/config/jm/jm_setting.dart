@@ -51,6 +51,8 @@ class JmSettingCubit extends Cubit<JmSettingState> {
         favoriteSet: _defaults.favoriteSet,
       ),
     );
+
+    updateDataBase(state);
   }
 
   // --- 持久化状态 (Account / Password) ---

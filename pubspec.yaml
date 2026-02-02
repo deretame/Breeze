@@ -108,6 +108,7 @@ dependencies:
   firebase_performance: ^0.11.0 # Firebase 性能监控
   firebase_crashlytics: ^5.0.0 # Firebase 异常监控
   vm_service: ^15.0.2 # Dart VM 服务（内存分析）
+  flutter_dotenv: ^6.0.0 # 环境变量管理
 
 dev_dependencies:
   flutter_test:
@@ -146,6 +147,7 @@ flutter:
     - asset/image/bika_image/cat_random.jpg
     - asset/image/assets/default_cover.png
     - asset/about_page.html
+    - .env
 
 objectbox:
   # Writes objectbox-model.json and objectbox.g.dart to lib/custom (and test/custom).

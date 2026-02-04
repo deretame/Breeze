@@ -44,8 +44,8 @@ class _ReadImageWidgetState extends State<ReadImageWidget> {
       return cachedSize.height * (context.screenWidth / cachedSize.width);
     }
 
-    // 默认使用正方形占位
-    return context.screenWidth;
+    // 返回一个常见的高度
+    return context.screenWidth * 1.3;
   }
 
   @override

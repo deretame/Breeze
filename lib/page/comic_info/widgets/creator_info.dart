@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
+import 'package:zephyr/page/search/cubit/search_cubit.dart';
+import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
-import '../../search_result/models/search_enter.dart';
 
 // 显示上传者信息
 class CreatorInfoWidget extends StatelessWidget {
@@ -44,12 +46,13 @@ class CreatorInfoWidget extends StatelessWidget {
         onTap: () {
           AutoRouter.of(context).push(
             SearchResultRoute(
-              searchEnter: SearchEnter.initial().copyWith(
-                from: "bika",
+              searchEvent: SearchEvent().copyWith(
+                searchStates: SearchStates().copyWith(
+                  from: From.bika,
+                  searchKeyword: comicInfo.creator.name,
+                ),
                 url:
                     "https://picaapi.picacomic.com/comics?ca=${comicInfo.creator.id}&s=ld&page=1",
-                type: "creator",
-                keyword: comicInfo.creator.name,
               ),
             ),
           );

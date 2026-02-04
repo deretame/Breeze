@@ -1,7 +1,42 @@
-enum ExportType { zip, folder }
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:json_annotation/json_annotation.dart';
 
-enum From { bika, jm }
+@JsonEnum()
+enum ExportType {
+  @JsonValue('zip')
+  zip,
+  @JsonValue('folder')
+  folder,
+}
 
-enum ComicEntryType { normal, favorite, history, download, historyAndDownload }
+@JsonEnum()
+enum From {
+  @JsonValue('bika')
+  bika,
+  @JsonValue('jm')
+  jm,
+}
 
-enum LoginStatus { login, loggingIn, logout }
+@JsonEnum()
+enum ComicEntryType {
+  @JsonValue('normal')
+  normal,
+  @JsonValue('favorite')
+  favorite,
+  @JsonValue('history')
+  history,
+  @JsonValue('download')
+  download,
+  @JsonValue('historyAndDownload')
+  historyAndDownload,
+}
+
+@JsonEnum()
+enum LoginStatus {
+  @JsonValue('login')
+  login,
+  @JsonValue('loggingIn')
+  loggingIn,
+  @JsonValue('logout')
+  logout,
+}

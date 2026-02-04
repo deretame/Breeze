@@ -8,20 +8,30 @@ part of 'search_cubit.dart';
 
 _SearchStates _$SearchStatesFromJson(Map<String, dynamic> json) =>
     _SearchStates(
-      comicChoice: (json['comic_choice'] as num?)?.toInt() ?? 0,
-      searchKeyword: json['search_keyword'] as String? ?? "",
-      sortBy: json['sort_by'] as String? ?? "",
+      from: $enumDecodeNullable(_$FromEnumMap, json['from']) ?? From.jm,
+      searchKeyword: json['searchKeyword'] as String? ?? "",
+      sortBy: (json['sortBy'] as num?)?.toInt() ?? 1,
       categories:
-          (json['categories'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
+          (json['categories'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as bool),
+          ) ??
+          const {},
+      categoriesBlock:
+          (json['categoriesBlock'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as bool),
+          ) ??
+          const {},
+      readModel: (json['readModel'] as num?)?.toInt() ?? 1,
     );
 
 Map<String, dynamic> _$SearchStatesToJson(_SearchStates instance) =>
     <String, dynamic>{
-      'comic_choice': instance.comicChoice,
-      'search_keyword': instance.searchKeyword,
-      'sort_by': instance.sortBy,
+      'from': _$FromEnumMap[instance.from]!,
+      'searchKeyword': instance.searchKeyword,
+      'sortBy': instance.sortBy,
       'categories': instance.categories,
+      'categoriesBlock': instance.categoriesBlock,
+      'readModel': instance.readModel,
     };
+
+const _$FromEnumMap = {From.bika: 'bika', From.jm: 'jm'};

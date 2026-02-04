@@ -4,12 +4,12 @@ import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
+import 'package:zephyr/page/search_result/json/jm/jm_search_result_json.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/settings_hive_utils.dart';
 import 'package:zephyr/util/sundry.dart';
 
 import '../../../../util/json/json_dispose.dart';
-import '../json/jm_search_result_json.dart';
 
 part 'jm_search_result_event.dart';
 part 'jm_search_result_state.dart';

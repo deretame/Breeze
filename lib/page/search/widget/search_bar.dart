@@ -1,7 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:zephyr/page/search_result/models/search_enter.dart';
-import 'package:zephyr/util/router/router.gr.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/page/search/cubit/search_cubit.dart';
+import 'package:zephyr/page/search/widget/advanced_search_dialog.dart';
 
 class SearchBar extends StatefulWidget {
   const SearchBar({super.key});
@@ -100,8 +101,18 @@ class _SearchBarState extends State<SearchBar> {
           ),
           IconButton(
             icon: const Icon(Icons.tune),
-            onPressed: () {
-              /* 弹出高级搜索Dialog */
+            onPressed: () async {
+              final searchCubit = context.read<SearchCubit>();
+              final SearchStates? newStates = await showDialog<SearchStates>(
+                context: context,
+                builder: (context) {
+                  return AdvancedSearchDialog(initialState: searchCubit.state);
+                },
+              );
+
+              if (newStates != null && mounted) {
+                searchCubit.update(newStates);
+              }
             },
           ),
           TextButton(
@@ -114,13 +125,7 @@ class _SearchBarState extends State<SearchBar> {
   }
 
   void _onSearch(String keyword) {
-    context.pushRoute(
-      SearchResultRoute(
-        searchEnter: SearchEnter.initial().copyWith(
-          from: "bika",
-          keyword: keyword,
-        ),
-      ),
-    );
+    final searchCubit = context.read<SearchCubit>();
+    searchCubit.update(searchCubit.state.copyWith(searchKeyword: keyword));
   }
 }

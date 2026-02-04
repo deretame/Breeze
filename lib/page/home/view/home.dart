@@ -6,11 +6,12 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/page/bookshelf/models/events.dart';
 import 'package:zephyr/page/home/category.dart';
 import 'package:zephyr/page/jm/jm_promote/view/jm_promote.dart';
+import 'package:zephyr/page/search/cubit/search_cubit.dart';
+import 'package:zephyr/type/enum.dart';
 
 import '../../../config/global/global.dart';
 import '../../../util/router/router.gr.dart';
 import '../../jm/jm_search_result/bloc/jm_search_result_bloc.dart';
-import '../../search_result/models/search_enter.dart';
 
 @RoutePage()
 class HomePage extends StatefulWidget {
@@ -97,7 +98,9 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 context.pop();
                 context.pushRoute(
-                  SearchResultRoute(searchEnter: SearchEnter.initial()),
+                  SearchRoute(
+                    searchState: SearchStates().copyWith(from: From.bika),
+                  ),
                 );
               },
               child: const Chip(
@@ -110,7 +113,9 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 context.pop();
                 context.pushRoute(
-                  JmSearchResultRoute(event: JmSearchResultEvent()),
+                  SearchRoute(
+                    searchState: SearchStates().copyWith(from: From.jm),
+                  ),
                 );
               },
               child: const Chip(

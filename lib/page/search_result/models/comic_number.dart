@@ -1,11 +1,30 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:zephyr/page/search_result/json/bika/advanced_search.dart';
+import 'package:zephyr/page/search_result/json/jm/jm_search_result_json.dart';
+
 import '../../../widgets/comic_entry/comic_entry_info.dart' as comic_entry_info;
-import '../json/advanced_search.dart';
 
-class ComicNumber {
-  final int buildNumber;
-  final Doc doc;
+part 'comic_number.freezed.dart';
+part 'comic_number.g.dart';
 
-  ComicNumber({required this.buildNumber, required this.doc});
+@freezed
+abstract class ComicNumber with _$ComicNumber {
+  const factory ComicNumber({
+    required int buildNumber,
+    required ComicInfo comicInfo,
+  }) = _ComicNumber;
+
+  factory ComicNumber.fromJson(Map<String, dynamic> json) =>
+      _$ComicNumberFromJson(json);
+}
+
+@freezed
+sealed class ComicInfo with _$ComicInfo {
+  const factory ComicInfo.bika(Doc comics) = _Bika;
+  const factory ComicInfo.jm(Content comics) = _Jm;
+
+  factory ComicInfo.fromJson(Map<String, dynamic> json) =>
+      _$ComicInfoFromJson(json);
 }
 
 comic_entry_info.ComicEntryInfo docToComicEntryInfo(Doc doc) {

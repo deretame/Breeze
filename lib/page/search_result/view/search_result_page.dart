@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' hide Thumb;
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
+import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/search_result.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
@@ -15,24 +16,33 @@ import '../models/models.dart';
 import '../widgets/page_skip.dart';
 
 @RoutePage()
-class SearchResultPage extends StatelessWidget {
-  final SearchEnter searchEnter;
+class SearchResultPage extends StatelessWidget implements AutoRouteWrapper {
+  final SearchEvent searchEvent;
+  final SearchCubit? searchCubit;
 
-  const SearchResultPage({super.key, required this.searchEnter});
+  const SearchResultPage({
+    super.key,
+    required this.searchEvent,
+    this.searchCubit,
+  });
+
+  @override
+  Widget wrappedRoute(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        searchCubit != null
+            ? BlocProvider.value(value: searchCubit!)
+            : BlocProvider(create: (_) => SearchCubit(SearchStates())),
+        BlocProvider(create: (_) => SearchBloc()..add(searchEvent)),
+        BlocProvider(create: (_) => StringSelectCubit()),
+      ],
+      child: this,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (_) =>
-              SearchBloc()
-                ..add(FetchSearchResult(searchEnter, SearchStatus.initial)),
-        ),
-        BlocProvider(create: (_) => StringSelectCubit()),
-      ],
-      child: _SearchResultPage(searchEnter: searchEnter),
-    );
+    return _SearchResultPage(searchEnter: searchEnter);
   }
 }
 

@@ -1139,11 +1139,16 @@ class SearchRouteArgs {
 class SearchResultRoute extends _i35.PageRouteInfo<SearchResultRouteArgs> {
   SearchResultRoute({
     _i36.Key? key,
-    required _i49.SearchEnter searchEnter,
+    required _i49.SearchEvent searchEvent,
+    _i48.SearchCubit? searchCubit,
     List<_i35.PageRouteInfo>? children,
   }) : super(
          SearchResultRoute.name,
-         args: SearchResultRouteArgs(key: key, searchEnter: searchEnter),
+         args: SearchResultRouteArgs(
+           key: key,
+           searchEvent: searchEvent,
+           searchCubit: searchCubit,
+         ),
          initialChildren: children,
        );
 
@@ -1153,35 +1158,47 @@ class SearchResultRoute extends _i35.PageRouteInfo<SearchResultRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<SearchResultRouteArgs>();
-      return _i28.SearchResultPage(
-        key: args.key,
-        searchEnter: args.searchEnter,
+      return _i35.WrappedRoute(
+        child: _i28.SearchResultPage(
+          key: args.key,
+          searchEvent: args.searchEvent,
+          searchCubit: args.searchCubit,
+        ),
       );
     },
   );
 }
 
 class SearchResultRouteArgs {
-  const SearchResultRouteArgs({this.key, required this.searchEnter});
+  const SearchResultRouteArgs({
+    this.key,
+    required this.searchEvent,
+    this.searchCubit,
+  });
 
   final _i36.Key? key;
 
-  final _i49.SearchEnter searchEnter;
+  final _i49.SearchEvent searchEvent;
+
+  final _i48.SearchCubit? searchCubit;
 
   @override
   String toString() {
-    return 'SearchResultRouteArgs{key: $key, searchEnter: $searchEnter}';
+    return 'SearchResultRouteArgs{key: $key, searchEvent: $searchEvent, searchCubit: $searchCubit}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! SearchResultRouteArgs) return false;
-    return key == other.key && searchEnter == other.searchEnter;
+    return key == other.key &&
+        searchEvent == other.searchEvent &&
+        searchCubit == other.searchCubit;
   }
 
   @override
-  int get hashCode => key.hashCode ^ searchEnter.hashCode;
+  int get hashCode =>
+      key.hashCode ^ searchEvent.hashCode ^ searchCubit.hashCode;
 }
 
 /// generated route for

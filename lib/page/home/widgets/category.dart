@@ -4,9 +4,11 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/page/home/category.dart';
-import 'package:zephyr/page/search_result/models/search_enter.dart'
-    show SearchEnter;
+import 'package:zephyr/page/search/cubit/search_cubit.dart';
+import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/debouncer.dart';
@@ -121,20 +123,16 @@ class CategoryLineWidget extends StatelessWidget {
   }
 
   Widget _buildDefaultImage(BuildContext context) {
-    final router = AutoRouter.of(context);
     return GestureDetector(
       onTap: () {
         // 根据类别处理点击事件
         if (category.title == '最近更新') {
-          router.push(SearchResultRoute(searchEnter: SearchEnter.initial()));
+          context.pushRoute(SearchResultRoute(searchEvent: SearchEvent()));
         } else if (category.title == '随机本子') {
-          router.push(
-            SearchResultRoute(
-              searchEnter: SearchEnter.initial().copyWith(
-                from: "bika",
-                url: "https://picaapi.picacomic.com/comics/random",
-              ),
-            ),
+          urlPush(
+            context,
+            "https://picaapi.picacomic.com/comics/random",
+            category.title,
           );
         }
       },
@@ -191,52 +189,61 @@ class CategoryLineWidget extends StatelessWidget {
     final router = AutoRouter.of(context);
     // 处理不同标题的导航操作
     if (category.title == '大家都在看') {
-      router.push(
-        SearchResultRoute(
-          searchEnter: SearchEnter.initial().copyWith(
-            url:
-                "https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E5%AE%B6%E9%83%BD%E5%9C%A8%E7%9C%8B&s=dd",
-          ),
-        ),
+      urlPush(
+        context,
+        "https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E5%AE%B6%E9%83%BD%E5%9C%A8%E7%9C%8B&s=dd",
+        category.title,
       );
     } else if (category.title == '大濕推薦') {
-      router.push(
-        SearchResultRoute(
-          searchEnter: SearchEnter.initial().copyWith(
-            url:
-                "https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E6%BF%95%E6%8E%A8%E8%96%A6&s=dd",
-          ),
-        ),
+      urlPush(
+        context,
+        "https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E6%BF%95%E6%8E%A8%E8%96%A6&s=dd",
+        category.title,
       );
     } else if (category.title == '那年今天') {
-      router.push(
-        SearchResultRoute(
-          searchEnter: SearchEnter.initial().copyWith(
-            url:
-                "https://picaapi.picacomic.com/comics?page=1&c=%E9%82%A3%E5%B9%B4%E4%BB%8A%E5%A4%A9&s=dd",
-          ),
-        ),
+      urlPush(
+        context,
+        "https://picaapi.picacomic.com/comics?page=1&c=%E9%82%A3%E5%B9%B4%E4%BB%8A%E5%A4%A9&s=dd",
+        category.title,
       );
     } else if (category.title == '官方都在看') {
-      router.push(
-        SearchResultRoute(
-          searchEnter: SearchEnter.initial().copyWith(
-            url:
-                "https://picaapi.picacomic.com/comics?page=1&c=%E5%AE%98%E6%96%B9%E9%83%BD%E5%9C%A8%E7%9C%8B&s=dd",
-          ),
-        ),
+      urlPush(
+        context,
+        "https://picaapi.picacomic.com/comics?page=1&c=%E5%AE%98%E6%96%B9%E9%83%BD%E5%9C%A8%E7%9C%8B&s=dd",
+        category.title,
       );
     } else if (category.isWeb) {
       List<String> info = [category.title, category.link];
       router.push(WebViewRoute(info: info));
     } else {
-      router.push(
+      final Map<String, bool> newCategories = {
+        for (var key in categoryMap.keys) key: key == category.title,
+      };
+
+      context.pushRoute(
         SearchResultRoute(
-          searchEnter: SearchEnter.initial().copyWith(
-            categories: [category.title],
+          searchEvent: SearchEvent().copyWith(
+            searchStates: SearchStates().copyWith(
+              from: From.bika,
+              categories: newCategories,
+            ),
           ),
         ),
       );
     }
+  }
+
+  void urlPush(BuildContext context, String url, String title) {
+    context.pushRoute(
+      SearchResultRoute(
+        searchEvent: SearchEvent().copyWith(
+          searchStates: SearchStates().copyWith(
+            from: From.bika,
+            searchKeyword: title,
+          ),
+          url: url,
+        ),
+      ),
+    );
   }
 }

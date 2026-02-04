@@ -1,6 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:zephyr/page/search_result/models/models.dart';
+import 'package:zephyr/page/search/cubit/search_cubit.dart';
+import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
@@ -37,12 +39,13 @@ class _CreatorEntryWidgetState extends State<CreatorEntryWidget>
             onTap: () {
               AutoRouter.of(context).push(
                 SearchResultRoute(
-                  searchEnter: SearchEnter.initial().copyWith(
-                    from: "bika",
+                  searchEvent: SearchEvent().copyWith(
+                    searchStates: SearchStates().copyWith(
+                      from: From.bika,
+                      searchKeyword: user.name,
+                    ),
                     url:
                         "https://picaapi.picacomic.com/comics?ca=${user.id}&s=ld&page=1",
-                    type: "creator",
-                    keyword: user.name,
                   ),
                 ),
               );

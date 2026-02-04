@@ -2,7 +2,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:zephyr/page/jm/jm_search_result/bloc/jm_search_result_bloc.dart';
+import 'package:zephyr/config/bika/bika_setting.dart';
+import 'package:zephyr/page/search/cubit/search_cubit.dart';
+import 'package:zephyr/page/search_result/search_result.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -10,7 +12,6 @@ import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../util/router/router.gr.dart';
-import '../../search_result/models/search_enter.dart';
 
 class AllChipWidget extends StatefulWidget {
   final String comicId;
@@ -116,32 +117,32 @@ class _AllChipWidgetState extends State<AllChipWidget> {
   void goToSearch(int index) {
     if (widget.from == From.bika) {
       if (title == "分类") {
+        final Map<String, bool> newCategories = {
+          for (var key in categoryMap.keys) key: key == items[index - 1],
+        };
+
         AutoRouter.of(context).push(
           SearchResultRoute(
-            searchEnter: SearchEnter.initial().copyWith(
-              from: "bika",
-              type: title,
-              categories: [items[index - 1]],
+            searchEvent: SearchEvent().copyWith(
+              searchStates: SearchStates().copyWith(
+                from: From.bika,
+                categories: newCategories,
+              ),
             ),
           ),
         );
-      } else if (title == "标签" || title == "作者" || title == "汉化组") {
+      } else {
         AutoRouter.of(context).push(
           SearchResultRoute(
-            searchEnter: SearchEnter.initial().copyWith(
-              from: "bika",
-              type: title,
-              keyword: items[index - 1],
+            searchEvent: SearchEvent().copyWith(
+              searchStates: SearchStates().copyWith(
+                from: From.bika,
+                searchKeyword: items[index - 1],
+              ),
             ),
           ),
         );
       }
-    } else if (widget.from == From.jm) {
-      context.pushRoute(
-        JmSearchResultRoute(
-          event: JmSearchResultEvent(keyword: items[index - 1]),
-        ),
-      );
     }
   }
 }

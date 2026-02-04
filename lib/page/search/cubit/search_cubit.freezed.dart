@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SearchStates {
 
-@JsonKey(name: "comic_choice") int get comicChoice;@JsonKey(name: "search_keyword") String get searchKeyword;@JsonKey(name: "sort_by") String get sortBy;@JsonKey(name: "categories") List<String> get categories;
+ From get from; String get searchKeyword; int get sortBy; Map<String, bool> get categories; Map<String, bool> get categoriesBlock; int get readModel;
 /// Create a copy of SearchStates
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SearchStatesCopyWith<SearchStates> get copyWith => _$SearchStatesCopyWithImpl<S
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchStates&&(identical(other.comicChoice, comicChoice) || other.comicChoice == comicChoice)&&(identical(other.searchKeyword, searchKeyword) || other.searchKeyword == searchKeyword)&&(identical(other.sortBy, sortBy) || other.sortBy == sortBy)&&const DeepCollectionEquality().equals(other.categories, categories));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchStates&&(identical(other.from, from) || other.from == from)&&(identical(other.searchKeyword, searchKeyword) || other.searchKeyword == searchKeyword)&&(identical(other.sortBy, sortBy) || other.sortBy == sortBy)&&const DeepCollectionEquality().equals(other.categories, categories)&&const DeepCollectionEquality().equals(other.categoriesBlock, categoriesBlock)&&(identical(other.readModel, readModel) || other.readModel == readModel));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,comicChoice,searchKeyword,sortBy,const DeepCollectionEquality().hash(categories));
+int get hashCode => Object.hash(runtimeType,from,searchKeyword,sortBy,const DeepCollectionEquality().hash(categories),const DeepCollectionEquality().hash(categoriesBlock),readModel);
 
 @override
 String toString() {
-  return 'SearchStates(comicChoice: $comicChoice, searchKeyword: $searchKeyword, sortBy: $sortBy, categories: $categories)';
+  return 'SearchStates(from: $from, searchKeyword: $searchKeyword, sortBy: $sortBy, categories: $categories, categoriesBlock: $categoriesBlock, readModel: $readModel)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SearchStatesCopyWith<$Res>  {
   factory $SearchStatesCopyWith(SearchStates value, $Res Function(SearchStates) _then) = _$SearchStatesCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "comic_choice") int comicChoice,@JsonKey(name: "search_keyword") String searchKeyword,@JsonKey(name: "sort_by") String sortBy,@JsonKey(name: "categories") List<String> categories
+ From from, String searchKeyword, int sortBy, Map<String, bool> categories, Map<String, bool> categoriesBlock, int readModel
 });
 
 
@@ -65,13 +65,15 @@ class _$SearchStatesCopyWithImpl<$Res>
 
 /// Create a copy of SearchStates
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? comicChoice = null,Object? searchKeyword = null,Object? sortBy = null,Object? categories = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? from = null,Object? searchKeyword = null,Object? sortBy = null,Object? categories = null,Object? categoriesBlock = null,Object? readModel = null,}) {
   return _then(_self.copyWith(
-comicChoice: null == comicChoice ? _self.comicChoice : comicChoice // ignore: cast_nullable_to_non_nullable
-as int,searchKeyword: null == searchKeyword ? _self.searchKeyword : searchKeyword // ignore: cast_nullable_to_non_nullable
+from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
+as From,searchKeyword: null == searchKeyword ? _self.searchKeyword : searchKeyword // ignore: cast_nullable_to_non_nullable
 as String,sortBy: null == sortBy ? _self.sortBy : sortBy // ignore: cast_nullable_to_non_nullable
-as String,categories: null == categories ? _self.categories : categories // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as int,categories: null == categories ? _self.categories : categories // ignore: cast_nullable_to_non_nullable
+as Map<String, bool>,categoriesBlock: null == categoriesBlock ? _self.categoriesBlock : categoriesBlock // ignore: cast_nullable_to_non_nullable
+as Map<String, bool>,readModel: null == readModel ? _self.readModel : readModel // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
@@ -156,10 +158,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "comic_choice")  int comicChoice, @JsonKey(name: "search_keyword")  String searchKeyword, @JsonKey(name: "sort_by")  String sortBy, @JsonKey(name: "categories")  List<String> categories)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( From from,  String searchKeyword,  int sortBy,  Map<String, bool> categories,  Map<String, bool> categoriesBlock,  int readModel)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SearchStates() when $default != null:
-return $default(_that.comicChoice,_that.searchKeyword,_that.sortBy,_that.categories);case _:
+return $default(_that.from,_that.searchKeyword,_that.sortBy,_that.categories,_that.categoriesBlock,_that.readModel);case _:
   return orElse();
 
 }
@@ -177,10 +179,10 @@ return $default(_that.comicChoice,_that.searchKeyword,_that.sortBy,_that.categor
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "comic_choice")  int comicChoice, @JsonKey(name: "search_keyword")  String searchKeyword, @JsonKey(name: "sort_by")  String sortBy, @JsonKey(name: "categories")  List<String> categories)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( From from,  String searchKeyword,  int sortBy,  Map<String, bool> categories,  Map<String, bool> categoriesBlock,  int readModel)  $default,) {final _that = this;
 switch (_that) {
 case _SearchStates():
-return $default(_that.comicChoice,_that.searchKeyword,_that.sortBy,_that.categories);case _:
+return $default(_that.from,_that.searchKeyword,_that.sortBy,_that.categories,_that.categoriesBlock,_that.readModel);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -197,10 +199,10 @@ return $default(_that.comicChoice,_that.searchKeyword,_that.sortBy,_that.categor
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "comic_choice")  int comicChoice, @JsonKey(name: "search_keyword")  String searchKeyword, @JsonKey(name: "sort_by")  String sortBy, @JsonKey(name: "categories")  List<String> categories)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( From from,  String searchKeyword,  int sortBy,  Map<String, bool> categories,  Map<String, bool> categoriesBlock,  int readModel)?  $default,) {final _that = this;
 switch (_that) {
 case _SearchStates() when $default != null:
-return $default(_that.comicChoice,_that.searchKeyword,_that.sortBy,_that.categories);case _:
+return $default(_that.from,_that.searchKeyword,_that.sortBy,_that.categories,_that.categoriesBlock,_that.readModel);case _:
   return null;
 
 }
@@ -212,19 +214,27 @@ return $default(_that.comicChoice,_that.searchKeyword,_that.sortBy,_that.categor
 @JsonSerializable()
 
 class _SearchStates implements SearchStates {
-  const _SearchStates({@JsonKey(name: "comic_choice") this.comicChoice = 0, @JsonKey(name: "search_keyword") this.searchKeyword = "", @JsonKey(name: "sort_by") this.sortBy = "", @JsonKey(name: "categories") final  List<String> categories = const []}): _categories = categories;
+  const _SearchStates({this.from = From.jm, this.searchKeyword = "", this.sortBy = 1, final  Map<String, bool> categories = const {}, final  Map<String, bool> categoriesBlock = const {}, this.readModel = 1}): _categories = categories,_categoriesBlock = categoriesBlock;
   factory _SearchStates.fromJson(Map<String, dynamic> json) => _$SearchStatesFromJson(json);
 
-@override@JsonKey(name: "comic_choice") final  int comicChoice;
-@override@JsonKey(name: "search_keyword") final  String searchKeyword;
-@override@JsonKey(name: "sort_by") final  String sortBy;
- final  List<String> _categories;
-@override@JsonKey(name: "categories") List<String> get categories {
-  if (_categories is EqualUnmodifiableListView) return _categories;
+@override@JsonKey() final  From from;
+@override@JsonKey() final  String searchKeyword;
+@override@JsonKey() final  int sortBy;
+ final  Map<String, bool> _categories;
+@override@JsonKey() Map<String, bool> get categories {
+  if (_categories is EqualUnmodifiableMapView) return _categories;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_categories);
+  return EqualUnmodifiableMapView(_categories);
 }
 
+ final  Map<String, bool> _categoriesBlock;
+@override@JsonKey() Map<String, bool> get categoriesBlock {
+  if (_categoriesBlock is EqualUnmodifiableMapView) return _categoriesBlock;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_categoriesBlock);
+}
+
+@override@JsonKey() final  int readModel;
 
 /// Create a copy of SearchStates
 /// with the given fields replaced by the non-null parameter values.
@@ -239,16 +249,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchStates&&(identical(other.comicChoice, comicChoice) || other.comicChoice == comicChoice)&&(identical(other.searchKeyword, searchKeyword) || other.searchKeyword == searchKeyword)&&(identical(other.sortBy, sortBy) || other.sortBy == sortBy)&&const DeepCollectionEquality().equals(other._categories, _categories));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchStates&&(identical(other.from, from) || other.from == from)&&(identical(other.searchKeyword, searchKeyword) || other.searchKeyword == searchKeyword)&&(identical(other.sortBy, sortBy) || other.sortBy == sortBy)&&const DeepCollectionEquality().equals(other._categories, _categories)&&const DeepCollectionEquality().equals(other._categoriesBlock, _categoriesBlock)&&(identical(other.readModel, readModel) || other.readModel == readModel));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,comicChoice,searchKeyword,sortBy,const DeepCollectionEquality().hash(_categories));
+int get hashCode => Object.hash(runtimeType,from,searchKeyword,sortBy,const DeepCollectionEquality().hash(_categories),const DeepCollectionEquality().hash(_categoriesBlock),readModel);
 
 @override
 String toString() {
-  return 'SearchStates(comicChoice: $comicChoice, searchKeyword: $searchKeyword, sortBy: $sortBy, categories: $categories)';
+  return 'SearchStates(from: $from, searchKeyword: $searchKeyword, sortBy: $sortBy, categories: $categories, categoriesBlock: $categoriesBlock, readModel: $readModel)';
 }
 
 
@@ -259,7 +269,7 @@ abstract mixin class _$SearchStatesCopyWith<$Res> implements $SearchStatesCopyWi
   factory _$SearchStatesCopyWith(_SearchStates value, $Res Function(_SearchStates) _then) = __$SearchStatesCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "comic_choice") int comicChoice,@JsonKey(name: "search_keyword") String searchKeyword,@JsonKey(name: "sort_by") String sortBy,@JsonKey(name: "categories") List<String> categories
+ From from, String searchKeyword, int sortBy, Map<String, bool> categories, Map<String, bool> categoriesBlock, int readModel
 });
 
 
@@ -276,13 +286,15 @@ class __$SearchStatesCopyWithImpl<$Res>
 
 /// Create a copy of SearchStates
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? comicChoice = null,Object? searchKeyword = null,Object? sortBy = null,Object? categories = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? from = null,Object? searchKeyword = null,Object? sortBy = null,Object? categories = null,Object? categoriesBlock = null,Object? readModel = null,}) {
   return _then(_SearchStates(
-comicChoice: null == comicChoice ? _self.comicChoice : comicChoice // ignore: cast_nullable_to_non_nullable
-as int,searchKeyword: null == searchKeyword ? _self.searchKeyword : searchKeyword // ignore: cast_nullable_to_non_nullable
+from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
+as From,searchKeyword: null == searchKeyword ? _self.searchKeyword : searchKeyword // ignore: cast_nullable_to_non_nullable
 as String,sortBy: null == sortBy ? _self.sortBy : sortBy // ignore: cast_nullable_to_non_nullable
-as String,categories: null == categories ? _self._categories : categories // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as int,categories: null == categories ? _self._categories : categories // ignore: cast_nullable_to_non_nullable
+as Map<String, bool>,categoriesBlock: null == categoriesBlock ? _self._categoriesBlock : categoriesBlock // ignore: cast_nullable_to_non_nullable
+as Map<String, bool>,readModel: null == readModel ? _self.readModel : readModel // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

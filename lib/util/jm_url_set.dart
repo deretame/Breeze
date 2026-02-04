@@ -31,8 +31,6 @@ Future<int> getFastestUrlIndex(List<String> urls) async {
     return 0;
   }
 
-  final dio = Dio();
-
   final testFutures = urls.map((url) => _testUrlSpeed(dio, url)).toList();
 
   final results = await Future.wait(testFutures);

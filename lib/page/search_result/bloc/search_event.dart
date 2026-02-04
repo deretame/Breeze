@@ -5,7 +5,7 @@ abstract class SearchEvent with _$SearchEvent {
   const factory SearchEvent({
     @Default(SearchStatus.initial) SearchStatus status,
     @Default(SearchStates()) SearchStates searchStates,
-    @Default(0) int page,
+    @Default(1) int page,
     @Default('') String url, // 用来应对哔咔的部分特殊情况，部分情况下哔咔是直接用url搜索的
   }) = _SearchEvent;
 

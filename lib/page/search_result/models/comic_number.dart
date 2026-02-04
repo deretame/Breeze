@@ -20,8 +20,8 @@ abstract class ComicNumber with _$ComicNumber {
 
 @freezed
 sealed class ComicInfo with _$ComicInfo {
-  const factory ComicInfo.bika(Doc comics) = _Bika;
-  const factory ComicInfo.jm(Content comics) = _Jm;
+  const factory ComicInfo.bika(Doc comics) = Bika;
+  const factory ComicInfo.jm(Content comics) = Jm;
 
   factory ComicInfo.fromJson(Map<String, dynamic> json) =>
       _$ComicInfoFromJson(json);

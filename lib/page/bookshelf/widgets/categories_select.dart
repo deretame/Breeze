@@ -4,19 +4,13 @@ import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/sundry.dart';
 
-import '../../../config/bika/bika_setting.dart';
 import '../../../main.dart';
 
 Future<Map<String, bool>?> showCategoryDialog(
   BuildContext context,
-  List<String> initialCategories,
+  Map<String, bool> categories,
 ) {
-  Map<String, bool> categoriesMap = Map.from(categoryMap);
-  for (String category in initialCategories) {
-    if (categoriesMap.containsKey(category)) {
-      categoriesMap[category] = true;
-    }
-  }
+  Map<String, bool> categoriesMap = Map.from(categories);
 
   return showDialog<Map<String, bool>>(
     context: context,

@@ -127,7 +127,13 @@ class CategoryLineWidget extends StatelessWidget {
       onTap: () {
         // 根据类别处理点击事件
         if (category.title == '最近更新') {
-          context.pushRoute(SearchResultRoute(searchEvent: SearchEvent()));
+          context.pushRoute(
+            SearchResultRoute(
+              searchEvent: SearchEvent().copyWith(
+                searchStates: SearchStates().copyWith(from: From.bika),
+              ),
+            ),
+          );
         } else if (category.title == '随机本子') {
           urlPush(
             context,

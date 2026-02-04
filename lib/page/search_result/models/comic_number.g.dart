@@ -17,22 +17,22 @@ Map<String, dynamic> _$ComicNumberToJson(_ComicNumber instance) =>
       'comicInfo': instance.comicInfo,
     };
 
-_Bika _$BikaFromJson(Map<String, dynamic> json) => _Bika(
+Bika _$BikaFromJson(Map<String, dynamic> json) => Bika(
   Doc.fromJson(json['comics'] as Map<String, dynamic>),
   $type: json['runtimeType'] as String?,
 );
 
-Map<String, dynamic> _$BikaToJson(_Bika instance) => <String, dynamic>{
+Map<String, dynamic> _$BikaToJson(Bika instance) => <String, dynamic>{
   'comics': instance.comics,
   'runtimeType': instance.$type,
 };
 
-_Jm _$JmFromJson(Map<String, dynamic> json) => _Jm(
+Jm _$JmFromJson(Map<String, dynamic> json) => Jm(
   Content.fromJson(json['comics'] as Map<String, dynamic>),
   $type: json['runtimeType'] as String?,
 );
 
-Map<String, dynamic> _$JmToJson(_Jm instance) => <String, dynamic>{
+Map<String, dynamic> _$JmToJson(Jm instance) => <String, dynamic>{
   'comics': instance.comics,
   'runtimeType': instance.$type,
 };

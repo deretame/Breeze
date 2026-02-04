@@ -21,7 +21,7 @@ _SearchStates _$SearchStatesFromJson(Map<String, dynamic> json) =>
             (k, e) => MapEntry(k, e as bool),
           ) ??
           const {},
-      readModel: (json['readModel'] as num?)?.toInt() ?? 1,
+      brevity: json['brevity'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$SearchStatesToJson(_SearchStates instance) =>
@@ -31,7 +31,7 @@ Map<String, dynamic> _$SearchStatesToJson(_SearchStates instance) =>
       'sortBy': instance.sortBy,
       'categories': instance.categories,
       'categoriesBlock': instance.categoriesBlock,
-      'readModel': instance.readModel,
+      'brevity': instance.brevity,
     };
 
 const _$FromEnumMap = {From.bika: 'bika', From.jm: 'jm'};

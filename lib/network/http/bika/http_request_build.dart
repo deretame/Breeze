@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
@@ -99,23 +100,8 @@ Future<Map<String, dynamic>> request(
   var cancelToken = CancelToken();
 
   try {
-    // 使用优选 IP 替换原始域名，没成功，代码先保留
     String requestUrl = url;
-    // if (cfIpList.isNotEmpty) {
-    //   final uri = Uri.parse(url);
-    //   requestUrl = url.replaceFirst(
-    //     '${uri.scheme}://${uri.host}',
-    //     'https://${cfIpList.first}',
-    //   );
-    //
-    //   logger.d('url: $url, requestUrl: $requestUrl');
-    //
-    //   // 添加 Host 头
-    //   headers['Host'] = uri.host;
-    // }
-    // logger.d(headers);
 
-    // 20秒后自动取消
     Timer(Duration(seconds: 20), () {
       if (!cancelToken.isCancelled) {
         cancelToken.cancel('请求超时自动取消');
@@ -127,6 +113,7 @@ Future<Map<String, dynamic>> request(
       data: body,
       options: Options(
         method: method,
+        responseType: ResponseType.bytes,
         headers: _getRequestHeaders(
           url,
           method,
@@ -134,21 +121,43 @@ Future<Map<String, dynamic>> request(
           imageQuality,
           authorization,
         ),
-        sendTimeout: const Duration(seconds: 10), // 连接超时时间
-        receiveTimeout: const Duration(seconds: 10), // 接收超时时间
+        sendTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 10),
       ),
       cancelToken: cancelToken,
     );
 
-    // logger.d(response.data);
+    List<int> bytes = response.data as List<int>;
 
-    return response.data;
+    final contentEncoding = response.headers.value('content-encoding');
+    if (contentEncoding != null && contentEncoding.contains('gzip')) {
+      bytes = GZipCodec().decode(bytes); // 解压
+    }
+
+    // 转换为字符串并解析为 Map
+    final String decodedString = utf8.decode(bytes);
+    final Map<String, dynamic> result = jsonDecode(decodedString);
+
+    return result;
   } on DioException catch (error) {
     logger.d(error, stackTrace: error.stackTrace);
-    // 如果是掉登录了
-    if (error.response?.data?['code'] == 401 &&
-        error.response?.data?['message'] == 'unauthorized') {
-      // SettingsHiveUtils.deleteAuthorization();
+
+    Map<String, dynamic>? errorData;
+    if (error.response?.data != null && error.response?.data is List<int>) {
+      try {
+        List<int> errBytes = error.response!.data as List<int>;
+        if (error.response!.headers
+                .value('content-encoding')
+                ?.contains('gzip') ??
+            false) {
+          errBytes = GZipCodec().decode(errBytes);
+        }
+        errorData = jsonDecode(utf8.decode(errBytes));
+      } catch (_) {}
+    }
+
+    // 使用解析后的 errorData 判断登录状态
+    if (errorData?['code'] == 401 && errorData?['message'] == 'unauthorized') {
       eventBus.fire(NeedLogin(from: From.bika));
     }
 
@@ -156,7 +165,6 @@ Future<Map<String, dynamic>> request(
       throw Exception('请求超时自动取消');
     }
 
-    // 抛出封装后的错误信息
     throw Exception(_handleDioError(error));
   }
 }

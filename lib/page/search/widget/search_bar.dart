@@ -1,8 +1,13 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/bika/bika_setting.dart';
+import 'package:zephyr/main.dart';
+import 'package:zephyr/page/bookshelf/models/events.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search/widget/advanced_search_dialog.dart';
+import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
+import 'package:zephyr/util/router/router.gr.dart';
 
 class SearchBar extends StatefulWidget {
   const SearchBar({super.key});
@@ -103,6 +108,7 @@ class _SearchBarState extends State<SearchBar> {
             icon: const Icon(Icons.tune),
             onPressed: () async {
               final searchCubit = context.read<SearchCubit>();
+              final bikaSettingCubit = context.read<BikaSettingCubit>();
               final SearchStates? newStates = await showDialog<SearchStates>(
                 context: context,
                 builder: (context) {
@@ -112,6 +118,14 @@ class _SearchBarState extends State<SearchBar> {
 
               if (newStates != null && mounted) {
                 searchCubit.update(newStates);
+                bikaSettingCubit.updateBrevity(newStates.brevity);
+                bikaSettingCubit.updateShieldCategoryMap(
+                  newStates.categoriesBlock,
+                );
+
+                eventBus.fire(HistoryEvent(EventType.refresh, false));
+                eventBus.fire(DownloadEvent(EventType.refresh, false));
+                eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 1));
               }
             },
           ),
@@ -127,5 +141,12 @@ class _SearchBarState extends State<SearchBar> {
   void _onSearch(String keyword) {
     final searchCubit = context.read<SearchCubit>();
     searchCubit.update(searchCubit.state.copyWith(searchKeyword: keyword));
+    context.pushRoute(
+      SearchResultRoute(
+        searchEvent: SearchEvent().copyWith(
+          searchStates: searchCubit.state.copyWith(searchKeyword: keyword),
+        ),
+      ),
+    );
   }
 }

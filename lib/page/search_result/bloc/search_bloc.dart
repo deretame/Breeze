@@ -51,7 +51,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
           comics: _filterShieldedComics(blocState.comics),
           hasReachedMax: blocState.hasReachedMax,
           searchEvent: event,
-          pagesCount: blocState.pagesCount,
         ),
       );
     }
@@ -69,7 +68,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
           comics: _filterShieldedComics(blocState.comics),
           hasReachedMax: blocState.hasReachedMax,
           searchEvent: event,
-          pagesCount: blocState.pagesCount,
         ),
       );
     } catch (e) {
@@ -79,7 +77,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
             status: SearchStatus.getMoreFailure,
             comics: _filterShieldedComics(blocState.comics),
             searchEvent: event,
-            pagesCount: blocState.pagesCount,
             result: e.toString(),
           ),
         );
@@ -90,7 +87,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         state.copyWith(
           status: SearchStatus.failure,
           searchEvent: event,
-          pagesCount: blocState.pagesCount,
           result: e.toString(),
         ),
       );

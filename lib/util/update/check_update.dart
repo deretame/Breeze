@@ -70,7 +70,7 @@ Future<void> installApk(String apkUrl) async {
   if (await _requestInstallPackagesPermission()) {
     try {
       // 使用 Dio 下载 APK 文件
-      Response response = await Dio().get(
+      Response response = await dio.get(
         apkUrl,
         options: Options(responseType: ResponseType.bytes),
       );

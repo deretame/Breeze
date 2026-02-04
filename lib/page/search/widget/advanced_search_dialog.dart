@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zephyr/page/bookshelf/widgets/categories_select.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/type/enum.dart';
 
@@ -110,8 +111,16 @@ class _AdvancedSearchDialogState extends State<AdvancedSearchDialog> {
           child: OutlinedButton.icon(
             icon: const Icon(Icons.category, size: 18),
             label: const Text('选择分类'),
-            onPressed: () {
-              // TODO: 弹出分类选择窗口 logic
+            onPressed: () async {
+              final data = await showCategoryDialog(
+                context,
+                _tempState.categories,
+              );
+              if (data != null) {
+                setState(() {
+                  _tempState = _tempState.copyWith(categories: data);
+                });
+              }
             },
           ),
         ),
@@ -123,8 +132,16 @@ class _AdvancedSearchDialogState extends State<AdvancedSearchDialog> {
             style: OutlinedButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.error,
             ),
-            onPressed: () {
-              // TODO: 弹出屏蔽分类窗口 logic
+            onPressed: () async {
+              final data = await showCategoryDialog(
+                context,
+                _tempState.categoriesBlock,
+              );
+              if (data != null) {
+                setState(() {
+                  _tempState = _tempState.copyWith(categoriesBlock: data);
+                });
+              }
             },
           ),
         ),
@@ -137,20 +154,28 @@ class _AdvancedSearchDialogState extends State<AdvancedSearchDialog> {
       spacing: 8,
       children: [
         ChoiceChip(
-          label: const Text('精简模式'),
-          selected: _tempState.readModel == 0,
+          label: const Text('简略模式'),
+          selected: _tempState.brevity,
           onSelected: (selected) {
             if (selected) {
-              setState(() => _tempState = _tempState.copyWith(readModel: 0));
+              setState(
+                () => _tempState = _tempState.copyWith(
+                  brevity: !_tempState.brevity,
+                ),
+              );
             }
           },
         ),
         ChoiceChip(
           label: const Text('详细模式'),
-          selected: _tempState.readModel == 1,
+          selected: !_tempState.brevity,
           onSelected: (selected) {
             if (selected) {
-              setState(() => _tempState = _tempState.copyWith(readModel: 1));
+              setState(
+                () => _tempState = _tempState.copyWith(
+                  brevity: !_tempState.brevity,
+                ),
+              );
             }
           },
         ),

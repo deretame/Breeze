@@ -99,7 +99,9 @@ class _HomePageState extends State<HomePage> {
                 context.pop();
                 context.pushRoute(
                   SearchRoute(
-                    searchState: SearchStates().copyWith(from: From.bika),
+                    searchState: SearchStates.initial(
+                      context,
+                    ).copyWith(from: From.bika),
                   ),
                 );
               },

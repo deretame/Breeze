@@ -3,6 +3,8 @@ import 'package:flutter/material.dart' hide Thumb;
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
+import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/search_result.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -13,7 +15,6 @@ import '../../../widgets/comic_entry/comic_entry.dart';
 import '../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import '../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 import '../models/models.dart';
-import '../widgets/page_skip.dart';
 
 @RoutePage()
 class SearchResultPage extends StatelessWidget implements AutoRouteWrapper {
@@ -28,6 +29,7 @@ class SearchResultPage extends StatelessWidget implements AutoRouteWrapper {
 
   @override
   Widget wrappedRoute(BuildContext context) {
+    logger.d(searchEvent);
     return MultiBlocProvider(
       providers: [
         searchCubit != null
@@ -42,14 +44,14 @@ class SearchResultPage extends StatelessWidget implements AutoRouteWrapper {
 
   @override
   Widget build(BuildContext context) {
-    return _SearchResultPage(searchEnter: searchEnter);
+    return _SearchResultPage(searchEvent: searchEvent);
   }
 }
 
 class _SearchResultPage extends StatefulWidget {
-  final SearchEnter searchEnter;
+  final SearchEvent searchEvent;
 
-  const _SearchResultPage({required this.searchEnter});
+  const _SearchResultPage({required this.searchEvent});
 
   @override
   State<_SearchResultPage> createState() => _SearchResultPageState();
@@ -57,7 +59,7 @@ class _SearchResultPage extends StatefulWidget {
 
 class _SearchResultPageState extends State<_SearchResultPage>
     with SingleTickerProviderStateMixin {
-  late SearchEnter _searchEnter;
+  late SearchEvent searchEvent;
   final _scrollController = ScrollController();
   late List<ComicNumber> comics;
   int pagesCount = 0;
@@ -83,8 +85,19 @@ class _SearchResultPageState extends State<_SearchResultPage>
           ),
         );
 
-    _searchEnter = widget.searchEnter;
+    searchEvent = widget.searchEvent;
     _scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final keyword = widget.searchEvent.searchStates.searchKeyword.trim();
+      if (keyword.isEmpty) return;
+      final settingCubit = context.read<GlobalSettingCubit>();
+      final List<String> history = settingCubit.state.searchHistory.toList();
+      history
+        ..remove(keyword)
+        ..insert(0, keyword);
+      await Future.delayed(const Duration(milliseconds: 200));
+      settingCubit.updateSearchHistory(history.take(200).toList());
+    });
   }
 
   @override
@@ -97,84 +110,22 @@ class _SearchResultPageState extends State<_SearchResultPage>
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.theme;
-    final backgroundColor = context.backgroundColor;
-
     return Scaffold(
-      appBar: BikaSearchBar(searchEnter: _searchEnter, onChanged: _update),
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Column(
-              children: [
-                SizedBox(height: 35), // 为顶部阴影容器预留空间
-                Expanded(child: _bloc()),
-              ],
-            ),
-          ),
-          // 这里是操作栏
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 35,
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: theme.colorScheme.secondaryFixedDim,
-                    spreadRadius: 0,
-                    blurRadius: 2,
-                    offset: const Offset(0, 0),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  SizedBox(width: 5),
-                  SortWidget(searchEnter: _searchEnter, onChanged: _update),
-                  SizedBox(width: 5),
-                  CategoriesSelect(
-                    searchEnter: _searchEnter,
-                    onChanged: _update,
-                  ),
-                  SizedBox(width: 5),
-                  CategoriesShield(
-                    searchEnter: _searchEnter,
-                    onChanged: _update,
-                  ),
-                  Expanded(child: Container()),
-                  BlocBuilder<StringSelectCubit, String>(
-                    builder: (context, pageState) {
-                      return Text(pageState, style: TextStyle(fontSize: 16));
-                    },
-                  ),
-                  SizedBox(width: 5),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: SlideTransition(
-        position: _slideAnimation,
-        child: PageSkip(
-          pagesCount: pagesCount,
-          searchEnter: _searchEnter,
-          onChanged: _update,
-        ),
-      ),
+      appBar: SearchResultBar(searchEvent: searchEvent),
+      body: _bloc(),
+      // floatingActionButton: SlideTransition(
+      //   position: _slideAnimation,
+      //   child: PageSkip(
+      //     pagesCount: pagesCount,
+      //     searchEnter: _searchEnter,
+      //     onChanged: _update,
+      //   ),
+      // ),
     );
   }
 
   Widget _bloc() => BlocBuilder<SearchBloc, SearchState>(
     builder: (context, state) {
-      if (state.searchEnter != null) {
-        _update(state.searchEnter!);
-      } else {
-        _update(_searchEnter);
-      }
       switch (state.status) {
         case SearchStatus.initial:
           return const Center(child: CircularProgressIndicator());
@@ -190,7 +141,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
                 SizedBox(height: 10), // 添加间距
                 ElevatedButton(
                   onPressed: () {
-                    _refresh(_searchEnter, SearchStatus.initial);
+                    _refresh(SearchStatus.initial);
                   },
                   child: Text('点击重试'),
                 ),
@@ -222,18 +173,17 @@ class _SearchResultPageState extends State<_SearchResultPage>
       }
     }
 
-    final list = state.comics
-        .map(
-          (element) => ComicSimplifyEntryInfo(
-            title: element.doc.title,
-            id: element.doc.id,
-            fileServer: element.doc.thumb.fileServer,
-            path: element.doc.thumb.path,
-            pictureType: "cover",
-            from: "bika",
-          ),
-        )
-        .toList();
+    final list = state.comics.map((element) {
+      final data = element.comicInfo as Bika;
+      return ComicSimplifyEntryInfo(
+        title: data.comics.title,
+        id: data.comics.id,
+        fileServer: data.comics.thumb.fileServer,
+        path: data.comics.thumb.path,
+        pictureType: "cover",
+        from: "bika",
+      );
+    }).toList();
 
     final elementsRows = generateResponsiveRows(context, list);
 
@@ -249,7 +199,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
 
   Widget _detailedList(SearchState state) {
     comics = state.comics;
-    pagesCount = state.pagesCount;
+    pagesCount = state.searchEvent.page;
 
     if (state.status == SearchStatus.success) {
       if (state.comics.length < 8 && !state.hasReachedMax) {
@@ -306,9 +256,14 @@ class _SearchResultPageState extends State<_SearchResultPage>
     }
     // 详细模式
     else {
-      return ComicEntryWidget(
-        comicEntryInfo: docToComicEntryInfo(state.comics[index].doc),
-      );
+      final data = state.comics[index].comicInfo;
+      if (data is Bika) {
+        return ComicEntryWidget(
+          comicEntryInfo: docToComicEntryInfo(data.comics),
+        );
+      } else {
+        return const SizedBox.shrink();
+      }
     }
   }
 
@@ -333,8 +288,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
             children: [
               const SizedBox(height: 10),
               ElevatedButton(
-                onPressed: () =>
-                    _refresh(_searchEnter, SearchStatus.loadingMore),
+                onPressed: () => _refresh(SearchStatus.loadingMore),
                 child: const Text('点击重试'),
               ),
             ],
@@ -346,18 +300,16 @@ class _SearchResultPageState extends State<_SearchResultPage>
     return const SizedBox.shrink();
   }
 
-  void _refresh(SearchEnter searchEnterConst, SearchStatus status) {
+  void _refresh(SearchStatus status) {
     // 使用原本输入参数进行重新搜索
-    context.read<SearchBloc>().add(
-      FetchSearchResult(_searchEnter.copyWith(pageCount: 1), status),
-    );
+    context.read<SearchBloc>().add(searchEvent.copyWith(status: status));
   }
 
   void _fetchSearchResult() {
     context.read<SearchBloc>().add(
-      FetchSearchResult(
-        _searchEnter.copyWith(pageCount: _searchEnter.pageCount + 1),
-        SearchStatus.loadingMore,
+      searchEvent.copyWith(
+        page: searchEvent.page + 1,
+        status: SearchStatus.loadingMore,
       ),
     );
   }
@@ -410,15 +362,5 @@ class _SearchResultPageState extends State<_SearchResultPage>
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.offset;
     return currentScroll >= (maxScroll * 0.9);
-  }
-
-  void _update(SearchEnter searchEnter) {
-    if (searchEnter == _searchEnter) return;
-    _searchEnter = searchEnter;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {
-        _searchEnter = searchEnter;
-      });
-    });
   }
 }

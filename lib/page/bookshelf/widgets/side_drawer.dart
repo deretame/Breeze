@@ -333,7 +333,7 @@ class _SideDrawerState extends State<SideDrawer> {
 
         final categoriesSelected = await showCategoryDialog(
           context,
-          initialCategories,
+          oldCategoriesMap,
         );
         if (categoriesSelected == null) {
           return;

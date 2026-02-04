@@ -5,10 +5,10 @@ import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search/widget/advanced_search_dialog.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 
-class BikaSearchBar extends StatelessWidget implements PreferredSizeWidget {
+class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
   final SearchEvent searchEvent;
 
-  const BikaSearchBar({super.key, required this.searchEvent});
+  const SearchResultBar({super.key, required this.searchEvent});
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +94,7 @@ class BikaSearchBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
 
-      // 3. 底部分割线 (你想要的风格)
+      // 3. 底部分割线
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
         child: Divider(

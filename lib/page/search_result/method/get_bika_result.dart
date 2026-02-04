@@ -43,7 +43,7 @@ Future<BlocState> _processSearchResult(
 
   var temp = AdvancedSearch.fromJson(result);
   if (temp.data.comics.page >= temp.data.comics.pages) {
-    blocState.hasReachedMax = false;
+    blocState.hasReachedMax = true;
   }
 
   var tempList = temp.data.comics.docs

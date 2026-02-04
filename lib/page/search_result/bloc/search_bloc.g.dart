@@ -13,7 +13,7 @@ _SearchEvent _$SearchEventFromJson(Map<String, dynamic> json) => _SearchEvent(
   searchStates: json['searchStates'] == null
       ? const SearchStates()
       : SearchStates.fromJson(json['searchStates'] as Map<String, dynamic>),
-  page: (json['page'] as num?)?.toInt() ?? 0,
+  page: (json['page'] as num?)?.toInt() ?? 1,
   url: json['url'] as String? ?? '',
 );
 
@@ -47,7 +47,6 @@ _SearchState _$SearchStateFromJson(Map<String, dynamic> json) => _SearchState(
   searchEvent: json['searchEvent'] == null
       ? const SearchEvent()
       : SearchEvent.fromJson(json['searchEvent'] as Map<String, dynamic>),
-  pagesCount: (json['pagesCount'] as num?)?.toInt() ?? 0,
 );
 
 Map<String, dynamic> _$SearchStateToJson(_SearchState instance) =>
@@ -57,5 +56,4 @@ Map<String, dynamic> _$SearchStateToJson(_SearchState instance) =>
       'hasReachedMax': instance.hasReachedMax,
       'result': instance.result,
       'searchEvent': instance.searchEvent,
-      'pagesCount': instance.pagesCount,
     };

@@ -300,11 +300,11 @@ ComicInfo _$ComicInfoFromJson(
 ) {
         switch (json['runtimeType']) {
                   case 'bika':
-          return _Bika.fromJson(
+          return Bika.fromJson(
             json
           );
                 case 'jm':
-          return _Jm.fromJson(
+          return Jm.fromJson(
             json
           );
         
@@ -365,11 +365,11 @@ extension ComicInfoPatterns on ComicInfo {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( _Bika value)?  bika,TResult Function( _Jm value)?  jm,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( Bika value)?  bika,TResult Function( Jm value)?  jm,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _Bika() when bika != null:
-return bika(_that);case _Jm() when jm != null:
+case Bika() when bika != null:
+return bika(_that);case Jm() when jm != null:
 return jm(_that);case _:
   return orElse();
 
@@ -388,11 +388,11 @@ return jm(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( _Bika value)  bika,required TResult Function( _Jm value)  jm,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( Bika value)  bika,required TResult Function( Jm value)  jm,}){
 final _that = this;
 switch (_that) {
-case _Bika():
-return bika(_that);case _Jm():
+case Bika():
+return bika(_that);case Jm():
 return jm(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
@@ -407,11 +407,11 @@ return jm(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( _Bika value)?  bika,TResult? Function( _Jm value)?  jm,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( Bika value)?  bika,TResult? Function( Jm value)?  jm,}){
 final _that = this;
 switch (_that) {
-case _Bika() when bika != null:
-return bika(_that);case _Jm() when jm != null:
+case Bika() when bika != null:
+return bika(_that);case Jm() when jm != null:
 return jm(_that);case _:
   return null;
 
@@ -431,8 +431,8 @@ return jm(_that);case _:
 
 @optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( Doc comics)?  bika,TResult Function( Content comics)?  jm,required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _Bika() when bika != null:
-return bika(_that.comics);case _Jm() when jm != null:
+case Bika() when bika != null:
+return bika(_that.comics);case Jm() when jm != null:
 return jm(_that.comics);case _:
   return orElse();
 
@@ -453,8 +453,8 @@ return jm(_that.comics);case _:
 
 @optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( Doc comics)  bika,required TResult Function( Content comics)  jm,}) {final _that = this;
 switch (_that) {
-case _Bika():
-return bika(_that.comics);case _Jm():
+case Bika():
+return bika(_that.comics);case Jm():
 return jm(_that.comics);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -471,8 +471,8 @@ return jm(_that.comics);}
 
 @optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( Doc comics)?  bika,TResult? Function( Content comics)?  jm,}) {final _that = this;
 switch (_that) {
-case _Bika() when bika != null:
-return bika(_that.comics);case _Jm() when jm != null:
+case Bika() when bika != null:
+return bika(_that.comics);case Jm() when jm != null:
 return jm(_that.comics);case _:
   return null;
 
@@ -484,9 +484,9 @@ return jm(_that.comics);case _:
 /// @nodoc
 @JsonSerializable()
 
-class _Bika implements ComicInfo {
-  const _Bika(this.comics, {final  String? $type}): $type = $type ?? 'bika';
-  factory _Bika.fromJson(Map<String, dynamic> json) => _$BikaFromJson(json);
+class Bika implements ComicInfo {
+  const Bika(this.comics, {final  String? $type}): $type = $type ?? 'bika';
+  factory Bika.fromJson(Map<String, dynamic> json) => _$BikaFromJson(json);
 
 @override final  Doc comics;
 
@@ -498,7 +498,7 @@ final String $type;
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$BikaCopyWith<_Bika> get copyWith => __$BikaCopyWithImpl<_Bika>(this, _$identity);
+$BikaCopyWith<Bika> get copyWith => _$BikaCopyWithImpl<Bika>(this, _$identity);
 
 @override
 Map<String, dynamic> toJson() {
@@ -507,7 +507,7 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Bika&&(identical(other.comics, comics) || other.comics == comics));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Bika&&(identical(other.comics, comics) || other.comics == comics));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -523,8 +523,8 @@ String toString() {
 }
 
 /// @nodoc
-abstract mixin class _$BikaCopyWith<$Res> implements $ComicInfoCopyWith<$Res> {
-  factory _$BikaCopyWith(_Bika value, $Res Function(_Bika) _then) = __$BikaCopyWithImpl;
+abstract mixin class $BikaCopyWith<$Res> implements $ComicInfoCopyWith<$Res> {
+  factory $BikaCopyWith(Bika value, $Res Function(Bika) _then) = _$BikaCopyWithImpl;
 @useResult
 $Res call({
  Doc comics
@@ -535,17 +535,17 @@ $DocCopyWith<$Res> get comics;
 
 }
 /// @nodoc
-class __$BikaCopyWithImpl<$Res>
-    implements _$BikaCopyWith<$Res> {
-  __$BikaCopyWithImpl(this._self, this._then);
+class _$BikaCopyWithImpl<$Res>
+    implements $BikaCopyWith<$Res> {
+  _$BikaCopyWithImpl(this._self, this._then);
 
-  final _Bika _self;
-  final $Res Function(_Bika) _then;
+  final Bika _self;
+  final $Res Function(Bika) _then;
 
 /// Create a copy of ComicInfo
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') $Res call({Object? comics = null,}) {
-  return _then(_Bika(
+  return _then(Bika(
 null == comics ? _self.comics : comics // ignore: cast_nullable_to_non_nullable
 as Doc,
   ));
@@ -566,9 +566,9 @@ $DocCopyWith<$Res> get comics {
 /// @nodoc
 @JsonSerializable()
 
-class _Jm implements ComicInfo {
-  const _Jm(this.comics, {final  String? $type}): $type = $type ?? 'jm';
-  factory _Jm.fromJson(Map<String, dynamic> json) => _$JmFromJson(json);
+class Jm implements ComicInfo {
+  const Jm(this.comics, {final  String? $type}): $type = $type ?? 'jm';
+  factory Jm.fromJson(Map<String, dynamic> json) => _$JmFromJson(json);
 
 @override final  Content comics;
 
@@ -580,7 +580,7 @@ final String $type;
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$JmCopyWith<_Jm> get copyWith => __$JmCopyWithImpl<_Jm>(this, _$identity);
+$JmCopyWith<Jm> get copyWith => _$JmCopyWithImpl<Jm>(this, _$identity);
 
 @override
 Map<String, dynamic> toJson() {
@@ -589,7 +589,7 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Jm&&(identical(other.comics, comics) || other.comics == comics));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Jm&&(identical(other.comics, comics) || other.comics == comics));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -605,8 +605,8 @@ String toString() {
 }
 
 /// @nodoc
-abstract mixin class _$JmCopyWith<$Res> implements $ComicInfoCopyWith<$Res> {
-  factory _$JmCopyWith(_Jm value, $Res Function(_Jm) _then) = __$JmCopyWithImpl;
+abstract mixin class $JmCopyWith<$Res> implements $ComicInfoCopyWith<$Res> {
+  factory $JmCopyWith(Jm value, $Res Function(Jm) _then) = _$JmCopyWithImpl;
 @useResult
 $Res call({
  Content comics
@@ -617,17 +617,17 @@ $ContentCopyWith<$Res> get comics;
 
 }
 /// @nodoc
-class __$JmCopyWithImpl<$Res>
-    implements _$JmCopyWith<$Res> {
-  __$JmCopyWithImpl(this._self, this._then);
+class _$JmCopyWithImpl<$Res>
+    implements $JmCopyWith<$Res> {
+  _$JmCopyWithImpl(this._self, this._then);
 
-  final _Jm _self;
-  final $Res Function(_Jm) _then;
+  final Jm _self;
+  final $Res Function(Jm) _then;
 
 /// Create a copy of ComicInfo
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') $Res call({Object? comics = null,}) {
-  return _then(_Jm(
+  return _then(Jm(
 null == comics ? _self.comics : comics // ignore: cast_nullable_to_non_nullable
 as Content,
   ));

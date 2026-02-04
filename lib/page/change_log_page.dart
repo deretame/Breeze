@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/util/update/json/github_release_json.dart';
 
 @RoutePage()
@@ -22,8 +23,6 @@ class _ChangelogPageState extends State<ChangelogPage> {
     controlFinishRefresh: true,
     controlFinishLoad: true,
   );
-
-  final Dio _dio = Dio();
 
   List<GithubReleaseJson> _releases = [];
   bool _isLoading = true; // 首次加载状态
@@ -44,7 +43,6 @@ class _ChangelogPageState extends State<ChangelogPage> {
   @override
   void dispose() {
     _refreshController.dispose();
-    _dio.close();
     super.dispose();
   }
 
@@ -54,7 +52,7 @@ class _ChangelogPageState extends State<ChangelogPage> {
     try {
       final requestPage = refresh ? 1 : _page;
 
-      final response = await _dio.get(
+      final response = await dio.get(
         'https://api.github.com/repos/deretame/Breeze/releases',
         queryParameters: {'page': requestPage, 'per_page': _perPage},
         options: Options(responseType: ResponseType.plain),

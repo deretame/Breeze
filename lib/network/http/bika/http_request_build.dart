@@ -131,10 +131,9 @@ Future<Map<String, dynamic>> request(
 
     final contentEncoding = response.headers.value('content-encoding');
     if (contentEncoding != null && contentEncoding.contains('gzip')) {
-      bytes = GZipCodec().decode(bytes); // 解压
+      bytes = GZipCodec().decode(bytes);
     }
 
-    // 转换为字符串并解析为 Map
     final String decodedString = utf8.decode(bytes);
     final Map<String, dynamic> result = jsonDecode(decodedString);
 
@@ -143,6 +142,8 @@ Future<Map<String, dynamic>> request(
     logger.d(error, stackTrace: error.stackTrace);
 
     Map<String, dynamic>? errorData;
+    String? decodedErrorMessage;
+
     if (error.response?.data != null && error.response?.data is List<int>) {
       try {
         List<int> errBytes = error.response!.data as List<int>;
@@ -152,11 +153,12 @@ Future<Map<String, dynamic>> request(
             false) {
           errBytes = GZipCodec().decode(errBytes);
         }
-        errorData = jsonDecode(utf8.decode(errBytes));
+
+        decodedErrorMessage = utf8.decode(errBytes);
+        errorData = jsonDecode(decodedErrorMessage);
       } catch (_) {}
     }
 
-    // 使用解析后的 errorData 判断登录状态
     if (errorData?['code'] == 401 && errorData?['message'] == 'unauthorized') {
       eventBus.fire(NeedLogin(from: From.bika));
     }
@@ -165,7 +167,14 @@ Future<Map<String, dynamic>> request(
       throw Exception('请求超时自动取消');
     }
 
-    throw Exception(_handleDioError(error));
+    if (decodedErrorMessage != null) {
+      if (errorData?['message'] == "under review") {
+        throw Exception("审核中");
+      }
+      throw Exception(errorData?['message'] ?? decodedErrorMessage);
+    } else {
+      throw Exception(_handleDioError(error));
+    }
   }
 }
 

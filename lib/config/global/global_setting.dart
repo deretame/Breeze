@@ -463,7 +463,7 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
   }
 
   void updateDataBase(GlobalSettingState state) {
-    logger.d(state.toJson());
+    // logger.d(state.toJson());
     final userBox = objectbox.userSettingBox;
     var dbSettings = userBox.get(1)!;
     dbSettings.globalSetting = state;

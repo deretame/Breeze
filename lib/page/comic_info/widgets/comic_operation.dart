@@ -448,14 +448,12 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
                         title: Text(folder.name),
                         subtitle: Text("ID: ${folder.fid}"),
                         value: folder.fid,
-                        // --- 改回手动管理状态 ---
                         // ignore: deprecated_member_use
                         groupValue: tempSelected?.fid,
                         // ignore: deprecated_member_use
                         onChanged: (val) {
                           setState(() => tempSelected = folder);
                         },
-                        // -----------------------
                       );
                     },
                   ),

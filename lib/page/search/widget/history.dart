@@ -143,12 +143,13 @@ class _HistoryWidgetState extends State<HistoryWidget> {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0),
               onPressed: () => {
+                searchCubit.update(
+                  searchCubit.state.copyWith(searchKeyword: historyItem),
+                ),
                 context.pushRoute(
                   SearchResultRoute(
                     searchEvent: SearchEvent().copyWith(
-                      searchStates: searchCubit.state.copyWith(
-                        searchKeyword: historyItem,
-                      ),
+                      searchStates: searchCubit.state,
                     ),
                   ),
                 ),

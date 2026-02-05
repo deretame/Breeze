@@ -51,7 +51,19 @@ class CoverWidget extends StatelessWidget {
           builder: (context, state) {
             switch (state.status) {
               case PictureLoadStatus.initial:
-                return Center(child: CircularProgressIndicator());
+                return Container(
+                  width: width,
+                  height: height,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(
+                      roundedCorner ? 5.0 : 0.0,
+                    ),
+                  ),
+                  child: Center(
+                    child: Icon(Icons.image, color: Colors.grey[300], size: 30),
+                  ),
+                );
               case PictureLoadStatus.success:
                 return ClipRRect(
                   borderRadius: BorderRadius.circular(
@@ -62,7 +74,6 @@ class CoverWidget extends StatelessWidget {
                     fit: BoxFit.cover,
                     gaplessPlayback: true,
                     errorBuilder: (context, error, stackTrace) {
-                      // 图片解码失败时显示错误图标
                       return Container(
                         decoration: BoxDecoration(
                           color: Colors.grey[300],

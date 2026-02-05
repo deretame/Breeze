@@ -4,7 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
-import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/search_result.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -29,12 +29,13 @@ class SearchResultPage extends StatelessWidget implements AutoRouteWrapper {
 
   @override
   Widget wrappedRoute(BuildContext context) {
-    logger.d(searchEvent);
     return MultiBlocProvider(
       providers: [
         searchCubit != null
             ? BlocProvider.value(value: searchCubit!)
-            : BlocProvider(create: (_) => SearchCubit(SearchStates())),
+            : BlocProvider(
+                create: (_) => SearchCubit(searchEvent.searchStates),
+              ),
         BlocProvider(create: (_) => SearchBloc()..add(searchEvent)),
         BlocProvider(create: (_) => StringSelectCubit()),
       ],
@@ -91,7 +92,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
       final keyword = widget.searchEvent.searchStates.searchKeyword.trim();
       if (keyword.isEmpty) return;
       final settingCubit = context.read<GlobalSettingCubit>();
-      final List<String> history = settingCubit.state.searchHistory.toList();
+      final history = settingCubit.state.searchHistory.toList();
       history
         ..remove(keyword)
         ..insert(0, keyword);
@@ -113,14 +114,28 @@ class _SearchResultPageState extends State<_SearchResultPage>
     return Scaffold(
       appBar: SearchResultBar(searchEvent: searchEvent),
       body: _bloc(),
-      // floatingActionButton: SlideTransition(
-      //   position: _slideAnimation,
-      //   child: PageSkip(
-      //     pagesCount: pagesCount,
-      //     searchEnter: _searchEnter,
-      //     onChanged: _update,
-      //   ),
-      // ),
+      floatingActionButton: SlideTransition(
+        position: _slideAnimation,
+        child: FloatingActionButton(
+          onPressed: () async {
+            final int? targetPage = await showNumberInputDialog(
+              context: context,
+              title: '跳转',
+              initialValue: searchEvent.page,
+            );
+
+            if (targetPage != null && context.mounted) {
+              context.read<SearchBloc>().add(
+                searchEvent.copyWith(
+                  page: targetPage,
+                  status: SearchStatus.initial,
+                ),
+              );
+            }
+          },
+          child: const Icon(Icons.shortcut),
+        ),
+      ),
     );
   }
 
@@ -151,13 +166,18 @@ class _SearchResultPageState extends State<_SearchResultPage>
         case SearchStatus.success:
         case SearchStatus.loadingMore:
         case SearchStatus.getMoreFailure:
+          if (state.status == SearchStatus.success) {
+            searchEvent = state.searchEvent;
+          }
           return _comicList(state);
       }
     },
   );
 
   Widget _comicList(SearchState state) {
-    final bool isBrevity = context.watch<BikaSettingCubit>().state.brevity;
+    final bool isBrevity =
+        context.watch<BikaSettingCubit>().state.brevity ||
+        context.read<SearchCubit>().state.from == From.jm;
     return isBrevity ? _brevityList(state) : _detailedList(state);
   }
 
@@ -174,14 +194,23 @@ class _SearchResultPageState extends State<_SearchResultPage>
     }
 
     final list = state.comics.map((element) {
-      final data = element.comicInfo as Bika;
-      return ComicSimplifyEntryInfo(
-        title: data.comics.title,
-        id: data.comics.id,
-        fileServer: data.comics.thumb.fileServer,
-        path: data.comics.thumb.path,
-        pictureType: "cover",
-        from: "bika",
+      return element.comicInfo.when(
+        bika: (data) => ComicSimplifyEntryInfo(
+          title: data.title,
+          id: data.id,
+          fileServer: data.thumb.fileServer,
+          path: data.thumb.path,
+          pictureType: "cover",
+          from: "bika",
+        ),
+        jm: (data) => ComicSimplifyEntryInfo(
+          title: data.name,
+          id: data.id,
+          fileServer: getJmCoverUrl(data.id),
+          path: "${data.id}.jpg",
+          pictureType: 'cover',
+          from: 'jm',
+        ),
       );
     }).toList();
 
@@ -199,7 +228,6 @@ class _SearchResultPageState extends State<_SearchResultPage>
 
   Widget _detailedList(SearchState state) {
     comics = state.comics;
-    pagesCount = state.searchEvent.page;
 
     if (state.status == SearchStatus.success) {
       if (state.comics.length < 8 && !state.hasReachedMax) {

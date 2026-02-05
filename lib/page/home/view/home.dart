@@ -11,7 +11,6 @@ import 'package:zephyr/type/enum.dart';
 
 import '../../../config/global/global.dart';
 import '../../../util/router/router.gr.dart';
-import '../../jm/jm_search_result/bloc/jm_search_result_bloc.dart';
 
 @RoutePage()
 class HomePage extends StatefulWidget {
@@ -85,7 +84,11 @@ class _HomePageState extends State<HomePage> {
     final globalSettingState = context.read<GlobalSettingCubit>().state;
 
     if (globalSettingState.disableBika) {
-      context.pushRoute(JmSearchResultRoute(event: JmSearchResultEvent()));
+      context.pushRoute(
+        SearchRoute(
+          searchState: SearchStates.initial(context).copyWith(from: From.jm),
+        ),
+      );
       return;
     }
 

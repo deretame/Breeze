@@ -2,11 +2,15 @@ import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:stream_transform/stream_transform.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/method/get_bika_result.dart';
 import 'package:zephyr/page/search_result/method/get_jm_result.dart';
 import 'package:zephyr/page/search_result/models/bloc_state.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/settings_hive_utils.dart';
+import 'package:zephyr/util/sundry.dart';
 
 import '../models/models.dart';
 
@@ -62,12 +66,14 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         blocState = await getJMResult(event, blocState);
       }
 
+      logger.d(blocState.pagesCount);
+
       emit(
         state.copyWith(
           status: SearchStatus.success,
           comics: _filterShieldedComics(blocState.comics),
           hasReachedMax: blocState.hasReachedMax,
-          searchEvent: event,
+          searchEvent: event.copyWith(page: blocState.pagesCount),
         ),
       );
     } catch (e) {
@@ -94,40 +100,53 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   }
 
   List<ComicNumber> _filterShieldedComics(List<ComicNumber> comics) {
-    // // 获取有效屏蔽关键词（非空）
-    // final maskedKeywords = SettingsHiveUtils.maskedKeywords
-    //     .where((keyword) => keyword.trim().isNotEmpty)
-    //     .toList();
+    final maskedKeywords = SettingsHiveUtils.maskedKeywords
+        .where((keyword) => keyword.trim().isNotEmpty)
+        .toList();
 
-    // // 获取屏蔽分类
-    // final shieldedCategories = SettingsHiveUtils.bikaShieldCategoryMap.entries
-    //     .where((entry) => entry.value)
-    //     .map((entry) => entry.key)
-    //     .toList();
+    final shieldedCategories = SettingsHiveUtils.bikaShieldCategoryMap.entries
+        .where((entry) => entry.value)
+        .map((entry) => entry.key)
+        .toList();
 
-    // return comics.where((comic) {
-    //   // 1. 检查屏蔽分类
-    //   final hasShieldedCategory = comic.doc.categories.any(
-    //     (category) => shieldedCategories.contains(category),
-    //   );
-    //   if (hasShieldedCategory) return false;
+    return comics.where((comic) {
+      return comic.comicInfo.when(
+        bika: (bikaComic) {
+          final hasShieldedCategory = bikaComic.categories.any(
+            (category) => shieldedCategories.contains(category),
+          );
+          if (hasShieldedCategory) return false;
 
-    //   // 2. 检查屏蔽关键词
-    //   final allText = [
-    //     comic.doc.title,
-    //     comic.doc.author,
-    //     comic.doc.chineseTeam,
-    //     comic.doc.categories.join(),
-    //     comic.doc.tags.join(),
-    //     comic.doc.description,
-    //   ].join().toLowerCase().let(t2s);
+          final allText = [
+            bikaComic.title,
+            bikaComic.author,
+            bikaComic.chineseTeam,
+            bikaComic.categories.join(),
+            bikaComic.tags.join(),
+            bikaComic.description,
+          ].join().toLowerCase().let(t2s);
 
-    //   final containsKeyword = maskedKeywords.any(
-    //     (keyword) => allText.contains(keyword.toLowerCase().let(t2s)),
-    //   );
+          final containsKeyword = maskedKeywords.any(
+            (keyword) => allText.contains(keyword.toLowerCase().let(t2s)),
+          );
 
-    //   return !containsKeyword;
-    // }).toList();
-    return comics;
+          return !containsKeyword;
+        },
+        jm: (jmComic) {
+          final allText = [
+            jmComic.name,
+            jmComic.author,
+            jmComic.category.title,
+            jmComic.categorySub.title,
+          ].join().toLowerCase().let(t2s);
+
+          final containsKeyword = maskedKeywords.any(
+            (keyword) => allText.contains(keyword.toLowerCase().let(t2s)),
+          );
+
+          return !containsKeyword;
+        },
+      );
+    }).toList();
   }
 }

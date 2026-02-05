@@ -18,7 +18,7 @@ class _AdvancedSearchDialogState extends State<AdvancedSearchDialog> {
   @override
   void initState() {
     super.initState();
-    _tempState = widget.initialState;
+    _tempState = widget.initialState.copyWith();
   }
 
   @override

@@ -130,7 +130,9 @@ class CategoryLineWidget extends StatelessWidget {
           context.pushRoute(
             SearchResultRoute(
               searchEvent: SearchEvent().copyWith(
-                searchStates: SearchStates().copyWith(from: From.bika),
+                searchStates: SearchStates.initial(
+                  context,
+                ).copyWith(from: From.bika),
               ),
             ),
           );
@@ -229,10 +231,9 @@ class CategoryLineWidget extends StatelessWidget {
       context.pushRoute(
         SearchResultRoute(
           searchEvent: SearchEvent().copyWith(
-            searchStates: SearchStates().copyWith(
-              from: From.bika,
-              categories: newCategories,
-            ),
+            searchStates: SearchStates.initial(
+              context,
+            ).copyWith(from: From.bika, categories: newCategories),
           ),
         ),
       );
@@ -243,10 +244,9 @@ class CategoryLineWidget extends StatelessWidget {
     context.pushRoute(
       SearchResultRoute(
         searchEvent: SearchEvent().copyWith(
-          searchStates: SearchStates().copyWith(
-            from: From.bika,
-            searchKeyword: title,
-          ),
+          searchStates: SearchStates.initial(
+            context,
+          ).copyWith(from: From.bika, searchKeyword: title),
           url: url,
         ),
       ),

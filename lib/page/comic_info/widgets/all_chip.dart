@@ -115,34 +115,30 @@ class _AllChipWidgetState extends State<AllChipWidget> {
   }
 
   void goToSearch(int index) {
-    if (widget.from == From.bika) {
-      if (title == "分类") {
-        final Map<String, bool> newCategories = {
-          for (var key in categoryMap.keys) key: key == items[index - 1],
-        };
+    if (title == "分类") {
+      final Map<String, bool> newCategories = {
+        for (var key in categoryMap.keys) key: key == items[index - 1],
+      };
 
-        AutoRouter.of(context).push(
-          SearchResultRoute(
-            searchEvent: SearchEvent().copyWith(
-              searchStates: SearchStates().copyWith(
-                from: From.bika,
-                categories: newCategories,
-              ),
-            ),
+      AutoRouter.of(context).push(
+        SearchResultRoute(
+          searchEvent: SearchEvent().copyWith(
+            searchStates: SearchStates.initial(
+              context,
+            ).copyWith(from: From.bika, categories: newCategories),
           ),
-        );
-      } else {
-        AutoRouter.of(context).push(
-          SearchResultRoute(
-            searchEvent: SearchEvent().copyWith(
-              searchStates: SearchStates().copyWith(
-                from: From.bika,
-                searchKeyword: items[index - 1],
-              ),
-            ),
+        ),
+      );
+    } else {
+      AutoRouter.of(context).push(
+        SearchResultRoute(
+          searchEvent: SearchEvent().copyWith(
+            searchStates: SearchStates.initial(
+              context,
+            ).copyWith(from: widget.from, searchKeyword: items[index - 1]),
           ),
-        );
-      }
+        ),
+      );
     }
   }
 }

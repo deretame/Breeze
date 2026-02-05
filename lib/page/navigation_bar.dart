@@ -588,7 +588,7 @@ class _NavigationBarState extends State<NavigationBar> {
       android: initializationSettingsAndroid,
     );
     await flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
+      settings: initializationSettings,
       onDidReceiveNotificationResponse:
           (NotificationResponse notificationResponse) async {},
     );

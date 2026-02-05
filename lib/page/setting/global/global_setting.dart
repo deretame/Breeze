@@ -346,7 +346,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     return Row(
       children: [
         SizedBox(width: 10),
-        Text("禁用哔咔相关功能(重启客户端生效)", style: TextStyle(fontSize: 18)),
+        Text("禁用哔咔相关功能", style: TextStyle(fontSize: 18)),
         SizedBox(width: 5), // 添加间距
         Spacer(),
         Switch(
@@ -356,7 +356,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             setState(() => _disableBikaValue = !_disableBikaValue);
             globalSettingCubit.updateDisableBika(_disableBikaValue);
             globalSettingCubit.updateComicChoice(2);
-            showSuccessToast("设置成功，重启客户端生效");
+            showSuccessToast("设置成功，重启生效");
           },
         ),
         SizedBox(width: 10),

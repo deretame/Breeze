@@ -28,7 +28,6 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: WebDavSyncRoute.page),
     AutoRoute(page: ShowColorRoute.page),
     AutoRoute(page: AboutRoute.page),
-    AutoRoute(page: JmSearchResultRoute.page),
     AutoRoute(page: FullRouteImageRoute.page),
     AutoRoute(page: ImageCropRoute.page),
     AutoRoute(page: JmCommentsRoute.page),

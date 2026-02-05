@@ -47,7 +47,7 @@ class CreatorInfoWidget extends StatelessWidget {
           AutoRouter.of(context).push(
             SearchResultRoute(
               searchEvent: SearchEvent().copyWith(
-                searchStates: SearchStates().copyWith(
+                searchStates: SearchStates.initial(context).copyWith(
                   from: From.bika,
                   searchKeyword: comicInfo.creator.name,
                 ),

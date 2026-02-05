@@ -40,10 +40,9 @@ class _CreatorEntryWidgetState extends State<CreatorEntryWidget>
               AutoRouter.of(context).push(
                 SearchResultRoute(
                   searchEvent: SearchEvent().copyWith(
-                    searchStates: SearchStates().copyWith(
-                      from: From.bika,
-                      searchKeyword: user.name,
-                    ),
+                    searchStates: SearchStates.initial(
+                      context,
+                    ).copyWith(from: From.bika, searchKeyword: user.name),
                     url:
                         "https://picaapi.picacomic.com/comics?ca=${user.id}&s=ld&page=1",
                   ),

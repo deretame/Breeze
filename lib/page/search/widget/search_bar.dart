@@ -2,11 +2,14 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/bookshelf/models/events.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search/widget/advanced_search_dialog.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
+import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
 class SearchBar extends StatefulWidget {
@@ -23,6 +26,10 @@ class _SearchBarState extends State<SearchBar> {
   @override
   void initState() {
     super.initState();
+    final initialKeyword = context.read<SearchCubit>().state.searchKeyword;
+    if (initialKeyword.isNotEmpty) {
+      _controller.text = initialKeyword;
+    }
     _controller.addListener(() => setState(() {}));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final route = ModalRoute.of(context);
@@ -53,99 +60,138 @@ class _SearchBarState extends State<SearchBar> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.maybePop(),
-          ),
-          Expanded(
-            child: Container(
-              height: 48,
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 16),
-                  Icon(Icons.search, color: colorScheme.onSurfaceVariant),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      focusNode: _focusNode,
-                      textInputAction: TextInputAction.search,
-                      onSubmitted: _onSearch,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: colorScheme.onSurface,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: '搜索...',
-                        border: InputBorder.none,
-                        isDense: true,
-                        hintStyle: TextStyle(
-                          color: colorScheme.onSurfaceVariant.withValues(
-                            alpha: 0.7,
+    return BlocListener<SearchCubit, SearchStates>(
+      listenWhen: (previous, current) =>
+          previous.searchKeyword != current.searchKeyword,
+      listener: (context, state) {
+        if (_controller.text != state.searchKeyword) {
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (mounted) {
+              _controller.text = state.searchKeyword;
+              _controller.selection = TextSelection.fromPosition(
+                TextPosition(offset: _controller.text.length),
+              );
+            }
+          });
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => context.maybePop(),
+            ),
+            Expanded(
+              child: Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Row(
+                  children: [
+                    const SizedBox(width: 16),
+                    Icon(Icons.search, color: colorScheme.onSurfaceVariant),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        focusNode: _focusNode,
+                        textInputAction: TextInputAction.search,
+                        onSubmitted: _onSearch,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: colorScheme.onSurface,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: '搜索...',
+                          border: InputBorder.none,
+                          isDense: true,
+                          hintStyle: TextStyle(
+                            color: colorScheme.onSurfaceVariant.withValues(
+                              alpha: 0.7,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  if (_controller.text.isNotEmpty)
-                    IconButton(
-                      icon: const Icon(Icons.cancel, size: 20),
-                      onPressed: () => _controller.clear(),
-                    ),
-                ],
+                    if (_controller.text.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(Icons.cancel, size: 20),
+                        onPressed: () => _controller.clear(),
+                      ),
+                  ],
+                ),
               ),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.tune),
-            onPressed: () async {
-              final searchCubit = context.read<SearchCubit>();
-              final bikaSettingCubit = context.read<BikaSettingCubit>();
-              final SearchStates? newStates = await showDialog<SearchStates>(
-                context: context,
-                builder: (context) {
-                  return AdvancedSearchDialog(initialState: searchCubit.state);
-                },
-              );
-
-              if (newStates != null && mounted) {
-                searchCubit.update(newStates);
-                bikaSettingCubit.updateBrevity(newStates.brevity);
-                bikaSettingCubit.updateShieldCategoryMap(
-                  newStates.categoriesBlock,
+            IconButton(
+              icon: const Icon(Icons.tune),
+              onPressed: () async {
+                final searchCubit = context.read<SearchCubit>();
+                final bikaSettingCubit = context.read<BikaSettingCubit>();
+                final SearchStates? newStates = await showDialog<SearchStates>(
+                  context: context,
+                  builder: (context) {
+                    return AdvancedSearchDialog(
+                      initialState: searchCubit.state,
+                    );
+                  },
                 );
+                if (newStates != null && mounted) {
+                  searchCubit.update(newStates);
+                  bikaSettingCubit.updateBrevity(newStates.brevity);
+                  bikaSettingCubit.updateShieldCategoryMap(
+                    newStates.categoriesBlock,
+                  );
 
-                eventBus.fire(HistoryEvent(EventType.refresh, false));
-                eventBus.fire(DownloadEvent(EventType.refresh, false));
-                eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 1));
-              }
-            },
-          ),
-          TextButton(
-            onPressed: () => _onSearch(_controller.text),
-            child: const Text("搜索"),
-          ),
-        ],
+                  eventBus.fire(HistoryEvent(EventType.refresh, false));
+                  eventBus.fire(DownloadEvent(EventType.refresh, false));
+                  eventBus.fire(
+                    FavoriteEvent(EventType.refresh, SortType.dd, 1),
+                  );
+                }
+              },
+            ),
+            TextButton(
+              onPressed: () => _onSearch(_controller.text),
+              child: const Text("搜索"),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  void _onSearch(String keyword) {
+  void _onSearch(String keyword) async {
     final searchCubit = context.read<SearchCubit>();
     searchCubit.update(searchCubit.state.copyWith(searchKeyword: keyword));
+    if (searchCubit.state.from == From.jm) {
+      if (keyword.let(toInt) >= 100) {
+        context.pushRoute(
+          ComicInfoRoute(
+            comicId: keyword,
+            type: ComicEntryType.normal,
+            from: From.jm,
+          ),
+        );
+
+        final settingCubit = context.read<GlobalSettingCubit>();
+        final history = settingCubit.state.searchHistory.toList();
+        history
+          ..remove(keyword)
+          ..insert(0, keyword);
+        await Future.delayed(const Duration(milliseconds: 200));
+        settingCubit.updateSearchHistory(history.take(200).toList());
+        return;
+      }
+    }
+
     context.pushRoute(
       SearchResultRoute(
-        searchEvent: SearchEvent().copyWith(
-          searchStates: searchCubit.state.copyWith(searchKeyword: keyword),
-        ),
+        searchEvent: SearchEvent().copyWith(searchStates: searchCubit.state),
+        searchCubit: searchCubit,
       ),
     );
   }

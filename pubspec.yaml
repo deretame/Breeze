@@ -1,7 +1,7 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔及禁漫应用。"
 publish_to: none
-version: 2.11.4+2170
+version: 2.12.0+2171
 
 environment:
   sdk: ^3.9.2
@@ -103,7 +103,7 @@ dependencies:
     path: rust_builder
   flutter_rust_bridge: ^2.10.0 # Flutter 与 Rust FFI 通信桥梁
   flutter_foreground_task: ^9.1.0 # 前台任务
-  flutter_local_notifications: ^19.2.1 # 本地通知
+  flutter_local_notifications: ^20.0.0 # 本地通知
   firebase_core: ^4.0.0 # Firebase 核心
   firebase_analytics: ^12.0.0 # Firebase 分析
   firebase_performance: ^0.11.0 # Firebase 性能监控

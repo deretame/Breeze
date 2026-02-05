@@ -67,6 +67,7 @@ class PromoteBloc extends Bloc<PromoteEvent, PromoteState> {
 
               data.removeWhere((e) => e['title'] == '禁漫书库');
               data.removeWhere((e) => e['title'] == '禁漫去码&全彩化');
+              data.removeWhere((e) => e['title'] == '禁漫小说');
               return data;
             })
             .let(jsonEncode)

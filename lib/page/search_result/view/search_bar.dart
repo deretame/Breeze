@@ -1,9 +1,14 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uuid/uuid.dart';
+import 'package:zephyr/config/bika/bika_setting.dart';
+import 'package:zephyr/main.dart';
+import 'package:zephyr/page/bookshelf/models/events.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search/widget/advanced_search_dialog.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
+import 'package:zephyr/util/router/router.gr.dart';
 
 class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
   final SearchEvent searchEvent;
@@ -35,8 +40,21 @@ class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
             Expanded(
               child: GestureDetector(
                 onTap: () {
-                  // 点击搜索框区域，返回上一页去输入关键词
-                  context.maybePop();
+                  final stack = context.router.stack;
+
+                  if (stack.length > 1) {
+                    final previousRoute = stack[stack.length - 2];
+                    if (previousRoute.name == SearchRoute.name) {
+                      context.maybePop();
+                    } else {
+                      context.replaceRoute(
+                        SearchRoute(
+                          key: ValueKey(const Uuid().v4()),
+                          searchState: searchEvent.searchStates,
+                        ),
+                      );
+                    }
+                  }
                 },
                 child: Container(
                   height: 48,
@@ -71,22 +89,8 @@ class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
             // 右侧高级搜索按钮
             IconButton(
               icon: const Icon(Icons.tune),
-              onPressed: () async {
-                final searchCubit = context.read<SearchCubit>();
-
-                // 弹出之前写好的高级搜索 Dialog
-                final SearchStates? newStates = await showDialog<SearchStates>(
-                  context: context,
-                  builder: (context) {
-                    return AdvancedSearchDialog(
-                      initialState: searchCubit.state,
-                    );
-                  },
-                );
-
-                if (newStates != null && context.mounted) {
-                  searchCubit.update(newStates);
-                }
+              onPressed: () {
+                _search(context);
               },
             ),
             const SizedBox(width: 8),
@@ -104,6 +108,30 @@ class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _search(BuildContext context) async {
+    final searchCubit = context.read<SearchCubit>();
+    final bikaSettingCubit = context.read<BikaSettingCubit>();
+    final SearchStates? newStates = await showDialog<SearchStates>(
+      context: context,
+      builder: (context) {
+        return AdvancedSearchDialog(initialState: searchCubit.state);
+      },
+    );
+
+    if (newStates == null) return;
+    searchCubit.update(newStates);
+    bikaSettingCubit.updateBrevity(newStates.brevity);
+    bikaSettingCubit.updateShieldCategoryMap(newStates.categoriesBlock);
+
+    eventBus.fire(HistoryEvent(EventType.refresh, false));
+    eventBus.fire(DownloadEvent(EventType.refresh, false));
+    eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 1));
+    if (!context.mounted) return;
+
+    final searchBloc = context.read<SearchBloc>();
+    searchBloc.add(SearchEvent().copyWith(searchStates: searchCubit.state));
   }
 
   @override

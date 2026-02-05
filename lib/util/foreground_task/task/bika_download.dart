@@ -452,10 +452,10 @@ Future<void> sendSystemNotification(String title, String body) async {
   );
 
   await flutterLocalNotificationsPlugin.show(
-    256,
-    title,
-    body,
-    notificationDetails,
+    id: 256,
+    title: title,
+    body: body,
+    notificationDetails: notificationDetails,
     payload: 'download_complete',
   );
 }

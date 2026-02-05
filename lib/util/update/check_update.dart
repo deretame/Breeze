@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -27,10 +28,44 @@ Future<String> getAppVersion() async {
 }
 
 Future<GithubReleaseJson> getCloudVersion() async {
+  Future<String> createUserAgent() async {
+    // 1. 获取 App 信息 (Breeze/1.0.0)
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    String appName = packageInfo.appName;
+    String version = packageInfo.version;
+
+    // 2. 获取设备信息
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    String systemName = Platform.isAndroid ? "Android" : "iOS";
+    String? systemVersion;
+    String? model;
+
+    if (Platform.isAndroid) {
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      systemVersion = androidInfo.version.release; // 例如: 13
+      model = androidInfo.model; // 例如: Pixel 6
+    } else if (Platform.isIOS) {
+      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+      systemVersion = iosInfo.systemVersion; // 例如: 16.4
+      model = iosInfo.utsname.machine; // 例如: iPhone14,2
+    }
+
+    // 3. 拼接结果: Breeze/1.0.0 (Android 13; Pixel 6)
+    return "$appName/$version ($systemName $systemVersion; $model)";
+  }
+
   while (true) {
     try {
-      final response = await dio
-          .get("https://api.github.com/repos/deretame/Breeze/releases")
+      final response = await Dio()
+          .get(
+            "https://api.github.com/repos/deretame/Breeze/releases",
+            options: Options(
+              headers: {
+                'User-Agent': await createUserAgent(),
+                'Accept': 'application/vnd.github.v3+json',
+              },
+            ),
+          )
           .let((d) => d.data)
           .let(jsonEncode)
           .let(githubReleaseJsonFromJson)
@@ -39,7 +74,7 @@ Future<GithubReleaseJson> getCloudVersion() async {
       return response;
     } catch (e) {
       logger.e(e);
-      await Future.delayed(const Duration(minutes: 1));
+      await Future.delayed(const Duration(minutes: 5));
     }
   }
 }

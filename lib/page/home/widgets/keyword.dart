@@ -39,7 +39,7 @@ class _KeywordWidgetState extends State<KeywordWidget>
               context.pushRoute(
                 SearchResultRoute(
                   searchEvent: SearchEvent().copyWith(
-                    searchStates: SearchStates().copyWith(
+                    searchStates: SearchStates.initial(context).copyWith(
                       from: From.bika,
                       searchKeyword: widget.keywords[index],
                     ),

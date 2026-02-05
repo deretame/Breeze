@@ -1,8 +1,10 @@
 use anyhow::{Context, Result};
+use flate2::read::GzDecoder;
 use image::{GenericImageView, ImageBuffer, ImageFormat, Rgba};
 use md5;
 use std::fs::{self, File};
 use std::io::Cursor;
+use std::io::Read;
 use std::io::Write;
 use std::path::Path;
 
@@ -35,7 +37,30 @@ pub(crate) fn get_segmentation_num(eps_id: i32, scramble_id: i32, picture_name: 
 }
 
 // 这个东西是给禁漫用的，用来反混淆图片
-pub fn segmentation_picture_to_disk(image_info: ImageInfo) -> Result<()> {
+pub fn segmentation_picture_to_disk(mut image_info: ImageInfo) -> Result<()> {
+    // 检查是否是 Gzip 压缩数据 (Magic Bytes: 1F 8B)
+    if image_info.img_data.len() > 2
+        && image_info.img_data[0] == 0x1f
+        && image_info.img_data[1] == 0x8b
+    {
+        log::info!(
+            "检测到 Gzip 压缩数据，正在解压...: {}",
+            image_info.file_name
+        );
+
+        let mut decoder = GzDecoder::new(&image_info.img_data[..]);
+        let mut decompressed_data = Vec::new();
+        match decoder.read_to_end(&mut decompressed_data) {
+            Ok(_) => {
+                image_info.img_data = decompressed_data;
+                log::info!("解压成功，新数据大小: {}", image_info.img_data.len());
+            }
+            Err(e) => {
+                log::warn!("尝试解压 Gzip 失败: {}, 保留原数据", e);
+            }
+        }
+    }
+
     let format =
         image::guess_format(&image_info.img_data).context("Failed to guess image format")?;
 

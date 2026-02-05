@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
@@ -91,7 +92,7 @@ Future<dynamic> request(
 
   var cancelToken = CancelToken();
 
-  Timer(Duration(seconds: 20), () {
+  Timer(const Duration(seconds: 20), () {
     if (!cancelToken.isCancelled) {
       cancelToken.cancel('请求超时自动取消');
     }
@@ -116,10 +117,34 @@ Future<dynamic> request(
           ),
           cancelToken: cancelToken,
         )
-        .let((res) => res.data as List<int>)
-        .let(utf8.decode)
+        .let((Response res) {
+          if (!byte) return res.data;
+
+          List<int> bytes = res.data as List<int>;
+
+          final contentEncoding = res.headers.value('content-encoding');
+          final bool isGzipMagic =
+              bytes.length >= 2 && bytes[0] == 0x1f && bytes[1] == 0x8b;
+
+          if (isGzipMagic && (contentEncoding?.contains('gzip') ?? false)) {
+            try {
+              return GZipCodec().decode(bytes);
+            } catch (e) {
+              // 兜底：解压失败则原样返回
+              return bytes;
+            }
+          }
+          return bytes;
+        })
+        .let((data) {
+          if (data is List<int>) {
+            return utf8.decode(data);
+          }
+          return data.toString();
+        })
         .let(jsonDecode)
         .let((var d) => decodeRespData(d['data'], timestamp));
+
     if (cache) {
       netCache.set(url, result);
     }
@@ -130,8 +155,6 @@ Future<dynamic> request(
     if (cancelToken.isCancelled) {
       throw Exception('请求超时自动取消');
     }
-
-    // 抛出封装后的错误信息
     throw Exception(_handleDioError(error));
   } catch (e, s) {
     logger.e(e, stackTrace: s);

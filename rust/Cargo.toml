@@ -22,6 +22,7 @@ tokio-tar = "0.3.1"
 zip = "2.1"
 zhconv = "0.3.3"
 lazy_static = "1.5.0"
+flate2 = "1.0"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }

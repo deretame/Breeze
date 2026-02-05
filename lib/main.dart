@@ -34,6 +34,7 @@ import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/util/debouncer.dart';
+import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/router/router.dart';
 
@@ -61,6 +62,7 @@ Future<void> main() async {
 
       // 初始化环境变量
       await dotenv.load(fileName: ".env");
+      if (kDebugMode) await dotenv.load(fileName: ".env.proxy");
 
       // 初始化rust
       await RustLib.init();
@@ -68,6 +70,17 @@ Future<void> main() async {
       dio.httpClientAdapter = Http2Adapter(ConnectionManager());
       jmDio.httpClientAdapter = Http2Adapter(ConnectionManager());
       pictureDio.httpClientAdapter = Http2Adapter(ConnectionManager());
+
+      if (kDebugMode) {
+        final url = dotenv.env['proxy'];
+        if (url != null && url.isNotEmpty) {
+          if (await isProxyAvailable(url)) {
+            configProxy(jmDio, url);
+            configProxy(pictureDio, url);
+            configProxy(dio, url);
+          }
+        }
+      }
 
       // 初始化前台任务
       FlutterForegroundTask.initCommunicationPort();

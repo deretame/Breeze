@@ -130,8 +130,18 @@ Future<Map<String, dynamic>> request(
     List<int> bytes = response.data as List<int>;
 
     final contentEncoding = response.headers.value('content-encoding');
-    if (contentEncoding != null && contentEncoding.contains('gzip')) {
-      bytes = GZipCodec().decode(bytes);
+
+    bool isActuallyGzipped =
+        bytes.length >= 2 && bytes[0] == 0x1f && bytes[1] == 0x8b;
+
+    if (contentEncoding != null &&
+        contentEncoding.contains('gzip') &&
+        isActuallyGzipped) {
+      try {
+        bytes = GZipCodec().decode(bytes);
+      } catch (e) {
+        logger.d("Gzip decode failed, assuming plain text: $e");
+      }
     }
 
     final String decodedString = utf8.decode(bytes);

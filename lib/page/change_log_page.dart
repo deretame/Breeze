@@ -7,8 +7,9 @@ import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/util/update/json/github_release_json.dart';
+
+final dio = Dio();
 
 @RoutePage()
 class ChangelogPage extends StatefulWidget {

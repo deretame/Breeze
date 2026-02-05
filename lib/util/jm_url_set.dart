@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/main.dart';
 
@@ -58,4 +61,43 @@ Future<void> setFastestImagesUrlIndex() async {
   final index = await getFastestUrlIndex(JmConfig.imagesUrls);
   logger.d('Fastest images URL index: $index');
   JmConfig.setImagesUrlIndex(index);
+}
+
+void configProxy(Dio dio, String proxy) {
+  // 获取 adapter (Dio 5.0+ 的写法)
+  dio.httpClientAdapter = IOHttpClientAdapter(
+    createHttpClient: () {
+      final client = HttpClient();
+
+      client.findProxy = (uri) {
+        return 'PROXY $proxy';
+      };
+      client.badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+
+      return client;
+    },
+  );
+}
+
+Future<bool> isProxyAvailable(String url) async {
+  try {
+    Uri uri = Uri.parse(url.contains('//') ? url : 'http://$url');
+    String host = uri.host;
+    int port = uri.port;
+
+    final socket = await Socket.connect(
+      host,
+      port,
+      timeout: const Duration(seconds: 2),
+    );
+
+    logger.d("代理测试成功: $url");
+
+    socket.destroy();
+    return true;
+  } catch (e) {
+    logger.d("代理测试失败: $e");
+    return false;
+  }
 }

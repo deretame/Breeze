@@ -1,7 +1,7 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔及禁漫应用。"
 publish_to: none
-version: 2.12.1+2172
+version: 2.12.2+2173
 
 environment:
   sdk: ^3.9.2
@@ -34,6 +34,7 @@ dependencies:
   dynamic_tabbar: ^1.0.9 # 动态可滚动的TabBar
   flutter_expandable_fab: ^2.5.1 # 可折叠的FAB
   easy_refresh: ^3.4.0 # 超级下拉刷新组件
+  flutter_speed_dial: ^7.0.0 # 可折叠的FAB
 
   ########################################
   #        状态管理 & 事件总线           #

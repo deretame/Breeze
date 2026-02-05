@@ -2,12 +2,12 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart' hide Thumb;
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/search_result.dart';
-import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../cubit/string_select.dart';
 import '../../../type/enum.dart';
@@ -66,7 +66,6 @@ class _SearchResultPageState extends State<_SearchResultPage>
   int pagesCount = 0;
   late AnimationController _animationController;
   late Animation<Offset> _slideAnimation;
-  int _lastExecutedTime = 0; // 上次执行的时间
 
   @override
   void initState() {
@@ -111,29 +110,69 @@ class _SearchResultPageState extends State<_SearchResultPage>
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: SearchResultBar(searchEvent: searchEvent),
       body: _bloc(),
       floatingActionButton: SlideTransition(
         position: _slideAnimation,
-        child: FloatingActionButton(
-          onPressed: () async {
-            final int? targetPage = await showNumberInputDialog(
-              context: context,
-              title: '跳转',
-              initialValue: searchEvent.page,
-            );
+        child: SpeedDial(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          buttonSize: const Size(56, 56),
+          childrenButtonSize: const Size(56, 56),
+          backgroundColor: colorScheme.primaryContainer,
+          foregroundColor: colorScheme.onPrimaryContainer,
+          icon: Icons.menu,
+          activeIcon: Icons.close,
+          useRotationAnimation: true,
+          animationDuration: const Duration(milliseconds: 300),
+          spacing: 12,
+          spaceBetweenChildren: 8,
+          children: [
+            SpeedDialChild(
+              child: const Icon(Icons.vertical_align_top),
+              label: '返回顶部',
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              backgroundColor: colorScheme.secondaryContainer,
+              foregroundColor: colorScheme.onSecondaryContainer,
+              onTap: () {
+                _scrollController.animateTo(
+                  0,
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                );
+              },
+            ),
+            SpeedDialChild(
+              child: const Icon(Icons.shortcut),
+              label: '跳转页面',
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              backgroundColor: colorScheme.secondaryContainer,
+              foregroundColor: colorScheme.onSecondaryContainer,
+              onTap: () async {
+                final int? targetPage = await showNumberInputDialog(
+                  context: context,
+                  title: '跳转',
+                  initialValue: searchEvent.page,
+                );
 
-            if (targetPage != null && context.mounted) {
-              context.read<SearchBloc>().add(
-                searchEvent.copyWith(
-                  page: targetPage,
-                  status: SearchStatus.initial,
-                ),
-              );
-            }
-          },
-          child: const Icon(Icons.shortcut),
+                if (targetPage != null && context.mounted) {
+                  context.read<SearchBloc>().add(
+                    searchEvent.copyWith(
+                      page: targetPage,
+                      status: SearchStatus.initial,
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -343,30 +382,6 @@ class _SearchResultPageState extends State<_SearchResultPage>
   }
 
   void _onScroll() {
-    var currentTime = DateTime.now().millisecondsSinceEpoch;
-
-    // logger.d(bikaSetting.brevity);
-    // 只有当距离上一次执行超过50ms且漫画展示不为简略时，才执行
-    final bool isBrevity = context.read<BikaSettingCubit>().state.brevity;
-    if (currentTime - _lastExecutedTime > 100 && !isBrevity) {
-      double itemHeight = 180.0 + ((context.screenHeight / 10) * 0.1);
-      double currentScrollPosition = _scrollController.position.pixels;
-      double middlePosition =
-          currentScrollPosition + (context.screenHeight / 3);
-      double listViewStartOffset = 0.0;
-      int itemIndex = ((middlePosition - listViewStartOffset) / itemHeight)
-          .floor();
-
-      if (itemIndex >= 0 && itemIndex < comics.length) {
-        int buildNumber = comics[itemIndex].buildNumber;
-        // logger.d(comics[itemIndex].doc.title);
-        context.read<StringSelectCubit>().setDate("$buildNumber/$pagesCount");
-      }
-
-      // 更新上次执行时间
-      _lastExecutedTime = currentTime;
-    }
-
     // 控制 FAB 的上下移动
     if (_scrollController.position.userScrollDirection ==
         ScrollDirection.reverse) {

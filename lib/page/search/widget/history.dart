@@ -114,7 +114,6 @@ class _HistoryWidgetState extends State<HistoryWidget> {
   }
 
   Widget _buildHistoryList(List<String> historyList) {
-    final searchCubit = context.read<SearchCubit>();
     final sortedHistory = _isNewestFirst
         ? historyList
         : historyList.reversed.toList();

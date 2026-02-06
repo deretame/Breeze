@@ -1,7 +1,5 @@
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_socks_proxy/socks_proxy.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
@@ -17,7 +15,6 @@ import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/main_task.dart';
-import 'package:zephyr/util/foreground_task/task/bika_download.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
@@ -77,12 +74,6 @@ Future<void> jmDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
   await downloadComic(self, updatedDownloadInfo, task.selectedChapters);
 
   await saveToDB(updatedDownloadInfo, epsIds, temp);
-
-  await sendSystemNotification("下载完成", "${updatedDownloadInfo.name}下载完成");
-
-  FlutterForegroundTask.sendDataToMain(
-    self.downloadTasks.toJson().let(jsonEncode),
-  );
 }
 
 Future<base_info.JmComicInfoJson> getJmComicInfo(String comicId) async {

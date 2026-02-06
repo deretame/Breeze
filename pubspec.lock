@@ -149,10 +149,10 @@ packages:
     dependency: "direct dev"
     description:
       name: build_runner
-      sha256: b4d854962a32fd9f8efc0b76f98214790b833af8b2e9b2df6bfc927c0415a072
+      sha256: ac78098de97893812b7aff1154f29008fa2464cad9e8e7044d39bc905dad4fbc
       url: "https://pub.dev"
     source: hosted
-    version: "2.10.5"
+    version: "2.11.0"
   built_collection:
     dependency: transitive
     description:
@@ -1000,10 +1000,10 @@ packages:
     dependency: transitive
     description:
       name: isolate_channel
-      sha256: "30116dae19310e3d31706adc5a185070d42ade3fc7ea411b6069df3dc18a1284"
+      sha256: a9d3d620695bc984244dafae00b95e4319d6974b2d77f4b9e1eb4f2efe099094
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.0"
+    version: "0.6.1"
   js:
     dependency: transitive
     description:
@@ -1208,10 +1208,10 @@ packages:
     dependency: transitive
     description:
       name: objective_c
-      sha256: "983c7fa1501f6dcc0cb7af4e42072e9993cb28d73604d25ebf4dab08165d997e"
+      sha256: "100a1c87616ab6ed41ec263b083c0ef3261ee6cd1dc3b0f35f8ddfa4f996fe52"
       url: "https://pub.dev"
     source: hosted
-    version: "9.2.5"
+    version: "9.3.0"
   open_file:
     dependency: "direct main"
     description:
@@ -1668,10 +1668,10 @@ packages:
     dependency: transitive
     description:
       name: source_span
-      sha256: "254ee5351d6cb365c859e20ee823c3bb479bf4a293c22d17a9f1bf144ce86f7c"
+      sha256: "56a02f1f4cd1a2d96303c0144c93bd6d909eea6bee6bf5a0e0b685edbd4c47ab"
       url: "https://pub.dev"
     source: hosted
-    version: "1.10.1"
+    version: "1.10.2"
   stack_trace:
     dependency: "direct main"
     description:
@@ -1940,10 +1940,10 @@ packages:
     dependency: transitive
     description:
       name: webview_flutter_wkwebview
-      sha256: e49f378ed066efb13fc36186bbe0bd2425630d4ea0dbc71a18fdd0e4d8ed8ebc
+      sha256: "0412b657a2828fb301e73509909e6ec02b77cd2b441ae9f77125d482b3ddf0e7"
       url: "https://pub.dev"
     source: hosted
-    version: "3.23.5"
+    version: "3.23.6"
   win32:
     dependency: transitive
     description:

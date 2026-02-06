@@ -22,8 +22,6 @@ import 'package:zephyr/page/ranking_list/ranking_list.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
-import 'package:zephyr/util/foreground_task/main_task.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/memory/memory_overlay_widget.dart';
@@ -96,7 +94,6 @@ class _NavigationBarState extends State<NavigationBar> {
     );
     hideOnScrollSettings = HideOnScrollSettings(); // 先去掉这个东西
     _initForegroundTask();
-    FlutterForegroundTask.addTaskDataCallback(_onReceiveTaskData);
 
     _initializeNotificationsOnce();
 
@@ -523,25 +520,6 @@ class _NavigationBarState extends State<NavigationBar> {
         allowWifiLock: true,
       ),
     );
-  }
-
-  void _onReceiveTaskData(Object data) {
-    if (data as String == "clear") {
-      downloadTasks.clear();
-      return;
-    }
-
-    showSuccessToast("${downloadTaskJsonFromJson(data).comicName}下载完成");
-    downloadTasks.remove(data);
-    logger.d(downloadTasks);
-    if (downloadTasks.isEmpty) {
-      FlutterForegroundTask.stopService();
-    } else {
-      showInfoToast(
-        "${downloadTaskJsonFromJson(downloadTasks.first).comicName}开始下载",
-      );
-      FlutterForegroundTask.sendDataToTask(downloadTasks.first);
-    }
   }
 
   Future<void> _initializeNotificationsOnce() async {

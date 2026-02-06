@@ -14,7 +14,6 @@ import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/init.dart';
-import 'package:zephyr/util/foreground_task/main_task.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../../object_box/model.dart';
@@ -157,14 +156,11 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
     try {
       await initForegroundTask(jmComicInfoJson.name);
       showInfoToast("下载任务已启动");
-      await Future.delayed(const Duration(seconds: 1));
-      FlutterForegroundTask.sendDataToTask(downloadTask);
     } catch (e, s) {
       logger.e(e, stackTrace: s);
-      if (e.toString().contains("已有下载任务进行中")) {
-        downloadTasks.add(downloadTask);
-      }
       showInfoToast("已添加到下载列表");
     }
+    await Future.delayed(const Duration(seconds: 1));
+    FlutterForegroundTask.sendDataToTask(downloadTask);
   }
 }

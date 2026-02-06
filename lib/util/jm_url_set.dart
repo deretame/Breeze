@@ -6,7 +6,8 @@ import 'package:dio/io.dart';
 import 'package:flutter/services.dart';
 import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/jm/http_request_build.dart';
+import 'package:zephyr/network/http/bika/pica_client.dart';
+import 'package:zephyr/network/http/jm/jm_client.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 
 class _SpeedResult {
@@ -86,7 +87,7 @@ Future<void> enableProxy() async {
     if (proxyUrl != null &&
         proxyUrl.isNotEmpty &&
         await isProxyAvailable(proxyUrl)) {
-      final dioInstances = [jmDio, pictureDio, dio];
+      final dioInstances = [JmClient().dio, pictureDio, dio, PicaClient().dio];
       for (var instance in dioInstances) {
         configProxy(instance, proxyUrl);
       }

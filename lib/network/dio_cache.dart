@@ -52,6 +52,11 @@ class DioCacheInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    final bool shouldCache = options.extra['useCache'] ?? false;
+    if (!shouldCache) {
+      return handler.next(options);
+    }
+
     final cacheKey = _generateCacheKey(options);
     final cachedResponse = cache.get<Response>(cacheKey);
 
@@ -64,7 +69,10 @@ class DioCacheInterceptor extends Interceptor {
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    if (response.statusCode == 200 && _isValidResponseBody(response.data)) {
+    final bool shouldCache = response.requestOptions.extra['useCache'] ?? false;
+    if (shouldCache &&
+        response.statusCode == 200 &&
+        _isValidResponseBody(response.data)) {
       final cacheKey = _generateCacheKey(response.requestOptions);
       cache.set(cacheKey, response);
     }

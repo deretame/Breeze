@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
@@ -8,33 +9,46 @@ import 'package:zephyr/util/foreground_task/task/bika_download.dart';
 import 'package:zephyr/util/foreground_task/task/jm_download.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-// 下载任务列表
-List<String> downloadTasks = [];
-
 @pragma('vm:entry-point')
 void startCallback() {
   FlutterForegroundTask.setTaskHandler(MyTaskHandler());
 }
 
 class MyTaskHandler extends TaskHandler {
+  final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   late final ObjectBox objectBox;
-  // 下载任务列表
-  late DownloadTaskJson downloadTasks;
+  List<DownloadTaskJson> downloadTasksList = [];
+  late DownloadTaskJson currentTask;
   late String comicName;
   late String comicId;
   String message = '';
 
+  bool _isExecuting = false;
+
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
     objectBox = await ObjectBox.create();
+    const initializationSettingsAndroid = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
+    const initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+    );
+    await flutterLocalNotificationsPlugin.initialize(
+      settings: initializationSettings,
+      onDidReceiveNotificationResponse:
+          (NotificationResponse notificationResponse) async {},
+    );
   }
 
   @override
   void onRepeatEvent(DateTime timestamp) {
-    FlutterForegroundTask.updateService(
-      notificationTitle: '$comicName 下载中...',
-      notificationText: message,
-    );
+    if (_isExecuting) {
+      FlutterForegroundTask.updateService(
+        notificationTitle: '$comicName 下载中...',
+        notificationText: message,
+      );
+    }
   }
 
   @override
@@ -42,24 +56,10 @@ class MyTaskHandler extends TaskHandler {
 
   @override
   void onReceiveData(Object data) {
-    downloadTasks = downloadTaskJsonFromJson(data as String);
-    logger.d(data);
-    if (downloadTasks.from == "bika") {
-      comicName = downloadTasks.comicName;
-      comicId = downloadTasks.comicId;
-      bikaDownloadTask(this, downloadTasks).catchError((e, s) {
-        logger.e(e, stackTrace: s);
-        showErrorToast(e.toString());
-        FlutterForegroundTask.stopService();
-      });
-    } else if (downloadTasks.from == "jm") {
-      comicName = downloadTasks.comicName;
-      comicId = downloadTasks.comicId;
-      jmDownloadTask(this, downloadTasks).catchError((e, s) {
-        logger.e(e, stackTrace: s);
-        showErrorToast(e.toString());
-        FlutterForegroundTask.stopService();
-      });
+    final newTask = downloadTaskJsonFromJson(data as String);
+    downloadTasksList.add(newTask);
+    if (!_isExecuting) {
+      nextTask();
     }
   }
 
@@ -78,6 +78,69 @@ class MyTaskHandler extends TaskHandler {
   void onNotificationDismissed() {
     FlutterForegroundTask.sendDataToMain("clear");
     FlutterForegroundTask.stopService();
+  }
+
+  Future<void> nextTask() async {
+    if (downloadTasksList.isNotEmpty) {
+      _isExecuting = true;
+
+      currentTask = downloadTasksList.removeAt(0);
+      comicName = currentTask.comicName;
+      comicId = currentTask.comicId;
+
+      Future taskFuture;
+
+      showInfoToast("${currentTask.comicName}开始下载");
+
+      if (currentTask.from == "bika") {
+        taskFuture = bikaDownloadTask(this, currentTask);
+      } else if (currentTask.from == "jm") {
+        taskFuture = jmDownloadTask(this, currentTask);
+      } else {
+        nextTask();
+        return;
+      }
+
+      taskFuture
+          .then((_) {
+            logger.d("任务 $comicName 完成");
+            sendSystemNotification("下载完成", "$comicName 下载完成");
+          })
+          .catchError((e, s) {
+            logger.e("任务 $comicName 失败", error: e, stackTrace: s);
+            sendSystemNotification("下载失败", "$comicName 下载失败");
+          })
+          .whenComplete(() {
+            nextTask();
+          });
+    } else {
+      _isExecuting = false;
+      logger.d("所有下载任务已完成，停止服务");
+      FlutterForegroundTask.stopService();
+    }
+  }
+
+  Future<void> sendSystemNotification(String title, String body) async {
+    const androidNotificationDetails = AndroidNotificationDetails(
+      'download_complete',
+      '下载完成通知',
+      channelDescription: '下载完成通知',
+      importance: Importance.max,
+      priority: Priority.high,
+      icon: '@mipmap/ic_launcher',
+    );
+
+    const notificationDetails = NotificationDetails(
+      android: androidNotificationDetails,
+    );
+
+    await flutterLocalNotificationsPlugin.show(
+      id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title: title,
+      body: body,
+      notificationDetails: notificationDetails,
+      payload: 'download_complete',
+    );
   }
 }
 

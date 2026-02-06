@@ -109,7 +109,7 @@ Future<Map<String, dynamic>> comment(
 
   final Map<String, dynamic> data = await request(
     '${JmConfig.baseUrl}/forum',
-    body: body,
+    data: body,
     method: 'POST',
   );
 

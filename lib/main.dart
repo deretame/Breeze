@@ -1,8 +1,6 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:dio_cookie_manager/dio_cookie_manager.dart';
-import 'package:dio_http2_adapter/dio_http2_adapter.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -23,13 +21,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
-import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/config/mobx/theme_mode_adapter.dart';
 import 'package:zephyr/firebase_options.dart';
 import 'package:zephyr/network/dio_cache.dart';
-import 'package:zephyr/network/http/jm/http_request_build.dart';
-import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/src/rust/frb_generated.dart';
@@ -65,10 +60,6 @@ Future<void> main() async {
 
       // 初始化rust
       await RustLib.init();
-
-      dio.httpClientAdapter = Http2Adapter(ConnectionManager());
-      jmDio.httpClientAdapter = Http2Adapter(ConnectionManager());
-      pictureDio.httpClientAdapter = Http2Adapter(ConnectionManager());
 
       // 配置http代理，方便开发测试
       if (kDebugMode) {
@@ -170,8 +161,6 @@ Future<void> main() async {
           return true; // 表示错误已处理
         };
       }
-
-      jmDio.interceptors.add(CookieManager(JmConfig.cookieJar));
 
       runApp(
         MultiBlocProvider(

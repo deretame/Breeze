@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_socks_proxy/socks_proxy.dart';
 import 'package:zephyr/main.dart';
@@ -133,12 +132,6 @@ Future<void> bikaDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
   await _saveToDB(comicAllInfoJson, epsTitle);
 
   await checkFile(comicAllInfoJson);
-
-  await sendSystemNotification("下载完成", "${comicInfo.title}下载完成");
-
-  FlutterForegroundTask.sendDataToMain(
-    self.downloadTasks.toJson().let(jsonEncode),
-  );
 }
 
 Future<Comic> _getComicInfo(String comicId, String authorization) async {

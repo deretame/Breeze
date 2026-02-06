@@ -50,4 +50,4 @@ app.*.map.json
 .fvm/
 
 .crashlytics
-.env.proxy
+# .env.proxy

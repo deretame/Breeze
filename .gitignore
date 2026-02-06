@@ -48,4 +48,6 @@ app.*.map.json
 
 # FVM Version Cache
 .fvm/
+
 .crashlytics
+.env.proxy

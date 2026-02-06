@@ -1,9 +1,13 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
+import 'package:flutter/services.dart';
 import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/jm/http_request_build.dart';
+import 'package:zephyr/network/http/picture/picture.dart';
 
 class _SpeedResult {
   final String url;
@@ -61,6 +65,36 @@ Future<void> setFastestImagesUrlIndex() async {
   final index = await getFastestUrlIndex(JmConfig.imagesUrls);
   logger.d('Fastest images URL index: $index');
   JmConfig.setImagesUrlIndex(index);
+}
+
+Future<void> enableProxy() async {
+  try {
+    final content = await rootBundle.loadString('.env.proxy');
+    String? proxyUrl;
+    final lines = const LineSplitter().convert(content);
+
+    for (var line in lines) {
+      line = line.trim();
+      if (line.isNotEmpty &&
+          !line.startsWith('#') &&
+          line.startsWith('proxy=')) {
+        String value = line.substring('proxy='.length);
+        proxyUrl = value.trim().replaceAll('"', '').replaceAll("'", "");
+        break;
+      }
+    }
+    if (proxyUrl != null &&
+        proxyUrl.isNotEmpty &&
+        await isProxyAvailable(proxyUrl)) {
+      final dioInstances = [jmDio, pictureDio, dio];
+      for (var instance in dioInstances) {
+        configProxy(instance, proxyUrl);
+      }
+      logger.d("🚀 [Debug] 已从 .env.proxy 加载代理: $proxyUrl");
+    }
+  } catch (e) {
+    logger.e("无法读取代理文件 (Asset not found): $e");
+  }
 }
 
 void configProxy(Dio dio, String proxy) {

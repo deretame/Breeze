@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
@@ -73,20 +72,7 @@ Future<void> main() async {
 
       // 配置http代理，方便开发测试
       if (kDebugMode) {
-        const proxyFileName = ".env.proxy";
-        final proxyFile = File(proxyFileName);
-
-        if (await proxyFile.exists()) {
-          await dotenv.load(fileName: proxyFileName);
-          final url = dotenv.env['proxy'];
-
-          if (url != null && url.isNotEmpty && await isProxyAvailable(url)) {
-            final dioInstances = [jmDio, pictureDio, dio];
-            for (var instance in dioInstances) {
-              configProxy(instance, url);
-            }
-          }
-        }
+        await enableProxy();
       }
 
       // 初始化前台任务

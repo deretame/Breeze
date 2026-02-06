@@ -80,24 +80,36 @@ void configProxy(Dio dio, String proxy) {
   );
 }
 
-Future<bool> isProxyAvailable(String url) async {
+Future<bool> isProxyAvailable(String proxyUrl) async {
   try {
-    Uri uri = Uri.parse(url.contains('//') ? url : 'http://$url');
-    String host = uri.host;
-    int port = uri.port;
+    final client = HttpClient();
 
-    final socket = await Socket.connect(
-      host,
-      port,
-      timeout: const Duration(seconds: 2),
+    client.findProxy = (uri) {
+      return "PROXY $proxyUrl";
+    };
+
+    client.badCertificateCallback =
+        (X509Certificate cert, String host, int port) => true;
+
+    client.connectionTimeout = const Duration(seconds: 3);
+
+    final request = await client.getUrl(
+      Uri.parse('http://connect.rom.miui.com/generate_204'),
     );
 
-    logger.d("代理测试成功: $url");
+    final response = await request.close();
 
-    socket.destroy();
-    return true;
+    if (response.statusCode < 400) {
+      logger.d("代理测试成功，响应码: ${response.statusCode}");
+      client.close();
+      return true;
+    } else {
+      logger.w("代理响应了错误码: ${response.statusCode}");
+      client.close();
+      return false;
+    }
   } catch (e) {
-    logger.d("代理测试失败: $e");
+    logger.e("代理连接彻底失败: $e");
     return false;
   }
 }

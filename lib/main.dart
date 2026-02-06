@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
@@ -62,7 +63,6 @@ Future<void> main() async {
 
       // 初始化环境变量
       await dotenv.load(fileName: ".env");
-      if (kDebugMode) await dotenv.load(fileName: ".env.proxy");
 
       // 初始化rust
       await RustLib.init();
@@ -71,13 +71,20 @@ Future<void> main() async {
       jmDio.httpClientAdapter = Http2Adapter(ConnectionManager());
       pictureDio.httpClientAdapter = Http2Adapter(ConnectionManager());
 
+      // 配置http代理，方便开发测试
       if (kDebugMode) {
-        final url = dotenv.env['proxy'];
-        if (url != null && url.isNotEmpty) {
-          if (await isProxyAvailable(url)) {
-            configProxy(jmDio, url);
-            configProxy(pictureDio, url);
-            configProxy(dio, url);
+        const proxyFileName = ".env.proxy";
+        final proxyFile = File(proxyFileName);
+
+        if (await proxyFile.exists()) {
+          await dotenv.load(fileName: proxyFileName);
+          final url = dotenv.env['proxy'];
+
+          if (url != null && url.isNotEmpty && await isProxyAvailable(url)) {
+            final dioInstances = [jmDio, pictureDio, dio];
+            for (var instance in dioInstances) {
+              configProxy(instance, url);
+            }
           }
         }
       }

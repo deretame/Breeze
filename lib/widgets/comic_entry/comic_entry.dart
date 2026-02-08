@@ -20,12 +20,14 @@ class ComicEntryWidget extends StatefulWidget {
   final ComicEntryInfo comicEntryInfo;
   final ComicEntryType? type;
   final VoidCallback? refresh;
+  final String? pictureType;
 
   const ComicEntryWidget({
     super.key,
     required this.comicEntryInfo,
     this.type,
     this.refresh,
+    this.pictureType,
   });
 
   @override
@@ -38,6 +40,8 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
   ComicEntryType? get type => widget.type;
 
   VoidCallback? get refresh => widget.refresh;
+
+  String? get pictureType => widget.pictureType;
 
   ComicEntryType? _type;
 
@@ -63,9 +67,11 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
   Widget build(BuildContext context) {
     final theme = context.theme;
 
+    const double coverWidth = 100.0;
+    const double coverHeight = 133.0;
+
     return GestureDetector(
       onTap: () {
-        // 跳转到漫画详情页
         context.pushRoute(
           ComicInfoRoute(
             comicId: comicEntryInfo.id,
@@ -81,97 +87,113 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
         }
         deleteDialog();
       },
-      child: Column(
-        children: <Widget>[
-          SizedBox(height: (context.screenHeight / 10) * 0.1),
-          Container(
-            height: 180,
-            width: ((context.screenWidth / 10) * 9.5),
-            margin: EdgeInsets.symmetric(
-              horizontal: (context.screenWidth / 10) * 0.25,
+      child: Container(
+        width: ((context.screenWidth / 10) * 9.5),
+        margin: EdgeInsets.symmetric(
+          horizontal: (context.screenWidth / 10) * 0.25,
+          vertical: 6.0,
+        ),
+        decoration: BoxDecoration(
+          color: context.backgroundColor,
+          borderRadius: BorderRadius.circular(10.0),
+          boxShadow: [
+            BoxShadow(
+              color: theme.colorScheme.primaryFixedDim,
+              spreadRadius: 0,
+              blurRadius: 2,
+              offset: const Offset(0, 0),
             ),
-            decoration: BoxDecoration(
-              color: context.backgroundColor,
-              borderRadius: BorderRadius.circular(10.0),
-              boxShadow: [
-                BoxShadow(
-                  color: theme.colorScheme.primaryFixedDim,
-                  spreadRadius: 0,
-                  blurRadius: 2,
-                  offset: const Offset(0, 0),
-                ),
-              ],
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Builder(
+              builder: (BuildContext context) {
+                return ImageWidget(
+                  key: ValueKey(comicEntryInfo.id),
+                  fileServer: comicEntryInfo.thumb.fileServer,
+                  path: comicEntryInfo.thumb.path,
+                  id: comicEntryInfo.id,
+                  pictureType: pictureType ?? "cover",
+                  targetWidth: coverWidth,
+                  targetHeight: coverHeight,
+                );
+              },
             ),
-            child: Row(
-              children: <Widget>[
-                Builder(
-                  builder: (BuildContext context) {
-                    return ImageWidget(
-                      key: ValueKey(comicEntryInfo.id),
-                      fileServer: comicEntryInfo.thumb.fileServer,
-                      path: comicEntryInfo.thumb.path,
-                      id: comicEntryInfo.id,
-                      pictureType: "cover",
-                    );
-                  },
-                ),
-                SizedBox(width: context.screenWidth / 60),
-                Expanded(
+
+            Expanded(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: coverHeight),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      SizedBox(height: context.screenWidth / 200),
-                      Text(
-                        comicEntryInfo.title,
-                        style: TextStyle(
-                          color: context.textColor,
-                          fontSize: 18,
-                        ),
-                        maxLines: 3, // 最大行数
-                        overflow: TextOverflow.ellipsis, // 超出时使用省略号
-                      ),
-                      if (comicEntryInfo.author.toString() != '') ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          comicEntryInfo.author.toString(),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                          style: TextStyle(color: theme.colorScheme.primary),
-                        ),
-                      ],
-                      const SizedBox(height: 5),
-                      Text(
-                        _getCategories(comicEntryInfo.categories),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 2,
-                        style: TextStyle(color: context.textColor),
-                      ),
-                      Spacer(),
-                      Row(
-                        children: <Widget>[
-                          const Icon(
-                            Icons.favorite,
-                            color: Colors.red,
-                            size: 24.0,
-                          ),
-                          const SizedBox(width: 10.0),
-                          Text(comicEntryInfo.likesCount.toString()),
-                          SizedBox(width: 10.0),
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            comicEntryInfo.finished ? "完结" : "",
-                            style: TextStyle(color: theme.colorScheme.tertiary),
+                            comicEntryInfo.title,
+                            style: TextStyle(
+                              color: context.textColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          if (comicEntryInfo.author.toString().isNotEmpty) ...[
+                            Text(
+                              comicEntryInfo.author.toString(),
+                              style: TextStyle(
+                                color: theme.colorScheme.primary,
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                          ],
+                          Text(
+                            _getCategories(comicEntryInfo.categories),
+                            style: TextStyle(
+                              color: context.textColor.withValues(alpha: 0.8),
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ),
-                      SizedBox(height: context.screenWidth / 200),
+
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.favorite,
+                            color: Colors.red,
+                            size: 20.0,
+                          ),
+                          const SizedBox(width: 6.0),
+                          Text(
+                            comicEntryInfo.likesCount.toString(),
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          const SizedBox(width: 12.0),
+                          Text(
+                            comicEntryInfo.finished ? "完结" : "连载中",
+                            style: TextStyle(
+                              color: theme.colorScheme.tertiary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
-                SizedBox(width: context.screenWidth / 50),
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -196,7 +218,7 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
         return AlertDialog(
           title: Text(title),
           content: Text(content),
-          actions: <Widget>[
+          actions: [
             TextButton(child: Text("取消"), onPressed: () => context.pop()),
             TextButton(
               child: Text("确定"),
@@ -262,6 +284,8 @@ class ImageWidget extends StatelessWidget {
   final String path;
   final String id;
   final String pictureType;
+  final double targetWidth;
+  final double targetHeight;
 
   const ImageWidget({
     super.key,
@@ -269,6 +293,8 @@ class ImageWidget extends StatelessWidget {
     required this.path,
     required this.id,
     required this.pictureType,
+    this.targetWidth = 100,
+    this.targetHeight = 133,
   });
 
   @override
@@ -283,29 +309,35 @@ class ImageWidget extends StatelessWidget {
       pictureType: pictureType,
     );
 
-    const double height = 180;
-    const double width = height / 4 * 3;
-
     return BlocProvider(
       create: (context) => PictureBloc()..add(GetPicture(pictureInfo)),
       child: BlocBuilder<PictureBloc, PictureLoadState>(
         builder: (context, state) {
+          Widget containerWrapper(Widget child) {
+            return SizedBox(
+              width: targetWidth,
+              height: targetHeight,
+              child: child,
+            );
+          }
+
+          // 定义统一的圆角
+          const borderRadius = BorderRadius.only(
+            topLeft: Radius.circular(10.0),
+            bottomLeft: Radius.circular(10.0),
+          );
+
           switch (state.status) {
             case PictureLoadStatus.initial:
-              return Center(
-                child: SizedBox(
-                  width: width,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: LoadingAnimationWidget.waveDots(
-                      color: theme.colorScheme.primaryFixedDim,
-                      size: 50,
-                    ),
+              return containerWrapper(
+                Center(
+                  child: LoadingAnimationWidget.waveDots(
+                    color: theme.colorScheme.primaryFixedDim,
+                    size: 30,
                   ),
                 ),
               );
             case PictureLoadStatus.success:
-              // 没有错误，正常显示图片
               return InkWell(
                 onTap: () {
                   context.pushRoute(
@@ -313,35 +345,40 @@ class ImageWidget extends StatelessWidget {
                   );
                 },
                 child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(10.0),
-                    bottomLeft: Radius.circular(10.0),
-                  ),
+                  borderRadius: borderRadius,
                   child: Image.file(
                     File(state.imagePath!),
                     fit: BoxFit.cover,
-                    width: width,
-                    height: height,
+                    width: targetWidth,
+                    height: targetHeight,
                   ),
                 ),
               );
             case PictureLoadStatus.failure:
               if (state.result.toString().contains('404')) {
-                return SizedBox(
-                  width: width,
-                  child: Image.asset('asset/image/error_image/404.png'),
+                return ClipRRect(
+                  borderRadius: borderRadius,
+                  child: Image.asset(
+                    'asset/image/error_image/404.png',
+                    fit: BoxFit.cover,
+                    width: targetWidth,
+                    height: targetHeight,
+                  ),
                 );
               } else {
-                return SizedBox(
-                  width: width,
-                  child: InkWell(
+                return containerWrapper(
+                  InkWell(
                     onTap: () {
                       context.read<PictureBloc>().add(GetPicture(pictureInfo));
                     },
                     child: Center(
                       child: Text(
-                        '加载图片失败\n点击重新加载',
-                        style: TextStyle(color: context.textColor),
+                        '重试',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: context.textColor,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ),

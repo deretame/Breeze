@@ -27,7 +27,7 @@ class DownloadPage extends StatelessWidget {
       create: (_) => UserDownloadBloc()
         ..add(
           UserDownloadEvent(
-            SearchEnter().copyWith(refresh: Uuid().v4()),
+            SearchEnter().copyWith(refresh: const Uuid().v4()),
             comicChoice,
           ),
         ),
@@ -60,14 +60,9 @@ class _DownloadPageState extends State<_DownloadPage>
       if (event.type == EventType.showInfo) {
         context.read<StringSelectCubit>().setDate(totalComicCount.toString());
       } else if (event.type == EventType.refresh) {
-        _refresh(true);
+        _refresh(goToTop: true);
       }
     });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   void _scrollListener() {
@@ -110,7 +105,7 @@ class _DownloadPageState extends State<_DownloadPage>
             displacement: 60.0,
             onRefresh: () async {
               if (currentTabIndex == 2) {
-                _refresh(true);
+                _refresh(goToTop: true);
               }
             },
             child: _buildContent(state),
@@ -137,37 +132,37 @@ class _DownloadPageState extends State<_DownloadPage>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            '${state.result.toString()}\n加载失败',
-            style: TextStyle(fontSize: 20),
+            '${state.result}\n加载失败',
+            style: const TextStyle(fontSize: 20),
+            textAlign: TextAlign.center,
           ),
-          SizedBox(height: 10),
-          ElevatedButton(onPressed: () => _refresh(true), child: Text('点击重试')),
+          const SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () => _refresh(goToTop: true),
+            child: const Text('点击重试'),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildList(UserDownloadState state) {
-    final bikaSettingState = context.watch<BikaSettingCubit>().state;
-
     if (state.comics.isEmpty) {
       return _buildEmptyState();
     }
 
-    // --- 9. 使用 context.watch 监听 TopBarCubit ---
-    final comicChoice = context.watch<GlobalSettingCubit>().state.comicChoice;
+    final globalState = context.watch<GlobalSettingCubit>().state;
+    final bikaState = context.watch<BikaSettingCubit>().state;
+    final comicChoice = globalState.comicChoice;
+    final isBrevity = bikaState.brevity;
 
-    if (comicChoice == 2) {
-      // 使用 Cubit 状态
-      return _buildBrevityList(state);
+    if (comicChoice != 1 || isBrevity) {
+      return _buildBrevityList(state.comics, comicChoice);
     }
 
-    return bikaSettingState.brevity
-        ? _buildBrevityList(state)
-        : _buildDetailedList(state);
+    return _buildDetailedList(state.comics);
   }
 
-  // 构建空状态UI
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -185,150 +180,108 @@ class _DownloadPageState extends State<_DownloadPage>
     );
   }
 
-  // 构建简洁模式列表
-  Widget _buildBrevityList(UserDownloadState state) {
-    final elementsRows = generateResponsiveRows(
-      context,
-      _convertToEntryInfoList(state.comics),
-    );
+  Widget _buildBrevityList(List<dynamic> comics, int comicChoice) {
+    final entryInfoList = _convertToEntryInfoList(comics, comicChoice);
+    final elementsRows = generateResponsiveRows(context, entryInfoList);
 
-    return _buildCommonListView(
-      itemCount: elementsRows.length + 1,
-      itemBuilder: (context, index) => _buildListItem(
-        context,
-        index,
-        elementsRows.length,
-        () => _refresh(),
-        isBrevity: true,
-        elementsRows: elementsRows,
-      ),
-    );
-  }
-
-  // 构建详细模式列表
-  Widget _buildDetailedList(UserDownloadState state) {
-    return _buildCommonListView(
-      itemCount: state.comics.length + 1,
-      itemBuilder: (context, index) => _buildListItem(
-        context,
-        index,
-        state.comics.length,
-        () => _refresh(true),
-        isBrevity: false,
-        comics: state.comics,
-      ),
-    );
-  }
-
-  // 公共列表构建方法
-  ListView _buildCommonListView({
-    required int itemCount,
-    required IndexedWidgetBuilder itemBuilder,
-  }) {
     return ListView.builder(
-      controller: scrollControllers['download']!,
+      controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
-      itemCount: itemCount,
-      itemBuilder: itemBuilder,
+      itemCount: elementsRows.length + 1,
+      itemBuilder: (context, index) {
+        if (index == elementsRows.length) {
+          return _buildFooter();
+        }
+        return _buildRowItem(elementsRows[index]);
+      },
     );
   }
 
-  // 构建单个列表项
-  Widget _buildListItem(
-    BuildContext context,
-    int index,
-    int dataLength,
-    VoidCallback refreshCallback, {
-    required bool isBrevity,
-    List<List<ComicSimplifyEntryInfo>>? elementsRows,
-    List<dynamic>? comics,
-  }) {
-    final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
+  Widget _buildDetailedList(List<dynamic> comics) {
+    return ListView.builder(
+      controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: comics.length + 1,
+      itemBuilder: (context, index) {
+        if (index == comics.length) {
+          return _buildFooter();
+        }
+        return _buildDetailItem(comics[index] as BikaComicDownload);
+      },
+    );
+  }
 
-    if (index == dataLength) {
-      return Center(
-        child: Column(
-          children: [
-            SizedBox(height: 10),
-            IconButton(
-              onPressed: () => _refresh(true),
-              icon: const Icon(Icons.refresh),
-            ),
-            deletingDialog(context, refreshCallback, DeleteType.download),
-          ],
-        ),
-      );
-    }
+  Widget _buildRowItem(List<ComicSimplifyEntryInfo> entries) {
+    return ComicSimplifyEntryRow(
+      key: ValueKey(entries.map((e) => e.id).join(',')),
+      entries: entries,
+      type: ComicEntryType.download,
+      refresh: () => _refresh(),
+    );
+  }
 
+  Widget _buildDetailItem(BikaComicDownload comic) {
+    return ComicEntryWidget(
+      comicEntryInfo: downloadConvertToComicEntryInfo(comic),
+      type: ComicEntryType.download,
+      refresh: () => _refresh(goToTop: true),
+    );
+  }
+
+  Widget _buildFooter() {
+    return Center(
+      child: Column(
+        children: [
+          const SizedBox(height: 10),
+          IconButton(
+            onPressed: () => _refresh(goToTop: true),
+            icon: const Icon(Icons.refresh),
+          ),
+          deletingDialog(
+            context,
+            () => _refresh(goToTop: true),
+            DeleteType.download,
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  List<ComicSimplifyEntryInfo> _convertToEntryInfoList(
+    List<dynamic> comics,
+    int comicChoice,
+  ) {
     if (comicChoice == 1) {
-      if (isBrevity) {
-        return ComicSimplifyEntryRow(
-          key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
-          entries: elementsRows[index],
-          type: ComicEntryType.download,
-          refresh: refreshCallback,
+      return comics.cast<BikaComicDownload>().map((element) {
+        return ComicSimplifyEntryInfo(
+          title: element.title,
+          id: element.comicId,
+          fileServer: element.thumbFileServer,
+          path: element.thumbPath,
+          pictureType: "cover",
+          from: "bika",
         );
-      } else {
-        final temp = comics!.map((e) => e as BikaComicDownload).toList();
-        return ComicEntryWidget(
-          comicEntryInfo: downloadConvertToComicEntryInfo(temp[index]),
-          type: ComicEntryType.download,
-          refresh: refreshCallback,
-        );
-      }
+      }).toList();
     } else {
-      return ComicSimplifyEntryRow(
-        key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
-        entries: elementsRows[index],
-        type: ComicEntryType.download,
-        refresh: refreshCallback,
-      );
+      return comics.cast<JmDownload>().map((element) {
+        return ComicSimplifyEntryInfo(
+          title: element.name,
+          id: element.comicId.toString(),
+          fileServer: getJmCoverUrl(element.comicId.toString()),
+          path: "${element.comicId}.jpg",
+          pictureType: 'cover',
+          from: 'jm',
+        );
+      }).toList();
     }
   }
 
-  // 转换数据格式
-  List<ComicSimplifyEntryInfo> _convertToEntryInfoList(List<dynamic> comics) {
-    final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
-
-    if (comicChoice == 1) {
-      final temp = comics.map((e) => e as BikaComicDownload).toList();
-
-      return temp
-          .map(
-            (element) => ComicSimplifyEntryInfo(
-              title: element.title,
-              id: element.comicId,
-              fileServer: element.thumbFileServer,
-              path: element.thumbPath,
-              pictureType: "cover",
-              from: "bika",
-            ),
-          )
-          .toList();
-    } else {
-      final temp = comics.map((e) => e as JmDownload).toList();
-
-      return temp
-          .map(
-            (element) => ComicSimplifyEntryInfo(
-              title: element.name,
-              id: element.comicId.toString(),
-              fileServer: getJmCoverUrl(element.comicId.toString()),
-              path: "${element.comicId}.jpg",
-              pictureType: 'cover',
-              from: 'jm',
-            ),
-          )
-          .toList();
-    }
-  }
-
-  void _refresh([bool goToTop = false, bool clean = false]) {
+  void _refresh({bool goToTop = false, bool clean = false}) {
     final downloadCubit = context.read<DownloadCubit>();
-
     if (clean) downloadCubit.resetSearch();
 
-    final searchStatus = context.read<DownloadCubit>().state;
+    final searchStatus = downloadCubit.state;
     final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
 
     context.read<UserDownloadBloc>().add(
@@ -337,21 +290,21 @@ class _DownloadPageState extends State<_DownloadPage>
           keyword: searchStatus.keyword,
           sort: searchStatus.sort,
           categories: searchStatus.categories,
-          refresh: Uuid().v4(),
+          refresh: const Uuid().v4(),
         ),
         comicChoice,
       ),
     );
 
-    Future.delayed(Duration.zero).then((_) {
-      if (_scrollController.hasClients && goToTop) {
+    if (goToTop && _scrollController.hasClients) {
+      Future.microtask(() {
         _scrollController.animateTo(
           0,
-          duration: Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
         );
-      }
-      notice = false;
-    });
+      });
+    }
+    notice = false;
   }
 }

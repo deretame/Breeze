@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:io'; // 必须导入，否则 File 报错
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +15,8 @@ class ComicPictureWidget extends StatelessWidget {
   final String path;
   final String id;
   final String pictureType;
+  final double targetWidth;
+  final double targetHeight;
 
   const ComicPictureWidget({
     super.key,
@@ -22,41 +24,48 @@ class ComicPictureWidget extends StatelessWidget {
     required this.path,
     required this.id,
     required this.pictureType,
+    this.targetWidth = 100,
+    this.targetHeight = 133,
   });
 
   @override
   Widget build(BuildContext context) {
-    const double height = 180;
-    const double width = height / 4 * 3;
+    final pictureInfo = PictureInfo(
+      from: "bika",
+      url: fileServer,
+      path: path,
+      cartoonId: id,
+      pictureType: pictureType,
+    );
+
     return BlocProvider(
-      create: (context) => PictureBloc()
-        ..add(
-          GetPicture(
-            PictureInfo(
-              from: "bika",
-              url: fileServer,
-              path: path,
-              cartoonId: id,
-              pictureType: pictureType,
-            ),
-          ),
-        ),
+      create: (context) => PictureBloc()..add(GetPicture(pictureInfo)),
       child: BlocBuilder<PictureBloc, PictureLoadState>(
         builder: (context, state) {
+          Widget sizeWrapper(Widget child) {
+            return SizedBox(
+              width: targetWidth,
+              height: targetHeight,
+              child: child,
+            );
+          }
+
+          const borderRadius = BorderRadius.only(
+            topLeft: Radius.circular(10.0),
+            bottomLeft: Radius.circular(10.0),
+          );
+
           switch (state.status) {
             case PictureLoadStatus.initial:
-              return Center(
-                child: SizedBox(
-                  width: width,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: LoadingAnimationWidget.waveDots(
-                      color: context.theme.colorScheme.primaryFixedDim,
-                      size: 50,
-                    ),
+              return sizeWrapper(
+                Center(
+                  child: LoadingAnimationWidget.waveDots(
+                    color: context.theme.colorScheme.primaryFixedDim,
+                    size: 30,
                   ),
                 ),
               );
+
             case PictureLoadStatus.success:
               return InkWell(
                 onTap: () {
@@ -64,46 +73,46 @@ class ComicPictureWidget extends StatelessWidget {
                     FullRouteImageRoute(imagePath: state.imagePath!),
                   );
                 },
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(10.0),
-                    bottomLeft: Radius.circular(10.0),
-                  ),
-                  child: Image.file(
-                    File(state.imagePath!),
-                    fit: BoxFit.cover,
-                    width: width,
-                    height: height,
+                child: sizeWrapper(
+                  ClipRRect(
+                    borderRadius: borderRadius,
+                    child: Image.file(
+                      File(state.imagePath!),
+                      fit: BoxFit.cover,
+                      width: targetWidth,
+                      height: targetHeight,
+                    ),
                   ),
                 ),
               );
+
             case PictureLoadStatus.failure:
               if (state.result.toString().contains('404')) {
-                return SizedBox(
-                  width: width,
-                  child: Image.asset('asset/image/error_image/404.png'),
+                return sizeWrapper(
+                  ClipRRect(
+                    borderRadius: borderRadius,
+                    child: Image.asset(
+                      'asset/image/error_image/404.png',
+                      fit: BoxFit.cover,
+                      width: targetWidth,
+                      height: targetHeight,
+                    ),
+                  ),
                 );
               } else {
-                return SizedBox(
-                  width: width,
-                  child: InkWell(
+                return sizeWrapper(
+                  InkWell(
                     onTap: () {
-                      context.read<PictureBloc>().add(
-                        GetPicture(
-                          PictureInfo(
-                            from: "bika",
-                            url: fileServer,
-                            path: path,
-                            cartoonId: id,
-                            pictureType: pictureType,
-                          ),
-                        ),
-                      );
+                      context.read<PictureBloc>().add(GetPicture(pictureInfo));
                     },
                     child: Center(
                       child: Text(
-                        '加载图片失败\n点击重新加载',
-                        style: TextStyle(color: context.textColor),
+                        '加载失败\n点击重试',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: context.textColor,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ),

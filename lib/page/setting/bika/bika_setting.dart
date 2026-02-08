@@ -5,7 +5,6 @@ import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
-import 'package:zephyr/util/settings_hive_utils.dart';
 
 import '../../bookshelf/models/events.dart';
 import 'widgets.dart';
@@ -19,15 +18,10 @@ class BikaSettingPage extends StatefulWidget {
 }
 
 class _BikaSettingPageState extends State<BikaSettingPage> {
-  late final List<String> shuntList = ["1", "2", "3"];
-  late final Map<String, String> shunt = {"1": "1", "2": "2", "3": "3"};
-  late final List<String> imageQualityList = [
-    "low",
-    "medium",
-    "high",
-    "original",
-  ];
-  late final Map<String, String> imageQuality = {
+  final List<String> shuntList = ["1", "2", "3"];
+  final Map<String, String> shunt = {"1": "1", "2": "2", "3": "3"};
+  final List<String> imageQualityList = ["low", "medium", "high", "original"];
+  final Map<String, String> imageQuality = {
     "low": "低画质",
     "medium": "中画质",
     "high": "高画质",
@@ -40,45 +34,37 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
         WidgetState.any: Icon(Icons.close),
       });
 
-  late bool _brevity;
-  late bool _slowDownload;
-
-  @override
-  void initState() {
-    super.initState();
-    _brevity = SettingsHiveUtils.bikaBrevity;
-    _slowDownload = SettingsHiveUtils.bikaSlowDownload;
-  }
-
   @override
   Widget build(BuildContext context) {
     var route = context.router;
-    final bikaCubit = context.read<BikaSettingCubit>();
+
+    final bikaCubit = context.watch<BikaSettingCubit>();
+    final state = bikaCubit.state;
 
     return Scaffold(
       appBar: AppBar(title: const Text('哔咔设置')),
       body: ListView(
         children: [
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           changeProfilePicture(route),
-          SizedBox(height: 15),
+          const SizedBox(height: 15),
           changeBriefIntroduction(context),
-          SizedBox(height: 15),
+          const SizedBox(height: 15),
           changePassword(context),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           DividerWidget(),
-          _shuntWidget(),
-          _imageQualityWidget(),
+          _shuntWidget(state, bikaCubit),
+          _imageQualityWidget(state, bikaCubit),
           DividerWidget(),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           changeShieldedCategories(context, "home"),
-          SizedBox(height: 15),
+          const SizedBox(height: 15),
           changeShieldedCategories(context, "categories"),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           DividerWidget(),
-          _brevityWidget(bikaCubit),
+          _brevityWidget(state, bikaCubit),
           DividerWidget(),
-          _slowDownloadWidget(bikaCubit),
+          _slowDownloadWidget(state, bikaCubit),
           DividerWidget(),
           Center(
             child: ElevatedButton(
@@ -86,7 +72,7 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
                 bikaCubit.resetAuthorization();
                 route.push(LoginRoute());
               },
-              child: Text("退出登录"),
+              child: const Text("退出登录"),
             ),
           ),
         ],
@@ -94,19 +80,19 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
     );
   }
 
-  Widget _shuntWidget() {
-    final bikaCubit = context.read<BikaSettingCubit>();
-    final bikaState = context.watch<BikaSettingCubit>().state;
+  Widget _shuntWidget(BikaSettingState state, BikaSettingCubit cubit) {
     return Row(
       children: [
-        SizedBox(width: 10),
-        Text("分流设置", style: TextStyle(fontSize: 18)),
+        const SizedBox(width: 10),
+        const Text("分流设置", style: TextStyle(fontSize: 18)),
         Expanded(child: Container()),
         DropdownButton<String>(
-          value: bikaState.proxy.toString(),
+          value: state.proxy.toString(), // 直接使用 state
           icon: const Icon(Icons.expand_more),
           onChanged: (String? value) {
-            bikaCubit.updateProxy(int.parse(value!));
+            if (value != null) {
+              cubit.updateProxy(int.parse(value));
+            }
           },
           items: shuntList.map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
@@ -116,25 +102,25 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
           }).toList(),
           style: TextStyle(color: context.textColor, fontSize: 18),
         ),
-        SizedBox(width: 10),
+        const SizedBox(width: 10),
       ],
     );
   }
 
-  Widget _imageQualityWidget() {
-    final bikaCubit = context.read<BikaSettingCubit>();
-    final bikaState = context.watch<BikaSettingCubit>().state;
+  Widget _imageQualityWidget(BikaSettingState state, BikaSettingCubit cubit) {
     return Row(
       children: [
-        SizedBox(width: 10),
-        Text("图片质量", style: TextStyle(fontSize: 18)),
+        const SizedBox(width: 10),
+        const Text("图片质量", style: TextStyle(fontSize: 18)),
         Expanded(child: Container()),
         DropdownButton<String>(
-          value: bikaState.imageQuality,
+          value: state.imageQuality, // 直接使用 state
           icon: const Icon(Icons.expand_more),
           onChanged: (String? value) {
-            cacheInterceptor.clear();
-            bikaCubit.updateImageQuality(value!);
+            if (value != null) {
+              cacheInterceptor.clear();
+              cubit.updateImageQuality(value);
+            }
           },
           items: imageQualityList.map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
@@ -144,42 +130,40 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
           }).toList(),
           style: TextStyle(color: context.textColor, fontSize: 18),
         ),
-        SizedBox(width: 10),
+        const SizedBox(width: 10),
       ],
     );
   }
 
-  Widget _brevityWidget(BikaSettingCubit bikaCubit) {
+  Widget _brevityWidget(BikaSettingState state, BikaSettingCubit cubit) {
     return Row(
       children: [
-        SizedBox(width: 10),
-        Text("漫画列表简略模式", style: TextStyle(fontSize: 18)),
-        SizedBox(width: 5),
-        Spacer(),
+        const SizedBox(width: 10),
+        const Text("漫画列表简略模式", style: TextStyle(fontSize: 18)),
+        const SizedBox(width: 5),
+        const Spacer(),
         Switch(
           thumbIcon: thumbIcon,
-          value: _brevity, // 使用本地 state
+          value: state.brevity,
           onChanged: (bool value) {
-            setState(() => _brevity = value);
-            bikaCubit.updateBrevity(value);
-
+            cubit.updateBrevity(value);
             eventBus.fire(HistoryEvent(EventType.refresh, false));
             eventBus.fire(DownloadEvent(EventType.refresh, false));
             eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 1));
           },
         ),
-        SizedBox(width: 10),
+        const SizedBox(width: 10),
       ],
     );
   }
 
-  Widget _slowDownloadWidget(BikaSettingCubit bikaCubit) {
+  Widget _slowDownloadWidget(BikaSettingState state, BikaSettingCubit cubit) {
     final theme = context.theme;
     return Row(
       children: [
-        SizedBox(width: 10),
-        Text("慢速下载", style: TextStyle(fontSize: 18)),
-        SizedBox(width: 5),
+        const SizedBox(width: 10),
+        const Text("慢速下载", style: TextStyle(fontSize: 18)),
+        const SizedBox(width: 5),
         Tooltip(
           message: "慢速下载会降低下载图片的速度，以减少对低配手机的负担。",
           triggerMode: TooltipTriggerMode.tap,
@@ -189,16 +173,15 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
             color: theme.colorScheme.outlineVariant,
           ),
         ),
-        Spacer(),
+        const Spacer(),
         Switch(
           thumbIcon: thumbIcon,
-          value: _slowDownload,
+          value: state.slowDownload, // 直接使用 state
           onChanged: (bool value) {
-            setState(() => _slowDownload = value);
-            bikaCubit.updateSlowDownload(value);
+            cubit.updateSlowDownload(value);
           },
         ),
-        SizedBox(width: 10),
+        const SizedBox(width: 10),
       ],
     );
   }

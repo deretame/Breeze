@@ -8,6 +8,7 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/int_select.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/widgets/comic_entry/comic_entry.dart';
 
 import '../../../../cubit/string_select.dart';
 import '../../../../main.dart';
@@ -228,8 +229,10 @@ class _UserFavoritePageState extends State<_FavoritePage>
     return _buildCommonListView(
       state: state,
       itemCount: temp.length,
-      itemBuilder: (context, index) =>
-          FavoriteComicEntryWidget(comicEntryInfo: temp[index].doc),
+      itemBuilder: (context, index) => ComicEntryWidget(
+        comicEntryInfo: temp[index].doc.toComicEntryInfo(),
+        pictureType: "favourite",
+      ),
     );
   }
 

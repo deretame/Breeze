@@ -392,7 +392,8 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         return await task();
       } catch (e) {
         logger.e(e);
-        // 弹出重试对话框
+        if (!context.mounted) return null;
+
         final retry = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -412,8 +413,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         );
 
         if (retry != true) {
-          if (canSkip) return null; // 允许跳过则返回空
-          throw Exception("用户取消了$title"); // 不允许跳过则中断
+          return null;
         }
       }
     }

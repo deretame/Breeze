@@ -39,7 +39,7 @@ class _AllChipWidgetState extends State<AllChipWidget> {
       case 'author':
         return '作者';
       case 'chineseTeam':
-        return '汉化组';
+        return '汉化';
       case 'tags':
         return '标签';
       case 'categories':

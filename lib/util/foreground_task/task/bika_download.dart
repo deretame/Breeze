@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_socks_proxy/socks_proxy.dart';
+import 'package:pool/pool.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/bika/http_request.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
@@ -110,20 +111,31 @@ Future<void> bikaDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
           "漫画下载进度: ${(progress / pagesDocs.length * 100).toStringAsFixed(2)}%";
     }
   } else {
+    final pool = Pool(10);
+
     int progress = 0;
-    final List<Future<void>> downloadTasks = pagesDocs.map((doc) async {
-      await downloadPicture(
-        from: 'bika',
-        url: doc.media.fileServer,
-        path: doc.media.path,
-        cartoonId: comicInfo.id,
-        pictureType: 'comic',
-        chapterId: doc.docId,
-        proxy: task.bikaInfo.proxy.let(toInt),
-      );
-      progress++;
-      self.message =
-          "漫画下载进度: ${(progress / pagesDocs.length * 100).toStringAsFixed(2)}%";
+    int lastReportedPercent = 0;
+
+    final List<Future<void>> downloadTasks = pagesDocs.map((doc) {
+      return pool.withResource(() async {
+        await downloadPicture(
+          from: 'bika',
+          url: doc.media.fileServer,
+          path: doc.media.path,
+          cartoonId: comicInfo.id,
+          pictureType: 'comic',
+          chapterId: doc.docId,
+          proxy: task.bikaInfo.proxy.let(toInt),
+        );
+
+        progress++;
+
+        final int currentPercent = (progress / pagesDocs.length * 100).floor();
+        if (currentPercent > lastReportedPercent) {
+          lastReportedPercent = currentPercent;
+          self.message = "漫画下载进度: $currentPercent%";
+        }
+      });
     }).toList();
 
     await Future.wait(downloadTasks);

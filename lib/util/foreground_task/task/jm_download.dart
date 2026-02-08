@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_socks_proxy/socks_proxy.dart';
+import 'package:pool/pool.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
@@ -240,51 +241,60 @@ Future<DownloadInfoJson> downloadComic(
     }
   }
 
+  final pool = Pool(5);
   int progress = 0;
-  for (var doc in docsList) {
-    try {
-      await downloadPicture(
-        from: 'jm',
-        url: doc.media.fileServer,
-        path: doc.media.path,
-        cartoonId: downloadInfoJson.id.toString(),
-        pictureType: 'comic',
-        chapterId: doc.docId,
-      );
-      progress++;
-      self.message =
-          "漫画下载进度: ${(progress / docsList.length * 100).toStringAsFixed(2)}%";
-    } catch (e, s) {
-      logger.e(e, stackTrace: s);
-      if (e.toString().contains('404')) {
-        final chapterIdForUpdate = doc.docId;
-        final originalImageName = doc.media.originalName; // 使用 originalName 来查找
+  int lastReportedPercent = 0;
 
-        // 1. 在 downloadInfoJson.series 中找到对应的章节 (SeriesItem)
-        int seriesIndex = downloadInfoJson.series.indexWhere(
-          (s) => s.id.toString() == chapterIdForUpdate,
+  final List<Future<void>> tasks = docsList.map((doc) {
+    return pool.withResource(() async {
+      try {
+        await downloadPicture(
+          from: 'jm',
+          url: doc.media.fileServer,
+          path: doc.media.path,
+          cartoonId: downloadInfoJson.id.toString(),
+          pictureType: 'comic',
+          chapterId: doc.docId,
         );
 
-        if (seriesIndex != -1) {
-          var targetSeriesItem = downloadInfoJson.series[seriesIndex];
+        progress++;
+        int currentPercent = (progress / docsList.length * 100).floor();
+        if (currentPercent > lastReportedPercent) {
+          lastReportedPercent = currentPercent;
+          self.message = "漫画下载进度: $currentPercent%";
+        }
+      } catch (e, s) {
+        logger.e(e, stackTrace: s);
 
-          // 2. 在该章节的 info.images 列表中找到对应的图片条目
-          //    我们要用 originalImageName (即 doc.media.path 或 doc.media.originalName) 来找
-          int imageIndex = targetSeriesItem.info.images.indexOf(
-            originalImageName,
+        if (e.toString().contains('404')) {
+          final chapterIdForUpdate = doc.docId;
+          final originalImageName = doc.media.originalName;
+
+          int seriesIndex = downloadInfoJson.series.indexWhere(
+            (s) => s.id.toString() == chapterIdForUpdate,
           );
 
-          if (imageIndex != -1) {
-            // 3. 把它替换成 "404" 字符串
-            targetSeriesItem.info.images[imageIndex] = "404";
-            logger.i(
-              '已将章节 $chapterIdForUpdate 中的图片 "$originalImageName" 标记为 "404"！',
+          if (seriesIndex != -1) {
+            var targetSeriesItem = downloadInfoJson.series[seriesIndex];
+            int imageIndex = targetSeriesItem.info.images.indexOf(
+              originalImageName,
             );
+
+            if (imageIndex != -1) {
+              targetSeriesItem.info.images[imageIndex] = "404";
+              logger.i(
+                '已将章节 $chapterIdForUpdate 中的图片 "$originalImageName" 标记为 "404"！',
+              );
+            }
           }
         }
       }
-    }
-  }
+    });
+  }).toList();
+
+  await Future.wait(tasks);
+
+  self.message = "漫画下载进度: 100%";
 
   return downloadInfoJson;
 }

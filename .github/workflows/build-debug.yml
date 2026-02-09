@@ -74,10 +74,10 @@ jobs:
       - name: 读取 NDK 版本配置
         id: ndk-config
         run: |
-          NDK_VER=$(grep "ndkVersion" android/app/build.gradle | awk -F'"' '{print $2}')
+          NDK_VER=$(grep "ndkVersion" android/app/build.gradle.kts | awk -F'"' '{print $2}')
 
           if [ -z "$NDK_VER" ]; then
-            echo "错误: 在 android/app/build.gradle 中未找到 ndkVersion 配置"
+            echo "错误: 在 android/app/build.gradle.kts 中未找到 ndkVersion 配置"
             exit 1
           fi
 

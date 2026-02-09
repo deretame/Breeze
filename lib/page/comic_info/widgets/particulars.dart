@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
@@ -64,7 +65,9 @@ class ComicParticularsWidget extends StatelessWidget {
                   style: TextStyle(color: context.textColor, fontSize: 18),
                 ),
                 const SizedBox(height: 2),
-                Text("更新时间：${comicInfo.updatedAt}"),
+                Text(
+                  "更新时间：${DateFormat('yyyy-MM-dd HH:mm').format(comicInfo.updatedAt.toLocal())}",
+                ),
                 const SizedBox(height: 2),
                 if (comicInfo.pagesCount != 0) ...[
                   Text("页数：${comicInfo.pagesCount}"),

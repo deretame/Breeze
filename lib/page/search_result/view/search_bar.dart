@@ -2,13 +2,11 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
-import 'package:zephyr/config/bika/bika_setting.dart';
-import 'package:zephyr/main.dart';
-import 'package:zephyr/page/bookshelf/models/events.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search/widget/advanced_search_dialog.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/util/router/router.gr.dart';
+import 'package:zephyr/util/search_setting_utils.dart';
 
 class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
   final SearchEvent searchEvent;
@@ -112,26 +110,25 @@ class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
 
   Future<void> _search(BuildContext context) async {
     final searchCubit = context.read<SearchCubit>();
-    final bikaSettingCubit = context.read<BikaSettingCubit>();
-    final SearchStates? newStates = await showDialog<SearchStates>(
+    final newStates = await showDialog<SearchStates>(
       context: context,
-      builder: (context) {
-        return AdvancedSearchDialog(initialState: searchCubit.state);
-      },
+      builder: (context) =>
+          AdvancedSearchDialog(initialState: searchCubit.state),
     );
 
     if (newStates == null) return;
     searchCubit.update(newStates);
-    bikaSettingCubit.updateBrevity(newStates.brevity);
-    bikaSettingCubit.updateShieldCategoryMap(newStates.categoriesBlock);
 
-    eventBus.fire(HistoryEvent(EventType.refresh, false));
-    eventBus.fire(DownloadEvent(EventType.refresh, false));
-    eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 1));
     if (!context.mounted) return;
+    updateAdvancedSearchSettings(context, newStates);
 
     final searchBloc = context.read<SearchBloc>();
-    searchBloc.add(SearchEvent().copyWith(searchStates: searchCubit.state));
+    searchBloc.add(
+      SearchEvent().copyWith(
+        searchStates: searchCubit.state,
+        url: searchEvent.url,
+      ),
+    );
   }
 
   @override

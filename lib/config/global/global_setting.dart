@@ -29,7 +29,7 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(true) bool shade,
     @Default(true) bool comicReadTopContainer,
     @Default(0) int readMode,
-    @Default([""]) List<String> maskedKeywords,
+    @Default([]) List<String> maskedKeywords,
     @Default('') String socks5Proxy,
     @Default(false) bool needCleanCache,
     @Default(1) int comicChoice,

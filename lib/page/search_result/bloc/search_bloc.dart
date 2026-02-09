@@ -76,7 +76,8 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
           searchEvent: event.copyWith(page: blocState.pagesCount),
         ),
       );
-    } catch (e) {
+    } catch (e, s) {
+      logger.e(e, stackTrace: s);
       if (blocState.comics.isNotEmpty) {
         emit(
           state.copyWith(

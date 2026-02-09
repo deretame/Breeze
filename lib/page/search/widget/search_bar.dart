@@ -1,16 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/config/bika/bika_setting.dart';
-import 'package:zephyr/config/global/global_setting.dart';
-import 'package:zephyr/main.dart';
-import 'package:zephyr/page/bookshelf/models/events.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
+import 'package:zephyr/page/search/method/on_search.dart';
 import 'package:zephyr/page/search/widget/advanced_search_dialog.dart';
-import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
-import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/router/router.gr.dart';
+import 'package:zephyr/util/search_setting_utils.dart';
 
 class SearchBar extends StatefulWidget {
   const SearchBar({super.key});
@@ -100,7 +94,7 @@ class _SearchBarState extends State<SearchBar> {
                         controller: _controller,
                         focusNode: _focusNode,
                         textInputAction: TextInputAction.search,
-                        onSubmitted: _onSearch,
+                        onSubmitted: (keyword) => onSearch(context, keyword),
                         style: TextStyle(
                           fontSize: 16,
                           color: colorScheme.onSurface,
@@ -130,68 +124,24 @@ class _SearchBarState extends State<SearchBar> {
               icon: const Icon(Icons.tune),
               onPressed: () async {
                 final searchCubit = context.read<SearchCubit>();
-                final bikaSettingCubit = context.read<BikaSettingCubit>();
-                final SearchStates? newStates = await showDialog<SearchStates>(
+                final newStates = await showDialog<SearchStates>(
                   context: context,
-                  builder: (context) {
-                    return AdvancedSearchDialog(
-                      initialState: searchCubit.state,
-                    );
-                  },
+                  builder: (context) =>
+                      AdvancedSearchDialog(initialState: searchCubit.state),
                 );
                 if (newStates != null && mounted) {
                   searchCubit.update(newStates);
-                  bikaSettingCubit.updateBrevity(newStates.brevity);
-                  bikaSettingCubit.updateShieldCategoryMap(
-                    newStates.categoriesBlock,
-                  );
-
-                  eventBus.fire(HistoryEvent(EventType.refresh, false));
-                  eventBus.fire(DownloadEvent(EventType.refresh, false));
-                  eventBus.fire(
-                    FavoriteEvent(EventType.refresh, SortType.dd, 1),
-                  );
+                  if (!context.mounted) return;
+                  updateAdvancedSearchSettings(context, newStates);
                 }
               },
             ),
             TextButton(
-              onPressed: () => _onSearch(_controller.text),
+              onPressed: () => onSearch(context, _controller.text),
               child: const Text("搜索"),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _onSearch(String keyword) async {
-    final searchCubit = context.read<SearchCubit>();
-    searchCubit.update(searchCubit.state.copyWith(searchKeyword: keyword));
-    if (searchCubit.state.from == From.jm) {
-      if (keyword.let(toInt) >= 100) {
-        context.pushRoute(
-          ComicInfoRoute(
-            comicId: keyword,
-            type: ComicEntryType.normal,
-            from: From.jm,
-          ),
-        );
-
-        final settingCubit = context.read<GlobalSettingCubit>();
-        final history = settingCubit.state.searchHistory.toList();
-        history
-          ..remove(keyword)
-          ..insert(0, keyword);
-        await Future.delayed(const Duration(milliseconds: 200));
-        settingCubit.updateSearchHistory(history.take(200).toList());
-        return;
-      }
-    }
-
-    context.pushRoute(
-      SearchResultRoute(
-        searchEvent: SearchEvent().copyWith(searchStates: searchCubit.state),
-        searchCubit: searchCubit,
       ),
     );
   }

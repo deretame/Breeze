@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/object_box.dart';
+import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/task/bika_download.dart';
 import 'package:zephyr/util/foreground_task/task/jm_download.dart';
@@ -16,7 +15,6 @@ void startCallback() {
 
 class MyTaskHandler extends TaskHandler {
   final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-  late final ObjectBox objectBox;
   List<DownloadTaskJson> downloadTasksList = [];
   late DownloadTaskJson currentTask;
   late String comicName;
@@ -27,7 +25,8 @@ class MyTaskHandler extends TaskHandler {
 
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
-    objectBox = await ObjectBox.create();
+    objectbox = await ObjectBox.create();
+    await RustLib.init();
     const initializationSettingsAndroid = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
@@ -59,7 +58,7 @@ class MyTaskHandler extends TaskHandler {
     final newTask = downloadTaskJsonFromJson(data as String);
     downloadTasksList.add(newTask);
     if (!_isExecuting) {
-      nextTask();
+      _processQueue();
     }
   }
 
@@ -80,43 +79,37 @@ class MyTaskHandler extends TaskHandler {
     FlutterForegroundTask.stopService();
   }
 
-  Future<void> nextTask() async {
-    if (downloadTasksList.isNotEmpty) {
-      _isExecuting = true;
+  Future<void> _processQueue() async {
+    if (downloadTasksList.isEmpty) {
+      _isExecuting = false;
+      logger.d("所有任务完成，停止服务");
+      FlutterForegroundTask.stopService();
+      return;
+    }
 
-      currentTask = downloadTasksList.removeAt(0);
-      comicName = currentTask.comicName;
-      comicId = currentTask.comicId;
+    _isExecuting = true;
 
-      Future taskFuture;
+    currentTask = downloadTasksList.removeAt(0);
+    comicName = currentTask.comicName;
 
-      showInfoToast("${currentTask.comicName}开始下载");
+    showInfoToast("${currentTask.comicName} 开始下载");
 
+    try {
       if (currentTask.from == "bika") {
-        taskFuture = bikaDownloadTask(this, currentTask);
+        await bikaDownloadTask(this, currentTask);
       } else if (currentTask.from == "jm") {
-        taskFuture = jmDownloadTask(this, currentTask);
+        await jmDownloadTask(this, currentTask);
       } else {
-        nextTask();
-        return;
+        logger.w("未知任务来源: ${currentTask.from}");
       }
 
-      taskFuture
-          .then((_) {
-            logger.d("任务 $comicName 完成");
-            sendSystemNotification("下载完成", "$comicName 下载完成");
-          })
-          .catchError((e, s) {
-            logger.e("任务 $comicName 失败", error: e, stackTrace: s);
-            sendSystemNotification("下载失败", "$comicName 下载失败");
-          })
-          .whenComplete(() {
-            nextTask();
-          });
-    } else {
-      _isExecuting = false;
-      logger.d("所有下载任务已完成，停止服务");
-      FlutterForegroundTask.stopService();
+      logger.d("任务 $comicName 完成");
+      await sendSystemNotification("下载完成", "$comicName 下载完成");
+    } catch (e, s) {
+      logger.e("任务 $comicName 失败", error: e, stackTrace: s);
+      await sendSystemNotification("下载失败", "$comicName 下载失败");
+    } finally {
+      Future.microtask(() => _processQueue());
     }
   }
 
@@ -141,24 +134,5 @@ class MyTaskHandler extends TaskHandler {
       notificationDetails: notificationDetails,
       payload: 'download_complete',
     );
-  }
-}
-
-Future<void> deleteDirectory(String id) async {
-  String path =
-      '/data/data/com.zephyr.breeze/files/downloads/bika/original/$id';
-  final directory = Directory(path);
-
-  // 检查目录是否存在
-  if (await directory.exists()) {
-    try {
-      // 删除目录及其内容
-      await directory.delete(recursive: true);
-      logger.d('目录已成功删除: $path');
-    } catch (e) {
-      logger.e('删除目录时发生错误: $e');
-    }
-  } else {
-    logger.e('目录不存在: $path');
   }
 }

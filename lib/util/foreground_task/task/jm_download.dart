@@ -6,13 +6,11 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/json/download/comic_all_info_json.dart';
 import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart'
     as base_info;
 import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart';
-import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/main_task.dart';
@@ -218,7 +216,6 @@ Future<DownloadInfoJson> downloadComic(
   DownloadInfoJson downloadInfoJson,
   List<String> selectedChapters,
 ) async {
-  await RustLib.init();
   final selectedEps = downloadInfoJson.series
       .where((e) => selectedChapters.contains(e.id))
       .toList();
@@ -304,8 +301,6 @@ Future<void> saveToDB(
   List<String> epsIds,
   String allInfo,
 ) async {
-  final objectBox = await ObjectBox.create();
-
   final jmComicDownload = JmDownload(
     comicId: downloadInfoJson.id.toString(),
     name: downloadInfoJson.name,
@@ -329,17 +324,14 @@ Future<void> saveToDB(
     downloadTime: DateTime.now(),
   );
 
-  var temp = objectBox.jmDownloadBox
+  var temp = objectbox.jmDownloadBox
       .query(JmDownload_.comicId.equals(downloadInfoJson.id.toString()))
       .build()
       .find();
 
-  // 这个是为了避免重复放置数据
-  for (var item in temp) {
-    objectBox.jmDownloadBox.remove(item.id);
-  }
+  objectbox.jmDownloadBox.removeMany(temp.map((e) => e.id).toList());
 
-  await objectBox.jmDownloadBox.putAsync(jmComicDownload);
+  await objectbox.jmDownloadBox.putAsync(jmComicDownload);
 }
 
 Future<void> checkFile(DownloadInfoJson downloadInfoJson) async {

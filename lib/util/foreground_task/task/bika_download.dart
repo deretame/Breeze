@@ -1,14 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_socks_proxy/socks_proxy.dart';
 import 'package:pool/pool.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/bika/http_request.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/json/bika/eps/eps.dart' as eps;
 import 'package:zephyr/page/comic_read/json/bika_ep_info_json/page.dart' as p;
@@ -297,8 +295,6 @@ Future<void> _saveToDB(
   ComicAllInfoJson comicAllInfoJson,
   List<String> epsTitle,
 ) async {
-  final objectBox = await ObjectBox.create();
-
   final comicInfo = comicAllInfoJson.comic;
 
   // 保存到数据库
@@ -349,17 +345,14 @@ Future<void> _saveToDB(
     comicInfoAll: comicAllInfoJson.toJson().let(jsonEncode),
   );
 
-  var temp = objectBox.bikaDownloadBox
+  var temp = objectbox.bikaDownloadBox
       .query(BikaComicDownload_.comicId.equals(comicInfo.id))
       .build()
       .find();
 
-  // 这个是为了避免重复放置数据
-  for (var item in temp) {
-    objectBox.bikaDownloadBox.remove(item.id);
-  }
+  objectbox.bikaDownloadBox.removeMany(temp.map((e) => e.id).toList());
 
-  await objectBox.bikaDownloadBox.putAsync(bikaComicDownload);
+  await objectbox.bikaDownloadBox.putAsync(bikaComicDownload);
 }
 
 Future<void> checkFile(ComicAllInfoJson comicAllInfoJson) async {
@@ -440,27 +433,4 @@ Future<List<String>> getAllFilePaths(String directoryPath) async {
   }
 
   return filePaths;
-}
-
-Future<void> sendSystemNotification(String title, String body) async {
-  const androidNotificationDetails = AndroidNotificationDetails(
-    'download_complete',
-    '下载完成通知',
-    channelDescription: '下载完成通知',
-    importance: Importance.max,
-    priority: Priority.high,
-    icon: '@mipmap/ic_launcher',
-  );
-
-  const notificationDetails = NotificationDetails(
-    android: androidNotificationDetails,
-  );
-
-  await flutterLocalNotificationsPlugin.show(
-    id: 256,
-    title: title,
-    body: body,
-    notificationDetails: notificationDetails,
-    payload: 'download_complete',
-  );
 }

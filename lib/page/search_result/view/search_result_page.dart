@@ -88,7 +88,11 @@ class _SearchResultPageState extends State<_SearchResultPage>
     searchEvent = widget.searchEvent;
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final keyword = widget.searchEvent.searchStates.searchKeyword.trim();
+      var keyword = widget.searchEvent.searchStates.searchKeyword.trim();
+      final url = widget.searchEvent.url;
+      if (url.isNotEmpty) {
+        keyword += "&&$url";
+      }
       if (keyword.isEmpty) return;
       final settingCubit = context.read<GlobalSettingCubit>();
       final history = settingCubit.state.searchHistory.toList();

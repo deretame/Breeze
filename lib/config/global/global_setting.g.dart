@@ -33,7 +33,7 @@ _GlobalSettingState _$GlobalSettingStateFromJson(Map<String, dynamic> json) =>
           (json['maskedKeywords'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
-          const [""],
+          const [],
       socks5Proxy: json['socks5Proxy'] as String? ?? '',
       needCleanCache: json['needCleanCache'] as bool? ?? false,
       comicChoice: (json['comicChoice'] as num?)?.toInt() ?? 1,

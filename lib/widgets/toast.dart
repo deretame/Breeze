@@ -5,6 +5,24 @@ import '../main.dart';
 
 enum ToastType { info, success, warning, error }
 
+void _showToastification({
+  required BuildContext context,
+  String? title,
+  required String message,
+  required ToastificationType type,
+  required Duration duration,
+}) {
+  toastification.show(
+    context: context,
+    title: title == null ? null : Text(title),
+    description: Text(message),
+    type: type,
+    style: ToastificationStyle.flatColored,
+    autoCloseDuration: duration,
+    showProgressBar: true,
+  );
+}
+
 class ToastEvent {
   ToastType type;
   String? title;
@@ -26,14 +44,12 @@ void showInfoToast(
   BuildContext? context,
 }) {
   if (context != null) {
-    toastification.show(
+    _showToastification(
       context: context,
-      title: title == null ? null : Text(title),
-      description: Text(message),
+      title: title,
+      message: message,
       type: ToastificationType.info,
-      style: ToastificationStyle.flatColored,
-      autoCloseDuration: duration,
-      showProgressBar: true,
+      duration: duration,
     );
     return;
   }
@@ -55,14 +71,12 @@ void showSuccessToast(
   BuildContext? context,
 }) {
   if (context != null) {
-    toastification.show(
+    _showToastification(
       context: context,
-      title: title == null ? null : Text(title),
-      description: Text(message),
+      title: title,
+      message: message,
       type: ToastificationType.success,
-      style: ToastificationStyle.flatColored,
-      autoCloseDuration: duration,
-      showProgressBar: true,
+      duration: duration,
     );
     return;
   }
@@ -84,14 +98,12 @@ void showWarningToast(
   BuildContext? context,
 }) {
   if (context != null) {
-    toastification.show(
+    _showToastification(
       context: context,
-      title: title == null ? null : Text(title),
-      description: Text(message),
+      title: title,
+      message: message,
       type: ToastificationType.warning,
-      style: ToastificationStyle.flatColored,
-      autoCloseDuration: duration,
-      showProgressBar: true,
+      duration: duration,
     );
     return;
   }
@@ -113,14 +125,12 @@ void showErrorToast(
   BuildContext? context,
 }) {
   if (context != null) {
-    toastification.show(
+    _showToastification(
       context: context,
-      title: title == null ? null : Text(title),
-      description: Text(message),
+      title: title,
+      message: message,
       type: ToastificationType.error,
-      style: ToastificationStyle.flatColored,
-      autoCloseDuration: duration,
-      showProgressBar: true,
+      duration: duration,
     );
     return;
   }

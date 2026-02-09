@@ -1,4 +1,3 @@
-import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/bika/http_request.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/page/search_result/json/bika/advanced_search.dart';
@@ -13,8 +12,6 @@ Future<BlocState> getBikaResult(SearchEvent event, BlocState blocState) async {
     4 => 'vd',
     _ => 'dd',
   };
-
-  logger.d(event.page);
 
   final categories = event.searchStates.categories.entries
       .where((e) => e.value)

@@ -29,21 +29,14 @@ class ObjectBox {
 
   static Future<ObjectBox> create() async {
     final docsDir = await getApplicationDocumentsDirectory();
-    // 确保这个路径和你的项目一致，之前是 "breeze_db"
     final dbPath = p.join(docsDir.path, "breeze_db");
 
-    Store storeInstance; // 用来接收 Store 实例
+    Store storeInstance;
 
     if (Store.isOpen(dbPath)) {
-      // 如果底层 Store 已经通过其他实例打开了 (比如主 Isolate，或者另一个后台 Isolate)
-      // 我们就安全地 "attach" 到它上面
       storeInstance = Store.attach(getObjectBoxModel(), dbPath);
     } else {
-      // 如果底层 Store 还没有打开，那我们就正常地打开它
-      // 这通常发生在应用第一次启动，或者所有之前的实例都已关闭后
-      storeInstance = await openStore(
-        directory: dbPath,
-      ); // openStore 是 objectbox.g.dart 中生成的
+      storeInstance = await openStore(directory: dbPath);
     }
 
     return ObjectBox._create(storeInstance);

@@ -32,4 +32,7 @@ class ReaderCubit extends Cubit<ReaderState> {
 
   void updateSliderRolling(bool rolling) =>
       emit(state.copyWith(isSliderRolling: rolling));
+
+  void updateIsComicRolling(bool rolling) =>
+      emit(state.copyWith(isComicRolling: rolling));
 }

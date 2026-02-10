@@ -11,17 +11,11 @@ import 'package:zephyr/util/context/context_extensions.dart';
 import '../../../main.dart';
 
 class SliderWidget extends StatefulWidget {
-  final ValueChanged<double> changeSliderValue;
-  final ValueChanged<bool> changeSliderRollState;
-  final ValueChanged<bool> changeComicRollState;
   final ItemScrollController itemScrollController;
   final PageController pageController;
 
   const SliderWidget({
     super.key,
-    required this.changeSliderValue,
-    required this.changeSliderRollState,
-    required this.changeComicRollState,
     required this.itemScrollController,
     required this.pageController,
   });
@@ -47,22 +41,26 @@ class _SliderWidgetState extends State<SliderWidget> {
   @override
   Widget build(BuildContext context) {
     double maxValue = 0;
-    final readerCubit = context.watch<ReaderCubit>();
-    maxValue = readerCubit.state.totalSlots > 0
-        ? readerCubit.state.totalSlots.toDouble() - 1
-        : 0;
+    final cubit = context.read<ReaderCubit>();
+    final totalSlots = context.select(
+      (ReaderCubit cubit) => cubit.state.totalSlots,
+    );
+    final sliderValue = context.select(
+      (ReaderCubit cubit) => cubit.state.sliderValue,
+    );
+    maxValue = totalSlots > 0 ? totalSlots.toDouble() - 1 : 0;
     return Expanded(
       child: Slider(
-        value: readerCubit.state.sliderValue,
+        value: sliderValue,
         min: 0,
         max: maxValue,
-        label: (readerCubit.state.sliderValue.toInt() + 1).toString(),
+        label: (sliderValue.toInt() + 1).toString(),
         onChanged: (double newValue) {
-          if (readerCubit.state.sliderValue.toInt() != newValue.toInt()) {
-            widget.changeSliderValue(newValue);
+          if (sliderValue.toInt() != newValue.toInt()) {
+            cubit.updateSliderChanged(newValue);
           }
 
-          widget.changeSliderRollState(true);
+          cubit.updateIsComicRolling(true);
           _sliderIsRollingTimer?.cancel();
 
           // 显示 Overlay 提示框
@@ -72,11 +70,11 @@ class _SliderWidgetState extends State<SliderWidget> {
           _sliderIsRollingTimer = Timer(const Duration(milliseconds: 300), () {
             displayedSlot = newValue.toInt() + 1;
 
-            widget.changeComicRollState(true);
-            widget.changeSliderRollState(true);
+            cubit.updateSliderRolling(true);
+            cubit.updateIsComicRolling(true);
             _comicRollingTimer = Timer(const Duration(milliseconds: 350), () {
-              widget.changeComicRollState(false);
-              widget.changeSliderRollState(false);
+              cubit.updateSliderRolling(false);
+              cubit.updateIsComicRolling(false);
 
               // 移除 Overlay 提示框
               _overlayEntry?.remove();
@@ -88,13 +86,13 @@ class _SliderWidgetState extends State<SliderWidget> {
             // 滚动到指定的索引
             if (globalSettingState.readMode == 0) {
               widget.itemScrollController.scrollTo(
-                index: readerCubit.state.sliderValue.toInt() + 1,
+                index: newValue.toInt() + 1,
                 alignment: 0.0,
                 duration: const Duration(milliseconds: 300),
               );
             } else {
               widget.pageController.animateToPage(
-                readerCubit.state.sliderValue.toInt(),
+                newValue.toInt(),
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeInOut,
               );

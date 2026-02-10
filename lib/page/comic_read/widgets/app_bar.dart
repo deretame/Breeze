@@ -31,10 +31,12 @@ class ComicReadAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final readerCubit = context.watch<ReaderCubit>();
+    final isMenuVisible = context.select(
+      (ReaderCubit cubit) => cubit.state.isMenuVisible,
+    );
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 400),
-      top: readerCubit.state.isMenuVisible
+      top: isMenuVisible
           ? 0
           : -kToolbarHeight - MediaQuery.of(context).padding.top,
       left: 0,
@@ -45,7 +47,7 @@ class ComicReadAppBar extends StatelessWidget {
           child: AppBar(
             title: ScrollableTitle(text: title),
             backgroundColor: context.backgroundColor.withValues(alpha: 0.5),
-            elevation: readerCubit.state.isMenuVisible ? 4.0 : 0.0,
+            elevation: isMenuVisible ? 4.0 : 0.0,
             actions: [
               IconButton(
                 icon: const Icon(Icons.settings),

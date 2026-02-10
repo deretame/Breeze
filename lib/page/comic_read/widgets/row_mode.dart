@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
 import 'package:zephyr/page/comic_read/widgets/button_dialog.dart';
 import 'package:zephyr/page/comic_read/widgets/read_image_widget.dart';
@@ -19,7 +20,6 @@ class RowModeWidget extends StatefulWidget {
   final String epsId;
   final PageController pageController;
   final ValueChanged<int> onPageChanged;
-  final bool isSliderRolling;
   final From from;
   final JumpChapter jumpChapter;
 
@@ -30,7 +30,6 @@ class RowModeWidget extends StatefulWidget {
     required this.epsId,
     required this.pageController,
     required this.onPageChanged,
-    required this.isSliderRolling,
     required this.from,
     required this.jumpChapter,
   });
@@ -114,15 +113,12 @@ class _RowModeWidgetState extends State<RowModeWidget> {
         reverse: globalSettingState.readMode != 1,
         controller: widget.pageController,
         onPageChanged: (page) {
-          if (widget.isSliderRolling) {
-            // 如果 isSliderRolling 为真，重置定时器
-            _timer?.cancel(); // 取消之前的定时器
+          if (context.read<ReaderCubit>().state.isSliderRolling) {
+            _timer?.cancel();
             _timer = Timer(Duration(milliseconds: 100), () {
-              // 400 毫秒后触发 onPageChanged
               widget.onPageChanged(page);
             });
           } else {
-            // 如果 isSliderRolling 为假，直接触发 onPageChanged
             widget.onPageChanged(page);
           }
         },

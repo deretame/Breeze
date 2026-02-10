@@ -89,13 +89,13 @@ class _BottomWidgetState extends State<BottomWidget> {
   Widget build(BuildContext context) {
     final gloablSettingCubit = context.read<GlobalSettingCubit>();
     final globalSettingState = context.watch<GlobalSettingCubit>().state;
-    final readerCubit = context.watch<ReaderCubit>();
+    final isMenuVisible = context.select(
+      (ReaderCubit cubit) => cubit.state.isMenuVisible,
+    );
 
     return AnimatedPositioned(
       duration: _animationDuration,
-      bottom: readerCubit.state.isMenuVisible
-          ? 0
-          : -_bottomWidgetHeight.toDouble(),
+      bottom: isMenuVisible ? 0 : -_bottomWidgetHeight.toDouble(),
       left: 0,
       right: 0,
       child: ClipRect(

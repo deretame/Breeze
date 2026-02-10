@@ -10,5 +10,6 @@ abstract class ReaderState with _$ReaderState {
     @Default(true) bool isMenuVisible, // 菜单显隐
     @Default(0.0) double sliderValue, // 滑块进度
     @Default(false) bool isSliderRolling, // 是否正在拖动滑块
+    @Default(false) bool isComicRolling, // 漫画本身是否在滚动
   }) = _ReaderState;
 }

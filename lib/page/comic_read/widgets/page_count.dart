@@ -2,16 +2,13 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 
 class PageCountWidget extends StatefulWidget {
-  final int pageIndex;
   final String epPages;
 
-  const PageCountWidget({
-    super.key,
-    required this.pageIndex,
-    required this.epPages,
-  });
+  const PageCountWidget({super.key, required this.epPages});
 
   @override
   State<PageCountWidget> createState() => _PageCountWidgetState();
@@ -128,6 +125,7 @@ class _PageCountWidgetState extends State<PageCountWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final readerCubit = context.watch<ReaderCubit>();
     return Positioned(
       bottom: 0, // 离底部的间距
       left: 0, // 离左边的间距
@@ -152,7 +150,7 @@ class _PageCountWidgetState extends State<PageCountWidget> {
             children: [
               // 显示当前页数
               Text(
-                "${widget.pageIndex - 1}/${widget.epPages}",
+                "${readerCubit.state.pageIndex - 1}/${widget.epPages}",
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 12,

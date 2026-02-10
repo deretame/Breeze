@@ -4,19 +4,18 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comments/widgets/title.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/settings_hive_utils.dart';
 
 class ComicReadAppBar extends StatelessWidget {
   final String title;
-  final bool isVisible;
   final ValueChanged<int> changePageIndex;
 
   const ComicReadAppBar({
     super.key,
     required this.title,
-    required this.isVisible,
     required this.changePageIndex,
   });
 
@@ -32,9 +31,12 @@ class ComicReadAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final readerCubit = context.watch<ReaderCubit>();
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 400),
-      top: isVisible ? 0 : -kToolbarHeight - MediaQuery.of(context).padding.top,
+      top: readerCubit.state.isMenuVisible
+          ? 0
+          : -kToolbarHeight - MediaQuery.of(context).padding.top,
       left: 0,
       right: 0,
       child: ClipRect(
@@ -43,7 +45,7 @@ class ComicReadAppBar extends StatelessWidget {
           child: AppBar(
             title: ScrollableTitle(text: title),
             backgroundColor: context.backgroundColor.withValues(alpha: 0.5),
-            elevation: isVisible ? 4.0 : 0.0,
+            elevation: readerCubit.state.isMenuVisible ? 4.0 : 0.0,
             actions: [
               IconButton(
                 icon: const Icon(Icons.settings),

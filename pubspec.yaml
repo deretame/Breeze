@@ -35,6 +35,7 @@ dependencies:
   flutter_expandable_fab: ^2.5.1 # 可折叠的FAB
   easy_refresh: ^3.4.0 # 超级下拉刷新组件
   flutter_speed_dial: ^7.0.0 # 可折叠的FAB
+  scrollview_observer: ^1.26.3 # 滚动视图观察
 
   ########################################
   #        状态管理 & 事件总线           #

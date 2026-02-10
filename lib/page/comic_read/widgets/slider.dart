@@ -5,13 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../main.dart';
 
 class SliderWidget extends StatefulWidget {
-  final int totalSlots;
-  final double currentSliderValue;
   final ValueChanged<double> changeSliderValue;
   final ValueChanged<bool> changeSliderRollState;
   final ValueChanged<bool> changeComicRollState;
@@ -20,9 +19,7 @@ class SliderWidget extends StatefulWidget {
 
   const SliderWidget({
     super.key,
-    required this.totalSlots,
     required this.changeSliderValue,
-    required this.currentSliderValue,
     required this.changeSliderRollState,
     required this.changeComicRollState,
     required this.itemScrollController,
@@ -34,8 +31,6 @@ class SliderWidget extends StatefulWidget {
 }
 
 class _SliderWidgetState extends State<SliderWidget> {
-  double get currentSliderValue => widget.currentSliderValue;
-
   Timer? _sliderIsRollingTimer; // 用来控制滚动隐藏组件的操作
   Timer? _comicRollingTimer; // 漫画本身是否在滚动
   OverlayEntry? _overlayEntry; // 用于存储 OverlayEntry
@@ -52,15 +47,18 @@ class _SliderWidgetState extends State<SliderWidget> {
   @override
   Widget build(BuildContext context) {
     double maxValue = 0;
-    maxValue = widget.totalSlots > 0 ? widget.totalSlots.toDouble() - 1 : 0;
+    final readerCubit = context.watch<ReaderCubit>();
+    maxValue = readerCubit.state.totalSlots > 0
+        ? readerCubit.state.totalSlots.toDouble() - 1
+        : 0;
     return Expanded(
       child: Slider(
-        value: currentSliderValue,
+        value: readerCubit.state.sliderValue,
         min: 0,
         max: maxValue,
-        label: (currentSliderValue.toInt() + 1).toString(),
+        label: (readerCubit.state.sliderValue.toInt() + 1).toString(),
         onChanged: (double newValue) {
-          if (currentSliderValue.toInt() != newValue.toInt()) {
+          if (readerCubit.state.sliderValue.toInt() != newValue.toInt()) {
             widget.changeSliderValue(newValue);
           }
 
@@ -90,13 +88,13 @@ class _SliderWidgetState extends State<SliderWidget> {
             // 滚动到指定的索引
             if (globalSettingState.readMode == 0) {
               widget.itemScrollController.scrollTo(
-                index: currentSliderValue.toInt() + 1,
+                index: readerCubit.state.sliderValue.toInt() + 1,
                 alignment: 0.0,
                 duration: const Duration(milliseconds: 300),
               );
             } else {
               widget.pageController.animateToPage(
-                currentSliderValue.toInt(),
+                readerCubit.state.sliderValue.toInt(),
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeInOut,
               );

@@ -9,6 +9,7 @@ import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart';
+import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -20,7 +21,6 @@ import '../../../util/router/router.gr.dart';
 
 class BottomWidget extends StatefulWidget {
   final ComicEntryType type;
-  final bool isVisible;
   final dynamic comicInfo;
   final Widget sliderWidget;
   final int order;
@@ -31,7 +31,6 @@ class BottomWidget extends StatefulWidget {
 
   const BottomWidget({
     super.key,
-    required this.isVisible,
     required this.type,
     required this.comicInfo,
     required this.sliderWidget,
@@ -90,10 +89,13 @@ class _BottomWidgetState extends State<BottomWidget> {
   Widget build(BuildContext context) {
     final gloablSettingCubit = context.read<GlobalSettingCubit>();
     final globalSettingState = context.watch<GlobalSettingCubit>().state;
+    final readerCubit = context.watch<ReaderCubit>();
 
     return AnimatedPositioned(
       duration: _animationDuration,
-      bottom: widget.isVisible ? 0 : -_bottomWidgetHeight.toDouble(),
+      bottom: readerCubit.state.isMenuVisible
+          ? 0
+          : -_bottomWidgetHeight.toDouble(),
       left: 0,
       right: 0,
       child: ClipRect(

@@ -4,7 +4,6 @@ export './button_dialog.dart';
 export './column_mode.dart';
 export './error.dart';
 export './image_display.dart';
-export './image_size_cache.dart';
 export './page_count.dart';
 export './read_image_widget.dart';
 export './row_mode.dart';

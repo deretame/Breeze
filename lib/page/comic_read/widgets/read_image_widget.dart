@@ -25,28 +25,8 @@ class ReadImageWidget extends StatefulWidget {
 }
 
 class _ReadImageWidgetState extends State<ReadImageWidget> {
-  final _sizeCache = ImageSizeCache();
-
   int get index => widget.index;
   bool get isColumn => widget.isColumn;
-
-  /// 生成缓存 key（基于 PictureInfo）
-  String get _cacheKey {
-    final info = widget.pictureInfo;
-    return '${info.cartoonId}_${info.chapterId}_${info.path}';
-  }
-
-  /// 计算占位高度
-  double _getPlaceholderHeight(BuildContext context) {
-    final cachedSize = _sizeCache.getSize(_cacheKey);
-    if (cachedSize != null && cachedSize.width > 0) {
-      // 根据缓存的尺寸计算高度
-      return cachedSize.height * (context.screenWidth / cachedSize.width);
-    }
-
-    // 返回一个常见的高度
-    return context.screenWidth * 1.3;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,13 +38,8 @@ class _ReadImageWidgetState extends State<ReadImageWidget> {
           builder: (context, state) {
             switch (state.status) {
               case PictureLoadStatus.initial:
-                // 使用缓存的高度作为占位高度
-                final placeholderHeight = _getPlaceholderHeight(context);
-
                 return Container(
                   color: isColumn ? Color(0xFF2D2D2D) : Colors.black,
-                  width: context.screenWidth,
-                  height: placeholderHeight,
                   child: Center(
                     child: Text(
                       (index + 1).toString(),
@@ -86,24 +61,18 @@ class _ReadImageWidgetState extends State<ReadImageWidget> {
                   child: ImageDisplay(
                     imagePath: state.imagePath!,
                     isColumn: isColumn,
-                    cacheKey: _cacheKey,
+                    index: index,
                   ),
                 );
               case PictureLoadStatus.failure:
                 if (state.result.toString().contains('404')) {
-                  return SizedBox(
-                    height: context.screenWidth,
-                    width: context.screenWidth,
-                    child: Image.asset(
-                      'asset/image/error_image/404.png',
-                      fit: BoxFit.fill,
-                    ),
+                  return Image.asset(
+                    'asset/image/error_image/404.png',
+                    fit: BoxFit.fill,
                   );
                 } else {
                   return Container(
                     color: isColumn ? Color(0xFF2D2D2D) : Colors.black,
-                    height: context.screenWidth,
-                    width: context.screenWidth,
                     child: InkWell(
                       onTap: () {
                         context.read<PictureBloc>().add(

@@ -1,7 +1,7 @@
 name: zephyr
 description: "使用Flutter开发的三方哔咔及禁漫应用。"
 publish_to: none
-version: 2.12.3+2174
+version: 2.12.4+2175
 
 environment:
   sdk: ^3.9.2
@@ -22,7 +22,6 @@ dependencies:
   animated_search_bar: ^2.7.2 # 带动画的搜索栏组件
   photo_view: ^0.15.0 # 交互式图片查看器（缩放/平移）
   extended_image: ^10.0.1 # 高性能图片缓存与展示组件
-  scrollable_positioned_list: ^0.3.8 # 支持滚动定位的列表
   persistent_bottom_nav_bar: ^6.2.1 # 可持久化的底部导航栏
   markdown_widget: ^2.3.2+8 # Markdown 渲染支持
   dropdown_button2: ^2.3.9 # 增强型下拉菜单
@@ -80,6 +79,7 @@ dependencies:
   crop_your_image: ^2.0.0 # 图片裁剪工具
   archive: ^4.0.0 # 压缩/解压工具集
   pool: ^1.5.2 # 资源池
+  battery_plus: ^7.0.0 # 电池信息
 
   ########################################
   #        安全 & 加密 & 工具           #

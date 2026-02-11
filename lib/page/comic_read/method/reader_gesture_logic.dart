@@ -27,22 +27,22 @@ class ReaderGestureLogic {
     // 判断点击区域
     if (tapPosition.dx < thirdWidth) {
       // 点击左边三分之一
-      onJump(readMode ? pageIndex - 3 : pageIndex - 1);
+      onJump(readMode ? pageIndex - 2 : pageIndex);
     } else if (tapPosition.dx < 2 * thirdWidth) {
       // 点击中间三分之一
       if (tapPosition.dy < middleTopHeight) {
         // 点击中间区域的上三分之一
-        onJump(pageIndex - 3);
+        onJump(pageIndex - 2);
       } else if (tapPosition.dy < middleBottomHeight) {
         // 点击中间区域的中三分之一
         onToggleMenu();
       } else {
         // 点击中间区域的下三分之一
-        onJump(pageIndex - 1);
+        onJump(pageIndex);
       }
     } else {
       // 点击右边三分之一
-      onJump(readMode ? pageIndex - 1 : pageIndex - 3);
+      onJump(readMode ? pageIndex : pageIndex - 2);
     }
   }
 }

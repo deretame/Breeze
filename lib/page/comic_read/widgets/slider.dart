@@ -3,20 +3,21 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/page/comic_read/cubit/image_size_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../main.dart';
 
 class SliderWidget extends StatefulWidget {
-  final ItemScrollController itemScrollController;
+  final ListObserverController observerController;
   final PageController pageController;
 
   const SliderWidget({
     super.key,
-    required this.itemScrollController,
+    required this.observerController,
     required this.pageController,
   });
 
@@ -83,22 +84,24 @@ class _SliderWidgetState extends State<SliderWidget> {
 
             final globalSettingState = context.read<GlobalSettingCubit>().state;
 
-            // 滚动到指定的索引
-            if (globalSettingState.readMode == 0) {
-              widget.itemScrollController.scrollTo(
-                index: newValue.toInt() + 1,
-                alignment: 0.0,
-                duration: const Duration(milliseconds: 300),
-              );
-            } else {
-              widget.pageController.animateToPage(
-                newValue.toInt(),
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
+            try {
+              // 滚动到指定的索引
+              if (globalSettingState.readMode == 0) {
+                widget.observerController.controller?.animateTo(
+                  getOffset(context, newValue.toInt()),
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              } else {
+                widget.pageController.animateToPage(
+                  newValue.toInt(),
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              }
+            } catch (e) {
+              logger.e(e);
             }
-
-            logger.d('滑块值：$newValue , 显示的槽位：$displayedSlot');
           });
         },
       ),
@@ -152,4 +155,22 @@ class _SliderWidgetState extends State<SliderWidget> {
     // 插入 Overlay
     Overlay.of(context).insert(_overlayEntry!);
   }
+}
+
+double getOffset(BuildContext context, int index) {
+  final sizeCubit = context.read<ImageSizeCubit>();
+
+  final targetListIndex = index + 1;
+
+  double targetItemStartY = 0;
+  for (int i = 0; i < targetListIndex; i++) {
+    targetItemStartY += sizeCubit.state.getSizeValue(i).height;
+  }
+
+  double finalOffset = targetItemStartY - context.statusBarHeight;
+  if (finalOffset < 0) {
+    finalOffset = 0;
+  }
+
+  return finalOffset;
 }

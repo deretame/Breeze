@@ -4,16 +4,15 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_read/comic_read.dart';
+import 'package:zephyr/page/comic_read/cubit/image_size_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
-import 'package:zephyr/page/comic_read/method/history_writer.dart';
-import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/volume_key_handler.dart';
 
 @RoutePage()
@@ -88,18 +87,16 @@ class _ComicReadPageState extends State<_ComicReadPage>
 
   late final ComicEntryType _type;
   late bool isSkipped = false; // 是否跳转过
-  late final ItemScrollController _itemScrollController;
-  late final ItemPositionsListener _itemPositionsListener;
-  final PageController _pageController = PageController(initialPage: 0);
-  late int _lastScrollIndex = -1; // 用于记录上次滚动的索引
+  final _pageController = PageController(initialPage: 0); // 横版阅读器
   TapDownDetails? _tapDownDetails; // 保存点击信息
   Timer? _cleanTimer; // 用来清理图片缓存的定时器
   late JumpChapter _jumpChapter; // 用来跳转章节的通用类
   late final ReaderVolumeController _volumeController; // 音量键翻页控制器
   late final ReaderHistoryManager _historyManager; // 历史记录管理器
   NormalComicEpInfo epInfo = NormalComicEpInfo(); // 通用漫画章节信息
-  final observerController = ListObserverController();
-  final ScrollController scrollController = ScrollController();
+  late final ListObserverController observerController; // 列表观察控制器
+  final scrollController = ScrollController(); // 列表滚动控制器
+  BuildContext? _imageSizeContext;
 
   bool get _isHistory =>
       _type == ComicEntryType.history ||
@@ -108,34 +105,22 @@ class _ComicReadPageState extends State<_ComicReadPage>
   @override
   void initState() {
     super.initState();
-    // logger.d(widget.epsNumber.toString());
+    observerController = ListObserverController(controller: scrollController);
     _cleanTimer = Timer(const Duration(seconds: 5), () {
       // 腾出空间供阅读器使用
       PaintingBinding.instance.imageCache.clear();
-      PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 1024;
     });
     final cubit = context.read<ReaderCubit>();
     _type = widget.type;
-    _itemScrollController = ItemScrollController();
-    _itemPositionsListener = ItemPositionsListener.create();
-
-    _itemPositionsListener.itemPositions.addListener(() {
-      if (_itemPositionsListener.itemPositions.value.isNotEmpty) {
-        final positions = _itemPositionsListener.itemPositions.value;
-        getTopThirdItemIndex(positions);
-        _detectScrollDirection(positions);
-      }
-    });
 
     // === 初始化音量控制器 ===
     _volumeController = ReaderVolumeController(
-      itemScrollController: _itemScrollController,
+      observerController: observerController,
       pageController: _pageController,
       getReadMode: () => context.read<GlobalSettingCubit>().state.readMode,
-      getCurrentSliderValue: () => cubit.state.sliderValue,
       getPageIndex: () => cubit.state.pageIndex,
       getTotalSlots: () => cubit.state.totalSlots,
-      onSliderValueChanged: (newValue) => cubit.updateSliderChanged(newValue),
+      getContext: () => _imageSizeContext!,
     );
 
     // 开始监听
@@ -149,7 +134,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
       comicInfo: widget.comicInfo,
       historyWriter: HistoryWriter(), // 或者这里 new 一个新的
       stringSelectCubit: context.read<StringSelectCubit>(), // 传入 Cubit
-      getPageIndex: () => cubit.state.pageIndex,
+      getPageIndex: () => context.read<ReaderCubit>().state.pageIndex + 1,
       getEpInfo: () => epInfo,
     );
 
@@ -160,11 +145,9 @@ class _ComicReadPageState extends State<_ComicReadPage>
       if (!mounted) return;
 
       final globalSettingState = context.read<GlobalSettingCubit>().state;
-      if (globalSettingState.readMode != 0) {
-        await Future.delayed(Duration(milliseconds: 200));
-        cubit.updatePageIndex(2);
-        cubit.updateMenuVisible(visible: false);
-        // 横版模式下自动隐藏 AppBar 后启用音量键拦截
+      await Future.delayed(Duration(milliseconds: 200));
+      cubit.updateMenuVisible(visible: false);
+      if (globalSettingState.readMode == 0) {
         VolumeKeyHandler.enableVolumeKeyInterception();
       }
 
@@ -188,10 +171,8 @@ class _ComicReadPageState extends State<_ComicReadPage>
 
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _pageController.dispose();
-    _itemPositionsListener.itemPositions.removeListener(() {});
     _historyManager.stop();
     _volumeController.dispose();
-    PaintingBinding.instance.imageCache.maximumSizeBytes = 300 * 1024 * 1024;
     super.dispose();
   }
 
@@ -216,44 +197,55 @@ class _ComicReadPageState extends State<_ComicReadPage>
   );
 
   Widget _successWidget(PageState state) {
-    return Builder(
-      builder: (innerContext) {
-        final cubit = innerContext.read<ReaderCubit>();
+    final width = context.screenWidth;
+    final statusBarHeight = context.statusBarHeight;
 
-        final isMenuVisible = innerContext.select(
-          (ReaderCubit c) => c.state.isMenuVisible,
-        );
+    return BlocProvider(
+      create: (context) => ImageSizeCubit.create(
+        statusBarHeight: statusBarHeight,
+        defaultWidth: width,
+        count: epInfo.length + 2,
+      ),
+      child: Builder(
+        builder: (innerContext) {
+          final cubit = innerContext.read<ReaderCubit>();
+          _imageSizeContext = innerContext;
 
-        _historyManager.markLoaded();
+          final isMenuVisible = innerContext.select(
+            (ReaderCubit c) => c.state.isMenuVisible,
+          );
 
-        final globalSettingState = innerContext
-            .watch<GlobalSettingCubit>()
-            .state;
+          _historyManager.markLoaded();
 
-        if (isMenuVisible == false && globalSettingState.readMode == 0) {
-          SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-        }
+          final readMode = innerContext.select(
+            (GlobalSettingCubit c) => c.state.readMode,
+          );
 
-        cubit.updateTotalSlots(state.epInfo!.length);
-        _handleHistoryScroll();
+          if (isMenuVisible == false && readMode == 0) {
+            SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+          }
 
-        return Container(
-          color: Colors.black,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                bottom: isMenuVisible
-                    ? 0
-                    : MediaQuery.of(innerContext).padding.bottom,
-                child: _buildInteractiveViewer(),
-              ),
-              _comicReadAppBar(),
-              _pageCountWidget(),
-              _bottomWidget(),
-            ],
-          ),
-        );
-      },
+          cubit.updateTotalSlots(state.epInfo!.length);
+          _handleHistoryScroll();
+
+          return Container(
+            color: Colors.black,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  bottom: isMenuVisible
+                      ? 0
+                      : MediaQuery.of(innerContext).padding.bottom,
+                  child: _buildInteractiveViewer(),
+                ),
+                _comicReadAppBar(),
+                _pageCountWidget(),
+                _bottomWidget(),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -272,7 +264,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
 
   Widget _bottomWidget() {
     final silder = SliderWidget(
-      itemScrollController: _itemScrollController,
+      observerController: observerController,
       pageController: _pageController,
     );
 
@@ -352,8 +344,8 @@ class _ComicReadPageState extends State<_ComicReadPage>
           epsId: epInfo.epId,
           length: epInfo.length,
           docs: epInfo.docs,
-          itemScrollController: _itemScrollController,
-          itemPositionsListener: _itemPositionsListener,
+          observerController: observerController,
+          scrollController: scrollController,
           from: widget.from,
           parentPhysics: physics,
         );
@@ -370,21 +362,6 @@ class _ComicReadPageState extends State<_ComicReadPage>
       epsId: epInfo.epId,
       docs: epInfo.docs,
       pageController: _pageController,
-      onPageChanged: (int index) {
-        final cubit = context.read<ReaderCubit>();
-        cubit.updatePageIndex(index + 2);
-        if (!cubit.state.isComicRolling) {
-          // 确保 clamp 的最大值不小于最小值，避免 Invalid argument 错误
-          final maxSlot = (cubit.state.totalSlots - 1).clamp(
-            0,
-            double.maxFinite.toInt(),
-          );
-          cubit.updateSliderChanged(
-            (cubit.state.pageIndex).clamp(0, maxSlot).toDouble() - 1,
-          );
-          cubit.updateMenuVisible(visible: false);
-        }
-      },
       from: widget.from,
       jumpChapter: _jumpChapter,
     );
@@ -408,56 +385,6 @@ class _ComicReadPageState extends State<_ComicReadPage>
     curve: Curves.easeInOut,
   );
 
-  Future<void> getTopThirdItemIndex(Iterable<ItemPosition> positions) async {
-    final globalSettingState = context.read<GlobalSettingCubit>().state;
-    final cubit = context.read<ReaderCubit>();
-
-    if (globalSettingState.readMode != 0) return;
-    // 在数据加载完成前不处理滚动位置更新
-    if (cubit.state.totalSlots == 0) return;
-
-    ScrollPositionHelper.handleUpdate(
-      context: context,
-      positions: positions,
-      isSliderRolling: cubit.state.isSliderRolling,
-      isMounted: mounted,
-      onPageIndexChanged: (newIndex) {
-        if (cubit.state.pageIndex != newIndex) {
-          // logger.d('更新索引：$newIndex');
-          cubit.updatePageIndex(newIndex);
-          if (!cubit.state.isSliderRolling) {
-            // 确保 clamp 的最大值不小于最小值，避免 Invalid argument 错误
-            final maxSlot = (cubit.state.totalSlots - 1).clamp(
-              0,
-              double.maxFinite.toInt(),
-            );
-            cubit.updateSliderChanged(
-              (cubit.state.pageIndex - 2).clamp(0, maxSlot).toDouble(),
-            );
-          }
-        }
-      },
-    );
-  }
-
-  void _detectScrollDirection(Iterable<ItemPosition> positions) {
-    final cubit = context.read<ReaderCubit>();
-    if (positions.isNotEmpty) {
-      // 获取当前滚动的第一个索引
-      final firstItemIndex = positions.first.index;
-
-      // 判断是否有滚动
-      if (firstItemIndex != _lastScrollIndex && !cubit.state.isSliderRolling) {
-        // logger.d('滚动检测：隐藏组件');
-        cubit.updateMenuVisible(visible: false);
-        _volumeController.enableInterception();
-      }
-
-      // 更新记录的滚动索引
-      _lastScrollIndex = firstItemIndex;
-    }
-  }
-
   /// 处理历史记录滚动
   void _handleHistoryScroll() {
     var shouldScroll = _isHistory && !isSkipped;
@@ -470,14 +397,20 @@ class _ComicReadPageState extends State<_ComicReadPage>
     }
 
     if (shouldScroll) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        // 推迟到下一个事件循环
+        await Future.delayed(const Duration(milliseconds: 0));
         if (!mounted) return;
         final cubit = context.read<ReaderCubit>();
         cubit.updatePageIndex(historyIndex);
 
         final globalSettingState = context.read<GlobalSettingCubit>().state;
         if (globalSettingState.readMode == 0) {
-          _itemScrollController.jumpTo(index: historyIndex - 1, alignment: 0.0);
+          observerController.controller?.animateTo(
+            getOffset(_imageSizeContext!, historyIndex - 1),
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
         } else {
           _pageController.jumpToPage(historyIndex - 2);
         }

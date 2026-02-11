@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:battery_plus/battery_plus.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,17 +20,19 @@ class _PageCountWidgetState extends State<PageCountWidget> {
   ConnectivityResult _connectivityResult = ConnectivityResult.none;
   String _currentTime = '';
   late Timer _timer;
+  final Battery _battery = Battery();
+  int _batteryLevel = 100;
+  BatteryState _batteryState = BatteryState.full;
+  StreamSubscription<BatteryState>? _batteryStateSubscription;
 
   @override
   void initState() {
     super.initState();
     _initConnectivity();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final now = DateTime.now();
-      final formattedTime =
-          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-      setState(() => _currentTime = formattedTime);
+    _initBattery();
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateTime();
       _startTimer();
     });
   }
@@ -38,15 +41,47 @@ class _PageCountWidgetState extends State<PageCountWidget> {
   void dispose() {
     _timer.cancel();
     _connectivitySubscription.cancel();
+    _batteryStateSubscription?.cancel();
     super.dispose();
   }
 
-  // 初始化网络状态监听
+  void _initBattery() async {
+    final level = await _battery.batteryLevel;
+    if (mounted) {
+      setState(() => _batteryLevel = level);
+    }
+
+    final state = await _battery.batteryState;
+    if (mounted) {
+      setState(() => _batteryState = state);
+    }
+
+    _batteryStateSubscription = _battery.onBatteryStateChanged.listen((state) {
+      if (mounted) {
+        setState(() => _batteryState = state);
+      }
+    });
+  }
+
+  IconData _getBatteryIcon() {
+    if (_batteryState == BatteryState.charging) {
+      return Icons.battery_charging_full;
+    }
+    if (_batteryLevel >= 95) return Icons.battery_full;
+    if (_batteryLevel >= 80) return Icons.battery_6_bar;
+    if (_batteryLevel >= 60) return Icons.battery_5_bar;
+    if (_batteryLevel >= 50) return Icons.battery_4_bar;
+    if (_batteryLevel >= 30) return Icons.battery_3_bar;
+    if (_batteryLevel >= 20) return Icons.battery_2_bar;
+    if (_batteryLevel >= 10) return Icons.battery_1_bar;
+    return Icons.battery_alert;
+  }
+
   void _initConnectivity() async {
     final connectivity = Connectivity();
     final results = await connectivity.checkConnectivity();
     if (results.isNotEmpty) {
-      _updateConnectivityResult(results); // 传入完整结果列表
+      _updateConnectivityResult(results);
     }
     _connectivitySubscription = connectivity.onConnectivityChanged.listen((
       results,
@@ -78,96 +113,106 @@ class _PageCountWidgetState extends State<PageCountWidget> {
       ConnectivityResult.vpn,
       ConnectivityResult.other,
     ];
-
     for (var type in priorityOrder) {
-      if (results.contains(type)) {
-        return type;
-      }
+      if (results.contains(type)) return type;
     }
     return ConnectivityResult.none;
-  }
-
-  // 启动定时器，每秒更新时间
-  void _startTimer() {
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      if (mounted) {
-        final now = DateTime.now();
-        final formattedTime =
-            '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-        if (formattedTime != _currentTime) {
-          setState(() {
-            _currentTime = formattedTime;
-          });
-        }
-      }
-    });
   }
 
   // 获取网络状态图标
   IconData _getNetworkStatusIcon(ConnectivityResult result) {
     switch (result) {
       case ConnectivityResult.bluetooth:
-        return Icons.bluetooth; // 蓝牙图标
+        return Icons.bluetooth;
       case ConnectivityResult.wifi:
-        return Icons.wifi; // Wi-Fi 图标
+        return Icons.wifi;
       case ConnectivityResult.ethernet:
-        return Icons.router; // 以太网图标
+        return Icons.router;
       case ConnectivityResult.mobile:
-        return Icons.network_cell; // 移动数据图标
+        return Icons.network_cell;
       case ConnectivityResult.none:
-        return Icons.signal_wifi_off; // 无网络图标
+        return Icons.signal_wifi_off;
       case ConnectivityResult.vpn:
-        return Icons.vpn_key; // vpn图标
+        return Icons.vpn_key;
       case ConnectivityResult.other:
-        return Icons.signal_cellular_off; // 未知网络图标
+        return Icons.signal_cellular_off;
     }
+  }
+
+  void _updateTime() {
+    final now = DateTime.now();
+    final formattedTime =
+        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+
+    if (formattedTime != _currentTime) {
+      setState(() => _currentTime = formattedTime);
+
+      _battery.batteryLevel.then((level) {
+        if (mounted && _batteryLevel != level) {
+          setState(() => _batteryLevel = level);
+        }
+      });
+    }
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        _updateTime();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final readerCubit = context.watch<ReaderCubit>();
+    final pageIndex = context.select<ReaderCubit, int>(
+      (value) => value.state.pageIndex,
+    );
+
     return Positioned(
-      bottom: 0, // 离底部的间距
-      left: 0, // 离左边的间距
+      bottom: 0,
+      left: 0,
       child: ClipRRect(
-        borderRadius: BorderRadius.only(
-          topRight: Radius.circular(10), // 右上角设置圆角
-        ),
+        borderRadius: const BorderRadius.only(topRight: Radius.circular(10)),
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          decoration: BoxDecoration(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: const BoxDecoration(
             color: Colors.black,
-            // 半透明背景
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(0), // 左上角保持直角
-              topRight: Radius.circular(10), // 右上角设置圆角
-              bottomLeft: Radius.circular(0), // 左下角保持直角
-              bottomRight: Radius.circular(0), // 右下角保持直角
-            ),
+            borderRadius: BorderRadius.only(topRight: Radius.circular(10)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 显示当前页数
+              // 1. 页码
               Text(
-                "${readerCubit.state.pageIndex - 1}/${widget.epPages}",
-                style: TextStyle(
+                "$pageIndex/${widget.epPages}",
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 12,
                   fontFamily: 'JetBrainsMonoNL-Regular',
                 ),
               ),
-              SizedBox(width: 5), // 添加间距
-              // 显示网络状态
+
+              const SizedBox(width: 8),
+
+              // 2. 网络图标
               Icon(
-                _getNetworkStatusIcon(_connectivityResult), // 使用网络状态图标
+                _getNetworkStatusIcon(_connectivityResult),
                 color: Colors.white,
                 size: 12,
               ),
-              SizedBox(width: 5), // 添加间距
+
+              const SizedBox(width: 8),
+
+              // // 3. 电量图标
+              // Icon(_getBatteryIcon(), color: Colors.white, size: 12),
+
+              // const SizedBox(width: 8),
+
+              // 4. 时间
               Text(
                 _currentTime,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 12,
                   fontFamily: 'JetBrainsMonoNL-Regular',

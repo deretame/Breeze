@@ -19,7 +19,6 @@ class RowModeWidget extends StatefulWidget {
   final String comicId;
   final String epsId;
   final PageController pageController;
-  final ValueChanged<int> onPageChanged;
   final From from;
   final JumpChapter jumpChapter;
 
@@ -29,7 +28,6 @@ class RowModeWidget extends StatefulWidget {
     required this.comicId,
     required this.epsId,
     required this.pageController,
-    required this.onPageChanged,
     required this.from,
     required this.jumpChapter,
   });
@@ -113,13 +111,14 @@ class _RowModeWidgetState extends State<RowModeWidget> {
         reverse: globalSettingState.readMode != 1,
         controller: widget.pageController,
         onPageChanged: (page) {
+          logger.d("page: $page");
           if (context.read<ReaderCubit>().state.isSliderRolling) {
             _timer?.cancel();
             _timer = Timer(Duration(milliseconds: 100), () {
-              widget.onPageChanged(page);
+              _onPageChanged(page);
             });
           } else {
-            widget.onPageChanged(page);
+            _onPageChanged(page);
           }
         },
         childrenDelegate: SliverChildBuilderDelegate(
@@ -141,22 +140,34 @@ class _RowModeWidgetState extends State<RowModeWidget> {
             );
           },
           childCount: widget.docs.length,
-          addAutomaticKeepAlives: true, // 保持页面状态，以便预加载
-          addRepaintBoundaries: true, // 为每个孩子添加重绘边界，有助于性能
+          addAutomaticKeepAlives: true,
+          addRepaintBoundaries: true,
         ),
         scrollDirection: Axis.horizontal,
-        // 可以根据需要自定义物理效果
         pageSnapping: true,
         allowImplicitScrolling: true,
-        // 允许隐式滚动，有助于预加载
         restorationId: null,
-        // 根据需要设置
         clipBehavior: Clip.none,
         hitTestBehavior: HitTestBehavior.opaque,
         scrollBehavior: const MaterialScrollBehavior(),
-        // 根据需要设置
         padEnds: true,
       ),
     );
+  }
+
+  void _onPageChanged(int page) {
+    final cubit = context.read<ReaderCubit>();
+    cubit.updatePageIndex(page + 1);
+    if (!cubit.state.isComicRolling) {
+      // 确保 clamp 的最大值不小于最小值，避免 Invalid argument 错误
+      final maxSlot = (cubit.state.totalSlots - 1).clamp(
+        0,
+        double.maxFinite.toInt(),
+      );
+      cubit.updateSliderChanged(
+        (cubit.state.pageIndex).clamp(0, maxSlot).toDouble() - 1,
+      );
+      cubit.updateMenuVisible(visible: false);
+    }
   }
 }

@@ -1,19 +1,20 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:zephyr/main.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/page/comic_read/cubit/image_size_cubit.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-import 'image_size_cache.dart';
 
 class ImageDisplay extends StatefulWidget {
   final String imagePath;
   final bool isColumn;
-  final String cacheKey;
+  final int index;
 
   const ImageDisplay({
     super.key,
     required this.imagePath,
     required this.isColumn,
-    required this.cacheKey,
+    required this.index,
   });
 
   @override
@@ -22,219 +23,87 @@ class ImageDisplay extends StatefulWidget {
 
 class _ImageDisplayState extends State<ImageDisplay> {
   ImageStream? _imageStream;
-  late final ImageStreamListener _imageListener;
-  final _sizeCache = ImageSizeCache();
+  ImageStreamListener? _imageListener;
 
   bool get isColumn => widget.isColumn;
-
-  double imageWidth = 0;
-  double imageHeight = 0;
-  bool _hasError = false;
 
   @override
   void initState() {
     super.initState();
-
-    // 尝试从缓存中获取图片尺寸（优先使用 cacheKey）
-    final cachedSize =
-        _sizeCache.getSize(widget.cacheKey) ??
-        _sizeCache.getSize(widget.imagePath);
-    if (cachedSize != null) {
-      imageWidth = cachedSize.width;
-      imageHeight = cachedSize.height;
-    }
-
-    _imageListener = ImageStreamListener(
-      (ImageInfo imageInfo, _) {
-        if (mounted) {
-          final width = imageInfo.image.width.toDouble();
-          final height = imageInfo.image.height.toDouble();
-
-          // 缓存图片尺寸（同时用 cacheKey 和 imagePath）
-          _sizeCache.cacheSize(
-            widget.cacheKey,
-            Size(width, height),
-            additionalKeys: [widget.imagePath],
-          );
-
-          setState(() {
-            imageWidth = width;
-            imageHeight = height;
-            _hasError = false;
-          });
-        }
-      },
-      onError: (exception, stackTrace) {
-        if (mounted) {
-          setState(() {
-            _hasError = true;
-          });
-        }
-      },
-    );
+    _resolveImageSize();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (isColumn) {
-      _loadImageStream();
-    }
-  }
+  void _resolveImageSize() {
+    final index = widget.index + 1;
+    final cubit = context.read<ImageSizeCubit>();
 
-  Future<void> _loadImageStream() async {
-    // 检查文件是否存在
-    final file = File(widget.imagePath);
-    if (!await file.exists()) {
-      if (mounted) {
-        setState(() {
-          _hasError = true;
-        });
-      }
+    final check = cubit.getSize(index);
+
+    if (check.isCached) {
       return;
     }
 
-    if (!mounted) return;
+    final imageProvider = FileImage(File(widget.imagePath));
 
-    final imageProvider = FileImage(file);
-    _imageStream = imageProvider.resolve(
-      createLocalImageConfiguration(context),
-    );
-    _imageStream!.addListener(_imageListener);
+    _imageStream = imageProvider.resolve(ImageConfiguration.empty);
+
+    _imageListener = ImageStreamListener((
+      ImageInfo imageInfo,
+      bool synchronousCall,
+    ) {
+      if (!mounted) return;
+
+      final double rawWidth = imageInfo.image.width.toDouble();
+      final double rawHeight = imageInfo.image.height.toDouble();
+      final double logicalWidth = cubit.state.defaultWidth;
+      final double scaledHeight = (rawHeight / rawWidth) * logicalWidth;
+
+      cubit.updateSize(index, Size(logicalWidth, scaledHeight));
+    });
+
+    _imageStream!.addListener(_imageListener!);
   }
 
   @override
   void dispose() {
-    _imageStream?.removeListener(_imageListener);
+    if (_imageListener != null) {
+      _imageStream?.removeListener(_imageListener!);
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // 如果图片解码失败，显示错误提示
-    if (_hasError) {
-      return Container(
-        color: isColumn ? const Color(0xFF2D2D2D) : Colors.black,
-        width: context.screenWidth,
-        height: context.screenWidth,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.broken_image,
-                size: 64,
-                color: isColumn ? const Color(0xFFCCCCCC) : Colors.white,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                '图片解码失败',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: isColumn ? const Color(0xFFCCCCCC) : Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '图片数据可能已损坏',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isColumn
-                      ? const Color(0xFFCCCCCC).withValues(alpha: 0.7)
-                      : Colors.white.withValues(alpha: 0.7),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: () async {
-                  // 删除损坏的缓存文件
-                  try {
-                    final file = File(widget.imagePath);
-                    if (await file.exists()) {
-                      await file.delete();
-                    }
-                    setState(() {
-                      _hasError = false;
-                    });
-                    // 触发重新加载
-                    if (mounted) {
-                      setState(() {});
-                    }
-                  } catch (e) {
-                    // 删除失败，保持错误状态
-                    logger.e('删除损坏图片失败: ${widget.imagePath}', error: e);
-                  }
-                },
-                icon: const Icon(Icons.refresh, size: 18),
-                label: const Text('删除并重试'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // 限制缓存大小，避免 GPU 内存溢出
-    // 使用较小的缓存尺寸，最大不超过 1080p
     final screenWidth = context.screenWidth;
     final pixelRatio = context.devicePixelRatio;
-    final maxCacheWidth = 1080; // 限制最大宽度
-    final cacheSize = (screenWidth * pixelRatio).round().clamp(
-      0,
-      maxCacheWidth,
-    );
+    final int cacheSize = (screenWidth * pixelRatio).round();
 
     return Container(
       color: Colors.black,
-      width: context.screenWidth,
-      height: imageHeight != 0
-          ? (imageHeight * (context.screenWidth / imageWidth))
-          : context.screenWidth,
-      child: isColumn
-          ? imageWidth != 0 && imageHeight != 0
-                ? Image.file(
-                    File(widget.imagePath),
-                    fit: BoxFit.fill,
-                    cacheWidth: cacheSize,
-                    gaplessPlayback: true,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: const Color(0xFF2D2D2D),
-                        child: Center(
-                          child: Icon(
-                            Icons.broken_image,
-                            size: 64,
-                            color: const Color(0xFFCCCCCC),
-                          ),
-                        ),
-                      );
-                    },
-                  )
-                : Container(color: const Color(0xFF2D2D2D))
-          : Image.file(
-              File(widget.imagePath),
-              fit: BoxFit.contain,
-              cacheWidth: cacheSize,
-              gaplessPlayback: true,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  color: Colors.black,
-                  child: Center(
-                    child: Icon(
-                      Icons.broken_image,
-                      size: 64,
-                      color: Colors.white,
-                    ),
-                  ),
-                );
-              },
-            ),
+      child: Image.file(
+        File(widget.imagePath),
+        fit: isColumn ? BoxFit.fill : BoxFit.contain,
+        cacheWidth: cacheSize,
+        gaplessPlayback: true,
+
+        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+          if (wasSynchronouslyLoaded || frame != null) {
+            return child;
+          }
+          if (isColumn) {
+            final cubit = context.read<ImageSizeCubit>();
+            final size = cubit.state.getSizeValue(widget.index + 1);
+
+            return Container(
+              width: size.width,
+              height: size.height,
+              color: const Color(0xFF2D2D2D),
+            );
+          } else {
+            return Container(color: Colors.black);
+          }
+        },
+      ),
     );
   }
 }

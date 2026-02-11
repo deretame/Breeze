@@ -1,36 +1,33 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/page/comic_read/widgets/slider.dart';
 import 'package:zephyr/util/volume_key_handler.dart';
 
 /// 专门负责处理音量键翻页逻辑的控制器
 class ReaderVolumeController {
   // 外部传入的控制器引用
-  final ItemScrollController itemScrollController;
+  final ListObserverController observerController;
   final PageController pageController;
 
   // 状态获取回调 (从 UI 获取当前状态，因为 Controller 不应该持有这些易变状态)
   final int Function() getReadMode; // 0: 竖向, 1: 横向
-  final double Function() getCurrentSliderValue;
   final int Function() getPageIndex;
   final int Function() getTotalSlots;
-
-  // 状态更新回调 (告诉 UI 更新 Slider 的值)
-  final Function(double newValue) onSliderValueChanged;
+  final BuildContext Function() getContext;
 
   StreamSubscription<String>? _subscription;
   bool _isInterceptionEnabled = false;
 
   ReaderVolumeController({
-    required this.itemScrollController,
+    required this.observerController,
     required this.pageController,
     required this.getReadMode,
-    required this.getCurrentSliderValue,
     required this.getPageIndex,
     required this.getTotalSlots,
-    required this.onSliderValueChanged,
+    required this.getContext,
   });
 
   /// 开始监听
@@ -84,57 +81,56 @@ class ReaderVolumeController {
   // --- 竖向模式逻辑 ---
 
   void _handleVerticalNext() {
-    final currentSlider = getCurrentSliderValue();
     final total = getTotalSlots();
 
-    final newSliderValue = currentSlider + 1;
-    final scrollIndex = newSliderValue.toInt() + 1;
+    final scrollIndex = getPageIndex();
+    final newScrollIndex = scrollIndex;
 
     logger.d(
-      '音量减 - 竖向: cur=$currentSlider, new=$newSliderValue, idx=$scrollIndex',
+      '音量减 - 竖向: cur=$scrollIndex, new=$newScrollIndex, idx=$scrollIndex',
     );
 
-    if (newSliderValue < total) {
-      _scrollToVertical(scrollIndex);
-      onSliderValueChanged(newSliderValue); // 更新 UI 的 Slider 状态
+    if (newScrollIndex < total) {
+      _scrollToVertical(newScrollIndex);
     } else {
       logger.d('已经是最后一页了');
     }
   }
 
   void _handleVerticalPrev() {
-    final currentSlider = getCurrentSliderValue();
-
-    final newSliderValue = currentSlider - 1;
-    final scrollIndex = newSliderValue.toInt() + 1;
+    final scrollIndex = getPageIndex();
+    final newScrollIndex = scrollIndex - 2;
 
     logger.d(
-      '音量加 - 竖向: cur=$currentSlider, new=$newSliderValue, idx=$scrollIndex',
+      '音量加 - 竖向: cur=$scrollIndex, new=$newScrollIndex, idx=$scrollIndex',
     );
 
-    if (newSliderValue >= 0) {
-      _scrollToVertical(scrollIndex);
-      onSliderValueChanged(newSliderValue); // 更新 UI 的 Slider 状态
+    if (newScrollIndex >= 0) {
+      _scrollToVertical(newScrollIndex);
+    } else {
+      logger.d('已经是第一页了');
     }
   }
 
   void _scrollToVertical(int index) {
-    itemScrollController.scrollTo(
-      index: index,
-      alignment: 0.0,
+    final context = getContext();
+    final offset = getOffset(context, index);
+    observerController.controller?.animateTo(
+      offset,
       duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
     );
   }
 
   // --- 横向模式逻辑 ---
   void _handleHorizontalNext() {
     final currentPageIndex = getPageIndex();
-    _animateToPage(currentPageIndex - 1);
+    _animateToPage(currentPageIndex);
   }
 
   void _handleHorizontalPrev() {
     final currentPageIndex = getPageIndex();
-    _animateToPage(currentPageIndex - 3);
+    _animateToPage(currentPageIndex - 2);
   }
 
   void _animateToPage(int page) {

@@ -216,7 +216,7 @@ return $default(_that.pageIndex,_that.totalSlots,_that.isMenuVisible,_that.slide
 
 
 class _ReaderState implements ReaderState {
-  const _ReaderState({this.pageIndex = 0, this.totalSlots = 0, this.isMenuVisible = true, this.sliderValue = 0.0, this.isSliderRolling = false, this.isComicRolling = false});
+  const _ReaderState({this.pageIndex = 1, this.totalSlots = 0, this.isMenuVisible = true, this.sliderValue = 0.0, this.isSliderRolling = false, this.isComicRolling = false});
   
 
 @override@JsonKey() final  int pageIndex;

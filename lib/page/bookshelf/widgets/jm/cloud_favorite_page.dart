@@ -271,8 +271,8 @@ class _JmCloudFavoritePageState extends State<_JmCloudFavoritePage>
             id: element.id.toString(),
             fileServer: getJmCoverUrl(element.id.toString()),
             path: "${element.id}.jpg",
-            pictureType: 'cover',
-            from: 'jm',
+            pictureType: PictureType.cover,
+            from: From.jm,
           ),
         )
         .toList();

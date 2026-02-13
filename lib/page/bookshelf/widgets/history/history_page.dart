@@ -293,8 +293,8 @@ class __HistoryPageState extends State<_HistoryPage>
               id: element.comicId,
               fileServer: element.thumbFileServer,
               path: element.thumbPath,
-              pictureType: "cover",
-              from: "bika",
+              pictureType: PictureType.cover,
+              from: From.bika,
             ),
           )
           .toList();
@@ -308,8 +308,8 @@ class __HistoryPageState extends State<_HistoryPage>
               id: element.comicId.toString(),
               fileServer: getJmCoverUrl(element.comicId.toString()),
               path: "${element.comicId}.jpg",
-              pictureType: 'cover',
-              from: 'jm',
+              pictureType: PictureType.cover,
+              from: From.jm,
             ),
           )
           .toList();

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ComicSimplifyEntryInfo {
 
-@JsonKey(name: "title") String get title;@JsonKey(name: "id") String get id;@JsonKey(name: "fileServer") String get fileServer;@JsonKey(name: "path") String get path;@JsonKey(name: "pictureType") String get pictureType;@JsonKey(name: "from") String get from;
+@JsonKey(name: "title") String get title;@JsonKey(name: "id") String get id;@JsonKey(name: "fileServer") String get fileServer;@JsonKey(name: "path") String get path;@JsonKey(name: "pictureType") PictureType get pictureType;@JsonKey(name: "from") From get from;
 /// Create a copy of ComicSimplifyEntryInfo
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $ComicSimplifyEntryInfoCopyWith<$Res>  {
   factory $ComicSimplifyEntryInfoCopyWith(ComicSimplifyEntryInfo value, $Res Function(ComicSimplifyEntryInfo) _then) = _$ComicSimplifyEntryInfoCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "title") String title,@JsonKey(name: "id") String id,@JsonKey(name: "fileServer") String fileServer,@JsonKey(name: "path") String path,@JsonKey(name: "pictureType") String pictureType,@JsonKey(name: "from") String from
+@JsonKey(name: "title") String title,@JsonKey(name: "id") String id,@JsonKey(name: "fileServer") String fileServer,@JsonKey(name: "path") String path,@JsonKey(name: "pictureType") PictureType pictureType,@JsonKey(name: "from") From from
 });
 
 
@@ -72,8 +72,8 @@ as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullabl
 as String,fileServer: null == fileServer ? _self.fileServer : fileServer // ignore: cast_nullable_to_non_nullable
 as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
 as String,pictureType: null == pictureType ? _self.pictureType : pictureType // ignore: cast_nullable_to_non_nullable
-as String,from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
-as String,
+as PictureType,from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
+as From,
   ));
 }
 
@@ -158,7 +158,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "title")  String title, @JsonKey(name: "id")  String id, @JsonKey(name: "fileServer")  String fileServer, @JsonKey(name: "path")  String path, @JsonKey(name: "pictureType")  String pictureType, @JsonKey(name: "from")  String from)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "title")  String title, @JsonKey(name: "id")  String id, @JsonKey(name: "fileServer")  String fileServer, @JsonKey(name: "path")  String path, @JsonKey(name: "pictureType")  PictureType pictureType, @JsonKey(name: "from")  From from)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ComicSimplifyEntryInfo() when $default != null:
 return $default(_that.title,_that.id,_that.fileServer,_that.path,_that.pictureType,_that.from);case _:
@@ -179,7 +179,7 @@ return $default(_that.title,_that.id,_that.fileServer,_that.path,_that.pictureTy
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "title")  String title, @JsonKey(name: "id")  String id, @JsonKey(name: "fileServer")  String fileServer, @JsonKey(name: "path")  String path, @JsonKey(name: "pictureType")  String pictureType, @JsonKey(name: "from")  String from)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "title")  String title, @JsonKey(name: "id")  String id, @JsonKey(name: "fileServer")  String fileServer, @JsonKey(name: "path")  String path, @JsonKey(name: "pictureType")  PictureType pictureType, @JsonKey(name: "from")  From from)  $default,) {final _that = this;
 switch (_that) {
 case _ComicSimplifyEntryInfo():
 return $default(_that.title,_that.id,_that.fileServer,_that.path,_that.pictureType,_that.from);case _:
@@ -199,7 +199,7 @@ return $default(_that.title,_that.id,_that.fileServer,_that.path,_that.pictureTy
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "title")  String title, @JsonKey(name: "id")  String id, @JsonKey(name: "fileServer")  String fileServer, @JsonKey(name: "path")  String path, @JsonKey(name: "pictureType")  String pictureType, @JsonKey(name: "from")  String from)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "title")  String title, @JsonKey(name: "id")  String id, @JsonKey(name: "fileServer")  String fileServer, @JsonKey(name: "path")  String path, @JsonKey(name: "pictureType")  PictureType pictureType, @JsonKey(name: "from")  From from)?  $default,) {final _that = this;
 switch (_that) {
 case _ComicSimplifyEntryInfo() when $default != null:
 return $default(_that.title,_that.id,_that.fileServer,_that.path,_that.pictureType,_that.from);case _:
@@ -221,8 +221,8 @@ class _ComicSimplifyEntryInfo implements ComicSimplifyEntryInfo {
 @override@JsonKey(name: "id") final  String id;
 @override@JsonKey(name: "fileServer") final  String fileServer;
 @override@JsonKey(name: "path") final  String path;
-@override@JsonKey(name: "pictureType") final  String pictureType;
-@override@JsonKey(name: "from") final  String from;
+@override@JsonKey(name: "pictureType") final  PictureType pictureType;
+@override@JsonKey(name: "from") final  From from;
 
 /// Create a copy of ComicSimplifyEntryInfo
 /// with the given fields replaced by the non-null parameter values.
@@ -257,7 +257,7 @@ abstract mixin class _$ComicSimplifyEntryInfoCopyWith<$Res> implements $ComicSim
   factory _$ComicSimplifyEntryInfoCopyWith(_ComicSimplifyEntryInfo value, $Res Function(_ComicSimplifyEntryInfo) _then) = __$ComicSimplifyEntryInfoCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "title") String title,@JsonKey(name: "id") String id,@JsonKey(name: "fileServer") String fileServer,@JsonKey(name: "path") String path,@JsonKey(name: "pictureType") String pictureType,@JsonKey(name: "from") String from
+@JsonKey(name: "title") String title,@JsonKey(name: "id") String id,@JsonKey(name: "fileServer") String fileServer,@JsonKey(name: "path") String path,@JsonKey(name: "pictureType") PictureType pictureType,@JsonKey(name: "from") From from
 });
 
 
@@ -281,8 +281,8 @@ as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullabl
 as String,fileServer: null == fileServer ? _self.fileServer : fileServer // ignore: cast_nullable_to_non_nullable
 as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
 as String,pictureType: null == pictureType ? _self.pictureType : pictureType // ignore: cast_nullable_to_non_nullable
-as String,from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
-as String,
+as PictureType,from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
+as From,
   ));
 }
 

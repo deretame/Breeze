@@ -20,7 +20,7 @@ class ComicEntryWidget extends StatefulWidget {
   final ComicEntryInfo comicEntryInfo;
   final ComicEntryType? type;
   final VoidCallback? refresh;
-  final String? pictureType;
+  final PictureType? pictureType;
 
   const ComicEntryWidget({
     super.key,
@@ -41,7 +41,7 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
 
   VoidCallback? get refresh => widget.refresh;
 
-  String? get pictureType => widget.pictureType;
+  PictureType? get pictureType => widget.pictureType;
 
   ComicEntryType? _type;
 
@@ -115,7 +115,7 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                   fileServer: comicEntryInfo.thumb.fileServer,
                   path: comicEntryInfo.thumb.path,
                   id: comicEntryInfo.id,
-                  pictureType: pictureType ?? "cover",
+                  pictureType: pictureType ?? PictureType.cover,
                   targetWidth: coverWidth,
                   targetHeight: coverHeight,
                 );
@@ -283,7 +283,7 @@ class ImageWidget extends StatelessWidget {
   final String fileServer;
   final String path;
   final String id;
-  final String pictureType;
+  final PictureType pictureType;
   final double targetWidth;
   final double targetHeight;
 
@@ -302,7 +302,7 @@ class ImageWidget extends StatelessWidget {
     final theme = context.theme;
 
     final pictureInfo = PictureInfo(
-      from: "bika",
+      from: From.bika,
       url: fileServer,
       path: path,
       cartoonId: id,

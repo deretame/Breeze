@@ -65,10 +65,10 @@ class CategoryLineWidget extends StatelessWidget {
         ..add(
           GetPicture(
             PictureInfo(
-              from: "bika",
+              from: From.bika,
               url: category.homeThumb.fileServer,
               path: category.homeThumb.path,
-              pictureType: "category",
+              pictureType: PictureType.category,
             ),
           ),
         ),
@@ -106,10 +106,10 @@ class CategoryLineWidget extends StatelessWidget {
                   context.read<PictureBloc>().add(
                     GetPicture(
                       PictureInfo(
-                        from: "bika",
+                        from: From.bika,
                         url: category.homeThumb.fileServer,
                         path: category.homeThumb.path,
-                        pictureType: "category",
+                        pictureType: PictureType.category,
                       ),
                     ),
                   );

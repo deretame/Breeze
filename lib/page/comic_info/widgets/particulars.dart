@@ -32,19 +32,19 @@ class ComicParticularsWidget extends StatelessWidget {
     late PictureInfo pictureInfo;
     if (from == From.jm) {
       pictureInfo = PictureInfo(
-        from: 'jm',
+        from: From.jm,
         url: getJmCoverUrl(comicInfo.id),
         path: '${comicInfo.id}.jpg',
         cartoonId: comicInfo.id,
-        pictureType: 'cover',
+        pictureType: PictureType.cover,
       );
     } else {
       pictureInfo = PictureInfo(
-        from: "bika",
+        from: From.bika,
         url: comicInfo.cover.url,
         path: comicInfo.cover.path,
         chapterId: comicInfo.id,
-        pictureType: "cover",
+        pictureType: PictureType.cover,
         cartoonId: comicInfo.id,
       );
     }

@@ -11,6 +11,7 @@ import 'package:zephyr/page/bookshelf/json/download/comic_all_info_json.dart';
 import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart'
     as base_info;
 import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/main_task.dart';
@@ -59,11 +60,11 @@ Future<void> jmDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
 
   try {
     await downloadPicture(
-      from: 'jm',
+      from: From.jm,
       url: getJmCoverUrl(comicInfo.id.toString()),
       path: "${comicInfo.id}.jpg",
       cartoonId: comicInfo.id.toString(),
-      pictureType: 'cover',
+      pictureType: PictureType.cover,
       chapterId: comicInfo.id.toString(),
     );
   } catch (e, s) {
@@ -246,11 +247,11 @@ Future<DownloadInfoJson> downloadComic(
     return pool.withResource(() async {
       try {
         await downloadPicture(
-          from: 'jm',
+          from: From.jm,
           url: doc.media.fileServer,
           path: doc.media.path,
           cartoonId: downloadInfoJson.id.toString(),
-          pictureType: 'comic',
+          pictureType: PictureType.comic,
           chapterId: doc.docId,
         );
 

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/jm/jm_comments/json/comments_json.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
+
 import 'cover.dart';
 
 class CommentsWidget extends StatelessWidget {
@@ -34,12 +36,12 @@ class CommentsWidget extends StatelessWidget {
                     children: [
                       ImagerWidget(
                         pictureInfo: PictureInfo(
-                          from: 'jm',
+                          from: From.jm,
                           url: getUserCover(element.photo),
                           path: '${element.uid}.jpg',
                           cartoonId: '',
                           chapterId: '',
-                          pictureType: 'user',
+                          pictureType: PictureType.user,
                         ),
                       ),
                       SizedBox(width: 10),
@@ -127,12 +129,12 @@ class _CommentsWidget extends StatelessWidget {
                     SizedBox(width: 30),
                     ImagerWidget(
                       pictureInfo: PictureInfo(
-                        from: 'jm',
+                        from: From.jm,
                         url: getUserCover(reply.photo),
                         path: '${reply.uid}.jpg',
                         cartoonId: '',
                         chapterId: '',
-                        pictureType: 'user',
+                        pictureType: PictureType.user,
                       ),
                     ),
                     SizedBox(width: 10),

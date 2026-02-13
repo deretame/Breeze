@@ -231,7 +231,7 @@ class _UserFavoritePageState extends State<_FavoritePage>
       itemCount: temp.length,
       itemBuilder: (context, index) => ComicEntryWidget(
         comicEntryInfo: temp[index].doc.toComicEntryInfo(),
-        pictureType: "favourite",
+        pictureType: PictureType.favourite,
       ),
     );
   }
@@ -321,8 +321,8 @@ class _UserFavoritePageState extends State<_FavoritePage>
               id: element.doc.id,
               fileServer: element.doc.thumb.fileServer,
               path: element.doc.thumb.path,
-              pictureType: "favourite",
-              from: "bika",
+              pictureType: PictureType.favourite,
+              from: From.bika,
             ),
           )
           .toList();

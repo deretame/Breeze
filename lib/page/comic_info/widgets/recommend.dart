@@ -29,8 +29,8 @@ class RecommendWidget extends StatelessWidget {
           id: e.id,
           fileServer: e.cover.url,
           path: e.cover.path,
-          pictureType: "cover",
-          from: "bika",
+          pictureType: PictureType.cover,
+          from: From.bika,
         );
       } else {
         return ComicSimplifyEntryInfo(
@@ -38,8 +38,8 @@ class RecommendWidget extends StatelessWidget {
           id: e.id,
           fileServer: getJmCoverUrl(e.id),
           path: "${e.id}.jpg",
-          pictureType: "cover",
-          from: "jm",
+          pictureType: PictureType.cover,
+          from: From.jm,
         );
       }
     }).toList();

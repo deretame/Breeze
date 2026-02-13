@@ -127,12 +127,12 @@ class _RowModeWidgetState extends State<RowModeWidget> {
               color: Colors.black,
               child: ReadImageWidget(
                 pictureInfo: PictureInfo(
-                  from: widget.from.toString().split('.').last,
+                  from: widget.from,
                   url: widget.docs[index].fileServer,
                   path: widget.docs[index].path,
                   cartoonId: widget.comicId,
                   chapterId: widget.epsId,
-                  pictureType: 'comic',
+                  pictureType: PictureType.comic,
                 ),
                 index: index,
                 isColumn: false,

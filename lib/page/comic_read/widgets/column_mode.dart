@@ -92,15 +92,14 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
   }
 
   Widget itemBuilder(BuildContext context, int index) {
-    final hideTop = context
-        .read<GlobalSettingCubit>()
-        .state
-        .comicReadTopContainer;
     return BlocSelector<ImageSizeCubit, ImageSizeState, Size>(
       selector: (state) {
         return state.getSizeValue(index);
       },
       builder: (itemContext, currentSize) {
+        final hideTop = itemContext.select(
+          (GlobalSettingCubit c) => c.state.comicReadTopContainer,
+        );
         final height = currentSize.height;
         final width = currentSize.width;
         if (index == 0) {
@@ -127,14 +126,14 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
             width: width,
             child: ReadImageWidget(
               pictureInfo: PictureInfo(
-                from: widget.from.toString().split('.').last,
+                from: widget.from,
                 url: widget.docs[index - 1].fileServer,
                 path: widget.docs[index - 1].path,
                 cartoonId: widget.comicId,
                 chapterId: widget.epsId,
-                pictureType: 'comic',
+                pictureType: PictureType.comic,
               ),
-              index: index - 1,
+              index: index,
               isColumn: true,
             ),
           );

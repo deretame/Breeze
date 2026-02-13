@@ -1,47 +1,20 @@
-import 'package:equatable/equatable.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:zephyr/type/enum.dart';
 
-class PictureInfo extends Equatable {
-  final String from; // 从那个漫画网站获取的
-  final String url; // 网址
-  final String path; // 路径
-  final String cartoonId; // 漫画id
-  final String chapterId; // 章节id
-  final String pictureType; // 图片类型
+part 'picture_info.freezed.dart';
+part 'picture_info.g.dart';
 
-  const PictureInfo({
-    this.from = '',
-    this.url = '',
-    this.path = '',
-    this.cartoonId = '',
-    this.chapterId = '',
-    this.pictureType = '',
-  });
+@freezed
+abstract class PictureInfo with _$PictureInfo {
+  const factory PictureInfo({
+    @Default(From.bika) From from, // 从那个漫画网站获取的
+    @Default('') String url, // 网址
+    @Default('') String path, // 路径
+    @Default('') String cartoonId, // 漫画id
+    @Default('') String chapterId, // 章节id
+    @Default(PictureType.comic) PictureType pictureType, // 图片类型
+  }) = _PictureInfo;
 
-  PictureInfo copyWith({
-    String? from,
-    String? url,
-    String? path,
-    String? cartoonId,
-    String? chapterId,
-    String? pictureType,
-  }) {
-    return PictureInfo(
-      from: from ?? this.from,
-      url: url ?? this.url,
-      path: path ?? this.path,
-      cartoonId: cartoonId ?? this.cartoonId,
-      chapterId: chapterId ?? this.chapterId,
-      pictureType: pictureType ?? this.pictureType,
-    );
-  }
-
-  @override
-  List<Object> get props => [
-    from,
-    url,
-    path,
-    cartoonId,
-    pictureType,
-    chapterId,
-  ];
+  factory PictureInfo.fromJson(Map<String, dynamic> json) =>
+      _$PictureInfoFromJson(json);
 }

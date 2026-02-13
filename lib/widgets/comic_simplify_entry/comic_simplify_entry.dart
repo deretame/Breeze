@@ -169,12 +169,12 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   void _navigateToComicInfo(BuildContext context) {
-    if (info.from == 'bika') {
+    if (info.from == From.bika) {
       context.pushRoute(
         ComicInfoRoute(comicId: info.id, type: type, from: From.bika),
       );
     }
-    if (info.from == 'jm') {
+    if (info.from == From.jm) {
       context.pushRoute(
         ComicInfoRoute(comicId: info.id, type: type, from: From.jm),
       );
@@ -234,7 +234,7 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   Future<void> _deleteHistory() async {
-    if (info.from == 'bika') {
+    if (info.from == From.bika) {
       final temp = objectbox.bikaHistoryBox
           .query(BikaComicHistory_.comicId.equals(info.id))
           .build()
@@ -245,7 +245,7 @@ class ComicSimplifyEntry extends StatelessWidget {
         temp.history = DateTime.now().toUtc();
         objectbox.bikaHistoryBox.put(temp);
       }
-    } else if (info.from == 'jm') {
+    } else if (info.from == From.jm) {
       final temp = objectbox.jmHistoryBox
           .query(JmHistory_.comicId.equals(info.id))
           .build()
@@ -260,7 +260,7 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   Future<void> _deleteDownload() async {
-    if (info.from == 'bika') {
+    if (info.from == From.bika) {
       final temp = objectbox.bikaDownloadBox
           .query(BikaComicDownload_.comicId.equals(info.id))
           .build()
@@ -270,7 +270,7 @@ class ComicSimplifyEntry extends StatelessWidget {
         objectbox.bikaDownloadBox.remove(temp.id);
         await _deleteDownloadDirectory(info.id);
       }
-    } else if (info.from == 'jm') {
+    } else if (info.from == From.jm) {
       final temp = objectbox.jmDownloadBox
           .query(JmDownload_.comicId.equals(info.id))
           .build()
@@ -284,8 +284,8 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   Future<void> _deleteFavorite() async {
-    if (info.from == 'bika') {
-    } else if (info.from == 'jm') {
+    if (info.from == From.bika) {
+    } else if (info.from == From.jm) {
       final temp = objectbox.jmFavoriteBox
           .query(JmFavorite_.comicId.equals(info.id))
           .build()
@@ -364,8 +364,8 @@ ComicSimplifyEntryInfo _createPlaceholder() {
     id: const Uuid().v4(),
     fileServer: '',
     path: '',
-    pictureType: '',
-    from: '',
+    pictureType: PictureType.unknown,
+    from: From.unknown,
   );
 }
 

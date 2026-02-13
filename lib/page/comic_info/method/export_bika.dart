@@ -8,6 +8,7 @@ import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/json/download/comic_all_info_json.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/compressed/compressed.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 /// 导出漫画为文件夹
@@ -55,11 +56,11 @@ Future<void> bikaExportComicAsFolder(String comicId) async {
         await coverFile.create(recursive: true);
       }
       var coverDownloadFile = await downloadPicture(
-        from: 'bika',
+        from: From.bika,
         url: processedComicInfo.comic.thumb.fileServer,
         path: processedComicInfo.comic.thumb.path,
         cartoonId: processedComicInfo.comic.id,
-        pictureType: 'cover',
+        pictureType: PictureType.cover,
         chapterId: processedComicInfo.comic.id,
       );
       await File(coverDownloadFile).copy(coverFile.path);
@@ -80,11 +81,11 @@ Future<void> bikaExportComicAsFolder(String comicId) async {
       var pageFile = '$epDir/${page.media.originalName}';
       try {
         var pageDownloadFile = await downloadPicture(
-          from: 'bika',
+          from: From.bika,
           url: page.media.fileServer,
           path: page.media.path,
           cartoonId: comicInfo.comic.id,
-          pictureType: 'comic',
+          pictureType: PictureType.comic,
           chapterId: ep.id,
         );
         if (!await File(pageFile).exists()) {
@@ -139,11 +140,11 @@ Future<void> bikaExportComicAsZip(String comicId) async {
     try {
       var coverFile = 'cover/cover.jpg';
       var coverDownloadFile = await downloadPicture(
-        from: 'bika',
+        from: From.bika,
         url: processedComicInfo.comic.thumb.fileServer,
         path: processedComicInfo.comic.thumb.path,
         cartoonId: processedComicInfo.comic.id,
-        pictureType: 'cover',
+        pictureType: PictureType.cover,
         chapterId: processedComicInfo.comic.id,
       );
       packInfo.originalImagePaths.add(coverDownloadFile);
@@ -166,11 +167,11 @@ Future<void> bikaExportComicAsZip(String comicId) async {
       var pageFile = '$epDir/${page.media.originalName}';
       try {
         var pageDownloadFile = await downloadPicture(
-          from: 'bika',
+          from: From.bika,
           url: page.media.fileServer,
           path: page.media.path,
           cartoonId: comicInfo.comic.id,
-          pictureType: 'comic',
+          pictureType: PictureType.comic,
           chapterId: ep.id,
         );
         packInfo.originalImagePaths.add(pageDownloadFile);

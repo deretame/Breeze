@@ -10,6 +10,7 @@ import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/compressed/compressed.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -50,11 +51,11 @@ Future<void> jmExportComicAsFolder(String comicId) async {
   await coverFile.create(recursive: true);
   try {
     String coverDownloadFile = await downloadPicture(
-      from: 'jm',
+      from: From.jm,
       url: getJmCoverUrl(processedComicInfo.id.toString()),
       path: "${processedComicInfo.id}.jpg",
       cartoonId: processedComicInfo.id.toString(),
-      pictureType: 'cover',
+      pictureType: PictureType.cover,
       chapterId: processedComicInfo.id.toString(),
     );
     await File(coverDownloadFile).copy(coverFile.path);
@@ -75,11 +76,11 @@ Future<void> jmExportComicAsFolder(String comicId) async {
       }
       try {
         String pageDownloadFile = await downloadPicture(
-          from: 'jm',
+          from: From.jm,
           url: getJmImagesUrl(comicInfo.id.toString(), page),
           path: page,
           cartoonId: comicInfo.id.toString(),
-          pictureType: 'comic',
+          pictureType: PictureType.comic,
           chapterId: ep.id,
         );
         if (!await File(pageFile).exists()) {
@@ -124,11 +125,11 @@ Future<void> jmExportComicAsZip(String comicId) async {
   if (processedComicInfo.name.isNotEmpty) {
     var coverFile = 'cover/cover.jpg';
     var coverDownloadFile = await downloadPicture(
-      from: 'jm',
+      from: From.jm,
       url: getJmCoverUrl(processedComicInfo.id.toString()),
       path: "${processedComicInfo.id}.jpg",
       cartoonId: processedComicInfo.id.toString(),
-      pictureType: 'cover',
+      pictureType: PictureType.cover,
       chapterId: processedComicInfo.id.toString(),
     );
     packInfo.originalImagePaths.add(coverDownloadFile);
@@ -148,11 +149,11 @@ Future<void> jmExportComicAsZip(String comicId) async {
       }
       try {
         var pageDownloadFile = await downloadPicture(
-          from: 'jm',
+          from: From.jm,
           url: getJmImagesUrl(comicInfo.id.toString(), page),
           path: page,
           cartoonId: comicInfo.id.toString(),
-          pictureType: 'comic',
+          pictureType: PictureType.comic,
           chapterId: ep.id,
         );
 

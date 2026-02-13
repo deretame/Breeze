@@ -90,7 +90,7 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                   fileServer: comic.thumb.fileServer,
                   path: comic.thumb.path,
                   id: comic.id,
-                  pictureType: "cover",
+                  pictureType: PictureType.cover,
                 ),
               ),
             ),

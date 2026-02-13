@@ -139,11 +139,11 @@ class _JMWidget extends StatelessWidget {
               children: <Widget>[
                 UserAvatar(
                   pictureInfo: PictureInfo(
-                    from: "jm",
+                    from: From.jm,
                     url: getUserCover(jmUserInfoJson.photo),
                     path: "${jmUserInfoJson.photo}.jpg",
                     chapterId: "",
-                    pictureType: "avatar",
+                    pictureType: PictureType.avatar,
                   ),
                 ),
                 SizedBox(width: 10),

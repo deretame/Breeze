@@ -11,6 +11,7 @@ import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/json/bika/eps/eps.dart' as eps;
 import 'package:zephyr/page/comic_read/json/bika_ep_info_json/page.dart' as p;
 import 'package:zephyr/page/download/json/comic_all_info_json/comic_all_info_json.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/main_task.dart';
@@ -67,11 +68,11 @@ Future<void> bikaDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
   logger.d(comicInfo.toJson());
 
   final coverPath = await downloadPicture(
-    from: 'bika',
+    from: From.bika,
     url: comicInfo.thumb.fileServer,
     path: comicInfo.thumb.path,
     cartoonId: comicInfo.id,
-    pictureType: 'cover',
+    pictureType: PictureType.cover,
     chapterId: comicInfo.id,
     proxy: task.bikaInfo.proxy.let(toInt),
   );
@@ -96,11 +97,11 @@ Future<void> bikaDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
     int progress = 0;
     for (var doc in pagesDocs) {
       await downloadPicture(
-        from: 'bika',
+        from: From.bika,
         url: doc.media.fileServer,
         path: doc.media.path,
         cartoonId: comicInfo.id,
-        pictureType: 'comic',
+        pictureType: PictureType.comic,
         chapterId: doc.docId,
         proxy: task.bikaInfo.proxy.let(toInt),
       );
@@ -117,11 +118,11 @@ Future<void> bikaDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
     final List<Future<void>> downloadTasks = pagesDocs.map((doc) {
       return pool.withResource(() async {
         await downloadPicture(
-          from: 'bika',
+          from: From.bika,
           url: doc.media.fileServer,
           path: doc.media.path,
           cartoonId: comicInfo.id,
-          pictureType: 'comic',
+          pictureType: PictureType.comic,
           chapterId: doc.docId,
           proxy: task.bikaInfo.proxy.let(toInt),
         );

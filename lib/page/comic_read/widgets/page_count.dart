@@ -63,7 +63,7 @@ class _PageCountWidgetState extends State<PageCountWidget> {
     });
   }
 
-  IconData _getBatteryIcon() {
+  IconData getBatteryIcon() {
     if (_batteryState == BatteryState.charging) {
       return Icons.battery_charging_full;
     }

@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/settings_hive_utils.dart';
 
@@ -16,11 +17,11 @@ import '../../../util/get_path.dart';
 final pictureDio = Dio();
 
 Future<String> getCachePicture({
-  String from = '',
+  From from = From.bika,
   String url = '',
   String path = '',
   String cartoonId = '1',
-  String pictureType = '',
+  PictureType pictureType = PictureType.comic,
   String chapterId = '',
 }) async {
   if (url.contains("nopic-Male.gif")) return "nopic-Male.gif";
@@ -89,7 +90,7 @@ Future<String> getCachePicture({
   }
 
   // 处理 URL
-  String finalUrl = from == 'jm'
+  String finalUrl = from == From.jm
       ? url
       : buildImageUrl(
           url,
@@ -102,7 +103,7 @@ Future<String> getCachePicture({
   // 下载图片
   Uint8List imageData = await downloadImageWithRetry(finalUrl);
 
-  if (from == 'jm' && pictureType == 'comic') {
+  if (from == From.jm && pictureType == PictureType.comic) {
     await decodeAndSaveImage(
       imageData,
       chapterId.let(toInt),
@@ -130,18 +131,18 @@ Future<String> getCachePicture({
 }
 
 Future<String> downloadPicture({
-  String from = '',
+  From from = From.bika,
   String url = '',
   String path = '',
   String cartoonId = '',
-  String pictureType = '',
+  PictureType pictureType = PictureType.comic,
   String chapterId = '',
   int? proxy,
 }) async {
   if (url.isEmpty) {
     throw Exception('URL 不能为空 404');
   }
-  if (url.contains("404") && from == "jm") {
+  if (url.contains("404") && from == From.jm) {
     return "404";
   }
 
@@ -209,7 +210,7 @@ Future<String> downloadPicture({
   }
 
   // 处理 URL
-  String finalUrl = from == 'jm'
+  String finalUrl = from == From.jm
       ? url
       : buildImageUrl(
           url,
@@ -222,7 +223,7 @@ Future<String> downloadPicture({
   // 下载图片
   Uint8List imageData = await downloadImageWithRetry(finalUrl, retry: true);
 
-  if (from == 'jm' && pictureType == 'comic') {
+  if (from == From.jm && pictureType == PictureType.comic) {
     await decodeAndSaveImage(
       imageData,
       chapterId.let(toInt),
@@ -255,38 +256,38 @@ String sanitizePath(String path) {
 
 String buildFilePath(
   String basePath,
-  String from,
-  String pictureType,
+  From from,
+  PictureType pictureType,
   String cartoonId,
   String chapterId,
   String sanitizedPath, [
   String? quality,
 ]) {
   String quality1 = '';
-  if (from == 'bika') {
+  if (from == From.bika) {
     quality1 = quality ?? SettingsHiveUtils.bikaImageQuality;
   }
-  if (pictureType == 'comic') {
+  if (pictureType == PictureType.comic) {
     return file_path.join(
       basePath,
-      from,
+      from.name,
       quality1,
       cartoonId,
-      pictureType,
+      pictureType.name,
       chapterId,
       sanitizedPath,
     );
-  } else if (pictureType == 'cover') {
+  } else if (pictureType == PictureType.cover) {
     return file_path.join(
       basePath,
-      from,
+      from.name,
       quality1,
       cartoonId,
-      pictureType,
+      pictureType.name,
       sanitizedPath,
     );
   } else {
-    return file_path.join(basePath, from, pictureType, sanitizedPath);
+    return file_path.join(basePath, from.name, pictureType.name, sanitizedPath);
   }
 }
 
@@ -324,14 +325,15 @@ Future<void> copyFile(String sourcePath, String targetPath) async {
 String buildImageUrl(
   String url,
   String path,
-  String pictureType,
+  PictureType pictureType,
   String imageQuality,
   int proxy,
 ) {
   if (url == "https://storage1.picacomic.com") {
-    if (pictureType == "cover") {
+    if (pictureType == PictureType.cover) {
       url = "https://img.picacomic.com";
-    } else if (pictureType == "creator" || pictureType == "favourite") {
+    } else if (pictureType == PictureType.creator ||
+        pictureType == PictureType.favourite) {
       url = proxy == 1
           ? "https://storage.diwodiwo.xyz"
           : "https://s3.picacomic.com";
@@ -345,9 +347,9 @@ String buildImageUrl(
       }
     }
   } else if (url == "https://storage-b.picacomic.com") {
-    if (pictureType == "creator") {
+    if (pictureType == PictureType.creator) {
       url = "https://storage-b.picacomic.com";
-    } else if (pictureType == "cover") {
+    } else if (pictureType == PictureType.cover) {
       url = "https://img.picacomic.com";
     } else if (imageQuality == "original") {
       url = "https://storage-b.diwodiwo.xyz";

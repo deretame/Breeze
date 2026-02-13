@@ -5,6 +5,7 @@ import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/more/more.dart';
 import 'package:zephyr/page/more/widgets/user_avatar.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
@@ -125,11 +126,11 @@ class _BikaWidget extends StatelessWidget {
               children: <Widget>[
                 UserAvatar(
                   pictureInfo: PictureInfo(
-                    from: "bika",
+                    from: From.bika,
                     url: profile.data.user.avatar.fileServer,
                     path: profile.data.user.avatar.path,
                     chapterId: "",
-                    pictureType: "avatar",
+                    pictureType: PictureType.avatar,
                   ),
                 ),
                 SizedBox(width: 10),

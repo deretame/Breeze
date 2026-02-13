@@ -5,11 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../main.dart';
 import '../../../cubit/bool_select.dart';
 import '../../../cubit/int_select.dart';
+import '../../../main.dart';
 import '../../../network/http/bika/http_request.dart';
 import '../../../util/router/router.gr.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
@@ -105,9 +106,9 @@ class _CommentsWidgetState extends State<CommentsWidget>
                                 url: commentInfo.user.avatar!.fileServer,
                                 path: commentInfo.user.avatar!.path,
                                 cartoonId: commentInfo.user.id,
-                                pictureType: "creator",
+                                pictureType: PictureType.creator,
                                 chapterId: commentInfo.id,
-                                from: "bika",
+                                from: From.bika,
                               ),
                               commentId: commentInfo.id,
                             ),

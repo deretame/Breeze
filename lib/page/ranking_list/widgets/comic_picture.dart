@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
@@ -14,7 +15,7 @@ class ComicPictureWidget extends StatelessWidget {
   final String fileServer;
   final String path;
   final String id;
-  final String pictureType;
+  final PictureType pictureType;
   final double targetWidth;
   final double targetHeight;
 
@@ -31,7 +32,7 @@ class ComicPictureWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pictureInfo = PictureInfo(
-      from: "bika",
+      from: From.bika,
       url: fileServer,
       path: path,
       cartoonId: id,

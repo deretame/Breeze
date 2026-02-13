@@ -243,16 +243,16 @@ class _SearchResultPageState extends State<_SearchResultPage>
           id: data.id,
           fileServer: data.thumb.fileServer,
           path: data.thumb.path,
-          pictureType: "cover",
-          from: "bika",
+          pictureType: PictureType.cover,
+          from: From.bika,
         ),
         jm: (data) => ComicSimplifyEntryInfo(
           title: data.name,
           id: data.id,
           fileServer: getJmCoverUrl(data.id),
           path: "${data.id}.jpg",
-          pictureType: 'cover',
-          from: 'jm',
+          pictureType: PictureType.cover,
+          from: From.jm,
         ),
       );
     }).toList();

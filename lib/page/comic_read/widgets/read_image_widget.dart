@@ -42,7 +42,7 @@ class _ReadImageWidgetState extends State<ReadImageWidget> {
                   color: isColumn ? Color(0xFF2D2D2D) : Colors.black,
                   child: Center(
                     child: Text(
-                      (index + 1).toString(),
+                      index.toString(),
                       style: TextStyle(
                         fontFamily: 'Pacifico-Regular',
                         color: isColumn ? Color(0xFFCCCCCC) : Colors.white,

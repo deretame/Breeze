@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:zephyr/type/enum.dart';
 
 part 'comic_simplify_entry_info.freezed.dart';
 part 'comic_simplify_entry_info.g.dart';
@@ -22,8 +23,8 @@ abstract class ComicSimplifyEntryInfo with _$ComicSimplifyEntryInfo {
     @JsonKey(name: "id") required String id,
     @JsonKey(name: "fileServer") required String fileServer,
     @JsonKey(name: "path") required String path,
-    @JsonKey(name: "pictureType") required String pictureType,
-    @JsonKey(name: "from") required String from,
+    @JsonKey(name: "pictureType") required PictureType pictureType,
+    @JsonKey(name: "from") required From from,
   }) = _ComicSimplifyEntryInfo;
 
   factory ComicSimplifyEntryInfo.fromJson(Map<String, dynamic> json) =>

@@ -72,7 +72,7 @@ class _CreatorEntryWidgetState extends State<CreatorEntryWidget>
                   CreatorPictureWidget(
                     fileServer: user.avatar.fileServer,
                     path: user.avatar.path,
-                    pictureType: "creator",
+                    pictureType: PictureType.creator,
                   ),
                   const SizedBox(width: 15),
                   Flexible(

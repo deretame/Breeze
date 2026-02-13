@@ -5,12 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
-import '../../../main.dart';
 import '../../../cubit/bool_select.dart';
 import '../../../cubit/int_select.dart';
+import '../../../main.dart';
 import '../../../network/http/bika/http_request.dart';
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
@@ -69,9 +70,9 @@ class FatherCommentsWidget extends StatelessWidget {
                       url: doc.user.avatar!.fileServer,
                       path: doc.user.avatar!.path,
                       cartoonId: doc.user.id,
-                      pictureType: "creator",
+                      pictureType: PictureType.creator,
                       chapterId: doc.id,
-                      from: "bika",
+                      from: From.bika,
                     ),
                     commentId: doc.id,
                   ),

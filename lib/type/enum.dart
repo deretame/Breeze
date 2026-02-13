@@ -15,6 +15,8 @@ enum From {
   bika,
   @JsonValue('jm')
   jm,
+  @JsonValue('unknown')
+  unknown,
 }
 
 @JsonEnum()
@@ -39,4 +41,24 @@ enum LoginStatus {
   loggingIn,
   @JsonValue('logout')
   logout,
+}
+
+@JsonEnum()
+enum PictureType {
+  @JsonValue('comic')
+  comic,
+  @JsonValue('cover')
+  cover,
+  @JsonValue('creator')
+  creator,
+  @JsonValue('favourite')
+  favourite,
+  @JsonValue('user')
+  user,
+  @JsonValue('category')
+  category,
+  @JsonValue('avatar')
+  avatar,
+  @JsonValue('unknown')
+  unknown,
 }

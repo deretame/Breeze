@@ -34,4 +34,8 @@ Map<String, dynamic> _$SearchStatesToJson(_SearchStates instance) =>
       'brevity': instance.brevity,
     };
 
-const _$FromEnumMap = {From.bika: 'bika', From.jm: 'jm'};
+const _$FromEnumMap = {
+  From.bika: 'bika',
+  From.jm: 'jm',
+  From.unknown: 'unknown',
+};

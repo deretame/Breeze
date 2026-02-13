@@ -240,8 +240,8 @@ class __FavoritePageState extends State<_FavoritePage>
             id: element.comicId.toString(),
             fileServer: getJmCoverUrl(element.comicId.toString()),
             path: "${element.comicId}.jpg",
-            pictureType: 'cover',
-            from: 'jm',
+            pictureType: PictureType.cover,
+            from: From.jm,
           ),
         )
         .toList();

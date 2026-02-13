@@ -98,8 +98,8 @@ class _RankingWidgetState extends State<_RankingWidget>
             id: item.id,
             fileServer: getJmCoverUrl(item.id),
             path: "${item.id}.jpg",
-            pictureType: 'cover',
-            from: 'jm',
+            pictureType: PictureType.cover,
+            from: From.jm,
           );
         })
         .toList()

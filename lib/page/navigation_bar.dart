@@ -404,18 +404,19 @@ class _NavigationBarState extends State<NavigationBar> {
                   context.pop();
                 },
               ),
-              TextButton(
-                child: Text('下载安装'),
-                onPressed: () async {
-                  context.pop();
-                  for (var apkUrl in temp.assets) {
-                    if (apkUrl.browserDownloadUrl.contains(arch) &&
-                        !apkUrl.browserDownloadUrl.contains("skia")) {
-                      await installApk(apkUrl.browserDownloadUrl);
+              if (Platform.isAndroid)
+                TextButton(
+                  child: Text('下载安装'),
+                  onPressed: () async {
+                    context.pop();
+                    for (var apkUrl in temp.assets) {
+                      if (apkUrl.browserDownloadUrl.contains(arch) &&
+                          !apkUrl.browserDownloadUrl.contains("skia")) {
+                        await installApk(apkUrl.browserDownloadUrl);
+                      }
                     }
-                  }
-                },
-              ),
+                  },
+                ),
             ],
           );
         },

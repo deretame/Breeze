@@ -29,6 +29,7 @@ import 'package:zephyr/firebase_options.dart';
 import 'package:zephyr/network/dio_cache.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
+import 'package:zephyr/src/rust/api/system.dart' as rust_system;
 import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/util/desktop/custom_title_bar.dart';
@@ -218,6 +219,15 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
     });
     trayManager.addListener(this);
     initSystemTray();
+
+    // 启动命名管道监听，用于接收外部退出信号（仅 Windows）
+    if (Platform.isWindows) {
+      rust_system.startShutdownListener().listen((shouldExit) {
+        if (shouldExit) {
+          _performGracefulExit();
+        }
+      });
+    }
   }
 
   @override
@@ -240,9 +250,24 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   }
 
   @override
-  void onWindowClose() {
-    // 点击 X 按钮时隐藏窗口，而不是关闭
-    windowManager.hide();
+  void onWindowClose() async {
+    // 如果窗口可见，点 X 只是隐藏到托盘
+    bool isVisible = await windowManager.isVisible();
+    if (isVisible) {
+      windowManager.hide();
+    } else {
+      // 窗口已隐藏却收到 WM_CLOSE，说明是系统关机或安装器在关闭
+      _performGracefulExit();
+    }
+  }
+
+  /// 优雅退出：关闭数据库、释放资源后退出
+  Future<void> _performGracefulExit() async {
+    logger.i("收到退出指令，正在清理资源...");
+    await windowManager.setPreventClose(false);
+    objectbox.store.close();
+    await Hive.close();
+    exit(0);
   }
 
   @override
@@ -266,9 +291,8 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
     if (menuItem.key == 'show_window') {
       NativeWindow.show();
     } else if (menuItem.key == 'exit_app') {
-      // 真正退出：取消拦截后关闭
-      windowManager.setPreventClose(false);
-      windowManager.close();
+      // 真正退出：清理资源后退出
+      _performGracefulExit();
     }
   }
 

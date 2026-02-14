@@ -52,4 +52,4 @@ app.*.map.json
 .crashlytics
 # .env.proxy
 
-windows-installer/
+# windows-installer/

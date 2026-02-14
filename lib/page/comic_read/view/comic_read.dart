@@ -141,8 +141,8 @@ class _ComicReadPageState extends State<_ComicReadPage>
       order: widget.order,
       from: widget.from,
       comicInfo: widget.comicInfo,
-      historyWriter: HistoryWriter(), // 或者这里 new 一个新的
-      stringSelectCubit: context.read<StringSelectCubit>(), // 传入 Cubit
+      historyWriter: HistoryWriter(),
+      stringSelectCubit: context.read<StringSelectCubit>(),
       getPageIndex: () => context.read<ReaderCubit>().state.pageIndex + 1,
       getEpInfo: () => epInfo,
     );
@@ -317,6 +317,15 @@ class _ComicReadPageState extends State<_ComicReadPage>
                 _isCtrlPressed = newCtrlPressed;
               });
             }
+
+            // 横版模式下：滚轮翻页
+            if (!newCtrlPressed && globalSettingState.readMode != 0) {
+              if (event.scrollDelta.dy > 0) {
+                _actionController.onPageActionNext();
+              } else if (event.scrollDelta.dy < 0) {
+                _actionController.onPageActionPrev();
+              }
+            }
           }
         },
         child: GestureDetector(
@@ -345,13 +354,11 @@ class _ComicReadPageState extends State<_ComicReadPage>
       await Future.delayed(Duration.zero);
       if (_tapDownDetails != null) {
         if (!mounted) return;
-        final cubit = context.read<ReaderCubit>();
         // 使用保存的details执行处理逻辑
         ReaderGestureLogic.handleTap(
+          controller: _pageController,
           context: context,
           details: _tapDownDetails!,
-          pageIndex: cubit.state.pageIndex,
-          onJump: (int page) => _jumpToPage(page),
           onToggleMenu: _toggleVisibility,
         );
         _tapDownDetails = null;
@@ -418,12 +425,6 @@ class _ComicReadPageState extends State<_ComicReadPage>
     }
   }
 
-  void _jumpToPage(int page) => _pageController.animateToPage(
-    page,
-    duration: const Duration(milliseconds: 300),
-    curve: Curves.easeInOut,
-  );
-
   /// 处理历史记录滚动
   void _handleHistoryScroll() {
     var shouldScroll = _isHistory && !isSkipped;
@@ -445,8 +446,13 @@ class _ComicReadPageState extends State<_ComicReadPage>
 
         final globalSettingState = context.read<GlobalSettingCubit>().state;
         if (globalSettingState.readMode == 0) {
+          final imageWidth = getConstrainedImageWidth(context.screenWidth);
           observerController.controller?.animateTo(
-            getOffset(_imageSizeContext!, historyIndex - 1),
+            getOffset(
+              _imageSizeContext!,
+              historyIndex - 1,
+              imageWidth: imageWidth,
+            ),
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
           );

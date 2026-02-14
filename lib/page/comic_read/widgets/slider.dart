@@ -7,6 +7,7 @@ import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_read/cubit/image_size_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
+import 'package:zephyr/page/comic_read/widgets/column_mode.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../main.dart';
@@ -87,8 +88,11 @@ class _SliderWidgetState extends State<SliderWidget> {
             try {
               // 滚动到指定的索引
               if (globalSettingState.readMode == 0) {
+                final imageWidth = getConstrainedImageWidth(
+                  context.screenWidth,
+                );
                 widget.observerController.controller?.animateTo(
-                  getOffset(context, newValue.toInt()),
+                  getOffset(context, newValue.toInt(), imageWidth: imageWidth),
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
                 );
@@ -157,14 +161,23 @@ class _SliderWidgetState extends State<SliderWidget> {
   }
 }
 
-double getOffset(BuildContext context, int index) {
+double getOffset(BuildContext context, int index, {double? imageWidth}) {
   final sizeCubit = context.read<ImageSizeCubit>();
 
   final targetListIndex = index + 1;
 
   double targetItemStartY = 0;
   for (int i = 0; i < targetListIndex; i++) {
-    targetItemStartY += sizeCubit.state.getSizeValue(i).height;
+    final cachedSize = sizeCubit.state.getSizeValue(i);
+    if (imageWidth != null &&
+        cachedSize.width > 0 &&
+        cachedSize.height > 0 &&
+        (cachedSize.width - imageWidth).abs() >= 0.1) {
+      final aspectRatio = cachedSize.height / cachedSize.width;
+      targetItemStartY += imageWidth * aspectRatio;
+    } else {
+      targetItemStartY += cachedSize.height;
+    }
   }
 
   double finalOffset = targetItemStartY - context.statusBarHeight;

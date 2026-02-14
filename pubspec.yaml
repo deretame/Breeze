@@ -153,6 +153,7 @@ flutter:
   # 资源文件配置
   assets:
     - asset/image/app_icon.ico
+    - asset/image/app-icon.png
     - asset/image/error_image/404.png
     - asset/image/bika_image/cat_forum.jpg
     - asset/image/bika_image/cat_latest.jpg

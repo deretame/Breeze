@@ -15,6 +15,13 @@ import '../../../type/enum.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 import '../json/common_ep_info_json/common_ep_info_json.dart';
 
+double getConstrainedImageWidth(double containerWidth) {
+  bool isDesktop = Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+  if (!isDesktop) return containerWidth;
+  final double target = math.max(containerWidth * 0.6, 600.0);
+  return math.min(containerWidth, target);
+}
+
 class ColumnModeWidget extends StatefulWidget {
   final int length;
   final List<Doc> docs;
@@ -42,13 +49,6 @@ class ColumnModeWidget extends StatefulWidget {
 }
 
 class _ColumnModeWidgetState extends State<ColumnModeWidget> {
-  double _getConstrainedImageWidth(double containerWidth) {
-    bool isDesktop = Platform.isWindows || Platform.isMacOS || Platform.isLinux;
-    if (!isDesktop) return containerWidth;
-    final double target = math.max(containerWidth * 0.6, 600.0);
-    return math.min(containerWidth, target);
-  }
-
   @override
   Widget build(BuildContext context) {
     final physics = widget.parentPhysics != null
@@ -58,7 +58,7 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final containerWidth = constraints.maxWidth;
-        final imageWidth = _getConstrainedImageWidth(containerWidth);
+        final imageWidth = getConstrainedImageWidth(containerWidth);
 
         Widget listView;
 

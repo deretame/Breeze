@@ -3,9 +3,10 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::Cursor;
 use std::path::PathBuf;
+use xz2::read::XzDecoder;
 
-/// Release.7z embedded directly into the binary
-const RELEASE_7Z: &[u8] = include_bytes!("../resources/Release.7z");
+/// Release.tar.xz embedded directly into the binary
+const RELEASE_ARCHIVE: &[u8] = include_bytes!("../resources/Release.tar.xz");
 
 const LOG_FILE_NAME: &str = "breeze-install-log.json";
 
@@ -92,9 +93,13 @@ fn perform_install(install_path: String) -> Result<String, String> {
         fs::remove_dir_all(&release_dir).map_err(|e| format!("无法清理旧版本: {}", e))?;
     }
 
-    // 4. Extract embedded Release.7z into zephyr directory
-    let cursor = Cursor::new(RELEASE_7Z);
-    sevenz_rust2::decompress(cursor, &zephyr_dir).map_err(|e| format!("解压文件失败: {}", e))?;
+    // 4. Extract embedded Release.tar.xz into zephyr directory (streaming)
+    let cursor = Cursor::new(RELEASE_ARCHIVE);
+    let xz_decoder = XzDecoder::new(cursor);
+    let mut archive = tar::Archive::new(xz_decoder);
+    archive
+        .unpack(&zephyr_dir)
+        .map_err(|e| format!("解压安装文件失败: {}", e))?;
 
     // 5. Verify the expected executable exists
     let exe_path = zephyr_dir.join("Release").join("zephyr.exe");

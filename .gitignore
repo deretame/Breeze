@@ -52,4 +52,5 @@ app.*.map.json
 .crashlytics
 # .env.proxy
 
-# windows-installer/
+script/bin/
+windows-installer/src-tauri/resources

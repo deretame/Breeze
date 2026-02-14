@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:markdown_widget/widget/markdown_block.dart';
+import 'package:path/path.dart' as p;
 import 'package:permission_guard/permission_guard.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:toastification/toastification.dart';
@@ -22,6 +23,7 @@ import 'package:zephyr/page/ranking_list/ranking_list.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/memory/memory_overlay_widget.dart';
@@ -102,13 +104,6 @@ class _NavigationBarState extends State<NavigationBar> {
     Timer.periodic(duration, (Timer timer) async {
       await _autoSync();
     });
-
-    // if (kDebugMode) {
-    //   Timer.periodic(Duration(seconds: 5), (Timer timer) async {
-    //     var data = await SimpleMemoryMonitor.getMemoryInfo();
-    //     logger.d(data);
-    //   });
-    // }
 
     // 用来手动触发同步
     eventBus.on<NoticeSync>().listen((event) {
@@ -493,7 +488,7 @@ class _NavigationBarState extends State<NavigationBar> {
 
           break;
         } else {
-          logger.d(result);
+          logger.d('哔咔自动签到成功！');
           break;
         }
       } catch (e) {
@@ -567,16 +562,28 @@ class _NavigationBarState extends State<NavigationBar> {
       '@mipmap/ic_launcher',
     );
 
-    const initializationSettingsWindows = WindowsInitializationSettings(
+    final appDirectory = await getAppDirectory();
+    final windowsIconPath = p.join(
+      appDirectory,
+      'data',
+      'flutter_assets',
+      'asset',
+      'image',
+      'app-icon.png',
+    );
+
+    logger.d(windowsIconPath);
+
+    final initializationSettingsWindows = WindowsInitializationSettings(
       appName: 'Zephyr',
       appUserModelId: 'com.zephyr.breeze',
       guid: 'c4fce75a-b087-44bf-ac62-cc52b8e56990',
-      iconPath: null,
+      iconPath: windowsIconPath,
     );
 
     final initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
-      windows: Platform.isWindows ? initializationSettingsWindows : null,
+      windows: initializationSettingsWindows,
     );
 
     await flutterLocalNotificationsPlugin.initialize(

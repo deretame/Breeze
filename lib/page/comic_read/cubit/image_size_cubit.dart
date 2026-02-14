@@ -47,7 +47,7 @@ class ImageSizeCubit extends Cubit<ImageSizeState> {
     required double defaultWidth,
     required int count,
   }) {
-    final double defaultHeight = defaultWidth * 1.4;
+    final double defaultHeight = defaultWidth * 1.2;
     final double firstWidgetHeight = statusBarHeight;
     final double lastWidgetHeight = 75.0;
 

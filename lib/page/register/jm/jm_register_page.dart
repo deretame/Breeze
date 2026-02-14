@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/cubit/string_select.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -258,5 +258,3 @@ class _RegisterPageState extends State<JmRegisterPage> {
     );
   }
 }
-
-// TODO: 禁漫的注册没写来着，所以这个其实就是复制的哔咔的注册页面

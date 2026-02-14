@@ -1,9 +1,6 @@
-import 'dart:convert';
-
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
@@ -141,7 +138,7 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
     final globalSettingCubit = context.read<GlobalSettingCubit>();
     final bikaCubit = context.read<BikaSettingCubit>();
 
-    final downloadTask = DownloadTaskJson(
+    final task = DownloadTaskJson(
       from: "jm",
       comicId: jmComicInfoJson.id.toString(),
       comicName: jmComicInfoJson.name,
@@ -152,15 +149,13 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
           .map((entry) => entry.key.toString())
           .toList(),
       slowDownload: bikaCubit.state.slowDownload,
-    ).toJson().let(jsonEncode);
+    );
     try {
-      await initForegroundTask(jmComicInfoJson.name);
+      await startDownloadTask(task);
       showInfoToast("下载任务已启动");
     } catch (e, s) {
       logger.e(e, stackTrace: s);
-      showInfoToast("已添加到下载列表");
+      showErrorToast("下载任务启动失败");
     }
-    await Future.delayed(const Duration(seconds: 1));
-    FlutterForegroundTask.sendDataToTask(downloadTask);
   }
 }

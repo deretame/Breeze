@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:zephyr/main.dart';
 
@@ -9,6 +11,7 @@ class VolumeKeyHandler {
 
   /// 启用音量键拦截
   static Future<void> enableVolumeKeyInterception() async {
+    if (!Platform.isAndroid) return;
     try {
       await _channel.invokeMethod('enableInterception');
     } catch (e) {
@@ -18,6 +21,7 @@ class VolumeKeyHandler {
 
   /// 禁用音量键拦截
   static Future<void> disableVolumeKeyInterception() async {
+    if (!Platform.isAndroid) return;
     try {
       await _channel.invokeMethod('disableInterception');
     } catch (e) {

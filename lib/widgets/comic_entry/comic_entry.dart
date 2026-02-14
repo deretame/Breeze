@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:path/path.dart' as p;
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -260,8 +261,10 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
   }
 
   Future<void> deleteDirectory(String id) async {
-    String path =
-        '/data/data/com.zephyr.breeze/files/downloads/bika/original/$id';
+    String path = p.join(
+      '/data/data/com.zephyr.breeze/files/downloads/bika/original',
+      id,
+    );
     final directory = Directory(path);
 
     // 检查目录是否存在

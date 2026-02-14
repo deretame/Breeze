@@ -57,12 +57,19 @@ dependencies:
   freezed_annotation: ^3.0.0 # Freezed 注解支持
 
   ########################################
+  #       窗口管理 & 桌面支持          #
+  ########################################
+  window_manager: ^0.5.1 # 窗口管理
+  tray_manager: ^0.5.2 # 托盘管理
+  win32: ^5.15.0 # Windows API 封装
+
+  ########################################
   #        网络 & 通信 & WebView         #
   ########################################
   dio: ^5.8.0 # 强大的 HTTP 客户端
   dio_http2_adapter: ^2.6.0 # HTTP/2 适配器
   dio_cookie_manager: ^3.0.1 # Dio Cookie 管理器
-  webview_flutter: ^4.10.0 # WebView 组件
+  flutter_inappwebview: ^6.1.5 # WebView 组件
   url_launcher: ^6.3.1 # URL 启动器（外部浏览器）
   connectivity_plus: ^7.0.0 # 网络状态监测
   html: ^0.15.5+1 # HTML 解析器
@@ -113,6 +120,7 @@ dependencies:
   firebase_crashlytics: ^5.0.0 # Firebase 异常监控
   vm_service: ^15.0.2 # Dart VM 服务（内存分析）
   flutter_dotenv: ^6.0.0 # 环境变量管理
+  ffi: ^2.2.0 # FFI
 
 dev_dependencies:
   flutter_test:
@@ -144,6 +152,7 @@ flutter:
 
   # 资源文件配置
   assets:
+    - asset/image/app_icon.ico
     - asset/image/error_image/404.png
     - asset/image/bika_image/cat_forum.jpg
     - asset/image/bika_image/cat_latest.jpg

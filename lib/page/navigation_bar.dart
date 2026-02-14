@@ -148,7 +148,10 @@ class _NavigationBarState extends State<NavigationBar> {
       updateInterval: Duration(seconds: 1),
       child: Builder(
         builder: (context) {
-          if (isTablet(context)) {
+          if (isTablet(context) ||
+              Platform.isWindows ||
+              Platform.isLinux ||
+              Platform.isMacOS) {
             return _buildTabletLayout();
           } else {
             return _buildMobileLayout();
@@ -562,9 +565,19 @@ class _NavigationBarState extends State<NavigationBar> {
     const initializationSettingsAndroid = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
-    const initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
+
+    const initializationSettingsWindows = WindowsInitializationSettings(
+      appName: 'Zephyr',
+      appUserModelId: 'com.zephyr.breeze',
+      guid: 'c4fce75a-b087-44bf-ac62-cc52b8e56990',
+      iconPath: null,
     );
+
+    final initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+      windows: Platform.isWindows ? initializationSettingsWindows : null,
+    );
+
     await flutterLocalNotificationsPlugin.initialize(
       settings: initializationSettings,
       onDidReceiveNotificationResponse:

@@ -44,6 +44,10 @@ _GlobalSettingState _$GlobalSettingStateFromJson(Map<String, dynamic> json) =>
               ?.map((e) => e as String)
               .toList() ??
           const [],
+      windowWidth: (json['windowWidth'] as num?)?.toDouble() ?? 1280.0,
+      windowHeight: (json['windowHeight'] as num?)?.toDouble() ?? 720.0,
+      windowX: (json['windowX'] as num?)?.toDouble() ?? 0,
+      windowY: (json['windowY'] as num?)?.toDouble() ?? 0,
     );
 
 Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
@@ -70,6 +74,10 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'disableBika': instance.disableBika,
       'enableMemoryDebug': instance.enableMemoryDebug,
       'searchHistory': instance.searchHistory,
+      'windowWidth': instance.windowWidth,
+      'windowHeight': instance.windowHeight,
+      'windowX': instance.windowX,
+      'windowY': instance.windowY,
     };
 
 const _$ThemeModeEnumMap = {

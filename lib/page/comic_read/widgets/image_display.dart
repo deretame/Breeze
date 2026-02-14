@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_read/cubit/image_size_cubit.dart';
-import 'package:zephyr/util/context/context_extensions.dart';
 
 class ImageDisplay extends StatefulWidget {
   final String imagePath;
@@ -26,67 +25,73 @@ class _ImageDisplayState extends State<ImageDisplay> {
   ImageStream? _imageStream;
   ImageStreamListener? _imageListener;
 
+  double? _rawWidth;
+  double? _rawHeight;
+
   bool get isColumn => widget.isColumn;
 
   @override
   void initState() {
     super.initState();
     if (isColumn) {
-      _resolveImageSize();
+      _resolveImageMeta();
     }
   }
 
   @override
   void didUpdateWidget(covariant ImageDisplay oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isColumn != oldWidget.isColumn) {
-      if (widget.isColumn) {
-        _resolveImageSize();
-      } else {
-        _stopListening();
-      }
-    }
-
     if (widget.isColumn && widget.imagePath != oldWidget.imagePath) {
       _stopListening();
-      _resolveImageSize();
+      _rawWidth = null;
+      _rawHeight = null;
+      _resolveImageMeta();
     }
   }
 
-  void _resolveImageSize() {
-    if (!isColumn) return;
-
-    final index = widget.index;
-    final cubit = context.read<ImageSizeCubit>();
-    final check = cubit.getSize(index);
-    if (check.isCached) {
-      return;
-    }
-
+  void _resolveImageMeta() {
     final imageProvider = FileImage(File(widget.imagePath));
-
     final newStream = imageProvider.resolve(ImageConfiguration.empty);
 
     final newListener = ImageStreamListener(
       (ImageInfo imageInfo, bool synchronousCall) {
         if (!mounted) return;
 
-        final double rawWidth = imageInfo.image.width.toDouble();
-        final double rawHeight = imageInfo.image.height.toDouble();
-        final double logicalWidth = cubit.state.defaultWidth;
-        if (rawWidth == 0) return;
+        _rawWidth = imageInfo.image.width.toDouble();
+        _rawHeight = imageInfo.image.height.toDouble();
 
-        final double scaledHeight = (rawHeight / rawWidth) * logicalWidth;
-
-        cubit.updateSize(index, Size(logicalWidth, scaledHeight));
+        if (context.mounted) {
+          final renderBox = context.findRenderObject() as RenderBox?;
+          if (renderBox != null && renderBox.hasSize) {
+            _updateCubitSize(renderBox.size.width);
+          }
+        }
       },
       onError: (exception, stackTrace) {
         logger.e('Failed to resolve image size: $exception');
       },
     );
+
     _imageStream = newStream;
     _imageListener = newListener;
     newStream.addListener(newListener);
+  }
+
+  void _updateCubitSize(double actualWidth) {
+    if (_rawWidth == null || _rawHeight == null || _rawWidth == 0) return;
+
+    final index = widget.index;
+    final cubit = context.read<ImageSizeCubit>();
+
+    final double finalHeight = (_rawHeight! / _rawWidth!) * actualWidth;
+
+    final currentCachedSize = cubit.getSize(index);
+
+    if (!currentCachedSize.isCached ||
+        (currentCachedSize.size.height - finalHeight).abs() > 0.5 ||
+        (currentCachedSize.size.width - actualWidth).abs() > 0.5) {
+      cubit.updateSize(index, Size(actualWidth, finalHeight));
+    }
   }
 
   void _stopListening() {
@@ -105,43 +110,49 @@ class _ImageDisplayState extends State<ImageDisplay> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = context.screenWidth;
-    final pixelRatio = context.devicePixelRatio;
-    final int cacheSize = (screenWidth * pixelRatio).round();
+    final pixelRatio = MediaQuery.of(context).devicePixelRatio;
 
-    return Container(
-      color: Colors.black,
-      child: Image.file(
-        File(widget.imagePath),
-        fit: isColumn ? BoxFit.fill : BoxFit.contain,
-        cacheWidth: cacheSize,
-        gaplessPlayback: true,
-        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-          if (wasSynchronouslyLoaded || frame != null) {
-            return child;
-          }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final int cacheSize = (width * pixelRatio).round();
 
-          if (isColumn) {
-            final cubit = context.read<ImageSizeCubit>();
-            final size = cubit.state.getSizeValue(widget.index + 1);
-            return Container(
-              width: size.width,
-              height: size.height,
-              color: const Color(0xFF2D2D2D),
-              alignment: Alignment.center,
-              child: const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            );
-          } else {
-            return const Center(
-              child: CircularProgressIndicator(color: Colors.white24),
-            );
-          }
-        },
-      ),
+        if (_rawWidth != null && isColumn) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _updateCubitSize(width);
+          });
+        }
+
+        return Image.file(
+          File(widget.imagePath),
+          width: width,
+          fit: isColumn ? BoxFit.fill : BoxFit.contain,
+          cacheWidth: cacheSize > 0 ? cacheSize : null,
+          gaplessPlayback: true,
+          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+            if (wasSynchronouslyLoaded || frame != null) {
+              return child;
+            }
+
+            if (isColumn) {
+              return Container(
+                width: width,
+                color: const Color(0xFF2D2D2D),
+                alignment: Alignment.center,
+                child: const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              );
+            } else {
+              return const Center(
+                child: CircularProgressIndicator(color: Colors.white24),
+              );
+            }
+          },
+        );
+      },
     );
   }
 }

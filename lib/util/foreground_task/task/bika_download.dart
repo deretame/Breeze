@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_socks_proxy/socks_proxy.dart';
+import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/bika/http_request.dart';
@@ -13,19 +14,22 @@ import 'package:zephyr/page/comic_read/json/bika_ep_info_json/page.dart' as p;
 import 'package:zephyr/page/download/json/comic_all_info_json/comic_all_info_json.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/download/download_progress_reporter.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
-import 'package:zephyr/util/foreground_task/main_task.dart';
 import 'package:zephyr/util/get_path.dart';
 
-Future<void> bikaDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
+Future<void> bikaDownloadTask(
+  DownloadProgressReporter reporter,
+  DownloadTaskJson task,
+) async {
   // 先获取一下基本的信息
   final authorization = task.bikaInfo.authorization;
   if (task.globalProxy.isNotEmpty) {
     SocksProxy.initProxy(proxy: 'SOCKS5 ${task.globalProxy}');
   }
-  self.message = "获取漫画信息中...";
+  reporter.updateMessage("获取漫画信息中...");
   final comicInfo = await _getComicInfo(task.comicId, authorization);
-  self.message = "获取章节信息中...";
+  reporter.updateMessage("获取章节信息中...");
   final epsList = await _getEps(comicInfo, authorization, task.slowDownload);
   List<EpsDoc> epsDocs = [];
   List<Pages> imageData = [];
@@ -106,8 +110,9 @@ Future<void> bikaDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
         proxy: task.bikaInfo.proxy.let(toInt),
       );
       progress++;
-      self.message =
-          "漫画下载进度: ${(progress / pagesDocs.length * 100).toStringAsFixed(2)}%";
+      reporter.updateMessage(
+        "漫画下载进度: ${(progress / pagesDocs.length * 100).toStringAsFixed(2)}%",
+      );
     }
   } else {
     final pool = Pool(10);
@@ -132,7 +137,7 @@ Future<void> bikaDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
         final int currentPercent = (progress / pagesDocs.length * 100).floor();
         if (currentPercent > lastReportedPercent) {
           lastReportedPercent = currentPercent;
-          self.message = "漫画下载进度: $currentPercent%";
+          reporter.updateMessage("漫画下载进度: $currentPercent%");
         }
       });
     }).toList();
@@ -360,7 +365,7 @@ Future<void> checkFile(ComicAllInfoJson comicAllInfoJson) async {
   final comicInfo = comicAllInfoJson.comic;
 
   String downloadPath = await getDownloadPath();
-  var epsDir = "$downloadPath/bika/original/${comicInfo.id}/comic/";
+  var epsDir = p.join(downloadPath, "bika", "original", comicInfo.id, "comic");
   // 创建 Directory 对象
   Directory directory = Directory(epsDir);
 
@@ -377,7 +382,7 @@ Future<void> checkFile(ComicAllInfoJson comicAllInfoJson) async {
 
   List<String> downloadEpsDir = [];
   for (var element in comicAllInfoJson.eps.docs) {
-    downloadEpsDir.add("$epsDir${element.id}");
+    downloadEpsDir.add(p.join(epsDir, element.id));
   }
 
   // 过滤出需要删除的目录
@@ -398,7 +403,7 @@ Future<void> checkFile(ComicAllInfoJson comicAllInfoJson) async {
         RegExp(r'[^a-zA-Z0-9_\-.]'),
         '_',
       );
-      var tempPath = "$epsDir${element.id}/$sanitizedPath";
+      var tempPath = p.join(epsDir, element.id, sanitizedPath);
       originalPicturePaths.add(tempPath);
     }
   }

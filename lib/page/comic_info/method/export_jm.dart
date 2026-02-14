@@ -2,8 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' show min;
 
-import 'package:path_provider/path_provider.dart';
-import 'package:zephyr/config/global/global.dart';
+import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -12,6 +11,7 @@ import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/compressed/compressed.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 /// 导出漫画为文件夹
@@ -24,7 +24,7 @@ Future<void> jmExportComicAsFolder(String comicId) async {
   final downloadedEpIds = jmDownload.epsIds;
   var processedComicInfo = comicInfoProcess(comicInfo);
   var downloadPath = await createDownloadDir();
-  var comicDir = '$downloadPath/${processedComicInfo.name}';
+  var comicDir = p.join(downloadPath, processedComicInfo.name);
 
   if (!await Directory(comicDir).exists()) {
     await Directory(comicDir).create(recursive: true);
@@ -36,18 +36,20 @@ Future<void> jmExportComicAsFolder(String comicId) async {
 
   // 保存漫画下载信息
   var comicInfoString = downloadInfoJsonToJson(comicInfo);
-  logger.d('$comicDir/processed_comic_info.json'.length);
-  var comicInfoFile = File('$comicDir/original_comic_info.json');
+  logger.d(p.join(comicDir, 'processed_comic_info.json').length);
+  var comicInfoFile = File(p.join(comicDir, 'original_comic_info.json'));
   await comicInfoFile.writeAsString(comicInfoString);
 
   var temp = processedComicInfo.toJson();
   temp['epsIds'] = downloadedEpIds;
   var processedComicInfoString = temp.let(jsonEncode);
-  var processedComicInfoFile = File('$comicDir/processed_comic_info.json');
+  var processedComicInfoFile = File(
+    p.join(comicDir, 'processed_comic_info.json'),
+  );
   await processedComicInfoFile.writeAsString(processedComicInfoString);
 
-  var coverDir = '$comicDir/cover';
-  var coverFile = File('$coverDir/cover.jpg');
+  var coverDir = p.join(comicDir, 'cover');
+  var coverFile = File(p.join(coverDir, 'cover.jpg'));
   await coverFile.create(recursive: true);
   try {
     String coverDownloadFile = await downloadPicture(
@@ -68,9 +70,9 @@ Future<void> jmExportComicAsFolder(String comicId) async {
   );
 
   for (var ep in series) {
-    var epDir = '$comicDir/eps/${ep.name}';
+    var epDir = p.join(comicDir, 'eps', ep.name);
     for (var page in ep.info.images) {
-      var pageFile = '$epDir/$page';
+      var pageFile = p.join(epDir, page);
       if (page == "404") {
         continue;
       }
@@ -106,8 +108,13 @@ Future<void> jmExportComicAsZip(String comicId) async {
   final downloadedEpIds = jmDownload.epsIds;
   var processedComicInfo = comicInfoProcess(comicInfo);
 
-  final downloadPath =
-      '${await createDownloadDir()}/${processedComicInfo.name.substring(0, min(processedComicInfo.name.length, 90))}';
+  final downloadPath = p.join(
+    await createDownloadDir(),
+    processedComicInfo.name.substring(
+      0,
+      min(processedComicInfo.name.length, 90),
+    ),
+  );
 
   final finalZipPath = '$downloadPath.zip';
 
@@ -141,9 +148,9 @@ Future<void> jmExportComicAsZip(String comicId) async {
     if (!downloadedEpIds.contains(ep.id)) {
       continue;
     }
-    var epDir = 'eps/${ep.name}';
+    var epDir = p.join('eps', ep.name);
     for (var page in ep.info.images) {
-      var pageFile = '$epDir/$page';
+      var pageFile = p.join(epDir, page);
       if (page == "404") {
         continue;
       }
@@ -175,62 +182,6 @@ Future<void> jmExportComicAsZip(String comicId) async {
 
   showSuccessToast('漫画${comicInfo.name}导出为压缩包完成');
   logger.d('漫画${comicInfo.name}导出为压缩包完成');
-}
-
-/// 创建下载目录
-Future<String> createDownloadDir() async {
-  try {
-    // 获取外部存储目录
-    Directory? externalDir = await getExternalStorageDirectory();
-    if (externalDir != null) {
-      logger.d('downloadPath: ${externalDir.path}');
-    }
-
-    // 检查 externalDir 是否为 null
-    if (externalDir == null) {
-      throw Exception('无法获取外部存储目录');
-    }
-
-    // 尝试从路径中提取用户ID
-    RegExp regExp = RegExp(r'/(\d+)/');
-    Match? match = regExp.firstMatch(externalDir.path);
-
-    // 安全地提取用户ID，如果匹配失败则使用默认值
-    String userId = '0';
-    if (match != null && match.groupCount >= 1) {
-      final extractedUserId = match.group(1);
-      if (extractedUserId != null) {
-        userId = extractedUserId;
-      } else {
-        logger.w('无法提取用户ID，使用默认值: 0');
-      }
-    } else {
-      logger.w('路径格式不匹配，使用默认用户ID: 0，路径: ${externalDir.path}');
-    }
-
-    String filePath = "/storage/emulated/$userId/Download/$appName";
-
-    // 使用path库来确保路径的正确性
-    final dir = Directory(filePath);
-
-    // 检查目录是否存在
-    bool dirExists = await dir.exists();
-    if (!dirExists) {
-      // 如果目录不存在，则创建它
-      try {
-        await dir.create(recursive: true); // recursive设置为true可以创建所有必要的父目录
-        logger.d('Directory created: $filePath');
-      } catch (e) {
-        logger.e('Failed to create directory: $e');
-        rethrow;
-      }
-    }
-
-    return filePath;
-  } catch (e) {
-    logger.e(e);
-    rethrow;
-  }
 }
 
 DownloadInfoJson comicInfoProcess(DownloadInfoJson comicInfo) {

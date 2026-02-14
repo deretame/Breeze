@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
@@ -11,10 +14,34 @@ import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 
-class PromoteWidget extends StatelessWidget {
+class _DesktopDragScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.stylus,
+  };
+}
+
+class PromoteWidget extends StatefulWidget {
   final JmPromoteJson element;
 
   const PromoteWidget({super.key, required this.element});
+
+  @override
+  State<PromoteWidget> createState() => _PromoteWidgetState();
+}
+
+class _PromoteWidgetState extends State<PromoteWidget> {
+  final ScrollController _horizontalController = ScrollController();
+
+  JmPromoteJson get element => widget.element;
+
+  @override
+  void dispose() {
+    _horizontalController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,35 +126,51 @@ class PromoteWidget extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: element.content.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 5),
-                    child: ComicSimplifyEntry(
-                      info: ComicSimplifyEntryInfo(
-                        title: element.content[index].name,
-                        id: element.content[index].id,
-                        fileServer: getJmCoverUrl(element.content[index].id),
-                        path: '${element.content[index].id}.jpg',
-                        pictureType: PictureType.cover,
-                        from: From.jm,
-                      ),
-                      type: ComicEntryType.normal,
-                      topPadding: false,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
+          Expanded(child: _buildHorizontalList()),
         ],
       ),
     );
+  }
+
+  bool get _isDesktop =>
+      Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+
+  Widget _buildHorizontalList() {
+    Widget listView = ListView.builder(
+      controller: _horizontalController,
+      scrollDirection: Axis.horizontal,
+      itemCount: element.content.length,
+      itemBuilder: (context, index) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5),
+          child: Padding(
+            padding: const EdgeInsets.only(top: 5),
+            child: ComicSimplifyEntry(
+              info: ComicSimplifyEntryInfo(
+                title: element.content[index].name,
+                id: element.content[index].id,
+                fileServer: getJmCoverUrl(element.content[index].id),
+                path: '${element.content[index].id}.jpg',
+                pictureType: PictureType.cover,
+                from: From.jm,
+              ),
+              type: ComicEntryType.normal,
+              topPadding: false,
+            ),
+          ),
+        );
+      },
+    );
+
+    // 桌面端：启用鼠标拖拽
+    if (_isDesktop) {
+      listView = ScrollConfiguration(
+        behavior: _DesktopDragScrollBehavior(),
+        child: listView,
+      );
+    }
+
+    return listView;
   }
 
   String getTitle() {

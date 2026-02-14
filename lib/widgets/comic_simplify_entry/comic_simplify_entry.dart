@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/debouncer.dart';
@@ -298,8 +299,10 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   Future<void> _deleteDownloadDirectory(String id) async {
-    final path =
-        '/data/data/com.zephyr.breeze/files/downloads/bika/original/$id';
+    final path = p.join(
+      '/data/data/com.zephyr.breeze/files/downloads/bika/original',
+      id,
+    );
     final directory = Directory(path);
 
     if (await directory.exists()) {

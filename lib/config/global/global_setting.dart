@@ -36,6 +36,10 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(false) bool disableBika,
     @Default(false) bool enableMemoryDebug,
     @Default([]) List<String> searchHistory,
+    @Default(1280.0) double windowWidth,
+    @Default(720.0) double windowHeight,
+    @Default(0) double windowX,
+    @Default(0) double windowY,
   }) = _GlobalSettingState;
 
   factory GlobalSettingState.fromJson(Map<String, dynamic> json) =>
@@ -145,6 +149,22 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
         searchHistory: _box.get(
           GlobalSettingBoxKey.searchHistory,
           defaultValue: state.searchHistory,
+        ),
+        windowWidth: _box.get(
+          GlobalSettingBoxKey.windowWidth,
+          defaultValue: state.windowWidth,
+        ),
+        windowHeight: _box.get(
+          GlobalSettingBoxKey.windowHeight,
+          defaultValue: state.windowHeight,
+        ),
+        windowX: _box.get(
+          GlobalSettingBoxKey.windowX,
+          defaultValue: state.windowX,
+        ),
+        windowY: _box.get(
+          GlobalSettingBoxKey.windowY,
+          defaultValue: state.windowY,
         ),
       ),
     );
@@ -462,6 +482,62 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
     emit(temp);
   }
 
+  void updateWindowWidth(double value) {
+    _box.put(GlobalSettingBoxKey.windowWidth, value);
+    final temp = state.copyWith(windowWidth: value);
+    updateDataBase(temp);
+    emit(temp);
+  }
+
+  void resetWindowWidth() {
+    _box.delete(GlobalSettingBoxKey.windowWidth);
+    final temp = state.copyWith(windowWidth: _defaults.windowWidth);
+    updateDataBase(temp);
+    emit(temp);
+  }
+
+  void updateWindowHeight(double value) {
+    _box.put(GlobalSettingBoxKey.windowHeight, value);
+    final temp = state.copyWith(windowHeight: value);
+    updateDataBase(temp);
+    emit(temp);
+  }
+
+  void resetWindowHeight() {
+    _box.delete(GlobalSettingBoxKey.windowHeight);
+    final temp = state.copyWith(windowHeight: _defaults.windowHeight);
+    updateDataBase(temp);
+    emit(temp);
+  }
+
+  void updateWindowX(double value) {
+    _box.put(GlobalSettingBoxKey.windowX, value);
+    final temp = state.copyWith(windowX: value);
+    updateDataBase(temp);
+    emit(temp);
+  }
+
+  void resetWindowX() {
+    _box.delete(GlobalSettingBoxKey.windowX);
+    final temp = state.copyWith(windowX: _defaults.windowX);
+    updateDataBase(temp);
+    emit(temp);
+  }
+
+  void updateWindowY(double value) {
+    _box.put(GlobalSettingBoxKey.windowY, value);
+    final temp = state.copyWith(windowY: value);
+    updateDataBase(temp);
+    emit(temp);
+  }
+
+  void resetWindowY() {
+    _box.delete(GlobalSettingBoxKey.windowY);
+    final temp = state.copyWith(windowY: _defaults.windowY);
+    updateDataBase(temp);
+    emit(temp);
+  }
+
   void updateDataBase(GlobalSettingState state) {
     // logger.d(state.toJson());
     final userBox = objectbox.userSettingBox;
@@ -496,4 +572,8 @@ class GlobalSettingBoxKey {
   static const String disableBika = 'disableBika'; // 禁用哔咔
   static const String enableMemoryDebug = 'enableMemoryDebug'; // 是否启用内存调试
   static const String searchHistory = 'searchHistory'; // 搜索历史
+  static const String windowWidth = 'windowWidth'; // 窗口宽度
+  static const String windowHeight = 'windowHeight'; // 窗口高度
+  static const String windowX = 'windowX'; // 窗口x坐标
+  static const String windowY = 'windowY'; // 窗口y坐标
 }

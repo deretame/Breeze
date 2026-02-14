@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:battery_plus/battery_plus.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -46,6 +47,7 @@ class _PageCountWidgetState extends State<PageCountWidget> {
   }
 
   void _initBattery() async {
+    if (!Platform.isAndroid && !Platform.isIOS) return;
     final level = await _battery.batteryLevel;
     if (mounted) {
       setState(() => _batteryLevel = level);
@@ -147,6 +149,7 @@ class _PageCountWidgetState extends State<PageCountWidget> {
     if (formattedTime != _currentTime) {
       setState(() => _currentTime = formattedTime);
 
+      if (!Platform.isAndroid && !Platform.isIOS) return;
       _battery.batteryLevel.then((level) {
         if (mounted && _batteryLevel != level) {
           setState(() => _batteryLevel = level);

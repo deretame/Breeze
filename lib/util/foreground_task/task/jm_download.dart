@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_socks_proxy/socks_proxy.dart';
+import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
@@ -13,22 +14,25 @@ import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart'
 import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/download/download_progress_reporter.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
-import 'package:zephyr/util/foreground_task/main_task.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
 
-Future<void> jmDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
+Future<void> jmDownloadTask(
+  DownloadProgressReporter reporter,
+  DownloadTaskJson task,
+) async {
   // 先获取一下基本的信息
   if (task.globalProxy.isNotEmpty) {
     SocksProxy.initProxy(proxy: 'SOCKS5 ${task.globalProxy}');
   }
-  self.message = "获取漫画信息中...";
+  reporter.updateMessage("获取漫画信息中...");
   await setFastestUrlIndex();
   await setFastestImagesUrlIndex();
   final comicInfo = await getJmComicInfo(task.comicId);
-  self.message = "获取章节信息中...";
+  reporter.updateMessage("获取章节信息中...");
   List<String> epIds = comicInfo.series.map((e) => e.id.toString()).toList();
   if (epIds.isEmpty) epIds = [comicInfo.id.toString()];
 
@@ -45,8 +49,6 @@ Future<void> jmDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
   var updatedDownloadInfo = downloadInfoJson.copyWith(series: updatedSeries);
 
   final temp = downloadInfoJsonToJson(updatedDownloadInfo);
-
-  logger.d("updatedDownloadInfo: $temp");
 
   List<String> epsIds = [];
 
@@ -71,7 +73,7 @@ Future<void> jmDownloadTask(MyTaskHandler self, DownloadTaskJson task) async {
     logger.e(e, stackTrace: s);
   }
 
-  await downloadComic(self, updatedDownloadInfo, task.selectedChapters);
+  await downloadComic(reporter, updatedDownloadInfo, task.selectedChapters);
 
   await saveToDB(updatedDownloadInfo, epsIds, temp);
 }
@@ -213,7 +215,7 @@ DownloadInfoJson comicInfo2DownloadInfoJson(
 }
 
 Future<DownloadInfoJson> downloadComic(
-  MyTaskHandler self,
+  DownloadProgressReporter reporter,
   DownloadInfoJson downloadInfoJson,
   List<String> selectedChapters,
 ) async {
@@ -259,7 +261,7 @@ Future<DownloadInfoJson> downloadComic(
         int currentPercent = (progress / docsList.length * 100).floor();
         if (currentPercent > lastReportedPercent) {
           lastReportedPercent = currentPercent;
-          self.message = "漫画下载进度: $currentPercent%";
+          reporter.updateMessage("漫画下载进度: $currentPercent%");
         }
       } catch (e, s) {
         logger.e(e, stackTrace: s);
@@ -292,7 +294,7 @@ Future<DownloadInfoJson> downloadComic(
 
   await Future.wait(tasks);
 
-  self.message = "漫画下载进度: 100%";
+  reporter.updateMessage("漫画下载进度: 100%");
 
   return downloadInfoJson;
 }
@@ -339,7 +341,7 @@ Future<void> checkFile(DownloadInfoJson downloadInfoJson) async {
   final comicInfo = downloadInfoJson;
 
   String downloadPath = await getDownloadPath();
-  var epsDir = "$downloadPath/jm/${comicInfo.id}/comic/";
+  var epsDir = p.join(downloadPath, "jm", comicInfo.id.toString(), "comic");
   // 创建 Directory 对象
   Directory directory = Directory(epsDir);
 
@@ -356,7 +358,7 @@ Future<void> checkFile(DownloadInfoJson downloadInfoJson) async {
 
   List<String> downloadEpsDir = [];
   for (var element in comicInfo.series) {
-    downloadEpsDir.add("$epsDir${element.id}");
+    downloadEpsDir.add(p.join(epsDir, element.id));
   }
 
   // 过滤出需要删除的目录
@@ -373,7 +375,7 @@ Future<void> checkFile(DownloadInfoJson downloadInfoJson) async {
   List<String> originalPicturePaths = [];
   for (var element in comicInfo.series) {
     for (var page in element.info.images) {
-      var tempPath = "$epsDir${element.id}/$page";
+      var tempPath = p.join(epsDir, element.id, page);
       originalPicturePaths.add(tempPath);
     }
   }

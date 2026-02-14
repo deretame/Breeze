@@ -30,7 +30,6 @@ class _MorePageState extends State<MorePage> {
   void initState() {
     super.initState();
     if (!SettingsHiveUtils.disableBika) {
-      // 使用 Hive 快照
       widgets.addAll([BikaUserInfoWidget(), Delimiter()]);
     }
 

@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
@@ -39,79 +42,103 @@ class ColumnModeWidget extends StatefulWidget {
 }
 
 class _ColumnModeWidgetState extends State<ColumnModeWidget> {
+  double _getConstrainedImageWidth(double containerWidth) {
+    bool isDesktop = Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+    if (!isDesktop) return containerWidth;
+    final double target = math.max(containerWidth * 0.6, 600.0);
+    return math.min(containerWidth, target);
+  }
+
   @override
   Widget build(BuildContext context) {
     final physics = widget.parentPhysics != null
         ? widget.parentPhysics!.applyTo(const AlwaysScrollableScrollPhysics())
         : const AlwaysScrollableScrollPhysics();
 
-    Widget listView;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final containerWidth = constraints.maxWidth;
+        final imageWidth = _getConstrainedImageWidth(containerWidth);
 
-    if (useSkia) {
-      // 带分隔符的版本
-      listView = ListView.separated(
-        physics: physics,
-        itemCount: widget.length + 2,
-        itemBuilder: itemBuilder,
-        separatorBuilder: (_, _) => Container(height: 2, color: Colors.black),
-        cacheExtent: context.screenHeight * 0.5,
-        controller: widget.scrollController,
-      );
-    } else {
-      // 不带分隔符的版本
-      listView = ListView.builder(
-        physics: physics,
-        itemCount: widget.length + 2,
-        itemBuilder: itemBuilder,
-        cacheExtent: context.screenHeight * 0.5,
-        controller: widget.scrollController,
-      );
-    }
+        Widget listView;
 
-    return ListViewObserver(
-      controller: widget.observerController,
-      onObserve: (resultMap) {
-        final all = resultMap.displayingChildIndexList;
-        if (all.isEmpty) return;
-
-        final int middleValue = all[(all.length - 1) ~/ 2];
-
-        final pageIndex = middleValue.clamp(1, widget.docs.length);
-
-        final cubit = context.read<ReaderCubit>();
-        if (cubit.state.pageIndex != pageIndex) {
-          cubit.updatePageIndex(pageIndex);
+        Widget currentItemBuilder(BuildContext ctx, int index) {
+          return _itemBuilder(ctx, index, containerWidth, imageWidth);
         }
 
-        if (cubit.state.isMenuVisible) {
-          cubit.updateMenuVisible(visible: false);
+        if (useSkia) {
+          listView = ListView.separated(
+            physics: physics,
+            itemCount: widget.length + 2,
+            itemBuilder: currentItemBuilder,
+            separatorBuilder: (_, _) =>
+                Container(height: 2, color: Colors.black),
+            cacheExtent: context.screenHeight * 2,
+            controller: widget.scrollController,
+          );
+        } else {
+          listView = ListView.builder(
+            physics: physics,
+            itemCount: widget.length + 2,
+            itemBuilder: currentItemBuilder,
+            cacheExtent: context.screenHeight * 2,
+            controller: widget.scrollController,
+          );
         }
+
+        return ListViewObserver(
+          controller: widget.observerController,
+          onObserve: (resultMap) {
+            final all = resultMap.displayingChildIndexList;
+            if (all.isEmpty) return;
+
+            final int middleValue = all[(all.length - 1) ~/ 2];
+
+            final pageIndex = middleValue.clamp(1, widget.docs.length);
+
+            final cubit = context.read<ReaderCubit>();
+            if (cubit.state.pageIndex != pageIndex) {
+              cubit.updatePageIndex(pageIndex);
+            }
+
+            if (cubit.state.isMenuVisible) {
+              cubit.updateMenuVisible(visible: false);
+            }
+          },
+          child: listView,
+        );
       },
-      child: listView,
     );
   }
 
-  Widget itemBuilder(BuildContext context, int index) {
+  Widget _itemBuilder(
+    BuildContext context,
+    int index,
+    double containerWidth,
+    double imageWidth,
+  ) {
     return BlocSelector<ImageSizeCubit, ImageSizeState, Size>(
       selector: (state) {
         return state.getSizeValue(index);
       },
-      builder: (itemContext, currentSize) {
+      builder: (itemContext, cachedSize) {
         final hideTop = itemContext.select(
           (GlobalSettingCubit c) => c.state.comicReadTopContainer,
         );
-        final height = currentSize.height;
-        final width = currentSize.width;
+
+        double finalHeight;
+        double finalWidth = containerWidth;
+
         if (index == 0) {
           return Container(
-            width: width,
+            width: finalWidth,
             height: hideTop ? 0 : context.statusBarHeight,
             color: Colors.black,
           );
         } else if (index == widget.length + 1) {
           return Container(
-            height: height,
-            width: width,
+            height: 75,
+            width: finalWidth,
             alignment: Alignment.center,
             color: Colors.black,
             child: const Text(
@@ -119,11 +146,27 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
               style: TextStyle(fontSize: 20, color: Color(0xFFCCCCCC)),
             ),
           );
+        }
+
+        if ((cachedSize.width - imageWidth).abs() < 0.1) {
+          finalHeight = cachedSize.height;
         } else {
-          return Container(
-            color: Colors.black,
-            height: height,
-            width: width,
+          if (cachedSize.width > 0 && cachedSize.height > 0) {
+            final aspectRatio = cachedSize.height / cachedSize.width;
+            finalHeight = imageWidth * aspectRatio;
+          } else {
+            finalHeight = cachedSize.height;
+          }
+        }
+
+        return Container(
+          color: Colors.black,
+          height: finalHeight,
+          width: finalWidth,
+          alignment: Alignment.center,
+          child: SizedBox(
+            width: imageWidth,
+            height: finalHeight,
             child: ReadImageWidget(
               pictureInfo: PictureInfo(
                 from: widget.from,
@@ -136,8 +179,8 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
               index: index,
               isColumn: true,
             ),
-          );
-        }
+          ),
+        );
       },
     );
   }

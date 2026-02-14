@@ -1,7 +1,6 @@
 import 'dart:io';
 
-import 'package:path_provider/path_provider.dart';
-import 'package:zephyr/config/global/global.dart';
+import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -9,6 +8,7 @@ import 'package:zephyr/page/bookshelf/json/download/comic_all_info_json.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/compressed/compressed.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 /// 导出漫画为文件夹
@@ -22,7 +22,7 @@ Future<void> bikaExportComicAsFolder(String comicId) async {
 
   var processedComicInfo = comicInfoProcess(comicInfo);
   var downloadPath = await createDownloadDir();
-  var comicDir = '$downloadPath/${processedComicInfo.comic.title}';
+  var comicDir = p.join(downloadPath, processedComicInfo.comic.title);
 
   if (!await Directory(comicDir).exists()) {
     await Directory(comicDir).create(recursive: true);
@@ -34,14 +34,16 @@ Future<void> bikaExportComicAsFolder(String comicId) async {
 
   // 保存漫画下载信息
   var comicInfoString = comicAllInfoJsonToJson(comicInfo);
-  var comicInfoFile = File('$comicDir/original_comic_info.json');
+  var comicInfoFile = File(p.join(comicDir, 'original_comic_info.json'));
   if (!await comicInfoFile.exists()) {
     await comicInfoFile.create(recursive: true);
   }
   await comicInfoFile.writeAsString(comicInfoString);
 
   var processedComicInfoString = comicAllInfoJsonToJson(processedComicInfo);
-  var processedComicInfoFile = File('$comicDir/processed_comic_info.json');
+  var processedComicInfoFile = File(
+    p.join(comicDir, 'processed_comic_info.json'),
+  );
   if (!await processedComicInfoFile.exists()) {
     await processedComicInfoFile.create(recursive: true);
   }
@@ -50,8 +52,8 @@ Future<void> bikaExportComicAsFolder(String comicId) async {
   if (processedComicInfo.comic.thumb.path.isNotEmpty &&
       processedComicInfo.comic.thumb.fileServer.isNotEmpty) {
     try {
-      var coverDir = '$comicDir/cover';
-      var coverFile = File('$coverDir/cover.jpg');
+      var coverDir = p.join(comicDir, 'cover');
+      var coverFile = File(p.join(coverDir, 'cover.jpg'));
       if (!await coverFile.exists()) {
         await coverFile.create(recursive: true);
       }
@@ -70,7 +72,7 @@ Future<void> bikaExportComicAsFolder(String comicId) async {
   }
 
   for (var ep in processedComicInfo.eps.docs) {
-    var epDir = '$comicDir/eps/${ep.title}';
+    var epDir = p.join(comicDir, 'eps', ep.title);
     for (var page in ep.pages.docs) {
       // 跳过空 URL 或路径
       if (page.media.fileServer.isEmpty || page.media.path.isEmpty) {
@@ -78,7 +80,7 @@ Future<void> bikaExportComicAsFolder(String comicId) async {
         continue;
       }
 
-      var pageFile = '$epDir/${page.media.originalName}';
+      var pageFile = p.join(epDir, page.media.originalName);
       try {
         var pageDownloadFile = await downloadPicture(
           from: From.bika,
@@ -115,8 +117,10 @@ Future<void> bikaExportComicAsZip(String comicId) async {
 
   final startTime = DateTime.now().millisecondsSinceEpoch;
   final processedComicInfo = comicInfoProcess(comicInfo);
-  final downloadPath =
-      '${await createDownloadDir()}/${processedComicInfo.comic.title}';
+  final downloadPath = p.join(
+    await createDownloadDir(),
+    processedComicInfo.comic.title,
+  );
 
   final finalZipPath = '$downloadPath.zip';
 
@@ -156,7 +160,7 @@ Future<void> bikaExportComicAsZip(String comicId) async {
 
   // 下载漫画章节
   for (var ep in processedComicInfo.eps.docs) {
-    var epDir = 'eps/${ep.title}';
+    var epDir = p.join('eps', ep.title);
     for (var page in ep.pages.docs) {
       // 跳过空 URL 或路径
       if (page.media.fileServer.isEmpty || page.media.path.isEmpty) {
@@ -164,7 +168,7 @@ Future<void> bikaExportComicAsZip(String comicId) async {
         continue;
       }
 
-      var pageFile = '$epDir/${page.media.originalName}';
+      var pageFile = p.join(epDir, page.media.originalName);
       try {
         var pageDownloadFile = await downloadPicture(
           from: From.bika,
@@ -193,44 +197,6 @@ Future<void> bikaExportComicAsZip(String comicId) async {
   logger.d('漫画${comicInfo.comic.title}导出为压缩包完成，耗时$duration毫秒');
 
   showSuccessToast('漫画${comicInfo.comic.title}导出为压缩包完成');
-}
-
-/// 创建下载目录
-Future<String> createDownloadDir() async {
-  try {
-    // 获取外部存储目录
-    Directory? externalDir = await getExternalStorageDirectory();
-    if (externalDir != null) {
-      logger.d('downloadPath: ${externalDir.path}');
-    }
-
-    RegExp regExp = RegExp(r'/(\d+)/');
-    Match? match = regExp.firstMatch(externalDir!.path);
-    String userId = match!.group(1)!; // 提取到的用户ID
-
-    String filePath = "/storage/emulated/$userId/Download/$appName";
-
-    // 使用path库来确保路径的正确性
-    final dir = Directory(filePath);
-
-    // 检查目录是否存在
-    bool dirExists = await dir.exists();
-    if (!dirExists) {
-      // 如果目录不存在，则创建它
-      try {
-        await dir.create(recursive: true); // recursive设置为true可以创建所有必要的父目录
-        logger.d('Directory created: $filePath');
-      } catch (e) {
-        logger.e('Failed to create directory: $e');
-        rethrow;
-      }
-    }
-
-    return filePath;
-  } catch (e) {
-    logger.e(e);
-    rethrow;
-  }
 }
 
 ComicAllInfoJson comicInfoProcess(ComicAllInfoJson comicInfo) {

@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,6 +12,7 @@ import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_read/comic_read.dart';
 import 'package:zephyr/page/comic_read/cubit/image_size_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
+import 'package:zephyr/page/comic_read/method/key.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -91,12 +94,15 @@ class _ComicReadPageState extends State<_ComicReadPage>
   TapDownDetails? _tapDownDetails; // 保存点击信息
   Timer? _cleanTimer; // 用来清理图片缓存的定时器
   late JumpChapter _jumpChapter; // 用来跳转章节的通用类
+  late final ReaderActionController _actionController; // 统一动作控制器
   late final ReaderVolumeController _volumeController; // 音量键翻页控制器
   late final ReaderHistoryManager _historyManager; // 历史记录管理器
   NormalComicEpInfo epInfo = NormalComicEpInfo(); // 通用漫画章节信息
   late final ListObserverController observerController; // 列表观察控制器
   final scrollController = ScrollController(); // 列表滚动控制器
   BuildContext? _imageSizeContext;
+  bool _isCtrlPressed = false; // 记录有没有按下 Ctrl 键
+  final FocusNode _readerFocusNode = FocusNode(); // 阅读器焦点节点
 
   bool get _isHistory =>
       _type == ComicEntryType.history ||
@@ -113,14 +119,17 @@ class _ComicReadPageState extends State<_ComicReadPage>
     final cubit = context.read<ReaderCubit>();
     _type = widget.type;
 
-    // === 初始化音量控制器 ===
-    _volumeController = ReaderVolumeController(
-      observerController: observerController,
+    //初始化核心逻辑控制器
+    _actionController = ReaderActionController(
+      context: context, // 传入 context 以获取屏幕高度
+      scrollController: scrollController,
       pageController: _pageController,
       getReadMode: () => context.read<GlobalSettingCubit>().state.readMode,
-      getPageIndex: () => cubit.state.pageIndex,
-      getTotalSlots: () => cubit.state.totalSlots,
-      getContext: () => _imageSizeContext!,
+    );
+
+    // === 初始化音量控制器 ===
+    _volumeController = ReaderVolumeController(
+      actionController: _actionController,
     );
 
     // 开始监听
@@ -173,6 +182,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
     _pageController.dispose();
     _historyManager.stop();
     _volumeController.dispose();
+    _readerFocusNode.dispose();
     super.dispose();
   }
 
@@ -210,13 +220,10 @@ class _ComicReadPageState extends State<_ComicReadPage>
         builder: (innerContext) {
           final cubit = innerContext.read<ReaderCubit>();
           _imageSizeContext = innerContext;
-
           final isMenuVisible = innerContext.select(
             (ReaderCubit c) => c.state.isMenuVisible,
           );
-
           _historyManager.markLoaded();
-
           final readMode = innerContext.select(
             (GlobalSettingCubit c) => c.state.readMode,
           );
@@ -284,16 +291,48 @@ class _ComicReadPageState extends State<_ComicReadPage>
   Widget _buildInteractiveViewer() {
     final globalSettingState = context.watch<GlobalSettingCubit>().state;
 
-    return GestureDetector(
-      onTap: _onTap,
-      onTapDown: (TapDownDetails details) => _tapDownDetails = details,
-      child: InteractiveViewer(
-        boundaryMargin: EdgeInsets.zero,
-        minScale: 1.0,
-        maxScale: 4.0,
-        child: globalSettingState.readMode == 0
-            ? _columnModeWidget()
-            : _rowModeWidget(),
+    final isDesktop =
+        Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+
+    return Focus(
+      focusNode: _readerFocusNode,
+      autofocus: true,
+      onKeyEvent: (node, event) {
+        final handled = handleGlobalKeyEvent(event, _actionController);
+        return handled ? KeyEventResult.handled : KeyEventResult.ignored;
+      },
+      child: Listener(
+        onPointerSignal: (event) {
+          if (event is PointerScrollEvent && isDesktop) {
+            final newCtrlPressed =
+                HardwareKeyboard.instance.logicalKeysPressed.contains(
+                  LogicalKeyboardKey.controlLeft,
+                ) ||
+                HardwareKeyboard.instance.logicalKeysPressed.contains(
+                  LogicalKeyboardKey.controlRight,
+                );
+
+            if (_isCtrlPressed != newCtrlPressed) {
+              setState(() {
+                _isCtrlPressed = newCtrlPressed;
+              });
+            }
+          }
+        },
+        child: GestureDetector(
+          onTap: _onTap,
+          onTapDown: (TapDownDetails details) => _tapDownDetails = details,
+          child: InteractiveViewer(
+            boundaryMargin: EdgeInsets.zero,
+            minScale: 1.0,
+            maxScale: 4.0,
+            scaleEnabled: _isCtrlPressed,
+            interactionEndFrictionCoefficient: 0.00001,
+            child: globalSettingState.readMode == 0
+                ? _columnModeWidget()
+                : _rowModeWidget(),
+          ),
+        ),
       ),
     );
   }

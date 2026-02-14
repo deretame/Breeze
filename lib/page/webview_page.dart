@@ -1,12 +1,9 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart'; // 1. 导入 Bloc
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart'; // 换成 inappwebview
 import 'package:url_launcher/url_launcher.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-
-// 2. 导入你的 Cubit (确保路径正确)
 import 'package:zephyr/config/bika/bika_setting.dart';
-// import '../main.dart'; // 2. 移除旧的 main.dart 导入
 
 @RoutePage()
 class WebViewPage extends StatelessWidget {
@@ -25,28 +22,36 @@ class WebViewPage extends StatelessWidget {
       url = "$url?token=$authorization";
     }
 
-    final WebViewController controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse(url));
-
     return Scaffold(
       appBar: AppBar(
         title: Text(info[0]),
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.open_in_browser),
+            icon: const Icon(Icons.open_in_browser),
             onPressed: () async {
               final Uri uri = Uri.parse(url);
-              if (await canLaunchUrl(uri)) {
-                await launchUrl(uri);
-              } else {
-                throw Exception('Could not launch $uri');
+              if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('无法打开链接: $url')));
+                }
               }
             },
           ),
         ],
       ),
-      body: WebViewWidget(controller: controller),
+      body: InAppWebView(
+        initialUrlRequest: URLRequest(url: WebUri(url)),
+        initialSettings: InAppWebViewSettings(
+          javaScriptEnabled: true,
+          useShouldOverrideUrlLoading: true,
+          isInspectable: true,
+        ),
+        shouldOverrideUrlLoading: (controller, navigationAction) async {
+          return NavigationActionPolicy.ALLOW;
+        },
+      ),
     );
   }
 }

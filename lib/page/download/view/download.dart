@@ -1,12 +1,8 @@
-import 'dart:convert';
-
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart' hide Page;
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/download/widgets/eps.dart';
-import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/init.dart';
@@ -128,7 +124,7 @@ class _DownloadPageState extends State<DownloadPage> {
   }
 
   Future<void> download() async {
-    final downloadTask = DownloadTaskJson(
+    final task = DownloadTaskJson(
       from: "bika",
       comicId: comicInfo.id,
       comicName: comicInfo.title,
@@ -142,15 +138,13 @@ class _DownloadPageState extends State<DownloadPage> {
           .map((entry) => entry.key.toString())
           .toList(),
       slowDownload: SettingsHiveUtils.bikaSlowDownload,
-    ).toJson().let(jsonEncode);
+    );
     try {
-      await initForegroundTask(comicInfo.title);
+      await startDownloadTask(task);
       showInfoToast("下载任务已启动");
     } catch (e, s) {
       logger.e(e, stackTrace: s);
-      showInfoToast("已添加到下载列表");
+      showErrorToast("下载任务启动失败");
     }
-    await Future.delayed(const Duration(seconds: 1));
-    FlutterForegroundTask.sendDataToTask(downloadTask);
   }
 }

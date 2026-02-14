@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dynamic_color/dynamic_color.dart';
@@ -17,7 +18,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_socks_proxy/socks_proxy.dart';
 import 'package:hive_ce_flutter/adapters.dart';
 import 'package:logger/logger.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:tray_manager/tray_manager.dart';
+import 'package:window_manager/window_manager.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
@@ -29,6 +31,12 @@ import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/util/debouncer.dart';
+import 'package:zephyr/util/desktop/custom_title_bar.dart';
+import 'package:zephyr/util/desktop/intent.dart';
+import 'package:zephyr/util/desktop/native_window.dart';
+import 'package:zephyr/util/desktop/system_tray.dart';
+import 'package:zephyr/util/desktop/window_logic.dart';
+import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/router/router.dart';
@@ -49,6 +57,8 @@ final logger = Logger();
 List<String> cfIpList = [];
 
 final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+final navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   runZonedGuarded(
@@ -81,9 +91,11 @@ Future<void> main() async {
         ),
       );
 
-      // 优化图片缓存配置
-      PaintingBinding.instance.imageCache.maximumSizeBytes = 300 * 1024 * 1024;
-      PaintingBinding.instance.imageCache.maximumSize = 50;
+      final isWin = Platform.isWindows;
+      final cache = PaintingBinding.instance.imageCache;
+
+      cache.maximumSizeBytes = 300 * 1024 * 1024 * (isWin ? 3 : 1);
+      cache.maximumSize = 50 * (isWin ? 3 : 1);
 
       // 如果是手机的话就固定为只能使用横屏模式
       if (!isTabletWithOutContext()) {
@@ -104,7 +116,7 @@ Future<void> main() async {
       objectbox = await ObjectBox.create();
 
       // 初始化Hive
-      await Hive.initFlutter();
+      await Hive.initFlutter(await getDbPath());
       // 注册 Color 适配器
       Hive.registerAdapter(ThemeModeAdapter());
 
@@ -124,7 +136,7 @@ Future<void> main() async {
       // await initCfIpList('https://ip.164746.xyz/ipTop.html');
 
       if (globalSettingCubit.state.needCleanCache) {
-        await clearCache(await getTemporaryDirectory());
+        await clearCache(await getCachePath());
       }
 
       // logger.d(globalSetting.socks5Proxy);
@@ -188,8 +200,77 @@ Future<void> main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget with WindowListener {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
+  @override
+  void initState() {
+    super.initState();
+    windowManager.addListener(this);
+    WindowLogic.initWindow(context).then((_) {
+      // 窗口初始化完成后，拦截关闭按钮
+      windowManager.setPreventClose(true);
+    });
+    trayManager.addListener(this);
+    initSystemTray();
+  }
+
+  @override
+  void dispose() {
+    windowManager.removeListener(this);
+    trayManager.removeListener(this);
+    super.dispose();
+  }
+
+  @override
+  void onWindowResized() {
+    super.onWindowResized();
+    WindowLogic.saveWindowState(context);
+  }
+
+  @override
+  void onWindowMoved() {
+    super.onWindowMoved();
+    WindowLogic.saveWindowState(context);
+  }
+
+  @override
+  void onWindowClose() {
+    // 点击 X 按钮时隐藏窗口，而不是关闭
+    windowManager.hide();
+  }
+
+  @override
+  void onWindowFocus() {
+    super.onWindowFocus();
+    setState(() {});
+  }
+
+  @override
+  void onTrayIconMouseDown() {
+    NativeWindow.show();
+  }
+
+  @override
+  void onTrayIconRightMouseDown() {
+    trayManager.popUpContextMenu();
+  }
+
+  @override
+  void onTrayMenuItemClick(MenuItem menuItem) {
+    if (menuItem.key == 'show_window') {
+      NativeWindow.show();
+    } else if (menuItem.key == 'exit_app') {
+      // 真正退出：取消拦截后关闭
+      windowManager.setPreventClose(false);
+      windowManager.close();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -229,6 +310,36 @@ class MyApp extends StatelessWidget {
 
         return MaterialApp.router(
           routerConfig: appRouter.config(),
+          builder: (context, child) {
+            Widget content = Actions(
+              actions: <Type, Action<Intent>>{
+                EscapeIntent: CallbackAction<EscapeIntent>(
+                  onInvoke: (intent) {
+                    appRouter.maybePop();
+                    return null;
+                  },
+                ),
+              },
+              child: Shortcuts(
+                shortcuts: <ShortcutActivator, Intent>{
+                  const SingleActivator(LogicalKeyboardKey.escape):
+                      const EscapeIntent(),
+                },
+                child: Focus(autofocus: true, child: child!),
+              ),
+            );
+
+            // 桌面平台添加自定义标题栏
+            if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+              return Column(
+                children: [
+                  const CustomTitleBar(),
+                  Expanded(child: content),
+                ],
+              );
+            }
+            return content;
+          },
           locale: globalSettingState.locale,
           title: appName,
           themeMode: globalSettingState.themeMode,

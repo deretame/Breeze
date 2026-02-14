@@ -5,9 +5,10 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:permission_guard/permission_guard.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../../main.dart';
@@ -111,8 +112,8 @@ Future<void> installApk(String apkUrl) async {
       );
 
       // 获取应用的文档目录，存储 APK 文件
-      Directory tempDir = await getTemporaryDirectory();
-      String apkFilePath = '${tempDir.path}/app.apk';
+      String tempDir = await getCachePath();
+      String apkFilePath = p.join(tempDir, 'app.apk');
 
       // 将下载的字节写入 APK 文件
       File apkFile = File(apkFilePath);

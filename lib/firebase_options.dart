@@ -18,10 +18,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return windows;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -32,20 +29,11 @@ class DefaultFirebaseOptions {
           'you can reconfigure this by running the FlutterFire CLI again.',
         );
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for linux - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
@@ -62,5 +50,18 @@ class DefaultFirebaseOptions {
     ),
     projectId: dotenv.get('FIREBASE_PROJECT_ID_ANDROID', fallback: ''),
     storageBucket: dotenv.get('FIREBASE_STORAGE_BUCKET_ANDROID', fallback: ''),
+  );
+
+  static final FirebaseOptions windows = FirebaseOptions(
+    apiKey: dotenv.get('FIREBASE_API_KEY_WINDOWS', fallback: ''),
+    authDomain: dotenv.get('FIREBASE_AUTH_DOMAIN_WINDOWS', fallback: ''),
+    projectId: dotenv.get('FIREBASE_PROJECT_ID_WINDOWS', fallback: ''),
+    storageBucket: dotenv.get('FIREBASE_STORAGE_BUCKET_WINDOWS', fallback: ''),
+    messagingSenderId: dotenv.get(
+      'FIREBASE_MESSAGING_SENDER_ID_WINDOWS',
+      fallback: '',
+    ),
+    appId: dotenv.get('FIREBASE_APP_ID_WINDOWS', fallback: ''),
+    measurementId: dotenv.get('FIREBASE_MEASUREMENT_ID_WINDOWS', fallback: ''),
   );
 }

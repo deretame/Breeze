@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$GlobalSettingState {
 
- bool get dynamicColor; ThemeMode get themeMode; bool get isAMOLED;@ColorConverter() Color get seedColor; int get themeInitState;@LocaleConverter() Locale get locale; int get welcomePageNum; String get webdavHost; String get webdavUsername; String get webdavPassword; bool get autoSync; bool get syncNotify; bool get shade; bool get comicReadTopContainer; int get readMode; List<String> get maskedKeywords; String get socks5Proxy; bool get needCleanCache; int get comicChoice; bool get disableBika; bool get enableMemoryDebug; List<String> get searchHistory;
+ bool get dynamicColor; ThemeMode get themeMode; bool get isAMOLED;@ColorConverter() Color get seedColor; int get themeInitState;@LocaleConverter() Locale get locale; int get welcomePageNum; String get webdavHost; String get webdavUsername; String get webdavPassword; bool get autoSync; bool get syncNotify; bool get shade; bool get comicReadTopContainer; int get readMode; List<String> get maskedKeywords; String get socks5Proxy; bool get needCleanCache; int get comicChoice; bool get disableBika; bool get enableMemoryDebug; List<String> get searchHistory; double get windowWidth; double get windowHeight; double get windowX; double get windowY;
 /// Create a copy of GlobalSettingState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $GlobalSettingStateCopyWith<GlobalSettingState> get copyWith => _$GlobalSettingS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GlobalSettingState&&(identical(other.dynamicColor, dynamicColor) || other.dynamicColor == dynamicColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.isAMOLED, isAMOLED) || other.isAMOLED == isAMOLED)&&(identical(other.seedColor, seedColor) || other.seedColor == seedColor)&&(identical(other.themeInitState, themeInitState) || other.themeInitState == themeInitState)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.welcomePageNum, welcomePageNum) || other.welcomePageNum == welcomePageNum)&&(identical(other.webdavHost, webdavHost) || other.webdavHost == webdavHost)&&(identical(other.webdavUsername, webdavUsername) || other.webdavUsername == webdavUsername)&&(identical(other.webdavPassword, webdavPassword) || other.webdavPassword == webdavPassword)&&(identical(other.autoSync, autoSync) || other.autoSync == autoSync)&&(identical(other.syncNotify, syncNotify) || other.syncNotify == syncNotify)&&(identical(other.shade, shade) || other.shade == shade)&&(identical(other.comicReadTopContainer, comicReadTopContainer) || other.comicReadTopContainer == comicReadTopContainer)&&(identical(other.readMode, readMode) || other.readMode == readMode)&&const DeepCollectionEquality().equals(other.maskedKeywords, maskedKeywords)&&(identical(other.socks5Proxy, socks5Proxy) || other.socks5Proxy == socks5Proxy)&&(identical(other.needCleanCache, needCleanCache) || other.needCleanCache == needCleanCache)&&(identical(other.comicChoice, comicChoice) || other.comicChoice == comicChoice)&&(identical(other.disableBika, disableBika) || other.disableBika == disableBika)&&(identical(other.enableMemoryDebug, enableMemoryDebug) || other.enableMemoryDebug == enableMemoryDebug)&&const DeepCollectionEquality().equals(other.searchHistory, searchHistory));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GlobalSettingState&&(identical(other.dynamicColor, dynamicColor) || other.dynamicColor == dynamicColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.isAMOLED, isAMOLED) || other.isAMOLED == isAMOLED)&&(identical(other.seedColor, seedColor) || other.seedColor == seedColor)&&(identical(other.themeInitState, themeInitState) || other.themeInitState == themeInitState)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.welcomePageNum, welcomePageNum) || other.welcomePageNum == welcomePageNum)&&(identical(other.webdavHost, webdavHost) || other.webdavHost == webdavHost)&&(identical(other.webdavUsername, webdavUsername) || other.webdavUsername == webdavUsername)&&(identical(other.webdavPassword, webdavPassword) || other.webdavPassword == webdavPassword)&&(identical(other.autoSync, autoSync) || other.autoSync == autoSync)&&(identical(other.syncNotify, syncNotify) || other.syncNotify == syncNotify)&&(identical(other.shade, shade) || other.shade == shade)&&(identical(other.comicReadTopContainer, comicReadTopContainer) || other.comicReadTopContainer == comicReadTopContainer)&&(identical(other.readMode, readMode) || other.readMode == readMode)&&const DeepCollectionEquality().equals(other.maskedKeywords, maskedKeywords)&&(identical(other.socks5Proxy, socks5Proxy) || other.socks5Proxy == socks5Proxy)&&(identical(other.needCleanCache, needCleanCache) || other.needCleanCache == needCleanCache)&&(identical(other.comicChoice, comicChoice) || other.comicChoice == comicChoice)&&(identical(other.disableBika, disableBika) || other.disableBika == disableBika)&&(identical(other.enableMemoryDebug, enableMemoryDebug) || other.enableMemoryDebug == enableMemoryDebug)&&const DeepCollectionEquality().equals(other.searchHistory, searchHistory)&&(identical(other.windowWidth, windowWidth) || other.windowWidth == windowWidth)&&(identical(other.windowHeight, windowHeight) || other.windowHeight == windowHeight)&&(identical(other.windowX, windowX) || other.windowX == windowX)&&(identical(other.windowY, windowY) || other.windowY == windowY));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,dynamicColor,themeMode,isAMOLED,seedColor,themeInitState,locale,welcomePageNum,webdavHost,webdavUsername,webdavPassword,autoSync,syncNotify,shade,comicReadTopContainer,readMode,const DeepCollectionEquality().hash(maskedKeywords),socks5Proxy,needCleanCache,comicChoice,disableBika,enableMemoryDebug,const DeepCollectionEquality().hash(searchHistory)]);
+int get hashCode => Object.hashAll([runtimeType,dynamicColor,themeMode,isAMOLED,seedColor,themeInitState,locale,welcomePageNum,webdavHost,webdavUsername,webdavPassword,autoSync,syncNotify,shade,comicReadTopContainer,readMode,const DeepCollectionEquality().hash(maskedKeywords),socks5Proxy,needCleanCache,comicChoice,disableBika,enableMemoryDebug,const DeepCollectionEquality().hash(searchHistory),windowWidth,windowHeight,windowX,windowY]);
 
 @override
 String toString() {
-  return 'GlobalSettingState(dynamicColor: $dynamicColor, themeMode: $themeMode, isAMOLED: $isAMOLED, seedColor: $seedColor, themeInitState: $themeInitState, locale: $locale, welcomePageNum: $welcomePageNum, webdavHost: $webdavHost, webdavUsername: $webdavUsername, webdavPassword: $webdavPassword, autoSync: $autoSync, syncNotify: $syncNotify, shade: $shade, comicReadTopContainer: $comicReadTopContainer, readMode: $readMode, maskedKeywords: $maskedKeywords, socks5Proxy: $socks5Proxy, needCleanCache: $needCleanCache, comicChoice: $comicChoice, disableBika: $disableBika, enableMemoryDebug: $enableMemoryDebug, searchHistory: $searchHistory)';
+  return 'GlobalSettingState(dynamicColor: $dynamicColor, themeMode: $themeMode, isAMOLED: $isAMOLED, seedColor: $seedColor, themeInitState: $themeInitState, locale: $locale, welcomePageNum: $welcomePageNum, webdavHost: $webdavHost, webdavUsername: $webdavUsername, webdavPassword: $webdavPassword, autoSync: $autoSync, syncNotify: $syncNotify, shade: $shade, comicReadTopContainer: $comicReadTopContainer, readMode: $readMode, maskedKeywords: $maskedKeywords, socks5Proxy: $socks5Proxy, needCleanCache: $needCleanCache, comicChoice: $comicChoice, disableBika: $disableBika, enableMemoryDebug: $enableMemoryDebug, searchHistory: $searchHistory, windowWidth: $windowWidth, windowHeight: $windowHeight, windowX: $windowX, windowY: $windowY)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $GlobalSettingStateCopyWith<$Res>  {
   factory $GlobalSettingStateCopyWith(GlobalSettingState value, $Res Function(GlobalSettingState) _then) = _$GlobalSettingStateCopyWithImpl;
 @useResult
 $Res call({
- bool dynamicColor, ThemeMode themeMode, bool isAMOLED,@ColorConverter() Color seedColor, int themeInitState,@LocaleConverter() Locale locale, int welcomePageNum, String webdavHost, String webdavUsername, String webdavPassword, bool autoSync, bool syncNotify, bool shade, bool comicReadTopContainer, int readMode, List<String> maskedKeywords, String socks5Proxy, bool needCleanCache, int comicChoice, bool disableBika, bool enableMemoryDebug, List<String> searchHistory
+ bool dynamicColor, ThemeMode themeMode, bool isAMOLED,@ColorConverter() Color seedColor, int themeInitState,@LocaleConverter() Locale locale, int welcomePageNum, String webdavHost, String webdavUsername, String webdavPassword, bool autoSync, bool syncNotify, bool shade, bool comicReadTopContainer, int readMode, List<String> maskedKeywords, String socks5Proxy, bool needCleanCache, int comicChoice, bool disableBika, bool enableMemoryDebug, List<String> searchHistory, double windowWidth, double windowHeight, double windowX, double windowY
 });
 
 
@@ -65,7 +65,7 @@ class _$GlobalSettingStateCopyWithImpl<$Res>
 
 /// Create a copy of GlobalSettingState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? dynamicColor = null,Object? themeMode = null,Object? isAMOLED = null,Object? seedColor = null,Object? themeInitState = null,Object? locale = null,Object? welcomePageNum = null,Object? webdavHost = null,Object? webdavUsername = null,Object? webdavPassword = null,Object? autoSync = null,Object? syncNotify = null,Object? shade = null,Object? comicReadTopContainer = null,Object? readMode = null,Object? maskedKeywords = null,Object? socks5Proxy = null,Object? needCleanCache = null,Object? comicChoice = null,Object? disableBika = null,Object? enableMemoryDebug = null,Object? searchHistory = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? dynamicColor = null,Object? themeMode = null,Object? isAMOLED = null,Object? seedColor = null,Object? themeInitState = null,Object? locale = null,Object? welcomePageNum = null,Object? webdavHost = null,Object? webdavUsername = null,Object? webdavPassword = null,Object? autoSync = null,Object? syncNotify = null,Object? shade = null,Object? comicReadTopContainer = null,Object? readMode = null,Object? maskedKeywords = null,Object? socks5Proxy = null,Object? needCleanCache = null,Object? comicChoice = null,Object? disableBika = null,Object? enableMemoryDebug = null,Object? searchHistory = null,Object? windowWidth = null,Object? windowHeight = null,Object? windowX = null,Object? windowY = null,}) {
   return _then(_self.copyWith(
 dynamicColor: null == dynamicColor ? _self.dynamicColor : dynamicColor // ignore: cast_nullable_to_non_nullable
 as bool,themeMode: null == themeMode ? _self.themeMode : themeMode // ignore: cast_nullable_to_non_nullable
@@ -89,7 +89,11 @@ as bool,comicChoice: null == comicChoice ? _self.comicChoice : comicChoice // ig
 as int,disableBika: null == disableBika ? _self.disableBika : disableBika // ignore: cast_nullable_to_non_nullable
 as bool,enableMemoryDebug: null == enableMemoryDebug ? _self.enableMemoryDebug : enableMemoryDebug // ignore: cast_nullable_to_non_nullable
 as bool,searchHistory: null == searchHistory ? _self.searchHistory : searchHistory // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as List<String>,windowWidth: null == windowWidth ? _self.windowWidth : windowWidth // ignore: cast_nullable_to_non_nullable
+as double,windowHeight: null == windowHeight ? _self.windowHeight : windowHeight // ignore: cast_nullable_to_non_nullable
+as double,windowX: null == windowX ? _self.windowX : windowX // ignore: cast_nullable_to_non_nullable
+as double,windowY: null == windowY ? _self.windowY : windowY // ignore: cast_nullable_to_non_nullable
+as double,
   ));
 }
 
@@ -174,10 +178,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  String webdavHost,  String webdavUsername,  String webdavPassword,  bool autoSync,  bool syncNotify,  bool shade,  bool comicReadTopContainer,  int readMode,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  List<String> searchHistory)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  String webdavHost,  String webdavUsername,  String webdavPassword,  bool autoSync,  bool syncNotify,  bool shade,  bool comicReadTopContainer,  int readMode,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GlobalSettingState() when $default != null:
-return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.webdavHost,_that.webdavUsername,_that.webdavPassword,_that.autoSync,_that.syncNotify,_that.shade,_that.comicReadTopContainer,_that.readMode,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.searchHistory);case _:
+return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.webdavHost,_that.webdavUsername,_that.webdavPassword,_that.autoSync,_that.syncNotify,_that.shade,_that.comicReadTopContainer,_that.readMode,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY);case _:
   return orElse();
 
 }
@@ -195,10 +199,10 @@ return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColo
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  String webdavHost,  String webdavUsername,  String webdavPassword,  bool autoSync,  bool syncNotify,  bool shade,  bool comicReadTopContainer,  int readMode,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  List<String> searchHistory)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  String webdavHost,  String webdavUsername,  String webdavPassword,  bool autoSync,  bool syncNotify,  bool shade,  bool comicReadTopContainer,  int readMode,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY)  $default,) {final _that = this;
 switch (_that) {
 case _GlobalSettingState():
-return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.webdavHost,_that.webdavUsername,_that.webdavPassword,_that.autoSync,_that.syncNotify,_that.shade,_that.comicReadTopContainer,_that.readMode,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.searchHistory);case _:
+return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.webdavHost,_that.webdavUsername,_that.webdavPassword,_that.autoSync,_that.syncNotify,_that.shade,_that.comicReadTopContainer,_that.readMode,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -215,10 +219,10 @@ return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColo
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  String webdavHost,  String webdavUsername,  String webdavPassword,  bool autoSync,  bool syncNotify,  bool shade,  bool comicReadTopContainer,  int readMode,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  List<String> searchHistory)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  String webdavHost,  String webdavUsername,  String webdavPassword,  bool autoSync,  bool syncNotify,  bool shade,  bool comicReadTopContainer,  int readMode,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY)?  $default,) {final _that = this;
 switch (_that) {
 case _GlobalSettingState() when $default != null:
-return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.webdavHost,_that.webdavUsername,_that.webdavPassword,_that.autoSync,_that.syncNotify,_that.shade,_that.comicReadTopContainer,_that.readMode,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.searchHistory);case _:
+return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.webdavHost,_that.webdavUsername,_that.webdavPassword,_that.autoSync,_that.syncNotify,_that.shade,_that.comicReadTopContainer,_that.readMode,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY);case _:
   return null;
 
 }
@@ -230,7 +234,7 @@ return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColo
 @JsonSerializable()
 
 class _GlobalSettingState implements GlobalSettingState {
-  const _GlobalSettingState({this.dynamicColor = true, this.themeMode = ThemeMode.system, this.isAMOLED = true, @ColorConverter() this.seedColor = const Color(0xFFEF5350), this.themeInitState = 0, @LocaleConverter() this.locale = const Locale('zh', 'CN'), this.welcomePageNum = 0, this.webdavHost = '', this.webdavUsername = '', this.webdavPassword = '', this.autoSync = true, this.syncNotify = true, this.shade = true, this.comicReadTopContainer = true, this.readMode = 0, final  List<String> maskedKeywords = const [], this.socks5Proxy = '', this.needCleanCache = false, this.comicChoice = 1, this.disableBika = false, this.enableMemoryDebug = false, final  List<String> searchHistory = const []}): _maskedKeywords = maskedKeywords,_searchHistory = searchHistory;
+  const _GlobalSettingState({this.dynamicColor = true, this.themeMode = ThemeMode.system, this.isAMOLED = true, @ColorConverter() this.seedColor = const Color(0xFFEF5350), this.themeInitState = 0, @LocaleConverter() this.locale = const Locale('zh', 'CN'), this.welcomePageNum = 0, this.webdavHost = '', this.webdavUsername = '', this.webdavPassword = '', this.autoSync = true, this.syncNotify = true, this.shade = true, this.comicReadTopContainer = true, this.readMode = 0, final  List<String> maskedKeywords = const [], this.socks5Proxy = '', this.needCleanCache = false, this.comicChoice = 1, this.disableBika = false, this.enableMemoryDebug = false, final  List<String> searchHistory = const [], this.windowWidth = 1280.0, this.windowHeight = 720.0, this.windowX = 0, this.windowY = 0}): _maskedKeywords = maskedKeywords,_searchHistory = searchHistory;
   factory _GlobalSettingState.fromJson(Map<String, dynamic> json) => _$GlobalSettingStateFromJson(json);
 
 @override@JsonKey() final  bool dynamicColor;
@@ -267,6 +271,10 @@ class _GlobalSettingState implements GlobalSettingState {
   return EqualUnmodifiableListView(_searchHistory);
 }
 
+@override@JsonKey() final  double windowWidth;
+@override@JsonKey() final  double windowHeight;
+@override@JsonKey() final  double windowX;
+@override@JsonKey() final  double windowY;
 
 /// Create a copy of GlobalSettingState
 /// with the given fields replaced by the non-null parameter values.
@@ -281,16 +289,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GlobalSettingState&&(identical(other.dynamicColor, dynamicColor) || other.dynamicColor == dynamicColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.isAMOLED, isAMOLED) || other.isAMOLED == isAMOLED)&&(identical(other.seedColor, seedColor) || other.seedColor == seedColor)&&(identical(other.themeInitState, themeInitState) || other.themeInitState == themeInitState)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.welcomePageNum, welcomePageNum) || other.welcomePageNum == welcomePageNum)&&(identical(other.webdavHost, webdavHost) || other.webdavHost == webdavHost)&&(identical(other.webdavUsername, webdavUsername) || other.webdavUsername == webdavUsername)&&(identical(other.webdavPassword, webdavPassword) || other.webdavPassword == webdavPassword)&&(identical(other.autoSync, autoSync) || other.autoSync == autoSync)&&(identical(other.syncNotify, syncNotify) || other.syncNotify == syncNotify)&&(identical(other.shade, shade) || other.shade == shade)&&(identical(other.comicReadTopContainer, comicReadTopContainer) || other.comicReadTopContainer == comicReadTopContainer)&&(identical(other.readMode, readMode) || other.readMode == readMode)&&const DeepCollectionEquality().equals(other._maskedKeywords, _maskedKeywords)&&(identical(other.socks5Proxy, socks5Proxy) || other.socks5Proxy == socks5Proxy)&&(identical(other.needCleanCache, needCleanCache) || other.needCleanCache == needCleanCache)&&(identical(other.comicChoice, comicChoice) || other.comicChoice == comicChoice)&&(identical(other.disableBika, disableBika) || other.disableBika == disableBika)&&(identical(other.enableMemoryDebug, enableMemoryDebug) || other.enableMemoryDebug == enableMemoryDebug)&&const DeepCollectionEquality().equals(other._searchHistory, _searchHistory));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GlobalSettingState&&(identical(other.dynamicColor, dynamicColor) || other.dynamicColor == dynamicColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.isAMOLED, isAMOLED) || other.isAMOLED == isAMOLED)&&(identical(other.seedColor, seedColor) || other.seedColor == seedColor)&&(identical(other.themeInitState, themeInitState) || other.themeInitState == themeInitState)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.welcomePageNum, welcomePageNum) || other.welcomePageNum == welcomePageNum)&&(identical(other.webdavHost, webdavHost) || other.webdavHost == webdavHost)&&(identical(other.webdavUsername, webdavUsername) || other.webdavUsername == webdavUsername)&&(identical(other.webdavPassword, webdavPassword) || other.webdavPassword == webdavPassword)&&(identical(other.autoSync, autoSync) || other.autoSync == autoSync)&&(identical(other.syncNotify, syncNotify) || other.syncNotify == syncNotify)&&(identical(other.shade, shade) || other.shade == shade)&&(identical(other.comicReadTopContainer, comicReadTopContainer) || other.comicReadTopContainer == comicReadTopContainer)&&(identical(other.readMode, readMode) || other.readMode == readMode)&&const DeepCollectionEquality().equals(other._maskedKeywords, _maskedKeywords)&&(identical(other.socks5Proxy, socks5Proxy) || other.socks5Proxy == socks5Proxy)&&(identical(other.needCleanCache, needCleanCache) || other.needCleanCache == needCleanCache)&&(identical(other.comicChoice, comicChoice) || other.comicChoice == comicChoice)&&(identical(other.disableBika, disableBika) || other.disableBika == disableBika)&&(identical(other.enableMemoryDebug, enableMemoryDebug) || other.enableMemoryDebug == enableMemoryDebug)&&const DeepCollectionEquality().equals(other._searchHistory, _searchHistory)&&(identical(other.windowWidth, windowWidth) || other.windowWidth == windowWidth)&&(identical(other.windowHeight, windowHeight) || other.windowHeight == windowHeight)&&(identical(other.windowX, windowX) || other.windowX == windowX)&&(identical(other.windowY, windowY) || other.windowY == windowY));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,dynamicColor,themeMode,isAMOLED,seedColor,themeInitState,locale,welcomePageNum,webdavHost,webdavUsername,webdavPassword,autoSync,syncNotify,shade,comicReadTopContainer,readMode,const DeepCollectionEquality().hash(_maskedKeywords),socks5Proxy,needCleanCache,comicChoice,disableBika,enableMemoryDebug,const DeepCollectionEquality().hash(_searchHistory)]);
+int get hashCode => Object.hashAll([runtimeType,dynamicColor,themeMode,isAMOLED,seedColor,themeInitState,locale,welcomePageNum,webdavHost,webdavUsername,webdavPassword,autoSync,syncNotify,shade,comicReadTopContainer,readMode,const DeepCollectionEquality().hash(_maskedKeywords),socks5Proxy,needCleanCache,comicChoice,disableBika,enableMemoryDebug,const DeepCollectionEquality().hash(_searchHistory),windowWidth,windowHeight,windowX,windowY]);
 
 @override
 String toString() {
-  return 'GlobalSettingState(dynamicColor: $dynamicColor, themeMode: $themeMode, isAMOLED: $isAMOLED, seedColor: $seedColor, themeInitState: $themeInitState, locale: $locale, welcomePageNum: $welcomePageNum, webdavHost: $webdavHost, webdavUsername: $webdavUsername, webdavPassword: $webdavPassword, autoSync: $autoSync, syncNotify: $syncNotify, shade: $shade, comicReadTopContainer: $comicReadTopContainer, readMode: $readMode, maskedKeywords: $maskedKeywords, socks5Proxy: $socks5Proxy, needCleanCache: $needCleanCache, comicChoice: $comicChoice, disableBika: $disableBika, enableMemoryDebug: $enableMemoryDebug, searchHistory: $searchHistory)';
+  return 'GlobalSettingState(dynamicColor: $dynamicColor, themeMode: $themeMode, isAMOLED: $isAMOLED, seedColor: $seedColor, themeInitState: $themeInitState, locale: $locale, welcomePageNum: $welcomePageNum, webdavHost: $webdavHost, webdavUsername: $webdavUsername, webdavPassword: $webdavPassword, autoSync: $autoSync, syncNotify: $syncNotify, shade: $shade, comicReadTopContainer: $comicReadTopContainer, readMode: $readMode, maskedKeywords: $maskedKeywords, socks5Proxy: $socks5Proxy, needCleanCache: $needCleanCache, comicChoice: $comicChoice, disableBika: $disableBika, enableMemoryDebug: $enableMemoryDebug, searchHistory: $searchHistory, windowWidth: $windowWidth, windowHeight: $windowHeight, windowX: $windowX, windowY: $windowY)';
 }
 
 
@@ -301,7 +309,7 @@ abstract mixin class _$GlobalSettingStateCopyWith<$Res> implements $GlobalSettin
   factory _$GlobalSettingStateCopyWith(_GlobalSettingState value, $Res Function(_GlobalSettingState) _then) = __$GlobalSettingStateCopyWithImpl;
 @override @useResult
 $Res call({
- bool dynamicColor, ThemeMode themeMode, bool isAMOLED,@ColorConverter() Color seedColor, int themeInitState,@LocaleConverter() Locale locale, int welcomePageNum, String webdavHost, String webdavUsername, String webdavPassword, bool autoSync, bool syncNotify, bool shade, bool comicReadTopContainer, int readMode, List<String> maskedKeywords, String socks5Proxy, bool needCleanCache, int comicChoice, bool disableBika, bool enableMemoryDebug, List<String> searchHistory
+ bool dynamicColor, ThemeMode themeMode, bool isAMOLED,@ColorConverter() Color seedColor, int themeInitState,@LocaleConverter() Locale locale, int welcomePageNum, String webdavHost, String webdavUsername, String webdavPassword, bool autoSync, bool syncNotify, bool shade, bool comicReadTopContainer, int readMode, List<String> maskedKeywords, String socks5Proxy, bool needCleanCache, int comicChoice, bool disableBika, bool enableMemoryDebug, List<String> searchHistory, double windowWidth, double windowHeight, double windowX, double windowY
 });
 
 
@@ -318,7 +326,7 @@ class __$GlobalSettingStateCopyWithImpl<$Res>
 
 /// Create a copy of GlobalSettingState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? dynamicColor = null,Object? themeMode = null,Object? isAMOLED = null,Object? seedColor = null,Object? themeInitState = null,Object? locale = null,Object? welcomePageNum = null,Object? webdavHost = null,Object? webdavUsername = null,Object? webdavPassword = null,Object? autoSync = null,Object? syncNotify = null,Object? shade = null,Object? comicReadTopContainer = null,Object? readMode = null,Object? maskedKeywords = null,Object? socks5Proxy = null,Object? needCleanCache = null,Object? comicChoice = null,Object? disableBika = null,Object? enableMemoryDebug = null,Object? searchHistory = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? dynamicColor = null,Object? themeMode = null,Object? isAMOLED = null,Object? seedColor = null,Object? themeInitState = null,Object? locale = null,Object? welcomePageNum = null,Object? webdavHost = null,Object? webdavUsername = null,Object? webdavPassword = null,Object? autoSync = null,Object? syncNotify = null,Object? shade = null,Object? comicReadTopContainer = null,Object? readMode = null,Object? maskedKeywords = null,Object? socks5Proxy = null,Object? needCleanCache = null,Object? comicChoice = null,Object? disableBika = null,Object? enableMemoryDebug = null,Object? searchHistory = null,Object? windowWidth = null,Object? windowHeight = null,Object? windowX = null,Object? windowY = null,}) {
   return _then(_GlobalSettingState(
 dynamicColor: null == dynamicColor ? _self.dynamicColor : dynamicColor // ignore: cast_nullable_to_non_nullable
 as bool,themeMode: null == themeMode ? _self.themeMode : themeMode // ignore: cast_nullable_to_non_nullable
@@ -342,7 +350,11 @@ as bool,comicChoice: null == comicChoice ? _self.comicChoice : comicChoice // ig
 as int,disableBika: null == disableBika ? _self.disableBika : disableBika // ignore: cast_nullable_to_non_nullable
 as bool,enableMemoryDebug: null == enableMemoryDebug ? _self.enableMemoryDebug : enableMemoryDebug // ignore: cast_nullable_to_non_nullable
 as bool,searchHistory: null == searchHistory ? _self._searchHistory : searchHistory // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as List<String>,windowWidth: null == windowWidth ? _self.windowWidth : windowWidth // ignore: cast_nullable_to_non_nullable
+as double,windowHeight: null == windowHeight ? _self.windowHeight : windowHeight // ignore: cast_nullable_to_non_nullable
+as double,windowX: null == windowX ? _self.windowX : windowX // ignore: cast_nullable_to_non_nullable
+as double,windowY: null == windowY ? _self.windowY : windowY // ignore: cast_nullable_to_non_nullable
+as double,
   ));
 }
 

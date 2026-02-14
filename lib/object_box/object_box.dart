@@ -1,5 +1,5 @@
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
+import 'package:zephyr/util/get_path.dart';
 
 import 'model.dart';
 import 'objectbox.g.dart';
@@ -28,8 +28,7 @@ class ObjectBox {
   }
 
   static Future<ObjectBox> create() async {
-    final docsDir = await getApplicationDocumentsDirectory();
-    final dbPath = p.join(docsDir.path, "breeze_db");
+    final dbPath = p.join(await getDbPath(), "breeze_db");
 
     Store storeInstance;
 

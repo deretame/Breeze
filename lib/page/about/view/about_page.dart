@@ -1,9 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:zephyr/main.dart';
 
 import '../../../util/update/check_update.dart';
 
@@ -16,7 +15,6 @@ class AboutPage extends StatefulWidget {
 }
 
 class _AboutPageState extends State<AboutPage> {
-  late final WebViewController _controller;
   String _htmlContent = "";
   bool _isLoading = true;
   String _appVersion = "加载中...";
@@ -28,44 +26,8 @@ class _AboutPageState extends State<AboutPage> {
   }
 
   Future<void> _loadAppVersionAndHtml() async {
-    // 1. 获取App版本号
     _appVersion = await getAppVersion();
-    logger.i("App version: $_appVersion");
-
-    // 2. 加载HTML内容
-    _htmlContent = await rootBundle.loadString(
-      'asset/about_page.html',
-    ); // 从assets加载
-
-    // 3. 初始化WebView控制器
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(const Color(0x00000000)) // 透明背景，让HTML的背景生效
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onProgress: (int progress) {},
-          onPageStarted: (String url) {},
-          onPageFinished: (String url) {
-            // 页面加载完成后，将版本号注入到HTML中
-            _controller.runJavaScript('setAppVersion("$_appVersion")');
-          },
-          onWebResourceError: (WebResourceError error) {
-            logger.e("WebView Error: ${error.description}");
-          },
-          onNavigationRequest: (NavigationRequest request) async {
-            // 拦截所有 http/https 链接
-            if (request.url.startsWith('http://') ||
-                request.url.startsWith('https://')) {
-              // 使用外部浏览器打开链接
-              await _launchURL(request.url);
-              // 阻止 WebView 内部加载
-              return NavigationDecision.prevent;
-            }
-            return NavigationDecision.navigate;
-          },
-        ),
-      )
-      ..loadHtmlString(_htmlContent, baseUrl: null);
+    _htmlContent = await rootBundle.loadString('asset/about_page.html');
 
     setState(() {
       _isLoading = false;
@@ -79,7 +41,34 @@ class _AboutPageState extends State<AboutPage> {
           ? const Center(
               child: CircularProgressIndicator(color: Color(0xFF00FFFF)),
             )
-          : WebViewWidget(controller: _controller),
+          : InAppWebView(
+              // 初始化配置
+              initialSettings: InAppWebViewSettings(
+                javaScriptEnabled: true,
+                transparentBackground: true,
+                supportZoom: false,
+                useShouldOverrideUrlLoading: true,
+              ),
+              initialData: InAppWebViewInitialData(data: _htmlContent),
+
+              onWebViewCreated: (controller) {},
+
+              onLoadStop: (controller, url) async {
+                await controller.evaluateJavascript(
+                  source: 'setAppVersion("$_appVersion")',
+                );
+              },
+
+              shouldOverrideUrlLoading: (controller, navigationAction) async {
+                var uri = navigationAction.request.url;
+                if (uri != null &&
+                    (uri.scheme == 'http' || uri.scheme == 'https')) {
+                  await _launchURL(uri.toString());
+                  return NavigationActionPolicy.CANCEL;
+                }
+                return NavigationActionPolicy.ALLOW;
+              },
+            ),
     );
   }
 

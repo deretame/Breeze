@@ -64,8 +64,8 @@ jobs:
 
       - name: 配置 Flatpak 环境 (Flathub)
         run: |
-          sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-          sudo flatpak install -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
+          flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak install -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
 
       - name: 构建 Flutter Linux Release
         run: fvm flutter build linux --release

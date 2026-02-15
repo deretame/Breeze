@@ -52,16 +52,12 @@ jobs:
 
       - name: 基于 .puro.json 安装 Flutter
         run: |
-          export PATH="$HOME/.puro/bin:$PATH"
-
+          export PATH="$HOME/.puro/bin:$PATH" 
           puro install --yes
           puro use --project --force
 
-          FLUTTER_ROOT=$(puro env --root)
-          echo "FLUTTER_ROOT=$FLUTTER_ROOT" >> $GITHUB_ENV
-          echo "$FLUTTER_ROOT/bin" >> $GITHUB_PATH
-
-          $FLUTTER_ROOT/bin/flutter precache --android
+          echo "FLUTTER_ROOT=$(puro env --root)" >> $GITHUB_ENV
+          echo "$(puro env --root)/bin" >> $GITHUB_PATH
 
       - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable

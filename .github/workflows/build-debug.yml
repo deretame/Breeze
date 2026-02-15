@@ -67,7 +67,7 @@ jobs:
             FLUTTER_VERSION="stable"
           fi
 
-          puro create ci_env "$FLUTTER_VERSION" --yes
+          puro create ci_env "$FLUTTER_VERSION"
           puro use ci_env --force
 
           echo "✅ Puro 环境已就绪:"

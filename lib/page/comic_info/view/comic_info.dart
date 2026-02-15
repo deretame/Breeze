@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/string_select.dart';
@@ -75,6 +77,7 @@ class _ComicInfoState extends State<_ComicInfo>
   bool _loadingComplete = false;
   // 添加一个状态变量记录是否倒序，用于更新菜单文字
   bool _isReversed = false;
+  String _title = "";
 
   @override
   void initState() {
@@ -235,6 +238,7 @@ class _ComicInfoState extends State<_ComicInfo>
 
   Widget _infoView(NormalComicAllInfo normalComicAllInfo) {
     final comicInfo = normalComicAllInfo.comicInfo;
+    _title = comicInfo.title;
 
     if (!_loadingComplete) {
       WidgetsBinding.instance.addPostFrameCallback(
@@ -423,15 +427,38 @@ class _ComicInfoState extends State<_ComicInfo>
   }
 
   // 导出逻辑
+  // 导出逻辑
   Future<void> _handleExport() async {
     try {
-      if (!await requestStoragePermission()) {
+      if (!await requestExportPermission()) {
         showErrorToast("请授予存储权限！");
         return;
       }
       if (mounted) {
         var choice = await showExportTypeDialog();
-        exportComic(widget.comicId, choice!, widget.from);
+        if (choice == null) return;
+
+        String? path;
+
+        if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
+          if (choice == ExportType.folder) {
+            path = await getDirectoryPath();
+          } else {
+            final result = await getSaveLocation(
+              suggestedName: "$_title.zip",
+              acceptedTypeGroups: [
+                XTypeGroup(label: 'ZIP', extensions: ['zip']),
+              ],
+            );
+            path = result?.path;
+          }
+
+          if (path == null) return;
+        }
+
+        if (mounted) {
+          exportComic(widget.comicId, choice, widget.from, path: path);
+        }
       }
     } catch (e) {
       showErrorToast(

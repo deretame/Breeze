@@ -80,6 +80,7 @@ class _PageCountWidgetState extends State<PageCountWidget> {
   }
 
   void _initConnectivity() async {
+    if (Platform.isLinux) return;
     final connectivity = Connectivity();
     final results = await connectivity.checkConnectivity();
     if (results.isNotEmpty) {
@@ -198,14 +199,17 @@ class _PageCountWidgetState extends State<PageCountWidget> {
 
               const SizedBox(width: 8),
 
-              // 2. 网络图标
-              Icon(
-                _getNetworkStatusIcon(_connectivityResult),
-                color: Colors.white,
-                size: 12,
-              ),
+              if (!Platform.isLinux) ...[
+                // linux 下这个不好用
+                // 2. 网络图标
+                Icon(
+                  _getNetworkStatusIcon(_connectivityResult),
+                  color: Colors.white,
+                  size: 12,
+                ),
 
-              const SizedBox(width: 8),
+                const SizedBox(width: 8),
+              ],
 
               // // 3. 电量图标
               // Icon(_getBatteryIcon(), color: Colors.white, size: 12),

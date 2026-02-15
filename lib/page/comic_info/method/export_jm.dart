@@ -15,7 +15,7 @@ import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 /// 导出漫画为文件夹
-Future<void> jmExportComicAsFolder(String comicId) async {
+Future<void> jmExportComicAsFolder(String comicId, {String? exportPath}) async {
   final jmDownload = objectbox.jmDownloadBox
       .query(JmDownload_.comicId.equals(comicId))
       .build()
@@ -23,7 +23,7 @@ Future<void> jmExportComicAsFolder(String comicId) async {
   final comicInfo = jmDownload.allInfo.let(downloadInfoJsonFromJson);
   final downloadedEpIds = jmDownload.epsIds;
   var processedComicInfo = comicInfoProcess(comicInfo);
-  var downloadPath = await createDownloadDir();
+  var downloadPath = exportPath ?? await createDownloadDir();
   var comicDir = p.join(downloadPath, processedComicInfo.name);
 
   if (!await Directory(comicDir).exists()) {
@@ -99,7 +99,7 @@ Future<void> jmExportComicAsFolder(String comicId) async {
   showSuccessToast('漫画${comicInfo.name}导出为文件夹完成');
 }
 
-Future<void> jmExportComicAsZip(String comicId) async {
+Future<void> jmExportComicAsZip(String comicId, {String? exportPath}) async {
   final jmDownload = objectbox.jmDownloadBox
       .query(JmDownload_.comicId.equals(comicId))
       .build()
@@ -108,15 +108,20 @@ Future<void> jmExportComicAsZip(String comicId) async {
   final downloadedEpIds = jmDownload.epsIds;
   var processedComicInfo = comicInfoProcess(comicInfo);
 
-  final downloadPath = p.join(
-    await createDownloadDir(),
-    processedComicInfo.name.substring(
-      0,
-      min(processedComicInfo.name.length, 90),
-    ),
-  );
+  String finalZipPath;
 
-  final finalZipPath = '$downloadPath.zip';
+  if (exportPath != null) {
+    finalZipPath = exportPath;
+  } else {
+    final downloadPath = p.join(
+      await createDownloadDir(),
+      processedComicInfo.name.substring(
+        0,
+        min(processedComicInfo.name.length, 90),
+      ),
+    );
+    finalZipPath = '$downloadPath.zip';
+  }
 
   var processedComicInfoString = processedComicInfo.toJson();
   processedComicInfoString['epsIds'] = downloadedEpIds;

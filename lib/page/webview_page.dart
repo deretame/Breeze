@@ -1,9 +1,7 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart'; // 换成 inappwebview
 import 'package:url_launcher/url_launcher.dart';
-import 'package:zephyr/config/bika/bika_setting.dart';
 
 @RoutePage()
 class WebViewPage extends StatelessWidget {
@@ -13,14 +11,7 @@ class WebViewPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bikaState = context.watch<BikaSettingCubit>().state;
-
     String url = info[1];
-
-    if (info[0] == "嗶咔畫廊") {
-      var authorization = bikaState.authorization;
-      url = "$url?token=$authorization";
-    }
 
     return Scaffold(
       appBar: AppBar(

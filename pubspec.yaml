@@ -55,6 +55,7 @@ dependencies:
   json_serializable: ^6.8.0 # JSON 序列化生成器
   freezed: ^3.0.0 # 不可变数据类生成
   freezed_annotation: ^3.0.0 # Freezed 注解支持
+  file_selector: ^1.1.0 # 文件选择器
 
   ########################################
   #       窗口管理 & 桌面支持          #

@@ -581,9 +581,15 @@ class _NavigationBarState extends State<NavigationBar> {
       iconPath: windowsIconPath,
     );
 
+    final initializationSettingsLinux = LinuxInitializationSettings(
+      defaultActionName: 'Open notification',
+      defaultIcon: AssetsLinuxIcon('asset/image/app-icon.png'),
+    );
+
     final initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
       windows: initializationSettingsWindows,
+      linux: initializationSettingsLinux,
     );
 
     await flutterLocalNotificationsPlugin.initialize(
@@ -592,6 +598,8 @@ class _NavigationBarState extends State<NavigationBar> {
           (NotificationResponse notificationResponse) async {},
     );
     // 先检查当前状态
+    if (Platform.isLinux) return;
+
     try {
       final status = await Permission.notification.request();
 

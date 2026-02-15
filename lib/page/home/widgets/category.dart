@@ -4,7 +4,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/page/home/category.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
@@ -221,8 +223,18 @@ class CategoryLineWidget extends StatelessWidget {
         category.title,
       );
     } else if (category.isWeb) {
-      List<String> info = [category.title, category.link];
-      router.push(WebViewRoute(info: info));
+      var url = category.link;
+      if (category.title == '嗶咔畫廊') {
+        final bikaState = context.read<BikaSettingCubit>().state;
+        var authorization = bikaState.authorization;
+        url = "$url?token=$authorization";
+      }
+      List<String> info = [category.title, url];
+      if (Platform.isLinux) {
+        lunchBrow(url);
+      } else {
+        router.push(WebViewRoute(info: info));
+      }
     } else {
       final Map<String, bool> newCategories = {
         for (var key in categoryMap.keys) key: key == category.title,
@@ -251,5 +263,29 @@ class CategoryLineWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> lunchBrow(String url) async {
+    try {
+      if (!await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      )) {
+        throw Exception('launchUrl return false');
+      }
+    } catch (e) {
+      if (Platform.isLinux) {
+        try {
+          await Process.start('cmd.exe', [
+            '/c',
+            'start',
+            '',
+            url,
+          ], mode: ProcessStartMode.detached);
+        } catch (wslError) {
+          logger.e("WSL Fallback failed: $wslError");
+        }
+      }
+    }
   }
 }

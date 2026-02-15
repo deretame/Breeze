@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Breeze
+Name[zh_CN]=Breeze
+Description=Third-party client for Bika and JM
+Description[zh_CN]=哔咔和禁漫的第三方客户端
+Exec=breeze
+Icon=io.github.windy.breeze
+Terminal=false
+Categories=Utility;Network;
+keywords=cartoon;comic;bika;jm;
+StartupNotify=true

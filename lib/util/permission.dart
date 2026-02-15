@@ -3,8 +3,13 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:permission_guard/permission_guard.dart';
 
-/// 动态请求存储权限
-Future<bool> requestStoragePermission() async {
+/// 动态请求导出权限
+Future<bool> requestExportPermission() async {
+  if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
+    // 桌面端不需要动态申请存储权限
+    return true;
+  }
+
   if (!Platform.isAndroid) {
     // 如果不是安卓平台，直接返回 true
     return true;

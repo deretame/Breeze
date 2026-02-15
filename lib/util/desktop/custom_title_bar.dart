@@ -58,11 +58,11 @@ class _CustomTitleBarState extends State<CustomTitleBar> with WindowListener {
     }
   }
 
-  void _hide() {
+  void _handleClose() {
     if (Platform.isWindows) {
-      NativeWindow.hide();
+      NativeWindow.close();
     } else {
-      windowManager.hide();
+      windowManager.close();
     }
   }
 
@@ -123,7 +123,7 @@ class _CustomTitleBarState extends State<CustomTitleBar> with WindowListener {
           ),
           _TitleBarButton(
             icon: Icons.close_rounded,
-            onPressed: _hide,
+            onPressed: _handleClose,
             hoverColor: Colors.red,
             hoverIconColor: Colors.white,
             iconColor: colorScheme.onSurfaceVariant,

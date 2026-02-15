@@ -53,7 +53,7 @@ final appRouter = AppRouter();
 // 全局事件总线实例
 EventBus eventBus = EventBus();
 
-final logger = Logger();
+var logger = Logger();
 
 List<String> cfIpList = [];
 
@@ -162,18 +162,22 @@ Future<void> main() async {
           return true; // 表示错误已处理
         };
       } else {
-        await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        );
+        if (!Platform.isLinux) {
+          await Firebase.initializeApp(
+            options: DefaultFirebaseOptions.currentPlatform,
+          );
 
-        FlutterError.onError = (FlutterErrorDetails errorDetails) {
-          FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
-        };
+          FlutterError.onError = (FlutterErrorDetails errorDetails) {
+            FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+          };
 
-        PlatformDispatcher.instance.onError = (error, stack) {
-          FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-          return true; // 表示错误已处理
-        };
+          PlatformDispatcher.instance.onError = (error, stack) {
+            FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+            return true; // 表示错误已处理
+          };
+        } else {
+          logger = Logger(filter: ProductionFilter(), output: ConsoleOutput());
+        }
       }
 
       runApp(
@@ -191,6 +195,10 @@ Future<void> main() async {
       if (kDebugMode) {
         logger.e(error, error: error, stackTrace: stackTrace);
       } else {
+        if (Platform.isLinux) {
+          return;
+        }
+
         FirebaseCrashlytics.instance.recordError(
           error,
           stackTrace,
@@ -213,6 +221,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   void initState() {
     super.initState();
     windowManager.addListener(this);
+    _init();
     WindowLogic.initWindow(context).then((_) {
       // 窗口初始化完成后，拦截关闭按钮
       windowManager.setPreventClose(true);
@@ -251,22 +260,37 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
 
   @override
   void onWindowClose() async {
-    // 如果窗口可见，点 X 只是隐藏到托盘
-    bool isVisible = await windowManager.isVisible();
-    if (isVisible) {
-      windowManager.hide();
-    } else {
-      // 窗口已隐藏却收到 WM_CLOSE，说明是系统关机或安装器在关闭
-      _performGracefulExit();
+    bool isPreventClose = await windowManager.isPreventClose();
+    if (isPreventClose) {
+      final dialogContext = appRouter.navigatorKey.currentContext;
+      if (dialogContext == null || !dialogContext.mounted) return;
+      showDialog(
+        context: dialogContext,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('您确定要关闭此窗口吗？'),
+            actions: [
+              TextButton(
+                child: Text('否'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('是'),
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  await windowManager.destroy();
+                },
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 
-  /// 优雅退出：关闭数据库、释放资源后退出
   Future<void> _performGracefulExit() async {
-    logger.i("收到退出指令，正在清理资源...");
-    await windowManager.setPreventClose(false);
-    objectbox.store.close();
-    await Hive.close();
     exit(0);
   }
 
@@ -294,6 +318,12 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
       // 真正退出：清理资源后退出
       _performGracefulExit();
     }
+  }
+
+  void _init() async {
+    // 添加此行以覆盖默认的关闭处理程序
+    await windowManager.setPreventClose(true);
+    setState(() {});
   }
 
   @override

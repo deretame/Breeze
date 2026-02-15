@@ -54,3 +54,10 @@ app.*.map.json
 
 script/bin/
 windows-installer/src-tauri/resources
+
+# Flatpak related
+build-flatpak/
+repo-flatpak/
+*.flatpak
+.flatpak-builder/
+GPUCache/

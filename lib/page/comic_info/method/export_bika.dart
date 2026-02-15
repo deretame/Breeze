@@ -12,7 +12,10 @@ import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 /// 导出漫画为文件夹
-Future<void> bikaExportComicAsFolder(String comicId) async {
+Future<void> bikaExportComicAsFolder(
+  String comicId, {
+  String? exportPath,
+}) async {
   var comicDownload = objectbox.bikaDownloadBox
       .query(BikaComicDownload_.comicId.equals(comicId))
       .build()
@@ -21,8 +24,8 @@ Future<void> bikaExportComicAsFolder(String comicId) async {
   var comicInfo = comicAllInfoJsonFromJson(comicDownload!.comicInfoAll);
 
   var processedComicInfo = comicInfoProcess(comicInfo);
-  var downloadPath = await createDownloadDir();
-  var comicDir = p.join(downloadPath, processedComicInfo.comic.title);
+  var folderPath = exportPath ?? await createDownloadDir();
+  var comicDir = p.join(folderPath, processedComicInfo.comic.title);
 
   if (!await Directory(comicDir).exists()) {
     await Directory(comicDir).create(recursive: true);
@@ -107,7 +110,7 @@ Future<void> bikaExportComicAsFolder(String comicId) async {
   showSuccessToast('漫画${comicInfo.comic.title}导出为文件夹完成');
 }
 
-Future<void> bikaExportComicAsZip(String comicId) async {
+Future<void> bikaExportComicAsZip(String comicId, {String? exportPath}) async {
   var comicDownload = objectbox.bikaDownloadBox
       .query(BikaComicDownload_.comicId.equals(comicId))
       .build()
@@ -117,12 +120,17 @@ Future<void> bikaExportComicAsZip(String comicId) async {
 
   final startTime = DateTime.now().millisecondsSinceEpoch;
   final processedComicInfo = comicInfoProcess(comicInfo);
-  final downloadPath = p.join(
-    await createDownloadDir(),
-    processedComicInfo.comic.title,
-  );
 
-  final finalZipPath = '$downloadPath.zip';
+  String finalZipPath;
+  if (exportPath != null) {
+    finalZipPath = exportPath;
+  } else {
+    final downloadPath = p.join(
+      await createDownloadDir(),
+      processedComicInfo.comic.title,
+    );
+    finalZipPath = '$downloadPath.zip';
+  }
 
   if (!await File(finalZipPath).exists()) {
     await File(finalZipPath).create(recursive: true);

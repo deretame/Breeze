@@ -1,0 +1,109 @@
+app-id: io.github.windy.breeze
+runtime: org.freedesktop.Platform
+runtime-version: "24.08"
+sdk: org.freedesktop.Sdk
+command: breeze
+finish-args:
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  - --share=network
+  - --filesystem=home
+  - --talk-name=org.kde.StatusNotifierWatcher
+  - --env=LD_LIBRARY_PATH=/app/lib
+modules:
+  - name: intltool
+    buildsystem: autotools
+    sources:
+      - type: archive
+        url: https://launchpad.net/intltool/trunk/0.51.0/+download/intltool-0.51.0.tar.gz
+        sha256: 67c74d94196b153b774ab9f89b2fa6c6ba79352407037c8c14d5aeb334e959cd
+
+  - name: libdbusmenu
+    buildsystem: simple
+    build-commands:
+      - sed -i '/AC_OUTPUT/i AM_CONDITIONAL([HAVE_VALGRIND], [test "x1" = "x0"])' configure.ac
+      - autoreconf -vfi
+      - ./configure --prefix=/app --disable-dumper --disable-tests --with-gtk=3 --disable-nls --disable-introspection --disable-vala CFLAGS="-Wno-error"
+      - make
+      - make install
+    sources:
+      - type: archive
+        url: https://launchpad.net/libdbusmenu/16.04/16.04.0/+download/libdbusmenu-16.04.0.tar.gz
+        sha256: b9cc4a2acd74509435892823607d966d424bd9ad5d0b00938f27240a1bfa878a
+
+  - name: ayatana-ido
+    buildsystem: simple
+    build-commands:
+      - sed -i '/find_package.*Vala/s/^/#/' src/CMakeLists.txt
+      - sed -i '/find_package.*GObjectIntrospection/s/^/#/' src/CMakeLists.txt
+      - sed -i '/install.*gir/s/^/#/' src/CMakeLists.txt
+      - sed -i '/install.*typelib/s/^/#/' src/CMakeLists.txt
+      - cmake . -DCMAKE_INSTALL_PREFIX=/app -DCMAKE_INSTALL_LIBDIR=lib -DENABLE_TESTS=OFF -DCMAKE_BUILD_TYPE=Release
+      - make
+      - make install
+    sources:
+      - type: archive
+        url: https://github.com/AyatanaIndicators/ayatana-ido/archive/0.10.4.tar.gz
+        sha256: bd59abd5f1314e411d0d55ce3643e91cef633271f58126be529de5fb71c5ab38
+
+  - name: libayatana-indicator
+    buildsystem: simple
+    build-commands:
+      - sed -i '/find_package.*Vala/s/^/#/' src/CMakeLists.txt
+      - sed -i '/find_package.*GObjectIntrospection/s/^/#/' src/CMakeLists.txt
+      - sed -i '/install.*gir/s/^/#/' src/CMakeLists.txt
+      - sed -i '/install.*typelib/s/^/#/' src/CMakeLists.txt
+      - cmake . -DCMAKE_INSTALL_PREFIX=/app -DCMAKE_INSTALL_LIBDIR=lib -DENABLE_TESTS=OFF -DCMAKE_BUILD_TYPE=Release -DENABLE_BINDINGS_MONO=OFF
+      - make
+      - make install
+    sources:
+      - type: archive
+        url: https://github.com/AyatanaIndicators/libayatana-indicator/archive/0.9.4.tar.gz
+        sha256: a18d3c682e29afd77db24366f8475b26bda22b0e16ff569a2ec71cd6eb4eac95
+
+  - name: libayatana-appindicator
+    buildsystem: simple
+    build-commands:
+      - sed -i '/find_package.*Vala/s/^/#/' src/CMakeLists.txt
+      - sed -i '/find_package.*GObjectIntrospection/s/^/#/' src/CMakeLists.txt
+      - sed -i '/install.*gir/s/^/#/' src/CMakeLists.txt
+      - sed -i '/install.*typelib/s/^/#/' src/CMakeLists.txt
+      - sed -i '/add_custom_target(src ALL DEPENDS/s/^/#/' src/CMakeLists.txt
+      - cmake . -DCMAKE_INSTALL_PREFIX=/app -DCMAKE_INSTALL_LIBDIR=lib -DENABLE_TESTS=OFF -DCMAKE_BUILD_TYPE=Release -DENABLE_BINDINGS_MONO=OFF -DENABLE_BINDINGS_PYTHON=OFF -DENABLE_BINDINGS_VALA=OFF -DENABLE_GTKDOC=OFF
+      - make
+      - make install
+    sources:
+      - type: archive
+        url: https://github.com/AyatanaIndicators/libayatana-appindicator/archive/0.5.93.tar.gz
+        sha256: cbefed7a918a227bf71286246e237fcd3a9c8499b3eaac4897811a869409edf0
+
+  - name: breeze
+    buildsystem: simple
+    build-commands:
+      # Create a directory for the app content
+      - install -d /app/breeze
+      # Copy all files from the source (the build bundle) to /app/breeze
+      - cp -r * /app/breeze/
+      # Create the bin directory and symlink the executable
+      - install -d /app/bin
+      - install -d /app/bin
+      - ln -s /app/breeze/breeze /app/bin/breeze
+      # Fix missing libbz2.so.1.0 symlink
+      - install -d /app/lib
+      - ln -s /usr/lib/x86_64-linux-gnu/libbz2.so.1.0.8 /app/lib/libbz2.so.1.0
+      # Create it in /app/breeze/lib where the rust lib resides, to be safe
+      - ln -s /usr/lib/x86_64-linux-gnu/libbz2.so.1.0.8 /app/breeze/lib/libbz2.so.1.0
+      # Install the icon
+      - install -D io.github.windy.breeze.png /app/share/icons/hicolor/128x128/apps/io.github.windy.breeze.png
+      # Install the desktop file
+      - install -D io.github.windy.breeze.desktop /app/share/applications/io.github.windy.breeze.desktop
+    sources:
+      - type: dir
+        path: ../build/linux/x64/release/bundle
+      - type: file
+        path: ../asset/image/app-icon.png
+        dest-filename: io.github.windy.breeze.png
+      - type: file
+        path: io.github.windy.breeze.desktop

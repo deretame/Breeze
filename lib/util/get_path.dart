@@ -4,204 +4,220 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/main.dart';
+// import 'package:zephyr/main.dart'; // 确保 logger 和 appName 可用
 
-// 简化的平台判断属性
-bool get isDesktop =>
-    Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+// =========================================================
+// 平台策略判断
+// =========================================================
 
-/// [核心辅助方法]
-/// 传入 desktopPathName (桌面端相对 exe 的父级目录名)
-/// 传入 mobileBaseDir (移动端基准目录) 和 mobileSubPath (移动端子路径)
-/// 自动处理目录创建逻辑
-Future<String> _ensureDir({
-  required String desktopName,
-  required Future<Directory> Function() mobileBaseDirInfo,
-  String? mobileSubPath,
-}) async {
-  String dirPath;
+/// 是否采用“便携式/绿色版”路径策略
+/// 仅 Windows 保持此策略，文件生成在 exe 同级或上级目录
+bool get _isPortableStrategy => Platform.isWindows;
 
-  if (isDesktop) {
-    // Desktop: 统一都在可执行文件上级目录的同级创建 (Portable 风格)
-    // 结构: /bin/app.exe -> /data/files
-    final exeDir = p.dirname(Platform.resolvedExecutable);
-    dirPath = p.join(exeDir, '..', desktopName);
-  } else {
-    // Mobile: 基于 path_provider 获取基准目录
-    final baseDir = await mobileBaseDirInfo();
-    dirPath = mobileSubPath != null
-        ? p.join(baseDir.path, mobileSubPath)
-        : baseDir.path;
-  }
+/// 是否为需要遵循 XDG 或沙盒规范的桌面系统
+/// Linux (Flatpak/Deb) 和 macOS (Sandbox)
+bool get _isStandardDesktop => Platform.isLinux || Platform.isMacOS;
 
-  // 统一逻辑：如果不存在则创建
-  final directory = Directory(dirPath);
-  if (!await directory.exists()) {
-    await directory.create(recursive: true);
-  }
+// =========================================================
+// 核心路径获取
+// =========================================================
 
-  return dirPath;
-}
-
-// ---------------------------------------------------------
-
-// 获取应用根目录
+/// 获取应用“逻辑”根目录
+/// Windows: exe 所在目录
+/// Android: (旧逻辑保持不变) AppSupport 的上一级
+/// Linux/macOS: (新逻辑) AppSupport 目录本身
 Future<String> getAppDirectory() async {
-  if (isDesktop) {
+  if (_isPortableStrategy) {
+    // Windows: 保持原样
     return p.dirname(Platform.resolvedExecutable);
-  }
-  final Directory tempDir = await getApplicationSupportDirectory();
-  return p.normalize(p.join(tempDir.path, '..'));
-}
-
-// 获取文件存储路径
-// Desktop: ../files
-// Mobile: appDir/files
-Future<String> getFilePath() async {
-  if (!isDesktop) {
-    final appDir = await getAppDirectory();
-    final path = p.join(appDir, "files");
-    final dir = Directory(path);
-    if (!await dir.exists()) {
-      await dir.create(recursive: true);
-    }
-    return path;
-  }
-
-  return _ensureDir(
-    desktopName: "files",
-    mobileBaseDirInfo: getApplicationSupportDirectory,
-  );
-}
-
-// 获取缓存路径
-// Desktop: ../cache
-// Mobile: tempDir
-Future<String> getCachePath() async {
-  return _ensureDir(
-    desktopName: "cache",
-    mobileBaseDirInfo: getTemporaryDirectory,
-    mobileSubPath: null,
-  );
-}
-
-// 获取文件下载路径
-// Desktop: ../downloads
-// Mobile: files/downloads
-Future<String> getDownloadPath() async {
-  if (isDesktop) {
-    return _ensureDir(
-      desktopName: "downloads",
-      mobileBaseDirInfo: getTemporaryDirectory,
-    );
+  } else if (Platform.isAndroid) {
+    // Android: ⚠️ 严禁修改，维持旧逻辑，否则老用户路径会变
+    final Directory tempDir = await getApplicationSupportDirectory();
+    return p.normalize(p.join(tempDir.path, '..'));
   } else {
-    final fileDir = await getFilePath();
-    final downloadPath = p.join(fileDir, "downloads");
-    final dir = Directory(downloadPath);
-    if (!await dir.exists()) {
-      await dir.create(recursive: true);
-    }
-    return downloadPath;
+    // Linux/macOS: 使用标准的 AppSupport 目录
+    // macOS: ~/Library/Application Support/com.example.app/
+    // Linux: ~/.local/share/com.example.app/ (或 Flatpak 对应沙盒路径)
+    final dir = await getApplicationSupportDirectory();
+    return dir.path;
   }
 }
 
-// 获取数据库路径
-// Desktop: ../db
-// Mobile: appDir/app_flutter
+/// 获取数据库路径 (⚠️ 核心兼容项)
+/// Windows: ../db
+/// Android: appDir/app_flutter (保持旧逻辑)
+/// Linux/macOS: AppSupport/db (新标准逻辑)
 Future<String> getDbPath() async {
-  if (isDesktop) {
-    return _ensureDir(
-      desktopName: "db",
-      mobileBaseDirInfo: getApplicationSupportDirectory,
-    );
-  } else {
+  String dbDirPath;
+
+  if (_isPortableStrategy) {
+    // Windows: exe -> ../db
+    final appDir = await getAppDirectory(); // Windows 下是 exe 目录
+    dbDirPath = p.join(appDir, '..', 'db');
+  } else if (Platform.isAndroid) {
+    // Android: ⚠️ 严禁修改，这是 Flutter 默认旧版路径结构
     final appDir = await getAppDirectory();
-    final dbPath = p.join(appDir, "app_flutter");
-    final dir = Directory(dbPath);
-    if (!await dir.exists()) {
-      await dir.create(recursive: true);
-    }
-    logger.d(dbPath);
-    return dbPath;
+    dbDirPath = p.join(appDir, "app_flutter");
+  } else {
+    // Linux/macOS: 放在 AppSupport/db 下
+    // 这样不会污染 Home 目录，且符合 Flatpak/Sandbox 规范
+    final appDir = await getAppDirectory();
+    dbDirPath = p.join(appDir, "db");
+  }
+
+  // 确保目录存在
+  await _ensureDirExists(dbDirPath);
+
+  // 仅供调试
+  // logger.d("DB Path: $dbDirPath");
+
+  return dbDirPath;
+}
+
+/// 获取文件存储路径
+/// Windows: ../files
+/// Android: appDir/files
+/// Linux/macOS: AppSupport/files
+Future<String> getFilePath() async {
+  String path;
+  if (_isPortableStrategy) {
+    final appDir = await getAppDirectory();
+    path = p.join(appDir, '..', 'files');
+  } else {
+    // Android/Linux/macOS 统一逻辑：在各自的根目录下创建 files
+    // 注意：Android 的 getAppDirectory 已经处理了特殊性
+    final appDir = await getAppDirectory();
+    path = p.join(appDir, "files");
+  }
+
+  await _ensureDirExists(path);
+  return path;
+}
+
+/// 获取缓存路径
+/// Windows: ../cache
+/// Android/Linux/macOS: 系统临时目录
+Future<String> getCachePath() async {
+  if (_isPortableStrategy) {
+    final appDir = await getAppDirectory();
+    final path = p.join(appDir, '..', 'cache');
+    await _ensureDirExists(path);
+    return path;
+  } else if (_isStandardDesktop) {
+    // Linux/macOS: 使用 AppSupport/cache，避免直接用 /tmp 导致遍历权限问题
+    final appDir = await getAppDirectory();
+    final path = p.join(appDir, 'cache');
+    await _ensureDirExists(path);
+    return path;
+  } else {
+    // Android/iOS: 使用系统缓存目录（应用私有，不会有权限问题）
+    final tempDir = await getTemporaryDirectory();
+    return tempDir.path;
   }
 }
 
-// 获取日志文件路径
-// Desktop: ../log/breeze.log
-// Mobile: Documents/log/breeze.log
+/// 获取应用内部下载路径
+Future<String> getDownloadPath() async {
+  // 统一策略：都在 getFilePath 下建立 downloads 文件夹
+  // Windows: ../files/downloads
+  // Android: appDir/files/downloads
+  // Linux/macOS: AppSupport/files/downloads
+  final fileDir = await getFilePath();
+  final downloadPath = p.join(fileDir, "downloads");
+  await _ensureDirExists(downloadPath);
+  return downloadPath;
+}
+
+/// 获取日志文件路径
 Future<File> getLogPath() async {
-  final String logDir = await _ensureDir(
-    desktopName: "log",
-    mobileBaseDirInfo: getApplicationDocumentsDirectory,
-    mobileSubPath: "log",
-  );
+  String logDirPath;
 
-  final String logFileName = p.join(logDir, "breeze.log");
+  if (_isPortableStrategy) {
+    // Windows: ../log
+    final appDir = await getAppDirectory();
+    logDirPath = p.join(appDir, '..', 'log');
+  } else if (Platform.isAndroid) {
+    // Android: 文档目录/log (保持原逻辑，方便用户找日志)
+    final docDir = await getApplicationDocumentsDirectory();
+    logDirPath = p.join(docDir.path, 'log');
+  } else {
+    // Linux/macOS: AppSupport/log
+    // 避免在用户文档目录(Documents)里拉屎，放在 AppSupport 更规范
+    final appDir = await getAppDirectory();
+    logDirPath = p.join(appDir, 'log');
+  }
 
-  final logFile = File(logFileName);
+  await _ensureDirExists(logDirPath);
+
+  final logFile = File(p.join(logDirPath, "breeze.log"));
   if (!await logFile.exists()) {
     await logFile.create();
   }
-
   return logFile;
 }
 
-/// 创建下载目录
+// =========================================================
+// 用户导出/下载目录 (createDownloadDir)
+// =========================================================
+
+/// 创建/获取用户可见的公开下载目录
 Future<String> createDownloadDir() async {
   try {
+    // 1. Desktop (Windows/Linux/macOS)
+    // 使用 path_provider 的 getDownloadsDirectory，全平台通用且规范
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       final downloadDir = await getDownloadsDirectory();
-      return p.join(downloadDir!.path, appName);
-    }
-
-    // 获取外部存储目录
-    Directory? externalDir = await getExternalStorageDirectory();
-    if (externalDir != null) {
-      logger.d('downloadPath: ${externalDir.path}');
-    }
-
-    // 检查 externalDir 是否为 null
-    if (externalDir == null) {
-      throw Exception('无法获取外部存储目录');
-    }
-
-    // 尝试从路径中提取用户ID
-    RegExp regExp = RegExp(r'/(\d+)/');
-    Match? match = regExp.firstMatch(externalDir.path);
-
-    // 安全地提取用户ID，如果匹配失败则使用默认值
-    String userId = '0';
-    if (match != null && match.groupCount >= 1) {
-      final extractedUserId = match.group(1);
-      if (extractedUserId != null) {
-        userId = extractedUserId;
-      } else {
-        logger.w('无法提取用户ID，使用默认值: 0');
+      if (downloadDir != null) {
+        final path = p.join(downloadDir.path, appName);
+        await _ensureDirExists(path);
+        return path;
       }
-    } else {
-      logger.w('路径格式不匹配，使用默认用户ID: 0，路径: ${externalDir.path}');
+      // 如果获取失败（极少见），回退到 Home/Downloads
+      final home =
+          Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+      return p.join(home!, 'Downloads', appName);
     }
 
-    String filePath = "/storage/emulated/$userId/Download/$appName";
+    // 2. Android
+    // 移除了不稳定的正则解析，直接指向标准路径
+    if (Platform.isAndroid) {
+      // 标准 Android 下载路径
+      const String standardPath = "/storage/emulated/0/Download";
+      final String savePath = p.join(standardPath, appName);
 
-    // 使用path库来确保路径的正确性
-    final dir = Directory(filePath);
-
-    // 检查目录是否存在
-    bool dirExists = await dir.exists();
-    if (!dirExists) {
-      // 如果目录不存在，则创建它
+      // 尝试创建
       try {
-        await dir.create(recursive: true); // recursive设置为true可以创建所有必要的父目录
-        logger.d('Directory created: $filePath');
+        await _ensureDirExists(savePath);
+        return savePath;
       } catch (e) {
-        logger.e('Failed to create directory: $e');
+        // 如果标准路径失败（极少数魔改ROM），尝试使用 getExternalStorageDirectory 回退
+        final externalDir = await getExternalStorageDirectory();
+        if (externalDir != null) {
+          // 这里的路径通常是 /storage/emulated/0/Android/data/包名/files
+          // 虽然不是公开的 Download，但至少能存
+          return externalDir.path;
+        }
         rethrow;
       }
     }
 
-    return filePath;
+    // 3. iOS
+    final docDir = await getApplicationDocumentsDirectory();
+    return docDir.path;
   } catch (e) {
-    logger.e(e);
+    logger.e('Create download dir failed: $e');
     rethrow;
+  }
+}
+
+// =========================================================
+// 辅助方法
+// =========================================================
+
+/// 简化版的目录创建检查
+Future<void> _ensureDirExists(String path) async {
+  final dir = Directory(path);
+  if (!await dir.exists()) {
+    await dir.create(recursive: true);
   }
 }

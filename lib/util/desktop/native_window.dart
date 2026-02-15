@@ -53,6 +53,17 @@ class NativeWindow {
     if (_hwnd != 0) win32.ShowWindow(_hwnd, win32.SW_HIDE);
   }
 
+  static void destroy() {
+    if (_hwnd != 0) win32.DestroyWindow(_hwnd);
+  }
+
+  /// 发送关闭消息，会触发 window_manager 的 onWindowClose 回调
+  static void close() {
+    if (_hwnd != 0) {
+      win32.PostMessage(_hwnd, win32.WM_CLOSE, 0, 0);
+    }
+  }
+
   /// 同步判断是否最大化
   static bool get isMaximized => _hwnd != 0 && _isZoomed(_hwnd) != 0;
 

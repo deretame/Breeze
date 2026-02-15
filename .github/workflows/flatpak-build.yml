@@ -50,11 +50,22 @@ jobs:
           curl -o- https://puro.dev/install.sh | PURO_VERSION="1.5.0" bash
           echo "$HOME/.puro/bin" >> $GITHUB_PATH
 
-      - name: 基于 .puro.json 安装 Flutter
+      - name: 根据 .fvmrc 配置 Flutter
         run: |
-          export PATH="$HOME/.puro/bin:$PATH" 
-          puro install --yes
-          puro use --project --force
+          export PATH="$HOME/.puro/bin:$PATH"
+          FLUTTER_VERSION=$(jq -r '.flutter' .fvmrc)
+          echo "检测到 .fvmrc 版本: $FLUTTER_VERSION"
+
+          if [ -z "$FLUTTER_VERSION" ] || [ "$FLUTTER_VERSION" == "null" ]; then
+            echo "❌ 错误: 无法从 .fvmrc 读取版本号，将降级使用 stable"
+            FLUTTER_VERSION="stable"
+          fi
+
+          puro create ci_env "$FLUTTER_VERSION" --yes
+          puro use ci_env --force
+
+          echo "✅ Puro 环境已就绪:"
+          puro env
 
           echo "FLUTTER_ROOT=$(puro env --root)" >> $GITHUB_ENV
           echo "$(puro env --root)/bin" >> $GITHUB_PATH

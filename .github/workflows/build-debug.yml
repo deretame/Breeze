@@ -59,22 +59,19 @@ jobs:
       - name: 根据 .fvmrc 配置 Flutter
         run: |
           export PATH="$HOME/.puro/bin:$PATH"
+
           FLUTTER_VERSION=$(jq -r '.flutter' .fvmrc)
-          echo "检测到 .fvmrc 版本: $FLUTTER_VERSION"
+          echo "检测到版本: $FLUTTER_VERSION"
+           
+          puro create ci_env "$FLUTTER_VERSION" || true
 
-          if [ -z "$FLUTTER_VERSION" ] || [ "$FLUTTER_VERSION" == "null" ]; then
-            echo "❌ 错误: 无法从 .fvmrc 读取版本号，将降级使用 stable"
-            FLUTTER_VERSION="stable"
-          fi
+          puro use ci_env --global
 
-          puro create ci_env "$FLUTTER_VERSION"
-          puro use ci_env --force
+          ENV_ROOT="$HOME/.puro/envs/ci_env/flutter"
 
-          echo "✅ Puro 环境已就绪:"
-          puro env
-
-          echo "FLUTTER_ROOT=$(puro env --root)" >> $GITHUB_ENV
-          echo "$(puro env --root)/bin" >> $GITHUB_PATH
+          echo "✅ 锁定 Flutter 路径: $ENV_ROOT"
+          echo "FLUTTER_ROOT=$ENV_ROOT" >> $GITHUB_ENV
+          echo "$ENV_ROOT/bin" >> $GITHUB_PATH
 
       - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable

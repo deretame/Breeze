@@ -296,13 +296,13 @@ Future<void> main() async {
   bool isCleaningUp = false;
 
   final sep = Platform.pathSeparator;
+  // 使用 path 库（p.join）可以更优雅地处理路径，这里保持字符串拼接兼容原代码
   final String scriptPath = Platform.script.toFilePath();
   final String scriptDir = Directory(scriptPath).parent.path;
   final String projectRoot = Directory(scriptDir).parent.path;
   final String binDir = '$scriptDir${sep}bin';
 
-  final String flutterExecutable =
-      '$projectRoot$sep.fvm${sep}flutter_sdk${sep}bin${sep}flutter.bat';
+  const String flutterExecutable = 'flutter';
 
   final String releaseDirPath =
       '$projectRoot${sep}build${sep}windows${sep}x64${sep}runner${sep}Release';
@@ -314,7 +314,7 @@ Future<void> main() async {
   final String archiveOutput = '$runnerDirPath${sep}Release.tar.xz';
   final String archiveDestination = '$resourcesDir${sep}Release.tar.xz';
 
-  // Ctrl+C
+  // Ctrl+C 监听器
   late final StreamSubscription<ProcessSignal> sigintSubscription;
   sigintSubscription = ProcessSignal.sigint.watch().listen((_) async {
     if (isCleaningUp) return;
@@ -329,14 +329,11 @@ Future<void> main() async {
 
   try {
     _printColor('═══════════════════════════════════════════', _cyan);
-    _printColor('       Breeze Windows 构建脚本', _cyan);
-    _printColor('       (xz/LZMA2 FFI 极限压缩)', _cyan);
+    _printColor('      Breeze Windows 构建脚本', _cyan);
+    _printColor('      (xz/LZMA2 FFI 极限压缩)', _cyan);
     _printColor('═══════════════════════════════════════════\n', _cyan);
 
-    if (!await File(flutterExecutable).exists()) {
-      throw Exception('无法找到 Flutter: $flutterExecutable');
-    }
-    _printColor('Flutter: $flutterExecutable', _green);
+    _printColor('Flutter 命令: $flutterExecutable', _green);
     _printColor('项目根目录: $projectRoot\n', _green);
 
     // ═══ 第 0 步：确保 liblzma 可用 ═══
@@ -348,11 +345,14 @@ Future<void> main() async {
 
     // ═══ 第 1 步：Flutter build ═══
     _printColor('--- (1/4) 构建 Flutter Windows Release ---', _cyan);
+
+    // 确保项目目录下执行
     exitCode = await _runCommand(flutterExecutable, [
       'build',
       'windows',
       '--release',
     ], workingDirectory: projectRoot);
+
     if (exitCode != 0) {
       throw Exception('Flutter 构建失败！ (Exit code: $exitCode)');
     }

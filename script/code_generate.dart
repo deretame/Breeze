@@ -101,23 +101,17 @@ Future<void> main() async {
 
   try {
     // --- 1. 初始化路径 ---
-    final sep = Platform.pathSeparator;
     final String scriptPath = Platform.script.toFilePath();
     final String scriptDir = Directory(scriptPath).parent.path;
     final String projectRoot = Directory(scriptDir).parent.path;
 
-    // 自动适配 FVM Dart 路径
-    final dartBinName = Platform.isWindows ? 'dart.bat' : 'dart';
-    final dartExecutable =
-        "$projectRoot$sep.fvm${sep}flutter_sdk${sep}bin$sep$dartBinName";
-
     _printColor('项目根目录: $projectRoot', _cyan);
-    _printColor('Dart 路径: $dartExecutable', _cyan);
 
     // --- 2. 运行 build_runner ---
     _printColor('--- (1/4) 正在运行 build_runner ---', _green);
-    // 使用 --delete-conflicting-outputs 自动解决冲突
-    await _runCommand(dartExecutable, [
+    // 使用 flutter pub run build_runner
+    await _runCommand('flutter', [
+      'pub',
       'run',
       'build_runner',
       'build',
@@ -146,7 +140,7 @@ Future<void> main() async {
     // --- 5. 格式化代码 ---
     _printColor('--- (4/4) 正在格式化代码 ---', _green);
     await _runCommand(
-      dartExecutable,
+      'dart',
       ['format', './lib/'], // 只格式化 lib 目录，节省时间
       workingDirectory: projectRoot,
     );

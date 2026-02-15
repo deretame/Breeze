@@ -89,11 +89,7 @@ Future<Map<String, dynamic>> _initializePaths() async {
   // 项目根目录 (tool 目录的上一级)
   final String projectRoot = Directory(scriptDir).parent.path;
 
-  // 判断是否为 Windows 来决定是否加 .bat
-  final String flutterBinName = Platform.isWindows ? 'flutter.bat' : 'flutter';
-
-  final String flutterExecutable =
-      "$projectRoot$sep.fvm${sep}flutter_sdk${sep}bin$sep$flutterBinName";
+  const String flutterExecutable = 'flutter';
 
   // AndroidManifest.xml 路径
   final String manifestPath =
@@ -212,13 +208,9 @@ Future<void> main() async {
     final Directory skiaDir = paths['skiaDir'] as Directory;
     final String sep = paths['sep'];
 
-    _printColor('将使用 Flutter 执行路径: $flutterExecutable', _green);
+    _printColor('将使用 Flutter 命令: $flutterExecutable', _green);
     _printColor('当前工作目录: $projectRoot', _yellow);
 
-    // 验证文件
-    if (!await File(flutterExecutable).exists()) {
-      throw Exception('无法找到 Flutter 执行文件: $flutterExecutable');
-    }
     if (!await manifestFile.exists()) {
       throw Exception('无法找到 AndroidManifest.xml: ${manifestFile.path}');
     }
@@ -325,8 +317,9 @@ Future<void> main() async {
 
         // --- 修改 ---
         // 之前：'powershell.exe', ['-File', symbolsScriptPath]
-        // 现在：使用 'dart run' 来执行 .dart 脚本
-        exitCode = await _runCommand('dart', [
+        // 现在：使用 'flutter pub run' 来执行 .dart 脚本
+        exitCode = await _runCommand('flutter', [
+          'pub',
           'run',
           symbolsScriptPath,
         ], workingDirectory: projectRoot);

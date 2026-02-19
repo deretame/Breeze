@@ -54,7 +54,7 @@ jobs:
       - name: 安装 FVM
         run: |
           curl -fsSL https://fvm.app/install.sh | bash
-          echo "$HOME/.fvm/bin" >> $GITHUB_ENV
+          echo "$HOME/.fvm/bin" | tee -a $GITHUB_PATH
 
       - name: 根据 .fvmrc 配置 Flutter
         run: |

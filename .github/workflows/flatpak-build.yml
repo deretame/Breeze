@@ -47,13 +47,14 @@ jobs:
 
       - name: 安装 FVM
         run: |
-          curl -fsSL https://fvm.app/install.sh | bash
-          echo "$HOME/.fvm/bin" | tee -a $GITHUB_PATH
+          dart pub global activate fvm
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
 
-      - name: 根据 .fvmrc 配置 Flutter
+      - name: 使用 FVM 安装 Flutter
         run: |
           fvm install
           fvm use --force
+          echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
 
       - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable

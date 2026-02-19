@@ -45,27 +45,15 @@ jobs:
       - name: 设置 Dart SDK
         uses: dart-lang/setup-dart@v1
 
-      - name: 安装 Puro
+      - name: 安装 FVM
         run: |
-          curl -o- https://puro.dev/install.sh | PURO_VERSION="1.5.0" bash
-          echo "$HOME/.puro/bin" >> $GITHUB_PATH
+          curl -fsSL https://fvm.app/install.sh | bash
+          echo "$HOME/.fvm/bin" >> $GITHUB_PATH
 
       - name: 根据 .fvmrc 配置 Flutter
         run: |
-          export PATH="$HOME/.puro/bin:$PATH"
-
-          FLUTTER_VERSION=$(jq -r '.flutter' .fvmrc)
-          echo "检测到版本: $FLUTTER_VERSION"
-           
-          puro create ci_env "$FLUTTER_VERSION" || true
-
-          puro use ci_env --global
-
-          ENV_ROOT="$HOME/.puro/envs/ci_env/flutter"
-
-          echo "✅ 锁定 Flutter 路径: $ENV_ROOT"
-          echo "FLUTTER_ROOT=$ENV_ROOT" >> $GITHUB_ENV
-          echo "$ENV_ROOT/bin" >> $GITHUB_PATH
+          fvm install
+          fvm use --force
 
       - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable

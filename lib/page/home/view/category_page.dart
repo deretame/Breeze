@@ -70,7 +70,7 @@ class _CategoryPageState extends State<_CategoryPage> {
                 )
                 .toList();
             // 构建并返回组件
-            var grid = buildCategoriesGrid(context, homeCategories);
+            var grid = CategoriesGrid(data: homeCategories);
             return Column(children: [grid]);
 
           case GetCategoryStatus.initial:

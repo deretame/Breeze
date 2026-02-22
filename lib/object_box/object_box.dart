@@ -16,6 +16,8 @@ class ObjectBox {
 
   late final Box<UserSetting> _userSettingBox;
 
+  late final Box<DownloadTask> _downloadTaskBox;
+
   ObjectBox._create(this.store) {
     _bikaComicHistoryBox = store.box<BikaComicHistory>();
     _bikaComicDownloadBox = store.box<BikaComicDownload>();
@@ -25,6 +27,8 @@ class ObjectBox {
     _jmDownloadBox = store.box<JmDownload>();
 
     _userSettingBox = store.box<UserSetting>();
+
+    _downloadTaskBox = store.box<DownloadTask>();
   }
 
   static Future<ObjectBox> create() async {
@@ -52,4 +56,6 @@ class ObjectBox {
   Box<JmDownload> get jmDownloadBox => _jmDownloadBox;
 
   Box<UserSetting> get userSettingBox => _userSettingBox;
+
+  Box<DownloadTask> get downloadTaskBox => _downloadTaskBox;
 }

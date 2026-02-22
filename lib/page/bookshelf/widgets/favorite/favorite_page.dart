@@ -8,6 +8,7 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/int_select.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/widgets/comic_entry/comic_entry.dart';
 
 import '../../../../cubit/string_select.dart';
@@ -211,14 +212,38 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
   // 构建简洁模式列表
   Widget _buildBrevityList(UserFavouriteState state) {
-    final elementsRows = generateResponsiveRows(
-      context,
-      _convertToSimplifyList(state.comics),
-    );
-    return _buildCommonListView(
-      state: state,
-      itemCount: elementsRows.length,
-      itemBuilder: (context, index) => _buildBrevityItem(elementsRows[index]),
+    final list = _convertToSimplifyList(state.comics);
+    final showLoadingMore = state.status == UserFavouriteStatus.loadingMore;
+    final showError = state.status == UserFavouriteStatus.getMoreFailure;
+    final showEnd = state.hasReachedMax;
+    final maxExtent = isTabletWithOutContext() ? 200.0 : 150.0;
+
+    return CustomScrollView(
+      controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.all(10),
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: maxExtent,
+              mainAxisSpacing: 15,
+              crossAxisSpacing: 15,
+              childAspectRatio: 0.75,
+            ),
+            delegate: SliverChildBuilderDelegate((context, index) {
+              return ComicSimplifyEntry(
+                key: ValueKey(list[index].id),
+                info: list[index],
+                type: ComicEntryType.normal,
+              );
+            }, childCount: list.length),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: _buildFooterItem(showLoadingMore, showError, showEnd),
+        ),
+      ],
     );
   }
 
@@ -258,15 +283,6 @@ class _UserFavoritePageState extends State<_FavoritePage>
         }
         return itemBuilder(context, index);
       },
-    );
-  }
-
-  // 构建简洁模式下的列表项
-  Widget _buildBrevityItem(List<ComicSimplifyEntryInfo> entries) {
-    return ComicSimplifyEntryRow(
-      key: ValueKey(entries.map((e) => e.id).join(',')),
-      entries: entries,
-      type: ComicEntryType.normal,
     );
   }
 

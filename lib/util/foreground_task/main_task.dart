@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_socks_proxy/socks_proxy.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/util/download/download_queue_manager.dart';
 import 'package:zephyr/util/download/platform/android_download_runner.dart';
-import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 
 @pragma('vm:entry-point')
 void startCallback() {
@@ -18,17 +18,22 @@ class MyTaskHandler extends TaskHandler {
   final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   late AndroidProgressReporter _reporter;
   final DownloadQueueManager _manager = DownloadQueueManager.instance;
-  final Completer<void> _initCompleter = Completer<void>();
-
-  bool _isExecuting = false;
 
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
     objectbox = await ObjectBox.create();
     await RustLib.init();
+    final setting = objectbox.userSettingBox.get(1);
+    final globalSetting = setting?.globalSetting;
+    if (globalSetting?.socks5Proxy != null &&
+        globalSetting!.socks5Proxy.isNotEmpty) {
+      SocksProxy.initProxy(proxy: 'SOCKS5 ${globalSetting.socks5Proxy}');
+    }
+
     const initializationSettingsAndroid = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
+
     const initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
     );
@@ -38,30 +43,24 @@ class MyTaskHandler extends TaskHandler {
           (NotificationResponse notificationResponse) async {},
     );
     _reporter = AndroidProgressReporter(flutterLocalNotificationsPlugin);
-    _initCompleter.complete();
+    _manager.watchTasksForAndroid(_reporter);
   }
 
   @override
   void onRepeatEvent(DateTime timestamp) {
-    if (_isExecuting && _initCompleter.isCompleted) {
-      FlutterForegroundTask.updateService(
-        notificationTitle: '${_reporter.comicName} 下载中...',
-        notificationText: _reporter.message,
-      );
-    }
+    FlutterForegroundTask.updateService(
+      notificationTitle: _reporter.comicName,
+      notificationText: _reporter.message,
+    );
   }
 
   @override
-  Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {}
+  Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {
+    _manager.stopWatchingTasks();
+  }
 
   @override
-  void onReceiveData(Object data) {
-    final newTask = downloadTaskJsonFromJson(data as String);
-    _manager.addTaskForForeground(newTask);
-    if (!_isExecuting) {
-      _processQueue();
-    }
-  }
+  void onReceiveData(Object data) {}
 
   @override
   void onNotificationButtonPressed(String id) {
@@ -77,28 +76,6 @@ class MyTaskHandler extends TaskHandler {
   @override
   void onNotificationDismissed() {
     FlutterForegroundTask.sendDataToMain("clear");
-    FlutterForegroundTask.stopService();
-  }
-
-  Future<void> _processQueue() async {
-    // Wait for onStart initialization to complete before accessing _reporter
-    await _initCompleter.future;
-
-    if (_manager.queueLength == 0) {
-      _isExecuting = false;
-      logger.d("所有任务完成，停止服务");
-      FlutterForegroundTask.stopService();
-      return;
-    }
-
-    _isExecuting = true;
-
-    while (_manager.queueLength > 0) {
-      await _manager.processQueueWithReporter(_reporter);
-    }
-
-    _isExecuting = false;
-    logger.d("所有任务完成，停止服务");
     FlutterForegroundTask.stopService();
   }
 }

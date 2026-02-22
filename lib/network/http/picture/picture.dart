@@ -448,7 +448,7 @@ Future<void> saveImage(Uint8List imageData, String filePath) async {
       await targetFile.delete();
     }
     logger.e('保存图片失败: $e');
-    throw Exception('保存图片失败: $e');
+    throw Exception('保存图片失败: $e 404');
   }
 }
 

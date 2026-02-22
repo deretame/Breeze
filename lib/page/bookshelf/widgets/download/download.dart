@@ -5,6 +5,7 @@ import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
+import 'package:zephyr/util/debouncer.dart';
 
 import '../../../../config/global/global.dart';
 import '../../../../cubit/int_select.dart';
@@ -182,18 +183,33 @@ class _DownloadPageState extends State<_DownloadPage>
 
   Widget _buildBrevityList(List<dynamic> comics, int comicChoice) {
     final entryInfoList = _convertToEntryInfoList(comics, comicChoice);
-    final elementsRows = generateResponsiveRows(context, entryInfoList);
+    final maxExtent = isTabletWithOutContext() ? 200.0 : 150.0;
 
-    return ListView.builder(
+    return CustomScrollView(
       controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
-      itemCount: elementsRows.length + 1,
-      itemBuilder: (context, index) {
-        if (index == elementsRows.length) {
-          return _buildFooter();
-        }
-        return _buildRowItem(elementsRows[index]);
-      },
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.all(10),
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: maxExtent,
+              mainAxisSpacing: 15,
+              crossAxisSpacing: 15,
+              childAspectRatio: 0.75,
+            ),
+            delegate: SliverChildBuilderDelegate((context, index) {
+              return ComicSimplifyEntry(
+                key: ValueKey(entryInfoList[index].id),
+                info: entryInfoList[index],
+                type: ComicEntryType.download,
+                refresh: () => _refresh(),
+              );
+            }, childCount: entryInfoList.length),
+          ),
+        ),
+        SliverToBoxAdapter(child: _buildFooter()),
+      ],
     );
   }
 
@@ -208,15 +224,6 @@ class _DownloadPageState extends State<_DownloadPage>
         }
         return _buildDetailItem(comics[index] as BikaComicDownload);
       },
-    );
-  }
-
-  Widget _buildRowItem(List<ComicSimplifyEntryInfo> entries) {
-    return ComicSimplifyEntryRow(
-      key: ValueKey(entries.map((e) => e.id).join(',')),
-      entries: entries,
-      type: ComicEntryType.download,
-      refresh: () => _refresh(),
     );
   }
 

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DownloadTaskJson {
 
- String get from; String get comicId; String get comicName; BikaInfo get bikaInfo; List<String> get selectedChapters; bool get slowDownload; String get globalProxy;
+ String get from; String get comicId; String get comicName; BikaInfo get bikaInfo; List<String> get selectedChapters; bool get slowDownload;
 /// Create a copy of DownloadTaskJson
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $DownloadTaskJsonCopyWith<DownloadTaskJson> get copyWith => _$DownloadTaskJsonCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadTaskJson&&(identical(other.from, from) || other.from == from)&&(identical(other.comicId, comicId) || other.comicId == comicId)&&(identical(other.comicName, comicName) || other.comicName == comicName)&&(identical(other.bikaInfo, bikaInfo) || other.bikaInfo == bikaInfo)&&const DeepCollectionEquality().equals(other.selectedChapters, selectedChapters)&&(identical(other.slowDownload, slowDownload) || other.slowDownload == slowDownload)&&(identical(other.globalProxy, globalProxy) || other.globalProxy == globalProxy));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadTaskJson&&(identical(other.from, from) || other.from == from)&&(identical(other.comicId, comicId) || other.comicId == comicId)&&(identical(other.comicName, comicName) || other.comicName == comicName)&&(identical(other.bikaInfo, bikaInfo) || other.bikaInfo == bikaInfo)&&const DeepCollectionEquality().equals(other.selectedChapters, selectedChapters)&&(identical(other.slowDownload, slowDownload) || other.slowDownload == slowDownload));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,from,comicId,comicName,bikaInfo,const DeepCollectionEquality().hash(selectedChapters),slowDownload,globalProxy);
+int get hashCode => Object.hash(runtimeType,from,comicId,comicName,bikaInfo,const DeepCollectionEquality().hash(selectedChapters),slowDownload);
 
 @override
 String toString() {
-  return 'DownloadTaskJson(from: $from, comicId: $comicId, comicName: $comicName, bikaInfo: $bikaInfo, selectedChapters: $selectedChapters, slowDownload: $slowDownload, globalProxy: $globalProxy)';
+  return 'DownloadTaskJson(from: $from, comicId: $comicId, comicName: $comicName, bikaInfo: $bikaInfo, selectedChapters: $selectedChapters, slowDownload: $slowDownload)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $DownloadTaskJsonCopyWith<$Res>  {
   factory $DownloadTaskJsonCopyWith(DownloadTaskJson value, $Res Function(DownloadTaskJson) _then) = _$DownloadTaskJsonCopyWithImpl;
 @useResult
 $Res call({
- String from, String comicId, String comicName, BikaInfo bikaInfo, List<String> selectedChapters, bool slowDownload, String globalProxy
+ String from, String comicId, String comicName, BikaInfo bikaInfo, List<String> selectedChapters, bool slowDownload
 });
 
 
@@ -65,7 +65,7 @@ class _$DownloadTaskJsonCopyWithImpl<$Res>
 
 /// Create a copy of DownloadTaskJson
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? from = null,Object? comicId = null,Object? comicName = null,Object? bikaInfo = null,Object? selectedChapters = null,Object? slowDownload = null,Object? globalProxy = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? from = null,Object? comicId = null,Object? comicName = null,Object? bikaInfo = null,Object? selectedChapters = null,Object? slowDownload = null,}) {
   return _then(_self.copyWith(
 from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as String,comicId: null == comicId ? _self.comicId : comicId // ignore: cast_nullable_to_non_nullable
@@ -73,8 +73,7 @@ as String,comicName: null == comicName ? _self.comicName : comicName // ignore: 
 as String,bikaInfo: null == bikaInfo ? _self.bikaInfo : bikaInfo // ignore: cast_nullable_to_non_nullable
 as BikaInfo,selectedChapters: null == selectedChapters ? _self.selectedChapters : selectedChapters // ignore: cast_nullable_to_non_nullable
 as List<String>,slowDownload: null == slowDownload ? _self.slowDownload : slowDownload // ignore: cast_nullable_to_non_nullable
-as bool,globalProxy: null == globalProxy ? _self.globalProxy : globalProxy // ignore: cast_nullable_to_non_nullable
-as String,
+as bool,
   ));
 }
 /// Create a copy of DownloadTaskJson
@@ -168,10 +167,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String from,  String comicId,  String comicName,  BikaInfo bikaInfo,  List<String> selectedChapters,  bool slowDownload,  String globalProxy)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String from,  String comicId,  String comicName,  BikaInfo bikaInfo,  List<String> selectedChapters,  bool slowDownload)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DownloadTaskJson() when $default != null:
-return $default(_that.from,_that.comicId,_that.comicName,_that.bikaInfo,_that.selectedChapters,_that.slowDownload,_that.globalProxy);case _:
+return $default(_that.from,_that.comicId,_that.comicName,_that.bikaInfo,_that.selectedChapters,_that.slowDownload);case _:
   return orElse();
 
 }
@@ -189,10 +188,10 @@ return $default(_that.from,_that.comicId,_that.comicName,_that.bikaInfo,_that.se
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String from,  String comicId,  String comicName,  BikaInfo bikaInfo,  List<String> selectedChapters,  bool slowDownload,  String globalProxy)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String from,  String comicId,  String comicName,  BikaInfo bikaInfo,  List<String> selectedChapters,  bool slowDownload)  $default,) {final _that = this;
 switch (_that) {
 case _DownloadTaskJson():
-return $default(_that.from,_that.comicId,_that.comicName,_that.bikaInfo,_that.selectedChapters,_that.slowDownload,_that.globalProxy);case _:
+return $default(_that.from,_that.comicId,_that.comicName,_that.bikaInfo,_that.selectedChapters,_that.slowDownload);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -209,10 +208,10 @@ return $default(_that.from,_that.comicId,_that.comicName,_that.bikaInfo,_that.se
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String from,  String comicId,  String comicName,  BikaInfo bikaInfo,  List<String> selectedChapters,  bool slowDownload,  String globalProxy)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String from,  String comicId,  String comicName,  BikaInfo bikaInfo,  List<String> selectedChapters,  bool slowDownload)?  $default,) {final _that = this;
 switch (_that) {
 case _DownloadTaskJson() when $default != null:
-return $default(_that.from,_that.comicId,_that.comicName,_that.bikaInfo,_that.selectedChapters,_that.slowDownload,_that.globalProxy);case _:
+return $default(_that.from,_that.comicId,_that.comicName,_that.bikaInfo,_that.selectedChapters,_that.slowDownload);case _:
   return null;
 
 }
@@ -221,25 +220,18 @@ return $default(_that.from,_that.comicId,_that.comicName,_that.bikaInfo,_that.se
 }
 
 /// @nodoc
-@JsonSerializable()
 
+@JsonSerializable(explicitToJson: true)
 class _DownloadTaskJson implements DownloadTaskJson {
-  const _DownloadTaskJson({required this.from, required this.comicId, required this.comicName, required this.bikaInfo, required final  List<String> selectedChapters, required this.slowDownload, required this.globalProxy}): _selectedChapters = selectedChapters;
+  const _DownloadTaskJson({required this.from, required this.comicId, required this.comicName, required this.bikaInfo, required this.selectedChapters, required this.slowDownload});
   factory _DownloadTaskJson.fromJson(Map<String, dynamic> json) => _$DownloadTaskJsonFromJson(json);
 
 @override final  String from;
 @override final  String comicId;
 @override final  String comicName;
 @override final  BikaInfo bikaInfo;
- final  List<String> _selectedChapters;
-@override List<String> get selectedChapters {
-  if (_selectedChapters is EqualUnmodifiableListView) return _selectedChapters;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_selectedChapters);
-}
-
+@override final  List<String> selectedChapters;
 @override final  bool slowDownload;
-@override final  String globalProxy;
 
 /// Create a copy of DownloadTaskJson
 /// with the given fields replaced by the non-null parameter values.
@@ -254,16 +246,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadTaskJson&&(identical(other.from, from) || other.from == from)&&(identical(other.comicId, comicId) || other.comicId == comicId)&&(identical(other.comicName, comicName) || other.comicName == comicName)&&(identical(other.bikaInfo, bikaInfo) || other.bikaInfo == bikaInfo)&&const DeepCollectionEquality().equals(other._selectedChapters, _selectedChapters)&&(identical(other.slowDownload, slowDownload) || other.slowDownload == slowDownload)&&(identical(other.globalProxy, globalProxy) || other.globalProxy == globalProxy));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadTaskJson&&(identical(other.from, from) || other.from == from)&&(identical(other.comicId, comicId) || other.comicId == comicId)&&(identical(other.comicName, comicName) || other.comicName == comicName)&&(identical(other.bikaInfo, bikaInfo) || other.bikaInfo == bikaInfo)&&const DeepCollectionEquality().equals(other.selectedChapters, selectedChapters)&&(identical(other.slowDownload, slowDownload) || other.slowDownload == slowDownload));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,from,comicId,comicName,bikaInfo,const DeepCollectionEquality().hash(_selectedChapters),slowDownload,globalProxy);
+int get hashCode => Object.hash(runtimeType,from,comicId,comicName,bikaInfo,const DeepCollectionEquality().hash(selectedChapters),slowDownload);
 
 @override
 String toString() {
-  return 'DownloadTaskJson(from: $from, comicId: $comicId, comicName: $comicName, bikaInfo: $bikaInfo, selectedChapters: $selectedChapters, slowDownload: $slowDownload, globalProxy: $globalProxy)';
+  return 'DownloadTaskJson(from: $from, comicId: $comicId, comicName: $comicName, bikaInfo: $bikaInfo, selectedChapters: $selectedChapters, slowDownload: $slowDownload)';
 }
 
 
@@ -274,7 +266,7 @@ abstract mixin class _$DownloadTaskJsonCopyWith<$Res> implements $DownloadTaskJs
   factory _$DownloadTaskJsonCopyWith(_DownloadTaskJson value, $Res Function(_DownloadTaskJson) _then) = __$DownloadTaskJsonCopyWithImpl;
 @override @useResult
 $Res call({
- String from, String comicId, String comicName, BikaInfo bikaInfo, List<String> selectedChapters, bool slowDownload, String globalProxy
+ String from, String comicId, String comicName, BikaInfo bikaInfo, List<String> selectedChapters, bool slowDownload
 });
 
 
@@ -291,16 +283,15 @@ class __$DownloadTaskJsonCopyWithImpl<$Res>
 
 /// Create a copy of DownloadTaskJson
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? from = null,Object? comicId = null,Object? comicName = null,Object? bikaInfo = null,Object? selectedChapters = null,Object? slowDownload = null,Object? globalProxy = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? from = null,Object? comicId = null,Object? comicName = null,Object? bikaInfo = null,Object? selectedChapters = null,Object? slowDownload = null,}) {
   return _then(_DownloadTaskJson(
 from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as String,comicId: null == comicId ? _self.comicId : comicId // ignore: cast_nullable_to_non_nullable
 as String,comicName: null == comicName ? _self.comicName : comicName // ignore: cast_nullable_to_non_nullable
 as String,bikaInfo: null == bikaInfo ? _self.bikaInfo : bikaInfo // ignore: cast_nullable_to_non_nullable
-as BikaInfo,selectedChapters: null == selectedChapters ? _self._selectedChapters : selectedChapters // ignore: cast_nullable_to_non_nullable
+as BikaInfo,selectedChapters: null == selectedChapters ? _self.selectedChapters : selectedChapters // ignore: cast_nullable_to_non_nullable
 as List<String>,slowDownload: null == slowDownload ? _self.slowDownload : slowDownload // ignore: cast_nullable_to_non_nullable
-as bool,globalProxy: null == globalProxy ? _self.globalProxy : globalProxy // ignore: cast_nullable_to_non_nullable
-as String,
+as bool,
   ));
 }
 

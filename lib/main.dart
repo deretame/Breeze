@@ -223,7 +223,6 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
     windowManager.addListener(this);
     _init();
     WindowLogic.initWindow(context).then((_) {
-      // 窗口初始化完成后，拦截关闭按钮
       windowManager.setPreventClose(true);
     });
     trayManager.addListener(this);
@@ -258,40 +257,49 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
     WindowLogic.saveWindowState(context);
   }
 
+  /// 立即隐藏窗口再退出，让用户感知不到 Dart VM 清理的延迟
+  void _forceExit() {
+    if (Platform.isWindows) {
+      NativeWindow.hide(); // 同步 Win32 调用，零延迟
+    } else {
+      windowManager.hide(); // 其他桌面平台
+    }
+    exit(0);
+  }
+
   @override
   void onWindowClose() async {
-    bool isPreventClose = await windowManager.isPreventClose();
-    if (isPreventClose) {
-      final dialogContext = appRouter.navigatorKey.currentContext;
-      if (dialogContext == null || !dialogContext.mounted) return;
-      showDialog(
-        context: dialogContext,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('您确定要关闭此窗口吗？'),
-            actions: [
-              TextButton(
-                child: Text('否'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: Text('是'),
-                onPressed: () async {
-                  Navigator.of(context).pop();
-                  await windowManager.destroy();
-                },
-              ),
-            ],
-          );
-        },
-      );
+    final dialogContext = appRouter.navigatorKey.currentContext;
+    if (dialogContext == null || !dialogContext.mounted) {
+      _forceExit();
+      return;
     }
+    showDialog(
+      context: dialogContext,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('您确定要关闭此窗口吗？'),
+          actions: [
+            TextButton(
+              child: Text('否'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('是'),
+              onPressed: () {
+                _forceExit();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _performGracefulExit() async {
-    exit(0);
+    _forceExit();
   }
 
   @override
@@ -321,7 +329,6 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   }
 
   void _init() async {
-    // 添加此行以覆盖默认的关闭处理程序
     await windowManager.setPreventClose(true);
     setState(() {});
   }

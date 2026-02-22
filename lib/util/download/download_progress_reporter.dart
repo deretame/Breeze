@@ -3,6 +3,9 @@
 /// 用于将下载逻辑与平台特定的进度报告机制解耦。
 /// Android 端通过前台服务通知栏报告进度，桌面端通过 Stream 通知 UI。
 abstract class DownloadProgressReporter {
+  /// 当前正在下载的漫画ID
+  String comicId = '';
+
   /// 当前正在下载的漫画名称
   String comicName = '';
 
@@ -12,6 +15,11 @@ abstract class DownloadProgressReporter {
   /// 更新进度消息
   void updateMessage(String msg) {
     message = msg;
+  }
+
+  /// 更新漫画名称
+  void updateComicName(String name) {
+    comicName = name;
   }
 
   /// 发送系统通知（下载完成/失败）

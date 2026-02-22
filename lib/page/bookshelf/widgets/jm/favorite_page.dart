@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
+import 'package:zephyr/util/debouncer.dart';
 
 import '../../../../cubit/int_select.dart';
 import '../../../../cubit/string_select.dart';
@@ -168,64 +169,32 @@ class __FavoritePageState extends State<_FavoritePage>
 
   // 构建简洁模式列表
   Widget _buildBrevityList(JmFavouriteState state) {
-    final elementsRows = generateResponsiveRows(
-      context,
-      _convertToEntryInfoList(state.comics),
-    );
+    final list = _convertToEntryInfoList(state.comics);
+    final maxExtent = isTabletWithOutContext() ? 200.0 : 150.0;
 
-    return _buildCommonListView(
-      itemCount: elementsRows.length + 1,
-      itemBuilder: (context, index) => _buildListItem(
-        context,
-        index,
-        elementsRows.length,
-        () => _refresh(),
-        isBrevity: true,
-        elementsRows: elementsRows,
-      ),
-    );
-  }
-
-  // 公共列表构建方法
-  ListView _buildCommonListView({
-    required int itemCount,
-    required IndexedWidgetBuilder itemBuilder,
-  }) {
-    return ListView.builder(
+    return CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       controller: _scrollController,
-      itemCount: itemCount,
-      itemBuilder: itemBuilder,
-    );
-  }
-
-  // 构建单个列表项
-  Widget _buildListItem(
-    BuildContext context,
-    int index,
-    int dataLength,
-    VoidCallback refreshCallback, {
-    required bool isBrevity,
-    List<List<ComicSimplifyEntryInfo>>? elementsRows,
-  }) {
-    if (index == dataLength) {
-      return Column(
-        children: [
-          SizedBox(height: 10),
-          IconButton(
-            onPressed: () => _refresh(true),
-            icon: const Icon(Icons.refresh),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.all(10),
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: maxExtent,
+              mainAxisSpacing: 15,
+              crossAxisSpacing: 15,
+              childAspectRatio: 0.75,
+            ),
+            delegate: SliverChildBuilderDelegate((context, index) {
+              return ComicSimplifyEntry(
+                key: ValueKey(list[index].id),
+                info: list[index],
+                type: ComicEntryType.favorite,
+              );
+            }, childCount: list.length),
           ),
-          deletingDialog(context, refreshCallback, DeleteType.history),
-        ],
-      );
-    }
-
-    return ComicSimplifyEntryRow(
-      key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
-      entries: elementsRows[index],
-      type: ComicEntryType.favorite,
-      refresh: refreshCallback,
+        ),
+      ],
     );
   }
 

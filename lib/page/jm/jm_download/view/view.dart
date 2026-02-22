@@ -2,7 +2,6 @@ import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
-import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart';
@@ -135,7 +134,6 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
   }
 
   Future<void> download() async {
-    final globalSettingCubit = context.read<GlobalSettingCubit>();
     final bikaCubit = context.read<BikaSettingCubit>();
 
     final task = DownloadTaskJson(
@@ -143,7 +141,6 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
       comicId: jmComicInfoJson.id.toString(),
       comicName: jmComicInfoJson.name,
       bikaInfo: BikaInfo(authorization: "", proxy: ""),
-      globalProxy: globalSettingCubit.state.socks5Proxy,
       selectedChapters: _downloadInfo.entries
           .where((entry) => entry.value)
           .map((entry) => entry.key.toString())

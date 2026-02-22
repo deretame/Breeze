@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/util/download/download_progress_reporter.dart';
 import 'package:zephyr/util/download/platform/desktop_download_runner.dart';
-import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/task/bika_download.dart';
 import 'package:zephyr/util/foreground_task/task/jm_download.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -32,8 +35,8 @@ class DownloadQueueManager {
 
   DownloadQueueManager._();
 
-  final List<DownloadTaskJson> _queue = [];
   bool _isProcessing = false;
+  StreamSubscription? _watchSubscription;
 
   /// 进度 Stream，供 UI 监听
   final _progressController = StreamController<DownloadProgress>.broadcast();
@@ -44,51 +47,92 @@ class DownloadQueueManager {
   bool get isProcessing => _isProcessing;
 
   /// 队列中剩余任务数
-  int get queueLength => _queue.length;
+  int get queueLength => objectbox.downloadTaskBox
+      .query(DownloadTask_.isCompleted.equals(false))
+      .build()
+      .find()
+      .length;
 
-  /// 添加下载任务（桌面端入口）
-  ///
-  /// 在桌面端，直接调用此方法添加任务并开始处理。
-  /// 在 Android 端，任务通过前台服务的 IPC 传入。
-  void addTask(DownloadTaskJson task) {
-    _queue.add(task);
-    if (!_isProcessing) {
-      _processQueueDesktop();
-    }
+  /// 检查任务是否已存在（未完成的任务）
+  bool taskExists(String comicId) {
+    final existingTask = objectbox.downloadTaskBox
+        .query(
+          DownloadTask_.comicId
+              .equals(comicId)
+              .and(DownloadTask_.isCompleted.equals(false)),
+        )
+        .build()
+        .findFirst();
+    return existingTask != null;
   }
 
   /// 桌面端队列处理（直接在主线程异步执行）
   Future<void> _processQueueDesktop() async {
-    if (_queue.isEmpty) {
+    // 只查询未完成且未在下载中的任务，避免触发 watch
+    final pendingTasks = objectbox.downloadTaskBox
+        .query(
+          DownloadTask_.isCompleted
+              .equals(false)
+              .and(DownloadTask_.isDownloading.equals(false)),
+        )
+        .build()
+        .find();
+
+    if (pendingTasks.isEmpty) {
       _isProcessing = false;
       return;
     }
 
     _isProcessing = true;
 
-    // 确保 ObjectBox 和 RustLib 已初始化（桌面端应该在 main 中已经初始化过）
-    // 这里不需要额外初始化
+    final desktopReporter = DesktopProgressReporter();
+    final dbTask = pendingTasks.first;
+    final task = dbTask.taskInfo;
 
-    final reporter = DesktopProgressReporter();
-    final task = _queue.removeAt(0);
-    reporter.comicName = task.comicName;
+    if (task == null) {
+      logger.w("任务 ${dbTask.comicName} 无任务信息，跳过");
+      dbTask.isCompleted = true;
+      objectbox.downloadTaskBox.put(dbTask);
+      Future.microtask(() => _processQueueDesktop());
+      return;
+    }
+
+    if (desktopReporter.comicId == task.comicId) {
+      logger.w("重复添加任务 ${task.comicName}");
+      _isProcessing = false;
+      Future.microtask(() => _processQueueDesktop());
+      return;
+    }
+
+    desktopReporter.comicId = task.comicId;
+
+    dbTask.isDownloading = true;
+    dbTask.status = "开始下载...";
+    logger.d("dbTask.status: ${dbTask.status}");
+    objectbox.downloadTaskBox.put(dbTask);
 
     _progressController.add(
       DownloadProgress(comicName: task.comicName, message: '开始下载...'),
     );
 
-    showInfoToast("${task.comicName} 开始下载");
-
     try {
+      desktopReporter.updateComicName(task.comicName);
       if (task.from == "bika") {
-        await bikaDownloadTask(reporter, task);
+        await bikaDownloadTask(desktopReporter, task);
       } else if (task.from == "jm") {
-        await jmDownloadTask(reporter, task);
+        await jmDownloadTask(desktopReporter, task);
       } else {
         logger.w("未知任务来源: ${task.from}");
       }
 
       logger.d("任务 ${task.comicName} 完成");
+
+      showSuccessToast("${task.comicName} 下载完成");
+
+      dbTask.isCompleted = true;
+      dbTask.isDownloading = false;
+      objectbox.downloadTaskBox.put(dbTask);
+
       _progressController.add(
         DownloadProgress(
           comicName: task.comicName,
@@ -96,9 +140,15 @@ class DownloadQueueManager {
           isCompleted: true,
         ),
       );
-      await reporter.sendNotification("下载完成", "${task.comicName} 下载完成");
+      await desktopReporter.sendNotification("下载完成", "${task.comicName} 下载完成");
     } catch (e, s) {
       logger.e("任务 ${task.comicName} 失败", error: e, stackTrace: s);
+
+      showErrorToast("${task.comicName} 下载失败 ${e.toString()}");
+
+      dbTask.isDownloading = false;
+      objectbox.downloadTaskBox.put(dbTask);
+
       _progressController.add(
         DownloadProgress(
           comicName: task.comicName,
@@ -106,7 +156,7 @@ class DownloadQueueManager {
           isFailed: true,
         ),
       );
-      await reporter.sendNotification("下载失败", "${task.comicName} 下载失败");
+      await desktopReporter.sendNotification("下载失败", "${task.comicName} 下载失败");
     } finally {
       Future.microtask(() => _processQueueDesktop());
     }
@@ -118,17 +168,45 @@ class DownloadQueueManager {
   Future<void> processQueueWithReporter(
     DownloadProgressReporter reporter,
   ) async {
-    if (_queue.isEmpty) {
+    // 只查询未完成且未在下载中的任务，避免触发 watch
+    final pendingTasks = objectbox.downloadTaskBox
+        .query(
+          DownloadTask_.isCompleted
+              .equals(false)
+              .and(DownloadTask_.isDownloading.equals(false)),
+        )
+        .build()
+        .find();
+
+    if (pendingTasks.isEmpty) {
+      reporter.updateComicName(appName);
+      reporter.updateMessage("等待下载任务中...");
       _isProcessing = false;
       return;
     }
 
+    if (reporter.comicId == pendingTasks.first.comicId) {
+      logger.w("重复添加任务 ${pendingTasks.first.comicName}");
+      return;
+    }
+
+    reporter.comicId = pendingTasks.first.comicId;
+
     _isProcessing = true;
 
-    final task = _queue.removeAt(0);
-    reporter.comicName = task.comicName;
+    final dbTask = pendingTasks.first;
+    final task = dbTask.taskInfo;
 
-    showInfoToast("${task.comicName} 开始下载");
+    if (task == null) {
+      logger.w("任务 ${dbTask.comicName} 无任务信息，跳过");
+      dbTask.isCompleted = true;
+      objectbox.downloadTaskBox.put(dbTask);
+      Future.microtask(() => processQueueWithReporter(reporter));
+      return;
+    }
+
+    dbTask.isDownloading = true;
+    objectbox.downloadTaskBox.put(dbTask);
 
     try {
       if (task.from == "bika") {
@@ -140,21 +218,76 @@ class DownloadQueueManager {
       }
 
       logger.d("任务 ${task.comicName} 完成");
+
+      dbTask.isCompleted = true;
+      dbTask.isDownloading = false;
+      objectbox.downloadTaskBox.put(dbTask);
+
       await reporter.sendNotification("下载完成", "${task.comicName} 下载完成");
+      _sendTaskCompleted(task.comicName);
     } catch (e, s) {
       logger.e("任务 ${task.comicName} 失败", error: e, stackTrace: s);
+
+      dbTask.isDownloading = false;
+      objectbox.downloadTaskBox.put(dbTask);
+
       await reporter.sendNotification("下载失败", "${task.comicName} 下载失败");
     } finally {
       Future.microtask(() => processQueueWithReporter(reporter));
     }
   }
 
-  /// 添加任务到队列（供 Android 前台服务使用）
-  void addTaskForForeground(DownloadTaskJson task) {
-    _queue.add(task);
+  void watchTasks({required bool isDesktop}) {
+    final watchedQuery = objectbox.downloadTaskBox
+        .query(
+          DownloadTask_.isCompleted
+              .equals(false)
+              .and(DownloadTask_.isDownloading.equals(false)),
+        )
+        .watch(triggerImmediately: true);
+
+    _watchSubscription = watchedQuery.listen((query) {
+      final pendingTasks = query.find();
+      if (pendingTasks.isNotEmpty && !_isProcessing) {
+        if (isDesktop) {
+          _processQueueDesktop();
+        }
+      }
+    });
+  }
+
+  void watchTasksForAndroid(DownloadProgressReporter reporter) {
+    final watchedQuery = objectbox.downloadTaskBox
+        .query(
+          DownloadTask_.isCompleted
+              .equals(false)
+              .and(DownloadTask_.isDownloading.equals(false)),
+        )
+        .watch(triggerImmediately: true);
+
+    _watchSubscription = watchedQuery.listen((query) {
+      final pendingTasks = query.find();
+      if (pendingTasks.isNotEmpty && !_isProcessing) {
+        processQueueWithReporter(reporter);
+      }
+    });
+  }
+
+  void stopWatchingTasks() {
+    _watchSubscription?.cancel();
+    _watchSubscription = null;
   }
 
   void dispose() {
     _progressController.close();
+    stopWatchingTasks();
+  }
+}
+
+void _sendTaskCompleted(String comicName) {
+  if (Platform.isAndroid) {
+    FlutterForegroundTask.sendDataToMain(comicName);
+  } else {
+    showSuccessToast('$comicName 下载完毕');
   }
 }

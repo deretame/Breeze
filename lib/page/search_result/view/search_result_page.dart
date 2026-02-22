@@ -8,6 +8,7 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/search_result.dart';
+import 'package:zephyr/util/debouncer.dart';
 
 import '../../../cubit/string_select.dart';
 import '../../../type/enum.dart';
@@ -257,15 +258,31 @@ class _SearchResultPageState extends State<_SearchResultPage>
       );
     }).toList();
 
-    final elementsRows = generateResponsiveRows(context, list);
+    final maxExtent = isTabletWithOutContext() ? 200.0 : 150.0;
 
-    final itemCount = _calculateItemCount(state, elementsRows.length);
-
-    return ListView.builder(
-      itemBuilder: (context, index) =>
-          _buildListItem(context, index, state, elementsRows),
-      itemCount: itemCount,
+    return CustomScrollView(
       controller: _scrollController,
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.all(10),
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: maxExtent,
+              mainAxisSpacing: 15,
+              crossAxisSpacing: 15,
+              childAspectRatio: 0.75,
+            ),
+            delegate: SliverChildBuilderDelegate((context, index) {
+              return ComicSimplifyEntry(
+                key: ValueKey(list[index].id),
+                info: list[index],
+                type: ComicEntryType.normal,
+              );
+            }, childCount: list.length),
+          ),
+        ),
+        SliverToBoxAdapter(child: _buildListFooter(state)),
+      ],
     );
   }
 

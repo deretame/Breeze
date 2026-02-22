@@ -13,6 +13,7 @@ import 'package:zephyr/page/jm/jm_promote/json/suggestion/jm_suggestion_json.dar
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 import 'package:zephyr/widgets/error_view.dart';
@@ -99,73 +100,92 @@ class _JmPromotePageState extends State<_JmPromotePage> {
 
   Widget _successWidget(PromoteState state) {
     final materialColorScheme = context.theme.colorScheme;
+    final suggestionList = _convertToSuggestionList(state.suggestionList);
 
-    final elementsRows = _convertToEntryInfoList(state.suggestionList);
+    final content = <Widget>[];
 
-    final length =
-        elementsRows.length +
-        state.list.length +
-        (elementsRows.isNotEmpty ? 1 : 0) +
-        (state.status == PromoteStatus.loadingMore ? 1 : 0) +
-        (state.status == PromoteStatus.loadingMoreFailure ? 1 : 0);
+    for (var element in state.list) {
+      content.add(_commentItem(element));
+    }
+
+    if (suggestionList.isNotEmpty) {
+      content.add(
+        Padding(
+          padding: const EdgeInsets.all(5),
+          child: Container(
+            decoration: BoxDecoration(
+              color: materialColorScheme.secondaryFixed.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            width: double.infinity,
+            child: Row(
+              children: [
+                Text(
+                  '最新上传',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: materialColorScheme.onSurface,
+                  ),
+                ),
+                const Spacer(),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      content.add(
+        Padding(
+          padding: const EdgeInsets.all(10),
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: isTabletWithOutContext() ? 200.0 : 150.0,
+              mainAxisSpacing: 15,
+              crossAxisSpacing: 15,
+              childAspectRatio: 0.75,
+            ),
+            itemCount: suggestionList.length,
+            itemBuilder: (context, index) {
+              return ComicSimplifyEntry(
+                key: ValueKey(suggestionList[index].id),
+                info: suggestionList[index],
+                type: ComicEntryType.normal,
+                refresh: () {},
+              );
+            },
+          ),
+        ),
+      );
+    }
+
+    if (state.status == PromoteStatus.loadingMore) {
+      content.add(
+        const Padding(
+          padding: EdgeInsets.all(8.0),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    } else if (state.status == PromoteStatus.loadingMoreFailure) {
+      content.add(
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              context.read<PromoteBloc>().add(PromoteEvent(page: page + 1));
+            },
+          ),
+        ),
+      );
+    }
 
     return ListView.builder(
-      itemCount: length,
-      itemBuilder: (context, index) {
-        if (index == length - 1) {
-          if (state.status == PromoteStatus.loadingMore) {
-            return const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Center(child: CircularProgressIndicator()),
-            );
-          } else if (state.status == PromoteStatus.loadingMoreFailure) {
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: () {
-                  context.read<PromoteBloc>().add(PromoteEvent(page: page + 1));
-                },
-              ),
-            );
-          }
-        }
-
-        if (index < state.list.length) {
-          return _commentItem(state.list[index]);
-        }
-
-        if (index == state.list.length) {
-          return Padding(
-            padding: const EdgeInsets.all(5),
-            child: Container(
-              decoration: BoxDecoration(
-                color: materialColorScheme.secondaryFixed.withValues(
-                  alpha: 0.1,
-                ),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              width: double.infinity,
-              child: Row(
-                children: [
-                  Text(
-                    '最新上传',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: materialColorScheme.onSurface,
-                    ),
-                  ),
-                  const Spacer(),
-                ],
-              ),
-            ),
-          );
-        }
-
-        return _suggestionItem(elementsRows[index - state.list.length - 1]);
-      },
+      itemCount: content.length,
+      itemBuilder: (context, index) => content[index],
       controller: scrollController,
     );
   }
@@ -174,34 +194,22 @@ class _JmPromotePageState extends State<_JmPromotePage> {
     return PromoteWidget(element: element);
   }
 
-  Widget _suggestionItem(List<ComicSimplifyEntryInfo> element) {
-    return ComicSimplifyEntryRow(
-      key: ValueKey(element.map((e) => e.id).join(',')),
-      entries: element,
-      type: ComicEntryType.normal,
-      refresh: () {},
-    );
-  }
-
   // 转换数据格式
-  List<List<ComicSimplifyEntryInfo>> _convertToEntryInfoList(
+  List<ComicSimplifyEntryInfo> _convertToSuggestionList(
     List<JmSuggestionJson> comics,
   ) {
-    return generateResponsiveRows(
-      context,
-      comics
-          .map(
-            (element) => ComicSimplifyEntryInfo(
-              title: element.name,
-              id: element.id.toString(),
-              fileServer: getJmCoverUrl(element.id.toString()),
-              path: "${element.id}.jpg",
-              pictureType: PictureType.cover,
-              from: From.jm,
-            ),
-          )
-          .toList(),
-    );
+    return comics
+        .map(
+          (element) => ComicSimplifyEntryInfo(
+            title: element.name,
+            id: element.id.toString(),
+            fileServer: getJmCoverUrl(element.id.toString()),
+            path: "${element.id}.jpg",
+            pictureType: PictureType.cover,
+            from: From.jm,
+          ),
+        )
+        .toList();
   }
 
   void _onScroll() {
@@ -212,7 +220,6 @@ class _JmPromotePageState extends State<_JmPromotePage> {
     }
   }
 
-  // jm_promote.dart - 已经修复
   bool get _isBottom {
     if (!scrollController.hasClients) return false;
 

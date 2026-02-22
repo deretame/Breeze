@@ -1,7 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_socks_proxy/socks_proxy.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 import 'package:zephyr/main.dart';
@@ -22,106 +22,126 @@ Future<void> bikaDownloadTask(
   DownloadProgressReporter reporter,
   DownloadTaskJson task,
 ) async {
-  // 先获取一下基本的信息
-  final authorization = task.bikaInfo.authorization;
-  if (task.globalProxy.isNotEmpty) {
-    SocksProxy.initProxy(proxy: 'SOCKS5 ${task.globalProxy}');
-  }
-  reporter.updateMessage("获取漫画信息中...");
-  final comicInfo = await _getComicInfo(task.comicId, authorization);
-  reporter.updateMessage("获取章节信息中...");
-  final epsList = await _getEps(comicInfo, authorization, task.slowDownload);
-  List<EpsDoc> epsDocs = [];
-  List<Pages> imageData = [];
-  List<String> epsTitle = [];
+  logger.d("开始下载任务: ${task.comicId}, ${task.comicName}");
 
-  for (var ep in task.selectedChapters) {
-    final pages = await _fetchBKMedia(
-      task.comicId,
-      ep.let(toInt),
-      authorization,
+  bool isCancelled = false;
+  Timer? progressTimer;
+
+  final query = objectbox.downloadTaskBox
+      .query(
+        DownloadTask_.comicId
+            .equals(task.comicId)
+            .and(DownloadTask_.isDownloading.equals(true)),
+      )
+      .build();
+
+  void updateTaskStatus(String status) {
+    var downloadTask = query.findFirst();
+    if (downloadTask != null) {
+      downloadTask.status = status;
+      objectbox.downloadTaskBox.put(downloadTask);
+    } else {
+      logger.w("未找到任务: ${task.comicId}");
+    }
+  }
+
+  try {
+    final authorization = task.bikaInfo.authorization;
+    var downloadTask = query.findFirst();
+
+    if (downloadTask == null) return;
+
+    downloadTask.status = "获取漫画信息中...";
+    objectbox.downloadTaskBox.put(downloadTask);
+    reporter.updateMessage("获取漫画信息中...");
+
+    final comicInfo = await _getComicInfo(task.comicId, authorization);
+
+    downloadTask = query.findFirst();
+    downloadTask?.status = "获取章节信息中...";
+    objectbox.downloadTaskBox.put(downloadTask!);
+    reporter.updateMessage("获取章节信息中...");
+
+    final epsList = await _getEps(comicInfo, authorization, task.slowDownload);
+    List<EpsDoc> epsDocs = [];
+    List<Pages> imageData = [];
+    List<String> epsTitle = [];
+
+    for (var ep in task.selectedChapters) {
+      final pages = await _fetchBKMedia(
+        task.comicId,
+        ep.let(toInt),
+        authorization,
+      );
+      final epInfo = epsList.firstWhere(
+        (element) => element.order.toString() == ep.toString(),
+      );
+      epsDocs.add(
+        EpsDoc(
+          id: epInfo.id,
+          title: epInfo.title,
+          order: epInfo.order,
+          updatedAt: epInfo.updatedAt,
+          docId: epInfo.id,
+          pages: pages,
+        ),
+      );
+      for (var page in pages.docs) {
+        imageData.add(
+          Pages(
+            docs: [PagesDoc(id: page.id, media: page.media, docId: epInfo.id)],
+          ),
+        );
+      }
+      epsTitle.add(epInfo.title);
+    }
+
+    var comicAllInfoJson = ComicAllInfoJson(
+      comic: comicInfo,
+      eps: Eps(docs: epsDocs),
     );
-    final epInfo = epsList.firstWhere(
-      (element) => element.order.toString() == ep.toString(),
+
+    logger.d(comicInfo.toJson());
+
+    final coverPath = await downloadPicture(
+      from: From.bika,
+      url: comicInfo.thumb.fileServer,
+      path: comicInfo.thumb.path,
+      cartoonId: comicInfo.id,
+      pictureType: PictureType.cover,
+      chapterId: comicInfo.id,
+      proxy: task.bikaInfo.proxy.let(toInt),
     );
-    epsDocs.add(
-      EpsDoc(
-        id: epInfo.id,
-        title: epInfo.title,
-        order: epInfo.order,
-        updatedAt: epInfo.updatedAt,
-        docId: epInfo.id,
-        pages: pages,
-      ),
-    );
-    for (var page in pages.docs) {
-      imageData.add(
-        Pages(
-          docs: [PagesDoc(id: page.id, media: page.media, docId: epInfo.id)],
+
+    if (coverPath.startsWith('404')) {
+      comicAllInfoJson = comicAllInfoJson.copyWith(
+        comic: comicAllInfoJson.comic.copyWith(
+          thumb: comicAllInfoJson.comic.thumb.copyWith(fileServer: ""),
         ),
       );
     }
-    epsTitle.add(epInfo.title);
-  }
 
-  var comicAllInfoJson = ComicAllInfoJson(
-    comic: comicInfo,
-    eps: Eps(docs: epsDocs),
-  );
+    List<PagesDoc> pagesDocs = [];
 
-  logger.d(comicInfo.toJson());
-
-  final coverPath = await downloadPicture(
-    from: From.bika,
-    url: comicInfo.thumb.fileServer,
-    path: comicInfo.thumb.path,
-    cartoonId: comicInfo.id,
-    pictureType: PictureType.cover,
-    chapterId: comicInfo.id,
-    proxy: task.bikaInfo.proxy.let(toInt),
-  );
-
-  if (coverPath.startsWith('404')) {
-    comicAllInfoJson = comicAllInfoJson.copyWith(
-      comic: comicAllInfoJson.comic.copyWith(
-        thumb: comicAllInfoJson.comic.thumb.copyWith(fileServer: ""),
-      ),
-    );
-  }
-
-  List<PagesDoc> pagesDocs = [];
-
-  for (var media in imageData) {
-    for (var doc in media.docs) {
-      pagesDocs.add(doc);
+    for (var media in imageData) {
+      for (var doc in media.docs) {
+        pagesDocs.add(doc);
+      }
     }
-  }
 
-  if (task.slowDownload) {
-    int progress = 0;
-    for (var doc in pagesDocs) {
-      await downloadPicture(
-        from: From.bika,
-        url: doc.media.fileServer,
-        path: doc.media.path,
-        cartoonId: comicInfo.id,
-        pictureType: PictureType.comic,
-        chapterId: doc.docId,
-        proxy: task.bikaInfo.proxy.let(toInt),
-      );
-      progress++;
-      reporter.updateMessage(
-        "漫画下载进度: ${(progress / pagesDocs.length * 100).toStringAsFixed(2)}%",
-      );
+    void updateProgress(int progress, String message) {
+      reporter.updateMessage(message);
     }
-  } else {
-    final pool = Pool(10);
 
-    int progress = 0;
-    int lastReportedPercent = 0;
+    progressTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!isCancelled) {
+        updateTaskStatus(reporter.message);
+      }
+    });
 
-    final List<Future<void>> downloadTasks = pagesDocs.map((doc) {
-      return pool.withResource(() async {
+    if (task.slowDownload) {
+      int progress = 0;
+      for (var doc in pagesDocs) {
         await downloadPicture(
           from: From.bika,
           url: doc.media.fileServer,
@@ -131,23 +151,53 @@ Future<void> bikaDownloadTask(
           chapterId: doc.docId,
           proxy: task.bikaInfo.proxy.let(toInt),
         );
-
         progress++;
+        updateProgress(
+          progress,
+          "漫画下载进度: ${(progress / pagesDocs.length * 100).toStringAsFixed(2)}%",
+        );
+      }
+    } else {
+      final pool = Pool(10);
 
-        final int currentPercent = (progress / pagesDocs.length * 100).floor();
-        if (currentPercent > lastReportedPercent) {
-          lastReportedPercent = currentPercent;
-          reporter.updateMessage("漫画下载进度: $currentPercent%");
-        }
-      });
-    }).toList();
+      int progress = 0;
+      int lastReportedPercent = 0;
 
-    await Future.wait(downloadTasks);
+      final List<Future<void>> downloadTasks = pagesDocs.map((doc) {
+        return pool.withResource(() async {
+          await downloadPicture(
+            from: From.bika,
+            url: doc.media.fileServer,
+            path: doc.media.path,
+            cartoonId: comicInfo.id,
+            pictureType: PictureType.comic,
+            chapterId: doc.docId,
+            proxy: task.bikaInfo.proxy.let(toInt),
+          );
+
+          progress++;
+
+          final int currentPercent = (progress / pagesDocs.length * 100)
+              .floor();
+          if (currentPercent > lastReportedPercent) {
+            lastReportedPercent = currentPercent;
+            updateProgress(currentPercent, "漫画下载进度: $currentPercent%");
+          }
+        });
+      }).toList();
+
+      await Future.wait(downloadTasks);
+    }
+
+    await _saveToDB(comicAllInfoJson, epsTitle);
+
+    await checkFile(comicAllInfoJson);
+
+    _markTaskCompleted(task.comicId);
+  } finally {
+    isCancelled = true;
+    progressTimer?.cancel();
   }
-
-  await _saveToDB(comicAllInfoJson, epsTitle);
-
-  await checkFile(comicAllInfoJson);
 }
 
 Future<Comic> _getComicInfo(String comicId, String authorization) async {
@@ -439,4 +489,21 @@ Future<List<String>> getAllFilePaths(String directoryPath) async {
   }
 
   return filePaths;
+}
+
+void _markTaskCompleted(String comicId) {
+  final tasks = objectbox.downloadTaskBox
+      .query(
+        DownloadTask_.comicId
+            .equals(comicId)
+            .and(DownloadTask_.isDownloading.equals(true)),
+      )
+      .build()
+      .find();
+  if (tasks.isNotEmpty) {
+    final task = tasks.first;
+    task.isCompleted = true;
+    task.isDownloading = false;
+    objectbox.downloadTaskBox.put(task);
+  }
 }

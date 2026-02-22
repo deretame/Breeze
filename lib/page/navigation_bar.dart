@@ -1,44 +1,34 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:markdown_widget/widget/markdown_block.dart';
-import 'package:path/path.dart' as p;
-import 'package:permission_guard/permission_guard.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:toastification/toastification.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
-import 'package:zephyr/config/jm/jm_setting.dart';
-import 'package:zephyr/network/http/jm/http_request.dart' as jm;
-import 'package:zephyr/page/more/json/jm/jm_user_info_json.dart';
 import 'package:zephyr/page/ranking_list/ranking_list.dart';
 import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/auto_check_in.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-import 'package:zephyr/util/get_path.dart';
+import 'package:zephyr/util/download/download_queue_manager.dart';
+import 'package:zephyr/util/foreground_task/init.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/memory/memory_overlay_widget.dart';
+import 'package:zephyr/util/notice.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/util/settings_hive_utils.dart';
+import 'package:zephyr/util/update/check_update.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../config/global/global.dart';
 import '../main.dart';
-import '../network/http/bika/http_request.dart';
 import '../network/webdav.dart';
+import '../object_box/objectbox.g.dart';
 import '../util/debouncer.dart';
 import '../util/dialog.dart';
 import '../util/event/event.dart';
-import '../util/update/check_update.dart';
 import 'bookshelf/bookshelf.dart';
 import 'home/view/home.dart';
 import 'more/view/more.dart';
@@ -79,11 +69,13 @@ class _NavigationBarState extends State<NavigationBar> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _addOverlay();
-      _checkUpdate();
-      _signIn();
-      _jmLogin();
+      checkUpdate(context);
+      bikaSignIn(context);
+      jmLogin(context);
       _autoSync();
       manageCacheSize(context);
+      await _resetDownloadTasks();
+      initDownloadTask();
     });
     _controller = PersistentTabController(
       initialIndex: SettingsHiveUtils.welcomePageNum,
@@ -95,9 +87,13 @@ class _NavigationBarState extends State<NavigationBar> {
       scrollControllers: _scrollControllers,
     );
     hideOnScrollSettings = HideOnScrollSettings(); // 先去掉这个东西
-    _initForegroundTask();
+    initForegroundTask();
 
-    _initializeNotificationsOnce();
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      DownloadQueueManager.instance.watchTasks(isDesktop: true);
+    }
+
+    initializeNotificationsOnce();
 
     // 每隔 5 分钟执行一次
     const duration = Duration(minutes: 5);
@@ -293,6 +289,25 @@ class _NavigationBarState extends State<NavigationBar> {
     ];
   }
 
+  Future<void> _resetDownloadTasks() async {
+    final pendingTasks = objectbox.downloadTaskBox
+        .query(DownloadTask_.isCompleted.equals(false))
+        .build()
+        .find();
+
+    final tasksToReset = pendingTasks
+        .where((task) => task.isDownloading)
+        .toList();
+
+    if (tasksToReset.isNotEmpty) {
+      for (final task in tasksToReset) {
+        task.isDownloading = false;
+      }
+      objectbox.downloadTaskBox.putMany(tasksToReset);
+      logger.d("重置了 ${tasksToReset.length} 个任务的下载状态");
+    }
+  }
+
   Future<void> _autoSync() async {
     final globalState = context.read<GlobalSettingCubit>().state;
 
@@ -358,67 +373,6 @@ class _NavigationBarState extends State<NavigationBar> {
     }
   }
 
-  Future<void> _checkUpdate() async {
-    final temp = await getCloudVersion();
-    final cloudVersion = temp.tagName;
-    final releaseInfo = temp.body;
-    final String localVersion = await getAppVersion();
-    final url = 'https://github.com/deretame/Breeze/releases/tag/$cloudVersion';
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    String arch = '未知';
-    try {
-      if (Platform.isAndroid) {
-        AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-        List<String> abis = androidInfo.supportedAbis;
-        if (abis.isNotEmpty) {
-          arch = abis.first;
-          logger.d(arch);
-        }
-      }
-    } catch (e) {
-      logger.e(e);
-      return;
-    }
-
-    if (isUpdateAvailable(cloudVersion, localVersion)) {
-      if (!mounted) return;
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('发现新版本'),
-            content: SingleChildScrollView(
-              child: MarkdownBlock(data: '# $cloudVersion\n$releaseInfo'),
-            ),
-            actions: [
-              TextButton(child: Text('取消'), onPressed: () => context.pop()),
-              TextButton(
-                child: Text('前往GitHub'),
-                onPressed: () {
-                  launchUrl(Uri.parse(url));
-                  context.pop();
-                },
-              ),
-              if (Platform.isAndroid)
-                TextButton(
-                  child: Text('下载安装'),
-                  onPressed: () async {
-                    context.pop();
-                    for (var apkUrl in temp.assets) {
-                      if (apkUrl.browserDownloadUrl.contains(arch) &&
-                          !apkUrl.browserDownloadUrl.contains("skia")) {
-                        await installApk(apkUrl.browserDownloadUrl);
-                      }
-                    }
-                  },
-                ),
-            ],
-          );
-        },
-      );
-    }
-  }
-
   void _showToast(ToastEvent event) {
     ToastificationType type;
     switch (event.type) {
@@ -470,58 +424,7 @@ class _NavigationBarState extends State<NavigationBar> {
     }
   }
 
-  Future<void> _signIn() async {
-    final globalState = context.read<GlobalSettingCubit>().state;
-    if (globalState.disableBika) return;
-
-    if (!mounted) return;
-
-    final bikaCubit = context.read<BikaSettingCubit>();
-
-    while (true) {
-      try {
-        var result = await signIn();
-        if (result == '签到成功') {
-          showSuccessToast("哔咔自动签到成功！");
-
-          bikaCubit.updateSignIn(true);
-
-          break;
-        } else {
-          logger.d('哔咔自动签到成功！');
-          break;
-        }
-      } catch (e) {
-        logger.e(e);
-        await Future.delayed(Duration(seconds: 1));
-        continue;
-      }
-    }
-  }
-
-  Future<void> _initForegroundTask() async {
-    FlutterForegroundTask.init(
-      androidNotificationOptions: AndroidNotificationOptions(
-        channelId: '前台任务',
-        channelName: '前台下载任务',
-        channelDescription: '这个是用来保证下载任务在后台也能继续执行的',
-        onlyAlertOnce: true,
-      ),
-      iosNotificationOptions: const IOSNotificationOptions(
-        showNotification: false,
-        playSound: false,
-      ),
-      foregroundTaskOptions: ForegroundTaskOptions(
-        eventAction: ForegroundTaskEventAction.repeat(1000),
-        autoRunOnBoot: false,
-        autoRunOnMyPackageReplaced: false,
-        allowWakeLock: true,
-        allowWifiLock: true,
-      ),
-    );
-  }
-
-  Future<void> _initializeNotificationsOnce() async {
+  Future<void> initializeNotificationsOnce() async {
     // 应用级别检查
     if (_notificationsInitialized) {
       logger.d('Notifications already initialized globally');
@@ -542,7 +445,7 @@ class _NavigationBarState extends State<NavigationBar> {
 
       if (!mounted) return;
 
-      await _initializeNotifications();
+      await initializeNotifications();
 
       _notificationsInitialized = true;
       logger.d('Notifications initialized successfully');
@@ -554,148 +457,6 @@ class _NavigationBarState extends State<NavigationBar> {
       );
     } finally {
       _isInitializingNotifications = false;
-    }
-  }
-
-  Future<void> _initializeNotifications() async {
-    const initializationSettingsAndroid = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
-    );
-
-    final appDirectory = await getAppDirectory();
-    final windowsIconPath = p.join(
-      appDirectory,
-      'data',
-      'flutter_assets',
-      'asset',
-      'image',
-      'app-icon.png',
-    );
-
-    logger.d(windowsIconPath);
-
-    final initializationSettingsWindows = WindowsInitializationSettings(
-      appName: 'Zephyr',
-      appUserModelId: 'com.zephyr.breeze',
-      guid: 'c4fce75a-b087-44bf-ac62-cc52b8e56990',
-      iconPath: windowsIconPath,
-    );
-
-    final initializationSettingsLinux = LinuxInitializationSettings(
-      defaultActionName: 'Open notification',
-      defaultIcon: AssetsLinuxIcon('asset/image/app-icon.png'),
-    );
-
-    final initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      windows: initializationSettingsWindows,
-      linux: initializationSettingsLinux,
-    );
-
-    await flutterLocalNotificationsPlugin.initialize(
-      settings: initializationSettings,
-      onDidReceiveNotificationResponse:
-          (NotificationResponse notificationResponse) async {},
-    );
-    // 先检查当前状态
-    if (Platform.isLinux) return;
-
-    try {
-      final status = await Permission.notification.request();
-
-      if (!status.isGranted) {
-        logger.w('Notification permission denied');
-        if (mounted) {
-          showErrorToast("请开启通知权限");
-        }
-      } else {
-        logger.d('Notification permission granted');
-      }
-    } catch (e, stackTrace) {
-      logger.e('Permission request failed', error: e, stackTrace: stackTrace);
-
-      // 如果是并发冲突，静默处理
-      if (e.toString().contains('already running')) {
-        logger.w('Permission request already running, ignoring...');
-      } else {
-        rethrow;
-      }
-    }
-  }
-
-  Future<void> _jmLogin() async {
-    final jmCubit = context.read<JmSettingCubit>();
-    final jmState = jmCubit.state;
-
-    if (jmState.account.isEmpty || jmState.password.isEmpty) {
-      return;
-    }
-
-    jmCubit.updateUserInfo('');
-    jmCubit.updateLoginStatus(LoginStatus.loggingIn);
-
-    while (true) {
-      try {
-        final result = await jm.login(jmState.account, jmState.password);
-        jmCubit.updateUserInfo(result.let(jsonEncode));
-        jmCubit.updateLoginStatus(LoginStatus.login);
-
-        await _jmSignIn(); // 登录成功后自动签到
-        break;
-      } catch (e, s) {
-        logger.e(e, stackTrace: s);
-        await Future.delayed(Duration(seconds: 1));
-        continue;
-      }
-    }
-  }
-
-  Future<void> _jmSignIn() async {
-    final jmCubit = context.read<JmSettingCubit>();
-    final jmState = jmCubit.state;
-    int retryCount = 0;
-    const max = 3; // 最大重试次数
-    while (true) {
-      retryCount++;
-      if (retryCount > max) {
-        logger.d("签到失败");
-        break;
-      }
-
-      try {
-        var dailyList = await jm.getDailyList();
-        final id = (List<Map<String, dynamic>>.from(
-          dailyList['list'].map((item) => item as Map<String, dynamic>),
-        ).last['id']);
-        final userId = jmUserInfoJsonFromJson(jmState.userInfo).uid;
-        int retryCount2 = 0;
-        const max2 = 3; // 最大重试次数
-        while (true) {
-          try {
-            if (retryCount2 > max2) {
-              logger.e("签到失败");
-              break;
-            }
-            final result = await jm.dailyChk(userId, id);
-            logger.d(result);
-            if (result['msg'] != '今天已经签到过了') {
-              showSuccessToast("禁漫自动签到成功！");
-            }
-            break;
-          } catch (e, s) {
-            logger.e(e, stackTrace: s);
-            await Future.delayed(Duration(seconds: 1));
-            retryCount2++;
-            continue;
-          }
-        }
-        break;
-      } catch (e, s) {
-        logger.e(e, stackTrace: s);
-        await Future.delayed(Duration(seconds: 5));
-        retryCount++;
-        continue;
-      }
     }
   }
 }

@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
-import 'package:dio_http2_adapter/dio_http2_adapter.dart';
 import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/network/dio_cache.dart';
 import 'package:zephyr/network/http/jm/interceptor/jm_auth_interceptor.dart';
@@ -30,7 +29,6 @@ class JmClient {
     );
 
     dio.interceptors.add(CookieManager(JmConfig.cookieJar));
-    dio.httpClientAdapter = Http2Adapter(ConnectionManager());
 
     dio.interceptors.addAll([
       JmAuthInterceptor(),

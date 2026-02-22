@@ -1057,6 +1057,58 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(9, 1295001450362172173),
+    name: 'DownloadTask',
+    lastPropertyId: const obx_int.IdUid(9, 1218148378627650374),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 3659561291891251418),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 1099512386743691966),
+        name: 'isDownloading',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 2490628595983957882),
+        name: 'dbTaskInfo',
+        type: 13,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 1257291061901720984),
+        name: 'comicId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 6357432147802007307),
+        name: 'comicName',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 4803452326838210476),
+        name: 'isCompleted',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 1218148378627650374),
+        name: 'status',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -1102,7 +1154,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(8, 3979284532864250006),
+    lastEntityId: const obx_int.IdUid(9, 1295001450362172173),
     lastIndexId: const obx_int.IdUid(4, 931357141992892300),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
@@ -1138,6 +1190,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
       5451171976689934386,
       4559793647698832271,
       8923948370798076489,
+      9076765359393968077,
+      1940395105821206945,
     ],
     retiredRelationUids: const [],
     modelVersion: 5,
@@ -2441,6 +2495,64 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    DownloadTask: obx_int.EntityDefinition<DownloadTask>(
+      model: _entities[6],
+      toOneRelations: (DownloadTask object) => [],
+      toManyRelations: (DownloadTask object) => {},
+      getId: (DownloadTask object) => object.id,
+      setId: (DownloadTask object, int id) {
+        object.id = id;
+      },
+      objectToFB: (DownloadTask object, fb.Builder fbb) {
+        final dbTaskInfoOffset = object.dbTaskInfo == null
+            ? null
+            : fbb.writeListInt8(obx_int.toFlexBuffer(object.dbTaskInfo!));
+        final comicIdOffset = fbb.writeString(object.comicId);
+        final comicNameOffset = fbb.writeString(object.comicName);
+        final statusOffset = fbb.writeString(object.status);
+        fbb.startTable(10);
+        fbb.addInt64(0, object.id);
+        fbb.addBool(3, object.isDownloading);
+        fbb.addOffset(4, dbTaskInfoOffset);
+        fbb.addOffset(5, comicIdOffset);
+        fbb.addOffset(6, comicNameOffset);
+        fbb.addBool(7, object.isCompleted);
+        fbb.addOffset(8, statusOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+
+        final object = DownloadTask()
+          ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
+          ..isDownloading = const fb.BoolReader().vTableGet(
+            buffer,
+            rootOffset,
+            10,
+            false,
+          )
+          ..dbTaskInfo = obx_int.flexBufferToMap(buffer, rootOffset, 12)
+          ..comicId = const fb.StringReader(
+            asciiOptimization: true,
+          ).vTableGet(buffer, rootOffset, 14, '')
+          ..comicName = const fb.StringReader(
+            asciiOptimization: true,
+          ).vTableGet(buffer, rootOffset, 16, '')
+          ..isCompleted = const fb.BoolReader().vTableGet(
+            buffer,
+            rootOffset,
+            18,
+            false,
+          )
+          ..status = const fb.StringReader(
+            asciiOptimization: true,
+          ).vTableGet(buffer, rootOffset, 20, '');
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -3272,5 +3384,38 @@ class UserSetting_ {
   /// See [UserSetting.jmJwt].
   static final jmJwt = obx.QueryStringProperty<UserSetting>(
     _entities[5].properties[4],
+  );
+}
+
+/// [DownloadTask] entity fields to define ObjectBox queries.
+class DownloadTask_ {
+  /// See [DownloadTask.id].
+  static final id = obx.QueryIntegerProperty<DownloadTask>(
+    _entities[6].properties[0],
+  );
+
+  /// See [DownloadTask.isDownloading].
+  static final isDownloading = obx.QueryBooleanProperty<DownloadTask>(
+    _entities[6].properties[1],
+  );
+
+  /// See [DownloadTask.comicId].
+  static final comicId = obx.QueryStringProperty<DownloadTask>(
+    _entities[6].properties[3],
+  );
+
+  /// See [DownloadTask.comicName].
+  static final comicName = obx.QueryStringProperty<DownloadTask>(
+    _entities[6].properties[4],
+  );
+
+  /// See [DownloadTask.isCompleted].
+  static final isCompleted = obx.QueryBooleanProperty<DownloadTask>(
+    _entities[6].properties[5],
+  );
+
+  /// See [DownloadTask.status].
+  static final status = obx.QueryStringProperty<DownloadTask>(
+    _entities[6].properties[6],
   );
 }

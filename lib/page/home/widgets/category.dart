@@ -13,46 +13,37 @@ import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/picture_bloc/bloc/picture_bloc.dart';
 
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 
-Widget buildCategoriesGrid(BuildContext context, List<HomeCategory> data) {
-  double screenWidth = 0;
-  int itemCount = 0;
+class CategoriesGrid extends StatelessWidget {
+  final List<HomeCategory> data;
 
-  if (isTablet(context)) {
-    screenWidth = context.screenWidth / 5;
-    itemCount = 5;
-  } else {
-    screenWidth = context.screenWidth / 3;
-    itemCount = 3;
+  const CategoriesGrid({super.key, required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    const double gridSpacing = 12.0;
+
+    return GridView.builder(
+      padding: const EdgeInsets.all(gridSpacing),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 150,
+        mainAxisSpacing: gridSpacing,
+        crossAxisSpacing: gridSpacing,
+        childAspectRatio: 0.8,
+      ),
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      itemCount: data.length,
+      itemBuilder: (context, index) {
+        return CategoryLineWidget(category: data[index]);
+      },
+    );
   }
-
-  final double itemWidth = screenWidth;
-  final double itemHeight = itemWidth + 50;
-  final double aspectRatio = itemWidth / itemHeight;
-
-  const double gridSpacing = 8.0;
-
-  return GridView.count(
-    padding: const EdgeInsets.all(gridSpacing),
-
-    crossAxisCount: itemCount,
-    childAspectRatio: aspectRatio,
-
-    mainAxisSpacing: gridSpacing,
-    crossAxisSpacing: gridSpacing,
-
-    physics: const NeverScrollableScrollPhysics(),
-    shrinkWrap: true,
-    children: data.map((category) {
-      return CategoryLineWidget(category: category);
-    }).toList(),
-  );
 }
 
 class CategoryLineWidget extends StatelessWidget {
@@ -92,8 +83,11 @@ class CategoryLineWidget extends StatelessWidget {
               return GestureDetector(
                 onTap: () => _navigateBasedOnTitle(context),
                 child: Column(
-                  children: <Widget>[
-                    _buildImage(context, state.imagePath!),
+                  children: [
+                    AspectRatio(
+                      aspectRatio: 1.0,
+                      child: _buildImage(context, state.imagePath!),
+                    ),
                     SizedBox(height: 5),
                     Text(
                       category.title.let(t2s),
@@ -148,23 +142,16 @@ class CategoryLineWidget extends StatelessWidget {
       },
       child: Column(
         children: <Widget>[
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10.0),
-            child: Builder(
-              builder: (context) {
-                double screenWidth = 0;
-
-                if (isTablet(context)) {
-                  screenWidth = context.screenWidth / 6;
-                } else {
-                  screenWidth = context.screenWidth / 4;
-                }
-                return SizedBox(
-                  width: screenWidth,
-                  height: screenWidth,
-                  child: Image.asset(category.link, fit: BoxFit.cover),
-                );
-              },
+          AspectRatio(
+            aspectRatio: 1.0,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10.0),
+              child: Image.asset(
+                category.link,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+              ),
             ),
           ),
           SizedBox(height: 5),
@@ -178,19 +165,13 @@ class CategoryLineWidget extends StatelessWidget {
   }
 
   Widget _buildImage(BuildContext context, String imagePath) {
-    double screenWidth = 0;
-
-    if (isTablet(context)) {
-      screenWidth = context.screenWidth / 6;
-    } else {
-      screenWidth = context.screenWidth / 4;
-    }
     return ClipRRect(
       borderRadius: BorderRadius.circular(10.0),
-      child: SizedBox(
-        width: screenWidth,
-        height: screenWidth,
-        child: Image.file(File(imagePath), fit: BoxFit.cover),
+      child: Image.file(
+        File(imagePath),
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
       ),
     );
   }

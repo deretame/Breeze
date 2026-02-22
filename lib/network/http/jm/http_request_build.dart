@@ -36,7 +36,7 @@ Future<dynamic> request(
       cancelToken: cancelToken,
     );
 
-    return response.data;
+    return JmResponseParser.toMap(response.data);
   } on DioException catch (e) {
     throw Exception(e.error ?? e.message);
   }

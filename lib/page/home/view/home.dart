@@ -35,6 +35,26 @@ class _HomePageState extends State<HomePage> {
         title: Text(globalSettingState.comicChoice == 1 ? "哔咔漫画" : "禁漫首页"),
         actions: [
           IconButton(icon: const Icon(Icons.search), onPressed: () => search()),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              if (value == 'downloads') {
+                context.pushRoute(DownloadTaskRoute());
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem<String>(
+                value: 'downloads',
+                child: Row(
+                  children: [
+                    Icon(Icons.download),
+                    SizedBox(width: 8),
+                    Text("下载任务"),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ],
       ),
       resizeToAvoidBottomInset: false,

@@ -1,6 +1,6 @@
+import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter_socks_proxy/socks_proxy.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 import 'package:zephyr/main.dart';
@@ -24,58 +24,106 @@ Future<void> jmDownloadTask(
   DownloadProgressReporter reporter,
   DownloadTaskJson task,
 ) async {
-  // 先获取一下基本的信息
-  if (task.globalProxy.isNotEmpty) {
-    SocksProxy.initProxy(proxy: 'SOCKS5 ${task.globalProxy}');
-  }
-  reporter.updateMessage("获取漫画信息中...");
-  await setFastestUrlIndex();
-  await setFastestImagesUrlIndex();
-  final comicInfo = await getJmComicInfo(task.comicId);
-  reporter.updateMessage("获取章节信息中...");
-  List<String> epIds = comicInfo.series.map((e) => e.id.toString()).toList();
-  if (epIds.isEmpty) epIds = [comicInfo.id.toString()];
+  bool isCancelled = false;
+  Timer? progressTimer;
 
-  final epsList = await fetchJMMedia(epIds, task.slowDownload);
+  final query = objectbox.downloadTaskBox
+      .query(
+        DownloadTask_.comicId
+            .equals(task.comicId)
+            .and(DownloadTask_.isDownloading.equals(true)),
+      )
+      .build();
 
-  final downloadInfoJson = comicInfo2DownloadInfoJson(comicInfo);
-
-  final updatedSeries = downloadInfoJson.series.map((series) {
-    return series.copyWith(
-      info: epsList.firstWhere((e) => e.id.toString() == series.id),
-    );
-  }).toList();
-
-  var updatedDownloadInfo = downloadInfoJson.copyWith(series: updatedSeries);
-
-  final temp = downloadInfoJsonToJson(updatedDownloadInfo);
-
-  List<String> epsIds = [];
-
-  for (var series in updatedDownloadInfo.series) {
-    if (task.selectedChapters.contains(series.id)) {
-      epsIds.add(series.id.toString());
+  void updateTaskStatus(String status) {
+    var downloadTask = query.findFirst();
+    if (downloadTask != null) {
+      downloadTask.status = status;
+      objectbox.downloadTaskBox.put(downloadTask);
     }
   }
 
-  logger.d("epsIds: $epsIds");
-
   try {
-    await downloadPicture(
-      from: From.jm,
-      url: getJmCoverUrl(comicInfo.id.toString()),
-      path: "${comicInfo.id}.jpg",
-      cartoonId: comicInfo.id.toString(),
-      pictureType: PictureType.cover,
-      chapterId: comicInfo.id.toString(),
+    var downloadTask = query.findFirst();
+
+    if (downloadTask == null) return;
+
+    downloadTask.status = "获取漫画信息中...";
+    objectbox.downloadTaskBox.put(downloadTask);
+    reporter.updateMessage("获取漫画信息中...");
+
+    await setFastestUrlIndex();
+    await setFastestImagesUrlIndex();
+    final comicInfo = await getJmComicInfo(task.comicId);
+
+    downloadTask = query.findFirst();
+    downloadTask?.status = "获取章节信息中...";
+    objectbox.downloadTaskBox.put(downloadTask!);
+    reporter.updateMessage("获取章节信息中...");
+
+    List<String> epIds = comicInfo.series.map((e) => e.id.toString()).toList();
+    if (epIds.isEmpty) epIds = [comicInfo.id.toString()];
+
+    final epsList = await fetchJMMedia(epIds, task.slowDownload);
+
+    final downloadInfoJson = comicInfo2DownloadInfoJson(comicInfo);
+
+    final updatedSeries = downloadInfoJson.series.map((series) {
+      return series.copyWith(
+        info: epsList.firstWhere((e) => e.id.toString() == series.id),
+      );
+    }).toList();
+
+    var updatedDownloadInfo = downloadInfoJson.copyWith(series: updatedSeries);
+
+    final temp = downloadInfoJsonToJson(updatedDownloadInfo);
+
+    List<String> epsIds = [];
+
+    for (var series in updatedDownloadInfo.series) {
+      if (task.selectedChapters.contains(series.id)) {
+        epsIds.add(series.id.toString());
+      }
+    }
+
+    logger.d("epsIds: $epsIds");
+
+    try {
+      await downloadPicture(
+        from: From.jm,
+        url: getJmCoverUrl(comicInfo.id.toString()),
+        path: "${comicInfo.id}.jpg",
+        cartoonId: comicInfo.id.toString(),
+        pictureType: PictureType.cover,
+        chapterId: comicInfo.id.toString(),
+      );
+    } catch (e, s) {
+      logger.e(e, stackTrace: s);
+    }
+
+    void updateProgress(int progress, String message) {
+      reporter.updateMessage(message);
+    }
+
+    progressTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!isCancelled) {
+        updateTaskStatus(reporter.message);
+      }
+    });
+
+    await downloadComic(
+      updateProgress,
+      updatedDownloadInfo,
+      task.selectedChapters,
     );
-  } catch (e, s) {
-    logger.e(e, stackTrace: s);
+
+    await saveToDB(updatedDownloadInfo, epsIds, temp);
+
+    _markTaskCompleted(task.comicId);
+  } finally {
+    isCancelled = true;
+    progressTimer?.cancel();
   }
-
-  await downloadComic(reporter, updatedDownloadInfo, task.selectedChapters);
-
-  await saveToDB(updatedDownloadInfo, epsIds, temp);
 }
 
 Future<base_info.JmComicInfoJson> getJmComicInfo(String comicId) async {
@@ -215,7 +263,7 @@ DownloadInfoJson comicInfo2DownloadInfoJson(
 }
 
 Future<DownloadInfoJson> downloadComic(
-  DownloadProgressReporter reporter,
+  void Function(int, String) updateProgress,
   DownloadInfoJson downloadInfoJson,
   List<String> selectedChapters,
 ) async {
@@ -261,7 +309,7 @@ Future<DownloadInfoJson> downloadComic(
         int currentPercent = (progress / docsList.length * 100).floor();
         if (currentPercent > lastReportedPercent) {
           lastReportedPercent = currentPercent;
-          reporter.updateMessage("漫画下载进度: $currentPercent%");
+          updateProgress(currentPercent, "漫画下载进度: $currentPercent%");
         }
       } catch (e, s) {
         logger.e(e, stackTrace: s);
@@ -294,7 +342,7 @@ Future<DownloadInfoJson> downloadComic(
 
   await Future.wait(tasks);
 
-  reporter.updateMessage("漫画下载进度: 100%");
+  updateProgress(100, "漫画下载进度: 100%");
 
   return downloadInfoJson;
 }
@@ -411,4 +459,21 @@ Future<List<String>> getAllFilePaths(String directoryPath) async {
   }
 
   return filePaths;
+}
+
+void _markTaskCompleted(String comicId) {
+  final tasks = objectbox.downloadTaskBox
+      .query(
+        DownloadTask_.comicId
+            .equals(comicId)
+            .and(DownloadTask_.isDownloading.equals(true)),
+      )
+      .build()
+      .find();
+  if (tasks.isNotEmpty) {
+    final task = tasks.first;
+    task.isCompleted = true;
+    task.isDownloading = false;
+    objectbox.downloadTaskBox.put(task);
+  }
 }

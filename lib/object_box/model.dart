@@ -5,6 +5,7 @@ import 'package:objectbox/objectbox.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
+import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 
 part 'model.g.dart';
 
@@ -516,6 +517,54 @@ class UserSetting {
 
   factory UserSetting.fromJson(Map<String, dynamic> json) =>
       _$UserSettingFromJson(json);
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+}
+
+@Entity()
+@JsonSerializable()
+class DownloadTask {
+  DownloadTask();
+
+  @Id()
+  int id = 0;
+
+  String comicId = "";
+
+  String comicName = "";
+
+  bool isCompleted = false;
+
+  bool isDownloading = false;
+
+  String status = "";
+
+  @Property(type: PropertyType.flex)
+  Map<String, dynamic>? dbTaskInfo;
+
+  @Transient()
+  DownloadTaskJson? _taskInfo;
+
+  @Transient()
+  DownloadTaskJson? get taskInfo {
+    if (_taskInfo == null && dbTaskInfo != null) {
+      _taskInfo = DownloadTaskJson.fromJson(dbTaskInfo!);
+    }
+    return _taskInfo;
+  }
+
+  set taskInfo(DownloadTaskJson? value) {
+    _taskInfo = value;
+    dbTaskInfo = value?.toJson();
+  }
+
+  Map<String, dynamic> toJson() => _$DownloadTaskToJson(this);
+
+  factory DownloadTask.fromJson(Map<String, dynamic> json) =>
+      _$DownloadTaskFromJson(json);
 
   @override
   String toString() {

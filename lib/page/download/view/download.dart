@@ -132,7 +132,6 @@ class _DownloadPageState extends State<DownloadPage> {
         authorization: SettingsHiveUtils.bikaAuthorization,
         proxy: SettingsHiveUtils.bikaProxy.toString(),
       ),
-      globalProxy: SettingsHiveUtils.socks5Proxy,
       selectedChapters: _downloadInfo.entries
           .where((entry) => entry.value)
           .map((entry) => entry.key.toString())

@@ -4,7 +4,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
-import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -42,6 +41,62 @@ class ComicSimplifyEntryRow extends StatelessWidget {
   }
 }
 
+class ComicSimplifyEntryHorizontal extends StatelessWidget {
+  final List<ComicSimplifyEntryInfo> entries;
+  final ComicEntryType type;
+  final VoidCallback? refresh;
+  final bool topPadding;
+  final bool roundedCorner;
+
+  const ComicSimplifyEntryHorizontal({
+    super.key,
+    required this.entries,
+    required this.type,
+    this.refresh,
+    this.topPadding = false,
+    this.roundedCorner = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    double itemWidth;
+    if (isTabletWithOutContext()) {
+      if (isLandscape(context)) {
+        itemWidth = screenWidth * 0.15;
+      } else {
+        itemWidth = screenWidth * 0.2;
+      }
+    } else {
+      itemWidth = screenWidth * 0.3;
+    }
+    final itemHeight = itemWidth / 0.75;
+
+    return SizedBox(
+      height: itemHeight + (topPadding ? 10.0 : 0),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: entries.length,
+        itemBuilder: (context, index) {
+          return SizedBox(
+            width: itemWidth,
+            height: itemHeight,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 5),
+              child: ComicSimplifyEntry(
+                info: entries[index],
+                type: type,
+                refresh: refresh,
+                roundedCorner: roundedCorner,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
 class ComicSimplifyEntry extends StatelessWidget {
   final ComicSimplifyEntryInfo info;
   final ComicEntryType type;
@@ -60,57 +115,31 @@ class ComicSimplifyEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double width;
-    if (isTabletWithOutContext()) {
-      if (isLandscape(context)) {
-        width = context.screenWidth * 0.15;
-      } else {
-        width = context.screenWidth * 0.2;
-      }
-    } else {
-      width = context.screenWidth * 0.3;
-    }
-
     if (info.title == "无数据") {
-      return SizedBox(width: width);
+      return const SizedBox.shrink();
     }
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => _navigateToComicInfo(context),
-      onLongPress: () =>
-          type != ComicEntryType.normal ? _showDeleteDialog(context) : null,
-      child: SizedBox(
-        width: width,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            topPadding
-                ? SizedBox(height: MediaQuery.of(context).size.width * 0.025)
-                : SizedBox.shrink(),
-            _buildCoverWithTitle(context),
-          ],
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final height = width / 0.75;
+
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => _navigateToComicInfo(context),
+          onLongPress: () =>
+              type != ComicEntryType.normal ? _showDeleteDialog(context) : null,
+          child: SizedBox(
+            width: width,
+            height: height,
+            child: _buildCoverWithTitle(width, height),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildCoverWithTitle(BuildContext context) {
-    final isTablet = isTabletWithOutContext();
-    final isLandscapes = isLandscape(context);
-    double width;
-    double height;
-    if (isTablet) {
-      width = context.screenWidth * 0.2;
-      height = (context.screenWidth * 0.2) / 0.75;
-      if (isLandscapes) {
-        width = context.screenWidth * 0.15;
-        height = (context.screenWidth * 0.15) / 0.75;
-      }
-    } else {
-      width = context.screenWidth * 0.3;
-      height = (context.screenWidth * 0.3) / 0.75;
-    }
+  Widget _buildCoverWithTitle(double width, double height) {
     double circular = roundedCorner ? 5.0 : 0.0;
     return Stack(
       children: [

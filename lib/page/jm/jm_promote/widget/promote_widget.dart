@@ -136,41 +136,31 @@ class _PromoteWidgetState extends State<PromoteWidget> {
       Platform.isWindows || Platform.isMacOS || Platform.isLinux;
 
   Widget _buildHorizontalList() {
-    Widget listView = ListView.builder(
-      controller: _horizontalController,
-      scrollDirection: Axis.horizontal,
-      itemCount: element.content.length,
-      itemBuilder: (context, index) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5),
-          child: Padding(
-            padding: const EdgeInsets.only(top: 5),
-            child: ComicSimplifyEntry(
-              info: ComicSimplifyEntryInfo(
-                title: element.content[index].name,
-                id: element.content[index].id,
-                fileServer: getJmCoverUrl(element.content[index].id),
-                path: '${element.content[index].id}.jpg',
-                pictureType: PictureType.cover,
-                from: From.jm,
-              ),
-              type: ComicEntryType.normal,
-              topPadding: false,
-            ),
-          ),
-        );
-      },
+    final list = element.content.map((item) {
+      return ComicSimplifyEntryInfo(
+        title: item.name,
+        id: item.id,
+        fileServer: getJmCoverUrl(item.id),
+        path: '${item.id}.jpg',
+        pictureType: PictureType.cover,
+        from: From.jm,
+      );
+    }).toList();
+
+    Widget scrollView = ComicSimplifyEntryHorizontal(
+      entries: list,
+      type: ComicEntryType.normal,
+      topPadding: true,
     );
 
-    // 桌面端：启用鼠标拖拽
     if (_isDesktop) {
-      listView = ScrollConfiguration(
+      scrollView = ScrollConfiguration(
         behavior: _DesktopDragScrollBehavior(),
-        child: listView,
+        child: scrollView,
       );
     }
 
-    return listView;
+    return scrollView;
   }
 
   String getTitle() {

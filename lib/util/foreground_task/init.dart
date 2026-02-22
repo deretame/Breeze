@@ -2,24 +2,37 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:zephyr/config/global/global.dart';
+import 'package:zephyr/main.dart';
+import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/util/download/download_queue_manager.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/main_task.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 /// 统一的下载任务启动入口
 ///
 /// Android 端：启动前台服务，通过 IPC 发送任务
 /// 桌面端：直接将任务添加到 [DownloadQueueManager]
 Future<void> startDownloadTask(DownloadTaskJson task) async {
+  _updateDb(task);
   if (Platform.isAndroid) {
-    await _startAndroidDownload(task);
-  } else {
-    _startDesktopDownload(task);
+    await _startAndroidDownload();
   }
 }
 
 /// Android 端：通过前台服务启动下载
-Future<void> _startAndroidDownload(DownloadTaskJson task) async {
+Future<void> _startAndroidDownload() async {
+  if (await FlutterForegroundTask.isRunningService) {
+    return;
+  }
+  // 启动新的前台服务
+  await initDownloadTask();
+}
+
+Future<void> initDownloadTask() async {
+  if (!Platform.isAndroid) return;
+
   final notificationPermission =
       await FlutterForegroundTask.checkNotificationPermission();
   if (notificationPermission != NotificationPermission.granted) {
@@ -34,28 +47,37 @@ Future<void> _startAndroidDownload(DownloadTaskJson task) async {
     await FlutterForegroundTask.openAlarmsAndRemindersSettings();
   }
 
-  final String encodedTask = downloadTaskJsonToJson(task);
+  FlutterForegroundTask.startService(
+    serviceTypes: [ForegroundServiceTypes.dataSync],
+    serviceId: Random().nextInt(1000),
+    notificationTitle: appName,
+    notificationText: '等待下载任务中...',
+    callback: startCallback,
+  );
 
-  if (await FlutterForegroundTask.isRunningService) {
-    // 服务已在运行，直接发送新任务
-    FlutterForegroundTask.sendDataToTask(encodedTask);
-  } else {
-    // 启动新的前台服务
-    await FlutterForegroundTask.startService(
-      serviceTypes: [ForegroundServiceTypes.dataSync],
-      serviceId: Random().nextInt(1000),
-      notificationTitle: '下载任务',
-      notificationText: '${task.comicName} 下载中...',
-      callback: startCallback,
-      notificationButtons: [const NotificationButton(id: 'cancel', text: '取消')],
-    );
-    // 等待服务启动后发送任务
-    await Future.delayed(const Duration(seconds: 1));
-    FlutterForegroundTask.sendDataToTask(encodedTask);
-  }
+  FlutterForegroundTask.addTaskDataCallback(_onReceiveTaskData);
 }
 
-/// 桌面端：直接添加到队列管理器
-void _startDesktopDownload(DownloadTaskJson task) {
-  DownloadQueueManager.instance.addTask(task);
+void _onReceiveTaskData(Object data) {
+  showSuccessToast('$data 下载完毕');
+}
+
+void _updateDb(DownloadTaskJson task) {
+  if (DownloadQueueManager.instance.taskExists(task.comicId)) {
+    logger.w("任务 ${task.comicName} 已存在，跳过添加");
+    showInfoToast("${task.comicName} 任务已存在");
+    return;
+  }
+
+  final box = objectbox.downloadTaskBox;
+  final downloadTask = DownloadTask();
+  downloadTask
+    ..comicId = task.comicId
+    ..comicName = task.comicName
+    ..isCompleted = false
+    ..isDownloading = false
+    ..status = "等待中"
+    ..taskInfo = task;
+
+  box.put(downloadTask);
 }

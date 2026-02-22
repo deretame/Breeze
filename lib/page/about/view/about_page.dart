@@ -290,7 +290,7 @@ class _AboutPageState extends State<AboutPage> {
         borderRadius: BorderRadius.circular(kBorderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 25,
             offset: const Offset(0, 8),
           ),
@@ -301,7 +301,7 @@ class _AboutPageState extends State<AboutPage> {
         child: InkWell(
           borderRadius: BorderRadius.circular(kBorderRadius),
           onTap: () => _launchURL(url),
-          hoverColor: kAccentColor.withOpacity(0.05),
+          hoverColor: kAccentColor.withValues(alpha: 0.05),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(

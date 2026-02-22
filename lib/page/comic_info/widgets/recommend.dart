@@ -59,18 +59,11 @@ class RecommendWidget extends StatelessWidget {
       }
     }).toList();
 
-    Widget scrollView = SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: List.generate(comicInfoList.length, (index) {
-          return ComicSimplifyEntry(
-            info: comicInfoList[index],
-            type: ComicEntryType.normal,
-            topPadding: false,
-            roundedCorner: false,
-          );
-        }),
-      ),
+    Widget scrollView = ComicSimplifyEntryHorizontal(
+      entries: comicInfoList,
+      type: ComicEntryType.normal,
+      topPadding: false,
+      roundedCorner: false,
     );
 
     if (_isDesktop) {

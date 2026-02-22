@@ -82,7 +82,7 @@ fn try_shutdown_app() -> Result<String, String> {
 #[tauri::command]
 fn perform_install(install_path: String) -> Result<String, String> {
     // 2. Create zephyr directory if it doesn't exist
-    let zephyr_dir = PathBuf::from(&install_path).join("zephyr");
+    let zephyr_dir = PathBuf::from(&install_path).join("breeze");
     if !zephyr_dir.exists() {
         fs::create_dir_all(&zephyr_dir).map_err(|e| format!("无法创建安装目录: {}", e))?;
     }

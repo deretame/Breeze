@@ -2,8 +2,9 @@
 //
 //     final downloadTaskJson = downloadTaskJsonFromJson(jsonString);
 
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'dart:convert';
+
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'download_task_json.freezed.dart';
 part 'download_task_json.g.dart';
@@ -14,8 +15,9 @@ DownloadTaskJson downloadTaskJsonFromJson(String str) =>
 String downloadTaskJsonToJson(DownloadTaskJson data) =>
     json.encode(data.toJson());
 
-@freezed
+@Freezed(makeCollectionsUnmodifiable: false)
 abstract class DownloadTaskJson with _$DownloadTaskJson {
+  @JsonSerializable(explicitToJson: true)
   const factory DownloadTaskJson({
     required String from,
     required String comicId,
@@ -23,7 +25,6 @@ abstract class DownloadTaskJson with _$DownloadTaskJson {
     required BikaInfo bikaInfo,
     required List<String> selectedChapters,
     required bool slowDownload,
-    required String globalProxy,
   }) = _DownloadTaskJson;
 
   factory DownloadTaskJson.fromJson(Map<String, dynamic> json) =>

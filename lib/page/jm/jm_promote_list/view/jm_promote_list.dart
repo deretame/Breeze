@@ -6,6 +6,7 @@ import 'package:zephyr/page/jm/jm_promote_list/jm_promote_list.dart';
 import 'package:zephyr/page/jm/jm_promote_list/json/jm_promote_list_json.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 import 'package:zephyr/widgets/error_view.dart';
@@ -84,25 +85,49 @@ class _JmPromoteListPageState extends State<_JmPromoteListPage> {
   }
 
   Widget _commentItem(JmPromoteListState state) {
-    final elementsRows = _convertToEntryInfoList(state.list);
+    final list = _convertToEntryInfoListNew(state.list);
 
-    final length =
-        elementsRows.length +
-        (state.hasReachedMax ? 1 : 0) +
-        (state.status == JmPromoteListStatus.loadingMore ? 1 : 0) +
-        (state.status == JmPromoteListStatus.loadingMoreFailure ? 1 : 0);
-
-    return ListView.builder(
-      itemCount: length,
-      itemBuilder: (context, index) {
-        if (index == length - 1) {
-          if (state.status == JmPromoteListStatus.loadingMore) {
-            return const Padding(
+    return CustomScrollView(
+      controller: scrollController,
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.all(10),
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: isTabletWithOutContext() ? 200.0 : 150.0,
+              mainAxisSpacing: 15,
+              crossAxisSpacing: 15,
+              childAspectRatio: 0.75,
+            ),
+            delegate: SliverChildBuilderDelegate((context, index) {
+              return ComicSimplifyEntry(
+                key: ValueKey(list[index].id),
+                info: list[index],
+                type: ComicEntryType.normal,
+                refresh: () {},
+              );
+            }, childCount: list.length),
+          ),
+        ),
+        if (state.hasReachedMax)
+          const SliverToBoxAdapter(
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text('没有更多了'),
+              ),
+            ),
+          ),
+        if (state.status == JmPromoteListStatus.loadingMore)
+          const SliverToBoxAdapter(
+            child: Padding(
               padding: EdgeInsets.all(8.0),
               child: Center(child: CircularProgressIndicator()),
-            );
-          } else if (state.status == JmPromoteListStatus.loadingMoreFailure) {
-            return Padding(
+            ),
+          ),
+        if (state.status == JmPromoteListStatus.loadingMoreFailure)
+          SliverToBoxAdapter(
+            child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: IconButton(
                 icon: const Icon(Icons.refresh),
@@ -110,50 +135,28 @@ class _JmPromoteListPageState extends State<_JmPromoteListPage> {
                   context.read<JmPromoteListBloc>().add(JmPromoteListEvent());
                 },
               ),
-            );
-          }
-          if (state.hasReachedMax) {
-            return const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Center(child: Text('没有更多了')),
-            );
-          }
-        }
-
-        return _listItem(elementsRows[index]);
-      },
-      controller: scrollController,
-    );
-  }
-
-  Widget _listItem(List<ComicSimplifyEntryInfo> element) {
-    return ComicSimplifyEntryRow(
-      key: ValueKey(element.map((e) => e.id).join(',')),
-      entries: element,
-      type: ComicEntryType.normal,
-      refresh: () {},
+            ),
+          ),
+      ],
     );
   }
 
   // 转换数据格式
-  List<List<ComicSimplifyEntryInfo>> _convertToEntryInfoList(
+  List<ComicSimplifyEntryInfo> _convertToEntryInfoListNew(
     List<ListElement> comics,
   ) {
-    return generateResponsiveRows(
-      context,
-      comics
-          .map(
-            (element) => ComicSimplifyEntryInfo(
-              title: element.name,
-              id: element.id.toString(),
-              fileServer: getJmCoverUrl(element.id.toString()),
-              path: "${element.id}.jpg",
-              pictureType: PictureType.cover,
-              from: From.jm,
-            ),
-          )
-          .toList(),
-    );
+    return comics
+        .map(
+          (element) => ComicSimplifyEntryInfo(
+            title: element.name,
+            id: element.id.toString(),
+            fileServer: getJmCoverUrl(element.id.toString()),
+            path: "${element.id}.jpg",
+            pictureType: PictureType.cover,
+            from: From.jm,
+          ),
+        )
+        .toList();
   }
 
   void _onScroll() {

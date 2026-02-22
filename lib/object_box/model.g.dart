@@ -397,3 +397,27 @@ Map<String, dynamic> _$UserSettingToJson(UserSetting instance) =>
       'bikaSetting': instance.bikaSetting,
       'jmSetting': instance.jmSetting,
     };
+
+DownloadTask _$DownloadTaskFromJson(Map<String, dynamic> json) => DownloadTask()
+  ..id = (json['id'] as num).toInt()
+  ..comicId = json['comicId'] as String
+  ..comicName = json['comicName'] as String
+  ..isCompleted = json['isCompleted'] as bool
+  ..isDownloading = json['isDownloading'] as bool
+  ..status = json['status'] as String
+  ..dbTaskInfo = json['dbTaskInfo'] as Map<String, dynamic>?
+  ..taskInfo = json['taskInfo'] == null
+      ? null
+      : DownloadTaskJson.fromJson(json['taskInfo'] as Map<String, dynamic>);
+
+Map<String, dynamic> _$DownloadTaskToJson(DownloadTask instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'comicId': instance.comicId,
+      'comicName': instance.comicName,
+      'isCompleted': instance.isCompleted,
+      'isDownloading': instance.isDownloading,
+      'status': instance.status,
+      'dbTaskInfo': instance.dbTaskInfo,
+      'taskInfo': instance.taskInfo,
+    };

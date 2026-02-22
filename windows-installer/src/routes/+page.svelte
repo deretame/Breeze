@@ -66,7 +66,7 @@
         await delay(500);
         await invoke("create_shortcut", {
           targetPath: exePath,
-          shortcutName: "Zephyr",
+          shortcutName: "Breeze",
         });
       }
 

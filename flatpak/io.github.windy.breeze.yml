@@ -9,7 +9,6 @@ finish-args:
   - --socket=wayland
   - --device=dri
   - --share=network
-  - --filesystem=home
   - --talk-name=org.kde.StatusNotifierWatcher
   - --env=LD_LIBRARY_PATH=/app/lib
 modules:
@@ -79,25 +78,32 @@ modules:
         url: https://github.com/AyatanaIndicators/libayatana-appindicator/archive/0.5.93.tar.gz
         sha256: cbefed7a918a227bf71286246e237fcd3a9c8499b3eaac4897811a869409edf0
 
+  - name: bzip2
+    buildsystem: simple
+    build-commands:
+      - make clean || true
+      - make CFLAGS="-fPIC -O2"
+      - make install PREFIX=/app
+      - make -C . -f Makefile-libbz2_so LDFLAGS="-shared -Wl,-soname,libbz2.so.1.0"
+      - cp libbz2.so.1.0.8 /app/lib/
+      - ldconfig -n /app/lib
+    sources:
+      - type: archive
+        url: https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz
+        sha256: ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269
+
   - name: breeze
     buildsystem: simple
     build-commands:
-      # Create a directory for the app content
       - install -d /app/breeze
-      # Copy all files from the source (the build bundle) to /app/breeze
       - cp -r * /app/breeze/
-      # Create the bin directory and symlink the executable
-      - install -d /app/bin
       - install -d /app/bin
       - ln -s /app/breeze/breeze /app/bin/breeze
-      # Fix missing libbz2.so.1.0 symlink
       - install -d /app/lib
-      - ln -s /usr/lib/x86_64-linux-gnu/libbz2.so.1.0.8 /app/lib/libbz2.so.1.0
-      # Create it in /app/breeze/lib where the rust lib resides, to be safe
-      - ln -s /usr/lib/x86_64-linux-gnu/libbz2.so.1.0.8 /app/breeze/lib/libbz2.so.1.0
-      # Install the icon
+      - rm -f /app/lib/libbz2.so.1.0 /app/breeze/lib/libbz2.so.1.0
+      - ln -s /app/lib/libbz2.so.1.0.8 /app/lib/libbz2.so.1.0
+      - ln -s /app/lib/libbz2.so.1.0.8 /app/breeze/lib/libbz2.so.1.0
       - install -D io.github.windy.breeze.png /app/share/icons/hicolor/128x128/apps/io.github.windy.breeze.png
-      # Install the desktop file
       - install -D io.github.windy.breeze.desktop /app/share/applications/io.github.windy.breeze.desktop
     sources:
       - type: dir

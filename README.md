@@ -139,7 +139,3 @@ flatpak run io.github.windy.breeze
 - 开发者：**[windy](https://github.com/deretame)**
 - 项目仓库：**[Breeze](https://github.com/deretame/Breeze)**
 - 联系方式：**[telegram(电报)](https://t.me/breeze_zh_cn)**
-
-```
-
-```

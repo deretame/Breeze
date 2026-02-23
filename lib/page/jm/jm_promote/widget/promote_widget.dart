@@ -47,95 +47,108 @@ class _PromoteWidgetState extends State<PromoteWidget> {
   Widget build(BuildContext context) {
     final materialColorScheme = context.theme.colorScheme;
 
-    final isTablet = isTabletWithOutContext();
-    final isLandscapes = isLandscape(context);
-    double height;
-    if (isTablet) {
-      height = (context.screenWidth * 0.2) / 0.75;
-      if (isLandscapes) {
-        height = (context.screenWidth * 0.15) / 0.75;
-      }
-    } else {
-      height = (context.screenWidth * 0.3) / 0.75;
-    }
-    return SizedBox(
-      height: 33 + height + 20,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(5),
-            child: Container(
-              decoration: BoxDecoration(
-                color: materialColorScheme.secondaryFixed.withValues(
-                  alpha: 0.1,
-                ),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              width: double.infinity,
-              child: Row(
-                children: [
-                  Text(
-                    getTitle(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: materialColorScheme.onSurface,
+    // 使用 LayoutBuilder 获取实际可用宽度，避免使用 screenWidth 或 orientation
+    // 因为在 Windows 桌面端拖动窗口时，screenWidth 和 orientation 都会随宽高比变化
+    // 导致高度不断跳变。改为由父布局约束决定卡片宽度，确保内外高度始终一致。
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
+
+        // 根据可用宽度确定单张卡片宽度（与平板/手机的相对比例保持一致）
+        final double itemWidth;
+        if (isTabletWithOutContext()) {
+          itemWidth = availableWidth * 0.15;
+        } else {
+          itemWidth = availableWidth * 0.28;
+        }
+        // 高度 = 宽度 / 0.75（3:4 比例），标题栏约 33px，上下 padding 各 5px
+        final double itemHeight = itemWidth / 0.75;
+        const double headerHeight = 33.0;
+        const double verticalPadding = 10.0;
+
+        return SizedBox(
+          height: headerHeight + itemHeight + verticalPadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(5),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: materialColorScheme.secondaryFixed.withValues(
+                      alpha: 0.1,
                     ),
+                    borderRadius: BorderRadius.circular(8.0),
                   ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () {
-                      if (element.title.contains("推荐")) {
-                        int id = element.id.toString().let(toInt);
-                        context.pushRoute(
-                          JmPromoteListRoute(id: id, name: element.title),
-                        );
-                        return;
-                      }
-                      if (element.title == "连载更新→右滑看更多→") {
-                        context.pushRoute(JmWeekRankingRoute());
-                        return;
-                      }
-                      String tag = "";
-                      logger.d(element.title);
-                      if (element.title == "禁漫汉化组") {
-                        tag = "禁漫汉化组";
-                      }
-                      if (element.title == "韩漫更新") {
-                        tag = "hanManTypeMap";
-                      }
-                      if (element.title == "其他更新") {
-                        tag = "qiTaLeiTypeMap";
-                      }
-                      context.pushRoute(
-                        TimeRankingRoute(tag: tag, title: element.title),
-                      );
-                    },
-                    child: Icon(
-                      Icons.arrow_forward_ios,
-                      size: 16,
-                      color: materialColorScheme.onSurface.withValues(
-                        alpha: 0.5,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  width: double.infinity,
+                  child: Row(
+                    children: [
+                      Text(
+                        getTitle(),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: materialColorScheme.onSurface,
+                        ),
                       ),
-                    ),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () {
+                          if (element.title.contains("推荐")) {
+                            int id = element.id.toString().let(toInt);
+                            context.pushRoute(
+                              JmPromoteListRoute(id: id, name: element.title),
+                            );
+                            return;
+                          }
+                          if (element.title == "连载更新→右滑看更多→") {
+                            context.pushRoute(JmWeekRankingRoute());
+                            return;
+                          }
+                          String tag = "";
+                          logger.d(element.title);
+                          if (element.title == "禁漫汉化组") {
+                            tag = "禁漫汉化组";
+                          }
+                          if (element.title == "韩漫更新") {
+                            tag = "hanManTypeMap";
+                          }
+                          if (element.title == "其他更新") {
+                            tag = "qiTaLeiTypeMap";
+                          }
+                          context.pushRoute(
+                            TimeRankingRoute(tag: tag, title: element.title),
+                          );
+                        },
+                        child: Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: materialColorScheme.onSurface.withValues(
+                            alpha: 0.5,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                    ],
                   ),
-                  const SizedBox(width: 5),
-                ],
+                ),
               ),
-            ),
+              Expanded(child: _buildHorizontalList(itemWidth)),
+            ],
           ),
-          Expanded(child: _buildHorizontalList()),
-        ],
-      ),
+        );
+      },
     );
   }
 
   bool get _isDesktop =>
       Platform.isWindows || Platform.isMacOS || Platform.isLinux;
 
-  Widget _buildHorizontalList() {
+  Widget _buildHorizontalList(double itemWidth) {
     final list = element.content.map((item) {
       return ComicSimplifyEntryInfo(
         title: item.name,
@@ -147,10 +160,11 @@ class _PromoteWidgetState extends State<PromoteWidget> {
       );
     }).toList();
 
-    Widget scrollView = ComicSimplifyEntryHorizontal(
+    // 将同一个 itemWidth 传给列表，确保内层卡片高度与外层容器完全一致
+    Widget scrollView = ComicFixedSizeHorizontalList(
       entries: list,
-      type: ComicEntryType.normal,
-      topPadding: true,
+      spacing: 10.0,
+      itemWidth: itemWidth,
     );
 
     if (_isDesktop) {

@@ -43,23 +43,37 @@ Future<dynamic> request(
 }
 
 class JmResponseParser {
-  static Map<String, dynamic>? toMap(dynamic data) {
+  static dynamic toMap(dynamic data) {
     if (data == null) return null;
 
     try {
-      List<int> bytes;
-      if (data is List<int>) {
-        bytes = _decodeGzip(data);
-      } else if (data is String) {
-        return jsonDecode(data) as Map<String, dynamic>;
+      if (data is String) {
+        if (data.isEmpty) return null;
+        final decoded = jsonDecode(data);
+        if (decoded is Map) {
+          return decoded as Map<String, dynamic>;
+        } else if (decoded is List) {
+          return decoded;
+        }
+        return null;
+      } else if (data is List<int>) {
+        List<int> bytes = _decodeGzip(data);
+        String rawString = utf8.decode(bytes);
+        if (rawString.isEmpty) return null;
+        final decoded = jsonDecode(rawString);
+        if (decoded is Map) {
+          return decoded as Map<String, dynamic>;
+        } else if (decoded is List) {
+          return decoded;
+        }
+        return null;
       } else if (data is Map) {
         return data as Map<String, dynamic>;
+      } else if (data is List) {
+        return data;
       } else {
         return null;
       }
-
-      String rawString = utf8.decode(bytes);
-      return jsonDecode(rawString) as Map<String, dynamic>;
     } catch (e) {
       logger.e("解析响应数据失败: $e");
       rethrow;

@@ -55,6 +55,7 @@ class JmCloudFavouriteBloc
                 id: event.id,
                 order: event.order,
               )
+              .debug()
               .let(replaceNestedNullList)
               .let(jsonEncode)
               .let(jmCloudFavoriteJsonFromJson);
@@ -64,6 +65,8 @@ class JmCloudFavouriteBloc
       if ((event.page * 20) >= data.total.let(toInt)) {
         hasMore = false;
       }
+
+      logger.d(data);
 
       emit(
         state.copyWith(

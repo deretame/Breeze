@@ -59,11 +59,9 @@ class RecommendWidget extends StatelessWidget {
       }
     }).toList();
 
-    Widget scrollView = ComicSimplifyEntryHorizontal(
+    Widget scrollView = ComicFixedSizeHorizontalList(
       entries: comicInfoList,
-      type: ComicEntryType.normal,
-      topPadding: false,
-      roundedCorner: false,
+      spacing: 10.0,
     );
 
     if (_isDesktop) {

@@ -35,6 +35,8 @@ class DownloadQueueManager {
 
   DownloadQueueManager._();
 
+  String _downloadingComicId = "";
+
   bool _isProcessing = false;
   StreamSubscription? _watchSubscription;
 
@@ -68,13 +70,8 @@ class DownloadQueueManager {
 
   /// 桌面端队列处理（直接在主线程异步执行）
   Future<void> _processQueueDesktop() async {
-    // 只查询未完成且未在下载中的任务，避免触发 watch
     final pendingTasks = objectbox.downloadTaskBox
-        .query(
-          DownloadTask_.isCompleted
-              .equals(false)
-              .and(DownloadTask_.isDownloading.equals(false)),
-        )
+        .query(DownloadTask_.isCompleted.equals(false))
         .build()
         .find();
 
@@ -97,14 +94,14 @@ class DownloadQueueManager {
       return;
     }
 
-    if (desktopReporter.comicId == task.comicId) {
+    if (_downloadingComicId == task.comicId) {
       logger.w("重复添加任务 ${task.comicName}");
       _isProcessing = false;
       Future.microtask(() => _processQueueDesktop());
       return;
     }
 
-    desktopReporter.comicId = task.comicId;
+    _downloadingComicId = task.comicId;
 
     dbTask.isDownloading = true;
     dbTask.status = "开始下载...";
@@ -168,13 +165,8 @@ class DownloadQueueManager {
   Future<void> processQueueWithReporter(
     DownloadProgressReporter reporter,
   ) async {
-    // 只查询未完成且未在下载中的任务，避免触发 watch
     final pendingTasks = objectbox.downloadTaskBox
-        .query(
-          DownloadTask_.isCompleted
-              .equals(false)
-              .and(DownloadTask_.isDownloading.equals(false)),
-        )
+        .query(DownloadTask_.isCompleted.equals(false))
         .build()
         .find();
 
@@ -185,12 +177,12 @@ class DownloadQueueManager {
       return;
     }
 
-    if (reporter.comicId == pendingTasks.first.comicId) {
+    if (_downloadingComicId == pendingTasks.first.comicId) {
       logger.w("重复添加任务 ${pendingTasks.first.comicName}");
       return;
     }
 
-    reporter.comicId = pendingTasks.first.comicId;
+    _downloadingComicId = pendingTasks.first.comicId;
 
     _isProcessing = true;
 

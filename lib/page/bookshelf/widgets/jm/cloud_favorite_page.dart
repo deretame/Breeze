@@ -11,10 +11,12 @@ import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/bookshelf/bloc/jm/cloud_favourite/bloc/jm_cloud_favourite_bloc.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/page/bookshelf/json/jm_cloud_favorite/jm_cloud_favorite_json.dart';
+import 'package:zephyr/page/search_result/widgets/bottom_loader.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
+import 'package:zephyr/util/debouncer.dart';
 
 class JmCloudFavoritePage extends StatelessWidget {
   const JmCloudFavoritePage({super.key});
@@ -124,6 +126,7 @@ class _JmCloudFavoritePageState extends State<_JmCloudFavoritePage>
   }
 
   Widget _buildList(JmCloudFavouriteState state) {
+    logger.d(state.list.length);
     if (state.status == JmCloudFavouriteStatus.success && state.list.isEmpty) {
       return _buildEmptyState();
     } else {
@@ -153,110 +156,67 @@ class _JmCloudFavoritePageState extends State<_JmCloudFavoritePage>
 
   // 构建简洁模式列表
   Widget _buildBrevityList(JmCloudFavouriteState state) {
-    final elementsRows = generateResponsiveRows(
-      context,
-      _convertToEntryInfoList(state.list),
-    );
+    final list = _convertToEntryInfoList(state.list);
 
-    final itemCount = elementsRows.length + 1;
+    final maxExtent = isTabletWithOutContext() ? 200.0 : 150.0;
 
-    return _buildCommonListView(
-      itemCount: itemCount,
-      itemBuilder: (context, index) {
-        if (index < elementsRows.length) {
-          return _buildListItem(
-            context,
-            index,
-            itemCount,
-            () => _refresh(),
-            isBrevity: true,
-            elementsRows: elementsRows,
-          );
-        }
-
-        if (index == elementsRows.length) {
-          if (state.status == JmCloudFavouriteStatus.loadingMore) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(10),
-                child: CircularProgressIndicator(),
-              ),
-            );
-          } else if (state.status == JmCloudFavouriteStatus.loadMoreFail) {
-            return _loadingMoreFailureWidget();
-          } else if (!state.hasMore) {
-            return Column(
-              children: [
-                const SizedBox(height: 10),
-                IconButton(
-                  onPressed: () => _refresh(goTop: true),
-                  icon: const Icon(Icons.refresh),
-                ),
-                const Center(
-                  child: Text('没有更多了', style: TextStyle(fontSize: 20.0)),
-                ),
-                const SizedBox(height: 10),
-              ],
-            );
-          }
-        }
-
-        return SizedBox.shrink();
-      },
-    );
-  }
-
-  Widget _loadingMoreFailureWidget() => Center(
-    child: Column(
-      children: [
-        const SizedBox(height: 10),
-        ElevatedButton(onPressed: () => _loadMore(), child: const Text('点击重试')),
-      ],
-    ),
-  );
-
-  // 公共列表构建方法
-  Widget _buildCommonListView({
-    required int itemCount,
-    required IndexedWidgetBuilder itemBuilder,
-  }) {
     return RefreshIndicator(
       onRefresh: () async => _refresh(goTop: false),
-      child: ListView.builder(
-        physics: const AlwaysScrollableScrollPhysics(),
+      child: CustomScrollView(
         controller: _scrollController,
-        itemCount: itemCount,
-        itemBuilder: itemBuilder,
-      ),
-    );
-  }
-
-  // 构建单个列表项
-  Widget _buildListItem(
-    BuildContext context,
-    int index,
-    int dataLength,
-    VoidCallback refreshCallback, {
-    required bool isBrevity,
-    List<List<ComicSimplifyEntryInfo>>? elementsRows,
-  }) {
-    if (index == dataLength) {
-      return Column(
-        children: [
-          SizedBox(height: 10),
-          IconButton(
-            onPressed: () => _refresh(),
-            icon: const Icon(Icons.refresh),
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.all(10),
+            sliver: SliverGrid(
+              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: maxExtent,
+                mainAxisSpacing: 15,
+                crossAxisSpacing: 15,
+                childAspectRatio: 0.75,
+              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                return ComicSimplifyEntry(
+                  key: ValueKey(list[index].id),
+                  info: list[index],
+                  type: ComicEntryType.favorite,
+                );
+              }, childCount: list.length),
+            ),
           ),
+          if (!state.hasMore && state.status == JmCloudFavouriteStatus.success)
+            SliverToBoxAdapter(
+              child: Center(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    IconButton(
+                      onPressed: () => _refresh(goTop: true),
+                      icon: const Icon(Icons.refresh),
+                    ),
+                    const Text('没有更多了', style: TextStyle(fontSize: 20.0)),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+              ),
+            ),
+          if (state.status == JmCloudFavouriteStatus.loadingMore)
+            const SliverToBoxAdapter(child: Center(child: BottomLoader())),
+          if (state.status == JmCloudFavouriteStatus.loadMoreFail)
+            SliverToBoxAdapter(
+              child: Center(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: () => _loadMore(),
+                      child: const Text('点击重试'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
-      );
-    }
-
-    return ComicSimplifyEntryRow(
-      key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
-      entries: elementsRows[index],
-      type: ComicEntryType.favorite,
-      refresh: refreshCallback,
+      ),
     );
   }
 

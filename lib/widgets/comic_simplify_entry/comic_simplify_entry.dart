@@ -41,59 +41,139 @@ class ComicSimplifyEntryRow extends StatelessWidget {
   }
 }
 
-class ComicSimplifyEntryHorizontal extends StatelessWidget {
+class ComicFixedSizeHorizontalList extends StatelessWidget {
   final List<ComicSimplifyEntryInfo> entries;
-  final ComicEntryType type;
-  final VoidCallback? refresh;
-  final bool topPadding;
-  final bool roundedCorner;
+  final double spacing; // 卡片之间的横向间距
+  final double itemWidth; // 卡片固定宽度
 
-  const ComicSimplifyEntryHorizontal({
+  const ComicFixedSizeHorizontalList({
     super.key,
     required this.entries,
-    required this.type,
-    this.refresh,
-    this.topPadding = false,
-    this.roundedCorner = true,
+    this.spacing = 10.0, // 默认间距设为 10
+    this.itemWidth = 160.0, // 固定宽度，不随窗口宽高比变化
   });
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    double itemWidth;
-    if (isTabletWithOutContext()) {
-      if (isLandscape(context)) {
-        itemWidth = screenWidth * 0.15;
-      } else {
-        itemWidth = screenWidth * 0.2;
-      }
-    } else {
-      itemWidth = screenWidth * 0.3;
+    if (entries.isEmpty) {
+      return const SizedBox.shrink();
     }
-    final itemHeight = itemWidth / 0.75;
 
+    // 使用固定的宽高，避免在 Windows 桌面端拖动窗口时因
+    // MediaQuery.orientation 随宽高比切换而导致高度跳变
+    final double itemHeight = itemWidth / 0.75;
+
+    // 最外层需要限制高度，否则横向 ListView 会报错
     return SizedBox(
-      height: itemHeight + (topPadding ? 10.0 : 0),
+      height: itemHeight,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: entries.length,
         itemBuilder: (context, index) {
-          return SizedBox(
-            width: itemWidth,
-            height: itemHeight,
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 5),
-              child: ComicSimplifyEntry(
-                info: entries[index],
-                type: type,
-                refresh: refresh,
-                roundedCorner: roundedCorner,
+          final info = entries[index];
+
+          // 过滤无数据的情况
+          if (info.title == "无数据") {
+            return const SizedBox.shrink();
+          }
+
+          return Padding(
+            padding: EdgeInsets.only(right: spacing),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _navigateToComicInfo(context, info),
+              child: SizedBox(
+                width: itemWidth,
+                height: itemHeight,
+                child: _buildCoverWithTitle(info, itemWidth, itemHeight),
               ),
             ),
           );
         },
       ),
     );
+  }
+
+  Widget _buildCoverWithTitle(
+    ComicSimplifyEntryInfo info,
+    double width,
+    double height,
+  ) {
+    return Stack(
+      children: [
+        // 1. 底层封面图
+        CoverWidget(
+          fileServer: info.fileServer,
+          path: info.path,
+          id: info.id,
+          pictureType: info.pictureType,
+          from: info.from,
+          roundedCorner: false,
+          width: width,
+          height: height,
+        ),
+
+        // 2. 顶部阴影与标题
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withValues(alpha: 0.7),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                stops: const [0.0, 0.7],
+              ),
+            ),
+            padding: const EdgeInsets.fromLTRB(5.0, 20.0, 5.0, 5.0),
+            child: Text(
+              info.title,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12.0,
+                fontWeight: FontWeight.w500,
+                shadows: [
+                  Shadow(
+                    offset: const Offset(0, 1),
+                    blurRadius: 2,
+                    color: Colors.black.withValues(alpha: 0.5),
+                  ),
+                ],
+              ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.start,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 点击跳转逻辑 (需要把当前的 info 传进来)
+  void _navigateToComicInfo(BuildContext context, ComicSimplifyEntryInfo info) {
+    if (info.from == From.bika) {
+      context.pushRoute(
+        ComicInfoRoute(
+          comicId: info.id,
+          type: ComicEntryType.normal,
+          from: From.bika,
+        ),
+      );
+    } else if (info.from == From.jm) {
+      context.pushRoute(
+        ComicInfoRoute(
+          comicId: info.id,
+          type: ComicEntryType.normal,
+          from: From.jm,
+        ),
+      );
+    }
   }
 }
 

@@ -1,0 +1,229 @@
+name: Breeze Multi-Platform Parallel Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "发布版本号 (例如: v2.12.6)"
+        required: true
+        default: "v2.12.6"
+
+permissions:
+  contents: write
+
+jobs:
+  # ══════════════════════════════════════════
+  # 1. Android 构建 (Ubuntu 环境)
+  # ══════════════════════════════════════════
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 释放空间 (Nuclear Mode)
+        run: |
+          sudo rm -rf /opt/hostedtoolcache /usr/local/lib/android /usr/share/dotnet /opt/codeql
+          docker system prune -a -f
+          sudo apt-get clean
+
+      - name: 解密敏感文件 (git-crypt)
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: |
+          sudo apt-get update && sudo apt-get install -y git-crypt
+          echo "$GIT_CRYPT_KEY" | base64 -d > ./git-crypt-key
+          git-crypt unlock ./git-crypt-key && rm ./git-crypt-key
+
+      - name: 设置 Java 21 & SDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: 设置 Flutter (FVM)
+        run: |
+          dart pub global activate fvm
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          fvm install && fvm use --force
+          echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
+
+      - name: 安装 Rust (Android 目标)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android
+
+      - name: 读取 NDK 版本配置
+        id: ndk-config
+        run: |
+          NDK_VER=$(grep "ndkVersion" android/app/build.gradle.kts | awk -F'"' '{print $2}')
+          echo "ndk_version=$NDK_VER" >> $GITHUB_OUTPUT
+
+      - name: 安装 Android NDK
+        run: yes | sdkmanager "ndk;${{ steps.ndk-config.outputs.ndk_version }}"
+
+      - name: 设置 NDK 环境变量
+        run: |
+          NDK_VER=${{ steps.ndk-config.outputs.ndk_version }}
+          ANDROID_HOME=${ANDROID_HOME:-$ANDROID_SDK_ROOT}
+          NDK_PATH="$ANDROID_HOME/ndk/$NDK_VER"
+          echo "ANDROID_NDK_HOME=$NDK_PATH" >> $GITHUB_ENV
+          echo "ANDROID_NDK_ROOT=$NDK_PATH" >> $GITHUB_ENV
+          echo "$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
+
+      - name: 接受 Android Licenses
+        run: yes | fvm flutter doctor --android-licenses || true
+
+      - name: 运行 Android 构建脚本
+        run: |
+          # yes y 自动回答脚本内的更新询问
+          yes y | fvm dart ./script/build_apk.dart
+
+      - name: 上传 Android 产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apks
+          path: |
+            build/app/outputs/flutter-apk/*.apk
+            build/app/outputs/apk/skia/*.apk
+
+  # ══════════════════════════════════════════
+  # 2. Linux 构建 (Ubuntu 环境)
+  # ══════════════════════════════════════════
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 释放空间 & 解密
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: |
+          sudo apt-get update && sudo apt-get install -y git-crypt
+          echo "$GIT_CRYPT_KEY" | base64 -d > ./git-crypt-key
+          git-crypt unlock ./git-crypt-key && rm ./git-crypt-key
+
+      - name: 安装 Flatpak 构建环境
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder ninja-build libgtk-3-dev liblzma-dev libgcrypt20-dev libayatana-appindicator3-dev libwebkit2gtk-4.1-dev
+          flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
+
+      - name: 设置 Flutter (FVM)
+        run: |
+          dart pub global activate fvm
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          fvm install && fvm use --force
+          echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
+
+      - name: 安装 Rust 工具链
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: x86_64-unknown-linux-gnu
+
+      - name: 构建 Flatpak
+        run: |
+          fvm flutter build linux --release
+          mkdir -p build-flatpak repo-flatpak
+          flatpak-builder --user --force-clean --repo=repo-flatpak --install-deps-from=flathub build-flatpak flatpak/io.github.windy.breeze.yml
+          flatpak build-bundle repo-flatpak breeze.flatpak io.github.windy.breeze
+
+      - name: 上传 Linux 产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-flatpak
+          path: breeze.flatpak
+
+  # ══════════════════════════════════════════
+  # 3. Windows 构建 (Windows 环境)
+  # ══════════════════════════════════════════
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 解密 (Windows Git-Crypt)
+        shell: bash
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: |
+          # Windows Runner 默认没装 git-crypt，需要安装
+          choco install git-crypt
+          echo "$GIT_CRYPT_KEY" | base64 -d > ./git-crypt-key
+          git-crypt unlock ./git-crypt-key && rm ./git-crypt-key
+
+      - name: 设置 Node.js & pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "pnpm"
+          cache-dependency-path: windows-installer/pnpm-lock.yaml
+
+      - name: 设置 Flutter (FVM)
+        run: |
+          dart pub global activate fvm
+          fvm install && fvm use --force
+          # 将 FVM 路径加入 Windows 环境变量
+          echo "$((Get-Item .).FullName)\.fvm\flutter_sdk\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: 安装 Rust 工具链
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 运行 Windows 构建脚本 (含 Tauri)
+        run: |
+          fvm dart ./script/build_windows.dart
+
+      - name: 上传 Windows 产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-exe
+          path: windows-installer/src-tauri/target/release/windows-installer.exe
+
+  # ══════════════════════════════════════════
+  # 4. 汇总发布 (等待前三个任务完成)
+  # ══════════════════════════════════════════
+  publish:
+    needs: [build-android, build-linux, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 下载所有构建产物
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+
+      - name: 提取日志并准备 Release 内容
+        id: prepare
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          REPO="${{ github.repository }}"
+
+          sed -n "/## \[$VERSION\]/,/## /p" CHANGELOG.md | sed '$d' > changelog_section.txt
+          echo "## 📝 更新日志" > release_body.md
+          cat changelog_section.txt >> release_body.md
+          echo -e "\n---\n" >> release_body.md
+          echo "### 📦 推荐下载" >> release_body.md
+          echo "| 平台 | 下载链接 |" >> release_body.md
+          echo "| :--- | :--- |" >> release_body.md
+          echo "| **Windows** | [windows-installer.exe](https://github.com/$REPO/releases/download/$VERSION/windows-installer.exe) |" >> release_body.md
+          echo "| **Android** | [app-arm64-v8a-release.apk](https://github.com/$REPO/releases/download/$VERSION/app-arm64-v8a-release.apk) |" >> release_body.md
+          echo "| **Linux** | [breeze.flatpak](https://github.com/$REPO/releases/download/$VERSION/breeze.flatpak) |" >> release_body.md
+          echo -e "\n> 💡 **不知道该下载哪个文件？**\n> 请查看 [详细安装指南](https://github.com/$REPO#-%E5%A6%82%E4%BD%95%E5%AE%89%E8%A3%85)。" >> release_body.md
+
+      - name: 创建 GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.version }}
+          name: Breeze ${{ github.event.inputs.version }}
+          body_path: release_body.md
+          files: |
+            release-assets/android-apks/**/*.apk
+            release-assets/linux-flatpak/*.flatpak
+            release-assets/windows-exe/windows-installer.exe

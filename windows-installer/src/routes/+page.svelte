@@ -50,7 +50,7 @@
     try {
       // Step 0: Try to close running app
       statusMessage = "正在尝试关闭运行中的软件...";
-      await delay(500);
+      await delay(3000);
       await invoke("try_shutdown_app");
 
       // Step 1: Extract files

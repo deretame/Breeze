@@ -225,7 +225,9 @@ jobs:
           VERSION="${{ github.event.inputs.version }}"
           REPO="${{ github.repository }}"
 
-          sed -n "/## \[$VERSION\]/,/## /p" CHANGELOG.md | sed '$d' > changelog_section.txt
+          # 🚀 使用 awk 精确提取日志：精确匹配 "## [v2.12.6]" 开头的行，遇到下一个 "## " 停止
+          awk -v ver="## [$VERSION]" 'index($0,ver)==1 {flag=1; print; next} /^## /{if(flag) exit} flag' CHANGELOG.md > changelog_section.txt
+
           echo "## 📝 更新日志" > release_body.md
           cat changelog_section.txt >> release_body.md
           echo -e "\n---\n" >> release_body.md

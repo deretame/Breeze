@@ -40,6 +40,12 @@ jobs:
           distribution: "temurin"
           java-version: "21"
 
+      - name: 设置 Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 设置 Dart SDK
+        uses: dart-lang/setup-dart@v1
+
       - name: 设置 Flutter (FVM)
         run: |
           dart pub global activate fvm
@@ -110,6 +116,9 @@ jobs:
           flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
           flatpak install --user -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
 
+      - name: 设置 Dart SDK
+        uses: dart-lang/setup-dart@v1
+
       - name: 设置 Flutter (FVM)
         run: |
           dart pub global activate fvm
@@ -164,6 +173,9 @@ jobs:
           node-version: 24
           cache: "pnpm"
           cache-dependency-path: windows-installer/pnpm-lock.yaml
+
+      - name: 设置 Dart SDK
+        uses: dart-lang/setup-dart@v1
 
       - name: 设置 Flutter (FVM)
         run: |

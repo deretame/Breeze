@@ -84,8 +84,8 @@ jobs:
 
       - name: 运行 Android 构建脚本
         run: |
-          # yes y 自动回答脚本内的更新询问
-          yes y | fvm dart ./script/build_apk.dart
+          # yes n 自动回答脚本内的更新询问
+          yes n | fvm dart ./script/build_apk.dart
 
       - name: 上传 Android 产物
         uses: actions/upload-artifact@v4

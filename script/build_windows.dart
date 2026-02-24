@@ -416,6 +416,15 @@ Future<void> main() async {
 
     // ═══ 第 4 步：Tauri 构建 ═══
     _printColor('--- (4/4) 构建 Tauri 安装器 ---', _cyan);
+
+    _printColor('正在安装前端与 Tauri 依赖 (pnpm install)...', _cyan);
+    exitCode = await _runCommand('pnpm', [
+      'install',
+    ], workingDirectory: installerRoot);
+    if (exitCode != 0) {
+      throw Exception('pnpm install 失败！ (Exit code: $exitCode)');
+    }
+
     exitCode = await _runCommand('pnpm', [
       'tauri',
       'build',

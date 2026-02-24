@@ -5,17 +5,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
+import 'package:zephyr/page/search_result/models/comic_number.dart';
 import 'package:zephyr/page/search_result/search_result.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/debouncer.dart';
-
-import '../../../cubit/string_select.dart';
-import '../../../type/enum.dart';
-import '../../../widgets/comic_entry/comic_entry.dart';
-import '../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
-import '../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
-import '../models/models.dart';
+import 'package:zephyr/widgets/comic_entry/comic_entry.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 
 @RoutePage()
 class SearchResultPage extends StatelessWidget implements AutoRouteWrapper {
@@ -281,7 +280,31 @@ class _SearchResultPageState extends State<_SearchResultPage>
             }, childCount: list.length),
           ),
         ),
-        SliverToBoxAdapter(child: _buildListFooter(state)),
+        if (state.hasReachedMax && state.status == SearchStatus.success)
+          const SliverToBoxAdapter(
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.all(30.0),
+                child: Text('没有更多了', style: TextStyle(fontSize: 20.0)),
+              ),
+            ),
+          ),
+        if (state.status == SearchStatus.loadingMore)
+          const SliverToBoxAdapter(child: Center(child: BottomLoader())),
+        if (state.status == SearchStatus.getMoreFailure)
+          SliverToBoxAdapter(
+            child: Center(
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () => _refresh(SearchStatus.loadingMore),
+                    child: const Text('点击重试'),
+                  ),
+                ],
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -320,42 +343,20 @@ class _SearchResultPageState extends State<_SearchResultPage>
     return count;
   }
 
-  // 公共方法：构建列表项
-  Widget _buildListItem(
-    BuildContext context,
-    int index,
-    SearchState state, [
-    List<List<ComicSimplifyEntryInfo>>? elementsRows,
-  ]) {
-    // 处理列表底部状态显示
-    if (elementsRows != null && index >= elementsRows.length ||
-        elementsRows == null && index >= state.comics.length) {
+  // 构建列表项（详细模式）
+  Widget _buildListItem(BuildContext context, int index, SearchState state) {
+    if (index >= state.comics.length) {
       return _buildListFooter(state);
     }
-
-    // 简洁模式
-    if (elementsRows != null) {
-      final key = elementsRows[index].map((e) => e.id).join(',');
-      return ComicSimplifyEntryRow(
-        key: ValueKey(key),
-        entries: elementsRows[index],
-        type: ComicEntryType.normal,
-      );
-    }
-    // 详细模式
-    else {
-      final data = state.comics[index].comicInfo;
-      if (data is Bika) {
-        return ComicEntryWidget(
-          comicEntryInfo: docToComicEntryInfo(data.comics),
-        );
-      } else {
-        return const SizedBox.shrink();
-      }
+    final data = state.comics[index].comicInfo;
+    if (data is Bika) {
+      return ComicEntryWidget(comicEntryInfo: docToComicEntryInfo(data.comics));
+    } else {
+      return const SizedBox.shrink();
     }
   }
 
-  // 公共方法：构建列表底部
+  // 构建列表底部
   Widget _buildListFooter(SearchState state) {
     switch (state.status) {
       case SearchStatus.success:

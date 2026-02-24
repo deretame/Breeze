@@ -65,7 +65,6 @@ class MyTaskHandler extends TaskHandler {
   @override
   void onNotificationButtonPressed(String id) {
     if (id == 'cancel') {
-      FlutterForegroundTask.sendDataToMain("clear");
       FlutterForegroundTask.stopService();
     }
   }
@@ -75,7 +74,6 @@ class MyTaskHandler extends TaskHandler {
 
   @override
   void onNotificationDismissed() {
-    FlutterForegroundTask.sendDataToMain("clear");
     FlutterForegroundTask.stopService();
   }
 }

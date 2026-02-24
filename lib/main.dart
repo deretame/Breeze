@@ -37,6 +37,7 @@ import 'package:zephyr/util/desktop/intent.dart';
 import 'package:zephyr/util/desktop/native_window.dart';
 import 'package:zephyr/util/desktop/system_tray.dart';
 import 'package:zephyr/util/desktop/window_logic.dart';
+import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/manage_cache.dart';
@@ -168,10 +169,16 @@ Future<void> main() async {
           );
 
           FlutterError.onError = (FlutterErrorDetails errorDetails) {
+            if (shouldIgnoreError(errorDetails.exception)) {
+              return;
+            }
             FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
           };
 
           PlatformDispatcher.instance.onError = (error, stack) {
+            if (shouldIgnoreError(error)) {
+              return true;
+            }
             FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
             return true; // 表示错误已处理
           };
@@ -199,6 +206,10 @@ Future<void> main() async {
           return;
         }
 
+        if (shouldIgnoreError(error)) {
+          return;
+        }
+
         FirebaseCrashlytics.instance.recordError(
           error,
           stackTrace,
@@ -220,11 +231,13 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   @override
   void initState() {
     super.initState();
-    windowManager.addListener(this);
-    _init();
-    WindowLogic.initWindow(context).then((_) {
-      windowManager.setPreventClose(true);
-    });
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      windowManager.addListener(this);
+      _init();
+      WindowLogic.initWindow(context).then((_) {
+        windowManager.setPreventClose(true);
+      });
+    }
     trayManager.addListener(this);
     initSystemTray();
 
@@ -240,8 +253,10 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
 
   @override
   void dispose() {
-    windowManager.removeListener(this);
-    trayManager.removeListener(this);
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      windowManager.removeListener(this);
+      trayManager.removeListener(this);
+    }
     super.dispose();
   }
 
@@ -278,7 +293,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
       context: dialogContext,
       builder: (context) {
         return AlertDialog(
-          title: Text('您确定要关闭此窗口吗？'),
+          title: Text('您确定要退出软件吗？'),
           actions: [
             TextButton(
               child: Text('否'),
@@ -329,8 +344,10 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   }
 
   void _init() async {
-    await windowManager.setPreventClose(true);
-    setState(() {});
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      await windowManager.setPreventClose(true);
+      setState(() {});
+    }
   }
 
   @override

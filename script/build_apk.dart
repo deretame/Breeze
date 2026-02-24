@@ -317,9 +317,8 @@ Future<void> main() async {
 
         // --- 修改 ---
         // 之前：'powershell.exe', ['-File', symbolsScriptPath]
-        // 现在：使用 'flutter pub run' 来执行 .dart 脚本
-        exitCode = await _runCommand('flutter', [
-          'pub',
+        // 现在：使用 'dart run' 来执行 .dart 脚本
+        exitCode = await _runCommand('dart', [
           'run',
           symbolsScriptPath,
         ], workingDirectory: projectRoot);

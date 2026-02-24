@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/debouncer.dart';
 
 import '../../../type/enum.dart';
 import '../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
@@ -61,7 +62,9 @@ class RecommendWidget extends StatelessWidget {
 
     Widget scrollView = ComicFixedSizeHorizontalList(
       entries: comicInfoList,
-      spacing: 10.0,
+      spacing: 0,
+      roundedCorner: false,
+      itemWidth: (isTabletWithOutContext() ? 200 : 150) * 0.75,
     );
 
     if (_isDesktop) {

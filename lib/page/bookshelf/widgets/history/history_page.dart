@@ -216,7 +216,6 @@ class __HistoryPageState extends State<_HistoryPage>
         index,
         state.comics.length,
         () => _refresh(),
-        isBrevity: false,
         comics: state.comics,
       ),
     );
@@ -241,8 +240,6 @@ class __HistoryPageState extends State<_HistoryPage>
     int index,
     int dataLength,
     VoidCallback refreshCallback, {
-    required bool isBrevity,
-    List<List<ComicSimplifyEntryInfo>>? elementsRows,
     List<dynamic>? comics,
   }) {
     if (index == dataLength) {
@@ -261,31 +258,15 @@ class __HistoryPageState extends State<_HistoryPage>
     final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
 
     if (comicChoice == 1) {
-      if (isBrevity) {
-        return ComicSimplifyEntryRow(
-          key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
-          entries: elementsRows[index],
+      if (comics != null && comics[0] is BikaComicHistory) {
+        final temp = comics.map((e) => e as BikaComicHistory).toList();
+        return ComicEntryWidget(
+          comicEntryInfo: convertToComicEntryInfo(temp[index]),
           type: ComicEntryType.history,
           refresh: refreshCallback,
         );
-      } else {
-        if (comics != null && comics[0] is BikaComicHistory) {
-          final temp = comics.map((e) => e as BikaComicHistory).toList();
-          return ComicEntryWidget(
-            comicEntryInfo: convertToComicEntryInfo(temp[index]),
-            type: ComicEntryType.history,
-            refresh: refreshCallback,
-          );
-        }
-        return const SizedBox.shrink();
       }
-    } else if (comicChoice == 2) {
-      return ComicSimplifyEntryRow(
-        key: ValueKey(elementsRows![index].map((e) => e.id).join(',')),
-        entries: elementsRows[index],
-        type: ComicEntryType.history,
-        refresh: refreshCallback,
-      );
+      return const SizedBox.shrink();
     }
     return const SizedBox.shrink();
   }

@@ -5,6 +5,7 @@ import 'package:zephyr/page/jm/jm_week_ranking/bloc/week_ranking_bloc.dart';
 import 'package:zephyr/page/search_result/widgets/bottom_loader.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 import 'package:zephyr/widgets/error_view.dart';
@@ -91,72 +92,75 @@ class _RankingWidgetState extends State<_RankingWidget>
       );
     }
 
-    var list = state.list
-        .map((item) {
-          return ComicSimplifyEntryInfo(
-            title: item.name,
-            id: item.id,
-            fileServer: getJmCoverUrl(item.id),
-            path: "${item.id}.jpg",
-            pictureType: PictureType.cover,
-            from: From.jm,
-          );
-        })
-        .toList()
-        .let((list) => generateResponsiveRows(context, list));
+    var list = state.list.map((item) {
+      return ComicSimplifyEntryInfo(
+        title: item.name,
+        id: item.id,
+        fileServer: getJmCoverUrl(item.id),
+        path: "${item.id}.jpg",
+        pictureType: PictureType.cover,
+        from: From.jm,
+      );
+    }).toList();
 
-    var length = _calculateItemCount(state, list.length);
+    final maxExtent = isTabletWithOutContext() ? 200.0 : 150.0;
 
-    return ListView.builder(
-      itemCount: length,
-      itemBuilder: (context, index) {
-        switch (index) {
-          case _ when (index < list.length):
-            var key = list[index].map((item) => item.id).toList().toString();
-            return ComicSimplifyEntryRow(
-              key: ValueKey(key),
-              entries: list[index],
-              type: ComicEntryType.normal,
-            );
-          case _ when (state.hasReachedMax):
-            return _maxReachedWidget();
-          case _ when (state.status == JmRankingStatus.loadingMore):
-            return Center(child: BottomLoader());
-          case _ when (state.status == JmRankingStatus.loadingMoreFailure):
-            return _loadingMoreFailureWidget();
-          default:
-            return SizedBox.shrink();
-        }
-      },
+    return CustomScrollView(
       controller: scrollController,
-    );
-  }
-
-  Widget _maxReachedWidget() => const Center(
-    child: Padding(
-      padding: EdgeInsets.all(30.0),
-      child: Text('没有更多了', style: TextStyle(fontSize: 20.0)),
-    ),
-  );
-
-  Widget _loadingMoreFailureWidget() => Center(
-    child: Column(
-      children: [
-        const SizedBox(height: 10),
-        ElevatedButton(
-          onPressed: () => context.read<WeekRankingBloc>().add(
-            WeekRankingEvent(
-              date: widget.week,
-              page: page + 1,
-              type: widget.tag,
-              status: JmRankingStatus.loadingMore,
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.all(10),
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: maxExtent,
+              mainAxisSpacing: 15,
+              crossAxisSpacing: 15,
+              childAspectRatio: 0.75,
+            ),
+            delegate: SliverChildBuilderDelegate((context, index) {
+              return ComicSimplifyEntry(
+                key: ValueKey(list[index].id),
+                info: list[index],
+                type: ComicEntryType.normal,
+              );
+            }, childCount: list.length),
+          ),
+        ),
+        if (state.hasReachedMax)
+          const SliverToBoxAdapter(
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.all(30.0),
+                child: Text('没有更多了', style: TextStyle(fontSize: 20.0)),
+              ),
             ),
           ),
-          child: const Text('点击重试'),
-        ),
+        if (state.status == JmRankingStatus.loadingMore)
+          const SliverToBoxAdapter(child: Center(child: BottomLoader())),
+        if (state.status == JmRankingStatus.loadingMoreFailure)
+          SliverToBoxAdapter(
+            child: Center(
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () => context.read<WeekRankingBloc>().add(
+                      WeekRankingEvent(
+                        date: widget.week,
+                        page: page + 1,
+                        type: widget.tag,
+                        status: JmRankingStatus.loadingMore,
+                      ),
+                    ),
+                    child: const Text('点击重试'),
+                  ),
+                ],
+              ),
+            ),
+          ),
       ],
-    ),
-  );
+    );
+  }
 
   void _onScroll() {
     if (_isBottom) {
@@ -176,15 +180,5 @@ class _RankingWidgetState extends State<_RankingWidget>
     final maxScroll = scrollController.position.maxScrollExtent;
     final currentScroll = scrollController.offset;
     return currentScroll >= (maxScroll * 0.9);
-  }
-
-  int _calculateItemCount(WeekRankingState state, int dataLength) {
-    var count = dataLength + 1;
-    if (!state.hasReachedMax) count--;
-    if (state.status == JmRankingStatus.loadingMore ||
-        state.status == JmRankingStatus.loadingMoreFailure) {
-      count++;
-    }
-    return count;
   }
 }

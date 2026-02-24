@@ -174,6 +174,7 @@ class DownloadQueueManager {
       reporter.updateComicName(appName);
       reporter.updateMessage("等待下载任务中...");
       _isProcessing = false;
+      FlutterForegroundTask.stopService();
       return;
     }
 

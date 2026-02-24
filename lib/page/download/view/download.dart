@@ -139,7 +139,7 @@ class _DownloadPageState extends State<DownloadPage> {
       slowDownload: SettingsHiveUtils.bikaSlowDownload,
     );
     try {
-      await startDownloadTask(task);
+      startDownloadTask(task);
       showInfoToast("下载任务已启动");
     } catch (e, s) {
       logger.e(e, stackTrace: s);

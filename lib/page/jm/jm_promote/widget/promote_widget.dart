@@ -47,21 +47,9 @@ class _PromoteWidgetState extends State<PromoteWidget> {
   Widget build(BuildContext context) {
     final materialColorScheme = context.theme.colorScheme;
 
-    // 使用 LayoutBuilder 获取实际可用宽度，避免使用 screenWidth 或 orientation
-    // 因为在 Windows 桌面端拖动窗口时，screenWidth 和 orientation 都会随宽高比变化
-    // 导致高度不断跳变。改为由父布局约束决定卡片宽度，确保内外高度始终一致。
     return LayoutBuilder(
       builder: (context, constraints) {
-        final availableWidth = constraints.maxWidth;
-
-        // 根据可用宽度确定单张卡片宽度（与平板/手机的相对比例保持一致）
-        final double itemWidth;
-        if (isTabletWithOutContext()) {
-          itemWidth = availableWidth * 0.15;
-        } else {
-          itemWidth = availableWidth * 0.28;
-        }
-        // 高度 = 宽度 / 0.75（3:4 比例），标题栏约 33px，上下 padding 各 5px
+        final double itemWidth = (isTabletWithOutContext() ? 200 : 150) * 0.75;
         final double itemHeight = itemWidth / 0.75;
         const double headerHeight = 33.0;
         const double verticalPadding = 10.0;
@@ -137,7 +125,12 @@ class _PromoteWidgetState extends State<PromoteWidget> {
                   ),
                 ),
               ),
-              Expanded(child: _buildHorizontalList(itemWidth)),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 10.0),
+                  child: _buildHorizontalList(itemWidth),
+                ),
+              ),
             ],
           ),
         );

@@ -3,8 +3,6 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
-import 'package:uuid/uuid.dart';
-import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../main.dart';
@@ -14,43 +12,18 @@ import '../../util/router/router.gr.dart';
 import 'comic_simplify_entry_info.dart';
 import 'cover.dart';
 
-class ComicSimplifyEntryRow extends StatelessWidget {
-  final List<ComicSimplifyEntryInfo> entries;
-  final ComicEntryType type;
-  final VoidCallback? refresh;
-
-  const ComicSimplifyEntryRow({
-    super.key,
-    required this.entries,
-    required this.type,
-    this.refresh,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: entries
-          .map(
-            (entry) =>
-                ComicSimplifyEntry(info: entry, type: type, refresh: refresh),
-          )
-          .toList(),
-    );
-  }
-}
-
 class ComicFixedSizeHorizontalList extends StatelessWidget {
   final List<ComicSimplifyEntryInfo> entries;
   final double spacing; // 卡片之间的横向间距
   final double itemWidth; // 卡片固定宽度
+  final bool roundedCorner; // 是否有圆角
 
   const ComicFixedSizeHorizontalList({
     super.key,
     required this.entries,
     this.spacing = 10.0, // 默认间距设为 10
-    this.itemWidth = 160.0, // 固定宽度，不随窗口宽高比变化
+    this.itemWidth = 200, // 固定宽度，不随窗口宽高比变化
+    this.roundedCorner = true,
   });
 
   @override
@@ -99,6 +72,7 @@ class ComicFixedSizeHorizontalList extends StatelessWidget {
     double width,
     double height,
   ) {
+    double circular = roundedCorner ? 5.0 : 0.0;
     return Stack(
       children: [
         // 1. 底层封面图
@@ -108,7 +82,7 @@ class ComicFixedSizeHorizontalList extends StatelessWidget {
           id: info.id,
           pictureType: info.pictureType,
           from: info.from,
-          roundedCorner: false,
+          roundedCorner: roundedCorner,
           width: width,
           height: height,
         ),
@@ -128,6 +102,10 @@ class ComicFixedSizeHorizontalList extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 stops: const [0.0, 0.7],
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(circular),
+                bottomRight: Radius.circular(circular),
               ),
             ),
             padding: const EdgeInsets.fromLTRB(5.0, 20.0, 5.0, 5.0),
@@ -424,72 +402,4 @@ class ComicSimplifyEntry extends StatelessWidget {
       }
     }
   }
-}
-
-/// [context] 用于获取屏幕方向和尺寸。
-/// [list] 是原始的数据列表。
-List<List<ComicSimplifyEntryInfo>> generateResponsiveRows(
-  BuildContext context,
-  List<ComicSimplifyEntryInfo> list,
-) {
-  // 1. 根据 context 动态获取每行的项目数
-  final int itemCount = _getCrossAxisCount(context);
-
-  // 2. 填充占位符
-  final filledList = _fillListWithPlaceholders(list, itemCount);
-
-  // 3. 将列表分割成行
-  return _chunkList(filledList, itemCount);
-}
-
-/// 根据上下文获取每行的项目数 (crossAxisCount)。
-int _getCrossAxisCount(BuildContext context) {
-  final orientation = MediaQuery.of(context).orientation;
-  if (isTablet(context)) {
-    return (orientation == Orientation.landscape) ? 5 : 4;
-  } else {
-    return 3;
-  }
-}
-
-/// 用占位符填充列表，确保最后一行是满的。
-List<ComicSimplifyEntryInfo> _fillListWithPlaceholders(
-  List<ComicSimplifyEntryInfo> list,
-  int itemCountPerRow,
-) {
-  final remainder = list.length % itemCountPerRow;
-  if (remainder == 0) return List.from(list);
-
-  final placeholderCount = itemCountPerRow - remainder;
-  final placeholders = List.generate(
-    placeholderCount,
-    (_) => _createPlaceholder(),
-  );
-
-  return [...list, ...placeholders];
-}
-
-/// 创建一个用于UI占位的条目。
-ComicSimplifyEntryInfo _createPlaceholder() {
-  return ComicSimplifyEntryInfo(
-    title: '无数据', // 特殊标题，用于UI判断
-    id: const Uuid().v4(),
-    fileServer: '',
-    path: '',
-    pictureType: PictureType.unknown,
-    from: From.unknown,
-  );
-}
-
-/// 将一个长列表分割成一个包含多个子列表的列表。
-List<List<T>> _chunkList<T>(List<T> list, int chunkSize) {
-  return List.generate(
-    (list.length / chunkSize).ceil(),
-    (index) => list.sublist(
-      index * chunkSize,
-      (index + 1) * chunkSize > list.length
-          ? list.length
-          : (index + 1) * chunkSize,
-    ),
-  );
 }

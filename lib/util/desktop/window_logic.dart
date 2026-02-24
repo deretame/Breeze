@@ -12,6 +12,9 @@ class WindowLogic {
 
   /// 初始化窗口并恢复上次的状态
   static Future<void> initWindow(BuildContext context) async {
+    if (!Platform.isWindows && !Platform.isMacOS && !Platform.isLinux) {
+      return;
+    }
     // 必须先确保绑定初始化
     await windowManager.ensureInitialized();
     if (!context.mounted) return;
@@ -52,6 +55,9 @@ class WindowLogic {
 
   /// 保存当前窗口状态
   static Future<void> saveWindowState(BuildContext context) async {
+    if (!Platform.isWindows && !Platform.isMacOS && !Platform.isLinux) {
+      return;
+    }
     // 一秒钟最多更新一次
     final now = DateTime.now();
     if (now.difference(lastSaveTime).inMilliseconds < 1000) {

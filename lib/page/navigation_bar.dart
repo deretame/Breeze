@@ -25,7 +25,6 @@ import 'package:zephyr/widgets/toast.dart';
 import '../config/global/global.dart';
 import '../main.dart';
 import '../network/webdav.dart';
-import '../object_box/objectbox.g.dart';
 import '../util/debouncer.dart';
 import '../util/dialog.dart';
 import '../util/event/event.dart';
@@ -74,8 +73,14 @@ class _NavigationBarState extends State<NavigationBar> {
       jmLogin(context);
       _autoSync();
       manageCacheSize(context);
-      await _resetDownloadTasks();
-      initDownloadTask();
+      resetDownloadTasks();
+      if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+        DownloadQueueManager.instance.watchTasks(isDesktop: true);
+      } else if (Platform.isAndroid) {
+        if (DownloadQueueManager.instance.queueLength > 0) {
+          initDownloadTask();
+        }
+      }
     });
     _controller = PersistentTabController(
       initialIndex: SettingsHiveUtils.welcomePageNum,
@@ -88,10 +93,6 @@ class _NavigationBarState extends State<NavigationBar> {
     );
     hideOnScrollSettings = HideOnScrollSettings(); // 先去掉这个东西
     initForegroundTask();
-
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      DownloadQueueManager.instance.watchTasks(isDesktop: true);
-    }
 
     initializeNotificationsOnce();
 
@@ -287,25 +288,6 @@ class _NavigationBarState extends State<NavigationBar> {
         label: Text("更多"),
       ),
     ];
-  }
-
-  Future<void> _resetDownloadTasks() async {
-    final pendingTasks = objectbox.downloadTaskBox
-        .query(DownloadTask_.isCompleted.equals(false))
-        .build()
-        .find();
-
-    final tasksToReset = pendingTasks
-        .where((task) => task.isDownloading)
-        .toList();
-
-    if (tasksToReset.isNotEmpty) {
-      for (final task in tasksToReset) {
-        task.isDownloading = false;
-      }
-      objectbox.downloadTaskBox.putMany(tasksToReset);
-      logger.d("重置了 ${tasksToReset.length} 个任务的下载状态");
-    }
   }
 
   Future<void> _autoSync() async {

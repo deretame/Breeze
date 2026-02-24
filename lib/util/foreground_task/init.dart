@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
@@ -5,6 +6,7 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
+import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/util/download/download_queue_manager.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/main_task.dart';
@@ -14,10 +16,10 @@ import 'package:zephyr/widgets/toast.dart';
 ///
 /// Android 端：启动前台服务，通过 IPC 发送任务
 /// 桌面端：直接将任务添加到 [DownloadQueueManager]
-Future<void> startDownloadTask(DownloadTaskJson task) async {
+void startDownloadTask(DownloadTaskJson task) {
   _updateDb(task);
   if (Platform.isAndroid) {
-    await _startAndroidDownload();
+    unawaited(_startAndroidDownload());
   }
 }
 
@@ -26,6 +28,7 @@ Future<void> _startAndroidDownload() async {
   if (await FlutterForegroundTask.isRunningService) {
     return;
   }
+  resetDownloadTasks();
   // 启动新的前台服务
   await initDownloadTask();
 }
@@ -36,7 +39,11 @@ Future<void> initDownloadTask() async {
   final notificationPermission =
       await FlutterForegroundTask.checkNotificationPermission();
   if (notificationPermission != NotificationPermission.granted) {
-    await FlutterForegroundTask.requestNotificationPermission();
+    try {
+      await FlutterForegroundTask.requestNotificationPermission();
+    } catch (e) {
+      logger.w('Notification permission request failed: $e');
+    }
   }
 
   if (!await FlutterForegroundTask.isIgnoringBatteryOptimizations) {
@@ -53,6 +60,7 @@ Future<void> initDownloadTask() async {
     notificationTitle: appName,
     notificationText: '等待下载任务中...',
     callback: startCallback,
+    notificationButtons: [const NotificationButton(id: 'cancel', text: '取消')],
   );
 
   FlutterForegroundTask.addTaskDataCallback(_onReceiveTaskData);
@@ -80,4 +88,23 @@ void _updateDb(DownloadTaskJson task) {
     ..taskInfo = task;
 
   box.put(downloadTask);
+}
+
+void resetDownloadTasks() {
+  final pendingTasks = objectbox.downloadTaskBox
+      .query(DownloadTask_.isCompleted.equals(false))
+      .build()
+      .find();
+
+  final tasksToReset = pendingTasks
+      .where((task) => task.isDownloading)
+      .toList();
+
+  if (tasksToReset.isNotEmpty) {
+    for (final task in tasksToReset) {
+      task.isDownloading = false;
+    }
+    objectbox.downloadTaskBox.putMany(tasksToReset);
+    logger.d("重置了 ${tasksToReset.length} 个任务的下载状态");
+  }
 }

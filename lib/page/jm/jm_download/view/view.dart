@@ -148,7 +148,7 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
       slowDownload: bikaCubit.state.slowDownload,
     );
     try {
-      await startDownloadTask(task);
+      startDownloadTask(task);
       showInfoToast("下载任务已启动");
     } catch (e, s) {
       logger.e(e, stackTrace: s);

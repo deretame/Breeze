@@ -2,32 +2,28 @@ name: Test Windows Release (Git-Crypt Fix)
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: "测试版本号 (仅用于标识)"
-        required: true
-        default: "v_test_win"
 
 jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      # 【关键修复 1】：必须在 checkout 前关闭自动换行符转换
+      # 【核心修复 1】：必须在 checkout 之前执行！
+      # 防止 Git 把加密状态的二进制字节里的 0A 擅自转成 0D 0A，导致解密后文件损坏
       - name: 关闭 Git CRLF 转换
         run: git config --global core.autocrlf false
 
       - uses: actions/checkout@v4
 
-      # 【关键修复 2】：使用 Windows CI 自带的 choco 安装 git-crypt
+      # 【核心修复 2】：恢复你原本能正常工作的 exe 下载方式
       - name: 解密 (Windows Git-Crypt)
         shell: bash
         env:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
         run: |
-          choco install git-crypt -y
+          curl -L -o git-crypt.exe https://github.com/oholovko/git-crypt-windows/releases/download/0.2.1/git-crypt.exe
           echo "$GIT_CRYPT_KEY" | base64 -d > ./git-crypt-key
-          git-crypt unlock ./git-crypt-key
-          rm ./git-crypt-key
+          ./git-crypt.exe unlock ./git-crypt-key
+          rm ./git-crypt-key git-crypt.exe
 
       - name: 设置 Node.js & pnpm
         uses: pnpm/action-setup@v4
@@ -47,7 +43,6 @@ jobs:
         run: |
           dart pub global activate fvm
           fvm install && fvm use --force
-          # 将 FVM 路径加入 Windows 环境变量
           echo "$((Get-Item .).FullName)\.fvm\flutter_sdk\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: 安装 Rust 工具链
@@ -55,13 +50,9 @@ jobs:
 
       - name: 运行 Windows 构建脚本
         run: |
-          # 1. 先获取项目依赖
           fvm flutter pub get
-
-          # 2. 运行脚本
           fvm dart ./script/build_windows.dart
 
-      # 测试专供：不发布 Release，直接将 exe 作为 Artifact 上传
       - name: 上传 Windows 测试产物
         uses: actions/upload-artifact@v4
         with:

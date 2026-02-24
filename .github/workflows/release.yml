@@ -23,6 +23,8 @@ jobs:
       - name: 释放空间 (Nuclear Mode)
         run: |
           sudo rm -rf /opt/hostedtoolcache /usr/local/lib/android /usr/share/dotnet /opt/codeql
+          sudo mkdir -p /usr/local/lib/android/sdk
+          sudo chown -R $USER:$USER /usr/local/lib/android 
           docker system prune -a -f
           sudo apt-get clean
 
@@ -159,10 +161,12 @@ jobs:
         env:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
         run: |
-          # Windows Runner 默认没装 git-crypt，需要安装
-          choco install git-crypt
+          curl -L -o git-crypt.exe https://github.com/oholovko/git-crypt-windows/releases/download/0.2.1/git-crypt.exe
+
           echo "$GIT_CRYPT_KEY" | base64 -d > ./git-crypt-key
-          git-crypt unlock ./git-crypt-key && rm ./git-crypt-key
+          ./git-crypt.exe unlock ./git-crypt-key && rm ./git-crypt-key
+
+          rm git-crypt.exe
 
       - name: 设置 Node.js & pnpm
         uses: pnpm/action-setup@v4

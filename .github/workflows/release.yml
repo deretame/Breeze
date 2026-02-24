@@ -154,13 +154,11 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      # 【修改点 1】：加入关闭自动换行符转换的指令，保护加密文件
       - name: 关闭 Git CRLF 转换
         run: git config --global core.autocrlf false
 
       - uses: actions/checkout@v4
 
-      # 【修改点 2】：替换为更稳定、更原生的 MSYS2 解决方案
       - name: 解密 (原生 MSYS2 Git-Crypt)
         shell: bash
         env:

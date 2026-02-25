@@ -47,23 +47,10 @@ jobs:
           cd macos
 
           # flutter pub get 自动生成的 Podfile 可能引用旧 platform 版本
-          # 将 platform :osx 的版本号统一改为 11.0
           if [ -f "Podfile" ]; then
             sed -i '' "s/platform :osx, '[0-9.]*'/platform :osx, '11.0'/g" Podfile
-
-            # 如果还没有 post_install 中设置部署目标的逻辑，则追加
-            if ! grep -q "MACOSX_DEPLOYMENT_TARGET" Podfile; then
-              cat >> Podfile << 'EOF'
-
-          post_install do |installer|
-            installer.pods_project.targets.each do |target|
-              target.build_configurations.each do |config|
-                config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '11.0'
-              end
-            end
-          end
-          EOF
-            fi
+            echo "=== Patched Podfile ==="
+            cat Podfile
           fi
 
           pod install --repo-update

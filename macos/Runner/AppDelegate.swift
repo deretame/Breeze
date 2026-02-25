@@ -33,7 +33,7 @@ class AppDelegate: FlutterAppDelegate {
       super.applicationDidFinishLaunching(notification)
       return
     }
-    let channel = FlutterMethodChannel(name: "com.breeze.macos/activity", binaryMessenger: controller.binaryMessenger)
+    let channel = FlutterMethodChannel(name: "com.breeze.macos/activity", binaryMessenger: controller.engine.binaryMessenger)
 
     channel.setMethodCallHandler { [weak self] (call: FlutterMethodCall, result: @escaping FlutterResult) in
       switch call.method {

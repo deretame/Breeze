@@ -43,32 +43,27 @@ jobs:
       - name: 拉取依赖并生成配置
         run: fvm flutter pub get
 
-      - name: 强制提升 macOS 部署目标版本至 11.0 (含所有子依赖)
+      - name: 解决底层 C 库链接与 Pod 版本冲突
         run: |
-          # 1. 修改 Xcode 核心配置文件
+          # 1. 【解决致命报错】通过 xcconfig 强制 Xcode 链接 bzip2 和 lzma 静态库
+          # 将链接参数直接注入到 Flutter 的 Release 配置文件中
+          echo 'OTHER_LDFLAGS = $(inherited) -L/opt/homebrew/lib -lbz2 -llzma' >> macos/Runner/Configs/Release.xcconfig
+
+          # 2. 修改 Xcode 主工程的最低版本限制
           find macos/Runner.xcodeproj -name "project.pbxproj" -exec sed -i '' 's/MACOSX_DEPLOYMENT_TARGET = [^;]*/MACOSX_DEPLOYMENT_TARGET = 11.0/g' {} +
 
-          # 2. 修改 Podfile 中的平台版本
+          # 3. 【解决满屏警告】完美修改 Podfile
           if [ -f "macos/Podfile" ]; then
-            echo "发现 Podfile，正在将主版本提升至 11.0..."
-            sed -i '' "s/platform :osx, '10.11'/platform :osx, '11.0'/g" macos/Podfile
-            sed -i '' "s/platform :osx, '10.14'/platform :osx, '11.0'/g" macos/Podfile
-            sed -i '' "s/platform :osx, '10.15'/platform :osx, '11.0'/g" macos/Podfile
+              echo "发现 Podfile，正在注入环境配置..."
+              # 修改全局平台版本
+              sed -i '' "s/platform :osx, '10.11'/platform :osx, '11.0'/g" macos/Podfile
+              sed -i '' "s/platform :osx, '10.14'/platform :osx, '11.0'/g" macos/Podfile
 
-            # 3. 终极大法：注入 post_install 钩子，强制所有第三方 Pod 升级到 11.0
-            if ! grep -q "post_install" macos/Podfile; then
-              echo "
-            post_install do |installer|
-            installer.pods_project.targets.each do |target|
-                target.build_configurations.each do |config|
-                config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '11.0'
-                end
-            end
-            end" >> macos/Podfile
-              echo "✅ 成功注入 CocoaPods 全局版本强制升级脚本！"
-            fi
+              # 使用 perl 脚本“潜入”已有的 post_install 内部，而不是在末尾追加
+              # 这会把强制升级 11.0 的逻辑无缝插入到原有的执行流中
+              perl -pi -e 's/(post_install do \|installer\|)/$1\n  installer.pods_project.targets.each do |target|\n    target.build_configurations.each do |config|\n      config.build_settings["MACOSX_DEPLOYMENT_TARGET"] = "11.0"\n    end\n  end/g' macos/Podfile
           else
-            echo "未找到 Podfile，跳过。"
+              echo "未找到 Podfile，跳过。"
           fi
 
       - name: 编译 Flutter macOS 产物

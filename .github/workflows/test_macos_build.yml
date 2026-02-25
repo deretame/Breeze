@@ -38,12 +38,26 @@ jobs:
       - name: 安装打包工具 (create-dmg)
         run: brew install create-dmg
 
-      - name: 编译 Flutter macOS 产物
+      - name: 拉取依赖并生成配置
+        run: fvm flutter pub get
+
+      - name: 强制提升 macOS 部署目标版本至 11.0 (解决插件依赖报错)
         run: |
-          # 确保依赖拉取完整
-          fvm flutter pub get
-          # 执行 release 编译
-          fvm flutter build macos --release
+          # 1. 修改 Xcode 核心配置文件中的最低版本限制
+          find macos/Runner.xcodeproj -name "project.pbxproj" -exec sed -i '' 's/MACOSX_DEPLOYMENT_TARGET = [^;]*/MACOSX_DEPLOYMENT_TARGET = 11.0/g' {} +
+
+          # 2. 修改 Podfile 中的平台版本限制 (兼容 Flutter 默认生成的旧版本号)
+          if [ -f "macos/Podfile" ]; then
+            echo "发现 Podfile，正在将版本提升至 11.0..."
+            sed -i '' "s/platform :osx, '10.11'/platform :osx, '11.0'/g" macos/Podfile
+            sed -i '' "s/platform :osx, '10.14'/platform :osx, '11.0'/g" macos/Podfile
+            sed -i '' "s/platform :osx, '10.15'/platform :osx, '11.0'/g" macos/Podfile
+          else
+            echo "未找到 Podfile，继续执行后续步骤。"
+          fi
+
+      - name: 编译 Flutter macOS 产物
+        run: fvm flutter build macos --release
 
       - name: 制作 DMG 安装包
         run: |

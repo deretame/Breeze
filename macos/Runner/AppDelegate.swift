@@ -27,7 +27,12 @@ class AppDelegate: FlutterAppDelegate {
   }
 
   override func applicationDidFinishLaunching(_ notification: Notification) {
-    let controller = window?.contentViewController as! FlutterViewController
+    // mainWindow 可能还未就绪，回退到遍历所有 window
+    guard let controller = (NSApp.mainWindow?.contentViewController
+        ?? NSApp.windows.first(where: { $0.contentViewController is FlutterViewController })?.contentViewController) as? FlutterViewController else {
+      super.applicationDidFinishLaunching(notification)
+      return
+    }
     let channel = FlutterMethodChannel(name: "com.breeze.macos/activity", binaryMessenger: controller.binaryMessenger)
 
     channel.setMethodCallHandler { [weak self] (call: FlutterMethodCall, result: @escaping FlutterResult) in

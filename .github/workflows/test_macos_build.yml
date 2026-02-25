@@ -10,12 +10,11 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 安装系统依赖 (C 底层库)
+      - name: 安装系统依赖
         env:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
         run: |
-          # 安装 Rust 编译和底层压缩需要的库
-          brew install git-crypt pkg-config xz bzip2
+          brew install git-crypt
 
           # 解密敏感文件
           echo "$GIT_CRYPT_KEY" | base64 --decode > ./git-crypt-key || echo "$GIT_CRYPT_KEY" | base64 -D > ./git-crypt-key
@@ -32,7 +31,7 @@ jobs:
           fvm install && fvm use --force
           echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
 
-      - name: 安装 Rust 工具链 (确保支持 arm64)
+      - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-darwin, x86_64-apple-darwin
@@ -43,48 +42,13 @@ jobs:
       - name: 拉取依赖
         run: fvm flutter pub get
 
-      - name: 🛠️ 核心修复：强制链接 C 库与版本同步
+      - name: 安装 CocoaPods 依赖
         run: |
-          # 1. 搞定 Podfile 版本
-          if [ -f "macos/Podfile" ]; then
-              perl -pi -e "s/^#?\s*platform\s+:osx.*/platform :osx, '11.0'/g" macos/Podfile
-              perl -pi -e 's/(post_install do \|installer\|)/$1\n  installer.pods_project.targets.each do |target|\n    target.build_configurations.each do |config|\n      config.build_settings["MACOSX_DEPLOYMENT_TARGET"] = "11.0"\n    end\n  end/g' macos/Podfile
-          fi
-
-          # 2. 直接塞绝对路径给 Xcode
-          gem install xcodeproj
-          ruby -e "
-          require 'xcodeproj'
-          project = Xcodeproj::Project.open('macos/Runner.xcodeproj')
-
-          project.targets.each do |target|
-            target.build_configurations.each do |config|
-              config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '11.0'
-              
-              if target.name == 'Runner'
-                current_flags = config.build_settings['OTHER_LDFLAGS'] || []
-                current_flags = [current_flags] if current_flags.is_a?(String)
-                
-                # 【终极必杀】直接写入 C 静态库的绝对路径！不依赖任何搜索机制！
-                absolute_libs = [
-                  '/opt/homebrew/opt/xz/lib/liblzma.a',
-                  '/opt/homebrew/opt/bzip2/lib/libbz2.a'
-                ]
-                config.build_settings['OTHER_LDFLAGS'] = (current_flags + absolute_libs).uniq
-              end
-            end
-          end
-
-          project.save
-          puts '✅ 已向 Xcode 注入绝对路径核弹！'
-          "
+          cd macos
+          pod install --repo-update
+          cd ..
 
       - name: 编译 Flutter macOS 产物
-        env:
-          # 【双保险】通过环境变量强制告诉 Rust 编译器 C 库在哪里
-          PKG_CONFIG_PATH: /opt/homebrew/opt/xz/lib/pkgconfig:/opt/homebrew/opt/bzip2/lib/pkgconfig
-          LIBRARY_PATH: /opt/homebrew/opt/xz/lib:/opt/homebrew/opt/bzip2/lib
-          CPATH: /opt/homebrew/opt/xz/include:/opt/homebrew/opt/bzip2/include
         run: fvm flutter build macos --release
 
       - name: 制作 DMG

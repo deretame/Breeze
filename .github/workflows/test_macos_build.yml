@@ -1,0 +1,81 @@
+name: Test macOS Build & DMG
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 解密敏感文件 (git-crypt)
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: |
+          brew install git-crypt
+          # macOS 下 base64 解码通常需要 -D 或 --decode
+          echo "$GIT_CRYPT_KEY" | base64 --decode > ./git-crypt-key || echo "$GIT_CRYPT_KEY" | base64 -D > ./git-crypt-key
+          git-crypt unlock ./git-crypt-key && rm ./git-crypt-key
+
+      - name: 设置 Dart SDK
+        uses: dart-lang/setup-dart@v1
+
+      - name: 设置 Flutter (FVM)
+        run: |
+          dart pub global activate fvm
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          fvm install && fvm use --force
+          echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
+
+      - name: 安装 Rust 工具链 (Apple Silicon & Intel)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+
+      - name: 安装打包工具 (create-dmg)
+        run: brew install create-dmg
+
+      - name: 编译 Flutter macOS 产物
+        run: |
+          # 确保依赖拉取完整
+          fvm flutter pub get
+          # 执行 release 编译
+          fvm flutter build macos --release
+
+      - name: 制作 DMG 安装包
+        run: |
+          # 1. 动态找到编译出来的 .app 文件夹名称及路径
+          APP_PATH=$(find build/macos/Build/Products/Release -name "*.app" -maxdepth 1 | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "❌ 找不到编译好的 .app 文件！"
+            exit 1
+          fi
+
+          APP_NAME=$(basename "$APP_PATH")
+          echo "✅ 找到应用: $APP_NAME 路径: $APP_PATH"
+
+          # 2. 避免 create-dmg 因为同名文件存在而报错
+          rm -f "Breeze-macOS-Test.dmg"
+
+          # 3. 生成 DMG (如果在 CI 中遇到 UI 布局报错，这里的参数是最精简兼容版本)
+          create-dmg \
+            --volname "Breeze Installer" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "$APP_NAME" 150 190 \
+            --hide-extension "$APP_NAME" \
+            --app-drop-link 450 190 \
+            "Breeze-macOS-Test.dmg" \
+            "$APP_PATH"
+
+      - name: 上传 DMG 以供下载测试
+        uses: actions/upload-artifact@v4
+        with:
+          name: macOS-DMG-Test
+          path: Breeze-macOS-Test.dmg
+          # 设置保留天数，测试包没必要留太久
+          retention-days: 3

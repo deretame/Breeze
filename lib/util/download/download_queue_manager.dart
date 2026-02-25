@@ -9,6 +9,7 @@ import 'package:zephyr/util/download/download_progress_reporter.dart';
 import 'package:zephyr/util/download/platform/desktop_download_runner.dart';
 import 'package:zephyr/util/foreground_task/task/bika_download.dart';
 import 'package:zephyr/util/foreground_task/task/jm_download.dart';
+import 'package:zephyr/util/macos_activity.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 /// 下载进度信息
@@ -76,10 +77,12 @@ class DownloadQueueManager {
         .find();
 
     if (pendingTasks.isEmpty) {
+      MacOSActivity.stop();
       _isProcessing = false;
       return;
     }
 
+    MacOSActivity.start();
     _isProcessing = true;
 
     final desktopReporter = DesktopProgressReporter();

@@ -10,14 +10,14 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 安装系统依赖 & 解密 (git-crypt)
+      - name: 安装系统依赖 (C 语言底层库与加密工具)
         env:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
         run: |
-          # 新增 pkg-config, xz (lzma), bzip2 供 Rust 静态链接使用
+          # 1. 安装 Rust 跨平台编译必需的 C 语言压缩库和构建工具
           brew install git-crypt pkg-config xz bzip2
 
-          # 解密逻辑
+          # 2. 解密敏感文件
           echo "$GIT_CRYPT_KEY" | base64 --decode > ./git-crypt-key || echo "$GIT_CRYPT_KEY" | base64 -D > ./git-crypt-key
           git-crypt unlock ./git-crypt-key && rm ./git-crypt-key
 
@@ -32,7 +32,7 @@ jobs:
           fvm install && fvm use --force
           echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
 
-      - name: 安装 Rust 工具链 (Apple Silicon & Intel)
+      - name: 安装 Rust 工具链 (确保支持 Apple Silicon 与 Intel)
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-darwin, x86_64-apple-darwin
@@ -40,49 +40,58 @@ jobs:
       - name: 安装打包工具 (create-dmg)
         run: brew install create-dmg
 
-      - name: 拉取依赖并生成配置
+      - name: 拉取 Flutter 依赖并生成配置
         run: fvm flutter pub get
 
-      - name: 解决底层 C 库链接与 Pod 版本冲突
+      - name: 终极修复：C 库路径注入与 CocoaPods 版本强制同步
         run: |
-          # 1. 修改 Podfile (处理版本兼容性)
+          # ==========================================
+          # 第一部分：修改 Podfile，解决插件版本过低警告
+          # ==========================================
           if [ -f "macos/Podfile" ]; then
+              echo "✅ 发现 Podfile，正在重写基础部署版本..."
               perl -pi -e "s/^#?\s*platform\s+:osx.*/platform :osx, '11.0'/g" macos/Podfile
+              
+              echo "✅ 注入 post_install，强制同步所有第三方库版本至 11.0..."
               perl -pi -e 's/(post_install do \|installer\|)/$1\n  installer.pods_project.targets.each do |target|\n    target.build_configurations.each do |config|\n      config.build_settings["MACOSX_DEPLOYMENT_TARGET"] = "11.0"\n    end\n  end/g' macos/Podfile
           fi
 
-          # 2. 使用 xcodeproj 脚本进行深度注入
+          # ==========================================
+          # 第二部分：暴力修改 Xcode 数据库，专治 arm64 符号缺失
+          # ==========================================
+          echo "✅ 正在使用 xcodeproj 强力注入 C 语言静态库路径..."
           gem install xcodeproj
           ruby -e "
           require 'xcodeproj'
           project = Xcodeproj::Project.open('macos/Runner.xcodeproj')
           
-          # 定义 Homebrew 库路径 (Apple Silicon 路径)
-          brew_lib_path = '/opt/homebrew/lib'
-          
           project.targets.each do |target|
             target.build_configurations.each do |config|
-              # A. 统一设置最低部署版本
+              # 1. 把所有 Target 的版本底线全部拉到 11.0
               config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '11.0'
               
+              # 2. 专门针对主程序 Runner 注入链接参数
               if target.name == 'Runner'
-                # B. 注入链接标志
-                ld_flags = config.build_settings['OTHER_LDFLAGS'] || ['\$(inherited)']
-                ld_flags = [ld_flags] if ld_flags.is_a?(String)
-                ['-lbz2', '-llzma'].each { |f| ld_flags << f unless ld_flags.include?(f) }
-                config.build_settings['OTHER_LDFLAGS'] = ld_flags
-                
-                # C. 【关键修正】注入库搜索路径，否则 Xcode 找不到库文件
+                # 注入搜索路径 (LIBRARY_SEARCH_PATHS)：告诉 Xcode 去哪里找 lzma 和 bz2
                 search_paths = config.build_settings['LIBRARY_SEARCH_PATHS'] || ['\$(inherited)']
                 search_paths = [search_paths] if search_paths.is_a?(String)
-                search_paths << brew_lib_path unless search_paths.include?(brew_lib_path)
-                config.build_settings['LIBRARY_SEARCH_PATHS'] = search_paths
+                search_paths << '/opt/homebrew/opt/xz/lib'
+                search_paths << '/opt/homebrew/opt/bzip2/lib'
+                search_paths << '/opt/homebrew/lib'
+                config.build_settings['LIBRARY_SEARCH_PATHS'] = search_paths.uniq
+                
+                # 注入链接标志 (OTHER_LDFLAGS)：要求链接 lzma 和 bz2
+                ldflags = config.build_settings['OTHER_LDFLAGS'] || ['\$(inherited)']
+                ldflags = [ldflags] if ldflags.is_a?(String)
+                ldflags << '-llzma'
+                ldflags << '-lbz2'
+                config.build_settings['OTHER_LDFLAGS'] = ldflags.uniq
               end
             end
           end
           
           project.save
-          puts '✅ Xcode 路径与链接注入完成！'
+          puts '🎉 Xcode 核心数据库写入完毕！'
           "
 
       - name: 编译 Flutter macOS 产物
@@ -90,7 +99,7 @@ jobs:
 
       - name: 制作 DMG 安装包
         run: |
-          # 1. 动态找到编译出来的 .app 文件夹名称及路径
+          # 1. 动态查找生成的 .app 文件夹
           APP_PATH=$(find build/macos/Build/Products/Release -name "*.app" -maxdepth 1 | head -n 1)
           if [ -z "$APP_PATH" ]; then
             echo "❌ 找不到编译好的 .app 文件！"
@@ -100,10 +109,10 @@ jobs:
           APP_NAME=$(basename "$APP_PATH")
           echo "✅ 找到应用: $APP_NAME 路径: $APP_PATH"
 
-          # 2. 避免 create-dmg 因为同名文件存在而报错
+          # 2. 清理可能存在的旧包
           rm -f "Breeze-macOS-Test.dmg"
 
-          # 3. 生成 DMG (如果在 CI 中遇到 UI 布局报错，这里的参数是最精简兼容版本)
+          # 3. 使用静默模式生成 DMG
           create-dmg \
             --volname "Breeze Installer" \
             --window-pos 200 120 \
@@ -115,10 +124,9 @@ jobs:
             "Breeze-macOS-Test.dmg" \
             "$APP_PATH"
 
-      - name: 上传 DMG 以供下载测试
+      - name: 上传 DMG 产物供下载
         uses: actions/upload-artifact@v4
         with:
           name: macOS-DMG-Test
           path: Breeze-macOS-Test.dmg
-          # 设置保留天数，测试包没必要留太久
           retention-days: 3

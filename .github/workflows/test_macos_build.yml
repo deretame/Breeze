@@ -45,40 +45,44 @@ jobs:
 
       - name: 解决底层 C 库链接与 Pod 版本冲突
         run: |
-          # 1. 解决 Pods 版本警告 (上次已成功，完美保留此逻辑)
+          # 1. 修改 Podfile (处理版本兼容性)
           if [ -f "macos/Podfile" ]; then
-              echo "发现 Podfile，正在清理版本冲突..."
               perl -pi -e "s/^#?\s*platform\s+:osx.*/platform :osx, '11.0'/g" macos/Podfile
               perl -pi -e 's/(post_install do \|installer\|)/$1\n  installer.pods_project.targets.each do |target|\n    target.build_configurations.each do |config|\n      config.build_settings["MACOSX_DEPLOYMENT_TARGET"] = "11.0"\n    end\n  end/g' macos/Podfile
           fi
 
-          # 2. 【终极绝杀】使用 xcodeproj 脚本强行撬开数据库写入链接库
-          echo "正在强行注入 C 语言底层链接库..."
+          # 2. 使用 xcodeproj 脚本进行深度注入
           gem install xcodeproj
           ruby -e "
           require 'xcodeproj'
           project = Xcodeproj::Project.open('macos/Runner.xcodeproj')
-
+          
+          # 定义 Homebrew 库路径 (Apple Silicon 路径)
+          brew_lib_path = '/opt/homebrew/lib'
+          
           project.targets.each do |target|
-            # 将所有目标的系统版本焊死在 11.0
             target.build_configurations.each do |config|
+              # A. 统一设置最低部署版本
               config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '11.0'
-            end
-            
-            # 专治 Rust 找不到符号：强行把 -lbz2 和 -llzma 塞进最高优先级的编译配置中
-            if target.name == 'Runner'
-              target.build_configurations.each do |config|
-                flags = config.build_settings['OTHER_LDFLAGS'] || ['\$(inherited)']
-                flags = [flags] if flags.is_a?(String)
-                flags << '-lbz2' unless flags.include?('-lbz2')
-                flags << '-llzma' unless flags.include?('-llzma')
-                config.build_settings['OTHER_LDFLAGS'] = flags
+              
+              if target.name == 'Runner'
+                # B. 注入链接标志
+                ld_flags = config.build_settings['OTHER_LDFLAGS'] || ['\$(inherited)']
+                ld_flags = [ld_flags] if ld_flags.is_a?(String)
+                ['-lbz2', '-llzma'].each { |f| ld_flags << f unless ld_flags.include?(f) }
+                config.build_settings['OTHER_LDFLAGS'] = ld_flags
+                
+                # C. 【关键修正】注入库搜索路径，否则 Xcode 找不到库文件
+                search_paths = config.build_settings['LIBRARY_SEARCH_PATHS'] || ['\$(inherited)']
+                search_paths = [search_paths] if search_paths.is_a?(String)
+                search_paths << brew_lib_path unless search_paths.include?(brew_lib_path)
+                config.build_settings['LIBRARY_SEARCH_PATHS'] = search_paths
               end
             end
           end
-
+          
           project.save
-          puts '✅ Xcode 工程数据库修改完成！'
+          puts '✅ Xcode 路径与链接注入完成！'
           "
 
       - name: 编译 Flutter macOS 产物

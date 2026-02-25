@@ -10,12 +10,14 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 解密敏感文件 (git-crypt)
+      - name: 安装系统依赖 & 解密 (git-crypt)
         env:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
         run: |
-          brew install git-crypt
-          # macOS 下 base64 解码通常需要 -D 或 --decode
+          # 新增 pkg-config, xz (lzma), bzip2 供 Rust 静态链接使用
+          brew install git-crypt pkg-config xz bzip2
+
+          # 解密逻辑
           echo "$GIT_CRYPT_KEY" | base64 --decode > ./git-crypt-key || echo "$GIT_CRYPT_KEY" | base64 -D > ./git-crypt-key
           git-crypt unlock ./git-crypt-key && rm ./git-crypt-key
 
@@ -41,19 +43,32 @@ jobs:
       - name: 拉取依赖并生成配置
         run: fvm flutter pub get
 
-      - name: 强制提升 macOS 部署目标版本至 11.0 (解决插件依赖报错)
+      - name: 强制提升 macOS 部署目标版本至 11.0 (含所有子依赖)
         run: |
-          # 1. 修改 Xcode 核心配置文件中的最低版本限制
+          # 1. 修改 Xcode 核心配置文件
           find macos/Runner.xcodeproj -name "project.pbxproj" -exec sed -i '' 's/MACOSX_DEPLOYMENT_TARGET = [^;]*/MACOSX_DEPLOYMENT_TARGET = 11.0/g' {} +
 
-          # 2. 修改 Podfile 中的平台版本限制 (兼容 Flutter 默认生成的旧版本号)
+          # 2. 修改 Podfile 中的平台版本
           if [ -f "macos/Podfile" ]; then
-            echo "发现 Podfile，正在将版本提升至 11.0..."
+            echo "发现 Podfile，正在将主版本提升至 11.0..."
             sed -i '' "s/platform :osx, '10.11'/platform :osx, '11.0'/g" macos/Podfile
             sed -i '' "s/platform :osx, '10.14'/platform :osx, '11.0'/g" macos/Podfile
             sed -i '' "s/platform :osx, '10.15'/platform :osx, '11.0'/g" macos/Podfile
+
+            # 3. 终极大法：注入 post_install 钩子，强制所有第三方 Pod 升级到 11.0
+            if ! grep -q "post_install" macos/Podfile; then
+              echo "
+            post_install do |installer|
+            installer.pods_project.targets.each do |target|
+                target.build_configurations.each do |config|
+                config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '11.0'
+                end
+            end
+            end" >> macos/Podfile
+              echo "✅ 成功注入 CocoaPods 全局版本强制升级脚本！"
+            fi
           else
-            echo "未找到 Podfile，继续执行后续步骤。"
+            echo "未找到 Podfile，跳过。"
           fi
 
       - name: 编译 Flutter macOS 产物

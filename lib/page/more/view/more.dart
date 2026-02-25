@@ -10,7 +10,6 @@ import 'package:zephyr/page/more/more.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
-import 'package:zephyr/util/settings_hive_utils.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 class MorePage extends StatefulWidget {
@@ -29,7 +28,8 @@ class _MorePageState extends State<MorePage> {
   @override
   void initState() {
     super.initState();
-    if (!SettingsHiveUtils.disableBika) {
+    final settings = objectbox.userSettingBox.get(1)!.globalSetting;
+    if (!settings.disableBika) {
       widgets.addAll([BikaUserInfoWidget(), Delimiter()]);
     }
 

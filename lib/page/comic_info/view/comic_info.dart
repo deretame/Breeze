@@ -325,7 +325,12 @@ class _ComicInfoState extends State<_ComicInfo>
 
     if (comicInfo.description != '') {
       widgets.add(const SizedBox(height: 3));
-      widgets.add(Text(comicInfo.description.let(t2s)));
+      widgets.add(
+        SelectableText(
+          comicInfo.description.let(t2s),
+          style: const TextStyle(fontSize: 14, height: 1.5),
+        ),
+      );
     }
 
     if (widget.from == From.bika) {

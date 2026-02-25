@@ -10,7 +10,6 @@ import 'package:zephyr/cubit/list_select.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnter;
 import 'package:zephyr/page/bookshelf/widgets/jm/jm_tab_bar.dart';
-import 'package:zephyr/util/settings_hive_utils.dart';
 
 import '../../../main.dart';
 import '../json/jm_cloud_favorite/jm_cloud_favorite_json.dart' show FolderList;
@@ -102,11 +101,12 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
 
   @override
   Widget build(BuildContext context) {
+    final settings = objectbox.userSettingBox.get(1)!.globalSetting;
     return Scaffold(
       endDrawer: SideDrawer(),
       appBar: _appBar(),
       body: _body(),
-      floatingActionButton: SettingsHiveUtils.disableBika
+      floatingActionButton: settings.disableBika
           ? null
           : _floatingActionButton(),
     );

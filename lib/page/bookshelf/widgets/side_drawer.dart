@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/cubit/list_select.dart';
@@ -14,9 +15,7 @@ import 'package:zephyr/page/bookshelf/widgets/jm/cloud_favorite_sort.dart';
 import 'package:zephyr/page/bookshelf/widgets/jm/favorite_switch.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-import 'package:zephyr/util/settings_hive_utils.dart';
 
-import '../../../config/bika/bika_setting.dart';
 import '../../../cubit/int_select.dart';
 
 class SideDrawer extends StatefulWidget {
@@ -27,9 +26,8 @@ class SideDrawer extends StatefulWidget {
 }
 
 class _SideDrawerState extends State<SideDrawer> {
-  Map<String, bool> _categoriesShield = Map.of(
-    SettingsHiveUtils.bikaShieldCategoryMap,
-  );
+  late final BikaSettingState settings;
+  late final Map<String, bool> _categoriesShield;
   List<String> categories = [];
   SortType sortType = SortType.nullValue;
   int page = 0;
@@ -39,6 +37,8 @@ class _SideDrawerState extends State<SideDrawer> {
   @override
   void initState() {
     super.initState();
+    settings = objectbox.userSettingBox.get(1)!.bikaSetting;
+    _categoriesShield = Map.of(settings.shieldCategoryMap);
   }
 
   @override

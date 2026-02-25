@@ -6,7 +6,6 @@ import 'package:zephyr/page/download/widgets/eps.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/init.dart';
-import 'package:zephyr/util/settings_hive_utils.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../object_box/model.dart';
@@ -124,19 +123,20 @@ class _DownloadPageState extends State<DownloadPage> {
   }
 
   Future<void> download() async {
+    final settings = objectbox.userSettingBox.get(1)!.bikaSetting;
     final task = DownloadTaskJson(
       from: "bika",
       comicId: comicInfo.id,
       comicName: comicInfo.title,
       bikaInfo: BikaInfo(
-        authorization: SettingsHiveUtils.bikaAuthorization,
-        proxy: SettingsHiveUtils.bikaProxy.toString(),
+        authorization: settings.authorization,
+        proxy: settings.proxy.toString(),
       ),
       selectedChapters: _downloadInfo.entries
           .where((entry) => entry.value)
           .map((entry) => entry.key.toString())
           .toList(),
-      slowDownload: SettingsHiveUtils.bikaSlowDownload,
+      slowDownload: settings.slowDownload,
     );
     try {
       startDownloadTask(task);

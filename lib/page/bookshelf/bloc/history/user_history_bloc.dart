@@ -4,7 +4,6 @@ import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/settings_hive_utils.dart';
 import 'package:zephyr/util/sundry.dart';
 
 import '../../../../main.dart';
@@ -107,10 +106,9 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
   }
 
   List<BikaComicHistory> _filterShieldedComics(List<BikaComicHistory> comics) {
+    final settings = objectbox.userSettingBox.get(1)!.bikaSetting;
     // 获取所有被屏蔽的分类
-    List<String> shieldedCategoriesList = SettingsHiveUtils
-        .bikaShieldCategoryMap
-        .entries
+    List<String> shieldedCategoriesList = settings.shieldCategoryMap.entries
         .where((entry) => entry.value) // 只选择值为 true 的条目
         .map((entry) => entry.key) // 提取键（分类名）
         .toList();

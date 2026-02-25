@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
-import 'package:zephyr/util/settings_hive_utils.dart';
+import 'package:zephyr/main.dart';
 
 class PicaAuthInterceptor extends Interceptor {
   final String _apiKey = "C69BAF41DA5ABD1FFEDC6D2FEA56B";
@@ -14,6 +14,7 @@ class PicaAuthInterceptor extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     final nonce = Uuid().v4().replaceAll('-', '');
     final timestamp = (DateTime.now().millisecondsSinceEpoch / 1000).floor();
+    final settings = objectbox.userSettingBox.get(1)!.bikaSetting;
 
     String cleanUrl = options.path.replaceAll(
       "https://picaapi.picacomic.com/",
@@ -26,19 +27,13 @@ class PicaAuthInterceptor extends Interceptor {
       nonce,
       options.method,
     );
-    String imageQuality =
-        options.extra['imageQuality'] ?? SettingsHiveUtils.bikaImageQuality;
-    String? auth =
-        options.extra['authorization'] ?? SettingsHiveUtils.bikaAuthorization;
-    int proxy = 3;
-    try {
-      proxy = SettingsHiveUtils.bikaProxy;
-    } catch (_) {}
+    final imageQuality = options.extra['imageQuality'] ?? settings.imageQuality;
+    final auth = options.extra['authorization'] ?? settings.authorization;
 
     options.headers.addAll({
       'api-key': _apiKey,
       'accept': 'application/vnd.picacomic.com.v1+json',
-      'app-channel': proxy,
+      'app-channel': settings.proxy,
       'time': timestamp,
       'nonce': nonce,
       'signature': signature,
@@ -52,7 +47,7 @@ class PicaAuthInterceptor extends Interceptor {
       'image-quality': imageQuality,
     });
 
-    if (auth != null) {
+    if (auth.isNotEmpty) {
       options.headers['authorization'] = auth;
     }
 

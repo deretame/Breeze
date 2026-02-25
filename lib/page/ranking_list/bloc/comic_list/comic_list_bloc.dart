@@ -2,9 +2,9 @@ import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/bika/http_request.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/settings_hive_utils.dart';
 import 'package:zephyr/util/sundry.dart';
 
 import '../../json/leaderboard.dart';
@@ -41,13 +41,16 @@ class ComicListBloc extends Bloc<FetchComicList, ComicListState> {
         type: event.getInfo.type,
       );
 
+      final settings = objectbox.userSettingBox.get(1)!.globalSetting;
+      final bikaSettings = objectbox.userSettingBox.get(1)!.bikaSetting;
+
       // 获取有效屏蔽关键词（非空）
-      final maskedKeywords = SettingsHiveUtils.maskedKeywords
+      final maskedKeywords = settings.maskedKeywords
           .where((keyword) => keyword.trim().isNotEmpty)
           .toList();
 
       // 获取屏蔽分类
-      final shieldedCategories = SettingsHiveUtils.bikaShieldCategoryMap.entries
+      final shieldedCategories = bikaSettings.shieldCategoryMap.entries
           .where((entry) => entry.value)
           .map((entry) => entry.key)
           .toList();

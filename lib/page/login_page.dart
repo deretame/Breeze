@@ -5,13 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/page/more/json/jm/jm_user_info_json.dart'
     show JmUserInfoJson;
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/dialog.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
-import 'package:zephyr/util/settings_hive_utils.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../network/http/bika/http_request.dart';
@@ -38,13 +38,13 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
+    final bikaSetting = objectbox.userSettingBox.get(1)!.bikaSetting;
+    final jmSetting = objectbox.userSettingBox.get(1)!.jmSetting;
     from = widget.from ?? From.bika;
-    _account.text = from == From.bika
-        ? SettingsHiveUtils.bikaAccount
-        : SettingsHiveUtils.jmAccount;
+    _account.text = from == From.bika ? bikaSetting.account : jmSetting.account;
     _password.text = from == From.bika
-        ? SettingsHiveUtils.bikaPassword
-        : SettingsHiveUtils.jmPassword;
+        ? bikaSetting.password
+        : jmSetting.password;
 
     if (from == From.bika) {
       title = "哔咔登录";

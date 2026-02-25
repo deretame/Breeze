@@ -18,7 +18,6 @@ import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/memory/memory_overlay_widget.dart';
 import 'package:zephyr/util/notice.dart';
 import 'package:zephyr/util/router/router.gr.dart';
-import 'package:zephyr/util/settings_hive_utils.dart';
 import 'package:zephyr/util/update/check_update.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -83,7 +82,10 @@ class _NavigationBarState extends State<NavigationBar> {
       }
     });
     _controller = PersistentTabController(
-      initialIndex: SettingsHiveUtils.welcomePageNum,
+      initialIndex: objectbox.userSettingBox
+          .get(1)!
+          .globalSetting
+          .welcomePageNum,
     );
     scrollControllers.forEach((key, value) {
       _scrollControllers.add(value);
@@ -119,6 +121,7 @@ class _NavigationBarState extends State<NavigationBar> {
       try {
         await setFastestUrlIndex();
         await setFastestImagesUrlIndex();
+        showSuccessToast("禁漫已自动选择最快线路");
       } catch (e) {
         logger.e(e);
       }

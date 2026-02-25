@@ -7,7 +7,6 @@ import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:flutter/foundation.dart' show compute;
 import 'package:xml/xml.dart';
 import 'package:zephyr/config/global/global.dart';
-import 'package:zephyr/util/settings_hive_utils.dart';
 
 import '../../../main.dart';
 import '../object_box/model.dart';
@@ -16,18 +15,19 @@ final String version = "2.3.0";
 
 // 测试 WebDAV 服务是否可用
 Future<void> testWebDavServer() async {
-  if (SettingsHiveUtils.webdavHost.isEmpty ||
-      SettingsHiveUtils.webdavUsername.isEmpty ||
-      SettingsHiveUtils.webdavPassword.isEmpty) {
+  final settings = objectbox.userSettingBox.get(1)!.globalSetting;
+  if (settings.webdavHost.isEmpty ||
+      settings.webdavUsername.isEmpty ||
+      settings.webdavPassword.isEmpty) {
     throw Exception('WebDAV 配置不完整');
   }
 
   final dio = Dio(
     BaseOptions(
-      baseUrl: SettingsHiveUtils.webdavHost, // WebDAV 服务器地址
+      baseUrl: settings.webdavHost, // WebDAV 服务器地址
       headers: {
         'Authorization':
-            'Basic ${base64Encode(utf8.encode('${SettingsHiveUtils.webdavUsername}:${SettingsHiveUtils.webdavPassword}'))}',
+            'Basic ${base64Encode(utf8.encode('${settings.webdavUsername}:${settings.webdavPassword}'))}',
       },
       connectTimeout: const Duration(seconds: 10), // 连接超时时间
       receiveTimeout: const Duration(seconds: 10), // 接收超时时间
@@ -65,18 +65,19 @@ Future<void> testWebDavServer() async {
 }
 
 Dio getWebDavDio() {
-  if (SettingsHiveUtils.webdavHost.isEmpty ||
-      SettingsHiveUtils.webdavUsername.isEmpty ||
-      SettingsHiveUtils.webdavPassword.isEmpty) {
+  final settings = objectbox.userSettingBox.get(1)!.globalSetting;
+  if (settings.webdavHost.isEmpty ||
+      settings.webdavUsername.isEmpty ||
+      settings.webdavPassword.isEmpty) {
     throw Exception('WebDAV 配置不完整');
   }
 
   final dio = Dio(
     BaseOptions(
-      baseUrl: SettingsHiveUtils.webdavHost, // WebDAV服务器地址
+      baseUrl: settings.webdavHost, // WebDAV服务器地址
       headers: {
         'Authorization':
-            'Basic ${base64Encode(utf8.encode('${SettingsHiveUtils.webdavUsername}:${SettingsHiveUtils.webdavPassword}'))}',
+            'Basic ${base64Encode(utf8.encode('${settings.webdavUsername}:${settings.webdavPassword}'))}',
       },
     ),
   );

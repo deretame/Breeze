@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:markdown_widget/widget/markdown_block.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/webdav_sync/webdav_sync.dart';
-import 'package:zephyr/util/settings_hive_utils.dart';
 
 import '../../../main.dart';
 import '../../../util/dialog.dart';
@@ -26,9 +25,10 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
   @override
   void initState() {
     super.initState();
-    _webdavHost.text = SettingsHiveUtils.webdavHost;
-    _webdavUsername.text = SettingsHiveUtils.webdavUsername;
-    _webdavPassword.text = SettingsHiveUtils.webdavPassword;
+    final settings = objectbox.userSettingBox.get(1)!.globalSetting;
+    _webdavHost.text = settings.webdavHost;
+    _webdavUsername.text = settings.webdavUsername;
+    _webdavPassword.text = settings.webdavPassword;
   }
 
   @override

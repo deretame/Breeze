@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:zephyr/util/settings_hive_utils.dart';
+import 'package:zephyr/main.dart';
 
 import 'http_request_build.dart';
 
@@ -406,12 +406,13 @@ Future<Map<String, dynamic>> updateProfile(String profile) async {
 }
 
 Future<Map<String, dynamic>> updatePassword(String newPassword) async {
+  final settings = objectbox.userSettingBox.get(1)!.bikaSetting;
   final Map<String, dynamic> data = await request(
     'https://picaapi.picacomic.com/users/password',
     'PUT',
     body: json.encode({
       "new_password": newPassword,
-      "old_password": SettingsHiveUtils.bikaPassword,
+      "old_password": settings.password,
     }),
   );
 

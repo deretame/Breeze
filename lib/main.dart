@@ -16,7 +16,6 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_socks_proxy/socks_proxy.dart';
-import 'package:hive_ce_flutter/adapters.dart';
 import 'package:logger/logger.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
@@ -24,7 +23,6 @@ import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
-import 'package:zephyr/config/mobx/theme_mode_adapter.dart';
 import 'package:zephyr/firebase_options.dart';
 import 'package:zephyr/network/dio_cache.dart';
 import 'package:zephyr/object_box/model.dart';
@@ -116,11 +114,6 @@ Future<void> main() async {
       }
 
       objectbox = await ObjectBox.create();
-
-      // 初始化Hive
-      await Hive.initFlutter(await getDbPath());
-      // 注册 Color 适配器
-      Hive.registerAdapter(ThemeModeAdapter());
 
       final setting = objectbox.userSettingBox.get(1);
       if (setting == null) {

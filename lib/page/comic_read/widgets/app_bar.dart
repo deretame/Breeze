@@ -4,10 +4,10 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comments/widgets/title.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-import 'package:zephyr/util/settings_hive_utils.dart';
 
 class ComicReadAppBar extends StatelessWidget {
   final String title;
@@ -77,7 +77,9 @@ class _SettingsDialogState extends State<SettingsDialog> {
   @override
   void initState() {
     super.initState();
-    _selectedMode = _getReadModeLabel(SettingsHiveUtils.readMode);
+    _selectedMode = _getReadModeLabel(
+      objectbox.userSettingBox.get(1)!.globalSetting.readMode,
+    );
   }
 
   // 获取阅读模式的标签

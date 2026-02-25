@@ -9,7 +9,6 @@ import 'package:zephyr/page/search_result/method/get_jm_result.dart';
 import 'package:zephyr/page/search_result/models/bloc_state.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/settings_hive_utils.dart';
 import 'package:zephyr/util/sundry.dart';
 
 import '../models/models.dart';
@@ -66,8 +65,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         blocState = await getJMResult(event, blocState);
       }
 
-      logger.d(blocState.pagesCount);
-
       emit(
         state.copyWith(
           status: SearchStatus.success,
@@ -101,11 +98,14 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   }
 
   List<ComicNumber> _filterShieldedComics(List<ComicNumber> comics) {
-    final maskedKeywords = SettingsHiveUtils.maskedKeywords
+    final settings = objectbox.userSettingBox.get(1)!.globalSetting;
+    final bikaSettings = objectbox.userSettingBox.get(1)!.bikaSetting;
+
+    final maskedKeywords = settings.maskedKeywords
         .where((keyword) => keyword.trim().isNotEmpty)
         .toList();
 
-    final shieldedCategories = SettingsHiveUtils.bikaShieldCategoryMap.entries
+    final shieldedCategories = bikaSettings.shieldCategoryMap.entries
         .where((entry) => entry.value)
         .map((entry) => entry.key)
         .toList();

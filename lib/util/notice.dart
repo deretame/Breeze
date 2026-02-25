@@ -45,8 +45,6 @@ Future<void> initializeNotifications() async {
     'app-icon.png',
   );
 
-  logger.d(windowsIconPath);
-
   final initializationSettingsWindows = WindowsInitializationSettings(
     appName: 'Zephyr',
     appUserModelId: 'com.zephyr.breeze',

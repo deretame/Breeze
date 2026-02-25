@@ -7,7 +7,6 @@ import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/settings_hive_utils.dart';
 
 import '../../../config/jm/config.dart';
 import '../../../src/rust/api/simple.dart';
@@ -89,6 +88,8 @@ Future<String> getCachePicture({
     }
   }
 
+  final settings = objectbox.userSettingBox.get(1)!.bikaSetting;
+
   // 处理 URL
   String finalUrl = from == From.jm
       ? url
@@ -96,8 +97,8 @@ Future<String> getCachePicture({
           url,
           path,
           pictureType,
-          SettingsHiveUtils.bikaImageQuality,
-          SettingsHiveUtils.bikaProxy,
+          settings.imageQuality,
+          settings.proxy,
         );
 
   // 下载图片
@@ -217,7 +218,7 @@ Future<String> downloadPicture({
           path,
           pictureType,
           "original",
-          proxy ?? SettingsHiveUtils.bikaProxy,
+          proxy ?? objectbox.userSettingBox.get(1)!.bikaSetting.proxy,
         );
 
   // 下载图片
@@ -263,15 +264,14 @@ String buildFilePath(
   String sanitizedPath, [
   String? quality,
 ]) {
-  String quality1 = '';
-  if (from == From.bika) {
-    quality1 = quality ?? SettingsHiveUtils.bikaImageQuality;
-  }
+  quality =
+      quality ?? objectbox.userSettingBox.get(1)!.bikaSetting.imageQuality;
+
   if (pictureType == PictureType.comic) {
     return file_path.join(
       basePath,
       from.name,
-      quality1,
+      quality,
       cartoonId,
       pictureType.name,
       chapterId,
@@ -281,7 +281,7 @@ String buildFilePath(
     return file_path.join(
       basePath,
       from.name,
-      quality1,
+      quality,
       cartoonId,
       pictureType.name,
       sanitizedPath,

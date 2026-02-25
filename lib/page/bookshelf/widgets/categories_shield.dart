@@ -2,14 +2,14 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-import 'package:zephyr/util/settings_hive_utils.dart';
 import 'package:zephyr/util/sundry.dart';
 
 import '../../../main.dart';
 
 Future<Map<String, bool>?> showShieldCategoryDialog(BuildContext context) {
+  final settings = objectbox.userSettingBox.get(1)!.bikaSetting;
   late Map<String, bool> shieldCategoriesMap = Map.of(
-    SettingsHiveUtils.bikaShieldCategoryMap,
+    settings.shieldCategoryMap,
   );
 
   return showDialog(

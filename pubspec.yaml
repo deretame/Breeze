@@ -47,8 +47,6 @@ dependencies:
   ########################################
   #       数据存储 & 本地持久化          #
   ########################################
-  hive_ce: ^2.10.1 # 轻量级键值数据库
-  hive_ce_flutter: ^2.2.0 # Hive 的 Flutter 适配
   objectbox: ^5.0.0 # 高性能对象数据库
   objectbox_flutter_libs: ^5.0.0 # ObjectBox Flutter 支持
   json_annotation: ^4.9.0 # JSON 序列化注解
@@ -129,7 +127,6 @@ dev_dependencies:
   flutter_lints: ^6.0.0 # 代码规范检查
   build_runner: ^2.0.0 # 代码生成器
   auto_route_generator: ^10.0.0 # 路由代码生成
-  hive_ce_generator: ^1.8.1 # Hive 模型生成
   objectbox_generator: ^5.0.0 # ObjectBox 代码生成
   integration_test:
     sdk: flutter
@@ -153,15 +150,16 @@ flutter:
 
   # 资源文件配置
   assets:
-    - asset/image/app_icon.ico
-    - asset/image/app-icon.png
+    - path: asset/image/app_icon.ico
+      platforms: [windows, linux, macos]
+    - path: asset/image/app-icon.png
+      platforms: [windows, linux, macos]
     - asset/image/error_image/404.png
     - asset/image/bika_image/cat_forum.jpg
     - asset/image/bika_image/cat_latest.jpg
     - asset/image/bika_image/cat_leaderboard.jpg
     - asset/image/bika_image/cat_random.jpg
     - asset/image/assets/default_cover.png
-    - asset/about_page.html
     - .env
     - .env.proxy
 

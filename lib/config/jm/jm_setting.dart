@@ -1,13 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:hive_ce/hive.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/type/enum.dart';
 
 part 'jm_setting.freezed.dart';
 part 'jm_setting.g.dart';
-
-// TODO: 删除hive，该为纯用json+objectbox存储设置，半年后删除，现在是2025年12月14日18:10:58
 
 @freezed
 abstract class JmSettingState with _$JmSettingState {
@@ -24,62 +21,35 @@ abstract class JmSettingState with _$JmSettingState {
 }
 
 class JmSettingCubit extends Cubit<JmSettingState> {
-  late final Box<dynamic> _box;
-
   JmSettingCubit() : super(const JmSettingState());
 
   static const _defaults = JmSettingState();
 
   Future<void> initBox() async {
-    _box = await Hive.openBox(JmSettingBoxKeys.jmSettingBox);
-
-    emit(
-      state.copyWith(
-        account: _box.get(
-          JmSettingBoxKeys.account,
-          defaultValue: _defaults.account,
-        ),
-        password: _box.get(
-          JmSettingBoxKeys.password,
-          defaultValue: _defaults.password,
-        ),
-        userInfo: _box.get(
-          JmSettingBoxKeys.userInfo,
-          defaultValue: _defaults.userInfo,
-        ),
-        loginStatus: _defaults.loginStatus,
-        favoriteSet: _defaults.favoriteSet,
-      ),
-    );
-
-    updateDataBase(state);
+    emit(objectbox.userSettingBox.get(1)!.jmSetting);
   }
 
   // --- 持久化状态 (Account / Password) ---
 
   void updateAccount(String value) {
-    _box.put(JmSettingBoxKeys.account, value);
     final temp = state.copyWith(account: value);
     updateDataBase(temp);
     emit(temp);
   }
 
   void resetAccount() {
-    _box.delete(JmSettingBoxKeys.account);
     final temp = state.copyWith(account: _defaults.account);
     updateDataBase(temp);
     emit(temp);
   }
 
   void updatePassword(String value) {
-    _box.put(JmSettingBoxKeys.password, value);
     final temp = state.copyWith(password: value);
     updateDataBase(temp);
     emit(temp);
   }
 
   void resetPassword() {
-    _box.delete(JmSettingBoxKeys.password);
     final temp = state.copyWith(password: _defaults.password);
     updateDataBase(temp);
     emit(temp);

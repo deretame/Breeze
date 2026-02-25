@@ -19,7 +19,7 @@ log = "0.4.27"
 anyhow = "1.0.98"
 tokio = { version = "1.46.1", features = ["full"] }
 tokio-tar = "0.3.1"
-zip = "2.1"
+zip = { version = "2.1", default-features = false, features = ["deflate", "time"] }
 zhconv = "0.3.3"
 lazy_static = "1.5.0"
 flate2 = "1.0"

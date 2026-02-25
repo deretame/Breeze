@@ -44,9 +44,17 @@ jobs:
 
       - name: 修复 Podfile 最低部署版本
         run: |
-          # flutter pub get 自动生成的 Podfile 可能引用旧 platform 版本
           if [ -f "macos/Podfile" ]; then
+            # 1. 修改 platform 版本
             sed -i '' "s/platform :osx, '[0-9.]*'/platform :osx, '11.0'/g" macos/Podfile
+
+            # 2. 用 Ruby 将部署目标覆盖注入到已有的 post_install 块内部
+            ruby -i -pe '
+              if /flutter_additional_macos_build_settings\(target\)/
+                $_ += "      target.build_configurations.each do |config|\n        config.build_settings[\"MACOSX_DEPLOYMENT_TARGET\"] = \"11.0\"\n      end\n"
+              end
+            ' macos/Podfile
+
             echo "=== Patched Podfile ==="
             cat macos/Podfile
           fi

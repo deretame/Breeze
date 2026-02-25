@@ -57,10 +57,17 @@ Future<void> initializeNotifications() async {
     defaultIcon: AssetsLinuxIcon('asset/image/app-icon.png'),
   );
 
+  const initializationSettingsDarwin = DarwinInitializationSettings(
+    requestAlertPermission: false,
+    requestBadgePermission: false,
+    requestSoundPermission: false,
+  );
+
   final initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,
     windows: initializationSettingsWindows,
     linux: initializationSettingsLinux,
+    macOS: initializationSettingsDarwin,
   );
 
   await flutterLocalNotificationsPlugin.initialize(
@@ -68,6 +75,7 @@ Future<void> initializeNotifications() async {
     onDidReceiveNotificationResponse:
         (NotificationResponse notificationResponse) async {},
   );
+
   // 先检查当前状态
   if (Platform.isLinux) return;
 
@@ -83,7 +91,6 @@ Future<void> initializeNotifications() async {
   } catch (e, stackTrace) {
     logger.e('Permission request failed', error: e, stackTrace: stackTrace);
 
-    // 如果是并发冲突，静默处理
     if (e.toString().contains('already running')) {
       logger.w('Permission request already running, ignoring...');
     } else {

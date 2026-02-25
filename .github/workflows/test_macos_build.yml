@@ -42,19 +42,14 @@ jobs:
       - name: 拉取依赖
         run: fvm flutter pub get
 
-      - name: 修复 Podfile 最低版本 & 安装 CocoaPods 依赖
+      - name: 修复 Podfile 最低部署版本
         run: |
-          cd macos
-
           # flutter pub get 自动生成的 Podfile 可能引用旧 platform 版本
-          if [ -f "Podfile" ]; then
-            sed -i '' "s/platform :osx, '[0-9.]*'/platform :osx, '11.0'/g" Podfile
+          if [ -f "macos/Podfile" ]; then
+            sed -i '' "s/platform :osx, '[0-9.]*'/platform :osx, '11.0'/g" macos/Podfile
             echo "=== Patched Podfile ==="
-            cat Podfile
+            cat macos/Podfile
           fi
-
-          pod install --repo-update
-          cd ..
 
       - name: 编译 Flutter macOS 产物
         run: fvm flutter build macos --release

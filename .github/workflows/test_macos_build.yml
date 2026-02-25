@@ -45,29 +45,41 @@ jobs:
 
       - name: 解决底层 C 库链接与 Pod 版本冲突
         run: |
-          # 1. 【解决致命报错】强制 Xcode 链接 bzip2 和 lzma 静态库
-          echo 'OTHER_LDFLAGS = $(inherited) -L/opt/homebrew/lib -lbz2 -llzma' >> macos/Runner/Configs/Release.xcconfig
-
-          # 2. 【多重保险】彻底修改 Xcode 工程目标版本，绕过 Flutter 拦截
-          # 使用 perl 强力正则，无视空格格式，全面替换 pbxproj 中的版本号
-          perl -pi -e 's/MACOSX_DEPLOYMENT_TARGET\s*=\s*[^;]+;/MACOSX_DEPLOYMENT_TARGET = 11.0;/g' macos/Runner.xcodeproj/project.pbxproj
-
-          # 直接把 11.0 焊死在 Flutter 的核心配置文件里
-          echo 'MACOSX_DEPLOYMENT_TARGET = 11.0' >> macos/Runner/Configs/Release.xcconfig
-          echo 'MACOSX_DEPLOYMENT_TARGET = 11.0' >> macos/Runner/Configs/Debug.xcconfig
-
-          # 3. 【终极清理】完美修改 Podfile
+          # 1. 解决 Pods 版本警告 (上次已成功，完美保留此逻辑)
           if [ -f "macos/Podfile" ]; then
-              echo "发现 Podfile，正在执行终极清理..."
-              
-              # 关键修复：去掉可能存在的 '#' 注释符，并强制设为 11.0
+              echo "发现 Podfile，正在清理版本冲突..."
               perl -pi -e "s/^#?\s*platform\s+:osx.*/platform :osx, '11.0'/g" macos/Podfile
-
-              # 注入 post_install 强制同步所有第三方插件的版本
               perl -pi -e 's/(post_install do \|installer\|)/$1\n  installer.pods_project.targets.each do |target|\n    target.build_configurations.each do |config|\n      config.build_settings["MACOSX_DEPLOYMENT_TARGET"] = "11.0"\n    end\n  end/g' macos/Podfile
-          else
-              echo "未找到 Podfile，跳过。"
           fi
+
+          # 2. 【终极绝杀】使用 xcodeproj 脚本强行撬开数据库写入链接库
+          echo "正在强行注入 C 语言底层链接库..."
+          gem install xcodeproj
+          ruby -e "
+          require 'xcodeproj'
+          project = Xcodeproj::Project.open('macos/Runner.xcodeproj')
+
+          project.targets.each do |target|
+            # 将所有目标的系统版本焊死在 11.0
+            target.build_configurations.each do |config|
+              config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '11.0'
+            end
+            
+            # 专治 Rust 找不到符号：强行把 -lbz2 和 -llzma 塞进最高优先级的编译配置中
+            if target.name == 'Runner'
+              target.build_configurations.each do |config|
+                flags = config.build_settings['OTHER_LDFLAGS'] || ['\$(inherited)']
+                flags = [flags] if flags.is_a?(String)
+                flags << '-lbz2' unless flags.include?('-lbz2')
+                flags << '-llzma' unless flags.include?('-llzma')
+                config.build_settings['OTHER_LDFLAGS'] = flags
+              end
+            end
+          end
+
+          project.save
+          puts '✅ Xcode 工程数据库修改完成！'
+          "
 
       - name: 编译 Flutter macOS 产物
         run: fvm flutter build macos --release

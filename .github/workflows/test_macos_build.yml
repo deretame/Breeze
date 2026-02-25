@@ -45,51 +45,46 @@ jobs:
 
       - name: 🛠️ 核心修复：强制链接 C 库与版本同步
         run: |
-          # 1. 修改 Podfile 处理 CocoaPods 的版本拦截
+          # 1. 搞定 Podfile 版本
           if [ -f "macos/Podfile" ]; then
               perl -pi -e "s/^#?\s*platform\s+:osx.*/platform :osx, '11.0'/g" macos/Podfile
               perl -pi -e 's/(post_install do \|installer\|)/$1\n  installer.pods_project.targets.each do |target|\n    target.build_configurations.each do |config|\n      config.build_settings["MACOSX_DEPLOYMENT_TARGET"] = "11.0"\n    end\n  end/g' macos/Podfile
           fi
 
-          # 2. 【核心】使用 Ruby 直接改写 Xcode 工程数据库，解决 arm64 链接报错
+          # 2. 直接塞绝对路径给 Xcode
           gem install xcodeproj
           ruby -e "
           require 'xcodeproj'
           project = Xcodeproj::Project.open('macos/Runner.xcodeproj')
-          
 
-          # 定义 Homebrew 在 ARM 架构下的库路径
-          lib_paths = [
-            '$(inherited)',
-            '/opt/homebrew/lib',
-            '/opt/homebrew/opt/xz/lib',
-            '/opt/homebrew/opt/bzip2/lib'
-          ]
-          
           project.targets.each do |target|
             target.build_configurations.each do |config|
-              # 强制统一最低部署版本为 11.0
               config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '11.0'
               
               if target.name == 'Runner'
-                # A. 注入库搜索路径 (解决找不到 .a 文件的根本问题)
-                current_libs = config.build_settings['LIBRARY_SEARCH_PATHS'] || []
-                current_libs = [current_libs] if current_libs.is_a?(String)
-                config.build_settings['LIBRARY_SEARCH_PATHS'] = (current_libs + lib_paths).uniq
-                
-                # B. 注入链接参数 (显式告知链接 lzma 和 bz2)
                 current_flags = config.build_settings['OTHER_LDFLAGS'] || []
                 current_flags = [current_flags] if current_flags.is_a?(String)
-                config.build_settings['OTHER_LDFLAGS'] = (current_flags + ['-llzma', '-lbz2']).uniq
+                
+                # 【终极必杀】直接写入 C 静态库的绝对路径！不依赖任何搜索机制！
+                absolute_libs = [
+                  '/opt/homebrew/opt/xz/lib/liblzma.a',
+                  '/opt/homebrew/opt/bzip2/lib/libbz2.a'
+                ]
+                config.build_settings['OTHER_LDFLAGS'] = (current_flags + absolute_libs).uniq
               end
             end
           end
-          
+
           project.save
-          puts '✅ Xcode 数据库已强行注入 arm64 链接补丁！'
+          puts '✅ 已向 Xcode 注入绝对路径核弹！'
           "
 
-      - name: 编译 Flutter macOS
+      - name: 编译 Flutter macOS 产物
+        env:
+          # 【双保险】通过环境变量强制告诉 Rust 编译器 C 库在哪里
+          PKG_CONFIG_PATH: /opt/homebrew/opt/xz/lib/pkgconfig:/opt/homebrew/opt/bzip2/lib/pkgconfig
+          LIBRARY_PATH: /opt/homebrew/opt/xz/lib:/opt/homebrew/opt/bzip2/lib
+          CPATH: /opt/homebrew/opt/xz/include:/opt/homebrew/opt/bzip2/include
         run: fvm flutter build macos --release
 
       - name: 制作 DMG

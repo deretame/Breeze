@@ -513,7 +513,7 @@ class _AboutPageState extends State<AboutPage> {
                         "8. 法律合规性",
                         "用户在使用本项目时，应确保其行为符合所在国家或地区的法律法规。开发者不对用户因违反法律法规而导致的任何后果负责。",
                       ),
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20),
                       Text(
                         "重要提示",
                         style: TextStyle(
@@ -522,8 +522,8 @@ class _AboutPageState extends State<AboutPage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 5),
-                      const Text(
+                      SizedBox(height: 5),
+                      Text(
                         "在使用本项目之前，请仔细阅读并理解本免责声明。如果您不同意本声明的任何条款，请立即停止使用本项目。继续使用本项目即表示您已阅读、理解并同意本免责声明的全部内容。",
                         style: TextStyle(
                           color: Colors.white,

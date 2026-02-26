@@ -343,6 +343,13 @@ Future<void> main() async {
     _printColor('liblzma 加载成功 (xz v$_xzVersion)', _green);
     print('');
 
+    final String sentryDsn = Platform.environment['sentry_dsn'] ?? '';
+    if (sentryDsn.isEmpty) {
+      _printColor('提示: 未找到 sentry_dsn 环境变量，将使用空字符串', _yellow);
+    } else {
+      _printColor('已读取 Sentry DSN (长度: ${sentryDsn.length})', _green);
+    }
+
     // ═══ 第 1 步：Flutter build ═══
     _printColor('--- (1/4) 构建 Flutter Windows Release ---', _cyan);
 
@@ -351,6 +358,7 @@ Future<void> main() async {
       'build',
       'windows',
       '--release',
+      '--dart-define=sentry_dsn=$sentryDsn',
     ], workingDirectory: projectRoot);
 
     if (exitCode != 0) {

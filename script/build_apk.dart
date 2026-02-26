@@ -208,6 +208,13 @@ Future<void> main() async {
     final Directory skiaDir = paths['skiaDir'] as Directory;
     final String sep = paths['sep'];
 
+    final String sentryDsn = Platform.environment['sentry_dsn'] ?? '';
+    if (sentryDsn.isEmpty) {
+      _printColor('提示: 未找到 sentry_dsn 环境变量，将使用空字符串', _yellow);
+    } else {
+      _printColor('已读取 Sentry DSN (长度: ${sentryDsn.length})', _green);
+    }
+
     _printColor('将使用 Flutter 命令: $flutterExecutable', _green);
     _printColor('当前工作目录: $projectRoot', _yellow);
 
@@ -228,6 +235,7 @@ Future<void> main() async {
       'apk',
       '--split-per-abi',
       '--dart-define=use_skia=true',
+      '--dart-define=sentry_dsn=$sentryDsn',
     ], workingDirectory: projectRoot);
     if (exitCode != 0) {
       throw Exception('第一次构建 (Skia) 失败！ (Exit code: $exitCode)');
@@ -301,6 +309,7 @@ Future<void> main() async {
       'apk',
       '--split-per-abi',
       '--split-debug-info=$projectRoot${sep}symbols',
+      '--dart-define=sentry_dsn=$sentryDsn',
     ], workingDirectory: projectRoot);
     if (exitCode != 0) {
       throw Exception('第二次构建 (Impeller) 失败！ (Exit code: $exitCode)');

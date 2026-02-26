@@ -83,9 +83,11 @@ jobs:
         run: yes | fvm flutter doctor --android-licenses || true
 
       - name: 运行 Android 构建脚本
+        env:
+          sentry_dsn: ${{ secrets.SENTRY_DSN }}
         run: |
           # yes n 自动回答脚本内的更新询问
-          yes n | fvm dart ./script/build_apk.dart
+          fvm dart ./script/build_apk.dart
 
       - name: 上传 Android 产物
         uses: actions/upload-artifact@v4
@@ -102,14 +104,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: 释放空间 & 解密
-        env:
-          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-        run: |
-          sudo apt-get update && sudo apt-get install -y git-crypt
-          echo "$GIT_CRYPT_KEY" | base64 -d > ./git-crypt-key
-          git-crypt unlock ./git-crypt-key && rm ./git-crypt-key
 
       - name: 安装 Flatpak 构建环境
         run: |
@@ -136,8 +130,10 @@ jobs:
           targets: x86_64-unknown-linux-gnu
 
       - name: 构建 Flatpak
+        env:
+          sentry_dsn: ${{ secrets.SENTRY_DSN }}
         run: |
-          fvm flutter build linux --release
+          fvm flutter build linux --release --dart-define=sentry_dsn=${{ env.sentry_dsn }}
           mkdir -p build-flatpak repo-flatpak
           flatpak-builder --user --force-clean --repo=repo-flatpak --install-deps-from=flathub build-flatpak flatpak/io.github.windy.breeze.yml
           flatpak build-bundle repo-flatpak breeze.flatpak io.github.windy.breeze
@@ -158,24 +154,6 @@ jobs:
         run: git config --global core.autocrlf false
 
       - uses: actions/checkout@v4
-
-      - name: 解密 (原生 MSYS2 Git-Crypt)
-        shell: bash
-        env:
-          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-        run: |
-          # 1. 将内置 MSYS2 的 bin 目录临时加入 PATH，以便调用 pacman 和相关 DLL
-          export PATH="/c/msys64/usr/bin:$PATH"
-
-          # 2. 静默更新包数据库并安装 git-crypt
-          pacman -Sy --noconfirm git-crypt
-
-          # 3. 还原密钥并执行解密
-          echo "$GIT_CRYPT_KEY" | base64 -d > ./git-crypt-key
-          git-crypt unlock ./git-crypt-key
-
-          # 4. 销毁密钥
-          rm ./git-crypt-key
 
       - name: 设置 Node.js & pnpm
         uses: pnpm/action-setup@v4
@@ -201,6 +179,8 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: 运行 Windows 构建脚本
+        env:
+          sentry_dsn: ${{ secrets.SENTRY_DSN }}
         run: |
           # 1. 先获取项目依赖
           fvm flutter pub get

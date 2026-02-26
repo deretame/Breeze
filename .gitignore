@@ -61,3 +61,5 @@ repo-flatpak/
 *.flatpak
 .flatpak-builder/
 GPUCache/
+sentry.properties
+.sentry-native

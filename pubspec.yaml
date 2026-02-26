@@ -113,15 +113,12 @@ dependencies:
   flutter_rust_bridge: ^2.10.0 # Flutter 与 Rust FFI 通信桥梁
   flutter_foreground_task: ^9.1.0 # 前台任务
   flutter_local_notifications: ^20.0.0 # 本地通知
-  firebase_core: ^4.0.0 # Firebase 核心
-  firebase_analytics: ^12.0.0 # Firebase 分析
-  firebase_performance: ^0.11.0 # Firebase 性能监控
-  firebase_crashlytics: ^5.0.0 # Firebase 异常监控
   vm_service: ^15.0.2 # Dart VM 服务（内存分析）
-  flutter_dotenv: ^6.0.0 # 环境变量管理
   ffi: ^2.2.0 # FFI
+  sentry_flutter: ^9.14.0
 
 dev_dependencies:
+  sentry_dart_plugin: ^3.2.1
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0 # 代码规范检查
@@ -160,7 +157,6 @@ flutter:
     - asset/image/bika_image/cat_leaderboard.jpg
     - asset/image/bika_image/cat_random.jpg
     - asset/image/assets/default_cover.png
-    - .env
     - .env.proxy
 
 objectbox:
@@ -168,3 +164,9 @@ objectbox:
   output_dir:
     lib: object_box
     test: object_box
+
+sentry:
+  upload_debug_symbols: true
+  upload_source_maps: true
+  project: flutter
+  org: windy-pt

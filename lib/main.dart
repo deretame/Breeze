@@ -4,26 +4,23 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:event_bus/event_bus.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_socks_proxy/socks_proxy.dart';
 import 'package:logger/logger.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
-import 'package:zephyr/firebase_options.dart';
 import 'package:zephyr/network/dio_cache.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
@@ -35,7 +32,6 @@ import 'package:zephyr/util/desktop/intent.dart';
 import 'package:zephyr/util/desktop/native_window.dart';
 import 'package:zephyr/util/desktop/system_tray.dart';
 import 'package:zephyr/util/desktop/window_logic.dart';
-import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/manage_cache.dart';
@@ -61,156 +57,157 @@ final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 final navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
-  runZonedGuarded(
-    () async {
-      WidgetsFlutterBinding.ensureInitialized();
+  // 1. 基础初始化
+  WidgetsFlutterBinding.ensureInitialized();
 
-      // 初始化环境变量
-      await dotenv.load(fileName: ".env");
+  const sentryDsn = String.fromEnvironment('sentry_dsn', defaultValue: '');
 
-      // 初始化rust
-      await RustLib.init();
+  if (sentryDsn.isEmpty) {
+    final (globalSettingCubit, jmSettingCubit, bikaSettingCubit) =
+        await _initServices();
 
-      // 配置http代理，方便开发测试
-      if (kDebugMode) {
-        await enableProxy();
-      }
+    runApp(
+      MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: globalSettingCubit),
+          BlocProvider.value(value: jmSettingCubit),
+          BlocProvider.value(value: bikaSettingCubit),
+        ],
+        child: MyApp(),
+      ),
+    );
 
-      // 初始化前台任务
-      FlutterForegroundTask.initCommunicationPort();
+    return;
+  }
 
-      // 重采样触控刷新率
-      GestureBinding.instance.resamplingEnabled = true;
+  // 2. 使用 Sentry 包装整个应用生命周期
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = sentryDsn;
 
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-      SystemChrome.setSystemUIOverlayStyle(
-        const SystemUiOverlayStyle(
-          systemNavigationBarColor: Colors.transparent,
-          systemNavigationBarDividerColor: Colors.transparent,
-          statusBarColor: Colors.transparent,
-        ),
-      );
+      // 开启默认的个人信息采集（IP/Header），有助于分析用户分布
+      options.sendDefaultPii = true;
 
-      final isWin = Platform.isWindows;
-      final cache = PaintingBinding.instance.imageCache;
+      // 仅在调试模式下打印 Sentry 内部日志
+      options.enableLogs = kDebugMode;
 
-      cache.maximumSizeBytes = 300 * 1024 * 1024 * (isWin ? 3 : 1);
-      cache.maximumSize = 50 * (isWin ? 3 : 1);
+      // --- Sentry Sponsored Business 特权配置 ---
+      // 性能追踪采样率：对于 3000 用户量，建议设为 1.0 (全量) 或 0.5
+      options.tracesSampleRate = 1.0;
 
-      // 如果是手机的话就固定为只能使用横屏模式
-      if (!isTabletWithOutContext()) {
-        await SystemChrome.setPreferredOrientations([
-          DeviceOrientation.portraitUp,
-          DeviceOrientation.portraitDown,
-        ]);
-      }
+      // 性能剖析采样率：基于 tracesSampleRate，建议全开
+      // ignore: experimental_member_use
+      options.profilesSampleRate = 1.0;
 
-      // 用来判断要不要使用skia
-      const skia = String.fromEnvironment('use_skia', defaultValue: 'false');
-      if (skia == 'true') {
-        useSkia = true;
-      } else {
-        useSkia = false;
-      }
+      // 会话回放设置：平时抽样 10%，遇到错误时 100% 录制
+      options.replay.sessionSampleRate = 0.1;
+      options.replay.onErrorSampleRate = 1.0;
 
-      objectbox = await ObjectBox.create();
-
-      final setting = objectbox.userSettingBox.get(1);
-      if (setting == null) {
-        objectbox.userSettingBox.put(UserSetting());
-      }
-
-      final globalSettingCubit = GlobalSettingCubit();
-      await globalSettingCubit.initBox();
-
-      final jmSettingCubit = JmSettingCubit();
-      await jmSettingCubit.initBox();
-
-      final bikaSettingCubit = BikaSettingCubit();
-      await bikaSettingCubit.initBox();
-      // await initCfIpList('https://ip.164746.xyz/ipTop.html');
-
-      if (globalSettingCubit.state.needCleanCache) {
-        await clearCache(await getCachePath());
-      }
-
-      // logger.d(globalSetting.socks5Proxy);
-      if (globalSettingCubit.state.socks5Proxy.isNotEmpty) {
-        // proxy -> "SOCKS5/SOCKS4/PROXY username:password@host:port;" or "DIRECT"
-        SocksProxy.initProxy(
-          proxy: 'SOCKS5 ${globalSettingCubit.state.socks5Proxy}',
-        );
-      }
-
-      if (kDebugMode) {
-        FlutterError.onError = (FlutterErrorDetails details) {
-          logger.e(
-            details,
-            error: details.exception,
-            stackTrace: details.stack,
-          );
-        };
-
-        PlatformDispatcher.instance.onError = (error, stack) {
-          logger.e(error, error: error, stackTrace: stack);
-          return true; // 表示错误已处理
-        };
-      } else {
-        if (!Platform.isLinux) {
-          await Firebase.initializeApp(
-            options: DefaultFirebaseOptions.currentPlatform,
-          );
-
-          FlutterError.onError = (FlutterErrorDetails errorDetails) {
-            if (shouldIgnoreError(errorDetails.exception)) {
-              return;
-            }
-            FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
-          };
-
-          PlatformDispatcher.instance.onError = (error, stack) {
-            if (shouldIgnoreError(error)) {
-              return true;
-            }
-            FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-            return true; // 表示错误已处理
-          };
-        } else {
-          logger = Logger(filter: ProductionFilter(), output: ConsoleOutput());
-        }
-      }
-
-      runApp(
-        MultiBlocProvider(
-          providers: [
-            BlocProvider.value(value: globalSettingCubit),
-            BlocProvider.value(value: jmSettingCubit),
-            BlocProvider.value(value: bikaSettingCubit),
-          ],
-          child: MyApp(),
-        ),
-      );
+      // 附加线程信息和堆栈，增强原生层（Rust/C++）错误分析
+      options.attachThreads = true;
+      options.attachStacktrace = true;
     },
-    (error, stackTrace) {
-      if (kDebugMode) {
-        logger.e(error, error: error, stackTrace: stackTrace);
-      } else {
-        if (Platform.isLinux) {
-          return;
-        }
+    appRunner: () async {
+      try {
+        final (globalSettingCubit, jmSettingCubit, bikaSettingCubit) =
+            await _initServices();
 
-        if (shouldIgnoreError(error)) {
-          return;
-        }
-
-        FirebaseCrashlytics.instance.recordError(
-          error,
-          stackTrace,
-          fatal: true,
+        runApp(
+          SentryWidget(
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider.value(value: globalSettingCubit),
+                BlocProvider.value(value: jmSettingCubit),
+                BlocProvider.value(value: bikaSettingCubit),
+              ],
+              child: MyApp(),
+            ),
+          ),
         );
+      } catch (exception, stackTrace) {
+        await Sentry.captureException(exception, stackTrace: stackTrace);
       }
     },
   );
+}
+
+Future<(GlobalSettingCubit, JmSettingCubit, BikaSettingCubit)>
+_initServices() async {
+  // 初始化rust
+  await RustLib.init();
+
+  // 配置http代理，方便开发测试
+  if (kDebugMode) {
+    await enableProxy();
+  }
+
+  // 初始化前台任务
+  FlutterForegroundTask.initCommunicationPort();
+
+  // 重采样触控刷新率
+  GestureBinding.instance.resamplingEnabled = true;
+
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+      statusBarColor: Colors.transparent,
+    ),
+  );
+
+  final isWin = Platform.isWindows;
+  final cache = PaintingBinding.instance.imageCache;
+
+  cache.maximumSizeBytes = 300 * 1024 * 1024 * (isWin ? 3 : 1);
+  cache.maximumSize = 50 * (isWin ? 3 : 1);
+
+  // 如果是手机的话就固定为只能使用横屏模式
+  if (!isTabletWithOutContext()) {
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
+  // 用来判断要不要使用skia
+  const skia = String.fromEnvironment('use_skia', defaultValue: 'false');
+  if (skia == 'true') {
+    useSkia = true;
+  } else {
+    useSkia = false;
+  }
+
+  objectbox = await ObjectBox.create();
+
+  final setting = objectbox.userSettingBox.get(1);
+  if (setting == null) {
+    objectbox.userSettingBox.put(UserSetting());
+  }
+
+  final globalSettingCubit = GlobalSettingCubit();
+  await globalSettingCubit.initBox();
+
+  final jmSettingCubit = JmSettingCubit();
+  await jmSettingCubit.initBox();
+
+  final bikaSettingCubit = BikaSettingCubit();
+  await bikaSettingCubit.initBox();
+  // await initCfIpList('https://ip.164746.xyz/ipTop.html');
+
+  if (globalSettingCubit.state.needCleanCache) {
+    await clearCache(await getCachePath());
+  }
+
+  // logger.d(globalSetting.socks5Proxy);
+  if (globalSettingCubit.state.socks5Proxy.isNotEmpty) {
+    // proxy -> "SOCKS5/SOCKS4/PROXY username:password@host:port;" or "DIRECT"
+    SocksProxy.initProxy(
+      proxy: 'SOCKS5 ${globalSettingCubit.state.socks5Proxy}',
+    );
+  }
+
+  return (globalSettingCubit, jmSettingCubit, bikaSettingCubit);
 }
 
 class MyApp extends StatefulWidget with WindowListener {
@@ -267,6 +264,8 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
 
   /// 立即隐藏窗口再退出，让用户感知不到 Dart VM 清理的延迟
   void _forceExit() {
+    nuclearKillProcess();
+
     if (Platform.isWindows) {
       NativeWindow.hide(); // 同步 Win32 调用，零延迟
     } else {

@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "Sentry": {
+      "type": "remote",
+      "url": "https://mcp.sentry.dev/mcp/windy-pt/flutter",
+      "oauth": {}
+    }
+  }
+}

@@ -7,11 +7,11 @@ list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
   dynamic_color
   file_selector_windows
-  firebase_core
   flutter_inappwebview_windows
   objectbox_flutter_libs
   permission_handler_windows
   screen_retriever_windows
+  sentry_flutter
   tray_manager
   url_launcher_windows
   window_manager
@@ -19,6 +19,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
   flutter_local_notifications_windows
+  jni
   rust_lib_zephyr
 )
 

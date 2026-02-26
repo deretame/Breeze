@@ -32,6 +32,7 @@ import 'package:zephyr/util/desktop/intent.dart';
 import 'package:zephyr/util/desktop/native_window.dart';
 import 'package:zephyr/util/desktop/system_tray.dart';
 import 'package:zephyr/util/desktop/window_logic.dart';
+import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/manage_cache.dart';
@@ -48,7 +49,7 @@ final appRouter = AppRouter();
 // 全局事件总线实例
 EventBus eventBus = EventBus();
 
-var logger = Logger();
+var logger = Logger(printer: TersePrettyPrinter());
 
 List<String> cfIpList = [];
 
@@ -63,19 +64,45 @@ Future<void> main() async {
   const sentryDsn = String.fromEnvironment('sentry_dsn', defaultValue: '');
 
   if (sentryDsn.isEmpty) {
-    final (globalSettingCubit, jmSettingCubit, bikaSettingCubit) =
-        await _initServices();
+    // 1. 如果是调试模式，配置 logger 捕获全局错误
+    if (kDebugMode || sentryDsn.isEmpty) {
+      // 捕获 Flutter 框架层错误（如 Widget 构建中的异常）
+      FlutterError.onError = (FlutterErrorDetails details) {
+        logger.e(
+          "Flutter Framework Error",
+          error: details.exception,
+          stackTrace: details.stack,
+        );
+      };
 
-    runApp(
-      MultiBlocProvider(
-        providers: [
-          BlocProvider.value(value: globalSettingCubit),
-          BlocProvider.value(value: jmSettingCubit),
-          BlocProvider.value(value: bikaSettingCubit),
-        ],
-        child: MyApp(),
-      ),
-    );
+      // 捕获异步错误和底层错误（如 Future.error, Timer 等）
+      PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+        logger.e("Async/Platform Error", error: error, stackTrace: stack);
+        return true; // 表示错误已被处理
+      };
+    }
+
+    try {
+      // 2. 执行业务初始化
+      final (globalSettingCubit, jmSettingCubit, bikaSettingCubit) =
+          await _initServices();
+
+      runApp(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: globalSettingCubit),
+            BlocProvider.value(value: jmSettingCubit),
+            BlocProvider.value(value: bikaSettingCubit),
+          ],
+          child: const MyApp(),
+        ),
+      );
+    } catch (e, stack) {
+      // 捕获初始化阶段（_initServices）可能抛出的异常
+      if (kDebugMode || sentryDsn.isEmpty) {
+        logger.e("App Setup Failed", error: e, stackTrace: stack);
+      }
+    }
 
     return;
   }

@@ -291,8 +291,6 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
 
   /// 立即隐藏窗口再退出，让用户感知不到 Dart VM 清理的延迟
   void _forceExit() {
-    nuclearKillProcess();
-
     if (Platform.isWindows) {
       NativeWindow.hide(); // 同步 Win32 调用，零延迟
     } else {
@@ -424,6 +422,15 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                 },
                 child: Focus(autofocus: true, child: child!),
               ),
+            );
+
+            content = Listener(
+              onPointerDown: (PointerDownEvent event) {
+                if (event.buttons & kBackMouseButton != 0) {
+                  appRouter.maybePop();
+                }
+              },
+              child: content,
             );
 
             // 桌面平台添加自定义标题栏

@@ -141,7 +141,6 @@ class ContinuousMemoryMonitoring {
   }
 
   static void _logMemoryToAnalytics(MemoryInfo memoryInfo) {
-    // 这里可以发送到 Firebase Analytics 或其他分析服务
     logger.d('Memory Analytics: ${memoryInfo.dartHeapUsed} bytes');
   }
 }

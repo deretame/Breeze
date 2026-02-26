@@ -43,7 +43,6 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Firebase
 /target/
 
 # FVM Version Cache

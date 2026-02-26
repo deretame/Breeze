@@ -1,7 +1,15 @@
-firebase.json filter=git-crypt diff=git-crypt
-lib/firebase_options.dart -filter -diff
-.env filter=git-crypt diff=git-crypt
 android/key.properties filter=git-crypt diff=git-crypt
-android/Breeze-key.keystore filter=git-crypt diff=git-crypt
-android/app/google-services.json filter=git-crypt diff=git-crypt
-symbols/update_symbols.dart filter=git-crypt diff=git-crypt
+android/Breeze-key.keystore filter=git-crypt diff=git-crypt 
+
+# 自动探测文本文件并统一转化为 LF
+* text=auto
+
+# 明确指定某些文件始终使用 LF (通常是脚本)
+*.sh text eol=lf
+
+# 明确指定某些文件始终使用 CRLF (如 Windows 特有文件)
+*.bat text eol=crlf
+
+# 标记二进制文件，不进行任何换行符转换
+*.png binary
+*.jpg binary

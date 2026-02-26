@@ -305,33 +305,6 @@ Future<void> main() async {
     if (exitCode != 0) {
       throw Exception('第二次构建 (Impeller) 失败！ (Exit code: $exitCode)');
     }
-
-    // --- 可选：运行符号更新脚本 ---
-    final String symbolsScriptPath = paths['symbolsScriptPath'];
-    if (await File(symbolsScriptPath).exists()) {
-      stdout.write('\n是否要运行符号更新脚本 \'$symbolsScriptPath\'? (y/N) ');
-      final String? choice = stdin.readLineSync()?.toLowerCase();
-
-      if (choice == 'y' || choice == 'yes') {
-        _printColor('--- 正在执行符号更新脚本... ---', _cyan);
-
-        // --- 修改 ---
-        // 之前：'powershell.exe', ['-File', symbolsScriptPath]
-        // 现在：使用 'dart run' 来执行 .dart 脚本
-        exitCode = await _runCommand('dart', [
-          'run',
-          symbolsScriptPath,
-        ], workingDirectory: projectRoot);
-
-        if (exitCode != 0) {
-          throw Exception('符号更新脚本执行失败！ (Exit code: $exitCode)');
-        }
-      } else {
-        _printColor('已跳过执行符号更新脚本。', _yellow);
-      }
-    } else {
-      _printColor('找不到符号更新脚本: $symbolsScriptPath (已跳过)', _yellow);
-    }
   } catch (e) {
     // 只有当不是用户主动 Ctrl+C 导致的错误时，才打印红色错误
     // 如果 _isRestored 为 true，说明可能是 Ctrl+C 已经处理过了，或者正在处理

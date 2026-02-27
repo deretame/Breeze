@@ -5,10 +5,10 @@
 // 'flutter create' template.
 
 // The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = zephyr
+PRODUCT_NAME = Breeze
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.zephyr.app.a614
+PRODUCT_BUNDLE_IDENTIFIER = com.zephyr.breeze
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.zephyr.app.a614. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 com.zephyr.breeze. All rights reserved.

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -52,19 +53,18 @@ class FullScreenImagePage extends StatelessWidget {
                 try {
                   if (Platform.isWindows ||
                       Platform.isLinux ||
-                      Platform.isMacOS) {
-                    // 桌面端不需要权限检查
-                    var result = await _copyImage2PicturesPath(imagePath);
+                      Platform.isMacOS ||
+                      Platform.isIOS) {
+                    // 桌面端及 iOS 使用文件选择器
+                    var result = await _saveImageWithSelector(imagePath);
                     if (result.isNotEmpty) {
                       showSuccessToast("图片已保存至: $result");
-                    } else {
-                      showErrorToast("图片保存失败！");
                     }
                   } else {
-                    // 移动端需要权限
+                    // Android 端需要权限
                     if (await Permission.photos.request().isGranted ||
                         await Permission.storage.request().isGranted) {
-                      var result = await _copyImage2PicturesPath(imagePath);
+                      var result = await _saveImageAndroid(imagePath);
                       if (result.isNotEmpty) {
                         showSuccessToast("图片已保存到相册！");
                       } else {
@@ -76,7 +76,7 @@ class FullScreenImagePage extends StatelessWidget {
                   }
                 } catch (e, s) {
                   logger.e("保存图片失败", error: e, stackTrace: s);
-                  showErrorToast("图片保存失败！");
+                  showErrorToast("图片保存失败！\n${e.toString()}");
                 }
               },
             ),
@@ -86,22 +86,46 @@ class FullScreenImagePage extends StatelessWidget {
     );
   }
 
-  Future<String> _copyImage2PicturesPath(String inputImagePath) async {
-    String picturesDir;
+  Future<String> _saveImageWithSelector(String inputImagePath) async {
+    final inputFile = File(inputImagePath);
+    final ext = p.extension(inputImagePath).toLowerCase();
 
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      // 桌面端：使用系统图片目录
-      final dir = await getDownloadsDirectory();
-      if (dir == null) {
-        logger.e('无法获取下载目录');
-        return '';
+    final typeGroup = XTypeGroup(
+      label: 'images',
+      extensions: ext.isNotEmpty ? [ext.substring(1)] : ['jpg', 'png', 'jpeg'],
+    );
+
+    final result = await getSaveLocation(
+      suggestedName: inputFile.uri.pathSegments.last,
+      acceptedTypeGroups: [typeGroup],
+    );
+
+    if (result == null) {
+      return ''; // 用户取消了选择
+    }
+
+    await inputFile.copy(result.path);
+    return result.path;
+  }
+
+  Future<String> _saveImageAndroid(String inputImagePath) async {
+    if (!await Permission.storage.request().isGranted) {
+      return '';
+    }
+
+    String picturesDir = '';
+    try {
+      final dirs = await getExternalStorageDirectories(
+        type: StorageDirectory.pictures,
+      );
+      if (dirs != null && dirs.isNotEmpty) {
+        picturesDir = p.join(dirs.first.path, appName);
       }
-      picturesDir = p.join(dir.path, appName, 'Pictures');
-    } else {
-      // Android 端
-      if (!await Permission.storage.request().isGranted) {
-        return '';
-      }
+    } catch (e) {
+      logger.e('Failed to get external storage directories: $e');
+    }
+
+    if (picturesDir.isEmpty) {
       picturesDir = p.join('/storage/emulated/0/Pictures', appName);
     }
 

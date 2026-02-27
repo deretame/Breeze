@@ -127,6 +127,8 @@ dev_dependencies:
   objectbox_generator: ^5.0.0 # ObjectBox 代码生成
   integration_test:
     sdk: flutter
+  flutter_launcher_icons:
+  flutter_native_splash:
 
 # Flutter 配置
 flutter:
@@ -170,3 +172,13 @@ sentry:
   upload_source_maps: true
   project: flutter
   org: windy-pt
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_1024.png"
+
+flutter_native_splash:
+  color: "#ffffff"
+  image: "macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_1024.png"
+  fullscreen: true

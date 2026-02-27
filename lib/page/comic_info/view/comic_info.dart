@@ -138,7 +138,7 @@ class _ComicInfoState extends State<_ComicInfo>
                 ),
               );
 
-              if (_type == ComicEntryType.download) {
+              if (_type == ComicEntryType.download && !Platform.isIOS) {
                 menuItems.add(
                   const PopupMenuItem<MenuOption>(
                     value: MenuOption.export,

@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>Breeze</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIconFile</key>
@@ -34,5 +36,21 @@
 	<false/>
 	<key>NSUserNotificationAlertStyle</key>
 	<string>alert</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Breeze requires access to the photo library to select and save comic images.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Breeze requires camera access to scan QR codes or take photos.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Breeze requires permission to save downloaded comic images to your photo gallery.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>http</string>
+		<string>https</string>
+	</array>
 </dict>
 </plist>

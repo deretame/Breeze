@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: 释放空间 (Nuclear Mode)
         run: |
@@ -107,6 +109,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: 设置 Java 21
         uses: actions/setup-java@v4
@@ -166,6 +170,8 @@ jobs:
       - name: 关闭 Git CRLF 转换
         run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: 设置 Java 21
         uses: actions/setup-java@v4
@@ -219,6 +225,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: 安装打包依赖 (create-dmg)
         run: brew install create-dmg
@@ -290,6 +298,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: 设置 Dart SDK
         uses: dart-lang/setup-dart@v1
@@ -338,6 +348,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: 下载所有构建产物
         uses: actions/download-artifact@v4

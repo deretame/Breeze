@@ -115,7 +115,7 @@ jobs:
       - name: 安装 Flatpak 构建环境
         run: |
           sudo apt-get update
-          sudo apt-get install -y flatpak flatpak-builder ninja-build libgtk-3-dev liblzma-dev libgcrypt20-dev libayatana-appindicator3-dev libwebkit2gtk-4.1-dev
+          sudo apt-get install -y flatpak flatpak-builder ninja-build libgtk-3-dev liblzma-dev libgcrypt20-dev libayatana-appindicator3-dev libwebkit2gtk-4.1-dev libcurl4-openssl-dev 
           flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
           flatpak install --user -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
 
@@ -138,9 +138,9 @@ jobs:
 
       - name: 构建 Flatpak
         env:
-          sentry_dsn: ${{ secrets.SENTRY_DSN }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
-          fvm flutter build linux --release --dart-define=sentry_dsn=${{ env.sentry_dsn }}
+          fvm flutter build linux --release --dart-define=sentry_dsn=${{ env.SENTRY_DSN }}
           mkdir -p build-flatpak repo-flatpak
           flatpak-builder --user --force-clean --repo=repo-flatpak --install-deps-from=flathub build-flatpak flatpak/io.github.windy.breeze.yml
           flatpak build-bundle repo-flatpak breeze.flatpak io.github.windy.breeze
@@ -200,7 +200,7 @@ jobs:
 
       - name: 运行 Windows 构建脚本
         env:
-          sentry_dsn: ${{ secrets.SENTRY_DSN }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
           fvm flutter pub get
           fvm dart ./script/build_windows.dart

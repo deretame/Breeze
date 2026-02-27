@@ -208,7 +208,7 @@ Future<void> main() async {
     final Directory skiaDir = paths['skiaDir'] as Directory;
     final String sep = paths['sep'];
 
-    final String sentryDsn = Platform.environment['sentry_dsn'] ?? '';
+    final String sentryDsn = Platform.environment['SENTRY_DSN'] ?? '';
     if (sentryDsn.isEmpty) {
       _printColor('提示: 未找到 sentry_dsn 环境变量，将使用空字符串', _yellow);
     } else {
@@ -313,6 +313,26 @@ Future<void> main() async {
     ], workingDirectory: projectRoot);
     if (exitCode != 0) {
       throw Exception('第二次构建 (Impeller) 失败！ (Exit code: $exitCode)');
+    }
+
+    // --- 上传符号表到 Sentry (通过 sentry_dart_plugin) ---
+    final sentryAuthToken = Platform.environment['SENTRY_AUTH_TOKEN'] ?? '';
+    if (sentryAuthToken.isNotEmpty) {
+      _printColor('\n--- 正在通过 sentry_dart_plugin 上传符号表到 Sentry ---', _cyan);
+      final sentryExitCode = await _runCommand('dart', [
+        'run',
+        'sentry_dart_plugin',
+      ], workingDirectory: projectRoot);
+      if (sentryExitCode != 0) {
+        _printColor(
+          'Sentry 符号表上传失败 (Exit code: $sentryExitCode)，但不影响构建流程',
+          _yellow,
+        );
+      } else {
+        _printColor('Sentry 符号表上传成功！', _green);
+      }
+    } else {
+      _printColor('未找到 SENTRY_AUTH_TOKEN，跳过符号表上传', _yellow);
     }
   } catch (e) {
     // 只有当不是用户主动 Ctrl+C 导致的错误时，才打印红色错误

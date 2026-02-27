@@ -343,7 +343,7 @@ Future<void> main() async {
     _printColor('liblzma 加载成功 (xz v$_xzVersion)', _green);
     print('');
 
-    final String sentryDsn = Platform.environment['sentry_dsn'] ?? '';
+    final String sentryDsn = Platform.environment['SENTRY_DSN'] ?? '';
     if (sentryDsn.isEmpty) {
       _printColor('提示: 未找到 sentry_dsn 环境变量，将使用空字符串', _yellow);
     } else {

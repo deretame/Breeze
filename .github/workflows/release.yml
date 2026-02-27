@@ -137,11 +137,10 @@ jobs:
           targets: x86_64-unknown-linux-gnu
 
       - name: 构建 Flatpak
-        env:
-          sentry_dsn: ${{ secrets.SENTRY_DSN }}
+        env: 
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-        run: | 
-          fvm flutter build linux --release --dart-define=sentry_dsn=${{ env.sentry_dsn }} --split-debug-info=build/symbols
+        run: |
+          fvm flutter build linux --release --dart-define=sentry_dsn=${{ env.SENTRY_DSN }} --split-debug-info=build/symbols
           mkdir -p build-flatpak repo-flatpak
           flatpak-builder --user --force-clean --repo=repo-flatpak --install-deps-from=flathub build-flatpak flatpak/io.github.windy.breeze.yml
           flatpak build-bundle repo-flatpak breeze.flatpak io.github.windy.breeze

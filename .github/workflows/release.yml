@@ -90,7 +90,7 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
           fvm dart ./script/build_apk.dart
-          fvm dart run sentry_dart_plugin
+          fvm dart run sentry_dart_plugin --sentry-define=auth_token="${{ secrets.SENTRY_AUTH_TOKEN }}"
 
       - name: 上传 Android 产物
         uses: actions/upload-artifact@v4
@@ -146,7 +146,7 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
           fvm flutter build linux --release --dart-define=sentry_dsn=${{ env.SENTRY_DSN }} --split-debug-info=build/symbols
-          fvm dart run sentry_dart_plugin
+          fvm dart run sentry_dart_plugin --sentry-define=auth_token="${{ secrets.SENTRY_AUTH_TOKEN }}"
           mkdir -p build-flatpak repo-flatpak
           flatpak-builder --user --force-clean --repo=repo-flatpak --install-deps-from=flathub build-flatpak flatpak/io.github.windy.breeze.yml
           flatpak build-bundle repo-flatpak breeze.flatpak io.github.windy.breeze
@@ -204,7 +204,7 @@ jobs:
         run: |
           fvm flutter pub get
           fvm dart ./script/build_windows.dart
-          fvm dart run sentry_dart_plugin
+          fvm dart run sentry_dart_plugin --sentry-define=auth_token="${{ secrets.SENTRY_AUTH_TOKEN }}"
 
       - name: 上传 Windows 产物
         uses: actions/upload-artifact@v4
@@ -259,7 +259,7 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
           fvm flutter build macos --release --dart-define=sentry_dsn=${{ env.SENTRY_DSN }} --split-debug-info=build/symbols
-          fvm dart run sentry_dart_plugin
+          fvm dart run sentry_dart_plugin --sentry-define=auth_token="${{ secrets.SENTRY_AUTH_TOKEN }}"
 
       - name: 制作 DMG
         run: |
@@ -316,7 +316,7 @@ jobs:
         run: |
           fvm flutter pub get
           fvm flutter build ios --release --no-codesign --dart-define=sentry_dsn=${{ env.SENTRY_DSN }} --split-debug-info=build/symbols
-          fvm dart run sentry_dart_plugin
+          fvm dart run sentry_dart_plugin --sentry-define=auth_token="${{ secrets.SENTRY_AUTH_TOKEN }}"
 
       - name: 封装 IPA
         run: |

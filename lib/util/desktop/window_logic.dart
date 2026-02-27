@@ -34,7 +34,9 @@ class WindowLogic {
       center: state.windowX == 0 && state.windowY == 0,
       backgroundColor: Colors.transparent,
       skipTaskbar: false,
-      titleBarStyle: TitleBarStyle.hidden,
+      titleBarStyle: Platform.isMacOS
+          ? TitleBarStyle.normal
+          : TitleBarStyle.hidden,
     );
 
     // 等待窗口准备好再显示

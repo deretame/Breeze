@@ -8,7 +8,7 @@
 PRODUCT_NAME = zephyr
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.zephyr
+PRODUCT_BUNDLE_IDENTIFIER = com.zephyr.app.a614
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.example. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 com.zephyr.app.a614. All rights reserved.

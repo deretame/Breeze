@@ -24,7 +24,11 @@ class DesktopProgressReporter extends DownloadProgressReporter {
         );
       } else if (Platform.isMacOS) {
         notificationDetails = const NotificationDetails(
-          macOS: DarwinNotificationDetails(),
+          macOS: DarwinNotificationDetails(
+            presentAlert: true, // 关键：即使 App 在前台也显示弹窗
+            presentSound: true, // 即使 App 在前台也播放声音
+            presentBadge: true, // 更新图标标记
+          ),
         );
       }
 

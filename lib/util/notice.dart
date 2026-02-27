@@ -34,7 +34,6 @@ Future<void> initializeNotifications() async {
   const initializationSettingsAndroid = AndroidInitializationSettings(
     '@mipmap/ic_launcher',
   );
-
   final appDirectory = await getAppDirectory();
   final windowsIconPath = p.join(
     appDirectory,
@@ -44,56 +43,55 @@ Future<void> initializeNotifications() async {
     'image',
     'app-icon.png',
   );
-
   final initializationSettingsWindows = WindowsInitializationSettings(
     appName: 'Zephyr',
     appUserModelId: 'com.zephyr.breeze',
     guid: 'c4fce75a-b087-44bf-ac62-cc52b8e56990',
     iconPath: windowsIconPath,
   );
-
   final initializationSettingsLinux = LinuxInitializationSettings(
     defaultActionName: 'Open notification',
     defaultIcon: AssetsLinuxIcon('asset/image/app-icon.png'),
   );
-
   const initializationSettingsDarwin = DarwinInitializationSettings(
     requestAlertPermission: false,
     requestBadgePermission: false,
     requestSoundPermission: false,
+    notificationCategories: [],
   );
-
   final initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,
     windows: initializationSettingsWindows,
     linux: initializationSettingsLinux,
     macOS: initializationSettingsDarwin,
   );
-
   await flutterLocalNotificationsPlugin.initialize(
     settings: initializationSettings,
-    onDidReceiveNotificationResponse:
-        (NotificationResponse notificationResponse) async {},
+    onDidReceiveNotificationResponse: (NotificationResponse response) async {},
   );
-
-  // 先检查当前状态
   if (Platform.isLinux) return;
-
   try {
-    final status = await Permission.notification.request();
-
-    if (!status.isGranted) {
-      logger.w('Notification permission denied');
-      showErrorToast("请开启通知权限");
-    } else {
-      logger.d('Notification permission granted');
+    if (Platform.isMacOS) {
+      final bool? granted = await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            MacOSFlutterLocalNotificationsPlugin
+          >()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
+      if (granted == true) {
+        logger.d('macOS Notification permission granted');
+      } else {
+        logger.w('macOS Notification permission denied');
+        showErrorToast("请在系统设置中开启通知权限");
+      }
+    } else if (Platform.isAndroid || Platform.isIOS) {
+      final status = await Permission.notification.request();
+      if (!status.isGranted) {
+        showErrorToast("请开启通知权限");
+      }
     }
   } catch (e, stackTrace) {
-    logger.e('Permission request failed', error: e, stackTrace: stackTrace);
-
-    if (e.toString().contains('already running')) {
-      logger.w('Permission request already running, ignoring...');
-    } else {
+    logger.e('权限请求异常', error: e, stackTrace: stackTrace);
+    if (!e.toString().contains('already running')) {
       rethrow;
     }
   }

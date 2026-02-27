@@ -64,6 +64,7 @@ Future<void> main() async {
   const sentryDsn = String.fromEnvironment('sentry_dsn', defaultValue: '');
 
   if (sentryDsn.isEmpty) {
+    if (!kDebugMode) logger = Logger(filter: ProductionFilter());
     // 1. 如果是调试模式，配置 logger 捕获全局错误
     if (kDebugMode || sentryDsn.isEmpty) {
       // 捕获 Flutter 框架层错误（如 Widget 构建中的异常）
@@ -434,7 +435,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
             );
 
             // 桌面平台添加自定义标题栏
-            if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+            if (Platform.isWindows || Platform.isLinux) {
               return Column(
                 children: [
                   const CustomTitleBar(),

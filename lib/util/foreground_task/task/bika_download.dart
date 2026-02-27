@@ -501,9 +501,6 @@ void _markTaskCompleted(String comicId) {
       .build()
       .find();
   if (tasks.isNotEmpty) {
-    final task = tasks.first;
-    task.isCompleted = true;
-    task.isDownloading = false;
-    objectbox.downloadTaskBox.put(task);
+    objectbox.downloadTaskBox.removeMany(tasks.map((e) => e.id).toList());
   }
 }

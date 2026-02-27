@@ -158,6 +158,7 @@ class DownloadQueueManager {
       );
       await desktopReporter.sendNotification("下载失败", "${task.comicName} 下载失败");
     } finally {
+      _downloadingComicId = "";
       Future.microtask(() => _processQueueDesktop());
     }
   }
@@ -229,6 +230,7 @@ class DownloadQueueManager {
 
       await reporter.sendNotification("下载失败", "${task.comicName} 下载失败");
     } finally {
+      _downloadingComicId = "";
       Future.microtask(() => processQueueWithReporter(reporter));
     }
   }

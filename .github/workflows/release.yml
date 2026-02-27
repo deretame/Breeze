@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   # ══════════════════════════════════════════
-  # 1. Android 构建 (Ubuntu 环境 - 含 git-crypt 解密 & 自动 Sentry)
+  # 1. Android 构建 (含 git-crypt & Sentry)
   # ══════════════════════════════════════════
   build-android:
     runs-on: ubuntu-latest
@@ -28,7 +28,7 @@ jobs:
           docker system prune -a -f
           sudo apt-get clean
 
-      - name: 解密敏感文件 (git-crypt) - 仅 Android 需要
+      - name: 解密敏感文件 (git-crypt)
         env:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
         run: |
@@ -82,14 +82,13 @@ jobs:
       - name: 接受 Android Licenses
         run: yes | fvm flutter doctor --android-licenses || true
 
-      - name: 运行 Android 构建脚本 (插件自动上传 Sentry 符号表)
+      - name: 运行 Android 构建脚本
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-        run: |
-          fvm dart ./script/build_apk.dart
+        run: fvm dart ./script/build_apk.dart
 
       - name: 上传 Android 产物
         uses: actions/upload-artifact@v4
@@ -100,14 +99,14 @@ jobs:
             build/app/outputs/apk/skia/*.apk
 
   # ══════════════════════════════════════════
-  # 2. Linux 构建 (Ubuntu 环境 - 手动 Sentry)
+  # 2. Linux 构建 (手动 Sentry)
   # ══════════════════════════════════════════
   build-linux:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: 设置 Java 21 (提供 JAVA_HOME 供编译期使用)
+      - name: 设置 Java 21
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
@@ -120,10 +119,7 @@ jobs:
           flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
           flatpak install --user -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
 
-      - name: 设置 Dart SDK
-        uses: dart-lang/setup-dart@v1
-
-      - name: 设置 Flutter (FVM)
+      - name: 设置 Dart & Flutter (FVM)
         run: |
           dart pub global activate fvm
           echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
@@ -146,7 +142,7 @@ jobs:
           flatpak-builder --user --force-clean --repo=repo-flatpak --install-deps-from=flathub build-flatpak flatpak/io.github.windy.breeze.yml
           flatpak build-bundle repo-flatpak breeze.flatpak io.github.windy.breeze
 
-      - name: 手动上传 Linux 符号表到 Sentry
+      - name: 上传 Linux 符号表到 Sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
@@ -162,17 +158,16 @@ jobs:
           path: breeze.flatpak
 
   # ══════════════════════════════════════════
-  # 3. Windows 构建 (Windows 环境 - 手动 Sentry)
+  # 3. Windows 构建 (手动 Sentry)
   # ══════════════════════════════════════════
   build-windows:
     runs-on: windows-latest
     steps:
       - name: 关闭 Git CRLF 转换
         run: git config --global core.autocrlf false
-
       - uses: actions/checkout@v4
 
-      - name: 设置 Java 21 (提供 JAVA_HOME 供编译期使用)
+      - name: 设置 Java 21
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
@@ -182,17 +177,13 @@ jobs:
         uses: pnpm/action-setup@v4
         with:
           version: 9
-
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: "pnpm"
           cache-dependency-path: windows-installer/pnpm-lock.yaml
 
-      - name: 设置 Dart SDK
-        uses: dart-lang/setup-dart@v1
-
-      - name: 设置 Flutter (FVM)
+      - name: 设置 Dart & Flutter (FVM)
         run: |
           dart pub global activate fvm
           fvm install && fvm use --force
@@ -208,13 +199,12 @@ jobs:
           fvm flutter pub get
           fvm dart ./script/build_windows.dart
 
-      - name: 手动上传 Windows 符号表到 Sentry
+      - name: 上传 Windows 符号表到 Sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
-          # Windows 环境下直接通过 npm 全局安装 sentry-cli 最稳定
           npm install -g @sentry/cli
           sentry-cli debug-files upload --include-sources build/windows/
 
@@ -225,10 +215,130 @@ jobs:
           path: windows-installer/src-tauri/target/release/windows-installer.exe
 
   # ══════════════════════════════════════════
-  # 4. 汇总发布
+  # 4. macOS 构建 (自动 Sentry 插件)
+  # ══════════════════════════════════════════
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装系统依赖 & 解密
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: |
+          brew install git-crypt create-dmg
+          echo "$GIT_CRYPT_KEY" | base64 --decode > ./git-crypt-key || echo "$GIT_CRYPT_KEY" | base64 -D > ./git-crypt-key
+          git-crypt unlock ./git-crypt-key && rm ./git-crypt-key
+
+      - name: 设置 Dart & Flutter (FVM)
+        run: |
+          dart pub global activate fvm
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          fvm install && fvm use --force
+          echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
+
+      - name: 安装 Rust 工具链
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+
+      - name: 拉取依赖 & 修复 Podfile
+        run: |
+          fvm flutter pub get
+          if [ -f "macos/Podfile" ]; then
+            sed -i '' "s/platform :osx, '[0-9.]*'/platform :osx, '11.0'/g" macos/Podfile
+            ruby -i -pe '
+              if /flutter_additional_macos_build_settings\(target\)/
+                $_ += "      target.build_configurations.each do |config|\n        config.build_settings[\"MACOSX_DEPLOYMENT_TARGET\"] = \"11.0\"\n      end\n"
+              end
+            ' macos/Podfile
+          fi
+
+      - name: 编译 macOS 产物 (sentry_dart_plugin 会自动上传符号表)
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: fvm flutter build macos --release
+
+      - name: 制作 DMG
+        run: |
+          APP_PATH=$(find build/macos/Build/Products/Release -name "*.app" -maxdepth 1 | head -n 1)
+          APP_NAME=$(basename "$APP_PATH")
+          rm -f "Breeze-macOS.dmg"
+          create-dmg \
+            --volname "Breeze Installer" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "$APP_NAME" 150 190 \
+            --hide-extension "$APP_NAME" \
+            --app-drop-link 450 190 \
+            "Breeze-macOS.dmg" \
+            "$APP_PATH"
+
+      - name: 上传 macOS DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: Breeze-macOS.dmg
+
+  # ══════════════════════════════════════════
+  # 5. iOS 构建 (免签 + 自动 Sentry 插件)
+  # ══════════════════════════════════════════
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装系统依赖 & 解密
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: |
+          brew install git-crypt
+          echo "$GIT_CRYPT_KEY" | base64 --decode > ./git-crypt-key || echo "$GIT_CRYPT_KEY" | base64 -D > ./git-crypt-key
+          git-crypt unlock ./git-crypt-key && rm ./git-crypt-key
+
+      - name: 设置 Dart & Flutter (FVM)
+        run: |
+          dart pub global activate fvm
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          fvm install && fvm use --force
+          echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
+
+      - name: 安装 Rust 工具链
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios
+
+      - name: 编译 iOS (无签)
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          fvm flutter pub get
+          fvm flutter build ios --release --no-codesign
+
+      - name: 封装 IPA
+        run: |
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r "Breeze-iOS.ipa" Payload
+
+      - name: 上传 iOS IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: Breeze-iOS.ipa
+
+  # ══════════════════════════════════════════
+  # 6. 汇总发布至 GitHub Release
   # ══════════════════════════════════════════
   publish:
-    needs: [build-android, build-linux, build-windows]
+    needs: [build-android, build-linux, build-windows, build-macos, build-ios]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -253,7 +363,9 @@ jobs:
           echo "| 平台 | 下载链接 |" >> release_body.md
           echo "| :--- | :--- |" >> release_body.md
           echo "| **Windows** | [windows-installer.exe](https://github.com/$REPO/releases/download/$VERSION/windows-installer.exe) |" >> release_body.md
+          echo "| **macOS** | [Breeze-macOS.dmg](https://github.com/$REPO/releases/download/$VERSION/Breeze-macOS.dmg) |" >> release_body.md
           echo "| **Android** | [app-arm64-v8a-release.apk](https://github.com/$REPO/releases/download/$VERSION/app-arm64-v8a-release.apk) |" >> release_body.md
+          echo "| **iOS** | [Breeze-iOS.ipa](https://github.com/$REPO/releases/download/$VERSION/Breeze-iOS.ipa) |" >> release_body.md
           echo "| **Linux** | [breeze.flatpak](https://github.com/$REPO/releases/download/$VERSION/breeze.flatpak) |" >> release_body.md
           echo -e "\n> 💡 **不知道该下载哪个文件？**\n> 请查看 [详细安装指南](https://github.com/$REPO#-%E5%A6%82%E4%BD%95%E5%AE%89%E8%A3%85)。" >> release_body.md
 
@@ -267,3 +379,63 @@ jobs:
             release-assets/android-apks/**/*.apk
             release-assets/linux-flatpak/*.flatpak
             release-assets/windows-exe/windows-installer.exe
+            release-assets/macos-dmg/Breeze-macOS.dmg
+            release-assets/ios-ipa/Breeze-iOS.ipa
+
+  # ══════════════════════════════════════════
+  # 7. 自动更新 Homebrew Tap (仅限 macOS Cask)
+  # ══════════════════════════════════════════
+  update-homebrew:
+    needs: [publish]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出 Homebrew Tap 仓库
+        uses: actions/checkout@v4
+        with:
+          repository: deretame/homebrew-Breeze
+          token: ${{ secrets.HOMEBREW_GITHUB_TOKEN }} 
+          path: homebrew-Breeze
+
+      - name: 下载 macOS 产物并计算 SHA256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ github.event.inputs.version }}
+        run: |
+          # 提取纯数字版本号 (例如 v2.12.6 提取为 2.12.6)
+          CLEAN_VERSION="${VERSION#v}"
+          echo "CLEAN_VERSION=$CLEAN_VERSION" >> $GITHUB_ENV
+          
+          # 仅从刚才发布的 Release 中下载 macOS 的 DMG 文件
+          gh release download "$VERSION" --repo "${{ github.repository }}" --pattern "Breeze-macOS.dmg"
+          
+          # 计算哈希
+          DMG_SHA256=$(sha256sum Breeze-macOS.dmg | awk '{ print $1 }')
+          
+          echo "DMG_SHA256: $DMG_SHA256"
+          echo "DMG_SHA256=$DMG_SHA256" >> $GITHUB_ENV
+
+      - name: 更新 Homebrew Cask 文件
+        working-directory: ./homebrew-Breeze
+        run: |
+          # 查找 breeze.rb 文件
+          RB_FILE=$(find . -name "breeze.rb" | head -n 1)
+          
+          if [ -z "$RB_FILE" ]; then
+            echo "错误：未找到 breeze.rb 文件"
+            exit 1
+          fi
+
+          # 替换 version (对应 cask 中的 version "2.12.6")
+          sed -i "s/version \".*\"/version \"${{ env.CLEAN_VERSION }}\"/" "$RB_FILE"
+          
+          # 替换 sha256 (对应 cask 中的 sha256 "...")
+          sed -i "s/sha256 \".*\"/sha256 \"${{ env.DMG_SHA256 }}\"/" "$RB_FILE"
+
+      - name: 提交并推送到 Homebrew
+        working-directory: ./homebrew-Breeze
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Update macOS Cask to ${{ github.event.inputs.version }}"
+          git push

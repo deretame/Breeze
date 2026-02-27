@@ -120,10 +120,10 @@ Future<void> main() async {
       options.enableLogs = kDebugMode;
 
       // --- Sentry Sponsored Business 特权配置 ---
-      // 性能追踪采样率：对于 3000 用户量，建议设为 1.0 (全量) 或 0.5
+      // 性能追踪采样率
       options.tracesSampleRate = 1.0;
 
-      // 性能剖析采样率：基于 tracesSampleRate，建议全开
+      // 性能剖析采样率
       // ignore: experimental_member_use
       options.profilesSampleRate = 1.0;
 

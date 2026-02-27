@@ -409,35 +409,35 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ github.event.inputs.version }}
         run: |
-          # 提取纯数字版本号 (例如 v2.12.6 提取为 2.12.6)
           CLEAN_VERSION="${VERSION#v}"
           echo "CLEAN_VERSION=$CLEAN_VERSION" >> $GITHUB_ENV
           
-          # 仅从刚才发布的 Release 中下载 macOS 的 DMG 文件
           gh release download "$VERSION" --repo "${{ github.repository }}" --pattern "Breeze-macOS.dmg"
           
-          # 计算哈希
           DMG_SHA256=$(sha256sum Breeze-macOS.dmg | awk '{ print $1 }')
-          
           echo "DMG_SHA256: $DMG_SHA256"
           echo "DMG_SHA256=$DMG_SHA256" >> $GITHUB_ENV
 
-      - name: 更新 Homebrew Cask 文件
+      - name: 更新 Homebrew Cask 文件并清理无用 Formula
         working-directory: ./homebrew-Breeze
         run: |
-          # 查找 breeze.rb 文件
-          RB_FILE=$(find . -name "breeze.rb" | head -n 1)
-          
-          if [ -z "$RB_FILE" ]; then
-            echo "错误：未找到 breeze.rb 文件"
+          # 1. 精准更新 macOS 的 Cask 文件
+          CASK_FILE="Casks/breeze.rb"
+          if [ -f "$CASK_FILE" ]; then
+            sed -i "s/version \".*\"/version \"${{ env.CLEAN_VERSION }}\"/" "$CASK_FILE"
+            sed -i "s/sha256 \".*\"/sha256 \"${{ env.DMG_SHA256 }}\"/" "$CASK_FILE"
+            echo "已成功更新 $CASK_FILE"
+          else
+            echo "错误：未找到真正的 Cask 文件 $CASK_FILE"
             exit 1
           fi
 
-          # 替换 version (对应 cask 中的 version "2.12.6")
-          sed -i "s/version \".*\"/version \"${{ env.CLEAN_VERSION }}\"/" "$RB_FILE"
-          
-          # 替换 sha256 (对应 cask 中的 sha256 "...")
-          sed -i "s/sha256 \".*\"/sha256 \"${{ env.DMG_SHA256 }}\"/" "$RB_FILE"
+          # 2. 彻底删除那个毫无意义的 Android APK 占位 Formula
+          FORMULA_FILE="Formula/breeze.rb"
+          if [ -f "$FORMULA_FILE" ]; then
+            git rm "$FORMULA_FILE"
+            echo "已自动删除无用的占位文件: $FORMULA_FILE"
+          fi
 
       - name: 提交并推送到 Homebrew
         working-directory: ./homebrew-Breeze
@@ -445,5 +445,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "Update macOS Cask to ${{ github.event.inputs.version }}"
+          git commit -m "Update macOS Cask to ${{ github.event.inputs.version }} and clean up placeholders"
           git push

@@ -119,7 +119,10 @@ jobs:
           flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
           flatpak install --user -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
 
-      - name: 设置 Dart & Flutter (FVM)
+      - name: 设置 Dart SDK
+        uses: dart-lang/setup-dart@v1
+
+      - name: 设置 Flutter (FVM)
         run: |
           dart pub global activate fvm
           echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
@@ -183,7 +186,10 @@ jobs:
           cache: "pnpm"
           cache-dependency-path: windows-installer/pnpm-lock.yaml
 
-      - name: 设置 Dart & Flutter (FVM)
+      - name: 设置 Dart SDK
+        uses: dart-lang/setup-dart@v1
+
+      - name: 设置 Flutter (FVM)
         run: |
           dart pub global activate fvm
           fvm install && fvm use --force
@@ -230,7 +236,10 @@ jobs:
           echo "$GIT_CRYPT_KEY" | base64 --decode > ./git-crypt-key || echo "$GIT_CRYPT_KEY" | base64 -D > ./git-crypt-key
           git-crypt unlock ./git-crypt-key && rm ./git-crypt-key
 
-      - name: 设置 Dart & Flutter (FVM)
+      - name: 设置 Dart SDK
+        uses: dart-lang/setup-dart@v1
+
+      - name: 设置 Flutter (FVM)
         run: |
           dart pub global activate fvm
           echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
@@ -300,7 +309,10 @@ jobs:
           echo "$GIT_CRYPT_KEY" | base64 --decode > ./git-crypt-key || echo "$GIT_CRYPT_KEY" | base64 -D > ./git-crypt-key
           git-crypt unlock ./git-crypt-key && rm ./git-crypt-key
 
-      - name: 设置 Dart & Flutter (FVM)
+      - name: 设置 Dart SDK
+        uses: dart-lang/setup-dart@v1
+
+      - name: 设置 Flutter (FVM)
         run: |
           dart pub global activate fvm
           echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH

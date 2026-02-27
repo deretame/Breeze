@@ -4,10 +4,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_guard/permission_guard.dart';
 import 'package:photo_view/photo_view.dart';
-import 'package:zephyr/config/global/global.dart';
+import 'package:gal/gal.dart'; // 引入 gal 插件
 import 'package:zephyr/widgets/toast.dart';
 
 import '../main.dart';
@@ -37,7 +35,7 @@ class FullScreenImagePage extends StatelessWidget {
             top: 40,
             left: 20,
             child: IconButton(
-              icon: Icon(Icons.close, color: Colors.white),
+              icon: const Icon(Icons.close, color: Colors.white),
               onPressed: () => context.pop(),
             ),
           ),
@@ -50,33 +48,23 @@ class FullScreenImagePage extends StatelessWidget {
               icon: const Icon(Icons.download, color: Colors.white),
               onPressed: () async {
                 logger.d("download image");
-                try {
-                  if (Platform.isWindows ||
-                      Platform.isLinux ||
-                      Platform.isMacOS ||
-                      Platform.isIOS) {
-                    // 桌面端及 iOS 使用文件选择器
+
+                if (Platform.isWindows ||
+                    Platform.isLinux ||
+                    Platform.isMacOS) {
+                  // 桌面端使用文件选择器
+                  try {
                     var result = await _saveImageWithSelector(imagePath);
                     if (result.isNotEmpty) {
                       showSuccessToast("图片已保存至: $result");
                     }
-                  } else {
-                    // Android 端需要权限
-                    if (await Permission.photos.request().isGranted ||
-                        await Permission.storage.request().isGranted) {
-                      var result = await _saveImageAndroid(imagePath);
-                      if (result.isNotEmpty) {
-                        showSuccessToast("图片已保存到相册！");
-                      } else {
-                        showErrorToast("图片保存失败！");
-                      }
-                    } else {
-                      showErrorToast("请授予访问相册的权限！");
-                    }
+                  } catch (e, s) {
+                    logger.e("桌面端保存图片失败", error: e, stackTrace: s);
+                    showErrorToast("图片保存失败！\n${e.toString()}");
                   }
-                } catch (e, s) {
-                  logger.e("保存图片失败", error: e, stackTrace: s);
-                  showErrorToast("图片保存失败！\n${e.toString()}");
+                } else if (Platform.isAndroid || Platform.isIOS) {
+                  // 移动端 (iOS & Android) 使用 gal 插件保存到相册
+                  await _saveImageMobile(imagePath);
                 }
               },
             ),
@@ -86,6 +74,7 @@ class FullScreenImagePage extends StatelessWidget {
     );
   }
 
+  // 桌面端保存逻辑：弹出目录选择器
   Future<String> _saveImageWithSelector(String inputImagePath) async {
     final inputFile = File(inputImagePath);
     final ext = p.extension(inputImagePath).toLowerCase();
@@ -108,42 +97,28 @@ class FullScreenImagePage extends StatelessWidget {
     return result.path;
   }
 
-  Future<String> _saveImageAndroid(String inputImagePath) async {
-    if (!await Permission.storage.request().isGranted) {
-      return '';
-    }
-
-    String picturesDir = '';
+  // 移动端保存逻辑：利用 gal 写入系统相册
+  Future<void> _saveImageMobile(String inputImagePath) async {
     try {
-      final dirs = await getExternalStorageDirectories(
-        type: StorageDirectory.pictures,
-      );
-      if (dirs != null && dirs.isNotEmpty) {
-        picturesDir = p.join(dirs.first.path, appName);
+      // 检查是否已有相册写入权限，如果没有则申请
+      if (!await Gal.hasAccess()) {
+        await Gal.requestAccess();
       }
-    } catch (e) {
-      logger.e('Failed to get external storage directories: $e');
+
+      // 将图片放入相册
+      await Gal.putImage(inputImagePath);
+      showSuccessToast("图片已保存到相册！");
+    } on GalException catch (e) {
+      logger.e("Gal 保存异常", error: e);
+      // 根据 GalException 的类型给出更精确的提示
+      if (e.type == GalExceptionType.accessDenied) {
+        showErrorToast("保存失败: 请在系统设置中授予相册访问权限");
+      } else {
+        showErrorToast("保存失败: ${e.type.message}");
+      }
+    } catch (e, s) {
+      logger.e("移动端保存图片发生未知异常", error: e, stackTrace: s);
+      showErrorToast("图片保存失败！");
     }
-
-    if (picturesDir.isEmpty) {
-      picturesDir = p.join('/storage/emulated/0/Pictures', appName);
-    }
-
-    logger.d('Pictures directory: $picturesDir');
-
-    // 确保目录存在
-    final pictureDirectory = Directory(picturesDir);
-    if (!await pictureDirectory.exists()) {
-      await pictureDirectory.create(recursive: true);
-    }
-
-    // 输入图片文件和目标路径
-    final inputFile = File(inputImagePath);
-    final newFilePath = p.join(picturesDir, inputFile.uri.pathSegments.last);
-
-    // 复制图片
-    await inputFile.copy(newFilePath);
-
-    return newFilePath;
   }
 }

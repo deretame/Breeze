@@ -41,7 +41,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Breeze requires camera access to scan QR codes or take photos.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Breeze requires permission to save downloaded comic images to your photo gallery.</string>
+	<string>我们需要保存图片到您的相册</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

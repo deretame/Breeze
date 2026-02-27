@@ -1,0 +1,54 @@
+name: Test iOS Build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version
+        id: version
+        run: |
+          # 提取 pubspec.yaml 中的版本号
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: \(.*\)+.*/\1/')
+          echo "VERSION=v$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Set up FVM and Flutter
+        run: |
+          brew tap leoafarias/fvm
+          brew install fvm
+          fvm install
+          fvm use --force
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: aarch64-apple-ios
+
+      - name: Build iOS (unsigned)
+        run: |
+          fvm flutter build ios --release --no-codesign
+
+      - name: Package IPA
+        run: |
+          mkdir -p Payload
+          # 复制构建好的 .app 到 Payload 目录
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          # 压缩成 ipa
+          zip -r "Zephyr-${{ steps.version.outputs.VERSION }}.ipa" Payload
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa-build # 在 GitHub 界面显示的产物名称
+          path: "*.ipa" # 需要上传的文件路径
+          retention-days: 7 # 设置保留天数（默认 90 天）

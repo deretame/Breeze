@@ -43,33 +43,40 @@ Future<void> initializeNotifications() async {
     'image',
     'app-icon.png',
   );
+
   final initializationSettingsWindows = WindowsInitializationSettings(
     appName: 'Zephyr',
     appUserModelId: 'com.zephyr.breeze',
     guid: 'c4fce75a-b087-44bf-ac62-cc52b8e56990',
     iconPath: windowsIconPath,
   );
+
   final initializationSettingsLinux = LinuxInitializationSettings(
     defaultActionName: 'Open notification',
     defaultIcon: AssetsLinuxIcon('asset/image/app-icon.png'),
   );
+
   const initializationSettingsDarwin = DarwinInitializationSettings(
     requestAlertPermission: false,
     requestBadgePermission: false,
     requestSoundPermission: false,
     notificationCategories: [],
   );
+
   final initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,
     windows: initializationSettingsWindows,
     linux: initializationSettingsLinux,
     macOS: initializationSettingsDarwin,
   );
+
   await flutterLocalNotificationsPlugin.initialize(
     settings: initializationSettings,
     onDidReceiveNotificationResponse: (NotificationResponse response) async {},
   );
+
   if (Platform.isLinux) return;
+
   try {
     if (Platform.isMacOS) {
       final bool? granted = await flutterLocalNotificationsPlugin

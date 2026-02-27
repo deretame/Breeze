@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   # ══════════════════════════════════════════
-  # 1. Android 构建 (Ubuntu 环境)
+  # 1. Android 构建 (Ubuntu 环境 - 含 git-crypt 解密 & 自动 Sentry)
   # ══════════════════════════════════════════
   build-android:
     runs-on: ubuntu-latest
@@ -28,7 +28,7 @@ jobs:
           docker system prune -a -f
           sudo apt-get clean
 
-      - name: 解密敏感文件 (git-crypt)
+      - name: 解密敏感文件 (git-crypt) - 仅 Android 需要
         env:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
         run: |
@@ -82,11 +82,13 @@ jobs:
       - name: 接受 Android Licenses
         run: yes | fvm flutter doctor --android-licenses || true
 
-      - name: 运行 Android 构建脚本
+      - name: 运行 Android 构建脚本 (插件自动上传 Sentry 符号表)
         env:
-          sentry_dsn: ${{ secrets.SENTRY_DSN }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
-          # yes n 自动回答脚本内的更新询问
           fvm dart ./script/build_apk.dart
 
       - name: 上传 Android 产物
@@ -98,12 +100,18 @@ jobs:
             build/app/outputs/apk/skia/*.apk
 
   # ══════════════════════════════════════════
-  # 2. Linux 构建 (Ubuntu 环境)
+  # 2. Linux 构建 (Ubuntu 环境 - 手动 Sentry)
   # ══════════════════════════════════════════
   build-linux:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: 设置 Java 21 (提供 JAVA_HOME 供编译期使用)
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
 
       - name: 安装 Flatpak 构建环境
         run: |
@@ -138,6 +146,15 @@ jobs:
           flatpak-builder --user --force-clean --repo=repo-flatpak --install-deps-from=flathub build-flatpak flatpak/io.github.windy.breeze.yml
           flatpak build-bundle repo-flatpak breeze.flatpak io.github.windy.breeze
 
+      - name: 手动上传 Linux 符号表到 Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          curl -sL https://sentry.io/get-cli/ | bash
+          sentry-cli debug-files upload --include-sources build/linux/
+
       - name: 上传 Linux 产物
         uses: actions/upload-artifact@v4
         with:
@@ -145,7 +162,7 @@ jobs:
           path: breeze.flatpak
 
   # ══════════════════════════════════════════
-  # 3. Windows 构建 (Windows 环境)
+  # 3. Windows 构建 (Windows 环境 - 手动 Sentry)
   # ══════════════════════════════════════════
   build-windows:
     runs-on: windows-latest
@@ -155,10 +172,17 @@ jobs:
 
       - uses: actions/checkout@v4
 
+      - name: 设置 Java 21 (提供 JAVA_HOME 供编译期使用)
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
       - name: 设置 Node.js & pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9
+
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -172,7 +196,6 @@ jobs:
         run: |
           dart pub global activate fvm
           fvm install && fvm use --force
-          # 将 FVM 路径加入 Windows 环境变量
           echo "$((Get-Item .).FullName)\.fvm\flutter_sdk\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: 安装 Rust 工具链
@@ -182,11 +205,18 @@ jobs:
         env:
           sentry_dsn: ${{ secrets.SENTRY_DSN }}
         run: |
-          # 1. 先获取项目依赖
           fvm flutter pub get
-
-          # 2. 运行脚本
           fvm dart ./script/build_windows.dart
+
+      - name: 手动上传 Windows 符号表到 Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          # Windows 环境下直接通过 npm 全局安装 sentry-cli 最稳定
+          npm install -g @sentry/cli
+          sentry-cli debug-files upload --include-sources build/windows/
 
       - name: 上传 Windows 产物
         uses: actions/upload-artifact@v4
@@ -195,7 +225,7 @@ jobs:
           path: windows-installer/src-tauri/target/release/windows-installer.exe
 
   # ══════════════════════════════════════════
-  # 4. 汇总发布 (等待前三个任务完成)
+  # 4. 汇总发布
   # ══════════════════════════════════════════
   publish:
     needs: [build-android, build-linux, build-windows]
@@ -214,7 +244,6 @@ jobs:
           VERSION="${{ github.event.inputs.version }}"
           REPO="${{ github.repository }}"
 
-          # 🚀 使用 awk 精确提取日志：精确匹配 "## [v2.12.6]" 开头的行，遇到下一个 "## " 停止
           awk -v ver="## [$VERSION]" 'index($0,ver)==1 {flag=1; print; next} /^## /{if(flag) exit} flag' CHANGELOG.md > changelog_section.txt
 
           echo "## 📝 更新日志" > release_body.md

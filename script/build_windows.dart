@@ -359,6 +359,7 @@ Future<void> main() async {
       'windows',
       '--release',
       '--dart-define=sentry_dsn=$sentryDsn',
+      '--split-debug-info=$projectRoot${sep}build${sep}symbols',
     ], workingDirectory: projectRoot);
 
     if (exitCode != 0) {

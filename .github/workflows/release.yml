@@ -82,13 +82,21 @@ jobs:
       - name: 接受 Android Licenses
         run: yes | fvm flutter doctor --android-licenses || true
 
+      - name: 配置 pubspec.yaml 中的 Sentry Token
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          sed -i "s/auth_token:.*/auth_token: $SENTRY_AUTH_TOKEN/" pubspec.yaml
+
       - name: 运行 Android 构建脚本
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-        run: fvm dart ./script/build_apk.dart
+        run: |
+          fvm dart ./script/build_apk.dart
+          fvm dart run sentry_dart_plugin
 
       - name: 上传 Android 产物
         uses: actions/upload-artifact@v4
@@ -99,7 +107,7 @@ jobs:
             build/app/outputs/apk/skia/*.apk
 
   # ══════════════════════════════════════════
-  # 2. Linux 构建 (手动 Sentry)
+  # 2. Linux 构建 (Sentry Plugin 上传)
   # ══════════════════════════════════════════
   build-linux:
     runs-on: ubuntu-latest
@@ -136,23 +144,21 @@ jobs:
           toolchain: stable
           targets: x86_64-unknown-linux-gnu
 
-      - name: 构建 Flatpak
-        env: 
+      - name: 配置 pubspec.yaml 中的 Sentry Token
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          sed -i "s/auth_token:.*/auth_token: $SENTRY_AUTH_TOKEN/" pubspec.yaml
+
+      - name: 构建 Flatpak 并上传符号表
+        env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
           fvm flutter build linux --release --dart-define=sentry_dsn=${{ env.SENTRY_DSN }} --split-debug-info=build/symbols
+          fvm dart run sentry_dart_plugin
           mkdir -p build-flatpak repo-flatpak
           flatpak-builder --user --force-clean --repo=repo-flatpak --install-deps-from=flathub build-flatpak flatpak/io.github.windy.breeze.yml
           flatpak build-bundle repo-flatpak breeze.flatpak io.github.windy.breeze
-
-      - name: 上传 Linux 符号表到 Sentry
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-        run: |
-          curl -sL https://sentry.io/get-cli/ | bash
-          sentry-cli debug-files upload --include-sources build/symbols/
 
       - name: 上传 Linux 产物
         uses: actions/upload-artifact@v4
@@ -161,7 +167,7 @@ jobs:
           path: breeze.flatpak
 
   # ══════════════════════════════════════════
-  # 3. Windows 构建 (手动 Sentry)
+  # 3. Windows 构建 (Sentry Plugin 上传)
   # ══════════════════════════════════════════
   build-windows:
     runs-on: windows-latest
@@ -198,21 +204,19 @@ jobs:
       - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
 
-      - name: 运行 Windows 构建脚本
+      - name: 配置 pubspec.yaml 中的 Sentry Token
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          (Get-Content pubspec.yaml) -replace 'auth_token:.*', "auth_token: $env:SENTRY_AUTH_TOKEN" | Set-Content pubspec.yaml
+
+      - name: 运行 Windows 构建脚本并上传符号表
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
           fvm flutter pub get
           fvm dart ./script/build_windows.dart
-
-      - name: 上传 Windows 符号表到 Sentry
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-        run: |
-          npm install -g @sentry/cli
-          sentry-cli debug-files upload --include-sources build/symbols/
+          fvm dart run sentry_dart_plugin
 
       - name: 上传 Windows 产物
         uses: actions/upload-artifact@v4
@@ -221,20 +225,15 @@ jobs:
           path: windows-installer/src-tauri/target/release/windows-installer.exe
 
   # ══════════════════════════════════════════
-  # 4. macOS 构建 (自动 Sentry 插件)
+  # 4. macOS 构建 (Sentry Plugin 上传)
   # ══════════════════════════════════════════
   build-macos:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: 安装系统依赖 & 解密
-        env:
-          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-        run: |
-          brew install git-crypt create-dmg
-          echo "$GIT_CRYPT_KEY" | base64 --decode > ./git-crypt-key || echo "$GIT_CRYPT_KEY" | base64 -D > ./git-crypt-key
-          git-crypt unlock ./git-crypt-key && rm ./git-crypt-key
+      - name: 安装打包依赖 (create-dmg)
+        run: brew install create-dmg
 
       - name: 设置 Dart SDK
         uses: dart-lang/setup-dart@v1
@@ -252,6 +251,12 @@ jobs:
         with:
           targets: aarch64-apple-darwin, x86_64-apple-darwin
 
+      - name: 配置 pubspec.yaml 中的 Sentry Token
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          sed -i '' "s/auth_token:.*/auth_token: $SENTRY_AUTH_TOKEN/" pubspec.yaml
+
       - name: 拉取依赖 & 修复 Podfile
         run: |
           fvm flutter pub get
@@ -264,12 +269,12 @@ jobs:
             ' macos/Podfile
           fi
 
-      - name: 编译 macOS 产物 (sentry_dart_plugin 会自动上传符号表)
+      - name: 编译 macOS 产物并上传符号表
         env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-        run: fvm flutter build macos --release
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        run: |
+          fvm flutter build macos --release --dart-define=sentry_dsn=${{ env.SENTRY_DSN }} --split-debug-info=build/symbols
+          fvm dart run sentry_dart_plugin
 
       - name: 制作 DMG
         run: |
@@ -294,20 +299,12 @@ jobs:
           path: Breeze-macOS.dmg
 
   # ══════════════════════════════════════════
-  # 5. iOS 构建 (免签 + 自动 Sentry 插件)
+  # 5. iOS 构建 (免签 + Sentry Plugin 上传)
   # ══════════════════════════════════════════
   build-ios:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: 安装系统依赖 & 解密
-        env:
-          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
-        run: |
-          brew install git-crypt
-          echo "$GIT_CRYPT_KEY" | base64 --decode > ./git-crypt-key || echo "$GIT_CRYPT_KEY" | base64 -D > ./git-crypt-key
-          git-crypt unlock ./git-crypt-key && rm ./git-crypt-key
 
       - name: 设置 Dart SDK
         uses: dart-lang/setup-dart@v1
@@ -325,14 +322,19 @@ jobs:
         with:
           targets: aarch64-apple-ios
 
-      - name: 编译 iOS (无签)
+      - name: 配置 pubspec.yaml 中的 Sentry Token
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          sed -i '' "s/auth_token:.*/auth_token: $SENTRY_AUTH_TOKEN/" pubspec.yaml
+
+      - name: 编译 iOS (无签) 并上传符号表
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
           fvm flutter pub get
-          fvm flutter build ios --release --no-codesign
+          fvm flutter build ios --release --no-codesign --dart-define=sentry_dsn=${{ env.SENTRY_DSN }} --split-debug-info=build/symbols
+          fvm dart run sentry_dart_plugin
 
       - name: 封装 IPA
         run: |

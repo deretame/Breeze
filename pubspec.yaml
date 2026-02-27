@@ -173,6 +173,7 @@ sentry:
   upload_source_maps: true
   project: flutter
   org: windy-pt
+  auth_token:
 
 flutter_launcher_icons:
   android: true

@@ -82,13 +82,7 @@ jobs:
       - name: 接受 Android Licenses
         run: yes | fvm flutter doctor --android-licenses || true
 
-      - name: 配置 pubspec.yaml 中的 Sentry Token
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        run: |
-          sed -i "s/auth_token:.*/auth_token: $SENTRY_AUTH_TOKEN/" pubspec.yaml
-
-      - name: 运行 Android 构建脚本
+      - name: 运行 Android 构建脚本并上传符号表
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -144,15 +138,12 @@ jobs:
           toolchain: stable
           targets: x86_64-unknown-linux-gnu
 
-      - name: 配置 pubspec.yaml 中的 Sentry Token
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        run: |
-          sed -i "s/auth_token:.*/auth_token: $SENTRY_AUTH_TOKEN/" pubspec.yaml
-
       - name: 构建 Flatpak 并上传符号表
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
           fvm flutter build linux --release --dart-define=sentry_dsn=${{ env.SENTRY_DSN }} --split-debug-info=build/symbols
           fvm dart run sentry_dart_plugin
@@ -204,15 +195,12 @@ jobs:
       - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
 
-      - name: 配置 pubspec.yaml 中的 Sentry Token
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        run: |
-          (Get-Content pubspec.yaml) -replace 'auth_token:.*', "auth_token: $env:SENTRY_AUTH_TOKEN" | Set-Content pubspec.yaml
-
       - name: 运行 Windows 构建脚本并上传符号表
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
           fvm flutter pub get
           fvm dart ./script/build_windows.dart
@@ -251,12 +239,6 @@ jobs:
         with:
           targets: aarch64-apple-darwin, x86_64-apple-darwin
 
-      - name: 配置 pubspec.yaml 中的 Sentry Token
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        run: |
-          sed -i '' "s/auth_token:.*/auth_token: $SENTRY_AUTH_TOKEN/" pubspec.yaml
-
       - name: 拉取依赖 & 修复 Podfile
         run: |
           fvm flutter pub get
@@ -272,6 +254,9 @@ jobs:
       - name: 编译 macOS 产物并上传符号表
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
           fvm flutter build macos --release --dart-define=sentry_dsn=${{ env.SENTRY_DSN }} --split-debug-info=build/symbols
           fvm dart run sentry_dart_plugin
@@ -322,15 +307,12 @@ jobs:
         with:
           targets: aarch64-apple-ios
 
-      - name: 配置 pubspec.yaml 中的 Sentry Token
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        run: |
-          sed -i '' "s/auth_token:.*/auth_token: $SENTRY_AUTH_TOKEN/" pubspec.yaml
-
       - name: 编译 iOS (无签) 并上传符号表
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
           fvm flutter pub get
           fvm flutter build ios --release --no-codesign --dart-define=sentry_dsn=${{ env.SENTRY_DSN }} --split-debug-info=build/symbols

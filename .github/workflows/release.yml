@@ -138,9 +138,10 @@ jobs:
 
       - name: 构建 Flatpak
         env:
+          sentry_dsn: ${{ secrets.SENTRY_DSN }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-        run: |
-          fvm flutter build linux --release --dart-define=sentry_dsn=${{ env.SENTRY_DSN }}
+        run: | 
+          fvm flutter build linux --release --dart-define=sentry_dsn=${{ env.sentry_dsn }} --split-debug-info=build/symbols
           mkdir -p build-flatpak repo-flatpak
           flatpak-builder --user --force-clean --repo=repo-flatpak --install-deps-from=flathub build-flatpak flatpak/io.github.windy.breeze.yml
           flatpak build-bundle repo-flatpak breeze.flatpak io.github.windy.breeze
@@ -152,7 +153,7 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
           curl -sL https://sentry.io/get-cli/ | bash
-          sentry-cli debug-files upload --include-sources build/linux/
+          sentry-cli debug-files upload --include-sources build/symbols/
 
       - name: 上传 Linux 产物
         uses: actions/upload-artifact@v4
@@ -212,7 +213,7 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
           npm install -g @sentry/cli
-          sentry-cli debug-files upload --include-sources build/windows/
+          sentry-cli debug-files upload --include-sources build/symbols/
 
       - name: 上传 Windows 产物
         uses: actions/upload-artifact@v4

@@ -435,7 +435,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
             );
 
             // 桌面平台添加自定义标题栏
-            if (Platform.isWindows || Platform.isLinux) {
+            if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
               return Column(
                 children: [
                   const CustomTitleBar(),

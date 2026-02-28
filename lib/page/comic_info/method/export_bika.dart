@@ -204,7 +204,9 @@ Future<void> bikaExportComicAsZip(String comicId, {String? exportPath}) async {
   final duration = endTime - startTime;
   logger.d('漫画${comicInfo.comic.title}导出为压缩包完成，耗时$duration毫秒');
 
-  showSuccessToast('漫画${comicInfo.comic.title}导出为压缩包完成');
+  if (!Platform.isIOS) {
+    showSuccessToast('漫画${comicInfo.comic.title}导出为压缩包完成');
+  }
 }
 
 ComicAllInfoJson comicInfoProcess(ComicAllInfoJson comicInfo) {

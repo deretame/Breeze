@@ -73,10 +73,9 @@ class _NavigationBarState extends State<NavigationBar> {
       _autoSync();
       manageCacheSize(context);
       resetDownloadTasks();
-      if (Platform.isWindows ||
-          Platform.isLinux ||
-          Platform.isMacOS ||
-          Platform.isIOS) {
+      if (Platform.isIOS) {
+        await DownloadQueueManager.instance.watchTasksForIOS();
+      } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
         DownloadQueueManager.instance.watchTasks(isDesktop: true);
       } else if (Platform.isAndroid) {
         if (DownloadQueueManager.instance.queueLength > 0) {

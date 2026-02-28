@@ -84,7 +84,7 @@ jobs:
       - name: 接受 Android Licenses
         run: yes | fvm flutter doctor --android-licenses || true
 
-      - name: 运行 Android 构建脚本并上传符号表
+      - name: 运行 Android 构建脚本
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -92,7 +92,19 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
           fvm dart ./script/build_apk.dart
-          fvm dart run sentry_dart_plugin --sentry-define=auth_token="${{ secrets.SENTRY_AUTH_TOKEN }}"
+
+      - name: 上传 Android 符号表到 Sentry（可选）
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          if [ -z "$SENTRY_AUTH_TOKEN" ]; then
+            echo "未配置 SENTRY_AUTH_TOKEN，跳过 Android 符号表上传。"
+            exit 0
+          fi
+          fvm dart run sentry_dart_plugin --sentry-define=auth_token="$SENTRY_AUTH_TOKEN"
 
       - name: 上传 Android 产物
         uses: actions/upload-artifact@v4
@@ -142,18 +154,30 @@ jobs:
           toolchain: stable
           targets: x86_64-unknown-linux-gnu
 
-      - name: 构建 Flatpak 并上传符号表
+      - name: 构建 Flatpak
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
-          fvm flutter build linux --release --dart-define=sentry_dsn=${{ env.SENTRY_DSN }} --split-debug-info=build/symbols
-          fvm dart run sentry_dart_plugin --sentry-define=auth_token="${{ secrets.SENTRY_AUTH_TOKEN }}"
+          fvm flutter build linux --release --dart-define=sentry_dsn=$SENTRY_DSN --split-debug-info=build/symbols
           mkdir -p build-flatpak repo-flatpak
           flatpak-builder --user --force-clean --repo=repo-flatpak --install-deps-from=flathub build-flatpak flatpak/io.github.windy.breeze.yml
           flatpak build-bundle repo-flatpak breeze.flatpak io.github.windy.breeze
+
+      - name: 上传 Linux 符号表到 Sentry（可选）
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          if [ -z "$SENTRY_AUTH_TOKEN" ]; then
+            echo "未配置 SENTRY_AUTH_TOKEN，跳过 Linux 符号表上传。"
+            exit 0
+          fi
+          fvm dart run sentry_dart_plugin --sentry-define=auth_token="$SENTRY_AUTH_TOKEN"
 
       - name: 上传 Linux 产物
         uses: actions/upload-artifact@v4
@@ -201,7 +225,7 @@ jobs:
       - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
 
-      - name: 运行 Windows 构建脚本并上传符号表
+      - name: 运行 Windows 构建脚本
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -210,7 +234,19 @@ jobs:
         run: |
           fvm flutter pub get
           fvm dart ./script/build_windows.dart
-          fvm dart run sentry_dart_plugin --sentry-define=auth_token="${{ secrets.SENTRY_AUTH_TOKEN }}"
+
+      - name: 上传 Windows 符号表到 Sentry（可选）
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:SENTRY_AUTH_TOKEN)) {
+            Write-Host "未配置 SENTRY_AUTH_TOKEN，跳过 Windows 符号表上传。"
+            exit 0
+          }
+          fvm dart run sentry_dart_plugin --sentry-define=auth_token="$env:SENTRY_AUTH_TOKEN"
 
       - name: 上传 Windows 产物
         uses: actions/upload-artifact@v4
@@ -259,15 +295,27 @@ jobs:
             ' macos/Podfile
           fi
 
-      - name: 编译 macOS 产物并上传符号表
+      - name: 编译 macOS 产物
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
-          fvm flutter build macos --release --dart-define=sentry_dsn=${{ env.SENTRY_DSN }} --split-debug-info=build/symbols
-          fvm dart run sentry_dart_plugin --sentry-define=auth_token="${{ secrets.SENTRY_AUTH_TOKEN }}"
+          fvm flutter build macos --release --dart-define=sentry_dsn=$SENTRY_DSN --split-debug-info=build/symbols
+
+      - name: 上传 macOS 符号表到 Sentry（可选）
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          if [ -z "$SENTRY_AUTH_TOKEN" ]; then
+            echo "未配置 SENTRY_AUTH_TOKEN，跳过 macOS 符号表上传。"
+            exit 0
+          fi
+          fvm dart run sentry_dart_plugin --sentry-define=auth_token="$SENTRY_AUTH_TOKEN"
 
       - name: 制作 DMG
         run: |
@@ -317,7 +365,7 @@ jobs:
         with:
           targets: aarch64-apple-ios
 
-      - name: 编译 iOS (无签) 并上传符号表
+      - name: 编译 iOS (无签)
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -325,8 +373,20 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
           fvm flutter pub get
-          fvm flutter build ios --release --no-codesign --dart-define=sentry_dsn=${{ env.SENTRY_DSN }} --split-debug-info=build/symbols
-          fvm dart run sentry_dart_plugin --sentry-define=auth_token="${{ secrets.SENTRY_AUTH_TOKEN }}"
+          fvm flutter build ios --release --no-codesign --dart-define=sentry_dsn=$SENTRY_DSN --split-debug-info=build/symbols
+
+      - name: 上传 iOS 符号表到 Sentry（可选）
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          if [ -z "$SENTRY_AUTH_TOKEN" ]; then
+            echo "未配置 SENTRY_AUTH_TOKEN，跳过 iOS 符号表上传。"
+            exit 0
+          fi
+          fvm dart run sentry_dart_plugin --sentry-define=auth_token="$SENTRY_AUTH_TOKEN"
 
       - name: 封装 IPA
         run: |
@@ -401,7 +461,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: deretame/homebrew-Breeze
-          token: ${{ secrets.HOMEBREW_GITHUB_TOKEN }} 
+          token: ${{ secrets.HOMEBREW_GITHUB_TOKEN }}
           path: homebrew-Breeze
 
       - name: 下载 macOS 产物并计算 SHA256
@@ -411,9 +471,9 @@ jobs:
         run: |
           CLEAN_VERSION="${VERSION#v}"
           echo "CLEAN_VERSION=$CLEAN_VERSION" >> $GITHUB_ENV
-          
+
           gh release download "$VERSION" --repo "${{ github.repository }}" --pattern "Breeze-macOS.dmg"
-          
+
           DMG_SHA256=$(sha256sum Breeze-macOS.dmg | awk '{ print $1 }')
           echo "DMG_SHA256: $DMG_SHA256"
           echo "DMG_SHA256=$DMG_SHA256" >> $GITHUB_ENV
@@ -424,8 +484,8 @@ jobs:
           # 1. 精准更新 macOS 的 Cask 文件
           CASK_FILE="Casks/breeze.rb"
           if [ -f "$CASK_FILE" ]; then
-            sed -i "s/version \".*\"/version \"${{ env.CLEAN_VERSION }}\"/" "$CASK_FILE"
-            sed -i "s/sha256 \".*\"/sha256 \"${{ env.DMG_SHA256 }}\"/" "$CASK_FILE"
+            sed -i "s/version \".*\"/version \"$CLEAN_VERSION\"/" "$CASK_FILE"
+            sed -i "s/sha256 \".*\"/sha256 \"$DMG_SHA256\"/" "$CASK_FILE"
             echo "已成功更新 $CASK_FILE"
           else
             echo "错误：未找到真正的 Cask 文件 $CASK_FILE"
@@ -445,5 +505,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
+          if git diff --cached --quiet; then
+            echo "没有需要提交的变更，跳过推送。"
+            exit 0
+          fi
           git commit -m "Update macOS Cask to ${{ github.event.inputs.version }} and clean up placeholders"
           git push

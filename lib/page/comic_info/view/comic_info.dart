@@ -5,6 +5,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:path/path.dart' as p;
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart'
@@ -12,6 +13,7 @@ import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart'
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/permission.dart';
 import 'package:zephyr/util/sundry.dart';
 
@@ -138,7 +140,7 @@ class _ComicInfoState extends State<_ComicInfo>
                 ),
               );
 
-              if (_type == ComicEntryType.download && !Platform.isIOS) {
+              if (_type == ComicEntryType.download) {
                 menuItems.add(
                   const PopupMenuItem<MenuOption>(
                     value: MenuOption.export,
@@ -398,32 +400,33 @@ class _ComicInfoState extends State<_ComicInfo>
     );
   }
 
-  // 弹出选择对话框，让用户选择导出为压缩包还是文件夹
-  Future<ExportType?> showExportTypeDialog() async {
-    return await showDialog<ExportType>(
+  String _buildZipFileName() {
+    final rawName = _title.trim().isEmpty ? widget.comicId : _title.trim();
+    final safeName = rawName.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_');
+    return '$safeName.zip';
+  }
+
+  Future<ExportType?> _pickExportType() async {
+    if (Platform.isIOS) return ExportType.zip;
+
+    return showDialog<ExportType>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('选择导出方式'),
-          content: Text('请选择将漫画导出为压缩包还是文件夹：'),
+          title: const Text('选择导出方式'),
+          content: const Text('请选择将漫画导出为压缩包还是文件夹：'),
           actions: <Widget>[
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(null);
-              },
-              child: Text('取消'),
+              onPressed: () => Navigator.of(context).pop(null),
+              child: const Text('取消'),
             ),
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(ExportType.folder); // 返回文件夹选项
-              },
-              child: Text('文件夹'),
+              onPressed: () => Navigator.of(context).pop(ExportType.folder),
+              child: const Text('文件夹'),
             ),
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(ExportType.zip); // 返回压缩包选项
-              },
-              child: Text('压缩包'),
+              onPressed: () => Navigator.of(context).pop(ExportType.zip),
+              child: const Text('压缩包'),
             ),
           ],
         );
@@ -431,44 +434,76 @@ class _ComicInfoState extends State<_ComicInfo>
     );
   }
 
+  Future<String?> _pickExportDirectory() async => getDirectoryPath();
+
   // 导出逻辑
   Future<void> _handleExport() async {
+    String? cacheZipPath;
+
     try {
       if (!await requestExportPermission()) {
         showErrorToast("请授予存储权限！");
         return;
       }
-      if (mounted) {
-        var choice = await showExportTypeDialog();
-        if (choice == null) return;
 
-        String? path;
+      if (!mounted) return;
 
-        if (Platform.isLinux || Platform.isMacOS || Platform.isWindows) {
-          if (choice == ExportType.folder) {
-            path = await getDirectoryPath();
-          } else {
-            final result = await getSaveLocation(
-              suggestedName: "$_title.zip",
-              acceptedTypeGroups: [
-                XTypeGroup(label: 'ZIP', extensions: ['zip']),
-              ],
-            );
-            path = result?.path;
-          }
+      final exportType = await _pickExportType();
+      if (exportType == null) return;
 
-          if (path == null) return;
+      final exportDir = await _pickExportDirectory();
+      if (exportDir == null) return;
+
+      final zipFileName = _buildZipFileName();
+      final targetZipPath = p.join(exportDir, zipFileName);
+
+      if (Platform.isIOS) {
+        final cachePath = await getCachePath();
+        cacheZipPath = p.join(cachePath, zipFileName);
+
+        final cacheZipFile = File(cacheZipPath);
+        if (await cacheZipFile.exists()) {
+          await cacheZipFile.delete();
         }
 
-        if (mounted) {
-          exportComic(widget.comicId, choice, widget.from, path: path);
+        await exportComic(
+          widget.comicId,
+          ExportType.zip,
+          widget.from,
+          path: cacheZipPath,
+        );
+
+        final saveFile = File(targetZipPath);
+        if (await saveFile.exists()) {
+          await saveFile.delete();
         }
+        await cacheZipFile.copy(targetZipPath);
+        showSuccessToast('导出成功');
+        return;
       }
+
+      final exportPath = exportType == ExportType.zip
+          ? targetZipPath
+          : exportDir;
+
+      await exportComic(
+        widget.comicId,
+        exportType,
+        widget.from,
+        path: exportPath,
+      );
     } catch (e) {
       showErrorToast(
         "导出失败，请重试。\n${e.toString()}",
         duration: const Duration(seconds: 5),
       );
+    } finally {
+      if (cacheZipPath != null) {
+        final cacheZipFile = File(cacheZipPath);
+        if (await cacheZipFile.exists()) {
+          await cacheZipFile.delete();
+        }
+      }
     }
   }
 

@@ -185,7 +185,9 @@ Future<void> jmExportComicAsZip(String comicId, {String? exportPath}) async {
   // 压缩文件夹
   await packFolderZip(destPath: finalZipPath, packInfo: packInfo);
 
-  showSuccessToast('漫画${comicInfo.name}导出为压缩包完成');
+  if (!Platform.isIOS) {
+    showSuccessToast('漫画${comicInfo.name}导出为压缩包完成');
+  }
   logger.d('漫画${comicInfo.name}导出为压缩包完成');
 }
 

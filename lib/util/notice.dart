@@ -57,9 +57,9 @@ Future<void> initializeNotifications() async {
   );
 
   const initializationSettingsDarwin = DarwinInitializationSettings(
-    requestAlertPermission: false,
-    requestBadgePermission: false,
-    requestSoundPermission: false,
+    requestAlertPermission: true,
+    requestBadgePermission: true,
+    requestSoundPermission: true,
     notificationCategories: [],
   );
 
@@ -68,6 +68,7 @@ Future<void> initializeNotifications() async {
     windows: initializationSettingsWindows,
     linux: initializationSettingsLinux,
     macOS: initializationSettingsDarwin,
+    iOS: initializationSettingsDarwin,
   );
 
   await flutterLocalNotificationsPlugin.initialize(
@@ -84,13 +85,19 @@ Future<void> initializeNotifications() async {
             MacOSFlutterLocalNotificationsPlugin
           >()
           ?.requestPermissions(alert: true, badge: true, sound: true);
-      if (granted == true) {
-        logger.d('macOS Notification permission granted');
-      } else {
-        logger.w('macOS Notification permission denied');
+      if (granted != true) {
         showErrorToast("请在系统设置中开启通知权限");
       }
-    } else if (Platform.isAndroid || Platform.isIOS) {
+    } else if (Platform.isIOS) {
+      final bool? granted = await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
+      if (granted != true) {
+        showErrorToast("请开启通知权限");
+      }
+    } else if (Platform.isAndroid) {
       final status = await Permission.notification.request();
       if (!status.isGranted) {
         showErrorToast("请开启通知权限");

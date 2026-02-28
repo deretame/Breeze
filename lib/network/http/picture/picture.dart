@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:background_downloader/background_downloader.dart' as bd;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as file_path;
@@ -222,7 +223,7 @@ Future<String> downloadPicture({
         );
 
   // 下载图片
-  Uint8List imageData = await downloadImageWithRetry(finalUrl, retry: true);
+  Uint8List imageData = await _downloadImageForTask(finalUrl);
 
   if (from == From.jm && pictureType == PictureType.comic) {
     await decodeAndSaveImage(
@@ -248,6 +249,68 @@ Future<String> downloadPicture({
     return downloadFilePath;
   } else {
     throw Exception('图片保存失败');
+  }
+}
+
+Future<Uint8List> _downloadImageForTask(String url) async {
+  if (Platform.isIOS) {
+    return _downloadImageWithBackgroundDownloader(url);
+  }
+  return downloadImageWithRetry(url, retry: true);
+}
+
+Future<Uint8List> _downloadImageWithBackgroundDownloader(String url) async {
+  int attempts = 0;
+  const maxAttempts = 5;
+
+  while (true) {
+    attempts++;
+    final uniqueId =
+        '${DateTime.now().millisecondsSinceEpoch}_${url.hashCode.abs()}_$attempts';
+
+    final task = bd.DownloadTask(
+      url: url,
+      headers: {
+        'User-Agent': '#',
+        'Connection': 'Keep-Alive',
+        'Accept-Encoding': 'gzip',
+      },
+      baseDirectory: bd.BaseDirectory.temporary,
+      filename: 'bg_dl_$uniqueId.tmp',
+      retries: 0,
+    );
+
+    final result = await bd.FileDownloader().download(task);
+
+    if (result.status == bd.TaskStatus.complete) {
+      final filePath = await task.filePath();
+      final file = File(filePath);
+      try {
+        final bytes = await file.readAsBytes();
+        try {
+          await file.delete();
+        } catch (_) {}
+        return bytes;
+      } catch (e) {
+        logger.e('读取 iOS 后台下载文件失败: $e');
+        try {
+          await file.delete();
+        } catch (_) {}
+        rethrow;
+      }
+    }
+
+    if (result.status == bd.TaskStatus.notFound) {
+      throw Exception('404');
+    }
+
+    if (attempts < maxAttempts) {
+      logger.w('iOS 后台下载失败，准备重试($attempts/$maxAttempts): $url');
+      await Future.delayed(const Duration(seconds: 1));
+      continue;
+    }
+
+    throw Exception('iOS 后台下载失败: ${result.status}, URL: $url');
   }
 }
 

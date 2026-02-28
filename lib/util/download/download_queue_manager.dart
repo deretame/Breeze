@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:background_downloader/background_downloader.dart' as bd;
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/util/download/download_progress_reporter.dart';
 import 'package:zephyr/util/download/platform/desktop_download_runner.dart';
+import 'package:zephyr/util/download/platform/ios_download_runner.dart';
 import 'package:zephyr/util/foreground_task/task/bika_download.dart';
 import 'package:zephyr/util/foreground_task/task/jm_download.dart';
 import 'package:zephyr/util/macos_activity.dart';
@@ -39,6 +41,7 @@ class DownloadQueueManager {
   String _downloadingComicId = "";
 
   bool _isProcessing = false;
+  bool _iosRecoveryDone = false;
   StreamSubscription? _watchSubscription;
 
   /// 进度 Stream，供 UI 监听
@@ -163,6 +166,148 @@ class DownloadQueueManager {
     }
   }
 
+  /// iOS 队列处理（主线程异步执行）
+  ///
+  /// iOS 不支持前台服务，采用与桌面端一致的队列调度方式，
+  /// 实际图片下载由 picture.dart 内部切换到 background_downloader。
+  Future<void> _processQueueIOS() async {
+    final pendingTasks = objectbox.downloadTaskBox
+        .query(DownloadTask_.isCompleted.equals(false))
+        .build()
+        .find();
+
+    if (pendingTasks.isEmpty) {
+      _isProcessing = false;
+      return;
+    }
+
+    _isProcessing = true;
+
+    final iosReporter = IOSProgressReporter();
+    final dbTask = pendingTasks.first;
+    final task = dbTask.taskInfo;
+
+    if (task == null) {
+      logger.w("任务 ${dbTask.comicName} 无任务信息，跳过");
+      dbTask.isCompleted = true;
+      objectbox.downloadTaskBox.put(dbTask);
+      Future.microtask(() => _processQueueIOS());
+      return;
+    }
+
+    if (_downloadingComicId == task.comicId) {
+      logger.w("重复添加任务 ${task.comicName}");
+      _isProcessing = false;
+      Future.microtask(() => _processQueueIOS());
+      return;
+    }
+
+    _downloadingComicId = task.comicId;
+
+    dbTask.isDownloading = true;
+    dbTask.status = "开始下载...";
+    objectbox.downloadTaskBox.put(dbTask);
+
+    _progressController.add(
+      DownloadProgress(comicName: task.comicName, message: '开始下载...'),
+    );
+
+    try {
+      iosReporter.updateComicName(task.comicName);
+      if (task.from == "bika") {
+        await bikaDownloadTask(iosReporter, task);
+      } else if (task.from == "jm") {
+        await jmDownloadTask(iosReporter, task);
+      } else {
+        logger.w("未知任务来源: ${task.from}");
+      }
+
+      logger.d("任务 ${task.comicName} 完成");
+
+      showSuccessToast("${task.comicName} 下载完成");
+
+      dbTask.isCompleted = true;
+      dbTask.isDownloading = false;
+      objectbox.downloadTaskBox.put(dbTask);
+
+      _progressController.add(
+        DownloadProgress(
+          comicName: task.comicName,
+          message: '下载完成',
+          isCompleted: true,
+        ),
+      );
+      await iosReporter.sendNotification("下载完成", "${task.comicName} 下载完成");
+    } catch (e, s) {
+      logger.e("任务 ${task.comicName} 失败", error: e, stackTrace: s);
+
+      showErrorToast("${task.comicName} 下载失败 ${e.toString()}");
+
+      dbTask.isDownloading = false;
+      objectbox.downloadTaskBox.put(dbTask);
+
+      _progressController.add(
+        DownloadProgress(
+          comicName: task.comicName,
+          message: '下载失败',
+          isFailed: true,
+        ),
+      );
+      await iosReporter.sendNotification("下载失败", "${task.comicName} 下载失败");
+    } finally {
+      _downloadingComicId = "";
+      Future.microtask(() => _processQueueIOS());
+    }
+  }
+
+  Future<void> _recoverIOSPendingTasksOnStartup() async {
+    if (_iosRecoveryDone) {
+      return;
+    }
+
+    try {
+      await bd.FileDownloader().trackTasks(markDownloadedComplete: true);
+      await bd.FileDownloader().resumeFromBackground();
+
+      final nativeTasks = await bd.FileDownloader().allTasks(allGroups: true);
+      final tempTasks = nativeTasks
+          .where((task) => task.filename.startsWith('bg_dl_'))
+          .toList();
+
+      if (tempTasks.isNotEmpty) {
+        await bd.FileDownloader().cancelTasksWithIds(
+          tempTasks.map((task) => task.taskId),
+        );
+        logger.d("iOS 启动恢复：取消了 ${tempTasks.length} 个旧后台临时任务");
+      }
+    } catch (e, s) {
+      logger.w(
+        "iOS 启动恢复：处理 background_downloader 状态失败",
+        error: e,
+        stackTrace: s,
+      );
+    }
+
+    final tasksToReset = objectbox.downloadTaskBox
+        .query(
+          DownloadTask_.isCompleted
+              .equals(false)
+              .and(DownloadTask_.isDownloading.equals(true)),
+        )
+        .build()
+        .find();
+
+    if (tasksToReset.isNotEmpty) {
+      for (final task in tasksToReset) {
+        task.isDownloading = false;
+      }
+      objectbox.downloadTaskBox.putMany(tasksToReset);
+      logger.d("iOS 启动恢复：重置了 ${tasksToReset.length} 个任务的下载状态");
+    }
+
+    _iosRecoveryDone = true;
+  }
+
   /// 供前台服务 Isolate 使用的队列处理
   ///
   /// Android 端在 [MyTaskHandler] 中调用，传入 Android 特定的 reporter。
@@ -250,6 +395,28 @@ class DownloadQueueManager {
         if (isDesktop) {
           _processQueueDesktop();
         }
+      }
+    });
+  }
+
+  Future<void> watchTasksForIOS() async {
+    await _recoverIOSPendingTasksOnStartup();
+
+    _watchSubscription?.cancel();
+    _watchSubscription = null;
+
+    final watchedQuery = objectbox.downloadTaskBox
+        .query(
+          DownloadTask_.isCompleted
+              .equals(false)
+              .and(DownloadTask_.isDownloading.equals(false)),
+        )
+        .watch(triggerImmediately: true);
+
+    _watchSubscription = watchedQuery.listen((query) {
+      final pendingTasks = query.find();
+      if (pendingTasks.isNotEmpty && !_isProcessing) {
+        _processQueueIOS();
       }
     });
   }

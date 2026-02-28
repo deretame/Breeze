@@ -7,18 +7,18 @@ Future<void> exportComic(
   ExportType type,
   From from, {
   String? path,
-}) async {
+}) {
   if (from == From.bika) {
     if (type == ExportType.folder) {
-      bikaExportComicAsFolder(comicId, exportPath: path);
+      return bikaExportComicAsFolder(comicId, exportPath: path);
     } else {
-      bikaExportComicAsZip(comicId, exportPath: path);
+      return bikaExportComicAsZip(comicId, exportPath: path);
     }
   } else {
     if (type == ExportType.folder) {
-      jmExportComicAsFolder(comicId, exportPath: path);
+      return jmExportComicAsFolder(comicId, exportPath: path);
     } else {
-      jmExportComicAsZip(comicId, exportPath: path);
+      return jmExportComicAsZip(comicId, exportPath: path);
     }
   }
 }

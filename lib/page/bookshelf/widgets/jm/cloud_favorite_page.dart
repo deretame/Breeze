@@ -13,10 +13,10 @@ import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/page/bookshelf/json/jm_cloud_favorite/jm_cloud_favorite_json.dart';
 import 'package:zephyr/page/search_result/widgets/bottom_loader.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
-import 'package:zephyr/util/debouncer.dart';
 
 class JmCloudFavoritePage extends StatelessWidget {
   const JmCloudFavoritePage({super.key});
@@ -126,7 +126,6 @@ class _JmCloudFavoritePageState extends State<_JmCloudFavoritePage>
   }
 
   Widget _buildList(JmCloudFavouriteState state) {
-    logger.d(state.list.length);
     if (state.status == JmCloudFavouriteStatus.success && state.list.isEmpty) {
       return _buildEmptyState();
     } else {

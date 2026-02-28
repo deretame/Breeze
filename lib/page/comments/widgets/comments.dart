@@ -138,24 +138,9 @@ class _CommentsWidgetState extends State<CommentsWidget>
                         Center(
                           child: Row(
                             children: [
-                              if (commentInfo.isTop) ...[
-                                Text(
-                                  "TOP",
-                                  style: TextStyle(
-                                    fontFamily: "LeckerliOne-Regular",
-                                    // fontSize: 14,
-                                  ),
-                                ),
-                              ],
+                              if (commentInfo.isTop) ...[Text("TOP")],
                               if (!commentInfo.isTop) ...[
-                                Text(
-                                  index.toString(),
-                                  style: TextStyle(
-                                    fontFamily: "Courgette-Regular",
-                                    // fontStyle: FontStyle.italic,
-                                    // fontSize: 16,
-                                  ),
-                                ),
+                                Text(index.toString()),
                               ],
                               Text(" / "),
                               Text(timeDecode(commentInfo.createdAt)),

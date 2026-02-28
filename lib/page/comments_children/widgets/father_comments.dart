@@ -102,13 +102,7 @@ class FatherCommentsWidget extends StatelessWidget {
               Center(
                 child: Row(
                   children: [
-                    Text(
-                      "TOP",
-                      style: TextStyle(
-                        fontFamily: "LeckerliOne-Regular",
-                        // fontSize: 14,
-                      ),
-                    ),
+                    Text("TOP"),
                     Text(" / "),
                     Text(timeDecode(doc.createdAt)),
                     Spacer(),

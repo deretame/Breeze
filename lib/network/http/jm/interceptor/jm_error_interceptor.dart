@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/jm/jm_error_message.dart';
 import 'package:zephyr/network/http/jm/http_request_build.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/event/event.dart';
@@ -8,21 +9,45 @@ class JmErrorInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     String? errorMsg;
+    final ts = err.requestOptions.extra['jm_ts'] is String
+        ? err.requestOptions.extra['jm_ts'] as String
+        : null;
+    final responseData = JmResponseParser.toMap(err.response?.data, ts: ts);
 
-    final responseData = JmResponseParser.toMap(err.response?.data);
+    if (err.response != null) {
+      err.response!.data = responseData;
+    }
 
-    if (responseData != null) {
-      final int? code = responseData['code'];
-      final String? serverMsg = responseData['errorMsg'] ?? responseData['msg'];
+    if (responseData is Map) {
+      final parsedMap = Map<String, dynamic>.fromEntries(
+        responseData.entries.map(
+          (entry) => MapEntry(entry.key.toString(), entry.value),
+        ),
+      );
+      final code = parsedMap['code'] is num
+          ? (parsedMap['code'] as num).toInt()
+          : null;
+      final serverMsgRaw =
+          (parsedMap['errorMsg'] ?? parsedMap['msg'] ?? parsedMap['message'])
+              ?.toString();
+      final serverMsg = sanitizeJmErrorMessage(
+        serverMsgRaw,
+        fallback: '服务器异常，请稍后再试',
+      );
 
-      if (code == 401 || serverMsg == '請先登入會員') {
+      if (code == 401 || serverMsgRaw == '請先登入會員') {
         eventBus.fire(NeedLogin(from: From.jm));
-        errorMsg = (serverMsg?.contains('密码') ?? false)
-            ? serverMsg
+        errorMsg = (serverMsgRaw?.contains('密码') ?? false)
+            ? sanitizeJmErrorMessage(serverMsgRaw)
             : '登录过期，请重新登录';
       } else {
         errorMsg = serverMsg;
       }
+    } else if (responseData is String && responseData.trim().isNotEmpty) {
+      errorMsg = sanitizeJmErrorMessage(
+        responseData.trim(),
+        fallback: '服务器异常，请稍后再试',
+      );
     }
 
     errorMsg ??= _handleDioErrorType(err);

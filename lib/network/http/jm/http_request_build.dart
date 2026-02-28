@@ -1,10 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/jm_client.dart';
+import 'package:zephyr/network/http/jm/jm_error_message.dart';
+import 'package:zephyr/network/http/jm/jm_response_codec.dart';
 
 Future<dynamic> request(
   String path, {
@@ -36,58 +35,24 @@ Future<dynamic> request(
       cancelToken: cancelToken,
     );
 
-    return JmResponseParser.toMap(response.data);
+    return JmResponseParser.toMap(
+      response.data,
+      ts: response.requestOptions.extra['jm_ts'] is String
+          ? response.requestOptions.extra['jm_ts'] as String
+          : null,
+    );
   } on DioException catch (e) {
-    throw Exception(e.error ?? e.message);
+    throw Exception(
+      sanitizeJmErrorMessage(
+        e.error?.toString() ?? e.message,
+        fallback: '网络错误，请稍后再试',
+      ),
+    );
   }
 }
 
 class JmResponseParser {
-  static dynamic toMap(dynamic data) {
-    if (data == null) return null;
-
-    try {
-      if (data is String) {
-        if (data.isEmpty) return null;
-        final decoded = jsonDecode(data);
-        if (decoded is Map) {
-          return decoded as Map<String, dynamic>;
-        } else if (decoded is List) {
-          return decoded;
-        }
-        return null;
-      } else if (data is List<int>) {
-        List<int> bytes = _decodeGzip(data);
-        String rawString = utf8.decode(bytes);
-        if (rawString.isEmpty) return null;
-        final decoded = jsonDecode(rawString);
-        if (decoded is Map) {
-          return decoded as Map<String, dynamic>;
-        } else if (decoded is List) {
-          return decoded;
-        }
-        return null;
-      } else if (data is Map) {
-        return data as Map<String, dynamic>;
-      } else if (data is List) {
-        return data;
-      } else {
-        return null;
-      }
-    } catch (e) {
-      logger.e("解析响应数据失败: $e");
-      rethrow;
-    }
-  }
-
-  static List<int> _decodeGzip(List<int> bytes) {
-    if (bytes.length >= 2 && bytes[0] == 0x1f && bytes[1] == 0x8b) {
-      try {
-        return GZipCodec().decode(bytes);
-      } catch (e) {
-        return bytes;
-      }
-    }
-    return bytes;
+  static dynamic toMap(dynamic data, {String? ts}) {
+    return JmResponseCodec.decode(data, ts: ts);
   }
 }

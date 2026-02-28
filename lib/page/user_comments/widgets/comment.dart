@@ -156,14 +156,7 @@ class _CommentsWidgetContent extends StatelessWidget {
                   Center(
                     child: Row(
                       children: [
-                        Text(
-                          index.toString(),
-                          style: TextStyle(
-                            fontFamily: "Courgette-Regular",
-                            // fontStyle: FontStyle.italic,
-                            // fontSize: 16,
-                          ),
-                        ),
+                        Text(index.toString()),
                         Text(" / "),
                         Text(timeDecode(doc.createdAt)),
                         Spacer(),

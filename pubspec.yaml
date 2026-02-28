@@ -7,130 +7,118 @@ environment:
   sdk: ^3.9.2
 
 dependencies:
+  # 核心依赖
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
 
-  ########################################
-  #         UI 组件 & 动画              #
-  ########################################
-  cupertino_icons: ^1.0.8 # Cupertino 风格图标
-  dynamic_color: ^1.7.0 # Material You 动态主题
-  loading_animation_widget: ^1.2.1 # 60+ 加载动画集合
-  toggle_switch: ^2.3.0 # 多状态切换开关
-  animated_search_bar: ^2.7.2 # 带动画的搜索栏组件
-  photo_view: ^0.15.0 # 交互式图片查看器（缩放/平移）
-  extended_image: ^10.0.1 # 高性能图片缓存与展示组件
-  persistent_bottom_nav_bar: ^6.2.1 # 可持久化的底部导航栏
-  markdown_widget: ^2.3.2+8 # Markdown 渲染支持
-  dropdown_button2: ^2.3.9 # 增强型下拉菜单
-  toastification: ^3.0.1 # 现代化通知提示系统
-  flutter_animate: ^4.5.2 # 声明式动画工具集
-  flutter_colorpicker: ^1.1.0 # 颜色选择器组件
-  custom_sliding_segmented_control: ^1.8.5 # 自定义滑动分段控件
-  material_pagination: ^1.0.3 # Material 底部分页组件
-  dynamic_tabbar: ^1.0.9 # 动态可滚动的TabBar
-  flutter_expandable_fab: ^2.5.1 # 可折叠的FAB
-  easy_refresh: ^3.4.0 # 超级下拉刷新组件
-  flutter_speed_dial: ^7.0.0 # 可折叠的FAB
-  scrollview_observer: ^1.26.3 # 滚动视图观察
+  # 路由与状态管理
+  auto_route: ^11.0.0 # 路由: 声明式路由
+  bloc: ^9.0.0 # 状态: 管理核心
+  flutter_bloc: ^9.0.0 # 状态: Flutter BLoC 组件
+  bloc_concurrency: ^0.3.0 # 状态: 事件并发策略
+  event_bus: ^2.0.1 # 事件: 全局事件总线
 
-  ########################################
-  #        状态管理 & 事件总线           #
-  ########################################
-  bloc: ^9.0.0 # BLoC 核心库
-  flutter_bloc: ^9.0.0 # Flutter BLoC 实现
-  bloc_concurrency: ^0.3.0 # BLoC 并发策略（防抖/节流）
-  event_bus: ^2.0.1 # 全局事件总线
+  # UI 组件与交互
+  cupertino_icons: ^1.0.8 # UI: iOS 风格图标
+  dynamic_color: ^1.7.0 # UI: 动态取色
+  loading_animation_widget: ^1.2.1 # UI: 加载动画合集
+  toggle_switch: ^2.3.0 # UI: 多段开关
+  animated_search_bar: ^2.7.2 # UI: 动画搜索栏
+  photo_view: ^0.15.0 # UI: 图片缩放预览
+  extended_image: ^10.0.1 # UI: 图片缓存与手势
+  persistent_bottom_nav_bar: ^6.2.1 # UI: 持久底部导航
+  markdown_widget: ^2.3.2+8 # UI: Markdown 渲染
+  dropdown_button2: ^2.3.9 # UI: 增强下拉框
+  toastification: ^3.0.1 # UI: 通知提示
+  flutter_animate: ^4.5.2 # UI: 链式动画
+  flutter_colorpicker: ^1.1.0 # UI: 颜色选择器
+  custom_sliding_segmented_control: ^1.8.5 # UI: 分段滑动控件
+  material_pagination: ^1.0.3 # UI: 分页控件
+  dynamic_tabbar: ^1.0.9 # UI: 动态标签栏
+  flutter_expandable_fab: ^2.5.1 # UI: 展开式 FAB
+  flutter_speed_dial: ^7.0.0 # UI: 速拨 FAB
+  easy_refresh: ^3.4.0 # UI: 下拉刷新
+  scrollview_observer: ^1.26.3 # UI: 滚动监听
 
-  ########################################
-  #       数据存储 & 本地持久化          #
-  ########################################
-  objectbox: ^5.0.0 # 高性能对象数据库
-  objectbox_flutter_libs: ^5.0.0 # ObjectBox Flutter 支持
-  json_annotation: ^4.9.0 # JSON 序列化注解
-  json_serializable: ^6.8.0 # JSON 序列化生成器
-  freezed: ^3.0.0 # 不可变数据类生成
-  freezed_annotation: ^3.0.0 # Freezed 注解支持
-  file_selector: ^1.1.0 # 文件选择器
+  # 网络通信与内容解析
+  dio: ^5.8.0 # 网络: HTTP 客户端
+  dio_http2_adapter: ^2.6.0 # 网络: Dio HTTP/2 适配
+  dio_cookie_manager: ^3.0.1 # 网络: Dio Cookie 同步
+  cookie_jar: ^4.0.8 # 网络: Cookie 持久化
+  flutter_inappwebview: ^6.1.5 # 网络: 内嵌 WebView
+  url_launcher: ^6.3.1 # 网络: 调起系统链接
+  connectivity_plus: ^7.0.0 # 网络: 状态监听
+  html: ^0.15.5+1 # 网络: HTML 解析
+  flutter_socks_proxy: ^0.0.3 # 网络: SOCKS5 代理配置
 
-  ########################################
-  #       窗口管理 & 桌面支持          #
-  ########################################
-  window_manager: ^0.5.1 # 窗口管理
-  tray_manager: ^0.5.2 # 托盘管理
-  win32: ^5.15.0 # Windows API 封装
+  # 数据模型与本地存储
+  objectbox: ^5.0.0 # 存储: 本地对象数据库
+  objectbox_flutter_libs: ^5.0.0 # 存储: ObjectBox 原生库
+  json_annotation: ^4.9.0 # 模型: JSON 注解
+  freezed_annotation: ^3.0.0 # 模型: Freezed 注解
+  file_selector: ^1.1.0 # 文件: 文件选择器
 
-  ########################################
-  #        网络 & 通信 & WebView         #
-  ########################################
-  dio: ^5.8.0 # 强大的 HTTP 客户端
-  dio_http2_adapter: ^2.6.0 # HTTP/2 适配器
-  dio_cookie_manager: ^3.0.1 # Dio Cookie 管理器
-  flutter_inappwebview: ^6.1.5 # WebView 组件
-  url_launcher: ^6.3.1 # URL 启动器（外部浏览器）
-  connectivity_plus: ^7.0.0 # 网络状态监测
-  html: ^0.15.5+1 # HTML 解析器
-  flutter_socks_proxy: ^0.0.3 # socks5代理配置
-  cookie_jar: ^4.0.8 # Cookie 管理器
+  # 文件、媒体与平台能力
+  path_provider: ^2.1.5 # 文件: 常用目录路径
+  path: ^1.9.0 # 文件: 路径处理
+  open_file: ^3.5.10 # 文件: 系统打开文件
+  image_picker: ^1.1.2 # 媒体: 图片与相机选择
+  crop_your_image: ^2.0.0 # 媒体: 图片裁剪
+  archive: ^4.0.0 # 文件: 压缩解压
+  gal: ^2.3.2 # 媒体: 保存到系统相册
+  pool: ^1.5.2 # 工具: 并发资源池
+  window_manager: ^0.5.1 # 桌面: 窗口控制
+  tray_manager: ^0.5.2 # 桌面: 系统托盘
+  win32: ^5.15.0 # 平台: Windows API
+  battery_plus: ^7.0.0 # 设备: 电池信息
+  permission_guard: ^2.0.1 # 权限: 请求封装
+  package_info_plus: ^9.0.0 # 应用: 版本信息
+  device_info_plus: ^12.1.0 # 设备: 基础信息
 
-  ########################################
-  #       文件 & 资源 & 多媒体          #
-  ########################################
-  path_provider: ^2.1.5 # 文件系统路径获取
-  path: ^1.9.0 # 跨平台路径处理
-  open_file: ^3.5.10 # 文件打开工具
-  image_picker: ^1.1.2 # 图片选择器
-  crop_your_image: ^2.0.0 # 图片裁剪工具
-  archive: ^4.0.0 # 压缩/解压工具集
-  pool: ^1.5.2 # 资源池
-  battery_plus: ^7.0.0 # 电池信息
+  # 后台任务与通知
+  flutter_foreground_task: ^9.1.0 # 后台: 前台任务
+  background_downloader: ^9.5.4 # 后台: 下载任务
+  flutter_local_notifications: ^20.0.0 # 通知: 本地通知
 
-  ########################################
-  #        安全 & 加密 & 工具           #
-  ########################################
-  encrypter_plus: ^5.1.0 # 加密算法库（AES/RSA）
-  crypto: ^3.0.6 # 哈希算法（MD5/SHA）
-  permission_guard: ^2.0.1 # 权限管理工具
-  package_info_plus: ^9.0.0 # 应用包信息获取
-  uuid: ^4.4.2 # UUID 生成器
-  device_info_plus: ^12.1.0 # 设备信息获取
-
-  ########################################
-  #       开发工具 & 辅助功能           #
-  ########################################
-  auto_route: ^11.0.0 # 声明式路由管理
-  logger: ^2.5.0 # 分级日志记录器
-  stack_trace: ^1.12.0 # 异步堆栈追踪
-  collection: ^1.18.0 # 集合工具扩展
-  equatable: ^2.0.3 # 对象相等性简化
-  stream_transform: ^2.1.1 # Stream 转换工具
-  xml: ^6.5.0 # XML 解析器
-  intl: ^0.20.2 # 国际化支持
-  rust_lib_zephyr: # 项目的 Rust 核心逻辑模块 (通过 FFI 调用)
+  # 安全、工具与运行时
+  encrypter_plus: ^5.1.0 # 安全: AES/RSA 加密
+  crypto: ^3.0.6 # 安全: 摘要与哈希
+  uuid: ^4.4.2 # 工具: UUID 生成
+  logger: ^2.5.0 # 工具: 日志输出
+  stack_trace: ^1.12.0 # 工具: 堆栈处理
+  collection: ^1.18.0 # 工具: 集合扩展
+  equatable: ^2.0.3 # 工具: 值相等比较
+  stream_transform: ^2.1.1 # 工具: Stream 变换
+  xml: ^6.5.0 # 解析: XML 解析
+  intl: ^0.20.2 # 国际化: 文案与格式化
+  rust_lib_zephyr: # FFI: 本地 Rust 核心模块
     path: rust_builder
-  flutter_rust_bridge: ^2.10.0 # Flutter 与 Rust FFI 通信桥梁
-  flutter_foreground_task: ^9.1.0 # 前台任务
-  background_downloader: ^9.5.4 # 后台下载
-  flutter_local_notifications: ^20.0.0 # 本地通知
-  vm_service: ^15.0.2 # Dart VM 服务（内存分析）
-  ffi: ^2.2.0 # FFI
-  sentry_flutter: ^9.14.0
-  gal: ^2.3.2
+  flutter_rust_bridge: ^2.10.0 # FFI: Flutter-Rust 桥接
+  ffi: ^2.2.0 # FFI: Dart 原生互操作
+  sentry_flutter: ^9.14.0 # 监控: 崩溃与异常上报
+  vm_service: ^15.0.2 # 监控: 运行时内存监控
 
 dev_dependencies:
-  sentry_dart_plugin: ^3.2.1
+  # 测试与规范
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0 # 代码规范检查
-  build_runner: ^2.0.0 # 代码生成器
-  auto_route_generator: ^10.0.0 # 路由代码生成
-  objectbox_generator: ^5.0.0 # ObjectBox 代码生成
   integration_test:
     sdk: flutter
-  flutter_launcher_icons:
-  flutter_native_splash:
+  flutter_lints: ^6.0.0 # 规范: 官方 Lint 规则
+
+  # 代码生成
+  build_runner: ^2.0.0 # 生成: 代码生成执行器
+  auto_route_generator: ^10.0.0 # 生成: 路由代码生成
+  objectbox_generator: ^5.0.0 # 生成: ObjectBox 模型生成
+  freezed: ^3.0.0 # 生成: Freezed 代码生成
+  json_serializable: ^6.8.0 # 生成: JSON 序列化生成
+
+  # 构建与发布辅助
+  sentry_dart_plugin: ^3.2.1 # 发布: Sentry 构建上传
+  flutter_launcher_icons: # 发布: 启动图标生成
+  flutter_native_splash: # 发布: 启动画面生成
 
 # Flutter 配置
 flutter:
@@ -139,12 +127,6 @@ flutter:
     - family: Pacifico-Regular
       fonts:
         - asset: asset/fonts/Pacifico-Regular.ttf
-    - family: LeckerliOne-Regular
-      fonts:
-        - asset: asset/fonts/LeckerliOne-Regular.ttf
-    - family: Courgette-Regular
-      fonts:
-        - asset: asset/fonts/Courgette-Regular.ttf
     - family: JetBrainsMonoNL-Regular
       fonts:
         - asset: asset/fonts/JetBrainsMonoNL-Regular.ttf

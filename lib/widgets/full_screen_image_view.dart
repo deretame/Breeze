@@ -3,9 +3,10 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:gal/gal.dart';
 import 'package:path/path.dart' as p;
 import 'package:photo_view/photo_view.dart';
-import 'package:gal/gal.dart'; // 引入 gal 插件
+import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../main.dart';
@@ -106,7 +107,10 @@ class FullScreenImagePage extends StatelessWidget {
       }
 
       // 将图片放入相册
-      await Gal.putImage(inputImagePath);
+      await Gal.putImage(
+        inputImagePath,
+        album: Platform.isIOS ? null : appName,
+      );
       showSuccessToast("图片已保存到相册！");
     } on GalException catch (e) {
       logger.e("Gal 保存异常", error: e);

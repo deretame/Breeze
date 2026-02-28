@@ -23,6 +23,7 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default('') String webdavHost,
     @Default('') String webdavUsername,
     @Default('') String webdavPassword,
+    @Default('') String md5,
     @Default(true) bool autoSync,
     @Default(true) bool syncNotify,
     @Default(true) bool shade,
@@ -186,6 +187,18 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
 
   void resetAutoSync() {
     final temp = state.copyWith(autoSync: _defaults.autoSync);
+    updateDataBase(temp);
+    emit(temp);
+  }
+
+  void updateMd5(String value) {
+    final temp = state.copyWith(md5: value);
+    updateDataBase(temp);
+    emit(temp);
+  }
+
+  void resetMd5() {
+    final temp = state.copyWith(md5: _defaults.md5);
     updateDataBase(temp);
     emit(temp);
   }

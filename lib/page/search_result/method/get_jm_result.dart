@@ -43,6 +43,10 @@ Future<BlocState> getJMResult(SearchEvent event, BlocState blocState) async {
 
   blocState.comics = [...blocState.comics, ...tempList];
 
+  if (data.content.length < 80) {
+    blocState.hasReachedMax = true;
+  }
+
   return blocState;
 }
 

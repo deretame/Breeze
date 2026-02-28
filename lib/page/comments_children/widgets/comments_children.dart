@@ -124,13 +124,7 @@ class _CommentsChildrenContent extends StatelessWidget {
                   SizedBox(height: 5),
                   Row(
                     children: [
-                      Text(
-                        index.toString(),
-                        style: TextStyle(
-                          fontFamily: "LeckerliOne-Regular",
-                          // fontSize: 14,
-                        ),
-                      ),
+                      Text(index.toString()),
                       Text(" / "),
                       Text(timeDecode(doc.createdAt)),
                       Spacer(),

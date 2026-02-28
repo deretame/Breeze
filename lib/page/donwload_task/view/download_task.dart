@@ -50,8 +50,12 @@ class _DownloadTaskView extends StatelessWidget {
                 );
               }
 
-              final downloadingTasks = tasks.where((t) => t.isDownloading).toList();
-              final pendingTasks = tasks.where((t) => !t.isDownloading).toList();
+              final downloadingTasks = tasks
+                  .where((t) => t.isDownloading)
+                  .toList();
+              final pendingTasks = tasks
+                  .where((t) => !t.isDownloading)
+                  .toList();
 
               return CustomScrollView(
                 slivers: [
@@ -70,16 +74,13 @@ class _DownloadTaskView extends StatelessWidget {
                       ),
                     ),
                     SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final task = downloadingTasks[index];
-                          return _DownloadingTaskTile(
-                            key: ValueKey(task.id),
-                            task: task,
-                          );
-                        },
-                        childCount: downloadingTasks.length,
-                      ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final task = downloadingTasks[index];
+                        return _DownloadingTaskTile(
+                          key: ValueKey(task.id),
+                          task: task,
+                        );
+                      }, childCount: downloadingTasks.length),
                     ),
                   ],
                   if (pendingTasks.isNotEmpty) ...[
@@ -97,22 +98,19 @@ class _DownloadTaskView extends StatelessWidget {
                       ),
                     ),
                     SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final task = pendingTasks[index];
-                          return _PendingTaskTile(
-                            key: ValueKey(task.id),
-                            task: task,
-                            onDelete: () {
-                              context.read<DowloadTaskBloc>().add(
-                                DowloadTaskEvent.taskDeleted(task.id),
-                              );
-                              showInfoToast("已删除任务");
-                            },
-                          );
-                        },
-                        childCount: pendingTasks.length,
-                      ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final task = pendingTasks[index];
+                        return _PendingTaskTile(
+                          key: ValueKey(task.id),
+                          task: task,
+                          onDelete: () {
+                            context.read<DowloadTaskBloc>().add(
+                              DowloadTaskEvent.taskDeleted(task.id),
+                            );
+                            showInfoToast("已删除任务");
+                          },
+                        );
+                      }, childCount: pendingTasks.length),
                     ),
                   ],
                 ],
@@ -163,7 +161,11 @@ class _PendingTaskTile extends StatelessWidget {
   final DownloadTask task;
   final VoidCallback onDelete;
 
-  const _PendingTaskTile({required super.key, required this.task, required this.onDelete});
+  const _PendingTaskTile({
+    required super.key,
+    required this.task,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {

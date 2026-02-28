@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:convert';
 
 import 'package:archive/archive.dart';
+import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:flutter/foundation.dart' show compute;
@@ -12,6 +13,8 @@ import '../../../main.dart';
 import '../object_box/model.dart';
 
 final String version = "2.3.0";
+final String _webDavMd5FileName = '$appName.md5';
+String get _webDavMd5RemotePath => '/$appName/$_webDavMd5FileName';
 
 // 测试 WebDAV 服务是否可用
 Future<void> testWebDavServer() async {
@@ -266,6 +269,14 @@ Future<List<String>> fetchWebDAVFiles() async {
   List<String> urlList = [];
 
   try {
+    final remoteMd5 = await _downloadMd5FromWebDav();
+    final localMd5 = objectbox.userSettingBox.get(1)!.globalSetting.md5;
+
+    if (remoteMd5.isNotEmpty && remoteMd5 == localMd5) {
+      logger.d('云端与本地 md5 一致，跳过同步');
+      return urlList;
+    }
+
     // 获取 Dio 实例
     final dio = getWebDavDio();
 
@@ -301,7 +312,9 @@ Future<List<String>> fetchWebDAVFiles() async {
               .firstOrNull
               ?.innerText;
 
-          if (displayName != null && !xmlIsDirectory(prop, namespacePrefix)) {
+          if (displayName != null &&
+              displayName != _webDavMd5FileName &&
+              !xmlIsDirectory(prop, namespacePrefix)) {
             urlList.add("/$appName/$displayName");
           }
         }
@@ -328,6 +341,14 @@ String _getNamespacePrefix(XmlDocument xmlDoc) {
 }
 
 Future<void> uploadFile2WebDav() async {
+  final localMd5 = objectbox.userSettingBox.get(1)!.globalSetting.md5;
+  final remoteMd5 = await _downloadMd5FromWebDav();
+
+  if (remoteMd5.isNotEmpty && remoteMd5 == localMd5) {
+    logger.d('云端与本地 md5 一致，跳过上传');
+    return;
+  }
+
   var allHistory = await objectbox.bikaHistoryBox.getAllAsync();
   allHistory.sort((a, b) => b.history.compareTo(a.history));
 
@@ -356,12 +377,23 @@ Future<void> uploadFile2WebDav() async {
     throw Exception('加密压缩失败');
   }
 
+  final currentMd5 = _calculateMd5(compressedBytes);
+
+  if (remoteMd5.isNotEmpty && remoteMd5 == currentMd5) {
+    logger.d('云端数据已是最新，仅更新本地 md5');
+    _updateLocalMd5(currentMd5);
+    return;
+  }
+
   var time = DateTime.now().toUtc().millisecondsSinceEpoch;
 
   await _uploadDataToWebDav(
     compressedBytes,
     '/$appName/${appName}_${time}_$version.gz',
   );
+
+  await _uploadMd5ToWebDav(currentMd5);
+  _updateLocalMd5(currentMd5);
 }
 
 List<int>? _encryptAndCompress(String data) {
@@ -382,7 +414,11 @@ List<int>? _encryptAndCompress(String data) {
   }
 }
 
-Future<void> _uploadDataToWebDav(List<int> data, String remotePath) async {
+Future<void> _uploadDataToWebDav(
+  List<int> data,
+  String remotePath, {
+  String contentType = 'application/octet-stream',
+}) async {
   final dio = getWebDavDio();
 
   try {
@@ -390,11 +426,7 @@ Future<void> _uploadDataToWebDav(List<int> data, String remotePath) async {
     final response = await dio.put(
       remotePath,
       data: Stream.fromIterable([data]), // 将字节数据转换为流
-      options: Options(
-        headers: {
-          'Content-Type': 'application/octet-stream', // 通用二进制类型
-        },
-      ),
+      options: Options(headers: {'Content-Type': contentType}),
     );
 
     // 检查状态码
@@ -416,36 +448,80 @@ Future<void> _uploadDataToWebDav(List<int> data, String remotePath) async {
   }
 }
 
-Future<String> getNeedDownloadUrl(List<String> urlList) async {
-  List<String> timestampList = [];
-  final regex = RegExp(appName + r'_(\d+)_' + version + r'\.gz');
+String _calculateMd5(List<int> data) {
+  return md5.convert(data).toString();
+}
 
-  for (var url in urlList) {
-    // 匹配正则表达式
-    var match = regex.firstMatch(url);
-    if (match != null) {
-      // 提取时间戳
-      String timestamp = match.group(1)!;
-      timestampList.add(timestamp);
+Future<String> _downloadMd5FromWebDav() async {
+  final dio = getWebDavDio();
+
+  try {
+    final response = await dio.get(
+      _webDavMd5RemotePath,
+      options: Options(responseType: ResponseType.plain),
+    );
+
+    if (response.statusCode == 200) {
+      return (response.data ?? '').toString().trim();
     }
+
+    throw Exception('md5 下载失败，状态码: ${response.statusCode}');
+  } on DioException catch (e) {
+    if (e.response?.statusCode == 404) {
+      return '';
+    }
+
+    if (e.response != null) {
+      throw Exception(
+        'md5 下载失败: ${e.message}\n${e.response?.statusCode}\n${e.response?.data}',
+      );
+    }
+
+    throw Exception('md5 下载失败: ${e.message}');
+  } catch (e) {
+    throw Exception('md5 下载失败: $e');
+  }
+}
+
+Future<void> _uploadMd5ToWebDav(String value) async {
+  await _uploadDataToWebDav(
+    utf8.encode(value),
+    _webDavMd5RemotePath,
+    contentType: 'text/plain; charset=utf-8',
+  );
+}
+
+void _updateLocalMd5(String value) {
+  final userSettings = objectbox.userSettingBox.get(1);
+  if (userSettings == null || userSettings.globalSetting.md5 == value) {
+    return;
   }
 
-  if (timestampList.isEmpty) {
-    return '';
-  }
+  userSettings.globalSetting = userSettings.globalSetting.copyWith(md5: value);
+  objectbox.userSettingBox.put(userSettings);
+}
 
-  // 按时间戳排序（升序）
-  timestampList.sort((a, b) => a.compareTo(b));
-
-  // 获取最晚时间戳（最小的时间戳）
-  String latestTimestamp = timestampList.first;
-
-  // 找到最新时间戳对应的 URL
+Future<String> getNeedDownloadUrl(List<String> urlList) async {
   String latestUrl = '';
+  int latestTimestamp = -1;
+  final regex = RegExp(
+    '${RegExp.escape(appName)}_(\\d+)_${RegExp.escape(version)}\\.gz',
+  );
+
   for (var url in urlList) {
-    if (url.contains('${appName}_${latestTimestamp}_$version.gz')) {
+    final match = regex.firstMatch(url);
+    if (match == null) {
+      continue;
+    }
+
+    final timestamp = int.tryParse(match.group(1)!);
+    if (timestamp == null) {
+      continue;
+    }
+
+    if (timestamp > latestTimestamp) {
+      latestTimestamp = timestamp;
       latestUrl = url;
-      break;
     }
   }
 
@@ -627,6 +703,10 @@ Future<void> deleteFileFromWebDav(List<String> remotePath) async {
   final dio = getWebDavDio();
 
   for (var path in remotePath) {
+    if (path == _webDavMd5RemotePath || path.endsWith('/$_webDavMd5FileName')) {
+      continue;
+    }
+
     try {
       final response = await dio.delete(path);
 

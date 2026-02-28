@@ -203,6 +203,7 @@ class __HistoryPageState extends State<_HistoryPage>
             }, childCount: list.length),
           ),
         ),
+        SliverToBoxAdapter(child: _buildFooter()),
       ],
     );
   }
@@ -217,6 +218,22 @@ class __HistoryPageState extends State<_HistoryPage>
         state.comics.length,
         () => _refresh(),
         comics: state.comics,
+      ),
+    );
+  }
+
+  Widget _buildFooter() {
+    return Center(
+      child: Column(
+        children: [
+          const SizedBox(height: 10),
+          IconButton(
+            onPressed: () => _refresh(true),
+            icon: const Icon(Icons.refresh),
+          ),
+          deletingDialog(context, () => _refresh(true), DeleteType.history),
+          const SizedBox(height: 20),
+        ],
       ),
     );
   }
@@ -243,16 +260,7 @@ class __HistoryPageState extends State<_HistoryPage>
     List<dynamic>? comics,
   }) {
     if (index == dataLength) {
-      return Column(
-        children: [
-          SizedBox(height: 10),
-          IconButton(
-            onPressed: () => _refresh(true),
-            icon: const Icon(Icons.refresh),
-          ),
-          deletingDialog(context, refreshCallback, DeleteType.history),
-        ],
-      );
+      return _buildFooter();
     }
 
     final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
@@ -274,8 +282,6 @@ class __HistoryPageState extends State<_HistoryPage>
   // 转换数据格式
   List<ComicSimplifyEntryInfo> _convertToEntryInfoList(List<dynamic> comics) {
     final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
-
-    // logger.d(comicChoice.toString());
 
     if (comicChoice == 1) {
       final temp = comics.map((e) => e as BikaComicHistory).toList();

@@ -14,7 +14,6 @@ import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/get_path.dart';
-import 'package:zephyr/util/permission.dart';
 import 'package:zephyr/util/sundry.dart';
 
 import '../../../type/enum.dart';
@@ -441,11 +440,6 @@ class _ComicInfoState extends State<_ComicInfo>
     String? cacheZipPath;
 
     try {
-      if (!await requestExportPermission()) {
-        showErrorToast("请授予存储权限！");
-        return;
-      }
-
       if (!mounted) return;
 
       final exportType = await _pickExportType();

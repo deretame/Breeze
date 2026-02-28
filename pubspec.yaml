@@ -112,6 +112,7 @@ dependencies:
     path: rust_builder
   flutter_rust_bridge: ^2.10.0 # Flutter 与 Rust FFI 通信桥梁
   flutter_foreground_task: ^9.1.0 # 前台任务
+  background_downloader: ^9.5.4 # 后台下载
   flutter_local_notifications: ^20.0.0 # 本地通知
   vm_service: ^15.0.2 # Dart VM 服务（内存分析）
   ffi: ^2.2.0 # FFI

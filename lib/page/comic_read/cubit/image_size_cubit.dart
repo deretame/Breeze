@@ -5,12 +5,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class ImageSizeState {
   final Map<int, Size> sizeCache;
   final Set<int> resolvedIndices;
+  final List<int> visibleIndices;
   final double defaultWidth;
   final double defaultHeight;
 
   ImageSizeState({
     required this.sizeCache,
     required this.resolvedIndices,
+    required this.visibleIndices,
     required this.defaultWidth,
     required this.defaultHeight,
   });
@@ -33,39 +35,31 @@ class ImageSizeCubit extends Cubit<ImageSizeState> {
     required this.defaultHeight,
     required Map<int, Size> initialCache,
     required Set<int> initialResolved,
+    required List<int> initialVisibleIndices,
   }) : super(
          ImageSizeState(
            sizeCache: initialCache,
            resolvedIndices: initialResolved,
+           visibleIndices: initialVisibleIndices,
            defaultWidth: defaultWidth,
            defaultHeight: defaultHeight,
          ),
        );
 
   factory ImageSizeCubit.create({
-    required double statusBarHeight,
     required double defaultWidth,
     required int count,
   }) {
     final double defaultHeight = defaultWidth * 1.2;
-    final double firstWidgetHeight = statusBarHeight;
-    final double lastWidgetHeight = 75.0;
 
     final initialCache = <int, Size>{};
     final initialResolved = <int>{};
+    final initialVisibleIndices = <int>[];
 
     for (int i = 0; i < count; i++) {
       double currentHeight;
 
-      if (i == 0) {
-        currentHeight = firstWidgetHeight;
-        initialResolved.add(i);
-      } else if (i == count - 1) {
-        currentHeight = lastWidgetHeight;
-        initialResolved.add(i);
-      } else {
-        currentHeight = defaultHeight;
-      }
+      currentHeight = defaultHeight;
 
       initialCache[i] = Size(defaultWidth, currentHeight);
     }
@@ -76,6 +70,7 @@ class ImageSizeCubit extends Cubit<ImageSizeState> {
       defaultHeight: defaultHeight,
       initialCache: initialCache,
       initialResolved: initialResolved,
+      initialVisibleIndices: initialVisibleIndices,
     );
   }
 
@@ -99,10 +94,23 @@ class ImageSizeCubit extends Cubit<ImageSizeState> {
         ImageSizeState(
           sizeCache: newCache,
           resolvedIndices: newResolved,
+          visibleIndices: state.visibleIndices,
           defaultWidth: state.defaultWidth,
           defaultHeight: state.defaultHeight,
         ),
       );
     }
+  }
+
+  void updateVisibleIndices(List<int> visibleIndices) {
+    emit(
+      ImageSizeState(
+        sizeCache: state.sizeCache,
+        resolvedIndices: state.resolvedIndices,
+        visibleIndices: visibleIndices,
+        defaultWidth: state.defaultWidth,
+        defaultHeight: state.defaultHeight,
+      ),
+    );
   }
 }

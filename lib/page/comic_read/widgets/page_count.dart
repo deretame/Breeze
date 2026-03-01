@@ -5,6 +5,7 @@ import 'package:battery_plus/battery_plus.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 
 class PageCountWidget extends StatefulWidget {
@@ -17,14 +18,16 @@ class PageCountWidget extends StatefulWidget {
 }
 
 class _PageCountWidgetState extends State<PageCountWidget> {
-  late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   ConnectivityResult _connectivityResult = ConnectivityResult.none;
   String _currentTime = '';
-  late Timer _timer;
+  Timer? _timer;
   final Battery _battery = Battery();
   int _batteryLevel = 100;
   BatteryState _batteryState = BatteryState.full;
   StreamSubscription<BatteryState>? _batteryStateSubscription;
+
+  bool get _canUseBattery => Platform.isAndroid || Platform.isIOS;
 
   @override
   void initState() {
@@ -40,29 +43,33 @@ class _PageCountWidgetState extends State<PageCountWidget> {
 
   @override
   void dispose() {
-    _timer.cancel();
-    _connectivitySubscription.cancel();
+    _timer?.cancel();
+    _connectivitySubscription?.cancel();
     _batteryStateSubscription?.cancel();
     super.dispose();
   }
 
   void _initBattery() async {
-    if (!Platform.isAndroid) return;
-    final level = await _battery.batteryLevel;
-    if (mounted) {
-      setState(() => _batteryLevel = level);
-    }
+    if (!_canUseBattery) return;
+    try {
+      final level = await _battery.batteryLevel;
+      if (mounted) {
+        setState(() => _batteryLevel = level);
+      }
 
-    final state = await _battery.batteryState;
-    if (mounted) {
-      setState(() => _batteryState = state);
-    }
-
-    _batteryStateSubscription = _battery.onBatteryStateChanged.listen((state) {
+      final state = await _battery.batteryState;
       if (mounted) {
         setState(() => _batteryState = state);
       }
-    });
+
+      _batteryStateSubscription = _battery.onBatteryStateChanged.listen((
+        state,
+      ) {
+        if (mounted) {
+          setState(() => _batteryState = state);
+        }
+      });
+    } catch (_) {}
   }
 
   IconData getBatteryIcon() {
@@ -80,19 +87,20 @@ class _PageCountWidgetState extends State<PageCountWidget> {
   }
 
   void _initConnectivity() async {
-    if (Platform.isLinux) return;
-    final connectivity = Connectivity();
-    final results = await connectivity.checkConnectivity();
-    if (results.isNotEmpty) {
-      _updateConnectivityResult(results);
-    }
-    _connectivitySubscription = connectivity.onConnectivityChanged.listen((
-      results,
-    ) {
-      if (mounted && results.isNotEmpty) {
+    try {
+      final connectivity = Connectivity();
+      final results = await connectivity.checkConnectivity();
+      if (results.isNotEmpty) {
         _updateConnectivityResult(results);
       }
-    });
+      _connectivitySubscription = connectivity.onConnectivityChanged.listen((
+        results,
+      ) {
+        if (mounted && results.isNotEmpty) {
+          _updateConnectivityResult(results);
+        }
+      });
+    } catch (_) {}
   }
 
   void _updateConnectivityResult(List<ConnectivityResult> results) {
@@ -150,12 +158,14 @@ class _PageCountWidgetState extends State<PageCountWidget> {
     if (formattedTime != _currentTime) {
       setState(() => _currentTime = formattedTime);
 
-      if (!Platform.isAndroid) return;
-      _battery.batteryLevel.then((level) {
-        if (mounted && _batteryLevel != level) {
-          setState(() => _batteryLevel = level);
-        }
-      });
+      if (!_canUseBattery) return;
+      _battery.batteryLevel
+          .then((level) {
+            if (mounted && _batteryLevel != level) {
+              setState(() => _batteryLevel = level);
+            }
+          })
+          .catchError((_) {});
     }
   }
 
@@ -172,63 +182,170 @@ class _PageCountWidgetState extends State<PageCountWidget> {
     final pageIndex = context.select<ReaderCubit, int>(
       (value) => value.state.pageIndex,
     );
+    final readSetting = context.select<GlobalSettingCubit, ReadSettingState>(
+      (cubit) => cubit.state.readSetting,
+    );
+
+    final showPage = readSetting.pageInfoShowPage;
+    final showNetwork = readSetting.pageInfoShowNetwork;
+    final showBattery = readSetting.pageInfoShowBattery && _canUseBattery;
+    final showTime = readSetting.pageInfoShowTime;
+    final opacityPercent = readSetting.pageInfoOpacityPercent.clamp(20, 100);
+    final fontSize = readSetting.pageInfoFontSize.clamp(10, 20).toDouble();
+
+    if (!showPage && !showNetwork && !showBattery && !showTime) {
+      return const Positioned(top: 0, left: 0, child: SizedBox.shrink());
+    }
+
+    final mediaPadding = MediaQuery.of(context).padding;
+    final edge = readSetting.pageInfoEdgePadding.clamp(0, 48).toDouble();
+    final sideExtra =
+        readSetting.pageInfoHorizontalPosition ==
+            ReaderInfoHorizontalPosition.center
+        ? 0.0
+        : (Platform.isIOS ? 22.0 : 12.0);
+    final verticalExtra = Platform.isIOS ? 6.0 : 2.0;
+
+    final verticalOffset =
+        readSetting.pageInfoVerticalPosition == ReaderInfoVerticalPosition.top
+        ? mediaPadding.top + edge + verticalExtra
+        : mediaPadding.bottom + edge + verticalExtra;
+
+    final panel = _PageInfoPanel(
+      pageText: '${pageIndex + 1}/${widget.epPages}',
+      showPage: showPage,
+      showNetwork: showNetwork,
+      showBattery: showBattery,
+      showTime: showTime,
+      currentTime: _currentTime,
+      batteryLevel: _batteryLevel,
+      networkIcon: _getNetworkStatusIcon(_connectivityResult),
+      batteryIcon: getBatteryIcon(),
+      opacityPercent: opacityPercent,
+      fontSize: fontSize,
+    );
+
+    final isTop =
+        readSetting.pageInfoVerticalPosition == ReaderInfoVerticalPosition.top;
+    final horizontalPosition = readSetting.pageInfoHorizontalPosition;
+
+    if (horizontalPosition == ReaderInfoHorizontalPosition.center) {
+      return Positioned(
+        top: isTop ? verticalOffset : null,
+        bottom: isTop ? null : verticalOffset,
+        left: 0,
+        right: 0,
+        child: Align(
+          alignment: isTop ? Alignment.topCenter : Alignment.bottomCenter,
+          child: panel,
+        ),
+      );
+    }
+
+    final left = horizontalPosition == ReaderInfoHorizontalPosition.left
+        ? mediaPadding.left + edge + sideExtra
+        : null;
+    final right = horizontalPosition == ReaderInfoHorizontalPosition.right
+        ? mediaPadding.right + edge + sideExtra
+        : null;
 
     return Positioned(
-      bottom: 0,
-      left: 0,
-      child: ClipRRect(
-        borderRadius: const BorderRadius.only(topRight: Radius.circular(10)),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          decoration: const BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.only(topRight: Radius.circular(10)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (Platform.isIOS) SizedBox(width: 20),
+      top: isTop ? verticalOffset : null,
+      bottom: isTop ? null : verticalOffset,
+      left: left,
+      right: right,
+      child: panel,
+    );
+  }
+}
 
-              // 1. 页码
-              Text(
-                "$pageIndex/${widget.epPages}",
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontFamily: 'JetBrainsMonoNL-Regular',
-                ),
-              ),
+class _PageInfoPanel extends StatelessWidget {
+  final String pageText;
+  final bool showPage;
+  final bool showNetwork;
+  final bool showBattery;
+  final bool showTime;
+  final String currentTime;
+  final int batteryLevel;
+  final IconData networkIcon;
+  final IconData batteryIcon;
+  final int opacityPercent;
+  final double fontSize;
 
-              const SizedBox(width: 8),
+  const _PageInfoPanel({
+    required this.pageText,
+    required this.showPage,
+    required this.showNetwork,
+    required this.showBattery,
+    required this.showTime,
+    required this.currentTime,
+    required this.batteryLevel,
+    required this.networkIcon,
+    required this.batteryIcon,
+    required this.opacityPercent,
+    required this.fontSize,
+  });
 
-              if (!Platform.isLinux) ...[
-                // linux 下这个不好用
-                // 2. 网络图标
-                Icon(
-                  _getNetworkStatusIcon(_connectivityResult),
-                  color: Colors.white,
-                  size: 12,
-                ),
+  @override
+  Widget build(BuildContext context) {
+    const textStyle = TextStyle(
+      color: Colors.white,
+      fontFamily: 'JetBrainsMonoNL-Regular',
+    );
 
-                const SizedBox(width: 8),
-              ],
+    final items = <Widget>[];
+    if (showPage) {
+      items.add(Text(pageText, style: textStyle.copyWith(fontSize: fontSize)));
+    }
+    if (showNetwork) {
+      items.add(
+        Icon(
+          networkIcon,
+          color: Colors.white,
+          size: (fontSize + 1).clamp(10, 24),
+        ),
+      );
+    }
+    if (showBattery) {
+      items.add(
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              batteryIcon,
+              color: Colors.white,
+              size: (fontSize + 1).clamp(10, 24),
+            ),
+            const SizedBox(width: 2),
+            Text(
+              '$batteryLevel%',
+              style: textStyle.copyWith(fontSize: fontSize),
+            ),
+          ],
+        ),
+      );
+    }
+    if (showTime) {
+      items.add(
+        Text(currentTime, style: textStyle.copyWith(fontSize: fontSize)),
+      );
+    }
 
-              // // 3. 电量图标
-              // Icon(_getBatteryIcon(), color: Colors.white, size: 12),
-
-              // const SizedBox(width: 8),
-
-              // 4. 时间
-              Text(
-                _currentTime,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontFamily: 'JetBrainsMonoNL-Regular',
-                ),
-              ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: opacityPercent / 100),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (int i = 0; i < items.length; i++) ...[
+              items[i],
+              if (i != items.length - 1) const SizedBox(width: 8),
             ],
-          ),
+          ],
         ),
       ),
     );

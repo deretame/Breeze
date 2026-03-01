@@ -4,7 +4,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
-import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
@@ -18,6 +17,7 @@ import '../../../main.dart';
 import '../../../type/enum.dart';
 import '../../../util/router/router.dart';
 import '../../../util/router/router.gr.dart';
+import 'reader_settings_sheet.dart';
 
 class BottomWidget extends StatefulWidget {
   final ComicEntryType type;
@@ -53,7 +53,6 @@ class _BottomWidgetState extends State<BottomWidget> {
   JumpChapter get jumpChapter => widget.jumpChapter;
 
   final Duration _animationDuration = const Duration(milliseconds: 300); // 动画时长
-  final int _bottomWidgetHeight = 100; // 底部悬浮组件高度
 
   late ComicEntryType tempType;
   late String comicId;
@@ -87,85 +86,111 @@ class _BottomWidgetState extends State<BottomWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final gloablSettingCubit = context.read<GlobalSettingCubit>();
-    final globalSettingState = context.watch<GlobalSettingCubit>().state;
     final isMenuVisible = context.select(
       (ReaderCubit cubit) => cubit.state.isMenuVisible,
     );
+    final colorScheme = context.theme.colorScheme;
+    final bottomSafeHeight = context.bottomSafeHeight;
 
-    return AnimatedPositioned(
-      duration: _animationDuration,
-      bottom: isMenuVisible ? 0 : -_bottomWidgetHeight.toDouble(),
+    return Positioned(
+      bottom: 0,
       left: 0,
       right: 0,
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // 高斯模糊强度
-          child: Container(
-            height: _bottomWidgetHeight.toDouble(),
-            width: context.screenWidth,
-            color: context.backgroundColor.withValues(alpha: 0.5),
-            // 半透明背景
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    const SizedBox(width: 10),
-                    ChapterNavigationButton(
-                      label: "上一章",
-                      isEnabled: jumpChapter.havePrev,
-                      onTap: () => _jumpToChapter(true),
+      child: IgnorePointer(
+        ignoring: !isMenuVisible,
+        child: AnimatedSlide(
+          duration: _animationDuration,
+          curve: Curves.easeOutCubic,
+          offset: isMenuVisible ? Offset.zero : const Offset(0, 1),
+          child: ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                width: context.screenWidth,
+                padding: EdgeInsets.fromLTRB(10, 6, 10, 6 + bottomSafeHeight),
+                decoration: BoxDecoration(
+                  color: colorScheme.surface.withValues(alpha: 0.76),
+                  border: Border(
+                    top: BorderSide(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.35),
                     ),
-                    widget.sliderWidget,
-                    ChapterNavigationButton(
-                      label: "下一章",
-                      isEnabled: jumpChapter.haveNext,
-                      onTap: () => _jumpToChapter(false),
-                    ),
-                    const SizedBox(width: 10),
-                  ],
-                ),
-                Center(
-                  child: Container(
-                    height: 1, // 设置高度为1像素
-                    width: context.screenWidth * 48 / 50,
-                    color: context.theme.colorScheme.secondaryFixedDim,
                   ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    IconButton(
-                      icon: Icon(Icons.home),
-                      onPressed: () => popToRoot(context),
+                    Row(
+                      children: [
+                        ChapterNavigationButton(
+                          label: "上一章",
+                          isEnabled: jumpChapter.havePrev,
+                          onTap: () => _jumpToChapter(true),
+                        ),
+                        const SizedBox(width: 6),
+                        widget.sliderWidget,
+                        const SizedBox(width: 6),
+                        ChapterNavigationButton(
+                          label: "下一章",
+                          isEnabled: jumpChapter.haveNext,
+                          onTap: () => _jumpToChapter(false),
+                        ),
+                      ],
                     ),
-                    SizedBox(
-                      height: 51,
-                      child: TextButton(
-                        onPressed: seriesList.isEmpty && widget.from == From.jm
-                            ? null
-                            : () async => await _selectJumpChapter(),
-                        child: Center(
-                          child: Text('跳转章节', style: TextStyle(fontSize: 16)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Divider(
+                        height: 1,
+                        color: colorScheme.outlineVariant.withValues(
+                          alpha: 0.4,
                         ),
                       ),
                     ),
-                    IconButton(
-                      icon: _getThemeIcon(),
-                      onPressed: () {
-                        final ThemeMode nextMode =
-                            switch (globalSettingState.themeMode) {
-                              ThemeMode.system => ThemeMode.light,
-                              ThemeMode.light => ThemeMode.dark,
-                              ThemeMode.dark => ThemeMode.system,
-                            };
-
-                        gloablSettingCubit.updateThemeMode(nextMode);
-                      },
+                    Row(
+                      children: [
+                        IconButton(
+                          tooltip: '返回首页',
+                          style: IconButton.styleFrom(
+                            backgroundColor: colorScheme.secondaryContainer
+                                .withValues(alpha: 0.7),
+                          ),
+                          icon: const Icon(Icons.home_rounded),
+                          onPressed: () => popToRoot(context),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: FilledButton.tonal(
+                            onPressed:
+                                seriesList.isEmpty && widget.from == From.jm
+                                ? null
+                                : _selectJumpChapter,
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size.fromHeight(40),
+                              textStyle: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text('跳转章节'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        IconButton(
+                          tooltip: '阅读设置',
+                          style: IconButton.styleFrom(
+                            backgroundColor: colorScheme.secondaryContainer
+                                .withValues(alpha: 0.7),
+                          ),
+                          icon: const Icon(Icons.tune_rounded),
+                          onPressed: _openSettingsPanel,
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
@@ -173,14 +198,15 @@ class _BottomWidgetState extends State<BottomWidget> {
     );
   }
 
-  Icon _getThemeIcon() {
-    final globalSettingState = context.watch<GlobalSettingCubit>().state;
-
-    return switch (globalSettingState.themeMode) {
-      ThemeMode.system => const Icon(Icons.brightness_auto_outlined),
-      ThemeMode.light => const Icon(Icons.brightness_7),
-      ThemeMode.dark => const Icon(Icons.brightness_2_rounded),
-    };
+  void _openSettingsPanel() {
+    final readerCubit = context.read<ReaderCubit>();
+    showReaderSettingsSheet(
+      context,
+      changePageIndex: (int value) {
+        readerCubit.updatePageIndex(value);
+        readerCubit.updateSliderChanged(0.0);
+      },
+    );
   }
 
   Future<bool> _bottomButtonDialog(
@@ -310,6 +336,25 @@ class ChapterNavigationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextButton(onPressed: isEnabled ? onTap : null, child: Text(label));
+    return SizedBox(
+      height: 34,
+      child: OutlinedButton(
+        onPressed: isEnabled ? onTap : null,
+        style: OutlinedButton.styleFrom(
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+          side: BorderSide(
+            color: context.theme.colorScheme.outlineVariant.withValues(
+              alpha: 0.7,
+            ),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: Text(label, style: const TextStyle(fontSize: 13)),
+      ),
+    );
   }
 }

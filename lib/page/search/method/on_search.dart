@@ -27,7 +27,10 @@ void onSearch(BuildContext context, String keyword, {String url = ""}) async {
         ..remove(keyword)
         ..insert(0, keyword);
       await Future.delayed(const Duration(milliseconds: 200));
-      settingCubit.updateSearchHistory(history.take(200).toList());
+      settingCubit.updateState(
+        (current) =>
+            current.copyWith(searchHistory: history.take(200).toList()),
+      );
       return;
     }
   }

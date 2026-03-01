@@ -83,9 +83,13 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
                 Spacer(),
                 ElevatedButton(
                   onPressed: () async {
-                    globalSettingCubit.resetWebdavHost();
-                    globalSettingCubit.resetWebdavUsername();
-                    globalSettingCubit.resetWebdavPassword();
+                    globalSettingCubit.resetState(
+                      (current, defaults) => current.copyWith(
+                        webdavHost: defaults.webdavHost,
+                        webdavUsername: defaults.webdavUsername,
+                        webdavPassword: defaults.webdavPassword,
+                      ),
+                    );
                     _webdavHost.clear();
                     _webdavUsername.clear();
                     _webdavPassword.clear();
@@ -155,9 +159,13 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
 
       final globalSettingCubit = context.read<GlobalSettingCubit>();
 
-      globalSettingCubit.updateWebdavHost(_webdavHost.text);
-      globalSettingCubit.updateWebdavUsername(_webdavUsername.text);
-      globalSettingCubit.updateWebdavPassword(_webdavPassword.text);
+      globalSettingCubit.updateState(
+        (current) => current.copyWith(
+          webdavHost: _webdavHost.text,
+          webdavUsername: _webdavUsername.text,
+          webdavPassword: _webdavPassword.text,
+        ),
+      );
 
       eventBus.fire(NoticeSync());
 

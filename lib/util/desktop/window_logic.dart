@@ -7,12 +7,14 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/desktop/native_window.dart';
 
+bool isDesktop = Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+
 class WindowLogic {
   static DateTime lastSaveTime = DateTime.now();
 
   /// 初始化窗口并恢复上次的状态
   static Future<void> initWindow(BuildContext context) async {
-    if (!Platform.isWindows && !Platform.isMacOS && !Platform.isLinux) {
+    if (!isDesktop) {
       return;
     }
     // 必须先确保绑定初始化
@@ -70,9 +72,13 @@ class WindowLogic {
     final size = await windowManager.getSize();
     final pos = await windowManager.getPosition();
 
-    globalSettingCubit.updateWindowWidth(size.width);
-    globalSettingCubit.updateWindowHeight(size.height);
-    globalSettingCubit.updateWindowX(pos.dx);
-    globalSettingCubit.updateWindowY(pos.dy);
+    globalSettingCubit.updateState(
+      (current) => current.copyWith(
+        windowWidth: size.width,
+        windowHeight: size.height,
+        windowX: pos.dx,
+        windowY: pos.dy,
+      ),
+    );
   }
 }

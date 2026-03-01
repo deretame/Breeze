@@ -121,36 +121,32 @@ class _HistoryWidgetState extends State<HistoryWidget> {
           runSpacing: 12.0,
           alignment: WrapAlignment.start,
           children: sortedHistory.map((historyItem) {
-            return InputChip(
-              label: Text(historyItem.split("&&").first),
-              labelStyle: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontSize: 14,
-              ),
-              backgroundColor: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerLow,
-              side: BorderSide(
-                color: Theme.of(context).colorScheme.outlineVariant,
-                width: 1.0,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0),
-              onPressed: () => onSearch(
-                context,
-                historyItem.split("&&").first,
-                url: historyItem.split("&&").last,
-              ),
-              deleteIcon: Icon(
-                Icons.close,
-                size: 16,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              onDeleted: () => _deleteSingle(historyItem),
+            final splitItem = historyItem.split("&&");
+            final keyword = splitItem.first;
+            final url = splitItem.last;
 
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            return GestureDetector(
+              onLongPress: () => _deleteSingle(historyItem),
+              child: InputChip(
+                label: Text(keyword),
+                labelStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 14,
+                ),
+                backgroundColor: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerLow,
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                  width: 1.0,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0),
+                onPressed: () => onSearch(context, keyword, url: url),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
             );
           }).toList(),
         ),
@@ -164,11 +160,16 @@ class _HistoryWidgetState extends State<HistoryWidget> {
       globalSettingCubit.state.searchHistory,
     );
     newHistory.remove(historyItem);
-    globalSettingCubit.updateSearchHistory(newHistory);
+    globalSettingCubit.updateState(
+      (current) => current.copyWith(searchHistory: newHistory),
+    );
   }
 
   void _resetHistory() {
     final globalSettingCubit = context.read<GlobalSettingCubit>();
-    globalSettingCubit.resetSearchHistory();
+    globalSettingCubit.resetState(
+      (current, defaults) =>
+          current.copyWith(searchHistory: defaults.searchHistory),
+    );
   }
 }

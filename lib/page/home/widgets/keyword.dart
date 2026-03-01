@@ -6,6 +6,7 @@ import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/desktop/window_logic.dart';
 import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -33,6 +34,7 @@ class _KeywordWidgetState extends State<KeywordWidget>
       padding: const EdgeInsets.all(10.0),
       child: Wrap(
         spacing: 10,
+        runSpacing: isDesktop ? 5.0 : 0.0,
         children: List.generate(widget.keywords.length, (index) {
           return GestureDetector(
             onTap: () {

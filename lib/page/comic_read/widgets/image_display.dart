@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_read/cubit/image_size_cubit.dart';
+import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 
 class ImageDisplay extends StatefulWidget {
   final String imagePath;
@@ -24,9 +27,12 @@ class ImageDisplay extends StatefulWidget {
 class _ImageDisplayState extends State<ImageDisplay> {
   ImageStream? _imageStream;
   ImageStreamListener? _imageListener;
+  Timer? _einkDelayTimer;
 
   double? _rawWidth;
   double? _rawHeight;
+  bool _einkDelayFinished = true;
+  bool _wasRowActive = false;
 
   bool get isColumn => widget.isColumn;
 
@@ -36,6 +42,9 @@ class _ImageDisplayState extends State<ImageDisplay> {
     if (isColumn) {
       _resolveImageMeta();
     }
+    _startEinkDelayIfNeeded(
+      context.read<GlobalSettingCubit>().state.readSetting,
+    );
   }
 
   @override
@@ -47,6 +56,36 @@ class _ImageDisplayState extends State<ImageDisplay> {
       _rawHeight = null;
       _resolveImageMeta();
     }
+
+    if (!widget.isColumn && widget.imagePath != oldWidget.imagePath) {
+      _startEinkDelayIfNeeded(
+        context.read<GlobalSettingCubit>().state.readSetting,
+      );
+    }
+  }
+
+  void _startEinkDelayIfNeeded(ReadSettingState readSetting) {
+    if (isColumn) {
+      _einkDelayTimer?.cancel();
+      _einkDelayFinished = true;
+      return;
+    }
+
+    if (!readSetting.einkOptimization) {
+      _einkDelayTimer?.cancel();
+      _einkDelayFinished = true;
+      return;
+    }
+
+    _einkDelayTimer?.cancel();
+    _einkDelayFinished = false;
+    final delayMs = readSetting.einkDelayMs.clamp(50, 500);
+    _einkDelayTimer = Timer(Duration(milliseconds: delayMs), () {
+      if (!mounted) return;
+      setState(() {
+        _einkDelayFinished = true;
+      });
+    });
   }
 
   void _resolveImageMeta() {
@@ -80,7 +119,7 @@ class _ImageDisplayState extends State<ImageDisplay> {
   void _updateCubitSize(double actualWidth) {
     if (_rawWidth == null || _rawHeight == null || _rawWidth == 0) return;
 
-    final index = widget.index;
+    final index = widget.index - 1;
     final cubit = context.read<ImageSizeCubit>();
 
     final double finalHeight = (_rawHeight! / _rawWidth!) * actualWidth;
@@ -105,12 +144,35 @@ class _ImageDisplayState extends State<ImageDisplay> {
   @override
   void dispose() {
     _stopListening();
+    _einkDelayTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final pixelRatio = MediaQuery.of(context).devicePixelRatio;
+    final readSetting = context.select(
+      (GlobalSettingCubit c) => c.state.readSetting,
+    );
+    final readMode = context.select((GlobalSettingCubit c) => c.state.readMode);
+    final currentPageIndex = context.select(
+      (ReaderCubit c) => c.state.pageIndex,
+    );
+    final canUseEinkMask =
+        !isColumn && readMode != 0 && readSetting.einkOptimization;
+    final isActiveRowImage = !isColumn && currentPageIndex + 1 == widget.index;
+
+    if (canUseEinkMask && isActiveRowImage && !_wasRowActive) {
+      _wasRowActive = true;
+      _startEinkDelayIfNeeded(readSetting);
+    } else if (!isActiveRowImage && _wasRowActive) {
+      _wasRowActive = false;
+    }
+
+    if (!canUseEinkMask && !_einkDelayFinished) {
+      _einkDelayTimer?.cancel();
+      _einkDelayFinished = true;
+    }
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -131,6 +193,12 @@ class _ImageDisplayState extends State<ImageDisplay> {
           gaplessPlayback: true,
           frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
             if (wasSynchronouslyLoaded || frame != null) {
+              if (!isColumn &&
+                  canUseEinkMask &&
+                  isActiveRowImage &&
+                  !_einkDelayFinished) {
+                return Container(width: width, color: Colors.white);
+              }
               return child;
             }
 
@@ -146,6 +214,9 @@ class _ImageDisplayState extends State<ImageDisplay> {
                 ),
               );
             } else {
+              if (canUseEinkMask && isActiveRowImage && !_einkDelayFinished) {
+                return Container(width: width, color: Colors.white);
+              }
               return const Center(
                 child: CircularProgressIndicator(color: Colors.white24),
               );

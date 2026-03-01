@@ -172,7 +172,9 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     if (switchComicChoice) {
       final int newChoice = globalSettingCubit.state.comicChoice == 1 ? 2 : 1;
 
-      globalSettingCubit.updateComicChoice(newChoice);
+      globalSettingCubit.updateState(
+        (current) => current.copyWith(comicChoice: newChoice),
+      );
     }
     jmSettingCubit.updateFavoriteSet(0);
 

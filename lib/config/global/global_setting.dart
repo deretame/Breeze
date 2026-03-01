@@ -10,6 +10,10 @@ import 'package:zephyr/util/json/converter.dart';
 part 'global_setting.freezed.dart';
 part 'global_setting.g.dart';
 
+enum ReaderInfoVerticalPosition { top, bottom }
+
+enum ReaderInfoHorizontalPosition { left, center, right }
+
 @freezed
 abstract class GlobalSettingState with _$GlobalSettingState {
   const factory GlobalSettingState({
@@ -40,10 +44,42 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(720.0) double windowHeight,
     @Default(0) double windowX,
     @Default(0) double windowY,
+    @Default(ReadSettingState()) ReadSettingState readSetting,
   }) = _GlobalSettingState;
 
   factory GlobalSettingState.fromJson(Map<String, dynamic> json) =>
       _$GlobalSettingStateFromJson(json);
+}
+
+@freezed
+abstract class ReadSettingState with _$ReadSettingState {
+  const factory ReadSettingState({
+    @Default(false) bool noAnimation,
+    @Default(false) bool einkOptimization,
+    @Default(120) int einkDelayMs,
+    @Default(false) bool autoScroll,
+    @Default(1600) int autoScrollColumnIntervalMs,
+    @Default(3000) int autoScrollPageIntervalMs,
+    @Default(72) int autoScrollColumnDistancePercent,
+    @Default(true) bool volumeKeyPageTurn,
+    @Default(72) int volumeKeyPageTurnDistancePercent,
+    @Default(false) bool doubleTapZoom,
+    @Default(false) bool doubleTapOpenMenu,
+    @Default(true) bool pageInfoShowPage,
+    @Default(true) bool pageInfoShowNetwork,
+    @Default(false) bool pageInfoShowBattery,
+    @Default(true) bool pageInfoShowTime,
+    @Default(ReaderInfoVerticalPosition.bottom)
+    ReaderInfoVerticalPosition pageInfoVerticalPosition,
+    @Default(ReaderInfoHorizontalPosition.left)
+    ReaderInfoHorizontalPosition pageInfoHorizontalPosition,
+    @Default(12) int pageInfoEdgePadding,
+    @Default(82) int pageInfoOpacityPercent,
+    @Default(12) int pageInfoFontSize,
+  }) = _ReadSettingState;
+
+  factory ReadSettingState.fromJson(Map<String, dynamic> json) =>
+      _$ReadSettingStateFromJson(json);
 }
 
 class GlobalSettingCubit extends Cubit<GlobalSettingState> {
@@ -59,333 +95,42 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
     emit(objectbox.userSettingBox.get(1)!.globalSetting);
   }
 
-  void updateDynamicColor(bool value) {
-    final temp = state.copyWith(dynamicColor: value);
-    updateDataBase(temp);
-    emit(temp);
+  GlobalSettingState get defaults =>
+      _defaults.copyWith(seedColor: _defaultSeedColor);
+
+  void updateState(
+    GlobalSettingState Function(GlobalSettingState current) updates,
+  ) {
+    final newState = updates(state);
+    _persistAndEmit(newState);
   }
 
-  void resetDynamicColor() {
-    final temp = state.copyWith(dynamicColor: _defaults.dynamicColor);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateThemeMode(ThemeMode value) {
-    final temp = state.copyWith(themeMode: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetThemeMode() {
-    final temp = state.copyWith(themeMode: _defaults.themeMode);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateIsAMOLED(bool value) {
-    final temp = state.copyWith(isAMOLED: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetIsAMOLED() {
-    final temp = state.copyWith(isAMOLED: _defaults.isAMOLED);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateSeedColor(Color value) {
-    final temp = state.copyWith(seedColor: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetSeedColor() {
-    final temp = state.copyWith(seedColor: _defaultSeedColor);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateThemeInitState(int value) {
-    final temp = state.copyWith(themeInitState: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetThemeInitState() {
-    final temp = state.copyWith(themeInitState: _defaults.themeInitState);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateLocale(Locale value) {
-    final temp = state.copyWith(locale: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetLocale() {
-    final temp = state.copyWith(locale: _defaults.locale);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateWelcomePageNum(int value) {
-    final temp = state.copyWith(welcomePageNum: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetWelcomePageNum() {
-    final temp = state.copyWith(welcomePageNum: _defaults.welcomePageNum);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateWebdavHost(String value) {
-    final temp = state.copyWith(webdavHost: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetWebdavHost() {
-    final temp = state.copyWith(webdavHost: _defaults.webdavHost);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateWebdavUsername(String value) {
-    final temp = state.copyWith(webdavUsername: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetWebdavUsername() {
-    final temp = state.copyWith(webdavUsername: _defaults.webdavUsername);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateWebdavPassword(String value) {
-    final temp = state.copyWith(webdavPassword: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetWebdavPassword() {
-    final temp = state.copyWith(webdavPassword: _defaults.webdavPassword);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateAutoSync(bool value) {
-    final temp = state.copyWith(autoSync: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetAutoSync() {
-    final temp = state.copyWith(autoSync: _defaults.autoSync);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateMd5(String value) {
-    final temp = state.copyWith(md5: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetMd5() {
-    final temp = state.copyWith(md5: _defaults.md5);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateSyncNotify(bool value) {
-    final temp = state.copyWith(syncNotify: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetSyncNotify() {
-    final temp = state.copyWith(syncNotify: _defaults.syncNotify);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateShade(bool value) {
-    final temp = state.copyWith(shade: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetShade() {
-    final temp = state.copyWith(shade: _defaults.shade);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateComicReadTopContainer(bool value) {
-    final temp = state.copyWith(comicReadTopContainer: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetComicReadTopContainer() {
-    final temp = state.copyWith(
-      comicReadTopContainer: _defaults.comicReadTopContainer,
+  void updateReadSetting(
+    ReadSettingState Function(ReadSettingState current) updates,
+  ) {
+    updateState(
+      (current) => current.copyWith(readSetting: updates(current.readSetting)),
     );
-    updateDataBase(temp);
-    emit(temp);
   }
 
-  void updateReadMode(int value) {
-    final temp = state.copyWith(readMode: value);
-    updateDataBase(temp);
-    emit(temp);
+  void resetState(
+    GlobalSettingState Function(
+      GlobalSettingState current,
+      GlobalSettingState defaults,
+    )
+    updates,
+  ) {
+    final newState = updates(state, defaults);
+    _persistAndEmit(newState);
   }
 
-  void resetReadMode() {
-    final temp = state.copyWith(readMode: _defaults.readMode);
-    updateDataBase(temp);
-    emit(temp);
+  void _persistAndEmit(GlobalSettingState newState) {
+    if (newState == state) return;
+    _updateDataBase(newState);
+    emit(newState);
   }
 
-  void updateMaskedKeywords(List<String> value) {
-    final temp = state.copyWith(maskedKeywords: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetMaskedKeywords() {
-    final temp = state.copyWith(maskedKeywords: _defaults.maskedKeywords);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateSocks5Proxy(String value) {
-    final temp = state.copyWith(socks5Proxy: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetSocks5Proxy() {
-    final temp = state.copyWith(socks5Proxy: _defaults.socks5Proxy);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateNeedCleanCache(bool value) {
-    final temp = state.copyWith(needCleanCache: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetNeedCleanCache() {
-    final temp = state.copyWith(needCleanCache: _defaults.needCleanCache);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateComicChoice(int value) {
-    final temp = state.copyWith(comicChoice: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetComicChoice() {
-    final temp = state.copyWith(comicChoice: _defaults.comicChoice);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateDisableBika(bool value) {
-    final temp = state.copyWith(disableBika: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetDisableBika() {
-    final temp = state.copyWith(disableBika: _defaults.disableBika);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateEnableMemoryDebug(bool value) {
-    final temp = state.copyWith(enableMemoryDebug: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetEnableMemoryDebug() {
-    final temp = state.copyWith(enableMemoryDebug: _defaults.enableMemoryDebug);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateSearchHistory(List<String> value) {
-    final temp = state.copyWith(searchHistory: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetSearchHistory() {
-    final temp = state.copyWith(searchHistory: _defaults.searchHistory);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateWindowWidth(double value) {
-    final temp = state.copyWith(windowWidth: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetWindowWidth() {
-    final temp = state.copyWith(windowWidth: _defaults.windowWidth);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateWindowHeight(double value) {
-    final temp = state.copyWith(windowHeight: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetWindowHeight() {
-    final temp = state.copyWith(windowHeight: _defaults.windowHeight);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateWindowX(double value) {
-    final temp = state.copyWith(windowX: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetWindowX() {
-    final temp = state.copyWith(windowX: _defaults.windowX);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateWindowY(double value) {
-    final temp = state.copyWith(windowY: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetWindowY() {
-    final temp = state.copyWith(windowY: _defaults.windowY);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateDataBase(GlobalSettingState state) {
+  void _updateDataBase(GlobalSettingState state) {
     // logger.d(state.toJson());
     final userBox = objectbox.userSettingBox;
     var dbSettings = userBox.get(1)!;

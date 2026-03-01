@@ -1,11 +1,14 @@
 import 'package:flutter/widgets.dart';
+import 'package:zephyr/page/comic_read/controller/reader_action_controller.dart';
 
 class ReaderGestureLogic {
   static void handleTap({
+    required ReaderActionController actionController,
     required PageController controller,
     required BuildContext context,
     required TapDownDetails details,
     required VoidCallback onToggleMenu,
+    VoidCallback? onBeforePageTurn,
   }) {
     // 获取点击的全局坐标
     final Offset tapPosition = details.globalPosition;
@@ -20,34 +23,26 @@ class ReaderGestureLogic {
     // 判断点击区域
     if (tapPosition.dx < thirdWidth) {
       // 点击左边三分之一
-      controller.previousPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      onBeforePageTurn?.call();
+      actionController.onPageActionPrev();
     } else if (tapPosition.dx < 2 * thirdWidth) {
       // 点击中间三分之一
       if (tapPosition.dy < middleTopHeight) {
         // 点击中间区域的上三分之一
-        controller.previousPage(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
+        onBeforePageTurn?.call();
+        actionController.onPageActionPrev();
       } else if (tapPosition.dy < middleBottomHeight) {
         // 点击中间区域的中三分之一
         onToggleMenu();
       } else {
         // 点击中间区域的下三分之一
-        controller.nextPage(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
+        onBeforePageTurn?.call();
+        actionController.onPageActionNext();
       }
     } else {
       // 点击右边三分之一
-      controller.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      onBeforePageTurn?.call();
+      actionController.onPageActionNext();
     }
   }
 }

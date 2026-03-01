@@ -31,6 +31,7 @@ class ColumnModeWidget extends StatefulWidget {
   final ScrollController scrollController;
   final From from;
   final ScrollPhysics? parentPhysics;
+  final bool disableScroll;
 
   const ColumnModeWidget({
     super.key,
@@ -42,6 +43,7 @@ class ColumnModeWidget extends StatefulWidget {
     required this.scrollController,
     required this.from,
     this.parentPhysics,
+    this.disableScroll = false,
   });
 
   @override
@@ -51,12 +53,29 @@ class ColumnModeWidget extends StatefulWidget {
 class _ColumnModeWidgetState extends State<ColumnModeWidget> {
   @override
   Widget build(BuildContext context) {
-    final physics = widget.parentPhysics != null
+    final basePhysics = widget.parentPhysics != null
         ? widget.parentPhysics!.applyTo(const AlwaysScrollableScrollPhysics())
         : const AlwaysScrollableScrollPhysics();
+    final physics = widget.disableScroll
+        ? const NeverScrollableScrollPhysics()
+        : basePhysics;
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        final hideTop = context.select(
+          (GlobalSettingCubit c) => !c.state.comicReadTopContainer,
+        );
+        final mediaQuery = MediaQuery.of(context);
+        final topInset = mediaQuery.padding.top > 0
+            ? mediaQuery.padding.top
+            : mediaQuery.viewPadding.top;
+        final bottomInset = mediaQuery.padding.bottom > 0
+            ? mediaQuery.padding.bottom
+            : mediaQuery.viewPadding.bottom;
+
+        final double topPadding = hideTop ? 0 : topInset;
+        final double bottomPadding = bottomInset + 50;
+
         final containerWidth = constraints.maxWidth;
         final imageWidth = getConstrainedImageWidth(containerWidth);
 
@@ -68,8 +87,9 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
 
         if (useSkia) {
           listView = ListView.separated(
+            padding: EdgeInsets.only(top: topPadding, bottom: bottomPadding),
             physics: physics,
-            itemCount: widget.length + 2,
+            itemCount: widget.length,
             itemBuilder: currentItemBuilder,
             separatorBuilder: (_, _) =>
                 Container(height: 2, color: Colors.black),
@@ -78,8 +98,9 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
           );
         } else {
           listView = ListView.builder(
+            padding: EdgeInsets.only(top: topPadding, bottom: bottomPadding),
             physics: physics,
-            itemCount: widget.length + 2,
+            itemCount: widget.length,
             itemBuilder: currentItemBuilder,
             cacheExtent: context.screenHeight * 2,
             controller: widget.scrollController,
@@ -92,9 +113,31 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
             final all = resultMap.displayingChildIndexList;
             if (all.isEmpty) return;
 
+            var visibleIndices = List<int>.from(all);
+
+            for (int i = 1; i <= 5; i++) {
+              int prevIndex = all.first - i;
+              if (prevIndex >= 0) {
+                visibleIndices.insert(0, prevIndex);
+              } else {
+                break;
+              }
+            }
+
+            for (int i = 1; i <= 5; i++) {
+              int nextIndex = all.last + i;
+              if (nextIndex < widget.length) {
+                visibleIndices.add(nextIndex);
+              } else {
+                break;
+              }
+            }
+
+            context.read<ImageSizeCubit>().updateVisibleIndices(visibleIndices);
+
             final int middleValue = all[(all.length - 1) ~/ 2];
 
-            final pageIndex = middleValue.clamp(1, widget.docs.length);
+            final pageIndex = middleValue.clamp(0, widget.docs.length - 1);
 
             final cubit = context.read<ReaderCubit>();
             if (cubit.state.pageIndex != pageIndex) {
@@ -122,31 +165,8 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
         return state.getSizeValue(index);
       },
       builder: (itemContext, cachedSize) {
-        final hideTop = itemContext.select(
-          (GlobalSettingCubit c) => c.state.comicReadTopContainer,
-        );
-
         double finalHeight;
         double finalWidth = containerWidth;
-
-        if (index == 0) {
-          return Container(
-            width: finalWidth,
-            height: hideTop ? 0 : context.statusBarHeight,
-            color: Colors.black,
-          );
-        } else if (index == widget.length + 1) {
-          return Container(
-            height: 75,
-            width: finalWidth,
-            alignment: Alignment.center,
-            color: Colors.black,
-            child: const Text(
-              "章节结束",
-              style: TextStyle(fontSize: 20, color: Color(0xFFCCCCCC)),
-            ),
-          );
-        }
 
         if ((cachedSize.width - imageWidth).abs() < 0.1) {
           finalHeight = cachedSize.height;
@@ -167,17 +187,23 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
           child: SizedBox(
             width: imageWidth,
             height: finalHeight,
-            child: ReadImageWidget(
-              pictureInfo: PictureInfo(
-                from: widget.from,
-                url: widget.docs[index - 1].fileServer,
-                path: widget.docs[index - 1].path,
-                cartoonId: widget.comicId,
-                chapterId: widget.epsId,
-                pictureType: PictureType.comic,
-              ),
-              index: index,
-              isColumn: true,
+            child: BlocSelector<ImageSizeCubit, ImageSizeState, bool>(
+              selector: (state) => state.visibleIndices.contains(index),
+              builder: (context, isVisible) {
+                return ReadImageWidget(
+                  isVisible: isVisible,
+                  pictureInfo: PictureInfo(
+                    from: widget.from,
+                    url: widget.docs[index].fileServer,
+                    path: widget.docs[index].path,
+                    cartoonId: widget.comicId,
+                    chapterId: widget.epsId,
+                    pictureType: PictureType.comic,
+                  ),
+                  index: index,
+                  isColumn: true,
+                );
+              },
             ),
           ),
         );

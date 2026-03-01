@@ -164,7 +164,8 @@ Widget changeShieldedCategories(BuildContext context, String type) {
   return GestureDetector(
     onTap: () async {
       if (type == "home") {
-        late var oldCategoriesMap = Map.of(
+        final oldCategoriesMap = _withDefaultCategories(
+          homePageCategoriesMap,
           bikaState.shieldHomePageCategoriesMap,
         );
         var categoriesShield = await showShieldCategoryDialog(context, type);
@@ -180,7 +181,10 @@ Widget changeShieldedCategories(BuildContext context, String type) {
 
         showSuccessToast("成功更新首页屏蔽项，请刷新首页查看效果");
       } else if (type == "categories") {
-        late var oldCategoriesMap = Map.of(bikaState.shieldCategoryMap);
+        final oldCategoriesMap = _withDefaultCategories(
+          categoryMap,
+          bikaState.shieldCategoryMap,
+        );
         var categoriesShield = await showShieldCategoryDialog(context, type);
         if (categoriesShield == null) {
           return;
@@ -213,11 +217,19 @@ Future<Map<String, bool>?> showShieldCategoryDialog(
   String type,
 ) {
   final bikaCubit = context.read<BikaSettingCubit>();
-  Map<String, bool> shieldCategoriesMap = {};
+  late final Map<String, bool> shieldCategoriesMap;
   if (type == "home") {
-    shieldCategoriesMap = Map.of(bikaCubit.state.shieldHomePageCategoriesMap);
+    shieldCategoriesMap = _withDefaultCategories(
+      homePageCategoriesMap,
+      bikaCubit.state.shieldHomePageCategoriesMap,
+    );
   } else if (type == "categories") {
-    shieldCategoriesMap = Map.of(bikaCubit.state.shieldCategoryMap);
+    shieldCategoriesMap = _withDefaultCategories(
+      categoryMap,
+      bikaCubit.state.shieldCategoryMap,
+    );
+  } else {
+    shieldCategoriesMap = _withDefaultCategories(categoryMap, const {});
   }
 
   return showDialog(
@@ -268,6 +280,13 @@ Future<Map<String, bool>?> showShieldCategoryDialog(
     }
     return value;
   });
+}
+
+Map<String, bool> _withDefaultCategories(
+  Map<String, bool> baseMap,
+  Map<String, bool> selectedMap,
+) {
+  return {for (final key in baseMap.keys) key: selectedMap[key] ?? false};
 }
 
 // 弹出输入框对话框

@@ -41,9 +41,9 @@ class ReaderVolumeController {
 
   void _handleEvent(String event) {
     if (event == 'volume_down') {
-      actionController.onPageActionNext();
+      actionController.onVolumeActionNext();
     } else if (event == 'volume_up') {
-      actionController.onPageActionPrev();
+      actionController.onVolumeActionPrev();
     }
   }
 }

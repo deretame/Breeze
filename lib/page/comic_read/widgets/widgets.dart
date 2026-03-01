@@ -6,6 +6,7 @@ export './error.dart';
 export './image_display.dart';
 export './page_count.dart';
 export './read_image_widget.dart';
+export './reader_settings_sheet.dart';
 export './row_mode.dart';
 export './slider.dart';
 export './vertical_pull_navigator.dart';

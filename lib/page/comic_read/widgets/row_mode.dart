@@ -19,6 +19,8 @@ class RowModeWidget extends StatefulWidget {
   final String comicId;
   final String epsId;
   final PageController pageController;
+  final ScrollPhysics scrollPhysics;
+  final VoidCallback? onPageDragStart;
   final From from;
   final JumpChapter jumpChapter;
 
@@ -28,6 +30,8 @@ class RowModeWidget extends StatefulWidget {
     required this.comicId,
     required this.epsId,
     required this.pageController,
+    this.scrollPhysics = const BouncingScrollPhysics(),
+    this.onPageDragStart,
     required this.from,
     required this.jumpChapter,
   });
@@ -37,7 +41,7 @@ class RowModeWidget extends StatefulWidget {
 }
 
 class _RowModeWidgetState extends State<RowModeWidget> {
-  Timer? _timer;
+  Timer? _pageChangedTimer;
 
   bool isJumping = false;
 
@@ -48,7 +52,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _pageChangedTimer?.cancel();
     super.dispose();
   }
 
@@ -60,7 +64,10 @@ class _RowModeWidgetState extends State<RowModeWidget> {
 
     return NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification notification) {
-        // logger.d("isJumping: $isJumping");
+        if (notification is ScrollStartNotification &&
+            notification.dragDetails != null) {
+          widget.onPageDragStart?.call();
+        }
 
         void jumpToPrev() {
           isJumping = true;
@@ -107,14 +114,14 @@ class _RowModeWidgetState extends State<RowModeWidget> {
         return false;
       },
       child: PageView.custom(
-        physics: const BouncingScrollPhysics(),
+        physics: widget.scrollPhysics,
         reverse: globalSettingState.readMode != 1,
         controller: widget.pageController,
         onPageChanged: (page) {
           logger.d("page: $page");
           if (context.read<ReaderCubit>().state.isSliderRolling) {
-            _timer?.cancel();
-            _timer = Timer(Duration(milliseconds: 100), () {
+            _pageChangedTimer?.cancel();
+            _pageChangedTimer = Timer(Duration(milliseconds: 100), () {
               _onPageChanged(page);
             });
           } else {
@@ -126,6 +133,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
             return Container(
               color: Colors.black,
               child: ReadImageWidget(
+                isVisible: true,
                 pictureInfo: PictureInfo(
                   from: widget.from,
                   url: widget.docs[index].fileServer,
@@ -157,15 +165,15 @@ class _RowModeWidgetState extends State<RowModeWidget> {
 
   void _onPageChanged(int page) {
     final cubit = context.read<ReaderCubit>();
-    cubit.updatePageIndex(page + 1);
+    cubit.updatePageIndex(page);
     if (!cubit.state.isComicRolling) {
       // 确保 clamp 的最大值不小于最小值，避免 Invalid argument 错误
-      final maxSlot = (cubit.state.totalSlots - 1).clamp(
+      final maxSlot = (cubit.state.totalSlots).clamp(
         0,
         double.maxFinite.toInt(),
       );
       cubit.updateSliderChanged(
-        (cubit.state.pageIndex).clamp(0, maxSlot).toDouble() - 1,
+        (cubit.state.pageIndex).clamp(0, maxSlot).toDouble(),
       );
       cubit.updateMenuVisible(visible: false);
     }

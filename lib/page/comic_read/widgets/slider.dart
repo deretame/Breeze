@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_read/cubit/image_size_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
-import 'package:zephyr/page/comic_read/widgets/column_mode.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../main.dart';
@@ -30,7 +30,7 @@ class _SliderWidgetState extends State<SliderWidget> {
   Timer? _sliderIsRollingTimer; // 用来控制滚动隐藏组件的操作
   Timer? _comicRollingTimer; // 漫画本身是否在滚动
   OverlayEntry? _overlayEntry; // 用于存储 OverlayEntry
-  int displayedSlot = 1; // 显示的当前槽位
+  int? _lastHapticStep;
 
   @override
   void dispose() {
@@ -51,14 +51,33 @@ class _SliderWidgetState extends State<SliderWidget> {
       (ReaderCubit cubit) => cubit.state.sliderValue,
     );
     maxValue = totalSlots > 0 ? totalSlots.toDouble() - 1 : 0;
+    final safeSliderValue = sliderValue.clamp(0.0, maxValue).toDouble();
+
+    if (safeSliderValue != sliderValue) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        cubit.updateSliderChanged(safeSliderValue);
+      });
+    }
+
     return Expanded(
       child: Slider(
-        value: sliderValue,
+        value: safeSliderValue,
         min: 0,
         max: maxValue,
-        label: (sliderValue.toInt() + 1).toString(),
+        divisions: maxValue > 0 ? maxValue.toInt() : null,
+        label: (safeSliderValue.toInt() + 1).toString(),
+        onChangeStart: (value) {
+          _lastHapticStep = value.round();
+        },
         onChanged: (double newValue) {
-          if (sliderValue.toInt() != newValue.toInt()) {
+          final currentStep = newValue.round();
+          if (_lastHapticStep != currentStep) {
+            HapticFeedback.selectionClick();
+            _lastHapticStep = currentStep;
+          }
+
+          if (sliderValue != newValue) {
             cubit.updateSliderChanged(newValue);
           }
 
@@ -70,8 +89,6 @@ class _SliderWidgetState extends State<SliderWidget> {
 
           // 设置新的定时器以防止多次触发
           _sliderIsRollingTimer = Timer(const Duration(milliseconds: 300), () {
-            displayedSlot = newValue.toInt() + 1;
-
             cubit.updateSliderRolling(true);
             cubit.updateIsComicRolling(true);
             _comicRollingTimer = Timer(const Duration(milliseconds: 350), () {
@@ -88,13 +105,11 @@ class _SliderWidgetState extends State<SliderWidget> {
             try {
               // 滚动到指定的索引
               if (globalSettingState.readMode == 0) {
-                final imageWidth = getConstrainedImageWidth(
-                  context.screenWidth,
-                );
-                widget.observerController.controller?.animateTo(
-                  getOffset(context, newValue.toInt(), imageWidth: imageWidth),
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
+                widget.observerController.jumpTo(
+                  index: newValue.toInt(),
+                  offset: (offset) {
+                    return MediaQuery.of(context).padding.top + 5.0;
+                  },
                 );
               } else {
                 widget.pageController.animateToPage(
@@ -107,6 +122,9 @@ class _SliderWidgetState extends State<SliderWidget> {
               logger.e(e);
             }
           });
+        },
+        onChangeEnd: (_) {
+          _lastHapticStep = null;
         },
       ),
     );
@@ -164,7 +182,7 @@ class _SliderWidgetState extends State<SliderWidget> {
 double getOffset(BuildContext context, int index, {double? imageWidth}) {
   final sizeCubit = context.read<ImageSizeCubit>();
 
-  final targetListIndex = index + 1;
+  final targetListIndex = index;
 
   double targetItemStartY = 0;
   for (int i = 0; i < targetListIndex; i++) {

@@ -9,12 +9,14 @@ import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 
 class ReadImageWidget extends StatefulWidget {
+  final bool isVisible;
   final PictureInfo pictureInfo;
   final int index;
   final bool isColumn;
 
   const ReadImageWidget({
     super.key,
+    required this.isVisible,
     required this.pictureInfo,
     required this.index,
     required this.isColumn,
@@ -24,12 +26,18 @@ class ReadImageWidget extends StatefulWidget {
   State<ReadImageWidget> createState() => _ReadImageWidgetState();
 }
 
-class _ReadImageWidgetState extends State<ReadImageWidget> {
-  int get index => widget.index;
+class _ReadImageWidgetState extends State<ReadImageWidget>
+    with AutomaticKeepAliveClientMixin {
+  int get index => widget.index + 1;
   bool get isColumn => widget.isColumn;
 
   @override
+  bool get wantKeepAlive => !isColumn;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return BlocProvider(
       create: (context) => PictureBloc()..add(GetPicture(widget.pictureInfo)),
       child: SizedBox(
@@ -38,32 +46,24 @@ class _ReadImageWidgetState extends State<ReadImageWidget> {
           builder: (context, state) {
             switch (state.status) {
               case PictureLoadStatus.initial:
-                return Container(
-                  color: isColumn ? Color(0xFF2D2D2D) : Colors.black,
-                  child: Center(
-                    child: Text(
-                      index.toString(),
-                      style: TextStyle(
-                        fontFamily: 'Pacifico-Regular',
-                        color: isColumn ? Color(0xFFCCCCCC) : Colors.white,
-                        fontSize: 150,
-                      ),
-                    ),
-                  ),
-                );
+                return placeholder();
               case PictureLoadStatus.success:
-                return GestureDetector(
-                  onLongPress: () {
-                    context.pushRoute(
-                      FullRouteImageRoute(imagePath: state.imagePath!),
-                    );
-                  },
-                  child: ImageDisplay(
-                    imagePath: state.imagePath!,
-                    isColumn: isColumn,
-                    index: index,
-                  ),
-                );
+                if (widget.isVisible) {
+                  return GestureDetector(
+                    onLongPress: () {
+                      context.pushRoute(
+                        FullRouteImageRoute(imagePath: state.imagePath!),
+                      );
+                    },
+                    child: ImageDisplay(
+                      imagePath: state.imagePath!,
+                      isColumn: isColumn,
+                      index: index,
+                    ),
+                  );
+                } else {
+                  return placeholder();
+                }
               case PictureLoadStatus.failure:
                 if (state.result.toString().contains('404')) {
                   return Image.asset(
@@ -98,4 +98,18 @@ class _ReadImageWidgetState extends State<ReadImageWidget> {
       ),
     );
   }
+
+  Widget placeholder() => Container(
+    color: isColumn ? Color(0xFF2D2D2D) : Colors.black,
+    child: Center(
+      child: Text(
+        index.toString(),
+        style: TextStyle(
+          fontFamily: 'Pacifico-Regular',
+          color: isColumn ? Color(0xFFCCCCCC) : Colors.white,
+          fontSize: 150,
+        ),
+      ),
+    ),
+  );
 }

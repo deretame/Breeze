@@ -19,8 +19,8 @@ class ReaderCubit extends Cubit<ReaderState> {
     double newSliderValue = state.sliderValue;
     // 如果不是在拖动滑块，则根据页面自动同步滑块位置
     if (!state.isSliderRolling && state.totalSlots > 0) {
-      final maxSlot = (state.totalSlots - 1).clamp(0, 999999);
-      newSliderValue = (index - 2).clamp(0, maxSlot).toDouble();
+      final maxSlot = state.totalSlots.clamp(0, 999999);
+      newSliderValue = (index - 1).clamp(0, maxSlot).toDouble();
     }
 
     emit(state.copyWith(pageIndex: index, sliderValue: newSliderValue));

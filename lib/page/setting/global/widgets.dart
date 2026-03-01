@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -78,7 +79,9 @@ Widget socks5ProxyEdit(BuildContext context, String currentProxy) {
       controller.dispose();
 
       if (result != null && result != currentProxy) {
-        globalSettingCubit.updateSocks5Proxy(result);
+        globalSettingCubit.updateState(
+          (current) => current.copyWith(socks5Proxy: result),
+        );
         showSuccessToast('设置成功，重启生效');
       }
     },
@@ -201,7 +204,11 @@ class _KeywordManagementDialogState extends State<_KeywordManagementDialog> {
                               state.maskedKeywords,
                             );
                             newList.removeAt(index);
-                            globalSettingCubit.updateMaskedKeywords(newList);
+                            logger.d(newList);
+                            globalSettingCubit.updateState(
+                              (current) =>
+                                  current.copyWith(maskedKeywords: newList),
+                            );
                           },
                         );
                       }),
@@ -257,7 +264,7 @@ class _KeywordManagementDialogState extends State<_KeywordManagementDialog> {
     final text = _controller.text.trim();
     if (text.isNotEmpty && !state.maskedKeywords.contains(text)) {
       final newList = [...state.maskedKeywords, text];
-      cubit.updateMaskedKeywords(newList);
+      cubit.updateState((current) => current.copyWith(maskedKeywords: newList));
       _controller.clear();
     }
   }

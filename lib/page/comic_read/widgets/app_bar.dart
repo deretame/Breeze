@@ -1,10 +1,7 @@
 import 'dart:ui';
 
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/config/global/global_setting.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comments/widgets/title.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -19,129 +16,43 @@ class ComicReadAppBar extends StatelessWidget {
     required this.changePageIndex,
   });
 
-  // 弹出设置框
-  void _showSettingsDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return SettingsDialog(changePageIndex: changePageIndex);
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isMenuVisible = context.select(
       (ReaderCubit cubit) => cubit.state.isMenuVisible,
     );
-    return AnimatedPositioned(
-      duration: const Duration(milliseconds: 400),
-      top: isMenuVisible
-          ? 0
-          : -kToolbarHeight - MediaQuery.of(context).padding.top,
+    final colorScheme = context.theme.colorScheme;
+
+    return Positioned(
+      top: 0,
       left: 0,
       right: 0,
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-          child: AppBar(
-            title: ScrollableTitle(text: title),
-            backgroundColor: context.backgroundColor.withValues(alpha: 0.5),
-            elevation: isMenuVisible ? 4.0 : 0.0,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.settings),
-                onPressed: () => _showSettingsDialog(context),
+      child: IgnorePointer(
+        ignoring: !isMenuVisible,
+        child: AnimatedSlide(
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeOutCubic,
+          offset: isMenuVisible ? Offset.zero : const Offset(0, -1),
+          child: ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+              child: AppBar(
+                title: ScrollableTitle(text: title),
+                titleSpacing: 6,
+                backgroundColor: colorScheme.surface.withValues(alpha: 0.78),
+                surfaceTintColor: Colors.transparent,
+                elevation: isMenuVisible ? 4.0 : 0.0,
+                shadowColor: Colors.black.withValues(alpha: 0.2),
+                shape: Border(
+                  bottom: BorderSide(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  ),
+                ),
               ),
-            ],
+            ),
           ),
         ),
       ),
-    );
-  }
-}
-
-// 设置对话框
-class SettingsDialog extends StatefulWidget {
-  final ValueChanged<int> changePageIndex;
-
-  const SettingsDialog({super.key, required this.changePageIndex});
-
-  @override
-  State<SettingsDialog> createState() => _SettingsDialogState();
-}
-
-class _SettingsDialogState extends State<SettingsDialog> {
-  String _selectedMode = 'topToBottom'; // 默认选中的阅读模式
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedMode = _getReadModeLabel(
-      objectbox.userSettingBox.get(1)!.globalSetting.readMode,
-    );
-  }
-
-  // 获取阅读模式的标签
-  String _getReadModeLabel(int mode) {
-    // logger.d('mode: $mode');
-    if (mode == 0) {
-      return 'topToBottom';
-    } else if (mode == 1) {
-      return 'leftToRight';
-    } else if (mode == 2) {
-      return 'rightToLeft';
-    } else {
-      return '从上到下';
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('阅读模式设置'),
-      content: RadioGroup<String>(
-        groupValue: _selectedMode,
-        onChanged: (String? value) {
-          if (value != null) {
-            _onModeChanged(value);
-          }
-        },
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildModeOption('从上到下', 'topToBottom'),
-            _buildModeOption('从左到右', 'leftToRight'),
-            _buildModeOption('从右到左', 'rightToLeft'),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(child: const Text('关闭'), onPressed: () => context.pop()),
-      ],
-    );
-  }
-
-  void _onModeChanged(String newValue) {
-    final gloablSettingCubit = context.read<GlobalSettingCubit>();
-    setState(() => _selectedMode = newValue); // 更新选中的阅读模式
-
-    if (newValue == 'topToBottom') {
-      gloablSettingCubit.updateReadMode(0);
-    } else if (newValue == 'leftToRight') {
-      gloablSettingCubit.updateReadMode(1);
-    } else if (newValue == 'rightToLeft') {
-      gloablSettingCubit.updateReadMode(2);
-    }
-    widget.changePageIndex(2);
-  }
-
-  // 构建阅读模式选项
-  Widget _buildModeOption(String label, String value) {
-    return ListTile(
-      title: Text(label),
-      leading: Radio<String>(value: value),
-      onTap: () => _onModeChanged(value),
     );
   }
 }

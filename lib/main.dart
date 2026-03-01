@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:ffi';
 import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:event_bus/event_bus.dart';
@@ -140,6 +142,8 @@ Future<void> main() async {
         final (globalSettingCubit, jmSettingCubit, bikaSettingCubit) =
             await _initServices();
 
+        await addArchitectureTagsToSentry();
+
         runApp(
           SentryWidget(
             child: MultiBlocProvider(
@@ -236,6 +240,51 @@ _initServices() async {
   }
 
   return (globalSettingCubit, jmSettingCubit, bikaSettingCubit);
+}
+
+Future<void> addArchitectureTagsToSentry() async {
+  try {
+    final is64Bit = sizeOf<Pointer>() == 8;
+    final appArchitecture = is64Bit ? '64-bit' : '32-bit';
+
+    String deviceSupportedAbis = 'unknown';
+
+    if (Platform.isAndroid) {
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
+      deviceSupportedAbis = androidInfo.supportedAbis.join(', ');
+    } else if (Platform.isIOS) {
+      final iosInfo = await DeviceInfoPlugin().iosInfo;
+      deviceSupportedAbis = 'arm64 (${iosInfo.utsname.machine})';
+    } else if (Platform.isWindows) {
+      deviceSupportedAbis =
+          Platform.environment['PROCESSOR_ARCHITECTURE'] ?? 'unknown';
+    } else if (Platform.isLinux) {
+      try {
+        final result = Process.runSync('uname', ['-m']);
+        deviceSupportedAbis = result.stdout.toString().trim();
+      } catch (_) {
+        deviceSupportedAbis = 'unknown';
+      }
+    } else if (Platform.isMacOS) {
+      final macInfo = await DeviceInfoPlugin().macOsInfo;
+      deviceSupportedAbis = macInfo.arch;
+    }
+
+    Sentry.configureScope((scope) {
+      scope.setTag('app_runtime_arch', appArchitecture);
+      scope.setTag('device_supported_abis', deviceSupportedAbis);
+
+      scope.addBreadcrumb(
+        Breadcrumb(
+          message:
+              'Architecture Info - App: $appArchitecture, Device: $deviceSupportedAbis',
+          category: 'system.architecture',
+        ),
+      );
+    });
+  } catch (e, stack) {
+    await Sentry.captureException(e, stackTrace: stack);
+  }
 }
 
 class MyApp extends StatefulWidget with WindowListener {

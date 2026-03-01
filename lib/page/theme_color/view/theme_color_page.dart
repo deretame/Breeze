@@ -69,6 +69,8 @@ class _ThemeColorPageState extends State<ThemeColorPage> {
   }
 
   void _setThemeColor(Color color) {
-    context.read<GlobalSettingCubit>().updateSeedColor(color);
+    context.read<GlobalSettingCubit>().updateState(
+      (current) => current.copyWith(seedColor: color),
+    );
   }
 }

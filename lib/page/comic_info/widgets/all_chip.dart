@@ -8,6 +8,7 @@ import 'package:zephyr/page/search_result/search_result.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/desktop/window_logic.dart';
 import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -55,11 +56,14 @@ class _AllChipWidgetState extends State<AllChipWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final runSpacings = isDesktop ? 5.0 : 0.0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
+      children: [
+        SizedBox(height: runSpacings),
         Wrap(
           spacing: 10,
+          runSpacing: runSpacings,
           children: List.generate(items.length + 1, (index) {
             if (index == 0) {
               return Chip(

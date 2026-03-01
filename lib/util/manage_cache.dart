@@ -41,12 +41,16 @@ Future<void> manageCacheSize(BuildContext context) async {
   const int maxSize = 1 * 1024 * 1024 * 1024; // 1GB
   if (totalSize >= maxSize) {
     logger.d('Cache size exceeded 1GB, clearing cache...');
-    settinCubit.updateNeedCleanCache(true);
+    settinCubit.updateState(
+      (current) => current.copyWith(needCleanCache: true),
+    );
   } else {
     logger.d(
       'Current cache size (excluding Sentry): ${totalSize / (1024 * 1024)} MB',
     );
-    settinCubit.updateNeedCleanCache(false);
+    settinCubit.updateState(
+      (current) => current.copyWith(needCleanCache: false),
+    );
   }
 }
 

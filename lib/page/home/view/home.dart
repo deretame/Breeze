@@ -92,9 +92,13 @@ class _HomePageState extends State<HomePage> {
     final globalSettingCubit = context.read<GlobalSettingCubit>();
 
     if (globalSettingCubit.state.comicChoice == 1) {
-      globalSettingCubit.updateComicChoice(2);
+      globalSettingCubit.updateState(
+        (current) => current.copyWith(comicChoice: 2),
+      );
     } else {
-      globalSettingCubit.updateComicChoice(1);
+      globalSettingCubit.updateState(
+        (current) => current.copyWith(comicChoice: 1),
+      );
     }
 
     eventBus.fire(BookShelfEvent());

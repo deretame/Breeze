@@ -116,13 +116,19 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             if (value != null) {
               switch (value) {
                 case "跟随系统":
-                  cubit.updateThemeMode(ThemeMode.system);
+                  cubit.updateState(
+                    (current) => current.copyWith(themeMode: ThemeMode.system),
+                  );
                   break;
                 case "浅色模式":
-                  cubit.updateThemeMode(ThemeMode.light);
+                  cubit.updateState(
+                    (current) => current.copyWith(themeMode: ThemeMode.light),
+                  );
                   break;
                 case "深色模式":
-                  cubit.updateThemeMode(ThemeMode.dark);
+                  cubit.updateState(
+                    (current) => current.copyWith(themeMode: ThemeMode.dark),
+                  );
                   break;
               }
             }
@@ -160,7 +166,9 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           value: state.dynamicColor, // 直接使用 state 中的值
           onChanged: (bool value) {
             // 不需要 setState，Cubit 发出新状态后会自动刷新
-            cubit.updateDynamicColor(value);
+            cubit.updateState(
+              (current) => current.copyWith(dynamicColor: value),
+            );
           },
         ),
         const SizedBox(width: 10),
@@ -191,7 +199,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           thumbIcon: thumbIcon,
           value: state.isAMOLED,
           onChanged: (bool value) {
-            cubit.updateIsAMOLED(value);
+            cubit.updateState((current) => current.copyWith(isAMOLED: value));
           },
         ),
         const SizedBox(width: 10),
@@ -209,7 +217,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           thumbIcon: thumbIcon,
           value: state.autoSync,
           onChanged: (bool value) {
-            cubit.updateAutoSync(value);
+            cubit.updateState((current) => current.copyWith(autoSync: value));
             if (value) eventBus.fire(NoticeSync());
           },
         ),
@@ -229,7 +237,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           value: state
               .syncNotify, // 假设 state 中叫 syncNotify，原代码是 SettingsHiveUtils.syncNotify
           onChanged: (bool value) {
-            cubit.updateSyncNotify(value);
+            cubit.updateState((current) => current.copyWith(syncNotify: value));
           },
         ),
         const SizedBox(width: 10),
@@ -247,7 +255,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           thumbIcon: thumbIcon,
           value: state.shade,
           onChanged: (bool value) {
-            cubit.updateShade(value);
+            cubit.updateState((current) => current.copyWith(shade: value));
           },
         ),
         const SizedBox(width: 10),
@@ -278,7 +286,9 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           thumbIcon: thumbIcon,
           value: state.comicReadTopContainer,
           onChanged: (bool value) {
-            cubit.updateComicReadTopContainer(value);
+            cubit.updateState(
+              (current) => current.copyWith(comicReadTopContainer: value),
+            );
           },
         ),
         const SizedBox(width: 10),
@@ -300,7 +310,10 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           onChanged: (String? value) {
             if (value != null) {
               showSuccessToast("设置成功，重启生效");
-              cubit.updateWelcomePageNum(splashPage[value]!);
+              cubit.updateState(
+                (current) =>
+                    current.copyWith(welcomePageNum: splashPage[value]!),
+              );
             }
           },
           items: splashPageList.map<DropdownMenuItem<String>>((String value) {
@@ -324,8 +337,9 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           thumbIcon: thumbIcon,
           value: state.disableBika,
           onChanged: (bool value) {
-            cubit.updateDisableBika(value);
-            cubit.updateComicChoice(2);
+            cubit.updateState(
+              (current) => current.copyWith(disableBika: value, comicChoice: 2),
+            );
             showSuccessToast("设置成功，重启生效");
           },
         ),
@@ -348,7 +362,9 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           thumbIcon: thumbIcon,
           value: state.enableMemoryDebug,
           onChanged: (bool value) {
-            cubit.updateEnableMemoryDebug(value);
+            cubit.updateState(
+              (current) => current.copyWith(enableMemoryDebug: value),
+            );
           },
         ),
         const SizedBox(width: 10),

@@ -49,6 +49,11 @@ _GlobalSettingState _$GlobalSettingStateFromJson(Map<String, dynamic> json) =>
       windowHeight: (json['windowHeight'] as num?)?.toDouble() ?? 720.0,
       windowX: (json['windowX'] as num?)?.toDouble() ?? 0,
       windowY: (json['windowY'] as num?)?.toDouble() ?? 0,
+      readSetting: json['readSetting'] == null
+          ? const ReadSettingState()
+          : ReadSettingState.fromJson(
+              json['readSetting'] as Map<String, dynamic>,
+            ),
     );
 
 Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
@@ -80,10 +85,89 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'windowHeight': instance.windowHeight,
       'windowX': instance.windowX,
       'windowY': instance.windowY,
+      'readSetting': instance.readSetting,
     };
 
 const _$ThemeModeEnumMap = {
   ThemeMode.system: 'system',
   ThemeMode.light: 'light',
   ThemeMode.dark: 'dark',
+};
+
+_ReadSettingState _$ReadSettingStateFromJson(Map<String, dynamic> json) =>
+    _ReadSettingState(
+      noAnimation: json['noAnimation'] as bool? ?? false,
+      einkOptimization: json['einkOptimization'] as bool? ?? false,
+      einkDelayMs: (json['einkDelayMs'] as num?)?.toInt() ?? 120,
+      autoScroll: json['autoScroll'] as bool? ?? false,
+      autoScrollColumnIntervalMs:
+          (json['autoScrollColumnIntervalMs'] as num?)?.toInt() ?? 1600,
+      autoScrollPageIntervalMs:
+          (json['autoScrollPageIntervalMs'] as num?)?.toInt() ?? 3000,
+      autoScrollColumnDistancePercent:
+          (json['autoScrollColumnDistancePercent'] as num?)?.toInt() ?? 72,
+      volumeKeyPageTurn: json['volumeKeyPageTurn'] as bool? ?? true,
+      volumeKeyPageTurnDistancePercent:
+          (json['volumeKeyPageTurnDistancePercent'] as num?)?.toInt() ?? 72,
+      doubleTapZoom: json['doubleTapZoom'] as bool? ?? false,
+      doubleTapOpenMenu: json['doubleTapOpenMenu'] as bool? ?? false,
+      pageInfoShowPage: json['pageInfoShowPage'] as bool? ?? true,
+      pageInfoShowNetwork: json['pageInfoShowNetwork'] as bool? ?? true,
+      pageInfoShowBattery: json['pageInfoShowBattery'] as bool? ?? false,
+      pageInfoShowTime: json['pageInfoShowTime'] as bool? ?? true,
+      pageInfoVerticalPosition:
+          $enumDecodeNullable(
+            _$ReaderInfoVerticalPositionEnumMap,
+            json['pageInfoVerticalPosition'],
+          ) ??
+          ReaderInfoVerticalPosition.bottom,
+      pageInfoHorizontalPosition:
+          $enumDecodeNullable(
+            _$ReaderInfoHorizontalPositionEnumMap,
+            json['pageInfoHorizontalPosition'],
+          ) ??
+          ReaderInfoHorizontalPosition.left,
+      pageInfoEdgePadding: (json['pageInfoEdgePadding'] as num?)?.toInt() ?? 12,
+      pageInfoOpacityPercent:
+          (json['pageInfoOpacityPercent'] as num?)?.toInt() ?? 82,
+      pageInfoFontSize: (json['pageInfoFontSize'] as num?)?.toInt() ?? 12,
+    );
+
+Map<String, dynamic> _$ReadSettingStateToJson(
+  _ReadSettingState instance,
+) => <String, dynamic>{
+  'noAnimation': instance.noAnimation,
+  'einkOptimization': instance.einkOptimization,
+  'einkDelayMs': instance.einkDelayMs,
+  'autoScroll': instance.autoScroll,
+  'autoScrollColumnIntervalMs': instance.autoScrollColumnIntervalMs,
+  'autoScrollPageIntervalMs': instance.autoScrollPageIntervalMs,
+  'autoScrollColumnDistancePercent': instance.autoScrollColumnDistancePercent,
+  'volumeKeyPageTurn': instance.volumeKeyPageTurn,
+  'volumeKeyPageTurnDistancePercent': instance.volumeKeyPageTurnDistancePercent,
+  'doubleTapZoom': instance.doubleTapZoom,
+  'doubleTapOpenMenu': instance.doubleTapOpenMenu,
+  'pageInfoShowPage': instance.pageInfoShowPage,
+  'pageInfoShowNetwork': instance.pageInfoShowNetwork,
+  'pageInfoShowBattery': instance.pageInfoShowBattery,
+  'pageInfoShowTime': instance.pageInfoShowTime,
+  'pageInfoVerticalPosition':
+      _$ReaderInfoVerticalPositionEnumMap[instance.pageInfoVerticalPosition]!,
+  'pageInfoHorizontalPosition':
+      _$ReaderInfoHorizontalPositionEnumMap[instance
+          .pageInfoHorizontalPosition]!,
+  'pageInfoEdgePadding': instance.pageInfoEdgePadding,
+  'pageInfoOpacityPercent': instance.pageInfoOpacityPercent,
+  'pageInfoFontSize': instance.pageInfoFontSize,
+};
+
+const _$ReaderInfoVerticalPositionEnumMap = {
+  ReaderInfoVerticalPosition.top: 'top',
+  ReaderInfoVerticalPosition.bottom: 'bottom',
+};
+
+const _$ReaderInfoHorizontalPositionEnumMap = {
+  ReaderInfoHorizontalPosition.left: 'left',
+  ReaderInfoHorizontalPosition.center: 'center',
+  ReaderInfoHorizontalPosition.right: 'right',
 };

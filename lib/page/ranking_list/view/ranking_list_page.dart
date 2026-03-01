@@ -83,9 +83,13 @@ class _HotTabBarState extends State<HotTabBar> {
               child: const Icon(Icons.compare_arrows),
               onPressed: () {
                 if (globalSettingState.comicChoice == 1) {
-                  globlalSettingCubit.updateComicChoice(2);
+                  globlalSettingCubit.updateState(
+                    (current) => current.copyWith(comicChoice: 2),
+                  );
                 } else {
-                  globlalSettingCubit.updateComicChoice(1);
+                  globlalSettingCubit.updateState(
+                    (current) => current.copyWith(comicChoice: 1),
+                  );
                 }
 
                 eventBus.fire(BookShelfEvent());

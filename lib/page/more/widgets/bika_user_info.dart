@@ -6,7 +6,6 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/page/more/more.dart';
 import 'package:zephyr/page/more/widgets/user_avatar.dart';
 import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../../../widgets/picture_bloc/models/picture_info.dart';
@@ -21,12 +20,14 @@ class BikaUserInfoWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => UserProfileBloc()..add(UserProfileEvent()),
-      child: _BikaUserInfoWidget(),
+      child: const _BikaUserInfoWidget(),
     );
   }
 }
 
 class _BikaUserInfoWidget extends StatefulWidget {
+  const _BikaUserInfoWidget();
+
   @override
   State<_BikaUserInfoWidget> createState() => _BikaUserInfoWidgetState();
 }
@@ -62,7 +63,7 @@ class _BikaUserInfoWidgetState extends State<_BikaUserInfoWidget> {
                   height: 130,
                   child: Center(
                     child: IconButton(
-                      icon: Icon(Icons.refresh),
+                      icon: const Icon(Icons.refresh),
                       onPressed: () {
                         context.read<UserProfileBloc>().add(UserProfileEvent());
                       },
@@ -74,27 +75,13 @@ class _BikaUserInfoWidgetState extends State<_BikaUserInfoWidget> {
             }
           },
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0), // 左右各添加 16 边距
-          child: GestureDetector(
-            onTap: () {
-              context.pushRoute(BikaSettingRoute());
-              // logger.d("哔咔设置");
-            },
-            behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
-            child: SizedBox(
-              width: context.screenWidth - 16 - 16,
-              height: 40, // 设置固定高度
-              child: Row(
-                children: [
-                  Icon(Icons.person),
-                  SizedBox(width: 10),
-                  Text("哔咔设置", style: TextStyle(fontSize: 22)),
-                  Spacer(), // 填充剩余空间，但不影响点击
-                ],
-              ),
-            ),
-          ),
+        ListTile(
+          leading: const Icon(Icons.manage_accounts_outlined),
+          title: const Text('哔咔设置'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () {
+            context.pushRoute(BikaSettingRoute());
+          },
         ),
       ],
     );
@@ -112,52 +99,45 @@ class _BikaWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bikaSettingCUbit = context.watch<BikaSettingCubit>();
+    context.read<BikaSettingCubit>().updateSignIn(profile.data.user.isPunched);
 
-    bikaSettingCUbit.updateSignIn(profile.data.user.isPunched);
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center, // 添加此行以居中
-        children: <Widget>[
-          Center(
-            child: Row(
-              children: <Widget>[
-                UserAvatar(
-                  pictureInfo: PictureInfo(
-                    from: From.bika,
-                    url: profile.data.user.avatar.fileServer,
-                    path: profile.data.user.avatar.path,
-                    chapterId: "",
-                    pictureType: PictureType.avatar,
-                  ),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
+          child: Row(
+            children: <Widget>[
+              UserAvatar(
+                pictureInfo: PictureInfo(
+                  from: From.bika,
+                  url: profile.data.user.avatar.fileServer,
+                  path: profile.data.user.avatar.path,
+                  chapterId: '',
+                  pictureType: PictureType.avatar,
                 ),
-                SizedBox(width: 10),
-                Flexible(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        "${profile.data.user.name}  (${profile.data.user.slogan})",
-                      ),
-                      Text(
-                        "level: ${profile.data.user.level.toString()}  (${profile.data.user.title})",
-                      ),
-                      Text(
-                        "经验值: ${profile.data.user.exp.toString()}"
-                        " (${context.watch<BikaSettingCubit>().state.signIn ? "已签到" : "未签到"})",
-                      ),
-                    ],
-                  ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      '${profile.data.user.name} (${profile.data.user.slogan})',
+                    ),
+                    Text(
+                      'Lv.${profile.data.user.level} ${profile.data.user.title}',
+                    ),
+                    Text(
+                      '经验值: ${profile.data.user.exp} (${profile.data.user.isPunched ? '已签到' : '未签到'})',
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          SizedBox(height: 5),
-          buildCommentWidget(context),
-        ],
-      ),
+        ),
+        buildCommentWidget(context),
+      ],
     );
   }
 }

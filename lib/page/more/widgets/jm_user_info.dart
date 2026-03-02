@@ -7,7 +7,6 @@ import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/more/json/jm/jm_user_info_json.dart';
 import 'package:zephyr/page/more/widgets/user_avatar.dart';
 import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
 
@@ -28,11 +27,10 @@ class JMUserInfoWidget extends StatelessWidget {
         switch (jmState.loginStatus) {
           case LoginStatus.login:
             if (jmState.userInfo.isEmpty) {
-              logger.w("LoginStatus is login, but userInfo is empty.");
+              logger.w('LoginStatus is login, but userInfo is empty.');
               contentWidget = _buildLoginButton(context);
             } else {
               try {
-                // 尝试解析 JSON
                 final userInfo = jmUserInfoJsonFromJson(jmState.userInfo);
                 contentWidget = _JMWidget(
                   key: ValueKey(jmState.userInfo),
@@ -40,13 +38,13 @@ class JMUserInfoWidget extends StatelessWidget {
                 );
               } catch (e, stackTrace) {
                 logger.e(
-                  "Failed to parse JmUserInfoJson: ${jmState.userInfo}",
+                  'Failed to parse JmUserInfoJson: ${jmState.userInfo}',
                   error: e,
                   stackTrace: stackTrace,
                 );
                 contentWidget = _buildLoginButton(
                   context,
-                  errorText: "用户信息解析失败",
+                  errorText: '用户信息解析失败',
                 );
               }
             }
@@ -56,8 +54,8 @@ class JMUserInfoWidget extends StatelessWidget {
               height: 90,
               child: Center(
                 child: Padding(
-                  padding: EdgeInsets.all(10.0),
-                  child: CircularProgressIndicator(),
+                  padding: const EdgeInsets.all(10.0),
+                  child: const CircularProgressIndicator(),
                 ),
               ),
             );
@@ -70,26 +68,13 @@ class JMUserInfoWidget extends StatelessWidget {
         return Column(
           children: [
             contentWidget,
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: GestureDetector(
-                onTap: () {
-                  context.pushRoute(JMSettingRoute());
-                },
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(
-                  width: context.screenWidth - 16 - 16,
-                  height: 40,
-                  child: Row(
-                    children: [
-                      Icon(Icons.person),
-                      SizedBox(width: 10),
-                      Text("禁漫设置", style: TextStyle(fontSize: 22)),
-                      Spacer(),
-                    ],
-                  ),
-                ),
-              ),
+            ListTile(
+              leading: const Icon(Icons.manage_accounts_outlined),
+              title: const Text('禁漫设置'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                context.pushRoute(JMSettingRoute());
+              },
             ),
           ],
         );
@@ -98,26 +83,16 @@ class JMUserInfoWidget extends StatelessWidget {
   }
 
   Widget _buildLoginButton(BuildContext context, {String? errorText}) {
-    return SizedBox(
-      height: 90,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (errorText != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Text(errorText, style: TextStyle(color: Colors.red)),
-              ),
-            TextButton(
-              onPressed: () {
-                context.pushRoute(LoginRoute(from: From.jm));
-              },
-              child: Text("前往登录"),
-            ),
-          ],
-        ),
-      ),
+    return ListTile(
+      leading: const Icon(Icons.login),
+      title: Text(errorText ?? '未登录禁漫账号'),
+      subtitle: errorText == null ? const Text('点击前往登录') : null,
+      trailing: const Icon(Icons.chevron_right),
+      textColor: errorText == null ? null : Theme.of(context).colorScheme.error,
+      iconColor: errorText == null ? null : Theme.of(context).colorScheme.error,
+      onTap: () {
+        context.pushRoute(LoginRoute(from: From.jm));
+      },
     );
   }
 }
@@ -131,42 +106,30 @@ class _JMWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center, // 添加此行以居中
+      child: Row(
         children: <Widget>[
-          Center(
-            child: Row(
+          UserAvatar(
+            pictureInfo: PictureInfo(
+              from: From.jm,
+              url: getUserCover(jmUserInfoJson.photo),
+              path: '${jmUserInfoJson.photo}.jpg',
+              chapterId: '',
+              pictureType: PictureType.avatar,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                UserAvatar(
-                  pictureInfo: PictureInfo(
-                    from: From.jm,
-                    url: getUserCover(jmUserInfoJson.photo),
-                    path: "${jmUserInfoJson.photo}.jpg",
-                    chapterId: "",
-                    pictureType: PictureType.avatar,
-                  ),
-                ),
-                SizedBox(width: 10),
-                Flexible(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        "${jmUserInfoJson.username} (硬币：${jmUserInfoJson.coin})",
-                      ),
-                      Text(
-                        "level: ${jmUserInfoJson.level}  (${jmUserInfoJson.levelName})",
-                      ),
-                      Text(
-                        "经验值: ${jmUserInfoJson.exp}/${jmUserInfoJson.nextLevelExp}",
-                      ),
-                    ],
-                  ),
+                Text('${jmUserInfoJson.username} (硬币: ${jmUserInfoJson.coin})'),
+                Text('Lv.${jmUserInfoJson.level} ${jmUserInfoJson.levelName}'),
+                Text(
+                  '经验值: ${jmUserInfoJson.exp}/${jmUserInfoJson.nextLevelExp}',
                 ),
               ],
             ),
           ),
-          SizedBox(height: 5),
         ],
       ),
     );

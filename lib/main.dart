@@ -59,6 +59,16 @@ final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
+class AppScrollBehavior extends MaterialScrollBehavior {
+  const AppScrollBehavior();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+    ...super.dragDevices,
+    PointerDeviceKind.mouse,
+  };
+}
+
 Future<void> main() async {
   // 1. 基础初始化
   WidgetsFlutterBinding.ensureInitialized();
@@ -455,6 +465,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
 
         return MaterialApp.router(
           routerConfig: appRouter.config(),
+          scrollBehavior: const AppScrollBehavior(),
           builder: (context, child) {
             Widget content = Actions(
               actions: <Type, Action<Intent>>{

@@ -24,7 +24,7 @@ abstract class JmUserInfoJson with _$JmUserInfoJson {
     @JsonKey(name: "photo") required String photo,
     @JsonKey(name: "fname") required String fname,
     @JsonKey(name: "gender") required String gender,
-    @JsonKey(name: "message") required String message,
+    @JsonKey(name: "message") required String? message,
     @JsonKey(name: "coin") required dynamic coin,
     @JsonKey(name: "album_favorites") required int albumFavorites,
     @JsonKey(name: "s") required String s,
@@ -41,7 +41,7 @@ abstract class JmUserInfoJson with _$JmUserInfoJson {
     @JsonKey(name: "jar") required String jar,
     @JsonKey(name: "invitation_qrcode") required String invitationQrcode,
     @JsonKey(name: "invitation_url") required String invitationUrl,
-    @JsonKey(name: "invited_cnt") required String invitedCnt,
+    @JsonKey(name: "invited_cnt") required dynamic invitedCnt,
     @JsonKey(name: "jwttoken") required String jwttoken,
   }) = _JmUserInfoJson;
 

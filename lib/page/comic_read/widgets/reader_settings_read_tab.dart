@@ -50,7 +50,7 @@ class _ReadModeSection extends StatelessWidget {
                 if (globalSettingState.readMode == 0) {
                   return;
                 }
-                globalSettingCubit.updateState(
+                globalSettingCubit.updateReadSetting(
                   (current) => current.copyWith(readMode: 0),
                 );
                 changePageIndex(0);
@@ -63,7 +63,7 @@ class _ReadModeSection extends StatelessWidget {
                 if (globalSettingState.readMode == 1) {
                   return;
                 }
-                globalSettingCubit.updateState(
+                globalSettingCubit.updateReadSetting(
                   (current) => current.copyWith(readMode: 1),
                 );
                 changePageIndex(0);
@@ -76,7 +76,7 @@ class _ReadModeSection extends StatelessWidget {
                 if (globalSettingState.readMode == 2) {
                   return;
                 }
-                globalSettingCubit.updateState(
+                globalSettingCubit.updateReadSetting(
                   (current) => current.copyWith(readMode: 2),
                 );
                 changePageIndex(0);

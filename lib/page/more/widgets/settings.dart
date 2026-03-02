@@ -8,32 +8,27 @@ class SettingsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        children: [
-          _buildSettingsItem(
-            context: context,
-            icon: Icons.settings,
-            text: "全局设置",
-            onTap: () => context.pushRoute(GlobalSettingRoute()),
-          ),
-          SizedBox(height: 8),
-          _buildSettingsItem(
-            context: context,
-            icon: Icons.history,
-            text: "更新日志",
-            onTap: () => context.pushRoute(ChangelogRoute()),
-          ),
-          SizedBox(height: 8),
-          _buildSettingsItem(
-            context: context,
-            icon: Icons.info,
-            text: "关于",
-            onTap: () => context.pushRoute(AboutRoute()),
-          ),
-        ],
-      ),
+    return Column(
+      children: [
+        _buildSettingsItem(
+          context: context,
+          icon: Icons.settings_outlined,
+          text: '全局设置',
+          onTap: () => context.pushRoute(GlobalSettingRoute()),
+        ),
+        _buildSettingsItem(
+          context: context,
+          icon: Icons.history,
+          text: '更新日志',
+          onTap: () => context.pushRoute(ChangelogRoute()),
+        ),
+        _buildSettingsItem(
+          context: context,
+          icon: Icons.info_outline,
+          text: '关于',
+          onTap: () => context.pushRoute(AboutRoute()),
+        ),
+      ],
     );
   }
 
@@ -43,20 +38,11 @@ class SettingsWidget extends StatelessWidget {
     required String text,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(text),
+      trailing: const Icon(Icons.chevron_right),
       onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        height: 40,
-        child: Row(
-          children: [
-            Icon(icon),
-            SizedBox(width: 10),
-            Text(text, style: TextStyle(fontSize: 22)),
-            Spacer(),
-          ],
-        ),
-      ),
     );
   }
 }

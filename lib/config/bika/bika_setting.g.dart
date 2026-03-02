@@ -12,7 +12,6 @@ _BikaSettingState _$BikaSettingStateFromJson(Map<String, dynamic> json) =>
       password: json['password'] as String? ?? '',
       authorization: json['authorization'] as String? ?? '',
       level: (json['level'] as num?)?.toInt() ?? 0,
-      checkIn: json['checkIn'] as bool? ?? false,
       proxy: (json['proxy'] as num?)?.toInt() ?? 3,
       imageQuality: json['imageQuality'] as String? ?? 'original',
       shieldCategoryMap:
@@ -36,7 +35,6 @@ Map<String, dynamic> _$BikaSettingStateToJson(_BikaSettingState instance) =>
       'password': instance.password,
       'authorization': instance.authorization,
       'level': instance.level,
-      'checkIn': instance.checkIn,
       'proxy': instance.proxy,
       'imageQuality': instance.imageQuality,
       'shieldCategoryMap': instance.shieldCategoryMap,

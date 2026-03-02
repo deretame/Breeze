@@ -22,15 +22,9 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
       ? const Locale('zh', 'CN')
       : const LocaleConverter().fromJson(json['locale'] as String),
   welcomePageNum: (json['welcomePageNum'] as num?)?.toInt() ?? 0,
-  syncServiceType:
-      $enumDecodeNullable(_$SyncServiceTypeEnumMap, json['syncServiceType']) ??
-      SyncServiceType.webdav,
-  webdavHost: json['webdavHost'] as String? ?? '',
-  webdavUsername: json['webdavUsername'] as String? ?? '',
-  webdavPassword: json['webdavPassword'] as String? ?? '',
-  s3Setting: json['s3Setting'] == null
-      ? const S3SettingState()
-      : S3SettingState.fromJson(json['s3Setting'] as Map<String, dynamic>),
+  syncSetting: json['syncSetting'] == null
+      ? const SyncSettingState()
+      : SyncSettingState.fromJson(json['syncSetting'] as Map<String, dynamic>),
   md5: json['md5'] as String? ?? '',
   autoSync: json['autoSync'] as bool? ?? true,
   syncNotify: json['syncNotify'] as bool? ?? true,
@@ -69,11 +63,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'themeInitState': instance.themeInitState,
       'locale': const LocaleConverter().toJson(instance.locale),
       'welcomePageNum': instance.welcomePageNum,
-      'syncServiceType': _$SyncServiceTypeEnumMap[instance.syncServiceType]!,
-      'webdavHost': instance.webdavHost,
-      'webdavUsername': instance.webdavUsername,
-      'webdavPassword': instance.webdavPassword,
-      's3Setting': instance.s3Setting,
+      'syncSetting': instance.syncSetting,
       'md5': instance.md5,
       'autoSync': instance.autoSync,
       'syncNotify': instance.syncNotify,
@@ -99,11 +89,19 @@ const _$ThemeModeEnumMap = {
   ThemeMode.dark: 'dark',
 };
 
-const _$SyncServiceTypeEnumMap = {
-  SyncServiceType.none: 'none',
-  SyncServiceType.webdav: 'webdav',
-  SyncServiceType.s3: 's3',
-};
+_WebDavSettingState _$WebDavSettingStateFromJson(Map<String, dynamic> json) =>
+    _WebDavSettingState(
+      host: json['host'] as String? ?? '',
+      username: json['username'] as String? ?? '',
+      password: json['password'] as String? ?? '',
+    );
+
+Map<String, dynamic> _$WebDavSettingStateToJson(_WebDavSettingState instance) =>
+    <String, dynamic>{
+      'host': instance.host,
+      'username': instance.username,
+      'password': instance.password,
+    };
 
 _S3SettingState _$S3SettingStateFromJson(Map<String, dynamic> json) =>
     _S3SettingState(
@@ -127,9 +125,48 @@ Map<String, dynamic> _$S3SettingStateToJson(_S3SettingState instance) =>
       'port': instance.port,
     };
 
+_SyncSettingState _$SyncSettingStateFromJson(Map<String, dynamic> json) =>
+    _SyncSettingState(
+      syncServiceType:
+          $enumDecodeNullable(
+            _$SyncServiceTypeEnumMap,
+            json['syncServiceType'],
+          ) ??
+          SyncServiceType.webdav,
+      webdavSetting: json['webdavSetting'] == null
+          ? const WebDavSettingState()
+          : WebDavSettingState.fromJson(
+              json['webdavSetting'] as Map<String, dynamic>,
+            ),
+      s3Setting: json['s3Setting'] == null
+          ? const S3SettingState()
+          : S3SettingState.fromJson(json['s3Setting'] as Map<String, dynamic>),
+      syncSettings: json['syncSettings'] as bool? ?? false,
+      autoSync: json['autoSync'] as bool? ?? true,
+      syncNotify: json['syncNotify'] as bool? ?? true,
+    );
+
+Map<String, dynamic> _$SyncSettingStateToJson(_SyncSettingState instance) =>
+    <String, dynamic>{
+      'syncServiceType': _$SyncServiceTypeEnumMap[instance.syncServiceType]!,
+      'webdavSetting': instance.webdavSetting,
+      's3Setting': instance.s3Setting,
+      'syncSettings': instance.syncSettings,
+      'autoSync': instance.autoSync,
+      'syncNotify': instance.syncNotify,
+    };
+
+const _$SyncServiceTypeEnumMap = {
+  SyncServiceType.none: 'none',
+  SyncServiceType.webdav: 'webdav',
+  SyncServiceType.s3: 's3',
+};
+
 _ReadSettingState _$ReadSettingStateFromJson(Map<String, dynamic> json) =>
     _ReadSettingState(
       noAnimation: json['noAnimation'] as bool? ?? false,
+      comicReadTopContainer: json['comicReadTopContainer'] as bool? ?? true,
+      readMode: (json['readMode'] as num?)?.toInt() ?? 0,
       readerBackgroundMode:
           $enumDecodeNullable(
             _$ReaderBackgroundModeEnumMap,
@@ -180,6 +217,8 @@ Map<String, dynamic> _$ReadSettingStateToJson(
   _ReadSettingState instance,
 ) => <String, dynamic>{
   'noAnimation': instance.noAnimation,
+  'comicReadTopContainer': instance.comicReadTopContainer,
+  'readMode': instance.readMode,
   'readerBackgroundMode':
       _$ReaderBackgroundModeEnumMap[instance.readerBackgroundMode]!,
   'readFilterEnabled': instance.readFilterEnabled,

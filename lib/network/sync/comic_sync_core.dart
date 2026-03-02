@@ -37,7 +37,7 @@ class ComicSyncCore {
   static String get md5FileName => '$appName.md5';
 
   static String buildDataFileName() {
-    final time = DateTime.now().toUtc().millisecondsSinceEpoch;
+    final time = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
     return '${appName}_${time}_$syncDataVersion.gz';
   }
 
@@ -52,7 +52,10 @@ class ComicSyncCore {
   static List<String> sortRemoteDataFilesByTimestampDesc(
     List<String> remotePaths,
   ) {
-    final sorted = [...remotePaths];
+    final sorted = remotePaths.where((remotePath) {
+      final fileName = _extractFileName(remotePath);
+      return isSyncDataFileName(fileName);
+    }).toList();
     sorted.sort((a, b) {
       final aTs = extractTimestampFromRemotePath(a) ?? -1;
       final bTs = extractTimestampFromRemotePath(b) ?? -1;
@@ -89,7 +92,7 @@ class ComicSyncCore {
   }
 
   static String get localMd5 {
-    return objectbox.userSettingBox.get(1)!.globalSetting.md5;
+    return objectbox.userSettingBox.get(1)?.globalSetting.md5 ?? '';
   }
 
   static void updateLocalMd5(String value) {
@@ -153,8 +156,6 @@ class ComicSyncCore {
         .map((comic) => BikaComicHistory.fromJson(comic))
         .toList();
 
-    logger.d(cloudHistories.first.toJson());
-
     final combined = [...cloudHistories, ...localHistories];
     combined.sort((a, b) => b.history.compareTo(a.history));
 
@@ -170,8 +171,6 @@ class ComicSyncCore {
     for (final item in finalList) {
       item.id = 0;
     }
-
-    logger.d(finalList.first.toJson());
 
     await objectbox.bikaHistoryBox.removeAllAsync();
     await objectbox.bikaHistoryBox.putManyAsync(finalList);
@@ -244,102 +243,59 @@ Future<void> runComicSync(ComicSyncRemoteAdapter adapter) async {
   final remoteMd5 = await adapter.downloadRemoteMd5();
   final localMd5 = ComicSyncCore.localMd5;
 
-  final remoteFiles = await adapter.listRemoteDataFiles();
-  final md5MatchedRemote = await _findRemoteFileByMd5(
-    adapter,
-    remoteFiles,
-    remoteMd5,
-  );
-  final latestRemoteFile =
-      md5MatchedRemote?.path ??
-      ComicSyncCore.pickLatestRemoteDataFile(remoteFiles);
-
   if (remoteMd5.isNotEmpty && remoteMd5 == localMd5) {
     logger.d('云端与本地 md5 一致，跳过同步');
-    await _cleanupRemoteFiles(adapter, keepRemotePath: latestRemoteFile);
     return;
   }
 
-  if (latestRemoteFile != null) {
-    final remoteBytes =
-        md5MatchedRemote?.bytes ??
-        await adapter.downloadRemoteFile(latestRemoteFile);
-    final cloudData = await ComicSyncCore.decodeCompressedPayload(remoteBytes);
+  final remotePaths = await adapter.listRemoteDataFiles();
+  final remoteData = await _selectRemoteDataForSync(
+    adapter,
+    remotePaths,
+    remoteMd5,
+  );
+
+  if (remoteData != null) {
+    final cloudData = await ComicSyncCore.decodeCompressedPayload(
+      remoteData.bytes,
+    );
     await ComicSyncCore.mergeHistory(cloudData);
   }
 
   final currentPayload = await ComicSyncCore.buildCompressedPayload();
   final currentMd5 = ComicSyncCore.calculateMd5(currentPayload);
 
-  if (remoteMd5.isNotEmpty && remoteMd5 == currentMd5) {
-    logger.d('云端数据已是最新，仅更新本地 md5');
-    ComicSyncCore.updateLocalMd5(currentMd5);
-
-    await _cleanupRemoteFiles(adapter, keepRemotePath: latestRemoteFile);
-    return;
-  }
-
   final uploadFile = ComicSyncCore.buildDataFileName();
   await adapter.uploadRemoteFile(uploadFile, currentPayload);
   await adapter.uploadRemoteMd5(currentMd5);
   ComicSyncCore.updateLocalMd5(currentMd5);
 
-  await _cleanupRemoteFiles(adapter, keepRemotePath: uploadFile);
+  await _cleanupRemoteFiles(
+    adapter,
+    keepRemotePaths: [
+      '$appName/$uploadFile',
+      '$appName/${ComicSyncCore.md5FileName}',
+    ],
+  );
 }
 
 Future<void> _cleanupRemoteFiles(
   ComicSyncRemoteAdapter adapter, {
-  String? keepRemotePath,
+  required List<String> keepRemotePaths,
 }) async {
   final allRemoteFiles = await adapter.listRemoteDataFiles();
   if (allRemoteFiles.isEmpty) {
     return;
   }
 
-  final keepNormalizedPath = keepRemotePath == null
-      ? null
-      : _normalizeRemotePath(keepRemotePath);
-  final keepFileName = keepRemotePath == null
-      ? null
-      : ComicSyncCore._extractFileName(keepRemotePath);
-
-  String? resolvedKeepPath;
-  if (keepNormalizedPath != null && keepNormalizedPath.isNotEmpty) {
-    for (final remotePath in allRemoteFiles) {
-      if (_normalizeRemotePath(remotePath) == keepNormalizedPath) {
-        resolvedKeepPath = remotePath;
-        break;
-      }
-    }
-  }
-
-  if (resolvedKeepPath == null &&
-      keepFileName != null &&
-      keepFileName.isNotEmpty) {
-    final sameNameFiles = allRemoteFiles
-        .where(
-          (remotePath) =>
-              ComicSyncCore._extractFileName(remotePath) == keepFileName,
-        )
-        .toList();
-
-    if (sameNameFiles.isNotEmpty) {
-      sameNameFiles.sort(
-        (a, b) => _normalizeRemotePath(a).compareTo(_normalizeRemotePath(b)),
-      );
-      resolvedKeepPath = sameNameFiles.first;
-    }
-  }
-
-  final resolvedKeepNormalized = resolvedKeepPath == null
-      ? null
-      : _normalizeRemotePath(resolvedKeepPath);
+  final keepNormalizedPaths = keepRemotePaths
+      .map(_normalizeRemotePath)
+      .where((item) => item.isNotEmpty)
+      .toSet();
 
   final staleFiles = allRemoteFiles.where((remotePath) {
-    if (resolvedKeepNormalized == null || resolvedKeepNormalized.isEmpty) {
-      return true;
-    }
-    return _normalizeRemotePath(remotePath) != resolvedKeepNormalized;
+    final normalized = _normalizeRemotePath(remotePath);
+    return !keepNormalizedPaths.contains(normalized);
   }).toList();
 
   if (staleFiles.isNotEmpty) {
@@ -347,18 +303,22 @@ Future<void> _cleanupRemoteFiles(
   }
 }
 
-Future<_RemoteFileData?> _findRemoteFileByMd5(
+Future<_RemoteFileData?> _selectRemoteDataForSync(
   ComicSyncRemoteAdapter adapter,
-  List<String> remoteFiles,
+  List<String> remotePaths,
   String remoteMd5,
 ) async {
-  if (remoteMd5.isEmpty || remoteFiles.isEmpty) {
+  final sortedFiles = ComicSyncCore.sortRemoteDataFilesByTimestampDesc(
+    remotePaths,
+  );
+  if (sortedFiles.isEmpty) {
     return null;
   }
 
-  final sortedFiles = ComicSyncCore.sortRemoteDataFilesByTimestampDesc(
-    remoteFiles,
-  );
+  if (remoteMd5.isEmpty) {
+    logger.w('远端 md5 文件不存在，将按无云端文件处理');
+    return null;
+  }
 
   for (final remotePath in sortedFiles) {
     try {
@@ -367,11 +327,17 @@ Future<_RemoteFileData?> _findRemoteFileByMd5(
       if (fileMd5 == remoteMd5) {
         return _RemoteFileData(path: remotePath, bytes: remoteBytes);
       }
+
+      logger.w(
+        '远端文件 md5 不匹配，尝试更旧版本: '
+        '$remotePath, expect: $remoteMd5, actual: $fileMd5',
+      );
     } catch (e) {
-      logger.w('校验远端文件 md5 失败，已跳过: $remotePath, error: $e');
+      logger.w('远端文件下载或校验失败，尝试更旧版本: $remotePath, error: $e');
     }
   }
 
+  logger.w('远端所有同步文件均与 md5 不匹配，将按无云端文件处理');
   return null;
 }
 

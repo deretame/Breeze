@@ -242,14 +242,20 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
     globalSettingCubit.resetState((current, defaults) {
       if (syncServiceType == SyncServiceType.webdav) {
         return current.copyWith(
-          webdavHost: defaults.webdavHost,
-          webdavUsername: defaults.webdavUsername,
-          webdavPassword: defaults.webdavPassword,
+          syncSetting: current.syncSetting.copyWith(
+            webdavSetting: defaults.syncSetting.webdavSetting,
+            syncSettings: false,
+          ),
         );
       }
 
       if (syncServiceType == SyncServiceType.s3) {
-        return current.copyWith(s3Setting: defaults.s3Setting);
+        return current.copyWith(
+          syncSetting: current.syncSetting.copyWith(
+            s3Setting: defaults.syncSetting.s3Setting,
+            syncSettings: false,
+          ),
+        );
       }
 
       return current;
@@ -307,18 +313,18 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
 
       final globalSettingCubit = context.read<GlobalSettingCubit>();
 
-      globalSettingCubit.updateState(
+      globalSettingCubit.updateWebDavSetting(
         (current) => current.copyWith(
-          webdavHost: _webdavHost.text.trim(),
-          webdavUsername: _webdavUsername.text.trim(),
-          webdavPassword: _webdavPassword.text,
+          host: _webdavHost.text.trim(),
+          username: _webdavUsername.text.trim(),
+          password: _webdavPassword.text,
         ),
       );
 
       eventBus.fire(NoticeSync());
 
       if (!mounted) return;
-      commonDialog(context, "成功", "WebDAV连接成功，已保存设置。");
+      commonDialog(context, '成功', 'WebDAV连接成功，已保存设置。');
     } catch (e) {
       logger.e(e);
       if (mounted) {
@@ -326,7 +332,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
       }
 
       if (!mounted) return;
-      commonDialog(context, "错误", "连接失败，请检查网络连接或WebDAV地址是否正确。\n$e");
+      commonDialog(context, '错误', '连接失败，请检查网络连接或WebDAV地址是否正确。\n$e');
     }
   }
 
@@ -373,7 +379,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
       if (!mounted) return;
 
       final globalSettingCubit = context.read<GlobalSettingCubit>();
-      globalSettingCubit.updateState(
+      globalSettingCubit.updateSyncSetting(
         (current) => current.copyWith(
           s3Setting: current.s3Setting.copyWith(
             endpoint: _s3Endpoint.text.trim(),

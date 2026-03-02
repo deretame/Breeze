@@ -101,6 +101,11 @@ class JmSettingCubit extends Cubit<JmSettingState> {
     dbSettings.jmSetting = state;
     userBox.put(dbSettings);
   }
+
+  void applySyncedState(JmSettingState value) {
+    updateDataBase(value);
+    emit(value);
+  }
 }
 
 class JmSettingBoxKeys {

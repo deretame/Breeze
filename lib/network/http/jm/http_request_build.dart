@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/jm_client.dart';
 import 'package:zephyr/network/http/jm/jm_error_message.dart';
 import 'package:zephyr/network/http/jm/jm_response_codec.dart';
@@ -41,7 +42,8 @@ Future<dynamic> request(
           ? response.requestOptions.extra['jm_ts'] as String
           : null,
     );
-  } on DioException catch (e) {
+  } on DioException catch (e, stackTrace) {
+    logger.e(e, stackTrace: stackTrace);
     throw Exception(
       sanitizeJmErrorMessage(
         e.error?.toString() ?? e.message,

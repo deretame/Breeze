@@ -17,7 +17,6 @@ abstract class BikaSettingState with _$BikaSettingState {
     @Default('') String password,
     @Default('') String authorization,
     @Default(0) int level,
-    @Default(false) bool checkIn,
     @Default(3) int proxy,
     @Default('original') String imageQuality,
     @Default(<String, bool>{}) Map<String, bool> shieldCategoryMap,
@@ -98,18 +97,6 @@ class BikaSettingCubit extends Cubit<BikaSettingState> {
 
   void resetLevel() {
     final temp = state.copyWith(level: _constDefaults.level);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void updateCheckIn(bool value) {
-    final temp = state.copyWith(checkIn: value);
-    updateDataBase(temp);
-    emit(temp);
-  }
-
-  void resetCheckIn() {
-    final temp = state.copyWith(checkIn: _constDefaults.checkIn);
     updateDataBase(temp);
     emit(temp);
   }
@@ -205,6 +192,11 @@ class BikaSettingCubit extends Cubit<BikaSettingState> {
     var dbSettings = userBox.get(1)!;
     dbSettings.bikaSetting = state;
     userBox.put(dbSettings);
+  }
+
+  void applySyncedState(BikaSettingState value) {
+    updateDataBase(value);
+    emit(value);
   }
 }
 

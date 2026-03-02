@@ -1,5 +1,7 @@
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 class VerticalPullNavigator extends StatelessWidget {
@@ -22,35 +24,46 @@ class VerticalPullNavigator extends StatelessWidget {
   Widget build(BuildContext context) {
     const offset = 8;
     final triggerOffset = context.screenHeight / offset;
+    final brightness = Theme.of(context).brightness;
+    final readSetting = context.select(
+      (GlobalSettingCubit c) => c.state.readSetting,
+    );
+    final foregroundColor = readSetting.resolveReaderForegroundColor(
+      brightness,
+    );
+    final textStyle = TextStyle(color: foregroundColor);
+    final iconTheme = IconThemeData(color: foregroundColor);
 
     final activeHeader = ClassicHeader(
-      dragText: '下拉上一章',
-      armedText: '松手跳转上一章',
-      readyText: '松手加载上一章',
+      dragText: '继续下拉到上一章',
+      armedText: '松手跳转到上一章',
+      readyText: '松手加载到上一章',
       processingText: '加载中...',
       processedText: '',
       showText: true,
       showMessage: false,
-      iconDimension: 0,
-      spacing: 0,
+      iconDimension: 16,
+      spacing: 16,
+      iconTheme: iconTheme,
       processedDuration: Duration.zero,
-      textStyle: const TextStyle(color: Colors.white),
+      textStyle: textStyle,
       triggerOffset: triggerOffset,
     );
 
     final activeFooter = ClassicFooter(
-      dragText: '上拉下一章',
-      armedText: '松手跳转下一章',
-      readyText: '松手加载下一章',
+      dragText: '继续上拉到下一章',
+      armedText: '松手跳转到下一章',
+      readyText: '松手加载到下一章',
       processingText: '加载中...',
       processedText: '',
       showText: true,
       showMessage: false,
-      iconDimension: 0,
-      spacing: 0,
+      iconDimension: 16,
+      spacing: 16,
+      iconTheme: iconTheme,
       processedDuration: Duration.zero,
       infiniteOffset: null,
-      textStyle: const TextStyle(color: Colors.white),
+      textStyle: textStyle,
       triggerOffset: triggerOffset,
     );
 

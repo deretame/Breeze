@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$GlobalSettingState {
 
- bool get dynamicColor; ThemeMode get themeMode; bool get isAMOLED;@ColorConverter() Color get seedColor; int get themeInitState;@LocaleConverter() Locale get locale; int get welcomePageNum; SyncServiceType get syncServiceType; String get webdavHost; String get webdavUsername; String get webdavPassword; S3SettingState get s3Setting; String get md5; bool get autoSync; bool get syncNotify; bool get comicReadTopContainer; int get readMode; List<String> get maskedKeywords; String get socks5Proxy; bool get needCleanCache; int get comicChoice; bool get disableBika; bool get enableMemoryDebug; List<String> get searchHistory; double get windowWidth; double get windowHeight; double get windowX; double get windowY; ReadSettingState get readSetting;
+ bool get dynamicColor; ThemeMode get themeMode; bool get isAMOLED;@ColorConverter() Color get seedColor; int get themeInitState;@LocaleConverter() Locale get locale; int get welcomePageNum; SyncSettingState get syncSetting; String get md5; bool get autoSync; bool get syncNotify; bool get comicReadTopContainer; int get readMode; List<String> get maskedKeywords; String get socks5Proxy; bool get needCleanCache; int get comicChoice; bool get disableBika; bool get enableMemoryDebug; List<String> get searchHistory; double get windowWidth; double get windowHeight; double get windowX; double get windowY; ReadSettingState get readSetting;
 /// Create a copy of GlobalSettingState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $GlobalSettingStateCopyWith<GlobalSettingState> get copyWith => _$GlobalSettingS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GlobalSettingState&&(identical(other.dynamicColor, dynamicColor) || other.dynamicColor == dynamicColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.isAMOLED, isAMOLED) || other.isAMOLED == isAMOLED)&&(identical(other.seedColor, seedColor) || other.seedColor == seedColor)&&(identical(other.themeInitState, themeInitState) || other.themeInitState == themeInitState)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.welcomePageNum, welcomePageNum) || other.welcomePageNum == welcomePageNum)&&(identical(other.syncServiceType, syncServiceType) || other.syncServiceType == syncServiceType)&&(identical(other.webdavHost, webdavHost) || other.webdavHost == webdavHost)&&(identical(other.webdavUsername, webdavUsername) || other.webdavUsername == webdavUsername)&&(identical(other.webdavPassword, webdavPassword) || other.webdavPassword == webdavPassword)&&(identical(other.s3Setting, s3Setting) || other.s3Setting == s3Setting)&&(identical(other.md5, md5) || other.md5 == md5)&&(identical(other.autoSync, autoSync) || other.autoSync == autoSync)&&(identical(other.syncNotify, syncNotify) || other.syncNotify == syncNotify)&&(identical(other.comicReadTopContainer, comicReadTopContainer) || other.comicReadTopContainer == comicReadTopContainer)&&(identical(other.readMode, readMode) || other.readMode == readMode)&&const DeepCollectionEquality().equals(other.maskedKeywords, maskedKeywords)&&(identical(other.socks5Proxy, socks5Proxy) || other.socks5Proxy == socks5Proxy)&&(identical(other.needCleanCache, needCleanCache) || other.needCleanCache == needCleanCache)&&(identical(other.comicChoice, comicChoice) || other.comicChoice == comicChoice)&&(identical(other.disableBika, disableBika) || other.disableBika == disableBika)&&(identical(other.enableMemoryDebug, enableMemoryDebug) || other.enableMemoryDebug == enableMemoryDebug)&&const DeepCollectionEquality().equals(other.searchHistory, searchHistory)&&(identical(other.windowWidth, windowWidth) || other.windowWidth == windowWidth)&&(identical(other.windowHeight, windowHeight) || other.windowHeight == windowHeight)&&(identical(other.windowX, windowX) || other.windowX == windowX)&&(identical(other.windowY, windowY) || other.windowY == windowY)&&(identical(other.readSetting, readSetting) || other.readSetting == readSetting));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GlobalSettingState&&(identical(other.dynamicColor, dynamicColor) || other.dynamicColor == dynamicColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.isAMOLED, isAMOLED) || other.isAMOLED == isAMOLED)&&(identical(other.seedColor, seedColor) || other.seedColor == seedColor)&&(identical(other.themeInitState, themeInitState) || other.themeInitState == themeInitState)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.welcomePageNum, welcomePageNum) || other.welcomePageNum == welcomePageNum)&&(identical(other.syncSetting, syncSetting) || other.syncSetting == syncSetting)&&(identical(other.md5, md5) || other.md5 == md5)&&(identical(other.autoSync, autoSync) || other.autoSync == autoSync)&&(identical(other.syncNotify, syncNotify) || other.syncNotify == syncNotify)&&(identical(other.comicReadTopContainer, comicReadTopContainer) || other.comicReadTopContainer == comicReadTopContainer)&&(identical(other.readMode, readMode) || other.readMode == readMode)&&const DeepCollectionEquality().equals(other.maskedKeywords, maskedKeywords)&&(identical(other.socks5Proxy, socks5Proxy) || other.socks5Proxy == socks5Proxy)&&(identical(other.needCleanCache, needCleanCache) || other.needCleanCache == needCleanCache)&&(identical(other.comicChoice, comicChoice) || other.comicChoice == comicChoice)&&(identical(other.disableBika, disableBika) || other.disableBika == disableBika)&&(identical(other.enableMemoryDebug, enableMemoryDebug) || other.enableMemoryDebug == enableMemoryDebug)&&const DeepCollectionEquality().equals(other.searchHistory, searchHistory)&&(identical(other.windowWidth, windowWidth) || other.windowWidth == windowWidth)&&(identical(other.windowHeight, windowHeight) || other.windowHeight == windowHeight)&&(identical(other.windowX, windowX) || other.windowX == windowX)&&(identical(other.windowY, windowY) || other.windowY == windowY)&&(identical(other.readSetting, readSetting) || other.readSetting == readSetting));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,dynamicColor,themeMode,isAMOLED,seedColor,themeInitState,locale,welcomePageNum,syncServiceType,webdavHost,webdavUsername,webdavPassword,s3Setting,md5,autoSync,syncNotify,comicReadTopContainer,readMode,const DeepCollectionEquality().hash(maskedKeywords),socks5Proxy,needCleanCache,comicChoice,disableBika,enableMemoryDebug,const DeepCollectionEquality().hash(searchHistory),windowWidth,windowHeight,windowX,windowY,readSetting]);
+int get hashCode => Object.hashAll([runtimeType,dynamicColor,themeMode,isAMOLED,seedColor,themeInitState,locale,welcomePageNum,syncSetting,md5,autoSync,syncNotify,comicReadTopContainer,readMode,const DeepCollectionEquality().hash(maskedKeywords),socks5Proxy,needCleanCache,comicChoice,disableBika,enableMemoryDebug,const DeepCollectionEquality().hash(searchHistory),windowWidth,windowHeight,windowX,windowY,readSetting]);
 
 @override
 String toString() {
-  return 'GlobalSettingState(dynamicColor: $dynamicColor, themeMode: $themeMode, isAMOLED: $isAMOLED, seedColor: $seedColor, themeInitState: $themeInitState, locale: $locale, welcomePageNum: $welcomePageNum, syncServiceType: $syncServiceType, webdavHost: $webdavHost, webdavUsername: $webdavUsername, webdavPassword: $webdavPassword, s3Setting: $s3Setting, md5: $md5, autoSync: $autoSync, syncNotify: $syncNotify, comicReadTopContainer: $comicReadTopContainer, readMode: $readMode, maskedKeywords: $maskedKeywords, socks5Proxy: $socks5Proxy, needCleanCache: $needCleanCache, comicChoice: $comicChoice, disableBika: $disableBika, enableMemoryDebug: $enableMemoryDebug, searchHistory: $searchHistory, windowWidth: $windowWidth, windowHeight: $windowHeight, windowX: $windowX, windowY: $windowY, readSetting: $readSetting)';
+  return 'GlobalSettingState(dynamicColor: $dynamicColor, themeMode: $themeMode, isAMOLED: $isAMOLED, seedColor: $seedColor, themeInitState: $themeInitState, locale: $locale, welcomePageNum: $welcomePageNum, syncSetting: $syncSetting, md5: $md5, autoSync: $autoSync, syncNotify: $syncNotify, comicReadTopContainer: $comicReadTopContainer, readMode: $readMode, maskedKeywords: $maskedKeywords, socks5Proxy: $socks5Proxy, needCleanCache: $needCleanCache, comicChoice: $comicChoice, disableBika: $disableBika, enableMemoryDebug: $enableMemoryDebug, searchHistory: $searchHistory, windowWidth: $windowWidth, windowHeight: $windowHeight, windowX: $windowX, windowY: $windowY, readSetting: $readSetting)';
 }
 
 
@@ -48,11 +48,11 @@ abstract mixin class $GlobalSettingStateCopyWith<$Res>  {
   factory $GlobalSettingStateCopyWith(GlobalSettingState value, $Res Function(GlobalSettingState) _then) = _$GlobalSettingStateCopyWithImpl;
 @useResult
 $Res call({
- bool dynamicColor, ThemeMode themeMode, bool isAMOLED,@ColorConverter() Color seedColor, int themeInitState,@LocaleConverter() Locale locale, int welcomePageNum, SyncServiceType syncServiceType, String webdavHost, String webdavUsername, String webdavPassword, S3SettingState s3Setting, String md5, bool autoSync, bool syncNotify, bool comicReadTopContainer, int readMode, List<String> maskedKeywords, String socks5Proxy, bool needCleanCache, int comicChoice, bool disableBika, bool enableMemoryDebug, List<String> searchHistory, double windowWidth, double windowHeight, double windowX, double windowY, ReadSettingState readSetting
+ bool dynamicColor, ThemeMode themeMode, bool isAMOLED,@ColorConverter() Color seedColor, int themeInitState,@LocaleConverter() Locale locale, int welcomePageNum, SyncSettingState syncSetting, String md5, bool autoSync, bool syncNotify, bool comicReadTopContainer, int readMode, List<String> maskedKeywords, String socks5Proxy, bool needCleanCache, int comicChoice, bool disableBika, bool enableMemoryDebug, List<String> searchHistory, double windowWidth, double windowHeight, double windowX, double windowY, ReadSettingState readSetting
 });
 
 
-$S3SettingStateCopyWith<$Res> get s3Setting;$ReadSettingStateCopyWith<$Res> get readSetting;
+$SyncSettingStateCopyWith<$Res> get syncSetting;$ReadSettingStateCopyWith<$Res> get readSetting;
 
 }
 /// @nodoc
@@ -65,7 +65,7 @@ class _$GlobalSettingStateCopyWithImpl<$Res>
 
 /// Create a copy of GlobalSettingState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? dynamicColor = null,Object? themeMode = null,Object? isAMOLED = null,Object? seedColor = null,Object? themeInitState = null,Object? locale = null,Object? welcomePageNum = null,Object? syncServiceType = null,Object? webdavHost = null,Object? webdavUsername = null,Object? webdavPassword = null,Object? s3Setting = null,Object? md5 = null,Object? autoSync = null,Object? syncNotify = null,Object? comicReadTopContainer = null,Object? readMode = null,Object? maskedKeywords = null,Object? socks5Proxy = null,Object? needCleanCache = null,Object? comicChoice = null,Object? disableBika = null,Object? enableMemoryDebug = null,Object? searchHistory = null,Object? windowWidth = null,Object? windowHeight = null,Object? windowX = null,Object? windowY = null,Object? readSetting = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? dynamicColor = null,Object? themeMode = null,Object? isAMOLED = null,Object? seedColor = null,Object? themeInitState = null,Object? locale = null,Object? welcomePageNum = null,Object? syncSetting = null,Object? md5 = null,Object? autoSync = null,Object? syncNotify = null,Object? comicReadTopContainer = null,Object? readMode = null,Object? maskedKeywords = null,Object? socks5Proxy = null,Object? needCleanCache = null,Object? comicChoice = null,Object? disableBika = null,Object? enableMemoryDebug = null,Object? searchHistory = null,Object? windowWidth = null,Object? windowHeight = null,Object? windowX = null,Object? windowY = null,Object? readSetting = null,}) {
   return _then(_self.copyWith(
 dynamicColor: null == dynamicColor ? _self.dynamicColor : dynamicColor // ignore: cast_nullable_to_non_nullable
 as bool,themeMode: null == themeMode ? _self.themeMode : themeMode // ignore: cast_nullable_to_non_nullable
@@ -74,12 +74,8 @@ as bool,seedColor: null == seedColor ? _self.seedColor : seedColor // ignore: ca
 as Color,themeInitState: null == themeInitState ? _self.themeInitState : themeInitState // ignore: cast_nullable_to_non_nullable
 as int,locale: null == locale ? _self.locale : locale // ignore: cast_nullable_to_non_nullable
 as Locale,welcomePageNum: null == welcomePageNum ? _self.welcomePageNum : welcomePageNum // ignore: cast_nullable_to_non_nullable
-as int,syncServiceType: null == syncServiceType ? _self.syncServiceType : syncServiceType // ignore: cast_nullable_to_non_nullable
-as SyncServiceType,webdavHost: null == webdavHost ? _self.webdavHost : webdavHost // ignore: cast_nullable_to_non_nullable
-as String,webdavUsername: null == webdavUsername ? _self.webdavUsername : webdavUsername // ignore: cast_nullable_to_non_nullable
-as String,webdavPassword: null == webdavPassword ? _self.webdavPassword : webdavPassword // ignore: cast_nullable_to_non_nullable
-as String,s3Setting: null == s3Setting ? _self.s3Setting : s3Setting // ignore: cast_nullable_to_non_nullable
-as S3SettingState,md5: null == md5 ? _self.md5 : md5 // ignore: cast_nullable_to_non_nullable
+as int,syncSetting: null == syncSetting ? _self.syncSetting : syncSetting // ignore: cast_nullable_to_non_nullable
+as SyncSettingState,md5: null == md5 ? _self.md5 : md5 // ignore: cast_nullable_to_non_nullable
 as String,autoSync: null == autoSync ? _self.autoSync : autoSync // ignore: cast_nullable_to_non_nullable
 as bool,syncNotify: null == syncNotify ? _self.syncNotify : syncNotify // ignore: cast_nullable_to_non_nullable
 as bool,comicReadTopContainer: null == comicReadTopContainer ? _self.comicReadTopContainer : comicReadTopContainer // ignore: cast_nullable_to_non_nullable
@@ -103,10 +99,10 @@ as ReadSettingState,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$S3SettingStateCopyWith<$Res> get s3Setting {
+$SyncSettingStateCopyWith<$Res> get syncSetting {
   
-  return $S3SettingStateCopyWith<$Res>(_self.s3Setting, (value) {
-    return _then(_self.copyWith(s3Setting: value));
+  return $SyncSettingStateCopyWith<$Res>(_self.syncSetting, (value) {
+    return _then(_self.copyWith(syncSetting: value));
   });
 }/// Create a copy of GlobalSettingState
 /// with the given fields replaced by the non-null parameter values.
@@ -199,10 +195,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  SyncServiceType syncServiceType,  String webdavHost,  String webdavUsername,  String webdavPassword,  S3SettingState s3Setting,  String md5,  bool autoSync,  bool syncNotify,  bool comicReadTopContainer,  int readMode,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY,  ReadSettingState readSetting)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  SyncSettingState syncSetting,  String md5,  bool autoSync,  bool syncNotify,  bool comicReadTopContainer,  int readMode,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY,  ReadSettingState readSetting)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GlobalSettingState() when $default != null:
-return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.syncServiceType,_that.webdavHost,_that.webdavUsername,_that.webdavPassword,_that.s3Setting,_that.md5,_that.autoSync,_that.syncNotify,_that.comicReadTopContainer,_that.readMode,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY,_that.readSetting);case _:
+return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.syncSetting,_that.md5,_that.autoSync,_that.syncNotify,_that.comicReadTopContainer,_that.readMode,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY,_that.readSetting);case _:
   return orElse();
 
 }
@@ -220,10 +216,10 @@ return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColo
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  SyncServiceType syncServiceType,  String webdavHost,  String webdavUsername,  String webdavPassword,  S3SettingState s3Setting,  String md5,  bool autoSync,  bool syncNotify,  bool comicReadTopContainer,  int readMode,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY,  ReadSettingState readSetting)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  SyncSettingState syncSetting,  String md5,  bool autoSync,  bool syncNotify,  bool comicReadTopContainer,  int readMode,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY,  ReadSettingState readSetting)  $default,) {final _that = this;
 switch (_that) {
 case _GlobalSettingState():
-return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.syncServiceType,_that.webdavHost,_that.webdavUsername,_that.webdavPassword,_that.s3Setting,_that.md5,_that.autoSync,_that.syncNotify,_that.comicReadTopContainer,_that.readMode,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY,_that.readSetting);case _:
+return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.syncSetting,_that.md5,_that.autoSync,_that.syncNotify,_that.comicReadTopContainer,_that.readMode,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY,_that.readSetting);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -240,10 +236,10 @@ return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColo
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  SyncServiceType syncServiceType,  String webdavHost,  String webdavUsername,  String webdavPassword,  S3SettingState s3Setting,  String md5,  bool autoSync,  bool syncNotify,  bool comicReadTopContainer,  int readMode,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY,  ReadSettingState readSetting)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  SyncSettingState syncSetting,  String md5,  bool autoSync,  bool syncNotify,  bool comicReadTopContainer,  int readMode,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY,  ReadSettingState readSetting)?  $default,) {final _that = this;
 switch (_that) {
 case _GlobalSettingState() when $default != null:
-return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.syncServiceType,_that.webdavHost,_that.webdavUsername,_that.webdavPassword,_that.s3Setting,_that.md5,_that.autoSync,_that.syncNotify,_that.comicReadTopContainer,_that.readMode,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY,_that.readSetting);case _:
+return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.syncSetting,_that.md5,_that.autoSync,_that.syncNotify,_that.comicReadTopContainer,_that.readMode,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY,_that.readSetting);case _:
   return null;
 
 }
@@ -255,7 +251,7 @@ return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColo
 @JsonSerializable()
 
 class _GlobalSettingState implements GlobalSettingState {
-  const _GlobalSettingState({this.dynamicColor = true, this.themeMode = ThemeMode.system, this.isAMOLED = true, @ColorConverter() this.seedColor = const Color(0xFFEF5350), this.themeInitState = 0, @LocaleConverter() this.locale = const Locale('zh', 'CN'), this.welcomePageNum = 0, this.syncServiceType = SyncServiceType.webdav, this.webdavHost = '', this.webdavUsername = '', this.webdavPassword = '', this.s3Setting = const S3SettingState(), this.md5 = '', this.autoSync = true, this.syncNotify = true, this.comicReadTopContainer = true, this.readMode = 0, final  List<String> maskedKeywords = const [], this.socks5Proxy = '', this.needCleanCache = false, this.comicChoice = 1, this.disableBika = false, this.enableMemoryDebug = false, final  List<String> searchHistory = const [], this.windowWidth = 1280.0, this.windowHeight = 720.0, this.windowX = 0, this.windowY = 0, this.readSetting = const ReadSettingState()}): _maskedKeywords = maskedKeywords,_searchHistory = searchHistory;
+  const _GlobalSettingState({this.dynamicColor = true, this.themeMode = ThemeMode.system, this.isAMOLED = true, @ColorConverter() this.seedColor = const Color(0xFFEF5350), this.themeInitState = 0, @LocaleConverter() this.locale = const Locale('zh', 'CN'), this.welcomePageNum = 0, this.syncSetting = const SyncSettingState(), this.md5 = '', this.autoSync = true, this.syncNotify = true, this.comicReadTopContainer = true, this.readMode = 0, final  List<String> maskedKeywords = const [], this.socks5Proxy = '', this.needCleanCache = false, this.comicChoice = 1, this.disableBika = false, this.enableMemoryDebug = false, final  List<String> searchHistory = const [], this.windowWidth = 1280.0, this.windowHeight = 720.0, this.windowX = 0, this.windowY = 0, this.readSetting = const ReadSettingState()}): _maskedKeywords = maskedKeywords,_searchHistory = searchHistory;
   factory _GlobalSettingState.fromJson(Map<String, dynamic> json) => _$GlobalSettingStateFromJson(json);
 
 @override@JsonKey() final  bool dynamicColor;
@@ -265,11 +261,7 @@ class _GlobalSettingState implements GlobalSettingState {
 @override@JsonKey() final  int themeInitState;
 @override@JsonKey()@LocaleConverter() final  Locale locale;
 @override@JsonKey() final  int welcomePageNum;
-@override@JsonKey() final  SyncServiceType syncServiceType;
-@override@JsonKey() final  String webdavHost;
-@override@JsonKey() final  String webdavUsername;
-@override@JsonKey() final  String webdavPassword;
-@override@JsonKey() final  S3SettingState s3Setting;
+@override@JsonKey() final  SyncSettingState syncSetting;
 @override@JsonKey() final  String md5;
 @override@JsonKey() final  bool autoSync;
 @override@JsonKey() final  bool syncNotify;
@@ -313,16 +305,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GlobalSettingState&&(identical(other.dynamicColor, dynamicColor) || other.dynamicColor == dynamicColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.isAMOLED, isAMOLED) || other.isAMOLED == isAMOLED)&&(identical(other.seedColor, seedColor) || other.seedColor == seedColor)&&(identical(other.themeInitState, themeInitState) || other.themeInitState == themeInitState)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.welcomePageNum, welcomePageNum) || other.welcomePageNum == welcomePageNum)&&(identical(other.syncServiceType, syncServiceType) || other.syncServiceType == syncServiceType)&&(identical(other.webdavHost, webdavHost) || other.webdavHost == webdavHost)&&(identical(other.webdavUsername, webdavUsername) || other.webdavUsername == webdavUsername)&&(identical(other.webdavPassword, webdavPassword) || other.webdavPassword == webdavPassword)&&(identical(other.s3Setting, s3Setting) || other.s3Setting == s3Setting)&&(identical(other.md5, md5) || other.md5 == md5)&&(identical(other.autoSync, autoSync) || other.autoSync == autoSync)&&(identical(other.syncNotify, syncNotify) || other.syncNotify == syncNotify)&&(identical(other.comicReadTopContainer, comicReadTopContainer) || other.comicReadTopContainer == comicReadTopContainer)&&(identical(other.readMode, readMode) || other.readMode == readMode)&&const DeepCollectionEquality().equals(other._maskedKeywords, _maskedKeywords)&&(identical(other.socks5Proxy, socks5Proxy) || other.socks5Proxy == socks5Proxy)&&(identical(other.needCleanCache, needCleanCache) || other.needCleanCache == needCleanCache)&&(identical(other.comicChoice, comicChoice) || other.comicChoice == comicChoice)&&(identical(other.disableBika, disableBika) || other.disableBika == disableBika)&&(identical(other.enableMemoryDebug, enableMemoryDebug) || other.enableMemoryDebug == enableMemoryDebug)&&const DeepCollectionEquality().equals(other._searchHistory, _searchHistory)&&(identical(other.windowWidth, windowWidth) || other.windowWidth == windowWidth)&&(identical(other.windowHeight, windowHeight) || other.windowHeight == windowHeight)&&(identical(other.windowX, windowX) || other.windowX == windowX)&&(identical(other.windowY, windowY) || other.windowY == windowY)&&(identical(other.readSetting, readSetting) || other.readSetting == readSetting));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GlobalSettingState&&(identical(other.dynamicColor, dynamicColor) || other.dynamicColor == dynamicColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.isAMOLED, isAMOLED) || other.isAMOLED == isAMOLED)&&(identical(other.seedColor, seedColor) || other.seedColor == seedColor)&&(identical(other.themeInitState, themeInitState) || other.themeInitState == themeInitState)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.welcomePageNum, welcomePageNum) || other.welcomePageNum == welcomePageNum)&&(identical(other.syncSetting, syncSetting) || other.syncSetting == syncSetting)&&(identical(other.md5, md5) || other.md5 == md5)&&(identical(other.autoSync, autoSync) || other.autoSync == autoSync)&&(identical(other.syncNotify, syncNotify) || other.syncNotify == syncNotify)&&(identical(other.comicReadTopContainer, comicReadTopContainer) || other.comicReadTopContainer == comicReadTopContainer)&&(identical(other.readMode, readMode) || other.readMode == readMode)&&const DeepCollectionEquality().equals(other._maskedKeywords, _maskedKeywords)&&(identical(other.socks5Proxy, socks5Proxy) || other.socks5Proxy == socks5Proxy)&&(identical(other.needCleanCache, needCleanCache) || other.needCleanCache == needCleanCache)&&(identical(other.comicChoice, comicChoice) || other.comicChoice == comicChoice)&&(identical(other.disableBika, disableBika) || other.disableBika == disableBika)&&(identical(other.enableMemoryDebug, enableMemoryDebug) || other.enableMemoryDebug == enableMemoryDebug)&&const DeepCollectionEquality().equals(other._searchHistory, _searchHistory)&&(identical(other.windowWidth, windowWidth) || other.windowWidth == windowWidth)&&(identical(other.windowHeight, windowHeight) || other.windowHeight == windowHeight)&&(identical(other.windowX, windowX) || other.windowX == windowX)&&(identical(other.windowY, windowY) || other.windowY == windowY)&&(identical(other.readSetting, readSetting) || other.readSetting == readSetting));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,dynamicColor,themeMode,isAMOLED,seedColor,themeInitState,locale,welcomePageNum,syncServiceType,webdavHost,webdavUsername,webdavPassword,s3Setting,md5,autoSync,syncNotify,comicReadTopContainer,readMode,const DeepCollectionEquality().hash(_maskedKeywords),socks5Proxy,needCleanCache,comicChoice,disableBika,enableMemoryDebug,const DeepCollectionEquality().hash(_searchHistory),windowWidth,windowHeight,windowX,windowY,readSetting]);
+int get hashCode => Object.hashAll([runtimeType,dynamicColor,themeMode,isAMOLED,seedColor,themeInitState,locale,welcomePageNum,syncSetting,md5,autoSync,syncNotify,comicReadTopContainer,readMode,const DeepCollectionEquality().hash(_maskedKeywords),socks5Proxy,needCleanCache,comicChoice,disableBika,enableMemoryDebug,const DeepCollectionEquality().hash(_searchHistory),windowWidth,windowHeight,windowX,windowY,readSetting]);
 
 @override
 String toString() {
-  return 'GlobalSettingState(dynamicColor: $dynamicColor, themeMode: $themeMode, isAMOLED: $isAMOLED, seedColor: $seedColor, themeInitState: $themeInitState, locale: $locale, welcomePageNum: $welcomePageNum, syncServiceType: $syncServiceType, webdavHost: $webdavHost, webdavUsername: $webdavUsername, webdavPassword: $webdavPassword, s3Setting: $s3Setting, md5: $md5, autoSync: $autoSync, syncNotify: $syncNotify, comicReadTopContainer: $comicReadTopContainer, readMode: $readMode, maskedKeywords: $maskedKeywords, socks5Proxy: $socks5Proxy, needCleanCache: $needCleanCache, comicChoice: $comicChoice, disableBika: $disableBika, enableMemoryDebug: $enableMemoryDebug, searchHistory: $searchHistory, windowWidth: $windowWidth, windowHeight: $windowHeight, windowX: $windowX, windowY: $windowY, readSetting: $readSetting)';
+  return 'GlobalSettingState(dynamicColor: $dynamicColor, themeMode: $themeMode, isAMOLED: $isAMOLED, seedColor: $seedColor, themeInitState: $themeInitState, locale: $locale, welcomePageNum: $welcomePageNum, syncSetting: $syncSetting, md5: $md5, autoSync: $autoSync, syncNotify: $syncNotify, comicReadTopContainer: $comicReadTopContainer, readMode: $readMode, maskedKeywords: $maskedKeywords, socks5Proxy: $socks5Proxy, needCleanCache: $needCleanCache, comicChoice: $comicChoice, disableBika: $disableBika, enableMemoryDebug: $enableMemoryDebug, searchHistory: $searchHistory, windowWidth: $windowWidth, windowHeight: $windowHeight, windowX: $windowX, windowY: $windowY, readSetting: $readSetting)';
 }
 
 
@@ -333,11 +325,11 @@ abstract mixin class _$GlobalSettingStateCopyWith<$Res> implements $GlobalSettin
   factory _$GlobalSettingStateCopyWith(_GlobalSettingState value, $Res Function(_GlobalSettingState) _then) = __$GlobalSettingStateCopyWithImpl;
 @override @useResult
 $Res call({
- bool dynamicColor, ThemeMode themeMode, bool isAMOLED,@ColorConverter() Color seedColor, int themeInitState,@LocaleConverter() Locale locale, int welcomePageNum, SyncServiceType syncServiceType, String webdavHost, String webdavUsername, String webdavPassword, S3SettingState s3Setting, String md5, bool autoSync, bool syncNotify, bool comicReadTopContainer, int readMode, List<String> maskedKeywords, String socks5Proxy, bool needCleanCache, int comicChoice, bool disableBika, bool enableMemoryDebug, List<String> searchHistory, double windowWidth, double windowHeight, double windowX, double windowY, ReadSettingState readSetting
+ bool dynamicColor, ThemeMode themeMode, bool isAMOLED,@ColorConverter() Color seedColor, int themeInitState,@LocaleConverter() Locale locale, int welcomePageNum, SyncSettingState syncSetting, String md5, bool autoSync, bool syncNotify, bool comicReadTopContainer, int readMode, List<String> maskedKeywords, String socks5Proxy, bool needCleanCache, int comicChoice, bool disableBika, bool enableMemoryDebug, List<String> searchHistory, double windowWidth, double windowHeight, double windowX, double windowY, ReadSettingState readSetting
 });
 
 
-@override $S3SettingStateCopyWith<$Res> get s3Setting;@override $ReadSettingStateCopyWith<$Res> get readSetting;
+@override $SyncSettingStateCopyWith<$Res> get syncSetting;@override $ReadSettingStateCopyWith<$Res> get readSetting;
 
 }
 /// @nodoc
@@ -350,7 +342,7 @@ class __$GlobalSettingStateCopyWithImpl<$Res>
 
 /// Create a copy of GlobalSettingState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? dynamicColor = null,Object? themeMode = null,Object? isAMOLED = null,Object? seedColor = null,Object? themeInitState = null,Object? locale = null,Object? welcomePageNum = null,Object? syncServiceType = null,Object? webdavHost = null,Object? webdavUsername = null,Object? webdavPassword = null,Object? s3Setting = null,Object? md5 = null,Object? autoSync = null,Object? syncNotify = null,Object? comicReadTopContainer = null,Object? readMode = null,Object? maskedKeywords = null,Object? socks5Proxy = null,Object? needCleanCache = null,Object? comicChoice = null,Object? disableBika = null,Object? enableMemoryDebug = null,Object? searchHistory = null,Object? windowWidth = null,Object? windowHeight = null,Object? windowX = null,Object? windowY = null,Object? readSetting = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? dynamicColor = null,Object? themeMode = null,Object? isAMOLED = null,Object? seedColor = null,Object? themeInitState = null,Object? locale = null,Object? welcomePageNum = null,Object? syncSetting = null,Object? md5 = null,Object? autoSync = null,Object? syncNotify = null,Object? comicReadTopContainer = null,Object? readMode = null,Object? maskedKeywords = null,Object? socks5Proxy = null,Object? needCleanCache = null,Object? comicChoice = null,Object? disableBika = null,Object? enableMemoryDebug = null,Object? searchHistory = null,Object? windowWidth = null,Object? windowHeight = null,Object? windowX = null,Object? windowY = null,Object? readSetting = null,}) {
   return _then(_GlobalSettingState(
 dynamicColor: null == dynamicColor ? _self.dynamicColor : dynamicColor // ignore: cast_nullable_to_non_nullable
 as bool,themeMode: null == themeMode ? _self.themeMode : themeMode // ignore: cast_nullable_to_non_nullable
@@ -359,12 +351,8 @@ as bool,seedColor: null == seedColor ? _self.seedColor : seedColor // ignore: ca
 as Color,themeInitState: null == themeInitState ? _self.themeInitState : themeInitState // ignore: cast_nullable_to_non_nullable
 as int,locale: null == locale ? _self.locale : locale // ignore: cast_nullable_to_non_nullable
 as Locale,welcomePageNum: null == welcomePageNum ? _self.welcomePageNum : welcomePageNum // ignore: cast_nullable_to_non_nullable
-as int,syncServiceType: null == syncServiceType ? _self.syncServiceType : syncServiceType // ignore: cast_nullable_to_non_nullable
-as SyncServiceType,webdavHost: null == webdavHost ? _self.webdavHost : webdavHost // ignore: cast_nullable_to_non_nullable
-as String,webdavUsername: null == webdavUsername ? _self.webdavUsername : webdavUsername // ignore: cast_nullable_to_non_nullable
-as String,webdavPassword: null == webdavPassword ? _self.webdavPassword : webdavPassword // ignore: cast_nullable_to_non_nullable
-as String,s3Setting: null == s3Setting ? _self.s3Setting : s3Setting // ignore: cast_nullable_to_non_nullable
-as S3SettingState,md5: null == md5 ? _self.md5 : md5 // ignore: cast_nullable_to_non_nullable
+as int,syncSetting: null == syncSetting ? _self.syncSetting : syncSetting // ignore: cast_nullable_to_non_nullable
+as SyncSettingState,md5: null == md5 ? _self.md5 : md5 // ignore: cast_nullable_to_non_nullable
 as String,autoSync: null == autoSync ? _self.autoSync : autoSync // ignore: cast_nullable_to_non_nullable
 as bool,syncNotify: null == syncNotify ? _self.syncNotify : syncNotify // ignore: cast_nullable_to_non_nullable
 as bool,comicReadTopContainer: null == comicReadTopContainer ? _self.comicReadTopContainer : comicReadTopContainer // ignore: cast_nullable_to_non_nullable
@@ -389,10 +377,10 @@ as ReadSettingState,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$S3SettingStateCopyWith<$Res> get s3Setting {
+$SyncSettingStateCopyWith<$Res> get syncSetting {
   
-  return $S3SettingStateCopyWith<$Res>(_self.s3Setting, (value) {
-    return _then(_self.copyWith(s3Setting: value));
+  return $SyncSettingStateCopyWith<$Res>(_self.syncSetting, (value) {
+    return _then(_self.copyWith(syncSetting: value));
   });
 }/// Create a copy of GlobalSettingState
 /// with the given fields replaced by the non-null parameter values.
@@ -404,6 +392,275 @@ $ReadSettingStateCopyWith<$Res> get readSetting {
     return _then(_self.copyWith(readSetting: value));
   });
 }
+}
+
+
+/// @nodoc
+mixin _$WebDavSettingState {
+
+ String get host; String get username; String get password;
+/// Create a copy of WebDavSettingState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$WebDavSettingStateCopyWith<WebDavSettingState> get copyWith => _$WebDavSettingStateCopyWithImpl<WebDavSettingState>(this as WebDavSettingState, _$identity);
+
+  /// Serializes this WebDavSettingState to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WebDavSettingState&&(identical(other.host, host) || other.host == host)&&(identical(other.username, username) || other.username == username)&&(identical(other.password, password) || other.password == password));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,host,username,password);
+
+@override
+String toString() {
+  return 'WebDavSettingState(host: $host, username: $username, password: $password)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $WebDavSettingStateCopyWith<$Res>  {
+  factory $WebDavSettingStateCopyWith(WebDavSettingState value, $Res Function(WebDavSettingState) _then) = _$WebDavSettingStateCopyWithImpl;
+@useResult
+$Res call({
+ String host, String username, String password
+});
+
+
+
+
+}
+/// @nodoc
+class _$WebDavSettingStateCopyWithImpl<$Res>
+    implements $WebDavSettingStateCopyWith<$Res> {
+  _$WebDavSettingStateCopyWithImpl(this._self, this._then);
+
+  final WebDavSettingState _self;
+  final $Res Function(WebDavSettingState) _then;
+
+/// Create a copy of WebDavSettingState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? host = null,Object? username = null,Object? password = null,}) {
+  return _then(_self.copyWith(
+host: null == host ? _self.host : host // ignore: cast_nullable_to_non_nullable
+as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
+as String,password: null == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [WebDavSettingState].
+extension WebDavSettingStatePatterns on WebDavSettingState {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _WebDavSettingState value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _WebDavSettingState() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _WebDavSettingState value)  $default,){
+final _that = this;
+switch (_that) {
+case _WebDavSettingState():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _WebDavSettingState value)?  $default,){
+final _that = this;
+switch (_that) {
+case _WebDavSettingState() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String host,  String username,  String password)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _WebDavSettingState() when $default != null:
+return $default(_that.host,_that.username,_that.password);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String host,  String username,  String password)  $default,) {final _that = this;
+switch (_that) {
+case _WebDavSettingState():
+return $default(_that.host,_that.username,_that.password);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String host,  String username,  String password)?  $default,) {final _that = this;
+switch (_that) {
+case _WebDavSettingState() when $default != null:
+return $default(_that.host,_that.username,_that.password);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _WebDavSettingState implements WebDavSettingState {
+  const _WebDavSettingState({this.host = '', this.username = '', this.password = ''});
+  factory _WebDavSettingState.fromJson(Map<String, dynamic> json) => _$WebDavSettingStateFromJson(json);
+
+@override@JsonKey() final  String host;
+@override@JsonKey() final  String username;
+@override@JsonKey() final  String password;
+
+/// Create a copy of WebDavSettingState
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$WebDavSettingStateCopyWith<_WebDavSettingState> get copyWith => __$WebDavSettingStateCopyWithImpl<_WebDavSettingState>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$WebDavSettingStateToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WebDavSettingState&&(identical(other.host, host) || other.host == host)&&(identical(other.username, username) || other.username == username)&&(identical(other.password, password) || other.password == password));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,host,username,password);
+
+@override
+String toString() {
+  return 'WebDavSettingState(host: $host, username: $username, password: $password)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$WebDavSettingStateCopyWith<$Res> implements $WebDavSettingStateCopyWith<$Res> {
+  factory _$WebDavSettingStateCopyWith(_WebDavSettingState value, $Res Function(_WebDavSettingState) _then) = __$WebDavSettingStateCopyWithImpl;
+@override @useResult
+$Res call({
+ String host, String username, String password
+});
+
+
+
+
+}
+/// @nodoc
+class __$WebDavSettingStateCopyWithImpl<$Res>
+    implements _$WebDavSettingStateCopyWith<$Res> {
+  __$WebDavSettingStateCopyWithImpl(this._self, this._then);
+
+  final _WebDavSettingState _self;
+  final $Res Function(_WebDavSettingState) _then;
+
+/// Create a copy of WebDavSettingState
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? host = null,Object? username = null,Object? password = null,}) {
+  return _then(_WebDavSettingState(
+host: null == host ? _self.host : host // ignore: cast_nullable_to_non_nullable
+as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
+as String,password: null == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
 }
 
 
@@ -689,9 +946,323 @@ as int,
 
 
 /// @nodoc
+mixin _$SyncSettingState {
+
+ SyncServiceType get syncServiceType; WebDavSettingState get webdavSetting; S3SettingState get s3Setting; bool get syncSettings; bool get autoSync; bool get syncNotify;
+/// Create a copy of SyncSettingState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SyncSettingStateCopyWith<SyncSettingState> get copyWith => _$SyncSettingStateCopyWithImpl<SyncSettingState>(this as SyncSettingState, _$identity);
+
+  /// Serializes this SyncSettingState to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SyncSettingState&&(identical(other.syncServiceType, syncServiceType) || other.syncServiceType == syncServiceType)&&(identical(other.webdavSetting, webdavSetting) || other.webdavSetting == webdavSetting)&&(identical(other.s3Setting, s3Setting) || other.s3Setting == s3Setting)&&(identical(other.syncSettings, syncSettings) || other.syncSettings == syncSettings)&&(identical(other.autoSync, autoSync) || other.autoSync == autoSync)&&(identical(other.syncNotify, syncNotify) || other.syncNotify == syncNotify));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,syncServiceType,webdavSetting,s3Setting,syncSettings,autoSync,syncNotify);
+
+@override
+String toString() {
+  return 'SyncSettingState(syncServiceType: $syncServiceType, webdavSetting: $webdavSetting, s3Setting: $s3Setting, syncSettings: $syncSettings, autoSync: $autoSync, syncNotify: $syncNotify)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $SyncSettingStateCopyWith<$Res>  {
+  factory $SyncSettingStateCopyWith(SyncSettingState value, $Res Function(SyncSettingState) _then) = _$SyncSettingStateCopyWithImpl;
+@useResult
+$Res call({
+ SyncServiceType syncServiceType, WebDavSettingState webdavSetting, S3SettingState s3Setting, bool syncSettings, bool autoSync, bool syncNotify
+});
+
+
+$WebDavSettingStateCopyWith<$Res> get webdavSetting;$S3SettingStateCopyWith<$Res> get s3Setting;
+
+}
+/// @nodoc
+class _$SyncSettingStateCopyWithImpl<$Res>
+    implements $SyncSettingStateCopyWith<$Res> {
+  _$SyncSettingStateCopyWithImpl(this._self, this._then);
+
+  final SyncSettingState _self;
+  final $Res Function(SyncSettingState) _then;
+
+/// Create a copy of SyncSettingState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? syncServiceType = null,Object? webdavSetting = null,Object? s3Setting = null,Object? syncSettings = null,Object? autoSync = null,Object? syncNotify = null,}) {
+  return _then(_self.copyWith(
+syncServiceType: null == syncServiceType ? _self.syncServiceType : syncServiceType // ignore: cast_nullable_to_non_nullable
+as SyncServiceType,webdavSetting: null == webdavSetting ? _self.webdavSetting : webdavSetting // ignore: cast_nullable_to_non_nullable
+as WebDavSettingState,s3Setting: null == s3Setting ? _self.s3Setting : s3Setting // ignore: cast_nullable_to_non_nullable
+as S3SettingState,syncSettings: null == syncSettings ? _self.syncSettings : syncSettings // ignore: cast_nullable_to_non_nullable
+as bool,autoSync: null == autoSync ? _self.autoSync : autoSync // ignore: cast_nullable_to_non_nullable
+as bool,syncNotify: null == syncNotify ? _self.syncNotify : syncNotify // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+/// Create a copy of SyncSettingState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$WebDavSettingStateCopyWith<$Res> get webdavSetting {
+  
+  return $WebDavSettingStateCopyWith<$Res>(_self.webdavSetting, (value) {
+    return _then(_self.copyWith(webdavSetting: value));
+  });
+}/// Create a copy of SyncSettingState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$S3SettingStateCopyWith<$Res> get s3Setting {
+  
+  return $S3SettingStateCopyWith<$Res>(_self.s3Setting, (value) {
+    return _then(_self.copyWith(s3Setting: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [SyncSettingState].
+extension SyncSettingStatePatterns on SyncSettingState {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SyncSettingState value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _SyncSettingState() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SyncSettingState value)  $default,){
+final _that = this;
+switch (_that) {
+case _SyncSettingState():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SyncSettingState value)?  $default,){
+final _that = this;
+switch (_that) {
+case _SyncSettingState() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( SyncServiceType syncServiceType,  WebDavSettingState webdavSetting,  S3SettingState s3Setting,  bool syncSettings,  bool autoSync,  bool syncNotify)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _SyncSettingState() when $default != null:
+return $default(_that.syncServiceType,_that.webdavSetting,_that.s3Setting,_that.syncSettings,_that.autoSync,_that.syncNotify);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( SyncServiceType syncServiceType,  WebDavSettingState webdavSetting,  S3SettingState s3Setting,  bool syncSettings,  bool autoSync,  bool syncNotify)  $default,) {final _that = this;
+switch (_that) {
+case _SyncSettingState():
+return $default(_that.syncServiceType,_that.webdavSetting,_that.s3Setting,_that.syncSettings,_that.autoSync,_that.syncNotify);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( SyncServiceType syncServiceType,  WebDavSettingState webdavSetting,  S3SettingState s3Setting,  bool syncSettings,  bool autoSync,  bool syncNotify)?  $default,) {final _that = this;
+switch (_that) {
+case _SyncSettingState() when $default != null:
+return $default(_that.syncServiceType,_that.webdavSetting,_that.s3Setting,_that.syncSettings,_that.autoSync,_that.syncNotify);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _SyncSettingState implements SyncSettingState {
+  const _SyncSettingState({this.syncServiceType = SyncServiceType.webdav, this.webdavSetting = const WebDavSettingState(), this.s3Setting = const S3SettingState(), this.syncSettings = false, this.autoSync = true, this.syncNotify = true});
+  factory _SyncSettingState.fromJson(Map<String, dynamic> json) => _$SyncSettingStateFromJson(json);
+
+@override@JsonKey() final  SyncServiceType syncServiceType;
+@override@JsonKey() final  WebDavSettingState webdavSetting;
+@override@JsonKey() final  S3SettingState s3Setting;
+@override@JsonKey() final  bool syncSettings;
+@override@JsonKey() final  bool autoSync;
+@override@JsonKey() final  bool syncNotify;
+
+/// Create a copy of SyncSettingState
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$SyncSettingStateCopyWith<_SyncSettingState> get copyWith => __$SyncSettingStateCopyWithImpl<_SyncSettingState>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$SyncSettingStateToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SyncSettingState&&(identical(other.syncServiceType, syncServiceType) || other.syncServiceType == syncServiceType)&&(identical(other.webdavSetting, webdavSetting) || other.webdavSetting == webdavSetting)&&(identical(other.s3Setting, s3Setting) || other.s3Setting == s3Setting)&&(identical(other.syncSettings, syncSettings) || other.syncSettings == syncSettings)&&(identical(other.autoSync, autoSync) || other.autoSync == autoSync)&&(identical(other.syncNotify, syncNotify) || other.syncNotify == syncNotify));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,syncServiceType,webdavSetting,s3Setting,syncSettings,autoSync,syncNotify);
+
+@override
+String toString() {
+  return 'SyncSettingState(syncServiceType: $syncServiceType, webdavSetting: $webdavSetting, s3Setting: $s3Setting, syncSettings: $syncSettings, autoSync: $autoSync, syncNotify: $syncNotify)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$SyncSettingStateCopyWith<$Res> implements $SyncSettingStateCopyWith<$Res> {
+  factory _$SyncSettingStateCopyWith(_SyncSettingState value, $Res Function(_SyncSettingState) _then) = __$SyncSettingStateCopyWithImpl;
+@override @useResult
+$Res call({
+ SyncServiceType syncServiceType, WebDavSettingState webdavSetting, S3SettingState s3Setting, bool syncSettings, bool autoSync, bool syncNotify
+});
+
+
+@override $WebDavSettingStateCopyWith<$Res> get webdavSetting;@override $S3SettingStateCopyWith<$Res> get s3Setting;
+
+}
+/// @nodoc
+class __$SyncSettingStateCopyWithImpl<$Res>
+    implements _$SyncSettingStateCopyWith<$Res> {
+  __$SyncSettingStateCopyWithImpl(this._self, this._then);
+
+  final _SyncSettingState _self;
+  final $Res Function(_SyncSettingState) _then;
+
+/// Create a copy of SyncSettingState
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? syncServiceType = null,Object? webdavSetting = null,Object? s3Setting = null,Object? syncSettings = null,Object? autoSync = null,Object? syncNotify = null,}) {
+  return _then(_SyncSettingState(
+syncServiceType: null == syncServiceType ? _self.syncServiceType : syncServiceType // ignore: cast_nullable_to_non_nullable
+as SyncServiceType,webdavSetting: null == webdavSetting ? _self.webdavSetting : webdavSetting // ignore: cast_nullable_to_non_nullable
+as WebDavSettingState,s3Setting: null == s3Setting ? _self.s3Setting : s3Setting // ignore: cast_nullable_to_non_nullable
+as S3SettingState,syncSettings: null == syncSettings ? _self.syncSettings : syncSettings // ignore: cast_nullable_to_non_nullable
+as bool,autoSync: null == autoSync ? _self.autoSync : autoSync // ignore: cast_nullable_to_non_nullable
+as bool,syncNotify: null == syncNotify ? _self.syncNotify : syncNotify // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+/// Create a copy of SyncSettingState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$WebDavSettingStateCopyWith<$Res> get webdavSetting {
+  
+  return $WebDavSettingStateCopyWith<$Res>(_self.webdavSetting, (value) {
+    return _then(_self.copyWith(webdavSetting: value));
+  });
+}/// Create a copy of SyncSettingState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$S3SettingStateCopyWith<$Res> get s3Setting {
+  
+  return $S3SettingStateCopyWith<$Res>(_self.s3Setting, (value) {
+    return _then(_self.copyWith(s3Setting: value));
+  });
+}
+}
+
+
+/// @nodoc
 mixin _$ReadSettingState {
 
- bool get noAnimation; ReaderBackgroundMode get readerBackgroundMode; bool get readFilterEnabled; int get readFilterOpacityPercent; bool get einkOptimization; int get einkDelayMs; bool get autoScroll; int get autoScrollColumnIntervalMs; int get autoScrollPageIntervalMs; int get autoScrollColumnDistancePercent; bool get volumeKeyPageTurn; int get volumeKeyPageTurnDistancePercent; bool get doubleTapZoom; bool get doubleTapOpenMenu; bool get pageInfoShowPage; bool get pageInfoShowNetwork; bool get pageInfoShowBattery; bool get pageInfoShowTime; ReaderInfoVerticalPosition get pageInfoVerticalPosition; bool get pageInfoTopInStatusBar; ReaderInfoHorizontalPosition get pageInfoHorizontalPosition; int get pageInfoEdgePadding; int get pageInfoOpacityPercent; int get pageInfoFontSize;
+ bool get noAnimation; bool get comicReadTopContainer; int get readMode; ReaderBackgroundMode get readerBackgroundMode; bool get readFilterEnabled; int get readFilterOpacityPercent; bool get einkOptimization; int get einkDelayMs; bool get autoScroll; int get autoScrollColumnIntervalMs; int get autoScrollPageIntervalMs; int get autoScrollColumnDistancePercent; bool get volumeKeyPageTurn; int get volumeKeyPageTurnDistancePercent; bool get doubleTapZoom; bool get doubleTapOpenMenu; bool get pageInfoShowPage; bool get pageInfoShowNetwork; bool get pageInfoShowBattery; bool get pageInfoShowTime; ReaderInfoVerticalPosition get pageInfoVerticalPosition; bool get pageInfoTopInStatusBar; ReaderInfoHorizontalPosition get pageInfoHorizontalPosition; int get pageInfoEdgePadding; int get pageInfoOpacityPercent; int get pageInfoFontSize;
 /// Create a copy of ReadSettingState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -704,16 +1275,16 @@ $ReadSettingStateCopyWith<ReadSettingState> get copyWith => _$ReadSettingStateCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReadSettingState&&(identical(other.noAnimation, noAnimation) || other.noAnimation == noAnimation)&&(identical(other.readerBackgroundMode, readerBackgroundMode) || other.readerBackgroundMode == readerBackgroundMode)&&(identical(other.readFilterEnabled, readFilterEnabled) || other.readFilterEnabled == readFilterEnabled)&&(identical(other.readFilterOpacityPercent, readFilterOpacityPercent) || other.readFilterOpacityPercent == readFilterOpacityPercent)&&(identical(other.einkOptimization, einkOptimization) || other.einkOptimization == einkOptimization)&&(identical(other.einkDelayMs, einkDelayMs) || other.einkDelayMs == einkDelayMs)&&(identical(other.autoScroll, autoScroll) || other.autoScroll == autoScroll)&&(identical(other.autoScrollColumnIntervalMs, autoScrollColumnIntervalMs) || other.autoScrollColumnIntervalMs == autoScrollColumnIntervalMs)&&(identical(other.autoScrollPageIntervalMs, autoScrollPageIntervalMs) || other.autoScrollPageIntervalMs == autoScrollPageIntervalMs)&&(identical(other.autoScrollColumnDistancePercent, autoScrollColumnDistancePercent) || other.autoScrollColumnDistancePercent == autoScrollColumnDistancePercent)&&(identical(other.volumeKeyPageTurn, volumeKeyPageTurn) || other.volumeKeyPageTurn == volumeKeyPageTurn)&&(identical(other.volumeKeyPageTurnDistancePercent, volumeKeyPageTurnDistancePercent) || other.volumeKeyPageTurnDistancePercent == volumeKeyPageTurnDistancePercent)&&(identical(other.doubleTapZoom, doubleTapZoom) || other.doubleTapZoom == doubleTapZoom)&&(identical(other.doubleTapOpenMenu, doubleTapOpenMenu) || other.doubleTapOpenMenu == doubleTapOpenMenu)&&(identical(other.pageInfoShowPage, pageInfoShowPage) || other.pageInfoShowPage == pageInfoShowPage)&&(identical(other.pageInfoShowNetwork, pageInfoShowNetwork) || other.pageInfoShowNetwork == pageInfoShowNetwork)&&(identical(other.pageInfoShowBattery, pageInfoShowBattery) || other.pageInfoShowBattery == pageInfoShowBattery)&&(identical(other.pageInfoShowTime, pageInfoShowTime) || other.pageInfoShowTime == pageInfoShowTime)&&(identical(other.pageInfoVerticalPosition, pageInfoVerticalPosition) || other.pageInfoVerticalPosition == pageInfoVerticalPosition)&&(identical(other.pageInfoTopInStatusBar, pageInfoTopInStatusBar) || other.pageInfoTopInStatusBar == pageInfoTopInStatusBar)&&(identical(other.pageInfoHorizontalPosition, pageInfoHorizontalPosition) || other.pageInfoHorizontalPosition == pageInfoHorizontalPosition)&&(identical(other.pageInfoEdgePadding, pageInfoEdgePadding) || other.pageInfoEdgePadding == pageInfoEdgePadding)&&(identical(other.pageInfoOpacityPercent, pageInfoOpacityPercent) || other.pageInfoOpacityPercent == pageInfoOpacityPercent)&&(identical(other.pageInfoFontSize, pageInfoFontSize) || other.pageInfoFontSize == pageInfoFontSize));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReadSettingState&&(identical(other.noAnimation, noAnimation) || other.noAnimation == noAnimation)&&(identical(other.comicReadTopContainer, comicReadTopContainer) || other.comicReadTopContainer == comicReadTopContainer)&&(identical(other.readMode, readMode) || other.readMode == readMode)&&(identical(other.readerBackgroundMode, readerBackgroundMode) || other.readerBackgroundMode == readerBackgroundMode)&&(identical(other.readFilterEnabled, readFilterEnabled) || other.readFilterEnabled == readFilterEnabled)&&(identical(other.readFilterOpacityPercent, readFilterOpacityPercent) || other.readFilterOpacityPercent == readFilterOpacityPercent)&&(identical(other.einkOptimization, einkOptimization) || other.einkOptimization == einkOptimization)&&(identical(other.einkDelayMs, einkDelayMs) || other.einkDelayMs == einkDelayMs)&&(identical(other.autoScroll, autoScroll) || other.autoScroll == autoScroll)&&(identical(other.autoScrollColumnIntervalMs, autoScrollColumnIntervalMs) || other.autoScrollColumnIntervalMs == autoScrollColumnIntervalMs)&&(identical(other.autoScrollPageIntervalMs, autoScrollPageIntervalMs) || other.autoScrollPageIntervalMs == autoScrollPageIntervalMs)&&(identical(other.autoScrollColumnDistancePercent, autoScrollColumnDistancePercent) || other.autoScrollColumnDistancePercent == autoScrollColumnDistancePercent)&&(identical(other.volumeKeyPageTurn, volumeKeyPageTurn) || other.volumeKeyPageTurn == volumeKeyPageTurn)&&(identical(other.volumeKeyPageTurnDistancePercent, volumeKeyPageTurnDistancePercent) || other.volumeKeyPageTurnDistancePercent == volumeKeyPageTurnDistancePercent)&&(identical(other.doubleTapZoom, doubleTapZoom) || other.doubleTapZoom == doubleTapZoom)&&(identical(other.doubleTapOpenMenu, doubleTapOpenMenu) || other.doubleTapOpenMenu == doubleTapOpenMenu)&&(identical(other.pageInfoShowPage, pageInfoShowPage) || other.pageInfoShowPage == pageInfoShowPage)&&(identical(other.pageInfoShowNetwork, pageInfoShowNetwork) || other.pageInfoShowNetwork == pageInfoShowNetwork)&&(identical(other.pageInfoShowBattery, pageInfoShowBattery) || other.pageInfoShowBattery == pageInfoShowBattery)&&(identical(other.pageInfoShowTime, pageInfoShowTime) || other.pageInfoShowTime == pageInfoShowTime)&&(identical(other.pageInfoVerticalPosition, pageInfoVerticalPosition) || other.pageInfoVerticalPosition == pageInfoVerticalPosition)&&(identical(other.pageInfoTopInStatusBar, pageInfoTopInStatusBar) || other.pageInfoTopInStatusBar == pageInfoTopInStatusBar)&&(identical(other.pageInfoHorizontalPosition, pageInfoHorizontalPosition) || other.pageInfoHorizontalPosition == pageInfoHorizontalPosition)&&(identical(other.pageInfoEdgePadding, pageInfoEdgePadding) || other.pageInfoEdgePadding == pageInfoEdgePadding)&&(identical(other.pageInfoOpacityPercent, pageInfoOpacityPercent) || other.pageInfoOpacityPercent == pageInfoOpacityPercent)&&(identical(other.pageInfoFontSize, pageInfoFontSize) || other.pageInfoFontSize == pageInfoFontSize));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,noAnimation,readerBackgroundMode,readFilterEnabled,readFilterOpacityPercent,einkOptimization,einkDelayMs,autoScroll,autoScrollColumnIntervalMs,autoScrollPageIntervalMs,autoScrollColumnDistancePercent,volumeKeyPageTurn,volumeKeyPageTurnDistancePercent,doubleTapZoom,doubleTapOpenMenu,pageInfoShowPage,pageInfoShowNetwork,pageInfoShowBattery,pageInfoShowTime,pageInfoVerticalPosition,pageInfoTopInStatusBar,pageInfoHorizontalPosition,pageInfoEdgePadding,pageInfoOpacityPercent,pageInfoFontSize]);
+int get hashCode => Object.hashAll([runtimeType,noAnimation,comicReadTopContainer,readMode,readerBackgroundMode,readFilterEnabled,readFilterOpacityPercent,einkOptimization,einkDelayMs,autoScroll,autoScrollColumnIntervalMs,autoScrollPageIntervalMs,autoScrollColumnDistancePercent,volumeKeyPageTurn,volumeKeyPageTurnDistancePercent,doubleTapZoom,doubleTapOpenMenu,pageInfoShowPage,pageInfoShowNetwork,pageInfoShowBattery,pageInfoShowTime,pageInfoVerticalPosition,pageInfoTopInStatusBar,pageInfoHorizontalPosition,pageInfoEdgePadding,pageInfoOpacityPercent,pageInfoFontSize]);
 
 @override
 String toString() {
-  return 'ReadSettingState(noAnimation: $noAnimation, readerBackgroundMode: $readerBackgroundMode, readFilterEnabled: $readFilterEnabled, readFilterOpacityPercent: $readFilterOpacityPercent, einkOptimization: $einkOptimization, einkDelayMs: $einkDelayMs, autoScroll: $autoScroll, autoScrollColumnIntervalMs: $autoScrollColumnIntervalMs, autoScrollPageIntervalMs: $autoScrollPageIntervalMs, autoScrollColumnDistancePercent: $autoScrollColumnDistancePercent, volumeKeyPageTurn: $volumeKeyPageTurn, volumeKeyPageTurnDistancePercent: $volumeKeyPageTurnDistancePercent, doubleTapZoom: $doubleTapZoom, doubleTapOpenMenu: $doubleTapOpenMenu, pageInfoShowPage: $pageInfoShowPage, pageInfoShowNetwork: $pageInfoShowNetwork, pageInfoShowBattery: $pageInfoShowBattery, pageInfoShowTime: $pageInfoShowTime, pageInfoVerticalPosition: $pageInfoVerticalPosition, pageInfoTopInStatusBar: $pageInfoTopInStatusBar, pageInfoHorizontalPosition: $pageInfoHorizontalPosition, pageInfoEdgePadding: $pageInfoEdgePadding, pageInfoOpacityPercent: $pageInfoOpacityPercent, pageInfoFontSize: $pageInfoFontSize)';
+  return 'ReadSettingState(noAnimation: $noAnimation, comicReadTopContainer: $comicReadTopContainer, readMode: $readMode, readerBackgroundMode: $readerBackgroundMode, readFilterEnabled: $readFilterEnabled, readFilterOpacityPercent: $readFilterOpacityPercent, einkOptimization: $einkOptimization, einkDelayMs: $einkDelayMs, autoScroll: $autoScroll, autoScrollColumnIntervalMs: $autoScrollColumnIntervalMs, autoScrollPageIntervalMs: $autoScrollPageIntervalMs, autoScrollColumnDistancePercent: $autoScrollColumnDistancePercent, volumeKeyPageTurn: $volumeKeyPageTurn, volumeKeyPageTurnDistancePercent: $volumeKeyPageTurnDistancePercent, doubleTapZoom: $doubleTapZoom, doubleTapOpenMenu: $doubleTapOpenMenu, pageInfoShowPage: $pageInfoShowPage, pageInfoShowNetwork: $pageInfoShowNetwork, pageInfoShowBattery: $pageInfoShowBattery, pageInfoShowTime: $pageInfoShowTime, pageInfoVerticalPosition: $pageInfoVerticalPosition, pageInfoTopInStatusBar: $pageInfoTopInStatusBar, pageInfoHorizontalPosition: $pageInfoHorizontalPosition, pageInfoEdgePadding: $pageInfoEdgePadding, pageInfoOpacityPercent: $pageInfoOpacityPercent, pageInfoFontSize: $pageInfoFontSize)';
 }
 
 
@@ -724,7 +1295,7 @@ abstract mixin class $ReadSettingStateCopyWith<$Res>  {
   factory $ReadSettingStateCopyWith(ReadSettingState value, $Res Function(ReadSettingState) _then) = _$ReadSettingStateCopyWithImpl;
 @useResult
 $Res call({
- bool noAnimation, ReaderBackgroundMode readerBackgroundMode, bool readFilterEnabled, int readFilterOpacityPercent, bool einkOptimization, int einkDelayMs, bool autoScroll, int autoScrollColumnIntervalMs, int autoScrollPageIntervalMs, int autoScrollColumnDistancePercent, bool volumeKeyPageTurn, int volumeKeyPageTurnDistancePercent, bool doubleTapZoom, bool doubleTapOpenMenu, bool pageInfoShowPage, bool pageInfoShowNetwork, bool pageInfoShowBattery, bool pageInfoShowTime, ReaderInfoVerticalPosition pageInfoVerticalPosition, bool pageInfoTopInStatusBar, ReaderInfoHorizontalPosition pageInfoHorizontalPosition, int pageInfoEdgePadding, int pageInfoOpacityPercent, int pageInfoFontSize
+ bool noAnimation, bool comicReadTopContainer, int readMode, ReaderBackgroundMode readerBackgroundMode, bool readFilterEnabled, int readFilterOpacityPercent, bool einkOptimization, int einkDelayMs, bool autoScroll, int autoScrollColumnIntervalMs, int autoScrollPageIntervalMs, int autoScrollColumnDistancePercent, bool volumeKeyPageTurn, int volumeKeyPageTurnDistancePercent, bool doubleTapZoom, bool doubleTapOpenMenu, bool pageInfoShowPage, bool pageInfoShowNetwork, bool pageInfoShowBattery, bool pageInfoShowTime, ReaderInfoVerticalPosition pageInfoVerticalPosition, bool pageInfoTopInStatusBar, ReaderInfoHorizontalPosition pageInfoHorizontalPosition, int pageInfoEdgePadding, int pageInfoOpacityPercent, int pageInfoFontSize
 });
 
 
@@ -741,10 +1312,12 @@ class _$ReadSettingStateCopyWithImpl<$Res>
 
 /// Create a copy of ReadSettingState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? noAnimation = null,Object? readerBackgroundMode = null,Object? readFilterEnabled = null,Object? readFilterOpacityPercent = null,Object? einkOptimization = null,Object? einkDelayMs = null,Object? autoScroll = null,Object? autoScrollColumnIntervalMs = null,Object? autoScrollPageIntervalMs = null,Object? autoScrollColumnDistancePercent = null,Object? volumeKeyPageTurn = null,Object? volumeKeyPageTurnDistancePercent = null,Object? doubleTapZoom = null,Object? doubleTapOpenMenu = null,Object? pageInfoShowPage = null,Object? pageInfoShowNetwork = null,Object? pageInfoShowBattery = null,Object? pageInfoShowTime = null,Object? pageInfoVerticalPosition = null,Object? pageInfoTopInStatusBar = null,Object? pageInfoHorizontalPosition = null,Object? pageInfoEdgePadding = null,Object? pageInfoOpacityPercent = null,Object? pageInfoFontSize = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? noAnimation = null,Object? comicReadTopContainer = null,Object? readMode = null,Object? readerBackgroundMode = null,Object? readFilterEnabled = null,Object? readFilterOpacityPercent = null,Object? einkOptimization = null,Object? einkDelayMs = null,Object? autoScroll = null,Object? autoScrollColumnIntervalMs = null,Object? autoScrollPageIntervalMs = null,Object? autoScrollColumnDistancePercent = null,Object? volumeKeyPageTurn = null,Object? volumeKeyPageTurnDistancePercent = null,Object? doubleTapZoom = null,Object? doubleTapOpenMenu = null,Object? pageInfoShowPage = null,Object? pageInfoShowNetwork = null,Object? pageInfoShowBattery = null,Object? pageInfoShowTime = null,Object? pageInfoVerticalPosition = null,Object? pageInfoTopInStatusBar = null,Object? pageInfoHorizontalPosition = null,Object? pageInfoEdgePadding = null,Object? pageInfoOpacityPercent = null,Object? pageInfoFontSize = null,}) {
   return _then(_self.copyWith(
 noAnimation: null == noAnimation ? _self.noAnimation : noAnimation // ignore: cast_nullable_to_non_nullable
-as bool,readerBackgroundMode: null == readerBackgroundMode ? _self.readerBackgroundMode : readerBackgroundMode // ignore: cast_nullable_to_non_nullable
+as bool,comicReadTopContainer: null == comicReadTopContainer ? _self.comicReadTopContainer : comicReadTopContainer // ignore: cast_nullable_to_non_nullable
+as bool,readMode: null == readMode ? _self.readMode : readMode // ignore: cast_nullable_to_non_nullable
+as int,readerBackgroundMode: null == readerBackgroundMode ? _self.readerBackgroundMode : readerBackgroundMode // ignore: cast_nullable_to_non_nullable
 as ReaderBackgroundMode,readFilterEnabled: null == readFilterEnabled ? _self.readFilterEnabled : readFilterEnabled // ignore: cast_nullable_to_non_nullable
 as bool,readFilterOpacityPercent: null == readFilterOpacityPercent ? _self.readFilterOpacityPercent : readFilterOpacityPercent // ignore: cast_nullable_to_non_nullable
 as int,einkOptimization: null == einkOptimization ? _self.einkOptimization : einkOptimization // ignore: cast_nullable_to_non_nullable
@@ -852,10 +1425,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool noAnimation,  ReaderBackgroundMode readerBackgroundMode,  bool readFilterEnabled,  int readFilterOpacityPercent,  bool einkOptimization,  int einkDelayMs,  bool autoScroll,  int autoScrollColumnIntervalMs,  int autoScrollPageIntervalMs,  int autoScrollColumnDistancePercent,  bool volumeKeyPageTurn,  int volumeKeyPageTurnDistancePercent,  bool doubleTapZoom,  bool doubleTapOpenMenu,  bool pageInfoShowPage,  bool pageInfoShowNetwork,  bool pageInfoShowBattery,  bool pageInfoShowTime,  ReaderInfoVerticalPosition pageInfoVerticalPosition,  bool pageInfoTopInStatusBar,  ReaderInfoHorizontalPosition pageInfoHorizontalPosition,  int pageInfoEdgePadding,  int pageInfoOpacityPercent,  int pageInfoFontSize)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool noAnimation,  bool comicReadTopContainer,  int readMode,  ReaderBackgroundMode readerBackgroundMode,  bool readFilterEnabled,  int readFilterOpacityPercent,  bool einkOptimization,  int einkDelayMs,  bool autoScroll,  int autoScrollColumnIntervalMs,  int autoScrollPageIntervalMs,  int autoScrollColumnDistancePercent,  bool volumeKeyPageTurn,  int volumeKeyPageTurnDistancePercent,  bool doubleTapZoom,  bool doubleTapOpenMenu,  bool pageInfoShowPage,  bool pageInfoShowNetwork,  bool pageInfoShowBattery,  bool pageInfoShowTime,  ReaderInfoVerticalPosition pageInfoVerticalPosition,  bool pageInfoTopInStatusBar,  ReaderInfoHorizontalPosition pageInfoHorizontalPosition,  int pageInfoEdgePadding,  int pageInfoOpacityPercent,  int pageInfoFontSize)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ReadSettingState() when $default != null:
-return $default(_that.noAnimation,_that.readerBackgroundMode,_that.readFilterEnabled,_that.readFilterOpacityPercent,_that.einkOptimization,_that.einkDelayMs,_that.autoScroll,_that.autoScrollColumnIntervalMs,_that.autoScrollPageIntervalMs,_that.autoScrollColumnDistancePercent,_that.volumeKeyPageTurn,_that.volumeKeyPageTurnDistancePercent,_that.doubleTapZoom,_that.doubleTapOpenMenu,_that.pageInfoShowPage,_that.pageInfoShowNetwork,_that.pageInfoShowBattery,_that.pageInfoShowTime,_that.pageInfoVerticalPosition,_that.pageInfoTopInStatusBar,_that.pageInfoHorizontalPosition,_that.pageInfoEdgePadding,_that.pageInfoOpacityPercent,_that.pageInfoFontSize);case _:
+return $default(_that.noAnimation,_that.comicReadTopContainer,_that.readMode,_that.readerBackgroundMode,_that.readFilterEnabled,_that.readFilterOpacityPercent,_that.einkOptimization,_that.einkDelayMs,_that.autoScroll,_that.autoScrollColumnIntervalMs,_that.autoScrollPageIntervalMs,_that.autoScrollColumnDistancePercent,_that.volumeKeyPageTurn,_that.volumeKeyPageTurnDistancePercent,_that.doubleTapZoom,_that.doubleTapOpenMenu,_that.pageInfoShowPage,_that.pageInfoShowNetwork,_that.pageInfoShowBattery,_that.pageInfoShowTime,_that.pageInfoVerticalPosition,_that.pageInfoTopInStatusBar,_that.pageInfoHorizontalPosition,_that.pageInfoEdgePadding,_that.pageInfoOpacityPercent,_that.pageInfoFontSize);case _:
   return orElse();
 
 }
@@ -873,10 +1446,10 @@ return $default(_that.noAnimation,_that.readerBackgroundMode,_that.readFilterEna
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool noAnimation,  ReaderBackgroundMode readerBackgroundMode,  bool readFilterEnabled,  int readFilterOpacityPercent,  bool einkOptimization,  int einkDelayMs,  bool autoScroll,  int autoScrollColumnIntervalMs,  int autoScrollPageIntervalMs,  int autoScrollColumnDistancePercent,  bool volumeKeyPageTurn,  int volumeKeyPageTurnDistancePercent,  bool doubleTapZoom,  bool doubleTapOpenMenu,  bool pageInfoShowPage,  bool pageInfoShowNetwork,  bool pageInfoShowBattery,  bool pageInfoShowTime,  ReaderInfoVerticalPosition pageInfoVerticalPosition,  bool pageInfoTopInStatusBar,  ReaderInfoHorizontalPosition pageInfoHorizontalPosition,  int pageInfoEdgePadding,  int pageInfoOpacityPercent,  int pageInfoFontSize)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool noAnimation,  bool comicReadTopContainer,  int readMode,  ReaderBackgroundMode readerBackgroundMode,  bool readFilterEnabled,  int readFilterOpacityPercent,  bool einkOptimization,  int einkDelayMs,  bool autoScroll,  int autoScrollColumnIntervalMs,  int autoScrollPageIntervalMs,  int autoScrollColumnDistancePercent,  bool volumeKeyPageTurn,  int volumeKeyPageTurnDistancePercent,  bool doubleTapZoom,  bool doubleTapOpenMenu,  bool pageInfoShowPage,  bool pageInfoShowNetwork,  bool pageInfoShowBattery,  bool pageInfoShowTime,  ReaderInfoVerticalPosition pageInfoVerticalPosition,  bool pageInfoTopInStatusBar,  ReaderInfoHorizontalPosition pageInfoHorizontalPosition,  int pageInfoEdgePadding,  int pageInfoOpacityPercent,  int pageInfoFontSize)  $default,) {final _that = this;
 switch (_that) {
 case _ReadSettingState():
-return $default(_that.noAnimation,_that.readerBackgroundMode,_that.readFilterEnabled,_that.readFilterOpacityPercent,_that.einkOptimization,_that.einkDelayMs,_that.autoScroll,_that.autoScrollColumnIntervalMs,_that.autoScrollPageIntervalMs,_that.autoScrollColumnDistancePercent,_that.volumeKeyPageTurn,_that.volumeKeyPageTurnDistancePercent,_that.doubleTapZoom,_that.doubleTapOpenMenu,_that.pageInfoShowPage,_that.pageInfoShowNetwork,_that.pageInfoShowBattery,_that.pageInfoShowTime,_that.pageInfoVerticalPosition,_that.pageInfoTopInStatusBar,_that.pageInfoHorizontalPosition,_that.pageInfoEdgePadding,_that.pageInfoOpacityPercent,_that.pageInfoFontSize);case _:
+return $default(_that.noAnimation,_that.comicReadTopContainer,_that.readMode,_that.readerBackgroundMode,_that.readFilterEnabled,_that.readFilterOpacityPercent,_that.einkOptimization,_that.einkDelayMs,_that.autoScroll,_that.autoScrollColumnIntervalMs,_that.autoScrollPageIntervalMs,_that.autoScrollColumnDistancePercent,_that.volumeKeyPageTurn,_that.volumeKeyPageTurnDistancePercent,_that.doubleTapZoom,_that.doubleTapOpenMenu,_that.pageInfoShowPage,_that.pageInfoShowNetwork,_that.pageInfoShowBattery,_that.pageInfoShowTime,_that.pageInfoVerticalPosition,_that.pageInfoTopInStatusBar,_that.pageInfoHorizontalPosition,_that.pageInfoEdgePadding,_that.pageInfoOpacityPercent,_that.pageInfoFontSize);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -893,10 +1466,10 @@ return $default(_that.noAnimation,_that.readerBackgroundMode,_that.readFilterEna
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool noAnimation,  ReaderBackgroundMode readerBackgroundMode,  bool readFilterEnabled,  int readFilterOpacityPercent,  bool einkOptimization,  int einkDelayMs,  bool autoScroll,  int autoScrollColumnIntervalMs,  int autoScrollPageIntervalMs,  int autoScrollColumnDistancePercent,  bool volumeKeyPageTurn,  int volumeKeyPageTurnDistancePercent,  bool doubleTapZoom,  bool doubleTapOpenMenu,  bool pageInfoShowPage,  bool pageInfoShowNetwork,  bool pageInfoShowBattery,  bool pageInfoShowTime,  ReaderInfoVerticalPosition pageInfoVerticalPosition,  bool pageInfoTopInStatusBar,  ReaderInfoHorizontalPosition pageInfoHorizontalPosition,  int pageInfoEdgePadding,  int pageInfoOpacityPercent,  int pageInfoFontSize)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool noAnimation,  bool comicReadTopContainer,  int readMode,  ReaderBackgroundMode readerBackgroundMode,  bool readFilterEnabled,  int readFilterOpacityPercent,  bool einkOptimization,  int einkDelayMs,  bool autoScroll,  int autoScrollColumnIntervalMs,  int autoScrollPageIntervalMs,  int autoScrollColumnDistancePercent,  bool volumeKeyPageTurn,  int volumeKeyPageTurnDistancePercent,  bool doubleTapZoom,  bool doubleTapOpenMenu,  bool pageInfoShowPage,  bool pageInfoShowNetwork,  bool pageInfoShowBattery,  bool pageInfoShowTime,  ReaderInfoVerticalPosition pageInfoVerticalPosition,  bool pageInfoTopInStatusBar,  ReaderInfoHorizontalPosition pageInfoHorizontalPosition,  int pageInfoEdgePadding,  int pageInfoOpacityPercent,  int pageInfoFontSize)?  $default,) {final _that = this;
 switch (_that) {
 case _ReadSettingState() when $default != null:
-return $default(_that.noAnimation,_that.readerBackgroundMode,_that.readFilterEnabled,_that.readFilterOpacityPercent,_that.einkOptimization,_that.einkDelayMs,_that.autoScroll,_that.autoScrollColumnIntervalMs,_that.autoScrollPageIntervalMs,_that.autoScrollColumnDistancePercent,_that.volumeKeyPageTurn,_that.volumeKeyPageTurnDistancePercent,_that.doubleTapZoom,_that.doubleTapOpenMenu,_that.pageInfoShowPage,_that.pageInfoShowNetwork,_that.pageInfoShowBattery,_that.pageInfoShowTime,_that.pageInfoVerticalPosition,_that.pageInfoTopInStatusBar,_that.pageInfoHorizontalPosition,_that.pageInfoEdgePadding,_that.pageInfoOpacityPercent,_that.pageInfoFontSize);case _:
+return $default(_that.noAnimation,_that.comicReadTopContainer,_that.readMode,_that.readerBackgroundMode,_that.readFilterEnabled,_that.readFilterOpacityPercent,_that.einkOptimization,_that.einkDelayMs,_that.autoScroll,_that.autoScrollColumnIntervalMs,_that.autoScrollPageIntervalMs,_that.autoScrollColumnDistancePercent,_that.volumeKeyPageTurn,_that.volumeKeyPageTurnDistancePercent,_that.doubleTapZoom,_that.doubleTapOpenMenu,_that.pageInfoShowPage,_that.pageInfoShowNetwork,_that.pageInfoShowBattery,_that.pageInfoShowTime,_that.pageInfoVerticalPosition,_that.pageInfoTopInStatusBar,_that.pageInfoHorizontalPosition,_that.pageInfoEdgePadding,_that.pageInfoOpacityPercent,_that.pageInfoFontSize);case _:
   return null;
 
 }
@@ -908,10 +1481,12 @@ return $default(_that.noAnimation,_that.readerBackgroundMode,_that.readFilterEna
 @JsonSerializable()
 
 class _ReadSettingState implements ReadSettingState {
-  const _ReadSettingState({this.noAnimation = false, this.readerBackgroundMode = ReaderBackgroundMode.auto, this.readFilterEnabled = true, this.readFilterOpacityPercent = 50, this.einkOptimization = false, this.einkDelayMs = 120, this.autoScroll = false, this.autoScrollColumnIntervalMs = 1600, this.autoScrollPageIntervalMs = 3000, this.autoScrollColumnDistancePercent = 72, this.volumeKeyPageTurn = true, this.volumeKeyPageTurnDistancePercent = 72, this.doubleTapZoom = false, this.doubleTapOpenMenu = false, this.pageInfoShowPage = true, this.pageInfoShowNetwork = true, this.pageInfoShowBattery = false, this.pageInfoShowTime = true, this.pageInfoVerticalPosition = ReaderInfoVerticalPosition.bottom, this.pageInfoTopInStatusBar = false, this.pageInfoHorizontalPosition = ReaderInfoHorizontalPosition.left, this.pageInfoEdgePadding = 12, this.pageInfoOpacityPercent = 82, this.pageInfoFontSize = 12});
+  const _ReadSettingState({this.noAnimation = false, this.comicReadTopContainer = true, this.readMode = 0, this.readerBackgroundMode = ReaderBackgroundMode.auto, this.readFilterEnabled = true, this.readFilterOpacityPercent = 50, this.einkOptimization = false, this.einkDelayMs = 120, this.autoScroll = false, this.autoScrollColumnIntervalMs = 1600, this.autoScrollPageIntervalMs = 3000, this.autoScrollColumnDistancePercent = 72, this.volumeKeyPageTurn = true, this.volumeKeyPageTurnDistancePercent = 72, this.doubleTapZoom = false, this.doubleTapOpenMenu = false, this.pageInfoShowPage = true, this.pageInfoShowNetwork = true, this.pageInfoShowBattery = false, this.pageInfoShowTime = true, this.pageInfoVerticalPosition = ReaderInfoVerticalPosition.bottom, this.pageInfoTopInStatusBar = false, this.pageInfoHorizontalPosition = ReaderInfoHorizontalPosition.left, this.pageInfoEdgePadding = 12, this.pageInfoOpacityPercent = 82, this.pageInfoFontSize = 12});
   factory _ReadSettingState.fromJson(Map<String, dynamic> json) => _$ReadSettingStateFromJson(json);
 
 @override@JsonKey() final  bool noAnimation;
+@override@JsonKey() final  bool comicReadTopContainer;
+@override@JsonKey() final  int readMode;
 @override@JsonKey() final  ReaderBackgroundMode readerBackgroundMode;
 @override@JsonKey() final  bool readFilterEnabled;
 @override@JsonKey() final  int readFilterOpacityPercent;
@@ -949,16 +1524,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReadSettingState&&(identical(other.noAnimation, noAnimation) || other.noAnimation == noAnimation)&&(identical(other.readerBackgroundMode, readerBackgroundMode) || other.readerBackgroundMode == readerBackgroundMode)&&(identical(other.readFilterEnabled, readFilterEnabled) || other.readFilterEnabled == readFilterEnabled)&&(identical(other.readFilterOpacityPercent, readFilterOpacityPercent) || other.readFilterOpacityPercent == readFilterOpacityPercent)&&(identical(other.einkOptimization, einkOptimization) || other.einkOptimization == einkOptimization)&&(identical(other.einkDelayMs, einkDelayMs) || other.einkDelayMs == einkDelayMs)&&(identical(other.autoScroll, autoScroll) || other.autoScroll == autoScroll)&&(identical(other.autoScrollColumnIntervalMs, autoScrollColumnIntervalMs) || other.autoScrollColumnIntervalMs == autoScrollColumnIntervalMs)&&(identical(other.autoScrollPageIntervalMs, autoScrollPageIntervalMs) || other.autoScrollPageIntervalMs == autoScrollPageIntervalMs)&&(identical(other.autoScrollColumnDistancePercent, autoScrollColumnDistancePercent) || other.autoScrollColumnDistancePercent == autoScrollColumnDistancePercent)&&(identical(other.volumeKeyPageTurn, volumeKeyPageTurn) || other.volumeKeyPageTurn == volumeKeyPageTurn)&&(identical(other.volumeKeyPageTurnDistancePercent, volumeKeyPageTurnDistancePercent) || other.volumeKeyPageTurnDistancePercent == volumeKeyPageTurnDistancePercent)&&(identical(other.doubleTapZoom, doubleTapZoom) || other.doubleTapZoom == doubleTapZoom)&&(identical(other.doubleTapOpenMenu, doubleTapOpenMenu) || other.doubleTapOpenMenu == doubleTapOpenMenu)&&(identical(other.pageInfoShowPage, pageInfoShowPage) || other.pageInfoShowPage == pageInfoShowPage)&&(identical(other.pageInfoShowNetwork, pageInfoShowNetwork) || other.pageInfoShowNetwork == pageInfoShowNetwork)&&(identical(other.pageInfoShowBattery, pageInfoShowBattery) || other.pageInfoShowBattery == pageInfoShowBattery)&&(identical(other.pageInfoShowTime, pageInfoShowTime) || other.pageInfoShowTime == pageInfoShowTime)&&(identical(other.pageInfoVerticalPosition, pageInfoVerticalPosition) || other.pageInfoVerticalPosition == pageInfoVerticalPosition)&&(identical(other.pageInfoTopInStatusBar, pageInfoTopInStatusBar) || other.pageInfoTopInStatusBar == pageInfoTopInStatusBar)&&(identical(other.pageInfoHorizontalPosition, pageInfoHorizontalPosition) || other.pageInfoHorizontalPosition == pageInfoHorizontalPosition)&&(identical(other.pageInfoEdgePadding, pageInfoEdgePadding) || other.pageInfoEdgePadding == pageInfoEdgePadding)&&(identical(other.pageInfoOpacityPercent, pageInfoOpacityPercent) || other.pageInfoOpacityPercent == pageInfoOpacityPercent)&&(identical(other.pageInfoFontSize, pageInfoFontSize) || other.pageInfoFontSize == pageInfoFontSize));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReadSettingState&&(identical(other.noAnimation, noAnimation) || other.noAnimation == noAnimation)&&(identical(other.comicReadTopContainer, comicReadTopContainer) || other.comicReadTopContainer == comicReadTopContainer)&&(identical(other.readMode, readMode) || other.readMode == readMode)&&(identical(other.readerBackgroundMode, readerBackgroundMode) || other.readerBackgroundMode == readerBackgroundMode)&&(identical(other.readFilterEnabled, readFilterEnabled) || other.readFilterEnabled == readFilterEnabled)&&(identical(other.readFilterOpacityPercent, readFilterOpacityPercent) || other.readFilterOpacityPercent == readFilterOpacityPercent)&&(identical(other.einkOptimization, einkOptimization) || other.einkOptimization == einkOptimization)&&(identical(other.einkDelayMs, einkDelayMs) || other.einkDelayMs == einkDelayMs)&&(identical(other.autoScroll, autoScroll) || other.autoScroll == autoScroll)&&(identical(other.autoScrollColumnIntervalMs, autoScrollColumnIntervalMs) || other.autoScrollColumnIntervalMs == autoScrollColumnIntervalMs)&&(identical(other.autoScrollPageIntervalMs, autoScrollPageIntervalMs) || other.autoScrollPageIntervalMs == autoScrollPageIntervalMs)&&(identical(other.autoScrollColumnDistancePercent, autoScrollColumnDistancePercent) || other.autoScrollColumnDistancePercent == autoScrollColumnDistancePercent)&&(identical(other.volumeKeyPageTurn, volumeKeyPageTurn) || other.volumeKeyPageTurn == volumeKeyPageTurn)&&(identical(other.volumeKeyPageTurnDistancePercent, volumeKeyPageTurnDistancePercent) || other.volumeKeyPageTurnDistancePercent == volumeKeyPageTurnDistancePercent)&&(identical(other.doubleTapZoom, doubleTapZoom) || other.doubleTapZoom == doubleTapZoom)&&(identical(other.doubleTapOpenMenu, doubleTapOpenMenu) || other.doubleTapOpenMenu == doubleTapOpenMenu)&&(identical(other.pageInfoShowPage, pageInfoShowPage) || other.pageInfoShowPage == pageInfoShowPage)&&(identical(other.pageInfoShowNetwork, pageInfoShowNetwork) || other.pageInfoShowNetwork == pageInfoShowNetwork)&&(identical(other.pageInfoShowBattery, pageInfoShowBattery) || other.pageInfoShowBattery == pageInfoShowBattery)&&(identical(other.pageInfoShowTime, pageInfoShowTime) || other.pageInfoShowTime == pageInfoShowTime)&&(identical(other.pageInfoVerticalPosition, pageInfoVerticalPosition) || other.pageInfoVerticalPosition == pageInfoVerticalPosition)&&(identical(other.pageInfoTopInStatusBar, pageInfoTopInStatusBar) || other.pageInfoTopInStatusBar == pageInfoTopInStatusBar)&&(identical(other.pageInfoHorizontalPosition, pageInfoHorizontalPosition) || other.pageInfoHorizontalPosition == pageInfoHorizontalPosition)&&(identical(other.pageInfoEdgePadding, pageInfoEdgePadding) || other.pageInfoEdgePadding == pageInfoEdgePadding)&&(identical(other.pageInfoOpacityPercent, pageInfoOpacityPercent) || other.pageInfoOpacityPercent == pageInfoOpacityPercent)&&(identical(other.pageInfoFontSize, pageInfoFontSize) || other.pageInfoFontSize == pageInfoFontSize));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,noAnimation,readerBackgroundMode,readFilterEnabled,readFilterOpacityPercent,einkOptimization,einkDelayMs,autoScroll,autoScrollColumnIntervalMs,autoScrollPageIntervalMs,autoScrollColumnDistancePercent,volumeKeyPageTurn,volumeKeyPageTurnDistancePercent,doubleTapZoom,doubleTapOpenMenu,pageInfoShowPage,pageInfoShowNetwork,pageInfoShowBattery,pageInfoShowTime,pageInfoVerticalPosition,pageInfoTopInStatusBar,pageInfoHorizontalPosition,pageInfoEdgePadding,pageInfoOpacityPercent,pageInfoFontSize]);
+int get hashCode => Object.hashAll([runtimeType,noAnimation,comicReadTopContainer,readMode,readerBackgroundMode,readFilterEnabled,readFilterOpacityPercent,einkOptimization,einkDelayMs,autoScroll,autoScrollColumnIntervalMs,autoScrollPageIntervalMs,autoScrollColumnDistancePercent,volumeKeyPageTurn,volumeKeyPageTurnDistancePercent,doubleTapZoom,doubleTapOpenMenu,pageInfoShowPage,pageInfoShowNetwork,pageInfoShowBattery,pageInfoShowTime,pageInfoVerticalPosition,pageInfoTopInStatusBar,pageInfoHorizontalPosition,pageInfoEdgePadding,pageInfoOpacityPercent,pageInfoFontSize]);
 
 @override
 String toString() {
-  return 'ReadSettingState(noAnimation: $noAnimation, readerBackgroundMode: $readerBackgroundMode, readFilterEnabled: $readFilterEnabled, readFilterOpacityPercent: $readFilterOpacityPercent, einkOptimization: $einkOptimization, einkDelayMs: $einkDelayMs, autoScroll: $autoScroll, autoScrollColumnIntervalMs: $autoScrollColumnIntervalMs, autoScrollPageIntervalMs: $autoScrollPageIntervalMs, autoScrollColumnDistancePercent: $autoScrollColumnDistancePercent, volumeKeyPageTurn: $volumeKeyPageTurn, volumeKeyPageTurnDistancePercent: $volumeKeyPageTurnDistancePercent, doubleTapZoom: $doubleTapZoom, doubleTapOpenMenu: $doubleTapOpenMenu, pageInfoShowPage: $pageInfoShowPage, pageInfoShowNetwork: $pageInfoShowNetwork, pageInfoShowBattery: $pageInfoShowBattery, pageInfoShowTime: $pageInfoShowTime, pageInfoVerticalPosition: $pageInfoVerticalPosition, pageInfoTopInStatusBar: $pageInfoTopInStatusBar, pageInfoHorizontalPosition: $pageInfoHorizontalPosition, pageInfoEdgePadding: $pageInfoEdgePadding, pageInfoOpacityPercent: $pageInfoOpacityPercent, pageInfoFontSize: $pageInfoFontSize)';
+  return 'ReadSettingState(noAnimation: $noAnimation, comicReadTopContainer: $comicReadTopContainer, readMode: $readMode, readerBackgroundMode: $readerBackgroundMode, readFilterEnabled: $readFilterEnabled, readFilterOpacityPercent: $readFilterOpacityPercent, einkOptimization: $einkOptimization, einkDelayMs: $einkDelayMs, autoScroll: $autoScroll, autoScrollColumnIntervalMs: $autoScrollColumnIntervalMs, autoScrollPageIntervalMs: $autoScrollPageIntervalMs, autoScrollColumnDistancePercent: $autoScrollColumnDistancePercent, volumeKeyPageTurn: $volumeKeyPageTurn, volumeKeyPageTurnDistancePercent: $volumeKeyPageTurnDistancePercent, doubleTapZoom: $doubleTapZoom, doubleTapOpenMenu: $doubleTapOpenMenu, pageInfoShowPage: $pageInfoShowPage, pageInfoShowNetwork: $pageInfoShowNetwork, pageInfoShowBattery: $pageInfoShowBattery, pageInfoShowTime: $pageInfoShowTime, pageInfoVerticalPosition: $pageInfoVerticalPosition, pageInfoTopInStatusBar: $pageInfoTopInStatusBar, pageInfoHorizontalPosition: $pageInfoHorizontalPosition, pageInfoEdgePadding: $pageInfoEdgePadding, pageInfoOpacityPercent: $pageInfoOpacityPercent, pageInfoFontSize: $pageInfoFontSize)';
 }
 
 
@@ -969,7 +1544,7 @@ abstract mixin class _$ReadSettingStateCopyWith<$Res> implements $ReadSettingSta
   factory _$ReadSettingStateCopyWith(_ReadSettingState value, $Res Function(_ReadSettingState) _then) = __$ReadSettingStateCopyWithImpl;
 @override @useResult
 $Res call({
- bool noAnimation, ReaderBackgroundMode readerBackgroundMode, bool readFilterEnabled, int readFilterOpacityPercent, bool einkOptimization, int einkDelayMs, bool autoScroll, int autoScrollColumnIntervalMs, int autoScrollPageIntervalMs, int autoScrollColumnDistancePercent, bool volumeKeyPageTurn, int volumeKeyPageTurnDistancePercent, bool doubleTapZoom, bool doubleTapOpenMenu, bool pageInfoShowPage, bool pageInfoShowNetwork, bool pageInfoShowBattery, bool pageInfoShowTime, ReaderInfoVerticalPosition pageInfoVerticalPosition, bool pageInfoTopInStatusBar, ReaderInfoHorizontalPosition pageInfoHorizontalPosition, int pageInfoEdgePadding, int pageInfoOpacityPercent, int pageInfoFontSize
+ bool noAnimation, bool comicReadTopContainer, int readMode, ReaderBackgroundMode readerBackgroundMode, bool readFilterEnabled, int readFilterOpacityPercent, bool einkOptimization, int einkDelayMs, bool autoScroll, int autoScrollColumnIntervalMs, int autoScrollPageIntervalMs, int autoScrollColumnDistancePercent, bool volumeKeyPageTurn, int volumeKeyPageTurnDistancePercent, bool doubleTapZoom, bool doubleTapOpenMenu, bool pageInfoShowPage, bool pageInfoShowNetwork, bool pageInfoShowBattery, bool pageInfoShowTime, ReaderInfoVerticalPosition pageInfoVerticalPosition, bool pageInfoTopInStatusBar, ReaderInfoHorizontalPosition pageInfoHorizontalPosition, int pageInfoEdgePadding, int pageInfoOpacityPercent, int pageInfoFontSize
 });
 
 
@@ -986,10 +1561,12 @@ class __$ReadSettingStateCopyWithImpl<$Res>
 
 /// Create a copy of ReadSettingState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? noAnimation = null,Object? readerBackgroundMode = null,Object? readFilterEnabled = null,Object? readFilterOpacityPercent = null,Object? einkOptimization = null,Object? einkDelayMs = null,Object? autoScroll = null,Object? autoScrollColumnIntervalMs = null,Object? autoScrollPageIntervalMs = null,Object? autoScrollColumnDistancePercent = null,Object? volumeKeyPageTurn = null,Object? volumeKeyPageTurnDistancePercent = null,Object? doubleTapZoom = null,Object? doubleTapOpenMenu = null,Object? pageInfoShowPage = null,Object? pageInfoShowNetwork = null,Object? pageInfoShowBattery = null,Object? pageInfoShowTime = null,Object? pageInfoVerticalPosition = null,Object? pageInfoTopInStatusBar = null,Object? pageInfoHorizontalPosition = null,Object? pageInfoEdgePadding = null,Object? pageInfoOpacityPercent = null,Object? pageInfoFontSize = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? noAnimation = null,Object? comicReadTopContainer = null,Object? readMode = null,Object? readerBackgroundMode = null,Object? readFilterEnabled = null,Object? readFilterOpacityPercent = null,Object? einkOptimization = null,Object? einkDelayMs = null,Object? autoScroll = null,Object? autoScrollColumnIntervalMs = null,Object? autoScrollPageIntervalMs = null,Object? autoScrollColumnDistancePercent = null,Object? volumeKeyPageTurn = null,Object? volumeKeyPageTurnDistancePercent = null,Object? doubleTapZoom = null,Object? doubleTapOpenMenu = null,Object? pageInfoShowPage = null,Object? pageInfoShowNetwork = null,Object? pageInfoShowBattery = null,Object? pageInfoShowTime = null,Object? pageInfoVerticalPosition = null,Object? pageInfoTopInStatusBar = null,Object? pageInfoHorizontalPosition = null,Object? pageInfoEdgePadding = null,Object? pageInfoOpacityPercent = null,Object? pageInfoFontSize = null,}) {
   return _then(_ReadSettingState(
 noAnimation: null == noAnimation ? _self.noAnimation : noAnimation // ignore: cast_nullable_to_non_nullable
-as bool,readerBackgroundMode: null == readerBackgroundMode ? _self.readerBackgroundMode : readerBackgroundMode // ignore: cast_nullable_to_non_nullable
+as bool,comicReadTopContainer: null == comicReadTopContainer ? _self.comicReadTopContainer : comicReadTopContainer // ignore: cast_nullable_to_non_nullable
+as bool,readMode: null == readMode ? _self.readMode : readMode // ignore: cast_nullable_to_non_nullable
+as int,readerBackgroundMode: null == readerBackgroundMode ? _self.readerBackgroundMode : readerBackgroundMode // ignore: cast_nullable_to_non_nullable
 as ReaderBackgroundMode,readFilterEnabled: null == readFilterEnabled ? _self.readFilterEnabled : readFilterEnabled // ignore: cast_nullable_to_non_nullable
 as bool,readFilterOpacityPercent: null == readFilterOpacityPercent ? _self.readFilterOpacityPercent : readFilterOpacityPercent // ignore: cast_nullable_to_non_nullable
 as int,einkOptimization: null == einkOptimization ? _self.einkOptimization : einkOptimization // ignore: cast_nullable_to_non_nullable

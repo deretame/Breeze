@@ -65,20 +65,19 @@ class S3SyncService implements ComicSyncRemoteAdapter {
   Future<void> uploadRemoteMd5(String value) async {
     final bytes = utf8.encode(value);
     final data = Uint8List.fromList(bytes);
-    for (final candidate in _md5ObjectKeyCandidates) {
-      await _minio.putObject(
-        _settings.s3Setting.bucket,
-        candidate,
-        Stream<Uint8List>.value(data),
-        size: bytes.length,
-      );
-    }
+    await _minio.putObject(
+      _settings.s3Setting.bucket,
+      _md5ObjectKey,
+      Stream<Uint8List>.value(data),
+      size: bytes.length,
+    );
   }
 
   @override
   Future<List<String>> listRemoteDataFiles() async {
     final result = await _minio.listAllObjects(
       _settings.s3Setting.bucket,
+      prefix: _dataPrefix,
       recursive: true,
     );
 
@@ -86,15 +85,14 @@ class S3SyncService implements ComicSyncRemoteAdapter {
     final seen = <String>{};
     for (final object in result.objects) {
       final key = object.key;
-      if (key == null || key.isEmpty || key == _md5ObjectKey) {
-        continue;
-      }
-      final fileName = key.split('/').last;
-      if (!ComicSyncCore.isSyncDataFileName(fileName)) {
+      if (key == null || key.isEmpty) {
         continue;
       }
 
       final normalized = _normalizeObjectKey(key);
+      if (!normalized.startsWith(_dataPrefix)) {
+        continue;
+      }
       if (!seen.add(normalized)) {
         continue;
       }
@@ -105,7 +103,7 @@ class S3SyncService implements ComicSyncRemoteAdapter {
 
   @override
   Future<List<int>> downloadRemoteFile(String remotePath) async {
-    final objectKey = _normalizeObjectKey(remotePath);
+    final objectKey = _toManagedObjectKey(remotePath);
     final stream = await _minio.getObject(
       _settings.s3Setting.bucket,
       objectKey,
@@ -119,10 +117,7 @@ class S3SyncService implements ComicSyncRemoteAdapter {
     List<int> data, {
     String contentType = 'application/octet-stream',
   }) async {
-    final normalizedRemotePath = _normalizeObjectKey(remotePath);
-    final remoteObject = normalizedRemotePath.startsWith(_prefix)
-        ? normalizedRemotePath
-        : '$_prefix$normalizedRemotePath';
+    final remoteObject = _toManagedObjectKey(remotePath);
 
     await _minio.putObject(
       _settings.s3Setting.bucket,
@@ -139,7 +134,7 @@ class S3SyncService implements ComicSyncRemoteAdapter {
     }
 
     final normalizedPaths = remotePaths
-        .map(_normalizeObjectKey)
+        .map(_toManagedObjectKey)
         .where((path) => path.isNotEmpty)
         .toSet()
         .toList();
@@ -163,14 +158,28 @@ class S3SyncService implements ComicSyncRemoteAdapter {
     }
   }
 
-  String get _prefix => '$appName/';
+  String get _dataPrefix => '$appName/';
 
-  String get _md5ObjectKey => '$_prefix${ComicSyncCore.md5FileName}';
+  String get _settingsPrefix => '${appName}_setting/';
+
+  String get _md5ObjectKey => '$_dataPrefix${ComicSyncCore.md5FileName}';
 
   List<String> get _md5ObjectKeyCandidates => [
     _md5ObjectKey,
     ComicSyncCore.md5FileName,
   ];
+
+  String _toManagedObjectKey(String key) {
+    final normalized = _normalizeObjectKey(key);
+    if (normalized.isEmpty) {
+      return _dataPrefix;
+    }
+    if (normalized.startsWith(_dataPrefix) ||
+        normalized.startsWith(_settingsPrefix)) {
+      return normalized;
+    }
+    return '$_dataPrefix$normalized';
+  }
 
   String _normalizeObjectKey(String key) {
     return key.replaceFirst(RegExp(r'^/+'), '');

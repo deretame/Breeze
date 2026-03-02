@@ -68,6 +68,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               if (configuredSync) _autoSync(state, globalSettingCubit),
               if (configuredSync && state.autoSync)
                 _syncNotify(state, globalSettingCubit),
+              if (configuredSync) _syncSettings(state, globalSettingCubit),
             ],
           ),
           const SizedBox(height: 12),
@@ -198,7 +199,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       thumbIcon: kSettingSwitchThumbIcon,
       value: state.autoSync,
       onChanged: (bool value) {
-        cubit.updateState((current) => current.copyWith(autoSync: value));
+        cubit.updateSyncSetting((current) => current.copyWith(autoSync: value));
         if (value) {
           eventBus.fire(NoticeSync());
         }
@@ -220,8 +221,13 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               return;
             }
 
-            cubit.updateState(
-              (current) => current.copyWith(syncServiceType: value),
+            cubit.updateSyncSetting(
+              (current) => current.copyWith(
+                syncServiceType: value,
+                syncSettings: value == SyncServiceType.none
+                    ? false
+                    : current.syncSettings,
+              ),
             );
           },
           items: SyncServiceType.values
@@ -246,7 +252,24 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       thumbIcon: kSettingSwitchThumbIcon,
       value: state.syncNotify,
       onChanged: (bool value) {
-        cubit.updateState((current) => current.copyWith(syncNotify: value));
+        cubit.updateSyncSetting(
+          (current) => current.copyWith(syncNotify: value),
+        );
+      },
+    );
+  }
+
+  Widget _syncSettings(GlobalSettingState state, GlobalSettingCubit cubit) {
+    return SwitchListTile(
+      secondary: const Icon(Icons.tune_outlined),
+      title: const Text('同步设置'),
+      subtitle: const Text('开启后使用云端设置覆盖本地设置'),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.syncSettings,
+      onChanged: (bool value) {
+        cubit.updateSyncSetting(
+          (current) => current.copyWith(syncSettings: value),
+        );
       },
     );
   }
@@ -262,7 +285,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       thumbIcon: kSettingSwitchThumbIcon,
       value: state.comicReadTopContainer,
       onChanged: (bool value) {
-        cubit.updateState(
+        cubit.updateReadSetting(
           (current) => current.copyWith(comicReadTopContainer: value),
         );
       },

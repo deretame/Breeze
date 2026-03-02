@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:toastification/toastification.dart';
+import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/page/ranking_list/ranking_list.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/auto_check_in.dart';
@@ -259,7 +261,10 @@ class _NavigationBarState extends State<NavigationBar> {
   }
 
   Future<void> _autoSync() async {
-    final globalState = context.read<GlobalSettingCubit>().state;
+    final globalSettingCubit = context.read<GlobalSettingCubit>();
+    final bikaSettingCubit = context.read<BikaSettingCubit>();
+    final jmSettingCubit = context.read<JmSettingCubit>();
+    final globalState = globalSettingCubit.state;
 
     if (globalState.autoSync == false) {
       return;
@@ -270,12 +275,20 @@ class _NavigationBarState extends State<NavigationBar> {
     }
 
     try {
-      await autoSync(globalState);
+      await autoSync(
+        globalState,
+        globalSettingCubit: globalSettingCubit,
+        bikaSettingCubit: bikaSettingCubit,
+        jmSettingCubit: jmSettingCubit,
+      );
       if (globalState.syncNotify) {
         showSuccessToast("自动同步成功！");
       }
-    } catch (e) {
-      logger.e(e.toString());
+      if (mounted) {
+        jmLogin(context);
+      }
+    } catch (e, stackTrace) {
+      logger.e(e.toString(), stackTrace: stackTrace);
       showErrorToast("请检查网络连接或稍后再试。\n${e.toString()}", title: "自动同步失败");
     }
   }

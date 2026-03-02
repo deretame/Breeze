@@ -6,28 +6,12 @@ import '../../../util/router/router.gr.dart';
 Widget buildCommentWidget(BuildContext context) {
   final router = AutoRouter.of(context);
 
-  return GestureDetector(
+  return ListTile(
+    leading: const Icon(Icons.comment_outlined),
+    title: const Text('我的评论'),
+    trailing: const Icon(Icons.chevron_right),
     onTap: () {
       router.push(UserCommentsRoute());
     },
-    behavior: HitTestBehavior.opaque,
-    child: Row(
-      children: [
-        SizedBox(width: 6),
-        Expanded(
-          child: SizedBox(
-            height: 40,
-            child: Row(
-              children: [
-                Icon(Icons.comment),
-                SizedBox(width: 10),
-                Text("我的评论", style: TextStyle(fontSize: 22)),
-                Spacer(),
-              ],
-            ),
-          ),
-        ),
-      ],
-    ),
   );
 }

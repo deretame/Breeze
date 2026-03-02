@@ -37,42 +37,53 @@ class S3SyncService implements ComicSyncRemoteAdapter {
 
   @override
   Future<String> downloadRemoteMd5() async {
-    try {
-      final stream = await _minio.getObject(
-        _settings.s3Setting.bucket,
-        _md5ObjectKey,
-      );
-      final bytes = await _collectStream(stream);
-      return utf8.decode(bytes).trim();
-    } on MinioS3Error catch (e) {
-      final code = e.error?.code;
-      if (code == 'NoSuchKey' || code == 'NotFound' || code == 'NoSuchObject') {
-        return '';
+    for (final candidate in _md5ObjectKeyCandidates) {
+      try {
+        final stream = await _minio.getObject(
+          _settings.s3Setting.bucket,
+          candidate,
+        );
+        final bytes = await _collectStream(stream);
+        final value = utf8.decode(bytes).trim();
+        if (value.isNotEmpty) {
+          return value;
+        }
+      } on MinioS3Error catch (e) {
+        final code = e.error?.code;
+        if (code == 'NoSuchKey' ||
+            code == 'NotFound' ||
+            code == 'NoSuchObject') {
+          continue;
+        }
+        throw Exception('S3 md5 下载失败: ${e.message}');
       }
-      throw Exception('S3 md5 下载失败: ${e.message}');
     }
+    return '';
   }
 
   @override
   Future<void> uploadRemoteMd5(String value) async {
     final bytes = utf8.encode(value);
-    await _minio.putObject(
-      _settings.s3Setting.bucket,
-      _md5ObjectKey,
-      Stream<Uint8List>.value(Uint8List.fromList(bytes)),
-      size: bytes.length,
-    );
+    final data = Uint8List.fromList(bytes);
+    for (final candidate in _md5ObjectKeyCandidates) {
+      await _minio.putObject(
+        _settings.s3Setting.bucket,
+        candidate,
+        Stream<Uint8List>.value(data),
+        size: bytes.length,
+      );
+    }
   }
 
   @override
   Future<List<String>> listRemoteDataFiles() async {
     final result = await _minio.listAllObjects(
       _settings.s3Setting.bucket,
-      prefix: _prefix,
       recursive: true,
     );
 
     final files = <String>[];
+    final seen = <String>{};
     for (final object in result.objects) {
       final key = object.key;
       if (key == null || key.isEmpty || key == _md5ObjectKey) {
@@ -82,16 +93,22 @@ class S3SyncService implements ComicSyncRemoteAdapter {
       if (!ComicSyncCore.isSyncDataFileName(fileName)) {
         continue;
       }
-      files.add(key);
+
+      final normalized = _normalizeObjectKey(key);
+      if (!seen.add(normalized)) {
+        continue;
+      }
+      files.add(normalized);
     }
     return files;
   }
 
   @override
   Future<List<int>> downloadRemoteFile(String remotePath) async {
+    final objectKey = _normalizeObjectKey(remotePath);
     final stream = await _minio.getObject(
       _settings.s3Setting.bucket,
-      remotePath,
+      objectKey,
     );
     return _collectStream(stream);
   }
@@ -102,9 +119,10 @@ class S3SyncService implements ComicSyncRemoteAdapter {
     List<int> data, {
     String contentType = 'application/octet-stream',
   }) async {
-    final remoteObject = remotePath.startsWith(_prefix)
-        ? remotePath
-        : '$_prefix$remotePath';
+    final normalizedRemotePath = _normalizeObjectKey(remotePath);
+    final remoteObject = normalizedRemotePath.startsWith(_prefix)
+        ? normalizedRemotePath
+        : '$_prefix$normalizedRemotePath';
 
     await _minio.putObject(
       _settings.s3Setting.bucket,
@@ -120,12 +138,43 @@ class S3SyncService implements ComicSyncRemoteAdapter {
       return;
     }
 
-    await _minio.removeObjects(_settings.s3Setting.bucket, remotePaths);
+    final normalizedPaths = remotePaths
+        .map(_normalizeObjectKey)
+        .where((path) => path.isNotEmpty)
+        .toSet()
+        .toList();
+
+    if (normalizedPaths.isEmpty) {
+      return;
+    }
+
+    for (final path in normalizedPaths) {
+      try {
+        await _minio.removeObject(_settings.s3Setting.bucket, path);
+      } on MinioS3Error catch (e) {
+        final code = e.error?.code;
+        if (code == 'NoSuchKey' ||
+            code == 'NotFound' ||
+            code == 'NoSuchObject') {
+          continue;
+        }
+        throw Exception('S3 文件删除失败: ${e.message}');
+      }
+    }
   }
 
   String get _prefix => '$appName/';
 
   String get _md5ObjectKey => '$_prefix${ComicSyncCore.md5FileName}';
+
+  List<String> get _md5ObjectKeyCandidates => [
+    _md5ObjectKey,
+    ComicSyncCore.md5FileName,
+  ];
+
+  String _normalizeObjectKey(String key) {
+    return key.replaceFirst(RegExp(r'^/+'), '');
+  }
 
   Future<List<int>> _collectStream(Stream<List<int>> stream) async {
     final data = <int>[];

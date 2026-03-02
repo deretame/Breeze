@@ -151,6 +151,7 @@ class WebDavSyncService implements ComicSyncRemoteAdapter {
       final propstatElement = '$namespacePrefix:propstat';
       final propElement = '$namespacePrefix:prop';
       final displayNameElement = '$namespacePrefix:displayname';
+      final hrefElement = '$namespacePrefix:href';
 
       final elements = xmlDoc.findAllElements(responseElement);
 
@@ -166,18 +167,22 @@ class WebDavSyncService implements ComicSyncRemoteAdapter {
         }
 
         final prop = props.first;
-        final displayName = prop.findElements(displayNameElement).isEmpty
-            ? null
-            : prop.findElements(displayNameElement).first.innerText;
+        final displayName = _findFirstInnerText(prop, displayNameElement);
+        final href = _findFirstInnerText(element, hrefElement);
+        final remotePath = _resolveRemoteFilePath(
+          href: href,
+          displayName: displayName,
+        );
+        final fileName = _extractFileNameFromPath(remotePath);
 
-        if (displayName == null ||
-            displayName == ComicSyncCore.md5FileName ||
+        if (fileName.isEmpty ||
+            fileName == ComicSyncCore.md5FileName ||
             _xmlIsDirectory(prop, namespacePrefix) ||
-            !ComicSyncCore.isSyncDataFileName(displayName)) {
+            !ComicSyncCore.isSyncDataFileName(fileName)) {
           continue;
         }
 
-        urlList.add('/$appName/$displayName');
+        urlList.add(remotePath);
       }
     } catch (e) {
       throw Exception('WebDAV 服务请求失败: $e');
@@ -296,5 +301,39 @@ class WebDavSyncService implements ComicSyncRemoteAdapter {
       return false;
     }
     return resourceType.first.findElements(collectionElement).isNotEmpty;
+  }
+
+  String? _findFirstInnerText(XmlElement parent, String elementName) {
+    final elements = parent.findElements(elementName);
+    if (elements.isEmpty) {
+      return null;
+    }
+    final value = elements.first.innerText.trim();
+    return value.isEmpty ? null : value;
+  }
+
+  String _resolveRemoteFilePath({String? href, String? displayName}) {
+    if (href != null && href.isNotEmpty) {
+      final uri = Uri.tryParse(href);
+      final path = uri?.path.isNotEmpty == true ? uri!.path : href;
+      if (path.isEmpty) {
+        return '';
+      }
+      return path.startsWith('/') ? path : '/$path';
+    }
+
+    if (displayName == null || displayName.isEmpty) {
+      return '';
+    }
+
+    return '/$appName/${Uri.encodeComponent(displayName)}';
+  }
+
+  String _extractFileNameFromPath(String remotePath) {
+    final segments = remotePath.split('/').where((item) => item.isNotEmpty);
+    if (segments.isEmpty) {
+      return '';
+    }
+    return Uri.decodeComponent(segments.last);
   }
 }

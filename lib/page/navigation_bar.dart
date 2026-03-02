@@ -23,7 +23,7 @@ import 'package:zephyr/widgets/toast.dart';
 
 import '../config/global/global.dart';
 import '../main.dart';
-import '../network/webdav.dart';
+import '../network/sync/sync_service.dart';
 import '../util/debouncer.dart';
 import '../util/dialog.dart';
 import '../util/event/event.dart';
@@ -265,23 +265,12 @@ class _NavigationBarState extends State<NavigationBar> {
       return;
     }
 
-    if (globalState.webdavHost.isEmpty) {
+    if (!isSyncServiceConfigured(globalState)) {
       return;
     }
 
     try {
-      await testWebDavServer();
-      await createParentDirectory('/$appName');
-      var files = await fetchWebDAVFiles();
-      if (files.isNotEmpty) {
-        var needDownloadUrl = await getNeedDownloadUrl(files);
-        if (needDownloadUrl.isNotEmpty) {
-          var historyFromWebdav = await getHistoryFromWebdav(needDownloadUrl);
-          await updateHistory(historyFromWebdav);
-        }
-      }
-      await uploadFile2WebDav();
-      await deleteFileFromWebDav(files);
+      await autoSync(globalState);
       if (globalState.syncNotify) {
         showSuccessToast("自动同步成功！");
       }

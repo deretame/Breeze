@@ -16,39 +16,24 @@ import 'package:zephyr/widgets/toast.dart';
 import '../../../main.dart';
 import '../../../network/http/bika/http_request.dart';
 
-class DividerWidget extends StatelessWidget {
-  const DividerWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.center,
-      child: SizedBox(
-        width: context.screenWidth * (48 / 50), // 设置宽度
-        child: Divider(
-          color: context.theme.colorScheme.secondaryFixedDim,
-          thickness: 1,
-          height: 10,
-        ),
-      ),
-    );
-  }
-}
-
 Widget changeProfilePicture(StackRouter route) {
   final ImagePicker picker = ImagePicker();
-  String selectedImages = '';
-  return GestureDetector(
+  return ListTile(
+    leading: const Icon(Icons.account_circle_outlined),
+    title: const Text('更新头像'),
+    subtitle: const Text('选择图片并裁剪后上传'),
+    trailing: const Icon(Icons.chevron_right),
     onTap: () async {
+      String selectedImages = '';
       try {
         var response = await picker.pickImage(source: ImageSource.gallery);
-        logger.d('Response: ${response.toString()}'); // 输出响应内容
+        logger.d('Response: ${response.toString()}');
 
         var files = response?.path;
         if (files != null && files.isNotEmpty) {
-          selectedImages = files; // 更新选择的图片
+          selectedImages = files;
 
-          logger.d('Selected image path: $files'); // 输出选择的图片路径
+          logger.d('Selected image path: $files');
         } else {
           return;
         }
@@ -85,21 +70,15 @@ Widget changeProfilePicture(StackRouter route) {
         );
       }
     },
-    behavior: HitTestBehavior.opaque, // 使得所有透明区域也可以响应点击
-    child: Row(
-      children: [
-        SizedBox(width: 10),
-        Text("更新头像", style: TextStyle(fontSize: 18)),
-        Expanded(child: Container()),
-        Icon(Icons.chevron_right),
-        SizedBox(width: 10),
-      ],
-    ),
   );
 }
 
 Widget changeBriefIntroduction(BuildContext context) {
-  return GestureDetector(
+  return ListTile(
+    leading: const Icon(Icons.short_text_outlined),
+    title: const Text('更新简介'),
+    subtitle: const Text('输入新简介并立即同步'),
+    trailing: const Icon(Icons.chevron_right),
     onTap: () async {
       var text = await _showInputDialog(context, "更新简介", "请输入新的简介");
       if (text.isNotEmpty) {
@@ -115,21 +94,15 @@ Widget changeBriefIntroduction(BuildContext context) {
         }
       }
     },
-    behavior: HitTestBehavior.opaque,
-    child: Row(
-      children: [
-        SizedBox(width: 10),
-        Text("更新简介", style: TextStyle(fontSize: 18)),
-        Expanded(child: Container()),
-        Icon(Icons.chevron_right),
-        SizedBox(width: 10),
-      ],
-    ),
   );
 }
 
 Widget changePassword(BuildContext context) {
-  return GestureDetector(
+  return ListTile(
+    leading: const Icon(Icons.password_outlined),
+    title: const Text('更新密码'),
+    subtitle: const Text('设置新密码并立即生效'),
+    trailing: const Icon(Icons.chevron_right),
     onTap: () async {
       var text = await _showInputDialog(context, "更新密码", "请输入新的密码");
       if (text.isNotEmpty) {
@@ -145,23 +118,19 @@ Widget changePassword(BuildContext context) {
         }
       }
     },
-    behavior: HitTestBehavior.opaque,
-    child: Row(
-      children: [
-        SizedBox(width: 10),
-        Text("更新密码", style: TextStyle(fontSize: 18)),
-        Expanded(child: Container()),
-        Icon(Icons.chevron_right),
-        SizedBox(width: 10),
-      ],
-    ),
   );
 }
 
 Widget changeShieldedCategories(BuildContext context, String type) {
   final bikaCubit = context.read<BikaSettingCubit>();
   final bikaState = context.watch<BikaSettingCubit>().state;
-  return GestureDetector(
+  return ListTile(
+    leading: Icon(
+      type == "home" ? Icons.home_outlined : Icons.category_outlined,
+    ),
+    title: Text(type == "home" ? "首页屏蔽" : "分类屏蔽"),
+    subtitle: const Text('选择分类，保存后立即生效'),
+    trailing: const Icon(Icons.chevron_right),
     onTap: () async {
       if (type == "home") {
         final oldCategoriesMap = _withDefaultCategories(
@@ -199,16 +168,6 @@ Widget changeShieldedCategories(BuildContext context, String type) {
         showSuccessToast("成功更新屏蔽分类");
       }
     },
-    behavior: HitTestBehavior.opaque,
-    child: Row(
-      children: [
-        SizedBox(width: 10),
-        Text(type == "home" ? "首页屏蔽" : "分类屏蔽", style: TextStyle(fontSize: 18)),
-        Expanded(child: Container()),
-        Icon(Icons.chevron_right),
-        SizedBox(width: 10),
-      ],
-    ),
   );
 }
 
@@ -236,7 +195,7 @@ Future<Map<String, bool>?> showShieldCategoryDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text('选择屏蔽分类'),
+        title: const Text('选择屏蔽分类'),
         content: StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             List<Widget> checkboxes = [];
@@ -245,6 +204,7 @@ Future<Map<String, bool>?> showShieldCategoryDialog(
                 CheckboxListTile(
                   title: Text(key.let(t2s)),
                   value: shieldCategoriesMap[key],
+                  controlAffinity: ListTileControlAffinity.leading,
                   onChanged: (bool? newValue) {
                     setState(() {
                       shieldCategoriesMap[key] = newValue!;
@@ -266,9 +226,9 @@ Future<Map<String, bool>?> showShieldCategoryDialog(
           },
         ),
         actions: <Widget>[
-          TextButton(child: Text('取消'), onPressed: () => context.pop()),
-          TextButton(
-            child: Text('提交'),
+          TextButton(child: const Text('取消'), onPressed: () => context.pop()),
+          FilledButton(
+            child: const Text('提交'),
             onPressed: () => context.pop(shieldCategoriesMap),
           ),
         ],
@@ -305,17 +265,20 @@ Future<String> _showInputDialog(
         title: Text(tile),
         content: TextField(
           controller: controller,
-          decoration: InputDecoration(hintText: defaultText),
+          decoration: InputDecoration(
+            hintText: defaultText,
+            border: const OutlineInputBorder(),
+          ),
         ),
         actions: <Widget>[
           TextButton(
-            child: Text('取消'),
+            child: const Text('取消'),
             onPressed: () {
               context.pop();
             },
           ),
-          TextButton(
-            child: Text('确认'),
+          FilledButton(
+            child: const Text('确认'),
             onPressed: () {
               Navigator.of(context).pop(controller.text);
             },

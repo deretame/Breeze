@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/sync/sync_service.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../util/event/event.dart';
 import '../../../util/router/router.gr.dart';
+import '../common/setting_ui.dart';
 import 'widgets.dart';
 
 @RoutePage()
@@ -25,63 +27,84 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   final List<String> splashPageList = ["首页", "排行", "书架", "更多"];
   final Map<String, int> splashPage = {"首页": 0, "排行": 1, "书架": 2, "更多": 3};
 
-  static const WidgetStateProperty<Icon> thumbIcon =
-      WidgetStateProperty<Icon>.fromMap(<WidgetStatesConstraint, Icon>{
-        WidgetState.selected: Icon(Icons.check),
-        WidgetState.any: Icon(Icons.close),
-      });
-
   @override
   Widget build(BuildContext context) {
     final globalSettingCubit = context.watch<GlobalSettingCubit>();
     final state = globalSettingCubit.state;
+    final configuredSync = isSyncServiceConfigured(state);
 
     return Scaffold(
       appBar: AppBar(title: const Text('全局设置')),
       body: ListView(
+        padding: kSettingPagePadding,
         children: [
-          _systemTheme(state, globalSettingCubit),
-          _dynamicColor(state, globalSettingCubit),
-          if (!state.dynamicColor) ...[
-            const SizedBox(height: 11),
-            changeThemeColor(context),
-            const SizedBox(height: 11),
-          ],
-          _comicReadTopContainer(state, globalSettingCubit),
-          _isAMOLED(state, globalSettingCubit),
-          DividerWidget(),
-          const SizedBox(height: 11),
-          editMaskedKeywords(context),
-          const SizedBox(height: 11),
-          DividerWidget(),
-          const SizedBox(height: 11),
-          socks5ProxyEdit(context, state.socks5Proxy),
-          const SizedBox(height: 11),
-          const SizedBox(height: 11),
-          webdavSync(context),
-          const SizedBox(height: 11),
-          if (state.webdavHost.isNotEmpty) ...[
-            _autoSync(state, globalSettingCubit),
-          ],
-          if (state.webdavHost.isNotEmpty && state.autoSync) ...[
-            _syncNotify(state, globalSettingCubit),
-          ],
-          DividerWidget(),
-          _splashPage(state, globalSettingCubit),
-          _disableBika(state, globalSettingCubit),
-          _enableMemoryDebug(state, globalSettingCubit),
+          SettingSectionCard(
+            title: '外观与显示',
+            icon: Icons.palette_outlined,
+            children: [
+              _systemTheme(state, globalSettingCubit),
+              _dynamicColor(state, globalSettingCubit),
+              if (!state.dynamicColor) changeThemeColor(context),
+              _comicReadTopContainer(state, globalSettingCubit),
+              _isAMOLED(state, globalSettingCubit),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SettingSectionCard(
+            title: '内容与网络',
+            icon: Icons.tune_outlined,
+            children: [
+              editMaskedKeywords(context),
+              socks5ProxyEdit(context, state.socks5Proxy),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SettingSectionCard(
+            title: '同步',
+            icon: Icons.sync_outlined,
+            children: [
+              _syncServiceType(state, globalSettingCubit),
+              webdavSync(context, state.syncServiceType),
+              if (configuredSync) _autoSync(state, globalSettingCubit),
+              if (configuredSync && state.autoSync)
+                _syncNotify(state, globalSettingCubit),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SettingSectionCard(
+            title: '应用行为',
+            icon: Icons.settings_outlined,
+            children: [
+              _splashPage(state, globalSettingCubit),
+              _disableBika(state, globalSettingCubit),
+            ],
+          ),
           if (kDebugMode) ...[
-            ElevatedButton(
-              onPressed: () {
-                AutoRouter.of(context).push(ShowColorRoute());
-              },
-              child: const Text("整点颜色看看"),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                // jmSetting.deleteUserInfo();
-              },
-              child: const Text('测试禁漫登录'),
+            const SizedBox(height: 12),
+            SettingSectionCard(
+              title: '调试',
+              icon: Icons.bug_report_outlined,
+              children: [
+                _enableMemoryDebug(state, globalSettingCubit),
+                ListTile(
+                  leading: const Icon(Icons.colorize_outlined),
+                  title: const Text('整点颜色看看'),
+                  subtitle: const Text('打开调色页，快速预览主题色'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    AutoRouter.of(context).push(ShowColorRoute());
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.login_outlined),
+                  title: const Text('测试禁漫登录'),
+                  subtitle: const Text('进入登录流程，验证账号状态'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    // jmSetting.deleteUserInfo();
+                  },
+                ),
+              ],
             ),
           ],
         ],
@@ -103,12 +126,12 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
         break;
     }
 
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        const Text("主题模式", style: TextStyle(fontSize: 18)),
-        Expanded(child: Container()),
-        DropdownButton<String>(
+    return ListTile(
+      leading: const Icon(Icons.dark_mode_outlined),
+      title: const Text('主题模式'),
+      subtitle: const Text('选择策略，切换明暗主题'),
+      trailing: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
           value: currentTheme,
           icon: const Icon(Icons.expand_more),
           onChanged: (String? value) {
@@ -135,112 +158,96 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           items: systemThemeList.map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(value: value, child: Text(value));
           }).toList(),
-          style: TextStyle(color: context.textColor, fontSize: 18),
+          style: TextStyle(color: context.textColor, fontSize: 15),
         ),
-        const SizedBox(width: 10),
-      ],
+      ),
     );
   }
 
   Widget _dynamicColor(GlobalSettingState state, GlobalSettingCubit cubit) {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        const Text("动态取色", style: TextStyle(fontSize: 18)),
-        const SizedBox(width: 5),
-        Tooltip(
-          message:
-              "动态取色是一种根据图片或内容自动调整界面主题颜色的功能。\n"
-              "启用后，系统会分析当前页面的主要颜色，并自动调整界面元素的颜色以匹配整体风格，提供更一致的视觉体验。",
-          triggerMode: TooltipTriggerMode.tap,
-          child: Icon(
-            Icons.help_outline,
-            size: 20,
-            color: context.theme.colorScheme.outlineVariant,
-          ),
-        ),
-        const Spacer(),
-        Switch(
-          thumbIcon: thumbIcon,
-          value: state.dynamicColor, // 直接使用 state 中的值
-          onChanged: (bool value) {
-            // 不需要 setState，Cubit 发出新状态后会自动刷新
-            cubit.updateState(
-              (current) => current.copyWith(dynamicColor: value),
-            );
-          },
-        ),
-        const SizedBox(width: 10),
-      ],
+    return SwitchListTile(
+      secondary: const Icon(Icons.color_lens_outlined),
+      title: const Text('动态取色'),
+      subtitle: const Text('开启后自动提取内容主色'),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.dynamicColor,
+      onChanged: (bool value) {
+        cubit.updateState((current) => current.copyWith(dynamicColor: value));
+      },
     );
   }
 
   Widget _isAMOLED(GlobalSettingState state, GlobalSettingCubit cubit) {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        const Text("纯黑模式", style: TextStyle(fontSize: 18)),
-        const SizedBox(width: 5),
-        Tooltip(
-          message:
-              "纯黑模式专为 AMOLED 屏幕设计。\n"
-              "由于 AMOLED 屏幕的像素点可以单独发光，显示纯黑色时像素点会完全关闭，从而达到省电的效果。\n"
-              "如果您的设备不是 AMOLED 屏幕，开启此模式将不会有明显的省电效果。",
-          triggerMode: TooltipTriggerMode.tap,
-          child: Icon(
-            Icons.help_outline,
-            size: 20,
-            color: context.theme.colorScheme.outlineVariant,
-          ),
-        ),
-        const Spacer(),
-        Switch(
-          thumbIcon: thumbIcon,
-          value: state.isAMOLED,
-          onChanged: (bool value) {
-            cubit.updateState((current) => current.copyWith(isAMOLED: value));
-          },
-        ),
-        const SizedBox(width: 10),
-      ],
+    return SwitchListTile(
+      secondary: const Icon(Icons.contrast_outlined),
+      title: const Text('纯黑模式'),
+      subtitle: const Text('开启后使用纯黑背景，适配 AMOLED'),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.isAMOLED,
+      onChanged: (bool value) {
+        cubit.updateState((current) => current.copyWith(isAMOLED: value));
+      },
     );
   }
 
   Widget _autoSync(GlobalSettingState state, GlobalSettingCubit cubit) {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        const Text("自动同步", style: TextStyle(fontSize: 18)),
-        const Spacer(),
-        Switch(
-          thumbIcon: thumbIcon,
-          value: state.autoSync,
-          onChanged: (bool value) {
-            cubit.updateState((current) => current.copyWith(autoSync: value));
-            if (value) eventBus.fire(NoticeSync());
+    return SwitchListTile(
+      secondary: const Icon(Icons.cloud_sync_outlined),
+      title: const Text('自动同步'),
+      subtitle: const Text('开启后在后台定期同步配置'),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.autoSync,
+      onChanged: (bool value) {
+        cubit.updateState((current) => current.copyWith(autoSync: value));
+        if (value) {
+          eventBus.fire(NoticeSync());
+        }
+      },
+    );
+  }
+
+  Widget _syncServiceType(GlobalSettingState state, GlobalSettingCubit cubit) {
+    return ListTile(
+      leading: const Icon(Icons.storage_outlined),
+      title: const Text('同步服务'),
+      subtitle: const Text('选择服务，统一管理同步策略'),
+      trailing: DropdownButtonHideUnderline(
+        child: DropdownButton<SyncServiceType>(
+          value: state.syncServiceType,
+          icon: const Icon(Icons.expand_more),
+          onChanged: (SyncServiceType? value) {
+            if (value == null || value == state.syncServiceType) {
+              return;
+            }
+
+            cubit.updateState(
+              (current) => current.copyWith(syncServiceType: value),
+            );
           },
+          items: SyncServiceType.values
+              .map(
+                (value) => DropdownMenuItem<SyncServiceType>(
+                  value: value,
+                  child: Text(value.label),
+                ),
+              )
+              .toList(),
+          style: TextStyle(color: context.textColor, fontSize: 15),
         ),
-        const SizedBox(width: 10),
-      ],
+      ),
     );
   }
 
   Widget _syncNotify(GlobalSettingState state, GlobalSettingCubit cubit) {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        const Text("自动同步通知", style: TextStyle(fontSize: 18)),
-        const Spacer(),
-        Switch(
-          thumbIcon: thumbIcon,
-          value: state
-              .syncNotify, // 假设 state 中叫 syncNotify，原代码是 SettingsHiveUtils.syncNotify
-          onChanged: (bool value) {
-            cubit.updateState((current) => current.copyWith(syncNotify: value));
-          },
-        ),
-        const SizedBox(width: 10),
-      ],
+    return SwitchListTile(
+      secondary: const Icon(Icons.notifications_active_outlined),
+      title: const Text('自动同步通知'),
+      subtitle: const Text('开启后在同步开始与完成时提醒'),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.syncNotify,
+      onChanged: (bool value) {
+        cubit.updateState((current) => current.copyWith(syncNotify: value));
+      },
     );
   }
 
@@ -248,44 +255,27 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     GlobalSettingState state,
     GlobalSettingCubit cubit,
   ) {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        const Text("异形屏适配", style: TextStyle(fontSize: 18)),
-        const SizedBox(width: 5),
-        Tooltip(
-          message: "在漫画阅读界面，会在最顶层生成一个状态栏高度的占位容器来避免摄像头遮挡内容。",
-          triggerMode: TooltipTriggerMode.tap,
-          child: Icon(
-            Icons.help_outline,
-            size: 20,
-            color: context.theme.colorScheme.outlineVariant,
-          ),
-        ),
-        const Spacer(),
-        Switch(
-          thumbIcon: thumbIcon,
-          value: state.comicReadTopContainer,
-          onChanged: (bool value) {
-            cubit.updateState(
-              (current) => current.copyWith(comicReadTopContainer: value),
-            );
-          },
-        ),
-        const SizedBox(width: 10),
-      ],
+    return SwitchListTile(
+      secondary: const Icon(Icons.smartphone_outlined),
+      title: const Text('异形屏适配'),
+      subtitle: const Text('开启后预留安全区，避免内容遮挡'),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.comicReadTopContainer,
+      onChanged: (bool value) {
+        cubit.updateState(
+          (current) => current.copyWith(comicReadTopContainer: value),
+        );
+      },
     );
   }
 
   Widget _splashPage(GlobalSettingState state, GlobalSettingCubit cubit) {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        const Text("开屏页", style: TextStyle(fontSize: 18)),
-        const Spacer(),
-        DropdownButton<String>(
-          // 注意：这里假设 GlobalSettingState 中有 welcomePageNum 字段
-          // 如果 state 中没有，可能需要检查 Cubit 是否同步了该字段，或者这里暂时保持使用 SettingsHiveUtils (不推荐)
+    return ListTile(
+      leading: const Icon(Icons.rocket_launch_outlined),
+      title: const Text('开屏页'),
+      subtitle: const Text('选择启动页，打开应用直达目标'),
+      trailing: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
           value: splashPageList[state.welcomePageNum],
           icon: const Icon(Icons.expand_more),
           onChanged: (String? value) {
@@ -300,32 +290,25 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           items: splashPageList.map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(value: value, child: Text(value));
           }).toList(),
-          style: TextStyle(color: context.textColor, fontSize: 18),
+          style: TextStyle(color: context.textColor, fontSize: 15),
         ),
-        const SizedBox(width: 10),
-      ],
+      ),
     );
   }
 
   Widget _disableBika(GlobalSettingState state, GlobalSettingCubit cubit) {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        const Text("禁用哔咔相关功能", style: TextStyle(fontSize: 18)),
-        const SizedBox(width: 5),
-        const Spacer(),
-        Switch(
-          thumbIcon: thumbIcon,
-          value: state.disableBika,
-          onChanged: (bool value) {
-            cubit.updateState(
-              (current) => current.copyWith(disableBika: value, comicChoice: 2),
-            );
-            showSuccessToast("设置成功，重启生效");
-          },
-        ),
-        const SizedBox(width: 10),
-      ],
+    return SwitchListTile(
+      secondary: const Icon(Icons.block_outlined),
+      title: const Text('禁用哔咔相关功能'),
+      subtitle: const Text('开启后隐藏相关入口，重启生效'),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.disableBika,
+      onChanged: (bool value) {
+        cubit.updateState(
+          (current) => current.copyWith(disableBika: value, comicChoice: 2),
+        );
+        showSuccessToast("设置成功，重启生效");
+      },
     );
   }
 
@@ -333,23 +316,17 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     GlobalSettingState state,
     GlobalSettingCubit cubit,
   ) {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        const Text("启用内存调试", style: TextStyle(fontSize: 18)),
-        const SizedBox(width: 5),
-        const Spacer(),
-        Switch(
-          thumbIcon: thumbIcon,
-          value: state.enableMemoryDebug,
-          onChanged: (bool value) {
-            cubit.updateState(
-              (current) => current.copyWith(enableMemoryDebug: value),
-            );
-          },
-        ),
-        const SizedBox(width: 10),
-      ],
+    return SwitchListTile(
+      secondary: const Icon(Icons.memory_outlined),
+      title: const Text('启用内存调试'),
+      subtitle: const Text('开启后记录内存信息，用于问题排查'),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.enableMemoryDebug,
+      onChanged: (bool value) {
+        cubit.updateState(
+          (current) => current.copyWith(enableMemoryDebug: value),
+        );
+      },
     );
   }
 }

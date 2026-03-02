@@ -16,6 +16,21 @@ enum ReaderInfoHorizontalPosition { left, center, right }
 
 enum ReaderBackgroundMode { auto, black, white, grey }
 
+enum SyncServiceType { none, webdav, s3 }
+
+extension SyncServiceTypeExtension on SyncServiceType {
+  String get label {
+    switch (this) {
+      case SyncServiceType.none:
+        return '不启用';
+      case SyncServiceType.webdav:
+        return 'WebDAV';
+      case SyncServiceType.s3:
+        return 'S3';
+    }
+  }
+}
+
 const Color readerBackgroundBlack = Colors.black;
 const Color readerBackgroundWhite = Colors.white;
 const Color readerBackgroundGrey = Color(0xFF2D2D2D);
@@ -58,9 +73,11 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(0) int themeInitState,
     @LocaleConverter() @Default(Locale('zh', 'CN')) Locale locale,
     @Default(0) int welcomePageNum,
+    @Default(SyncServiceType.webdav) SyncServiceType syncServiceType,
     @Default('') String webdavHost,
     @Default('') String webdavUsername,
     @Default('') String webdavPassword,
+    @Default(S3SettingState()) S3SettingState s3Setting,
     @Default('') String md5,
     @Default(true) bool autoSync,
     @Default(true) bool syncNotify,
@@ -82,6 +99,22 @@ abstract class GlobalSettingState with _$GlobalSettingState {
 
   factory GlobalSettingState.fromJson(Map<String, dynamic> json) =>
       _$GlobalSettingStateFromJson(json);
+}
+
+@freezed
+abstract class S3SettingState with _$S3SettingState {
+  const factory S3SettingState({
+    @Default('') String endpoint,
+    @Default('') String accessKey,
+    @Default('') String secretKey,
+    @Default('') String bucket,
+    @Default('') String region,
+    @Default(true) bool useSSL,
+    @Default(0) int port,
+  }) = _S3SettingState;
+
+  factory S3SettingState.fromJson(Map<String, dynamic> json) =>
+      _$S3SettingStateFromJson(json);
 }
 
 @freezed

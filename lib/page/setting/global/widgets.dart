@@ -3,50 +3,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../util/router/router.gr.dart';
 
-class DividerWidget extends StatelessWidget {
-  const DividerWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.center,
-      child: SizedBox(
-        width: context.screenWidth * (48 / 50),
-        child: Divider(
-          color: context.theme.colorScheme.secondaryFixedDim,
-          thickness: 1,
-          height: 10,
-        ),
-      ),
-    );
-  }
-}
-
 Widget changeThemeColor(BuildContext context) {
-  return GestureDetector(
+  return ListTile(
+    leading: const Icon(Icons.palette_outlined),
+    title: const Text('主题颜色'),
+    subtitle: const Text('选择主色，统一应用视觉'),
+    trailing: const Icon(Icons.chevron_right),
     onTap: () {
       AutoRouter.of(context).push(const ThemeColorRoute());
     },
-    behavior: HitTestBehavior.opaque,
-    child: Row(
-      children: [
-        const SizedBox(width: 10),
-        const Text("主题颜色", style: TextStyle(fontSize: 18)),
-        Expanded(child: Container()),
-        const Icon(Icons.chevron_right),
-        const SizedBox(width: 10),
-      ],
-    ),
   );
 }
 
 Widget socks5ProxyEdit(BuildContext context, String currentProxy) {
-  return GestureDetector(
+  return ListTile(
+    leading: const Icon(Icons.router_outlined),
+    title: const Text('SOCKS5 代理'),
+    subtitle: Text(
+      currentProxy.isEmpty ? '点击设置代理地址（ip:port）' : '当前代理：$currentProxy',
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    ),
+    trailing: const Icon(Icons.chevron_right),
     onTap: () async {
       final globalSettingCubit = context.read<GlobalSettingCubit>();
       final controller = TextEditingController(text: currentProxy);
@@ -85,64 +67,38 @@ Widget socks5ProxyEdit(BuildContext context, String currentProxy) {
         showSuccessToast('设置成功，重启生效');
       }
     },
-    behavior: HitTestBehavior.opaque,
-    child: Row(
-      children: [
-        const SizedBox(width: 10),
-        const Text("SOCKS5代理", style: TextStyle(fontSize: 18)),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: Text(
-              currentProxy,
-              textAlign: TextAlign.end,
-              style: const TextStyle(color: Colors.grey),
-            ),
-          ),
-        ),
-        const Icon(Icons.chevron_right),
-        const SizedBox(width: 10),
-      ],
-    ),
   );
 }
 
-Widget webdavSync(BuildContext context) {
-  return GestureDetector(
+Widget webdavSync(BuildContext context, SyncServiceType syncServiceType) {
+  final title = switch (syncServiceType) {
+    SyncServiceType.none => '同步配置',
+    _ => '${syncServiceType.label} 同步配置',
+  };
+
+  return ListTile(
+    leading: const Icon(Icons.cloud_outlined),
+    title: Text(title),
+    subtitle: const Text('进入页面，配置地址与鉴权信息'),
+    trailing: const Icon(Icons.chevron_right),
     onTap: () {
       AutoRouter.of(context).push(const WebDavSyncRoute());
     },
-    behavior: HitTestBehavior.opaque,
-    child: Row(
-      children: [
-        const SizedBox(width: 10),
-        const Text("WebDAV 同步", style: TextStyle(fontSize: 18)),
-        Expanded(child: Container()),
-        const Icon(Icons.chevron_right),
-        const SizedBox(width: 10),
-      ],
-    ),
   );
 }
 
 Widget editMaskedKeywords(BuildContext context) {
-  return GestureDetector(
+  return ListTile(
+    leading: const Icon(Icons.shield_outlined),
+    title: const Text('屏蔽关键词管理'),
+    subtitle: const Text('添加关键词，过滤不想看到的内容'),
+    trailing: const Icon(Icons.chevron_right),
     onTap: () {
       showDialog(
         context: context,
         builder: (context) => const _KeywordManagementDialog(),
       );
     },
-    behavior: HitTestBehavior.opaque,
-    child: Row(
-      children: [
-        const SizedBox(width: 10),
-        const Text("屏蔽关键词管理", style: TextStyle(fontSize: 18)),
-        Expanded(child: Container()),
-        const Icon(Icons.chevron_right),
-        const SizedBox(width: 10),
-      ],
-    ),
   );
 }
 
@@ -199,6 +155,10 @@ class _KeywordManagementDialogState extends State<_KeywordManagementDialog> {
                         return Chip(
                           label: Text(state.maskedKeywords[index]),
                           deleteIcon: const Icon(Icons.close, size: 18),
+                          avatar: const Icon(
+                            Icons.label_important_outline,
+                            size: 18,
+                          ),
                           onDeleted: () {
                             final newList = List<String>.from(
                               state.maskedKeywords,
@@ -224,6 +184,7 @@ class _KeywordManagementDialogState extends State<_KeywordManagementDialog> {
                           decoration: const InputDecoration(
                             hintText: '输入新关键词',
                             isDense: true,
+                            prefixIcon: Icon(Icons.search_outlined),
                             border: OutlineInputBorder(),
                             contentPadding: EdgeInsets.symmetric(
                               horizontal: 10,
@@ -235,12 +196,9 @@ class _KeywordManagementDialogState extends State<_KeywordManagementDialog> {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      IconButton(
-                        icon: const Icon(Icons.add_circle),
-                        color: Theme.of(context).primaryColor,
-                        iconSize: 32,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
+                      FilledButton.tonalIcon(
+                        icon: const Icon(Icons.add),
+                        label: const Text('添加'),
                         onPressed: () => _addKeyword(globalSettingCubit, state),
                       ),
                     ],

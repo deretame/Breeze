@@ -52,6 +52,7 @@ dependencies:
   connectivity_plus: ^7.0.0 # 网络: 状态监听
   html: ^0.15.5+1 # 网络: HTML 解析
   flutter_socks_proxy: ^0.0.3 # 网络: SOCKS5 代理配置
+  minio: ^3.5.8 # 网络: 对象存储
 
   # 数据模型与本地存储
   objectbox: ^5.0.0 # 存储: 本地对象数据库

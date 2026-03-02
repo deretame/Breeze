@@ -7,6 +7,7 @@ import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../bookshelf/models/events.dart';
+import '../common/setting_ui.dart';
 import 'widgets.dart';
 
 @RoutePage()
@@ -28,12 +29,6 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
     "original": "原图",
   };
 
-  static const WidgetStateProperty<Icon> thumbIcon =
-      WidgetStateProperty<Icon>.fromMap(<WidgetStatesConstraint, Icon>{
-        WidgetState.selected: Icon(Icons.check),
-        WidgetState.any: Icon(Icons.close),
-      });
-
   @override
   Widget build(BuildContext context) {
     var route = context.router;
@@ -44,36 +39,55 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('哔咔设置')),
       body: ListView(
+        padding: kSettingPagePadding,
         children: [
-          const SizedBox(height: 10),
-          changeProfilePicture(route),
-          const SizedBox(height: 15),
-          changeBriefIntroduction(context),
-          const SizedBox(height: 15),
-          changePassword(context),
-          const SizedBox(height: 10),
-          DividerWidget(),
-          _shuntWidget(state, bikaCubit),
-          _imageQualityWidget(state, bikaCubit),
-          DividerWidget(),
-          const SizedBox(height: 10),
-          changeShieldedCategories(context, "home"),
-          const SizedBox(height: 15),
-          changeShieldedCategories(context, "categories"),
-          const SizedBox(height: 10),
-          DividerWidget(),
-          _brevityWidget(state, bikaCubit),
-          DividerWidget(),
-          _slowDownloadWidget(state, bikaCubit),
-          DividerWidget(),
-          Center(
-            child: ElevatedButton(
-              onPressed: () {
-                bikaCubit.resetAuthorization();
-                route.push(LoginRoute());
-              },
-              child: const Text("退出登录"),
-            ),
+          SettingSectionCard(
+            title: '账号',
+            icon: Icons.person_outline,
+            children: [
+              changeProfilePicture(route),
+              changeBriefIntroduction(context),
+              changePassword(context),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SettingSectionCard(
+            title: '浏览与下载',
+            icon: Icons.tune_outlined,
+            children: [
+              _shuntWidget(state, bikaCubit),
+              _imageQualityWidget(state, bikaCubit),
+              _brevityWidget(state, bikaCubit),
+              _slowDownloadWidget(state, bikaCubit),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SettingSectionCard(
+            title: '屏蔽设置',
+            icon: Icons.visibility_off_outlined,
+            children: [
+              changeShieldedCategories(context, "home"),
+              changeShieldedCategories(context, "categories"),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SettingSectionCard(
+            title: '账号操作',
+            icon: Icons.manage_accounts_outlined,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: FilledButton.icon(
+                  style: settingDangerButtonStyle(context),
+                  onPressed: () {
+                    bikaCubit.resetAuthorization();
+                    route.push(LoginRoute());
+                  },
+                  icon: const Icon(Icons.logout),
+                  label: const Text('退出当前账号'),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -81,13 +95,13 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
   }
 
   Widget _shuntWidget(BikaSettingState state, BikaSettingCubit cubit) {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        const Text("分流设置", style: TextStyle(fontSize: 18)),
-        Expanded(child: Container()),
-        DropdownButton<String>(
-          value: state.proxy.toString(), // 直接使用 state
+    return ListTile(
+      leading: const Icon(Icons.route_outlined),
+      title: const Text('分流设置'),
+      subtitle: const Text('选择线路，优化访问稳定性'),
+      trailing: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: state.proxy.toString(),
           icon: const Icon(Icons.expand_more),
           onChanged: (String? value) {
             if (value != null) {
@@ -100,21 +114,20 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
               child: Text(shunt[value]!),
             );
           }).toList(),
-          style: TextStyle(color: context.textColor, fontSize: 18),
+          style: TextStyle(color: context.textColor, fontSize: 15),
         ),
-        const SizedBox(width: 10),
-      ],
+      ),
     );
   }
 
   Widget _imageQualityWidget(BikaSettingState state, BikaSettingCubit cubit) {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        const Text("图片质量", style: TextStyle(fontSize: 18)),
-        Expanded(child: Container()),
-        DropdownButton<String>(
-          value: state.imageQuality, // 直接使用 state
+    return ListTile(
+      leading: const Icon(Icons.image_outlined),
+      title: const Text('图片质量'),
+      subtitle: const Text('选择画质，切换时会清理缓存'),
+      trailing: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: state.imageQuality,
           icon: const Icon(Icons.expand_more),
           onChanged: (String? value) {
             if (value != null) {
@@ -128,61 +141,42 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
               child: Text(imageQuality[value]!),
             );
           }).toList(),
-          style: TextStyle(color: context.textColor, fontSize: 18),
+          style: TextStyle(color: context.textColor, fontSize: 15),
         ),
-        const SizedBox(width: 10),
-      ],
+      ),
     );
   }
 
   Widget _brevityWidget(BikaSettingState state, BikaSettingCubit cubit) {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        const Text("漫画列表简略模式", style: TextStyle(fontSize: 18)),
-        const SizedBox(width: 5),
-        const Spacer(),
-        Switch(
-          thumbIcon: thumbIcon,
-          value: state.brevity,
-          onChanged: (bool value) {
-            cubit.updateBrevity(value);
-            eventBus.fire(HistoryEvent(EventType.refresh, false));
-            eventBus.fire(DownloadEvent(EventType.refresh, false));
-            eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 1));
-          },
-        ),
-        const SizedBox(width: 10),
-      ],
+    return SwitchListTile(
+      secondary: const Icon(Icons.view_agenda_outlined),
+      title: const Text('漫画列表简略模式'),
+      subtitle: const Text('开启后使用紧凑列表，提升浏览效率'),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.brevity,
+      onChanged: (bool value) {
+        cubit.updateBrevity(value);
+        eventBus.fire(HistoryEvent(EventType.refresh, false));
+        eventBus.fire(DownloadEvent(EventType.refresh, false));
+        eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 1));
+      },
     );
   }
 
   Widget _slowDownloadWidget(BikaSettingState state, BikaSettingCubit cubit) {
     final theme = context.theme;
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        const Text("慢速下载", style: TextStyle(fontSize: 18)),
-        const SizedBox(width: 5),
-        Tooltip(
-          message: "慢速下载会降低下载图片的速度，以减少对低配手机的负担。",
-          triggerMode: TooltipTriggerMode.tap,
-          child: Icon(
-            Icons.help_outline,
-            size: 20,
-            color: theme.colorScheme.outlineVariant,
-          ),
-        ),
-        const Spacer(),
-        Switch(
-          thumbIcon: thumbIcon,
-          value: state.slowDownload, // 直接使用 state
-          onChanged: (bool value) {
-            cubit.updateSlowDownload(value);
-          },
-        ),
-        const SizedBox(width: 10),
-      ],
+    return SwitchListTile(
+      secondary: Icon(
+        Icons.speed_outlined,
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
+      title: const Text('慢速下载'),
+      subtitle: const Text('开启后降低速度，减少卡顿与发热'),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.slowDownload,
+      onChanged: (bool value) {
+        cubit.updateSlowDownload(value);
+      },
     );
   }
 }

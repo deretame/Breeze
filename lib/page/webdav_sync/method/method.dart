@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:minio/minio.dart';
 
 import '../../../main.dart';
 
-// 测试 WebDAV 服务是否可用
 Future<void> testWebDavServer(
   String host,
   String username,
@@ -12,46 +12,102 @@ Future<void> testWebDavServer(
 ) async {
   final dio = Dio(
     BaseOptions(
-      baseUrl: host, // WebDAV 服务器地址
+      baseUrl: host,
       headers: {
         'Authorization':
             'Basic ${base64Encode(utf8.encode('$username:$password'))}',
       },
-      connectTimeout: const Duration(seconds: 10), // 连接超时时间
-      receiveTimeout: const Duration(seconds: 10), // 接收超时时间
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
     ),
   );
 
   try {
-    // 打印请求信息
     logger.d('请求 URL: ${dio.options.baseUrl}\n请求头: ${dio.options.headers}');
 
-    // 发送 OPTIONS 请求测试服务是否可用
     final response = await dio.request(
       '/',
       options: Options(method: 'OPTIONS'),
     );
 
-    // 检查状态码
-    if (response.statusCode == 200) {
+    final code = response.statusCode ?? 0;
+    if (code >= 200 && code < 300) {
       logger.d('WebDAV 服务可用\n支持的 HTTP 方法: ${response.headers['allow']}');
     } else {
       throw Exception('WebDAV 服务返回异常状态码: ${response.statusCode}');
     }
   } on DioException catch (e) {
-    // 捕获 Dio 的错误
     if (e.response != null) {
-      // 打印完整响应信息
       logger.e(
         '响应状态码: ${e.response?.statusCode}\n响应头: ${e.response?.headers}\n响应体: ${e.response?.data}\n',
       );
       throw Exception('WebDAV 服务返回错误: ${e.response?.statusCode}');
     } else {
-      // 如果只是 Dio 的错误（如网络连接失败、超时等）
       throw Exception('连接失败: ${e.message}');
     }
   } catch (e) {
-    // 捕获其他未知错误
     throw Exception('未知错误: $e');
   }
+}
+
+Future<void> testS3Server({
+  required String endpoint,
+  required String accessKey,
+  required String secretKey,
+  required String bucket,
+  required bool useSSL,
+  required int port,
+  required String region,
+}) async {
+  if (endpoint.isEmpty ||
+      accessKey.isEmpty ||
+      secretKey.isEmpty ||
+      bucket.isEmpty) {
+    throw Exception('S3 配置不完整');
+  }
+
+  final resolved = _resolveEndpoint(endpoint, port);
+
+  final minio = Minio(
+    endPoint: resolved.host,
+    port: resolved.port,
+    accessKey: accessKey,
+    secretKey: secretKey,
+    useSSL: useSSL,
+    region: region.isEmpty ? null : region,
+  );
+
+  try {
+    final exists = await minio.bucketExists(bucket);
+    if (!exists) {
+      throw Exception('S3 Bucket 不存在或没有访问权限');
+    }
+  } catch (e) {
+    throw Exception('S3 连接失败: $e');
+  }
+}
+
+class _ResolvedEndpoint {
+  const _ResolvedEndpoint({required this.host, required this.port});
+
+  final String host;
+  final int? port;
+}
+
+_ResolvedEndpoint _resolveEndpoint(String endpoint, int configuredPort) {
+  final trimmed = endpoint.trim();
+  final raw = trimmed.startsWith('http://') || trimmed.startsWith('https://')
+      ? trimmed
+      : 'https://$trimmed';
+  final uri = Uri.tryParse(raw);
+
+  if (uri == null || uri.host.isEmpty) {
+    throw Exception('S3 Endpoint 格式错误');
+  }
+
+  final resolvedPort = configuredPort > 0
+      ? configuredPort
+      : (uri.hasPort ? uri.port : null);
+
+  return _ResolvedEndpoint(host: uri.host, port: resolvedPort);
 }

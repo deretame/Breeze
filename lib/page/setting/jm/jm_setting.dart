@@ -5,6 +5,8 @@ import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
+import '../common/setting_ui.dart';
+
 @RoutePage()
 class JMSettingPage extends StatefulWidget {
   const JMSettingPage({super.key});
@@ -20,17 +22,27 @@ class _JMSettingPageState extends State<JMSettingPage> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('禁漫设置')),
-      body: Column(
+      body: ListView(
+        padding: kSettingPagePadding,
         children: [
-          Center(
-            child: ElevatedButton(
-              onPressed: () {
-                jmCubit.resetUserInfo();
-                jmCubit.updateLoginStatus(LoginStatus.logout);
-                context.pushRoute(LoginRoute(from: From.jm));
-              },
-              child: Text("退出登录"),
-            ),
+          SettingSectionCard(
+            title: '账号管理',
+            icon: Icons.person_outline,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: FilledButton.icon(
+                  style: settingDangerButtonStyle(context),
+                  onPressed: () {
+                    jmCubit.resetUserInfo();
+                    jmCubit.updateLoginStatus(LoginStatus.logout);
+                    context.pushRoute(LoginRoute(from: From.jm));
+                  },
+                  icon: const Icon(Icons.logout),
+                  label: const Text('退出当前账号'),
+                ),
+              ),
+            ],
           ),
         ],
       ),

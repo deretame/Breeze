@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$GlobalSettingState {
 
- bool get dynamicColor; ThemeMode get themeMode; bool get isAMOLED;@ColorConverter() Color get seedColor; int get themeInitState;@LocaleConverter() Locale get locale; int get welcomePageNum; String get webdavHost; String get webdavUsername; String get webdavPassword; String get md5; bool get autoSync; bool get syncNotify; bool get comicReadTopContainer; int get readMode; List<String> get maskedKeywords; String get socks5Proxy; bool get needCleanCache; int get comicChoice; bool get disableBika; bool get enableMemoryDebug; List<String> get searchHistory; double get windowWidth; double get windowHeight; double get windowX; double get windowY; ReadSettingState get readSetting;
+ bool get dynamicColor; ThemeMode get themeMode; bool get isAMOLED;@ColorConverter() Color get seedColor; int get themeInitState;@LocaleConverter() Locale get locale; int get welcomePageNum; SyncServiceType get syncServiceType; String get webdavHost; String get webdavUsername; String get webdavPassword; S3SettingState get s3Setting; String get md5; bool get autoSync; bool get syncNotify; bool get comicReadTopContainer; int get readMode; List<String> get maskedKeywords; String get socks5Proxy; bool get needCleanCache; int get comicChoice; bool get disableBika; bool get enableMemoryDebug; List<String> get searchHistory; double get windowWidth; double get windowHeight; double get windowX; double get windowY; ReadSettingState get readSetting;
 /// Create a copy of GlobalSettingState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $GlobalSettingStateCopyWith<GlobalSettingState> get copyWith => _$GlobalSettingS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GlobalSettingState&&(identical(other.dynamicColor, dynamicColor) || other.dynamicColor == dynamicColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.isAMOLED, isAMOLED) || other.isAMOLED == isAMOLED)&&(identical(other.seedColor, seedColor) || other.seedColor == seedColor)&&(identical(other.themeInitState, themeInitState) || other.themeInitState == themeInitState)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.welcomePageNum, welcomePageNum) || other.welcomePageNum == welcomePageNum)&&(identical(other.webdavHost, webdavHost) || other.webdavHost == webdavHost)&&(identical(other.webdavUsername, webdavUsername) || other.webdavUsername == webdavUsername)&&(identical(other.webdavPassword, webdavPassword) || other.webdavPassword == webdavPassword)&&(identical(other.md5, md5) || other.md5 == md5)&&(identical(other.autoSync, autoSync) || other.autoSync == autoSync)&&(identical(other.syncNotify, syncNotify) || other.syncNotify == syncNotify)&&(identical(other.comicReadTopContainer, comicReadTopContainer) || other.comicReadTopContainer == comicReadTopContainer)&&(identical(other.readMode, readMode) || other.readMode == readMode)&&const DeepCollectionEquality().equals(other.maskedKeywords, maskedKeywords)&&(identical(other.socks5Proxy, socks5Proxy) || other.socks5Proxy == socks5Proxy)&&(identical(other.needCleanCache, needCleanCache) || other.needCleanCache == needCleanCache)&&(identical(other.comicChoice, comicChoice) || other.comicChoice == comicChoice)&&(identical(other.disableBika, disableBika) || other.disableBika == disableBika)&&(identical(other.enableMemoryDebug, enableMemoryDebug) || other.enableMemoryDebug == enableMemoryDebug)&&const DeepCollectionEquality().equals(other.searchHistory, searchHistory)&&(identical(other.windowWidth, windowWidth) || other.windowWidth == windowWidth)&&(identical(other.windowHeight, windowHeight) || other.windowHeight == windowHeight)&&(identical(other.windowX, windowX) || other.windowX == windowX)&&(identical(other.windowY, windowY) || other.windowY == windowY)&&(identical(other.readSetting, readSetting) || other.readSetting == readSetting));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GlobalSettingState&&(identical(other.dynamicColor, dynamicColor) || other.dynamicColor == dynamicColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.isAMOLED, isAMOLED) || other.isAMOLED == isAMOLED)&&(identical(other.seedColor, seedColor) || other.seedColor == seedColor)&&(identical(other.themeInitState, themeInitState) || other.themeInitState == themeInitState)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.welcomePageNum, welcomePageNum) || other.welcomePageNum == welcomePageNum)&&(identical(other.syncServiceType, syncServiceType) || other.syncServiceType == syncServiceType)&&(identical(other.webdavHost, webdavHost) || other.webdavHost == webdavHost)&&(identical(other.webdavUsername, webdavUsername) || other.webdavUsername == webdavUsername)&&(identical(other.webdavPassword, webdavPassword) || other.webdavPassword == webdavPassword)&&(identical(other.s3Setting, s3Setting) || other.s3Setting == s3Setting)&&(identical(other.md5, md5) || other.md5 == md5)&&(identical(other.autoSync, autoSync) || other.autoSync == autoSync)&&(identical(other.syncNotify, syncNotify) || other.syncNotify == syncNotify)&&(identical(other.comicReadTopContainer, comicReadTopContainer) || other.comicReadTopContainer == comicReadTopContainer)&&(identical(other.readMode, readMode) || other.readMode == readMode)&&const DeepCollectionEquality().equals(other.maskedKeywords, maskedKeywords)&&(identical(other.socks5Proxy, socks5Proxy) || other.socks5Proxy == socks5Proxy)&&(identical(other.needCleanCache, needCleanCache) || other.needCleanCache == needCleanCache)&&(identical(other.comicChoice, comicChoice) || other.comicChoice == comicChoice)&&(identical(other.disableBika, disableBika) || other.disableBika == disableBika)&&(identical(other.enableMemoryDebug, enableMemoryDebug) || other.enableMemoryDebug == enableMemoryDebug)&&const DeepCollectionEquality().equals(other.searchHistory, searchHistory)&&(identical(other.windowWidth, windowWidth) || other.windowWidth == windowWidth)&&(identical(other.windowHeight, windowHeight) || other.windowHeight == windowHeight)&&(identical(other.windowX, windowX) || other.windowX == windowX)&&(identical(other.windowY, windowY) || other.windowY == windowY)&&(identical(other.readSetting, readSetting) || other.readSetting == readSetting));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,dynamicColor,themeMode,isAMOLED,seedColor,themeInitState,locale,welcomePageNum,webdavHost,webdavUsername,webdavPassword,md5,autoSync,syncNotify,comicReadTopContainer,readMode,const DeepCollectionEquality().hash(maskedKeywords),socks5Proxy,needCleanCache,comicChoice,disableBika,enableMemoryDebug,const DeepCollectionEquality().hash(searchHistory),windowWidth,windowHeight,windowX,windowY,readSetting]);
+int get hashCode => Object.hashAll([runtimeType,dynamicColor,themeMode,isAMOLED,seedColor,themeInitState,locale,welcomePageNum,syncServiceType,webdavHost,webdavUsername,webdavPassword,s3Setting,md5,autoSync,syncNotify,comicReadTopContainer,readMode,const DeepCollectionEquality().hash(maskedKeywords),socks5Proxy,needCleanCache,comicChoice,disableBika,enableMemoryDebug,const DeepCollectionEquality().hash(searchHistory),windowWidth,windowHeight,windowX,windowY,readSetting]);
 
 @override
 String toString() {
-  return 'GlobalSettingState(dynamicColor: $dynamicColor, themeMode: $themeMode, isAMOLED: $isAMOLED, seedColor: $seedColor, themeInitState: $themeInitState, locale: $locale, welcomePageNum: $welcomePageNum, webdavHost: $webdavHost, webdavUsername: $webdavUsername, webdavPassword: $webdavPassword, md5: $md5, autoSync: $autoSync, syncNotify: $syncNotify, comicReadTopContainer: $comicReadTopContainer, readMode: $readMode, maskedKeywords: $maskedKeywords, socks5Proxy: $socks5Proxy, needCleanCache: $needCleanCache, comicChoice: $comicChoice, disableBika: $disableBika, enableMemoryDebug: $enableMemoryDebug, searchHistory: $searchHistory, windowWidth: $windowWidth, windowHeight: $windowHeight, windowX: $windowX, windowY: $windowY, readSetting: $readSetting)';
+  return 'GlobalSettingState(dynamicColor: $dynamicColor, themeMode: $themeMode, isAMOLED: $isAMOLED, seedColor: $seedColor, themeInitState: $themeInitState, locale: $locale, welcomePageNum: $welcomePageNum, syncServiceType: $syncServiceType, webdavHost: $webdavHost, webdavUsername: $webdavUsername, webdavPassword: $webdavPassword, s3Setting: $s3Setting, md5: $md5, autoSync: $autoSync, syncNotify: $syncNotify, comicReadTopContainer: $comicReadTopContainer, readMode: $readMode, maskedKeywords: $maskedKeywords, socks5Proxy: $socks5Proxy, needCleanCache: $needCleanCache, comicChoice: $comicChoice, disableBika: $disableBika, enableMemoryDebug: $enableMemoryDebug, searchHistory: $searchHistory, windowWidth: $windowWidth, windowHeight: $windowHeight, windowX: $windowX, windowY: $windowY, readSetting: $readSetting)';
 }
 
 
@@ -48,11 +48,11 @@ abstract mixin class $GlobalSettingStateCopyWith<$Res>  {
   factory $GlobalSettingStateCopyWith(GlobalSettingState value, $Res Function(GlobalSettingState) _then) = _$GlobalSettingStateCopyWithImpl;
 @useResult
 $Res call({
- bool dynamicColor, ThemeMode themeMode, bool isAMOLED,@ColorConverter() Color seedColor, int themeInitState,@LocaleConverter() Locale locale, int welcomePageNum, String webdavHost, String webdavUsername, String webdavPassword, String md5, bool autoSync, bool syncNotify, bool comicReadTopContainer, int readMode, List<String> maskedKeywords, String socks5Proxy, bool needCleanCache, int comicChoice, bool disableBika, bool enableMemoryDebug, List<String> searchHistory, double windowWidth, double windowHeight, double windowX, double windowY, ReadSettingState readSetting
+ bool dynamicColor, ThemeMode themeMode, bool isAMOLED,@ColorConverter() Color seedColor, int themeInitState,@LocaleConverter() Locale locale, int welcomePageNum, SyncServiceType syncServiceType, String webdavHost, String webdavUsername, String webdavPassword, S3SettingState s3Setting, String md5, bool autoSync, bool syncNotify, bool comicReadTopContainer, int readMode, List<String> maskedKeywords, String socks5Proxy, bool needCleanCache, int comicChoice, bool disableBika, bool enableMemoryDebug, List<String> searchHistory, double windowWidth, double windowHeight, double windowX, double windowY, ReadSettingState readSetting
 });
 
 
-$ReadSettingStateCopyWith<$Res> get readSetting;
+$S3SettingStateCopyWith<$Res> get s3Setting;$ReadSettingStateCopyWith<$Res> get readSetting;
 
 }
 /// @nodoc
@@ -65,7 +65,7 @@ class _$GlobalSettingStateCopyWithImpl<$Res>
 
 /// Create a copy of GlobalSettingState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? dynamicColor = null,Object? themeMode = null,Object? isAMOLED = null,Object? seedColor = null,Object? themeInitState = null,Object? locale = null,Object? welcomePageNum = null,Object? webdavHost = null,Object? webdavUsername = null,Object? webdavPassword = null,Object? md5 = null,Object? autoSync = null,Object? syncNotify = null,Object? comicReadTopContainer = null,Object? readMode = null,Object? maskedKeywords = null,Object? socks5Proxy = null,Object? needCleanCache = null,Object? comicChoice = null,Object? disableBika = null,Object? enableMemoryDebug = null,Object? searchHistory = null,Object? windowWidth = null,Object? windowHeight = null,Object? windowX = null,Object? windowY = null,Object? readSetting = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? dynamicColor = null,Object? themeMode = null,Object? isAMOLED = null,Object? seedColor = null,Object? themeInitState = null,Object? locale = null,Object? welcomePageNum = null,Object? syncServiceType = null,Object? webdavHost = null,Object? webdavUsername = null,Object? webdavPassword = null,Object? s3Setting = null,Object? md5 = null,Object? autoSync = null,Object? syncNotify = null,Object? comicReadTopContainer = null,Object? readMode = null,Object? maskedKeywords = null,Object? socks5Proxy = null,Object? needCleanCache = null,Object? comicChoice = null,Object? disableBika = null,Object? enableMemoryDebug = null,Object? searchHistory = null,Object? windowWidth = null,Object? windowHeight = null,Object? windowX = null,Object? windowY = null,Object? readSetting = null,}) {
   return _then(_self.copyWith(
 dynamicColor: null == dynamicColor ? _self.dynamicColor : dynamicColor // ignore: cast_nullable_to_non_nullable
 as bool,themeMode: null == themeMode ? _self.themeMode : themeMode // ignore: cast_nullable_to_non_nullable
@@ -74,10 +74,12 @@ as bool,seedColor: null == seedColor ? _self.seedColor : seedColor // ignore: ca
 as Color,themeInitState: null == themeInitState ? _self.themeInitState : themeInitState // ignore: cast_nullable_to_non_nullable
 as int,locale: null == locale ? _self.locale : locale // ignore: cast_nullable_to_non_nullable
 as Locale,welcomePageNum: null == welcomePageNum ? _self.welcomePageNum : welcomePageNum // ignore: cast_nullable_to_non_nullable
-as int,webdavHost: null == webdavHost ? _self.webdavHost : webdavHost // ignore: cast_nullable_to_non_nullable
+as int,syncServiceType: null == syncServiceType ? _self.syncServiceType : syncServiceType // ignore: cast_nullable_to_non_nullable
+as SyncServiceType,webdavHost: null == webdavHost ? _self.webdavHost : webdavHost // ignore: cast_nullable_to_non_nullable
 as String,webdavUsername: null == webdavUsername ? _self.webdavUsername : webdavUsername // ignore: cast_nullable_to_non_nullable
 as String,webdavPassword: null == webdavPassword ? _self.webdavPassword : webdavPassword // ignore: cast_nullable_to_non_nullable
-as String,md5: null == md5 ? _self.md5 : md5 // ignore: cast_nullable_to_non_nullable
+as String,s3Setting: null == s3Setting ? _self.s3Setting : s3Setting // ignore: cast_nullable_to_non_nullable
+as S3SettingState,md5: null == md5 ? _self.md5 : md5 // ignore: cast_nullable_to_non_nullable
 as String,autoSync: null == autoSync ? _self.autoSync : autoSync // ignore: cast_nullable_to_non_nullable
 as bool,syncNotify: null == syncNotify ? _self.syncNotify : syncNotify // ignore: cast_nullable_to_non_nullable
 as bool,comicReadTopContainer: null == comicReadTopContainer ? _self.comicReadTopContainer : comicReadTopContainer // ignore: cast_nullable_to_non_nullable
@@ -98,6 +100,15 @@ as ReadSettingState,
   ));
 }
 /// Create a copy of GlobalSettingState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$S3SettingStateCopyWith<$Res> get s3Setting {
+  
+  return $S3SettingStateCopyWith<$Res>(_self.s3Setting, (value) {
+    return _then(_self.copyWith(s3Setting: value));
+  });
+}/// Create a copy of GlobalSettingState
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -188,10 +199,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  String webdavHost,  String webdavUsername,  String webdavPassword,  String md5,  bool autoSync,  bool syncNotify,  bool comicReadTopContainer,  int readMode,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY,  ReadSettingState readSetting)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  SyncServiceType syncServiceType,  String webdavHost,  String webdavUsername,  String webdavPassword,  S3SettingState s3Setting,  String md5,  bool autoSync,  bool syncNotify,  bool comicReadTopContainer,  int readMode,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY,  ReadSettingState readSetting)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GlobalSettingState() when $default != null:
-return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.webdavHost,_that.webdavUsername,_that.webdavPassword,_that.md5,_that.autoSync,_that.syncNotify,_that.comicReadTopContainer,_that.readMode,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY,_that.readSetting);case _:
+return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.syncServiceType,_that.webdavHost,_that.webdavUsername,_that.webdavPassword,_that.s3Setting,_that.md5,_that.autoSync,_that.syncNotify,_that.comicReadTopContainer,_that.readMode,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY,_that.readSetting);case _:
   return orElse();
 
 }
@@ -209,10 +220,10 @@ return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColo
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  String webdavHost,  String webdavUsername,  String webdavPassword,  String md5,  bool autoSync,  bool syncNotify,  bool comicReadTopContainer,  int readMode,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY,  ReadSettingState readSetting)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  SyncServiceType syncServiceType,  String webdavHost,  String webdavUsername,  String webdavPassword,  S3SettingState s3Setting,  String md5,  bool autoSync,  bool syncNotify,  bool comicReadTopContainer,  int readMode,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY,  ReadSettingState readSetting)  $default,) {final _that = this;
 switch (_that) {
 case _GlobalSettingState():
-return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.webdavHost,_that.webdavUsername,_that.webdavPassword,_that.md5,_that.autoSync,_that.syncNotify,_that.comicReadTopContainer,_that.readMode,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY,_that.readSetting);case _:
+return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.syncServiceType,_that.webdavHost,_that.webdavUsername,_that.webdavPassword,_that.s3Setting,_that.md5,_that.autoSync,_that.syncNotify,_that.comicReadTopContainer,_that.readMode,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY,_that.readSetting);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -229,10 +240,10 @@ return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColo
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  String webdavHost,  String webdavUsername,  String webdavPassword,  String md5,  bool autoSync,  bool syncNotify,  bool comicReadTopContainer,  int readMode,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY,  ReadSettingState readSetting)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool dynamicColor,  ThemeMode themeMode,  bool isAMOLED, @ColorConverter()  Color seedColor,  int themeInitState, @LocaleConverter()  Locale locale,  int welcomePageNum,  SyncServiceType syncServiceType,  String webdavHost,  String webdavUsername,  String webdavPassword,  S3SettingState s3Setting,  String md5,  bool autoSync,  bool syncNotify,  bool comicReadTopContainer,  int readMode,  List<String> maskedKeywords,  String socks5Proxy,  bool needCleanCache,  int comicChoice,  bool disableBika,  bool enableMemoryDebug,  List<String> searchHistory,  double windowWidth,  double windowHeight,  double windowX,  double windowY,  ReadSettingState readSetting)?  $default,) {final _that = this;
 switch (_that) {
 case _GlobalSettingState() when $default != null:
-return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.webdavHost,_that.webdavUsername,_that.webdavPassword,_that.md5,_that.autoSync,_that.syncNotify,_that.comicReadTopContainer,_that.readMode,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY,_that.readSetting);case _:
+return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColor,_that.themeInitState,_that.locale,_that.welcomePageNum,_that.syncServiceType,_that.webdavHost,_that.webdavUsername,_that.webdavPassword,_that.s3Setting,_that.md5,_that.autoSync,_that.syncNotify,_that.comicReadTopContainer,_that.readMode,_that.maskedKeywords,_that.socks5Proxy,_that.needCleanCache,_that.comicChoice,_that.disableBika,_that.enableMemoryDebug,_that.searchHistory,_that.windowWidth,_that.windowHeight,_that.windowX,_that.windowY,_that.readSetting);case _:
   return null;
 
 }
@@ -244,7 +255,7 @@ return $default(_that.dynamicColor,_that.themeMode,_that.isAMOLED,_that.seedColo
 @JsonSerializable()
 
 class _GlobalSettingState implements GlobalSettingState {
-  const _GlobalSettingState({this.dynamicColor = true, this.themeMode = ThemeMode.system, this.isAMOLED = true, @ColorConverter() this.seedColor = const Color(0xFFEF5350), this.themeInitState = 0, @LocaleConverter() this.locale = const Locale('zh', 'CN'), this.welcomePageNum = 0, this.webdavHost = '', this.webdavUsername = '', this.webdavPassword = '', this.md5 = '', this.autoSync = true, this.syncNotify = true, this.comicReadTopContainer = true, this.readMode = 0, final  List<String> maskedKeywords = const [], this.socks5Proxy = '', this.needCleanCache = false, this.comicChoice = 1, this.disableBika = false, this.enableMemoryDebug = false, final  List<String> searchHistory = const [], this.windowWidth = 1280.0, this.windowHeight = 720.0, this.windowX = 0, this.windowY = 0, this.readSetting = const ReadSettingState()}): _maskedKeywords = maskedKeywords,_searchHistory = searchHistory;
+  const _GlobalSettingState({this.dynamicColor = true, this.themeMode = ThemeMode.system, this.isAMOLED = true, @ColorConverter() this.seedColor = const Color(0xFFEF5350), this.themeInitState = 0, @LocaleConverter() this.locale = const Locale('zh', 'CN'), this.welcomePageNum = 0, this.syncServiceType = SyncServiceType.webdav, this.webdavHost = '', this.webdavUsername = '', this.webdavPassword = '', this.s3Setting = const S3SettingState(), this.md5 = '', this.autoSync = true, this.syncNotify = true, this.comicReadTopContainer = true, this.readMode = 0, final  List<String> maskedKeywords = const [], this.socks5Proxy = '', this.needCleanCache = false, this.comicChoice = 1, this.disableBika = false, this.enableMemoryDebug = false, final  List<String> searchHistory = const [], this.windowWidth = 1280.0, this.windowHeight = 720.0, this.windowX = 0, this.windowY = 0, this.readSetting = const ReadSettingState()}): _maskedKeywords = maskedKeywords,_searchHistory = searchHistory;
   factory _GlobalSettingState.fromJson(Map<String, dynamic> json) => _$GlobalSettingStateFromJson(json);
 
 @override@JsonKey() final  bool dynamicColor;
@@ -254,9 +265,11 @@ class _GlobalSettingState implements GlobalSettingState {
 @override@JsonKey() final  int themeInitState;
 @override@JsonKey()@LocaleConverter() final  Locale locale;
 @override@JsonKey() final  int welcomePageNum;
+@override@JsonKey() final  SyncServiceType syncServiceType;
 @override@JsonKey() final  String webdavHost;
 @override@JsonKey() final  String webdavUsername;
 @override@JsonKey() final  String webdavPassword;
+@override@JsonKey() final  S3SettingState s3Setting;
 @override@JsonKey() final  String md5;
 @override@JsonKey() final  bool autoSync;
 @override@JsonKey() final  bool syncNotify;
@@ -300,16 +313,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GlobalSettingState&&(identical(other.dynamicColor, dynamicColor) || other.dynamicColor == dynamicColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.isAMOLED, isAMOLED) || other.isAMOLED == isAMOLED)&&(identical(other.seedColor, seedColor) || other.seedColor == seedColor)&&(identical(other.themeInitState, themeInitState) || other.themeInitState == themeInitState)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.welcomePageNum, welcomePageNum) || other.welcomePageNum == welcomePageNum)&&(identical(other.webdavHost, webdavHost) || other.webdavHost == webdavHost)&&(identical(other.webdavUsername, webdavUsername) || other.webdavUsername == webdavUsername)&&(identical(other.webdavPassword, webdavPassword) || other.webdavPassword == webdavPassword)&&(identical(other.md5, md5) || other.md5 == md5)&&(identical(other.autoSync, autoSync) || other.autoSync == autoSync)&&(identical(other.syncNotify, syncNotify) || other.syncNotify == syncNotify)&&(identical(other.comicReadTopContainer, comicReadTopContainer) || other.comicReadTopContainer == comicReadTopContainer)&&(identical(other.readMode, readMode) || other.readMode == readMode)&&const DeepCollectionEquality().equals(other._maskedKeywords, _maskedKeywords)&&(identical(other.socks5Proxy, socks5Proxy) || other.socks5Proxy == socks5Proxy)&&(identical(other.needCleanCache, needCleanCache) || other.needCleanCache == needCleanCache)&&(identical(other.comicChoice, comicChoice) || other.comicChoice == comicChoice)&&(identical(other.disableBika, disableBika) || other.disableBika == disableBika)&&(identical(other.enableMemoryDebug, enableMemoryDebug) || other.enableMemoryDebug == enableMemoryDebug)&&const DeepCollectionEquality().equals(other._searchHistory, _searchHistory)&&(identical(other.windowWidth, windowWidth) || other.windowWidth == windowWidth)&&(identical(other.windowHeight, windowHeight) || other.windowHeight == windowHeight)&&(identical(other.windowX, windowX) || other.windowX == windowX)&&(identical(other.windowY, windowY) || other.windowY == windowY)&&(identical(other.readSetting, readSetting) || other.readSetting == readSetting));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GlobalSettingState&&(identical(other.dynamicColor, dynamicColor) || other.dynamicColor == dynamicColor)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.isAMOLED, isAMOLED) || other.isAMOLED == isAMOLED)&&(identical(other.seedColor, seedColor) || other.seedColor == seedColor)&&(identical(other.themeInitState, themeInitState) || other.themeInitState == themeInitState)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.welcomePageNum, welcomePageNum) || other.welcomePageNum == welcomePageNum)&&(identical(other.syncServiceType, syncServiceType) || other.syncServiceType == syncServiceType)&&(identical(other.webdavHost, webdavHost) || other.webdavHost == webdavHost)&&(identical(other.webdavUsername, webdavUsername) || other.webdavUsername == webdavUsername)&&(identical(other.webdavPassword, webdavPassword) || other.webdavPassword == webdavPassword)&&(identical(other.s3Setting, s3Setting) || other.s3Setting == s3Setting)&&(identical(other.md5, md5) || other.md5 == md5)&&(identical(other.autoSync, autoSync) || other.autoSync == autoSync)&&(identical(other.syncNotify, syncNotify) || other.syncNotify == syncNotify)&&(identical(other.comicReadTopContainer, comicReadTopContainer) || other.comicReadTopContainer == comicReadTopContainer)&&(identical(other.readMode, readMode) || other.readMode == readMode)&&const DeepCollectionEquality().equals(other._maskedKeywords, _maskedKeywords)&&(identical(other.socks5Proxy, socks5Proxy) || other.socks5Proxy == socks5Proxy)&&(identical(other.needCleanCache, needCleanCache) || other.needCleanCache == needCleanCache)&&(identical(other.comicChoice, comicChoice) || other.comicChoice == comicChoice)&&(identical(other.disableBika, disableBika) || other.disableBika == disableBika)&&(identical(other.enableMemoryDebug, enableMemoryDebug) || other.enableMemoryDebug == enableMemoryDebug)&&const DeepCollectionEquality().equals(other._searchHistory, _searchHistory)&&(identical(other.windowWidth, windowWidth) || other.windowWidth == windowWidth)&&(identical(other.windowHeight, windowHeight) || other.windowHeight == windowHeight)&&(identical(other.windowX, windowX) || other.windowX == windowX)&&(identical(other.windowY, windowY) || other.windowY == windowY)&&(identical(other.readSetting, readSetting) || other.readSetting == readSetting));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,dynamicColor,themeMode,isAMOLED,seedColor,themeInitState,locale,welcomePageNum,webdavHost,webdavUsername,webdavPassword,md5,autoSync,syncNotify,comicReadTopContainer,readMode,const DeepCollectionEquality().hash(_maskedKeywords),socks5Proxy,needCleanCache,comicChoice,disableBika,enableMemoryDebug,const DeepCollectionEquality().hash(_searchHistory),windowWidth,windowHeight,windowX,windowY,readSetting]);
+int get hashCode => Object.hashAll([runtimeType,dynamicColor,themeMode,isAMOLED,seedColor,themeInitState,locale,welcomePageNum,syncServiceType,webdavHost,webdavUsername,webdavPassword,s3Setting,md5,autoSync,syncNotify,comicReadTopContainer,readMode,const DeepCollectionEquality().hash(_maskedKeywords),socks5Proxy,needCleanCache,comicChoice,disableBika,enableMemoryDebug,const DeepCollectionEquality().hash(_searchHistory),windowWidth,windowHeight,windowX,windowY,readSetting]);
 
 @override
 String toString() {
-  return 'GlobalSettingState(dynamicColor: $dynamicColor, themeMode: $themeMode, isAMOLED: $isAMOLED, seedColor: $seedColor, themeInitState: $themeInitState, locale: $locale, welcomePageNum: $welcomePageNum, webdavHost: $webdavHost, webdavUsername: $webdavUsername, webdavPassword: $webdavPassword, md5: $md5, autoSync: $autoSync, syncNotify: $syncNotify, comicReadTopContainer: $comicReadTopContainer, readMode: $readMode, maskedKeywords: $maskedKeywords, socks5Proxy: $socks5Proxy, needCleanCache: $needCleanCache, comicChoice: $comicChoice, disableBika: $disableBika, enableMemoryDebug: $enableMemoryDebug, searchHistory: $searchHistory, windowWidth: $windowWidth, windowHeight: $windowHeight, windowX: $windowX, windowY: $windowY, readSetting: $readSetting)';
+  return 'GlobalSettingState(dynamicColor: $dynamicColor, themeMode: $themeMode, isAMOLED: $isAMOLED, seedColor: $seedColor, themeInitState: $themeInitState, locale: $locale, welcomePageNum: $welcomePageNum, syncServiceType: $syncServiceType, webdavHost: $webdavHost, webdavUsername: $webdavUsername, webdavPassword: $webdavPassword, s3Setting: $s3Setting, md5: $md5, autoSync: $autoSync, syncNotify: $syncNotify, comicReadTopContainer: $comicReadTopContainer, readMode: $readMode, maskedKeywords: $maskedKeywords, socks5Proxy: $socks5Proxy, needCleanCache: $needCleanCache, comicChoice: $comicChoice, disableBika: $disableBika, enableMemoryDebug: $enableMemoryDebug, searchHistory: $searchHistory, windowWidth: $windowWidth, windowHeight: $windowHeight, windowX: $windowX, windowY: $windowY, readSetting: $readSetting)';
 }
 
 
@@ -320,11 +333,11 @@ abstract mixin class _$GlobalSettingStateCopyWith<$Res> implements $GlobalSettin
   factory _$GlobalSettingStateCopyWith(_GlobalSettingState value, $Res Function(_GlobalSettingState) _then) = __$GlobalSettingStateCopyWithImpl;
 @override @useResult
 $Res call({
- bool dynamicColor, ThemeMode themeMode, bool isAMOLED,@ColorConverter() Color seedColor, int themeInitState,@LocaleConverter() Locale locale, int welcomePageNum, String webdavHost, String webdavUsername, String webdavPassword, String md5, bool autoSync, bool syncNotify, bool comicReadTopContainer, int readMode, List<String> maskedKeywords, String socks5Proxy, bool needCleanCache, int comicChoice, bool disableBika, bool enableMemoryDebug, List<String> searchHistory, double windowWidth, double windowHeight, double windowX, double windowY, ReadSettingState readSetting
+ bool dynamicColor, ThemeMode themeMode, bool isAMOLED,@ColorConverter() Color seedColor, int themeInitState,@LocaleConverter() Locale locale, int welcomePageNum, SyncServiceType syncServiceType, String webdavHost, String webdavUsername, String webdavPassword, S3SettingState s3Setting, String md5, bool autoSync, bool syncNotify, bool comicReadTopContainer, int readMode, List<String> maskedKeywords, String socks5Proxy, bool needCleanCache, int comicChoice, bool disableBika, bool enableMemoryDebug, List<String> searchHistory, double windowWidth, double windowHeight, double windowX, double windowY, ReadSettingState readSetting
 });
 
 
-@override $ReadSettingStateCopyWith<$Res> get readSetting;
+@override $S3SettingStateCopyWith<$Res> get s3Setting;@override $ReadSettingStateCopyWith<$Res> get readSetting;
 
 }
 /// @nodoc
@@ -337,7 +350,7 @@ class __$GlobalSettingStateCopyWithImpl<$Res>
 
 /// Create a copy of GlobalSettingState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? dynamicColor = null,Object? themeMode = null,Object? isAMOLED = null,Object? seedColor = null,Object? themeInitState = null,Object? locale = null,Object? welcomePageNum = null,Object? webdavHost = null,Object? webdavUsername = null,Object? webdavPassword = null,Object? md5 = null,Object? autoSync = null,Object? syncNotify = null,Object? comicReadTopContainer = null,Object? readMode = null,Object? maskedKeywords = null,Object? socks5Proxy = null,Object? needCleanCache = null,Object? comicChoice = null,Object? disableBika = null,Object? enableMemoryDebug = null,Object? searchHistory = null,Object? windowWidth = null,Object? windowHeight = null,Object? windowX = null,Object? windowY = null,Object? readSetting = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? dynamicColor = null,Object? themeMode = null,Object? isAMOLED = null,Object? seedColor = null,Object? themeInitState = null,Object? locale = null,Object? welcomePageNum = null,Object? syncServiceType = null,Object? webdavHost = null,Object? webdavUsername = null,Object? webdavPassword = null,Object? s3Setting = null,Object? md5 = null,Object? autoSync = null,Object? syncNotify = null,Object? comicReadTopContainer = null,Object? readMode = null,Object? maskedKeywords = null,Object? socks5Proxy = null,Object? needCleanCache = null,Object? comicChoice = null,Object? disableBika = null,Object? enableMemoryDebug = null,Object? searchHistory = null,Object? windowWidth = null,Object? windowHeight = null,Object? windowX = null,Object? windowY = null,Object? readSetting = null,}) {
   return _then(_GlobalSettingState(
 dynamicColor: null == dynamicColor ? _self.dynamicColor : dynamicColor // ignore: cast_nullable_to_non_nullable
 as bool,themeMode: null == themeMode ? _self.themeMode : themeMode // ignore: cast_nullable_to_non_nullable
@@ -346,10 +359,12 @@ as bool,seedColor: null == seedColor ? _self.seedColor : seedColor // ignore: ca
 as Color,themeInitState: null == themeInitState ? _self.themeInitState : themeInitState // ignore: cast_nullable_to_non_nullable
 as int,locale: null == locale ? _self.locale : locale // ignore: cast_nullable_to_non_nullable
 as Locale,welcomePageNum: null == welcomePageNum ? _self.welcomePageNum : welcomePageNum // ignore: cast_nullable_to_non_nullable
-as int,webdavHost: null == webdavHost ? _self.webdavHost : webdavHost // ignore: cast_nullable_to_non_nullable
+as int,syncServiceType: null == syncServiceType ? _self.syncServiceType : syncServiceType // ignore: cast_nullable_to_non_nullable
+as SyncServiceType,webdavHost: null == webdavHost ? _self.webdavHost : webdavHost // ignore: cast_nullable_to_non_nullable
 as String,webdavUsername: null == webdavUsername ? _self.webdavUsername : webdavUsername // ignore: cast_nullable_to_non_nullable
 as String,webdavPassword: null == webdavPassword ? _self.webdavPassword : webdavPassword // ignore: cast_nullable_to_non_nullable
-as String,md5: null == md5 ? _self.md5 : md5 // ignore: cast_nullable_to_non_nullable
+as String,s3Setting: null == s3Setting ? _self.s3Setting : s3Setting // ignore: cast_nullable_to_non_nullable
+as S3SettingState,md5: null == md5 ? _self.md5 : md5 // ignore: cast_nullable_to_non_nullable
 as String,autoSync: null == autoSync ? _self.autoSync : autoSync // ignore: cast_nullable_to_non_nullable
 as bool,syncNotify: null == syncNotify ? _self.syncNotify : syncNotify // ignore: cast_nullable_to_non_nullable
 as bool,comicReadTopContainer: null == comicReadTopContainer ? _self.comicReadTopContainer : comicReadTopContainer // ignore: cast_nullable_to_non_nullable
@@ -374,12 +389,302 @@ as ReadSettingState,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
+$S3SettingStateCopyWith<$Res> get s3Setting {
+  
+  return $S3SettingStateCopyWith<$Res>(_self.s3Setting, (value) {
+    return _then(_self.copyWith(s3Setting: value));
+  });
+}/// Create a copy of GlobalSettingState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
 $ReadSettingStateCopyWith<$Res> get readSetting {
   
   return $ReadSettingStateCopyWith<$Res>(_self.readSetting, (value) {
     return _then(_self.copyWith(readSetting: value));
   });
 }
+}
+
+
+/// @nodoc
+mixin _$S3SettingState {
+
+ String get endpoint; String get accessKey; String get secretKey; String get bucket; String get region; bool get useSSL; int get port;
+/// Create a copy of S3SettingState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$S3SettingStateCopyWith<S3SettingState> get copyWith => _$S3SettingStateCopyWithImpl<S3SettingState>(this as S3SettingState, _$identity);
+
+  /// Serializes this S3SettingState to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is S3SettingState&&(identical(other.endpoint, endpoint) || other.endpoint == endpoint)&&(identical(other.accessKey, accessKey) || other.accessKey == accessKey)&&(identical(other.secretKey, secretKey) || other.secretKey == secretKey)&&(identical(other.bucket, bucket) || other.bucket == bucket)&&(identical(other.region, region) || other.region == region)&&(identical(other.useSSL, useSSL) || other.useSSL == useSSL)&&(identical(other.port, port) || other.port == port));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,endpoint,accessKey,secretKey,bucket,region,useSSL,port);
+
+@override
+String toString() {
+  return 'S3SettingState(endpoint: $endpoint, accessKey: $accessKey, secretKey: $secretKey, bucket: $bucket, region: $region, useSSL: $useSSL, port: $port)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $S3SettingStateCopyWith<$Res>  {
+  factory $S3SettingStateCopyWith(S3SettingState value, $Res Function(S3SettingState) _then) = _$S3SettingStateCopyWithImpl;
+@useResult
+$Res call({
+ String endpoint, String accessKey, String secretKey, String bucket, String region, bool useSSL, int port
+});
+
+
+
+
+}
+/// @nodoc
+class _$S3SettingStateCopyWithImpl<$Res>
+    implements $S3SettingStateCopyWith<$Res> {
+  _$S3SettingStateCopyWithImpl(this._self, this._then);
+
+  final S3SettingState _self;
+  final $Res Function(S3SettingState) _then;
+
+/// Create a copy of S3SettingState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? endpoint = null,Object? accessKey = null,Object? secretKey = null,Object? bucket = null,Object? region = null,Object? useSSL = null,Object? port = null,}) {
+  return _then(_self.copyWith(
+endpoint: null == endpoint ? _self.endpoint : endpoint // ignore: cast_nullable_to_non_nullable
+as String,accessKey: null == accessKey ? _self.accessKey : accessKey // ignore: cast_nullable_to_non_nullable
+as String,secretKey: null == secretKey ? _self.secretKey : secretKey // ignore: cast_nullable_to_non_nullable
+as String,bucket: null == bucket ? _self.bucket : bucket // ignore: cast_nullable_to_non_nullable
+as String,region: null == region ? _self.region : region // ignore: cast_nullable_to_non_nullable
+as String,useSSL: null == useSSL ? _self.useSSL : useSSL // ignore: cast_nullable_to_non_nullable
+as bool,port: null == port ? _self.port : port // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [S3SettingState].
+extension S3SettingStatePatterns on S3SettingState {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _S3SettingState value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _S3SettingState() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _S3SettingState value)  $default,){
+final _that = this;
+switch (_that) {
+case _S3SettingState():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _S3SettingState value)?  $default,){
+final _that = this;
+switch (_that) {
+case _S3SettingState() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String endpoint,  String accessKey,  String secretKey,  String bucket,  String region,  bool useSSL,  int port)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _S3SettingState() when $default != null:
+return $default(_that.endpoint,_that.accessKey,_that.secretKey,_that.bucket,_that.region,_that.useSSL,_that.port);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String endpoint,  String accessKey,  String secretKey,  String bucket,  String region,  bool useSSL,  int port)  $default,) {final _that = this;
+switch (_that) {
+case _S3SettingState():
+return $default(_that.endpoint,_that.accessKey,_that.secretKey,_that.bucket,_that.region,_that.useSSL,_that.port);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String endpoint,  String accessKey,  String secretKey,  String bucket,  String region,  bool useSSL,  int port)?  $default,) {final _that = this;
+switch (_that) {
+case _S3SettingState() when $default != null:
+return $default(_that.endpoint,_that.accessKey,_that.secretKey,_that.bucket,_that.region,_that.useSSL,_that.port);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _S3SettingState implements S3SettingState {
+  const _S3SettingState({this.endpoint = '', this.accessKey = '', this.secretKey = '', this.bucket = '', this.region = '', this.useSSL = true, this.port = 0});
+  factory _S3SettingState.fromJson(Map<String, dynamic> json) => _$S3SettingStateFromJson(json);
+
+@override@JsonKey() final  String endpoint;
+@override@JsonKey() final  String accessKey;
+@override@JsonKey() final  String secretKey;
+@override@JsonKey() final  String bucket;
+@override@JsonKey() final  String region;
+@override@JsonKey() final  bool useSSL;
+@override@JsonKey() final  int port;
+
+/// Create a copy of S3SettingState
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$S3SettingStateCopyWith<_S3SettingState> get copyWith => __$S3SettingStateCopyWithImpl<_S3SettingState>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$S3SettingStateToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _S3SettingState&&(identical(other.endpoint, endpoint) || other.endpoint == endpoint)&&(identical(other.accessKey, accessKey) || other.accessKey == accessKey)&&(identical(other.secretKey, secretKey) || other.secretKey == secretKey)&&(identical(other.bucket, bucket) || other.bucket == bucket)&&(identical(other.region, region) || other.region == region)&&(identical(other.useSSL, useSSL) || other.useSSL == useSSL)&&(identical(other.port, port) || other.port == port));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,endpoint,accessKey,secretKey,bucket,region,useSSL,port);
+
+@override
+String toString() {
+  return 'S3SettingState(endpoint: $endpoint, accessKey: $accessKey, secretKey: $secretKey, bucket: $bucket, region: $region, useSSL: $useSSL, port: $port)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$S3SettingStateCopyWith<$Res> implements $S3SettingStateCopyWith<$Res> {
+  factory _$S3SettingStateCopyWith(_S3SettingState value, $Res Function(_S3SettingState) _then) = __$S3SettingStateCopyWithImpl;
+@override @useResult
+$Res call({
+ String endpoint, String accessKey, String secretKey, String bucket, String region, bool useSSL, int port
+});
+
+
+
+
+}
+/// @nodoc
+class __$S3SettingStateCopyWithImpl<$Res>
+    implements _$S3SettingStateCopyWith<$Res> {
+  __$S3SettingStateCopyWithImpl(this._self, this._then);
+
+  final _S3SettingState _self;
+  final $Res Function(_S3SettingState) _then;
+
+/// Create a copy of S3SettingState
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? endpoint = null,Object? accessKey = null,Object? secretKey = null,Object? bucket = null,Object? region = null,Object? useSSL = null,Object? port = null,}) {
+  return _then(_S3SettingState(
+endpoint: null == endpoint ? _self.endpoint : endpoint // ignore: cast_nullable_to_non_nullable
+as String,accessKey: null == accessKey ? _self.accessKey : accessKey // ignore: cast_nullable_to_non_nullable
+as String,secretKey: null == secretKey ? _self.secretKey : secretKey // ignore: cast_nullable_to_non_nullable
+as String,bucket: null == bucket ? _self.bucket : bucket // ignore: cast_nullable_to_non_nullable
+as String,region: null == region ? _self.region : region // ignore: cast_nullable_to_non_nullable
+as String,useSSL: null == useSSL ? _self.useSSL : useSSL // ignore: cast_nullable_to_non_nullable
+as bool,port: null == port ? _self.port : port // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+
 }
 
 

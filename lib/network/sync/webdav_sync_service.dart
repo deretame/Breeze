@@ -64,7 +64,7 @@ class WebDavSyncService implements ComicSyncRemoteAdapter {
     try {
       final response = await _dio.request(
         dirPath,
-        options: Options(method: 'PROPFIND'),
+        options: Options(method: 'PROPFIND', headers: {'Depth': '0'}),
       );
 
       if (response.statusCode == 207) {
@@ -138,7 +138,7 @@ class WebDavSyncService implements ComicSyncRemoteAdapter {
     try {
       final response = await _dio.request(
         '/$appName/',
-        options: Options(method: 'PROPFIND'),
+        options: Options(method: 'PROPFIND', headers: {'Depth': '1'}),
       );
 
       if (response.statusCode != 207) {

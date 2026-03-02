@@ -24,13 +24,16 @@ import Darwin
       return
     }
 
-    let registrar = pluginRegistry.registrar(forPlugin: memoryChannelName)
+    guard let registrar = pluginRegistry.registrar(forPlugin: memoryChannelName) else {
+      return
+    }
+
     let channel = FlutterMethodChannel(
       name: memoryChannelName,
       binaryMessenger: registrar.messenger()
     )
 
-    channel.setMethodCallHandler { [weak self] call, result in
+    let handler: FlutterMethodCallHandler = { [weak self] call, result in
       guard let self = self else {
         result(FlutterError(code: "DEALLOCATED", message: "AppDelegate deallocated", details: nil))
         return
@@ -45,6 +48,8 @@ import Darwin
         result(FlutterMethodNotImplemented)
       }
     }
+
+    channel.setMethodCallHandler(handler)
 
     memoryChannel = channel
   }

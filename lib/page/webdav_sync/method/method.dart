@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:minio/minio.dart';
+import 'package:zephyr/config/global/global.dart';
 
 import '../../../main.dart';
 
@@ -31,11 +32,26 @@ Future<void> testWebDavServer(
     );
 
     final code = response.statusCode ?? 0;
-    if (code >= 200 && code < 300) {
-      logger.d('WebDAV 服务可用\n支持的 HTTP 方法: ${response.headers['allow']}');
-    } else {
+    if (code < 200 || code >= 300) {
       throw Exception('WebDAV 服务返回异常状态码: ${response.statusCode}');
     }
+
+    final propfindResponse = await dio.request(
+      '/$appName/',
+      options: Options(
+        method: 'PROPFIND',
+        headers: {'Depth': '0'},
+        validateStatus: (status) => status != null && status < 500,
+      ),
+    );
+
+    final propfindCode = propfindResponse.statusCode ?? 0;
+    if (propfindCode == 207 || propfindCode == 404) {
+      logger.d('WebDAV 服务可用\n支持的 HTTP 方法: ${response.headers['allow']}');
+      return;
+    }
+
+    throw Exception('WebDAV PROPFIND 检查失败，状态码: $propfindCode');
   } on DioException catch (e) {
     if (e.response != null) {
       logger.e(

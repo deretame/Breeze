@@ -6,6 +6,10 @@ import 'package:zephyr/type/enum.dart';
 part 'jm_setting.freezed.dart';
 part 'jm_setting.g.dart';
 
+JmSettingState get jmSetting {
+  return objectbox.userSettingBox.get(1)!.jmSetting;
+}
+
 @freezed
 abstract class JmSettingState with _$JmSettingState {
   const factory JmSettingState({

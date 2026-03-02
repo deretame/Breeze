@@ -41,23 +41,35 @@ class _ImageDisplayState extends State<ImageDisplay> {
     super.initState();
     if (isColumn) {
       _resolveImageMeta();
+    } else {
+      _startEinkDelayIfNeeded(
+        context.read<GlobalSettingCubit>().state.readSetting,
+      );
     }
-    _startEinkDelayIfNeeded(
-      context.read<GlobalSettingCubit>().state.readSetting,
-    );
   }
 
   @override
   void didUpdateWidget(covariant ImageDisplay oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isColumn && widget.imagePath != oldWidget.imagePath) {
-      _stopListening();
-      _rawWidth = null;
-      _rawHeight = null;
-      _resolveImageMeta();
+
+    if (widget.isColumn) {
+      if (!oldWidget.isColumn || widget.imagePath != oldWidget.imagePath) {
+        _stopListening();
+        _rawWidth = null;
+        _rawHeight = null;
+        _resolveImageMeta();
+      }
+      _einkDelayTimer?.cancel();
+      _einkDelayFinished = true;
+      _wasRowActive = false;
+      return;
     }
 
-    if (!widget.isColumn && widget.imagePath != oldWidget.imagePath) {
+    if (oldWidget.isColumn) {
+      _stopListening();
+    }
+
+    if (widget.imagePath != oldWidget.imagePath || oldWidget.isColumn) {
       _startEinkDelayIfNeeded(
         context.read<GlobalSettingCubit>().state.readSetting,
       );
@@ -150,10 +162,17 @@ class _ImageDisplayState extends State<ImageDisplay> {
 
   @override
   Widget build(BuildContext context) {
-    final pixelRatio = MediaQuery.of(context).devicePixelRatio;
     final readSetting = context.select(
       (GlobalSettingCubit c) => c.state.readSetting,
     );
+    final brightness = Theme.of(context).brightness;
+    final backgroundColor = readSetting.resolveReaderBackgroundColor(
+      brightness,
+    );
+    final foregroundColor = readSetting.resolveReaderForegroundColor(
+      brightness,
+    );
+    final progressColor = foregroundColor.withValues(alpha: 0.3);
     final readMode = context.select((GlobalSettingCubit c) => c.state.readMode);
     final currentPageIndex = context.select(
       (ReaderCubit c) => c.state.pageIndex,
@@ -177,7 +196,6 @@ class _ImageDisplayState extends State<ImageDisplay> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final int cacheSize = (width * pixelRatio).round();
 
         if (_rawWidth != null && isColumn) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -189,7 +207,6 @@ class _ImageDisplayState extends State<ImageDisplay> {
           File(widget.imagePath),
           width: width,
           fit: isColumn ? BoxFit.fill : BoxFit.contain,
-          cacheWidth: cacheSize > 0 ? cacheSize : null,
           gaplessPlayback: true,
           frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
             if (wasSynchronouslyLoaded || frame != null) {
@@ -205,20 +222,33 @@ class _ImageDisplayState extends State<ImageDisplay> {
             if (isColumn) {
               return Container(
                 width: width,
-                color: const Color(0xFF2D2D2D),
+                color: backgroundColor,
                 alignment: Alignment.center,
-                child: const SizedBox(
+                child: SizedBox(
                   width: 24,
                   height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: progressColor,
+                  ),
                 ),
               );
             } else {
               if (canUseEinkMask && isActiveRowImage && !_einkDelayFinished) {
                 return Container(width: width, color: Colors.white);
               }
-              return const Center(
-                child: CircularProgressIndicator(color: Colors.white24),
+              return Container(
+                width: width,
+                color: backgroundColor,
+                alignment: Alignment.center,
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: progressColor,
+                  ),
+                ),
               );
             }
           },

@@ -27,8 +27,6 @@ class _PageCountWidgetState extends State<PageCountWidget> {
   BatteryState _batteryState = BatteryState.full;
   StreamSubscription<BatteryState>? _batteryStateSubscription;
 
-  bool get _canUseBattery => Platform.isAndroid || Platform.isIOS;
-
   @override
   void initState() {
     super.initState();
@@ -50,7 +48,6 @@ class _PageCountWidgetState extends State<PageCountWidget> {
   }
 
   void _initBattery() async {
-    if (!_canUseBattery) return;
     try {
       final level = await _battery.batteryLevel;
       if (mounted) {
@@ -158,7 +155,6 @@ class _PageCountWidgetState extends State<PageCountWidget> {
     if (formattedTime != _currentTime) {
       setState(() => _currentTime = formattedTime);
 
-      if (!_canUseBattery) return;
       _battery.batteryLevel
           .then((level) {
             if (mounted && _batteryLevel != level) {
@@ -188,7 +184,7 @@ class _PageCountWidgetState extends State<PageCountWidget> {
 
     final showPage = readSetting.pageInfoShowPage;
     final showNetwork = readSetting.pageInfoShowNetwork;
-    final showBattery = readSetting.pageInfoShowBattery && _canUseBattery;
+    final showBattery = readSetting.pageInfoShowBattery;
     final showTime = readSetting.pageInfoShowTime;
     final opacityPercent = readSetting.pageInfoOpacityPercent.clamp(20, 100);
     final fontSize = readSetting.pageInfoFontSize.clamp(10, 20).toDouble();
@@ -205,10 +201,14 @@ class _PageCountWidgetState extends State<PageCountWidget> {
         ? 0.0
         : (Platform.isIOS ? 22.0 : 12.0);
     final verticalExtra = Platform.isIOS ? 6.0 : 2.0;
+    final showInStatusBar =
+        readSetting.pageInfoVerticalPosition ==
+            ReaderInfoVerticalPosition.top &&
+        readSetting.pageInfoTopInStatusBar;
 
     final verticalOffset =
         readSetting.pageInfoVerticalPosition == ReaderInfoVerticalPosition.top
-        ? mediaPadding.top + edge + verticalExtra
+        ? (showInStatusBar ? edge : mediaPadding.top + edge + verticalExtra)
         : mediaPadding.bottom + edge + verticalExtra;
 
     final panel = _PageInfoPanel(

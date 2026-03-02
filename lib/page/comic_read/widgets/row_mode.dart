@@ -59,6 +59,8 @@ class _RowModeWidgetState extends State<RowModeWidget> {
   @override
   Widget build(BuildContext context) {
     final globalSettingState = context.watch<GlobalSettingCubit>().state;
+    final backgroundColor = globalSettingState.readSetting
+        .resolveReaderBackgroundColor(Theme.of(context).brightness);
     final jumpChapter = widget.jumpChapter;
     const offset = 4;
 
@@ -131,7 +133,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
         childrenDelegate: SliverChildBuilderDelegate(
           (context, index) {
             return Container(
-              color: Colors.black,
+              color: backgroundColor,
               child: ReadImageWidget(
                 isVisible: true,
                 pictureInfo: PictureInfo(

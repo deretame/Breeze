@@ -269,8 +269,11 @@ class _ComicReadPageState extends State<_ComicReadPage>
     final width = context.screenWidth;
 
     return BlocProvider(
-      create: (context) =>
-          ImageSizeCubit.create(defaultWidth: width, count: epInfo.length),
+      create: (context) => ImageSizeCubit.create(
+        defaultWidth: width,
+        count: epInfo.length,
+        historyCount: _historyManager.getHistoryPageIndex(),
+      ),
       child: Builder(
         builder: (innerContext) {
           final cubit = innerContext.read<ReaderCubit>();
@@ -280,6 +283,18 @@ class _ComicReadPageState extends State<_ComicReadPage>
           final readSetting = innerContext.select(
             (GlobalSettingCubit c) => c.state.readSetting,
           );
+          final backgroundColor = readSetting.resolveReaderBackgroundColor(
+            Theme.of(innerContext).brightness,
+          );
+          final isDarkMode =
+              Theme.of(innerContext).brightness == Brightness.dark;
+          final filterOpacityPercent = readSetting.readFilterOpacityPercent
+              .clamp(0, 100)
+              .toDouble();
+          final enableReaderFilter =
+              isDarkMode &&
+              readSetting.readFilterEnabled &&
+              filterOpacityPercent > 0;
 
           _syncAutoRead(readSetting: readSetting, readMode: readMode);
 
@@ -290,10 +305,21 @@ class _ComicReadPageState extends State<_ComicReadPage>
           _handleHistoryScroll();
 
           return Container(
-            color: Colors.black,
+            color: backgroundColor,
             child: Stack(
               children: [
                 Positioned.fill(child: _buildInteractiveViewer()),
+                if (enableReaderFilter)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      ignoring: true,
+                      child: Container(
+                        color: Colors.black.withValues(
+                          alpha: filterOpacityPercent / 100,
+                        ),
+                      ),
+                    ),
+                  ),
                 _pageCountWidget(),
                 _comicReadAppBar(),
                 _bottomWidget(),

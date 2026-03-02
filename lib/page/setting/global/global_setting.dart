@@ -48,7 +48,6 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             const SizedBox(height: 11),
           ],
           _comicReadTopContainer(state, globalSettingCubit),
-          _shade(state, globalSettingCubit),
           _isAMOLED(state, globalSettingCubit),
           DividerWidget(),
           const SizedBox(height: 11),
@@ -238,24 +237,6 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               .syncNotify, // 假设 state 中叫 syncNotify，原代码是 SettingsHiveUtils.syncNotify
           onChanged: (bool value) {
             cubit.updateState((current) => current.copyWith(syncNotify: value));
-          },
-        ),
-        const SizedBox(width: 10),
-      ],
-    );
-  }
-
-  Widget _shade(GlobalSettingState state, GlobalSettingCubit cubit) {
-    return Row(
-      children: [
-        const SizedBox(width: 10),
-        const Text("夜间模式遮罩", style: TextStyle(fontSize: 18)),
-        const Spacer(),
-        Switch(
-          thumbIcon: thumbIcon,
-          value: state.shade,
-          onChanged: (bool value) {
-            cubit.updateState((current) => current.copyWith(shade: value));
           },
         ),
         const SizedBox(width: 10),

@@ -59,14 +59,10 @@ class _NavigationBarState extends State<NavigationBar> {
     MorePage(),
   ];
 
-  // OverlayEntry 用于管理遮罩层
-  OverlayEntry? _overlayEntry;
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      _addOverlay();
       checkUpdate(context);
       bikaSignIn(context);
       jmLogin(context);
@@ -132,7 +128,6 @@ class _NavigationBarState extends State<NavigationBar> {
 
   @override
   void dispose() {
-    _removeOverlay(); // 移除遮罩层
     _controller.dispose();
     super.dispose();
   }
@@ -202,38 +197,6 @@ class _NavigationBarState extends State<NavigationBar> {
         ],
       ),
     );
-  }
-
-  void _addOverlay() {
-    _overlayEntry = OverlayEntry(
-      builder: (context) {
-        return BlocBuilder<GlobalSettingCubit, GlobalSettingState>(
-          builder: (context, globalState) {
-            final bool isDarkMode = !context.isLightMode;
-            final bool shadeEnabled = globalState.shade;
-
-            return Positioned.fill(
-              child: IgnorePointer(
-                ignoring: true,
-                child: Container(
-                  color: shadeEnabled && isDarkMode
-                      ? Colors.black.withValues(alpha: 0.5)
-                      : Colors.transparent,
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-
-    Overlay.of(context).insert(_overlayEntry!);
-  }
-
-  // 移除遮罩层
-  void _removeOverlay() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
   }
 
   // 底部导航栏的配置项

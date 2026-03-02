@@ -1,0 +1,309 @@
+name: Breeze Multi-Platform Push Build
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # ══════════════════════════════════════════
+  # 1. Android 构建
+  # ══════════════════════════════════════════
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 释放空间 (Nuclear Mode)
+        run: |
+          sudo rm -rf /opt/hostedtoolcache /usr/local/lib/android /usr/share/dotnet /opt/codeql
+          sudo mkdir -p /usr/local/lib/android/sdk
+          sudo chown -R $USER:$USER /usr/local/lib/android
+          docker system prune -a -f
+          sudo apt-get clean
+
+      - name: 解密敏感文件 (git-crypt)
+        env:
+          GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
+        run: |
+          sudo apt-get update && sudo apt-get install -y git-crypt
+          echo "$GIT_CRYPT_KEY" | base64 -d > ./git-crypt-key
+          git-crypt unlock ./git-crypt-key && rm ./git-crypt-key
+
+      - name: 设置 Java 21 & SDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: 设置 Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 设置 Dart SDK
+        uses: dart-lang/setup-dart@v1
+
+      - name: 设置 Flutter (FVM)
+        run: |
+          dart pub global activate fvm
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          fvm install && fvm use --force
+          echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
+
+      - name: 安装 Rust (Android 目标)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android
+
+      - name: 读取 NDK 版本配置
+        id: ndk-config
+        run: |
+          NDK_VER=$(grep "ndkVersion" android/app/build.gradle.kts | awk -F'"' '{print $2}')
+          echo "ndk_version=$NDK_VER" >> $GITHUB_OUTPUT
+
+      - name: 安装 Android NDK
+        run: yes | sdkmanager "ndk;${{ steps.ndk-config.outputs.ndk_version }}"
+
+      - name: 设置 NDK 环境变量
+        run: |
+          NDK_VER=${{ steps.ndk-config.outputs.ndk_version }}
+          ANDROID_HOME=${ANDROID_HOME:-$ANDROID_SDK_ROOT}
+          NDK_PATH="$ANDROID_HOME/ndk/$NDK_VER"
+          echo "ANDROID_NDK_HOME=$NDK_PATH" >> $GITHUB_ENV
+          echo "ANDROID_NDK_ROOT=$NDK_PATH" >> $GITHUB_ENV
+          echo "$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
+
+      - name: 接受 Android Licenses
+        run: yes | fvm flutter doctor --android-licenses || true
+
+      - name: 运行 Android 构建脚本
+        run: |
+          fvm dart ./script/build_apk.dart
+
+      - name: 上传 Android 产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apks
+          path: |
+            build/app/outputs/flutter-apk/*.apk
+            build/app/outputs/apk/skia/*.apk
+
+  # ══════════════════════════════════════════
+  # 2. Linux 构建
+  # ══════════════════════════════════════════
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 设置 Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: 安装 Flatpak 构建环境
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder ninja-build libgtk-3-dev liblzma-dev libgcrypt20-dev libayatana-appindicator3-dev libwebkit2gtk-4.1-dev libcurl4-openssl-dev
+          flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y flathub org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
+
+      - name: 设置 Dart SDK
+        uses: dart-lang/setup-dart@v1
+
+      - name: 设置 Flutter (FVM)
+        run: |
+          dart pub global activate fvm
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          fvm install && fvm use --force
+          echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
+
+      - name: 安装 Rust 工具链
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: x86_64-unknown-linux-gnu
+
+      - name: 构建 Flatpak
+        run: |
+          fvm flutter build linux --release --split-debug-info=build/symbols
+          mkdir -p build-flatpak repo-flatpak
+          flatpak-builder --user --force-clean --repo=repo-flatpak --install-deps-from=flathub build-flatpak flatpak/io.github.windy.breeze.yml
+          flatpak build-bundle repo-flatpak breeze.flatpak io.github.windy.breeze
+
+      - name: 上传 Linux 产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-flatpak
+          path: breeze.flatpak
+
+  # ══════════════════════════════════════════
+  # 3. Windows 构建
+  # ══════════════════════════════════════════
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: 关闭 Git CRLF 转换
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 设置 Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: 设置 Node.js & pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "pnpm"
+          cache-dependency-path: windows-installer/pnpm-lock.yaml
+
+      - name: 设置 Dart SDK
+        uses: dart-lang/setup-dart@v1
+
+      - name: 设置 Flutter (FVM)
+        run: |
+          dart pub global activate fvm
+          fvm install && fvm use --force
+          echo "$((Get-Item .).FullName)\.fvm\flutter_sdk\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: 安装 Rust 工具链
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 运行 Windows 构建脚本
+        run: |
+          fvm flutter pub get
+          fvm dart ./script/build_windows.dart
+
+      - name: 上传 Windows 产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-exe
+          path: windows-installer/src-tauri/target/release/windows-installer.exe
+
+  # ══════════════════════════════════════════
+  # 4. macOS 构建
+  # ══════════════════════════════════════════
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 安装打包依赖 (create-dmg)
+        run: brew install create-dmg
+
+      - name: 设置 Dart SDK
+        uses: dart-lang/setup-dart@v1
+
+      - name: 设置 Flutter (FVM)
+        run: |
+          dart pub global activate fvm
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          fvm install && fvm use --force
+          echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
+
+      - name: 安装 Rust 工具链
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+
+      - name: 拉取依赖 & 修复 Podfile
+        run: |
+          fvm flutter pub get
+          if [ -f "macos/Podfile" ]; then
+            sed -i '' "s/platform :osx, '[0-9.]*'/platform :osx, '11.0'/g" macos/Podfile
+            ruby -i -pe '
+              if /flutter_additional_macos_build_settings\(target\)/
+                $_ += "      target.build_configurations.each do |config|\n        config.build_settings[\"MACOSX_DEPLOYMENT_TARGET\"] = \"11.0\"\n      end\n"
+              end
+            ' macos/Podfile
+          fi
+
+      - name: 编译 macOS 产物
+        run: |
+          fvm flutter build macos --release --split-debug-info=build/symbols
+
+      - name: 制作 DMG
+        run: |
+          APP_PATH=$(find build/macos/Build/Products/Release -name "*.app" -maxdepth 1 | head -n 1)
+          APP_NAME=$(basename "$APP_PATH")
+          rm -f "Breeze-macOS.dmg"
+          create-dmg \
+            --volname "Breeze Installer" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "$APP_NAME" 150 190 \
+            --hide-extension "$APP_NAME" \
+            --app-drop-link 450 190 \
+            "Breeze-macOS.dmg" \
+            "$APP_PATH"
+
+      - name: 上传 macOS DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: Breeze-macOS.dmg
+
+  # ══════════════════════════════════════════
+  # 5. iOS 构建 (免签)
+  # ══════════════════════════════════════════
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 设置 Dart SDK
+        uses: dart-lang/setup-dart@v1
+
+      - name: 设置 Flutter (FVM)
+        run: |
+          dart pub global activate fvm
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+          export PATH="$PATH:$HOME/.pub-cache/bin"
+          fvm install && fvm use --force
+          echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
+
+      - name: 安装 Rust 工具链
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios
+
+      - name: 编译 iOS (无签)
+        run: |
+          fvm flutter pub get
+          fvm flutter build ios --release --no-codesign --split-debug-info=build/symbols
+
+      - name: 封装 IPA
+        run: |
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r "Breeze-iOS.ipa" Payload
+
+      - name: 上传 iOS IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: Breeze-iOS.ipa

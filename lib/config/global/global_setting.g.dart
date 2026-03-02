@@ -27,7 +27,6 @@ _GlobalSettingState _$GlobalSettingStateFromJson(Map<String, dynamic> json) =>
       md5: json['md5'] as String? ?? '',
       autoSync: json['autoSync'] as bool? ?? true,
       syncNotify: json['syncNotify'] as bool? ?? true,
-      shade: json['shade'] as bool? ?? true,
       comicReadTopContainer: json['comicReadTopContainer'] as bool? ?? true,
       readMode: (json['readMode'] as num?)?.toInt() ?? 0,
       maskedKeywords:
@@ -71,7 +70,6 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'md5': instance.md5,
       'autoSync': instance.autoSync,
       'syncNotify': instance.syncNotify,
-      'shade': instance.shade,
       'comicReadTopContainer': instance.comicReadTopContainer,
       'readMode': instance.readMode,
       'maskedKeywords': instance.maskedKeywords,
@@ -97,6 +95,15 @@ const _$ThemeModeEnumMap = {
 _ReadSettingState _$ReadSettingStateFromJson(Map<String, dynamic> json) =>
     _ReadSettingState(
       noAnimation: json['noAnimation'] as bool? ?? false,
+      readerBackgroundMode:
+          $enumDecodeNullable(
+            _$ReaderBackgroundModeEnumMap,
+            json['readerBackgroundMode'],
+          ) ??
+          ReaderBackgroundMode.auto,
+      readFilterEnabled: json['readFilterEnabled'] as bool? ?? true,
+      readFilterOpacityPercent:
+          (json['readFilterOpacityPercent'] as num?)?.toInt() ?? 50,
       einkOptimization: json['einkOptimization'] as bool? ?? false,
       einkDelayMs: (json['einkDelayMs'] as num?)?.toInt() ?? 120,
       autoScroll: json['autoScroll'] as bool? ?? false,
@@ -121,6 +128,7 @@ _ReadSettingState _$ReadSettingStateFromJson(Map<String, dynamic> json) =>
             json['pageInfoVerticalPosition'],
           ) ??
           ReaderInfoVerticalPosition.bottom,
+      pageInfoTopInStatusBar: json['pageInfoTopInStatusBar'] as bool? ?? false,
       pageInfoHorizontalPosition:
           $enumDecodeNullable(
             _$ReaderInfoHorizontalPositionEnumMap,
@@ -137,6 +145,10 @@ Map<String, dynamic> _$ReadSettingStateToJson(
   _ReadSettingState instance,
 ) => <String, dynamic>{
   'noAnimation': instance.noAnimation,
+  'readerBackgroundMode':
+      _$ReaderBackgroundModeEnumMap[instance.readerBackgroundMode]!,
+  'readFilterEnabled': instance.readFilterEnabled,
+  'readFilterOpacityPercent': instance.readFilterOpacityPercent,
   'einkOptimization': instance.einkOptimization,
   'einkDelayMs': instance.einkDelayMs,
   'autoScroll': instance.autoScroll,
@@ -153,12 +165,20 @@ Map<String, dynamic> _$ReadSettingStateToJson(
   'pageInfoShowTime': instance.pageInfoShowTime,
   'pageInfoVerticalPosition':
       _$ReaderInfoVerticalPositionEnumMap[instance.pageInfoVerticalPosition]!,
+  'pageInfoTopInStatusBar': instance.pageInfoTopInStatusBar,
   'pageInfoHorizontalPosition':
       _$ReaderInfoHorizontalPositionEnumMap[instance
           .pageInfoHorizontalPosition]!,
   'pageInfoEdgePadding': instance.pageInfoEdgePadding,
   'pageInfoOpacityPercent': instance.pageInfoOpacityPercent,
   'pageInfoFontSize': instance.pageInfoFontSize,
+};
+
+const _$ReaderBackgroundModeEnumMap = {
+  ReaderBackgroundMode.auto: 'auto',
+  ReaderBackgroundMode.black: 'black',
+  ReaderBackgroundMode.white: 'white',
+  ReaderBackgroundMode.grey: 'grey',
 };
 
 const _$ReaderInfoVerticalPositionEnumMap = {

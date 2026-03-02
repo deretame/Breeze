@@ -17,7 +17,6 @@ class ImageSizeState {
     required this.defaultHeight,
   });
 
-  // 把逻辑移到这里，方便 Selector 调用
   Size getSizeValue(int index) {
     return sizeCache[index] ?? Size(defaultWidth, defaultHeight);
   }
@@ -49,18 +48,28 @@ class ImageSizeCubit extends Cubit<ImageSizeState> {
   factory ImageSizeCubit.create({
     required double defaultWidth,
     required int count,
+    required int historyCount,
   }) {
     final double defaultHeight = defaultWidth * 1.2;
 
     final initialCache = <int, Size>{};
     final initialResolved = <int>{};
-    final initialVisibleIndices = <int>[];
+    const int offset = 5;
+
+    final int start = (historyCount - offset).clamp(
+      0,
+      count > 0 ? count - 1 : 0,
+    );
+    final int end = (historyCount + offset).clamp(0, count > 0 ? count - 1 : 0);
+
+    final initialVisibleIndices = List<int>.generate(
+      (end - start + 1),
+      (i) => start + i,
+    );
 
     for (int i = 0; i < count; i++) {
       double currentHeight;
-
       currentHeight = defaultHeight;
-
       initialCache[i] = Size(defaultWidth, currentHeight);
     }
 

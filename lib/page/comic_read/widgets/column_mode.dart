@@ -66,6 +66,12 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
           (GlobalSettingCubit c) => !c.state.comicReadTopContainer,
         );
         final mediaQuery = MediaQuery.of(context);
+        final readSetting = context.select(
+          (GlobalSettingCubit c) => c.state.readSetting,
+        );
+        final backgroundColor = readSetting.resolveReaderBackgroundColor(
+          Theme.of(context).brightness,
+        );
         final topInset = mediaQuery.padding.top > 0
             ? mediaQuery.padding.top
             : mediaQuery.viewPadding.top;
@@ -82,7 +88,13 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
         Widget listView;
 
         Widget currentItemBuilder(BuildContext ctx, int index) {
-          return _itemBuilder(ctx, index, containerWidth, imageWidth);
+          return _itemBuilder(
+            ctx,
+            index,
+            containerWidth,
+            imageWidth,
+            backgroundColor,
+          );
         }
 
         if (useSkia) {
@@ -92,7 +104,7 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
             itemCount: widget.length,
             itemBuilder: currentItemBuilder,
             separatorBuilder: (_, _) =>
-                Container(height: 2, color: Colors.black),
+                Container(height: 2, color: backgroundColor),
             cacheExtent: context.screenHeight * 2,
             controller: widget.scrollController,
           );
@@ -159,6 +171,7 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
     int index,
     double containerWidth,
     double imageWidth,
+    Color backgroundColor,
   ) {
     return BlocSelector<ImageSizeCubit, ImageSizeState, Size>(
       selector: (state) {
@@ -180,7 +193,7 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
         }
 
         return Container(
-          color: Colors.black,
+          color: backgroundColor,
           height: finalHeight,
           width: finalWidth,
           alignment: Alignment.center,

@@ -14,6 +14,40 @@ enum ReaderInfoVerticalPosition { top, bottom }
 
 enum ReaderInfoHorizontalPosition { left, center, right }
 
+enum ReaderBackgroundMode { auto, black, white, grey }
+
+const Color readerBackgroundBlack = Colors.black;
+const Color readerBackgroundWhite = Colors.white;
+const Color readerBackgroundGrey = Color(0xFF2D2D2D);
+
+extension ReadSettingStateBackgroundColor on ReadSettingState {
+  Color resolveReaderBackgroundColor(Brightness brightness) {
+    switch (readerBackgroundMode) {
+      case ReaderBackgroundMode.auto:
+        return brightness == Brightness.dark
+            ? readerBackgroundBlack
+            : readerBackgroundWhite;
+      case ReaderBackgroundMode.black:
+        return readerBackgroundBlack;
+      case ReaderBackgroundMode.white:
+        return readerBackgroundWhite;
+      case ReaderBackgroundMode.grey:
+        return readerBackgroundGrey;
+    }
+  }
+
+  Color resolveReaderForegroundColor(Brightness brightness) {
+    final backgroundColor = resolveReaderBackgroundColor(brightness);
+    return backgroundColor.computeLuminance() < 0.5
+        ? Colors.white
+        : Colors.black;
+  }
+}
+
+GlobalSettingState get globalSetting {
+  return objectbox.userSettingBox.get(1)!.globalSetting;
+}
+
 @freezed
 abstract class GlobalSettingState with _$GlobalSettingState {
   const factory GlobalSettingState({
@@ -30,7 +64,6 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default('') String md5,
     @Default(true) bool autoSync,
     @Default(true) bool syncNotify,
-    @Default(true) bool shade,
     @Default(true) bool comicReadTopContainer,
     @Default(0) int readMode,
     @Default([]) List<String> maskedKeywords,
@@ -55,6 +88,10 @@ abstract class GlobalSettingState with _$GlobalSettingState {
 abstract class ReadSettingState with _$ReadSettingState {
   const factory ReadSettingState({
     @Default(false) bool noAnimation,
+    @Default(ReaderBackgroundMode.auto)
+    ReaderBackgroundMode readerBackgroundMode,
+    @Default(true) bool readFilterEnabled,
+    @Default(50) int readFilterOpacityPercent,
     @Default(false) bool einkOptimization,
     @Default(120) int einkDelayMs,
     @Default(false) bool autoScroll,
@@ -71,6 +108,7 @@ abstract class ReadSettingState with _$ReadSettingState {
     @Default(true) bool pageInfoShowTime,
     @Default(ReaderInfoVerticalPosition.bottom)
     ReaderInfoVerticalPosition pageInfoVerticalPosition,
+    @Default(false) bool pageInfoTopInStatusBar,
     @Default(ReaderInfoHorizontalPosition.left)
     ReaderInfoHorizontalPosition pageInfoHorizontalPosition,
     @Default(12) int pageInfoEdgePadding,

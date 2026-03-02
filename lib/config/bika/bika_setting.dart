@@ -6,6 +6,10 @@ import 'package:zephyr/main.dart';
 part 'bika_setting.freezed.dart';
 part 'bika_setting.g.dart';
 
+BikaSettingState get bikaSetting {
+  return objectbox.userSettingBox.get(1)!.bikaSetting;
+}
+
 @freezed
 abstract class BikaSettingState with _$BikaSettingState {
   const factory BikaSettingState({

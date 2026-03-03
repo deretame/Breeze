@@ -8,14 +8,14 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/int_select.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/widgets/comic_entry/comic_entry.dart';
 
 import '../../../../cubit/string_select.dart';
 import '../../../../main.dart';
 import '../../../../type/enum.dart';
-import '../../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
+import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
+import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 
 class FavoritePage extends StatelessWidget {
   const FavoritePage({super.key});
@@ -212,33 +212,18 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
   // 构建简洁模式列表
   Widget _buildBrevityList(UserFavouriteState state) {
-    final list = _convertToSimplifyList(state.comics);
+    final list = _toSimplifyEntries(state.comics);
     final showLoadingMore = state.status == UserFavouriteStatus.loadingMore;
     final showError = state.status == UserFavouriteStatus.getMoreFailure;
     final showEnd = state.hasReachedMax;
-    final maxExtent = isTabletWithOutContext() ? 200.0 : 150.0;
 
     return CustomScrollView(
       controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.all(10),
-          sliver: SliverGrid(
-            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: maxExtent,
-              mainAxisSpacing: 15,
-              crossAxisSpacing: 15,
-              childAspectRatio: 0.75,
-            ),
-            delegate: SliverChildBuilderDelegate((context, index) {
-              return ComicSimplifyEntry(
-                key: ValueKey(list[index].id),
-                info: list[index],
-                type: ComicEntryType.normal,
-              );
-            }, childCount: list.length),
-          ),
+        ComicSimplifyEntrySliverGrid(
+          entries: list,
+          type: ComicEntryType.normal,
         ),
         SliverToBoxAdapter(
           child: _buildFooterItem(showLoadingMore, showError, showEnd),
@@ -323,25 +308,20 @@ class _UserFavoritePageState extends State<_FavoritePage>
     return SizedBox.shrink();
   }
 
-  // 转换数据为简洁模式需要的格式
-  List<ComicSimplifyEntryInfo> _convertToSimplifyList(List<dynamic> comics) {
+  List<ComicSimplifyEntryInfo> _toSimplifyEntries(List<dynamic> comics) {
     final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
 
     if (comicChoice == 1) {
       final temp = comics.map((e) => e as ComicNumber).toList();
 
-      return temp
-          .map(
-            (element) => ComicSimplifyEntryInfo(
-              title: element.doc.title,
-              id: element.doc.id,
-              fileServer: element.doc.thumb.fileServer,
-              path: element.doc.thumb.path,
-              pictureType: PictureType.favourite,
-              from: From.bika,
-            ),
-          )
-          .toList();
+      return mapToBikaComicSimplifyEntryInfoList(
+        temp,
+        title: (element) => element.doc.title,
+        id: (element) => element.doc.id,
+        fileServer: (element) => element.doc.thumb.fileServer,
+        path: (element) => element.doc.thumb.path,
+        pictureType: PictureType.favourite,
+      );
     } else {
       return [];
     }

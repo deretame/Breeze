@@ -6,15 +6,13 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
-import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/models/comic_number.dart';
 import 'package:zephyr/page/search_result/search_result.dart';
 import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/widgets/comic_entry/comic_entry.dart';
-import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
-import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 
 @RoutePage()
 class SearchResultPage extends StatelessWidget implements AutoRouteWrapper {
@@ -241,47 +239,23 @@ class _SearchResultPageState extends State<_SearchResultPage>
 
     final list = state.comics.map((element) {
       return element.comicInfo.when(
-        bika: (data) => ComicSimplifyEntryInfo(
+        bika: (data) => createBikaComicSimplifyEntryInfo(
           title: data.title,
           id: data.id,
           fileServer: data.thumb.fileServer,
           path: data.thumb.path,
-          pictureType: PictureType.cover,
-          from: From.bika,
         ),
-        jm: (data) => ComicSimplifyEntryInfo(
-          title: data.name,
-          id: data.id,
-          fileServer: getJmCoverUrl(data.id),
-          path: "${data.id}.jpg",
-          pictureType: PictureType.cover,
-          from: From.jm,
-        ),
+        jm: (data) =>
+            createJmComicSimplifyEntryInfo(title: data.name, id: data.id),
       );
     }).toList();
-
-    final maxExtent = isTabletWithOutContext() ? 200.0 : 150.0;
 
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.all(10),
-          sliver: SliverGrid(
-            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: maxExtent,
-              mainAxisSpacing: 15,
-              crossAxisSpacing: 15,
-              childAspectRatio: 0.75,
-            ),
-            delegate: SliverChildBuilderDelegate((context, index) {
-              return ComicSimplifyEntry(
-                key: ValueKey(list[index].id),
-                info: list[index],
-                type: ComicEntryType.normal,
-              );
-            }, childCount: list.length),
-          ),
+        ComicSimplifyEntrySliverGrid(
+          entries: list,
+          type: ComicEntryType.normal,
         ),
         if (state.hasReachedMax && state.status == SearchStatus.success)
           const SliverToBoxAdapter(

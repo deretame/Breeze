@@ -4,17 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/config/global/global.dart';
-import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
-import 'package:zephyr/util/debouncer.dart';
 
 import '../../../../cubit/int_select.dart';
 import '../../../../cubit/string_select.dart';
 import '../../../../main.dart';
 import '../../../../object_box/model.dart';
 import '../../../../type/enum.dart';
-import '../../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
+import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
+import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 
 class JmFavoritePage extends StatelessWidget {
   const JmFavoritePage({super.key});
@@ -169,51 +168,28 @@ class __FavoritePageState extends State<_FavoritePage>
 
   // 构建简洁模式列表
   Widget _buildBrevityList(JmFavouriteState state) {
-    final list = _convertToEntryInfoList(state.comics);
-    final maxExtent = isTabletWithOutContext() ? 200.0 : 150.0;
+    final list = _toSimplifyEntries(state.comics);
 
     return CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       controller: _scrollController,
       slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.all(10),
-          sliver: SliverGrid(
-            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: maxExtent,
-              mainAxisSpacing: 15,
-              crossAxisSpacing: 15,
-              childAspectRatio: 0.75,
-            ),
-            delegate: SliverChildBuilderDelegate((context, index) {
-              return ComicSimplifyEntry(
-                key: ValueKey(list[index].id),
-                info: list[index],
-                type: ComicEntryType.favorite,
-              );
-            }, childCount: list.length),
-          ),
+        ComicSimplifyEntrySliverGrid(
+          entries: list,
+          type: ComicEntryType.favorite,
         ),
       ],
     );
   }
 
-  // 转换数据格式
-  List<ComicSimplifyEntryInfo> _convertToEntryInfoList(List<dynamic> comics) {
+  List<ComicSimplifyEntryInfo> _toSimplifyEntries(List<dynamic> comics) {
     final temp = comics.map((e) => e as JmFavorite).toList();
 
-    return temp
-        .map(
-          (element) => ComicSimplifyEntryInfo(
-            title: element.name,
-            id: element.comicId.toString(),
-            fileServer: getJmCoverUrl(element.comicId.toString()),
-            path: "${element.comicId}.jpg",
-            pictureType: PictureType.cover,
-            from: From.jm,
-          ),
-        )
-        .toList();
+    return mapToJmComicSimplifyEntryInfoList(
+      temp,
+      title: (element) => element.name,
+      id: (element) => element.comicId.toString(),
+    );
   }
 
   void _refresh([bool goToTop = false]) {

@@ -23,14 +23,20 @@ class _SortWidgetState extends State<SortWidget> {
     "vd": "最多观看",
   };
 
-  late String selectedValue;
+  late final ValueNotifier<String?> selectedValueNotifier;
 
   @override
   void initState() {
     super.initState();
-    selectedValue = sortMap.containsKey(widget.initialSort)
-        ? widget.initialSort
-        : "dd";
+    selectedValueNotifier = ValueNotifier<String?>(
+      sortMap.containsKey(widget.initialSort) ? widget.initialSort : "dd",
+    );
+  }
+
+  @override
+  void dispose() {
+    selectedValueNotifier.dispose();
+    super.dispose();
   }
 
   @override
@@ -40,22 +46,19 @@ class _SortWidgetState extends State<SortWidget> {
         isExpanded: true,
         hint: const Text('选择排序', style: TextStyle(fontSize: 16)),
         items: sortMap.entries.map((entry) {
-          return DropdownMenuItem<String>(
+          return DropdownItem<String>(
+            height: 40,
             value: entry.key,
             child: Text(entry.value, style: const TextStyle(fontSize: 16)),
           );
         }).toList(),
-        value: selectedValue,
+        valueListenable: selectedValueNotifier,
         onChanged: (String? value) {
           if (value == null) return;
-
-          setState(() {
-            selectedValue = value;
-          });
+          selectedValueNotifier.value = value;
           widget.onSortChanged(value);
         },
         buttonStyleData: const ButtonStyleData(width: 120),
-        menuItemStyleData: const MenuItemStyleData(height: 40),
       ),
     );
   }

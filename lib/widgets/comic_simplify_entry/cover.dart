@@ -42,6 +42,9 @@ class CoverWidget extends StatelessWidget {
 
     final width = this.width ?? context.screenWidth * 0.3;
     final height = this.height ?? (context.screenWidth * 0.3) / 0.75;
+    final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
+    final decodeWidth = ((width * devicePixelRatio) * 1.2).round();
+    final decodeHeight = ((height * devicePixelRatio) * 1.2).round();
 
     return BlocProvider(
       create: (context) => PictureBloc()..add(GetPicture(pictureInfo)),
@@ -73,6 +76,8 @@ class CoverWidget extends StatelessWidget {
                   child: Image.file(
                     File(state.imagePath!),
                     fit: BoxFit.cover,
+                    cacheWidth: decodeWidth < 1 ? 1 : decodeWidth,
+                    cacheHeight: decodeHeight < 1 ? 1 : decodeHeight,
                     gaplessPlayback: true,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(

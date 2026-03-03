@@ -1,14 +1,13 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/jm/jm_promote_list/jm_promote_list.dart';
 import 'package:zephyr/page/jm/jm_promote_list/json/jm_promote_list_json.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/debouncer.dart';
-import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 import 'package:zephyr/widgets/error_view.dart';
 
 @RoutePage()
@@ -85,29 +84,15 @@ class _JmPromoteListPageState extends State<_JmPromoteListPage> {
   }
 
   Widget _commentItem(JmPromoteListState state) {
-    final list = _convertToEntryInfoListNew(state.list);
+    final list = _toSimplifyEntries(state.list);
 
     return CustomScrollView(
       controller: scrollController,
       slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.all(10),
-          sliver: SliverGrid(
-            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: isTabletWithOutContext() ? 200.0 : 150.0,
-              mainAxisSpacing: 15,
-              crossAxisSpacing: 15,
-              childAspectRatio: 0.75,
-            ),
-            delegate: SliverChildBuilderDelegate((context, index) {
-              return ComicSimplifyEntry(
-                key: ValueKey(list[index].id),
-                info: list[index],
-                type: ComicEntryType.normal,
-                refresh: () {},
-              );
-            }, childCount: list.length),
-          ),
+        ComicSimplifyEntrySliverGrid(
+          entries: list,
+          type: ComicEntryType.normal,
+          refresh: () {},
         ),
         if (state.hasReachedMax)
           const SliverToBoxAdapter(
@@ -141,22 +126,12 @@ class _JmPromoteListPageState extends State<_JmPromoteListPage> {
     );
   }
 
-  // 转换数据格式
-  List<ComicSimplifyEntryInfo> _convertToEntryInfoListNew(
-    List<ListElement> comics,
-  ) {
-    return comics
-        .map(
-          (element) => ComicSimplifyEntryInfo(
-            title: element.name,
-            id: element.id.toString(),
-            fileServer: getJmCoverUrl(element.id.toString()),
-            path: "${element.id}.jpg",
-            pictureType: PictureType.cover,
-            from: From.jm,
-          ),
-        )
-        .toList();
+  List<ComicSimplifyEntryInfo> _toSimplifyEntries(List<ListElement> comics) {
+    return mapToJmComicSimplifyEntryInfoList(
+      comics,
+      title: (element) => element.name,
+      id: (element) => element.id.toString(),
+    );
   }
 
   void _onScroll() {

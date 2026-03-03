@@ -18,16 +18,20 @@ class CloudFavoriteSort extends StatefulWidget {
 class _CloudFavoriteSortState extends State<CloudFavoriteSort> {
   final Map<String, String> sortMap = {'mr': '收藏时间', 'mp': '更新时间'};
 
-  late String selectedValue;
+  late final ValueNotifier<String?> selectedValueNotifier;
 
   @override
   void initState() {
     super.initState();
-    if (sortMap.containsKey(widget.initialSort)) {
-      selectedValue = widget.initialSort;
-    } else {
-      selectedValue = 'mr';
-    }
+    selectedValueNotifier = ValueNotifier<String?>(
+      sortMap.containsKey(widget.initialSort) ? widget.initialSort : 'mr',
+    );
+  }
+
+  @override
+  void dispose() {
+    selectedValueNotifier.dispose();
+    super.dispose();
   }
 
   @override
@@ -37,21 +41,19 @@ class _CloudFavoriteSortState extends State<CloudFavoriteSort> {
         isExpanded: true,
         hint: const Text('排序方式', style: TextStyle(fontSize: 16)),
         items: sortMap.entries.map((entry) {
-          return DropdownMenuItem<String>(
+          return DropdownItem<String>(
+            height: 40,
             value: entry.key,
             child: Text(entry.value, style: const TextStyle(fontSize: 16)),
           );
         }).toList(),
-        value: selectedValue,
+        valueListenable: selectedValueNotifier,
         onChanged: (String? value) {
           if (value == null) return;
-          setState(() {
-            selectedValue = value;
-          });
+          selectedValueNotifier.value = value;
           widget.onSortChanged(value);
         },
         buttonStyleData: const ButtonStyleData(width: 120),
-        menuItemStyleData: const MenuItemStyleData(height: 40),
       ),
     );
   }

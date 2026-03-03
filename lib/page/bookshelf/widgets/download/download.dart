@@ -3,9 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
-import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
-import 'package:zephyr/util/debouncer.dart';
 
 import '../../../../config/global/global.dart';
 import '../../../../cubit/int_select.dart';
@@ -14,8 +12,9 @@ import '../../../../main.dart';
 import '../../../../object_box/model.dart';
 import '../../../../type/enum.dart';
 import '../../../../widgets/comic_entry/comic_entry.dart';
-import '../../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
+import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
+import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 
 class DownloadPage extends StatelessWidget {
   const DownloadPage({super.key});
@@ -182,31 +181,16 @@ class _DownloadPageState extends State<_DownloadPage>
   }
 
   Widget _buildBrevityList(List<dynamic> comics, int comicChoice) {
-    final entryInfoList = _convertToEntryInfoList(comics, comicChoice);
-    final maxExtent = isTabletWithOutContext() ? 200.0 : 150.0;
+    final entryInfoList = _toSimplifyEntries(comics, comicChoice);
 
     return CustomScrollView(
       controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.all(10),
-          sliver: SliverGrid(
-            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: maxExtent,
-              mainAxisSpacing: 15,
-              crossAxisSpacing: 15,
-              childAspectRatio: 0.75,
-            ),
-            delegate: SliverChildBuilderDelegate((context, index) {
-              return ComicSimplifyEntry(
-                key: ValueKey(entryInfoList[index].id),
-                info: entryInfoList[index],
-                type: ComicEntryType.download,
-                refresh: () => _refresh(),
-              );
-            }, childCount: entryInfoList.length),
-          ),
+        ComicSimplifyEntrySliverGrid(
+          entries: entryInfoList,
+          type: ComicEntryType.download,
+          refresh: () => _refresh(),
         ),
         SliverToBoxAdapter(child: _buildFooter()),
       ],
@@ -255,32 +239,24 @@ class _DownloadPageState extends State<_DownloadPage>
     );
   }
 
-  List<ComicSimplifyEntryInfo> _convertToEntryInfoList(
+  List<ComicSimplifyEntryInfo> _toSimplifyEntries(
     List<dynamic> comics,
     int comicChoice,
   ) {
     if (comicChoice == 1) {
-      return comics.cast<BikaComicDownload>().map((element) {
-        return ComicSimplifyEntryInfo(
-          title: element.title,
-          id: element.comicId,
-          fileServer: element.thumbFileServer,
-          path: element.thumbPath,
-          pictureType: PictureType.cover,
-          from: From.bika,
-        );
-      }).toList();
+      return mapToBikaComicSimplifyEntryInfoList(
+        comics.cast<BikaComicDownload>(),
+        title: (element) => element.title,
+        id: (element) => element.comicId,
+        fileServer: (element) => element.thumbFileServer,
+        path: (element) => element.thumbPath,
+      );
     } else {
-      return comics.cast<JmDownload>().map((element) {
-        return ComicSimplifyEntryInfo(
-          title: element.name,
-          id: element.comicId.toString(),
-          fileServer: getJmCoverUrl(element.comicId.toString()),
-          path: "${element.comicId}.jpg",
-          pictureType: PictureType.cover,
-          from: From.jm,
-        );
-      }).toList();
+      return mapToJmComicSimplifyEntryInfoList(
+        comics.cast<JmDownload>(),
+        title: (element) => element.name,
+        id: (element) => element.comicId.toString(),
+      );
     }
   }
 

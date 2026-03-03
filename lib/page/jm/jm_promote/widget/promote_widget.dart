@@ -4,15 +4,13 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/jm/jm_promote/json/promote/jm_promote_json.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
-import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 
 class _DesktopDragScrollBehavior extends MaterialScrollBehavior {
   @override
@@ -23,118 +21,95 @@ class _DesktopDragScrollBehavior extends MaterialScrollBehavior {
   };
 }
 
-class PromoteWidget extends StatefulWidget {
+class PromoteWidget extends StatelessWidget {
   final JmPromoteJson element;
 
   const PromoteWidget({super.key, required this.element});
 
   @override
-  State<PromoteWidget> createState() => _PromoteWidgetState();
-}
-
-class _PromoteWidgetState extends State<PromoteWidget> {
-  final ScrollController _horizontalController = ScrollController();
-
-  JmPromoteJson get element => widget.element;
-
-  @override
-  void dispose() {
-    _horizontalController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final materialColorScheme = context.theme.colorScheme;
+    final double itemWidth = (isTabletWithOutContext() ? 200 : 150) * 0.75;
+    final double itemHeight = itemWidth / 0.75;
+    const double headerHeight = 33.0;
+    const double verticalPadding = 10.0;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final double itemWidth = (isTabletWithOutContext() ? 200 : 150) * 0.75;
-        final double itemHeight = itemWidth / 0.75;
-        const double headerHeight = 33.0;
-        const double verticalPadding = 10.0;
-
-        return SizedBox(
-          height: headerHeight + itemHeight + verticalPadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(5),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: materialColorScheme.secondaryFixed.withValues(
-                      alpha: 0.1,
+    return SizedBox(
+      height: headerHeight + itemHeight + verticalPadding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(5),
+            child: Container(
+              decoration: BoxDecoration(
+                color: materialColorScheme.secondaryFixed.withValues(
+                  alpha: 0.1,
+                ),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              width: double.infinity,
+              child: Row(
+                children: [
+                  Text(
+                    getTitle(),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: materialColorScheme.onSurface,
                     ),
-                    borderRadius: BorderRadius.circular(8.0),
                   ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  width: double.infinity,
-                  child: Row(
-                    children: [
-                      Text(
-                        getTitle(),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: materialColorScheme.onSurface,
-                        ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () {
+                      if (element.title.contains("推荐")) {
+                        int id = element.id.toString().let(toInt);
+                        context.pushRoute(
+                          JmPromoteListRoute(id: id, name: element.title),
+                        );
+                        return;
+                      }
+                      if (element.title == "连载更新→右滑看更多→") {
+                        context.pushRoute(JmWeekRankingRoute());
+                        return;
+                      }
+                      String tag = "";
+                      logger.d(element.title);
+                      if (element.title == "禁漫汉化组") {
+                        tag = "禁漫汉化组";
+                      }
+                      if (element.title == "韩漫更新") {
+                        tag = "hanManTypeMap";
+                      }
+                      if (element.title == "其他更新") {
+                        tag = "qiTaLeiTypeMap";
+                      }
+                      context.pushRoute(
+                        TimeRankingRoute(tag: tag, title: element.title),
+                      );
+                    },
+                    child: Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
+                      color: materialColorScheme.onSurface.withValues(
+                        alpha: 0.5,
                       ),
-                      const Spacer(),
-                      GestureDetector(
-                        onTap: () {
-                          if (element.title.contains("推荐")) {
-                            int id = element.id.toString().let(toInt);
-                            context.pushRoute(
-                              JmPromoteListRoute(id: id, name: element.title),
-                            );
-                            return;
-                          }
-                          if (element.title == "连载更新→右滑看更多→") {
-                            context.pushRoute(JmWeekRankingRoute());
-                            return;
-                          }
-                          String tag = "";
-                          logger.d(element.title);
-                          if (element.title == "禁漫汉化组") {
-                            tag = "禁漫汉化组";
-                          }
-                          if (element.title == "韩漫更新") {
-                            tag = "hanManTypeMap";
-                          }
-                          if (element.title == "其他更新") {
-                            tag = "qiTaLeiTypeMap";
-                          }
-                          context.pushRoute(
-                            TimeRankingRoute(tag: tag, title: element.title),
-                          );
-                        },
-                        child: Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16,
-                          color: materialColorScheme.onSurface.withValues(
-                            alpha: 0.5,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 5),
-                    ],
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 5),
+                ],
               ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 10.0),
-                  child: _buildHorizontalList(itemWidth),
-                ),
-              ),
-            ],
+            ),
           ),
-        );
-      },
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 10.0),
+              child: _buildHorizontalList(itemWidth),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -142,16 +117,11 @@ class _PromoteWidgetState extends State<PromoteWidget> {
       Platform.isWindows || Platform.isMacOS || Platform.isLinux;
 
   Widget _buildHorizontalList(double itemWidth) {
-    final list = element.content.map((item) {
-      return ComicSimplifyEntryInfo(
-        title: item.name,
-        id: item.id,
-        fileServer: getJmCoverUrl(item.id),
-        path: '${item.id}.jpg',
-        pictureType: PictureType.cover,
-        from: From.jm,
-      );
-    }).toList();
+    final list = mapToJmComicSimplifyEntryInfoList(
+      element.content,
+      title: (item) => item.name,
+      id: (item) => item.id,
+    );
 
     // 将同一个 itemWidth 传给列表，确保内层卡片高度与外层容器完全一致
     Widget scrollView = ComicFixedSizeHorizontalList(

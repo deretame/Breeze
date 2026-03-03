@@ -4,9 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
-import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
-import 'package:zephyr/util/debouncer.dart';
 
 import '../../../../cubit/int_select.dart';
 import '../../../../cubit/string_select.dart';
@@ -14,8 +12,9 @@ import '../../../../main.dart';
 import '../../../../object_box/model.dart';
 import '../../../../type/enum.dart';
 import '../../../../widgets/comic_entry/comic_entry.dart';
-import '../../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
+import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
+import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 
 class HistoryPage extends StatelessWidget {
   const HistoryPage({super.key});
@@ -177,31 +176,16 @@ class __HistoryPageState extends State<_HistoryPage>
 
   // 构建简洁模式列表
   Widget _buildBrevityList(UserHistoryState state) {
-    final list = _convertToEntryInfoList(state.comics);
-    final maxExtent = isTabletWithOutContext() ? 200.0 : 150.0;
+    final list = _toSimplifyEntries(state.comics);
 
     return CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       controller: _scrollController,
       slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.all(10),
-          sliver: SliverGrid(
-            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: maxExtent,
-              mainAxisSpacing: 15,
-              crossAxisSpacing: 15,
-              childAspectRatio: 0.75,
-            ),
-            delegate: SliverChildBuilderDelegate((context, index) {
-              return ComicSimplifyEntry(
-                key: ValueKey(list[index].id),
-                info: list[index],
-                type: ComicEntryType.history,
-                refresh: () => _refresh(),
-              );
-            }, childCount: list.length),
-          ),
+        ComicSimplifyEntrySliverGrid(
+          entries: list,
+          type: ComicEntryType.history,
+          refresh: () => _refresh(),
         ),
         SliverToBoxAdapter(child: _buildFooter()),
       ],
@@ -279,40 +263,27 @@ class __HistoryPageState extends State<_HistoryPage>
     return const SizedBox.shrink();
   }
 
-  // 转换数据格式
-  List<ComicSimplifyEntryInfo> _convertToEntryInfoList(List<dynamic> comics) {
+  List<ComicSimplifyEntryInfo> _toSimplifyEntries(List<dynamic> comics) {
     final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
 
     if (comicChoice == 1) {
       final temp = comics.map((e) => e as BikaComicHistory).toList();
 
-      return temp
-          .map(
-            (element) => ComicSimplifyEntryInfo(
-              title: element.title,
-              id: element.comicId,
-              fileServer: element.thumbFileServer,
-              path: element.thumbPath,
-              pictureType: PictureType.cover,
-              from: From.bika,
-            ),
-          )
-          .toList();
+      return mapToBikaComicSimplifyEntryInfoList(
+        temp,
+        title: (element) => element.title,
+        id: (element) => element.comicId,
+        fileServer: (element) => element.thumbFileServer,
+        path: (element) => element.thumbPath,
+      );
     } else if (comicChoice == 2) {
       final temp = comics.map((e) => e as JmHistory).toList();
 
-      return temp
-          .map(
-            (element) => ComicSimplifyEntryInfo(
-              title: element.name,
-              id: element.comicId.toString(),
-              fileServer: getJmCoverUrl(element.comicId.toString()),
-              path: "${element.comicId}.jpg",
-              pictureType: PictureType.cover,
-              from: From.jm,
-            ),
-          )
-          .toList();
+      return mapToJmComicSimplifyEntryInfoList(
+        temp,
+        title: (element) => element.name,
+        id: (element) => element.comicId.toString(),
+      );
     }
 
     return [];

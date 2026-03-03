@@ -30,7 +30,7 @@ dependencies:
   extended_image: ^10.0.1 # UI: 图片缓存与手势
   persistent_bottom_nav_bar: ^6.2.1 # UI: 持久底部导航
   markdown_widget: ^2.3.2+8 # UI: Markdown 渲染
-  dropdown_button2: ^2.3.9 # UI: 增强下拉框
+  dropdown_button2: ^3.0.0 # UI: 增强下拉框
   toastification: ^3.0.1 # UI: 通知提示
   flutter_animate: ^4.5.2 # UI: 链式动画
   flutter_colorpicker: ^1.1.0 # UI: 颜色选择器

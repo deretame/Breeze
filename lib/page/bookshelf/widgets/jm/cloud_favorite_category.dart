@@ -22,7 +22,7 @@ class CloudFavoriteCategory extends StatefulWidget {
 class _CloudFavoriteCategoryState extends State<CloudFavoriteCategory> {
   // 定义临时列表
   List<FolderList> tempList = [];
-  String? selectedValue; // 改为可空，防止初始化问题
+  late final ValueNotifier<String?> selectedValueNotifier;
 
   @override
   void initState() {
@@ -30,7 +30,15 @@ class _CloudFavoriteCategoryState extends State<CloudFavoriteCategory> {
     tempList = widget.list.toList();
     tempList.insert(0, FolderList(name: "默认", fid: "", uid: ""));
     bool exists = tempList.any((e) => e.fid == widget.initialSort);
-    selectedValue = exists ? widget.initialSort : tempList.first.fid;
+    selectedValueNotifier = ValueNotifier<String?>(
+      exists ? widget.initialSort : tempList.first.fid,
+    );
+  }
+
+  @override
+  void dispose() {
+    selectedValueNotifier.dispose();
+    super.dispose();
   }
 
   @override
@@ -41,22 +49,20 @@ class _CloudFavoriteCategoryState extends State<CloudFavoriteCategory> {
         hint: const Text('选择分类', style: TextStyle(fontSize: 16)),
         items: tempList
             .map(
-              (FolderList item) => DropdownMenuItem<String>(
+              (FolderList item) => DropdownItem<String>(
+                height: 40,
                 value: item.fid,
                 child: Text(item.name, style: const TextStyle(fontSize: 16)),
               ),
             )
             .toList(),
-        value: selectedValue,
+        valueListenable: selectedValueNotifier,
         onChanged: (String? value) {
           if (value == null) return;
-          setState(() {
-            selectedValue = value;
-          });
+          selectedValueNotifier.value = value;
           widget.onSortChanged(value);
         },
         buttonStyleData: const ButtonStyleData(width: 120),
-        menuItemStyleData: const MenuItemStyleData(height: 40),
       ),
     );
   }

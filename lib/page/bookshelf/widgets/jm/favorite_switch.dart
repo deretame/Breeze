@@ -19,12 +19,20 @@ class FavoriteSwitch extends StatefulWidget {
 class _FavoriteSwitchState extends State<FavoriteSwitch> {
   final sortMap = {0: '云端', 1: '本地'};
 
-  late int selectedValue;
+  late final ValueNotifier<String?> selectedValueNotifier;
 
   @override
   void initState() {
     super.initState();
-    selectedValue = widget.initialSort.let(toInt);
+    selectedValueNotifier = ValueNotifier<String?>(
+      widget.initialSort.let(toInt).toString(),
+    );
+  }
+
+  @override
+  void dispose() {
+    selectedValueNotifier.dispose();
+    super.dispose();
   }
 
   @override
@@ -34,18 +42,19 @@ class _FavoriteSwitchState extends State<FavoriteSwitch> {
         isExpanded: true,
         hint: const Text('收藏方式', style: TextStyle(fontSize: 16)),
         items: sortMap.entries.map((entry) {
-          return DropdownMenuItem<String>(
+          return DropdownItem<String>(
+            height: 40,
             value: entry.key.toString(),
             child: Text(entry.value, style: const TextStyle(fontSize: 16)),
           );
         }).toList(),
-        value: selectedValue.toString(),
+        valueListenable: selectedValueNotifier,
         onChanged: (String? value) {
           if (value == null) return;
+          selectedValueNotifier.value = value;
           widget.onSortChanged(value);
         },
         buttonStyleData: const ButtonStyleData(width: 120),
-        menuItemStyleData: const MenuItemStyleData(height: 40),
       ),
     );
   }

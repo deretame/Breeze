@@ -2,14 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/debouncer.dart';
 
 import '../../../type/enum.dart';
 import '../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
-import '../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
+import '../../../widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 
 class _DesktopDragScrollBehavior extends MaterialScrollBehavior {
   @override
@@ -40,23 +39,14 @@ class RecommendWidget extends StatelessWidget {
     }
     final comicInfoList = comicList.map((e) {
       if (from == From.bika) {
-        return ComicSimplifyEntryInfo(
+        return createBikaComicSimplifyEntryInfo(
           title: e.title,
           id: e.id,
           fileServer: e.cover.url,
           path: e.cover.path,
-          pictureType: PictureType.cover,
-          from: From.bika,
         );
       } else {
-        return ComicSimplifyEntryInfo(
-          title: e.title,
-          id: e.id,
-          fileServer: getJmCoverUrl(e.id),
-          path: "${e.id}.jpg",
-          pictureType: PictureType.cover,
-          from: From.jm,
-        );
+        return createJmComicSimplifyEntryInfo(title: e.title, id: e.id);
       }
     }).toList();
 

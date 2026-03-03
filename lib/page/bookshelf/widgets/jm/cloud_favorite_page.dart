@@ -7,16 +7,15 @@ import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/cubit/list_select.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/bookshelf/bloc/jm/cloud_favourite/bloc/jm_cloud_favourite_bloc.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/page/bookshelf/json/jm_cloud_favorite/jm_cloud_favorite_json.dart';
 import 'package:zephyr/page/search_result/widgets/bottom_loader.dart';
 import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/util/router/router.gr.dart';
-import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 
 class JmCloudFavoritePage extends StatelessWidget {
   const JmCloudFavoritePage({super.key});
@@ -155,32 +154,16 @@ class _JmCloudFavoritePageState extends State<_JmCloudFavoritePage>
 
   // 构建简洁模式列表
   Widget _buildBrevityList(JmCloudFavouriteState state) {
-    final list = _convertToEntryInfoList(state.list);
-
-    final maxExtent = isTabletWithOutContext() ? 200.0 : 150.0;
+    final list = _toSimplifyEntries(state.list);
 
     return RefreshIndicator(
       onRefresh: () async => _refresh(goTop: false),
       child: CustomScrollView(
         controller: _scrollController,
         slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.all(10),
-            sliver: SliverGrid(
-              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: maxExtent,
-                mainAxisSpacing: 15,
-                crossAxisSpacing: 15,
-                childAspectRatio: 0.75,
-              ),
-              delegate: SliverChildBuilderDelegate((context, index) {
-                return ComicSimplifyEntry(
-                  key: ValueKey(list[index].id),
-                  info: list[index],
-                  type: ComicEntryType.favorite,
-                );
-              }, childCount: list.length),
-            ),
+          ComicSimplifyEntrySliverGrid(
+            entries: list,
+            type: ComicEntryType.favorite,
           ),
           if (!state.hasMore && state.status == JmCloudFavouriteStatus.success)
             SliverToBoxAdapter(
@@ -219,22 +202,12 @@ class _JmCloudFavoritePageState extends State<_JmCloudFavoritePage>
     );
   }
 
-  // 转换数据格式
-  List<ComicSimplifyEntryInfo> _convertToEntryInfoList(
-    List<ListElement> comics,
-  ) {
-    return comics
-        .map(
-          (element) => ComicSimplifyEntryInfo(
-            title: element.name,
-            id: element.id.toString(),
-            fileServer: getJmCoverUrl(element.id.toString()),
-            path: "${element.id}.jpg",
-            pictureType: PictureType.cover,
-            from: From.jm,
-          ),
-        )
-        .toList();
+  List<ComicSimplifyEntryInfo> _toSimplifyEntries(List<ListElement> comics) {
+    return mapToJmComicSimplifyEntryInfoList(
+      comics,
+      title: (element) => element.name,
+      id: (element) => element.id.toString(),
+    );
   }
 
   void _refresh({bool goTop = false}) {

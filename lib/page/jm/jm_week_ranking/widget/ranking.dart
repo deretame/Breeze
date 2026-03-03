@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/jm/jm_week_ranking/bloc/week_ranking_bloc.dart';
 import 'package:zephyr/page/search_result/widgets/bottom_loader.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/debouncer.dart';
-import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
-import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 import 'package:zephyr/widgets/error_view.dart';
 
 class RankingWidget extends StatelessWidget {
@@ -92,39 +90,18 @@ class _RankingWidgetState extends State<_RankingWidget>
       );
     }
 
-    var list = state.list.map((item) {
-      return ComicSimplifyEntryInfo(
-        title: item.name,
-        id: item.id,
-        fileServer: getJmCoverUrl(item.id),
-        path: "${item.id}.jpg",
-        pictureType: PictureType.cover,
-        from: From.jm,
-      );
-    }).toList();
-
-    final maxExtent = isTabletWithOutContext() ? 200.0 : 150.0;
+    final list = mapToJmComicSimplifyEntryInfoList(
+      state.list,
+      title: (item) => item.name,
+      id: (item) => item.id,
+    );
 
     return CustomScrollView(
       controller: scrollController,
       slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.all(10),
-          sliver: SliverGrid(
-            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: maxExtent,
-              mainAxisSpacing: 15,
-              crossAxisSpacing: 15,
-              childAspectRatio: 0.75,
-            ),
-            delegate: SliverChildBuilderDelegate((context, index) {
-              return ComicSimplifyEntry(
-                key: ValueKey(list[index].id),
-                info: list[index],
-                type: ComicEntryType.normal,
-              );
-            }, childCount: list.length),
-          ),
+        ComicSimplifyEntrySliverGrid(
+          entries: list,
+          type: ComicEntryType.normal,
         ),
         if (state.hasReachedMax)
           const SliverToBoxAdapter(

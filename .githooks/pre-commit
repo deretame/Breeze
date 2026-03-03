@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if git diff --cached --quiet --; then
+  exit 0
+fi
+
+# Auto-normalize staged files according to .gitattributes
+mapfile -t staged_files < <(git diff --cached --name-only --diff-filter=ACMR)
+if [ ${#staged_files[@]} -gt 0 ]; then
+  git add --renormalize -- "${staged_files[@]}"
+fi
+
+# If nothing remains after normalization, block empty/noise commit
+if git diff --cached --quiet --; then
+  echo "Only line-ending noise was staged; auto-normalized and unstaged."
+  echo "仅检测到换行符噪音，已自动规范并从暂存区移除。"
+  echo "No effective changes left to commit."
+  echo "没有可提交的有效改动。"
+  exit 1
+fi

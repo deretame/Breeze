@@ -1,0 +1,80 @@
+name: "使用问题"
+description: "提问使用方式、配置方法或行为疑问"
+title: "[Question] "
+labels:
+  - question
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        如果你不确定这是 Bug 还是使用问题，请先按本模板提交，我们会协助判断。
+
+  - type: checkboxes
+    id: precheck
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已阅读 README 和常见配置说明
+          required: true
+        - label: 我已搜索现有 Issues，确认没有相同问题
+          required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: 你的问题
+      description: 请明确描述你想实现什么、目前卡在哪里。
+      placeholder: 例如：我想在 Linux 上启用 xxx，但配置后没有生效。
+    validations:
+      required: true
+
+  - type: textarea
+    id: attempted
+    attributes:
+      label: 已尝试的方法
+      description: 你已经做了哪些尝试？
+      placeholder: |
+        1. 按 README 执行了 xxx
+        2. 修改了 xxx 配置
+        3. 重启后仍无效
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 相关日志或截图
+      description: 尽量附上关键报错、截图或录屏链接。
+      render: shell
+
+  - type: input
+    id: app-version
+    attributes:
+      label: 应用版本
+      placeholder: 例如：v2.12.6
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 平台
+      options:
+        - Android
+        - iOS
+        - Windows
+        - macOS
+        - Linux
+        - 其他
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 环境信息
+      placeholder: |
+        系统版本：
+        设备型号：
+        安装来源：

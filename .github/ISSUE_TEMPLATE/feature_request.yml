@@ -1,0 +1,61 @@
+name: "功能请求"
+description: "提出新功能、改进建议或体验优化想法"
+title: "[Feature] "
+labels:
+  - enhancement
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你的建议。请描述「为什么需要」以及「期望如何工作」，便于评估优先级。
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 需求背景
+      description: 你当前遇到了什么痛点或限制？
+      placeholder: 例如：在 xxx 场景下需要反复进行 xxx 操作，效率较低。
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 期望方案
+      description: 描述你希望新增或修改的能力。
+      placeholder: 例如：希望在 xxx 页面增加 xxx 开关，默认行为为 xxx。
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 备选方案
+      description: 你是否考虑过其他实现方式？（可选）
+      placeholder: 例如：也可以通过 xxx 达成，但体验不如 xxx。
+
+  - type: dropdown
+    id: impact
+    attributes:
+      label: 影响范围
+      options:
+        - 仅影响我个人场景
+        - 影响一部分用户
+        - 可能影响大多数用户
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: willingness
+    attributes:
+      label: 参与意愿
+      options:
+        - label: 我愿意协助补充需求细节
+        - label: 我愿意提交 PR 实现该功能
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 补充信息
+      description: 可附原型图、参考链接、竞品示例等（可选）。

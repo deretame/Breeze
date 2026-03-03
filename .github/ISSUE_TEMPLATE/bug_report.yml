@@ -1,0 +1,101 @@
+name: "Bug 反馈"
+description: "提交可复现的问题，帮助我们快速定位"
+title: "[Bug] "
+labels:
+  - bug
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你的反馈。请尽量提供完整信息，这会显著提升排查效率。
+
+  - type: checkboxes
+    id: precheck
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已阅读 README，并确认这不是预期行为
+          required: true
+        - label: 我已搜索现有 Issues，确认没有重复问题
+          required: true
+        - label: 我已更新到最新版本，问题仍然存在
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题描述
+      description: 简要说明你遇到的问题，以及你期望的正确行为。
+      placeholder: 例如：点击下载后应用直接闪退。
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 请提供稳定复现该问题的步骤。
+      placeholder: |
+        1. 打开应用并进入 xxx 页面
+        2. 点击 xxx 按钮
+        3. 出现 xxx 报错
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期结果
+      placeholder: 本应出现什么结果？
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际结果
+      description: 可附报错日志、截图、录屏链接。
+      placeholder: 实际发生了什么？
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: 应用版本
+      placeholder: 例如：v2.12.6
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 平台
+      options:
+        - Android
+        - iOS
+        - Windows
+        - macOS
+        - Linux
+        - 其他
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 环境信息
+      description: 系统版本、设备型号、安装来源等。
+      placeholder: |
+        系统版本：
+        设备型号：
+        安装来源：
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 补充信息
+      description: 其他有助于定位问题的信息（可选）。

@@ -1,15 +1,16 @@
 android/key.properties filter=git-crypt diff=git-crypt
-android/Breeze-key.keystore filter=git-crypt diff=git-crypt 
+android/Breeze-key.keystore filter=git-crypt diff=git-crypt
 
-# 自动探测文本文件并统一转化为 LF
-* text=auto
+# Normalize all text files to LF in repository
+* text=auto eol=lf
 
-# 明确指定某些文件始终使用 LF (通常是脚本)
-*.sh text eol=lf
-
-# 明确指定某些文件始终使用 CRLF (如 Windows 特有文件)
+# Keep Windows shell scripts as CRLF in working tree
 *.bat text eol=crlf
+*.cmd text eol=crlf
 
-# 标记二进制文件，不进行任何换行符转换
+# Mark binary files and skip EOL conversion
 *.png binary
 *.jpg binary
+*.jpeg binary
+*.ico binary
+*.ttf binary

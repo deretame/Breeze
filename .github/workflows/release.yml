@@ -95,6 +95,7 @@ jobs:
 
       - name: 上传 Android 符号表到 Sentry（可选）
         continue-on-error: true
+        working-directory: ${{ github.workspace }}
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
@@ -168,6 +169,7 @@ jobs:
 
       - name: 上传 Linux 符号表到 Sentry（可选）
         continue-on-error: true
+        working-directory: ${{ github.workspace }}
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
@@ -237,6 +239,7 @@ jobs:
 
       - name: 上传 Windows 符号表到 Sentry（可选）
         continue-on-error: true
+        working-directory: ${{ github.workspace }}
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
@@ -306,6 +309,7 @@ jobs:
 
       - name: 上传 macOS 符号表到 Sentry（可选）
         continue-on-error: true
+        working-directory: ${{ github.workspace }}
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
@@ -377,6 +381,7 @@ jobs:
 
       - name: 上传 iOS 符号表到 Sentry（可选）
         continue-on-error: true
+        working-directory: ${{ github.workspace }}
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}

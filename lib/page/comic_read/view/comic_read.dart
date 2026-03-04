@@ -16,6 +16,7 @@ import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_state.dart';
 import 'package:zephyr/page/comic_read/method/key.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
+import 'package:zephyr/page/comic_read/widgets/read_layout.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
@@ -197,7 +198,18 @@ class _ComicReadPageState extends State<_ComicReadPage>
       comicInfo: widget.comicInfo,
       historyWriter: HistoryWriter(),
       stringSelectCubit: context.read<StringSelectCubit>(),
-      getPageIndex: () => context.read<ReaderCubit>().state.pageIndex + 2,
+      getPageIndex: () {
+        final slotIndex = context.read<ReaderCubit>().state.pageIndex;
+        final enableDoublePage = context
+            .read<GlobalSettingCubit>()
+            .state
+            .readSetting
+            .doublePageMode;
+        return getStoredHistoryPageIndex(
+          slotIndex: slotIndex,
+          enableDoublePage: enableDoublePage,
+        );
+      },
       getEpInfo: () => epInfo,
     );
 
@@ -301,7 +313,11 @@ class _ComicReadPageState extends State<_ComicReadPage>
           _imageSizeContext = innerContext;
           _historyManager.markLoaded();
 
-          cubit.updateTotalSlots(state.epInfo!.length);
+          final totalSlots = getReadModeSlotCount(
+            imageCount: state.epInfo!.length,
+            enableDoublePage: readSetting.doublePageMode,
+          );
+          cubit.updateTotalSlots(totalSlots);
           _handleHistoryScroll();
 
           return Container(
@@ -400,7 +416,6 @@ class _ComicReadPageState extends State<_ComicReadPage>
               });
             }
 
-            // 横版模式下：滚轮翻页
             if (!newCtrlPressed && globalSettingState.readMode != 0) {
               if (event.scrollDelta.dy > 0) {
                 _actionController.onPageActionNext();
@@ -430,8 +445,10 @@ class _ComicReadPageState extends State<_ComicReadPage>
             interactionEndFrictionCoefficient: 0.00001,
             onInteractionUpdate: (_) => _updateMultiTouchScrollLock(),
             onInteractionEnd: (_) => _updateMultiTouchScrollLock(),
-            child: globalSettingState.readMode == 0
-                ? _columnModeWidget()
+            child: isColumnReadMode(globalSettingState.readMode)
+                ? _columnModeWidget(
+                    enableDoublePage: readSetting.doublePageMode,
+                  )
                 : _rowModeWidget(),
           ),
         ),
@@ -516,7 +533,12 @@ class _ComicReadPageState extends State<_ComicReadPage>
     _doubleTapDownDetails = null;
   }
 
-  Widget _columnModeWidget() {
+  Widget _columnModeWidget({required bool enableDoublePage}) {
+    final slotCount = getReadModeSlotCount(
+      imageCount: epInfo.length,
+      enableDoublePage: enableDoublePage,
+    );
+
     return VerticalPullNavigator(
       havePrev: _jumpChapter.havePrev,
       haveNext: _jumpChapter.haveNext,
@@ -535,8 +557,9 @@ class _ComicReadPageState extends State<_ComicReadPage>
         return ColumnModeWidget(
           comicId: comicId,
           epsId: epInfo.epId,
-          length: epInfo.length,
+          length: slotCount,
           docs: epInfo.docs,
+          enableDoublePage: enableDoublePage,
           observerController: observerController,
           scrollController: scrollController,
           from: widget.from,
@@ -842,18 +865,26 @@ class _ComicReadPageState extends State<_ComicReadPage>
         await Future.delayed(const Duration(milliseconds: 0));
         if (!mounted) return;
         final cubit = context.read<ReaderCubit>();
-        cubit.updatePageIndex(historyIndex);
-
         final globalSettingState = context.read<GlobalSettingCubit>().state;
-        if (globalSettingState.readMode == 0) {
+        final totalSlots = cubit.state.totalSlots;
+        if (totalSlots <= 0) return;
+
+        final enableDoublePage = globalSettingState.readSetting.doublePageMode;
+        final targetIndex = getSlotIndexFromStoredHistoryPage(
+          storedHistoryPage: historyIndex,
+          enableDoublePage: enableDoublePage,
+        ).clamp(0, totalSlots - 1);
+        cubit.updatePageIndex(targetIndex);
+
+        if (isColumnReadMode(globalSettingState.readMode)) {
           observerController.jumpTo(
-            index: historyIndex - 2,
+            index: targetIndex,
             offset: (offset) {
               return MediaQuery.of(context).padding.top + 5.0;
             },
           );
         } else {
-          _pageController.jumpToPage(historyIndex - 2);
+          _pageController.jumpToPage(targetIndex);
         }
         isSkipped = true;
       });

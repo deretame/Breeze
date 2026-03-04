@@ -85,6 +85,7 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(1) int comicChoice,
     @Default(false) bool disableBika,
     @Default(false) bool enableMemoryDebug,
+    @Default(true) bool updateAccelerate,
     @Default([]) List<String> searchHistory,
     @Default(1280.0) double windowWidth,
     @Default(720.0) double windowHeight,
@@ -156,6 +157,9 @@ abstract class ReadSettingState with _$ReadSettingState {
     @Default(1600) int autoScrollColumnIntervalMs,
     @Default(3000) int autoScrollPageIntervalMs,
     @Default(72) int autoScrollColumnDistancePercent,
+    @Default(false) bool doublePageMode,
+    @Default(false) bool sidePaddingEnabled,
+    @Default(10) int sidePaddingPercent,
     @Default(true) bool volumeKeyPageTurn,
     @Default(72) int volumeKeyPageTurnDistancePercent,
     @Default(false) bool doubleTapZoom,
@@ -254,6 +258,20 @@ Map<String, dynamic> _migrateGlobalSettingJson(Map<String, dynamic> json) {
   if (!readSetting.containsKey('readMode') &&
       migrated.containsKey('readMode')) {
     readSetting['readMode'] = migrated['readMode'];
+  }
+
+  final rawReadMode =
+      (readSetting['readMode'] as num?)?.toInt() ??
+      (migrated['readMode'] as num?)?.toInt();
+  if (rawReadMode != null && rawReadMode >= 3) {
+    readSetting['doublePageMode'] = true;
+    if (rawReadMode == 3) {
+      readSetting['readMode'] = 1;
+    } else if (rawReadMode == 4) {
+      readSetting['readMode'] = 2;
+    } else {
+      readSetting['readMode'] = 0;
+    }
   }
 
   if (!migrated.containsKey('comicReadTopContainer') &&

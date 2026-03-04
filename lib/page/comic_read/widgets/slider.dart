@@ -8,6 +8,7 @@ import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_read/cubit/image_size_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
+import 'package:zephyr/page/comic_read/widgets/read_layout.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../main.dart';
@@ -47,11 +48,19 @@ class _SliderWidgetState extends State<SliderWidget> {
     final totalSlots = context.select(
       (ReaderCubit cubit) => cubit.state.totalSlots,
     );
+    final readSetting = context.select<GlobalSettingCubit, ReadSettingState>(
+      (cubit) => cubit.state.readSetting,
+    );
     final sliderValue = context.select(
       (ReaderCubit cubit) => cubit.state.sliderValue,
     );
     maxValue = totalSlots > 0 ? totalSlots.toDouble() - 1 : 0;
     final safeSliderValue = sliderValue.clamp(0.0, maxValue).toDouble();
+
+    final sliderDisplayPage = getDisplayPageNumber(
+      slotIndex: safeSliderValue.round(),
+      enableDoublePage: readSetting.doublePageMode,
+    );
 
     if (safeSliderValue != sliderValue) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -61,71 +70,114 @@ class _SliderWidgetState extends State<SliderWidget> {
     }
 
     return Expanded(
-      child: Slider(
-        value: safeSliderValue,
-        min: 0,
-        max: maxValue,
-        divisions: maxValue > 0 ? maxValue.toInt() : null,
-        label: (safeSliderValue.toInt() + 1).toString(),
-        onChangeStart: (value) {
-          _lastHapticStep = value.round();
-        },
-        onChanged: (double newValue) {
-          final currentStep = newValue.round();
-          if (_lastHapticStep != currentStep) {
-            HapticFeedback.selectionClick();
-            _lastHapticStep = currentStep;
-          }
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            height: 52,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: context.theme.colorScheme.surfaceContainerHigh.withValues(
+                alpha: 0.9,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: context.theme.colorScheme.outlineVariant.withValues(
+                  alpha: 0.35,
+                ),
+              ),
+            ),
+            child: SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                trackHeight: 6,
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                activeTrackColor: context.theme.colorScheme.primary,
+                inactiveTrackColor: context.theme.colorScheme.primary
+                    .withValues(alpha: 0.22),
+                thumbColor: context.theme.colorScheme.primary,
+                overlayColor: context.theme.colorScheme.primary.withValues(
+                  alpha: 0.16,
+                ),
+                showValueIndicator: ShowValueIndicator.never,
+              ),
+              child: Slider(
+                value: safeSliderValue,
+                min: 0,
+                max: maxValue,
+                divisions: maxValue > 0 ? maxValue.toInt() : null,
+                label: sliderDisplayPage.toString(),
+                onChangeStart: (value) {
+                  _lastHapticStep = value.round();
+                },
+                onChanged: (double newValue) {
+                  final currentStep = newValue.round();
+                  if (_lastHapticStep != currentStep) {
+                    HapticFeedback.selectionClick();
+                    _lastHapticStep = currentStep;
+                  }
 
-          if (sliderValue != newValue) {
-            cubit.updateSliderChanged(newValue);
-          }
+                  if (sliderValue != newValue) {
+                    cubit.updateSliderChanged(newValue);
+                  }
 
-          cubit.updateIsComicRolling(true);
-          _sliderIsRollingTimer?.cancel();
+                  cubit.updateIsComicRolling(true);
+                  _sliderIsRollingTimer?.cancel();
 
-          // 显示 Overlay 提示框
-          _showOverlayToast((newValue.toInt() + 1).toString());
+                  final displayPage = getDisplayPageNumber(
+                    slotIndex: newValue.round(),
+                    enableDoublePage: readSetting.doublePageMode,
+                  );
+                  _showOverlayToast(displayPage.toString());
 
-          // 设置新的定时器以防止多次触发
-          _sliderIsRollingTimer = Timer(const Duration(milliseconds: 300), () {
-            cubit.updateSliderRolling(true);
-            cubit.updateIsComicRolling(true);
-            _comicRollingTimer = Timer(const Duration(milliseconds: 350), () {
-              cubit.updateSliderRolling(false);
-              cubit.updateIsComicRolling(false);
+                  _sliderIsRollingTimer = Timer(
+                    const Duration(milliseconds: 300),
+                    () {
+                      cubit.updateSliderRolling(true);
+                      cubit.updateIsComicRolling(true);
+                      _comicRollingTimer = Timer(
+                        const Duration(milliseconds: 350),
+                        () {
+                          cubit.updateSliderRolling(false);
+                          cubit.updateIsComicRolling(false);
+                          _overlayEntry?.remove();
+                          _overlayEntry = null;
+                        },
+                      );
 
-              // 移除 Overlay 提示框
-              _overlayEntry?.remove();
-              _overlayEntry = null;
-            });
+                      final globalSettingState = context
+                          .read<GlobalSettingCubit>()
+                          .state;
 
-            final globalSettingState = context.read<GlobalSettingCubit>().state;
-
-            try {
-              // 滚动到指定的索引
-              if (globalSettingState.readMode == 0) {
-                widget.observerController.jumpTo(
-                  index: newValue.toInt(),
-                  offset: (offset) {
-                    return MediaQuery.of(context).padding.top + 5.0;
-                  },
-                );
-              } else {
-                widget.pageController.animateToPage(
-                  newValue.toInt(),
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              }
-            } catch (e) {
-              logger.e(e);
-            }
-          });
-        },
-        onChangeEnd: (_) {
-          _lastHapticStep = null;
-        },
+                      try {
+                        if (globalSettingState.readMode == 0) {
+                          widget.observerController.jumpTo(
+                            index: newValue.toInt(),
+                            offset: (offset) {
+                              return MediaQuery.of(context).padding.top + 5.0;
+                            },
+                          );
+                        } else {
+                          widget.pageController.animateToPage(
+                            newValue.toInt(),
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      } catch (e) {
+                        logger.e(e);
+                      }
+                    },
+                  );
+                },
+                onChangeEnd: (_) {
+                  _lastHapticStep = null;
+                },
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

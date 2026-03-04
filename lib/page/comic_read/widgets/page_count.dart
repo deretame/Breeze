@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
+import 'package:zephyr/page/comic_read/widgets/read_layout.dart';
 
 class PageCountWidget extends StatefulWidget {
   final String epPages;
@@ -211,8 +212,17 @@ class _PageCountWidgetState extends State<PageCountWidget> {
         ? (showInStatusBar ? edge : mediaPadding.top + edge + verticalExtra)
         : mediaPadding.bottom + edge + verticalExtra;
 
+    final parsedEpPages = int.tryParse(widget.epPages);
+    final totalPageCount = (parsedEpPages != null && parsedEpPages > 0)
+        ? parsedEpPages
+        : 1;
+    final currentDisplayPage = getDisplayPageNumber(
+      slotIndex: pageIndex,
+      enableDoublePage: readSetting.doublePageMode,
+    ).clamp(1, totalPageCount);
+
     final panel = _PageInfoPanel(
-      pageText: '${pageIndex + 1}/${widget.epPages}',
+      pageText: '$currentDisplayPage/$totalPageCount',
       showPage: showPage,
       showNetwork: showNetwork,
       showBattery: showBattery,

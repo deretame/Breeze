@@ -56,6 +56,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             children: [
               editMaskedKeywords(context),
               socks5ProxyEdit(context, state.socks5Proxy),
+              _updateAccelerate(state, globalSettingCubit),
             ],
           ),
           const SizedBox(height: 12),
@@ -203,6 +204,21 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
         if (value) {
           eventBus.fire(NoticeSync());
         }
+      },
+    );
+  }
+
+  Widget _updateAccelerate(GlobalSettingState state, GlobalSettingCubit cubit) {
+    return SwitchListTile(
+      secondary: const Icon(Icons.rocket_launch_outlined),
+      title: const Text('更新下载加速'),
+      subtitle: const Text('开启后优先使用代理加速 GitHub 更新链接'),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.updateAccelerate,
+      onChanged: (bool value) {
+        cubit.updateState(
+          (current) => current.copyWith(updateAccelerate: value),
+        );
       },
     );
   }

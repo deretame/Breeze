@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/page/comic_read/widgets/read_layout.dart';
 
 class ReaderActionController {
   final ScrollController scrollController;
@@ -217,7 +218,7 @@ class ReaderActionController {
     if (!pageController.hasClients) return;
 
     final readMode = getReadMode();
-    final shouldGoForward = readMode == 2 ? !isNext : isNext;
+    final shouldGoForward = isReverseRowReadMode(readMode) ? !isNext : isNext;
     final noAnimation = getNoAnimation();
 
     if (noAnimation) {

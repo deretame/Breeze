@@ -90,8 +90,13 @@ class _BottomWidgetState extends State<BottomWidget> {
     final isMenuVisible = context.select(
       (ReaderCubit cubit) => cubit.state.isMenuVisible,
     );
-    final colorScheme = context.theme.colorScheme;
     final bottomSafeHeight = context.bottomSafeHeight;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isWideLayout = screenWidth >= 840;
+    final topMaxWidth = (screenWidth * 0.56).clamp(380.0, 720.0).toDouble();
+    final bottomMaxWidth = (screenWidth * (screenWidth >= 1200 ? 0.62 : 0.74))
+        .clamp(560.0, 980.0)
+        .toDouble();
 
     return Positioned(
       bottom: 0,
@@ -103,95 +108,77 @@ class _BottomWidgetState extends State<BottomWidget> {
           duration: _animationDuration,
           curve: Curves.easeOutCubic,
           offset: isMenuVisible ? Offset.zero : const Offset(0, 1),
-          child: ClipRect(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                width: context.screenWidth,
-                padding: EdgeInsets.fromLTRB(10, 6, 10, 6 + bottomSafeHeight),
-                decoration: BoxDecoration(
-                  color: colorScheme.surface.withValues(alpha: 0.76),
-                  border: Border(
-                    top: BorderSide(
-                      color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+          child: Padding(
+            padding: EdgeInsets.only(bottom: 6 + bottomSafeHeight),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: isWideLayout ? topMaxWidth : double.infinity,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ChapterNavigationButton(
+                            icon: Icons.skip_previous_rounded,
+                            tooltip: '上一章',
+                            isEnabled: jumpChapter.havePrev,
+                            onTap: () => _jumpToChapter(true),
+                          ),
+                          const SizedBox(width: 10),
+                          FloatingActionIconButton(
+                            icon: Icons.home_rounded,
+                            tooltip: '返回首页',
+                            onPressed: () => popToRoot(context),
+                          ),
+                          const SizedBox(width: 10),
+                          FloatingActionIconButton(
+                            icon: Icons.list_alt_rounded,
+                            tooltip: '跳转章节',
+                            isEnabled:
+                                !(seriesList.isEmpty && widget.from == From.jm),
+                            onPressed: _selectJumpChapter,
+                          ),
+                          const SizedBox(width: 10),
+                          FloatingActionIconButton(
+                            icon: Icons.tune_rounded,
+                            tooltip: '阅读设置',
+                            onPressed: _openSettingsPanel,
+                          ),
+                          const SizedBox(width: 10),
+                          ChapterNavigationButton(
+                            icon: Icons.skip_next_rounded,
+                            tooltip: '下一章',
+                            isEnabled: jumpChapter.haveNext,
+                            onTap: () => _jumpToChapter(false),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        ChapterNavigationButton(
-                          label: "上一章",
-                          isEnabled: jumpChapter.havePrev,
-                          onTap: () => _jumpToChapter(true),
-                        ),
-                        const SizedBox(width: 6),
-                        widget.sliderWidget,
-                        const SizedBox(width: 6),
-                        ChapterNavigationButton(
-                          label: "下一章",
-                          isEnabled: jumpChapter.haveNext,
-                          onTap: () => _jumpToChapter(false),
-                        ),
-                      ],
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      child: Divider(
-                        height: 1,
-                        color: colorScheme.outlineVariant.withValues(
-                          alpha: 0.4,
-                        ),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: isWideLayout
+                            ? bottomMaxWidth
+                            : double.infinity,
                       ),
+                      child: Row(children: [widget.sliderWidget]),
                     ),
-                    Row(
-                      children: [
-                        IconButton(
-                          tooltip: '返回首页',
-                          style: IconButton.styleFrom(
-                            backgroundColor: colorScheme.secondaryContainer
-                                .withValues(alpha: 0.7),
-                          ),
-                          icon: const Icon(Icons.home_rounded),
-                          onPressed: () => popToRoot(context),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: FilledButton.tonal(
-                            onPressed:
-                                seriesList.isEmpty && widget.from == From.jm
-                                ? null
-                                : _selectJumpChapter,
-                            style: FilledButton.styleFrom(
-                              minimumSize: const Size.fromHeight(40),
-                              textStyle: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: const Text('跳转章节'),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        IconButton(
-                          tooltip: '阅读设置',
-                          style: IconButton.styleFrom(
-                            backgroundColor: colorScheme.secondaryContainer
-                                .withValues(alpha: 0.7),
-                          ),
-                          icon: const Icon(Icons.tune_rounded),
-                          onPressed: _openSettingsPanel,
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ),
@@ -327,37 +314,93 @@ class _BottomWidgetState extends State<BottomWidget> {
 }
 
 class ChapterNavigationButton extends StatelessWidget {
-  final String label;
+  final IconData icon;
+  final String tooltip;
   final bool isEnabled;
   final VoidCallback onTap;
 
   const ChapterNavigationButton({
     super.key,
-    required this.label,
+    required this.icon,
+    required this.tooltip,
     required this.isEnabled,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 34,
-      child: OutlinedButton(
-        onPressed: isEnabled ? onTap : null,
-        style: OutlinedButton.styleFrom(
-          minimumSize: Size.zero,
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-          side: BorderSide(
-            color: context.theme.colorScheme.outlineVariant.withValues(
-              alpha: 0.7,
+    final colorScheme = context.theme.colorScheme;
+
+    return ClipOval(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: IconButton(
+          tooltip: tooltip,
+          onPressed: isEnabled ? onTap : null,
+          style: IconButton.styleFrom(
+            fixedSize: const Size(44, 44),
+            padding: EdgeInsets.zero,
+            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.55,
+            ),
+            disabledBackgroundColor: colorScheme.surfaceContainerHighest
+                .withValues(alpha: 0.3),
+            foregroundColor: colorScheme.onSurface,
+            disabledForegroundColor: colorScheme.onSurface.withValues(
+              alpha: 0.35,
+            ),
+            side: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.3),
             ),
           ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          icon: Icon(icon),
         ),
-        child: Text(label, style: const TextStyle(fontSize: 13)),
+      ),
+    );
+  }
+}
+
+class FloatingActionIconButton extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final bool isEnabled;
+  final VoidCallback onPressed;
+
+  const FloatingActionIconButton({
+    super.key,
+    required this.icon,
+    required this.tooltip,
+    this.isEnabled = true,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = context.theme.colorScheme;
+    return ClipOval(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: IconButton(
+          tooltip: tooltip,
+          onPressed: isEnabled ? onPressed : null,
+          style: IconButton.styleFrom(
+            fixedSize: const Size(44, 44),
+            padding: EdgeInsets.zero,
+            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.55,
+            ),
+            disabledBackgroundColor: colorScheme.surfaceContainerHighest
+                .withValues(alpha: 0.3),
+            foregroundColor: colorScheme.onSurface,
+            disabledForegroundColor: colorScheme.onSurface.withValues(
+              alpha: 0.35,
+            ),
+            side: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+            ),
+          ),
+          icon: Icon(icon),
+        ),
       ),
     );
   }

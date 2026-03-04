@@ -40,6 +40,7 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
   comicChoice: (json['comicChoice'] as num?)?.toInt() ?? 1,
   disableBika: json['disableBika'] as bool? ?? false,
   enableMemoryDebug: json['enableMemoryDebug'] as bool? ?? false,
+  updateAccelerate: json['updateAccelerate'] as bool? ?? true,
   searchHistory:
       (json['searchHistory'] as List<dynamic>?)
           ?.map((e) => e as String)
@@ -75,6 +76,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'comicChoice': instance.comicChoice,
       'disableBika': instance.disableBika,
       'enableMemoryDebug': instance.enableMemoryDebug,
+      'updateAccelerate': instance.updateAccelerate,
       'searchHistory': instance.searchHistory,
       'windowWidth': instance.windowWidth,
       'windowHeight': instance.windowHeight,
@@ -185,6 +187,9 @@ _ReadSettingState _$ReadSettingStateFromJson(Map<String, dynamic> json) =>
           (json['autoScrollPageIntervalMs'] as num?)?.toInt() ?? 3000,
       autoScrollColumnDistancePercent:
           (json['autoScrollColumnDistancePercent'] as num?)?.toInt() ?? 72,
+      doublePageMode: json['doublePageMode'] as bool? ?? false,
+      sidePaddingEnabled: json['sidePaddingEnabled'] as bool? ?? false,
+      sidePaddingPercent: (json['sidePaddingPercent'] as num?)?.toInt() ?? 10,
       volumeKeyPageTurn: json['volumeKeyPageTurn'] as bool? ?? true,
       volumeKeyPageTurnDistancePercent:
           (json['volumeKeyPageTurnDistancePercent'] as num?)?.toInt() ?? 72,
@@ -229,6 +234,9 @@ Map<String, dynamic> _$ReadSettingStateToJson(
   'autoScrollColumnIntervalMs': instance.autoScrollColumnIntervalMs,
   'autoScrollPageIntervalMs': instance.autoScrollPageIntervalMs,
   'autoScrollColumnDistancePercent': instance.autoScrollColumnDistancePercent,
+  'doublePageMode': instance.doublePageMode,
+  'sidePaddingEnabled': instance.sidePaddingEnabled,
+  'sidePaddingPercent': instance.sidePaddingPercent,
   'volumeKeyPageTurn': instance.volumeKeyPageTurn,
   'volumeKeyPageTurnDistancePercent': instance.volumeKeyPageTurnDistancePercent,
   'doubleTapZoom': instance.doubleTapZoom,

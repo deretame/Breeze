@@ -22,6 +22,7 @@ class ComicReadAppBar extends StatelessWidget {
       (ReaderCubit cubit) => cubit.state.isMenuVisible,
     );
     final colorScheme = context.theme.colorScheme;
+    const appBarRadius = 14.0;
 
     return Positioned(
       top: 0,
@@ -33,7 +34,10 @@ class ComicReadAppBar extends StatelessWidget {
           duration: const Duration(milliseconds: 320),
           curve: Curves.easeOutCubic,
           offset: isMenuVisible ? Offset.zero : const Offset(0, -1),
-          child: ClipRect(
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(appBarRadius),
+            ),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
               child: AppBar(
@@ -43,9 +47,9 @@ class ComicReadAppBar extends StatelessWidget {
                 surfaceTintColor: Colors.transparent,
                 elevation: isMenuVisible ? 4.0 : 0.0,
                 shadowColor: Colors.black.withValues(alpha: 0.2),
-                shape: Border(
-                  bottom: BorderSide(
-                    color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                    bottom: Radius.circular(appBarRadius),
                   ),
                 ),
               ),

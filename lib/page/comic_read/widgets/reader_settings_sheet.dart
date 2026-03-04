@@ -8,9 +8,9 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
-part 'reader_settings_read_tab.dart';
 part 'reader_settings_gesture_tab.dart';
 part 'reader_settings_info_tab.dart';
+part 'reader_settings_read_tab.dart';
 
 Future<void> showReaderSettingsSheet(
   BuildContext context, {

@@ -1,6 +1,3 @@
-import 'dart:io';
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
@@ -14,17 +11,12 @@ import '../../../config/global/global.dart';
 import '../../../type/enum.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 import '../json/common_ep_info_json/common_ep_info_json.dart';
-
-double getConstrainedImageWidth(double containerWidth) {
-  bool isDesktop = Platform.isWindows || Platform.isMacOS || Platform.isLinux;
-  if (!isDesktop) return containerWidth;
-  final double target = math.max(containerWidth * 0.6, 600.0);
-  return math.min(containerWidth, target);
-}
+import 'read_layout.dart';
 
 class ColumnModeWidget extends StatefulWidget {
   final int length;
   final List<Doc> docs;
+  final bool enableDoublePage;
   final String comicId;
   final String epsId;
   final ListObserverController observerController;
@@ -37,6 +29,7 @@ class ColumnModeWidget extends StatefulWidget {
     super.key,
     required this.length,
     required this.docs,
+    required this.enableDoublePage,
     required this.comicId,
     required this.epsId,
     required this.observerController,
@@ -51,6 +44,8 @@ class ColumnModeWidget extends StatefulWidget {
 }
 
 class _ColumnModeWidgetState extends State<ColumnModeWidget> {
+  bool get _isDoublePage => widget.enableDoublePage;
+
   @override
   Widget build(BuildContext context) {
     final basePhysics = widget.parentPhysics != null
@@ -72,6 +67,8 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
         final backgroundColor = readSetting.resolveReaderBackgroundColor(
           Theme.of(context).brightness,
         );
+        final sidePaddingEnabled = readSetting.sidePaddingEnabled;
+        final sidePaddingPercent = readSetting.sidePaddingPercent;
         final topInset = mediaQuery.padding.top > 0
             ? mediaQuery.padding.top
             : mediaQuery.viewPadding.top;
@@ -83,7 +80,11 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
         final double bottomPadding = bottomInset + 50;
 
         final containerWidth = constraints.maxWidth;
-        final imageWidth = getConstrainedImageWidth(containerWidth);
+        final contentWidth = getConstrainedImageWidth(
+          containerWidth: containerWidth,
+          enableSidePadding: sidePaddingEnabled,
+          sidePaddingPercent: sidePaddingPercent,
+        );
 
         Widget listView;
 
@@ -92,7 +93,7 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
             ctx,
             index,
             containerWidth,
-            imageWidth,
+            contentWidth,
             backgroundColor,
           );
         }
@@ -125,35 +126,17 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
             final all = resultMap.displayingChildIndexList;
             if (all.isEmpty) return;
 
-            var visibleIndices = List<int>.from(all);
-
-            for (int i = 1; i <= 5; i++) {
-              int prevIndex = all.first - i;
-              if (prevIndex >= 0) {
-                visibleIndices.insert(0, prevIndex);
-              } else {
-                break;
-              }
-            }
-
-            for (int i = 1; i <= 5; i++) {
-              int nextIndex = all.last + i;
-              if (nextIndex < widget.length) {
-                visibleIndices.add(nextIndex);
-              } else {
-                break;
-              }
-            }
+            var visibleIndices = _collectVisibleIndices(all);
 
             context.read<ImageSizeCubit>().updateVisibleIndices(visibleIndices);
 
-            final int middleValue = all[(all.length - 1) ~/ 2];
+            final int middleValue = all[all.length ~/ 2];
 
-            final pageIndex = middleValue.clamp(0, widget.docs.length - 1);
+            final clampedPageIndex = middleValue.clamp(0, widget.length - 1);
 
             final cubit = context.read<ReaderCubit>();
-            if (cubit.state.pageIndex != pageIndex) {
-              cubit.updatePageIndex(pageIndex);
+            if (cubit.state.pageIndex != clampedPageIndex) {
+              cubit.updatePageIndex(clampedPageIndex);
             }
 
             if (cubit.state.isMenuVisible) {
@@ -173,54 +156,177 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
     double imageWidth,
     Color backgroundColor,
   ) {
-    return BlocSelector<ImageSizeCubit, ImageSizeState, Size>(
-      selector: (state) {
-        return state.getSizeValue(index);
-      },
-      builder: (itemContext, cachedSize) {
-        double finalHeight;
-        double finalWidth = containerWidth;
+    if (_isDoublePage) {
+      return _buildDoublePageItem(
+        context,
+        slotIndex: index,
+        containerWidth: containerWidth,
+        contentWidth: imageWidth,
+        backgroundColor: backgroundColor,
+      );
+    }
 
-        if ((cachedSize.width - imageWidth).abs() < 0.1) {
-          finalHeight = cachedSize.height;
-        } else {
-          if (cachedSize.width > 0 && cachedSize.height > 0) {
-            final aspectRatio = cachedSize.height / cachedSize.width;
-            finalHeight = imageWidth * aspectRatio;
-          } else {
-            finalHeight = cachedSize.height;
-          }
-        }
+    return BlocSelector<ImageSizeCubit, ImageSizeState, Size>(
+      selector: (state) => state.getSizeValue(index),
+      builder: (itemContext, cachedSize) {
+        final finalHeight = _resolveDisplayHeight(
+          cachedSize: cachedSize,
+          targetWidth: imageWidth,
+        );
 
         return Container(
           color: backgroundColor,
           height: finalHeight,
-          width: finalWidth,
+          width: containerWidth,
           alignment: Alignment.center,
           child: SizedBox(
             width: imageWidth,
             height: finalHeight,
-            child: BlocSelector<ImageSizeCubit, ImageSizeState, bool>(
-              selector: (state) => state.visibleIndices.contains(index),
-              builder: (context, isVisible) {
-                return ReadImageWidget(
-                  isVisible: isVisible,
-                  pictureInfo: PictureInfo(
-                    from: widget.from,
-                    url: widget.docs[index].fileServer,
-                    path: widget.docs[index].path,
-                    cartoonId: widget.comicId,
-                    chapterId: widget.epsId,
-                    pictureType: PictureType.comic,
-                  ),
-                  index: index,
-                  isColumn: true,
-                );
-              },
+            child: _buildColumnImage(index: index),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDoublePageItem(
+    BuildContext context, {
+    required int slotIndex,
+    required double containerWidth,
+    required double contentWidth,
+    required Color backgroundColor,
+  }) {
+    const panelGap = 6.0;
+    final leftDocIndex = slotIndex * 2;
+    final rightDocIndex = leftDocIndex + 1;
+    final panelWidth = ((contentWidth - panelGap) / 2).clamp(1.0, contentWidth);
+
+    return BlocSelector<ImageSizeCubit, ImageSizeState, (Size, Size)>(
+      selector: (state) => (
+        state.getSizeValue(leftDocIndex),
+        rightDocIndex < widget.docs.length
+            ? state.getSizeValue(rightDocIndex)
+            : const Size(0, 0),
+      ),
+      builder: (itemContext, pairSize) {
+        final leftHeight = _resolveDisplayHeight(
+          cachedSize: pairSize.$1,
+          targetWidth: panelWidth,
+        );
+        final rightHeight = rightDocIndex < widget.docs.length
+            ? _resolveDisplayHeight(
+                cachedSize: pairSize.$2,
+                targetWidth: panelWidth,
+              )
+            : 0.0;
+        final rowHeight = (leftHeight > rightHeight ? leftHeight : rightHeight)
+            .clamp(1.0, double.infinity);
+
+        return Container(
+          color: backgroundColor,
+          width: containerWidth,
+          height: rowHeight,
+          alignment: Alignment.center,
+          child: SizedBox(
+            width: contentWidth,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: panelWidth,
+                  height: rowHeight,
+                  child: _buildColumnImage(index: leftDocIndex),
+                ),
+                const SizedBox(width: panelGap),
+                SizedBox(
+                  width: panelWidth,
+                  height: rowHeight,
+                  child: rightDocIndex < widget.docs.length
+                      ? _buildColumnImage(index: rightDocIndex)
+                      : const SizedBox.shrink(),
+                ),
+              ],
             ),
           ),
         );
       },
     );
+  }
+
+  Widget _buildColumnImage({required int index}) {
+    return BlocSelector<ImageSizeCubit, ImageSizeState, bool>(
+      selector: (state) => state.visibleIndices.contains(index),
+      builder: (context, isVisible) {
+        return ReadImageWidget(
+          isVisible: isVisible,
+          pictureInfo: PictureInfo(
+            from: widget.from,
+            url: widget.docs[index].fileServer,
+            path: widget.docs[index].path,
+            cartoonId: widget.comicId,
+            chapterId: widget.epsId,
+            pictureType: PictureType.comic,
+          ),
+          index: index,
+          isColumn: true,
+        );
+      },
+    );
+  }
+
+  List<int> _collectVisibleIndices(List<int> displayingRows) {
+    final visibleRows = List<int>.from(displayingRows);
+
+    for (int i = 1; i <= 5; i++) {
+      final prevIndex = displayingRows.first - i;
+      if (prevIndex >= 0) {
+        visibleRows.insert(0, prevIndex);
+      } else {
+        break;
+      }
+    }
+
+    for (int i = 1; i <= 5; i++) {
+      final nextIndex = displayingRows.last + i;
+      if (nextIndex < widget.length) {
+        visibleRows.add(nextIndex);
+      } else {
+        break;
+      }
+    }
+
+    if (!_isDoublePage) {
+      return visibleRows;
+    }
+
+    final visibleDocs = <int>[];
+    for (final rowIndex in visibleRows) {
+      final leftDocIndex = rowIndex * 2;
+      final rightDocIndex = leftDocIndex + 1;
+      if (leftDocIndex < widget.docs.length) {
+        visibleDocs.add(leftDocIndex);
+      }
+      if (rightDocIndex < widget.docs.length) {
+        visibleDocs.add(rightDocIndex);
+      }
+    }
+
+    return visibleDocs;
+  }
+
+  double _resolveDisplayHeight({
+    required Size cachedSize,
+    required double targetWidth,
+  }) {
+    if (cachedSize.width <= 0 || cachedSize.height <= 0) {
+      return 1;
+    }
+
+    if ((cachedSize.width - targetWidth).abs() < 0.1) {
+      return cachedSize.height;
+    }
+
+    final aspectRatio = cachedSize.height / cachedSize.width;
+    return (targetWidth * aspectRatio).clamp(1.0, double.infinity);
   }
 }

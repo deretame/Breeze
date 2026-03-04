@@ -84,6 +84,17 @@ class _ReadModeSection extends StatelessWidget {
             ),
           ],
         ),
+        _SettingsSwitchTile(
+          title: '双页阅读',
+          subtitle: '在当前阅读模式中启用双页并排',
+          value: globalSettingState.readSetting.doublePageMode,
+          onChanged: (value) {
+            globalSettingCubit.updateReadSetting(
+              (current) => current.copyWith(doublePageMode: value),
+            );
+            changePageIndex(0);
+          },
+        ),
       ],
     );
   }
@@ -380,6 +391,31 @@ class _ReadExperienceSection extends StatelessWidget {
               final delayMs = value.clamp(50, 500);
               globalSettingCubit.updateReadSetting(
                 (current) => current.copyWith(einkDelayMs: delayMs),
+              );
+            },
+          ),
+        _SettingsSwitchTile(
+          title: '两侧留白',
+          subtitle: '自定义左右留白比例',
+          value: readSetting.sidePaddingEnabled,
+          onChanged: (value) {
+            globalSettingCubit.updateReadSetting(
+              (current) => current.copyWith(sidePaddingEnabled: value),
+            );
+          },
+        ),
+        if (readSetting.sidePaddingEnabled)
+          _SettingsSliderCard(
+            title: '每侧留白比例',
+            value: readSetting.sidePaddingPercent.clamp(0, 30),
+            min: 0,
+            max: 30,
+            divisions: 30,
+            suffix: '%',
+            onChanged: (value) {
+              final percent = value.clamp(0, 30);
+              globalSettingCubit.updateReadSetting(
+                (current) => current.copyWith(sidePaddingPercent: percent),
               );
             },
           ),

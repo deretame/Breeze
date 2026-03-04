@@ -13,6 +13,7 @@ import 'package:zephyr/util/context/context_extensions.dart';
 import '../../../type/enum.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 import '../json/common_ep_info_json/common_ep_info_json.dart';
+import 'read_layout.dart';
 
 class RowModeWidget extends StatefulWidget {
   final List<Doc> docs;
@@ -59,8 +60,16 @@ class _RowModeWidgetState extends State<RowModeWidget> {
   @override
   Widget build(BuildContext context) {
     final globalSettingState = context.watch<GlobalSettingCubit>().state;
-    final backgroundColor = globalSettingState.readSetting
-        .resolveReaderBackgroundColor(Theme.of(context).brightness);
+    final readMode = globalSettingState.readMode;
+    final readSetting = globalSettingState.readSetting;
+    final isDoublePage = readSetting.doublePageMode;
+    final slotCount = getReadModeSlotCount(
+      imageCount: widget.docs.length,
+      enableDoublePage: isDoublePage,
+    );
+    final backgroundColor = readSetting.resolveReaderBackgroundColor(
+      Theme.of(context).brightness,
+    );
     final jumpChapter = widget.jumpChapter;
     const offset = 4;
 
@@ -117,7 +126,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
       },
       child: PageView.custom(
         physics: widget.scrollPhysics,
-        reverse: globalSettingState.readMode != 1,
+        reverse: isReverseRowReadMode(readMode),
         controller: widget.pageController,
         onPageChanged: (page) {
           logger.d("page: $page");
@@ -132,24 +141,34 @@ class _RowModeWidgetState extends State<RowModeWidget> {
         },
         childrenDelegate: SliverChildBuilderDelegate(
           (context, index) {
-            return Container(
-              color: backgroundColor,
-              child: ReadImageWidget(
-                isVisible: true,
-                pictureInfo: PictureInfo(
-                  from: widget.from,
-                  url: widget.docs[index].fileServer,
-                  path: widget.docs[index].path,
-                  cartoonId: widget.comicId,
-                  chapterId: widget.epsId,
-                  pictureType: PictureType.comic,
-                ),
-                index: index,
-                isColumn: false,
-              ),
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final pageWidth = constraints.maxWidth;
+                final contentWidth = getConstrainedImageWidth(
+                  containerWidth: pageWidth,
+                  enableSidePadding: readSetting.sidePaddingEnabled,
+                  sidePaddingPercent: readSetting.sidePaddingPercent,
+                );
+
+                if (!isDoublePage) {
+                  return _buildSinglePage(
+                    index: index,
+                    pageWidth: pageWidth,
+                    contentWidth: contentWidth,
+                    backgroundColor: backgroundColor,
+                  );
+                }
+
+                return _buildDoublePage(
+                  slotIndex: index,
+                  pageWidth: pageWidth,
+                  contentWidth: contentWidth,
+                  backgroundColor: backgroundColor,
+                );
+              },
             );
           },
-          childCount: widget.docs.length,
+          childCount: slotCount,
           addAutomaticKeepAlives: true,
           addRepaintBoundaries: true,
         ),
@@ -170,14 +189,89 @@ class _RowModeWidgetState extends State<RowModeWidget> {
     cubit.updatePageIndex(page);
     if (!cubit.state.isComicRolling) {
       // 确保 clamp 的最大值不小于最小值，避免 Invalid argument 错误
-      final maxSlot = (cubit.state.totalSlots).clamp(
+      final maxIndex = (cubit.state.totalSlots - 1).clamp(
         0,
         double.maxFinite.toInt(),
       );
       cubit.updateSliderChanged(
-        (cubit.state.pageIndex).clamp(0, maxSlot).toDouble(),
+        (cubit.state.pageIndex).clamp(0, maxIndex).toDouble(),
       );
       cubit.updateMenuVisible(visible: false);
     }
+  }
+
+  Widget _buildSinglePage({
+    required int index,
+    required double pageWidth,
+    required double contentWidth,
+    required Color backgroundColor,
+  }) {
+    return Container(
+      color: backgroundColor,
+      width: pageWidth,
+      alignment: Alignment.center,
+      child: SizedBox(
+        width: contentWidth,
+        child: _buildReadImage(docIndex: index, slotIndex: index),
+      ),
+    );
+  }
+
+  Widget _buildDoublePage({
+    required int slotIndex,
+    required double pageWidth,
+    required double contentWidth,
+    required Color backgroundColor,
+  }) {
+    const double panelGap = 6;
+    final panelWidth = ((contentWidth - panelGap) / 2).clamp(1.0, contentWidth);
+    final leftDocIndex = slotIndex * 2;
+    final rightDocIndex = leftDocIndex + 1;
+
+    return Container(
+      color: backgroundColor,
+      width: pageWidth,
+      alignment: Alignment.center,
+      child: SizedBox(
+        width: contentWidth,
+        child: Row(
+          children: [
+            SizedBox(
+              width: panelWidth,
+              child: _buildReadImage(
+                docIndex: leftDocIndex,
+                slotIndex: slotIndex,
+              ),
+            ),
+            const SizedBox(width: panelGap),
+            SizedBox(
+              width: panelWidth,
+              child: rightDocIndex < widget.docs.length
+                  ? _buildReadImage(
+                      docIndex: rightDocIndex,
+                      slotIndex: slotIndex,
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReadImage({required int docIndex, required int slotIndex}) {
+    return ReadImageWidget(
+      isVisible: true,
+      pictureInfo: PictureInfo(
+        from: widget.from,
+        url: widget.docs[docIndex].fileServer,
+        path: widget.docs[docIndex].path,
+        cartoonId: widget.comicId,
+        chapterId: widget.epsId,
+        pictureType: PictureType.comic,
+      ),
+      index: slotIndex,
+      isColumn: false,
+    );
   }
 }

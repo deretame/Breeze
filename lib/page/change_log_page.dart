@@ -7,9 +7,12 @@ import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/util/update/github_update_accelerator.dart';
 import 'package:zephyr/util/update/json/github_release_json.dart';
 
 final dio = Dio();
+const _releasesApiUrl = 'https://api.github.com/repos/deretame/Breeze/releases';
 
 @RoutePage()
 class ChangelogPage extends StatefulWidget {
@@ -33,10 +36,15 @@ class _ChangelogPageState extends State<ChangelogPage> {
   int _page = 1;
   static const int _perPage = 20; // 每次请求多少条
   bool _hasMore = true; // 是否还有更多数据
+  late final GithubUpdateAccelerationSession _accelerator;
+  String? _githubUserAgent;
 
   @override
   void initState() {
     super.initState();
+    _accelerator = GithubUpdateAccelerator.createSession(
+      enabled: globalSetting.updateAccelerate,
+    );
     // 首次进入自动刷新
     _fetchReleases(refresh: true);
   }
@@ -53,11 +61,35 @@ class _ChangelogPageState extends State<ChangelogPage> {
     try {
       final requestPage = refresh ? 1 : _page;
 
-      final response = await dio.get(
-        'https://api.github.com/repos/deretame/Breeze/releases',
-        queryParameters: {'page': requestPage, 'per_page': _perPage},
-        options: Options(responseType: ResponseType.plain),
-      );
+      await _ensureProxyReady();
+      await _ensureGithubUserAgent();
+
+      final requestUrls = _accelerator.requestCandidates(_releasesApiUrl);
+
+      Response<String>? response;
+      Object? lastError;
+      for (final requestUrl in requestUrls) {
+        try {
+          response = await dio.get<String>(
+            requestUrl,
+            queryParameters: {'page': requestPage, 'per_page': _perPage},
+            options: Options(
+              responseType: ResponseType.plain,
+              headers: {
+                'User-Agent': _githubUserAgent,
+                'Accept': 'application/vnd.github.v3+json',
+              },
+            ),
+          );
+          break;
+        } catch (e) {
+          lastError = e;
+        }
+      }
+
+      if (response == null) {
+        throw lastError ?? Exception('请求更新日志失败');
+      }
 
       if (response.statusCode == 200) {
         final List<GithubReleaseJson> newData = githubReleaseJsonFromJson(
@@ -120,8 +152,25 @@ class _ChangelogPageState extends State<ChangelogPage> {
     }
   }
 
+  Future<void> _ensureProxyReady() async {
+    try {
+      await _accelerator.prepare();
+    } catch (_) {
+      // Ignore and fallback to direct GitHub.
+    }
+  }
+
+  Future<void> _ensureGithubUserAgent() async {
+    _githubUserAgent ??= await GithubUpdateAccelerator.createGithubUserAgent();
+  }
+
+  String _resolveLaunchUrl(String urlString) {
+    return _accelerator.accelerateIfGithub(urlString);
+  }
+
   Future<void> _launchUrl(String urlString) async {
-    final Uri url = Uri.parse(urlString);
+    await _ensureProxyReady();
+    final Uri url = Uri.parse(_resolveLaunchUrl(urlString));
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       if (mounted) {
         ScaffoldMessenger.of(

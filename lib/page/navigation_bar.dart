@@ -71,15 +71,16 @@ class _NavigationBarState extends State<NavigationBar> {
       _autoSync();
       manageCacheSize(context);
       resetDownloadTasks();
-      if (Platform.isIOS) {
-        await DownloadQueueManager.instance.watchTasksForIOS();
-      } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-        DownloadQueueManager.instance.watchTasks(isDesktop: true);
-      } else if (Platform.isAndroid) {
+      if (Platform.isAndroid) {
         if (DownloadQueueManager.instance.queueLength > 0) {
           initDownloadTask();
         }
+      } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+        DownloadQueueManager.instance.watchTasks(isDesktop: true);
       }
+      // else if (Platform.isIOS) {
+      //   await DownloadQueueManager.instance.watchTasksForIOS();
+      // }
     });
     _controller = PersistentTabController(
       initialIndex: objectbox.userSettingBox

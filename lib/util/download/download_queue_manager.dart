@@ -380,7 +380,7 @@ class DownloadQueueManager {
     }
   }
 
-  void watchTasks({required bool isDesktop}) {
+  void watchTasks() {
     final watchedQuery = objectbox.downloadTaskBox
         .query(
           DownloadTask_.isCompleted
@@ -392,9 +392,7 @@ class DownloadQueueManager {
     _watchSubscription = watchedQuery.listen((query) {
       final pendingTasks = query.find();
       if (pendingTasks.isNotEmpty && !_isProcessing) {
-        if (isDesktop) {
-          _processQueueDesktop();
-        }
+        _processQueueDesktop();
       }
     });
   }

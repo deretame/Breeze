@@ -124,6 +124,14 @@ class _DownloadPageState extends State<DownloadPage> {
 
   Future<void> download() async {
     final settings = objectbox.userSettingBox.get(1)!.bikaSetting;
+    final selectedChapters = _downloadInfo.entries
+        .where((entry) => entry.value)
+        .map((entry) => entry.key.toString())
+        .toList();
+    if (selectedChapters.isEmpty) {
+      showErrorToast("请选择要下载的章节");
+      return;
+    }
     final task = DownloadTaskJson(
       from: "bika",
       comicId: comicInfo.id,
@@ -132,10 +140,7 @@ class _DownloadPageState extends State<DownloadPage> {
         authorization: settings.authorization,
         proxy: settings.proxy.toString(),
       ),
-      selectedChapters: _downloadInfo.entries
-          .where((entry) => entry.value)
-          .map((entry) => entry.key.toString())
-          .toList(),
+      selectedChapters: selectedChapters,
       slowDownload: settings.slowDownload,
     );
     try {

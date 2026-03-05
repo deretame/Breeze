@@ -331,30 +331,15 @@ class ChapterNavigationButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = context.theme.colorScheme;
 
-    return ClipOval(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: IconButton(
-          tooltip: tooltip,
-          onPressed: isEnabled ? onTap : null,
-          style: IconButton.styleFrom(
-            fixedSize: const Size(44, 44),
-            padding: EdgeInsets.zero,
-            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
-              alpha: 0.55,
-            ),
-            disabledBackgroundColor: colorScheme.surfaceContainerHighest
-                .withValues(alpha: 0.3),
-            foregroundColor: colorScheme.onSurface,
-            disabledForegroundColor: colorScheme.onSurface.withValues(
-              alpha: 0.35,
-            ),
-            side: BorderSide(
-              color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-            ),
-          ),
-          icon: Icon(icon),
-        ),
+    return _FrostedCircleIconButton(
+      tooltip: tooltip,
+      isEnabled: isEnabled,
+      onPressed: onTap,
+      icon: icon,
+      foregroundColor: colorScheme.onSecondaryContainer,
+      backgroundColor: colorScheme.secondaryContainer.withValues(alpha: 0.72),
+      disabledBackgroundColor: colorScheme.surfaceContainerHighest.withValues(
+        alpha: 0.38,
       ),
     );
   }
@@ -377,7 +362,45 @@ class FloatingActionIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = context.theme.colorScheme;
-    return ClipOval(
+    return _FrostedCircleIconButton(
+      tooltip: tooltip,
+      isEnabled: isEnabled,
+      onPressed: onPressed,
+      icon: icon,
+      foregroundColor: colorScheme.onPrimaryContainer,
+      backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.76),
+      disabledBackgroundColor: colorScheme.surfaceContainerHighest.withValues(
+        alpha: 0.38,
+      ),
+    );
+  }
+}
+
+class _FrostedCircleIconButton extends StatelessWidget {
+  final String tooltip;
+  final bool isEnabled;
+  final VoidCallback onPressed;
+  final IconData icon;
+  final Color foregroundColor;
+  final Color backgroundColor;
+  final Color disabledBackgroundColor;
+
+  const _FrostedCircleIconButton({
+    required this.tooltip,
+    required this.isEnabled,
+    required this.onPressed,
+    required this.icon,
+    required this.foregroundColor,
+    required this.backgroundColor,
+    required this.disabledBackgroundColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = context.theme.colorScheme;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(999),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
         child: IconButton(
@@ -385,18 +408,15 @@ class FloatingActionIconButton extends StatelessWidget {
           onPressed: isEnabled ? onPressed : null,
           style: IconButton.styleFrom(
             fixedSize: const Size(44, 44),
-            padding: EdgeInsets.zero,
-            backgroundColor: colorScheme.surfaceContainerHighest.withValues(
-              alpha: 0.55,
-            ),
-            disabledBackgroundColor: colorScheme.surfaceContainerHighest
-                .withValues(alpha: 0.3),
-            foregroundColor: colorScheme.onSurface,
+            shape: const CircleBorder(),
+            foregroundColor: foregroundColor,
+            backgroundColor: backgroundColor,
             disabledForegroundColor: colorScheme.onSurface.withValues(
-              alpha: 0.35,
+              alpha: 0.38,
             ),
+            disabledBackgroundColor: disabledBackgroundColor,
             side: BorderSide(
-              color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+              color: colorScheme.outlineVariant.withValues(alpha: 0.35),
             ),
           ),
           icon: Icon(icon),

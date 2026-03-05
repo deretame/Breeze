@@ -382,7 +382,7 @@ Future<void> saveToDB(
 
   objectbox.jmDownloadBox.removeMany(temp.map((e) => e.id).toList());
 
-  await objectbox.jmDownloadBox.putAsync(jmComicDownload);
+  objectbox.jmDownloadBox.put(jmComicDownload);
 }
 
 Future<void> checkFile(DownloadInfoJson downloadInfoJson) async {
@@ -396,10 +396,11 @@ Future<void> checkFile(DownloadInfoJson downloadInfoJson) async {
   // 检查目录是否存在
   if (!await directory.exists()) {
     logger.d("目录不存在: $epsDir");
+    return;
   }
 
   // 列出目录下的所有文件和子目录
-  List<FileSystemEntity> entities = directory.listSync();
+  List<FileSystemEntity> entities = await directory.list().toList();
 
   // 过滤出子目录
   List<Directory> epDirs = entities.whereType<Directory>().toList();

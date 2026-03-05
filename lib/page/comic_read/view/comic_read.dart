@@ -284,7 +284,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
       create: (context) => ImageSizeCubit.create(
         defaultWidth: width,
         count: epInfo.length,
-        historyCount: _historyManager.getHistoryPageIndex(),
+        historyCount: _isHistory ? _historyManager.getHistoryPageIndex() : 0,
       ),
       child: Builder(
         builder: (innerContext) {

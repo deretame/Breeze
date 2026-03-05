@@ -135,16 +135,20 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
 
   Future<void> download() async {
     final bikaCubit = context.read<BikaSettingCubit>();
-
+    final selectedChapters = _downloadInfo.entries
+        .where((entry) => entry.value)
+        .map((entry) => entry.key.toString())
+        .toList();
+    if (selectedChapters.isEmpty) {
+      showErrorToast("请选择要下载的章节");
+      return;
+    }
     final task = DownloadTaskJson(
       from: "jm",
       comicId: jmComicInfoJson.id.toString(),
       comicName: jmComicInfoJson.name,
       bikaInfo: BikaInfo(authorization: "", proxy: ""),
-      selectedChapters: _downloadInfo.entries
-          .where((entry) => entry.value)
-          .map((entry) => entry.key.toString())
-          .toList(),
+      selectedChapters: selectedChapters,
       slowDownload: bikaCubit.state.slowDownload,
     );
     try {

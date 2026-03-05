@@ -16,6 +16,7 @@ image = { version = "0.25.6", default-features = false, features = [
 md5 = "0.8.0"
 base64 = "0.22.1"
 log = "0.4.27"
+env_logger = "0.11.8"
 anyhow = "1.0.98"
 tokio = { version = "1.46.1", features = ["full"] }
 tokio-tar = "0.3.1"
@@ -23,6 +24,12 @@ zip = { version = "2.1", default-features = false, features = ["deflate", "time"
 zhconv = "0.3.3"
 lazy_static = "1.5.0"
 flate2 = "1.0"
+
+[target.'cfg(target_os = "android")'.dependencies]
+android_logger = "0.14.1"
+
+[target.'cfg(any(target_os = "ios", target_os = "macos"))'.dependencies]
+oslog = "0.2.0"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }

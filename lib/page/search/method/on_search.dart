@@ -12,7 +12,10 @@ void onSearch(BuildContext context, String keyword, {String url = ""}) async {
   final searchCubit = context.read<SearchCubit>();
   searchCubit.update(searchCubit.state.copyWith(searchKeyword: keyword));
   if (searchCubit.state.from == From.jm) {
-    if (keyword.let(toInt) >= 100) {
+    if (keyword.let(toInt) >= 100 || keyword.startsWith("jm")) {
+      if (!keyword.startsWith("jm")) {
+        keyword = "jm$keyword";
+      }
       context.pushRoute(
         ComicInfoRoute(
           comicId: keyword,

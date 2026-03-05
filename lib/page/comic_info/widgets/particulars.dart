@@ -77,11 +77,11 @@ class ComicParticularsWidget extends StatelessWidget {
                 if (from == From.jm) ...[
                   GestureDetector(
                     onLongPress: () async {
-                      final String copyText = comicInfo.id;
+                      final String copyText = "jm${comicInfo.id}";
                       await Clipboard.setData(ClipboardData(text: copyText));
-                      showSuccessToast("已复制id：$copyText");
+                      showSuccessToast("已复制：$copyText");
                     },
-                    child: Text("禁漫车：JM${comicInfo.id}"),
+                    child: Text("禁漫车：jm${comicInfo.id}"),
                   ),
                   const SizedBox(height: 2),
                 ],

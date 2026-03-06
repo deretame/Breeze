@@ -1,5 +1,5 @@
 [package]
-name = "rust_lib_zephyr"
+name = "windcore"
 version = "0.1.0"
 edition = "2024"
 
@@ -20,10 +20,15 @@ env_logger = "0.11.8"
 anyhow = "1.0.98"
 tokio = { version = "1.46.1", features = ["full"] }
 tokio-tar = "0.3.1"
-zip = { version = "2.1", default-features = false, features = ["deflate", "time"] }
+zip = { version = "2.1", default-features = false, features = [
+    "deflate",
+    "time",
+] }
 zhconv = "0.3.3"
 lazy_static = "1.5.0"
 flate2 = "1.0"
+# qjs执行依赖
+rquickjs_playground = { path = "../rquickjs_playground" }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.14.1"

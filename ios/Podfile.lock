@@ -39,7 +39,7 @@ PODS:
     - Flutter
   - permission_handler_apple (9.3.0):
     - Flutter
-  - rust_lib_zephyr (0.0.1):
+  - windcore (0.0.1):
     - Flutter
   - Sentry/HybridSDK (8.56.2)
   - sentry_flutter (9.14.0):
@@ -69,7 +69,7 @@ DEPENDENCIES:
   - open_file_ios (from `.symlinks/plugins/open_file_ios/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
-  - rust_lib_zephyr (from `.symlinks/plugins/rust_lib_zephyr/ios`)
+  - windcore (from `.symlinks/plugins/windcore/ios`)
   - sentry_flutter (from `.symlinks/plugins/sentry_flutter/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
@@ -113,8 +113,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/package_info_plus/ios"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
-  rust_lib_zephyr:
-    :path: ".symlinks/plugins/rust_lib_zephyr/ios"
+  windcore:
+    :path: ".symlinks/plugins/windcore/ios"
   sentry_flutter:
     :path: ".symlinks/plugins/sentry_flutter/ios"
   shared_preferences_foundation:
@@ -141,7 +141,7 @@ SPEC CHECKSUMS:
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
-  rust_lib_zephyr: 29c3c6d739dc1b9e387ae83cd2fbe782176490e6
+  windcore: 29c3c6d739dc1b9e387ae83cd2fbe782176490e6
   Sentry: b53951377b78e21a734f5dc8318e333dbfc682d7
   sentry_flutter: 841fa2fe08dc72eb95e2320b76e3f751f3400cf5
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb

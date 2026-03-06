@@ -5,7 +5,6 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   dynamic_color
   file_selector_linux
-  flutter_js
   objectbox_flutter_libs
   open_file_linux
   screen_retriever_linux
@@ -17,7 +16,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
   jni
-  rust_lib_zephyr
+  windcore
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

@@ -24,7 +24,7 @@ PODS:
   - OrderedSet (6.0.3)
   - package_info_plus (0.0.1):
     - FlutterMacOS
-  - rust_lib_zephyr (0.0.1):
+  - windcore (0.0.1):
     - FlutterMacOS
   - screen_retriever_macos (0.0.1):
     - FlutterMacOS
@@ -55,7 +55,7 @@ DEPENDENCIES:
   - objectbox_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/objectbox_flutter_libs/macos`)
   - open_file_mac (from `Flutter/ephemeral/.symlinks/plugins/open_file_mac/macos`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
-  - rust_lib_zephyr (from `Flutter/ephemeral/.symlinks/plugins/rust_lib_zephyr/macos`)
+  - windcore (from `Flutter/ephemeral/.symlinks/plugins/windcore/macos`)
   - screen_retriever_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos`)
   - sentry_flutter (from `Flutter/ephemeral/.symlinks/plugins/sentry_flutter/macos`)
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
@@ -92,8 +92,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/open_file_mac/macos
   package_info_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos
-  rust_lib_zephyr:
-    :path: Flutter/ephemeral/.symlinks/plugins/rust_lib_zephyr/macos
+  windcore:
+    :path: Flutter/ephemeral/.symlinks/plugins/windcore/macos
   screen_retriever_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos
   sentry_flutter:
@@ -121,7 +121,7 @@ SPEC CHECKSUMS:
   open_file_mac: 76f06c8597551249bdb5e8fd8827a98eae0f4585
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: f0052d280d17aa382b932f399edf32507174e870
-  rust_lib_zephyr: b5b07e7248057c1e4361ac3e7e4c9f7bf233ed97
+  windcore: b5b07e7248057c1e4361ac3e7e4c9f7bf233ed97
   screen_retriever_macos: 452e51764a9e1cdb74b3c541238795849f21557f
   Sentry: b53951377b78e21a734f5dc8318e333dbfc682d7
   sentry_flutter: 841fa2fe08dc72eb95e2320b76e3f751f3400cf5

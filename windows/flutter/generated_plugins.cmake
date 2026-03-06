@@ -8,7 +8,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   dynamic_color
   file_selector_windows
   flutter_inappwebview_windows
-  flutter_js
   gal
   objectbox_flutter_libs
   permission_handler_windows
@@ -22,7 +21,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
   flutter_local_notifications_windows
   jni
-  rust_lib_zephyr
+  windcore
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

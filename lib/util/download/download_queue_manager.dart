@@ -3,14 +3,17 @@ import 'dart:io';
 
 import 'package:background_downloader/background_downloader.dart' as bd;
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:path/path.dart' as p;
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/util/download/cancel_token.dart';
 import 'package:zephyr/util/download/download_progress_reporter.dart';
 import 'package:zephyr/util/download/platform/desktop_download_runner.dart';
 import 'package:zephyr/util/download/platform/ios_download_runner.dart';
 import 'package:zephyr/util/foreground_task/task/bika_download.dart';
 import 'package:zephyr/util/foreground_task/task/jm_download.dart';
+import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/macos_activity.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -44,6 +47,9 @@ class DownloadQueueManager {
   bool _iosRecoveryDone = false;
   StreamSubscription? _watchSubscription;
 
+  /// 当前正在执行任务的取消令牌
+  CancelToken? _currentCancelToken;
+
   /// 进度 Stream，供 UI 监听
   final _progressController = StreamController<DownloadProgress>.broadcast();
 
@@ -51,6 +57,13 @@ class DownloadQueueManager {
 
   /// 当前是否有任务在执行
   bool get isProcessing => _isProcessing;
+
+  /// 取消当前正在执行的下载任务
+  ///
+  /// 如果当前没有运行中的任务，此方法无任何副作用。
+  void cancelCurrentTask() {
+    _currentCancelToken?.cancel();
+  }
 
   /// 队列中剩余任务数
   int get queueLength => objectbox.downloadTaskBox
@@ -118,12 +131,15 @@ class DownloadQueueManager {
       DownloadProgress(comicName: task.comicName, message: '开始下载...'),
     );
 
+    final cancelToken = CancelToken();
+    _currentCancelToken = cancelToken;
+
     try {
       desktopReporter.updateComicName(task.comicName);
       if (task.from == "bika") {
-        await bikaDownloadTask(desktopReporter, task);
+        await bikaDownloadTask(desktopReporter, task, cancelToken);
       } else if (task.from == "jm") {
-        await jmDownloadTask(desktopReporter, task);
+        await jmDownloadTask(desktopReporter, task, cancelToken);
       } else {
         logger.w("未知任务来源: ${task.from}");
       }
@@ -144,6 +160,29 @@ class DownloadQueueManager {
         ),
       );
       await desktopReporter.sendNotification("下载完成", "${task.comicName} 下载完成");
+    } on TaskCancelledException {
+      logger.i("任务 ${task.comicName} 已被用户取消");
+      // 取消时直接删除任务记录，不保留失败状态
+      objectbox.downloadTaskBox.remove(dbTask.id);
+
+      try {
+        final downloadPath = await getDownloadPath();
+        final comicDir = Directory(p.join(downloadPath, task.from, "original", task.comicId));
+        if (await comicDir.exists()) {
+          await comicDir.delete(recursive: true);
+          logger.d("已清理被取消任务的残留文件: ${comicDir.path}");
+        }
+      } catch (e) {
+        logger.e("未能清理取消任务的下载文件: $e");
+      }
+
+      _progressController.add(
+        DownloadProgress(
+          comicName: task.comicName,
+          message: '已取消',
+          isFailed: true,
+        ),
+      );
     } catch (e, s) {
       logger.e("任务 ${task.comicName} 失败", error: e, stackTrace: s);
 
@@ -161,6 +200,7 @@ class DownloadQueueManager {
       );
       await desktopReporter.sendNotification("下载失败", "${task.comicName} 下载失败");
     } finally {
+      _currentCancelToken = null;
       _downloadingComicId = "";
       Future.microtask(() => _processQueueDesktop());
     }
@@ -212,12 +252,15 @@ class DownloadQueueManager {
       DownloadProgress(comicName: task.comicName, message: '开始下载...'),
     );
 
+    final cancelToken = CancelToken();
+    _currentCancelToken = cancelToken;
+
     try {
       iosReporter.updateComicName(task.comicName);
       if (task.from == "bika") {
-        await bikaDownloadTask(iosReporter, task);
+        await bikaDownloadTask(iosReporter, task, cancelToken);
       } else if (task.from == "jm") {
-        await jmDownloadTask(iosReporter, task);
+        await jmDownloadTask(iosReporter, task, cancelToken);
       } else {
         logger.w("未知任务来源: ${task.from}");
       }
@@ -238,6 +281,28 @@ class DownloadQueueManager {
         ),
       );
       await iosReporter.sendNotification("下载完成", "${task.comicName} 下载完成");
+    } on TaskCancelledException {
+      logger.i("任务 ${task.comicName} 已被用户取消");
+      objectbox.downloadTaskBox.remove(dbTask.id);
+
+      try {
+        final downloadPath = await getDownloadPath();
+        final comicDir = Directory(p.join(downloadPath, task.from, "original", task.comicId));
+        if (await comicDir.exists()) {
+          await comicDir.delete(recursive: true);
+          logger.d("已清理被取消任务的残留文件: ${comicDir.path}");
+        }
+      } catch (e) {
+        logger.e("未能清理取消任务的下载文件: $e");
+      }
+
+      _progressController.add(
+        DownloadProgress(
+          comicName: task.comicName,
+          message: '已取消',
+          isFailed: true,
+        ),
+      );
     } catch (e, s) {
       logger.e("任务 ${task.comicName} 失败", error: e, stackTrace: s);
 
@@ -255,6 +320,7 @@ class DownloadQueueManager {
       );
       await iosReporter.sendNotification("下载失败", "${task.comicName} 下载失败");
     } finally {
+      _currentCancelToken = null;
       _downloadingComicId = "";
       Future.microtask(() => _processQueueIOS());
     }
@@ -350,11 +416,14 @@ class DownloadQueueManager {
     dbTask.isDownloading = true;
     objectbox.downloadTaskBox.put(dbTask);
 
+    final cancelToken = CancelToken();
+    _currentCancelToken = cancelToken;
+
     try {
       if (task.from == "bika") {
-        await bikaDownloadTask(reporter, task);
+        await bikaDownloadTask(reporter, task, cancelToken);
       } else if (task.from == "jm") {
-        await jmDownloadTask(reporter, task);
+        await jmDownloadTask(reporter, task, cancelToken);
       } else {
         logger.w("未知任务来源: ${task.from}");
       }
@@ -367,6 +436,22 @@ class DownloadQueueManager {
 
       await reporter.sendNotification("下载完成", "${task.comicName} 下载完成");
       _sendTaskCompleted(task.comicName);
+    } on TaskCancelledException {
+      logger.i("任务 ${task.comicName} 已被用户取消（Android）");
+      objectbox.downloadTaskBox.remove(dbTask.id);
+
+      try {
+        final downloadPath = await getDownloadPath();
+        final comicDir = Directory(p.join(downloadPath, task.from, "original", task.comicId));
+        if (await comicDir.exists()) {
+          await comicDir.delete(recursive: true);
+          logger.d("已清理被取消任务的残留文件: ${comicDir.path}");
+        }
+      } catch (e) {
+        logger.e("未能清理取消任务的下载文件: $e");
+      }
+
+      await reporter.sendNotification("下载已取消", "${task.comicName} 已被取消");
     } catch (e, s) {
       logger.e("任务 ${task.comicName} 失败", error: e, stackTrace: s);
 
@@ -375,6 +460,7 @@ class DownloadQueueManager {
 
       await reporter.sendNotification("下载失败", "${task.comicName} 下载失败");
     } finally {
+      _currentCancelToken = null;
       _downloadingComicId = "";
       Future.microtask(() => processQueueWithReporter(reporter));
     }

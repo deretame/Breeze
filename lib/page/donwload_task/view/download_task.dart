@@ -151,7 +151,34 @@ class _DownloadingTaskTile extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        trailing: const Icon(Icons.lock_outline, color: Colors.grey, size: 20),
+        trailing: IconButton(
+          icon: const Icon(Icons.cancel_outlined, color: Colors.blue),
+          onPressed: () {
+            final bloc = context.read<DowloadTaskBloc>();
+            showDialog(
+              context: context,
+              builder: (dialogContext) => AlertDialog(
+                title: const Text("取消任务"),
+                content: Text("确定要取消下载 ${task.comicName} 吗？"),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                    child: const Text("取消", style: TextStyle(color: Colors.grey)),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      bloc.add(
+                        const DowloadTaskEvent.cancelCurrentTask(),
+                      );
+                      Navigator.of(dialogContext).pop();
+                    },
+                    child: const Text("确定", style: TextStyle(color: Colors.red)),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

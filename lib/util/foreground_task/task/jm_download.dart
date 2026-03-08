@@ -14,6 +14,7 @@ import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart'
 import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/download/cancel_token.dart';
 import 'package:zephyr/util/download/download_progress_reporter.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/get_path.dart';
@@ -23,6 +24,7 @@ import 'package:zephyr/util/json/json_dispose.dart';
 Future<void> jmDownloadTask(
   DownloadProgressReporter reporter,
   DownloadTaskJson task,
+  CancelToken cancelToken,
 ) async {
   bool isCancelled = false;
   Timer? progressTimer;
@@ -52,8 +54,11 @@ Future<void> jmDownloadTask(
     objectbox.downloadTaskBox.put(downloadTask);
     reporter.updateMessage("获取漫画信息中...");
 
+    cancelToken.throwIfCancelled();
     await setFastestUrlIndex();
     await setFastestImagesUrlIndex();
+
+    cancelToken.throwIfCancelled();
     final comicInfo = await getJmComicInfo(task.comicId);
 
     downloadTask = query.findFirst();
@@ -64,6 +69,7 @@ Future<void> jmDownloadTask(
     List<String> epIds = comicInfo.series.map((e) => e.id.toString()).toList();
     if (epIds.isEmpty) epIds = [comicInfo.id.toString()];
 
+    cancelToken.throwIfCancelled();
     final epsList = await fetchJMMedia(epIds, task.slowDownload);
 
     final downloadInfoJson = comicInfo2DownloadInfoJson(comicInfo);
@@ -89,6 +95,7 @@ Future<void> jmDownloadTask(
     logger.d("epsIds: $epsIds");
 
     try {
+      cancelToken.throwIfCancelled();
       await downloadPicture(
         from: From.jm,
         url: getJmCoverUrl(comicInfo.id.toString()),
@@ -115,8 +122,10 @@ Future<void> jmDownloadTask(
       updateProgress,
       updatedDownloadInfo,
       task.selectedChapters,
+      cancelToken,
     );
 
+    cancelToken.throwIfCancelled();
     await saveToDB(updatedDownloadInfo, epsIds, temp);
 
     _markTaskCompleted(task.comicId);
@@ -266,6 +275,7 @@ Future<DownloadInfoJson> downloadComic(
   void Function(int, String) updateProgress,
   DownloadInfoJson downloadInfoJson,
   List<String> selectedChapters,
+  CancelToken cancelToken,
 ) async {
   final selectedEps = downloadInfoJson.series
       .where((e) => selectedChapters.contains(e.id))
@@ -296,6 +306,7 @@ Future<DownloadInfoJson> downloadComic(
   final List<Future<void>> tasks = docsList.map((doc) {
     return pool.withResource(() async {
       try {
+        cancelToken.throwIfCancelled();
         await downloadPicture(
           from: From.jm,
           url: doc.media.fileServer,
@@ -305,6 +316,7 @@ Future<DownloadInfoJson> downloadComic(
           chapterId: doc.docId,
         );
 
+        cancelToken.throwIfCancelled();
         progress++;
         int currentPercent = (progress / docsList.length * 100).floor();
         if (currentPercent > lastReportedPercent) {

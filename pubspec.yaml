@@ -81,7 +81,7 @@ dependencies:
   # 后台任务与通知
   flutter_foreground_task: ^9.1.0 # 后台: 前台任务
   background_downloader: ^9.5.4 # 后台: 下载任务
-  flutter_local_notifications: ^20.0.0 # 通知: 本地通知
+  flutter_local_notifications: ^21.0.0 # 通知: 本地通知
 
   # 安全、工具与运行时
   encrypter_plus: ^5.1.0 # 安全: AES/RSA 加密

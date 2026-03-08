@@ -5,6 +5,7 @@ import 'package:zephyr/network/dio_cache.dart';
 import 'package:zephyr/network/http/jm/interceptor/jm_auth_interceptor.dart';
 import 'package:zephyr/network/http/jm/interceptor/jm_decrypt_interceptor.dart';
 import 'package:zephyr/network/http/jm/interceptor/jm_error_interceptor.dart';
+import 'package:zephyr/network/http/jm/interceptor/jm_retry_interceptor.dart';
 
 class JmClient {
   // 复用之前的缓存类
@@ -31,6 +32,7 @@ class JmClient {
     dio.interceptors.add(CookieManager(JmConfig.cookieJar));
 
     dio.interceptors.addAll([
+      JmRetryInterceptor(dio: dio),
       JmAuthInterceptor(),
       JmDecryptInterceptor(),
       DioCacheInterceptor(myCache),

@@ -281,11 +281,8 @@ class _ComicReadPageState extends State<_ComicReadPage>
     final width = context.screenWidth;
 
     return BlocProvider(
-      create: (context) => ImageSizeCubit.create(
-        defaultWidth: width,
-        count: epInfo.length,
-        historyCount: _isHistory ? _historyManager.getHistoryPageIndex() : 0,
-      ),
+      create: (context) =>
+          ImageSizeCubit.create(defaultWidth: width, count: epInfo.length),
       child: Builder(
         builder: (innerContext) {
           final cubit = innerContext.read<ReaderCubit>();
@@ -565,6 +562,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
           from: widget.from,
           parentPhysics: physics,
           disableScroll: _isScrollLockedByMultiTouch,
+          volumeController: _volumeController,
         );
       },
     );
@@ -585,6 +583,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
       onPageDragStart: _restoreScaleForPageDrag,
       from: widget.from,
       jumpChapter: _jumpChapter,
+      volumeController: _volumeController,
     );
   }
 

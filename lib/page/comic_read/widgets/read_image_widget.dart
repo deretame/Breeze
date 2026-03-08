@@ -10,14 +10,12 @@ import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 
 class ReadImageWidget extends StatefulWidget {
-  final bool isVisible;
   final PictureInfo pictureInfo;
   final int index;
   final bool isColumn;
 
   const ReadImageWidget({
     super.key,
-    required this.isVisible,
     required this.pictureInfo,
     required this.index,
     required this.isColumn,
@@ -27,17 +25,12 @@ class ReadImageWidget extends StatefulWidget {
   State<ReadImageWidget> createState() => _ReadImageWidgetState();
 }
 
-class _ReadImageWidgetState extends State<ReadImageWidget>
-    with AutomaticKeepAliveClientMixin {
+class _ReadImageWidgetState extends State<ReadImageWidget> {
   int get index => widget.index + 1;
   bool get isColumn => widget.isColumn;
 
   @override
-  bool get wantKeepAlive => !isColumn;
-
-  @override
   Widget build(BuildContext context) {
-    super.build(context);
     final readSetting = context.select(
       (GlobalSettingCubit c) => c.state.readSetting,
     );
@@ -62,28 +55,21 @@ class _ReadImageWidgetState extends State<ReadImageWidget>
                   foregroundColor: foregroundColor,
                 );
               case PictureLoadStatus.success:
-                if (widget.isVisible) {
-                  return GestureDetector(
-                    onLongPress: () {
-                      context.pushRoute(
-                        FullRouteImageRoute(imagePath: state.imagePath!),
-                      );
-                    },
-                    child: Container(
-                      color: backgroundColor,
-                      child: ImageDisplay(
-                        imagePath: state.imagePath!,
-                        isColumn: isColumn,
-                        index: index,
-                      ),
+                return GestureDetector(
+                  onLongPress: () {
+                    context.pushRoute(
+                      FullRouteImageRoute(imagePath: state.imagePath!),
+                    );
+                  },
+                  child: Container(
+                    color: backgroundColor,
+                    child: ImageDisplay(
+                      imagePath: state.imagePath!,
+                      isColumn: isColumn,
+                      index: index,
                     ),
-                  );
-                } else {
-                  return placeholder(
-                    backgroundColor: backgroundColor,
-                    foregroundColor: foregroundColor,
-                  );
-                }
+                  ),
+                );
               case PictureLoadStatus.failure:
                 if (state.result.toString().contains('404')) {
                   return Image.asset(

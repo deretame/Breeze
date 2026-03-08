@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/page/comic_read/controller/reader_volume_controller.dart';
 import 'package:zephyr/page/comic_read/cubit/image_size_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/widgets/read_image_widget.dart';
@@ -24,6 +25,7 @@ class ColumnModeWidget extends StatefulWidget {
   final From from;
   final ScrollPhysics? parentPhysics;
   final bool disableScroll;
+  final ReaderVolumeController volumeController;
 
   const ColumnModeWidget({
     super.key,
@@ -37,6 +39,7 @@ class ColumnModeWidget extends StatefulWidget {
     required this.from,
     this.parentPhysics,
     this.disableScroll = false,
+    required this.volumeController,
   });
 
   @override
@@ -126,10 +129,6 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
             final all = resultMap.displayingChildIndexList;
             if (all.isEmpty) return;
 
-            var visibleIndices = _collectVisibleIndices(all);
-
-            context.read<ImageSizeCubit>().updateVisibleIndices(visibleIndices);
-
             final int middleValue = all[all.length ~/ 2];
 
             final clampedPageIndex = middleValue.clamp(0, widget.length - 1);
@@ -141,6 +140,7 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
 
             if (cubit.state.isMenuVisible) {
               cubit.updateMenuVisible(visible: false);
+              widget.volumeController.enableInterception();
             }
           },
           child: listView,
@@ -254,64 +254,18 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
   }
 
   Widget _buildColumnImage({required int index}) {
-    return BlocSelector<ImageSizeCubit, ImageSizeState, bool>(
-      selector: (state) => state.visibleIndices.contains(index),
-      builder: (context, isVisible) {
-        return ReadImageWidget(
-          isVisible: isVisible,
-          pictureInfo: PictureInfo(
-            from: widget.from,
-            url: widget.docs[index].fileServer,
-            path: widget.docs[index].path,
-            cartoonId: widget.comicId,
-            chapterId: widget.epsId,
-            pictureType: PictureType.comic,
-          ),
-          index: index,
-          isColumn: true,
-        );
-      },
+    return ReadImageWidget(
+      pictureInfo: PictureInfo(
+        from: widget.from,
+        url: widget.docs[index].fileServer,
+        path: widget.docs[index].path,
+        cartoonId: widget.comicId,
+        chapterId: widget.epsId,
+        pictureType: PictureType.comic,
+      ),
+      index: index,
+      isColumn: true,
     );
-  }
-
-  List<int> _collectVisibleIndices(List<int> displayingRows) {
-    final visibleRows = List<int>.from(displayingRows);
-
-    for (int i = 1; i <= 5; i++) {
-      final prevIndex = displayingRows.first - i;
-      if (prevIndex >= 0) {
-        visibleRows.insert(0, prevIndex);
-      } else {
-        break;
-      }
-    }
-
-    for (int i = 1; i <= 5; i++) {
-      final nextIndex = displayingRows.last + i;
-      if (nextIndex < widget.length) {
-        visibleRows.add(nextIndex);
-      } else {
-        break;
-      }
-    }
-
-    if (!_isDoublePage) {
-      return visibleRows;
-    }
-
-    final visibleDocs = <int>[];
-    for (final rowIndex in visibleRows) {
-      final leftDocIndex = rowIndex * 2;
-      final rightDocIndex = leftDocIndex + 1;
-      if (leftDocIndex < widget.docs.length) {
-        visibleDocs.add(leftDocIndex);
-      }
-      if (rightDocIndex < widget.docs.length) {
-        visibleDocs.add(rightDocIndex);
-      }
-    }
-
-    return visibleDocs;
   }
 
   double _resolveDisplayHeight({

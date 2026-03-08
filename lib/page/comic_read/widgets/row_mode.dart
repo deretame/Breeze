@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/page/comic_read/controller/reader_volume_controller.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
 import 'package:zephyr/page/comic_read/widgets/button_dialog.dart';
@@ -24,6 +25,7 @@ class RowModeWidget extends StatefulWidget {
   final VoidCallback? onPageDragStart;
   final From from;
   final JumpChapter jumpChapter;
+  final ReaderVolumeController volumeController;
 
   const RowModeWidget({
     super.key,
@@ -35,6 +37,7 @@ class RowModeWidget extends StatefulWidget {
     this.onPageDragStart,
     required this.from,
     required this.jumpChapter,
+    required this.volumeController,
   });
 
   @override
@@ -129,14 +132,13 @@ class _RowModeWidgetState extends State<RowModeWidget> {
         reverse: isReverseRowReadMode(readMode),
         controller: widget.pageController,
         onPageChanged: (page) {
-          logger.d("page: $page");
           if (context.read<ReaderCubit>().state.isSliderRolling) {
             _pageChangedTimer?.cancel();
             _pageChangedTimer = Timer(Duration(milliseconds: 100), () {
-              _onPageChanged(page);
+              _onPageChanged(page, isDoublePage);
             });
           } else {
-            _onPageChanged(page);
+            _onPageChanged(page, isDoublePage);
           }
         },
         childrenDelegate: SliverChildBuilderDelegate(
@@ -184,7 +186,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
     );
   }
 
-  void _onPageChanged(int page) {
+  void _onPageChanged(int page, bool isDoublePage) {
     final cubit = context.read<ReaderCubit>();
     cubit.updatePageIndex(page);
     if (!cubit.state.isComicRolling) {
@@ -197,6 +199,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
         (cubit.state.pageIndex).clamp(0, maxIndex).toDouble(),
       );
       cubit.updateMenuVisible(visible: false);
+      widget.volumeController.enableInterception();
     }
   }
 
@@ -261,7 +264,6 @@ class _RowModeWidgetState extends State<RowModeWidget> {
 
   Widget _buildReadImage({required int docIndex, required int slotIndex}) {
     return ReadImageWidget(
-      isVisible: true,
       pictureInfo: PictureInfo(
         from: widget.from,
         url: widget.docs[docIndex].fileServer,

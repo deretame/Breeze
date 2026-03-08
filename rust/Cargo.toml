@@ -25,6 +25,7 @@ zip = { version = "2.1", default-features = false, features = [
 zhconv = "0.3.3"
 lazy_static = "1.5.0"
 flate2 = "1.0"
+<<<<<<< HEAD
 serde_json = "1.0.145"
 tracing = "0.1.41"
 tracing-log = "0.2.0"

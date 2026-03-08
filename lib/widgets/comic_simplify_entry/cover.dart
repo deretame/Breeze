@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
@@ -69,33 +70,33 @@ class CoverWidget extends StatelessWidget {
                   ),
                 );
               case PictureLoadStatus.success:
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                    roundedCorner ? 5.0 : 0.0,
-                  ),
-                  child: Image.file(
-                    File(state.imagePath!),
-                    fit: BoxFit.cover,
-                    cacheWidth: decodeWidth < 1 ? 1 : decodeWidth,
-                    cacheHeight: decodeHeight < 1 ? 1 : decodeHeight,
-                    gaplessPlayback: true,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(
-                            roundedCorner ? 5.0 : 0.0,
-                          ),
+                return RepaintBoundary(
+                  // 优化1：强制 GPU 缓存，阻断滑动重绘
+                  child: Container(
+                    width: width,
+                    height: height,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(
+                        roundedCorner ? 5.0 : 0.0,
+                      ),
+                      image: DecorationImage(
+                        fit: BoxFit.cover,
+                        // 优化2 & 3：使用 ResizeImage 限制显存，BoxDecoration 绘制圆角
+                        image: ResizeImage(
+                          FileImage(File(state.imagePath!)),
+                          width: decodeWidth < 1 ? 1 : decodeWidth,
+                          height: decodeHeight < 1 ? 1 : decodeHeight,
                         ),
-                        child: Center(
-                          child: Icon(
-                            Icons.broken_image,
-                            size: 48,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      );
-                    },
+                        onError: (error, stackTrace) {
+                          logger.d(
+                            '图片解码失败: ${state.imagePath}',
+                            error: error,
+                            stackTrace: stackTrace,
+                          );
+                        },
+                      ),
+                    ),
                   ),
                 );
               case PictureLoadStatus.failure:

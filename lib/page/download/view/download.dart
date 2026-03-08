@@ -148,7 +148,7 @@ class _DownloadPageState extends State<DownloadPage> {
       showInfoToast("下载任务已启动");
     } catch (e, s) {
       logger.e(e, stackTrace: s);
-      showErrorToast("下载任务启动失败");
+      showErrorToast("下载任务启动失败，${e.toString()}");
     }
   }
 }

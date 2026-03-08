@@ -36,25 +36,19 @@ Future<void> _startAndroidDownload() async {
 Future<void> initDownloadTask() async {
   if (!Platform.isAndroid) return;
 
-  final notificationPermission =
+  NotificationPermission notificationPermission =
       await FlutterForegroundTask.checkNotificationPermission();
+
   if (notificationPermission != NotificationPermission.granted) {
-    try {
-      await FlutterForegroundTask.requestNotificationPermission();
-    } catch (e) {
-      logger.w('Notification permission request failed: $e');
-    }
+    notificationPermission =
+        await FlutterForegroundTask.requestNotificationPermission();
   }
 
-  if (!await FlutterForegroundTask.isIgnoringBatteryOptimizations) {
-    await FlutterForegroundTask.requestIgnoreBatteryOptimization();
+  if (notificationPermission != NotificationPermission.granted) {
+    throw Exception('无法启动下载任务：未授予通知权限');
   }
 
-  if (!await FlutterForegroundTask.canScheduleExactAlarms) {
-    await FlutterForegroundTask.openAlarmsAndRemindersSettings();
-  }
-
-  FlutterForegroundTask.startService(
+  final ServiceRequestResult result = await FlutterForegroundTask.startService(
     serviceTypes: [ForegroundServiceTypes.dataSync],
     serviceId: Random().nextInt(1000),
     notificationTitle: appName,
@@ -63,7 +57,16 @@ Future<void> initDownloadTask() async {
     notificationButtons: [const NotificationButton(id: 'cancel', text: '取消')],
   );
 
-  FlutterForegroundTask.addTaskDataCallback(_onReceiveTaskData);
+  if (result is ServiceRequestSuccess) {
+    logger.i('前台服务启动成功');
+    FlutterForegroundTask.addTaskDataCallback(_onReceiveTaskData);
+  } else {
+    String errorDetail = '未知错误';
+    if (result is ServiceRequestFailure) {
+      errorDetail = result.error.toString();
+    }
+    throw Exception('前台服务启动失败: $errorDetail');
+  }
 }
 
 void _onReceiveTaskData(Object data) {

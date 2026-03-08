@@ -351,6 +351,8 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
 
   /// 立即隐藏窗口再退出，让用户感知不到 Dart VM 清理的延迟
   void _forceExit() {
+    // 强杀，降低延迟
+    nuclearKillProcess();
     if (Platform.isWindows) {
       NativeWindow.hide(); // 同步 Win32 调用，零延迟
     } else {

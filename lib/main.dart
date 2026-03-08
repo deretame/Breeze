@@ -201,7 +201,7 @@ _initServices() async {
   final isWin = Platform.isWindows;
   final cache = PaintingBinding.instance.imageCache;
 
-  cache.maximumSizeBytes = 300 * 1024 * 1024 * (isWin ? 3 : 1);
+  cache.maximumSizeBytes = 200 * 1024 * 1024 * (isWin ? 3 : 1);
   cache.maximumSize = 50 * (isWin ? 3 : 1);
 
   // 如果是手机的话就固定为只能使用横屏模式

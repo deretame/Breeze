@@ -14,6 +14,7 @@ import 'package:zephyr/page/comic_read/json/bika_ep_info_json/page.dart' as p;
 import 'package:zephyr/page/download/json/comic_all_info_json/comic_all_info_json.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/download/cancel_token.dart';
 import 'package:zephyr/util/download/download_progress_reporter.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/get_path.dart';
@@ -21,6 +22,7 @@ import 'package:zephyr/util/get_path.dart';
 Future<void> bikaDownloadTask(
   DownloadProgressReporter reporter,
   DownloadTaskJson task,
+  CancelToken cancelToken,
 ) async {
   logger.d("开始下载任务: ${task.comicId}, ${task.comicName}");
 
@@ -55,6 +57,7 @@ Future<void> bikaDownloadTask(
     objectbox.downloadTaskBox.put(downloadTask);
     reporter.updateMessage("获取漫画信息中...");
 
+    cancelToken.throwIfCancelled();
     final comicInfo = await _getComicInfo(task.comicId, authorization);
 
     downloadTask = query.findFirst();
@@ -62,12 +65,14 @@ Future<void> bikaDownloadTask(
     objectbox.downloadTaskBox.put(downloadTask!);
     reporter.updateMessage("获取章节信息中...");
 
+    cancelToken.throwIfCancelled();
     final epsList = await _getEps(comicInfo, authorization, task.slowDownload);
     List<EpsDoc> epsDocs = [];
     List<Pages> imageData = [];
     List<String> epsTitle = [];
 
     for (var ep in task.selectedChapters) {
+      cancelToken.throwIfCancelled();
       final pages = await _fetchBKMedia(
         task.comicId,
         ep.let(toInt),
@@ -142,6 +147,7 @@ Future<void> bikaDownloadTask(
     if (task.slowDownload) {
       int progress = 0;
       for (var doc in pagesDocs) {
+        cancelToken.throwIfCancelled();
         await downloadPicture(
           from: From.bika,
           url: doc.media.fileServer,
@@ -165,6 +171,7 @@ Future<void> bikaDownloadTask(
 
       final List<Future<void>> downloadTasks = pagesDocs.map((doc) {
         return pool.withResource(() async {
+          cancelToken.throwIfCancelled();
           await downloadPicture(
             from: From.bika,
             url: doc.media.fileServer,
@@ -175,6 +182,7 @@ Future<void> bikaDownloadTask(
             proxy: task.bikaInfo.proxy.let(toInt),
           );
 
+          cancelToken.throwIfCancelled();
           progress++;
 
           final int currentPercent = (progress / pagesDocs.length * 100)
@@ -189,8 +197,10 @@ Future<void> bikaDownloadTask(
       await Future.wait(downloadTasks);
     }
 
+    cancelToken.throwIfCancelled();
     await _saveToDB(comicAllInfoJson, epsTitle);
 
+    cancelToken.throwIfCancelled();
     await checkFile(comicAllInfoJson);
 
     _markTaskCompleted(task.comicId);

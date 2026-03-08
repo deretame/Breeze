@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/util/download/download_queue_manager.dart';
 
 part 'dowload_task_bloc.freezed.dart';
 part 'dowload_task_event.dart';
@@ -22,6 +24,7 @@ class DowloadTaskBloc extends Bloc<DowloadTaskEvent, DowloadTaskState> {
       started: () => _watchTasks(emit),
       tasksUpdated: (tasks) => _handleTasksUpdated(tasks, emit),
       taskDeleted: (taskId) => _deleteTask(taskId, emit),
+      cancelCurrentTask: () => _cancelCurrentTask(emit),
       clearCompleted: () => _clearCompletedTasks(emit),
     );
   }
@@ -59,6 +62,10 @@ class DowloadTaskBloc extends Bloc<DowloadTaskEvent, DowloadTaskState> {
 
   void _deleteTask(int taskId, Emitter<DowloadTaskState> emit) {
     objectbox.downloadTaskBox.remove(taskId);
+  }
+
+  void _cancelCurrentTask(Emitter<DowloadTaskState> emit) {
+    DownloadQueueManager.instance.cancelCurrentTask();
   }
 
   void _clearCompletedTasks(Emitter<DowloadTaskState> emit) {

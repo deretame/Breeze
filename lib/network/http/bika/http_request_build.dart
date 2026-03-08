@@ -1,5 +1,6 @@
-import 'package:dio/dio.dart';
-import 'package:zephyr/network/http/bika/pica_client.dart';
+import 'dart:convert';
+
+import 'package:zephyr/src/rust/api/bika.dart';
 
 Future<Map<String, dynamic>> request(
   String url,
@@ -9,22 +10,24 @@ Future<Map<String, dynamic>> request(
   String? imageQuality,
   String? authorization,
 }) async {
-  try {
-    final response = await PicaClient().dio.request(
-      url,
-      data: body,
-      options: Options(
-        method: method,
-        extra: {
-          'imageQuality': imageQuality,
-          'authorization': authorization,
-          'useCache': cache,
-        },
-      ),
-    );
+  final bodyJson = body == null
+      ? null
+      : (body is String ? body : json.encode(body));
 
-    return response.data as Map<String, dynamic>;
-  } on DioException catch (e) {
-    throw Exception(e.error);
+  final raw = await bikaRequestRaw(
+    url: url,
+    method: method,
+    bodyJson: bodyJson,
+    imageQuality: imageQuality,
+    authorization: authorization,
+  );
+
+  final decoded = json.decode(raw);
+  if (decoded is Map<String, dynamic>) {
+    return decoded;
   }
+  if (decoded is Map) {
+    return decoded.map((key, value) => MapEntry(key.toString(), value));
+  }
+  return {'code': -1, 'message': 'invalid response', 'data': decoded};
 }

@@ -3,9 +3,11 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
+import 'api/bika.dart';
 import 'api/memory.dart';
 import 'api/simple.dart';
 import 'api/system.dart';
+import 'api/user_utils.dart';
 import 'compressed/compressed.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -60,6 +62,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<TaggedAllocation> dco_decode_list_tagged_allocation(dynamic raw);
+
+  @protected
+  String? dco_decode_opt_String(dynamic raw);
 
   @protected
   PackInfo dco_decode_pack_info(dynamic raw);
@@ -123,6 +128,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<TaggedAllocation> sse_decode_list_tagged_allocation(
     SseDeserializer deserializer,
   );
+
+  @protected
+  String? sse_decode_opt_String(SseDeserializer deserializer);
 
   @protected
   PackInfo sse_decode_pack_info(SseDeserializer deserializer);
@@ -201,6 +209,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     List<TaggedAllocation> self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_opt_String(String? self, SseSerializer serializer);
 
   @protected
   void sse_encode_pack_info(PackInfo self, SseSerializer serializer);

@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use base64::{Engine as _, engine::general_purpose};
 use image::{ExtendedColorType, codecs::jpeg::JpegEncoder};
-use log::debug;
+use tracing::debug;
 use tokio::fs::File;
 
 use crate::memory::TrackedAllocation;

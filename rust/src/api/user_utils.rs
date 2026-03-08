@@ -1,5 +1,12 @@
+use std::sync::OnceLock;
+
+use tracing::debug;
+use tracing_subscriber::EnvFilter;
+
+static TRACING_INIT: OnceLock<()> = OnceLock::new();
+
 pub fn setup_default_user_utils() {
-    setup_log_to_console();
+    setup_tracing();
     setup_backtrace();
 }
 
@@ -7,74 +14,39 @@ fn setup_backtrace() {
     if std::env::var("RUST_BACKTRACE").is_err_and(|e| e == std::env::VarError::NotPresent) {
         unsafe { std::env::set_var("RUST_BACKTRACE", "1") };
     } else {
-        log::debug!("Skip setup RUST_BACKTRACE because there is already environment variable");
+        debug!("skip setup RUST_BACKTRACE because it already exists");
     }
 }
 
-fn setup_log_to_console() {
-    #[cfg(target_os = "android")]
-    {
-        let _ = android_logger::init_once(
-            android_logger::Config::default()
-                .with_tag("frb_user")
-                .with_max_level(default_log_level()),
-        );
+fn setup_tracing() {
+    if TRACING_INIT.get().is_some() {
         return;
     }
 
-    #[cfg(any(target_os = "ios", target_os = "macos"))]
-    {
-        let _ = oslog::OsLogger::new("frb_user")
-            .level_filter(default_log_level())
-            .init();
-        return;
-    }
+    let _ = tracing_log::LogTracer::init();
 
-    #[cfg(target_family = "wasm")]
-    {
-        let _ = crate::misc::web_utils::WebConsoleLogger::init();
-        return;
-    }
+    let env_filter = match EnvFilter::try_from_default_env() {
+        Ok(filter) => filter,
+        Err(_) => EnvFilter::new(default_log_level_directive()),
+    };
 
-    #[cfg(all(
-        not(target_family = "wasm"),
-        not(target_os = "android"),
-        not(target_os = "ios"),
-        not(target_os = "macos")
-    ))]
-    let mut builder = env_logger::Builder::from_default_env();
+    let subscriber = tracing_subscriber::fmt()
+        .with_env_filter(env_filter)
+        .with_file(true)
+        .with_line_number(true)
+        .with_target(true)
+        .with_thread_names(true)
+        .with_ansi(cfg!(debug_assertions));
 
-    #[cfg(all(
-        not(target_family = "wasm"),
-        not(target_os = "android"),
-        not(target_os = "ios"),
-        not(target_os = "macos")
-    ))]
-    if std::env::var("RUST_LOG").is_err_and(|e| e == std::env::VarError::NotPresent) {
-        builder.filter_level(default_log_level());
-    }
-
-    #[cfg(all(
-        not(target_family = "wasm"),
-        not(target_os = "android"),
-        not(target_os = "ios"),
-        not(target_os = "macos")
-    ))]
-    {
-        if !cfg!(debug_assertions) {
-            builder
-                .format_timestamp(None)
-                .format_module_path(false)
-                .format_target(false);
-        }
-        let _ = builder.try_init();
+    if subscriber.try_init().is_ok() {
+        let _ = TRACING_INIT.set(());
     }
 }
 
-fn default_log_level() -> log::LevelFilter {
+fn default_log_level_directive() -> &'static str {
     if cfg!(debug_assertions) {
-        log::LevelFilter::Debug
+        "debug"
     } else {
-        log::LevelFilter::Warn
+        "warn"
     }
 }

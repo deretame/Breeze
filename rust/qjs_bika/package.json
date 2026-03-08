@@ -1,0 +1,13 @@
+{
+  "name": "qjs_bika",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm exec esbuild src/index.ts --bundle --platform=browser --format=iife --target=es2020 --minify --outfile=dist/bika.bundle.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.3",
+    "typescript": "^5.9.3"
+  }
+}

@@ -3,19 +3,19 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
-import 'dart:async';
-import 'dart:convert';
-
-import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
-
+import 'api/bika.dart';
 import 'api/memory.dart';
 import 'api/simple.dart';
 import 'api/system.dart';
+import 'api/user_utils.dart';
 import 'compressed/compressed.dart';
+import 'dart:async';
+import 'dart:convert';
 import 'decode/decode.dart';
 import 'frb_generated.dart';
 import 'frb_generated.io.dart'
     if (dart.library.js_interop) 'frb_generated.web.dart';
+import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 /// Main entrypoint of the Rust API
 class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
@@ -72,7 +72,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => -379892234;
+  int get rustContentHash => -749789986;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -85,6 +85,114 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 abstract class RustLibApi extends BaseApi {
   Future<void> crateApiSimpleAntiObfuscationPicture({
     required ImageInfo imageInfo,
+  });
+
+  Future<String> crateApiBikaBikaFavouriteComic({required String comicId});
+
+  Future<String> crateApiBikaBikaGetCategories();
+
+  Future<String> crateApiBikaBikaGetComicInfo({
+    required String comicId,
+    String? authorization,
+    String? imageQuality,
+  });
+
+  Future<String> crateApiBikaBikaGetComments({
+    required String comicId,
+    required int pageCount,
+  });
+
+  Future<String> crateApiBikaBikaGetCommentsChildren({
+    required String commentId,
+    required int pageCount,
+  });
+
+  Future<String> crateApiBikaBikaGetEps({
+    required String comicId,
+    required int pageCount,
+    String? authorization,
+    String? imageQuality,
+  });
+
+  Future<String> crateApiBikaBikaGetFavorites({required int pageCount});
+
+  Future<String> crateApiBikaBikaGetPages({
+    required String comicId,
+    required int epId,
+    required int pageCount,
+    String? authorization,
+    String? imageQuality,
+  });
+
+  Future<String> crateApiBikaBikaGetRankingList({
+    required String days,
+    required String kind,
+  });
+
+  Future<String> crateApiBikaBikaGetRecommend({required String comicId});
+
+  Future<String> crateApiBikaBikaGetSearchKeywords();
+
+  Future<String> crateApiBikaBikaGetUserComments({required int pageCount});
+
+  Future<String> crateApiBikaBikaGetUserProfile();
+
+  Future<String> crateApiBikaBikaLikeComic({required String comicId});
+
+  Future<String> crateApiBikaBikaLikeComment({required String commentId});
+
+  Future<String> crateApiBikaBikaLogin({
+    required String username,
+    required String password,
+  });
+
+  Future<String> crateApiBikaBikaRegister({
+    required String birthday,
+    required String email,
+    required String gender,
+    required String name,
+    required String password,
+  });
+
+  Future<String> crateApiBikaBikaReportComments({required String commentId});
+
+  Future<String> crateApiBikaBikaRequestRaw({
+    required String url,
+    required String method,
+    String? bodyJson,
+    String? imageQuality,
+    String? authorization,
+  });
+
+  Future<String> crateApiBikaBikaSearch({
+    required String url,
+    required String keyword,
+    required String sort,
+    required List<String> categories,
+    required int pageCount,
+  });
+
+  Future<String> crateApiBikaBikaSignIn();
+
+  Future<String> crateApiBikaBikaUpdateAvatar({
+    required String avatarBase64String,
+  });
+
+  Future<String> crateApiBikaBikaUpdatePassword({
+    required String newPassword,
+    required String oldPassword,
+  });
+
+  Future<String> crateApiBikaBikaUpdateProfile({required String profile});
+
+  Future<String> crateApiBikaBikaWriteComment({
+    required String comicId,
+    required String content,
+  });
+
+  Future<String> crateApiBikaBikaWriteCommentChildren({
+    required String commentId,
+    required String content,
   });
 
   Future<String> crateApiSimpleCompressImage({required List<int> imageBytes});
@@ -108,6 +216,8 @@ abstract class RustLibApi extends BaseApi {
   });
 
   Future<void> crateApiMemoryResetRustMemoryStats();
+
+  Future<void> crateApiUserUtilsSetupDefaultUserUtils();
 
   Future<String> crateApiSimpleSleepTest();
 
@@ -160,6 +270,871 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<String> crateApiBikaBikaFavouriteComic({required String comicId}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(comicId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 2,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaFavouriteComicConstMeta,
+        argValues: [comicId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaFavouriteComicConstMeta =>
+      const TaskConstMeta(
+        debugName: "bika_favourite_comic",
+        argNames: ["comicId"],
+      );
+
+  @override
+  Future<String> crateApiBikaBikaGetCategories() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 3,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaGetCategoriesConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaGetCategoriesConstMeta =>
+      const TaskConstMeta(debugName: "bika_get_categories", argNames: []);
+
+  @override
+  Future<String> crateApiBikaBikaGetComicInfo({
+    required String comicId,
+    String? authorization,
+    String? imageQuality,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(comicId, serializer);
+          sse_encode_opt_String(authorization, serializer);
+          sse_encode_opt_String(imageQuality, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 4,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaGetComicInfoConstMeta,
+        argValues: [comicId, authorization, imageQuality],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaGetComicInfoConstMeta =>
+      const TaskConstMeta(
+        debugName: "bika_get_comic_info",
+        argNames: ["comicId", "authorization", "imageQuality"],
+      );
+
+  @override
+  Future<String> crateApiBikaBikaGetComments({
+    required String comicId,
+    required int pageCount,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(comicId, serializer);
+          sse_encode_i_32(pageCount, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 5,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaGetCommentsConstMeta,
+        argValues: [comicId, pageCount],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaGetCommentsConstMeta =>
+      const TaskConstMeta(
+        debugName: "bika_get_comments",
+        argNames: ["comicId", "pageCount"],
+      );
+
+  @override
+  Future<String> crateApiBikaBikaGetCommentsChildren({
+    required String commentId,
+    required int pageCount,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(commentId, serializer);
+          sse_encode_i_32(pageCount, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 6,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaGetCommentsChildrenConstMeta,
+        argValues: [commentId, pageCount],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaGetCommentsChildrenConstMeta =>
+      const TaskConstMeta(
+        debugName: "bika_get_comments_children",
+        argNames: ["commentId", "pageCount"],
+      );
+
+  @override
+  Future<String> crateApiBikaBikaGetEps({
+    required String comicId,
+    required int pageCount,
+    String? authorization,
+    String? imageQuality,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(comicId, serializer);
+          sse_encode_i_32(pageCount, serializer);
+          sse_encode_opt_String(authorization, serializer);
+          sse_encode_opt_String(imageQuality, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 7,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaGetEpsConstMeta,
+        argValues: [comicId, pageCount, authorization, imageQuality],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaGetEpsConstMeta => const TaskConstMeta(
+    debugName: "bika_get_eps",
+    argNames: ["comicId", "pageCount", "authorization", "imageQuality"],
+  );
+
+  @override
+  Future<String> crateApiBikaBikaGetFavorites({required int pageCount}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_i_32(pageCount, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 8,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaGetFavoritesConstMeta,
+        argValues: [pageCount],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaGetFavoritesConstMeta =>
+      const TaskConstMeta(
+        debugName: "bika_get_favorites",
+        argNames: ["pageCount"],
+      );
+
+  @override
+  Future<String> crateApiBikaBikaGetPages({
+    required String comicId,
+    required int epId,
+    required int pageCount,
+    String? authorization,
+    String? imageQuality,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(comicId, serializer);
+          sse_encode_i_32(epId, serializer);
+          sse_encode_i_32(pageCount, serializer);
+          sse_encode_opt_String(authorization, serializer);
+          sse_encode_opt_String(imageQuality, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 9,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaGetPagesConstMeta,
+        argValues: [comicId, epId, pageCount, authorization, imageQuality],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaGetPagesConstMeta => const TaskConstMeta(
+    debugName: "bika_get_pages",
+    argNames: ["comicId", "epId", "pageCount", "authorization", "imageQuality"],
+  );
+
+  @override
+  Future<String> crateApiBikaBikaGetRankingList({
+    required String days,
+    required String kind,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(days, serializer);
+          sse_encode_String(kind, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 10,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaGetRankingListConstMeta,
+        argValues: [days, kind],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaGetRankingListConstMeta =>
+      const TaskConstMeta(
+        debugName: "bika_get_ranking_list",
+        argNames: ["days", "kind"],
+      );
+
+  @override
+  Future<String> crateApiBikaBikaGetRecommend({required String comicId}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(comicId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 11,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaGetRecommendConstMeta,
+        argValues: [comicId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaGetRecommendConstMeta =>
+      const TaskConstMeta(
+        debugName: "bika_get_recommend",
+        argNames: ["comicId"],
+      );
+
+  @override
+  Future<String> crateApiBikaBikaGetSearchKeywords() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 12,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaGetSearchKeywordsConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaGetSearchKeywordsConstMeta =>
+      const TaskConstMeta(debugName: "bika_get_search_keywords", argNames: []);
+
+  @override
+  Future<String> crateApiBikaBikaGetUserComments({required int pageCount}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_i_32(pageCount, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 13,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaGetUserCommentsConstMeta,
+        argValues: [pageCount],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaGetUserCommentsConstMeta =>
+      const TaskConstMeta(
+        debugName: "bika_get_user_comments",
+        argNames: ["pageCount"],
+      );
+
+  @override
+  Future<String> crateApiBikaBikaGetUserProfile() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 14,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaGetUserProfileConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaGetUserProfileConstMeta =>
+      const TaskConstMeta(debugName: "bika_get_user_profile", argNames: []);
+
+  @override
+  Future<String> crateApiBikaBikaLikeComic({required String comicId}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(comicId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 15,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaLikeComicConstMeta,
+        argValues: [comicId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaLikeComicConstMeta =>
+      const TaskConstMeta(debugName: "bika_like_comic", argNames: ["comicId"]);
+
+  @override
+  Future<String> crateApiBikaBikaLikeComment({required String commentId}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(commentId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 16,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaLikeCommentConstMeta,
+        argValues: [commentId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaLikeCommentConstMeta =>
+      const TaskConstMeta(
+        debugName: "bika_like_comment",
+        argNames: ["commentId"],
+      );
+
+  @override
+  Future<String> crateApiBikaBikaLogin({
+    required String username,
+    required String password,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(username, serializer);
+          sse_encode_String(password, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 17,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaLoginConstMeta,
+        argValues: [username, password],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaLoginConstMeta => const TaskConstMeta(
+    debugName: "bika_login",
+    argNames: ["username", "password"],
+  );
+
+  @override
+  Future<String> crateApiBikaBikaRegister({
+    required String birthday,
+    required String email,
+    required String gender,
+    required String name,
+    required String password,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(birthday, serializer);
+          sse_encode_String(email, serializer);
+          sse_encode_String(gender, serializer);
+          sse_encode_String(name, serializer);
+          sse_encode_String(password, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 18,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaRegisterConstMeta,
+        argValues: [birthday, email, gender, name, password],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaRegisterConstMeta => const TaskConstMeta(
+    debugName: "bika_register",
+    argNames: ["birthday", "email", "gender", "name", "password"],
+  );
+
+  @override
+  Future<String> crateApiBikaBikaReportComments({required String commentId}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(commentId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 19,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaReportCommentsConstMeta,
+        argValues: [commentId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaReportCommentsConstMeta =>
+      const TaskConstMeta(
+        debugName: "bika_report_comments",
+        argNames: ["commentId"],
+      );
+
+  @override
+  Future<String> crateApiBikaBikaRequestRaw({
+    required String url,
+    required String method,
+    String? bodyJson,
+    String? imageQuality,
+    String? authorization,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(url, serializer);
+          sse_encode_String(method, serializer);
+          sse_encode_opt_String(bodyJson, serializer);
+          sse_encode_opt_String(imageQuality, serializer);
+          sse_encode_opt_String(authorization, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 20,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaRequestRawConstMeta,
+        argValues: [url, method, bodyJson, imageQuality, authorization],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaRequestRawConstMeta => const TaskConstMeta(
+    debugName: "bika_request_raw",
+    argNames: ["url", "method", "bodyJson", "imageQuality", "authorization"],
+  );
+
+  @override
+  Future<String> crateApiBikaBikaSearch({
+    required String url,
+    required String keyword,
+    required String sort,
+    required List<String> categories,
+    required int pageCount,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(url, serializer);
+          sse_encode_String(keyword, serializer);
+          sse_encode_String(sort, serializer);
+          sse_encode_list_String(categories, serializer);
+          sse_encode_i_32(pageCount, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 21,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaSearchConstMeta,
+        argValues: [url, keyword, sort, categories, pageCount],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaSearchConstMeta => const TaskConstMeta(
+    debugName: "bika_search",
+    argNames: ["url", "keyword", "sort", "categories", "pageCount"],
+  );
+
+  @override
+  Future<String> crateApiBikaBikaSignIn() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 22,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaSignInConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaSignInConstMeta =>
+      const TaskConstMeta(debugName: "bika_sign_in", argNames: []);
+
+  @override
+  Future<String> crateApiBikaBikaUpdateAvatar({
+    required String avatarBase64String,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(avatarBase64String, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 23,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaUpdateAvatarConstMeta,
+        argValues: [avatarBase64String],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaUpdateAvatarConstMeta =>
+      const TaskConstMeta(
+        debugName: "bika_update_avatar",
+        argNames: ["avatarBase64String"],
+      );
+
+  @override
+  Future<String> crateApiBikaBikaUpdatePassword({
+    required String newPassword,
+    required String oldPassword,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(newPassword, serializer);
+          sse_encode_String(oldPassword, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 24,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaUpdatePasswordConstMeta,
+        argValues: [newPassword, oldPassword],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaUpdatePasswordConstMeta =>
+      const TaskConstMeta(
+        debugName: "bika_update_password",
+        argNames: ["newPassword", "oldPassword"],
+      );
+
+  @override
+  Future<String> crateApiBikaBikaUpdateProfile({required String profile}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(profile, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 25,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaUpdateProfileConstMeta,
+        argValues: [profile],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaUpdateProfileConstMeta =>
+      const TaskConstMeta(
+        debugName: "bika_update_profile",
+        argNames: ["profile"],
+      );
+
+  @override
+  Future<String> crateApiBikaBikaWriteComment({
+    required String comicId,
+    required String content,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(comicId, serializer);
+          sse_encode_String(content, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 26,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaWriteCommentConstMeta,
+        argValues: [comicId, content],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaWriteCommentConstMeta =>
+      const TaskConstMeta(
+        debugName: "bika_write_comment",
+        argNames: ["comicId", "content"],
+      );
+
+  @override
+  Future<String> crateApiBikaBikaWriteCommentChildren({
+    required String commentId,
+    required String content,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(commentId, serializer);
+          sse_encode_String(content, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 27,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiBikaBikaWriteCommentChildrenConstMeta,
+        argValues: [commentId, content],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiBikaBikaWriteCommentChildrenConstMeta =>
+      const TaskConstMeta(
+        debugName: "bika_write_comment_children",
+        argNames: ["commentId", "content"],
+      );
+
+  @override
   Future<String> crateApiSimpleCompressImage({required List<int> imageBytes}) {
     return handler.executeNormal(
       NormalTask(
@@ -169,7 +1144,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 2,
+            funcId: 28,
             port: port_,
           );
         },
@@ -199,7 +1174,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 3,
+            funcId: 29,
             port: port_,
           );
         },
@@ -226,7 +1201,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 4,
+            funcId: 30,
             port: port_,
           );
         },
@@ -254,7 +1229,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 5,
+            funcId: 31,
             port: port_,
           );
         },
@@ -281,7 +1256,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 6,
+            funcId: 32,
             port: port_,
           );
         },
@@ -313,7 +1288,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 7,
+            funcId: 33,
             port: port_,
           );
         },
@@ -347,7 +1322,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 8,
+            funcId: 34,
             port: port_,
           );
         },
@@ -377,7 +1352,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 9,
+            funcId: 35,
             port: port_,
           );
         },
@@ -396,6 +1371,33 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "reset_rust_memory_stats", argNames: []);
 
   @override
+  Future<void> crateApiUserUtilsSetupDefaultUserUtils() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 36,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiUserUtilsSetupDefaultUserUtilsConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiUserUtilsSetupDefaultUserUtilsConstMeta =>
+      const TaskConstMeta(debugName: "setup_default_user_utils", argNames: []);
+
+  @override
   Future<String> crateApiSimpleSleepTest() {
     return handler.executeNormal(
       NormalTask(
@@ -404,7 +1406,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 10,
+            funcId: 37,
             port: port_,
           );
         },
@@ -434,7 +1436,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 11,
+              funcId: 38,
               port: port_,
             );
           },
@@ -469,7 +1471,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 12,
+              funcId: 39,
               port: port_,
             );
           },
@@ -496,7 +1498,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(text, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 40)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -600,6 +1602,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   List<TaggedAllocation> dco_decode_list_tagged_allocation(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_tagged_allocation).toList();
+  }
+
+  @protected
+  String? dco_decode_opt_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_String(raw);
   }
 
   @protected
@@ -770,6 +1778,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       ans_.add(sse_decode_tagged_allocation(deserializer));
     }
     return ans_;
+  }
+
+  @protected
+  String? sse_decode_opt_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_String(deserializer));
+    } else {
+      return null;
+    }
   }
 
   @protected
@@ -958,6 +1977,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_tagged_allocation(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_String(String? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_String(self, serializer);
     }
   }
 

@@ -315,7 +315,10 @@ jobs:
         run: |
           fvm flutter precache --ios
           fvm flutter pub get
-          fvm flutter build ios --release --no-codesign --split-debug-info=build/symbols CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+          # 动态修改 pbxcproj，关闭整个项目的强签名要求：
+          sed -i '' 's/CODE_SIGNING_REQUIRED = YES;/CODE_SIGNING_REQUIRED = NO;/g' ios/Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/CODE_SIGNING_ALLOWED = YES;/CODE_SIGNING_ALLOWED = NO;/g' ios/Runner.xcodeproj/project.pbxproj
+          fvm flutter build ios --release --no-codesign --split-debug-info=build/symbols
 
       - name: 封装 IPA
         run: |

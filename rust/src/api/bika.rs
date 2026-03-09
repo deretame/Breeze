@@ -15,6 +15,7 @@ static AUTH_CACHE: OnceLock<Mutex<Option<String>>> = OnceLock::new();
 static QJS_RUNTIME: OnceCell<AsyncHostRuntime> = OnceCell::const_new();
 static QJS_RUNTIME_CREATED: AtomicU64 = AtomicU64::new(0);
 static QJS_DISPATCH_TOTAL: AtomicU64 = AtomicU64::new(0);
+static QJS_RUNTIME_CALL_COUNT: AtomicU64 = AtomicU64::new(0);
 
 fn auth_cache() -> &'static Mutex<Option<String>> {
     AUTH_CACHE.get_or_init(|| Mutex::new(None))
@@ -112,6 +113,8 @@ fn extract_auth_token(resp: &Value) -> Option<String> {
 }
 
 async fn qjs_runtime() -> Result<&'static AsyncHostRuntime> {
+    let call_count = QJS_RUNTIME_CALL_COUNT.fetch_add(1, Ordering::SeqCst);
+    tracing::info!("qjs_runtime call count: {}", call_count);
     QJS_RUNTIME
         .get_or_try_init(|| async {
             let runtime = AsyncHostRuntime::new(false).map_err(|err| anyhow!(err))?;

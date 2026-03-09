@@ -28,6 +28,11 @@ jobs:
           docker system prune -a -f
           sudo apt-get clean
 
+      - name: 安装编译依赖 (LLVM/Clang)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y llvm-dev libclang-dev clang
+
       - name: 解密敏感文件 (git-crypt)
         env:
           GIT_CRYPT_KEY: ${{ secrets.GIT_CRYPT_KEY }}
@@ -306,19 +311,44 @@ jobs:
       - name: 克隆 rquickjs_playground
         run: git clone https://github.com/deretame/rquickjs_playground.git
 
-      - name: 编译 iOS (无签)
+      - name: 拉依赖
         run: |
           fvm flutter pub get
-          fvm flutter build ios --release --no-codesign --split-debug-info=build/symbols
+          cd ios
+          pod install --repo-update
+          cd ..
 
-      - name: 封装 IPA
+      - name: 生成 iOS 工程文件
         run: |
-          mkdir -p Payload
-          cp -r build/ios/iphoneos/Runner.app Payload/
-          zip -r "Breeze-iOS.ipa" Payload
+          fvm flutter build ios --config-only
 
-      - name: 上传 iOS IPA
+      - name: Xcode 无签名编译 Runner.app
+        run: |
+          xcodebuild \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination generic/platform=iOS \
+            -derivedDataPath build/ios_out \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
+            clean build
+
+      - name: 打包 unsigned app
+        run: |
+          mkdir -p artifacts/Payload
+          cp -R build/ios_out/Build/Products/Release-iphoneos/Runner.app artifacts/Payload/
+          cd artifacts
+          zip -r Breeze-iOS-unsigned.ipa Payload
+          tar -czf Runner.app.tar.gz Payload/Runner.app
+
+      - name: 上传 unsigned 产物
         uses: actions/upload-artifact@v4
         with:
-          name: ios-ipa
-          path: Breeze-iOS.ipa
+          name: ios-unsigned
+          path: |
+            artifacts/Breeze-iOS-unsigned.ipa
+            artifacts/Runner.app.tar.gz

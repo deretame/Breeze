@@ -30,11 +30,13 @@ Future<int> _runCommand(
   String executable,
   List<String> arguments, {
   String? workingDirectory,
+  Map<String, String>? environment,
 }) async {
   final process = await Process.start(
     executable,
     arguments,
     workingDirectory: workingDirectory,
+    environment: environment,
     runInShell: true, // 确保 .bat 文件能正确执行
   );
   _currentProcess = process; // 存储当前进程
@@ -78,6 +80,68 @@ Future<void> _killProcessTree(Process process) async {
     // 有时候在极端情况下可能需要 killall java，但这样做太暴力，容易误伤，
     // 通常 pkill -P 配合 sigkill 已经足够。
   }
+}
+
+Future<Map<String, String>> _injectBindgenEnv() async {
+  // 1. 获取完整的当前环境
+  final Map<String, String> env = Map.from(Platform.environment);
+  final ndkHome = env['ANDROID_NDK_HOME'];
+  if (ndkHome == null || ndkHome.isEmpty) return env;
+
+  String hostTag = Platform.isWindows
+      ? 'windows-x86_64'
+      : (Platform.isMacOS ? 'darwin-x86_64' : 'linux-x86_64');
+  final String ndkBase = ndkHome.replaceAll('\\', '/');
+  final String toolchainPath = '$ndkBase/toolchains/llvm/prebuilt/$hostTag';
+  final String sysroot = '$toolchainPath/sysroot';
+  final String ndkBin = '$toolchainPath/bin';
+
+  // 2. 动态寻找 Clang (保持原样)
+  String clangInclude = '';
+  final clangLibDir = Directory('$toolchainPath/lib/clang');
+  if (await clangLibDir.exists()) {
+    final entities = await clangLibDir.list().toList();
+    for (var entity in entities) {
+      if (entity is Directory &&
+          RegExp(
+            r'^\d+',
+          ).hasMatch(entity.path.split(Platform.pathSeparator).last)) {
+        clangInclude = '${entity.path.replaceAll('\\', '/')}/include';
+        break;
+      }
+    }
+  }
+
+  // 3. 注入 BINDGEN 参数 (保持正斜杠)
+  env['BINDGEN_EXTRA_CLANG_ARGS'] = [
+    if (clangInclude.isNotEmpty) '-isystem$clangInclude',
+    '-isystem$sysroot/usr/include/arm-linux-androideabi',
+    '-isystem$sysroot/usr/include',
+    '--sysroot=$sysroot',
+  ].join(' ');
+
+  // 4. --- 重点修复：大小写无关地修改 Path ---
+  // 遍历所有 key，找到那个叫 path 的（不管大小写）
+  String? actualPathKey;
+  for (var key in env.keys) {
+    if (key.toLowerCase() == 'path') {
+      actualPathKey = key;
+      break;
+    }
+  }
+
+  actualPathKey ??= 'Path'; // 兜底
+  final String oldPath = env[actualPathKey] ?? '';
+  // 将 NDK bin 放在最前面，并保留原有的所有路径（包含 Git 所在的路径）
+  env[actualPathKey] = '${ndkBin.replaceAll('/', '\\')};$oldPath';
+
+  // 5. 显式指定 LIBCLANG_PATH
+  env['LIBCLANG_PATH'] = ndkBin.replaceAll('/', '\\');
+
+  _printColor('✅ 环境注入完成 (已兼容系统 Path):', _green);
+  print('   NDK_BIN: $ndkBin');
+
+  return env;
 }
 
 /// --- 1. 初始化路径 ---
@@ -162,6 +226,7 @@ Future<void> _performRestore(
 
 /// --- 2. 主流程 ---
 Future<void> main() async {
+  final Map<String, String> env = await _injectBindgenEnv();
   late final Map<String, dynamic> paths;
   late final File manifestFile;
   late final File backupFile;
@@ -208,7 +273,7 @@ Future<void> main() async {
     final Directory skiaDir = paths['skiaDir'] as Directory;
     final String sep = paths['sep'];
 
-    final String sentryDsn = Platform.environment['SENTRY_DSN'] ?? '';
+    final String sentryDsn = env['SENTRY_DSN'] ?? '';
     if (sentryDsn.isEmpty) {
       _printColor('提示: 未找到 sentry_dsn 环境变量，将使用空字符串', _yellow);
     } else {
@@ -230,13 +295,18 @@ Future<void> main() async {
 
     // --- 第一次构建：使用 Skia 渲染引擎 ---
     _printColor('\n--- (1/4) 开始第一次构建：使用 Skia 渲染引擎 ---', _cyan);
-    exitCode = await _runCommand(flutterExecutable, [
-      'build',
-      'apk',
-      '--split-per-abi',
-      '--dart-define=use_skia=true',
-      '--dart-define=sentry_dsn=$sentryDsn',
-    ], workingDirectory: projectRoot);
+    exitCode = await _runCommand(
+      flutterExecutable,
+      [
+        'build',
+        'apk',
+        '--split-per-abi',
+        '--dart-define=use_skia=true',
+        '--dart-define=sentry_dsn=$sentryDsn',
+      ],
+      workingDirectory: projectRoot,
+      environment: env,
+    );
     if (exitCode != 0) {
       throw Exception('第一次构建 (Skia) 失败！ (Exit code: $exitCode)');
     }
@@ -304,13 +374,18 @@ Future<void> main() async {
 
     // --- 第二次构建：使用 Impeller (默认) ---
     _printColor('\n--- (4/4) 开始第二次构建：使用 Impeller 渲染引擎 ---', _cyan);
-    exitCode = await _runCommand(flutterExecutable, [
-      'build',
-      'apk',
-      '--split-per-abi',
-      '--split-debug-info=$projectRoot${sep}build${sep}symbols',
-      '--dart-define=sentry_dsn=$sentryDsn',
-    ], workingDirectory: projectRoot);
+    exitCode = await _runCommand(
+      flutterExecutable,
+      [
+        'build',
+        'apk',
+        '--split-per-abi',
+        '--split-debug-info=$projectRoot${sep}build${sep}symbols',
+        '--dart-define=sentry_dsn=$sentryDsn',
+      ],
+      workingDirectory: projectRoot,
+      environment: env,
+    );
     if (exitCode != 0) {
       throw Exception('第二次构建 (Impeller) 失败！ (Exit code: $exitCode)');
     }

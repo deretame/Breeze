@@ -27,6 +27,7 @@ zip = { version = "2.1", default-features = false, features = [
 zhconv = "0.3.3"
 lazy_static = "1.5.0"
 flate2 = "1.0"
+rquickjs_playground = { path = "../rquickjs_playground" }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.14.1"

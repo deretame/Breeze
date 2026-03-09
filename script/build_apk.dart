@@ -130,16 +130,37 @@ Future<Map<String, String>> _injectBindgenEnv() async {
     }
   }
 
-  actualPathKey ??= 'Path'; // 兜底
+  actualPathKey ??= Platform.isWindows ? 'Path' : 'PATH'; // 兜底
   final String oldPath = env[actualPathKey] ?? '';
-  // 将 NDK bin 放在最前面，并保留原有的所有路径（包含 Git 所在的路径）
-  env[actualPathKey] = '${ndkBin.replaceAll('/', '\\')};$oldPath';
+  // 将 NDK bin 放在最前面，并保留原有的所有路径
+  final String pathSeparator = Platform.isWindows ? ';' : ':';
+  final String safeNdkBin = Platform.isWindows
+      ? ndkBin.replaceAll('/', '\\')
+      : ndkBin;
+  env[actualPathKey] = '$safeNdkBin$pathSeparator$oldPath';
 
-  // 5. 显式指定 LIBCLANG_PATH
-  env['LIBCLANG_PATH'] = ndkBin.replaceAll('/', '\\');
+  // 5. 显式指定 LIBCLANG_PATH (不同操作系统 libclang 所在文件夹不同)
+  String libClangPath = '';
+  if (Platform.isWindows) {
+    // Windows 下的 libclang.dll 大多位于 bin 目录
+    libClangPath = ndkBin.replaceAll('/', '\\');
+  } else if (Platform.isMacOS) {
+    // macOS 下的 libclang.dylib 位于 lib 目录
+    libClangPath = '$toolchainPath/lib';
+  } else {
+    // Linux 下的 libclang.so 位于 lib64 或 lib 目录
+    final lib64Dir = Directory('$toolchainPath/lib64');
+    if (await lib64Dir.exists()) {
+      libClangPath = '$toolchainPath/lib64';
+    } else {
+      libClangPath = '$toolchainPath/lib';
+    }
+  }
+  env['LIBCLANG_PATH'] = libClangPath;
 
-  _printColor('✅ 环境注入完成 (已兼容系统 Path):', _green);
-  print('   NDK_BIN: $ndkBin');
+  _printColor('✅ 环境注入完成 (已兼容所有操作系统的 Path 和 LIBCLANG_PATH):', _green);
+  print('   NDK_BIN: $safeNdkBin');
+  print('   LIBCLANG_PATH: $libClangPath');
 
   return env;
 }

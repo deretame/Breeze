@@ -313,6 +313,7 @@ jobs:
 
       - name: 编译 iOS (无签)
         run: |
+          fvm flutter precache --ios
           fvm flutter pub get
           fvm flutter build ios --release --no-codesign --split-debug-info=build/symbols CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
 

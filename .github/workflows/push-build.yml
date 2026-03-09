@@ -61,6 +61,9 @@ jobs:
         with:
           targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android
 
+      - name: 克隆 rquickjs_playground
+        run: git clone https://github.com/deretame/rquickjs_playground.git
+
       - name: 读取 NDK 版本配置
         id: ndk-config
         run: |
@@ -134,6 +137,9 @@ jobs:
           toolchain: stable
           targets: x86_64-unknown-linux-gnu
 
+      - name: 克隆 rquickjs_playground
+        run: git clone https://github.com/deretame/rquickjs_playground.git
+
       - name: 构建 Flatpak
         run: |
           fvm flutter build linux --release --split-debug-info=build/symbols
@@ -187,6 +193,9 @@ jobs:
       - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
 
+      - name: 克隆 rquickjs_playground
+        run: git clone https://github.com/deretame/rquickjs_playground.git
+
       - name: 运行 Windows 构建脚本
         run: |
           fvm flutter pub get
@@ -226,6 +235,9 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-darwin, x86_64-apple-darwin
+
+      - name: 克隆 rquickjs_playground
+        run: git clone https://github.com/deretame/rquickjs_playground.git
 
       - name: 拉取依赖 & 修复 Podfile
         run: |
@@ -290,6 +302,9 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-ios
+
+      - name: 克隆 rquickjs_playground
+        run: git clone https://github.com/deretame/rquickjs_playground.git
 
       - name: 编译 iOS (无签)
         run: |

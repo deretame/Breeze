@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use flate2::read::GzDecoder;
-use image::{GenericImageView, ImageBuffer, ImageFormat, Rgba};
+use image::{ImageBuffer, ImageFormat, Rgba, RgbaImage};
 use md5;
 use std::fs::{self, File};
 use std::io::Cursor;
@@ -67,7 +67,7 @@ pub fn segmentation_picture_to_disk(mut image_info: ImageInfo) -> Result<()> {
     let num = get_segmentation_num(
         image_info.chapter_id,
         image_info.scramble_id,
-        &image_info
+        image_info
             .url
             .split('/')
             .last()
@@ -76,18 +76,24 @@ pub fn segmentation_picture_to_disk(mut image_info: ImageInfo) -> Result<()> {
             .next()
             .unwrap(),
     );
+
     if format == ImageFormat::Gif || num <= 1 {
         save_image(&image_info.img_data, &image_info.file_name)?;
         return Ok(());
     }
-    let src_img =
-        image::load_from_memory(&image_info.img_data).context("Failed to decode image")?;
+
+    // 直接解码成 rgba8，方便后续按整行内存拷贝
+    let src_img: RgbaImage = image::load_from_memory(&image_info.img_data)
+        .context("Failed to decode image")?
+        .to_rgba8();
+
     let (width, height) = src_img.dimensions();
-    let block_size = (height as f32 / num as f32).floor() as u32;
+    let block_size = height / num as u32;
     let remainder = height % num as u32;
-    let mut blocks = Vec::new();
+
+    let mut blocks = Vec::with_capacity(num as usize);
     for i in 0..num {
-        let start = (i as u32) * block_size;
+        let start = i as u32 * block_size;
         let end = if i == num - 1 {
             start + block_size + remainder
         } else {
@@ -95,23 +101,40 @@ pub fn segmentation_picture_to_disk(mut image_info: ImageInfo) -> Result<()> {
         };
         blocks.push((start, end));
     }
-    let mut des_img = ImageBuffer::<Rgba<u8>, Vec<u8>>::new(width, height);
-    let mut y_pos = 0;
-    for (start, end) in blocks.iter().rev() {
-        let block_height = end - start;
-        for y in *start..*end {
-            for x in 0..width {
-                let pixel = src_img.get_pixel(x, y);
-                des_img.put_pixel(x, y_pos + (y - start), pixel);
-            }
-        }
-        y_pos += block_height;
-    }
+
+    let mut des_img: RgbaImage = ImageBuffer::<Rgba<u8>, Vec<u8>>::new(width, height);
+
+    rearrange_blocks_by_block(&src_img, &mut des_img, &blocks);
+
     let mut bytes = Vec::new();
     let mut cursor = Cursor::new(&mut bytes);
     des_img.write_to(&mut cursor, image::ImageFormat::WebP)?;
     save_image(&bytes, &image_info.file_name)?;
     Ok(())
+}
+
+fn rearrange_blocks_by_block(src: &RgbaImage, dst: &mut RgbaImage, blocks: &[(u32, u32)]) {
+    let width = src.width() as usize;
+    let row_bytes = width * 4;
+
+    let src_raw = src.as_raw();
+    let dst_raw = dst.as_mut();
+
+    let mut y_pos = 0u32;
+
+    for &(start, end) in blocks.iter().rev() {
+        let block_height = (end - start) as usize;
+
+        let src_begin = start as usize * row_bytes;
+        let src_end = src_begin + block_height * row_bytes;
+
+        let dst_begin = y_pos as usize * row_bytes;
+        let dst_end = dst_begin + block_height * row_bytes;
+
+        dst_raw[dst_begin..dst_end].copy_from_slice(&src_raw[src_begin..src_end]);
+
+        y_pos += (end - start);
+    }
 }
 
 fn save_image(data: &[u8], file_path: &str) -> Result<()> {

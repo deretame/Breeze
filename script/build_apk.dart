@@ -246,7 +246,7 @@ Future<void> _performRestore(
 }
 
 /// --- 2. 主流程 ---
-Future<void> main() async {
+Future<void> main(List<String> args) async {
   final Map<String, String> env = await _injectBindgenEnv();
   late final Map<String, dynamic> paths;
   late final File manifestFile;
@@ -255,6 +255,8 @@ Future<void> main() async {
   int exitCode = 0; // 初始化 exitCode
 
   bool isCleaningUp = false; // 防止重复清理
+
+  bool isDebugMode = args.isNotEmpty;
 
   // 设置 SIGINT (Ctrl+C) 监听器
   late final StreamSubscription<ProcessSignal> sigintSubscription;
@@ -303,6 +305,35 @@ Future<void> main() async {
 
     _printColor('将使用 Flutter 命令: $flutterExecutable', _green);
     _printColor('当前工作目录: $projectRoot', _yellow);
+
+    if (isDebugMode) {
+      // ==========================================
+      // 🚀 快速调试模式：仅编译 arm64 和 x64
+      // ==========================================
+      _printColor('\n⚡ 启动快速调试构建 (仅限 arm64 & x64)...', _magenta);
+
+      exitCode = await _runCommand(
+        flutterExecutable,
+        [
+          'build',
+          'apk',
+          '--debug',
+          // 关键：跳过 android-arm (arm32)
+          '--target-platform=android-arm64,android-x64',
+          '--dart-define=sentry_dsn=$sentryDsn',
+        ],
+        workingDirectory: projectRoot,
+        environment: env,
+      );
+
+      if (exitCode == 0) {
+        _printColor('\n✅ Debug 构建成功 (arm64/x64)！', _green);
+      } else {
+        _printColor('\n❌ Debug 构建失败，请检查 Rust 代码错误。', _red);
+      }
+      await sigintSubscription.cancel();
+      exit(exitCode); // 调试模式执行完毕，跳出并返回错误码
+    }
 
     if (!await manifestFile.exists()) {
       throw Exception('无法找到 AndroidManifest.xml: ${manifestFile.path}');

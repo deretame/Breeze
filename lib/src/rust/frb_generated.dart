@@ -3,19 +3,19 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
-import 'dart:async';
-import 'dart:convert';
-
-import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
-
+import 'api/jm.dart';
 import 'api/memory.dart';
 import 'api/simple.dart';
 import 'api/system.dart';
+import 'api/user_utils.dart';
 import 'compressed/compressed.dart';
+import 'dart:async';
+import 'dart:convert';
 import 'decode/decode.dart';
 import 'frb_generated.dart';
 import 'frb_generated.io.dart'
     if (dart.library.js_interop) 'frb_generated.web.dart';
+import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 /// Main entrypoint of the Rust API
 class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
@@ -72,7 +72,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => -379892234;
+  int get rustContentHash => -1265373374;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -109,11 +109,15 @@ abstract class RustLibApi extends BaseApi {
 
   Future<void> crateApiMemoryResetRustMemoryStats();
 
+  Future<void> crateApiUserUtilsSetupDefaultUserUtils();
+
   Future<String> crateApiSimpleSleepTest();
 
   Stream<bool> crateApiSystemStartShutdownListener();
 
   Stream<String> crateApiSimpleStreamTest();
+
+  Future<String> crateApiJmTestHelloWorld();
 
   String crateApiSimpleTraditionalToSimplified({required String text});
 }
@@ -396,7 +400,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "reset_rust_memory_stats", argNames: []);
 
   @override
-  Future<String> crateApiSimpleSleepTest() {
+  Future<void> crateApiUserUtilsSetupDefaultUserUtils() {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -405,6 +409,33 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             generalizedFrbRustBinding,
             serializer,
             funcId: 10,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiUserUtilsSetupDefaultUserUtilsConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiUserUtilsSetupDefaultUserUtilsConstMeta =>
+      const TaskConstMeta(debugName: "setup_default_user_utils", argNames: []);
+
+  @override
+  Future<String> crateApiSimpleSleepTest() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 11,
             port: port_,
           );
         },
@@ -434,7 +465,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 11,
+              funcId: 12,
               port: port_,
             );
           },
@@ -469,7 +500,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 12,
+              funcId: 13,
               port: port_,
             );
           },
@@ -490,13 +521,40 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "stream_test", argNames: ["stream"]);
 
   @override
+  Future<String> crateApiJmTestHelloWorld() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 14,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiJmTestHelloWorldConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiJmTestHelloWorldConstMeta =>
+      const TaskConstMeta(debugName: "test_hello_world", argNames: []);
+
+  @override
   String crateApiSimpleTraditionalToSimplified({required String text}) {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(text, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,

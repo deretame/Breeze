@@ -1,7 +1,6 @@
 use anyhow::{Context, Result};
 use base64::{Engine as _, engine::general_purpose};
 use image::{ExtendedColorType, codecs::jpeg::JpegEncoder};
-use log::debug;
 use tokio::fs::File;
 
 use crate::memory::TrackedAllocation;
@@ -242,11 +241,12 @@ pub async fn compress_image(image_bytes: Vec<u8>) -> Result<String> {
             high = mid - 1;
         }
 
-        debug!("Quality: {}, Size: {}", mid, current_size);
+        tracing::debug!(target: "compress", "Quality: {}, Size: {}", mid, current_size);
     }
 
     let final_base64 = general_purpose::STANDARD.encode(&best_bytes);
-    debug!(
+    tracing::debug!(
+        target: "compress",
         "Final Quality: {}, Size: {}",
         best_quality,
         final_base64.len()

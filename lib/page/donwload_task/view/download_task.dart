@@ -163,16 +163,20 @@ class _DownloadingTaskTile extends StatelessWidget {
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(dialogContext).pop(),
-                    child: const Text("取消", style: TextStyle(color: Colors.grey)),
+                    child: const Text(
+                      "取消",
+                      style: TextStyle(color: Colors.grey),
+                    ),
                   ),
                   TextButton(
                     onPressed: () {
-                      bloc.add(
-                        const DowloadTaskEvent.cancelCurrentTask(),
-                      );
+                      bloc.add(const DowloadTaskEvent.cancelCurrentTask());
                       Navigator.of(dialogContext).pop();
                     },
-                    child: const Text("确定", style: TextStyle(color: Colors.red)),
+                    child: const Text(
+                      "确定",
+                      style: TextStyle(color: Colors.red),
+                    ),
                   ),
                 ],
               ),

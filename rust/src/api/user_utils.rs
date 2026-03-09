@@ -7,74 +7,108 @@ fn setup_backtrace() {
     if std::env::var("RUST_BACKTRACE").is_err_and(|e| e == std::env::VarError::NotPresent) {
         unsafe { std::env::set_var("RUST_BACKTRACE", "1") };
     } else {
-        log::debug!("Skip setup RUST_BACKTRACE because there is already environment variable");
+        tracing::debug!("Skip setup RUST_BACKTRACE because there is already environment variable");
     }
 }
 
 fn setup_log_to_console() {
-    #[cfg(target_os = "android")]
-    {
-        let _ = android_logger::init_once(
-            android_logger::Config::default()
-                .with_tag("frb_user")
-                .with_max_level(default_log_level()),
-        );
-        return;
-    }
+    static INIT: std::sync::Once = std::sync::Once::new();
+    INIT.call_once(|| {
+        #[cfg(debug_assertions)]
+        {
+            #[allow(unused_imports)]
+            use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 
-    #[cfg(any(target_os = "ios", target_os = "macos"))]
-    {
-        let _ = oslog::OsLogger::new("frb_user")
-            .level_filter(default_log_level())
-            .init();
-        return;
-    }
+            let filter = EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| EnvFilter::new(default_log_level()));
 
-    #[cfg(target_family = "wasm")]
-    {
-        let _ = crate::misc::web_utils::WebConsoleLogger::init();
-        return;
-    }
+            #[cfg(target_os = "android")]
+            {
+                use tracing_logcat::{LogcatMakeWriter, LogcatTag};
 
-    #[cfg(all(
-        not(target_family = "wasm"),
-        not(target_os = "android"),
-        not(target_os = "ios"),
-        not(target_os = "macos")
-    ))]
-    let mut builder = env_logger::Builder::from_default_env();
+                let writer = LogcatMakeWriter::new(LogcatTag::Fixed("windcore".to_owned()))
+                    .expect("Failed to initialize logcat writer");
 
-    #[cfg(all(
-        not(target_family = "wasm"),
-        not(target_os = "android"),
-        not(target_os = "ios"),
-        not(target_os = "macos")
-    ))]
-    if std::env::var("RUST_LOG").is_err_and(|e| e == std::env::VarError::NotPresent) {
-        builder.filter_level(default_log_level());
-    }
+                let _ = tracing_subscriber::registry()
+                    .with(filter)
+                    .with(
+                        fmt::layer()
+                            .with_writer(writer)
+                            .with_ansi(false)
+                            .with_target(true)
+                            .with_line_number(true)
+                            .with_thread_ids(true)
+                            .with_file(true)
+                            .with_thread_names(true),
+                    )
+                    .try_init();
 
-    #[cfg(all(
-        not(target_family = "wasm"),
-        not(target_os = "android"),
-        not(target_os = "ios"),
-        not(target_os = "macos")
-    ))]
-    {
-        if !cfg!(debug_assertions) {
-            builder
-                .format_timestamp(None)
-                .format_module_path(false)
-                .format_target(false);
+                tracing::info!("Tracing initialized (Android)");
+                return;
+            }
+
+            #[cfg(any(target_os = "ios", target_os = "macos"))]
+            {
+                let _ = tracing_subscriber::registry()
+                    .with(filter)
+                    .with(
+                        fmt::layer()
+                            .with_target(true)
+                            .with_line_number(true)
+                            .with_thread_ids(true)
+                            .with_file(true)
+                            .with_thread_names(true),
+                    )
+                    .try_init();
+                tracing::info!("Tracing initialized (iOS/macOS)");
+                return;
+            }
+
+            #[cfg(target_family = "wasm")]
+            {
+                let _ = tracing_subscriber::registry()
+                    .with(filter)
+                    .with(
+                        fmt::layer()
+                            .with_target(true)
+                            .with_line_number(true)
+                            .with_thread_ids(false)
+                            .with_file(true)
+                            .with_thread_names(false),
+                    )
+                    .try_init();
+                tracing::info!("Tracing initialized (WASM)");
+                return;
+            }
+
+            #[cfg(all(
+                not(target_family = "wasm"),
+                not(target_os = "android"),
+                not(target_os = "ios"),
+                not(target_os = "macos")
+            ))]
+            {
+                let _ = tracing_subscriber::registry()
+                    .with(filter)
+                    .with(
+                        fmt::layer()
+                            .with_target(true)
+                            .with_line_number(true)
+                            .with_thread_ids(true)
+                            .with_file(true)
+                            .with_thread_names(true),
+                    )
+                    .try_init();
+                tracing::info!("Tracing initialized (Desktop)");
+            }
         }
-        let _ = builder.try_init();
-    }
+    });
 }
 
-fn default_log_level() -> log::LevelFilter {
+fn default_log_level() -> String {
     if cfg!(debug_assertions) {
-        log::LevelFilter::Debug
+        "debug".to_string()
     } else {
-        log::LevelFilter::Warn
+        "warn".to_string()
     }
 }

@@ -43,7 +43,8 @@ pub fn segmentation_picture_to_disk(mut image_info: ImageInfo) -> Result<()> {
         && image_info.img_data[0] == 0x1f
         && image_info.img_data[1] == 0x8b
     {
-        log::info!(
+        tracing::info!(
+            target: "decode",
             "检测到 Gzip 压缩数据，正在解压...: {}",
             image_info.file_name
         );
@@ -53,10 +54,10 @@ pub fn segmentation_picture_to_disk(mut image_info: ImageInfo) -> Result<()> {
         match decoder.read_to_end(&mut decompressed_data) {
             Ok(_) => {
                 image_info.img_data = decompressed_data;
-                log::info!("解压成功，新数据大小: {}", image_info.img_data.len());
+                tracing::info!(target: "decode", "解压成功，新数据大小: {}", image_info.img_data.len());
             }
             Err(e) => {
-                log::warn!("尝试解压 Gzip 失败: {}, 保留原数据", e);
+                tracing::warn!(target: "decode", "尝试解压 Gzip 失败: {}, 保留原数据", e);
             }
         }
     }
@@ -133,7 +134,7 @@ fn rearrange_blocks_by_block(src: &RgbaImage, dst: &mut RgbaImage, blocks: &[(u3
 
         dst_raw[dst_begin..dst_end].copy_from_slice(&src_raw[src_begin..src_end]);
 
-        y_pos += (end - start);
+        y_pos += end - start;
     }
 }
 

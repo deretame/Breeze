@@ -150,6 +150,68 @@ class AndroidEnvironment {
     final toolTempDir =
         Platform.environment['CARGOKIT_TOOL_TEMP_DIR'] ?? targetTempDir;
 
+    final llvmBase = path.join(
+      ndkPath,
+      'toolchains',
+      'llvm',
+      'prebuilt',
+      hostArch,
+    );
+    final llvmBin = path.join(llvmBase, 'bin');
+
+    String libClangPath = '';
+    if (Platform.isWindows) {
+      libClangPath = llvmBin;
+    } else if (Platform.isMacOS) {
+      libClangPath = path.join(llvmBase, 'lib');
+    } else {
+      final lib64 = Directory(path.join(llvmBase, 'lib64'));
+      if (lib64.existsSync()) {
+        libClangPath = path.join(llvmBase, 'lib64');
+      } else {
+        libClangPath = path.join(llvmBase, 'lib');
+      }
+    }
+
+    final sysrootPath = path.join(llvmBase, 'sysroot');
+    final sysrootInclude = path.join(sysrootPath, 'usr', 'include');
+    // Map target.rust (e.g. aarch64-linux-android) to NDK include path. NDK uses same target names.
+    final targetInclude = path.join(sysrootInclude, target.rust);
+
+    // In NDK 21+, Clang internal headers are located in lib/clang/<version>/include
+    // We need to dynamically find this path to provide stddef.h and stdbool.h to bindgen
+    String clangInclude = '';
+    final clangLibDir = Directory(path.join(llvmBase, 'lib', 'clang'));
+    if (clangLibDir.existsSync()) {
+      final entities = clangLibDir.listSync();
+      for (var entity in entities) {
+        if (entity is Directory &&
+            RegExp(r'^\d+').hasMatch(path.basename(entity.path))) {
+          clangInclude = path.join(entity.path, 'include');
+          break;
+        }
+      }
+    }
+
+    final bindgenArgs = [
+      if (clangInclude.isNotEmpty) '-isystem $clangInclude',
+      '-isystem $targetInclude',
+      '-isystem $sysrootInclude',
+      '--sysroot=$sysrootPath',
+    ].join(' ').replaceAll('\\', '/'); // Crucial: convert \ to / to prevent bindgen from treating \ as escape characters
+
+    // Merge PATH to make sure Windows can load libclang.dll dependencies
+    String pathKey = 'PATH';
+    for (final key in Platform.environment.keys) {
+      if (key.toUpperCase() == 'PATH') {
+        pathKey = key;
+        break;
+      }
+    }
+    final currentPath = Platform.environment[pathKey] ?? '';
+    final pathSeparator = Platform.isWindows ? ';' : ':';
+    final newPath = '$llvmBin$pathSeparator$currentPath';
+
     return {
       arKey: arValue,
       ccKey: ccValue,
@@ -163,6 +225,11 @@ class AndroidEnvironment {
       '_CARGOKIT_NDK_LINK_TARGET': targetArg,
       '_CARGOKIT_NDK_LINK_CLANG': ccValue,
       'CARGOKIT_TOOL_TEMP_DIR': toolTempDir,
+
+      // Auto-inject Bindgen env variables so it works out of the box on all machines
+      'LIBCLANG_PATH': libClangPath.replaceAll('\\', '/'),
+      'BINDGEN_EXTRA_CLANG_ARGS': bindgenArgs,
+      pathKey: newPath,
     };
   }
 

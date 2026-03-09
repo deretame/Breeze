@@ -167,7 +167,9 @@ class DownloadQueueManager {
 
       try {
         final downloadPath = await getDownloadPath();
-        final comicDir = Directory(p.join(downloadPath, task.from, "original", task.comicId));
+        final comicDir = Directory(
+          p.join(downloadPath, task.from, "original", task.comicId),
+        );
         if (await comicDir.exists()) {
           await comicDir.delete(recursive: true);
           logger.d("已清理被取消任务的残留文件: ${comicDir.path}");
@@ -287,7 +289,9 @@ class DownloadQueueManager {
 
       try {
         final downloadPath = await getDownloadPath();
-        final comicDir = Directory(p.join(downloadPath, task.from, "original", task.comicId));
+        final comicDir = Directory(
+          p.join(downloadPath, task.from, "original", task.comicId),
+        );
         if (await comicDir.exists()) {
           await comicDir.delete(recursive: true);
           logger.d("已清理被取消任务的残留文件: ${comicDir.path}");
@@ -442,7 +446,9 @@ class DownloadQueueManager {
 
       try {
         final downloadPath = await getDownloadPath();
-        final comicDir = Directory(p.join(downloadPath, task.from, "original", task.comicId));
+        final comicDir = Directory(
+          p.join(downloadPath, task.from, "original", task.comicId),
+        );
         if (await comicDir.exists()) {
           await comicDir.delete(recursive: true);
           logger.d("已清理被取消任务的残留文件: ${comicDir.path}");

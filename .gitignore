@@ -64,3 +64,4 @@ repo-flatpak/
 GPUCache/
 sentry.properties
 .sentry-native
+rquickjs_playground/

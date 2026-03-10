@@ -65,3 +65,6 @@ GPUCache/
 sentry.properties
 .sentry-native
 rquickjs_playground/
+rust/js/jm_http_bundle/node_modules/
+rust/src/js/jm_http.bundle.cjs
+rust/js/jm_http_bundle/package-lock.json

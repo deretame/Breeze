@@ -9,6 +9,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/bika/pica_client.dart';
 import 'package:zephyr/network/http/jm/jm_client.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
+import 'package:zephyr/util/download/cancel_token.dart' as task_cancel;
 
 class _SpeedResult {
   final String url;
@@ -17,31 +18,57 @@ class _SpeedResult {
   _SpeedResult({required this.url, this.durationMs});
 }
 
-Future<_SpeedResult> _testUrlSpeed(Dio dio, String url) async {
+Future<_SpeedResult> _testUrlSpeed(
+  Dio dio,
+  String url, {
+  task_cancel.CancelToken? cancelToken,
+}) async {
   final stopwatch = Stopwatch()..start();
   try {
+    cancelToken?.throwIfCancelled();
+
+    final dioCancelToken = CancelToken();
+    if (cancelToken != null) {
+      cancelToken.future.then((_) {
+        if (!dioCancelToken.isCancelled) {
+          dioCancelToken.cancel('user cancelled');
+        }
+      });
+    }
+
     await dio.head(
       url,
       options: Options(
         sendTimeout: const Duration(seconds: 5),
         receiveTimeout: const Duration(seconds: 5),
       ),
+      cancelToken: dioCancelToken,
     );
     stopwatch.stop();
     return _SpeedResult(url: url, durationMs: stopwatch.elapsedMilliseconds);
   } catch (e) {
+    if (e is DioException && e.type == DioExceptionType.cancel) {
+      cancelToken?.throwIfCancelled();
+    }
     return _SpeedResult(url: url, durationMs: null);
   }
 }
 
-Future<int> getFastestUrlIndex(List<String> urls) async {
+Future<int> getFastestUrlIndex(
+  List<String> urls, {
+  task_cancel.CancelToken? cancelToken,
+}) async {
   if (urls.isEmpty) {
     return 0;
   }
 
-  final testFutures = urls.map((url) => _testUrlSpeed(dio, url)).toList();
+  final testFutures = urls
+      .map((url) => _testUrlSpeed(dio, url, cancelToken: cancelToken))
+      .toList();
 
   final results = await Future.wait(testFutures);
+
+  cancelToken?.throwIfCancelled();
 
   final successfulResults = results.where((r) => r.durationMs != null).toList();
 
@@ -56,14 +83,22 @@ Future<int> getFastestUrlIndex(List<String> urls) async {
   return urls.indexOf(fastestResult.url);
 }
 
-Future<void> setFastestUrlIndex() async {
-  final index = await getFastestUrlIndex(JmConfig.baseUrls);
+Future<void> setFastestUrlIndex({task_cancel.CancelToken? cancelToken}) async {
+  final index = await getFastestUrlIndex(
+    JmConfig.baseUrls,
+    cancelToken: cancelToken,
+  );
   logger.d('Fastest URL index: $index');
   JmConfig.setBaseUrlIndex(index);
 }
 
-Future<void> setFastestImagesUrlIndex() async {
-  final index = await getFastestUrlIndex(JmConfig.imagesUrls);
+Future<void> setFastestImagesUrlIndex({
+  task_cancel.CancelToken? cancelToken,
+}) async {
+  final index = await getFastestUrlIndex(
+    JmConfig.imagesUrls,
+    cancelToken: cancelToken,
+  );
   logger.d('Fastest images URL index: $index');
   JmConfig.setImagesUrlIndex(index);
 }

@@ -7,6 +7,7 @@ import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/download/cancel_token.dart' as task_cancel;
 
 import '../../../config/jm/config.dart';
 import '../../../src/rust/api/simple.dart';
@@ -139,6 +140,7 @@ Future<String> downloadPicture({
   PictureType pictureType = PictureType.comic,
   String chapterId = '',
   int? proxy,
+  task_cancel.CancelToken? cancelToken,
 }) async {
   if (url.isEmpty) {
     throw Exception('URL 不能为空 404');
@@ -222,7 +224,10 @@ Future<String> downloadPicture({
         );
 
   // 下载图片
-  Uint8List imageData = await _downloadImageForTask(finalUrl);
+  Uint8List imageData = await _downloadImageForTask(
+    finalUrl,
+    cancelToken: cancelToken,
+  );
 
   if (from == From.jm && pictureType == PictureType.comic) {
     await decodeAndSaveImage(
@@ -251,8 +256,11 @@ Future<String> downloadPicture({
   }
 }
 
-Future<Uint8List> _downloadImageForTask(String url) async {
-  return downloadImageWithRetry(url, retry: true);
+Future<Uint8List> _downloadImageForTask(
+  String url, {
+  task_cancel.CancelToken? cancelToken,
+}) async {
+  return downloadImageWithRetry(url, retry: true, cancelToken: cancelToken);
 }
 
 String sanitizePath(String path) {
@@ -383,6 +391,7 @@ String buildImageUrl(
 Future<Uint8List> downloadImageWithRetry(
   String url, {
   bool retry = false,
+  task_cancel.CancelToken? cancelToken,
 }) async {
   var headers = {
     'User-Agent': '#',
@@ -393,17 +402,37 @@ Future<Uint8List> downloadImageWithRetry(
 
   while (true) {
     try {
+      cancelToken?.throwIfCancelled();
+
+      final dioCancelToken = CancelToken();
+      if (cancelToken != null) {
+        cancelToken.future.then((_) {
+          if (!dioCancelToken.isCancelled) {
+            dioCancelToken.cancel('user cancelled');
+          }
+        });
+      }
+
       Response response = await pictureDio
           .get(
             url,
             options: Options(
               headers: headers,
               responseType: ResponseType.bytes,
+              connectTimeout: const Duration(seconds: 10),
+              receiveTimeout: const Duration(seconds: 15),
+              sendTimeout: const Duration(seconds: 15),
             ),
+            cancelToken: dioCancelToken,
           )
           .timeout(Duration(seconds: 30));
       return response.data as Uint8List;
     } catch (e) {
+      if (e is DioException && e.type == DioExceptionType.cancel) {
+        cancelToken?.throwIfCancelled();
+        throw task_cancel.TaskCancelledException();
+      }
+
       if (e is TimeoutException) {
         logger.e('下载图片超时: $url, 准备重试...');
       } else if (e is DioException && e.toString().contains('422')) {
@@ -416,12 +445,25 @@ Future<Uint8List> downloadImageWithRetry(
         }
       }
       if (retry && !(e is DioException && e.toString().contains('422'))) {
-        await Future.delayed(Duration(seconds: 1));
+        await _delayWithCancel(const Duration(seconds: 1), cancelToken);
       } else if (!retry) {
         throw Exception('下载图片失败: $e');
       }
     }
   }
+}
+
+Future<void> _delayWithCancel(
+  Duration duration,
+  task_cancel.CancelToken? cancelToken,
+) async {
+  if (cancelToken == null) {
+    await Future.delayed(duration);
+    return;
+  }
+
+  await Future.any([Future.delayed(duration), cancelToken.future]);
+  cancelToken.throwIfCancelled();
 }
 
 Future<void> saveImage(Uint8List imageData, String filePath) async {

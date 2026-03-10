@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/sundry.dart';
@@ -10,7 +11,7 @@ Future<Map<String, bool>?> showCategoryDialog(
   BuildContext context,
   Map<String, bool> categories,
 ) {
-  Map<String, bool> categoriesMap = Map.from(categories);
+  final categoriesMap = Map<String, bool>.from(categoryMap)..addAll(categories);
 
   return showDialog<Map<String, bool>>(
     context: context,

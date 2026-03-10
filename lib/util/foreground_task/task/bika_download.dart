@@ -58,7 +58,11 @@ Future<void> bikaDownloadTask(
     reporter.updateMessage("获取漫画信息中...");
 
     cancelToken.throwIfCancelled();
-    final comicInfo = await _getComicInfo(task.comicId, authorization);
+    final comicInfo = await _getComicInfo(
+      task.comicId,
+      authorization,
+      cancelToken,
+    );
 
     downloadTask = query.findFirst();
     downloadTask?.status = "获取章节信息中...";
@@ -66,7 +70,12 @@ Future<void> bikaDownloadTask(
     reporter.updateMessage("获取章节信息中...");
 
     cancelToken.throwIfCancelled();
-    final epsList = await _getEps(comicInfo, authorization, task.slowDownload);
+    final epsList = await _getEps(
+      comicInfo,
+      authorization,
+      task.slowDownload,
+      cancelToken,
+    );
     List<EpsDoc> epsDocs = [];
     List<Pages> imageData = [];
     List<String> epsTitle = [];
@@ -77,6 +86,7 @@ Future<void> bikaDownloadTask(
         task.comicId,
         ep.let(toInt),
         authorization,
+        cancelToken,
       );
       final epInfo = epsList.firstWhere(
         (element) => element.order.toString() == ep.toString(),
@@ -116,6 +126,7 @@ Future<void> bikaDownloadTask(
       pictureType: PictureType.cover,
       chapterId: comicInfo.id,
       proxy: task.bikaInfo.proxy.let(toInt),
+      cancelToken: cancelToken,
     );
 
     if (coverPath.startsWith('404')) {
@@ -156,6 +167,7 @@ Future<void> bikaDownloadTask(
           pictureType: PictureType.comic,
           chapterId: doc.docId,
           proxy: task.bikaInfo.proxy.let(toInt),
+          cancelToken: cancelToken,
         );
         progress++;
         updateProgress(
@@ -180,6 +192,7 @@ Future<void> bikaDownloadTask(
             pictureType: PictureType.comic,
             chapterId: doc.docId,
             proxy: task.bikaInfo.proxy.let(toInt),
+            cancelToken: cancelToken,
           );
 
           cancelToken.throwIfCancelled();
@@ -210,18 +223,30 @@ Future<void> bikaDownloadTask(
   }
 }
 
-Future<Comic> _getComicInfo(String comicId, String authorization) async {
+Future<Comic> _getComicInfo(
+  String comicId,
+  String authorization,
+  CancelToken cancelToken,
+) async {
   Map<String, dynamic> result = {};
   while (true) {
+    cancelToken.throwIfCancelled();
     try {
-      result = await getComicInfo(
-        comicId,
-        authorization: authorization,
-        imageQuality: "original",
+      result = await _awaitCancellable(
+        getComicInfo(
+          comicId,
+          authorization: authorization,
+          imageQuality: "original",
+        ),
+        cancelToken,
       );
       break;
     } catch (e, s) {
+      if (e is TaskCancelledException) {
+        rethrow;
+      }
       logger.e(e, stackTrace: s);
+      await _waitRetry(cancelToken);
     }
   }
 
@@ -249,6 +274,7 @@ Future<List<eps.Doc>> _getEps(
   Comic comic,
   String authorization,
   bool slowDownload,
+  CancelToken cancelToken,
 ) async {
   List<eps.Doc> epsList = [];
 
@@ -259,18 +285,26 @@ Future<List<eps.Doc>> _getEps(
   if (slowDownload) {
     for (int i = 1; i <= totalPages; i++) {
       while (true) {
+        cancelToken.throwIfCancelled();
         try {
           results.add(
-            await getEps(
-              comic.id,
-              i,
-              authorization: authorization,
-              imageQuality: "original",
+            await _awaitCancellable(
+              getEps(
+                comic.id,
+                i,
+                authorization: authorization,
+                imageQuality: "original",
+              ),
+              cancelToken,
             ),
           );
           break;
         } catch (e, s) {
+          if (e is TaskCancelledException) {
+            rethrow;
+          }
           logger.e(e, stackTrace: s);
+          await _waitRetry(cancelToken);
         }
       }
     }
@@ -290,11 +324,16 @@ Future<List<eps.Doc>> _getEps(
 
     // 并行执行所有请求
     while (true) {
+      cancelToken.throwIfCancelled();
       try {
-        results = await Future.wait(futures);
+        results = await _awaitCancellable(Future.wait(futures), cancelToken);
         break;
       } catch (e, s) {
+        if (e is TaskCancelledException) {
+          rethrow;
+        }
         logger.e(e, stackTrace: s);
+        await _waitRetry(cancelToken);
       }
     }
   }
@@ -316,22 +355,31 @@ Future<Pages> _fetchBKMedia(
   String comicId,
   int epsId,
   String authorization,
+  CancelToken cancelToken,
 ) async {
   int page = 1;
   List<PagesDoc> pagesDocs = [];
 
   while (true) {
+    cancelToken.throwIfCancelled();
     Map<String, dynamic> result = {};
     try {
-      result = await getPages(
-        comicId,
-        epsId,
-        page,
-        authorization: authorization,
-        imageQuality: "original",
+      result = await _awaitCancellable(
+        getPages(
+          comicId,
+          epsId,
+          page,
+          authorization: authorization,
+          imageQuality: "original",
+        ),
+        cancelToken,
       );
     } catch (e, s) {
+      if (e is TaskCancelledException) {
+        rethrow;
+      }
       logger.e(e, stackTrace: s);
+      await _waitRetry(cancelToken);
       continue;
     }
     var temp = p.Page.fromJson(result);
@@ -355,6 +403,21 @@ Future<Pages> _fetchBKMedia(
   }
 
   return Pages(docs: pagesDocs);
+}
+
+Future<void> _waitRetry(CancelToken cancelToken) async {
+  await Future.any([
+    Future.delayed(const Duration(seconds: 1)),
+    cancelToken.future,
+  ]);
+  cancelToken.throwIfCancelled();
+}
+
+Future<T> _awaitCancellable<T>(Future<T> future, CancelToken cancelToken) {
+  return Future.any<T>([
+    future,
+    cancelToken.future.then<T>((_) => throw TaskCancelledException()),
+  ]);
 }
 
 Future<void> _saveToDB(

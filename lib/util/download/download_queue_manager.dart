@@ -62,6 +62,26 @@ class DownloadQueueManager {
   ///
   /// 如果当前没有运行中的任务，此方法无任何副作用。
   void cancelCurrentTask() {
+    if (_downloadingComicId.isNotEmpty) {
+      final dbTask = objectbox.downloadTaskBox
+          .query(
+            DownloadTask_.comicId
+                .equals(_downloadingComicId)
+                .and(DownloadTask_.isCompleted.equals(false)),
+          )
+          .build()
+          .findFirst();
+
+      if (dbTask != null) {
+        dbTask.status = "取消中...";
+        objectbox.downloadTaskBox.put(dbTask);
+
+        _progressController.add(
+          DownloadProgress(comicName: dbTask.comicName, message: '取消中...'),
+        );
+      }
+    }
+
     _currentCancelToken?.cancel();
   }
 

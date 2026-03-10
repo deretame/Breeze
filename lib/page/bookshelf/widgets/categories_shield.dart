@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/sundry.dart';
@@ -7,10 +8,10 @@ import 'package:zephyr/util/sundry.dart';
 import '../../../main.dart';
 
 Future<Map<String, bool>?> showShieldCategoryDialog(BuildContext context) {
+  final originMap = Map.of(categoryMap);
   final settings = objectbox.userSettingBox.get(1)!.bikaSetting;
-  late Map<String, bool> shieldCategoriesMap = Map.of(
-    settings.shieldCategoryMap,
-  );
+  final shieldCategoriesMap = Map<String, bool>.from(originMap)
+    ..addAll(settings.shieldCategoryMap);
 
   return showDialog(
     context: context,

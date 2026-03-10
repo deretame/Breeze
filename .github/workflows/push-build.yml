@@ -61,6 +61,23 @@ jobs:
           fvm install && fvm use --force
           echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
 
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+          cache-dependency-path: rust/js/jm_http_bundle/pnpm-lock.yaml
+
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: 构建 JM JS Bundle
+        run: |
+          pnpm install --frozen-lockfile --dir rust/js/jm_http_bundle
+          pnpm --dir rust/js/jm_http_bundle run build
+
       - name: 安装 Rust (Android 目标)
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -136,6 +153,23 @@ jobs:
           fvm install && fvm use --force
           echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
 
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+          cache-dependency-path: rust/js/jm_http_bundle/pnpm-lock.yaml
+
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: 构建 JM JS Bundle
+        run: |
+          pnpm install --frozen-lockfile --dir rust/js/jm_http_bundle
+          pnpm --dir rust/js/jm_http_bundle run build
+
       - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -184,7 +218,14 @@ jobs:
         with:
           node-version: 24
           cache: "pnpm"
-          cache-dependency-path: windows-installer/pnpm-lock.yaml
+          cache-dependency-path: |
+            windows-installer/pnpm-lock.yaml
+            rust/js/jm_http_bundle/pnpm-lock.yaml
+
+      - name: 构建 JM JS Bundle
+        run: |
+          pnpm install --frozen-lockfile --dir rust/js/jm_http_bundle
+          pnpm --dir rust/js/jm_http_bundle run build
 
       - name: 设置 Dart SDK
         uses: dart-lang/setup-dart@v1
@@ -235,6 +276,23 @@ jobs:
           export PATH="$PATH:$HOME/.pub-cache/bin"
           fvm install && fvm use --force
           echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+          cache-dependency-path: rust/js/jm_http_bundle/pnpm-lock.yaml
+
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: 构建 JM JS Bundle
+        run: |
+          pnpm install --frozen-lockfile --dir rust/js/jm_http_bundle
+          pnpm --dir rust/js/jm_http_bundle run build
 
       - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
@@ -302,6 +360,23 @@ jobs:
           export PATH="$PATH:$HOME/.pub-cache/bin"
           fvm install && fvm use --force
           echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+          cache-dependency-path: rust/js/jm_http_bundle/pnpm-lock.yaml
+
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: 构建 JM JS Bundle
+        run: |
+          pnpm install --frozen-lockfile --dir rust/js/jm_http_bundle
+          pnpm --dir rust/js/jm_http_bundle run build
 
       - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable

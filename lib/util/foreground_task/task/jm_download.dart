@@ -55,11 +55,11 @@ Future<void> jmDownloadTask(
     reporter.updateMessage("获取漫画信息中...");
 
     cancelToken.throwIfCancelled();
-    await setFastestUrlIndex();
-    await setFastestImagesUrlIndex();
+    await setFastestUrlIndex(cancelToken: cancelToken);
+    await setFastestImagesUrlIndex(cancelToken: cancelToken);
 
     cancelToken.throwIfCancelled();
-    final comicInfo = await getJmComicInfo(task.comicId);
+    final comicInfo = await getJmComicInfo(task.comicId, cancelToken);
 
     downloadTask = query.findFirst();
     downloadTask?.status = "获取章节信息中...";
@@ -70,7 +70,7 @@ Future<void> jmDownloadTask(
     if (epIds.isEmpty) epIds = [comicInfo.id.toString()];
 
     cancelToken.throwIfCancelled();
-    final epsList = await fetchJMMedia(epIds, task.slowDownload);
+    final epsList = await fetchJMMedia(epIds, task.slowDownload, cancelToken);
 
     final downloadInfoJson = comicInfo2DownloadInfoJson(comicInfo);
 
@@ -103,8 +103,12 @@ Future<void> jmDownloadTask(
         cartoonId: comicInfo.id.toString(),
         pictureType: PictureType.cover,
         chapterId: comicInfo.id.toString(),
+        cancelToken: cancelToken,
       );
     } catch (e, s) {
+      if (e is TaskCancelledException) {
+        rethrow;
+      }
       logger.e(e, stackTrace: s);
     }
 
@@ -135,45 +139,75 @@ Future<void> jmDownloadTask(
   }
 }
 
-Future<base_info.JmComicInfoJson> getJmComicInfo(String comicId) async {
+Future<base_info.JmComicInfoJson> getJmComicInfo(
+  String comicId,
+  CancelToken cancelToken,
+) async {
   while (true) {
+    cancelToken.throwIfCancelled();
     try {
-      return await getComicInfo(
-        comicId,
-      ).let(replaceNestedNull).let(base_info.JmComicInfoJson.fromJson).let((d) {
-        var series = d.series.toList();
-        series.removeWhere((s) => s.sort == '0');
-        final newSeries = series
-            .map((s) => s.copyWith(name: '第${s.sort}话 ${s.name}'))
-            .toList();
-        return d.copyWith(series: newSeries);
-      });
+      final result = await _awaitCancellable(
+        getComicInfo(comicId),
+        cancelToken,
+      );
+
+      return result
+          .let(replaceNestedNull)
+          .let(base_info.JmComicInfoJson.fromJson)
+          .let((d) {
+            var series = d.series.toList();
+            series.removeWhere((s) => s.sort == '0');
+            final newSeries = series
+                .map((s) => s.copyWith(name: '第${s.sort}话 ${s.name}'))
+                .toList();
+            return d.copyWith(series: newSeries);
+          });
     } catch (e, s) {
+      if (e is TaskCancelledException) {
+        rethrow;
+      }
       logger.e(e, stackTrace: s);
+      await _waitRetry(cancelToken);
     }
   }
 }
 
-Future<List<Info>> fetchJMMedia(List<String> epIds, bool slowDownload) async {
+Future<List<Info>> fetchJMMedia(
+  List<String> epIds,
+  bool slowDownload,
+  CancelToken cancelToken,
+) async {
   List<Info> docsList = [];
   if (slowDownload) {
     for (var epId in epIds) {
       while (true) {
+        cancelToken.throwIfCancelled();
         try {
-          docsList.add(await getEpInfo(epId).let(info2Info));
+          final info = await _awaitCancellable(getEpInfo(epId), cancelToken);
+          docsList.add(info2Info(info));
           break;
         } catch (e, s) {
+          if (e is TaskCancelledException) {
+            rethrow;
+          }
           logger.e(e, stackTrace: s);
+          await _waitRetry(cancelToken);
         }
       }
     }
   } else {
     final List<Future<Info>> fetchTasks = epIds.map((epId) async {
       while (true) {
+        cancelToken.throwIfCancelled();
         try {
-          return await getEpInfo(epId).let(info2Info);
+          final info = await _awaitCancellable(getEpInfo(epId), cancelToken);
+          return info2Info(info);
         } catch (e, s) {
+          if (e is TaskCancelledException) {
+            rethrow;
+          }
           logger.e(e, stackTrace: s);
+          await _waitRetry(cancelToken);
         }
       }
     }).toList();
@@ -314,6 +348,7 @@ Future<DownloadInfoJson> downloadComic(
           cartoonId: downloadInfoJson.id.toString(),
           pictureType: PictureType.comic,
           chapterId: doc.docId,
+          cancelToken: cancelToken,
         );
 
         cancelToken.throwIfCancelled();
@@ -357,6 +392,21 @@ Future<DownloadInfoJson> downloadComic(
   updateProgress(100, "漫画下载进度: 100%");
 
   return downloadInfoJson;
+}
+
+Future<void> _waitRetry(CancelToken cancelToken) async {
+  await Future.any([
+    Future.delayed(const Duration(seconds: 1)),
+    cancelToken.future,
+  ]);
+  cancelToken.throwIfCancelled();
+}
+
+Future<T> _awaitCancellable<T>(Future<T> future, CancelToken cancelToken) {
+  return Future.any<T>([
+    future,
+    cancelToken.future.then<T>((_) => throw TaskCancelledException()),
+  ]);
 }
 
 Future<void> saveToDB(

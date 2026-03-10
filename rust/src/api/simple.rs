@@ -2,7 +2,7 @@ use crate::compressed;
 use crate::decode;
 use crate::frb_generated::StreamSink;
 use anyhow::{Result, anyhow};
-use flutter_rust_bridge::frb;
+use flutter_rust_bridge::{DartFnFuture, frb};
 
 #[frb(init)]
 pub fn init_app() {
@@ -53,4 +53,11 @@ pub fn stream_test(stream: StreamSink<String>) -> Result<()> {
 #[frb(sync)]
 pub fn traditional_to_simplified(text: &str) -> String {
     decode::traditional_to_simplified(text)
+}
+
+#[frb]
+pub async fn rust_calls_dart(dart_callback: impl Fn(String) -> DartFnFuture<String>) -> String {
+    let name = "Tom".to_owned();
+    let dart_reply = dart_callback(name).await;
+    format!("Rust 收到 Dart 回调: {dart_reply}")
 }

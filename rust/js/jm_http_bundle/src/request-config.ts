@@ -1,6 +1,6 @@
-import { nowTs, toQueryString } from "./utils";
 import { setJwtToken } from "./state";
 import type { JmRequestConfig, RequestPayload } from "./types";
+import { nowTs, toQueryString } from "./utils";
 
 export function buildRequestConfig(input: RequestPayload): {
   config: JmRequestConfig;
@@ -23,7 +23,8 @@ export function buildRequestConfig(input: RequestPayload): {
     body = toQueryString(input.formData);
     headers["content-type"] = "application/x-www-form-urlencoded";
   } else if (method === "POST" && typeof body === "string") {
-    headers["content-type"] = headers["content-type"] || "application/x-www-form-urlencoded";
+    headers["content-type"] =
+      headers["content-type"] || "application/x-www-form-urlencoded";
   }
 
   const cacheEnabled = input.cache === true;

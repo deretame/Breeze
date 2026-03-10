@@ -11,7 +11,7 @@ async fn qjs_runtime() -> Result<&'static AsyncHostRuntime> {
     QJS_RUNTIME
         .get_or_try_init(|| async {
             tracing::info!("新建了一个qjs实例");
-            let runtime = AsyncHostRuntime::new(false).map_err(|err| anyhow!(err))?;
+            let runtime = AsyncHostRuntime::new(false, "jm").map_err(|err| anyhow!(err))?;
             let init_script = r#"(async () => {
                     return "ok";
             })()"#;

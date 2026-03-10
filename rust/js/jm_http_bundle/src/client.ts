@@ -1,9 +1,16 @@
 import type { AxiosResponse } from "axios";
 import axios from "axios";
-import { JM_VERSION } from "./constants";
 import { decodeResponsePayload } from "./codec";
+import { JM_VERSION } from "./constants";
 import { resolveServerMessage, toFriendlyError } from "./errors";
-import { cacheKeyFromConfig, getCachedResponse, getJwtToken, getUserAgent, setCachedResponse, setJwtToken } from "./state";
+import {
+  cacheKeyFromConfig,
+  getCachedResponse,
+  getJwtToken,
+  getUserAgent,
+  setCachedResponse,
+  setJwtToken,
+} from "./state";
 import type { JmMeta, JmRequestConfig } from "./types";
 import { getHost, md5Hex, nowTs } from "./utils";
 
@@ -83,11 +90,17 @@ export function createJmClient() {
         return response;
       }
 
-      const decoded = await decodeResponsePayload(response.data, meta?.ts || nowTs());
+      const decoded = await decodeResponsePayload(
+        response.data,
+        meta?.ts || nowTs(),
+      );
       const status = Number(response.status || 0);
 
       if (status < 200 || status >= 300) {
-        const serverMsg = resolveServerMessage(decoded, `服务器响应异常 (${status || "unknown"})`);
+        const serverMsg = resolveServerMessage(
+          decoded,
+          `服务器响应异常 (${status || "unknown"})`,
+        );
         if (status === 401 || serverMsg === "請先登入會員") {
           throw new Error("登录过期，请重新登录");
         }
@@ -95,13 +108,18 @@ export function createJmClient() {
       }
 
       if (decoded && typeof decoded === "object" && !Array.isArray(decoded)) {
-        const nextJwt = String((decoded as Record<string, unknown>).jwttoken || "").trim();
+        const nextJwt = String(
+          (decoded as Record<string, unknown>).jwttoken || "",
+        ).trim();
         if (nextJwt) {
           setJwtToken(nextJwt);
         }
       }
 
-      if (meta?.cacheEnabled && String(cfg.method || "GET").toUpperCase() === "GET") {
+      if (
+        meta?.cacheEnabled &&
+        String(cfg.method || "GET").toUpperCase() === "GET"
+      ) {
         setCachedResponse(
           {
             method: String(cfg.method || "GET").toUpperCase(),

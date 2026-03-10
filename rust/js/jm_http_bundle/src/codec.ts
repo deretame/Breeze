@@ -30,7 +30,10 @@ function bytesToUtf8(bytes: Uint8Array): string {
   }
 }
 
-async function decryptDataField(payload: string, ts: string): Promise<unknown | null> {
+async function decryptDataField(
+  payload: string,
+  ts: string,
+): Promise<unknown | null> {
   const tsRaw = String(ts || "").trim();
   if (!tsRaw) {
     return null;
@@ -58,7 +61,11 @@ function normalizeRawResponse(raw: unknown): unknown {
   }
 
   if (ArrayBuffer.isView(raw)) {
-    return bytesToUtf8(maybeGunzipBytes(new Uint8Array(raw.buffer, raw.byteOffset, raw.byteLength)));
+    return bytesToUtf8(
+      maybeGunzipBytes(
+        new Uint8Array(raw.buffer, raw.byteOffset, raw.byteLength),
+      ),
+    );
   }
 
   return raw;
@@ -82,7 +89,12 @@ async function decodeValue(value: unknown, ts: string): Promise<unknown> {
   }
 
   if (value && typeof value === "object") {
-    const obj = Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([k, v]) => [String(k), v]));
+    const obj = Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([k, v]) => [
+        String(k),
+        v,
+      ]),
+    );
     const dataField = obj.data;
     if (typeof dataField === "string" && dataField.trim()) {
       const decrypted = await decryptDataField(dataField.trim(), ts);
@@ -101,6 +113,9 @@ async function decodeValue(value: unknown, ts: string): Promise<unknown> {
   return value;
 }
 
-export async function decodeResponsePayload(raw: unknown, ts: string): Promise<unknown> {
+export async function decodeResponsePayload(
+  raw: unknown,
+  ts: string,
+): Promise<unknown> {
   return decodeValue(normalizeRawResponse(raw), ts);
 }

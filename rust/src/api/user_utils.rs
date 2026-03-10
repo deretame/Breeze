@@ -19,6 +19,8 @@ fn setup_log_to_console() {
             #[allow(unused_imports)]
             use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 
+            use crate::api::logger::BoxedFormatter;
+
             let filter = EnvFilter::try_from_default_env()
                 .unwrap_or_else(|_| EnvFilter::new(default_log_level()));
 
@@ -34,12 +36,7 @@ fn setup_log_to_console() {
                     .with(
                         fmt::layer()
                             .with_writer(writer)
-                            .with_ansi(false)
-                            .with_target(true)
-                            .with_line_number(true)
-                            .with_thread_ids(true)
-                            .with_file(true)
-                            .with_thread_names(true),
+                            .event_format(BoxedFormatter { with_ansi: false }),
                     )
                     .try_init();
 
@@ -51,14 +48,7 @@ fn setup_log_to_console() {
             {
                 let _ = tracing_subscriber::registry()
                     .with(filter)
-                    .with(
-                        fmt::layer()
-                            .with_target(true)
-                            .with_line_number(true)
-                            .with_thread_ids(true)
-                            .with_file(true)
-                            .with_thread_names(true),
-                    )
+                    .with(fmt::layer().event_format(BoxedFormatter { with_ansi: true }))
                     .try_init();
                 tracing::info!("Tracing initialized (iOS/macOS)");
                 return;
@@ -68,14 +58,7 @@ fn setup_log_to_console() {
             {
                 let _ = tracing_subscriber::registry()
                     .with(filter)
-                    .with(
-                        fmt::layer()
-                            .with_target(true)
-                            .with_line_number(true)
-                            .with_thread_ids(false)
-                            .with_file(true)
-                            .with_thread_names(false),
-                    )
+                    .with(fmt::layer().event_format(BoxedFormatter { with_ansi: false }))
                     .try_init();
                 tracing::info!("Tracing initialized (WASM)");
                 return;
@@ -90,14 +73,7 @@ fn setup_log_to_console() {
             {
                 let _ = tracing_subscriber::registry()
                     .with(filter)
-                    .with(
-                        fmt::layer()
-                            .with_target(true)
-                            .with_line_number(true)
-                            .with_thread_ids(true)
-                            .with_file(true)
-                            .with_thread_names(true),
-                    )
+                    .with(fmt::layer().event_format(BoxedFormatter { with_ansi: true }))
                     .try_init();
                 tracing::info!("Tracing initialized (Desktop)");
             }
@@ -107,7 +83,7 @@ fn setup_log_to_console() {
 
 fn default_log_level() -> String {
     if cfg!(debug_assertions) {
-        "debug".to_string()
+        "debug,hyper_util=warn,reqwest=warn".to_string()
     } else {
         "warn".to_string()
     }

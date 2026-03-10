@@ -17,7 +17,7 @@ md5 = "0.8.0"
 base64 = "0.22.1"
 log = "0.4.27"
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 tracing-appender = "0.2"
 env_logger = "0.11.8"
 anyhow = "1.0.98"
@@ -32,6 +32,8 @@ zhconv = "0.4.1"
 lazy_static = "1.5.0"
 flate2 = "1.1.9"
 rquickjs_playground = { path = "../rquickjs_playground" }
+chrono = "0.4.44"
+terminal_size = "0.4.3"
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.15.1"
 tracing-logcat = "0.1.0"

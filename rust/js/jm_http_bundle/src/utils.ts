@@ -25,7 +25,9 @@ export function getHost(url: string): string {
   }
 }
 
-export function toQueryString(input: Record<string, unknown> | undefined): string {
+export function toQueryString(
+  input: Record<string, unknown> | undefined,
+): string {
   if (!input) {
     return "";
   }
@@ -37,11 +39,15 @@ export function toQueryString(input: Record<string, unknown> | undefined): strin
     }
     if (Array.isArray(value)) {
       for (const item of value) {
-        pairs.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(item))}`);
+        pairs.push(
+          `${encodeURIComponent(key)}=${encodeURIComponent(String(item))}`,
+        );
       }
       continue;
     }
-    pairs.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
+    pairs.push(
+      `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`,
+    );
   }
   return pairs.join("&");
 }

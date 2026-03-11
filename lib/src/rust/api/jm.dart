@@ -6,7 +6,33 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `eval_payload`, `qjs_runtime`
+// These functions are ignored because they are not marked as `pub`: `call_bundle_once_inner`, `call_current_bundle_inner`, `call_loaded_bundle_inner`, `current_bundle_name`, `ensure_jm_http_loaded`, `load_bundle_inner`, `parse_args_array`, `qjs_runtime`, `replace_bundle_inner`
+
+Future<void> jmReplaceBundle({
+  required String name,
+  required String bundleJs,
+}) => RustLib.instance.api.crateApiJmJmReplaceBundle(
+  name: name,
+  bundleJs: bundleJs,
+);
+
+Future<String> jmCall({required String fnPath, required String argsJson}) =>
+    RustLib.instance.api.crateApiJmJmCall(fnPath: fnPath, argsJson: argsJson);
+
+Future<String> jmCallOnce({
+  required String bundleJs,
+  required String fnPath,
+  required String argsJson,
+}) => RustLib.instance.api.crateApiJmJmCallOnce(
+  bundleJs: bundleJs,
+  fnPath: fnPath,
+  argsJson: argsJson,
+);
+
+Future<bool> jmClearBundle() => RustLib.instance.api.crateApiJmJmClearBundle();
+
+Future<String> jmCurrentBundle() =>
+    RustLib.instance.api.crateApiJmJmCurrentBundle();
 
 Future<String> jmRequest({required String payloadJson}) =>
     RustLib.instance.api.crateApiJmJmRequest(payloadJson: payloadJson);

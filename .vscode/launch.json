@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "zephyr debug in terminal",
+            "type": "dart",
+            "request": "launch",
+            "flutterMode": "debug",
+            "program": "lib/main.dart",
+            "console": "terminal"
+        }
+    ]
+}

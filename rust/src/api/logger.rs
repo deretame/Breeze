@@ -104,7 +104,7 @@ where
 
         // 拼装首行的左右两部分
         let left_part = format!(
-            "│ #0   {} {}:{}  {:<5} {}",
+            "│ #0   {}:{}:{}  {:<5} {}",
             file,
             line,
             line,

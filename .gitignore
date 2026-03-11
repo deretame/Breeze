@@ -12,7 +12,7 @@
 .swiftpm/
 migrate_working_dir/
 .idea/
-/.vscode/
+.vscode/settings.json
 
 # IntelliJ related
 *.iml

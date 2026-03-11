@@ -2,7 +2,6 @@ package com.zephyr.breeze
 
 import android.app.ActivityManager
 import android.content.Context
-import android.os.Build
 import android.os.Debug
 import android.util.Log
 import android.view.KeyEvent
@@ -30,19 +29,15 @@ class MainActivity: FlutterFragmentActivity() {
 
     override fun createFlutterFragment(): FlutterFragment {
         val shellArgs = FlutterShellArgs.fromIntent(intent)
-        val isAdreno800 = isAdreno800Series()
         val forceEnableImpeller = isForceEnableImpeller()
 
-        if (isAdreno800 && !forceEnableImpeller) {
-            // 针对该硬件强制回退到 Skia（禁用 Impeller）
-            // Adreno 800 系列使用 IMR（立即模式渲染），而非 TBR（瓦片渲染）
-            // 与 Impeller 的渲染路径组合时会出现明显性能下降
+        if (!forceEnableImpeller) {
             shellArgs.add(FlutterShellArgs.ARG_DISABLE_IMPELLER)
-            Log.w(TAG, "Adreno 800 series detected. Disabling Impeller to avoid IMR performance degradation.")
+            Log.i(TAG, "Impeller is disabled by user setting on this device.")
         }
 
-        if (isAdreno800 && forceEnableImpeller) {
-            Log.w(TAG, "Adreno 800 series detected, but force-enable switch is ON. Keeping Impeller enabled.")
+        if (forceEnableImpeller) {
+            Log.i(TAG, "Impeller force-enable switch is ON. Keeping Impeller enabled.")
         }
 
         return FlutterFragment.withNewEngine()
@@ -120,7 +115,7 @@ class MainActivity: FlutterFragmentActivity() {
                     result.success(isForceEnableImpeller())
                 }
                 "isImpellerForceEnableSupported" -> {
-                    result.success(isAdreno800Series())
+                    result.success(true)
                 }
                 else -> result.notImplemented()
             }
@@ -205,38 +200,6 @@ class MainActivity: FlutterFragmentActivity() {
             "processPrivateDirty" to (pmi?.totalPrivateDirty?.toLong()?.times(1024) ?: 0L),
             "processSharedDirty" to (pmi?.totalSharedDirty?.toLong()?.times(1024) ?: 0L)
         )
-    }
-
-    /**
-     * 检测设备是否为 Adreno 800 系列 GPU（骁龙 8 Elite / Gen 5）。
-     * 这类 GPU 使用 IMR（立即模式渲染），与 Impeller 组合时存在性能问题。
-     *
-     * 已知受影响 GPU：
-     * - Adreno 830（骁龙 8 Elite，SM8750）
-     * - Adreno 840（骁龙 8 Gen 5，SM8850，预期）
-     */
-    private fun isAdreno800Series(): Boolean {
-        // 1. 优先检查严格的 SoC 型号（Android 12+）
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val socModel = Build.SOC_MODEL ?: ""
-            // SM8750 = 骁龙 8 Elite（Adreno 830）
-            // SM8850 = 骁龙 8 Gen 5（Adreno 840，预期）
-            if (socModel.contains("SM8750") || socModel.contains("SM8850")) {
-                Log.d(TAG, "Detected Adreno 800 series via SOC_MODEL: $socModel")
-                return true
-            }
-        }
-
-        // 2. 回退检查硬件代号（兼容低版本或 SOC_MODEL 缺失场景）
-        val hardware = Build.HARDWARE ?: ""
-        // "sun" 是骁龙 8 Elite 的代号
-        // "pakala" 也是已知代号之一
-        if (hardware.equals("sun", ignoreCase = true) || hardware.equals("pakala", ignoreCase = true)) {
-            Log.d(TAG, "Detected Adreno 800 series via HARDWARE: $hardware")
-            return true
-        }
-
-        return false
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {

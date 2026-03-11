@@ -27,65 +27,148 @@ async fn qjs_runtime() -> Result<&'static AsyncHostRuntime> {
         .await
 }
 
-async fn eval_payload(runtime: &AsyncHostRuntime, script: String, context: &str) -> Result<Value> {
-    let raw = runtime
-        .spawn(script)
-        .map_err(|err| anyhow!("{context}: {err}"))?
-        .wait_async()
-        .await
-        .map_err(|err| anyhow!("{context}: {err}"))?;
-
-    let payload: Value = serde_json::from_str(&raw).context("解析 JS 返回 JSON 失败")?;
-    if payload.get("ok").and_then(Value::as_bool) == Some(true) {
-        Ok(payload.get("data").cloned().unwrap_or(Value::Null))
-    } else {
-        Err(anyhow!(
-            "{}",
-            payload
-                .get("error")
-                .and_then(Value::as_str)
-                .unwrap_or("执行失败")
-        ))
+fn parse_args_array(args_json: &str) -> Result<Value> {
+    let args: Value = serde_json::from_str(args_json).context("调用参数不是合法 JSON")?;
+    if !args.is_array() {
+        return Err(anyhow!("调用参数必须是 JSON 数组"));
     }
+    Ok(args)
+}
+
+async fn load_bundle_inner(runtime: &AsyncHostRuntime, name: &str, bundle_js: &str) -> Result<()> {
+    runtime
+        .bundle_load(name, bundle_js)
+        .await
+        .map_err(|err| anyhow!("加载 JM bundle 失败: {err}"))
+}
+
+async fn replace_bundle_inner(
+    runtime: &AsyncHostRuntime,
+    name: &str,
+    bundle_js: &str,
+) -> Result<()> {
+    let names = runtime
+        .bundle_list()
+        .await
+        .map_err(|err| anyhow!("读取 bundle 列表失败: {err}"))?;
+
+    for existing in names {
+        if existing != name {
+            runtime
+                .bundle_unload(&existing)
+                .await
+                .map_err(|err| anyhow!("卸载旧 bundle 失败({existing}): {err}"))?;
+        }
+    }
+
+    load_bundle_inner(runtime, name, bundle_js).await
+}
+
+async fn call_loaded_bundle_inner(
+    runtime: &AsyncHostRuntime,
+    name: &str,
+    fn_path: &str,
+    args: &Value,
+) -> Result<Value> {
+    runtime
+        .bundle_call(name, fn_path, args)
+        .await
+        .map_err(|err| anyhow!("执行已加载 bundle 函数失败: {err}"))
+}
+
+async fn call_current_bundle_inner(
+    runtime: &AsyncHostRuntime,
+    fn_path: &str,
+    args: &Value,
+) -> Result<Value> {
+    let Some(name) = current_bundle_name(runtime).await? else {
+        return Err(anyhow!("当前 runtime 未加载 bundle，请先调用 jm_replace_bundle"));
+    };
+    call_loaded_bundle_inner(runtime, &name, fn_path, args).await
+}
+
+async fn call_bundle_once_inner(
+    runtime: &AsyncHostRuntime,
+    bundle_js: &str,
+    fn_path: &str,
+    args: &Value,
+) -> Result<Value> {
+    runtime
+        .bundle_call_once(bundle_js, fn_path, args)
+        .await
+        .map_err(|err| anyhow!("执行一次性 bundle 调用失败: {err}"))
+}
+
+async fn ensure_jm_http_loaded(runtime: &AsyncHostRuntime) -> Result<()> {
+    let names = runtime
+        .bundle_list()
+        .await
+        .map_err(|err| anyhow!("读取 bundle 列表失败: {err}"))?;
+    if names.iter().any(|name| name == "jm_http") {
+        return Ok(());
+    }
+    replace_bundle_inner(runtime, "jm_http", JM_HTTP_BUNDLE).await
+}
+
+async fn current_bundle_name(runtime: &AsyncHostRuntime) -> Result<Option<String>> {
+    let mut names = runtime
+        .bundle_list()
+        .await
+        .map_err(|err| anyhow!("读取 bundle 列表失败: {err}"))?;
+    if names.is_empty() {
+        return Ok(None);
+    }
+    Ok(Some(names.swap_remove(0)))
+}
+
+#[frb]
+pub async fn jm_replace_bundle(name: String, bundle_js: String) -> Result<()> {
+    let runtime = qjs_runtime().await?;
+    replace_bundle_inner(runtime, &name, &bundle_js).await
+}
+
+#[frb]
+pub async fn jm_call(fn_path: String, args_json: String) -> Result<String> {
+    let runtime = qjs_runtime().await?;
+    let args = parse_args_array(&args_json)?;
+    let data = call_current_bundle_inner(runtime, &fn_path, &args).await?;
+    serde_json::to_string(&data).context("序列化调用结果失败")
+}
+
+#[frb]
+pub async fn jm_call_once(bundle_js: String, fn_path: String, args_json: String) -> Result<String> {
+    let runtime = qjs_runtime().await?;
+    let args = parse_args_array(&args_json)?;
+    let data = call_bundle_once_inner(runtime, &bundle_js, &fn_path, &args).await?;
+    serde_json::to_string(&data).context("序列化一次性调用结果失败")
+}
+
+#[frb]
+pub async fn jm_clear_bundle() -> Result<bool> {
+    let runtime = qjs_runtime().await?;
+    let Some(name) = current_bundle_name(runtime).await? else {
+        return Ok(false);
+    };
+    runtime
+        .bundle_unload(&name)
+        .await
+        .map_err(|err| anyhow!("清空当前 bundle 失败: {err}"))
+}
+
+#[frb]
+pub async fn jm_current_bundle() -> Result<String> {
+    let runtime = qjs_runtime().await?;
+    let current = current_bundle_name(runtime).await?;
+    serde_json::to_string(&current).context("序列化当前 bundle 信息失败")
 }
 
 #[frb]
 pub async fn jm_request(payload_json: String) -> Result<String> {
     let runtime = qjs_runtime().await?;
     let payload: Value = serde_json::from_str(&payload_json).context("请求参数不是合法 JSON")?;
-    let bundle_literal = serde_json::to_string(JM_HTTP_BUNDLE).context("序列化 JM bundle 失败")?;
-    let payload_literal = serde_json::to_string(&payload).context("序列化请求参数失败")?;
-
-    let script = format!(
-        r#"
-        (async () => {{
-          try {{
-            const source = {bundle_literal};
-            const module = {{ exports: {{}} }};
-            const exports = module.exports;
-            const requireFn = typeof require === "function" ? require.bind(globalThis) : undefined;
-            const runner = new Function("module", "exports", "require", source);
-            runner(module, exports, requireFn);
-
-            let api = module.exports;
-            if (api && typeof api === "object" && api.default !== undefined) {{
-              api = api.default;
-            }}
-            if (!api || typeof api.request !== "function") {{
-              throw new TypeError("JM HTTP bundle 必须导出 request 函数");
-            }}
-            const req = {payload_literal};
-            const data = await api.request(req);
-            return JSON.stringify({{ ok: true, data }});
-          }} catch (err) {{
-            const message = String(err && (err.stack || err.message) ? (err.stack || err.message) : err);
-            return JSON.stringify({{ ok: false, error: message }});
-          }}
-        }})()
-        "#
-    );
-
-    let data = eval_payload(runtime, script, "执行 JM 请求失败").await?;
+    ensure_jm_http_loaded(runtime).await?;
+    let args = Value::Array(vec![payload]);
+    let data = call_current_bundle_inner(runtime, "request", &args).await?;
     serde_json::to_string(&data).context("序列化 JM 响应失败")
 }
 

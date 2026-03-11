@@ -7,7 +7,6 @@
             "request": "launch",
             "flutterMode": "debug",
             "program": "lib/main.dart",
-            "console": "terminal"
         }
     ]
 }

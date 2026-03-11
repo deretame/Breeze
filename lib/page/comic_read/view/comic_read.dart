@@ -11,6 +11,7 @@ import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_read/comic_read.dart';
+import 'package:zephyr/page/comic_read/cubit/image_size_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_state.dart';
 import 'package:zephyr/page/comic_read/method/key.dart';
@@ -174,6 +175,8 @@ class _ComicReadPageState extends State<_ComicReadPage>
           case PageStatus.success:
             epInfo = state.epInfo!;
             return ComicReadSuccessWidget(
+              comicId: comicId,
+              from: widget.from,
               epInfo: epInfo,
               buildInteractiveViewer: (_) => _buildInteractiveViewer(),
               buildPageCount: (_) => _pageCountWidget(),
@@ -204,6 +207,16 @@ class _ComicReadPageState extends State<_ComicReadPage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _scheduleSystemUiSync(delay: const Duration(milliseconds: 80));
+      return;
+    }
+
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      final imageContext = _imageSizeContext;
+      if (imageContext != null && imageContext.mounted) {
+        unawaited(imageContext.read<ImageSizeCubit>().flushNow());
+      }
     }
   }
 

@@ -27,7 +27,6 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   final Map<String, int> systemTheme = {"跟随系统": 0, "浅色模式": 1, "深色模式": 2};
   final List<String> splashPageList = ["首页", "排行", "书架", "更多"];
   final Map<String, int> splashPage = {"首页": 0, "排行": 1, "书架": 2, "更多": 3};
-  bool _impellerForceEnableSupported = false;
 
   @override
   void initState() {
@@ -49,10 +48,6 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
         (current) => current.copyWith(forceEnableImpeller: forceEnableImpeller),
       );
     }
-
-    setState(() {
-      _impellerForceEnableSupported = supported;
-    });
   }
 
   @override
@@ -116,7 +111,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
             icon: Icons.bug_report_outlined,
             children: [
               _enableMemoryDebug(state, globalSettingCubit),
-              _forceEnableImpeller(state, globalSettingCubit),
+              if (defaultTargetPlatform == TargetPlatform.android)
+                _forceEnableImpeller(state, globalSettingCubit),
               if (kDebugMode) ...[
                 ListTile(
                   leading: const Icon(Icons.colorize_outlined),
@@ -125,15 +121,6 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     AutoRouter.of(context).push(ShowColorRoute());
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.login_outlined),
-                  title: const Text('测试禁漫登录'),
-                  subtitle: const Text('进入登录流程，验证账号状态'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () async {
-                    // jmSetting.deleteUserInfo();
                   },
                 ),
               ],
@@ -403,26 +390,19 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     GlobalSettingState state,
     GlobalSettingCubit cubit,
   ) {
-    final supported = _impellerForceEnableSupported;
     return SwitchListTile(
       secondary: const Icon(Icons.auto_awesome_outlined),
-      title: const Text('强制开启 Impeller'),
-      subtitle: Text(
-        supported
-            ? '仅对 Adreno 800 系列生效；开启后强制启用 Impeller，重启生效'
-            : '当前设备不是 Adreno 800 系列，此开关无效',
-      ),
+      title: const Text('启用 Impeller'),
+      subtitle: const Text('开启=启用，关闭=禁用；重启生效'),
       thumbIcon: kSettingSwitchThumbIcon,
-      value: supported && state.forceEnableImpeller,
-      onChanged: supported
-          ? (bool value) async {
-              cubit.updateState(
-                (current) => current.copyWith(forceEnableImpeller: value),
-              );
-              await ImpellerConfig.setForceEnableImpeller(value);
-              showSuccessToast('设置成功，重启生效');
-            }
-          : null,
+      value: state.forceEnableImpeller,
+      onChanged: (bool value) async {
+        cubit.updateState(
+          (current) => current.copyWith(forceEnableImpeller: value),
+        );
+        await ImpellerConfig.setForceEnableImpeller(value);
+        showSuccessToast('设置成功，重启生效');
+      },
     );
   }
 }

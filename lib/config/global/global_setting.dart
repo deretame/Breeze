@@ -85,6 +85,7 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(1) int comicChoice,
     @Default(false) bool disableBika,
     @Default(false) bool enableMemoryDebug,
+    @Default(false) bool forceEnableImpeller,
     @Default(true) bool updateAccelerate,
     @Default([]) List<String> searchHistory,
     @Default(1280.0) double windowWidth,

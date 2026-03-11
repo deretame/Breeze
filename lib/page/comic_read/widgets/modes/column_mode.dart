@@ -5,14 +5,12 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_read/controller/reader_volume_controller.dart';
 import 'package:zephyr/page/comic_read/cubit/image_size_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
-import 'package:zephyr/page/comic_read/widgets/read_image_widget.dart';
+import 'package:zephyr/page/comic_read/json/common_ep_info_json/common_ep_info_json.dart';
+import 'package:zephyr/page/comic_read/widgets/image/read_image_widget.dart';
+import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-
-import '../../../config/global/global.dart';
-import '../../../type/enum.dart';
-import '../../../widgets/picture_bloc/models/picture_info.dart';
-import '../json/common_ep_info_json/common_ep_info_json.dart';
-import 'read_layout.dart';
+import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
 
 class ColumnModeWidget extends StatefulWidget {
   final int length;
@@ -101,27 +99,14 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
           );
         }
 
-        if (useSkia) {
-          listView = ListView.separated(
-            padding: EdgeInsets.only(top: topPadding, bottom: bottomPadding),
-            physics: physics,
-            itemCount: widget.length,
-            itemBuilder: currentItemBuilder,
-            separatorBuilder: (_, _) =>
-                Container(height: 2, color: backgroundColor),
-            cacheExtent: context.screenHeight * 2,
-            controller: widget.scrollController,
-          );
-        } else {
-          listView = ListView.builder(
-            padding: EdgeInsets.only(top: topPadding, bottom: bottomPadding),
-            physics: physics,
-            itemCount: widget.length,
-            itemBuilder: currentItemBuilder,
-            cacheExtent: context.screenHeight * 2,
-            controller: widget.scrollController,
-          );
-        }
+        listView = ListView.builder(
+          padding: EdgeInsets.only(top: topPadding, bottom: bottomPadding),
+          physics: physics,
+          itemCount: widget.length,
+          itemBuilder: currentItemBuilder,
+          cacheExtent: context.screenHeight * 2,
+          controller: widget.scrollController,
+        );
 
         return ListViewObserver(
           controller: widget.observerController,

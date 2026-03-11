@@ -4,7 +4,6 @@
 // 用于在不同页面之间传递数据
 import 'package:flutter/cupertino.dart';
 
-bool useSkia = false;
 final String appName = 'Breeze';
 
 late GlobalBIkaProfile globalBikaProfile;

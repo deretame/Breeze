@@ -6,15 +6,14 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_read/controller/reader_volume_controller.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
+import 'package:zephyr/page/comic_read/json/common_ep_info_json/common_ep_info_json.dart';
 import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
-import 'package:zephyr/page/comic_read/widgets/button_dialog.dart';
-import 'package:zephyr/page/comic_read/widgets/read_image_widget.dart';
+import 'package:zephyr/page/comic_read/widgets/dialogs/button_dialog.dart';
+import 'package:zephyr/page/comic_read/widgets/image/read_image_widget.dart';
+import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-
-import '../../../type/enum.dart';
-import '../../../widgets/picture_bloc/models/picture_info.dart';
-import '../json/common_ep_info_json/common_ep_info_json.dart';
-import 'read_layout.dart';
+import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
 
 class RowModeWidget extends StatefulWidget {
   final List<Doc> docs;

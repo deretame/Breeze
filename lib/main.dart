@@ -212,14 +212,6 @@ _initServices() async {
     ]);
   }
 
-  // 用来判断要不要使用skia
-  const skia = String.fromEnvironment('use_skia', defaultValue: 'false');
-  if (skia == 'true') {
-    useSkia = true;
-  } else {
-    useSkia = false;
-  }
-
   objectbox = await ObjectBox.create();
 
   final setting = objectbox.userSettingBox.get(1);

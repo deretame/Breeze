@@ -40,6 +40,7 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
   comicChoice: (json['comicChoice'] as num?)?.toInt() ?? 1,
   disableBika: json['disableBika'] as bool? ?? false,
   enableMemoryDebug: json['enableMemoryDebug'] as bool? ?? false,
+  forceEnableImpeller: json['forceEnableImpeller'] as bool? ?? false,
   updateAccelerate: json['updateAccelerate'] as bool? ?? true,
   searchHistory:
       (json['searchHistory'] as List<dynamic>?)
@@ -76,6 +77,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'comicChoice': instance.comicChoice,
       'disableBika': instance.disableBika,
       'enableMemoryDebug': instance.enableMemoryDebug,
+      'forceEnableImpeller': instance.forceEnableImpeller,
       'updateAccelerate': instance.updateAccelerate,
       'searchHistory': instance.searchHistory,
       'windowWidth': instance.windowWidth,

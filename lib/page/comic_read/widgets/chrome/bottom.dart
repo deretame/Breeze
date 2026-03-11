@@ -13,11 +13,11 @@ import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../main.dart';
-import '../../../type/enum.dart';
-import '../../../util/router/router.dart';
-import '../../../util/router/router.gr.dart';
-import 'reader_settings_sheet.dart';
+import 'package:zephyr/main.dart';
+import 'package:zephyr/page/comic_read/widgets/settings/reader_settings_sheet.dart';
+import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/router/router.dart';
+import 'package:zephyr/util/router/router.gr.dart';
 
 class BottomWidget extends StatefulWidget {
   final ComicEntryType type;

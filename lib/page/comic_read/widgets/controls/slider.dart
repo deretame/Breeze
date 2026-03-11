@@ -8,10 +8,10 @@ import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_read/cubit/image_size_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
-import 'package:zephyr/page/comic_read/widgets/read_layout.dart';
+import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../main.dart';
+import 'package:zephyr/main.dart';
 
 class SliderWidget extends StatefulWidget {
   final ListObserverController observerController;

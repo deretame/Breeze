@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
-import 'package:zephyr/page/comic_read/widgets/read_layout.dart';
+import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
 
 class PageCountWidget extends StatefulWidget {
   final String epPages;

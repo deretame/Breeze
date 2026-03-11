@@ -6,6 +6,7 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/sync/sync_service.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/impeller_config.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../util/event/event.dart';
@@ -26,6 +27,33 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   final Map<String, int> systemTheme = {"跟随系统": 0, "浅色模式": 1, "深色模式": 2};
   final List<String> splashPageList = ["首页", "排行", "书架", "更多"];
   final Map<String, int> splashPage = {"首页": 0, "排行": 1, "书架": 2, "更多": 3};
+  bool _impellerForceEnableSupported = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadImpellerConfig();
+  }
+
+  Future<void> _loadImpellerConfig() async {
+    final supported = await ImpellerConfig.isForceEnableSupported();
+    final forceEnableImpeller = supported
+        ? await ImpellerConfig.getForceEnableImpeller()
+        : false;
+
+    if (!mounted) return;
+
+    final cubit = context.read<GlobalSettingCubit>();
+    if (cubit.state.forceEnableImpeller != forceEnableImpeller) {
+      cubit.updateState(
+        (current) => current.copyWith(forceEnableImpeller: forceEnableImpeller),
+      );
+    }
+
+    setState(() {
+      _impellerForceEnableSupported = supported;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,13 +109,15 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               _disableBika(state, globalSettingCubit),
             ],
           ),
-          if (kDebugMode) ...[
-            const SizedBox(height: 12),
-            SettingSectionCard(
-              title: '调试',
-              icon: Icons.bug_report_outlined,
-              children: [
-                _enableMemoryDebug(state, globalSettingCubit),
+
+          const SizedBox(height: 12),
+          SettingSectionCard(
+            title: '调试',
+            icon: Icons.bug_report_outlined,
+            children: [
+              _enableMemoryDebug(state, globalSettingCubit),
+              _forceEnableImpeller(state, globalSettingCubit),
+              if (kDebugMode) ...[
                 ListTile(
                   leading: const Icon(Icons.colorize_outlined),
                   title: const Text('整点颜色看看'),
@@ -107,8 +137,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                   },
                 ),
               ],
-            ),
-          ],
+            ],
+          ),
         ],
       ),
     );
@@ -366,6 +396,33 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           (current) => current.copyWith(enableMemoryDebug: value),
         );
       },
+    );
+  }
+
+  Widget _forceEnableImpeller(
+    GlobalSettingState state,
+    GlobalSettingCubit cubit,
+  ) {
+    final supported = _impellerForceEnableSupported;
+    return SwitchListTile(
+      secondary: const Icon(Icons.auto_awesome_outlined),
+      title: const Text('强制开启 Impeller'),
+      subtitle: Text(
+        supported
+            ? '仅对 Adreno 800 系列生效；开启后强制启用 Impeller，重启生效'
+            : '当前设备不是 Adreno 800 系列，此开关无效',
+      ),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: supported && state.forceEnableImpeller,
+      onChanged: supported
+          ? (bool value) async {
+              cubit.updateState(
+                (current) => current.copyWith(forceEnableImpeller: value),
+              );
+              await ImpellerConfig.setForceEnableImpeller(value);
+              showSuccessToast('设置成功，重启生效');
+            }
+          : null,
     );
   }
 }

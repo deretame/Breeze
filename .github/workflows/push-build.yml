@@ -20,6 +20,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: 克隆 rquickjs_playground
+        run: git clone https://github.com/deretame/rquickjs_playground.git
+
       - name: 释放空间 (Nuclear Mode)
         run: |
           sudo rm -rf /opt/hostedtoolcache /usr/local/lib/android /usr/share/dotnet /opt/codeql
@@ -85,9 +88,6 @@ jobs:
           workspaces: |
             rust
 
-      - name: 克隆 rquickjs_playground
-        run: git clone https://github.com/deretame/rquickjs_playground.git
-
       - name: 构建 JM JS Bundle
         run: |
           pnpm install --frozen-lockfile --dir rust/js/jm_http_bundle
@@ -142,6 +142,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: 克隆 rquickjs_playground
+        run: git clone https://github.com/deretame/rquickjs_playground.git
+
       - name: 设置 Java 21
         uses: actions/setup-java@v4
         with:
@@ -190,9 +193,6 @@ jobs:
           workspaces: |
             rust
 
-      - name: 克隆 rquickjs_playground
-        run: git clone https://github.com/deretame/rquickjs_playground.git
-
       - name: 构建 JM JS Bundle
         run: |
           pnpm install --frozen-lockfile --dir rust/js/jm_http_bundle
@@ -223,6 +223,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: 克隆 rquickjs_playground
+        run: git clone https://github.com/deretame/rquickjs_playground.git
+
       - name: 设置 Java 21
         uses: actions/setup-java@v4
         with:
@@ -247,9 +250,6 @@ jobs:
           workspaces: |
             rust
             windows-installer/src-tauri
-
-      - name: 克隆 rquickjs_playground
-        run: git clone https://github.com/deretame/rquickjs_playground.git
 
       - name: 设置 Node.js & pnpm
         uses: pnpm/action-setup@v4
@@ -289,6 +289,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: 克隆 rquickjs_playground
+        run: git clone https://github.com/deretame/rquickjs_playground.git
+
       - name: 安装打包依赖 (create-dmg)
         run: brew install create-dmg
 
@@ -313,9 +316,6 @@ jobs:
         with:
           workspaces: |
             rust
-
-      - name: 克隆 rquickjs_playground
-        run: git clone https://github.com/deretame/rquickjs_playground.git
 
       - name: 设置 pnpm
         uses: pnpm/action-setup@v4
@@ -382,6 +382,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: 克隆 rquickjs_playground
+        run: git clone https://github.com/deretame/rquickjs_playground.git
+
       - name: 设置 Dart SDK
         uses: dart-lang/setup-dart@v1
 
@@ -403,9 +406,6 @@ jobs:
         with:
           workspaces: |
             rust
-
-      - name: 克隆 rquickjs_playground
-        run: git clone https://github.com/deretame/rquickjs_playground.git
 
       - name: 设置 pnpm
         uses: pnpm/action-setup@v4

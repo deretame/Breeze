@@ -46,6 +46,7 @@ jobs:
         with:
           distribution: "temurin"
           java-version: "21"
+          cache: "gradle"
 
       - name: 设置 Android SDK
         uses: android-actions/setup-android@v3
@@ -61,6 +62,11 @@ jobs:
           fvm install && fvm use --force
           echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
 
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: 设置 Node.js
         uses: actions/setup-node@v4
         with:
@@ -68,15 +74,16 @@ jobs:
           cache: "pnpm"
           cache-dependency-path: rust/js/jm_http_bundle/pnpm-lock.yaml
 
-      - name: 设置 pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
       - name: 安装 Rust (Android 目标)
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android
+
+      - name: 缓存 Rust 构建产物
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            rust
 
       - name: 克隆 rquickjs_playground
         run: git clone https://github.com/deretame/rquickjs_playground.git
@@ -91,6 +98,12 @@ jobs:
         run: |
           NDK_VER=$(grep "ndkVersion" android/app/build.gradle.kts | awk -F'"' '{print $2}')
           echo "ndk_version=$NDK_VER" >> $GITHUB_OUTPUT
+
+      - name: 缓存 Android NDK
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/lib/android/sdk/ndk/${{ steps.ndk-config.outputs.ndk_version }}
+          key: ${{ runner.os }}-android-ndk-${{ steps.ndk-config.outputs.ndk_version }}
 
       - name: 安装 Android NDK
         run: yes | sdkmanager "ndk;${{ steps.ndk-config.outputs.ndk_version }}"
@@ -153,6 +166,11 @@ jobs:
           fvm install && fvm use --force
           echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
 
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: 设置 Node.js
         uses: actions/setup-node@v4
         with:
@@ -160,16 +178,17 @@ jobs:
           cache: "pnpm"
           cache-dependency-path: rust/js/jm_http_bundle/pnpm-lock.yaml
 
-      - name: 设置 pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
       - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
           targets: x86_64-unknown-linux-gnu
+
+      - name: 缓存 Rust 构建产物
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            rust
 
       - name: 克隆 rquickjs_playground
         run: git clone https://github.com/deretame/rquickjs_playground.git
@@ -221,6 +240,13 @@ jobs:
 
       - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
+
+      - name: 缓存 Rust/Tauri 构建产物
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            rust
+            windows-installer/src-tauri
 
       - name: 克隆 rquickjs_playground
         run: git clone https://github.com/deretame/rquickjs_playground.git
@@ -282,8 +308,19 @@ jobs:
         with:
           targets: aarch64-apple-darwin, x86_64-apple-darwin
 
+      - name: 缓存 Rust 构建产物
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            rust
+
       - name: 克隆 rquickjs_playground
         run: git clone https://github.com/deretame/rquickjs_playground.git
+
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - name: 设置 Node.js
         uses: actions/setup-node@v4
@@ -291,11 +328,6 @@ jobs:
           node-version: 22
           cache: "pnpm"
           cache-dependency-path: rust/js/jm_http_bundle/pnpm-lock.yaml
-
-      - name: 设置 pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: 构建 JM JS Bundle
         run: |
@@ -366,8 +398,19 @@ jobs:
         with:
           targets: aarch64-apple-ios
 
+      - name: 缓存 Rust 构建产物
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            rust
+
       - name: 克隆 rquickjs_playground
         run: git clone https://github.com/deretame/rquickjs_playground.git
+
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - name: 设置 Node.js
         uses: actions/setup-node@v4
@@ -375,11 +418,6 @@ jobs:
           node-version: 22
           cache: "pnpm"
           cache-dependency-path: rust/js/jm_http_bundle/pnpm-lock.yaml
-
-      - name: 设置 pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: 构建 JM JS Bundle
         run: |

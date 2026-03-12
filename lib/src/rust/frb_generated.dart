@@ -3,7 +3,7 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
-import 'api/jm.dart';
+import 'api/js.dart';
 import 'api/memory.dart';
 import 'api/simple.dart';
 import 'api/system.dart';
@@ -72,7 +72,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => 52977896;
+  int get rustContentHash => 1528561989;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -97,27 +97,7 @@ abstract class RustLibApi extends BaseApi {
 
   Future<void> crateApiSimpleInitApp();
 
-  Future<String> crateApiJmJmCall({
-    required String fnPath,
-    required String argsJson,
-  });
-
-  Future<String> crateApiJmJmCallOnce({
-    required String bundleJs,
-    required String fnPath,
-    required String argsJson,
-  });
-
-  Future<bool> crateApiJmJmClearBundle();
-
-  Future<String> crateApiJmJmCurrentBundle();
-
-  Future<void> crateApiJmJmReplaceBundle({
-    required String name,
-    required String bundleJs,
-  });
-
-  Future<String> crateApiJmJmRequest({required String payloadJson});
+  Future<String> crateApiJsJmRequest({required String payloadJson});
 
   Future<void> crateApiSimplePackFolder({
     required String destPath,
@@ -127,6 +107,47 @@ abstract class RustLibApi extends BaseApi {
   Future<void> crateApiSimplePackFolderZip({
     required String destPath,
     required PackInfo packInfo,
+  });
+
+  Future<String> crateApiJsQjsCall({
+    required String runtimeName,
+    required String fnPath,
+    required String argsJson,
+  });
+
+  Future<bool> crateApiJsQjsCallCancel({
+    required String runtimeName,
+    required BigInt taskId,
+  });
+
+  Future<String> crateApiJsQjsCallOnce({
+    required String runtimeName,
+    required String bundleJs,
+    required String fnPath,
+    required String argsJson,
+  });
+
+  Future<BigInt> crateApiJsQjsCallStart({
+    required String runtimeName,
+    required String fnPath,
+    required String argsJson,
+  });
+
+  Future<String> crateApiJsQjsCallWait({
+    required String runtimeName,
+    required BigInt taskId,
+  });
+
+  Future<bool> crateApiJsQjsClearBundle({required String runtimeName});
+
+  Future<String> crateApiJsQjsCurrentBundle({required String runtimeName});
+
+  Future<bool> crateApiJsQjsDropRuntime({required String runtimeName});
+
+  Future<void> crateApiJsQjsReplaceBundle({
+    required String runtimeName,
+    required String bundleName,
+    required String bundleJs,
   });
 
   Future<void> crateApiMemoryResetRustMemoryStats();
@@ -143,7 +164,7 @@ abstract class RustLibApi extends BaseApi {
 
   Stream<String> crateApiSimpleStreamTest();
 
-  Future<String> crateApiJmTestHelloWorld();
+  Future<String> crateApiJsTestHelloWorld();
 
   String crateApiSimpleTraditionalToSimplified({required String text});
 
@@ -339,16 +360,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "init_app", argNames: []);
 
   @override
-  Future<String> crateApiJmJmCall({
-    required String fnPath,
-    required String argsJson,
-  }) {
+  Future<String> crateApiJsJmRequest({required String payloadJson}) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(fnPath, serializer);
-          sse_encode_String(argsJson, serializer);
+          sse_encode_String(payloadJson, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -360,168 +377,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeSuccessData: sse_decode_String,
           decodeErrorData: sse_decode_AnyhowException,
         ),
-        constMeta: kCrateApiJmJmCallConstMeta,
-        argValues: [fnPath, argsJson],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiJmJmCallConstMeta => const TaskConstMeta(
-    debugName: "jm_call",
-    argNames: ["fnPath", "argsJson"],
-  );
-
-  @override
-  Future<String> crateApiJmJmCallOnce({
-    required String bundleJs,
-    required String fnPath,
-    required String argsJson,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(bundleJs, serializer);
-          sse_encode_String(fnPath, serializer);
-          sse_encode_String(argsJson, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 8,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiJmJmCallOnceConstMeta,
-        argValues: [bundleJs, fnPath, argsJson],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiJmJmCallOnceConstMeta => const TaskConstMeta(
-    debugName: "jm_call_once",
-    argNames: ["bundleJs", "fnPath", "argsJson"],
-  );
-
-  @override
-  Future<bool> crateApiJmJmClearBundle() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 9,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_bool,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiJmJmClearBundleConstMeta,
-        argValues: [],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiJmJmClearBundleConstMeta =>
-      const TaskConstMeta(debugName: "jm_clear_bundle", argNames: []);
-
-  @override
-  Future<String> crateApiJmJmCurrentBundle() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 10,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiJmJmCurrentBundleConstMeta,
-        argValues: [],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiJmJmCurrentBundleConstMeta =>
-      const TaskConstMeta(debugName: "jm_current_bundle", argNames: []);
-
-  @override
-  Future<void> crateApiJmJmReplaceBundle({
-    required String name,
-    required String bundleJs,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(name, serializer);
-          sse_encode_String(bundleJs, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 11,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiJmJmReplaceBundleConstMeta,
-        argValues: [name, bundleJs],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiJmJmReplaceBundleConstMeta => const TaskConstMeta(
-    debugName: "jm_replace_bundle",
-    argNames: ["name", "bundleJs"],
-  );
-
-  @override
-  Future<String> crateApiJmJmRequest({required String payloadJson}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(payloadJson, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 12,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiJmJmRequestConstMeta,
+        constMeta: kCrateApiJsJmRequestConstMeta,
         argValues: [payloadJson],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiJmJmRequestConstMeta =>
+  TaskConstMeta get kCrateApiJsJmRequestConstMeta =>
       const TaskConstMeta(debugName: "jm_request", argNames: ["payloadJson"]);
 
   @override
@@ -538,7 +401,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 13,
+            funcId: 8,
             port: port_,
           );
         },
@@ -572,7 +435,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 14,
+            funcId: 9,
             port: port_,
           );
         },
@@ -594,6 +457,310 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<String> crateApiJsQjsCall({
+    required String runtimeName,
+    required String fnPath,
+    required String argsJson,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(runtimeName, serializer);
+          sse_encode_String(fnPath, serializer);
+          sse_encode_String(argsJson, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 10,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiJsQjsCallConstMeta,
+        argValues: [runtimeName, fnPath, argsJson],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiJsQjsCallConstMeta => const TaskConstMeta(
+    debugName: "qjs_call",
+    argNames: ["runtimeName", "fnPath", "argsJson"],
+  );
+
+  @override
+  Future<bool> crateApiJsQjsCallCancel({
+    required String runtimeName,
+    required BigInt taskId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(runtimeName, serializer);
+          sse_encode_u_64(taskId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 11,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_bool,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiJsQjsCallCancelConstMeta,
+        argValues: [runtimeName, taskId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiJsQjsCallCancelConstMeta => const TaskConstMeta(
+    debugName: "qjs_call_cancel",
+    argNames: ["runtimeName", "taskId"],
+  );
+
+  @override
+  Future<String> crateApiJsQjsCallOnce({
+    required String runtimeName,
+    required String bundleJs,
+    required String fnPath,
+    required String argsJson,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(runtimeName, serializer);
+          sse_encode_String(bundleJs, serializer);
+          sse_encode_String(fnPath, serializer);
+          sse_encode_String(argsJson, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 12,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiJsQjsCallOnceConstMeta,
+        argValues: [runtimeName, bundleJs, fnPath, argsJson],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiJsQjsCallOnceConstMeta => const TaskConstMeta(
+    debugName: "qjs_call_once",
+    argNames: ["runtimeName", "bundleJs", "fnPath", "argsJson"],
+  );
+
+  @override
+  Future<BigInt> crateApiJsQjsCallStart({
+    required String runtimeName,
+    required String fnPath,
+    required String argsJson,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(runtimeName, serializer);
+          sse_encode_String(fnPath, serializer);
+          sse_encode_String(argsJson, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 13,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_u_64,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiJsQjsCallStartConstMeta,
+        argValues: [runtimeName, fnPath, argsJson],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiJsQjsCallStartConstMeta => const TaskConstMeta(
+    debugName: "qjs_call_start",
+    argNames: ["runtimeName", "fnPath", "argsJson"],
+  );
+
+  @override
+  Future<String> crateApiJsQjsCallWait({
+    required String runtimeName,
+    required BigInt taskId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(runtimeName, serializer);
+          sse_encode_u_64(taskId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 14,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiJsQjsCallWaitConstMeta,
+        argValues: [runtimeName, taskId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiJsQjsCallWaitConstMeta => const TaskConstMeta(
+    debugName: "qjs_call_wait",
+    argNames: ["runtimeName", "taskId"],
+  );
+
+  @override
+  Future<bool> crateApiJsQjsClearBundle({required String runtimeName}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(runtimeName, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 15,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_bool,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiJsQjsClearBundleConstMeta,
+        argValues: [runtimeName],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiJsQjsClearBundleConstMeta => const TaskConstMeta(
+    debugName: "qjs_clear_bundle",
+    argNames: ["runtimeName"],
+  );
+
+  @override
+  Future<String> crateApiJsQjsCurrentBundle({required String runtimeName}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(runtimeName, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 16,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiJsQjsCurrentBundleConstMeta,
+        argValues: [runtimeName],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiJsQjsCurrentBundleConstMeta => const TaskConstMeta(
+    debugName: "qjs_current_bundle",
+    argNames: ["runtimeName"],
+  );
+
+  @override
+  Future<bool> crateApiJsQjsDropRuntime({required String runtimeName}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(runtimeName, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 17,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_bool,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiJsQjsDropRuntimeConstMeta,
+        argValues: [runtimeName],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiJsQjsDropRuntimeConstMeta => const TaskConstMeta(
+    debugName: "qjs_drop_runtime",
+    argNames: ["runtimeName"],
+  );
+
+  @override
+  Future<void> crateApiJsQjsReplaceBundle({
+    required String runtimeName,
+    required String bundleName,
+    required String bundleJs,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(runtimeName, serializer);
+          sse_encode_String(bundleName, serializer);
+          sse_encode_String(bundleJs, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 18,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiJsQjsReplaceBundleConstMeta,
+        argValues: [runtimeName, bundleName, bundleJs],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiJsQjsReplaceBundleConstMeta => const TaskConstMeta(
+    debugName: "qjs_replace_bundle",
+    argNames: ["runtimeName", "bundleName", "bundleJs"],
+  );
+
+  @override
   Future<void> crateApiMemoryResetRustMemoryStats() {
     return handler.executeNormal(
       NormalTask(
@@ -602,7 +769,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 15,
+            funcId: 19,
             port: port_,
           );
         },
@@ -635,7 +802,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 16,
+            funcId: 20,
             port: port_,
           );
         },
@@ -665,7 +832,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 17,
+            funcId: 21,
             port: port_,
           );
         },
@@ -692,7 +859,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 18,
+            funcId: 22,
             port: port_,
           );
         },
@@ -722,7 +889,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 19,
+              funcId: 23,
               port: port_,
             );
           },
@@ -757,7 +924,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 20,
+              funcId: 24,
               port: port_,
             );
           },
@@ -778,7 +945,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "stream_test", argNames: ["stream"]);
 
   @override
-  Future<String> crateApiJmTestHelloWorld() {
+  Future<String> crateApiJsTestHelloWorld() {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -786,7 +953,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 21,
+            funcId: 25,
             port: port_,
           );
         },
@@ -794,14 +961,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeSuccessData: sse_decode_String,
           decodeErrorData: sse_decode_AnyhowException,
         ),
-        constMeta: kCrateApiJmTestHelloWorldConstMeta,
+        constMeta: kCrateApiJsTestHelloWorldConstMeta,
         argValues: [],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiJmTestHelloWorldConstMeta =>
+  TaskConstMeta get kCrateApiJsTestHelloWorldConstMeta =>
       const TaskConstMeta(debugName: "test_hello_world", argNames: []);
 
   @override
@@ -811,7 +978,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(text, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 22)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 26)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -844,7 +1011,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 23,
+            funcId: 27,
             port: port_,
           );
         },
@@ -877,7 +1044,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 24,
+            funcId: 28,
             port: port_,
           );
         },

@@ -1,4 +1,4 @@
-pub mod jm;
+pub mod js;
 pub mod logger;
 pub mod memory;
 pub mod simple;

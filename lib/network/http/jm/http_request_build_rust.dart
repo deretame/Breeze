@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/jm_error_message.dart';
-import 'package:zephyr/src/rust/api/jm.dart' as rust_jm;
+import 'package:zephyr/src/rust/api/js.dart' as rust_js;
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/event/event.dart';
 
@@ -18,7 +18,7 @@ Future<dynamic> request(
   bool useJwt = true,
 }) async {
   try {
-    final raw = await rust_jm.jmRequest(
+    final raw = await rust_js.jmRequest(
       payloadJson: jsonEncode({
         'path': path,
         'method': method,

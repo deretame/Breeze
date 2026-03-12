@@ -571,3 +571,27 @@ class DownloadTask {
     return jsonEncode(toJson());
   }
 }
+
+@Entity()
+@JsonSerializable()
+class FlushPersistentStore {
+  @Id()
+  int id;
+
+  String name;
+
+  @Property(type: PropertyType.flex)
+  Map<String, dynamic>? data;
+
+  FlushPersistentStore({this.id = 0, required this.name, required this.data});
+
+  Map<String, dynamic> toJson() => _$FlushPersistentStoreToJson(this);
+
+  factory FlushPersistentStore.fromJson(Map<String, dynamic> json) =>
+      _$FlushPersistentStoreFromJson(json);
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+}

@@ -1109,6 +1109,34 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(10, 9050006826711283619),
+    name: 'FlushPersistentStore',
+    lastPropertyId: const obx_int.IdUid(3, 3606324867592962075),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 3342028823562884390),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 7718478056653736549),
+        name: 'name',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 3606324867592962075),
+        name: 'data',
+        type: 13,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -1154,7 +1182,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(9, 1295001450362172173),
+    lastEntityId: const obx_int.IdUid(10, 9050006826711283619),
     lastIndexId: const obx_int.IdUid(4, 931357141992892300),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
@@ -2553,6 +2581,48 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    FlushPersistentStore: obx_int.EntityDefinition<FlushPersistentStore>(
+      model: _entities[7],
+      toOneRelations: (FlushPersistentStore object) => [],
+      toManyRelations: (FlushPersistentStore object) => {},
+      getId: (FlushPersistentStore object) => object.id,
+      setId: (FlushPersistentStore object, int id) {
+        object.id = id;
+      },
+      objectToFB: (FlushPersistentStore object, fb.Builder fbb) {
+        final nameOffset = fbb.writeString(object.name);
+        final dataOffset = object.data == null
+            ? null
+            : fbb.writeListInt8(obx_int.toFlexBuffer(object.data!));
+        fbb.startTable(4);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, nameOffset);
+        fbb.addOffset(2, dataOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final nameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final dataParam = obx_int.flexBufferToMap(buffer, rootOffset, 8);
+        final object = FlushPersistentStore(
+          id: idParam,
+          name: nameParam,
+          data: dataParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -3417,5 +3487,18 @@ class DownloadTask_ {
   /// See [DownloadTask.status].
   static final status = obx.QueryStringProperty<DownloadTask>(
     _entities[6].properties[6],
+  );
+}
+
+/// [FlushPersistentStore] entity fields to define ObjectBox queries.
+class FlushPersistentStore_ {
+  /// See [FlushPersistentStore.id].
+  static final id = obx.QueryIntegerProperty<FlushPersistentStore>(
+    _entities[7].properties[0],
+  );
+
+  /// See [FlushPersistentStore.name].
+  static final name = obx.QueryStringProperty<FlushPersistentStore>(
+    _entities[7].properties[1],
   );
 }

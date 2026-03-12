@@ -9,6 +9,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/bika/pica_client.dart';
 import 'package:zephyr/network/http/jm/jm_client.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
+import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/util/download/cancel_token.dart' as task_cancel;
 
 class _SpeedResult {
@@ -126,6 +127,7 @@ Future<void> enableProxy() async {
       for (var instance in dioInstances) {
         configProxy(instance, proxyUrl);
       }
+      setHttpProxy(proxy: proxyUrl);
       logger.d("🚀 [Debug] 已从 .env.proxy 加载代理: $proxyUrl");
     }
   } catch (e) {

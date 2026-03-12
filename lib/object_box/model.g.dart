@@ -421,3 +421,19 @@ Map<String, dynamic> _$DownloadTaskToJson(DownloadTask instance) =>
       'dbTaskInfo': instance.dbTaskInfo,
       'taskInfo': instance.taskInfo,
     };
+
+FlushPersistentStore _$FlushPersistentStoreFromJson(
+  Map<String, dynamic> json,
+) => FlushPersistentStore(
+  id: (json['id'] as num?)?.toInt() ?? 0,
+  name: json['name'] as String,
+  data: json['data'] as Map<String, dynamic>?,
+);
+
+Map<String, dynamic> _$FlushPersistentStoreToJson(
+  FlushPersistentStore instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'name': instance.name,
+  'data': instance.data,
+};

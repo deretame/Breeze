@@ -26,6 +26,7 @@ import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/network/dio_cache.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
+import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/api/system.dart' as rust_system;
 import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/util/debouncer.dart';
@@ -39,6 +40,7 @@ import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/router/router.dart';
+import 'package:zephyr/util/sundry.dart';
 
 late final ObjectBox objectbox;
 
@@ -219,6 +221,8 @@ _initServices() async {
     objectbox.userSettingBox.put(UserSetting());
   }
 
+  await registerPersistentCallbacks();
+
   final globalSettingCubit = GlobalSettingCubit();
   await globalSettingCubit.initBox();
 
@@ -236,9 +240,9 @@ _initServices() async {
   // logger.d(globalSetting.socks5Proxy);
   if (globalSettingCubit.state.socks5Proxy.isNotEmpty) {
     // proxy -> "SOCKS5/SOCKS4/PROXY username:password@host:port;" or "DIRECT"
-    SocksProxy.initProxy(
-      proxy: 'SOCKS5 ${globalSettingCubit.state.socks5Proxy}',
-    );
+    final proxy = globalSettingCubit.state.socks5Proxy;
+    SocksProxy.initProxy(proxy: 'SOCKS5 $proxy');
+    setSocks5Proxy(proxy: proxy);
   }
 
   return (globalSettingCubit, jmSettingCubit, bikaSettingCubit);

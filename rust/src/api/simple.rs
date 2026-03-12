@@ -1,8 +1,10 @@
 use crate::compressed;
 use crate::decode;
 use crate::frb_generated::StreamSink;
-use anyhow::{Result, anyhow};
-use flutter_rust_bridge::{DartFnFuture, frb};
+use anyhow::anyhow;
+use flutter_rust_bridge::frb;
+
+use crate::api::error::FrbError;
 
 #[frb(init)]
 pub fn init_app() {
@@ -21,39 +23,55 @@ pub fn sleep_test() -> String {
 }
 
 #[frb]
-pub fn anti_obfuscation_picture(image_info: decode::ImageInfo) -> Result<()> {
-    decode::segmentation_picture_to_disk(image_info)
+pub fn anti_obfuscation_picture(
+    image_info: decode::ImageInfo,
+) -> std::result::Result<(), FrbError> {
+    decode::segmentation_picture_to_disk(image_info).map_err(Into::into)
 }
 
 #[frb]
-pub async fn compress_image(image_bytes: Vec<u8>) -> Result<String> {
-    compressed::compress_image(image_bytes).await
+pub async fn compress_image(image_bytes: Vec<u8>) -> std::result::Result<String, FrbError> {
+    compressed::compress_image(image_bytes)
+        .await
+        .map_err(Into::into)
 }
 
 #[frb]
-pub fn zstd_compress_bytes(raw: Vec<u8>, level: i32) -> Result<Vec<u8>> {
-    let encoded = zstd::stream::encode_all(std::io::Cursor::new(raw), level)?;
+pub fn zstd_compress_bytes(raw: Vec<u8>, level: i32) -> std::result::Result<Vec<u8>, FrbError> {
+    let encoded = zstd::stream::encode_all(std::io::Cursor::new(raw), level)
+        .map_err(|err| anyhow!(err.to_string()))?;
     Ok(encoded)
 }
 
 #[frb]
-pub fn zstd_decompress_bytes(encoded: Vec<u8>) -> Result<Vec<u8>> {
-    let decoded = zstd::stream::decode_all(std::io::Cursor::new(encoded))?;
+pub fn zstd_decompress_bytes(encoded: Vec<u8>) -> std::result::Result<Vec<u8>, FrbError> {
+    let decoded = zstd::stream::decode_all(std::io::Cursor::new(encoded))
+        .map_err(|err| anyhow!(err.to_string()))?;
     Ok(decoded)
 }
 
 #[frb]
-pub async fn pack_folder(dest_path: &str, pack_info: compressed::PackInfo) -> Result<()> {
-    compressed::pack_folder_zip(dest_path, pack_info).await
+pub async fn pack_folder(
+    dest_path: &str,
+    pack_info: compressed::PackInfo,
+) -> std::result::Result<(), FrbError> {
+    compressed::pack_folder_zip(dest_path, pack_info)
+        .await
+        .map_err(Into::into)
 }
 
 #[frb]
-pub async fn pack_folder_zip(dest_path: &str, pack_info: compressed::PackInfo) -> Result<()> {
-    compressed::pack_folder_zip(dest_path, pack_info).await
+pub async fn pack_folder_zip(
+    dest_path: &str,
+    pack_info: compressed::PackInfo,
+) -> std::result::Result<(), FrbError> {
+    compressed::pack_folder_zip(dest_path, pack_info)
+        .await
+        .map_err(Into::into)
 }
 
 #[frb]
-pub fn stream_test(stream: StreamSink<String>) -> Result<()> {
+pub fn stream_test(stream: StreamSink<String>) -> std::result::Result<(), FrbError> {
     for i in 0..10 {
         if let Err(e) = stream.add(format!("Hello, World! {}", i)) {
             let _ = stream.add_error(anyhow!("Stream error: {}", e));
@@ -65,11 +83,4 @@ pub fn stream_test(stream: StreamSink<String>) -> Result<()> {
 #[frb(sync)]
 pub fn traditional_to_simplified(text: &str) -> String {
     decode::traditional_to_simplified(text)
-}
-
-#[frb]
-pub async fn rust_calls_dart(dart_callback: impl Fn(String) -> DartFnFuture<String>) -> String {
-    let name = "Tom".to_owned();
-    let dart_reply = dart_callback(name).await;
-    format!("Rust 收到 Dart 回调: {dart_reply}")
 }

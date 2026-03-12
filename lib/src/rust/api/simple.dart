@@ -21,6 +21,17 @@ Future<void> antiObfuscationPicture({required ImageInfo imageInfo}) => RustLib
 Future<String> compressImage({required List<int> imageBytes}) =>
     RustLib.instance.api.crateApiSimpleCompressImage(imageBytes: imageBytes);
 
+Future<Uint8List> zstdCompressBytes({
+  required List<int> raw,
+  required int level,
+}) => RustLib.instance.api.crateApiSimpleZstdCompressBytes(
+  raw: raw,
+  level: level,
+);
+
+Future<Uint8List> zstdDecompressBytes({required List<int> encoded}) =>
+    RustLib.instance.api.crateApiSimpleZstdDecompressBytes(encoded: encoded);
+
 Future<void> packFolder({
   required String destPath,
   required PackInfo packInfo,

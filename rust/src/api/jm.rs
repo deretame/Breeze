@@ -82,7 +82,9 @@ async fn call_current_bundle_inner(
     args: &Value,
 ) -> Result<Value> {
     let Some(name) = current_bundle_name(runtime).await? else {
-        return Err(anyhow!("当前 runtime 未加载 bundle，请先调用 jm_replace_bundle"));
+        return Err(anyhow!(
+            "当前 runtime 未加载 bundle，请先调用 jm_replace_bundle"
+        ));
     };
     call_loaded_bundle_inner(runtime, &name, fn_path, args).await
 }

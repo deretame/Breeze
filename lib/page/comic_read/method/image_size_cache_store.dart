@@ -2,12 +2,20 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as p;
+import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/util/get_path.dart';
 
 class ImageSizeCacheStore {
   static const List<int> _magic = <int>[0x50, 0x53, 0x48, 0x31]; // PSH1
+  static const List<int> _zstdCompressedMagic = <int>[
+    0x50,
+    0x53,
+    0x5a,
+    0x32,
+  ]; // PSZ2 (zstd)
 
   final String sourceTag;
   final List<String> pageKeys;
@@ -78,8 +86,14 @@ class ImageSizeCacheStore {
       builder.add(record.buffer.asUint8List());
     }
 
+    final payload = builder.toBytes();
+    final compressed = await zstdCompressBytes(raw: payload, level: 10);
+    final output = BytesBuilder(copy: false)
+      ..add(_zstdCompressedMagic)
+      ..add(compressed);
+
     final tmpFile = File('$filePath.tmp');
-    await tmpFile.writeAsBytes(builder.toBytes(), flush: true);
+    await tmpFile.writeAsBytes(output.toBytes(), flush: true);
     if (await file.exists()) {
       await file.delete();
     }
@@ -93,12 +107,13 @@ class ImageSizeCacheStore {
       return (recordCount: 0, fileBytes: 0, filePath: filePath);
     }
 
-    final fileBytes = await file.length();
-    final bytes = await file.readAsBytes();
-    if (bytes.length < 8 || !_isMagicMatched(bytes)) {
-      return (recordCount: 0, fileBytes: fileBytes, filePath: filePath);
+    final payload = await _readPayloadOrDelete(file);
+    if (payload == null || !_isPayloadStructValid(payload)) {
+      return (recordCount: 0, fileBytes: 0, filePath: filePath);
     }
-    final data = ByteData.sublistView(bytes);
+
+    final fileBytes = await file.length();
+    final data = ByteData.sublistView(payload);
     final recordCount = data.getUint32(_magic.length, Endian.little);
     return (recordCount: recordCount, fileBytes: fileBytes, filePath: filePath);
   }
@@ -106,8 +121,7 @@ class ImageSizeCacheStore {
   Future<String> cacheFilePath() async {
     final fileRoot = await getFilePath();
     final dir = p.join(fileRoot, 'pictureCache');
-    final fileName =
-        '${_safeFileSegment(sourceTag)}_${_hashAllPageKeysHex(pageKeys)}.bin';
+    final fileName = '${_hashIdentityHex(sourceTag, pageKeys)}.bin';
     return p.join(dir, fileName);
   }
 
@@ -115,7 +129,46 @@ class ImageSizeCacheStore {
     final file = File(await cacheFilePath());
     if (!await file.exists()) return <int, Size>{};
 
-    final bytes = await file.readAsBytes();
+    final payload = await _readPayloadOrDelete(file);
+    if (payload == null || !_isPayloadStructValid(payload)) {
+      await _safeDelete(file);
+      return <int, Size>{};
+    }
+
+    return _parsePayload(payload);
+  }
+
+  Future<Uint8List?> _readPayloadOrDelete(File file) async {
+    try {
+      final bytes = await file.readAsBytes();
+      final payload = await _decodePayload(bytes);
+      if (payload != null) return payload;
+    } catch (_) {
+      // ignore
+    }
+    await _safeDelete(file);
+    return null;
+  }
+
+  Future<void> _safeDelete(File file) async {
+    try {
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (_) {
+      // ignore
+    }
+  }
+
+  bool _isPayloadStructValid(Uint8List bytes) {
+    if (bytes.length < 8 || !_isMagicMatched(bytes)) return false;
+    final data = ByteData.sublistView(bytes);
+    final count = data.getUint32(_magic.length, Endian.little);
+    final expectedBytes = 8 + (count * 12);
+    return expectedBytes <= bytes.length;
+  }
+
+  Map<int, Size> _parsePayload(Uint8List bytes) {
     if (bytes.length < 8) return <int, Size>{};
 
     var offset = 0;
@@ -143,6 +196,18 @@ class ImageSizeCacheStore {
     return out;
   }
 
+  Future<Uint8List?> _decodePayload(Uint8List bytes) async {
+    if (bytes.length < 4) return null;
+    if (!_isZstdCompressedMagicMatched(bytes)) return null;
+
+    try {
+      final decoded = await zstdDecompressBytes(encoded: bytes.sublist(4));
+      return Uint8List.fromList(decoded);
+    } catch (_) {
+      return null;
+    }
+  }
+
   bool _isMagicMatched(Uint8List bytes) {
     if (bytes.length < _magic.length) return false;
     for (var i = 0; i < _magic.length; i++) {
@@ -151,9 +216,24 @@ class ImageSizeCacheStore {
     return true;
   }
 
-  String _safeFileSegment(String value) {
-    if (value.isEmpty) return 'unknown';
-    return base64Url.encode(utf8.encode(value)).replaceAll('=', '');
+  bool _isZstdCompressedMagicMatched(Uint8List bytes) {
+    if (bytes.length < _zstdCompressedMagic.length) return false;
+    for (var i = 0; i < _zstdCompressedMagic.length; i++) {
+      if (bytes[i] != _zstdCompressedMagic[i]) return false;
+    }
+    return true;
+  }
+
+  String _hashIdentityHex(String source, List<String> keys) {
+    final builder = BytesBuilder(copy: false)
+      ..add(utf8.encode(source))
+      ..addByte(0x00);
+    for (final key in keys) {
+      builder
+        ..add(utf8.encode(key))
+        ..addByte(0x1f);
+    }
+    return sha256.convert(builder.toBytes()).toString();
   }
 
   int _hashKey64(String value) {
@@ -168,23 +248,5 @@ class ImageSizeCacheStore {
       hash = (hash * prime) & mask;
     }
     return hash;
-  }
-
-  String _hashAllPageKeysHex(List<String> keys) {
-    const int offsetBasis = 0xcbf29ce484222325;
-    const int prime = 0x100000001b3;
-    const int mask = 0xFFFFFFFFFFFFFFFF;
-
-    var hash = offsetBasis;
-    for (final key in keys) {
-      final bytes = utf8.encode(key);
-      for (final byte in bytes) {
-        hash ^= byte;
-        hash = (hash * prime) & mask;
-      }
-      hash ^= 0x1f;
-      hash = (hash * prime) & mask;
-    }
-    return hash.toRadixString(16).padLeft(16, '0');
   }
 }

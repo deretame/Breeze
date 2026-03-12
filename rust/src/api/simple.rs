@@ -31,6 +31,18 @@ pub async fn compress_image(image_bytes: Vec<u8>) -> Result<String> {
 }
 
 #[frb]
+pub fn zstd_compress_bytes(raw: Vec<u8>, level: i32) -> Result<Vec<u8>> {
+    let encoded = zstd::stream::encode_all(std::io::Cursor::new(raw), level)?;
+    Ok(encoded)
+}
+
+#[frb]
+pub fn zstd_decompress_bytes(encoded: Vec<u8>) -> Result<Vec<u8>> {
+    let decoded = zstd::stream::decode_all(std::io::Cursor::new(encoded))?;
+    Ok(decoded)
+}
+
+#[frb]
 pub async fn pack_folder(dest_path: &str, pack_info: compressed::PackInfo) -> Result<()> {
     compressed::pack_folder_zip(dest_path, pack_info).await
 }

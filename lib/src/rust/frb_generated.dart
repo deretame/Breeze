@@ -72,7 +72,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => -615710772;
+  int get rustContentHash => 52977896;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -146,6 +146,15 @@ abstract class RustLibApi extends BaseApi {
   Future<String> crateApiJmTestHelloWorld();
 
   String crateApiSimpleTraditionalToSimplified({required String text});
+
+  Future<Uint8List> crateApiSimpleZstdCompressBytes({
+    required List<int> raw,
+    required int level,
+  });
+
+  Future<Uint8List> crateApiSimpleZstdDecompressBytes({
+    required List<int> encoded,
+  });
 }
 
 class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
@@ -819,6 +828,74 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(
         debugName: "traditional_to_simplified",
         argNames: ["text"],
+      );
+
+  @override
+  Future<Uint8List> crateApiSimpleZstdCompressBytes({
+    required List<int> raw,
+    required int level,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_prim_u_8_loose(raw, serializer);
+          sse_encode_i_32(level, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 23,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiSimpleZstdCompressBytesConstMeta,
+        argValues: [raw, level],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiSimpleZstdCompressBytesConstMeta =>
+      const TaskConstMeta(
+        debugName: "zstd_compress_bytes",
+        argNames: ["raw", "level"],
+      );
+
+  @override
+  Future<Uint8List> crateApiSimpleZstdDecompressBytes({
+    required List<int> encoded,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_list_prim_u_8_loose(encoded, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 24,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiSimpleZstdDecompressBytesConstMeta,
+        argValues: [encoded],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiSimpleZstdDecompressBytesConstMeta =>
+      const TaskConstMeta(
+        debugName: "zstd_decompress_bytes",
+        argNames: ["encoded"],
       );
 
   Future<void> Function(int, dynamic)

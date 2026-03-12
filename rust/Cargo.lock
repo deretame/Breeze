@@ -4147,6 +4147,7 @@ dependencies = [
  "tracing-subscriber",
  "zhconv",
  "zip",
+ "zstd",
 ]
 
 [[package]]

@@ -16,9 +16,15 @@ void onSearch(BuildContext context, String keyword, {String url = ""}) async {
       if (!keyword.startsWith("jm")) {
         keyword = "jm$keyword";
       }
+
+      var comicId = keyword;
+      if (keyword.startsWith("jm")) {
+        comicId = keyword.substring(2);
+      }
+
       context.pushRoute(
         ComicInfoRoute(
-          comicId: keyword,
+          comicId: comicId,
           type: ComicEntryType.normal,
           from: From.jm,
         ),

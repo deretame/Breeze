@@ -16,8 +16,8 @@ import { getHost, md5Hex, nowTs } from "./utils";
 
 export function createJmClient() {
   const client = axios.create({
+    // adapter: "fetch",
     timeout: 10000,
-    responseType: "arraybuffer",
     validateStatus: () => true,
   });
 

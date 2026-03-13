@@ -1,7 +1,7 @@
 use std::sync::{Mutex, OnceLock};
 use std::time::Instant;
 use tracing::{Event, Subscriber};
-use tracing_subscriber::fmt::{FmtContext, FormatEvent, FormatFields, format::Writer};
+use tracing_subscriber::fmt::{format::Writer, FmtContext, FormatEvent, FormatFields};
 use tracing_subscriber::registry::LookupSpan;
 
 // 全局静态变量：用于记录上一条日志的打印时间
@@ -23,9 +23,20 @@ where
         event: &Event<'_>,
     ) -> std::fmt::Result {
         let meta = event.metadata();
-        let file = meta.file().unwrap_or("unknown_file");
+        let raw_file = meta.file().unwrap_or("unknown_file");
         let line = meta.line().unwrap_or(0);
         let target = meta.target();
+
+        let resolved_file = {
+            let path = std::path::Path::new(raw_file);
+            if path.is_absolute() {
+                path.to_path_buf()
+            } else {
+                std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(path)
+            }
+        };
+
+        let file_for_link = resolved_file.to_string_lossy().replace('\\', "/");
 
         let now = chrono::Local::now().format("%H:%M:%S.%3f");
         let level = *meta.level();
@@ -76,10 +87,10 @@ where
         );
 
         // 4. 获取用于跳转的短文件名
-        let file_name = std::path::Path::new(file)
+        let file_name = resolved_file
             .file_name()
             .and_then(|name| name.to_str())
-            .unwrap_or(file);
+            .unwrap_or(raw_file);
 
         // 5. 安全获取自适应宽度
         #[cfg(all(
@@ -105,7 +116,7 @@ where
         // 拼装首行的左右两部分
         let left_part = format!(
             "│ #0   {}:{}:{}  {:<5} {}",
-            file,
+            file_for_link,
             line,
             line,
             level.as_str(),

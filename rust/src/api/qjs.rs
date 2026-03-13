@@ -1,11 +1,12 @@
 use crate::api::error::FrbError;
 use anyhow::{Context, Result as AnyResult, anyhow};
 use flutter_rust_bridge::{DartFnFuture, frb};
+use rquickjs_playground::web_runtime::native_buffer_take_raw;
 use rquickjs_playground::{
     AsyncHostRuntime, HttpClientConfig, RuntimeTaskHandle, configure_http_client,
-    register_flush_persistent_store_handler, register_load_persistent_store_handler,
+    register_load_plugin_config_handler, register_save_plugin_config_handler,
 };
-use serde_json::Value;
+use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, OnceLock};
 use tokio::sync::RwLock;
@@ -21,6 +22,7 @@ static DART_CALLBACK_RT: OnceLock<Mutex<tokio::runtime::Runtime>> = OnceLock::ne
 
 const JM_RUNTIME_NAME: &str = "jm";
 const JM_HTTP_BUNDLE: &str = include_str!("../js/jm_http.bundle.cjs");
+const QJS_FETCH_TIMEOUT_SENTINEL: &str = "__QJS_FETCH_IMAGE_TIMEOUT__";
 
 fn qjs_runtime_map() -> &'static RwLock<QjsRuntimeMap> {
     QJS_RUNTIMES.get_or_init(|| RwLock::new(HashMap::new()))
@@ -51,7 +53,7 @@ fn dart_callback_runtime() -> AnyResult<&'static Mutex<tokio::runtime::Runtime>>
 }
 
 async fn create_qjs_runtime(runtime_name: &str) -> AnyResult<AsyncHostRuntime> {
-    let runtime = AsyncHostRuntime::new(false, runtime_name).map_err(|err| anyhow!(err))?;
+    let runtime = AsyncHostRuntime::new(runtime_name).map_err(|err| anyhow!(err))?;
     let init_script = r#"(async () => {
             return "ok";
     })()"#;
@@ -420,6 +422,43 @@ pub async fn jm_request(payload_json: String) -> std::result::Result<String, Frb
 }
 
 #[frb]
+pub async fn qjs_fetch_image_bytes(url: String) -> std::result::Result<Vec<u8>, FrbError> {
+    let out: AnyResult<Vec<u8>> = async {
+        if url.trim().is_empty() {
+            return Err(anyhow!("url 不能为空"));
+        }
+
+        let runtime = qjs_runtime(JM_RUNTIME_NAME).await?;
+        ensure_jm_http_loaded(&runtime).await?;
+        let payload = call_current_bundle_inner(&runtime, "fetchImageBytes", &json!([url, 30_000]))
+            .await
+            .map_err(|e| {
+                let msg = e.to_string();
+                if msg.contains(QJS_FETCH_TIMEOUT_SENTINEL) {
+                    anyhow!("下载图片超时")
+                } else {
+                    anyhow!("调用 fetchImageBytes 失败: {msg}")
+                }
+            })?;
+
+        let native_buffer_id = payload
+            .get("nativeBufferId")
+            .and_then(Value::as_u64)
+            .ok_or_else(|| anyhow!("JS 返回缺少 nativeBufferId"))?;
+
+        native_buffer_take_raw(native_buffer_id)
+            .ok_or_else(|| anyhow!("native buffer 不存在或已被消费: {native_buffer_id}"))
+    }
+    .await;
+
+    if let Err(err) = &out {
+        tracing::error!(url = %url, error = %err, "qjs_fetch_image_bytes 失败");
+    }
+
+    out.map_err(Into::into)
+}
+
+#[frb]
 pub fn set_http_proxy(proxy: String) -> std::result::Result<(), FrbError> {
     configure_http_client(HttpClientConfig {
         use_http_proxy: true,
@@ -444,11 +483,11 @@ pub fn set_socks5_proxy(proxy: String) -> std::result::Result<(), FrbError> {
 }
 
 #[frb]
-pub fn register_flush_persistent_store(
+pub fn register_load_plugin_config(
     dart_callback: impl Fn(String, String, String) -> DartFnFuture<String> + Send + Sync + 'static,
 ) -> std::result::Result<(), FrbError> {
     let callback: PersistentCallback = Arc::new(dart_callback);
-    register_flush_persistent_store_handler(move |name, key, value| {
+    register_load_plugin_config_handler(move |name, key, value| {
         run_dart_callback_blocking(Arc::clone(&callback), name, key, value)
             .map_err(|err| anyhow!(err.to_string()))
     });
@@ -456,11 +495,11 @@ pub fn register_flush_persistent_store(
 }
 
 #[frb]
-pub fn register_load_persistent_store(
+pub fn register_save_plugin_config(
     dart_callback: impl Fn(String, String, String) -> DartFnFuture<String> + Send + Sync + 'static,
 ) -> std::result::Result<(), FrbError> {
     let callback: PersistentCallback = Arc::new(dart_callback);
-    register_load_persistent_store_handler(move |name, key, value| {
+    register_save_plugin_config_handler(move |name, key, value| {
         run_dart_callback_blocking(Arc::clone(&callback), name, key, value)
             .map_err(|err| anyhow!(err.to_string()))
     });

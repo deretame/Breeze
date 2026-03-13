@@ -1,0 +1,7 @@
+[env]
+CC_wasm32_wasip1 = { value = "D:/Program Files/msys64/clang64/bin/clang.exe" }
+AR_wasm32_wasip1 = { value = "D:/Program Files/msys64/clang64/bin/llvm-ar.exe" }
+
+[target.wasm32-wasip1]
+linker = "D:/Program Files/msys64/clang64/bin/clang.exe"
+ar = "D:/Program Files/msys64/clang64/bin/llvm-ar.exe"

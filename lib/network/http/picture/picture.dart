@@ -413,6 +413,8 @@ Future<Uint8List> downloadImageWithRetry(
         });
       }
 
+      // return qjsFetchImageBytes(url: url);
+
       Response response = await pictureDio
           .get(
             url,

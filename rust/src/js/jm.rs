@@ -8,7 +8,7 @@ static QJS_RUNTIME: OnceCell<AsyncHostRuntime> = OnceCell::const_new();
 async fn qjs_runtime() -> Result<&'static AsyncHostRuntime> {
     QJS_RUNTIME
         .get_or_try_init(|| async {
-            let runtime = AsyncHostRuntime::new(false, "jm").map_err(|err| anyhow!(err))?;
+            let runtime = AsyncHostRuntime::new("jm").map_err(|err| anyhow!(err))?;
             let init_script = r#"(async () => {
                     return "ok";
             })()"#;

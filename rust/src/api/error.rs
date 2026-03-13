@@ -1,3 +1,5 @@
+use flutter_rust_bridge::frb;
+
 #[derive(Debug, Clone)]
 pub struct FrbError {
     pub message: String,
@@ -8,6 +10,12 @@ impl FrbError {
         Self {
             message: message.into(),
         }
+    }
+
+    #[frb(sync)]
+    #[frb(name = "toString")]
+    pub fn to_string_method(&self) -> String {
+        self.message.clone()
     }
 }
 

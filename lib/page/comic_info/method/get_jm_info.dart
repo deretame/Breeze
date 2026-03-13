@@ -11,10 +11,6 @@ Future<jm.JmComicInfoJson> getJmComicAllInfo(
   String comicId,
   ComicEntryType type,
 ) async {
-  if (comicId.startsWith("jm")) {
-    comicId = comicId.substring(2);
-  }
-
   if (type == ComicEntryType.download) {
     return getJmComicAllInfoFromLocal(comicId, type);
   }

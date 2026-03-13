@@ -3,10 +3,9 @@
 
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
-import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
-
 import '../frb_generated.dart';
 import 'error.dart';
+import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `call_bundle_once_inner`, `call_current_bundle_inner`, `call_loaded_bundle_inner`, `clear_runtime_call_tasks`, `create_qjs_runtime`, `current_bundle_name`, `dart_callback_runtime`, `ensure_jm_http_loaded`, `insert_qjs_call_task`, `load_bundle_inner`, `parse_args_array`, `parse_ok_json_payload`, `qjs_call_start_inner`, `qjs_call_task_map`, `qjs_runtime_if_exists`, `qjs_runtime_map`, `qjs_runtime`, `replace_bundle_inner`, `run_dart_callback_blocking`, `take_qjs_call_task`
 
@@ -80,21 +79,24 @@ Future<bool> qjsDropRuntime({required String runtimeName}) =>
 Future<String> jmRequest({required String payloadJson}) =>
     RustLib.instance.api.crateApiQjsJmRequest(payloadJson: payloadJson);
 
+Future<Uint8List> qjsFetchImageBytes({required String url}) =>
+    RustLib.instance.api.crateApiQjsQjsFetchImageBytes(url: url);
+
 Future<void> setHttpProxy({required String proxy}) =>
     RustLib.instance.api.crateApiQjsSetHttpProxy(proxy: proxy);
 
 Future<void> setSocks5Proxy({required String proxy}) =>
     RustLib.instance.api.crateApiQjsSetSocks5Proxy(proxy: proxy);
 
-Future<void> registerFlushPersistentStore({
+Future<void> registerLoadPluginConfig({
   required FutureOr<String> Function(String, String, String) dartCallback,
-}) => RustLib.instance.api.crateApiQjsRegisterFlushPersistentStore(
+}) => RustLib.instance.api.crateApiQjsRegisterLoadPluginConfig(
   dartCallback: dartCallback,
 );
 
-Future<void> registerLoadPersistentStore({
+Future<void> registerSavePluginConfig({
   required FutureOr<String> Function(String, String, String) dartCallback,
-}) => RustLib.instance.api.crateApiQjsRegisterLoadPersistentStore(
+}) => RustLib.instance.api.crateApiQjsRegisterSavePluginConfig(
   dartCallback: dartCallback,
 );
 

@@ -72,6 +72,8 @@ function normalizeRawResponse(raw: unknown): unknown {
 }
 
 async function decodeValue(value: unknown, ts: string): Promise<unknown> {
+  console.debug(`decodeValue value type: ${typeof value}`);
+
   if (typeof value === "string") {
     const raw = value.trim();
     if (!raw) {

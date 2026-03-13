@@ -12,71 +12,52 @@ String t2s(String text) {
   return traditionalToSimplified(text: text);
 }
 
-String _flushTask(Store store, List<String> params) {
-  final name = params[0];
-  final key = params[1];
-  final value = params[2];
+String onSavePluginConfig(String name, String key, String value) {
+  final box = objectbox.flushPersistentBox;
 
-  final box = store.box<FlushPersistentStore>();
+  // 使用同步事务确保原子性
+  return objectbox.store.runInTransaction(TxMode.write, () {
+    var entity = box
+        .query(FlushPersistentStore_.name.equals(name))
+        .build()
+        .findFirst();
 
-  var entity = box
-      .query(FlushPersistentStore_.name.equals(name))
-      .build()
-      .findFirst();
+    if (entity == null) {
+      var data = <String, dynamic>{key: value};
+      entity = FlushPersistentStore(name: name, data: data);
+    } else {
+      var data = entity.data ?? <String, dynamic>{};
+      data[key] = value;
+      entity.data = data;
+    }
 
-  if (entity == null) {
-    var data = <String, dynamic>{key: value};
-    entity = FlushPersistentStore(name: name, data: data);
     box.put(entity);
-  } else {
-    var data = entity.data ?? <String, dynamic>{};
-    data[key] = value;
-    entity.data = data;
-    box.put(entity);
-  }
-
-  return '{"ok":true}';
+    return '{"ok":true}';
+  });
 }
 
-String _loadTask(Store store, List<String> params) {
-  final name = params[0];
-  final key = params[1];
-  final fallback = params[2];
+String onLoadPluginConfig(String name, String key, String fallback) {
+  final box = objectbox.flushPersistentBox;
 
-  final box = store.box<FlushPersistentStore>();
-  final entity = box
-      .query(FlushPersistentStore_.name.equals(name))
-      .build()
-      .findFirst();
+  return objectbox.store.runInTransaction(TxMode.read, () {
+    final entity = box
+        .query(FlushPersistentStore_.name.equals(name))
+        .build()
+        .findFirst();
 
-  final data = entity?.data ?? <String, dynamic>{};
-  final value = data[key] ?? fallback;
+    final data = entity?.data ?? <String, dynamic>{};
+    final value = data[key] ?? fallback;
 
-  return '{"ok":true,"value":${jsonEncode(value)}}';
-}
-
-Future<String> onFlush(String name, String key, String value) {
-  return objectbox.store.runInTransactionAsync(
-    TxMode.write,
-    _flushTask,
-    [name, key, value], //
-  );
-}
-
-Future<String> onLoad(String name, String key, String fallback) {
-  return objectbox.store.runInTransactionAsync(
-    TxMode.read,
-    _loadTask,
-    [name, key, fallback], //
-  );
+    return '{"ok":true,"value":${jsonEncode(value)}}';
+  });
 }
 
 Future<void> registerPersistentCallbacks() async {
-  await registerFlushPersistentStore(
-    dartCallback: (name, key, value) => onFlush(name, key, value),
+  await registerSavePluginConfig(
+    dartCallback: (name, key, value) => onSavePluginConfig(name, key, value),
   );
 
-  await registerLoadPersistentStore(
-    dartCallback: (name, key, value) => onLoad(name, key, value),
+  await registerLoadPluginConfig(
+    dartCallback: (name, key, value) => onLoadPluginConfig(name, key, value),
   );
 }

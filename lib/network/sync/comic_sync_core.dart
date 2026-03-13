@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart' show compute;
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
+import 'package:zephyr/object_box/objectbox.g.dart';
 
 const String syncDataVersion = '2.3.0';
 
@@ -108,17 +109,17 @@ class ComicSyncCore {
   }
 
   static Future<List<int>> buildCompressedPayload() async {
-    final allHistory = await objectbox.bikaHistoryBox.getAllAsync();
+    final allHistory = objectbox.bikaHistoryBox.getAll();
     allHistory.sort((a, b) => b.history.compareTo(a.history));
 
     final comicHistoriesJson = allHistory
         .map((comic) => comic.toJson())
         .toList();
 
-    final jmFavorite = await objectbox.jmFavoriteBox.getAllAsync();
+    final jmFavorite = objectbox.jmFavoriteBox.getAll();
     final jmFavoritesJson = jmFavorite.map((item) => item.toJson()).toList();
 
-    final jmHistory = await objectbox.jmHistoryBox.getAllAsync();
+    final jmHistory = objectbox.jmHistoryBox.getAll();
     final jmHistoriesJson = jmHistory.map((item) => item.toJson()).toList();
 
     final data = {
@@ -150,8 +151,11 @@ class ComicSyncCore {
     return jsonDecode(jsonString) as Map<String, dynamic>;
   }
 
-  static Future<void> mergeHistory(Map<String, dynamic> data) async {
-    final localHistories = await objectbox.bikaHistoryBox.getAllAsync();
+  static int mergeHistory(Store store, Map<String, dynamic> data) {
+    final bikaHistoryBox = store.box<BikaComicHistory>();
+    final jmFavoriteBox = store.box<JmFavorite>();
+    final jmHistoryBox = store.box<JmHistory>();
+    final localHistories = bikaHistoryBox.getAll();
     final cloudHistories = (data['comicHistories'] as List<dynamic>)
         .map((comic) => BikaComicHistory.fromJson(comic))
         .toList();
@@ -172,10 +176,10 @@ class ComicSyncCore {
       item.id = 0;
     }
 
-    await objectbox.bikaHistoryBox.removeAllAsync();
-    await objectbox.bikaHistoryBox.putManyAsync(finalList);
+    bikaHistoryBox.removeAll();
+    bikaHistoryBox.putMany(finalList);
 
-    final jmLocalFavorites = await objectbox.jmFavoriteBox.getAllAsync();
+    final jmLocalFavorites = jmFavoriteBox.getAll();
     final jmCloudFavorites = (data['jmFavorites'] as List<dynamic>)
         .map((item) => JmFavorite.fromJson(item))
         .toList();
@@ -195,10 +199,10 @@ class ComicSyncCore {
       item.id = 0;
     }
 
-    await objectbox.jmFavoriteBox.removeAllAsync();
-    await objectbox.jmFavoriteBox.putManyAsync(jmFavoriteFinalList);
+    jmFavoriteBox.removeAll();
+    jmFavoriteBox.putMany(jmFavoriteFinalList);
 
-    final jmLocalHistories = await objectbox.jmHistoryBox.getAllAsync();
+    final jmLocalHistories = jmHistoryBox.getAll();
     final jmCloudHistories = (data['jmHistories'] as List<dynamic>)
         .map((item) => JmHistory.fromJson(item))
         .toList();
@@ -218,12 +222,12 @@ class ComicSyncCore {
       item.id = 0;
     }
 
-    await objectbox.jmHistoryBox.removeAllAsync();
-    await objectbox.jmHistoryBox.putManyAsync(jmHistoryFinalList);
+    jmHistoryBox.removeAll();
+    jmHistoryBox.putMany(jmHistoryFinalList);
 
-    logger.d(
-      '更新历史记录成功，共 ${finalList.length + jmFavoriteFinalList.length + jmHistoryFinalList.length} 条记录',
-    );
+    return finalList.length +
+        jmFavoriteFinalList.length +
+        jmHistoryFinalList.length;
   }
 
   static String _extractFileName(String remotePath) {
@@ -259,7 +263,13 @@ Future<void> runComicSync(ComicSyncRemoteAdapter adapter) async {
     final cloudData = await ComicSyncCore.decodeCompressedPayload(
       remoteData.bytes,
     );
-    await ComicSyncCore.mergeHistory(cloudData);
+    final count = await objectbox.store
+        .runInTransactionAsync<int, Map<String, dynamic>>(
+          TxMode.write,
+          ComicSyncCore.mergeHistory,
+          cloudData,
+        );
+    logger.d('更新历史记录成功，共 $count 条记录');
   }
 
   final currentPayload = await ComicSyncCore.buildCompressedPayload();

@@ -11,6 +11,8 @@
   },
   "include": [
     "dev-server.ts",
+    "rspack.config.ts",
+    "rspack.shared.ts",
     "src/**/*.ts",
     "src/**/*.d.ts",
     "../../../../rquickjs_playground/pnpm_demo/types/runtime-globals.d.ts"

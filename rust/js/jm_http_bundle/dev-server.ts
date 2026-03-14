@@ -1,9 +1,10 @@
 import { createHash } from "node:crypto";
 import { mkdir, readFile } from "node:fs/promises";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { dirname, resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { context } from "esbuild";
+import { rspack, type MultiStats, type Stats } from "@rspack/core";
+import { createRspackConfig } from "./rspack.shared";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -36,6 +37,50 @@ let rebuildCount = 0;
 
 function nowIso(): string {
   return new Date().toISOString();
+}
+
+function formatRspackError(err: unknown): string {
+  if (typeof err === "string") {
+    return err;
+  }
+
+  if (err && typeof err === "object") {
+    const message = Reflect.get(err, "message");
+    if (typeof message === "string" && message.length > 0) {
+      return message;
+    }
+
+    const details = Reflect.get(err, "details");
+    if (typeof details === "string" && details.length > 0) {
+      return details;
+    }
+  }
+
+  return String(err);
+}
+
+function getErrorFromStats(stats: Stats | MultiStats | undefined): string {
+  if (!stats) {
+    return "build failed";
+  }
+
+  const info = stats.toJson({ all: false, errors: true });
+  const firstError = info.errors?.[0];
+  if (!firstError) {
+    return "build failed";
+  }
+
+  return formatRspackError(firstError);
+}
+
+function createCompiler() {
+  return rspack(
+    createRspackConfig({
+      rootDir: __dirname,
+      outPath: outDir,
+      outFileName: basename(outFile),
+    }),
+  );
 }
 
 function setCommonHeaders(res: ServerResponse, contentType?: string): void {
@@ -147,45 +192,37 @@ async function route(req: IncomingMessage, res: ServerResponse): Promise<void> {
 
 async function start(): Promise<void> {
   await mkdir(outDir, { recursive: true });
+  const compiler = createCompiler();
 
-  const watchPlugin = {
-    name: "watch-state-plugin",
-    setup(build: import("esbuild").PluginBuild): void {
-      build.onEnd(async (result) => {
-        rebuildCount += 1;
-        const ts = nowIso();
-        if (result.errors.length > 0) {
-          state.ok = false;
-          state.error = result.errors[0]?.text || "build failed";
-          console.error(`[bundle-dev] [${ts}] rebuild #${rebuildCount} failed: ${state.error}`);
-          return;
-        }
+  const watcher = compiler.watch({}, async (err, stats) => {
+    rebuildCount += 1;
+    const ts = nowIso();
 
-        try {
-          await refreshBuildState();
-          console.error(`[bundle-dev] [${ts}] rebuild #${rebuildCount} completed`);
-        } catch (err) {
-          state.ok = false;
-          state.error = String(err);
-          console.error(
-            `[bundle-dev] [${ts}] rebuild #${rebuildCount} read output failed: ${state.error}`,
-          );
-        }
-      });
-    },
-  };
+    if (err) {
+      state.ok = false;
+      state.error = formatRspackError(err);
+      console.error(`[bundle-dev] [${ts}] rebuild #${rebuildCount} failed: ${state.error}`);
+      return;
+    }
 
-  const ctx = await context({
-    entryPoints: [resolve(__dirname, "src/index.ts")],
-    bundle: true,
-    platform: "browser",
-    format: "cjs",
-    target: ["es2019"],
-    outfile: outFile,
-    plugins: [watchPlugin],
+    if (!stats || stats.hasErrors()) {
+      state.ok = false;
+      state.error = getErrorFromStats(stats);
+      console.error(`[bundle-dev] [${ts}] rebuild #${rebuildCount} failed: ${state.error}`);
+      return;
+    }
+
+    try {
+      await refreshBuildState();
+      console.error(`[bundle-dev] [${ts}] rebuild #${rebuildCount} completed`);
+    } catch (refreshErr) {
+      state.ok = false;
+      state.error = String(refreshErr);
+      console.error(
+        `[bundle-dev] [${ts}] rebuild #${rebuildCount} read output failed: ${state.error}`,
+      );
+    }
   });
-
-  await ctx.watch();
 
   const server = createServer((req, res) => {
     const startAt = Date.now();
@@ -206,7 +243,27 @@ async function start(): Promise<void> {
   const shutdown = async (): Promise<void> => {
     console.error("[bundle-dev] shutting down...");
     server.close();
-    await ctx.dispose();
+
+    await new Promise<void>((resolveClose, rejectClose) => {
+      try {
+        watcher.close(() => {
+          resolveClose();
+        });
+      } catch (closeErr) {
+        rejectClose(closeErr);
+      }
+    });
+
+    await new Promise<void>((resolveClose, rejectClose) => {
+      try {
+        compiler.close(() => {
+          resolveClose();
+        });
+      } catch (closeErr) {
+        rejectClose(closeErr);
+      }
+    });
+
     process.exit(0);
   };
 

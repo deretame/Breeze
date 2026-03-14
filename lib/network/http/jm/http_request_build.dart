@@ -1,12 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:zephyr/config/jm/config.dart';
+import 'package:dio/dio.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/jm/jm_client.dart';
 import 'package:zephyr/network/http/jm/jm_error_message.dart';
-import 'package:zephyr/src/rust/api/qjs.dart' as rust_qjs;
-import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/util/event/event.dart';
+import 'package:zephyr/network/http/jm/jm_response_codec.dart';
 
 Future<dynamic> request(
   String path, {
@@ -17,65 +15,46 @@ Future<dynamic> request(
   bool cache = false,
   bool useJwt = true,
 }) async {
+  var cancelToken = CancelToken();
+
   try {
-    final raw = await rust_qjs.jmRequest(
-      payloadJson: jsonEncode({
-        'path': path,
-        'method': method,
-        'params': params,
-        'data': data,
-        'formData': formData,
-        'cache': cache,
-        'useJwt': useJwt,
-        'jwtToken': JmConfig.jwt,
-      }),
+    dynamic requestBody;
+    if (formData != null && method == 'POST') {
+      requestBody = FormData.fromMap(formData);
+    } else {
+      requestBody = data;
+    }
+
+    final response = await JmClient().dio.request(
+      path,
+      data: requestBody,
+      queryParameters: params,
+      options: Options(
+        method: method,
+        extra: {'useCache': cache, 'useJwt': useJwt},
+      ),
+      cancelToken: cancelToken,
     );
 
-    dynamic decoded;
-    try {
-      decoded = jsonDecode(raw);
-    } catch (_) {
-      decoded = raw;
-    }
-
-    if (decoded is Map) {
-      final parsedMap = Map<String, dynamic>.fromEntries(
-        decoded.entries.map((e) => MapEntry(e.key.toString(), e.value)),
-      );
-      final code = parsedMap['code'] is num
-          ? (parsedMap['code'] as num).toInt()
-          : null;
-      final serverMsgRaw =
-          (parsedMap['errorMsg'] ?? parsedMap['msg'] ?? parsedMap['message'])
-              ?.toString();
-      if (code == 401 || serverMsgRaw == '請先登入會員') {
-        eventBus.fire(NeedLogin(from: From.jm));
-        throw Exception('登录过期，请重新登录');
-      }
-      return parsedMap;
-    }
-
-    return decoded;
-  } catch (e, stackTrace) {
+    return JmResponseParser.toMap(
+      response.data,
+      ts: response.requestOptions.extra['jm_ts'] is String
+          ? response.requestOptions.extra['jm_ts'] as String
+          : null,
+    );
+  } on DioException catch (e, stackTrace) {
     logger.e(e, stackTrace: stackTrace);
-    final message = _extractErrorMessage(e);
-    if (message.contains('登录过期') || message.contains('請先登入會員')) {
-      eventBus.fire(NeedLogin(from: From.jm));
-    }
-    throw Exception(sanitizeJmErrorMessage(message, fallback: '网络错误，请稍后再试'));
+    throw Exception(
+      sanitizeJmErrorMessage(
+        e.error?.toString() ?? e.message,
+        fallback: '网络错误，请稍后再试',
+      ),
+    );
   }
-}
-
-String _extractErrorMessage(Object error) {
-  final raw = error.toString().trim();
-  if (raw.startsWith('Exception:')) {
-    return raw.replaceFirst('Exception:', '').trim();
-  }
-  return raw;
 }
 
 class JmResponseParser {
   static dynamic toMap(dynamic data, {String? ts}) {
-    return data;
+    return JmResponseCodec.decode(data, ts: ts);
   }
 }

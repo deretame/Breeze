@@ -10,6 +10,7 @@
     "noEmit": true
   },
   "include": [
+    "dev-server.ts",
     "src/**/*.ts",
     "src/**/*.d.ts",
     "../../../../rquickjs_playground/pnpm_demo/types/runtime-globals.d.ts"

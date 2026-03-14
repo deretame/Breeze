@@ -4,9 +4,10 @@ use flutter_rust_bridge::{DartFnFuture, frb};
 use rquickjs_playground::web_runtime::native_buffer_take_raw;
 use rquickjs_playground::{
     AsyncHostRuntime, HttpClientConfig, RuntimeTaskHandle, configure_http_client,
-    register_load_plugin_config_handler, register_save_plugin_config_handler,
+    configure_js_error_stack, register_load_plugin_config_handler,
+    register_save_plugin_config_handler,
 };
-use serde_json::{Value, json};
+use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, OnceLock};
 use tokio::sync::RwLock;
@@ -21,8 +22,6 @@ static QJS_CALL_TASKS: OnceLock<RwLock<QjsCallTaskMap>> = OnceLock::new();
 static DART_CALLBACK_RT: OnceLock<Mutex<tokio::runtime::Runtime>> = OnceLock::new();
 
 const JM_RUNTIME_NAME: &str = "jm";
-const JM_HTTP_BUNDLE: &str = include_str!("../js/jm_http.bundle.cjs");
-const QJS_FETCH_TIMEOUT_SENTINEL: &str = "__QJS_FETCH_IMAGE_TIMEOUT__";
 
 fn qjs_runtime_map() -> &'static RwLock<QjsRuntimeMap> {
     QJS_RUNTIMES.get_or_init(|| RwLock::new(HashMap::new()))
@@ -120,10 +119,11 @@ async fn clear_runtime_call_tasks(runtime_name: &str) {
 
 fn parse_args_array(args_json: &str) -> AnyResult<Value> {
     let args: Value = serde_json::from_str(args_json).context("调用参数不是合法 JSON")?;
-    if !args.is_array() {
-        return Err(anyhow!("调用参数必须是 JSON 数组"));
-    }
-    Ok(args)
+    Ok(match args {
+        Value::Array(_) => args,
+        Value::Null => Value::Array(Vec::new()),
+        other => Value::Array(vec![other]),
+    })
 }
 
 fn parse_ok_json_payload(raw: &str) -> AnyResult<Value> {
@@ -183,7 +183,7 @@ async fn call_loaded_bundle_inner(
     runtime
         .bundle_call(name, fn_path, args)
         .await
-        .map_err(|err| anyhow!("执行已加载 bundle 函数失败: {err}"))
+        .map_err(|err| anyhow!("调用函数失败: {err}"))
 }
 
 async fn call_current_bundle_inner(
@@ -208,7 +208,71 @@ async fn call_bundle_once_inner(
     runtime
         .bundle_call_once(bundle_js, fn_path, args)
         .await
-        .map_err(|err| anyhow!("执行一次性 bundle 调用失败: {err}"))
+        .map_err(|err| anyhow!("调用函数失败: {err}"))
+}
+
+fn native_bytes_from_payload(payload: Value) -> AnyResult<Vec<u8>> {
+    let native_buffer_id = payload
+        .get("nativeBufferId")
+        .and_then(Value::as_u64)
+        .ok_or_else(|| anyhow!("JS 返回缺少 nativeBufferId"))?;
+
+    native_buffer_take_raw(native_buffer_id)
+        .ok_or_else(|| anyhow!("native buffer 不存在或已被消费: {native_buffer_id}"))
+}
+
+fn parse_call_input(fn_path: &str, args_json: &str) -> AnyResult<Value> {
+    if fn_path.trim().is_empty() {
+        return Err(anyhow!("fn_path 不能为空"));
+    }
+    parse_args_array(args_json)
+}
+
+async fn call_current_bundle_by_json(
+    runtime_name: &str,
+    fn_path: &str,
+    args_json: &str,
+) -> AnyResult<Value> {
+    let runtime = qjs_runtime(runtime_name).await?;
+    let args = parse_call_input(fn_path, args_json)?;
+    call_current_bundle_inner(&runtime, fn_path, &args).await
+}
+
+async fn call_bundle_once_by_json(
+    runtime_name: &str,
+    bundle_js: &str,
+    fn_path: &str,
+    args_json: &str,
+) -> AnyResult<Value> {
+    if bundle_js.trim().is_empty() {
+        return Err(anyhow!("bundle_js 不能为空"));
+    }
+
+    let runtime = qjs_runtime(runtime_name).await?;
+    let args = parse_call_input(fn_path, args_json)?;
+    call_bundle_once_inner(&runtime, bundle_js, fn_path, &args).await
+}
+
+async fn start_current_bundle_call_by_json(
+    runtime_name: &str,
+    fn_path: &str,
+    args_json: &str,
+) -> AnyResult<u64> {
+    let runtime = qjs_runtime(runtime_name).await?;
+    let args = parse_call_input(fn_path, args_json)?;
+    qjs_call_start_inner(runtime_name, &runtime, fn_path, &args).await
+}
+
+async fn wait_call_payload(runtime_name: &str, task_id: u64) -> AnyResult<Value> {
+    let handle = take_qjs_call_task(runtime_name, task_id)
+        .await
+        .ok_or_else(|| anyhow!("调用任务不存在或已完成: {task_id}"))?;
+
+    let raw = handle
+        .wait_async()
+        .await
+        .map_err(|err| anyhow!("等待 QJS 调用结果失败: {err}"))?;
+    parse_ok_json_payload(&raw)
 }
 
 async fn qjs_call_start_inner(
@@ -230,17 +294,6 @@ async fn qjs_call_start_inner(
     let task_id = handle.id();
     insert_qjs_call_task(runtime_name, handle).await;
     Ok(task_id)
-}
-
-async fn ensure_jm_http_loaded(runtime: &AsyncHostRuntime) -> AnyResult<()> {
-    let names = runtime
-        .bundle_list()
-        .await
-        .map_err(|err| anyhow!("读取 bundle 列表失败: {err}"))?;
-    if names.iter().any(|name| name == "jm_http") {
-        return Ok(());
-    }
-    replace_bundle_inner(runtime, "jm_http", JM_HTTP_BUNDLE).await
 }
 
 async fn current_bundle_name(runtime: &AsyncHostRuntime) -> AnyResult<Option<String>> {
@@ -275,9 +328,7 @@ pub async fn qjs_call(
     args_json: String,
 ) -> std::result::Result<String, FrbError> {
     let out: AnyResult<String> = async {
-        let runtime = qjs_runtime(&runtime_name).await?;
-        let args = parse_args_array(&args_json)?;
-        let data = call_current_bundle_inner(&runtime, &fn_path, &args).await?;
+        let data = call_current_bundle_by_json(&runtime_name, &fn_path, &args_json).await?;
         serde_json::to_string(&data).context("序列化调用结果失败")
     }
     .await;
@@ -290,12 +341,9 @@ pub async fn qjs_call_start(
     fn_path: String,
     args_json: String,
 ) -> std::result::Result<u64, FrbError> {
-    let out: AnyResult<u64> = async {
-        let runtime = qjs_runtime(&runtime_name).await?;
-        let args = parse_args_array(&args_json)?;
-        qjs_call_start_inner(&runtime_name, &runtime, &fn_path, &args).await
-    }
-    .await;
+    let out: AnyResult<u64> =
+        async { start_current_bundle_call_by_json(&runtime_name, &fn_path, &args_json).await }
+            .await;
     out.map_err(Into::into)
 }
 
@@ -305,15 +353,7 @@ pub async fn qjs_call_wait(
     task_id: u64,
 ) -> std::result::Result<String, FrbError> {
     let out: AnyResult<String> = async {
-        let handle = take_qjs_call_task(&runtime_name, task_id)
-            .await
-            .ok_or_else(|| anyhow!("调用任务不存在或已完成: {task_id}"))?;
-
-        let raw = handle
-            .wait_async()
-            .await
-            .map_err(|err| anyhow!("等待 QJS 调用结果失败: {err}"))?;
-        let data = parse_ok_json_payload(&raw)?;
+        let data = wait_call_payload(&runtime_name, task_id).await?;
         serde_json::to_string(&data).context("序列化调用结果失败")
     }
     .await;
@@ -355,9 +395,8 @@ pub async fn qjs_call_once(
     args_json: String,
 ) -> std::result::Result<String, FrbError> {
     let out: AnyResult<String> = async {
-        let runtime = qjs_runtime(&runtime_name).await?;
-        let args = parse_args_array(&args_json)?;
-        let data = call_bundle_once_inner(&runtime, &bundle_js, &fn_path, &args).await?;
+        let data =
+            call_bundle_once_by_json(&runtime_name, &bundle_js, &fn_path, &args_json).await?;
         serde_json::to_string(&data).context("序列化一次性调用结果失败")
     }
     .await;
@@ -407,52 +446,88 @@ pub async fn qjs_drop_runtime(runtime_name: String) -> std::result::Result<bool,
 }
 
 #[frb]
-pub async fn jm_request(payload_json: String) -> std::result::Result<String, FrbError> {
-    let out: AnyResult<String> = async {
-        let runtime = qjs_runtime(JM_RUNTIME_NAME).await?;
-        let payload: Value =
-            serde_json::from_str(&payload_json).context("请求参数不是合法 JSON")?;
-        ensure_jm_http_loaded(&runtime).await?;
-        let args = Value::Array(vec![payload]);
-        let data = call_current_bundle_inner(&runtime, "request", &args).await?;
-        serde_json::to_string(&data).context("序列化 JM 响应失败")
-    }
-    .await;
-    out.map_err(Into::into)
-}
-
-#[frb]
-pub async fn qjs_fetch_image_bytes(url: String) -> std::result::Result<Vec<u8>, FrbError> {
+pub async fn qjs_fetch_image_bytes(
+    runtime_name: String,
+    fn_path: String,
+    args_json: String,
+) -> std::result::Result<Vec<u8>, FrbError> {
     let out: AnyResult<Vec<u8>> = async {
-        if url.trim().is_empty() {
-            return Err(anyhow!("url 不能为空"));
-        }
-
-        let runtime = qjs_runtime(JM_RUNTIME_NAME).await?;
-        ensure_jm_http_loaded(&runtime).await?;
-        let payload = call_current_bundle_inner(&runtime, "fetchImageBytes", &json!([url, 30_000]))
+        let payload = call_current_bundle_by_json(&runtime_name, &fn_path, &args_json)
             .await
-            .map_err(|e| {
-                let msg = e.to_string();
-                if msg.contains(QJS_FETCH_TIMEOUT_SENTINEL) {
-                    anyhow!("下载图片超时")
-                } else {
-                    anyhow!("调用 fetchImageBytes 失败: {msg}")
-                }
-            })?;
+            .map_err(|e| anyhow!("下载图片失败: {e}"))?;
 
-        let native_buffer_id = payload
-            .get("nativeBufferId")
-            .and_then(Value::as_u64)
-            .ok_or_else(|| anyhow!("JS 返回缺少 nativeBufferId"))?;
-
-        native_buffer_take_raw(native_buffer_id)
-            .ok_or_else(|| anyhow!("native buffer 不存在或已被消费: {native_buffer_id}"))
+        native_bytes_from_payload(payload)
     }
     .await;
 
     if let Err(err) = &out {
-        tracing::error!(url = %url, error = %err, "qjs_fetch_image_bytes 失败");
+        tracing::error!(runtime_name = %runtime_name, fn_path = %fn_path, error = %err, "qjs_fetch_image_bytes 失败");
+    }
+
+    out.map_err(Into::into)
+}
+
+#[frb]
+pub async fn qjs_fetch_image_bytes_start(
+    runtime_name: String,
+    fn_path: String,
+    args_json: String,
+) -> std::result::Result<u64, FrbError> {
+    let out: AnyResult<u64> =
+        async { start_current_bundle_call_by_json(&runtime_name, &fn_path, &args_json).await }
+            .await;
+
+    if let Err(err) = &out {
+        tracing::error!(runtime_name = %runtime_name, fn_path = %fn_path, error = %err, "qjs_fetch_image_bytes_start 失败");
+    }
+
+    out.map_err(Into::into)
+}
+
+#[frb]
+pub async fn qjs_fetch_image_bytes_wait(
+    runtime_name: String,
+    task_id: u64,
+) -> std::result::Result<Vec<u8>, FrbError> {
+    let out: AnyResult<Vec<u8>> = async {
+        let payload = wait_call_payload(&runtime_name, task_id).await?;
+        native_bytes_from_payload(payload)
+    }
+    .await;
+
+    if let Err(err) = &out {
+        tracing::error!(runtime_name = %runtime_name, task_id, error = %err, "qjs_fetch_image_bytes_wait 失败");
+    }
+
+    out.map_err(Into::into)
+}
+
+#[frb]
+pub async fn qjs_fetch_image_bytes_cancel(
+    runtime_name: String,
+    task_id: u64,
+) -> std::result::Result<bool, FrbError> {
+    qjs_call_cancel(runtime_name, task_id).await
+}
+
+#[frb]
+pub async fn qjs_fetch_image_bytes_once(
+    runtime_name: String,
+    bundle_js: String,
+    fn_path: String,
+    args_json: String,
+) -> std::result::Result<Vec<u8>, FrbError> {
+    let out: AnyResult<Vec<u8>> = async {
+        let payload = call_bundle_once_by_json(&runtime_name, &bundle_js, &fn_path, &args_json)
+            .await
+            .map_err(|e| anyhow!("下载图片失败: {e}"))?;
+
+        native_bytes_from_payload(payload)
+    }
+    .await;
+
+    if let Err(err) = &out {
+        tracing::error!(runtime_name = %runtime_name, fn_path = %fn_path, error = %err, "qjs_fetch_image_bytes_once 失败");
     }
 
     out.map_err(Into::into)
@@ -480,6 +555,12 @@ pub fn set_socks5_proxy(proxy: String) -> std::result::Result<(), FrbError> {
         disable_tls_verify: false,
     })
     .map_err(|err| anyhow!("设置 socks5 代理失败: {err}").into())
+}
+
+#[frb(sync)]
+pub fn set_qjs_error_stack_enabled(enabled: bool) -> std::result::Result<(), FrbError> {
+    configure_js_error_stack(enabled);
+    Ok(())
 }
 
 #[frb]

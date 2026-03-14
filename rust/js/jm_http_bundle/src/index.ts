@@ -1,58 +1,32 @@
+import axios from "axios";
 import { createJmClient } from "./client";
 import { toFriendlyError } from "./errors";
 import { buildRequestConfig } from "./request-config";
 import { getCachedResponse } from "./state";
 import type { RequestPayload } from "./types";
-import axios from "axios";
 
 const jmClient = createJmClient();
-const FETCH_TIMEOUT_SENTINEL = "__QJS_FETCH_IMAGE_TIMEOUT__";
 
-async function fetchImageBytes(
-  url: string,
-  timeoutMs: number = 30_000,
-): Promise<{ nativeBufferId: number }> {
-  const targetUrl = String(url || "").trim();
-  if (!targetUrl) {
-    throw new Error("url 不能为空");
-  }
+async function fetchImageBytes(args: { url: string; timeoutMs: number }) {
+  console.debug("fetchImageBytes", args);
+  const targetUrl = String(args.url || "").trim();
+  if (!targetUrl) throw new Error("url 不能为空");
 
-  if (!native || typeof native.put !== "function") {
-    throw new Error("运行时缺少 native.put 能力");
-  }
+  const timeout =
+    Number.isFinite(args.timeoutMs) && args.timeoutMs > 0
+      ? Math.floor(args.timeoutMs)
+      : 30_000;
 
-  const timeout = Number.isFinite(timeoutMs) && timeoutMs > 0
-    ? Math.floor(timeoutMs)
-    : 30_000;
-
-  const headers: Record<string, string> = {
-    "User-Agent": "#",
-    Connection: "Keep-Alive",
-    "Accept-Encoding": "gzip",
-  };
+  const headers: Record<string, string> = {};
 
   try {
     headers.Host = new URL(targetUrl).host;
-  } catch (_err) {
-  }
-
-  const controller = typeof AbortController === "function"
-    ? new AbortController()
-    : null;
-  let timeoutId: ReturnType<typeof setTimeout> | null = null;
-  let timeoutFired = false;
-  if (controller) {
-    timeoutId = setTimeout(() => {
-      timeoutFired = true;
-      controller.abort();
-    }, timeout);
-  }
+  } catch {}
 
   try {
     const response = await axios.get<ArrayBuffer>(targetUrl, {
       headers,
       timeout,
-      signal: controller?.signal,
       responseType: "arraybuffer",
       validateStatus: () => true,
     });
@@ -65,35 +39,12 @@ async function fetchImageBytes(
     const nativeBufferId = await native.put(bytes);
     return { nativeBufferId: Number(nativeBufferId) };
   } catch (err) {
-    if (timeoutFired) {
-      throw FETCH_TIMEOUT_SENTINEL;
-    }
-    let code = "";
-    let message = "";
-    try {
-      code = String((err as { code?: string } | null)?.code || "");
-    } catch (_e) {
-    }
-    try {
-      message = String((err as { message?: string } | null)?.message || "").toLowerCase();
-    } catch (_e) {
-    }
-    if (code === "ECONNABORTED" || message.includes("timeout")) {
-      throw FETCH_TIMEOUT_SENTINEL;
-    }
-    const friendly = toFriendlyError(err);
-    if (friendly instanceof Error) {
-      throw friendly.message || "下载图片失败";
-    }
-    throw String(friendly || "下载图片失败");
-  } finally {
-    if (timeoutId !== null) {
-      clearTimeout(timeoutId);
-    }
+    console.error(err);
+    throw err;
   }
 }
 
-async function request(input: RequestPayload): Promise<unknown> {
+async function request(input: RequestPayload) {
   const { config, cacheEnabled } = buildRequestConfig(input);
 
   try {
@@ -118,7 +69,12 @@ async function request(input: RequestPayload): Promise<unknown> {
   }
 }
 
+function helloWorld() {
+  console.debug("Hello World!");
+}
+
 export default {
   request,
   fetchImageBytes,
+  helloWorld,
 };

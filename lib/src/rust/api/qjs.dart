@@ -7,7 +7,7 @@ import '../frb_generated.dart';
 import 'error.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `call_bundle_once_inner`, `call_current_bundle_inner`, `call_loaded_bundle_inner`, `clear_runtime_call_tasks`, `create_qjs_runtime`, `current_bundle_name`, `dart_callback_runtime`, `ensure_jm_http_loaded`, `insert_qjs_call_task`, `load_bundle_inner`, `parse_args_array`, `parse_ok_json_payload`, `qjs_call_start_inner`, `qjs_call_task_map`, `qjs_runtime_if_exists`, `qjs_runtime_map`, `qjs_runtime`, `replace_bundle_inner`, `run_dart_callback_blocking`, `take_qjs_call_task`
+// These functions are ignored because they are not marked as `pub`: `call_bundle_once_by_json`, `call_bundle_once_inner`, `call_current_bundle_by_json`, `call_current_bundle_inner`, `call_loaded_bundle_inner`, `clear_runtime_call_tasks`, `create_qjs_runtime`, `current_bundle_name`, `dart_callback_runtime`, `insert_qjs_call_task`, `load_bundle_inner`, `native_bytes_from_payload`, `parse_args_array`, `parse_call_input`, `parse_ok_json_payload`, `qjs_call_start_inner`, `qjs_call_task_map`, `qjs_runtime_if_exists`, `qjs_runtime_map`, `qjs_runtime`, `replace_bundle_inner`, `run_dart_callback_blocking`, `start_current_bundle_call_by_json`, `take_qjs_call_task`, `wait_call_payload`
 
 Future<void> qjsReplaceBundle({
   required String runtimeName,
@@ -76,17 +76,62 @@ Future<String> qjsCurrentBundle({required String runtimeName}) =>
 Future<bool> qjsDropRuntime({required String runtimeName}) =>
     RustLib.instance.api.crateApiQjsQjsDropRuntime(runtimeName: runtimeName);
 
-Future<String> jmRequest({required String payloadJson}) =>
-    RustLib.instance.api.crateApiQjsJmRequest(payloadJson: payloadJson);
+Future<Uint8List> qjsFetchImageBytes({
+  required String runtimeName,
+  required String fnPath,
+  required String argsJson,
+}) => RustLib.instance.api.crateApiQjsQjsFetchImageBytes(
+  runtimeName: runtimeName,
+  fnPath: fnPath,
+  argsJson: argsJson,
+);
 
-Future<Uint8List> qjsFetchImageBytes({required String url}) =>
-    RustLib.instance.api.crateApiQjsQjsFetchImageBytes(url: url);
+Future<BigInt> qjsFetchImageBytesStart({
+  required String runtimeName,
+  required String fnPath,
+  required String argsJson,
+}) => RustLib.instance.api.crateApiQjsQjsFetchImageBytesStart(
+  runtimeName: runtimeName,
+  fnPath: fnPath,
+  argsJson: argsJson,
+);
+
+Future<Uint8List> qjsFetchImageBytesWait({
+  required String runtimeName,
+  required BigInt taskId,
+}) => RustLib.instance.api.crateApiQjsQjsFetchImageBytesWait(
+  runtimeName: runtimeName,
+  taskId: taskId,
+);
+
+Future<bool> qjsFetchImageBytesCancel({
+  required String runtimeName,
+  required BigInt taskId,
+}) => RustLib.instance.api.crateApiQjsQjsFetchImageBytesCancel(
+  runtimeName: runtimeName,
+  taskId: taskId,
+);
+
+Future<Uint8List> qjsFetchImageBytesOnce({
+  required String runtimeName,
+  required String bundleJs,
+  required String fnPath,
+  required String argsJson,
+}) => RustLib.instance.api.crateApiQjsQjsFetchImageBytesOnce(
+  runtimeName: runtimeName,
+  bundleJs: bundleJs,
+  fnPath: fnPath,
+  argsJson: argsJson,
+);
 
 Future<void> setHttpProxy({required String proxy}) =>
     RustLib.instance.api.crateApiQjsSetHttpProxy(proxy: proxy);
 
 Future<void> setSocks5Proxy({required String proxy}) =>
     RustLib.instance.api.crateApiQjsSetSocks5Proxy(proxy: proxy);
+
+void setQjsErrorStackEnabled({required bool enabled}) =>
+    RustLib.instance.api.crateApiQjsSetQjsErrorStackEnabled(enabled: enabled);
 
 Future<void> registerLoadPluginConfig({
   required FutureOr<String> Function(String, String, String) dartCallback,

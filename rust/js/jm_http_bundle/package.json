@@ -6,7 +6,8 @@
   "packageManager": "pnpm@10.27.0",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "pnpm run typecheck && esbuild src/index.ts --bundle --platform=browser --format=cjs --target=es2019 --outfile=../../src/js/jm_http.bundle.cjs"
+    "build": "pnpm run typecheck && esbuild src/index.ts --bundle --platform=browser --format=cjs --target=es2019 --outfile=../../src/js/jm_http.bundle.cjs",
+    "dev:serve": "tsx dev-server.ts"
   },
   "dependencies": {
     "axios": "^1.13.0",
@@ -16,6 +17,7 @@
     "@types/node": "^24.6.0",
     "@types/pako": "^2.0.4",
     "esbuild": "^0.25.12",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }
 }

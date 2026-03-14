@@ -97,6 +97,9 @@ export function createJmClient() {
       const status = Number(response.status || 0);
 
       if (status < 200 || status >= 300) {
+        console.error(
+          `服务器响应异常 (${status || "unknown"}) ${JSON.stringify(decoded)}`,
+        );
         const serverMsg = resolveServerMessage(
           decoded,
           `服务器响应异常 (${status || "unknown"})`,

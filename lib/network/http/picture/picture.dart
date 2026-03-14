@@ -413,7 +413,13 @@ Future<Uint8List> downloadImageWithRetry(
         });
       }
 
-      // return qjsFetchImageBytes(url: url);
+      // final js = await dio.get("http://127.0.0.1:7878/jm_http.bundle.cjs");
+      // return await qjsFetchImageBytesOnce(
+      //   runtimeName: "jmRuntime",
+      //   bundleJs: js.data,
+      //   fnPath: "fetchImageBytes",
+      //   argsJson: jsonEncode({"url": url, "timeoutMs": 30000}),
+      // );
 
       Response response = await pictureDio
           .get(

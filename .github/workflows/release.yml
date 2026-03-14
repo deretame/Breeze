@@ -71,7 +71,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: "pnpm"
 
       - name: 安装 Rust (Android 目标)
         uses: dtolnay/rust-toolchain@stable
@@ -188,7 +187,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: "pnpm"
 
       - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
@@ -289,10 +287,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: "pnpm"
-          cache-dependency-path: |
-            windows-installer/pnpm-lock.yaml
-            rust/js/jm_http_bundle/pnpm-lock.yaml
 
       - name: 运行 Windows 构建脚本
         env:
@@ -371,7 +365,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: "pnpm"
 
       - name: 拉取依赖 & 修复 Podfile
         run: |
@@ -474,7 +467,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: "pnpm"
 
       - name: 编译 iOS (无签)
         env:

@@ -1,5 +1,8 @@
+import 'package:flutter/foundation.dart';
+
 import '../../../config/jm/config.dart';
 import 'http_request_build.dart';
+import 'http_request_build_rust.dart' as rs;
 import 'jm_error_message.dart';
 
 Future<Map<String, dynamic>> _requestMap(
@@ -11,15 +14,25 @@ Future<Map<String, dynamic>> _requestMap(
   bool cache = false,
   bool useJwt = true,
 }) async {
-  final result = await request(
-    path,
-    method: method,
-    params: params,
-    data: data,
-    formData: formData,
-    cache: cache,
-    useJwt: useJwt,
-  );
+  final result = kDebugMode
+      ? await rs.request(
+          path,
+          method: method,
+          params: params,
+          data: data,
+          formData: formData,
+          cache: cache,
+          useJwt: useJwt,
+        )
+      : await request(
+          path,
+          method: method,
+          params: params,
+          data: data,
+          formData: formData,
+          cache: cache,
+          useJwt: useJwt,
+        );
 
   if (result is Map) {
     return Map<String, dynamic>.fromEntries(

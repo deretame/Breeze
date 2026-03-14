@@ -31,6 +31,7 @@ import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/api/system.dart' as rust_system;
 import 'package:zephyr/src/rust/frb_generated.dart';
+import 'package:zephyr/util/compatible.dart';
 import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/util/desktop/custom_title_bar.dart';
 import 'package:zephyr/util/desktop/intent.dart';
@@ -184,10 +185,12 @@ _initServices() async {
 
   enableStacktrace(enabled: false);
 
+  await compatibleInit();
+
   // 配置http代理，方便开发测试
   if (kDebugMode) {
     setQjsErrorStackEnabled(enabled: true);
-    final js = await dio.get("http://127.0.0.1:7878/jm_http.bundle.cjs");
+    final js = await dio.get("http://127.0.0.1:7878/JmComic.bundle.cjs");
     await qjsCallOnce(
       runtimeName: "jmRuntime",
       bundleJs: js.data,

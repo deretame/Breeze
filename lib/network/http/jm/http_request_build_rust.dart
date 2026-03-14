@@ -18,7 +18,7 @@ Future<dynamic> request(
   bool useJwt = true,
 }) async {
   try {
-    final js = await dio.get("http://127.0.0.1:7878/jm_http.bundle.cjs");
+    final js = await dio.get("http://127.0.0.1:7878/JmComic.bundle.cjs");
     final raw = await rust_qjs.qjsCallOnce(
       runtimeName: "jmRuntime",
       bundleJs: js.data,

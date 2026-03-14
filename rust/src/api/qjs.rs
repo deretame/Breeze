@@ -20,8 +20,6 @@ static QJS_RUNTIMES: OnceLock<RwLock<QjsRuntimeMap>> = OnceLock::new();
 static QJS_CALL_TASKS: OnceLock<RwLock<QjsCallTaskMap>> = OnceLock::new();
 static DART_CALLBACK_RT: OnceLock<Mutex<tokio::runtime::Runtime>> = OnceLock::new();
 
-const JM_RUNTIME_NAME: &str = "jm";
-
 fn qjs_runtime_map() -> &'static RwLock<QjsRuntimeMap> {
     QJS_RUNTIMES.get_or_init(|| RwLock::new(HashMap::new()))
 }
@@ -507,18 +505,4 @@ fn run_dart_callback_blocking(
         .map_err(|_| anyhow!("dart callback runtime 锁已损坏"))?;
     let out = guard.block_on(callback(name, key, value));
     Ok(out)
-}
-
-#[frb]
-pub async fn test_hello_world() -> Result<String> {
-    let runtime = qjs_runtime(JM_RUNTIME_NAME).await?;
-
-    let result = runtime
-        .spawn("console.log('hello world from JM runtime'); 'hello world';")
-        .map_err(|err| anyhow!("执行 JS 代码失败: {err}"))?
-        .wait_async()
-        .await
-        .map_err(|err| anyhow!("等待 JS 结果失败: {err}"))?;
-
-    Ok(result)
 }

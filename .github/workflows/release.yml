@@ -85,11 +85,6 @@ jobs:
           workspaces: |
             rust
 
-      - name: 构建 JM JS Bundle
-        run: |
-          pnpm install --frozen-lockfile --dir rust/js/jm_http_bundle
-          pnpm --dir rust/js/jm_http_bundle run build
-
       - name: 读取 NDK 版本配置
         id: ndk-config
         run: |
@@ -209,11 +204,6 @@ jobs:
           workspaces: |
             rust
 
-      - name: 构建 JM JS Bundle
-        run: |
-          pnpm install --frozen-lockfile --dir rust/js/jm_http_bundle
-          pnpm --dir rust/js/jm_http_bundle run build
-
       - name: 构建 Linux Release
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
@@ -306,11 +296,6 @@ jobs:
             windows-installer/pnpm-lock.yaml
             rust/js/jm_http_bundle/pnpm-lock.yaml
 
-      - name: 构建 JM JS Bundle
-        run: |
-          pnpm install --frozen-lockfile --dir rust/js/jm_http_bundle
-          pnpm --dir rust/js/jm_http_bundle run build
-
       - name: 运行 Windows 构建脚本
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
@@ -390,11 +375,6 @@ jobs:
           node-version: 22
           cache: "pnpm"
           cache-dependency-path: rust/js/jm_http_bundle/pnpm-lock.yaml
-
-      - name: 构建 JM JS Bundle
-        run: |
-          pnpm install --frozen-lockfile --dir rust/js/jm_http_bundle
-          pnpm --dir rust/js/jm_http_bundle run build
 
       - name: 拉取依赖 & 修复 Podfile
         run: |
@@ -499,11 +479,6 @@ jobs:
           node-version: 22
           cache: "pnpm"
           cache-dependency-path: rust/js/jm_http_bundle/pnpm-lock.yaml
-
-      - name: 构建 JM JS Bundle
-        run: |
-          pnpm install --frozen-lockfile --dir rust/js/jm_http_bundle
-          pnpm --dir rust/js/jm_http_bundle run build
 
       - name: 编译 iOS (无签)
         env:

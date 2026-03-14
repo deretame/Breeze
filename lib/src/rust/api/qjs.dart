@@ -143,6 +143,3 @@ Future<void> registerSavePluginConfig({
 }) => RustLib.instance.api.crateApiQjsRegisterSavePluginConfig(
   dartCallback: dartCallback,
 );
-
-Future<String> testHelloWorld() =>
-    RustLib.instance.api.crateApiQjsTestHelloWorld();

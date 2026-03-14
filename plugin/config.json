@@ -1,0 +1,11 @@
+[
+    {
+        "name": "JmComic",
+        "version": "1.0.0",
+        "description": "JmComic",
+        "author": "zephyr",
+        "license": "MIT",
+        "url": "https://cdn.jsdelivr.net/gh/deretame/Breeze-plugin-JmComic@main/plugin/v0.1.0/JmComic.bundle.cjs",
+        "main": "JmComic.bundle.cjs"
+    }
+]

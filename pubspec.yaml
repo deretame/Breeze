@@ -60,6 +60,7 @@ dependencies:
   json_annotation: ^4.9.0 # 模型: JSON 注解
   freezed_annotation: ^3.0.0 # 模型: Freezed 注解
   file_selector: ^1.1.0 # 文件: 文件选择器
+  shared_preferences: ^2.5.4 # 文件: 键值对存储器
 
   # 文件、媒体与平台能力
   path_provider: ^2.1.5 # 文件: 常用目录路径

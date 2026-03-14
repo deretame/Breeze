@@ -14,6 +14,7 @@ import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/auto_check_in.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/download/download_queue_manager.dart';
+import 'package:zephyr/util/download_plugin.dart';
 import 'package:zephyr/util/foreground_task/init.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/manage_cache.dart';
@@ -78,6 +79,7 @@ class _NavigationBarState extends State<NavigationBar> {
       } else {
         DownloadQueueManager.instance.watchTasks();
       }
+      downloadPlugin();
     });
     _controller = PersistentTabController(
       initialIndex: objectbox.userSettingBox

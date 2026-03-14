@@ -3,11 +3,11 @@
 
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
+import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+
 import '../compressed/compressed.dart';
 import '../decode/decode.dart';
 import '../frb_generated.dart';
-import 'error.dart';
-import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 Future<String> greet({required String name}) =>
     RustLib.instance.api.crateApiSimpleGreet(name: name);
@@ -53,3 +53,6 @@ Stream<String> streamTest() => RustLib.instance.api.crateApiSimpleStreamTest();
 
 String traditionalToSimplified({required String text}) =>
     RustLib.instance.api.crateApiSimpleTraditionalToSimplified(text: text);
+
+void enableStacktrace({required bool enabled}) =>
+    RustLib.instance.api.crateApiSimpleEnableStacktrace(enabled: enabled);

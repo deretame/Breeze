@@ -1,13 +1,12 @@
 use crate::frb_generated::StreamSink;
+use anyhow::Result;
 use flutter_rust_bridge::frb;
-
-use crate::api::error::FrbError;
 
 /// 启动一个命名管道监听器，等待外部进程（如安装器）发送关闭信号。
 /// 当收到信号时，通过 StreamSink 向 Dart 侧发送 `true`。
 /// 仅在 Windows 上有效，其他平台不做任何操作。
 #[frb]
-pub fn start_shutdown_listener(sink: StreamSink<bool>) -> std::result::Result<(), FrbError> {
+pub fn start_shutdown_listener(sink: StreamSink<bool>) -> Result<()> {
     #[cfg(target_os = "windows")]
     {
         use tokio::net::windows::named_pipe::ServerOptions;

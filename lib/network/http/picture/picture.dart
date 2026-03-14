@@ -5,9 +5,11 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
+import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/download/cancel_token.dart' as task_cancel;
+import 'package:zephyr/util/sundry.dart';
 
 import '../../../config/jm/config.dart';
 import '../../../src/rust/api/simple.dart';
@@ -413,13 +415,15 @@ Future<Uint8List> downloadImageWithRetry(
         });
       }
 
-      // final js = await dio.get("http://127.0.0.1:7878/jm_http.bundle.cjs");
-      // return await qjsFetchImageBytesOnce(
-      //   runtimeName: "jmRuntime",
-      //   bundleJs: js.data,
-      //   fnPath: "fetchImageBytes",
-      //   argsJson: jsonEncode({"url": url, "timeoutMs": 30000}),
-      // );
+      if (kDebugMode) {
+        final js = await dio.get("http://127.0.0.1:7878/jm_http.bundle.cjs");
+        return await qjsFetchImageBytesOnce(
+          runtimeName: "jmRuntime",
+          bundleJs: js.data,
+          fnPath: "fetchImageBytes",
+          argsJson: {"url": url, "timeoutMs": 30000}.toJson(),
+        );
+      }
 
       Response response = await pictureDio
           .get(
@@ -449,13 +453,13 @@ Future<Uint8List> downloadImageWithRetry(
       } else {
         logger.e('下载图片失败: $e, URL: $url');
         if (!retry) {
-          throw Exception('下载图片失败: $e');
+          rethrow;
         }
       }
       if (retry && !(e is DioException && e.toString().contains('422'))) {
         await _delayWithCancel(const Duration(seconds: 1), cancelToken);
       } else if (!retry) {
-        throw Exception('下载图片失败: $e');
+        rethrow;
       }
     }
   }

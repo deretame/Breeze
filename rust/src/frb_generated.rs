@@ -37,7 +37,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1293398043;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 49654165;
 
 // Section: executor
 
@@ -70,10 +70,13 @@ fn wire__crate__api__simple__anti_obfuscation_picture_impl(
             let api_image_info = <crate::decode::decode::ImageInfo>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
-                transform_result_sse::<_, crate::api::error::FrbError>((move || {
-                    let output_ok = crate::api::simple::anti_obfuscation_picture(api_image_info)?;
-                    Ok(output_ok)
-                })())
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let output_ok =
+                            crate::api::simple::anti_obfuscation_picture(api_image_info)?;
+                        Ok(output_ok)
+                    })(),
+                )
             }
         },
     )
@@ -103,7 +106,7 @@ fn wire__crate__api__simple__compress_image_impl(
             let api_image_bytes = <Vec<u8>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, crate::api::error::FrbError>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok = crate::api::simple::compress_image(api_image_bytes).await?;
                         Ok(output_ok)
@@ -114,14 +117,14 @@ fn wire__crate__api__simple__compress_image_impl(
         },
     )
 }
-fn wire__crate__api__error__frb_error_to_string_method_impl(
+fn wire__crate__api__simple__enable_stacktrace_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
     data_len_: i32,
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "frb_error_to_string_method(dart_style=toString)",
+            debug_name: "enable_stacktrace",
             port: None,
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
         },
@@ -135,11 +138,12 @@ fn wire__crate__api__error__frb_error_to_string_method_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_that = <crate::api::error::FrbError>::sse_decode(&mut deserializer);
+            let api_enabled = <bool>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse::<_, ()>((move || {
-                let output_ok =
-                    Result::<_, ()>::Ok(crate::api::error::FrbError::to_string_method(&api_that))?;
+                let output_ok = Result::<_, ()>::Ok({
+                    crate::api::simple::enable_stacktrace(api_enabled);
+                })?;
                 Ok(output_ok)
             })())
         },
@@ -305,7 +309,7 @@ fn wire__crate__api__simple__pack_folder_impl(
                 <crate::compressed::compressed::PackInfo>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, crate::api::error::FrbError>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok =
                             crate::api::simple::pack_folder(&api_dest_path, api_pack_info).await?;
@@ -344,7 +348,7 @@ fn wire__crate__api__simple__pack_folder_zip_impl(
                 <crate::compressed::compressed::PackInfo>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, crate::api::error::FrbError>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok =
                             crate::api::simple::pack_folder_zip(&api_dest_path, api_pack_info)
@@ -384,7 +388,7 @@ fn wire__crate__api__qjs__qjs_call_impl(
             let api_args_json = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, crate::api::error::FrbError>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok =
                             crate::api::qjs::qjs_call(api_runtime_name, api_fn_path, api_args_json)
@@ -423,7 +427,7 @@ fn wire__crate__api__qjs__qjs_call_cancel_impl(
             let api_task_id = <u64>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, crate::api::error::FrbError>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok =
                             crate::api::qjs::qjs_call_cancel(api_runtime_name, api_task_id).await?;
@@ -463,7 +467,7 @@ fn wire__crate__api__qjs__qjs_call_once_impl(
             let api_args_json = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, crate::api::error::FrbError>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok = crate::api::qjs::qjs_call_once(
                             api_runtime_name,
@@ -507,7 +511,7 @@ fn wire__crate__api__qjs__qjs_call_start_impl(
             let api_args_json = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, crate::api::error::FrbError>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok = crate::api::qjs::qjs_call_start(
                             api_runtime_name,
@@ -549,7 +553,7 @@ fn wire__crate__api__qjs__qjs_call_wait_impl(
             let api_task_id = <u64>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, crate::api::error::FrbError>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok =
                             crate::api::qjs::qjs_call_wait(api_runtime_name, api_task_id).await?;
@@ -586,7 +590,7 @@ fn wire__crate__api__qjs__qjs_clear_bundle_impl(
             let api_runtime_name = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, crate::api::error::FrbError>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok = crate::api::qjs::qjs_clear_bundle(api_runtime_name).await?;
                         Ok(output_ok)
@@ -622,7 +626,7 @@ fn wire__crate__api__qjs__qjs_current_bundle_impl(
             let api_runtime_name = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, crate::api::error::FrbError>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok =
                             crate::api::qjs::qjs_current_bundle(api_runtime_name).await?;
@@ -659,7 +663,7 @@ fn wire__crate__api__qjs__qjs_drop_runtime_impl(
             let api_runtime_name = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, crate::api::error::FrbError>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok = crate::api::qjs::qjs_drop_runtime(api_runtime_name).await?;
                         Ok(output_ok)
@@ -697,7 +701,7 @@ fn wire__crate__api__qjs__qjs_fetch_image_bytes_impl(
             let api_args_json = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, crate::api::error::FrbError>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok = crate::api::qjs::qjs_fetch_image_bytes(
                             api_runtime_name,
@@ -739,7 +743,7 @@ fn wire__crate__api__qjs__qjs_fetch_image_bytes_cancel_impl(
             let api_task_id = <u64>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, crate::api::error::FrbError>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok = crate::api::qjs::qjs_fetch_image_bytes_cancel(
                             api_runtime_name,
@@ -782,7 +786,7 @@ fn wire__crate__api__qjs__qjs_fetch_image_bytes_once_impl(
             let api_args_json = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, crate::api::error::FrbError>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok = crate::api::qjs::qjs_fetch_image_bytes_once(
                             api_runtime_name,
@@ -826,7 +830,7 @@ fn wire__crate__api__qjs__qjs_fetch_image_bytes_start_impl(
             let api_args_json = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, crate::api::error::FrbError>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok = crate::api::qjs::qjs_fetch_image_bytes_start(
                             api_runtime_name,
@@ -868,7 +872,7 @@ fn wire__crate__api__qjs__qjs_fetch_image_bytes_wait_impl(
             let api_task_id = <u64>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, crate::api::error::FrbError>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok = crate::api::qjs::qjs_fetch_image_bytes_wait(
                             api_runtime_name,
@@ -910,7 +914,7 @@ fn wire__crate__api__qjs__qjs_replace_bundle_impl(
             let api_bundle_js = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, crate::api::error::FrbError>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok = crate::api::qjs::qjs_replace_bundle(
                             api_runtime_name,
@@ -954,11 +958,13 @@ fn wire__crate__api__qjs__register_load_plugin_config_impl(
                 );
             deserializer.end();
             move |context| {
-                transform_result_sse::<_, crate::api::error::FrbError>((move || {
-                    let output_ok =
-                        crate::api::qjs::register_load_plugin_config(api_dart_callback)?;
-                    Ok(output_ok)
-                })())
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let output_ok =
+                            crate::api::qjs::register_load_plugin_config(api_dart_callback)?;
+                        Ok(output_ok)
+                    })(),
+                )
             }
         },
     )
@@ -991,11 +997,13 @@ fn wire__crate__api__qjs__register_save_plugin_config_impl(
                 );
             deserializer.end();
             move |context| {
-                transform_result_sse::<_, crate::api::error::FrbError>((move || {
-                    let output_ok =
-                        crate::api::qjs::register_save_plugin_config(api_dart_callback)?;
-                    Ok(output_ok)
-                })())
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let output_ok =
+                            crate::api::qjs::register_save_plugin_config(api_dart_callback)?;
+                        Ok(output_ok)
+                    })(),
+                )
             }
         },
     )
@@ -1059,10 +1067,12 @@ fn wire__crate__api__qjs__set_http_proxy_impl(
             let api_proxy = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
-                transform_result_sse::<_, crate::api::error::FrbError>((move || {
-                    let output_ok = crate::api::qjs::set_http_proxy(api_proxy)?;
-                    Ok(output_ok)
-                })())
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let output_ok = crate::api::qjs::set_http_proxy(api_proxy)?;
+                        Ok(output_ok)
+                    })(),
+                )
             }
         },
     )
@@ -1090,10 +1100,12 @@ fn wire__crate__api__qjs__set_qjs_error_stack_enabled_impl(
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             let api_enabled = <bool>::sse_decode(&mut deserializer);
             deserializer.end();
-            transform_result_sse::<_, crate::api::error::FrbError>((move || {
-                let output_ok = crate::api::qjs::set_qjs_error_stack_enabled(api_enabled)?;
-                Ok(output_ok)
-            })())
+            transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                (move || {
+                    let output_ok = crate::api::qjs::set_qjs_error_stack_enabled(api_enabled)?;
+                    Ok(output_ok)
+                })(),
+            )
         },
     )
 }
@@ -1122,10 +1134,12 @@ fn wire__crate__api__qjs__set_socks5_proxy_impl(
             let api_proxy = <String>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
-                transform_result_sse::<_, crate::api::error::FrbError>((move || {
-                    let output_ok = crate::api::qjs::set_socks5_proxy(api_proxy)?;
-                    Ok(output_ok)
-                })())
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let output_ok = crate::api::qjs::set_socks5_proxy(api_proxy)?;
+                        Ok(output_ok)
+                    })(),
+                )
             }
         },
     )
@@ -1224,10 +1238,12 @@ fn wire__crate__api__system__start_shutdown_listener_impl(
                 );
             deserializer.end();
             move |context| {
-                transform_result_sse::<_, crate::api::error::FrbError>((move || {
-                    let output_ok = crate::api::system::start_shutdown_listener(api_sink)?;
-                    Ok(output_ok)
-                })())
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let output_ok = crate::api::system::start_shutdown_listener(api_sink)?;
+                        Ok(output_ok)
+                    })(),
+                )
             }
         },
     )
@@ -1260,10 +1276,12 @@ fn wire__crate__api__simple__stream_test_impl(
                 );
             deserializer.end();
             move |context| {
-                transform_result_sse::<_, crate::api::error::FrbError>((move || {
-                    let output_ok = crate::api::simple::stream_test(api_stream)?;
-                    Ok(output_ok)
-                })())
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let output_ok = crate::api::simple::stream_test(api_stream)?;
+                        Ok(output_ok)
+                    })(),
+                )
             }
         },
     )
@@ -1292,7 +1310,7 @@ fn wire__crate__api__qjs__test_hello_world_impl(
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, crate::api::error::FrbError>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
                         let output_ok = crate::api::qjs::test_hello_world().await?;
                         Ok(output_ok)
@@ -1360,10 +1378,13 @@ fn wire__crate__api__simple__zstd_compress_bytes_impl(
             let api_level = <i32>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
-                transform_result_sse::<_, crate::api::error::FrbError>((move || {
-                    let output_ok = crate::api::simple::zstd_compress_bytes(api_raw, api_level)?;
-                    Ok(output_ok)
-                })())
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let output_ok =
+                            crate::api::simple::zstd_compress_bytes(api_raw, api_level)?;
+                        Ok(output_ok)
+                    })(),
+                )
             }
         },
     )
@@ -1393,10 +1414,12 @@ fn wire__crate__api__simple__zstd_decompress_bytes_impl(
             let api_encoded = <Vec<u8>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
-                transform_result_sse::<_, crate::api::error::FrbError>((move || {
-                    let output_ok = crate::api::simple::zstd_decompress_bytes(api_encoded)?;
-                    Ok(output_ok)
-                })())
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || {
+                        let output_ok = crate::api::simple::zstd_decompress_bytes(api_encoded)?;
+                        Ok(output_ok)
+                    })(),
+                )
             }
         },
     )
@@ -1494,16 +1517,6 @@ impl SseDecode for bool {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         deserializer.cursor.read_u8().unwrap() != 0
-    }
-}
-
-impl SseDecode for crate::api::error::FrbError {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_message = <String>::sse_decode(deserializer);
-        return crate::api::error::FrbError {
-            message: var_message,
-        };
     }
 }
 
@@ -1762,7 +1775,7 @@ fn pde_ffi_dispatcher_sync_impl(
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-        3 => wire__crate__api__error__frb_error_to_string_method_impl(ptr, rust_vec_len, data_len),
+        3 => wire__crate__api__simple__enable_stacktrace_impl(ptr, rust_vec_len, data_len),
         28 => wire__crate__api__qjs__set_qjs_error_stack_enabled_impl(ptr, rust_vec_len, data_len),
         35 => wire__crate__api__simple__traditional_to_simplified_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
@@ -1771,20 +1784,6 @@ fn pde_ffi_dispatcher_sync_impl(
 
 // Section: rust2dart
 
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::error::FrbError {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        [self.message.into_into_dart().into_dart()].into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::error::FrbError {}
-impl flutter_rust_bridge::IntoIntoDart<crate::api::error::FrbError>
-    for crate::api::error::FrbError
-{
-    fn into_into_dart(self) -> crate::api::error::FrbError {
-        self
-    }
-}
 // Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::decode::decode::ImageInfo {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
@@ -1919,13 +1918,6 @@ impl SseEncode for bool {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         serializer.cursor.write_u8(self as _).unwrap();
-    }
-}
-
-impl SseEncode for crate::api::error::FrbError {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <String>::sse_encode(self.message, serializer);
     }
 }
 

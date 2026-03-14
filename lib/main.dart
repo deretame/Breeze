@@ -28,6 +28,7 @@ import 'package:zephyr/network/dio_cache.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
+import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/api/system.dart' as rust_system;
 import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/util/debouncer.dart';
@@ -180,6 +181,8 @@ Future<(GlobalSettingCubit, JmSettingCubit, BikaSettingCubit)>
 _initServices() async {
   // 初始化rust
   await RustLib.init();
+
+  enableStacktrace(enabled: false);
 
   // 配置http代理，方便开发测试
   if (kDebugMode) {

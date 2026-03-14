@@ -3,7 +3,6 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
-import 'api/error.dart';
 import 'api/memory.dart';
 import 'api/qjs.dart';
 import 'api/simple.dart';
@@ -73,7 +72,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => -1293398043;
+  int get rustContentHash => 49654165;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -90,7 +89,7 @@ abstract class RustLibApi extends BaseApi {
 
   Future<String> crateApiSimpleCompressImage({required List<int> imageBytes});
 
-  String crateApiErrorFrbErrorToStringMethod({required FrbError that});
+  void crateApiSimpleEnableStacktrace({required bool enabled});
 
   Future<RustMemoryInfo> crateApiMemoryGetRustMemoryInfo();
 
@@ -244,7 +243,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiSimpleAntiObfuscationPictureConstMeta,
         argValues: [imageInfo],
@@ -275,7 +274,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiSimpleCompressImageConstMeta,
         argValues: [imageBytes],
@@ -291,29 +290,29 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  String crateApiErrorFrbErrorToStringMethod({required FrbError that}) {
+  void crateApiSimpleEnableStacktrace({required bool enabled}) {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_box_autoadd_frb_error(that, serializer);
+          sse_encode_bool(enabled, serializer);
           return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
+          decodeSuccessData: sse_decode_unit,
           decodeErrorData: null,
         ),
-        constMeta: kCrateApiErrorFrbErrorToStringMethodConstMeta,
-        argValues: [that],
+        constMeta: kCrateApiSimpleEnableStacktraceConstMeta,
+        argValues: [enabled],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiErrorFrbErrorToStringMethodConstMeta =>
+  TaskConstMeta get kCrateApiSimpleEnableStacktraceConstMeta =>
       const TaskConstMeta(
-        debugName: "frb_error_to_string_method(dart_style=toString)",
-        argNames: ["that"],
+        debugName: "enable_stacktrace",
+        argNames: ["enabled"],
       );
 
   @override
@@ -445,7 +444,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiSimplePackFolderConstMeta,
         argValues: [destPath, packInfo],
@@ -479,7 +478,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiSimplePackFolderZipConstMeta,
         argValues: [destPath, packInfo],
@@ -516,7 +515,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsQjsCallConstMeta,
         argValues: [runtimeName, fnPath, argsJson],
@@ -550,7 +549,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_bool,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsQjsCallCancelConstMeta,
         argValues: [runtimeName, taskId],
@@ -588,7 +587,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsQjsCallOnceConstMeta,
         argValues: [runtimeName, bundleJs, fnPath, argsJson],
@@ -624,7 +623,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_u_64,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsQjsCallStartConstMeta,
         argValues: [runtimeName, fnPath, argsJson],
@@ -658,7 +657,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsQjsCallWaitConstMeta,
         argValues: [runtimeName, taskId],
@@ -688,7 +687,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_bool,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsQjsClearBundleConstMeta,
         argValues: [runtimeName],
@@ -718,7 +717,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsQjsCurrentBundleConstMeta,
         argValues: [runtimeName],
@@ -749,7 +748,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_bool,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsQjsDropRuntimeConstMeta,
         argValues: [runtimeName],
@@ -785,7 +784,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_prim_u_8_strict,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsQjsFetchImageBytesConstMeta,
         argValues: [runtimeName, fnPath, argsJson],
@@ -820,7 +819,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_bool,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsQjsFetchImageBytesCancelConstMeta,
         argValues: [runtimeName, taskId],
@@ -859,7 +858,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_prim_u_8_strict,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsQjsFetchImageBytesOnceConstMeta,
         argValues: [runtimeName, bundleJs, fnPath, argsJson],
@@ -896,7 +895,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_u_64,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsQjsFetchImageBytesStartConstMeta,
         argValues: [runtimeName, fnPath, argsJson],
@@ -931,7 +930,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_prim_u_8_strict,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsQjsFetchImageBytesWaitConstMeta,
         argValues: [runtimeName, taskId],
@@ -968,7 +967,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsQjsReplaceBundleConstMeta,
         argValues: [runtimeName, bundleName, bundleJs],
@@ -1004,7 +1003,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsRegisterLoadPluginConfigConstMeta,
         argValues: [dartCallback],
@@ -1040,7 +1039,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsRegisterSavePluginConfigConstMeta,
         argValues: [dartCallback],
@@ -1098,7 +1097,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsSetHttpProxyConstMeta,
         argValues: [proxy],
@@ -1121,7 +1120,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsSetQjsErrorStackEnabledConstMeta,
         argValues: [enabled],
@@ -1152,7 +1151,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsSetSocks5ProxyConstMeta,
         argValues: [proxy],
@@ -1236,7 +1235,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           },
           codec: SseCodec(
             decodeSuccessData: sse_decode_unit,
-            decodeErrorData: sse_decode_frb_error,
+            decodeErrorData: sse_decode_AnyhowException,
           ),
           constMeta: kCrateApiSystemStartShutdownListenerConstMeta,
           argValues: [sink],
@@ -1271,7 +1270,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           },
           codec: SseCodec(
             decodeSuccessData: sse_decode_unit,
-            decodeErrorData: sse_decode_frb_error,
+            decodeErrorData: sse_decode_AnyhowException,
           ),
           constMeta: kCrateApiSimpleStreamTestConstMeta,
           argValues: [stream],
@@ -1300,7 +1299,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiQjsTestHelloWorldConstMeta,
         argValues: [],
@@ -1358,7 +1357,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_prim_u_8_strict,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiSimpleZstdCompressBytesConstMeta,
         argValues: [raw, level],
@@ -1391,7 +1390,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_prim_u_8_strict,
-          decodeErrorData: sse_decode_frb_error,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiSimpleZstdDecompressBytesConstMeta,
         argValues: [encoded],
@@ -1489,12 +1488,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  FrbError dco_decode_box_autoadd_frb_error(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_frb_error(raw);
-  }
-
-  @protected
   ImageInfo dco_decode_box_autoadd_image_info(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_image_info(raw);
@@ -1504,15 +1497,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   PackInfo dco_decode_box_autoadd_pack_info(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_pack_info(raw);
-  }
-
-  @protected
-  FrbError dco_decode_frb_error(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 1)
-      throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
-    return FrbError(message: dco_decode_String(arr[0]));
   }
 
   @protected
@@ -1675,12 +1659,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  FrbError sse_decode_box_autoadd_frb_error(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_frb_error(deserializer));
-  }
-
-  @protected
   ImageInfo sse_decode_box_autoadd_image_info(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_image_info(deserializer));
@@ -1690,13 +1668,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   PackInfo sse_decode_box_autoadd_pack_info(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_pack_info(deserializer));
-  }
-
-  @protected
-  FrbError sse_decode_frb_error(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_message = sse_decode_String(deserializer);
-    return FrbError(message: var_message);
   }
 
   @protected
@@ -1917,15 +1888,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_box_autoadd_frb_error(
-    FrbError self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_frb_error(self, serializer);
-  }
-
-  @protected
   void sse_encode_box_autoadd_image_info(
     ImageInfo self,
     SseSerializer serializer,
@@ -1941,12 +1903,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_pack_info(self, serializer);
-  }
-
-  @protected
-  void sse_encode_frb_error(FrbError self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.message, serializer);
   }
 
   @protected

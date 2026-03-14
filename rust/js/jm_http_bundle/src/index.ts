@@ -7,41 +7,21 @@ import type { RequestPayload } from "./types";
 
 const jmClient = createJmClient();
 
-async function fetchImageBytes(args: { url: string; timeoutMs: number }) {
-  console.debug("fetchImageBytes", args);
-  const targetUrl = String(args.url || "").trim();
+async function fetchImageBytes({ url = "", timeoutMs = 30000 } = {}) {
+  const targetUrl = url.trim();
   if (!targetUrl) throw new Error("url 不能为空");
 
-  const timeout =
-    Number.isFinite(args.timeoutMs) && args.timeoutMs > 0
-      ? Math.floor(args.timeoutMs)
-      : 30_000;
+  const { host } = new URL(targetUrl);
 
-  const headers: Record<string, string> = {};
+  const response = await axios.get(targetUrl, {
+    headers: { Host: host },
+    timeout: Math.max(0, timeoutMs) || 30000,
+    responseType: "arraybuffer",
+  });
 
-  try {
-    headers.Host = new URL(targetUrl).host;
-  } catch {}
+  const nativeBufferId = await native.put(new Uint8Array(response.data));
 
-  try {
-    const response = await axios.get<ArrayBuffer>(targetUrl, {
-      headers,
-      timeout,
-      responseType: "arraybuffer",
-      validateStatus: () => true,
-    });
-
-    if (response.status < 200 || response.status >= 300) {
-      throw new Error(`下载图片失败: HTTP ${response.status}`);
-    }
-
-    const bytes = new Uint8Array(response.data);
-    const nativeBufferId = await native.put(bytes);
-    return { nativeBufferId: Number(nativeBufferId) };
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
+  return { nativeBufferId: Number(nativeBufferId) };
 }
 
 async function request(input: RequestPayload) {

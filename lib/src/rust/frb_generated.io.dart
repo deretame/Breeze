@@ -3,7 +3,6 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
-import 'api/error.dart';
 import 'api/memory.dart';
 import 'api/qjs.dart';
 import 'api/simple.dart';
@@ -50,16 +49,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool dco_decode_bool(dynamic raw);
 
   @protected
-  FrbError dco_decode_box_autoadd_frb_error(dynamic raw);
-
-  @protected
   ImageInfo dco_decode_box_autoadd_image_info(dynamic raw);
 
   @protected
   PackInfo dco_decode_box_autoadd_pack_info(dynamic raw);
-
-  @protected
-  FrbError dco_decode_frb_error(dynamic raw);
 
   @protected
   int dco_decode_i_32(dynamic raw);
@@ -126,16 +119,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool sse_decode_bool(SseDeserializer deserializer);
 
   @protected
-  FrbError sse_decode_box_autoadd_frb_error(SseDeserializer deserializer);
-
-  @protected
   ImageInfo sse_decode_box_autoadd_image_info(SseDeserializer deserializer);
 
   @protected
   PackInfo sse_decode_box_autoadd_pack_info(SseDeserializer deserializer);
-
-  @protected
-  FrbError sse_decode_frb_error(SseDeserializer deserializer);
 
   @protected
   int sse_decode_i_32(SseDeserializer deserializer);
@@ -216,12 +203,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_bool(bool self, SseSerializer serializer);
 
   @protected
-  void sse_encode_box_autoadd_frb_error(
-    FrbError self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_box_autoadd_image_info(
     ImageInfo self,
     SseSerializer serializer,
@@ -232,9 +213,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     PackInfo self,
     SseSerializer serializer,
   );
-
-  @protected
-  void sse_encode_frb_error(FrbError self, SseSerializer serializer);
 
   @protected
   void sse_encode_i_32(int self, SseSerializer serializer);

@@ -1,16 +1,21 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/util/get_path.dart';
-import 'package:path/path.dart' as p;
 
 Future<void> downloadPlugin() async {
   try {
+    logger.d("开始检测网络连通性...");
+    await dio.head('https://gh-proxy.org/').timeout(const Duration(seconds: 5));
+    logger.d("网络检查通过，准备获取配置...");
+
     final configResponse = await dio.get(
-      'https://cdn.jsdelivr.net/gh/deretame/Breeze@main/plugin/config.json',
+      'https://gh-proxy.org/https://github.com/deretame/Breeze/blob/main/plugin/config.json',
     );
 
-    final List data = configResponse.data;
+    final List data = jsonDecode(configResponse.data);
     final String basePath = await getFilePath();
 
     for (var element in data) {

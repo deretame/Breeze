@@ -65,17 +65,16 @@ jobs:
           fvm install && fvm use --force
           echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
 
-      - name: 设置 pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
       - name: 设置 Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: "pnpm"
-          cache-dependency-path: rust/js/jm_http_bundle/pnpm-lock.yaml
+
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - name: 安装 Rust (Android 目标)
         uses: dtolnay/rust-toolchain@stable
@@ -164,17 +163,16 @@ jobs:
           fvm install && fvm use --force
           echo "$GITHUB_WORKSPACE/.fvm/flutter_sdk/bin" >> $GITHUB_PATH
 
-      - name: 设置 pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
       - name: 设置 Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: "pnpm"
-          cache-dependency-path: rust/js/jm_http_bundle/pnpm-lock.yaml
+
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
@@ -241,17 +239,16 @@ jobs:
             rust
             windows-installer/src-tauri
 
-      - name: 设置 Node.js & pnpm
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: 设置 pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: "pnpm"
-          cache-dependency-path: |
-            windows-installer/pnpm-lock.yaml
-            rust/js/jm_http_bundle/pnpm-lock.yaml
+          version: 10
 
       - name: 运行 Windows 构建脚本
         run: |
@@ -302,17 +299,16 @@ jobs:
           workspaces: |
             rust
 
-      - name: 设置 pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
       - name: 设置 Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: "pnpm"
-          cache-dependency-path: rust/js/jm_http_bundle/pnpm-lock.yaml
+
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - name: 拉取依赖 & 修复 Podfile
         run: |
@@ -387,17 +383,16 @@ jobs:
           workspaces: |
             rust
 
-      - name: 设置 pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
       - name: 设置 Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: "pnpm"
-          cache-dependency-path: rust/js/jm_http_bundle/pnpm-lock.yaml
+
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - name: 编译 iOS (无签)
         run: |

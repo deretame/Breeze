@@ -23,7 +23,7 @@ Future<void> downloadPlugin() async {
 
     for (var element in data) {
       final plugin = element as Map<String, dynamic>;
-      final String downloadUrl = plugin['url'];
+      final String downloadUrl = "https://gh-proxy.org/${plugin['url']}";
       final String fileName = "${plugin['id']}.js";
 
       final String savePath = p.join(pluginPath, fileName);
@@ -34,15 +34,7 @@ Future<void> downloadPlugin() async {
 
       logger.d('正在下载插件: ${plugin['name']} -> $savePath');
 
-      await dio.download(
-        downloadUrl,
-        savePath,
-        onReceiveProgress: (count, total) {
-          if (total != -1) {
-            logger.d("${(count / total * 100).toStringAsFixed(0)}%");
-          }
-        },
-      );
+      await dio.download(downloadUrl, savePath);
 
       logger.d('插件 ${plugin['name']} 下载完成并已写入数据。');
     }

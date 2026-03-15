@@ -8,6 +8,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/direct_dio.dart';
 import 'package:zephyr/util/download/cancel_token.dart' as task_cancel;
 import 'package:zephyr/util/sundry.dart';
 
@@ -416,7 +417,9 @@ Future<Uint8List> downloadImageWithRetry(
       }
 
       if (kDebugMode) {
-        final js = await dio.get("http://127.0.0.1:7878/JmComic.bundle.cjs");
+        final js = await directDio.get(
+          "http://127.0.0.1:7878/JmComic.bundle.cjs",
+        );
         return await qjsFetchImageBytesOnce(
           runtimeName: "jmRuntime",
           bundleJs: js.data,

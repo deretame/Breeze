@@ -1,26 +1,55 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:zephyr/main.dart';
 
 import 'http_request_build.dart';
+import 'http_request_build_rust.dart' as rust;
 
-String limitString(String str, int maxLength) {
-  return str.substring(0, min(str.length, maxLength));
-}
-
-Future<Map<String, dynamic>> login(String username, String password) async {
-  final Map<String, dynamic> data = await request(
-    'https://picaapi.picacomic.com/auth/sign-in',
-    'POST',
-    body: json.encode({'email': username, 'password': password}),
-  );
+Future<Map<String, dynamic>> bikaRequest(
+  String url,
+  String method, {
+  dynamic body,
+  bool cache = false,
+  String? imageQuality,
+  String? authorization,
+}) async {
+  final data = kDebugMode
+      ? await rust.request(
+          url,
+          method,
+          body: body,
+          cache: cache,
+          imageQuality: imageQuality,
+          authorization: authorization,
+        )
+      : await request(
+          url,
+          method,
+          body: body,
+          cache: cache,
+          imageQuality: imageQuality,
+          authorization: authorization,
+        );
 
   if (data['code'] != 200) {
     throw data;
   }
 
   return data;
+}
+
+String limitString(String str, int maxLength) {
+  return str.substring(0, min(str.length, maxLength));
+}
+
+Future<Map<String, dynamic>> login(String username, String password) async {
+  return bikaRequest(
+    'https://picaapi.picacomic.com/auth/sign-in',
+    'POST',
+    body: json.encode({'email': username, 'password': password}),
+  );
 }
 
 Future<Map<String, dynamic>> register(
@@ -44,31 +73,19 @@ Future<Map<String, dynamic>> register(
     "question3": "3",
   };
 
-  final Map<String, dynamic> data = await request(
+  return bikaRequest(
     'https://picaapi.picacomic.com/auth/register',
     'POST',
     body: json.encode(jsonMap),
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
 }
 
 Future<Map<String, dynamic>> getCategories() async {
-  final Map<String, dynamic> data = await request(
+  return bikaRequest(
     'https://picaapi.picacomic.com/categories',
     'GET',
     cache: true,
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
 }
 
 Future<Map<String, dynamic>> getRankingList({
@@ -85,13 +102,7 @@ Future<Map<String, dynamic>> getRankingList({
     throw Exception('未知类型');
   }
 
-  final Map<String, dynamic> data = await request(url, 'GET', cache: true);
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
+  return bikaRequest(url, 'GET', cache: true);
 }
 
 Future<Map<String, dynamic>> search({
@@ -120,56 +131,46 @@ Future<Map<String, dynamic>> search({
       var temp = url.split("&s")[0];
       url = "$temp&s=$sort&page=$pageCount";
 
-      data = await request(url, 'GET');
+      data = await bikaRequest(url, 'GET');
     } else if (url == 'https://picaapi.picacomic.com/comics/random') {
-      data = await request(url, 'GET');
+      data = await bikaRequest(url, 'GET');
     } else if (url.contains("%E5%A4%A7%E5%AE%B6%E9%83%BD%E5%9C%A8%E7%9C%8B")) {
       url =
           'https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E5%AE%B6%E9%83%BD%E5%9C%A8%E7%9C%8B&s=$sort';
-      data = await request(url, 'GET');
+      data = await bikaRequest(url, 'GET');
     } else if (url ==
         'https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E6%BF%95%E6%8E%A8%E8%96%A6&s=$sort') {
-      data = await request(url, 'GET');
+      data = await bikaRequest(url, 'GET');
     } else if (url.contains('%E9%82%A3%E5%B9%B4%E4%BB%8A%E5%A4%A9')) {
-      data = await request(
+      data = await bikaRequest(
         'https://picaapi.picacomic.com/comics?page=$pageCount&c=%E9%82%A3%E5%B9%B4%E4%BB%8A%E5%A4%A9&s=$sort',
         'GET',
       );
     } else if (url.contains('%E5%AE%98%E6%96%B9%E9%83%BD%E5%9C%A8%E7%9C%8B')) {
-      data = await request(
+      data = await bikaRequest(
         'https://picaapi.picacomic.com/comics?page=$pageCount&c=%E5%AE%98%E6%96%B9%E9%83%BD%E5%9C%A8%E7%9C%8B&s=$sort',
         'GET',
       );
     } else if (url == 'https://picaapi.picacomic.com/comics/random') {
-      data = await request(url, 'GET');
+      data = await bikaRequest(url, 'GET');
     }
   } else {
-    data = await request(
+    data = await bikaRequest(
       'https://picaapi.picacomic.com/comics/advanced-search?page=$pageCount',
       'POST',
       body: json.encode(jsonMap),
     );
   }
 
-  if (data['code'] != 200) {
-    throw data;
-  }
-
   return data;
 }
 
 Future<Map<String, dynamic>> getSearchKeywords() async {
-  final Map<String, dynamic> data = await request(
+  return bikaRequest(
     'https://picaapi.picacomic.com/keywords',
     'GET',
     cache: true,
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
 }
 
 Future<Map<String, dynamic>> getComicInfo(
@@ -177,133 +178,79 @@ Future<Map<String, dynamic>> getComicInfo(
   String? authorization,
   String? imageQuality,
 }) async {
-  final Map<String, dynamic> data = await request(
+  return bikaRequest(
     'https://picaapi.picacomic.com/comics/$comicId',
     'GET',
     authorization: authorization,
     imageQuality: imageQuality,
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
 }
 
 Future<Map<String, dynamic>> favouriteComic(String comicId) async {
-  final Map<String, dynamic> data = await request(
+  return bikaRequest(
     'https://picaapi.picacomic.com/comics/$comicId/favourite',
     'POST',
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
 }
 
 Future<Map<String, dynamic>> likeComic(String comicId) async {
-  final Map<String, dynamic> data = await request(
+  return bikaRequest(
     'https://picaapi.picacomic.com/comics/$comicId/like',
     'POST',
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
 }
 
 Future<Map<String, dynamic>> getComments(String comicId, int pageCount) async {
-  final Map<String, dynamic> data = await request(
+  return bikaRequest(
     'https://picaapi.picacomic.com/comics/$comicId/comments?page=$pageCount',
     'GET',
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
 }
 
 Future<Map<String, dynamic>> getCommentsChildren(
   String commentId,
   int pageCount,
 ) async {
-  final Map<String, dynamic> data = await request(
+  return bikaRequest(
     'https://picaapi.picacomic.com/comments/$commentId/childrens?page=$pageCount',
     'GET',
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
 }
 
 Future<Map<String, dynamic>> likeComment(String comicId) async {
-  final Map<String, dynamic> data = await request(
+  return bikaRequest(
     'https://picaapi.picacomic.com/comments/$comicId/like',
     'POST',
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
 }
 
 Future<Map<String, dynamic>> writeComment(
   String comicId,
   String content,
 ) async {
-  final Map<String, dynamic> data = await request(
+  return bikaRequest(
     'https://picaapi.picacomic.com/comics/$comicId/comments',
     'POST',
     body: json.encode({'content': content}),
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
 }
 
 Future<Map<String, dynamic>> writeCommentChildren(
   String commentId,
   String content,
 ) async {
-  final Map<String, dynamic> data = await request(
+  return bikaRequest(
     'https://picaapi.picacomic.com/comments/$commentId',
     'POST',
     body: json.encode({'content': content}),
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
 }
 
 Future<Map<String, dynamic>> reportComments(String commentId) async {
-  final Map<String, dynamic> data = await request(
+  return bikaRequest(
     'https://picaapi.picacomic.com/comments/$commentId/report',
     'POST',
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
 }
 
 Future<Map<String, dynamic>> getEps(
@@ -312,33 +259,21 @@ Future<Map<String, dynamic>> getEps(
   String? authorization,
   String? imageQuality,
 }) async {
-  final Map<String, dynamic> data = await request(
+  return bikaRequest(
     'https://picaapi.picacomic.com/comics/$comicId/eps?page=$pageCount',
     'GET',
     cache: true,
     authorization: authorization,
     imageQuality: imageQuality,
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
 }
 
 Future<Map<String, dynamic>> getRecommend(String comicId) async {
-  final Map<String, dynamic> data = await request(
+  return bikaRequest(
     'https://picaapi.picacomic.com/comics/$comicId/recommendation',
     'GET',
     cache: true,
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
 }
 
 Future<Map<String, dynamic>> getPages(
@@ -348,66 +283,39 @@ Future<Map<String, dynamic>> getPages(
   String? authorization,
   String? imageQuality,
 }) async {
-  final Map<String, dynamic> data = await request(
+  return bikaRequest(
     'https://picaapi.picacomic.com/comics/$comicId/order/$epId/pages?page=$pageCount',
     'GET',
     cache: true,
     authorization: authorization,
     imageQuality: imageQuality,
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
 }
 
 Future<Map<String, dynamic>> getUserProfile() async {
-  final Map<String, dynamic> data = await request(
-    'https://picaapi.picacomic.com/users/profile',
-    'GET',
-  );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
+  return bikaRequest('https://picaapi.picacomic.com/users/profile', 'GET');
 }
 
 Future<Map<String, dynamic>> updateAvatar(String avatarBASE64String) async {
-  final Map<String, dynamic> data = await request(
+  return bikaRequest(
     'https://picaapi.picacomic.com/users/avatar',
     'PUT',
     body: json.encode({"avatar": "data:image/jpeg;base64,$avatarBASE64String"}),
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
 }
 
 // 更新自己的简介
 Future<Map<String, dynamic>> updateProfile(String profile) async {
-  final Map<String, dynamic> data = await request(
+  return bikaRequest(
     'https://picaapi.picacomic.com/users/profile',
     'PUT',
     body: json.encode({"slogan": profile}),
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
 }
 
 Future<Map<String, dynamic>> updatePassword(String newPassword) async {
   final settings = objectbox.userSettingBox.get(1)!.bikaSetting;
-  final Map<String, dynamic> data = await request(
+  return bikaRequest(
     'https://picaapi.picacomic.com/users/password',
     'PUT',
     body: json.encode({
@@ -415,49 +323,27 @@ Future<Map<String, dynamic>> updatePassword(String newPassword) async {
       "old_password": settings.password,
     }),
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
 }
 
 Future<Map<String, dynamic>> getFavorites(int pageCount) async {
-  final Map<String, dynamic> data = await request(
+  return bikaRequest(
     'https://picaapi.picacomic.com/users/favourite?s=dd&page=$pageCount',
     'GET',
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
 }
 
 Future<Map<String, dynamic>> getUserComments(int pageCount) async {
-  final Map<String, dynamic> data = await request(
+  return bikaRequest(
     'https://picaapi.picacomic.com/users/my-comments?page=$pageCount',
     'GET',
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
-
-  return data;
 }
 
 Future<String> signIn() async {
-  final Map<String, dynamic> data = await request(
+  final data = await bikaRequest(
     'https://picaapi.picacomic.com/users/punch-in',
     'POST',
   );
-
-  if (data['code'] != 200) {
-    throw data;
-  }
 
   if (data['data']['res']['status'] == 'ok') {
     return "签到成功";

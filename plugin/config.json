@@ -6,7 +6,17 @@
         "description": "JmComic",
         "author": "zephyr",
         "license": "MIT",
-        "url": "https://cdn.jsdelivr.net/gh/deretame/Breeze-plugin-JmComic@main/plugin/v0.1.0/JmComic.bundle.cjs",
+        "url": "https://github.com/deretame/Breeze-plugin-JmComic/blob/main/verison/v0.0.1/JmComic.bundle.cjs",
         "main": "JmComic.bundle.cjs"
+    },
+    {
+        "name": "BikaComic",
+        "version": "1.0.0",
+        "id": "07766f81-8f72-4ff2-ac9d-951adfc72b90",
+        "description": "BikaComic",
+        "author": "zephyr",
+        "license": "MIT",
+        "url": "https://github.com/deretame/Breeze-plugin-bikaComic/blob/main/version/v0.0.1/bikaComic.bundle.cjs",
+        "main": "BikaComic.bundle.cjs"
     }
 ]

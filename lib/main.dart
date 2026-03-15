@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 
@@ -190,13 +189,6 @@ _initServices() async {
   // 配置http代理，方便开发测试
   if (kDebugMode) {
     setQjsErrorStackEnabled(enabled: true);
-    final js = await dio.get("http://127.0.0.1:7878/JmComic.bundle.cjs");
-    await qjsCallOnce(
-      runtimeName: "jmRuntime",
-      bundleJs: js.data,
-      fnPath: "helloWorld",
-      argsJson: jsonEncode([]),
-    );
     await enableProxy();
   }
 

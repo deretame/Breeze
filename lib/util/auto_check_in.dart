@@ -34,8 +34,8 @@ Future<void> bikaSignIn(BuildContext context) async {
         logger.d('哔咔自动签到成功！');
         break;
       }
-    } catch (e) {
-      logger.e(e);
+    } catch (e, s) {
+      logger.e(e, stackTrace: s);
       await Future.delayed(Duration(seconds: 1));
       continue;
     }

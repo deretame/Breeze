@@ -6,6 +6,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/jm_error_message.dart';
 import 'package:zephyr/src/rust/api/qjs.dart' as rust_qjs;
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/direct_dio.dart';
 import 'package:zephyr/util/event/event.dart';
 
 Future<dynamic> request(
@@ -18,7 +19,7 @@ Future<dynamic> request(
   bool useJwt = true,
 }) async {
   try {
-    final js = await dio.get("http://127.0.0.1:7878/JmComic.bundle.cjs");
+    final js = await directDio.get("http://127.0.0.1:7878/JmComic.bundle.cjs");
     final raw = await rust_qjs.qjsCallOnce(
       runtimeName: "jmRuntime",
       bundleJs: js.data,

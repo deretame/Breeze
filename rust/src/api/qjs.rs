@@ -9,7 +9,7 @@ use rquickjs_playground::{
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, OnceLock};
-use tokio::sync::RwLock;
+use tokio::sync::{Mutex as AsyncMutex, RwLock};
 
 type QjsRuntimeMap = HashMap<String, Arc<AsyncHostRuntime>>;
 type QjsCallTaskMap = HashMap<String, HashMap<u64, RuntimeTaskHandle>>;
@@ -18,6 +18,7 @@ type PersistentCallback =
 
 static QJS_RUNTIMES: OnceLock<RwLock<QjsRuntimeMap>> = OnceLock::new();
 static QJS_CALL_TASKS: OnceLock<RwLock<QjsCallTaskMap>> = OnceLock::new();
+static QJS_RUNTIME_INIT_LOCK: OnceLock<AsyncMutex<()>> = OnceLock::new();
 static DART_CALLBACK_RT: OnceLock<Mutex<tokio::runtime::Runtime>> = OnceLock::new();
 
 fn qjs_runtime_map() -> &'static RwLock<QjsRuntimeMap> {
@@ -26,6 +27,10 @@ fn qjs_runtime_map() -> &'static RwLock<QjsRuntimeMap> {
 
 fn qjs_call_task_map() -> &'static RwLock<QjsCallTaskMap> {
     QJS_CALL_TASKS.get_or_init(|| RwLock::new(HashMap::new()))
+}
+
+fn qjs_runtime_init_lock() -> &'static AsyncMutex<()> {
+    QJS_RUNTIME_INIT_LOCK.get_or_init(|| AsyncMutex::new(()))
 }
 
 fn dart_callback_runtime() -> Result<&'static Mutex<tokio::runtime::Runtime>> {
@@ -74,16 +79,22 @@ async fn qjs_runtime(runtime_name: &str) -> Result<Arc<AsyncHostRuntime>> {
         }
     }
 
+    let _init_guard = qjs_runtime_init_lock().lock().await;
+
+    {
+        let map = qjs_runtime_map().read().await;
+        if let Some(runtime) = map.get(runtime_name) {
+            return Ok(runtime.clone());
+        }
+    }
+
     let new_runtime = Arc::new(create_qjs_runtime(runtime_name).await?);
 
     let mut map = qjs_runtime_map().write().await;
-    let runtime = map
-        .entry(runtime_name.to_owned())
-        .or_insert_with(|| new_runtime.clone())
-        .clone();
+    map.insert(runtime_name.to_owned(), new_runtime.clone());
 
     tracing::info!("新建了一个 qjs 实例: {runtime_name}");
-    Ok(runtime)
+    Ok(new_runtime)
 }
 
 async fn qjs_runtime_if_exists(runtime_name: &str) -> Option<Arc<AsyncHostRuntime>> {

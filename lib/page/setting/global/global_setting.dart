@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/debug_url_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/sync/sync_service.dart';
@@ -27,11 +28,24 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   final Map<String, int> systemTheme = {"跟随系统": 0, "浅色模式": 1, "深色模式": 2};
   final List<String> splashPageList = ["首页", "排行", "书架", "更多"];
   final Map<String, int> splashPage = {"首页": 0, "排行": 1, "书架": 2, "更多": 3};
+  String _debugBikaUrl = "";
+  String _debugJmUrl = '';
 
   @override
   void initState() {
     super.initState();
+    _loadDebugUrls();
     _loadImpellerConfig();
+  }
+
+  Future<void> _loadDebugUrls() async {
+    await DebugUrlSetting.init();
+    if (!mounted) return;
+
+    setState(() {
+      _debugBikaUrl = DebugUrlSetting.bikaBaseUrl;
+      _debugJmUrl = DebugUrlSetting.jmBaseUrl;
+    });
   }
 
   Future<void> _loadImpellerConfig() async {
@@ -114,6 +128,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               if (defaultTargetPlatform == TargetPlatform.android)
                 _forceEnableImpeller(state, globalSettingCubit),
               if (kDebugMode) ...[
+                _bikaUrlDebugSetting(),
+                _jmUrlDebugSetting(),
                 ListTile(
                   leading: const Icon(Icons.colorize_outlined),
                   title: const Text('整点颜色看看'),
@@ -404,5 +420,110 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
         showSuccessToast('设置成功，重启生效');
       },
     );
+  }
+
+  Widget _bikaUrlDebugSetting() {
+    return ListTile(
+      leading: const Icon(Icons.travel_explore_outlined),
+      title: const Text('哔咔 URL'),
+      subtitle: Text(
+        DebugUrlSetting.formatForDisplay(_debugBikaUrl, fallback: ""),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () async {
+        final result = await _showUrlInputDialog(
+          title: '设置哔咔 URL',
+          hintText: '例如 picaapi.picacomic.com',
+          initialValue: _debugBikaUrl == "" ? '' : _debugBikaUrl,
+        );
+
+        if (result == null) {
+          return;
+        }
+
+        await DebugUrlSetting.saveBikaBaseUrl(result);
+        if (!mounted) {
+          return;
+        }
+
+        setState(() {
+          _debugBikaUrl = DebugUrlSetting.bikaBaseUrl;
+        });
+        showSuccessToast('设置成功，重启生效');
+      },
+    );
+  }
+
+  Widget _jmUrlDebugSetting() {
+    return ListTile(
+      leading: const Icon(Icons.public_outlined),
+      title: const Text('禁漫 URL'),
+      subtitle: Text(
+        DebugUrlSetting.formatForDisplay(_debugJmUrl, fallback: '默认地址池'),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () async {
+        final result = await _showUrlInputDialog(
+          title: '设置禁漫 URL',
+          hintText: '例如 www.cdnsha.org',
+          initialValue: _debugJmUrl,
+        );
+
+        if (result == null) {
+          return;
+        }
+
+        await DebugUrlSetting.saveJmBaseUrl(result);
+        if (!mounted) {
+          return;
+        }
+
+        setState(() {
+          _debugJmUrl = DebugUrlSetting.jmBaseUrl;
+        });
+        showSuccessToast('设置成功，重启生效');
+      },
+    );
+  }
+
+  Future<String?> _showUrlInputDialog({
+    required String title,
+    required String hintText,
+    required String initialValue,
+  }) async {
+    final controller = TextEditingController(text: initialValue);
+
+    final value = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: hintText,
+            helperText: '留空恢复默认',
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            child: const Text('取消'),
+            onPressed: () => Navigator.pop(context),
+          ),
+          TextButton(
+            child: const Text('确定'),
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+          ),
+        ],
+      ),
+    );
+
+    controller.dispose();
+    return value;
   }
 }

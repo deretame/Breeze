@@ -2,31 +2,36 @@ use anyhow::{Context, Result, anyhow};
 use flutter_rust_bridge::{DartFnFuture, frb};
 use rquickjs_playground::web_runtime::native_buffer_take_raw;
 use rquickjs_playground::{
-    AsyncHostRuntime, HttpClientConfig, RuntimeTaskHandle, configure_http_client,
-    configure_js_error_stack, register_load_plugin_config_handler,
+    AsyncHostRuntime, HttpClientConfig, configure_http_client, configure_js_error_stack,
+    configure_log_http_endpoint, register_load_plugin_config_handler,
     register_save_plugin_config_handler,
 };
 use serde_json::Value;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex, OnceLock};
 use tokio::sync::{Mutex as AsyncMutex, RwLock};
 
 type QjsRuntimeMap = HashMap<String, Arc<AsyncHostRuntime>>;
-type QjsCallTaskMap = HashMap<String, HashMap<u64, RuntimeTaskHandle>>;
+type QjsInFlightTaskMap = HashMap<String, HashSet<u64>>;
 type PersistentCallback =
     Arc<dyn Fn(String, String, String) -> DartFnFuture<String> + Send + Sync + 'static>;
 
 static QJS_RUNTIMES: OnceLock<RwLock<QjsRuntimeMap>> = OnceLock::new();
-static QJS_CALL_TASKS: OnceLock<RwLock<QjsCallTaskMap>> = OnceLock::new();
+static QJS_IN_FLIGHT_TASKS: OnceLock<RwLock<QjsInFlightTaskMap>> = OnceLock::new();
 static QJS_RUNTIME_INIT_LOCK: OnceLock<AsyncMutex<()>> = OnceLock::new();
 static DART_CALLBACK_RT: OnceLock<Mutex<tokio::runtime::Runtime>> = OnceLock::new();
+
+const BIKA_JS_BUNDLE: &str = include_str!("../../assets/bikaComic.bundle.cjs");
+const JM_JS_BUNDLE: &str = include_str!("../../assets/JmComic.bundle.cjs");
+const DEFAULT_RUNTIME_NAME: &str = "default";
+const QJS_RUNTIME_CANCELLED_ERROR_CODE: &str = "__QJS_RUNTIME_CANCELLED__";
 
 fn qjs_runtime_map() -> &'static RwLock<QjsRuntimeMap> {
     QJS_RUNTIMES.get_or_init(|| RwLock::new(HashMap::new()))
 }
 
-fn qjs_call_task_map() -> &'static RwLock<QjsCallTaskMap> {
-    QJS_CALL_TASKS.get_or_init(|| RwLock::new(HashMap::new()))
+fn qjs_in_flight_task_map() -> &'static RwLock<QjsInFlightTaskMap> {
+    QJS_IN_FLIGHT_TASKS.get_or_init(|| RwLock::new(HashMap::new()))
 }
 
 fn qjs_runtime_init_lock() -> &'static AsyncMutex<()> {
@@ -93,36 +98,47 @@ async fn qjs_runtime(runtime_name: &str) -> Result<Arc<AsyncHostRuntime>> {
     let mut map = qjs_runtime_map().write().await;
     map.insert(runtime_name.to_owned(), new_runtime.clone());
 
-    tracing::info!("新建了一个 qjs 实例: {runtime_name}");
+    tracing::info!(
+        "新建了一个 qjs 实例: {runtime_name}，thread id : {:?}",
+        std::thread::current().id()
+    );
     Ok(new_runtime)
 }
 
-async fn qjs_runtime_if_exists(runtime_name: &str) -> Option<Arc<AsyncHostRuntime>> {
-    let map = qjs_runtime_map().read().await;
-    map.get(runtime_name).cloned()
-}
-
-async fn insert_qjs_call_task(runtime_name: &str, task: RuntimeTaskHandle) {
-    let task_id = task.id();
-    let mut map = qjs_call_task_map().write().await;
-    map.entry(runtime_name.to_owned())
-        .or_default()
-        .insert(task_id, task);
-}
-
-async fn take_qjs_call_task(runtime_name: &str, task_id: u64) -> Option<RuntimeTaskHandle> {
-    let mut map = qjs_call_task_map().write().await;
-    let runtime_tasks = map.get_mut(runtime_name)?;
-    let task = runtime_tasks.remove(&task_id);
-    if runtime_tasks.is_empty() {
-        map.remove(runtime_name);
+async fn create_qjs_runtime_with_bundle(
+    runtime_name: &str,
+    bundle_name: &str,
+    bundle_js: &str,
+) -> Result<()> {
+    if runtime_name.trim().is_empty() {
+        return Err(anyhow!("runtime_name 不能为空"));
     }
-    task
-}
+    if bundle_name.trim().is_empty() {
+        return Err(anyhow!("bundle_name 不能为空"));
+    }
+    if bundle_js.trim().is_empty() {
+        return Err(anyhow!("bundle_js 不能为空"));
+    }
 
-async fn clear_runtime_call_tasks(runtime_name: &str) {
-    let mut map = qjs_call_task_map().write().await;
-    map.remove(runtime_name);
+    let _init_guard = qjs_runtime_init_lock().lock().await;
+
+    {
+        let map = qjs_runtime_map().read().await;
+        if let Some(existing_runtime) = map.get(runtime_name) {
+            replace_bundle_inner(existing_runtime, bundle_name, bundle_js).await?;
+            tracing::info!("复用 qjs 实例并替换 bundle: {runtime_name} -> {bundle_name}");
+            return Ok(());
+        }
+    }
+
+    let new_runtime = Arc::new(create_qjs_runtime(runtime_name).await?);
+    load_bundle_inner(&new_runtime, bundle_name, bundle_js).await?;
+
+    let mut map = qjs_runtime_map().write().await;
+    map.insert(runtime_name.to_owned(), new_runtime);
+
+    tracing::info!("新建 qjs 实例并加载 bundle: {runtime_name} -> {bundle_name}");
+    Ok(())
 }
 
 fn parse_args_array(args_json: &str) -> Result<Value> {
@@ -134,18 +150,60 @@ fn parse_args_array(args_json: &str) -> Result<Value> {
     })
 }
 
+fn is_cancelled_error_text(message: &str) -> bool {
+    let lower = message.to_ascii_lowercase();
+    lower.contains("cancel")
+        || lower.contains("abort")
+        || lower.contains("interrupted")
+        || message.contains("取消")
+}
+
 fn parse_ok_json_payload(raw: &str) -> Result<Value> {
     let payload: Value = serde_json::from_str(raw).context("解析 JS 返回 JSON 失败")?;
     if payload.get("ok").and_then(Value::as_bool) == Some(true) {
         Ok(payload.get("data").cloned().unwrap_or(Value::Null))
     } else {
-        Err(anyhow!(
-            "{}",
-            payload
-                .get("error")
-                .and_then(Value::as_str)
-                .unwrap_or("执行失败")
-        ))
+        let error_message = payload
+            .get("error")
+            .and_then(Value::as_str)
+            .unwrap_or("执行失败");
+        if is_cancelled_error_text(error_message) {
+            tracing::info!("QJS 任务被取消(解析返回体): {error_message}");
+            return Err(anyhow!(QJS_RUNTIME_CANCELLED_ERROR_CODE));
+        }
+        Err(anyhow!("{}", error_message))
+    }
+}
+
+async fn insert_runtime_task_id(runtime_name: &str, task_id: u64) {
+    let mut map = qjs_in_flight_task_map().write().await;
+    map.entry(runtime_name.to_owned())
+        .or_default()
+        .insert(task_id);
+}
+
+async fn remove_runtime_task_id(runtime_name: &str, task_id: u64) {
+    let mut map = qjs_in_flight_task_map().write().await;
+    let Some(task_ids) = map.get_mut(runtime_name) else {
+        return;
+    };
+    task_ids.remove(&task_id);
+    if task_ids.is_empty() {
+        map.remove(runtime_name);
+    }
+}
+
+async fn take_runtime_task_ids(runtime_name: &str) -> Vec<u64> {
+    let mut map = qjs_in_flight_task_map().write().await;
+    let Some(task_ids) = map.remove(runtime_name) else {
+        return Vec::new();
+    };
+    task_ids.into_iter().collect()
+}
+
+fn cancel_runtime_tasks(runtime: &AsyncHostRuntime, task_ids: &[u64]) {
+    for task_id in task_ids {
+        let _ = runtime.cancel(*task_id);
     }
 }
 
@@ -179,18 +237,39 @@ async fn replace_bundle_inner(
 }
 
 async fn call_loaded_bundle_inner(
+    runtime_name: &str,
     runtime: &AsyncHostRuntime,
     name: &str,
     fn_path: &str,
     args: &Value,
 ) -> Result<Value> {
-    runtime
-        .bundle_call(name, fn_path, args)
+    let handle = runtime
+        .bundle_call_start(name, fn_path, args)
         .await
-        .map_err(|err| anyhow!(err))
+        .map_err(|err| anyhow!(err))?;
+
+    let task_id = handle.id();
+    insert_runtime_task_id(runtime_name, task_id).await;
+
+    let raw = handle.wait_async().await;
+    remove_runtime_task_id(runtime_name, task_id).await;
+
+    let raw = match raw {
+        Ok(raw) => raw,
+        Err(err) => {
+            let message = err.to_string();
+            if is_cancelled_error_text(&message) {
+                tracing::info!("QJS 任务被取消(等待结果): {message}");
+                return Err(anyhow!(QJS_RUNTIME_CANCELLED_ERROR_CODE));
+            }
+            return Err(anyhow!(err));
+        }
+    };
+    parse_ok_json_payload(&raw)
 }
 
 async fn call_current_bundle_inner(
+    runtime_name: &str,
     runtime: &AsyncHostRuntime,
     fn_path: &str,
     args: &Value,
@@ -200,7 +279,7 @@ async fn call_current_bundle_inner(
             "当前 runtime 未加载 bundle，请先调用 qjs_replace_bundle"
         ));
     };
-    call_loaded_bundle_inner(runtime, &name, fn_path, args).await
+    call_loaded_bundle_inner(runtime_name, runtime, &name, fn_path, args).await
 }
 
 async fn call_bundle_once_inner(
@@ -239,7 +318,7 @@ async fn call_current_bundle_by_json(
 ) -> Result<Value> {
     let runtime = qjs_runtime(runtime_name).await?;
     let args = parse_call_input(fn_path, args_json)?;
-    call_current_bundle_inner(&runtime, fn_path, &args).await
+    call_current_bundle_inner(runtime_name, &runtime, fn_path, &args).await
 }
 
 async fn call_bundle_once_by_json(
@@ -255,49 +334,6 @@ async fn call_bundle_once_by_json(
     let runtime = qjs_runtime(runtime_name).await?;
     let args = parse_call_input(fn_path, args_json)?;
     call_bundle_once_inner(&runtime, bundle_js, fn_path, &args).await
-}
-
-async fn start_current_bundle_call_by_json(
-    runtime_name: &str,
-    fn_path: &str,
-    args_json: &str,
-) -> Result<u64> {
-    let runtime = qjs_runtime(runtime_name).await?;
-    let args = parse_call_input(fn_path, args_json)?;
-    qjs_call_start_inner(runtime_name, &runtime, fn_path, &args).await
-}
-
-async fn wait_call_payload(runtime_name: &str, task_id: u64) -> Result<Value> {
-    let handle = take_qjs_call_task(runtime_name, task_id)
-        .await
-        .ok_or_else(|| anyhow!("调用任务不存在或已完成: {task_id}"))?;
-
-    let raw = handle
-        .wait_async()
-        .await
-        .map_err(|err| anyhow!("等待 QJS 调用结果失败: {err}"))?;
-    parse_ok_json_payload(&raw)
-}
-
-async fn qjs_call_start_inner(
-    runtime_name: &str,
-    runtime: &AsyncHostRuntime,
-    fn_path: &str,
-    args: &Value,
-) -> Result<u64> {
-    let Some(bundle_name) = current_bundle_name(runtime).await? else {
-        return Err(anyhow!(
-            "当前 runtime 未加载 bundle，请先调用 qjs_replace_bundle"
-        ));
-    };
-
-    let handle = runtime
-        .bundle_call_start(&bundle_name, fn_path, args)
-        .await
-        .map_err(|err| anyhow!("提交 QJS 调用任务失败: {err}"))?;
-    let task_id = handle.id();
-    insert_qjs_call_task(runtime_name, handle).await;
-    Ok(task_id)
 }
 
 async fn current_bundle_name(runtime: &AsyncHostRuntime) -> Result<Option<String>> {
@@ -325,41 +361,6 @@ pub async fn qjs_replace_bundle(
 pub async fn qjs_call(runtime_name: String, fn_path: String, args_json: String) -> Result<String> {
     let data = call_current_bundle_by_json(&runtime_name, &fn_path, &args_json).await?;
     serde_json::to_string(&data).context("序列化调用结果失败")
-}
-
-#[frb]
-pub async fn qjs_call_start(
-    runtime_name: String,
-    fn_path: String,
-    args_json: String,
-) -> Result<u64> {
-    start_current_bundle_call_by_json(&runtime_name, &fn_path, &args_json).await
-}
-
-#[frb]
-pub async fn qjs_call_wait(runtime_name: String, task_id: u64) -> Result<String> {
-    let data = wait_call_payload(&runtime_name, task_id).await?;
-    serde_json::to_string(&data).context("序列化调用结果失败")
-}
-
-#[frb]
-pub async fn qjs_call_cancel(runtime_name: String, task_id: u64) -> Result<bool> {
-    if runtime_name.trim().is_empty() {
-        return Err(anyhow!("runtime_name 不能为空"));
-    }
-
-    let Some(runtime) = qjs_runtime_if_exists(&runtime_name).await else {
-        let _ = take_qjs_call_task(&runtime_name, task_id).await;
-        return Ok(true);
-    };
-
-    let cancelled = runtime.cancel(task_id);
-    if cancelled {
-        let _ = take_qjs_call_task(&runtime_name, task_id).await;
-        return Ok(true);
-    }
-
-    Ok(false)
 }
 
 #[frb]
@@ -398,9 +399,25 @@ pub async fn qjs_drop_runtime(runtime_name: String) -> Result<bool> {
         return Err(anyhow!("runtime_name 不能为空"));
     }
 
-    clear_runtime_call_tasks(&runtime_name).await;
+    let _init_guard = qjs_runtime_init_lock().lock().await;
+
     let mut map = qjs_runtime_map().write().await;
-    Ok(map.remove(&runtime_name).is_some())
+    let runtime = map.remove(&runtime_name);
+    drop(map);
+
+    let task_ids = take_runtime_task_ids(&runtime_name).await;
+    if let Some(runtime) = runtime.as_deref() {
+        if !task_ids.is_empty() {
+            tracing::info!(
+                "销毁 qjs 实例并取消任务: runtime={}, task_count={}",
+                runtime_name,
+                task_ids.len()
+            );
+        }
+        cancel_runtime_tasks(runtime, &task_ids);
+    }
+
+    Ok(runtime.is_some())
 }
 
 #[frb]
@@ -414,26 +431,6 @@ pub async fn qjs_fetch_image_bytes(
         .map_err(|e| anyhow!(e))?;
 
     native_bytes_from_payload(payload)
-}
-
-#[frb]
-pub async fn qjs_fetch_image_bytes_start(
-    runtime_name: String,
-    fn_path: String,
-    args_json: String,
-) -> Result<u64> {
-    start_current_bundle_call_by_json(&runtime_name, &fn_path, &args_json).await
-}
-
-#[frb]
-pub async fn qjs_fetch_image_bytes_wait(runtime_name: String, task_id: u64) -> Result<Vec<u8>> {
-    let payload = wait_call_payload(&runtime_name, task_id).await?;
-    native_bytes_from_payload(payload)
-}
-
-#[frb]
-pub async fn qjs_fetch_image_bytes_cancel(runtime_name: String, task_id: u64) -> Result<bool> {
-    qjs_call_cancel(runtime_name, task_id).await
 }
 
 #[frb]
@@ -516,4 +513,34 @@ fn run_dart_callback_blocking(
         .map_err(|_| anyhow!("dart callback runtime 锁已损坏"))?;
     let out = guard.block_on(callback(name, key, value));
     Ok(out)
+}
+
+#[frb(sync)]
+pub fn set_log_http_forward(url: String) -> Result<()> {
+    configure_log_http_endpoint(Some(url));
+    Ok(())
+}
+
+#[frb(sync)]
+pub fn get_js_bundle(name: String) -> Result<String> {
+    match name.as_str() {
+        "bikaComic" => Ok(BIKA_JS_BUNDLE.to_string()),
+        "jmComic" => Ok(JM_JS_BUNDLE.to_string()),
+        _ => Ok("".to_string()),
+    }
+}
+
+#[frb]
+pub async fn init_qjs_runtime(name: String) -> Result<()> {
+    let _runtime = qjs_runtime(&name).await?;
+    Ok(())
+}
+
+#[frb]
+pub async fn init_qjs_runtime_with_bundle(
+    runtime_name: String,
+    bundle_name: String,
+    bundle_js: String,
+) -> Result<()> {
+    create_qjs_runtime_with_bundle(&runtime_name, &bundle_name, &bundle_js).await
 }

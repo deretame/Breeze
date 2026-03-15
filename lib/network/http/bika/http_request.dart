@@ -1,11 +1,17 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zephyr/config/debug_url_setting.dart';
 import 'package:zephyr/main.dart';
 
-import 'http_request_build.dart';
 import 'http_request_build_rust.dart' as rust;
+
+Future<String> get bikaJsUrl async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString('debug_bika_url') ??
+      'http://127.0.0.1:7879/bikaComic.bundle.cjs';
+}
 
 Future<Map<String, dynamic>> bikaRequest(
   String url,
@@ -14,24 +20,19 @@ Future<Map<String, dynamic>> bikaRequest(
   bool cache = false,
   String? imageQuality,
   String? authorization,
+  String qjsRuntimeName = 'bikaComic',
 }) async {
-  final data = kDebugMode
-      ? await rust.request(
-          url,
-          method,
-          body: body,
-          cache: cache,
-          imageQuality: imageQuality,
-          authorization: authorization,
-        )
-      : await request(
-          url,
-          method,
-          body: body,
-          cache: cache,
-          imageQuality: imageQuality,
-          authorization: authorization,
-        );
+  url = DebugUrlSetting.replaceBikaHost(url);
+
+  final data = await rust.request(
+    url,
+    method,
+    body: body,
+    cache: cache,
+    imageQuality: imageQuality,
+    authorization: authorization,
+    qjaName: qjsRuntimeName,
+  );
 
   if (data['code'] != 200) {
     throw data;
@@ -177,12 +178,14 @@ Future<Map<String, dynamic>> getComicInfo(
   String comicId, {
   String? authorization,
   String? imageQuality,
+  String qjsRuntimeName = 'bikaComic',
 }) async {
   return bikaRequest(
     'https://picaapi.picacomic.com/comics/$comicId',
     'GET',
     authorization: authorization,
     imageQuality: imageQuality,
+    qjsRuntimeName: qjsRuntimeName,
   );
 }
 
@@ -258,6 +261,7 @@ Future<Map<String, dynamic>> getEps(
   int pageCount, {
   String? authorization,
   String? imageQuality,
+  String qjsRuntimeName = 'bikaComic',
 }) async {
   return bikaRequest(
     'https://picaapi.picacomic.com/comics/$comicId/eps?page=$pageCount',
@@ -265,6 +269,7 @@ Future<Map<String, dynamic>> getEps(
     cache: true,
     authorization: authorization,
     imageQuality: imageQuality,
+    qjsRuntimeName: qjsRuntimeName,
   );
 }
 
@@ -282,6 +287,7 @@ Future<Map<String, dynamic>> getPages(
   int pageCount, {
   String? authorization,
   String? imageQuality,
+  String qjsRuntimeName = 'bikaComic',
 }) async {
   return bikaRequest(
     'https://picaapi.picacomic.com/comics/$comicId/order/$epId/pages?page=$pageCount',
@@ -289,6 +295,7 @@ Future<Map<String, dynamic>> getPages(
     cache: true,
     authorization: authorization,
     imageQuality: imageQuality,
+    qjsRuntimeName: qjsRuntimeName,
   );
 }
 

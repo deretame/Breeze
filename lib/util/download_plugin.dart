@@ -8,14 +8,24 @@ import 'package:zephyr/util/get_path.dart';
 
 Future<void> downloadPlugin() async {
   try {
+    final updateAccelerate = objectbox.userSettingBox
+        .get(1)!
+        .globalSetting
+        .updateAccelerate;
     await Future.delayed(10.seconds);
-    logger.d("开始检测网络连通性...");
-    await dio.head('https://gh-proxy.org/').timeout(const Duration(seconds: 5));
-    logger.d("网络检查通过，准备获取配置...");
+    if (updateAccelerate) {
+      logger.d("开始检测网络连通性...");
+      await dio
+          .head('https://gh-proxy.org/')
+          .timeout(const Duration(seconds: 5));
+      logger.d("网络检查通过，准备获取配置...");
+    }
 
-    final configResponse = await dio.get(
-      'https://gh-proxy.org/https://github.com/deretame/Breeze/blob/main/plugin/config.json',
-    );
+    final baseUrl = updateAccelerate ? 'https://gh-proxy.org/' : '';
+
+    final configUrl =
+        '${baseUrl}https://github.com/deretame/Breeze/blob/main/plugin/config.json';
+    final configResponse = await dio.get(configUrl);
 
     final List data = jsonDecode(configResponse.data);
     final basePath = await getFilePath();
@@ -23,7 +33,9 @@ Future<void> downloadPlugin() async {
 
     for (var element in data) {
       final plugin = element as Map<String, dynamic>;
-      final String downloadUrl = "https://gh-proxy.org/${plugin['url']}";
+      final String downloadUrl = updateAccelerate
+          ? "https://gh-proxy.org/${plugin['url']}"
+          : plugin['url'];
       final String fileName = "${plugin['id']}.js";
 
       final String savePath = p.join(pluginPath, fileName);

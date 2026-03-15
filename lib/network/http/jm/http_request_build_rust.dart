@@ -1,13 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/network/http/jm/jm_error_message.dart';
 import 'package:zephyr/src/rust/api/qjs.dart' as rust_qjs;
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/direct_dio.dart';
 import 'package:zephyr/util/event/event.dart';
+
+const _kQjsRuntimeCancelled = '__QJS_RUNTIME_CANCELLED__';
+const _kDownloadTaskCancelled = '__DOWNLOAD_TASK_CANCELLED__';
 
 Future<dynamic> request(
   String path, {
@@ -17,24 +23,36 @@ Future<dynamic> request(
   Map<String, dynamic>? formData,
   bool cache = false,
   bool useJwt = true,
+  String qjaName = "jmComic",
 }) async {
   try {
-    final js = await directDio.get("http://127.0.0.1:7878/JmComic.bundle.cjs");
-    final raw = await rust_qjs.qjsCallOnce(
-      runtimeName: "jmRuntime",
-      bundleJs: js.data,
-      fnPath: "jmRequest",
-      argsJson: jsonEncode({
-        'path': path,
-        'method': method,
-        'params': params,
-        'data': data,
-        'formData': formData,
-        'cache': cache,
-        'useJwt': useJwt,
-        'jwtToken': JmConfig.jwt,
-      }),
-    );
+    final args = {
+      'path': path,
+      'method': method,
+      'params': params,
+      'data': data,
+      'formData': formData,
+      'cache': cache,
+      'useJwt': useJwt,
+      'jwtToken': JmConfig.jwt,
+    }.let(jsonEncode);
+
+    var raw = "";
+    if (kDebugMode) {
+      final js = await directDio.get(await jmJsUrl);
+      raw = await rust_qjs.qjsCallOnce(
+        runtimeName: qjaName,
+        bundleJs: js.data,
+        fnPath: "jmRequest",
+        argsJson: args,
+      );
+    } else {
+      raw = await rust_qjs.qjsCall(
+        runtimeName: qjaName,
+        fnPath: "jmRequest",
+        argsJson: args,
+      );
+    }
 
     dynamic decoded;
     try {
@@ -64,6 +82,9 @@ Future<dynamic> request(
   } catch (e, stackTrace) {
     logger.e(e, stackTrace: stackTrace);
     final message = _extractErrorMessage(e);
+    if (_isQjsRuntimeCancelled(message)) {
+      throw Exception(_kDownloadTaskCancelled);
+    }
     if (message.contains('登录过期') || message.contains('請先登入會員')) {
       eventBus.fire(NeedLogin(from: From.jm));
     }
@@ -77,6 +98,10 @@ String _extractErrorMessage(Object error) {
     return raw.replaceFirst('Exception:', '').trim();
   }
   return raw;
+}
+
+bool _isQjsRuntimeCancelled(String message) {
+  return message.contains(_kQjsRuntimeCancelled);
 }
 
 class JmResponseParser {

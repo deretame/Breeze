@@ -44,3 +44,6 @@ oslog = "0.2.0"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
+
+[build-dependencies]
+ureq = "2.10.1"

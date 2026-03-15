@@ -1,7 +1,7 @@
 use std::sync::{Mutex, OnceLock};
 use std::time::Instant;
 use tracing::{Event, Subscriber};
-use tracing_subscriber::fmt::{format::Writer, FmtContext, FormatEvent, FormatFields};
+use tracing_subscriber::fmt::{FmtContext, FormatEvent, FormatFields, format::Writer};
 use tracing_subscriber::registry::LookupSpan;
 
 // 全局静态变量：用于记录上一条日志的打印时间

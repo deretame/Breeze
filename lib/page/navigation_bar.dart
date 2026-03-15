@@ -10,6 +10,7 @@ import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/page/ranking_list/ranking_list.dart';
+import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/auto_check_in.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -80,6 +81,7 @@ class _NavigationBarState extends State<NavigationBar> {
         DownloadQueueManager.instance.watchTasks();
       }
       downloadPlugin();
+      setLogHttpForward(url: "http://127.0.0.1:7879/log");
     });
     _controller = PersistentTabController(
       initialIndex: objectbox.userSettingBox

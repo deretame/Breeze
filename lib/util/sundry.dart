@@ -48,7 +48,7 @@ String onLoadPluginConfig(String name, String key, String fallback) {
     final data = entity?.data ?? <String, dynamic>{};
     final value = data[key] ?? fallback;
 
-    return '{"ok":true,"value":${value.toJson()}}';
+    return '{"ok":true,"value":${jsonEncode(value)}}';
   });
 }
 
@@ -60,12 +60,4 @@ Future<void> registerPersistentCallbacks() async {
   await registerLoadPluginConfig(
     dartCallback: (name, key, value) => onLoadPluginConfig(name, key, value),
   );
-}
-
-extension MapConverterX on Map {
-  String toJson() => jsonEncode(this);
-}
-
-extension MapListConverterX on List<Map> {
-  String toJson() => jsonEncode(this);
 }

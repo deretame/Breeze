@@ -1,11 +1,16 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/bika/http_request.dart';
 import 'package:zephyr/src/rust/api/qjs.dart' as rust_qjs;
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/direct_dio.dart';
 import 'package:zephyr/util/event/event.dart';
-import 'package:zephyr/util/sundry.dart';
+
+const _kQjsRuntimeCancelled = '__QJS_RUNTIME_CANCELLED__';
+const _kDownloadTaskCancelled = '__DOWNLOAD_TASK_CANCELLED__';
 
 Future<Map<String, dynamic>> request(
   String url,
@@ -14,30 +19,40 @@ Future<Map<String, dynamic>> request(
   bool cache = false,
   String? imageQuality,
   String? authorization,
+  String qjaName = "bikaComic",
 }) async {
   try {
     final settings = objectbox.userSettingBox.get(1)!.bikaSetting;
-    final js = await directDio.get(
-      "http://127.0.0.1:7879/bikaComic.bundle.cjs",
-    );
-    final raw = await rust_qjs.qjsCallOnce(
-      runtimeName: "bikaComic",
-      bundleJs: js.data,
-      fnPath: 'bikaRequest',
-      argsJson: {
-        'url': url,
-        'method': method,
-        'body': body,
-        'cache': cache,
-        'imageQuality': imageQuality,
-        'authorization': authorization,
-        'settings': {
-          'proxy': settings.proxy,
-          'imageQuality': settings.imageQuality,
-          'authorization': settings.authorization,
-        },
-      }.toJson(),
-    );
+    final args = {
+      'url': url,
+      'method': method,
+      'body': body,
+      'cache': cache,
+      'imageQuality': imageQuality,
+      'authorization': authorization,
+      'settings': {
+        'proxy': settings.proxy,
+        'imageQuality': settings.imageQuality,
+        'authorization': settings.authorization,
+      },
+    }.let(jsonEncode);
+
+    var raw = "";
+    if (kDebugMode) {
+      final js = await directDio.get(await bikaJsUrl);
+      raw = await rust_qjs.qjsCallOnce(
+        runtimeName: qjaName,
+        bundleJs: js.data,
+        fnPath: 'bikaRequest',
+        argsJson: args,
+      );
+    } else {
+      raw = await rust_qjs.qjsCall(
+        runtimeName: qjaName,
+        fnPath: 'bikaRequest',
+        argsJson: args,
+      );
+    }
 
     final decoded = jsonDecode(raw);
     final data = _toStringKeyMap(decoded);
@@ -51,6 +66,9 @@ Future<Map<String, dynamic>> request(
     logger.e(e, stackTrace: stackTrace);
 
     final message = _normalizeErrorMessage(e);
+    if (_isQjsRuntimeCancelled(message)) {
+      throw Exception(_kDownloadTaskCancelled);
+    }
     if (message.contains('__NEED_LOGIN__') ||
         message.contains('unauthorized')) {
       eventBus.fire(NeedLogin(from: From.bika));
@@ -91,4 +109,8 @@ String _normalizeErrorMessage(Object error) {
       );
 
   return line.replaceAll('__NEED_LOGIN__:', '').trim();
+}
+
+bool _isQjsRuntimeCancelled(String message) {
+  return message.contains(_kQjsRuntimeCancelled);
 }

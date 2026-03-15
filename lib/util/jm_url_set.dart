@@ -3,102 +3,92 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/bika/pica_client.dart';
-import 'package:zephyr/network/http/jm/jm_client.dart';
+import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
-import 'package:zephyr/util/download/cancel_token.dart' as task_cancel;
+import 'package:zephyr/util/direct_dio.dart';
 
-class _SpeedResult {
-  final String url;
-  final int? durationMs;
+const _kQjsRuntimeCancelled = '__QJS_RUNTIME_CANCELLED__';
+const _kDownloadTaskCancelled = '__DOWNLOAD_TASK_CANCELLED__';
 
-  _SpeedResult({required this.url, this.durationMs});
-}
-
-Future<_SpeedResult> _testUrlSpeed(
-  Dio dio,
-  String url, {
-  task_cancel.CancelToken? cancelToken,
+Future<int> _getFastestUrlIndexByQjs(
+  List<String> urls, {
+  String qjsRuntimeName = 'jmComic',
 }) async {
-  final stopwatch = Stopwatch()..start();
-  try {
-    cancelToken?.throwIfCancelled();
+  final argsJson = jsonEncode([urls]);
 
-    final dioCancelToken = CancelToken();
-    if (cancelToken != null) {
-      cancelToken.future.then((_) {
-        if (!dioCancelToken.isCancelled) {
-          dioCancelToken.cancel('user cancelled');
-        }
-      });
-    }
+  final raw = kDebugMode
+      ? await qjsCallOnce(
+          runtimeName: qjsRuntimeName,
+          bundleJs: (await directDio.get(await jmJsUrl)).data,
+          fnPath: 'getFastestUrlIndex',
+          argsJson: argsJson,
+        )
+      : await qjsCall(
+          runtimeName: qjsRuntimeName,
+          fnPath: 'getFastestUrlIndex',
+          argsJson: argsJson,
+        );
 
-    await dio.head(
-      url,
-      options: Options(
-        sendTimeout: const Duration(seconds: 5),
-        receiveTimeout: const Duration(seconds: 5),
-      ),
-      cancelToken: dioCancelToken,
-    );
-    stopwatch.stop();
-    return _SpeedResult(url: url, durationMs: stopwatch.elapsedMilliseconds);
-  } catch (e) {
-    if (e is DioException && e.type == DioExceptionType.cancel) {
-      cancelToken?.throwIfCancelled();
-    }
-    return _SpeedResult(url: url, durationMs: null);
+  final decoded = jsonDecode(raw);
+  if (decoded is int) {
+    return decoded;
   }
+  if (decoded is num) {
+    return decoded.toInt();
+  }
+  return 0;
 }
 
 Future<int> getFastestUrlIndex(
   List<String> urls, {
-  task_cancel.CancelToken? cancelToken,
+  String qjsRuntimeName = 'jmComic',
 }) async {
   if (urls.isEmpty) {
     return 0;
   }
 
-  final testFutures = urls
-      .map((url) => _testUrlSpeed(dio, url, cancelToken: cancelToken))
-      .toList();
-
-  final results = await Future.wait(testFutures);
-
-  cancelToken?.throwIfCancelled();
-
-  final successfulResults = results.where((r) => r.durationMs != null).toList();
-
-  if (successfulResults.isEmpty) {
+  try {
+    final index = await _getFastestUrlIndexByQjs(
+      urls,
+      qjsRuntimeName: qjsRuntimeName,
+    );
+    if (index < 0 || index >= urls.length) {
+      return 0;
+    }
+    return index;
+  } catch (e, s) {
+    if (_isQjsRuntimeCancelledError(e)) {
+      throw Exception(_kDownloadTaskCancelled);
+    }
+    logger.e('QJS 测速失败，回退默认线路', error: e, stackTrace: s);
     return 0;
   }
-
-  final fastestResult = successfulResults.reduce(
-    (current, next) => current.durationMs! < next.durationMs! ? current : next,
-  );
-
-  return urls.indexOf(fastestResult.url);
 }
 
-Future<void> setFastestUrlIndex({task_cancel.CancelToken? cancelToken}) async {
+bool _isQjsRuntimeCancelledError(Object error) {
+  return error.toString().contains(_kQjsRuntimeCancelled);
+}
+
+Future<void> setFastestUrlIndex({String qjsRuntimeName = 'jmComic'}) async {
   final index = await getFastestUrlIndex(
     JmConfig.baseUrls,
-    cancelToken: cancelToken,
+    qjsRuntimeName: qjsRuntimeName,
   );
   logger.d('Fastest URL index: $index');
   JmConfig.setBaseUrlIndex(index);
 }
 
 Future<void> setFastestImagesUrlIndex({
-  task_cancel.CancelToken? cancelToken,
+  String qjsRuntimeName = 'jmComic',
 }) async {
   final index = await getFastestUrlIndex(
     JmConfig.imagesUrls,
-    cancelToken: cancelToken,
+    qjsRuntimeName: qjsRuntimeName,
   );
   logger.d('Fastest images URL index: $index');
   JmConfig.setImagesUrlIndex(index);
@@ -123,7 +113,7 @@ Future<void> enableProxy() async {
     if (proxyUrl != null &&
         proxyUrl.isNotEmpty &&
         await isProxyAvailable(proxyUrl)) {
-      final dioInstances = [JmClient().dio, pictureDio, dio, PicaClient().dio];
+      final dioInstances = [pictureDio, dio];
       for (var instance in dioInstances) {
         configProxy(instance, proxyUrl);
       }

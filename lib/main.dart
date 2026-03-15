@@ -20,6 +20,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
+import 'package:zephyr/config/debug_url_setting.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
@@ -186,10 +187,24 @@ _initServices() async {
 
   await compatibleInit();
 
+  setLogHttpForward(url: "http://127.0.0.1:7878/log");
+
   // 配置http代理，方便开发测试
   if (kDebugMode) {
     setQjsErrorStackEnabled(enabled: true);
     await enableProxy();
+  } else {
+    await initQjsRuntimeWithBundle(
+      runtimeName: "bikaComic",
+      bundleName: "bikaComic",
+      bundleJs: getJsBundle(name: "bikaComic"),
+    );
+
+    await initQjsRuntimeWithBundle(
+      runtimeName: "jmComic",
+      bundleName: "jmComic",
+      bundleJs: getJsBundle(name: "jmComic"),
+    );
   }
 
   // 初始化前台任务
@@ -229,6 +244,7 @@ _initServices() async {
   }
 
   await registerPersistentCallbacks();
+  await DebugUrlSetting.init();
 
   final globalSettingCubit = GlobalSettingCubit();
   await globalSettingCubit.initBox();

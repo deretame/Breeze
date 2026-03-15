@@ -65,7 +65,7 @@ class MyTaskHandler extends TaskHandler {
   @override
   void onNotificationButtonPressed(String id) {
     if (id == 'cancel') {
-      FlutterForegroundTask.stopService();
+      unawaited(_cancelCurrentTaskFromForeground());
     }
   }
 
@@ -74,6 +74,11 @@ class MyTaskHandler extends TaskHandler {
 
   @override
   void onNotificationDismissed() {
-    FlutterForegroundTask.stopService();
+    unawaited(_cancelCurrentTaskFromForeground());
+  }
+
+  Future<void> _cancelCurrentTaskFromForeground() async {
+    _manager.cancelCurrentTask();
+    await Future<void>.delayed(const Duration(milliseconds: 300));
   }
 }

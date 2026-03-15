@@ -9,13 +9,10 @@ import 'package:zephyr/page/jm/jm_promote/jm_promote.dart';
 import 'package:zephyr/page/jm/jm_promote/json/promote/jm_promote_json.dart';
 import 'package:zephyr/page/jm/jm_promote/json/suggestion/jm_suggestion_json.dart'
     show JmSuggestionJson;
-import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/page/jm/jm_promote/view/jm_promote_scheme_renderer.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/context/context_extensions.dart';
-import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
-import 'package:zephyr/widgets/error_view.dart';
 
 @RoutePage()
 class JmPromotePage extends StatelessWidget {
@@ -38,6 +35,7 @@ class _JmPromotePage extends StatefulWidget {
 }
 
 class _JmPromotePageState extends State<_JmPromotePage> {
+  final JmPromoteSchemeRenderer _renderer = JmPromoteSchemeRenderer();
   late ScrollController scrollController;
   late StreamSubscription subscription;
   int page = 0;
@@ -70,113 +68,25 @@ class _JmPromotePageState extends State<_JmPromotePage> {
   Widget build(BuildContext context) {
     return BlocBuilder<PromoteBloc, PromoteState>(
       builder: (context, state) {
-        switch (state.status) {
-          case PromoteStatus.initial:
-            page = -1;
-            return const Center(child: CircularProgressIndicator());
-          case PromoteStatus.failure:
-            return _failureWidget(state);
-          case PromoteStatus.loadingMore:
-          case PromoteStatus.loadingMoreFailure:
-          case PromoteStatus.success:
-            if (state.status == PromoteStatus.success) {
-              page = state.result.let(toInt);
-            }
-            return _successWidget(state);
+        if (state.status == PromoteStatus.initial) {
+          page = -1;
+        } else if (state.status == PromoteStatus.success) {
+          page = state.result.let(toInt);
         }
+
+        return _renderer.build(
+          context,
+          state: state,
+          scrollController: scrollController,
+          promoteItemBuilder: _commentItem,
+          suggestionEntries: _toSimplifyEntries(state.suggestionList),
+          onRetryInitial: refreshPromote,
+          onRetryLoadMore: () {
+            context.read<PromoteBloc>().add(PromoteEvent(page: page + 1));
+          },
+        );
       },
     );
-  }
-
-  Widget _failureWidget(PromoteState state) {
-    return ErrorView(
-      errorMessage: '${state.result.toString()}\n加载失败，请重试。',
-      onRetry: () {
-        context.read<PromoteBloc>().add(PromoteEvent());
-      },
-    );
-  }
-
-  Widget _successWidget(PromoteState state) {
-    final materialColorScheme = context.theme.colorScheme;
-    final suggestionList = _toSimplifyEntries(state.suggestionList);
-
-    final slivers = <Widget>[
-      SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) => _commentItem(state.list[index]),
-          childCount: state.list.length,
-        ),
-      ),
-    ];
-
-    if (suggestionList.isNotEmpty) {
-      slivers.add(
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(5),
-            child: Container(
-              decoration: BoxDecoration(
-                color: materialColorScheme.secondaryFixed.withValues(
-                  alpha: 0.1,
-                ),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              width: double.infinity,
-              child: Row(
-                children: [
-                  Text(
-                    '最新上传',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: materialColorScheme.onSurface,
-                    ),
-                  ),
-                  const Spacer(),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-
-      slivers.add(
-        ComicSimplifyEntrySliverGrid(
-          entries: suggestionList,
-          type: ComicEntryType.normal,
-          refresh: () {},
-        ),
-      );
-    }
-
-    if (state.status == PromoteStatus.loadingMore) {
-      slivers.add(
-        const SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Center(child: CircularProgressIndicator()),
-          ),
-        ),
-      );
-    } else if (state.status == PromoteStatus.loadingMoreFailure) {
-      slivers.add(
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: () {
-                context.read<PromoteBloc>().add(PromoteEvent(page: page + 1));
-              },
-            ),
-          ),
-        ),
-      );
-    }
-
-    return CustomScrollView(controller: scrollController, slivers: slivers);
   }
 
   Widget _commentItem(JmPromoteJson element) {

@@ -14,19 +14,25 @@ import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart'
 import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/download/cancel_token.dart';
 import 'package:zephyr/util/download/download_progress_reporter.dart';
+import 'package:zephyr/util/download/qjs_download_runtime.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
 
+const _kTaskCancelledMessage = '__DOWNLOAD_TASK_CANCELLED__';
+
 Future<void> jmDownloadTask(
   DownloadProgressReporter reporter,
   DownloadTaskJson task,
-  CancelToken cancelToken,
 ) async {
-  bool isCancelled = false;
+  final runtimeName = buildDownloadQjsRuntimeName(
+    source: 'jm',
+    comicId: task.comicId,
+  );
+  bool isRunning = true;
+  bool runtimeDropped = false;
   Timer? progressTimer;
 
   final query = objectbox.downloadTaskBox
@@ -45,7 +51,26 @@ Future<void> jmDownloadTask(
     }
   }
 
+  Future<void> dropRuntimeOnce() async {
+    if (runtimeDropped) {
+      return;
+    }
+    runtimeDropped = true;
+    await dropDownloadQjsRuntime(source: 'jm', comicId: task.comicId);
+  }
+
+  Future<void> ensureTaskRunning() async {
+    final currentTask = query.findFirst();
+    if (currentTask == null || !currentTask.isDownloading) {
+      await dropRuntimeOnce();
+      throw Exception(_kTaskCancelledMessage);
+    }
+  }
+
   try {
+    await initDownloadQjsRuntime(source: 'jm', comicId: task.comicId);
+    await ensureTaskRunning();
+
     var downloadTask = query.findFirst();
 
     if (downloadTask == null) return;
@@ -54,12 +79,16 @@ Future<void> jmDownloadTask(
     objectbox.downloadTaskBox.put(downloadTask);
     reporter.updateMessage("获取漫画信息中...");
 
-    cancelToken.throwIfCancelled();
-    await setFastestUrlIndex(cancelToken: cancelToken);
-    await setFastestImagesUrlIndex(cancelToken: cancelToken);
+    await Future.wait([
+      setFastestUrlIndex(qjsRuntimeName: runtimeName),
+      setFastestImagesUrlIndex(qjsRuntimeName: runtimeName),
+    ]);
 
-    cancelToken.throwIfCancelled();
-    final comicInfo = await getJmComicInfo(task.comicId, cancelToken);
+    final comicInfo = await getJmComicInfo(
+      task.comicId,
+      qjsRuntimeName: runtimeName,
+      ensureTaskRunning: ensureTaskRunning,
+    );
 
     downloadTask = query.findFirst();
     downloadTask?.status = "获取章节信息中...";
@@ -69,8 +98,12 @@ Future<void> jmDownloadTask(
     List<String> epIds = comicInfo.series.map((e) => e.id.toString()).toList();
     if (epIds.isEmpty) epIds = [comicInfo.id.toString()];
 
-    cancelToken.throwIfCancelled();
-    final epsList = await fetchJMMedia(epIds, task.slowDownload, cancelToken);
+    final epsList = await fetchJMMedia(
+      epIds,
+      task.slowDownload,
+      qjsRuntimeName: runtimeName,
+      ensureTaskRunning: ensureTaskRunning,
+    );
 
     final downloadInfoJson = comicInfo2DownloadInfoJson(comicInfo);
 
@@ -95,7 +128,6 @@ Future<void> jmDownloadTask(
     logger.d("epsIds: $epsIds");
 
     try {
-      cancelToken.throwIfCancelled();
       await downloadPicture(
         from: From.jm,
         url: getJmCoverUrl(comicInfo.id.toString()),
@@ -103,12 +135,9 @@ Future<void> jmDownloadTask(
         cartoonId: comicInfo.id.toString(),
         pictureType: PictureType.cover,
         chapterId: comicInfo.id.toString(),
-        cancelToken: cancelToken,
+        qjaName: runtimeName,
       );
     } catch (e, s) {
-      if (e is TaskCancelledException) {
-        rethrow;
-      }
       logger.e(e, stackTrace: s);
     }
 
@@ -117,7 +146,7 @@ Future<void> jmDownloadTask(
     }
 
     progressTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!isCancelled) {
+      if (isRunning) {
         updateTaskStatus(reporter.message);
       }
     });
@@ -126,29 +155,31 @@ Future<void> jmDownloadTask(
       updateProgress,
       updatedDownloadInfo,
       task.selectedChapters,
-      cancelToken,
+      qjsRuntimeName: runtimeName,
+      ensureTaskRunning: ensureTaskRunning,
     );
 
-    cancelToken.throwIfCancelled();
     await saveToDB(updatedDownloadInfo, epsIds, temp);
 
     _markTaskCompleted(task.comicId);
   } finally {
-    isCancelled = true;
+    isRunning = false;
     progressTimer?.cancel();
+    await dropRuntimeOnce();
   }
 }
 
 Future<base_info.JmComicInfoJson> getJmComicInfo(
-  String comicId,
-  CancelToken cancelToken,
-) async {
+  String comicId, {
+  required String qjsRuntimeName,
+  required Future<void> Function() ensureTaskRunning,
+}) async {
   while (true) {
-    cancelToken.throwIfCancelled();
+    await ensureTaskRunning();
     try {
-      final result = await _awaitCancellable(
-        getComicInfo(comicId),
-        cancelToken,
+      final result = await getComicInfo(
+        comicId,
+        qjsRuntimeName: qjsRuntimeName,
       );
 
       return result
@@ -163,51 +194,46 @@ Future<base_info.JmComicInfoJson> getJmComicInfo(
             return d.copyWith(series: newSeries);
           });
     } catch (e, s) {
-      if (e is TaskCancelledException) {
-        rethrow;
-      }
+      await ensureTaskRunning();
       logger.e(e, stackTrace: s);
-      await _waitRetry(cancelToken);
+      await _waitRetry();
     }
   }
 }
 
 Future<List<Info>> fetchJMMedia(
   List<String> epIds,
-  bool slowDownload,
-  CancelToken cancelToken,
-) async {
+  bool slowDownload, {
+  required String qjsRuntimeName,
+  required Future<void> Function() ensureTaskRunning,
+}) async {
   List<Info> docsList = [];
   if (slowDownload) {
     for (var epId in epIds) {
       while (true) {
-        cancelToken.throwIfCancelled();
+        await ensureTaskRunning();
         try {
-          final info = await _awaitCancellable(getEpInfo(epId), cancelToken);
+          final info = await getEpInfo(epId, qjsRuntimeName: qjsRuntimeName);
           docsList.add(info2Info(info));
           break;
         } catch (e, s) {
-          if (e is TaskCancelledException) {
-            rethrow;
-          }
+          await ensureTaskRunning();
           logger.e(e, stackTrace: s);
-          await _waitRetry(cancelToken);
+          await _waitRetry();
         }
       }
     }
   } else {
     final List<Future<Info>> fetchTasks = epIds.map((epId) async {
       while (true) {
-        cancelToken.throwIfCancelled();
+        await ensureTaskRunning();
         try {
-          final info = await _awaitCancellable(getEpInfo(epId), cancelToken);
+          final info = await getEpInfo(epId, qjsRuntimeName: qjsRuntimeName);
           return info2Info(info);
         } catch (e, s) {
-          if (e is TaskCancelledException) {
-            rethrow;
-          }
+          await ensureTaskRunning();
           logger.e(e, stackTrace: s);
-          await _waitRetry(cancelToken);
+          await _waitRetry();
         }
       }
     }).toList();
@@ -308,9 +334,10 @@ DownloadInfoJson comicInfo2DownloadInfoJson(
 Future<DownloadInfoJson> downloadComic(
   void Function(int, String) updateProgress,
   DownloadInfoJson downloadInfoJson,
-  List<String> selectedChapters,
-  CancelToken cancelToken,
-) async {
+  List<String> selectedChapters, {
+  required String qjsRuntimeName,
+  required Future<void> Function() ensureTaskRunning,
+}) async {
   final selectedEps = downloadInfoJson.series
       .where((e) => selectedChapters.contains(e.id))
       .toList();
@@ -339,8 +366,8 @@ Future<DownloadInfoJson> downloadComic(
 
   final List<Future<void>> tasks = docsList.map((doc) {
     return pool.withResource(() async {
+      await ensureTaskRunning();
       try {
-        cancelToken.throwIfCancelled();
         await downloadPicture(
           from: From.jm,
           url: doc.media.fileServer,
@@ -348,10 +375,9 @@ Future<DownloadInfoJson> downloadComic(
           cartoonId: downloadInfoJson.id.toString(),
           pictureType: PictureType.comic,
           chapterId: doc.docId,
-          cancelToken: cancelToken,
+          qjaName: qjsRuntimeName,
         );
 
-        cancelToken.throwIfCancelled();
         progress++;
         int currentPercent = (progress / docsList.length * 100).floor();
         if (currentPercent > lastReportedPercent) {
@@ -384,6 +410,8 @@ Future<DownloadInfoJson> downloadComic(
           }
         }
       }
+
+      await ensureTaskRunning();
     });
   }).toList();
 
@@ -394,19 +422,8 @@ Future<DownloadInfoJson> downloadComic(
   return downloadInfoJson;
 }
 
-Future<void> _waitRetry(CancelToken cancelToken) async {
-  await Future.any([
-    Future.delayed(const Duration(seconds: 1)),
-    cancelToken.future,
-  ]);
-  cancelToken.throwIfCancelled();
-}
-
-Future<T> _awaitCancellable<T>(Future<T> future, CancelToken cancelToken) {
-  return Future.any<T>([
-    future,
-    cancelToken.future.then<T>((_) => throw TaskCancelledException()),
-  ]);
+Future<void> _waitRetry() async {
+  await Future.delayed(const Duration(seconds: 1));
 }
 
 Future<void> saveToDB(

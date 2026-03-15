@@ -6,37 +6,35 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-class ImageInfo {
-  final Uint8List imgData;
-  final int chapterId;
-  final String url;
-  final int scrambleId;
-  final String fileName;
 
-  const ImageInfo({
-    required this.imgData,
-    required this.chapterId,
-    required this.url,
-    required this.scrambleId,
-    required this.fileName,
-  });
+            
 
-  @override
-  int get hashCode =>
-      imgData.hashCode ^
-      chapterId.hashCode ^
-      url.hashCode ^
-      scrambleId.hashCode ^
-      fileName.hashCode;
+            
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ImageInfo &&
-          runtimeType == other.runtimeType &&
-          imgData == other.imgData &&
-          chapterId == other.chapterId &&
-          url == other.url &&
-          scrambleId == other.scrambleId &&
-          fileName == other.fileName;
-}
+            class ImageInfo  {
+                final Uint8List imgData;
+final int chapterId;
+final String url;
+final int scrambleId;
+final String fileName;
+
+                const ImageInfo({required this.imgData ,required this.chapterId ,required this.url ,required this.scrambleId ,required this.fileName ,});
+
+                
+                
+
+                
+        @override
+        int get hashCode => imgData.hashCode^chapterId.hashCode^url.hashCode^scrambleId.hashCode^fileName.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is ImageInfo &&
+                runtimeType == other.runtimeType
+                && imgData == other.imgData&& chapterId == other.chapterId&& url == other.url&& scrambleId == other.scrambleId&& fileName == other.fileName;
+        
+            }
+            

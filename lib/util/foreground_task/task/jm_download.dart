@@ -162,6 +162,14 @@ Future<void> jmDownloadTask(
     await saveToDB(updatedDownloadInfo, epsIds, temp);
 
     _markTaskCompleted(task.comicId);
+  } catch (e, s) {
+    if (_isTaskCancelledError(e)) {
+      logger.i('JM 任务已取消，开始清理本地文件与数据库: ${task.comicId}');
+      await _cleanupCancelledJmTask(task.comicId);
+      rethrow;
+    }
+    logger.e('JM 下载任务异常: ${task.comicId}', error: e, stackTrace: s);
+    rethrow;
   } finally {
     isRunning = false;
     progressTimer?.cancel();
@@ -539,6 +547,38 @@ Future<List<String>> getAllFilePaths(String directoryPath) async {
   }
 
   return filePaths;
+}
+
+bool _isTaskCancelledError(Object error) {
+  return error.toString().contains(_kTaskCancelledMessage);
+}
+
+Future<void> _cleanupCancelledJmTask(String comicId) async {
+  try {
+    final downloadPath = await getDownloadPath();
+
+    final downloadComicDir = Directory(
+      p.join(downloadPath, 'jm', 'original', comicId),
+    );
+
+    if (await downloadComicDir.exists()) {
+      await downloadComicDir.delete(recursive: true);
+    }
+  } catch (e, s) {
+    logger.e('清理 JM 文件失败: $comicId', error: e, stackTrace: s);
+  }
+
+  try {
+    final jmRecords = objectbox.jmDownloadBox
+        .query(JmDownload_.comicId.equals(comicId))
+        .build()
+        .find();
+    if (jmRecords.isNotEmpty) {
+      objectbox.jmDownloadBox.removeMany(jmRecords.map((e) => e.id).toList());
+    }
+  } catch (e, s) {
+    logger.e('清理 JM 数据库记录失败: $comicId', error: e, stackTrace: s);
+  }
 }
 
 void _markTaskCompleted(String comicId) {

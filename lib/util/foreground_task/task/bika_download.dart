@@ -73,7 +73,6 @@ Future<void> bikaDownloadTask(
     await initDownloadQjsRuntime(source: 'bika', comicId: task.comicId);
     await ensureTaskRunning();
 
-    final authorization = task.bikaInfo.authorization;
     var downloadTask = query.findFirst();
 
     if (downloadTask == null) return;
@@ -84,7 +83,6 @@ Future<void> bikaDownloadTask(
 
     final comicInfo = await _getComicInfo(
       task.comicId,
-      authorization,
       qjsRuntimeName: runtimeName,
       ensureTaskRunning: ensureTaskRunning,
     );
@@ -96,7 +94,6 @@ Future<void> bikaDownloadTask(
 
     final epsList = await _getEps(
       comicInfo,
-      authorization,
       task.slowDownload,
       qjsRuntimeName: runtimeName,
       ensureTaskRunning: ensureTaskRunning,
@@ -110,7 +107,6 @@ Future<void> bikaDownloadTask(
       final pages = await _fetchBKMedia(
         task.comicId,
         ep.let(toInt),
-        authorization,
         qjsRuntimeName: runtimeName,
         ensureTaskRunning: ensureTaskRunning,
       );
@@ -242,6 +238,14 @@ Future<void> bikaDownloadTask(
     await checkFile(comicAllInfoJson);
 
     _markTaskCompleted(task.comicId);
+  } catch (e, s) {
+    if (_isTaskCancelledError(e)) {
+      logger.i('Bika 任务已取消，开始清理本地文件与数据库: ${task.comicId}');
+      await _cleanupCancelledBikaTask(task.comicId);
+      rethrow;
+    }
+    logger.e('Bika 下载任务异常: ${task.comicId}', error: e, stackTrace: s);
+    rethrow;
   } finally {
     isCancelled = true;
     progressTimer?.cancel();
@@ -250,8 +254,7 @@ Future<void> bikaDownloadTask(
 }
 
 Future<Comic> _getComicInfo(
-  String comicId,
-  String authorization, {
+  String comicId, {
   required String qjsRuntimeName,
   required Future<void> Function() ensureTaskRunning,
 }) async {
@@ -261,7 +264,6 @@ Future<Comic> _getComicInfo(
     try {
       result = await getComicInfo(
         comicId,
-        authorization: authorization,
         imageQuality: "original",
         qjsRuntimeName: qjsRuntimeName,
       );
@@ -294,7 +296,6 @@ Future<Comic> _getComicInfo(
 // 获取所有的章节基本信息
 Future<List<eps.Doc>> _getEps(
   Comic comic,
-  String authorization,
   bool slowDownload, {
   required String qjsRuntimeName,
   required Future<void> Function() ensureTaskRunning,
@@ -314,7 +315,6 @@ Future<List<eps.Doc>> _getEps(
             await getEps(
               comic.id,
               i,
-              authorization: authorization,
               imageQuality: "original",
               qjsRuntimeName: qjsRuntimeName,
             ),
@@ -334,7 +334,6 @@ Future<List<eps.Doc>> _getEps(
         getEps(
           comic.id,
           i,
-          authorization: authorization,
           imageQuality: "original",
           qjsRuntimeName: qjsRuntimeName,
         ),
@@ -369,8 +368,7 @@ Future<List<eps.Doc>> _getEps(
 /// 获取到一个章节里面的所有图片
 Future<Pages> _fetchBKMedia(
   String comicId,
-  int epsId,
-  String authorization, {
+  int epsId, {
   required String qjsRuntimeName,
   required Future<void> Function() ensureTaskRunning,
 }) async {
@@ -385,7 +383,6 @@ Future<Pages> _fetchBKMedia(
         comicId,
         epsId,
         page,
-        authorization: authorization,
         imageQuality: "original",
         qjsRuntimeName: qjsRuntimeName,
       );
@@ -560,6 +557,40 @@ Future<List<String>> getAllFilePaths(String directoryPath) async {
   }
 
   return filePaths;
+}
+
+bool _isTaskCancelledError(Object error) {
+  return error.toString().contains(_kTaskCancelledMessage);
+}
+
+Future<void> _cleanupCancelledBikaTask(String comicId) async {
+  try {
+    final downloadPath = await getDownloadPath();
+
+    final downloadComicDir = Directory(
+      p.join(downloadPath, 'bika', 'original', comicId),
+    );
+
+    if (await downloadComicDir.exists()) {
+      await downloadComicDir.delete(recursive: true);
+    }
+  } catch (e, s) {
+    logger.e('清理 Bika 文件失败: $comicId', error: e, stackTrace: s);
+  }
+
+  try {
+    final bikaRecords = objectbox.bikaDownloadBox
+        .query(BikaComicDownload_.comicId.equals(comicId))
+        .build()
+        .find();
+    if (bikaRecords.isNotEmpty) {
+      objectbox.bikaDownloadBox.removeMany(
+        bikaRecords.map((e) => e.id).toList(),
+      );
+    }
+  } catch (e, s) {
+    logger.e('清理 Bika 数据库记录失败: $comicId', error: e, stackTrace: s);
+  }
 }
 
 void _markTaskCompleted(String comicId) {

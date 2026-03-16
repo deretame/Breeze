@@ -19,7 +19,6 @@ Future<Map<String, dynamic>> bikaRequest(
   dynamic body,
   bool cache = false,
   String? imageQuality,
-  String? authorization,
   String qjsRuntimeName = 'bikaComic',
 }) async {
   url = DebugUrlSetting.replaceBikaHost(url);
@@ -30,7 +29,6 @@ Future<Map<String, dynamic>> bikaRequest(
     body: body,
     cache: cache,
     imageQuality: imageQuality,
-    authorization: authorization,
     qjaName: qjsRuntimeName,
   );
 
@@ -176,14 +174,12 @@ Future<Map<String, dynamic>> getSearchKeywords() async {
 
 Future<Map<String, dynamic>> getComicInfo(
   String comicId, {
-  String? authorization,
   String? imageQuality,
   String qjsRuntimeName = 'bikaComic',
 }) async {
   return bikaRequest(
     'https://picaapi.picacomic.com/comics/$comicId',
     'GET',
-    authorization: authorization,
     imageQuality: imageQuality,
     qjsRuntimeName: qjsRuntimeName,
   );
@@ -259,7 +255,6 @@ Future<Map<String, dynamic>> reportComments(String commentId) async {
 Future<Map<String, dynamic>> getEps(
   String comicId,
   int pageCount, {
-  String? authorization,
   String? imageQuality,
   String qjsRuntimeName = 'bikaComic',
 }) async {
@@ -267,7 +262,6 @@ Future<Map<String, dynamic>> getEps(
     'https://picaapi.picacomic.com/comics/$comicId/eps?page=$pageCount',
     'GET',
     cache: true,
-    authorization: authorization,
     imageQuality: imageQuality,
     qjsRuntimeName: qjsRuntimeName,
   );
@@ -285,7 +279,6 @@ Future<Map<String, dynamic>> getPages(
   String comicId,
   int epId,
   int pageCount, {
-  String? authorization,
   String? imageQuality,
   String qjsRuntimeName = 'bikaComic',
 }) async {
@@ -293,7 +286,6 @@ Future<Map<String, dynamic>> getPages(
     'https://picaapi.picacomic.com/comics/$comicId/order/$epId/pages?page=$pageCount',
     'GET',
     cache: true,
-    authorization: authorization,
     imageQuality: imageQuality,
     qjsRuntimeName: qjsRuntimeName,
   );

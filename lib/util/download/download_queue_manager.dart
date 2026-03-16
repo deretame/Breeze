@@ -103,7 +103,9 @@ class DownloadQueueManager {
 
     final source = dbTask.taskInfo?.from;
     if (source != null && source.isNotEmpty) {
-      unawaited(dropDownloadQjsRuntime(source: source, comicId: dbTask.comicId));
+      unawaited(
+        dropDownloadQjsRuntime(source: source, comicId: dbTask.comicId),
+      );
     }
 
     _progressController.add(
@@ -206,10 +208,7 @@ class DownloadQueueManager {
     } catch (e, s) {
       if (_isTaskCancelledError(e)) {
         logger.i('任务已取消: ${task.comicName}');
-        dbTask.isCompleted = true;
-        dbTask.isDownloading = false;
-        dbTask.status = '已取消';
-        objectbox.downloadTaskBox.put(dbTask);
+        _removeCancelledTaskRecord(task.comicId);
 
         _progressController.add(
           DownloadProgress(comicName: task.comicName, message: '已取消'),
@@ -315,10 +314,7 @@ class DownloadQueueManager {
     } catch (e, s) {
       if (_isTaskCancelledError(e)) {
         logger.i('任务已取消: ${task.comicName}');
-        dbTask.isCompleted = true;
-        dbTask.isDownloading = false;
-        dbTask.status = '已取消';
-        objectbox.downloadTaskBox.put(dbTask);
+        _removeCancelledTaskRecord(task.comicId);
 
         _progressController.add(
           DownloadProgress(comicName: task.comicName, message: '已取消'),
@@ -456,10 +452,7 @@ class DownloadQueueManager {
     } catch (e, s) {
       if (_isTaskCancelledError(e)) {
         logger.i('任务已取消: ${task.comicName}');
-        dbTask.isCompleted = true;
-        dbTask.isDownloading = false;
-        dbTask.status = '已取消';
-        objectbox.downloadTaskBox.put(dbTask);
+        _removeCancelledTaskRecord(task.comicId);
       } else {
         logger.e("任务 ${task.comicName} 失败", error: e, stackTrace: s);
 
@@ -538,6 +531,18 @@ class DownloadQueueManager {
   void dispose() {
     _progressController.close();
     stopWatchingTasks();
+  }
+
+  void _removeCancelledTaskRecord(String comicId) {
+    final cancelledTasks = objectbox.downloadTaskBox
+        .query(DownloadTask_.comicId.equals(comicId))
+        .build()
+        .find();
+    if (cancelledTasks.isNotEmpty) {
+      objectbox.downloadTaskBox.removeMany(
+        cancelledTasks.map((e) => e.id).toList(),
+      );
+    }
   }
 }
 

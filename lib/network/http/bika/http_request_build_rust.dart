@@ -18,7 +18,6 @@ Future<Map<String, dynamic>> request(
   dynamic body,
   bool cache = false,
   String? imageQuality,
-  String? authorization,
   String qjaName = "bikaComic",
 }) async {
   try {
@@ -29,7 +28,7 @@ Future<Map<String, dynamic>> request(
       'body': body,
       'cache': cache,
       'imageQuality': imageQuality,
-      'authorization': authorization,
+      'authorization': settings.authorization,
       'settings': {
         'proxy': settings.proxy,
         'imageQuality': settings.imageQuality,

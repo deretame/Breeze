@@ -121,8 +121,7 @@ class _NavigationBarState extends State<NavigationBar> {
 
     Future.delayed(const Duration(seconds: 1), () async {
       try {
-        await setFastestUrlIndex();
-        await setFastestImagesUrlIndex();
+        await Future.wait([setFastestUrlIndex(), setFastestImagesUrlIndex()]);
         showSuccessToast("禁漫已自动选择最快线路");
       } catch (e) {
         logger.e(e);

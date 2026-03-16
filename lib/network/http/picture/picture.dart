@@ -145,7 +145,7 @@ Future<String> downloadPicture({
   PictureType pictureType = PictureType.comic,
   String chapterId = '',
   int? proxy,
-  String qjaName = "jmComic",
+  String qjsName = "jmComic",
 }) async {
   if (url.isEmpty) {
     throw Exception('URL 不能为空 404');
@@ -231,7 +231,7 @@ Future<String> downloadPicture({
   // 下载图片
   Uint8List imageData = await downloadImageWithRetry(
     finalUrl,
-    qjaName: qjaName,
+    qjsName: qjsName,
   );
 
   if (from == From.jm && pictureType == PictureType.comic) {
@@ -389,21 +389,21 @@ String buildImageUrl(
 Future<Uint8List> downloadImageWithRetry(
   String url, {
   bool retry = false,
-  String qjaName = "jmComic",
+  String qjsName = "jmComic",
 }) async {
   while (true) {
     try {
       if (kDebugMode) {
         final js = await directDio.get(await jmJsUrl);
         return await qjsFetchImageBytesOnce(
-          runtimeName: qjaName,
+          runtimeName: qjsName,
           bundleJs: js.data,
           fnPath: "fetchImageBytes",
           argsJson: {"url": url, "timeoutMs": 30000}.let(jsonEncode),
         );
       } else {
         return await qjsFetchImageBytes(
-          runtimeName: qjaName,
+          runtimeName: qjsName,
           fnPath: "fetchImageBytes",
           argsJson: {"url": url, "timeoutMs": 30000}.let(jsonEncode),
         );

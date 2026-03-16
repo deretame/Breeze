@@ -18,7 +18,7 @@ Future<Map<String, dynamic>> request(
   dynamic body,
   bool cache = false,
   String? imageQuality,
-  String qjaName = "bikaComic",
+  String qjsName = "bikaComic",
 }) async {
   try {
     final settings = objectbox.userSettingBox.get(1)!.bikaSetting;
@@ -40,14 +40,14 @@ Future<Map<String, dynamic>> request(
     if (kDebugMode) {
       final js = await directDio.get(await bikaJsUrl);
       raw = await rust_qjs.qjsCallOnce(
-        runtimeName: qjaName,
+        runtimeName: qjsName,
         bundleJs: js.data,
         fnPath: 'bikaRequest',
         argsJson: args,
       );
     } else {
       raw = await rust_qjs.qjsCall(
-        runtimeName: qjaName,
+        runtimeName: qjsName,
         fnPath: 'bikaRequest',
         argsJson: args,
       );

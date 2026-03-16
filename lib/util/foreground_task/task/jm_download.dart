@@ -135,7 +135,7 @@ Future<void> jmDownloadTask(
         cartoonId: comicInfo.id.toString(),
         pictureType: PictureType.cover,
         chapterId: comicInfo.id.toString(),
-        qjaName: runtimeName,
+        qjsName: runtimeName,
       );
     } catch (e, s) {
       logger.e(e, stackTrace: s);
@@ -383,7 +383,7 @@ Future<DownloadInfoJson> downloadComic(
           cartoonId: downloadInfoJson.id.toString(),
           pictureType: PictureType.comic,
           chapterId: doc.docId,
-          qjaName: qjsRuntimeName,
+          qjsName: qjsRuntimeName,
         );
 
         progress++;

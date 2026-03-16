@@ -422,18 +422,44 @@ Map<String, dynamic> _$DownloadTaskToJson(DownloadTask instance) =>
       'taskInfo': instance.taskInfo,
     };
 
-FlushPersistentStore _$FlushPersistentStoreFromJson(
-  Map<String, dynamic> json,
-) => FlushPersistentStore(
+PluginConfig _$PluginConfigFromJson(Map<String, dynamic> json) => PluginConfig(
   id: (json['id'] as num?)?.toInt() ?? 0,
   name: json['name'] as String,
   data: json['data'] as Map<String, dynamic>?,
 );
 
-Map<String, dynamic> _$FlushPersistentStoreToJson(
-  FlushPersistentStore instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'name': instance.name,
-  'data': instance.data,
-};
+Map<String, dynamic> _$PluginConfigToJson(PluginConfig instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'data': instance.data,
+    };
+
+PluginInfo _$PluginInfoFromJson(Map<String, dynamic> json) => PluginInfo(
+  id: (json['id'] as num?)?.toInt() ?? 0,
+  pluginId: json['pluginId'] as String,
+  name: json['name'] as String,
+  jsCode: json['jsCode'] as String,
+  version: json['version'] as String,
+  description: json['description'] as String,
+  allInfo: json['allInfo'] as Map<String, dynamic>?,
+  insertedAt: DateTime.parse(json['insertedAt'] as String),
+  updatedAt: DateTime.parse(json['updatedAt'] as String),
+  isEnabled: json['isEnabled'] as bool,
+  isDeleted: json['isDeleted'] as bool,
+);
+
+Map<String, dynamic> _$PluginInfoToJson(PluginInfo instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'pluginId': instance.pluginId,
+      'name': instance.name,
+      'jsCode': instance.jsCode,
+      'version': instance.version,
+      'description': instance.description,
+      'allInfo': instance.allInfo,
+      'insertedAt': instance.insertedAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
+      'isEnabled': instance.isEnabled,
+      'isDeleted': instance.isDeleted,
+    };

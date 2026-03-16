@@ -574,7 +574,7 @@ class DownloadTask {
 
 @Entity()
 @JsonSerializable()
-class FlushPersistentStore {
+class PluginConfig {
   @Id()
   int id;
 
@@ -583,12 +583,65 @@ class FlushPersistentStore {
   @Property(type: PropertyType.flex)
   Map<String, dynamic>? data;
 
-  FlushPersistentStore({this.id = 0, required this.name, required this.data});
+  PluginConfig({this.id = 0, required this.name, required this.data});
 
-  Map<String, dynamic> toJson() => _$FlushPersistentStoreToJson(this);
+  Map<String, dynamic> toJson() => _$PluginConfigToJson(this);
 
-  factory FlushPersistentStore.fromJson(Map<String, dynamic> json) =>
-      _$FlushPersistentStoreFromJson(json);
+  factory PluginConfig.fromJson(Map<String, dynamic> json) =>
+      _$PluginConfigFromJson(json);
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+}
+
+@Entity()
+@JsonSerializable()
+class PluginInfo {
+  @Id()
+  int id;
+
+  @Unique()
+  String pluginId;
+
+  String name;
+
+  String jsCode;
+
+  String version;
+
+  String description;
+
+  @Property(type: PropertyType.flex)
+  Map<String, dynamic>? allInfo;
+
+  DateTime insertedAt;
+
+  DateTime updatedAt;
+
+  bool isEnabled;
+
+  bool isDeleted;
+
+  PluginInfo({
+    this.id = 0,
+    required this.pluginId,
+    required this.name,
+    required this.jsCode,
+    required this.version,
+    required this.description,
+    required this.allInfo,
+    required this.insertedAt,
+    required this.updatedAt,
+    required this.isEnabled,
+    required this.isDeleted,
+  });
+
+  Map<String, dynamic> toJson() => _$PluginInfoToJson(this);
+
+  factory PluginInfo.fromJson(Map<String, dynamic> json) =>
+      _$PluginInfoFromJson(json);
 
   @override
   String toString() {

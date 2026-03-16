@@ -23,7 +23,7 @@ Future<dynamic> request(
   Map<String, dynamic>? formData,
   bool cache = false,
   bool useJwt = true,
-  String qjaName = "jmComic",
+  String qjsName = "jmComic",
 }) async {
   try {
     final args = {
@@ -41,14 +41,14 @@ Future<dynamic> request(
     if (kDebugMode) {
       final js = await directDio.get(await jmJsUrl);
       raw = await rust_qjs.qjsCallOnce(
-        runtimeName: qjaName,
+        runtimeName: qjsName,
         bundleJs: js.data,
         fnPath: "jmRequest",
         argsJson: args,
       );
     } else {
       raw = await rust_qjs.qjsCall(
-        runtimeName: qjaName,
+        runtimeName: qjsName,
         fnPath: "jmRequest",
         argsJson: args,
       );

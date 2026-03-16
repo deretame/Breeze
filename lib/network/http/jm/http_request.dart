@@ -27,7 +27,7 @@ Future<dynamic> _requestMap(
     formData: formData,
     cache: cache,
     useJwt: useJwt,
-    qjaName: qjsRuntimeName,
+    qjsName: qjsRuntimeName,
   );
 
   if (result is Map) {

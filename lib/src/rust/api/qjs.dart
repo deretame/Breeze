@@ -6,7 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `call_bundle_once_by_json`, `call_bundle_once_inner`, `call_current_bundle_by_json`, `call_current_bundle_inner`, `call_loaded_bundle_inner`, `create_qjs_runtime_with_bundle`, `create_qjs_runtime`, `current_bundle_name`, `dart_callback_runtime`, `load_bundle_inner`, `native_bytes_from_payload`, `parse_args_array`, `parse_call_input`, `qjs_runtime_init_lock`, `qjs_runtime_map`, `qjs_runtime`, `replace_bundle_inner`, `run_dart_callback_blocking`
+// These functions are ignored because they are not marked as `pub`: `call_bundle_once_by_json`, `call_bundle_once_inner`, `call_current_bundle_by_json`, `call_current_bundle_inner`, `call_loaded_bundle_inner`, `cancel_runtime_tasks`, `create_qjs_runtime_with_bundle`, `create_qjs_runtime`, `current_bundle_name`, `dart_callback_runtime`, `insert_runtime_task_id`, `is_cancelled_error_text`, `load_bundle_inner`, `native_bytes_from_payload`, `parse_args_array`, `parse_call_input`, `parse_ok_json_payload`, `qjs_in_flight_task_map`, `qjs_runtime_init_lock`, `qjs_runtime_map`, `qjs_runtime`, `remove_runtime_task_id`, `replace_bundle_inner`, `run_dart_callback_blocking`, `take_runtime_task_ids`
 
 Future<void> qjsReplaceBundle({
   required String runtimeName,

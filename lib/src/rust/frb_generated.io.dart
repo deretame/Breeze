@@ -16,174 +16,270 @@ import 'decode/decode.dart';
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_io.dart';
 
+abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
+  RustLibApiImplPlatform({
+    required super.handler,
+    required super.wire,
+    required super.generalizedFrbRustBinding,
+    required super.portManager,
+  });
 
+  @protected
+  AnyhowException dco_decode_AnyhowException(dynamic raw);
 
+  @protected
+  FutureOr<String> Function(String, String, String)
+  dco_decode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(
+    dynamic raw,
+  );
 
-                abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
-                  RustLibApiImplPlatform({
-                    required super.handler,
-                    required super.wire,
-                    required super.generalizedFrbRustBinding,
-                    required super.portManager,
-                  });
+  @protected
+  Object dco_decode_DartOpaque(dynamic raw);
 
-                  
+  @protected
+  RustStreamSink<String> dco_decode_StreamSink_String_Sse(dynamic raw);
 
-                  @protected AnyhowException dco_decode_AnyhowException(dynamic raw);
+  @protected
+  RustStreamSink<bool> dco_decode_StreamSink_bool_Sse(dynamic raw);
 
-@protected FutureOr<String> Function(String, String, String) dco_decode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(dynamic raw);
+  @protected
+  String dco_decode_String(dynamic raw);
 
-@protected Object dco_decode_DartOpaque(dynamic raw);
+  @protected
+  bool dco_decode_bool(dynamic raw);
 
-@protected RustStreamSink<String> dco_decode_StreamSink_String_Sse(dynamic raw);
+  @protected
+  ImageInfo dco_decode_box_autoadd_image_info(dynamic raw);
 
-@protected RustStreamSink<bool> dco_decode_StreamSink_bool_Sse(dynamic raw);
+  @protected
+  PackInfo dco_decode_box_autoadd_pack_info(dynamic raw);
 
-@protected String dco_decode_String(dynamic raw);
+  @protected
+  int dco_decode_i_32(dynamic raw);
 
-@protected bool dco_decode_bool(dynamic raw);
+  @protected
+  ImageInfo dco_decode_image_info(dynamic raw);
 
-@protected ImageInfo dco_decode_box_autoadd_image_info(dynamic raw);
+  @protected
+  PlatformInt64 dco_decode_isize(dynamic raw);
 
-@protected PackInfo dco_decode_box_autoadd_pack_info(dynamic raw);
+  @protected
+  List<String> dco_decode_list_String(dynamic raw);
 
-@protected int dco_decode_i_32(dynamic raw);
+  @protected
+  List<int> dco_decode_list_prim_u_8_loose(dynamic raw);
 
-@protected ImageInfo dco_decode_image_info(dynamic raw);
+  @protected
+  Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
-@protected PlatformInt64 dco_decode_isize(dynamic raw);
+  @protected
+  List<TaggedAllocation> dco_decode_list_tagged_allocation(dynamic raw);
 
-@protected List<String> dco_decode_list_String(dynamic raw);
+  @protected
+  PackInfo dco_decode_pack_info(dynamic raw);
 
-@protected List<int> dco_decode_list_prim_u_8_loose(dynamic raw);
+  @protected
+  RustMemoryInfo dco_decode_rust_memory_info(dynamic raw);
 
-@protected Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+  @protected
+  TaggedAllocation dco_decode_tagged_allocation(dynamic raw);
 
-@protected List<TaggedAllocation> dco_decode_list_tagged_allocation(dynamic raw);
+  @protected
+  BigInt dco_decode_u_64(dynamic raw);
 
-@protected PackInfo dco_decode_pack_info(dynamic raw);
+  @protected
+  int dco_decode_u_8(dynamic raw);
 
-@protected RustMemoryInfo dco_decode_rust_memory_info(dynamic raw);
+  @protected
+  void dco_decode_unit(dynamic raw);
 
-@protected TaggedAllocation dco_decode_tagged_allocation(dynamic raw);
+  @protected
+  BigInt dco_decode_usize(dynamic raw);
 
-@protected BigInt dco_decode_u_64(dynamic raw);
+  @protected
+  AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
 
-@protected int dco_decode_u_8(dynamic raw);
+  @protected
+  Object sse_decode_DartOpaque(SseDeserializer deserializer);
 
-@protected void dco_decode_unit(dynamic raw);
+  @protected
+  RustStreamSink<String> sse_decode_StreamSink_String_Sse(
+    SseDeserializer deserializer,
+  );
 
-@protected BigInt dco_decode_usize(dynamic raw);
+  @protected
+  RustStreamSink<bool> sse_decode_StreamSink_bool_Sse(
+    SseDeserializer deserializer,
+  );
 
-@protected AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
+  @protected
+  String sse_decode_String(SseDeserializer deserializer);
 
-@protected Object sse_decode_DartOpaque(SseDeserializer deserializer);
+  @protected
+  bool sse_decode_bool(SseDeserializer deserializer);
 
-@protected RustStreamSink<String> sse_decode_StreamSink_String_Sse(SseDeserializer deserializer);
+  @protected
+  ImageInfo sse_decode_box_autoadd_image_info(SseDeserializer deserializer);
 
-@protected RustStreamSink<bool> sse_decode_StreamSink_bool_Sse(SseDeserializer deserializer);
+  @protected
+  PackInfo sse_decode_box_autoadd_pack_info(SseDeserializer deserializer);
 
-@protected String sse_decode_String(SseDeserializer deserializer);
+  @protected
+  int sse_decode_i_32(SseDeserializer deserializer);
 
-@protected bool sse_decode_bool(SseDeserializer deserializer);
+  @protected
+  ImageInfo sse_decode_image_info(SseDeserializer deserializer);
 
-@protected ImageInfo sse_decode_box_autoadd_image_info(SseDeserializer deserializer);
+  @protected
+  PlatformInt64 sse_decode_isize(SseDeserializer deserializer);
 
-@protected PackInfo sse_decode_box_autoadd_pack_info(SseDeserializer deserializer);
+  @protected
+  List<String> sse_decode_list_String(SseDeserializer deserializer);
 
-@protected int sse_decode_i_32(SseDeserializer deserializer);
+  @protected
+  List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer);
 
-@protected ImageInfo sse_decode_image_info(SseDeserializer deserializer);
+  @protected
+  Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
-@protected PlatformInt64 sse_decode_isize(SseDeserializer deserializer);
+  @protected
+  List<TaggedAllocation> sse_decode_list_tagged_allocation(
+    SseDeserializer deserializer,
+  );
 
-@protected List<String> sse_decode_list_String(SseDeserializer deserializer);
+  @protected
+  PackInfo sse_decode_pack_info(SseDeserializer deserializer);
 
-@protected List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer);
+  @protected
+  RustMemoryInfo sse_decode_rust_memory_info(SseDeserializer deserializer);
 
-@protected Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+  @protected
+  TaggedAllocation sse_decode_tagged_allocation(SseDeserializer deserializer);
 
-@protected List<TaggedAllocation> sse_decode_list_tagged_allocation(SseDeserializer deserializer);
+  @protected
+  BigInt sse_decode_u_64(SseDeserializer deserializer);
 
-@protected PackInfo sse_decode_pack_info(SseDeserializer deserializer);
+  @protected
+  int sse_decode_u_8(SseDeserializer deserializer);
 
-@protected RustMemoryInfo sse_decode_rust_memory_info(SseDeserializer deserializer);
+  @protected
+  void sse_decode_unit(SseDeserializer deserializer);
 
-@protected TaggedAllocation sse_decode_tagged_allocation(SseDeserializer deserializer);
+  @protected
+  BigInt sse_decode_usize(SseDeserializer deserializer);
 
-@protected BigInt sse_decode_u_64(SseDeserializer deserializer);
+  @protected
+  void sse_encode_AnyhowException(
+    AnyhowException self,
+    SseSerializer serializer,
+  );
 
-@protected int sse_decode_u_8(SseDeserializer deserializer);
+  @protected
+  void
+  sse_encode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(
+    FutureOr<String> Function(String, String, String) self,
+    SseSerializer serializer,
+  );
 
-@protected void sse_decode_unit(SseDeserializer deserializer);
+  @protected
+  void sse_encode_DartOpaque(Object self, SseSerializer serializer);
 
-@protected BigInt sse_decode_usize(SseDeserializer deserializer);
+  @protected
+  void sse_encode_StreamSink_String_Sse(
+    RustStreamSink<String> self,
+    SseSerializer serializer,
+  );
 
-@protected void sse_encode_AnyhowException(AnyhowException self, SseSerializer serializer);
+  @protected
+  void sse_encode_StreamSink_bool_Sse(
+    RustStreamSink<bool> self,
+    SseSerializer serializer,
+  );
 
-@protected void sse_encode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(FutureOr<String> Function(String, String, String) self, SseSerializer serializer);
+  @protected
+  void sse_encode_String(String self, SseSerializer serializer);
 
-@protected void sse_encode_DartOpaque(Object self, SseSerializer serializer);
+  @protected
+  void sse_encode_bool(bool self, SseSerializer serializer);
 
-@protected void sse_encode_StreamSink_String_Sse(RustStreamSink<String> self, SseSerializer serializer);
+  @protected
+  void sse_encode_box_autoadd_image_info(
+    ImageInfo self,
+    SseSerializer serializer,
+  );
 
-@protected void sse_encode_StreamSink_bool_Sse(RustStreamSink<bool> self, SseSerializer serializer);
+  @protected
+  void sse_encode_box_autoadd_pack_info(
+    PackInfo self,
+    SseSerializer serializer,
+  );
 
-@protected void sse_encode_String(String self, SseSerializer serializer);
+  @protected
+  void sse_encode_i_32(int self, SseSerializer serializer);
 
-@protected void sse_encode_bool(bool self, SseSerializer serializer);
+  @protected
+  void sse_encode_image_info(ImageInfo self, SseSerializer serializer);
 
-@protected void sse_encode_box_autoadd_image_info(ImageInfo self, SseSerializer serializer);
+  @protected
+  void sse_encode_isize(PlatformInt64 self, SseSerializer serializer);
 
-@protected void sse_encode_box_autoadd_pack_info(PackInfo self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
-@protected void sse_encode_i_32(int self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_prim_u_8_loose(List<int> self, SseSerializer serializer);
 
-@protected void sse_encode_image_info(ImageInfo self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_prim_u_8_strict(
+    Uint8List self,
+    SseSerializer serializer,
+  );
 
-@protected void sse_encode_isize(PlatformInt64 self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_tagged_allocation(
+    List<TaggedAllocation> self,
+    SseSerializer serializer,
+  );
 
-@protected void sse_encode_list_String(List<String> self, SseSerializer serializer);
+  @protected
+  void sse_encode_pack_info(PackInfo self, SseSerializer serializer);
 
-@protected void sse_encode_list_prim_u_8_loose(List<int> self, SseSerializer serializer);
+  @protected
+  void sse_encode_rust_memory_info(
+    RustMemoryInfo self,
+    SseSerializer serializer,
+  );
 
-@protected void sse_encode_list_prim_u_8_strict(Uint8List self, SseSerializer serializer);
+  @protected
+  void sse_encode_tagged_allocation(
+    TaggedAllocation self,
+    SseSerializer serializer,
+  );
 
-@protected void sse_encode_list_tagged_allocation(List<TaggedAllocation> self, SseSerializer serializer);
+  @protected
+  void sse_encode_u_64(BigInt self, SseSerializer serializer);
 
-@protected void sse_encode_pack_info(PackInfo self, SseSerializer serializer);
+  @protected
+  void sse_encode_u_8(int self, SseSerializer serializer);
 
-@protected void sse_encode_rust_memory_info(RustMemoryInfo self, SseSerializer serializer);
+  @protected
+  void sse_encode_unit(void self, SseSerializer serializer);
 
-@protected void sse_encode_tagged_allocation(TaggedAllocation self, SseSerializer serializer);
-
-@protected void sse_encode_u_64(BigInt self, SseSerializer serializer);
-
-@protected void sse_encode_u_8(int self, SseSerializer serializer);
-
-@protected void sse_encode_unit(void self, SseSerializer serializer);
-
-@protected void sse_encode_usize(BigInt self, SseSerializer serializer);
-                }
-                
-
+  @protected
+  void sse_encode_usize(BigInt self, SseSerializer serializer);
+}
 
 // Section: wire_class
 
+class RustLibWire implements BaseWire {
+  factory RustLibWire.fromExternalLibrary(ExternalLibrary lib) =>
+      RustLibWire(lib.ffiDynamicLibrary);
 
-        class RustLibWire implements BaseWire {
+  /// Holds the symbol lookup function.
+  final ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
+  _lookup;
 
-            factory RustLibWire.fromExternalLibrary(ExternalLibrary lib) =>
-              RustLibWire(lib.ffiDynamicLibrary);
-        
-            /// Holds the symbol lookup function.
-            final ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
-                _lookup;
-  
-            /// The symbols are looked up in [dynamicLibrary].
-            RustLibWire(ffi.DynamicLibrary dynamicLibrary)
-                : _lookup = dynamicLibrary.lookup;
-
-            
-        }
-        
+  /// The symbols are looked up in [dynamicLibrary].
+  RustLibWire(ffi.DynamicLibrary dynamicLibrary)
+    : _lookup = dynamicLibrary.lookup;
+}

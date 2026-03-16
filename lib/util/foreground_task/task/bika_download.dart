@@ -148,7 +148,7 @@ Future<void> bikaDownloadTask(
       pictureType: PictureType.cover,
       chapterId: comicInfo.id,
       proxy: task.bikaInfo.proxy.let(toInt),
-      qjaName: runtimeName,
+      qjsName: runtimeName,
     );
 
     if (coverPath.startsWith('404')) {
@@ -189,7 +189,7 @@ Future<void> bikaDownloadTask(
           pictureType: PictureType.comic,
           chapterId: doc.docId,
           proxy: task.bikaInfo.proxy.let(toInt),
-          qjaName: runtimeName,
+          qjsName: runtimeName,
         );
         progress++;
         updateProgress(
@@ -214,7 +214,7 @@ Future<void> bikaDownloadTask(
             pictureType: PictureType.comic,
             chapterId: doc.docId,
             proxy: task.bikaInfo.proxy.let(toInt),
-            qjaName: runtimeName,
+            qjsName: runtimeName,
           );
 
           progress++;

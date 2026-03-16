@@ -1110,27 +1110,104 @@ final _entities = <obx_int.ModelEntity>[
     backlinks: <obx_int.ModelBacklink>[],
   ),
   obx_int.ModelEntity(
-    id: const obx_int.IdUid(10, 9050006826711283619),
-    name: 'FlushPersistentStore',
-    lastPropertyId: const obx_int.IdUid(3, 3606324867592962075),
+    id: const obx_int.IdUid(11, 6838395240994816150),
+    name: 'PluginConfig',
+    lastPropertyId: const obx_int.IdUid(3, 328827950385735598),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(1, 3342028823562884390),
+        id: const obx_int.IdUid(1, 877648391555554875),
         name: 'id',
         type: 6,
         flags: 1,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(2, 7718478056653736549),
+        id: const obx_int.IdUid(2, 8159178400823201984),
         name: 'name',
         type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(3, 3606324867592962075),
+        id: const obx_int.IdUid(3, 328827950385735598),
         name: 'data',
         type: 13,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(12, 5269818584842768822),
+    name: 'PluginInfo',
+    lastPropertyId: const obx_int.IdUid(11, 4040881004180983268),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 5722192275504701286),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 1133420993159808527),
+        name: 'pluginId',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(5, 8347243317803948936),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 7940064163433904946),
+        name: 'name',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 8216307126687310409),
+        name: 'jsCode',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 1661264223867822422),
+        name: 'version',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 2051832540735677888),
+        name: 'description',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 8788850099976239757),
+        name: 'allInfo',
+        type: 13,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 5786687788736757671),
+        name: 'insertedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 5622937154221571397),
+        name: 'updatedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 1787671340975696826),
+        name: 'isEnabled',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 4040881004180983268),
+        name: 'isDeleted',
+        type: 1,
         flags: 0,
       ),
     ],
@@ -1182,11 +1259,15 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(10, 9050006826711283619),
-    lastIndexId: const obx_int.IdUid(4, 931357141992892300),
+    lastEntityId: const obx_int.IdUid(12, 5269818584842768822),
+    lastIndexId: const obx_int.IdUid(5, 8347243317803948936),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
-    retiredEntityUids: const [264467845223121709, 1327783071807974029],
+    retiredEntityUids: const [
+      264467845223121709,
+      1327783071807974029,
+      9050006826711283619,
+    ],
     retiredIndexUids: const [
       3486826873856380308,
       931357141992892300,
@@ -1220,6 +1301,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
       8923948370798076489,
       9076765359393968077,
       1940395105821206945,
+      3342028823562884390,
+      7718478056653736549,
+      3606324867592962075,
     ],
     retiredRelationUids: const [],
     modelVersion: 5,
@@ -2581,15 +2665,15 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
-    FlushPersistentStore: obx_int.EntityDefinition<FlushPersistentStore>(
+    PluginConfig: obx_int.EntityDefinition<PluginConfig>(
       model: _entities[7],
-      toOneRelations: (FlushPersistentStore object) => [],
-      toManyRelations: (FlushPersistentStore object) => {},
-      getId: (FlushPersistentStore object) => object.id,
-      setId: (FlushPersistentStore object, int id) {
+      toOneRelations: (PluginConfig object) => [],
+      toManyRelations: (PluginConfig object) => {},
+      getId: (PluginConfig object) => object.id,
+      setId: (PluginConfig object, int id) {
         object.id = id;
       },
-      objectToFB: (FlushPersistentStore object, fb.Builder fbb) {
+      objectToFB: (PluginConfig object, fb.Builder fbb) {
         final nameOffset = fbb.writeString(object.name);
         final dataOffset = object.data == null
             ? null
@@ -2614,10 +2698,102 @@ obx_int.ModelDefinition getObjectBoxModel() {
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 6, '');
         final dataParam = obx_int.flexBufferToMap(buffer, rootOffset, 8);
-        final object = FlushPersistentStore(
+        final object = PluginConfig(
           id: idParam,
           name: nameParam,
           data: dataParam,
+        );
+
+        return object;
+      },
+    ),
+    PluginInfo: obx_int.EntityDefinition<PluginInfo>(
+      model: _entities[8],
+      toOneRelations: (PluginInfo object) => [],
+      toManyRelations: (PluginInfo object) => {},
+      getId: (PluginInfo object) => object.id,
+      setId: (PluginInfo object, int id) {
+        object.id = id;
+      },
+      objectToFB: (PluginInfo object, fb.Builder fbb) {
+        final pluginIdOffset = fbb.writeString(object.pluginId);
+        final nameOffset = fbb.writeString(object.name);
+        final jsCodeOffset = fbb.writeString(object.jsCode);
+        final versionOffset = fbb.writeString(object.version);
+        final descriptionOffset = fbb.writeString(object.description);
+        final allInfoOffset = object.allInfo == null
+            ? null
+            : fbb.writeListInt8(obx_int.toFlexBuffer(object.allInfo!));
+        fbb.startTable(12);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, pluginIdOffset);
+        fbb.addOffset(2, nameOffset);
+        fbb.addOffset(3, jsCodeOffset);
+        fbb.addOffset(4, versionOffset);
+        fbb.addOffset(5, descriptionOffset);
+        fbb.addOffset(6, allInfoOffset);
+        fbb.addInt64(7, object.insertedAt.millisecondsSinceEpoch);
+        fbb.addInt64(8, object.updatedAt.millisecondsSinceEpoch);
+        fbb.addBool(9, object.isEnabled);
+        fbb.addBool(10, object.isDeleted);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final pluginIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final nameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final jsCodeParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final versionParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final descriptionParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 14, '');
+        final allInfoParam = obx_int.flexBufferToMap(buffer, rootOffset, 16);
+        final insertedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0),
+        );
+        final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 20, 0),
+        );
+        final isEnabledParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          22,
+          false,
+        );
+        final isDeletedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          24,
+          false,
+        );
+        final object = PluginInfo(
+          id: idParam,
+          pluginId: pluginIdParam,
+          name: nameParam,
+          jsCode: jsCodeParam,
+          version: versionParam,
+          description: descriptionParam,
+          allInfo: allInfoParam,
+          insertedAt: insertedAtParam,
+          updatedAt: updatedAtParam,
+          isEnabled: isEnabledParam,
+          isDeleted: isDeletedParam,
         );
 
         return object;
@@ -3490,15 +3666,68 @@ class DownloadTask_ {
   );
 }
 
-/// [FlushPersistentStore] entity fields to define ObjectBox queries.
-class FlushPersistentStore_ {
-  /// See [FlushPersistentStore.id].
-  static final id = obx.QueryIntegerProperty<FlushPersistentStore>(
+/// [PluginConfig] entity fields to define ObjectBox queries.
+class PluginConfig_ {
+  /// See [PluginConfig.id].
+  static final id = obx.QueryIntegerProperty<PluginConfig>(
     _entities[7].properties[0],
   );
 
-  /// See [FlushPersistentStore.name].
-  static final name = obx.QueryStringProperty<FlushPersistentStore>(
+  /// See [PluginConfig.name].
+  static final name = obx.QueryStringProperty<PluginConfig>(
     _entities[7].properties[1],
+  );
+}
+
+/// [PluginInfo] entity fields to define ObjectBox queries.
+class PluginInfo_ {
+  /// See [PluginInfo.id].
+  static final id = obx.QueryIntegerProperty<PluginInfo>(
+    _entities[8].properties[0],
+  );
+
+  /// See [PluginInfo.pluginId].
+  static final pluginId = obx.QueryStringProperty<PluginInfo>(
+    _entities[8].properties[1],
+  );
+
+  /// See [PluginInfo.name].
+  static final name = obx.QueryStringProperty<PluginInfo>(
+    _entities[8].properties[2],
+  );
+
+  /// See [PluginInfo.jsCode].
+  static final jsCode = obx.QueryStringProperty<PluginInfo>(
+    _entities[8].properties[3],
+  );
+
+  /// See [PluginInfo.version].
+  static final version = obx.QueryStringProperty<PluginInfo>(
+    _entities[8].properties[4],
+  );
+
+  /// See [PluginInfo.description].
+  static final description = obx.QueryStringProperty<PluginInfo>(
+    _entities[8].properties[5],
+  );
+
+  /// See [PluginInfo.insertedAt].
+  static final insertedAt = obx.QueryDateProperty<PluginInfo>(
+    _entities[8].properties[7],
+  );
+
+  /// See [PluginInfo.updatedAt].
+  static final updatedAt = obx.QueryDateProperty<PluginInfo>(
+    _entities[8].properties[8],
+  );
+
+  /// See [PluginInfo.isEnabled].
+  static final isEnabled = obx.QueryBooleanProperty<PluginInfo>(
+    _entities[8].properties[9],
+  );
+
+  /// See [PluginInfo.isDeleted].
+  static final isDeleted = obx.QueryBooleanProperty<PluginInfo>(
+    _entities[8].properties[10],
   );
 }

@@ -29,7 +29,7 @@ Future<Map<String, dynamic>> bikaRequest(
     body: body,
     cache: cache,
     imageQuality: imageQuality,
-    qjaName: qjsRuntimeName,
+    qjsName: qjsRuntimeName,
   );
 
   if (data['code'] != 200) {

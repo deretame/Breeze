@@ -13,18 +13,15 @@ String t2s(String text) {
 }
 
 String onSavePluginConfig(String name, String key, String value) {
-  final box = objectbox.flushPersistentBox;
+  final box = objectbox.pluginConfigBox;
 
   // 使用同步事务确保原子性
   return objectbox.store.runInTransaction(TxMode.write, () {
-    var entity = box
-        .query(FlushPersistentStore_.name.equals(name))
-        .build()
-        .findFirst();
+    var entity = box.query(PluginConfig_.name.equals(name)).build().findFirst();
 
     if (entity == null) {
       var data = <String, dynamic>{key: value};
-      entity = FlushPersistentStore(name: name, data: data);
+      entity = PluginConfig(name: name, data: data);
     } else {
       var data = entity.data ?? <String, dynamic>{};
       data[key] = value;
@@ -37,11 +34,11 @@ String onSavePluginConfig(String name, String key, String value) {
 }
 
 String onLoadPluginConfig(String name, String key, String fallback) {
-  final box = objectbox.flushPersistentBox;
+  final box = objectbox.pluginConfigBox;
 
   return objectbox.store.runInTransaction(TxMode.read, () {
     final entity = box
-        .query(FlushPersistentStore_.name.equals(name))
+        .query(PluginConfig_.name.equals(name))
         .build()
         .findFirst();
 

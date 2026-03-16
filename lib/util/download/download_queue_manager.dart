@@ -17,6 +17,7 @@ import 'package:zephyr/util/macos_activity.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 const _kTaskCancelledMessage = '__DOWNLOAD_TASK_CANCELLED__';
+const _kQjsRuntimeCancelledMessage = '__QJS_RUNTIME_CANCELLED__';
 
 /// 下载进度信息
 class DownloadProgress {
@@ -206,7 +207,7 @@ class DownloadQueueManager {
       );
       await desktopReporter.sendNotification("下载完成", "${task.comicName} 下载完成");
     } catch (e, s) {
-      if (_isTaskCancelledError(e)) {
+      if (_isTaskCancelledOrMarked(task.comicId, e)) {
         logger.i('任务已取消: ${task.comicName}');
         _removeCancelledTaskRecord(task.comicId);
 
@@ -214,6 +215,15 @@ class DownloadQueueManager {
           DownloadProgress(comicName: task.comicName, message: '已取消'),
         );
       } else {
+        if (_isTaskGoneOrCompleted(task.comicId)) {
+          logger.i('任务状态已变更，跳过失败回写: ${task.comicName}');
+          _removeCancelledTaskRecord(task.comicId);
+          _progressController.add(
+            DownloadProgress(comicName: task.comicName, message: '已取消'),
+          );
+          return;
+        }
+
         logger.e("任务 ${task.comicName} 失败", error: e, stackTrace: s);
 
         showErrorToast("${task.comicName} 下载失败 ${e.toString()}");
@@ -312,7 +322,7 @@ class DownloadQueueManager {
       );
       await iosReporter.sendNotification("下载完成", "${task.comicName} 下载完成");
     } catch (e, s) {
-      if (_isTaskCancelledError(e)) {
+      if (_isTaskCancelledOrMarked(task.comicId, e)) {
         logger.i('任务已取消: ${task.comicName}');
         _removeCancelledTaskRecord(task.comicId);
 
@@ -320,6 +330,15 @@ class DownloadQueueManager {
           DownloadProgress(comicName: task.comicName, message: '已取消'),
         );
       } else {
+        if (_isTaskGoneOrCompleted(task.comicId)) {
+          logger.i('任务状态已变更，跳过失败回写: ${task.comicName}');
+          _removeCancelledTaskRecord(task.comicId);
+          _progressController.add(
+            DownloadProgress(comicName: task.comicName, message: '已取消'),
+          );
+          return;
+        }
+
         logger.e("任务 ${task.comicName} 失败", error: e, stackTrace: s);
 
         showErrorToast("${task.comicName} 下载失败 ${e.toString()}");
@@ -450,10 +469,16 @@ class DownloadQueueManager {
       await reporter.sendNotification("下载完成", "${task.comicName} 下载完成");
       _sendTaskCompleted(task.comicName);
     } catch (e, s) {
-      if (_isTaskCancelledError(e)) {
+      if (_isTaskCancelledOrMarked(task.comicId, e)) {
         logger.i('任务已取消: ${task.comicName}');
         _removeCancelledTaskRecord(task.comicId);
       } else {
+        if (_isTaskGoneOrCompleted(task.comicId)) {
+          logger.i('任务状态已变更，跳过失败回写: ${task.comicName}');
+          _removeCancelledTaskRecord(task.comicId);
+          return;
+        }
+
         logger.e("任务 ${task.comicName} 失败", error: e, stackTrace: s);
 
         dbTask.isDownloading = false;
@@ -548,6 +573,41 @@ class DownloadQueueManager {
 
 bool _isTaskCancelledError(Object error) {
   return error.toString().contains(_kTaskCancelledMessage);
+}
+
+bool _isTaskCancelledOrMarked(String comicId, Object error) {
+  if (_isTaskCancelledError(error) ||
+      error.toString().contains(_kQjsRuntimeCancelledMessage)) {
+    return true;
+  }
+
+  final task = objectbox.downloadTaskBox
+      .query(DownloadTask_.comicId.equals(comicId))
+      .build()
+      .findFirst();
+
+  if (task == null) {
+    return true;
+  }
+
+  final status = task.status;
+  final isMarkedCancelled =
+      task.isCompleted && !task.isDownloading && status.contains('取消');
+
+  return isMarkedCancelled;
+}
+
+bool _isTaskGoneOrCompleted(String comicId) {
+  final task = objectbox.downloadTaskBox
+      .query(DownloadTask_.comicId.equals(comicId))
+      .build()
+      .findFirst();
+
+  if (task == null) {
+    return true;
+  }
+
+  return task.isCompleted || !task.isDownloading;
 }
 
 void _sendTaskCompleted(String comicName) {

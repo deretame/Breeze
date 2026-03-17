@@ -274,7 +274,7 @@ as int,
 /// @nodoc
 mixin _$PromoteState {
 
- PromoteStatus get status; List<JmPromoteJson> get list; List<JmSuggestionJson> get suggestionList; String get result;
+ PromoteStatus get status; List<Map<String, dynamic>> get sections; List<Map<String, dynamic>> get suggestionItems; bool get hasReachedMax; String get result;
 /// Create a copy of PromoteState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -285,16 +285,16 @@ $PromoteStateCopyWith<PromoteState> get copyWith => _$PromoteStateCopyWithImpl<P
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PromoteState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.list, list)&&const DeepCollectionEquality().equals(other.suggestionList, suggestionList)&&(identical(other.result, result) || other.result == result));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PromoteState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other.sections, sections)&&const DeepCollectionEquality().equals(other.suggestionItems, suggestionItems)&&(identical(other.hasReachedMax, hasReachedMax) || other.hasReachedMax == hasReachedMax)&&(identical(other.result, result) || other.result == result));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(list),const DeepCollectionEquality().hash(suggestionList),result);
+int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(sections),const DeepCollectionEquality().hash(suggestionItems),hasReachedMax,result);
 
 @override
 String toString() {
-  return 'PromoteState(status: $status, list: $list, suggestionList: $suggestionList, result: $result)';
+  return 'PromoteState(status: $status, sections: $sections, suggestionItems: $suggestionItems, hasReachedMax: $hasReachedMax, result: $result)';
 }
 
 
@@ -305,7 +305,7 @@ abstract mixin class $PromoteStateCopyWith<$Res>  {
   factory $PromoteStateCopyWith(PromoteState value, $Res Function(PromoteState) _then) = _$PromoteStateCopyWithImpl;
 @useResult
 $Res call({
- PromoteStatus status, List<JmPromoteJson> list, List<JmSuggestionJson> suggestionList, String result
+ PromoteStatus status, List<Map<String, dynamic>> sections, List<Map<String, dynamic>> suggestionItems, bool hasReachedMax, String result
 });
 
 
@@ -322,12 +322,13 @@ class _$PromoteStateCopyWithImpl<$Res>
 
 /// Create a copy of PromoteState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? list = null,Object? suggestionList = null,Object? result = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? sections = null,Object? suggestionItems = null,Object? hasReachedMax = null,Object? result = null,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as PromoteStatus,list: null == list ? _self.list : list // ignore: cast_nullable_to_non_nullable
-as List<JmPromoteJson>,suggestionList: null == suggestionList ? _self.suggestionList : suggestionList // ignore: cast_nullable_to_non_nullable
-as List<JmSuggestionJson>,result: null == result ? _self.result : result // ignore: cast_nullable_to_non_nullable
+as PromoteStatus,sections: null == sections ? _self.sections : sections // ignore: cast_nullable_to_non_nullable
+as List<Map<String, dynamic>>,suggestionItems: null == suggestionItems ? _self.suggestionItems : suggestionItems // ignore: cast_nullable_to_non_nullable
+as List<Map<String, dynamic>>,hasReachedMax: null == hasReachedMax ? _self.hasReachedMax : hasReachedMax // ignore: cast_nullable_to_non_nullable
+as bool,result: null == result ? _self.result : result // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -413,10 +414,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( PromoteStatus status,  List<JmPromoteJson> list,  List<JmSuggestionJson> suggestionList,  String result)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( PromoteStatus status,  List<Map<String, dynamic>> sections,  List<Map<String, dynamic>> suggestionItems,  bool hasReachedMax,  String result)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PromoteState() when $default != null:
-return $default(_that.status,_that.list,_that.suggestionList,_that.result);case _:
+return $default(_that.status,_that.sections,_that.suggestionItems,_that.hasReachedMax,_that.result);case _:
   return orElse();
 
 }
@@ -434,10 +435,10 @@ return $default(_that.status,_that.list,_that.suggestionList,_that.result);case 
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( PromoteStatus status,  List<JmPromoteJson> list,  List<JmSuggestionJson> suggestionList,  String result)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( PromoteStatus status,  List<Map<String, dynamic>> sections,  List<Map<String, dynamic>> suggestionItems,  bool hasReachedMax,  String result)  $default,) {final _that = this;
 switch (_that) {
 case _PromoteState():
-return $default(_that.status,_that.list,_that.suggestionList,_that.result);case _:
+return $default(_that.status,_that.sections,_that.suggestionItems,_that.hasReachedMax,_that.result);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -454,10 +455,10 @@ return $default(_that.status,_that.list,_that.suggestionList,_that.result);case 
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( PromoteStatus status,  List<JmPromoteJson> list,  List<JmSuggestionJson> suggestionList,  String result)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( PromoteStatus status,  List<Map<String, dynamic>> sections,  List<Map<String, dynamic>> suggestionItems,  bool hasReachedMax,  String result)?  $default,) {final _that = this;
 switch (_that) {
 case _PromoteState() when $default != null:
-return $default(_that.status,_that.list,_that.suggestionList,_that.result);case _:
+return $default(_that.status,_that.sections,_that.suggestionItems,_that.hasReachedMax,_that.result);case _:
   return null;
 
 }
@@ -469,24 +470,25 @@ return $default(_that.status,_that.list,_that.suggestionList,_that.result);case 
 
 
 class _PromoteState implements PromoteState {
-  const _PromoteState({this.status = PromoteStatus.initial, final  List<JmPromoteJson> list = const [], final  List<JmSuggestionJson> suggestionList = const [], this.result = ''}): _list = list,_suggestionList = suggestionList;
+  const _PromoteState({this.status = PromoteStatus.initial, final  List<Map<String, dynamic>> sections = const <Map<String, dynamic>>[], final  List<Map<String, dynamic>> suggestionItems = const <Map<String, dynamic>>[], this.hasReachedMax = false, this.result = ''}): _sections = sections,_suggestionItems = suggestionItems;
   
 
 @override@JsonKey() final  PromoteStatus status;
- final  List<JmPromoteJson> _list;
-@override@JsonKey() List<JmPromoteJson> get list {
-  if (_list is EqualUnmodifiableListView) return _list;
+ final  List<Map<String, dynamic>> _sections;
+@override@JsonKey() List<Map<String, dynamic>> get sections {
+  if (_sections is EqualUnmodifiableListView) return _sections;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_list);
+  return EqualUnmodifiableListView(_sections);
 }
 
- final  List<JmSuggestionJson> _suggestionList;
-@override@JsonKey() List<JmSuggestionJson> get suggestionList {
-  if (_suggestionList is EqualUnmodifiableListView) return _suggestionList;
+ final  List<Map<String, dynamic>> _suggestionItems;
+@override@JsonKey() List<Map<String, dynamic>> get suggestionItems {
+  if (_suggestionItems is EqualUnmodifiableListView) return _suggestionItems;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_suggestionList);
+  return EqualUnmodifiableListView(_suggestionItems);
 }
 
+@override@JsonKey() final  bool hasReachedMax;
 @override@JsonKey() final  String result;
 
 /// Create a copy of PromoteState
@@ -499,16 +501,16 @@ _$PromoteStateCopyWith<_PromoteState> get copyWith => __$PromoteStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PromoteState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._list, _list)&&const DeepCollectionEquality().equals(other._suggestionList, _suggestionList)&&(identical(other.result, result) || other.result == result));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PromoteState&&(identical(other.status, status) || other.status == status)&&const DeepCollectionEquality().equals(other._sections, _sections)&&const DeepCollectionEquality().equals(other._suggestionItems, _suggestionItems)&&(identical(other.hasReachedMax, hasReachedMax) || other.hasReachedMax == hasReachedMax)&&(identical(other.result, result) || other.result == result));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(_list),const DeepCollectionEquality().hash(_suggestionList),result);
+int get hashCode => Object.hash(runtimeType,status,const DeepCollectionEquality().hash(_sections),const DeepCollectionEquality().hash(_suggestionItems),hasReachedMax,result);
 
 @override
 String toString() {
-  return 'PromoteState(status: $status, list: $list, suggestionList: $suggestionList, result: $result)';
+  return 'PromoteState(status: $status, sections: $sections, suggestionItems: $suggestionItems, hasReachedMax: $hasReachedMax, result: $result)';
 }
 
 
@@ -519,7 +521,7 @@ abstract mixin class _$PromoteStateCopyWith<$Res> implements $PromoteStateCopyWi
   factory _$PromoteStateCopyWith(_PromoteState value, $Res Function(_PromoteState) _then) = __$PromoteStateCopyWithImpl;
 @override @useResult
 $Res call({
- PromoteStatus status, List<JmPromoteJson> list, List<JmSuggestionJson> suggestionList, String result
+ PromoteStatus status, List<Map<String, dynamic>> sections, List<Map<String, dynamic>> suggestionItems, bool hasReachedMax, String result
 });
 
 
@@ -536,12 +538,13 @@ class __$PromoteStateCopyWithImpl<$Res>
 
 /// Create a copy of PromoteState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? list = null,Object? suggestionList = null,Object? result = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? sections = null,Object? suggestionItems = null,Object? hasReachedMax = null,Object? result = null,}) {
   return _then(_PromoteState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as PromoteStatus,list: null == list ? _self._list : list // ignore: cast_nullable_to_non_nullable
-as List<JmPromoteJson>,suggestionList: null == suggestionList ? _self._suggestionList : suggestionList // ignore: cast_nullable_to_non_nullable
-as List<JmSuggestionJson>,result: null == result ? _self.result : result // ignore: cast_nullable_to_non_nullable
+as PromoteStatus,sections: null == sections ? _self._sections : sections // ignore: cast_nullable_to_non_nullable
+as List<Map<String, dynamic>>,suggestionItems: null == suggestionItems ? _self._suggestionItems : suggestionItems // ignore: cast_nullable_to_non_nullable
+as List<Map<String, dynamic>>,hasReachedMax: null == hasReachedMax ? _self.hasReachedMax : hasReachedMax // ignore: cast_nullable_to_non_nullable
+as bool,result: null == result ? _self.result : result // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

@@ -72,3 +72,32 @@ List<ComicSimplifyEntryInfo> mapToJmComicSimplifyEntryInfoList<T>(
       )
       .toList();
 }
+
+List<ComicSimplifyEntryInfo> mapToUnifiedComicSimplifyEntryInfoList(
+  Iterable<Map<String, dynamic>> items,
+) {
+  return items.map((item) {
+    final source = item['source']?.toString() ?? '';
+    final id = item['id']?.toString() ?? '';
+    final title = item['title']?.toString() ?? '';
+
+    if (source == 'bika') {
+      final cover = (item['cover'] is Map)
+          ? Map<String, dynamic>.from(
+              (item['cover'] as Map).map(
+                (key, value) => MapEntry(key.toString(), value),
+              ),
+            )
+          : const <String, dynamic>{};
+
+      return createBikaComicSimplifyEntryInfo(
+        title: title,
+        id: id,
+        fileServer: cover['url']?.toString() ?? '',
+        path: cover['path']?.toString() ?? '',
+      );
+    }
+
+    return createJmComicSimplifyEntryInfo(title: title, id: id);
+  }).toList();
+}

@@ -6,9 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/home/models/event.dart';
 import 'package:zephyr/page/jm/jm_promote/jm_promote.dart';
-import 'package:zephyr/page/jm/jm_promote/json/promote/jm_promote_json.dart';
-import 'package:zephyr/page/jm/jm_promote/json/suggestion/jm_suggestion_json.dart'
-    show JmSuggestionJson;
 import 'package:zephyr/page/jm/jm_promote/view/jm_promote_scheme_renderer.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
@@ -79,7 +76,7 @@ class _JmPromotePageState extends State<_JmPromotePage> {
           state: state,
           scrollController: scrollController,
           promoteItemBuilder: _commentItem,
-          suggestionEntries: _toSimplifyEntries(state.suggestionList),
+          suggestionEntries: _toSimplifyEntries(state.suggestionItems),
           onRetryInitial: refreshPromote,
           onRetryLoadMore: () {
             context.read<PromoteBloc>().add(PromoteEvent(page: page + 1));
@@ -89,23 +86,16 @@ class _JmPromotePageState extends State<_JmPromotePage> {
     );
   }
 
-  Widget _commentItem(JmPromoteJson element) {
+  Widget _commentItem(Map<String, dynamic> element) {
     return RepaintBoundary(
-      child: PromoteWidget(
-        key: ValueKey('${element.id}-${element.title}'),
-        element: element,
-      ),
+      child: PromoteWidget(key: ValueKey(element['id']), section: element),
     );
   }
 
   List<ComicSimplifyEntryInfo> _toSimplifyEntries(
-    List<JmSuggestionJson> comics,
+    List<Map<String, dynamic>> comics,
   ) {
-    return mapToJmComicSimplifyEntryInfoList(
-      comics,
-      title: (element) => element.name,
-      id: (element) => element.id.toString(),
-    );
+    return mapToUnifiedComicSimplifyEntryInfoList(comics);
   }
 
   void _onScroll() {

@@ -8,6 +8,7 @@ class HomeCategory extends Equatable {
   final String link;
   final String id;
   final String description;
+  final Map<String, dynamic> action;
 
   const HomeCategory({
     required this.title,
@@ -17,6 +18,7 @@ class HomeCategory extends Equatable {
     required this.link,
     required this.id,
     required this.description,
+    this.action = const <String, dynamic>{},
   });
 
   @override
@@ -28,6 +30,7 @@ class HomeCategory extends Equatable {
     link,
     id,
     description,
+    action,
   ];
 }
 

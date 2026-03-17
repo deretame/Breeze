@@ -1,11 +1,12 @@
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/page/home/category.dart';
 
-import '../../../../network/http/bika/http_request.dart';
-import '../../json/category/categories.dart';
+import '../../../../type/enum.dart';
 
 part 'get_category_event.dart';
 
@@ -34,7 +35,20 @@ class GetCategoryBloc extends Bloc<GetCategoryStarted, GetCategoryState> {
     emit(state.copyWith(status: GetCategoryStatus.initial));
 
     try {
-      var posts = await getCategories();
+      final response = await callUnifiedComicPlugin(
+        from: From.bika,
+        fnPath: 'getHomeData',
+        core: const <String, dynamic>{},
+        extern: const <String, dynamic>{'source': 'home'},
+      );
+      final envelope = UnifiedPluginEnvelope.fromMap(response);
+      final posts = {
+        'data': {
+          'categories': asList(envelope.data['categories'])
+              .map((item) => asMap(item))
+              .toList(),
+        },
+      };
 
       final List<HomeCategory> categories = disposeCategories(posts);
 
@@ -52,63 +66,63 @@ class GetCategoryBloc extends Bloc<GetCategoryStarted, GetCategoryState> {
   }
 
   List<HomeCategory> disposeCategories(Map<String, dynamic> result) {
-    late List<HomeCategory> categoriesGlobal = [];
-    // 值里面缺胳膊少腿的比较多，需要处理一下
-    var temp = result['data']['categories'];
-    for (var category in temp) {
-      category['isWeb'] = category['isWeb'] ?? false;
-      category['active'] = category['active'] ?? false;
-      category['link'] = category['link'] ?? '';
-      category['description'] = category['description'] ?? '';
-      category['_id'] = category['_id'] ?? '';
-    }
-    result['data']['categories'] = temp;
+    final categoriesGlobal = <HomeCategory>[];
+    final rawCategories = asList(asMap(result['data'])['categories'])
+        .map((item) => asMap(item))
+        .toList();
 
-    try {
-      var temp = Categories.fromJson(result);
-      // logger.d(temp.toString());
-      // 下面两个不会出现在请求结果中，所以直接添加进去
+    categoriesGlobal.add(
+      HomeCategory(
+        title: '最近更新',
+        homeThumb: HomeThumb(originalName: '', path: '', fileServer: ''),
+        isWeb: false,
+        active: true,
+        link: 'asset/image/bika_image/cat_latest.jpg',
+        id: '',
+        description: '',
+        action: const {
+          'type': 'openSearch',
+          'payload': {'mode': 'latest'},
+        },
+      ),
+    );
+    categoriesGlobal.add(
+      HomeCategory(
+        title: '随机本子',
+        homeThumb: HomeThumb(originalName: '', path: '', fileServer: ''),
+        isWeb: false,
+        active: true,
+        link: 'asset/image/bika_image/cat_random.jpg',
+        id: '',
+        description: '',
+        action: const {
+          'type': 'openSearch',
+          'payload': {
+            'mode': 'random',
+            'url': 'https://picaapi.picacomic.com/comics/random',
+          },
+        },
+      ),
+    );
+
+    for (final category in rawCategories) {
+      final thumb = asMap(category['thumb']);
       categoriesGlobal.add(
         HomeCategory(
-          title: '最近更新',
-          homeThumb: HomeThumb(originalName: '', path: '', fileServer: ''),
-          isWeb: false,
-          active: true,
-          link: 'asset/image/bika_image/cat_latest.jpg',
-          id: '',
-          description: '',
-        ),
-      );
-      categoriesGlobal.add(
-        HomeCategory(
-          title: '随机本子',
-          homeThumb: HomeThumb(originalName: '', path: '', fileServer: ''),
-          isWeb: false,
-          active: true,
-          link: 'asset/image/bika_image/cat_random.jpg',
-          id: '',
-          description: '',
-        ),
-      );
-      for (var category in temp.data.categories) {
-        var temp = HomeCategory(
-          title: category.title,
+          title: category['title']?.toString() ?? '',
           homeThumb: HomeThumb(
-            originalName: category.thumb.originalName,
-            path: category.thumb.path,
-            fileServer: category.thumb.fileServer,
+            originalName: thumb['originalName']?.toString() ?? '',
+            path: thumb['path']?.toString() ?? '',
+            fileServer: thumb['fileServer']?.toString() ?? '',
           ),
-          isWeb: category.isWeb!,
-          active: category.active!,
-          link: category.link!,
-          id: category.id!,
-          description: category.description!,
-        );
-
-        categoriesGlobal.add(temp);
-      }
-    } catch (e) {
-      rethrow;
+          isWeb: category['isWeb'] == true,
+          active: category['active'] == true,
+          link: category['link']?.toString() ?? '',
+          id: category['_id']?.toString() ?? '',
+          description: category['description']?.toString() ?? '',
+          action: asMap(category['action']),
+        ),
+      );
     }
 
     return categoriesGlobal;

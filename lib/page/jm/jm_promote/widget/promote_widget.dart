@@ -3,8 +3,6 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:zephyr/main.dart';
-import 'package:zephyr/page/jm/jm_promote/json/promote/jm_promote_json.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/debouncer.dart';
@@ -22,9 +20,9 @@ class _DesktopDragScrollBehavior extends MaterialScrollBehavior {
 }
 
 class PromoteWidget extends StatelessWidget {
-  final JmPromoteJson element;
+  final Map<String, dynamic> section;
 
-  const PromoteWidget({super.key, required this.element});
+  const PromoteWidget({super.key, required this.section});
 
   @override
   Widget build(BuildContext context) {
@@ -63,31 +61,7 @@ class PromoteWidget extends StatelessWidget {
                   const Spacer(),
                   GestureDetector(
                     onTap: () {
-                      if (element.title.contains("推荐")) {
-                        int id = element.id.toString().let(toInt);
-                        context.pushRoute(
-                          JmPromoteListRoute(id: id, name: element.title),
-                        );
-                        return;
-                      }
-                      if (element.title == "连载更新→右滑看更多→") {
-                        context.pushRoute(JmWeekRankingRoute());
-                        return;
-                      }
-                      String tag = "";
-                      logger.d(element.title);
-                      if (element.title == "禁漫汉化组") {
-                        tag = "禁漫汉化组";
-                      }
-                      if (element.title == "韩漫更新") {
-                        tag = "hanManTypeMap";
-                      }
-                      if (element.title == "其他更新") {
-                        tag = "qiTaLeiTypeMap";
-                      }
-                      context.pushRoute(
-                        TimeRankingRoute(tag: tag, title: element.title),
-                      );
+                      _handleSectionAction(context);
                     },
                     child: Icon(
                       Icons.arrow_forward_ios,
@@ -117,11 +91,10 @@ class PromoteWidget extends StatelessWidget {
       Platform.isWindows || Platform.isMacOS || Platform.isLinux;
 
   Widget _buildHorizontalList(double itemWidth) {
-    final list = mapToJmComicSimplifyEntryInfoList(
-      element.content,
-      title: (item) => item.name,
-      id: (item) => item.id,
-    );
+    final items = _asList(section['items'])
+        .map((item) => _asMap(item))
+        .toList();
+    final list = mapToUnifiedComicSimplifyEntryInfoList(items);
 
     // 将同一个 itemWidth 传给列表，确保内层卡片高度与外层容器完全一致
     Widget scrollView = ComicFixedSizeHorizontalList(
@@ -172,10 +145,61 @@ class PromoteWidget extends StatelessWidget {
         weekStr = "";
     }
 
-    String title = element.title;
-    if (element.title == "连载更新→右滑看更多→") {
+    String title = section['title']?.toString() ?? '';
+    if (title == "连载更新→右滑看更多→") {
       title = "$weekStr连载更新";
     }
     return title;
+  }
+
+  void _handleSectionAction(BuildContext context) {
+    final action = _asMap(section['action']);
+    final type = action['type']?.toString() ?? '';
+    if (type != 'openRoute') {
+      return;
+    }
+
+    final payload = _asMap(action['payload']);
+    final route = payload['route']?.toString() ?? '';
+    final args = _asMap(payload['args']);
+
+    if (route == 'jmPromoteList') {
+      context.pushRoute(
+        JmPromoteListRoute(
+          id: toInt(args['id']),
+          name: args['name']?.toString() ?? getTitle(),
+        ),
+      );
+      return;
+    }
+
+    if (route == 'jmWeekRanking') {
+      context.pushRoute(JmWeekRankingRoute());
+      return;
+    }
+
+    if (route == 'timeRanking') {
+      context.pushRoute(
+        TimeRankingRoute(
+          tag: args['tag']?.toString() ?? '',
+          title: args['title']?.toString() ?? getTitle(),
+        ),
+      );
+    }
+  }
+
+  Map<String, dynamic> _asMap(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) {
+      return Map<String, dynamic>.fromEntries(
+        value.entries.map((e) => MapEntry(e.key.toString(), e.value)),
+      );
+    }
+    return const <String, dynamic>{};
+  }
+
+  List<dynamic> _asList(dynamic value) {
+    if (value is List) return value;
+    return const <dynamic>[];
   }
 }

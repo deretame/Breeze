@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:zephyr/page/jm/jm_promote/bloc/promote_bloc.dart';
-import 'package:zephyr/page/jm/jm_promote/json/promote/jm_promote_json.dart';
 import 'package:zephyr/page/jm/jm_promote/view/jm_promote_scheme_json.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -20,7 +19,7 @@ class JmPromoteSchemeRenderer {
     BuildContext context, {
     required PromoteState state,
     required ScrollController scrollController,
-    required Widget Function(JmPromoteJson item) promoteItemBuilder,
+    required Widget Function(Map<String, dynamic> item) promoteItemBuilder,
     required List<ComicSimplifyEntryInfo> suggestionEntries,
     required VoidCallback onRetryInitial,
     required VoidCallback onRetryLoadMore,
@@ -52,7 +51,7 @@ class JmPromoteSchemeRenderer {
     BuildContext context, {
     required PromoteState state,
     required ScrollController scrollController,
-    required Widget Function(JmPromoteJson item) promoteItemBuilder,
+    required Widget Function(Map<String, dynamic> item) promoteItemBuilder,
     required List<ComicSimplifyEntryInfo> suggestionEntries,
     required VoidCallback onRetryLoadMore,
   }) {
@@ -89,7 +88,7 @@ class JmPromoteSchemeRenderer {
     BuildContext context,
     Map<String, dynamic> sliverConfig, {
     required PromoteState state,
-    required Widget Function(JmPromoteJson item) promoteItemBuilder,
+    required Widget Function(Map<String, dynamic> item) promoteItemBuilder,
     required List<ComicSimplifyEntryInfo> suggestionEntries,
     required VoidCallback onRetryLoadMore,
   }) {
@@ -102,8 +101,8 @@ class JmPromoteSchemeRenderer {
       case 'promoteList':
         return SliverList(
           delegate: SliverChildBuilderDelegate(
-            (context, index) => promoteItemBuilder(state.list[index]),
-            childCount: state.list.length,
+            (context, index) => promoteItemBuilder(state.sections[index]),
+            childCount: state.sections.length,
           ),
         );
       case 'suggestionHeader':

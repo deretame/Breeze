@@ -6,6 +6,7 @@ import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
 import '../common/setting_ui.dart';
+import '../common/plugin_scheme_widgets.dart';
 
 @RoutePage()
 class JMSettingPage extends StatefulWidget {
@@ -43,6 +44,31 @@ class _JMSettingPageState extends State<JMSettingPage> {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          SettingSectionCard(
+            title: '插件设置',
+            icon: Icons.extension_outlined,
+            children: [
+              PluginSettingSchemeSection(
+                from: From.jm,
+                pluginName: 'jmComic',
+                onValueChanged: (key, value) async {
+                  if (key == 'auth.account') {
+                    jmCubit.updateAccount(value.toString());
+                  }
+                  if (key == 'auth.password') {
+                    jmCubit.updatePassword(value.toString());
+                  }
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SettingSectionCard(
+            title: '高级能力',
+            icon: Icons.developer_mode_outlined,
+            children: [PluginAdvancedActionSection(from: From.jm)],
           ),
         ],
       ),

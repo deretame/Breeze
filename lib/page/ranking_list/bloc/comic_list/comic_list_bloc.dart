@@ -1,9 +1,11 @@
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/bika/http_request.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/sundry.dart';
 
@@ -36,10 +38,17 @@ class ComicListBloc extends Bloc<FetchComicList, ComicListState> {
     emit(state.copyWith(status: ComicListStatus.initial));
 
     try {
-      var temp = await getRankingList(
-        days: event.getInfo.days,
-        type: event.getInfo.type,
+      final response = await callUnifiedComicPlugin(
+        from: From.bika,
+        fnPath: 'getRankingData',
+        core: {
+          'days': event.getInfo.days,
+          'type': event.getInfo.type,
+        },
+        extern: const {'source': 'ranking'},
       );
+      final envelope = UnifiedPluginEnvelope.fromMap(response);
+      final temp = asMap(envelope.data['raw']);
 
       final settings = objectbox.userSettingBox.get(1)!.globalSetting;
       final bikaSettings = objectbox.userSettingBox.get(1)!.bikaSetting;

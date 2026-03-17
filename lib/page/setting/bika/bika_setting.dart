@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../bookshelf/models/events.dart';
 import '../common/setting_ui.dart';
+import '../common/plugin_scheme_widgets.dart';
 import 'widgets.dart';
 
 @RoutePage()
@@ -63,12 +65,38 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
           ),
           const SizedBox(height: 12),
           SettingSectionCard(
+            title: '插件设置',
+            icon: Icons.extension_outlined,
+            children: [
+              PluginSettingSchemeSection(
+                from: From.bika,
+                pluginName: 'bikaComic',
+                onValueChanged: (key, value) async {
+                  if (key == 'image.quality') {
+                    cacheInterceptor.clear();
+                    bikaCubit.updateImageQuality(value.toString());
+                  }
+                  if (key == 'auth.authorization') {
+                    bikaCubit.updateAuthorization(value.toString());
+                  }
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SettingSectionCard(
             title: '屏蔽设置',
             icon: Icons.visibility_off_outlined,
             children: [
               changeShieldedCategories(context, "home"),
               changeShieldedCategories(context, "categories"),
             ],
+          ),
+          const SizedBox(height: 12),
+          SettingSectionCard(
+            title: '高级能力',
+            icon: Icons.developer_mode_outlined,
+            children: [PluginAdvancedActionSection(from: From.bika)],
           ),
           const SizedBox(height: 12),
           SettingSectionCard(

@@ -12,7 +12,7 @@ enum JmRankingStatus {
 abstract class JmRankingState with _$JmRankingState {
   const factory JmRankingState({
     @Default(JmRankingStatus.initial) JmRankingStatus status,
-    @Default([]) List<Content> list,
+    @Default(<Map<String, dynamic>>[]) List<Map<String, dynamic>> list,
     @Default(false) bool hasReachedMax,
     @Default('') String result,
   }) = _JmRankingState;

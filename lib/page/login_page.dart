@@ -3,19 +3,21 @@ import 'dart:convert';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/more/json/jm/jm_user_info_json.dart'
     show JmUserInfoJson;
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/dialog.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
+import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../network/http/bika/http_request.dart';
-import '../network/http/jm/http_request.dart' as jm;
 import '../util/router/router.gr.dart';
 
 @RoutePage()
@@ -34,6 +36,8 @@ class _LoginPageState extends State<LoginPage> {
 
   String title = "";
   late From from;
+  String accountLabel = '账号';
+  String passwordLabel = '密码';
 
   @override
   void initState() {
@@ -50,6 +54,37 @@ class _LoginPageState extends State<LoginPage> {
       title = "哔咔登录";
     } else if (from == From.jm) {
       title = "禁漫登录";
+    }
+
+    _loadLoginScheme();
+  }
+
+  Future<void> _loadLoginScheme() async {
+    try {
+      final response = await callUnifiedComicPlugin(
+        from: from,
+        fnPath: 'getLoginBundle',
+        core: const <String, dynamic>{},
+        extern: const <String, dynamic>{'source': 'login'},
+      );
+      final envelope = UnifiedPluginEnvelope.fromMap(response);
+      final scheme = envelope.scheme;
+      final fields = asList(scheme['fields']).map((item) => asMap(item)).toList();
+      if (fields.length >= 2 && mounted) {
+        setState(() {
+          title = scheme['title']?.toString() ?? title;
+          accountLabel = fields.first['label']?.toString() ?? accountLabel;
+          passwordLabel = fields[1]['label']?.toString() ?? passwordLabel;
+        });
+      }
+
+      final data = envelope.data;
+      if (mounted) {
+        _account.text = data['account']?.toString() ?? _account.text;
+        _password.text = data['password']?.toString() ?? _password.text;
+      }
+    } catch (_) {
+      // fallback to static labels
     }
   }
 
@@ -92,27 +127,48 @@ class _LoginPageState extends State<LoginPage> {
     final bikaCubit = context.read<BikaSettingCubit>();
 
     try {
-      Map<String, dynamic> result = {};
+      final result = await callUnifiedComicPlugin(
+        from: from,
+        fnPath: 'loginWithPassword',
+        core: {
+          'account': _account.text,
+          'password': _password.text,
+          if (from == From.jm) 'path': '${JmConfig.baseUrl}/login',
+        },
+        extern: const <String, dynamic>{'source': 'login'},
+      );
 
-      if (from == From.bika) {
-        result = await login(_account.text, _password.text);
-      } else if (from == From.jm) {
+      final data = asMap(result['data']);
+      final raw = asMap(result['raw']);
+
+      if (from == From.jm) {
         jmCubit.updateLoginStatus(LoginStatus.loggingIn);
-        result = await jm.login(_account.text, _password.text);
         jmCubit.updateUserInfo(
-          JmUserInfoJson.fromJson(
-            result.let(replaceNestedNull),
-          ).let(jsonEncode),
+          JmUserInfoJson.fromJson(raw.let(replaceNestedNull)).let(jsonEncode),
         );
       }
 
       if (from == From.bika) {
         bikaCubit.updateAccount(_account.text);
         bikaCubit.updatePassword(_password.text);
-        bikaCubit.updateAuthorization(result['data']['token']);
+        bikaCubit.updateAuthorization(data['token']?.toString() ?? '');
+        await savePluginConfigValue('bikaComic', 'auth.account', _account.text);
+        await savePluginConfigValue('bikaComic', 'auth.password', _password.text);
+        await savePluginConfigValue(
+          'bikaComic',
+          'auth.authorization',
+          data['token']?.toString() ?? '',
+        );
       } else if (from == From.jm) {
         jmCubit.updateAccount(_account.text);
         jmCubit.updatePassword(_password.text);
+        final jwt = data['jwtToken']?.toString() ?? '';
+        if (jwt.isNotEmpty) {
+          JmConfig.jwt = jwt;
+        }
+        await savePluginConfigValue('jmComic', 'auth.account', _account.text);
+        await savePluginConfigValue('jmComic', 'auth.password', _password.text);
+        await savePluginConfigValue('jmComic', 'auth.jwt', jwt);
         jmCubit.updateLoginStatus(LoginStatus.login);
       }
       showSuccessToast("登录成功");
@@ -145,7 +201,7 @@ class _LoginPageState extends State<LoginPage> {
             TextField(
               controller: _account,
               decoration: InputDecoration(
-                labelText: from == From.bika ? '账号' : '用户名',
+                labelText: accountLabel,
                 border: const OutlineInputBorder(),
               ),
             ),
@@ -153,8 +209,8 @@ class _LoginPageState extends State<LoginPage> {
             // 密码输入框
             TextField(
               controller: _password,
-              decoration: const InputDecoration(
-                labelText: '密码',
+              decoration: InputDecoration(
+                labelText: passwordLabel,
                 border: OutlineInputBorder(),
               ),
               obscureText: true, // 隐藏输入内容

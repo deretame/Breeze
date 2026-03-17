@@ -2,7 +2,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart' hide SearchBar;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
-import 'package:zephyr/page/search/search.dart';
+
+import 'search_scheme_renderer.dart';
 
 @RoutePage()
 class SearchPage extends StatelessWidget {
@@ -29,6 +30,8 @@ class _SearchPageContent extends StatefulWidget {
 }
 
 class _SearchPageState extends State<_SearchPageContent> {
+  final SearchSchemeRenderer _renderer = SearchSchemeRenderer();
+
   @override
   void initState() {
     super.initState();
@@ -46,13 +49,7 @@ class _SearchPageState extends State<_SearchPageContent> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       body: SafeArea(
-        child: Column(
-          children: [
-            const SearchBar(),
-            const Divider(height: 1),
-            const Expanded(child: HistoryWidget()),
-          ],
-        ),
+        child: _renderer.build(),
       ),
     );
   }

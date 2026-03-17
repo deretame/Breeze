@@ -5,12 +5,12 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/bookshelf/models/events.dart';
 import 'package:zephyr/page/home/category.dart';
-import 'package:zephyr/page/jm/jm_promote/view/jm_promote.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/type/enum.dart';
 
 import '../../../config/global/global.dart';
 import '../../../util/router/router.gr.dart';
+import 'home_scheme_renderer.dart';
 
 @RoutePage()
 class HomePage extends StatefulWidget {
@@ -21,6 +21,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final HomeSchemeRenderer _renderer = HomeSchemeRenderer();
+
   @override
   void initState() {
     super.initState();
@@ -32,7 +34,7 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(globalSettingState.comicChoice == 1 ? "哔咔漫画" : "禁漫首页"),
+        title: Text(_renderer.titleForChoice(globalSettingState.comicChoice)),
         actions: [
           IconButton(icon: const Icon(Icons.search), onPressed: () => search()),
           PopupMenuButton<String>(
@@ -62,7 +64,8 @@ class _HomePageState extends State<HomePage> {
         onRefresh: () async => eventBus.fire(RefreshCategories()),
         child: _buildBody(),
       ),
-      floatingActionButton: globalSettingState.disableBika
+      floatingActionButton: (globalSettingState.disableBika ||
+              !_renderer.showSwitchFab(globalSettingState.comicChoice))
           ? null
           : FloatingActionButton(
               heroTag: const ValueKey('switch_comic'),
@@ -75,17 +78,12 @@ class _HomePageState extends State<HomePage> {
   Widget _buildBody() {
     final globalSettingState = context.watch<GlobalSettingCubit>().state;
 
-    // 使用 Key 确保完全重建
-    if (globalSettingState.comicChoice == 1) {
-      return ListView(
-        key: const ValueKey('bika_list'),
-        physics: const AlwaysScrollableScrollPhysics(),
-        controller: scrollControllers['category']!,
-        children: const [KeywordPage(), CategoryWidget()],
-      );
-    } else {
-      return const JmPromotePage(key: ValueKey('jm_promote'));
-    }
+    return _renderer.buildBody(
+      comicChoice: globalSettingState.comicChoice,
+      bikaScrollController: scrollControllers['category'],
+      bikaKeyword: const KeywordPage(),
+      bikaCategory: const CategoryWidget(),
+    );
   }
 
   void _switchComic() {

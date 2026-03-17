@@ -1,8 +1,10 @@
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:stream_transform/stream_transform.dart';
-import 'package:zephyr/network/http/bika/http_request.dart';
+import 'package:zephyr/type/enum.dart';
 
 import '../../json/knight_leaderboard.dart';
 import '../../models/models.dart';
@@ -34,10 +36,17 @@ class CreatorListBloc extends Bloc<FetchCreatorList, CreatorListState> {
     emit(state.copyWith(status: CreatorListStatus.initial));
 
     try {
-      var temp = await getRankingList(
-        days: event.getInfo.days,
-        type: event.getInfo.type,
+      final response = await callUnifiedComicPlugin(
+        from: From.bika,
+        fnPath: 'getRankingData',
+        core: {
+          'days': event.getInfo.days,
+          'type': event.getInfo.type,
+        },
+        extern: const {'source': 'ranking'},
       );
+      final envelope = UnifiedPluginEnvelope.fromMap(response);
+      final temp = asMap(envelope.data['raw']);
 
       var result = KnightLeaderboard.fromJson(temp);
 

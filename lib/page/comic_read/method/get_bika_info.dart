@@ -1,12 +1,12 @@
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/bika/http_request.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 import 'package:zephyr/type/enum.dart';
 
 import '../../download/json/comic_all_info_json/comic_all_info_json.dart'
     show comicAllInfoJsonFromJson;
-import '../json/bika_ep_info_json/page.dart' show Page;
 import '../json/common_ep_info_json/common_ep_info_json.dart';
 
 Future<NormalComicEpInfo> getBikaInfo(
@@ -25,35 +25,30 @@ Future<NormalComicEpInfo> getBikaInfo(
 }
 
 Future<NormalComicEpInfo> getBikaInfoFromNet(String comicId, int epsId) async {
-  int page = 1, pages = 1;
-  List<Doc> docsList = [];
-  String epId = '';
-  String epName = '';
-  do {
-    var result = await getPages(comicId, epsId, page);
-    var temp = Page.fromJson(result);
-    epId = temp.data.ep.id;
-    epName = temp.data.ep.title;
-    page += 1;
-    pages = temp.data.pages.pages;
-    for (var doc in temp.data.pages.docs) {
-      docsList.add(
-        Doc(
-          originalName: doc.media.originalName,
-          path: doc.media.path,
-          fileServer: doc.media.fileServer,
+  final response = await callUnifiedComicPlugin(
+    from: From.bika,
+    fnPath: 'getChapter',
+    core: {'comicId': comicId, 'chapterId': epsId},
+    extern: {'source': 'bika'},
+  );
+  final chapter = UnifiedPluginChapterResponse.fromMap(response).chapter;
+  final docs = chapter.docs
+      .map(
+        (doc) => Doc(
+          originalName: doc.originalName,
+          path: doc.path,
+          fileServer: doc.fileServer,
           id: doc.id,
         ),
-      );
-    }
-  } while (page <= pages);
+      )
+      .toList();
 
   return NormalComicEpInfo(
-    length: docsList.length,
-    epPages: docsList.length.toString(),
-    docs: docsList,
-    epId: epId,
-    epName: epName,
+    length: chapter.length,
+    epPages: chapter.epPages,
+    docs: docs,
+    epId: chapter.epId,
+    epName: chapter.epName,
   );
 }
 

@@ -90,10 +90,16 @@ class _RankingWidgetState extends State<_RankingWidget>
       );
     }
 
-    final list = mapToJmComicSimplifyEntryInfoList(
-      state.list,
-      title: (item) => item.name,
-      id: (item) => item.id,
+    final list = mapToUnifiedComicSimplifyEntryInfoList(
+      state.list.map((item) {
+        final map = Map<String, dynamic>.from(item);
+        return {
+          'source': 'jm',
+          'id': map['id']?.toString() ?? '',
+          'title': map['name']?.toString() ?? '',
+          'raw': map,
+        };
+      }).toList(),
     );
 
     return CustomScrollView(

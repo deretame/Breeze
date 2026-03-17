@@ -120,26 +120,7 @@ class CategoryLineWidget extends StatelessWidget {
 
   Widget _buildDefaultImage(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        // 根据类别处理点击事件
-        if (category.title == '最近更新') {
-          context.pushRoute(
-            SearchResultRoute(
-              searchEvent: SearchEvent().copyWith(
-                searchStates: SearchStates.initial(
-                  context,
-                ).copyWith(from: From.bika),
-              ),
-            ),
-          );
-        } else if (category.title == '随机本子') {
-          urlPush(
-            context,
-            "https://picaapi.picacomic.com/comics/random",
-            category.title,
-          );
-        }
-      },
+      onTap: () => _navigateBasedOnTitle(context),
       child: Column(
         children: <Widget>[
           AspectRatio(
@@ -177,6 +158,10 @@ class CategoryLineWidget extends StatelessWidget {
   }
 
   void _navigateBasedOnTitle(BuildContext context) {
+    if (_navigateByAction(context)) {
+      return;
+    }
+
     final router = AutoRouter.of(context);
     // 处理不同标题的导航操作
     if (category.title == '大家都在看') {
@@ -231,6 +216,86 @@ class CategoryLineWidget extends StatelessWidget {
         ),
       );
     }
+  }
+
+  bool _navigateByAction(BuildContext context) {
+    if (category.action.isEmpty) {
+      return false;
+    }
+
+    final type = category.action['type']?.toString() ?? '';
+    final payload = _asMap(category.action['payload']);
+
+    if (type == 'openSearch') {
+      final mode = payload['mode']?.toString() ?? '';
+      if (mode == 'latest') {
+        context.pushRoute(
+          SearchResultRoute(
+            searchEvent: SearchEvent().copyWith(
+              searchStates: SearchStates.initial(context).copyWith(from: From.bika),
+            ),
+          ),
+        );
+        return true;
+      }
+
+      if (mode == 'random' || mode == 'fixed') {
+        final url = payload['url']?.toString() ?? '';
+        if (url.isNotEmpty) {
+          urlPush(context, url, category.title);
+          return true;
+        }
+      }
+
+      if (mode == 'category') {
+        final title = payload['categoryTitle']?.toString() ?? category.title;
+        final Map<String, bool> newCategories = {
+          for (var key in categoryMap.keys) key: key == title,
+        };
+
+        context.pushRoute(
+          SearchResultRoute(
+            searchEvent: SearchEvent().copyWith(
+              searchStates: SearchStates.initial(
+                context,
+              ).copyWith(from: From.bika, categories: newCategories),
+            ),
+          ),
+        );
+        return true;
+      }
+    }
+
+    if (type == 'openWeb') {
+      var url = payload['url']?.toString() ?? '';
+      if (url.isEmpty) return false;
+
+      if (payload['appendAuthorizationQuery'] == true) {
+        final bikaState = context.read<BikaSettingCubit>().state;
+        final authorization = bikaState.authorization;
+        url = "$url?token=$authorization";
+      }
+
+      final info = [category.title, url];
+      if (Platform.isLinux) {
+        lunchBrow(url);
+      } else {
+        AutoRouter.of(context).push(WebViewRoute(info: info));
+      }
+      return true;
+    }
+
+    return false;
+  }
+
+  Map<String, dynamic> _asMap(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) {
+      return Map<String, dynamic>.fromEntries(
+        value.entries.map((e) => MapEntry(e.key.toString(), e.value)),
+      );
+    }
+    return const <String, dynamic>{};
   }
 
   void urlPush(BuildContext context, String url, String title) {

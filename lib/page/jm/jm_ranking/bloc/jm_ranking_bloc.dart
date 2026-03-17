@@ -1,12 +1,11 @@
-import 'dart:convert';
-
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/jm/http_request.dart';
-import 'package:zephyr/page/jm/jm_ranking/json/jm_ranking_json.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
 
@@ -30,7 +29,7 @@ class JmRankingBloc extends Bloc<JmRankingEvent, JmRankingState> {
     );
   }
 
-  List<Content> list = [];
+  List<Map<String, dynamic>> list = [];
   int total = 0;
   bool hasReachedMax = false;
 
@@ -51,16 +50,28 @@ class JmRankingBloc extends Bloc<JmRankingEvent, JmRankingState> {
     }
 
     try {
-      // 神经，禁漫在没有结果的情况下，total字段是数字，而不是字符串
-      final response =
-          await getRanking(page: event.page, c: event.type, o: event.order)
-              .let(replaceNestedNullList)
-              .let((d) => (d..['total'] = d['total'].toString()))
-              .let(jsonEncode)
-              .let(jmRankingJsonFromJson);
-      list = [...list, ...response.content];
-      total = response.total.let(toInt);
-      if (total == list.length) hasReachedMax = true;
+      final pluginResponse = await callUnifiedComicPlugin(
+        from: From.jm,
+        fnPath: 'getRankingData',
+        core: {'page': event.page},
+        extern: {'type': event.type, 'order': event.order, 'source': 'ranking'},
+      );
+      final envelope = UnifiedPluginEnvelope.fromMap(pluginResponse);
+      final data = asMap(envelope.data);
+      final raw = replaceNestedNullList(asMap(data['raw']));
+      final content = asList(raw['content'])
+          .map((item) => asMap(item))
+          .toList();
+
+      list = [
+        ...list,
+        ...content.map((item) => Map<String, dynamic>.from(item)),
+      ];
+      total = toInt(raw['total']);
+      hasReachedMax =
+          data['hasReachedMax'] == true ||
+          content.isEmpty ||
+          (total > 0 && list.length >= total);
 
       emit(
         state.copyWith(

@@ -5,10 +5,10 @@ import 'package:uuid/uuid.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/bookshelf/models/events.dart';
-import 'package:zephyr/page/jm/jm_ranking/view/jm_ranking.dart';
 import 'package:zephyr/page/jm/jm_ranking/widget/comic_filter_dialog.dart';
 import 'package:zephyr/page/ranking_list/cubit/comic_filter_cubit.dart';
-import 'package:zephyr/page/ranking_list/ranking_list.dart';
+
+import 'ranking_scheme_renderer.dart';
 
 @RoutePage()
 class RankingListPage extends StatefulWidget {
@@ -39,6 +39,7 @@ class HotTabBar extends StatefulWidget {
 
 class _HotTabBarState extends State<HotTabBar> {
   List<String> _currentFilter = ['0', 'new'];
+  final RankingSchemeRenderer _renderer = RankingSchemeRenderer();
 
   @override
   Widget build(BuildContext context) {
@@ -47,9 +48,9 @@ class _HotTabBarState extends State<HotTabBar> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(globalSettingState.comicChoice == 1 ? "哔咔排行榜" : "禁漫排行榜"),
+        title: Text(_renderer.title(globalSettingState.comicChoice)),
         actions: [
-          if (globalSettingState.comicChoice == 2)
+          if (_renderer.showFilter(globalSettingState.comicChoice))
             IconButton(
               icon: const Icon(Icons.filter_alt),
               onPressed: () async {
@@ -70,13 +71,12 @@ class _HotTabBarState extends State<HotTabBar> {
             ),
         ],
       ),
-      body: globalSettingState.comicChoice == 1
-          ? const BikaRankList()
-          : JmRankingPage(
-              categoryId: _currentFilter[0],
-              sortId: _currentFilter[1],
-            ),
-      floatingActionButton: globalSettingState.disableBika
+      body: _renderer.body(
+        comicChoice: globalSettingState.comicChoice,
+        currentFilter: _currentFilter,
+      ),
+      floatingActionButton: (globalSettingState.disableBika ||
+              !_renderer.showSwitchFab(globalSettingState.comicChoice))
           ? null
           : FloatingActionButton(
               heroTag: Uuid().v4(),

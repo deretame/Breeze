@@ -1,14 +1,12 @@
-import 'dart:convert';
-
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/jm/http_request.dart';
-import 'package:zephyr/page/jm/jm_promote/json/promote/jm_promote_json.dart';
-import 'package:zephyr/page/jm/jm_promote/json/suggestion/jm_suggestion_json.dart';
-import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/config/jm/config.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
 
 part 'promote_bloc.freezed.dart';
@@ -31,8 +29,9 @@ class PromoteBloc extends Bloc<PromoteEvent, PromoteState> {
     );
   }
 
-  List<JmPromoteJson> list = [];
-  List<JmSuggestionJson> suggestionList = [];
+  List<Map<String, dynamic>> sections = [];
+  List<Map<String, dynamic>> suggestionItems = [];
+  bool hasReachedMax = false;
 
   Future<void> _fetchPromote(
     PromoteEvent event,
@@ -42,10 +41,14 @@ class PromoteBloc extends Bloc<PromoteEvent, PromoteState> {
       emit(
         state.copyWith(
           status: PromoteStatus.initial,
-          list: [],
-          suggestionList: [],
+          sections: [],
+          suggestionItems: [],
+          hasReachedMax: false,
         ),
       );
+      sections = [];
+      suggestionItems = [];
+      hasReachedMax = false;
     }
 
     int page = 0;
@@ -58,52 +61,78 @@ class PromoteBloc extends Bloc<PromoteEvent, PromoteState> {
 
     try {
       if (page == -1) {
-        list = await getPromote()
-            .let(replaceNestedNullList)
-            .let((d) {
-              var data = (d)
-                  .map((item) => item as Map<String, dynamic>)
-                  .toList();
+        final response = await callUnifiedComicPlugin(
+          from: From.jm,
+          fnPath: 'getHomeData',
+          core: {'page': -1, 'path': '${JmConfig.baseUrl}/promote?page=0'},
+          extern: const {
+            'source': 'home',
+            'promotePath': 'https://www.cdnsha.org/promote?page=0',
+          },
+        );
+        final envelope = UnifiedPluginEnvelope.fromMap(response);
 
-              data.removeWhere((e) => e['title'] == '禁漫书库');
-              data.removeWhere((e) => e['title'] == '禁漫去码&全彩化');
-              data.removeWhere((e) => e['title'] == '禁漫小说');
-              return data;
-            })
-            .let(jsonEncode)
-            .let(jmPromoteJsonFromJson);
+        final promoteRaw = replaceNestedNullList(asList(envelope.data['sections']));
+        final promoteData = promoteRaw
+            .map((item) => item as Map<String, dynamic>)
+            .toList();
+        promoteData.removeWhere((e) => e['title'] == '禁漫书库');
+        promoteData.removeWhere((e) => e['title'] == '禁漫去码&全彩化');
+        promoteData.removeWhere((e) => e['title'] == '禁漫小说');
+        sections = promoteData
+            .map((item) => Map<String, dynamic>.from(item))
+            .toList();
       } else {
+        if (hasReachedMax) {
+          return;
+        }
         emit(
           state.copyWith(
             status: PromoteStatus.loadingMore,
-            list: list,
-            suggestionList: suggestionList,
+            sections: sections,
+            suggestionItems: suggestionItems,
+            hasReachedMax: hasReachedMax,
           ),
         );
-        final temp = await getSuggestion(page)
-            .let(replaceNestedNullList)
-            .let(jsonEncode)
-            .let(jmSuggestionJsonFromJson);
-        suggestionList = [...suggestionList, ...temp];
+        final response = await callUnifiedComicPlugin(
+          from: From.jm,
+          fnPath: 'getHomeData',
+          core: {'page': page, 'path': '${JmConfig.baseUrl}/latest'},
+          extern: const {
+            'source': 'home',
+            'suggestionPath': 'https://www.cdnsha.org/latest',
+          },
+        );
+        final envelope = UnifiedPluginEnvelope.fromMap(response);
+        final suggestionRaw = replaceNestedNullList(
+          asList(envelope.data['suggestionItems']),
+        );
+        final temp = suggestionRaw
+            .map((item) => Map<String, dynamic>.from(item))
+            .toList();
+        hasReachedMax = asMap(envelope.data)['hasReachedMax'] == true;
+        suggestionItems = [...suggestionItems, ...temp];
       }
 
       emit(
         state.copyWith(
           status: PromoteStatus.success,
-          list: list,
-          suggestionList: suggestionList,
+          sections: sections,
+          suggestionItems: suggestionItems,
+          hasReachedMax: hasReachedMax,
           result: page.toString(),
         ),
       );
     } catch (e, stackTrace) {
       logger.e(e, stackTrace: stackTrace);
 
-      if (list.isNotEmpty) {
+      if (sections.isNotEmpty) {
         emit(
           state.copyWith(
             status: PromoteStatus.loadingMoreFailure,
-            list: list,
-            suggestionList: suggestionList,
+            sections: sections,
+            suggestionItems: suggestionItems,
+            hasReachedMax: hasReachedMax,
             result: e.toString(),
           ),
         );

@@ -1,15 +1,14 @@
+import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/jm/http_request.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
-import 'package:zephyr/page/comic_read/json/common_ep_info_json/common_ep_info_json.dart';
-import 'package:zephyr/page/comic_read/json/jm_ep_info_json/jm_ep_info_json.dart'
-    show JmEpInfoJson;
+import 'package:zephyr/page/comic_read/json/common_ep_info_json/common_ep_info_json.dart'
+    show Doc;
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart';
 import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/json/json_dispose.dart';
 
 Future<NormalComicEpInfo> fetchJMMedia(
   String comicId,
@@ -25,44 +24,32 @@ Future<NormalComicEpInfo> fetchJMMedia(
 }
 
 Future<NormalComicEpInfo> fetchJMMediaFromNet(String epId) async {
-  List<Doc> docsList = [];
-  var result = CommonEpInfoJson(epId: '', epName: '', series: [], docs: []);
-  await getEpInfo(epId).let(replaceNestedNull).let(JmEpInfoJson.fromJson).also((
-    d,
-  ) {
-    for (var doc in d.images) {
-      docsList.add(
-        Doc(
-          originalName: doc,
-          path: doc,
-          fileServer: getJmImagesUrl(epId, doc),
-          id: d.id.let(toString),
-        ),
-      );
-    }
-    result = result.copyWith(
-      epId: d.id.let(toString),
-      epName: d.name,
-      series: d.series
-          .map(
-            (s) => Series(
-              id: s.id.let(toString),
-              name: "第${s.sort}话 ${s.name}",
-              sort: s.sort,
-            ),
-          )
-          .toList()
-          .let((d) => d..removeWhere((e) => e.sort == '0')),
-      docs: docsList,
-    );
-  });
+  final response = await callUnifiedComicPlugin(
+    from: From.jm,
+    fnPath: 'getChapter',
+    core: {'chapterId': epId},
+    extern: {'source': 'jm', 'path': '${JmConfig.baseUrl}/chapter'},
+  );
+  final chapter = UnifiedPluginChapterResponse.fromMap(response).chapter;
+  final docs = chapter.docs
+      .map((doc) {
+        final path = doc.path;
+        final fileServer = doc.fileServer;
+        return Doc(
+          originalName: doc.originalName.isEmpty ? path : doc.originalName,
+          path: path,
+          fileServer: fileServer.isEmpty ? getJmImagesUrl(epId, path) : fileServer,
+          id: doc.id.isEmpty ? epId : doc.id,
+        );
+      })
+      .toList();
 
   return NormalComicEpInfo(
-    length: result.docs.length,
-    epPages: result.docs.length.toString(),
-    docs: result.docs,
-    epId: result.epId,
-    epName: result.epName,
+    length: chapter.length,
+    epPages: chapter.epPages,
+    docs: docs,
+    epId: chapter.epId.isEmpty ? epId : chapter.epId,
+    epName: chapter.epName,
   );
 }
 

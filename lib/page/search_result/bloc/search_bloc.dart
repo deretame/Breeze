@@ -4,10 +4,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
-import 'package:zephyr/page/search_result/method/get_bika_result.dart';
-import 'package:zephyr/page/search_result/method/get_jm_result.dart';
+import 'package:zephyr/page/search_result/method/get_plugin_result.dart';
 import 'package:zephyr/page/search_result/models/bloc_state.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/sundry.dart';
 
@@ -59,11 +57,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     }
 
     try {
-      if (event.searchStates.from == From.bika) {
-        blocState = await getBikaResult(event, blocState);
-      } else {
-        blocState = await getJMResult(event, blocState);
-      }
+      blocState = await getPluginSearchResult(event, blocState);
 
       emit(
         state.copyWith(

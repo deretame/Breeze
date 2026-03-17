@@ -18,13 +18,18 @@ String onSavePluginConfig(String name, String key, String value) {
   // 使用同步事务确保原子性
   return objectbox.store.runInTransaction(TxMode.write, () {
     var entity = box.query(PluginConfig_.name.equals(name)).build().findFirst();
+    final parsedValue = _decodeMaybeJson(value);
 
     if (entity == null) {
-      var data = <String, dynamic>{key: value};
+      final data = key.isEmpty
+          ? <String, dynamic>{}
+          : <String, dynamic>{key: parsedValue};
       entity = PluginConfig(name: name, data: data);
     } else {
-      var data = entity.data ?? <String, dynamic>{};
-      data[key] = value;
+      final data = Map<String, dynamic>.from(entity.data ?? <String, dynamic>{});
+      if (key.isNotEmpty) {
+        data[key] = parsedValue;
+      }
       entity.data = data;
     }
 
@@ -42,11 +47,36 @@ String onLoadPluginConfig(String name, String key, String fallback) {
         .build()
         .findFirst();
 
-    final data = entity?.data ?? <String, dynamic>{};
-    final value = data[key] ?? fallback;
+    final data = Map<String, dynamic>.from(entity?.data ?? <String, dynamic>{});
+    final value = key.isEmpty ? data : (data[key] ?? _decodeMaybeJson(fallback));
 
     return '{"ok":true,"value":${jsonEncode(value)}}';
   });
+}
+
+dynamic _decodeMaybeJson(String value) {
+  final text = value.trim();
+  if (text.isEmpty) {
+    return value;
+  }
+
+  final startsLikeJson =
+      text.startsWith('{') ||
+      text.startsWith('[') ||
+      text == 'true' ||
+      text == 'false' ||
+      text == 'null' ||
+      num.tryParse(text) != null;
+
+  if (!startsLikeJson) {
+    return value;
+  }
+
+  try {
+    return jsonDecode(text);
+  } catch (_) {
+    return value;
+  }
 }
 
 Future<void> registerPersistentCallbacks() async {
@@ -57,4 +87,26 @@ Future<void> registerPersistentCallbacks() async {
   await registerLoadPluginConfig(
     dartCallback: (name, key, value) => onLoadPluginConfig(name, key, value),
   );
+}
+
+Future<void> savePluginConfigValue(
+  String pluginName,
+  String key,
+  dynamic value,
+) async {
+  onSavePluginConfig(pluginName, key, jsonEncode(value));
+}
+
+T loadPluginConfigValue<T>(
+  String pluginName,
+  String key, {
+  required T fallback,
+}) {
+  final raw = onLoadPluginConfig(pluginName, key, jsonEncode(fallback));
+  final parsed = jsonDecode(raw) as Map<String, dynamic>;
+  final value = parsed['value'];
+  if (value is T) {
+    return value;
+  }
+  return fallback;
 }

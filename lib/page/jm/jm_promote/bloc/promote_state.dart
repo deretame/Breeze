@@ -12,8 +12,9 @@ enum PromoteStatus {
 abstract class PromoteState with _$PromoteState {
   const factory PromoteState({
     @Default(PromoteStatus.initial) PromoteStatus status,
-    @Default([]) List<JmPromoteJson> list,
-    @Default([]) List<JmSuggestionJson> suggestionList,
+    @Default(<Map<String, dynamic>>[]) List<Map<String, dynamic>> sections,
+    @Default(<Map<String, dynamic>>[]) List<Map<String, dynamic>> suggestionItems,
+    @Default(false) bool hasReachedMax,
     @Default('') String result,
   }) = _PromoteState;
 }

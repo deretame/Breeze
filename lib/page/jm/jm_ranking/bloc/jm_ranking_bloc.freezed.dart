@@ -280,7 +280,7 @@ as String,
 /// @nodoc
 mixin _$JmRankingState {
 
- JmRankingStatus get status; List<Content> get list; bool get hasReachedMax; String get result;
+ JmRankingStatus get status; List<Map<String, dynamic>> get list; bool get hasReachedMax; String get result;
 /// Create a copy of JmRankingState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -311,7 +311,7 @@ abstract mixin class $JmRankingStateCopyWith<$Res>  {
   factory $JmRankingStateCopyWith(JmRankingState value, $Res Function(JmRankingState) _then) = _$JmRankingStateCopyWithImpl;
 @useResult
 $Res call({
- JmRankingStatus status, List<Content> list, bool hasReachedMax, String result
+ JmRankingStatus status, List<Map<String, dynamic>> list, bool hasReachedMax, String result
 });
 
 
@@ -332,7 +332,7 @@ class _$JmRankingStateCopyWithImpl<$Res>
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as JmRankingStatus,list: null == list ? _self.list : list // ignore: cast_nullable_to_non_nullable
-as List<Content>,hasReachedMax: null == hasReachedMax ? _self.hasReachedMax : hasReachedMax // ignore: cast_nullable_to_non_nullable
+as List<Map<String, dynamic>>,hasReachedMax: null == hasReachedMax ? _self.hasReachedMax : hasReachedMax // ignore: cast_nullable_to_non_nullable
 as bool,result: null == result ? _self.result : result // ignore: cast_nullable_to_non_nullable
 as String,
   ));
@@ -419,7 +419,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( JmRankingStatus status,  List<Content> list,  bool hasReachedMax,  String result)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( JmRankingStatus status,  List<Map<String, dynamic>> list,  bool hasReachedMax,  String result)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _JmRankingState() when $default != null:
 return $default(_that.status,_that.list,_that.hasReachedMax,_that.result);case _:
@@ -440,7 +440,7 @@ return $default(_that.status,_that.list,_that.hasReachedMax,_that.result);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( JmRankingStatus status,  List<Content> list,  bool hasReachedMax,  String result)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( JmRankingStatus status,  List<Map<String, dynamic>> list,  bool hasReachedMax,  String result)  $default,) {final _that = this;
 switch (_that) {
 case _JmRankingState():
 return $default(_that.status,_that.list,_that.hasReachedMax,_that.result);case _:
@@ -460,7 +460,7 @@ return $default(_that.status,_that.list,_that.hasReachedMax,_that.result);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( JmRankingStatus status,  List<Content> list,  bool hasReachedMax,  String result)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( JmRankingStatus status,  List<Map<String, dynamic>> list,  bool hasReachedMax,  String result)?  $default,) {final _that = this;
 switch (_that) {
 case _JmRankingState() when $default != null:
 return $default(_that.status,_that.list,_that.hasReachedMax,_that.result);case _:
@@ -475,12 +475,12 @@ return $default(_that.status,_that.list,_that.hasReachedMax,_that.result);case _
 
 
 class _JmRankingState implements JmRankingState {
-  const _JmRankingState({this.status = JmRankingStatus.initial, final  List<Content> list = const [], this.hasReachedMax = false, this.result = ''}): _list = list;
+  const _JmRankingState({this.status = JmRankingStatus.initial, final  List<Map<String, dynamic>> list = const <Map<String, dynamic>>[], this.hasReachedMax = false, this.result = ''}): _list = list;
   
 
 @override@JsonKey() final  JmRankingStatus status;
- final  List<Content> _list;
-@override@JsonKey() List<Content> get list {
+ final  List<Map<String, dynamic>> _list;
+@override@JsonKey() List<Map<String, dynamic>> get list {
   if (_list is EqualUnmodifiableListView) return _list;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_list);
@@ -519,7 +519,7 @@ abstract mixin class _$JmRankingStateCopyWith<$Res> implements $JmRankingStateCo
   factory _$JmRankingStateCopyWith(_JmRankingState value, $Res Function(_JmRankingState) _then) = __$JmRankingStateCopyWithImpl;
 @override @useResult
 $Res call({
- JmRankingStatus status, List<Content> list, bool hasReachedMax, String result
+ JmRankingStatus status, List<Map<String, dynamic>> list, bool hasReachedMax, String result
 });
 
 
@@ -540,7 +540,7 @@ class __$JmRankingStateCopyWithImpl<$Res>
   return _then(_JmRankingState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as JmRankingStatus,list: null == list ? _self._list : list // ignore: cast_nullable_to_non_nullable
-as List<Content>,hasReachedMax: null == hasReachedMax ? _self.hasReachedMax : hasReachedMax // ignore: cast_nullable_to_non_nullable
+as List<Map<String, dynamic>>,hasReachedMax: null == hasReachedMax ? _self.hasReachedMax : hasReachedMax // ignore: cast_nullable_to_non_nullable
 as bool,result: null == result ? _self.result : result // ignore: cast_nullable_to_non_nullable
 as String,
   ));

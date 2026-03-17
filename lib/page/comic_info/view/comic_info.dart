@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:file_selector/file_selector.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/cubit/string_select.dart';
@@ -131,7 +131,7 @@ class _ComicInfoState extends State<_ComicInfo>
                   value: MenuOption.reverseOrder,
                   child: Row(
                     children: [
-                      Icon(Icons.sort, color: Colors.black54),
+                      Icon(Icons.sort, color: context.theme.colorScheme.black54),
                       SizedBox(width: 10),
                       Text(_isReversed ? '章节正序' : '章节倒序'),
                     ],
@@ -141,11 +141,11 @@ class _ComicInfoState extends State<_ComicInfo>
 
               if (_type == ComicEntryType.download) {
                 menuItems.add(
-                  const PopupMenuItem<MenuOption>(
+                  PopupMenuItem<MenuOption>(
                     value: MenuOption.export,
                     child: Row(
                       children: [
-                        Icon(Icons.save_alt, color: Colors.black54),
+                        Icon(Icons.save_alt, color: context.theme.colorScheme.black54),
                         SizedBox(width: 10),
                         Text('导出漫画'),
                       ],
@@ -156,11 +156,11 @@ class _ComicInfoState extends State<_ComicInfo>
 
               if (widget.from == From.jm) {
                 menuItems.add(
-                  const PopupMenuItem<MenuOption>(
+                  PopupMenuItem<MenuOption>(
                     value: MenuOption.collect,
                     child: Row(
                       children: [
-                        Icon(Icons.star, color: Colors.black54),
+                        Icon(Icons.star, color: context.theme.colorScheme.black54),
                         SizedBox(width: 10),
                         Text('收藏到本地'),
                       ],
@@ -504,3 +504,5 @@ class _ComicInfoState extends State<_ComicInfo>
   // 实现章节倒序逻辑
   void _toggleOrder() => setState(() => _isReversed = !_isReversed);
 }
+
+

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 
 class BottomLoader extends StatelessWidget {
   const BottomLoader({super.key});
@@ -17,3 +17,5 @@ class BottomLoader extends StatelessWidget {
     );
   }
 }
+
+

@@ -1,8 +1,8 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:toggle_switch/toggle_switch.dart';
+import 'package:toggle_switch/toggle_switch.dart' as ts;
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/main.dart';
@@ -187,7 +187,7 @@ class _RegisterPageState extends State<JmRegisterPage> {
                   Row(
                     children: <Widget>[
                       Expanded(
-                        child: ToggleSwitch(
+                        child: ts.ToggleSwitch(
                           initialLabelIndex: 0,
                           totalSwitches: 3,
                           minWidth: double.maxFinite,
@@ -258,3 +258,5 @@ class _RegisterPageState extends State<JmRegisterPage> {
     );
   }
 }
+
+

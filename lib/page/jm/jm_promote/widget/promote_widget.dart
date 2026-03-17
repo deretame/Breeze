@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/jm/jm_promote/json/promote/jm_promote_json.dart';
 import 'package:zephyr/type/pipe.dart';
@@ -179,3 +179,5 @@ class PromoteWidget extends StatelessWidget {
     return title;
   }
 }
+
+

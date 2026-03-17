@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:zephyr/page/jm/jm_week_ranking/jm_week_ranking.dart';
 
@@ -120,3 +120,5 @@ class _CategoryRankingWidgetState extends State<CategoryRankingWidget>
     );
   }
 }
+
+

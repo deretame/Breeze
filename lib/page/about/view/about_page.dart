@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/main.dart';
 
@@ -276,7 +276,6 @@ class _AboutPageState extends State<AboutPage> {
         child: InkWell(
           borderRadius: BorderRadius.circular(kBorderRadius),
           onTap: () => _launchURL(url),
-          hoverColor: kAccentColor.withValues(alpha: 0.05),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -580,3 +579,5 @@ class _DisclaimerItem extends StatelessWidget {
     );
   }
 }
+
+

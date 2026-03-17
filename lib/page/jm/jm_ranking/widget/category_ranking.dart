@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/page/jm/jm_ranking/widget/ranking.dart';
 
@@ -61,3 +61,5 @@ class _CategoryRankingWidgetState extends State<CategoryRankingWidget>
     );
   }
 }
+
+

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/picture_bloc/bloc/picture_bloc.dart';
@@ -74,3 +74,5 @@ class UserAvatar extends StatelessWidget {
     );
   }
 }
+
+

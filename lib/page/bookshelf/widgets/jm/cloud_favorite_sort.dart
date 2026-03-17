@@ -1,5 +1,5 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 
 class CloudFavoriteSort extends StatefulWidget {
   final String initialSort;
@@ -58,3 +58,5 @@ class _CloudFavoriteSortState extends State<CloudFavoriteSort> {
     );
   }
 }
+
+

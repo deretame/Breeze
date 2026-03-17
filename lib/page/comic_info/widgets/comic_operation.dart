@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:zephyr/network/http/jm/http_request.dart' as jm;
 import 'package:zephyr/page/bookshelf/json/jm_cloud_favorite/jm_cloud_favorite_json.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
@@ -479,3 +479,5 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
     );
   }
 }
+
+

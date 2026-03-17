@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_refresh/easy_refresh.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -218,7 +218,7 @@ class _ChangelogPageState extends State<ChangelogPage> {
               style: TextStyle(color: colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 24),
-            FilledButton.tonal(
+            ElevatedButton(
               onPressed: () {
                 setState(() {
                   _isLoading = true;
@@ -498,3 +498,5 @@ class _TagChip extends StatelessWidget {
     );
   }
 }
+
+

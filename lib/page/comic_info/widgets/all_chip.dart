@@ -1,6 +1,6 @@
 // 通用的标签/分类 Widget
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter/services.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
@@ -146,3 +146,5 @@ class _AllChipWidgetState extends State<AllChipWidget> {
     }
   }
 }
+
+

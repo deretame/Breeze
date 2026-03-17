@@ -1,11 +1,20 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:zephyr/util/router/router.gr.dart';
+
+Route<T> fluentRouteBuilder<T>(
+  BuildContext context,
+  Widget child,
+  AutoRoutePage<T> page,
+) {
+  return FluentPageRoute<T>(builder: (_) => child, settings: page);
+}
 
 @AutoRouterConfig(replaceInRouteName: 'Screen|Page,Route')
 class AppRouter extends RootStackRouter {
   @override
-  RouteType get defaultRouteType => RouteType.material();
+  RouteType get defaultRouteType =>
+      RouteType.custom(customRouteBuilder: fluentRouteBuilder);
 
   @override
   List<AutoRoute> get routes => [

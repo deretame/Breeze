@@ -1,5 +1,5 @@
 import 'package:easy_refresh/easy_refresh.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -93,3 +93,5 @@ class VerticalPullNavigator extends StatelessWidget {
     );
   }
 }
+
+

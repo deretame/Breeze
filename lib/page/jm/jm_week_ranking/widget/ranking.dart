@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/jm/jm_week_ranking/bloc/week_ranking_bloc.dart';
 import 'package:zephyr/page/search_result/widgets/bottom_loader.dart';
@@ -159,3 +159,5 @@ class _RankingWidgetState extends State<_RankingWidget>
     return currentScroll >= (maxScroll * 0.9);
   }
 }
+
+

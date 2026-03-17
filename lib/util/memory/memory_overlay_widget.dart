@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 
 import 'simple_memory_monitor.dart';
 
@@ -248,7 +248,7 @@ class _MemoryOverlayWidgetState extends State<MemoryOverlayWidget>
             const Spacer(),
             Icon(
               _isExpanded ? Icons.expand_less : Icons.expand_more,
-              color: Colors.white70,
+              color: Colors.white.withValues(alpha: 0.7),
               size: 18,
             ),
           ],
@@ -340,7 +340,7 @@ class _MemoryOverlayWidgetState extends State<MemoryOverlayWidget>
                 'Runtime',
                 info.runtimeUsed,
                 info.runtimeMax > 0 ? info.runtimeMax : info.runtimeTotal,
-                Colors.cyan,
+                const Color(0xFF00BCD4),
                 [
                   ('Used', info.runtimeUsed),
                   ('Total', info.runtimeTotal),
@@ -479,3 +479,5 @@ class _MemoryOverlayWidgetState extends State<MemoryOverlayWidget>
     );
   }
 }
+
+

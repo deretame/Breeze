@@ -1,5 +1,5 @@
 import 'package:auto_route/annotations.dart';
-import 'package:flutter/material.dart' hide Page;
+import 'package:zephyr/util/ui/fluent_compat.dart' hide Page;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/download/widgets/eps.dart';
@@ -152,3 +152,5 @@ class _DownloadPageState extends State<DownloadPage> {
     }
   }
 }
+
+

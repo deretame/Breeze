@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/jm/jm_comments/json/comments_json.dart';
 import 'package:zephyr/type/enum.dart';
@@ -184,3 +184,5 @@ class _CommentsWidget extends StatelessWidget {
     return html.replaceAll(RegExp(r'<[^>]*>'), '');
   }
 }
+
+

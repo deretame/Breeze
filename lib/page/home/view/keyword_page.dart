@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/home/category.dart';
 
@@ -47,3 +47,5 @@ class _KeywordPage extends StatelessWidget {
     );
   }
 }
+
+

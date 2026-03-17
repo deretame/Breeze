@@ -4,16 +4,14 @@ import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
-import 'package:dynamic_color/dynamic_color.dart';
 import 'package:event_bus/event_bus.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_socks_proxy/socks_proxy.dart';
 import 'package:logger/logger.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -64,7 +62,7 @@ final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
-class AppScrollBehavior extends MaterialScrollBehavior {
+class AppScrollBehavior extends FluentScrollBehavior {
   const AppScrollBehavior();
 
   @override
@@ -390,21 +388,14 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
     showDialog(
       context: dialogContext,
       builder: (context) {
-        return AlertDialog(
-          title: Text('您确定要退出软件吗？'),
+        return ContentDialog(
+          title: const Text('您确定要退出软件吗？'),
           actions: [
-            TextButton(
-              child: Text('否'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+            Button(
+              child: const Text('否'),
+              onPressed: () => Navigator.of(context).pop(),
             ),
-            TextButton(
-              child: Text('是'),
-              onPressed: () {
-                _forceExit();
-              },
-            ),
+            FilledButton(child: const Text('是'), onPressed: _forceExit),
           ],
         );
       },
@@ -451,114 +442,68 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   @override
   Widget build(BuildContext context) {
     final globalSettingState = context.watch<GlobalSettingCubit>().state;
+    final accentColor = globalSettingState.seedColor.toAccentColor();
 
-    return DynamicColorBuilder(
-      builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-        ColorScheme lightColorScheme;
-        ColorScheme darkColorScheme;
-
-        // 根据 dynamicColor 的值决定是否使用动态颜色
-        if (globalSettingState.dynamicColor == true) {
-          lightColorScheme =
-              lightDynamic ??
-              ColorScheme.fromSeed(
-                seedColor: globalSettingState.seedColor, // 默认颜色
-                brightness: Brightness.light,
-              );
-          darkColorScheme =
-              darkDynamic ??
-              ColorScheme.fromSeed(
-                seedColor: globalSettingState.seedColor, // 默认颜色
-                brightness: Brightness.dark,
-              );
-        } else {
-          var primary = globalSettingState.seedColor;
-
-          lightColorScheme = ColorScheme.fromSeed(
-            seedColor: primary,
-            brightness: Brightness.light,
-          );
-          darkColorScheme = ColorScheme.fromSeed(
-            seedColor: primary,
-            brightness: Brightness.dark,
-          );
-        }
-
-        return MaterialApp.router(
-          routerConfig: appRouter.config(),
-          scrollBehavior: const AppScrollBehavior(),
-          builder: (context, child) {
-            Widget content = Actions(
-              actions: <Type, Action<Intent>>{
-                EscapeIntent: CallbackAction<EscapeIntent>(
-                  onInvoke: (intent) {
-                    appRouter.maybePop();
-                    return null;
-                  },
-                ),
+    return FluentApp.router(
+      routerConfig: appRouter.config(),
+      scrollBehavior: const AppScrollBehavior(),
+      builder: (context, child) {
+        Widget content = Actions(
+          actions: <Type, Action<Intent>>{
+            EscapeIntent: CallbackAction<EscapeIntent>(
+              onInvoke: (intent) {
+                appRouter.maybePop();
+                return null;
               },
-              child: Shortcuts(
-                shortcuts: <ShortcutActivator, Intent>{
-                  const SingleActivator(LogicalKeyboardKey.escape):
-                      const EscapeIntent(),
-                },
-                child: Focus(autofocus: true, child: child!),
-              ),
-            );
-
-            content = Listener(
-              onPointerDown: (PointerDownEvent event) {
-                if (event.buttons & kBackMouseButton != 0) {
-                  appRouter.maybePop();
-                }
-              },
-              child: content,
-            );
-
-            // 桌面平台添加自定义标题栏
-            if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-              return Column(
-                children: [
-                  const CustomTitleBar(),
-                  Expanded(child: content),
-                ],
-              );
-            }
-            return content;
-          },
-          locale: globalSettingState.locale,
-          title: appName,
-          themeMode: globalSettingState.themeMode,
-          supportedLocales: [
-            Locale('en', 'US'), // English
-            Locale('zh', 'CN'), // Chinese
-            // 其他支持的语言
-          ],
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          theme: ThemeData.light().copyWith(
-            primaryColor: lightColorScheme.primary,
-            colorScheme: lightColorScheme,
-            scaffoldBackgroundColor: lightColorScheme.surface,
-            cardColor: lightColorScheme.surfaceContainer,
-            chipTheme: ChipThemeData(backgroundColor: lightColorScheme.surface),
-            canvasColor: lightColorScheme.surfaceContainer,
-            dialogTheme: DialogThemeData(
-              backgroundColor: lightColorScheme.surfaceContainer,
             ),
-          ),
-          darkTheme: ThemeData.dark().copyWith(
-            scaffoldBackgroundColor: globalSettingState.isAMOLED
-                ? Colors.black
-                : darkColorScheme.surface,
-            tabBarTheme: TabBarThemeData(dividerColor: Colors.transparent),
-            colorScheme: darkColorScheme,
+          },
+          child: Shortcuts(
+            shortcuts: <ShortcutActivator, Intent>{
+              const SingleActivator(LogicalKeyboardKey.escape):
+                  const EscapeIntent(),
+            },
+            child: Focus(autofocus: true, child: child!),
           ),
         );
+
+        content = Listener(
+          onPointerDown: (PointerDownEvent event) {
+            if (event.buttons & kBackMouseButton != 0) {
+              appRouter.maybePop();
+            }
+          },
+          child: content,
+        );
+
+        // 桌面平台添加自定义标题栏
+        if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+          return Column(
+            children: [
+              const CustomTitleBar(),
+              Expanded(child: content),
+            ],
+          );
+        }
+        return content;
       },
+      locale: globalSettingState.locale,
+      title: appName,
+      themeMode: globalSettingState.themeMode,
+      supportedLocales: const [
+        Locale('en', 'US'), // English
+        Locale('zh', 'CN'), // Chinese
+      ],
+      theme: FluentThemeData(
+        brightness: Brightness.light,
+        accentColor: accentColor,
+      ),
+      darkTheme: FluentThemeData(
+        brightness: Brightness.dark,
+        accentColor: accentColor,
+        scaffoldBackgroundColor: globalSettingState.isAMOLED
+            ? Colors.black
+            : null,
+      ),
     );
   }
 }

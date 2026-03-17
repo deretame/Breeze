@@ -1,5 +1,5 @@
 import 'package:auto_route/annotations.dart';
-import 'package:flutter/material.dart' hide Page;
+import 'package:zephyr/util/ui/fluent_compat.dart' hide Page;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/donwload_task/bloc/dowload_task_bloc.dart';
@@ -65,10 +65,10 @@ class _DownloadTaskView extends StatelessWidget {
                         padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
                         child: Text(
                           "正在下载",
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue,
+                            color: Color(0xFF2196F3),
                           ),
                         ),
                       ),
@@ -147,12 +147,12 @@ class _DownloadingTaskTile extends StatelessWidget {
         title: Text(task.comicName),
         subtitle: Text(
           task.status,
-          style: const TextStyle(color: Colors.blue),
+          style: const TextStyle(color: Color(0xFF2196F3)),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         trailing: IconButton(
-          icon: const Icon(Icons.cancel_outlined, color: Colors.blue),
+          icon: const Icon(Icons.cancel_outlined, color: Color(0xFF2196F3)),
           onPressed: () {
             final bloc = context.read<DowloadTaskBloc>();
             showDialog(
@@ -175,7 +175,7 @@ class _DownloadingTaskTile extends StatelessWidget {
                     },
                     child: const Text(
                       "确定",
-                      style: TextStyle(color: Colors.red),
+                      style: TextStyle(color: Color(0xFFF44336)),
                     ),
                   ),
                 ],
@@ -222,3 +222,5 @@ class _PendingTaskTile extends StatelessWidget {
     );
   }
 }
+
+

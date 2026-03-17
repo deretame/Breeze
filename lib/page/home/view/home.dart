@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
@@ -8,6 +8,7 @@ import 'package:zephyr/page/home/category.dart';
 import 'package:zephyr/page/jm/jm_promote/view/jm_promote.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../config/global/global.dart';
 import '../../../util/router/router.gr.dart';
@@ -132,10 +133,10 @@ class _HomePageState extends State<HomePage> {
                   ),
                 );
               },
-              child: const Chip(
-                label: Text("哔咔漫画"),
-                backgroundColor: Colors.pink,
-                labelStyle: TextStyle(color: Colors.white),
+              child: Chip(
+                label: const Text("哔咔漫画"),
+                backgroundColor: context.theme.colorScheme.pink,
+                labelStyle: const TextStyle(color: Colors.white),
               ),
             ),
             SimpleDialogOption(
@@ -151,7 +152,7 @@ class _HomePageState extends State<HomePage> {
               },
               child: const Chip(
                 label: Text("禁漫天堂"),
-                backgroundColor: Colors.orange,
+                backgroundColor: Color(0xFFFF9800),
                 labelStyle: TextStyle(color: Colors.white),
               ),
             ),
@@ -161,3 +162,5 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+
+

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/widgets/toast.dart';
 
@@ -403,3 +403,5 @@ class ComicSimplifyEntry extends StatelessWidget {
     }
   }
 }
+
+

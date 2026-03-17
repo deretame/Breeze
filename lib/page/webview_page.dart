@@ -1,7 +1,9 @@
 import 'package:auto_route/annotations.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart'; // 换成 inappwebview
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zephyr/widgets/app_scaffold_page.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 @RoutePage()
 class WebViewPage extends StatelessWidget {
@@ -13,26 +15,23 @@ class WebViewPage extends StatelessWidget {
   Widget build(BuildContext context) {
     String url = info[1];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(info[0]),
-        actions: <Widget>[
+    return AppScaffoldPage(
+      title: Text(info[0]),
+      commandBar: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
           IconButton(
-            icon: const Icon(Icons.open_in_browser),
+            icon: const Icon(FluentIcons.open_in_new_window),
             onPressed: () async {
               final Uri uri = Uri.parse(url);
               if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text('无法打开链接: $url')));
-                }
+                showErrorToast('无法打开链接: $url');
               }
             },
           ),
         ],
       ),
-      body: InAppWebView(
+      content: InAppWebView(
         initialUrlRequest: URLRequest(url: WebUri(url)),
         initialSettings: InAppWebViewSettings(
           javaScriptEnabled: true,

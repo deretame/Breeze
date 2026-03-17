@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/config/global/global.dart';
@@ -215,3 +215,5 @@ class __FavoritePageState extends State<_FavoritePage>
     );
   }
 }
+
+

@@ -1,6 +1,7 @@
 import 'package:auto_route/annotations.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/widgets/app_scaffold_page.dart';
 
 @RoutePage()
 class ShowColorPage extends StatelessWidget {
@@ -8,7 +9,6 @@ class ShowColorPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 使用种子颜色创建颜色方案
     final allColors = context.theme.colorScheme;
 
     final screenWidth = MediaQuery.of(context).size.width;
@@ -20,53 +20,29 @@ class ShowColorPage extends StatelessWidget {
       _ColorEntry('onPrimary', allColors.onPrimary),
       _ColorEntry('primaryContainer', allColors.primaryContainer),
       _ColorEntry('onPrimaryContainer', allColors.onPrimaryContainer),
-      _ColorEntry('primaryFixed', allColors.primaryFixed),
       _ColorEntry('primaryFixedDim', allColors.primaryFixedDim),
-      _ColorEntry('onPrimaryFixed', allColors.onPrimaryFixed),
-      _ColorEntry('onPrimaryFixedVariant', allColors.onPrimaryFixedVariant),
-      _ColorEntry('secondary', allColors.secondary),
-      _ColorEntry('onSecondary', allColors.onSecondary),
       _ColorEntry('secondaryContainer', allColors.secondaryContainer),
       _ColorEntry('onSecondaryContainer', allColors.onSecondaryContainer),
       _ColorEntry('secondaryFixed', allColors.secondaryFixed),
       _ColorEntry('secondaryFixedDim', allColors.secondaryFixedDim),
-      _ColorEntry('onSecondaryFixed', allColors.onSecondaryFixed),
-      _ColorEntry('onSecondaryFixedVariant', allColors.onSecondaryFixedVariant),
       _ColorEntry('tertiary', allColors.tertiary),
-      _ColorEntry('onTertiary', allColors.onTertiary),
-      _ColorEntry('tertiaryContainer', allColors.tertiaryContainer),
-      _ColorEntry('onTertiaryContainer', allColors.onTertiaryContainer),
-      _ColorEntry('tertiaryFixed', allColors.tertiaryFixed),
-      _ColorEntry('tertiaryFixedDim', allColors.tertiaryFixedDim),
-      _ColorEntry('onTertiaryFixed', allColors.onTertiaryFixed),
-      _ColorEntry('onTertiaryFixedVariant', allColors.onTertiaryFixedVariant),
       _ColorEntry('error', allColors.error),
-      _ColorEntry('onError', allColors.onError),
-      _ColorEntry('errorContainer', allColors.errorContainer),
-      _ColorEntry('onErrorContainer', allColors.onErrorContainer),
       _ColorEntry('outline', allColors.outline),
       _ColorEntry('outlineVariant', allColors.outlineVariant),
       _ColorEntry('surface', allColors.surface),
       _ColorEntry('onSurface', allColors.onSurface),
-      _ColorEntry('surfaceDim', allColors.surfaceDim),
       _ColorEntry('surfaceBright', allColors.surfaceBright),
-      _ColorEntry('surfaceContainerLowest', allColors.surfaceContainerLowest),
       _ColorEntry('surfaceContainerLow', allColors.surfaceContainerLow),
-      _ColorEntry('surfaceContainer', allColors.surfaceContainer),
       _ColorEntry('surfaceContainerHigh', allColors.surfaceContainerHigh),
       _ColorEntry('surfaceContainerHighest', allColors.surfaceContainerHighest),
       _ColorEntry('onSurfaceVariant', allColors.onSurfaceVariant),
-      _ColorEntry('inverseSurface', allColors.inverseSurface),
       _ColorEntry('onInverseSurface', allColors.onInverseSurface),
-      _ColorEntry('inversePrimary', allColors.inversePrimary),
-      _ColorEntry('shadow', allColors.shadow),
-      _ColorEntry('scrim', allColors.scrim),
       _ColorEntry('surfaceTint', allColors.surfaceTint),
     ];
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Color Showcase')),
-      body: GridView.builder(
+    return AppScaffoldPage(
+      title: const Text('Color Showcase'),
+      content: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3, // 每行显示 3 个颜色块
           childAspectRatio: 1, // 正方形

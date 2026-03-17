@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class ColorPickerPage extends StatelessWidget {
@@ -28,3 +28,5 @@ class ColorPickerPage extends StatelessWidget {
     );
   }
 }
+
+

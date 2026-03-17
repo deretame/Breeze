@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
@@ -111,12 +111,11 @@ class _SideDrawerState extends State<SideDrawer> {
               ),
             ),
           ),
-          IconButton.filledTonal(
+          IconButton(
             icon: const Icon(Icons.close),
             onPressed: () {
               Navigator.pop(context);
             },
-            tooltip: '关闭',
           ),
         ],
       ),
@@ -155,13 +154,19 @@ class _SideDrawerState extends State<SideDrawer> {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: FilledButton.icon(
+              child: ElevatedButton(
                 onPressed: () {
                   _onTap();
                   Navigator.pop(context);
                 },
-                icon: const Icon(Icons.check),
-                label: const Text('确定'),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.check),
+                    SizedBox(width: 8),
+                    Text('确定'),
+                  ],
+                ),
               ),
             ),
           ],
@@ -676,3 +681,5 @@ class _KeywordSearchFieldState extends State<_KeywordSearchField> {
     );
   }
 }
+
+

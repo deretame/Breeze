@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
@@ -247,3 +247,5 @@ class ReaderActionController {
     }
   }
 }
+
+

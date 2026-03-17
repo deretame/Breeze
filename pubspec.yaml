@@ -21,6 +21,7 @@ dependencies:
   event_bus: ^2.0.1 # 事件: 全局事件总线
 
   # UI 组件与交互
+  fluent_ui: ^4.15.0 # UI: Windows Fluent UI
   cupertino_icons: ^1.0.8 # UI: iOS 风格图标
   dynamic_color: ^1.7.0 # UI: 动态取色
   loading_animation_widget: ^1.2.1 # UI: 加载动画合集

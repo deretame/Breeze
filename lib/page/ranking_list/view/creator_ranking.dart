@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../config/global/global.dart';
@@ -73,3 +73,5 @@ class _CreatorRankingsWidgetState extends State<CreatorRankingsWidget>
     );
   }
 }
+
+

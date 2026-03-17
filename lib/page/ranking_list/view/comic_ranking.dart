@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/ranking_list/models/get_info.dart';
 
@@ -86,3 +86,5 @@ class _ComicRankingState extends State<ComicRanking>
     );
   }
 }
+
+

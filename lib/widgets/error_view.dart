@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 
 class ErrorView extends StatelessWidget {
   final String errorMessage;
@@ -30,3 +30,5 @@ class ErrorView extends StatelessWidget {
     );
   }
 }
+
+

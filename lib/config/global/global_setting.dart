@@ -1,6 +1,6 @@
 // 全局设置
 
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:zephyr/config/global/color_theme_types.dart';

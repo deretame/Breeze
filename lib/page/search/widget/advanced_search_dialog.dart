@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:zephyr/page/bookshelf/widgets/categories_select.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/type/enum.dart';
@@ -211,3 +211,5 @@ class _AdvancedSearchDialogState extends State<AdvancedSearchDialog> {
     );
   }
 }
+
+

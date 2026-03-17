@@ -1,22 +1,18 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 
 Future<void> nothingDialog(BuildContext context) async {
   return showDialog<void>(
     context: context,
     barrierDismissible: false, // user must tap button!
     builder: (BuildContext context) {
-      return AlertDialog(
+      return ContentDialog(
         title: const Text('施工中'),
-        content: const SingleChildScrollView(
-          child: ListBody(children: <Widget>[Text("在写了，在写了")]),
-        ),
+        content: const Text("在写了，在写了"),
         actions: <Widget>[
-          TextButton(
+          FilledButton(
             child: const Text('知道了'),
-            onPressed: () {
-              context.pop();
-            },
+            onPressed: () => context.pop(),
           ),
         ],
       );
@@ -35,24 +31,12 @@ Future<void> commonDialog(
     context: context,
     barrierDismissible: false, // user must tap button!
     builder: (BuildContext context) {
-      return AlertDialog(
+      return ContentDialog(
         title: Text(title),
-        content: SingleChildScrollView(
-          child: ListBody(children: <Widget>[SelectableText(content)]),
-        ),
+        content: SingleChildScrollView(child: SelectableText(content)),
         actions: <Widget>[
-          TextButton(
-            child: const Text('取消'),
-            onPressed: () {
-              context.pop();
-            },
-          ),
-          TextButton(
-            child: const Text('确定'),
-            onPressed: () {
-              context.pop();
-            },
-          ),
+          Button(child: const Text('取消'), onPressed: () => context.pop()),
+          FilledButton(child: const Text('确定'), onPressed: () => context.pop()),
         ],
       );
     },

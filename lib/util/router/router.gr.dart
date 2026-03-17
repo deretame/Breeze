@@ -14,7 +14,7 @@ import 'dart:typed_data' as _i46;
 import 'package:auto_route/auto_route.dart' as _i35;
 import 'package:collection/collection.dart' as _i45;
 import 'package:flutter/foundation.dart' as _i38;
-import 'package:flutter/material.dart' as _i36;
+import 'package:flutter/widgets.dart' as _i36;
 import 'package:zephyr/cubit/bool_select.dart' as _i41;
 import 'package:zephyr/cubit/int_select.dart' as _i42;
 import 'package:zephyr/cubit/string_select.dart' as _i39;

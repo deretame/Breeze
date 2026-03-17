@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:file_selector/file_selector.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:gal/gal.dart';
 import 'package:path/path.dart' as p;
 import 'package:photo_view/photo_view.dart';
@@ -19,9 +19,9 @@ class FullScreenImagePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
+    return Container(
+      color: Colors.black,
+      child: Stack(
         children: [
           // 图片部分
           PhotoView(
@@ -36,7 +36,7 @@ class FullScreenImagePage extends StatelessWidget {
             top: 40,
             left: 20,
             child: IconButton(
-              icon: const Icon(Icons.close, color: Colors.white),
+              icon: const Icon(FluentIcons.chrome_close, color: Colors.white),
               onPressed: () => context.pop(),
             ),
           ),
@@ -46,7 +46,7 @@ class FullScreenImagePage extends StatelessWidget {
             bottom: 20,
             right: 20,
             child: IconButton(
-              icon: const Icon(Icons.download, color: Colors.white),
+              icon: const Icon(FluentIcons.download, color: Colors.white),
               onPressed: () async {
                 logger.d("download image");
 

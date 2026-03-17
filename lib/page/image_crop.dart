@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:crop_your_image/crop_your_image.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../main.dart';
@@ -96,7 +96,7 @@ class _ImageCropPageState extends State<ImageCropPage> {
 class _GridPainter extends CustomPainter {
   final divisions = 2;
   final strokeWidth = 1.0;
-  final Color color = Colors.black54;
+  final Color color = const Color(0x8A000000);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -125,3 +125,5 @@ class _GridPainter extends CustomPainter {
   @override
   bool shouldRepaint(_GridPainter oldDelegate) => false;
 }
+
+

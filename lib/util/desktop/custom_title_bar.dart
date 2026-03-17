@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zephyr/util/desktop/native_window.dart';
 
@@ -68,13 +68,12 @@ class _CustomTitleBarState extends State<CustomTitleBar> with WindowListener {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final theme = FluentTheme.of(context);
     final isMacOS = Platform.isMacOS; // 检测是否为 macOS
 
     return Container(
       height: 40,
-      color: colorScheme.surface,
+      color: theme.resources.solidBackgroundFillColorBase,
       child: Row(
         children: [
           // --- macOS 专属占位 ---
@@ -99,8 +98,8 @@ class _CustomTitleBarState extends State<CustomTitleBar> with WindowListener {
                     const SizedBox(width: 8),
                     Text(
                       'Breeze',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: colorScheme.onSurface,
+                      style: theme.typography.bodyStrong?.copyWith(
+                        color: theme.resources.textFillColorPrimary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -111,8 +110,10 @@ class _CustomTitleBarState extends State<CustomTitleBar> with WindowListener {
                   if (isMacOS)
                     Text(
                       'Breeze',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: colorScheme.onSurface.withValues(alpha: 0.7),
+                      style: theme.typography.bodyStrong?.copyWith(
+                        color: theme.resources.textFillColorPrimary.withValues(
+                          alpha: 0.7,
+                        ),
                         fontSize: 13, // macOS 标题通常更小更精致
                       ),
                     ),
@@ -126,25 +127,29 @@ class _CustomTitleBarState extends State<CustomTitleBar> with WindowListener {
           // macOS 的控制按钮在左边，所以右边的自定义按钮应该隐藏
           if (!isMacOS) ...[
             _TitleBarButton(
-              icon: Icons.minimize_rounded,
+              icon: FluentIcons.chrome_minimize,
               onPressed: _minimize,
-              hoverColor: colorScheme.onSurface.withValues(alpha: 0.08),
-              iconColor: colorScheme.onSurfaceVariant,
+              hoverColor: theme.resources.textFillColorPrimary.withValues(
+                alpha: 0.08,
+              ),
+              iconColor: theme.resources.textFillColorSecondary,
             ),
             _TitleBarButton(
               icon: _isMaximized
-                  ? Icons.filter_none_rounded
-                  : Icons.crop_square_rounded,
+                  ? FluentIcons.chrome_restore
+                  : FluentIcons.chrome_full_screen,
               onPressed: _toggleMaximize,
-              hoverColor: colorScheme.onSurface.withValues(alpha: 0.08),
-              iconColor: colorScheme.onSurfaceVariant,
+              hoverColor: theme.resources.textFillColorPrimary.withValues(
+                alpha: 0.08,
+              ),
+              iconColor: theme.resources.textFillColorSecondary,
             ),
             _TitleBarButton(
-              icon: Icons.close_rounded,
+              icon: FluentIcons.chrome_close,
               onPressed: _handleClose,
               hoverColor: Colors.red,
               hoverIconColor: Colors.white,
-              iconColor: colorScheme.onSurfaceVariant,
+              iconColor: theme.resources.textFillColorSecondary,
             ),
           ],
         ],

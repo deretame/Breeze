@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/config/global/global_setting.dart';
@@ -269,3 +269,5 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
     return (targetWidth * aspectRatio).clamp(1.0, double.infinity);
   }
 }
+
+

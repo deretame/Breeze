@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/main.dart';
@@ -52,3 +52,5 @@ void _initJmHistory(BuildContext context, String comicId) {
     '${jmHistory.history.toLocal().toString().substring(0, 19)}',
   );
 }
+
+

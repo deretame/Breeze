@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/debouncer.dart';
@@ -86,3 +86,5 @@ class RecommendWidget extends StatelessWidget {
     );
   }
 }
+
+

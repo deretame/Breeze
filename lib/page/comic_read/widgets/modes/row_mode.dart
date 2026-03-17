@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
@@ -276,3 +276,5 @@ class _RowModeWidgetState extends State<RowModeWidget> {
     );
   }
 }
+
+

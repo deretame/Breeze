@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/debouncer.dart';
 
@@ -94,3 +94,5 @@ class ComicSimplifyEntryGridView extends StatelessWidget {
     );
   }
 }
+
+

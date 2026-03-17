@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/jm/jm_promote_list/jm_promote_list.dart';
 import 'package:zephyr/page/jm/jm_promote_list/json/jm_promote_list_json.dart';
@@ -153,3 +153,5 @@ class _JmPromoteListPageState extends State<_JmPromoteListPage> {
     return currentScroll >= (maxScroll * 0.9);
   }
 }
+
+

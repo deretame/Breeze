@@ -569,6 +569,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "25.9.23"
+  fluent_ui:
+    dependency: "direct main"
+    description:
+      name: fluent_ui
+      sha256: "5d067d38d0b8b5750e096c61a96b9aca5883dea82ec429b35deeab3d76186711"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.15.0"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -1180,6 +1188,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.3"
+  math_expressions:
+    dependency: transitive
+    description:
+      name: math_expressions
+      sha256: "2e1ceb974c2b1893c809a68c7005f1b63f7324db0add800a0e792b1ac8ff9f03"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0"
   menu_base:
     dependency: transitive
     description:
@@ -1596,6 +1612,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.0"
+  recase:
+    dependency: transitive
+    description:
+      name: recase
+      sha256: e4eb4ec2dcdee52dcf99cb4ceabaffc631d7424ee55e56f280bc039737f89213
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.1.0"
   screen_retriever:
     dependency: transitive
     description:
@@ -1636,6 +1660,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.0"
+  scroll_pos:
+    dependency: transitive
+    description:
+      name: scroll_pos
+      sha256: cebf602b2dd939de6832bb902ffefb574608d1b84f420b82b381a4007d3c1e1b
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.0"
   scroll_to_index:
     dependency: transitive
     description:

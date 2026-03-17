@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../comic_info/json/bika/eps/eps.dart';
@@ -85,3 +85,5 @@ class _EpsWidgetState extends State<EpsWidget> {
     );
   }
 }
+
+

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
@@ -190,7 +190,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     eventBus.fire(DownloadEvent(EventType.refresh, true));
     eventBus.fire(JmCloudFavoriteEvent(EventType.refresh));
 
-    _tabController.animateTo(0, duration: const Duration(milliseconds: 0));
+    _tabController.animateTo(0);
 
     if (context.read<GlobalSettingCubit>().state.comicChoice == 2) {
       eventBus.fire(JmFavoriteEvent(EventType.showInfo));
@@ -236,3 +236,5 @@ class _FavoritesTabPageState extends State<FavoritesTabPage>
 
   void refreshBookShelf() {}
 }
+
+

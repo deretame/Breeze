@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
@@ -132,5 +132,7 @@ class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 1); // 高度要加上分割线
+  Size get preferredSize => const Size.fromHeight(56 + 1); // 高度要加上分割线
 }
+
+

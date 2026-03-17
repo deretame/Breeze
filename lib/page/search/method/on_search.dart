@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
@@ -58,3 +58,5 @@ void onSearch(BuildContext context, String keyword, {String url = ""}) async {
     ),
   );
 }
+
+

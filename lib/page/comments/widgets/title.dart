@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 
 class ScrollableTitle extends StatelessWidget {
   final String text;
@@ -20,3 +20,5 @@ class ScrollableTitle extends StatelessWidget {
     );
   }
 }
+
+

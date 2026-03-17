@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:zephyr/page/jm/jm_promote/bloc/promote_bloc.dart';
 import 'package:zephyr/page/jm/jm_promote/json/promote/jm_promote_json.dart';
 import 'package:zephyr/page/jm/jm_promote/view/jm_promote_scheme_json.dart';
@@ -217,3 +217,5 @@ class JmPromoteSchemeRenderer {
     return <String, dynamic>{'widget': 'contentScrollView'};
   }
 }
+
+

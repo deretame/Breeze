@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
@@ -290,3 +290,5 @@ Future<String> _showInputDialog(
 
   return result ?? "";
 }
+
+

@@ -1,5 +1,5 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:zephyr/type/pipe.dart';
 
 class FavoriteSwitch extends StatefulWidget {
@@ -59,3 +59,5 @@ class _FavoriteSwitchState extends State<FavoriteSwitch> {
     );
   }
 }
+
+

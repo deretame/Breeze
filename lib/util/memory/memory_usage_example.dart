@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:zephyr/main.dart';
 
 import '../../widgets/memory_monitor_widget.dart';
@@ -144,3 +144,5 @@ class ContinuousMemoryMonitoring {
     logger.d('Memory Analytics: ${memoryInfo.dartHeapUsed} bytes');
   }
 }
+
+

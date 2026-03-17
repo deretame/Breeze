@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:zephyr/main.dart';
 
 import '../util/memory/memory_monitor.dart';
@@ -114,8 +114,8 @@ class _MemoryMonitorWidgetState extends State<MemoryMonitorWidget> {
               const Divider(color: Colors.grey, height: 8),
               Text(
                 'Capacity: ${MemoryInfoExtension.formatBytes(info.dartHeapCapacity)}',
-                style: const TextStyle(
-                  color: Colors.white70,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.7),
                   fontSize: 9,
                   fontFamily: 'monospace',
                 ),
@@ -123,8 +123,8 @@ class _MemoryMonitorWidgetState extends State<MemoryMonitorWidget> {
               if (info.nativeHeapSize != null)
                 Text(
                   'Native: ${MemoryInfoExtension.formatBytes(info.nativeHeapSize!)}',
-                  style: const TextStyle(
-                    color: Colors.white70,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
                     fontSize: 9,
                     fontFamily: 'monospace',
                   ),
@@ -132,16 +132,16 @@ class _MemoryMonitorWidgetState extends State<MemoryMonitorWidget> {
               if (info.totalMemory != null && info.availableMemory != null) ...[
                 Text(
                   'Sys Total: ${MemoryInfoExtension.formatBytes(info.totalMemory!)}',
-                  style: const TextStyle(
-                    color: Colors.white70,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
                     fontSize: 9,
                     fontFamily: 'monospace',
                   ),
                 ),
                 Text(
                   'Sys Avail: ${MemoryInfoExtension.formatBytes(info.availableMemory!)}',
-                  style: const TextStyle(
-                    color: Colors.white70,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
                     fontSize: 9,
                     fontFamily: 'monospace',
                   ),
@@ -220,3 +220,5 @@ extension MemoryInfoExtension on MemoryInfo {
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
   }
 }
+
+

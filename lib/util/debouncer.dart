@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 
 class Debouncer {
   final int milliseconds;
@@ -65,3 +65,5 @@ bool isLandscape(BuildContext context) {
 
   return mediaQuery.orientation == Orientation.landscape;
 }
+
+

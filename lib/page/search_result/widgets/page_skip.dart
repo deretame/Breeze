@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter/services.dart';
 
 Future<int?> showNumberInputDialog({
@@ -49,3 +49,5 @@ Future<int?> showNumberInputDialog({
     },
   );
 }
+
+

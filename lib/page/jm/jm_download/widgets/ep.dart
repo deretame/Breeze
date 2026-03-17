@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -111,3 +111,5 @@ class _EpsWidgetState extends State<EpsWidget> {
     return "$formattedTime 更新";
   }
 }
+
+

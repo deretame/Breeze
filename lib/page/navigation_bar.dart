@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/main.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:toastification/toastification.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
@@ -13,7 +13,6 @@ import 'package:zephyr/page/ranking_list/ranking_list.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/auto_check_in.dart';
-import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/download/download_queue_manager.dart';
 import 'package:zephyr/util/download_plugin.dart';
 import 'package:zephyr/util/foreground_task/init.dart';
@@ -25,8 +24,6 @@ import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/util/update/check_update.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../config/global/global.dart';
-import '../main.dart';
 import '../network/sync/sync_service.dart';
 import '../util/debouncer.dart';
 import '../util/dialog.dart';
@@ -44,19 +41,14 @@ class NavigationBar extends StatefulWidget {
 }
 
 class _NavigationBarState extends State<NavigationBar> {
-  // _controller 用于控制手机底部导航栏和页面切换
-  late PersistentTabController _controller;
-  // _selectedIndex 用于控制平板侧边导航栏和页面切换
   int _selectedIndex = 0;
   final debouncer = Debouncer(milliseconds: 100);
-  final List<ScrollController> _scrollControllers = [];
-  late HideOnScrollSettings hideOnScrollSettings;
 
-  static bool _notificationsInitialized = false; // ← 使用静态变量，跨实例共享
+  static bool _notificationsInitialized = false; // 跨实例共享
   bool _isInitializingNotifications = false;
 
-  // 页面列表
-  final _pageList = [
+  // 主页面列表
+  final List<Widget> _pageList = [
     HomePage(),
     RankingListPage(),
     BookshelfPage(),
@@ -83,21 +75,14 @@ class _NavigationBarState extends State<NavigationBar> {
       downloadPlugin();
       setLogHttpForward(url: "http://127.0.0.1:7879/log");
     });
-    _controller = PersistentTabController(
-      initialIndex: objectbox.userSettingBox
-          .get(1)!
-          .globalSetting
-          .welcomePageNum,
-    );
-    scrollControllers.forEach((key, value) {
-      _scrollControllers.add(value);
-    });
-    hideOnScrollSettings = HideOnScrollSettings(
-      scrollControllers: _scrollControllers,
-    );
-    hideOnScrollSettings = HideOnScrollSettings(); // 先去掉这个东西
-    initForegroundTask();
 
+    _selectedIndex = objectbox.userSettingBox
+        .get(1)!
+        .globalSetting
+        .welcomePageNum
+        .clamp(0, _pageList.length - 1);
+
+    initForegroundTask();
     initializeNotificationsOnce();
 
     // 每隔 5 分钟执行一次
@@ -130,135 +115,44 @@ class _NavigationBarState extends State<NavigationBar> {
   }
 
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final globalSettingState = context.read<GlobalSettingCubit>().state;
+
     return MemoryOverlayWidget(
       enabled: globalSettingState.enableMemoryDebug,
-      updateInterval: Duration(seconds: 1),
-      child: Builder(
-        builder: (context) {
-          if (isTablet(context) ||
-              Platform.isWindows ||
-              Platform.isLinux ||
-              Platform.isMacOS) {
-            return _buildTabletLayout();
-          } else {
-            return _buildMobileLayout();
-          }
-        },
+      updateInterval: const Duration(seconds: 1),
+      child: NavigationView(
+        pane: NavigationPane(
+          selected: _selectedIndex,
+          onChanged: (index) {
+            setState(() => _selectedIndex = index);
+          },
+          displayMode: PaneDisplayMode.auto,
+          items: [
+            PaneItem(
+              icon: const Icon(FluentIcons.home),
+              title: const Text("首页"),
+              body: _pageList[0],
+            ),
+            PaneItem(
+              icon: const Icon(FluentIcons.chart),
+              title: const Text("排行"),
+              body: _pageList[1],
+            ),
+            PaneItem(
+              icon: const Icon(FluentIcons.library),
+              title: const Text("书架"),
+              body: _pageList[2],
+            ),
+            PaneItem(
+              icon: const Icon(FluentIcons.more),
+              title: const Text("更多"),
+              body: _pageList[3],
+            ),
+          ],
+        ),
       ),
     );
-  }
-
-  Widget _buildMobileLayout() {
-    return PersistentTabView(
-      context,
-      controller: _controller,
-      screens: _pageList,
-      items: _navBarItems(),
-      backgroundColor: context.backgroundColor,
-      handleAndroidBackButtonPress: true,
-      resizeToAvoidBottomInset: false,
-      hideNavigationBarWhenKeyboardAppears: false,
-      stateManagement: true,
-      navBarStyle: NavBarStyle.style3,
-      onItemSelected: (index) {
-        setState(() {
-          _selectedIndex = index;
-        });
-      },
-    );
-  }
-
-  // 平板布局 (使用 NavigationRail)
-  Widget _buildTabletLayout() {
-    return Scaffold(
-      backgroundColor: context.backgroundColor,
-      body: Row(
-        children: [
-          NavigationRail(
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (int index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
-            labelType: NavigationRailLabelType.all,
-            backgroundColor: context.backgroundColor,
-            destinations: _navRailDestinations(),
-          ),
-          const VerticalDivider(thickness: 1, width: 1),
-          Expanded(
-            child: IndexedStack(index: _selectedIndex, children: _pageList),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // 底部导航栏的配置项
-  List<PersistentBottomNavBarItem> _navBarItems() {
-    final activeColor = context.theme.colorScheme.primary;
-    final inactiveColor = context.textColor;
-
-    return [
-      PersistentBottomNavBarItem(
-        icon: Icon(Icons.home),
-        title: "首页",
-        activeColorPrimary: activeColor,
-        inactiveColorPrimary: inactiveColor,
-      ),
-      PersistentBottomNavBarItem(
-        icon: Icon(Icons.leaderboard),
-        title: "排行",
-        activeColorPrimary: activeColor,
-        inactiveColorPrimary: inactiveColor,
-      ),
-      PersistentBottomNavBarItem(
-        icon: Icon(Icons.menu_book_sharp),
-        title: "书架",
-        activeColorPrimary: activeColor,
-        inactiveColorPrimary: inactiveColor,
-      ),
-      PersistentBottomNavBarItem(
-        icon: Icon(Icons.more_horiz),
-        title: "更多",
-        activeColorPrimary: activeColor,
-        inactiveColorPrimary: inactiveColor,
-      ),
-    ];
-  }
-
-  // 为平板侧边导航栏生成 NavigationRailDestination
-  List<NavigationRailDestination> _navRailDestinations() {
-    return [
-      NavigationRailDestination(
-        icon: Icon(Icons.home_outlined),
-        selectedIcon: Icon(Icons.home),
-        label: Text("首页"),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.leaderboard_outlined),
-        selectedIcon: Icon(Icons.leaderboard),
-        label: Text("排行"),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.menu_book_outlined),
-        selectedIcon: Icon(Icons.menu_book_sharp),
-        label: Text("书架"),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.more_horiz_outlined),
-        selectedIcon: Icon(Icons.more_horiz),
-        label: Text("更多"),
-      ),
-    ];
   }
 
   Future<void> _autoSync() async {
@@ -296,7 +190,7 @@ class _NavigationBarState extends State<NavigationBar> {
 
   void _goToLoginPage(From from) {
     try {
-      final navigator = Navigator.maybeOf(context); // ← 使用 maybeOf
+      final navigator = Navigator.maybeOf(context);
       if (navigator == null) {
         logger.w('Navigator not available');
         return;
@@ -304,8 +198,7 @@ class _NavigationBarState extends State<NavigationBar> {
 
       String allRoutes = "";
       for (final route in navigator.widget.pages) {
-        // 安全访问 route.name
-        final routeName = route.name ?? 'UnknownRoute'; // ← 处理 null
+        final routeName = route.name ?? 'UnknownRoute';
         allRoutes += "$routeName ";
       }
 
@@ -315,7 +208,6 @@ class _NavigationBarState extends State<NavigationBar> {
         if (!allRoutes.contains('LoginRoute')) {
           showErrorToast('登录过期，请重新登录');
 
-          // 确保 mounted
           if (mounted) {
             context.navigateTo(LoginRoute(from: from));
           }

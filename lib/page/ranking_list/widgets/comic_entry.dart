@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:zephyr/page/ranking_list/widgets/comic_picture.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -145,7 +145,7 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.favorite,
                                 color: Colors.red,
                                 size: 20.0,
@@ -191,3 +191,5 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
     return "分类: ${temp.let(t2s)}";
   }
 }
+
+

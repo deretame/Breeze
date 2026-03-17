@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 
 class EscapeIntent extends Intent {
   const EscapeIntent();
@@ -19,3 +19,5 @@ class ReaderPrevPageIntent extends Intent {
 class ReaderNextPageIntent extends Intent {
   const ReaderNextPageIntent();
 }
+
+

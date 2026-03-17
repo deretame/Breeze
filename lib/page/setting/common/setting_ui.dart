@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 
 const EdgeInsets kSettingPagePadding = EdgeInsets.fromLTRB(16, 12, 16, 24);
 
@@ -61,3 +61,5 @@ ButtonStyle settingDangerButtonStyle(BuildContext context) {
     foregroundColor: scheme.onErrorContainer,
   );
 }
+
+

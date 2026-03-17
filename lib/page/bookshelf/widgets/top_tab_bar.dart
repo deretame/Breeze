@@ -1,5 +1,5 @@
 import 'package:custom_sliding_segmented_control/custom_sliding_segmented_control.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 class TopTabBar extends StatelessWidget {
@@ -47,3 +47,5 @@ class TopTabBar extends StatelessWidget {
     );
   }
 }
+
+

@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:battery_plus/battery_plus.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/material.dart';
+import 'package:zephyr/util/ui/fluent_compat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
@@ -361,3 +361,5 @@ class _PageInfoPanel extends StatelessWidget {
     );
   }
 }
+
+

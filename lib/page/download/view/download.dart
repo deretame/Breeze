@@ -2,6 +2,7 @@ import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart' hide Page;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/page/download/widgets/eps.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
@@ -15,23 +16,23 @@ import '../../comments/widgets/title.dart';
 
 @RoutePage()
 class DownloadPage extends StatefulWidget {
-  final Comic comicInfo;
-  final List<Doc> epsInfo;
+  final UnifiedComicDownloadInfo downloadInfo;
 
-  const DownloadPage({
+  DownloadPage({
     super.key,
-    required this.comicInfo,
-    required this.epsInfo,
-  });
+    UnifiedComicDownloadInfo? downloadInfo,
+    Comic? comicInfo,
+    List<Doc>? epsInfo,
+  }) : assert(downloadInfo != null || (comicInfo != null && epsInfo != null)),
+       downloadInfo =
+           downloadInfo ?? UnifiedComicDownloadInfo.fromBikaLegacy(comicInfo!, epsInfo!);
 
   @override
   State<DownloadPage> createState() => _DownloadPageState();
 }
 
 class _DownloadPageState extends State<DownloadPage> {
-  Comic get comicInfo => widget.comicInfo;
-
-  List<Doc> get epsInfo => widget.epsInfo;
+  UnifiedComicDownloadInfo get downloadInfo => widget.downloadInfo;
 
   late Map<int, bool> _downloadInfo;
   late BikaComicDownload? bikaComicDownloadInfo;
@@ -46,17 +47,17 @@ class _DownloadPageState extends State<DownloadPage> {
   void initState() {
     super.initState();
     _downloadInfo = {};
-    for (var ep in epsInfo) {
+    for (var ep in downloadInfo.chapters) {
       _downloadInfo[ep.order] = false;
     }
     final query = objectbox.bikaDownloadBox.query(
-      BikaComicDownload_.comicId.equals(comicInfo.id),
+      BikaComicDownload_.comicId.equals(downloadInfo.comicId),
     );
     bikaComicDownloadInfo = query.build().findFirst();
     if (bikaComicDownloadInfo != null) {
       for (var epTitle in bikaComicDownloadInfo!.epsTitle) {
-        for (var ep in epsInfo) {
-          if (ep.title == epTitle) {
+        for (var ep in downloadInfo.chapters) {
+          if (ep.persistedKey == epTitle) {
             _downloadInfo[ep.order] = true;
           }
         }
@@ -66,14 +67,14 @@ class _DownloadPageState extends State<DownloadPage> {
 
   // 判断是否所有章节都被选中
   bool get isAllSelected {
-    return epsInfo.every((ep) => _downloadInfo[ep.order] == true);
+    return downloadInfo.chapters.every((ep) => _downloadInfo[ep.order] == true);
   }
 
   // 切换全选或取消全选
   void toggleSelectAll() {
     setState(() {
       bool newState = !isAllSelected; // 如果当前是全选，则取消全选；反之亦然
-      for (var ep in epsInfo) {
+      for (var ep in downloadInfo.chapters) {
         _downloadInfo[ep.order] = newState;
       }
     });
@@ -83,7 +84,7 @@ class _DownloadPageState extends State<DownloadPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: ScrollableTitle(text: comicInfo.title),
+        title: ScrollableTitle(text: downloadInfo.title),
         actions: [
           // 动态切换全选/取消全选按钮
           IconButton(
@@ -95,14 +96,14 @@ class _DownloadPageState extends State<DownloadPage> {
       body: ListView.builder(
         // 设置 ListView 的宽度为屏幕宽度
         padding: EdgeInsets.symmetric(horizontal: context.screenWidth / 50),
-        itemCount: epsInfo.length, // 列表项的数量
+        itemCount: downloadInfo.chapters.length, // 列表项的数量
         itemBuilder: (context, index) {
-          final doc = epsInfo[index];
+          final chapter = downloadInfo.chapters[index];
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 5.0),
             child: EpsWidget(
-              doc: doc,
-              downloaded: _downloadInfo[doc.order]!,
+              chapter: chapter,
+              downloaded: _downloadInfo[chapter.order]!,
               onUpdateDownloadInfo: onUpdateDownloadInfo,
             ),
           );
@@ -124,9 +125,9 @@ class _DownloadPageState extends State<DownloadPage> {
 
   Future<void> download() async {
     final settings = objectbox.userSettingBox.get(1)!.bikaSetting;
-    final selectedChapters = _downloadInfo.entries
-        .where((entry) => entry.value)
-        .map((entry) => entry.key.toString())
+    final selectedChapters = downloadInfo.chapters
+        .where((chapter) => _downloadInfo[chapter.order] == true)
+        .map((chapter) => chapter.taskChapterId)
         .toList();
     if (selectedChapters.isEmpty) {
       showErrorToast("请选择要下载的章节");
@@ -134,8 +135,8 @@ class _DownloadPageState extends State<DownloadPage> {
     }
     final task = DownloadTaskJson(
       from: "bika",
-      comicId: comicInfo.id,
-      comicName: comicInfo.title,
+      comicId: downloadInfo.comicId,
+      comicName: downloadInfo.title,
       bikaInfo: BikaInfo(
         authorization: settings.authorization,
         proxy: settings.proxy.toString(),

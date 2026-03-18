@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/model/unified_comic_list_item.dart';
+import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/int_select.dart';
@@ -14,7 +16,6 @@ import '../../../../cubit/string_select.dart';
 import '../../../../main.dart';
 import '../../../../type/enum.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
-import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 
 class FavoritePage extends StatelessWidget {
@@ -212,7 +213,9 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
   // 构建简洁模式列表
   Widget _buildBrevityList(UserFavouriteState state) {
-    final list = _toSimplifyEntries(state.comics);
+    final list = mapToUnifiedComicSimplifyEntryInfoList(
+      _toUnifiedComics(state.comics),
+    );
     final showLoadingMore = state.status == UserFavouriteStatus.loadingMore;
     final showError = state.status == UserFavouriteStatus.getMoreFailure;
     final showEnd = state.hasReachedMax;
@@ -234,13 +237,13 @@ class _UserFavoritePageState extends State<_FavoritePage>
 
   // 构建详细模式列表
   Widget _buildDetailedList(UserFavouriteState state) {
-    final temp = state.comics.map((e) => e as ComicNumber).toList();
+    final comics = _toUnifiedComics(state.comics);
 
     return _buildCommonListView(
       state: state,
-      itemCount: temp.length,
+      itemCount: comics.length,
       itemBuilder: (context, index) => ComicEntryWidget(
-        comicEntryInfo: temp[index].doc.toComicEntryInfo(),
+        comic: comics[index],
         pictureType: PictureType.favourite,
       ),
     );
@@ -308,22 +311,17 @@ class _UserFavoritePageState extends State<_FavoritePage>
     return SizedBox.shrink();
   }
 
-  List<ComicSimplifyEntryInfo> _toSimplifyEntries(List<dynamic> comics) {
+  List<UnifiedComicListItem> _toUnifiedComics(List<dynamic> comics) {
     final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
 
     if (comicChoice == 1) {
       final temp = comics.map((e) => e as ComicNumber).toList();
 
-      return mapToBikaComicSimplifyEntryInfoList(
-        temp,
-        title: (element) => element.doc.title,
-        id: (element) => element.doc.id,
-        fileServer: (element) => element.doc.thumb.fileServer,
-        path: (element) => element.doc.thumb.path,
-        pictureType: PictureType.favourite,
-      );
+      return temp
+          .map((item) => unifiedComicFromBikaFavoriteDoc(item.doc))
+          .toList();
     } else {
-      return [];
+      return const <UnifiedComicListItem>[];
     }
   }
 

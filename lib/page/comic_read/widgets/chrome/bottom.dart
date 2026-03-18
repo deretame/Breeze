@@ -7,7 +7,8 @@ import 'package:uuid/uuid.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
-import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart';
+import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart'
+    show Series;
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
 import 'package:zephyr/type/pipe.dart';
@@ -71,7 +72,15 @@ class _BottomWidgetState extends State<BottomWidget> {
       tempType = ComicEntryType.normal;
     }
     if (widget.from == From.jm) {
-      seriesList = (widget.comicInfo as JmComicInfoJson).series;
+      seriesList = resolveUnifiedComicChapters(widget.comicInfo, widget.from)
+          .map(
+            (chapter) => Series(
+              id: chapter.id,
+              name: chapter.name,
+              sort: chapter.sort.toString(),
+            ),
+          )
+          .toList();
       if (isDownload) {
         final epsIds = objectbox.jmDownloadBox
             .query(JmDownload_.comicId.equals(comicId))
@@ -281,15 +290,15 @@ class _BottomWidgetState extends State<BottomWidget> {
   }
 
   Widget _bikaEpSelector(BuildContext context) {
-    var epsList = (widget.comicInfo as AllInfo).eps;
+    final epsList = resolveUnifiedComicChapters(widget.comicInfo, widget.from);
 
     return ListBody(
       children: [
         for (final ep in epsList)
           TextButton(
-            child: Text(ep.title),
+            child: Text(ep.name),
             onPressed: () =>
-                Navigator.of(context, rootNavigator: false).pop(ep.order),
+                Navigator.of(context, rootNavigator: false).pop(ep.routeOrder),
           ),
       ],
     );

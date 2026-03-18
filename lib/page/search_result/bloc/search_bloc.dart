@@ -105,43 +105,29 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         .toList();
 
     return comics.where((comic) {
-      return comic.comicInfo.when(
-        bika: (bikaComic) {
-          final hasShieldedCategory = bikaComic.categories.any(
-            (category) => shieldedCategories.contains(category),
-          );
-          if (hasShieldedCategory) return false;
+      final data = comic.comic;
+      final categories = data.metadataValues('categories');
+      final tags = data.metadataValues('tags');
 
-          final allText = [
-            bikaComic.title,
-            bikaComic.author,
-            bikaComic.chineseTeam,
-            bikaComic.categories.join(),
-            bikaComic.tags.join(),
-            bikaComic.description,
-          ].join().toLowerCase().let(t2s);
-
-          final containsKeyword = maskedKeywords.any(
-            (keyword) => allText.contains(keyword.toLowerCase().let(t2s)),
-          );
-
-          return !containsKeyword;
-        },
-        jm: (jmComic) {
-          final allText = [
-            jmComic.name,
-            jmComic.author,
-            jmComic.category.title,
-            jmComic.categorySub.title,
-          ].join().toLowerCase().let(t2s);
-
-          final containsKeyword = maskedKeywords.any(
-            (keyword) => allText.contains(keyword.toLowerCase().let(t2s)),
-          );
-
-          return !containsKeyword;
-        },
+      final hasShieldedCategory = categories.any(
+        (category) => shieldedCategories.contains(category),
       );
+      if (hasShieldedCategory) return false;
+
+      final allText = [
+        data.title,
+        data.subtitle,
+        data.metadata.map((item) => item.name).join(),
+        data.metadata.expand((item) => item.value).join(),
+        categories.join(),
+        tags.join(),
+      ].join().toLowerCase().let(t2s);
+
+      final containsKeyword = maskedKeywords.any(
+        (keyword) => allText.contains(keyword.toLowerCase().let(t2s)),
+      );
+
+      return !containsKeyword;
     }).toList();
   }
 }

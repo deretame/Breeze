@@ -4,9 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart';
 import 'package:zephyr/page/jm/jm_download/download.dart';
-import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/init.dart';
@@ -17,16 +17,22 @@ import '../../../comments/widgets/title.dart';
 
 @RoutePage()
 class JmDownloadPage extends StatefulWidget {
-  final JmComicInfoJson jmComicInfoJson;
+  final UnifiedComicDownloadInfo downloadInfo;
 
-  const JmDownloadPage({super.key, required this.jmComicInfoJson});
+  JmDownloadPage({
+    super.key,
+    UnifiedComicDownloadInfo? downloadInfo,
+    JmComicInfoJson? jmComicInfoJson,
+  }) : assert(downloadInfo != null || jmComicInfoJson != null),
+       downloadInfo =
+           downloadInfo ?? UnifiedComicDownloadInfo.fromJmLegacy(jmComicInfoJson!);
 
   @override
   State<JmDownloadPage> createState() => _JmDownloadPageState();
 }
 
 class _JmDownloadPageState extends State<JmDownloadPage> {
-  late JmComicInfoJson jmComicInfoJson;
+  UnifiedComicDownloadInfo get downloadInfo => widget.downloadInfo;
 
   late Map<int, bool> _downloadInfo;
   late JmDownload? jmDownloadInfo;
@@ -40,33 +46,20 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
   @override
   void initState() {
     super.initState();
-    jmComicInfoJson = widget.jmComicInfoJson;
     _downloadInfo = {};
-    if (jmComicInfoJson.series.isEmpty) {
-      jmComicInfoJson = jmComicInfoJson.copyWith(
-        series: [
-          Series(
-            id: jmComicInfoJson.id.toString(),
-            name: jmComicInfoJson.name,
-            sort: "null",
-          ),
-        ],
-      );
-    }
-
-    for (var ep in jmComicInfoJson.series) {
-      _downloadInfo[ep.id.let(toInt)] = false;
+    for (var ep in downloadInfo.chapters) {
+      _downloadInfo[ep.order] = false;
     }
 
     final query = objectbox.jmDownloadBox.query(
-      JmDownload_.comicId.equals(jmComicInfoJson.id.toString()),
+      JmDownload_.comicId.equals(downloadInfo.comicId),
     );
     jmDownloadInfo = query.build().findFirst();
     if (jmDownloadInfo != null) {
       for (var epId in jmDownloadInfo!.epsIds) {
-        for (var ep in jmComicInfoJson.series) {
-          if (ep.id.toString() == epId) {
-            _downloadInfo[ep.id.let(toInt)] = true;
+        for (var ep in downloadInfo.chapters) {
+          if (ep.persistedKey == epId) {
+            _downloadInfo[ep.order] = true;
           }
         }
       }
@@ -75,8 +68,8 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
 
   // 判断是否所有章节都被选中
   bool get isAllSelected {
-    return jmComicInfoJson.series.every(
-      (ep) => _downloadInfo[ep.id.let(toInt)] == true,
+    return downloadInfo.chapters.every(
+      (ep) => _downloadInfo[ep.order] == true,
     );
   }
 
@@ -84,8 +77,8 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
   void toggleSelectAll() {
     setState(() {
       bool newState = !isAllSelected; // 如果当前是全选，则取消全选；反之亦然
-      for (var ep in jmComicInfoJson.series) {
-        _downloadInfo[ep.id.let(toInt)] = newState;
+      for (var ep in downloadInfo.chapters) {
+        _downloadInfo[ep.order] = newState;
       }
     });
   }
@@ -94,7 +87,7 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: ScrollableTitle(text: jmComicInfoJson.name),
+        title: ScrollableTitle(text: downloadInfo.title),
         actions: [
           // 动态切换全选/取消全选按钮
           IconButton(
@@ -106,14 +99,14 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
       body: ListView.builder(
         // 设置 ListView 的宽度为屏幕宽度
         padding: EdgeInsets.symmetric(horizontal: context.screenWidth / 50),
-        itemCount: jmComicInfoJson.series.length, // 列表项的数量
+        itemCount: downloadInfo.chapters.length, // 列表项的数量
         itemBuilder: (context, index) {
-          final series = jmComicInfoJson.series[index];
+          final chapter = downloadInfo.chapters[index];
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 5.0),
             child: EpsWidget(
-              series: series,
-              downloaded: _downloadInfo[series.id.let(toInt)]!,
+              chapter: chapter,
+              downloaded: _downloadInfo[chapter.order]!,
               onUpdateDownloadInfo: onUpdateDownloadInfo,
             ),
           );
@@ -135,9 +128,9 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
 
   Future<void> download() async {
     final bikaCubit = context.read<BikaSettingCubit>();
-    final selectedChapters = _downloadInfo.entries
-        .where((entry) => entry.value)
-        .map((entry) => entry.key.toString())
+    final selectedChapters = downloadInfo.chapters
+        .where((chapter) => _downloadInfo[chapter.order] == true)
+        .map((chapter) => chapter.taskChapterId)
         .toList();
     if (selectedChapters.isEmpty) {
       showErrorToast("请选择要下载的章节");
@@ -145,8 +138,8 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
     }
     final task = DownloadTaskJson(
       from: "jm",
-      comicId: jmComicInfoJson.id.toString(),
-      comicName: jmComicInfoJson.name,
+      comicId: downloadInfo.comicId,
+      comicName: downloadInfo.title,
       bikaInfo: BikaInfo(authorization: "", proxy: ""),
       selectedChapters: selectedChapters,
       slowDownload: bikaCubit.state.slowDownload,

@@ -8,6 +8,7 @@ import 'package:zephyr/widgets/toast.dart';
 import '../../main.dart';
 import '../../object_box/objectbox.g.dart';
 import '../../type/enum.dart';
+import '../../util/get_path.dart';
 import '../../util/router/router.gr.dart';
 import 'comic_simplify_entry_info.dart';
 import 'cover.dart';
@@ -386,10 +387,8 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   Future<void> _deleteDownloadDirectory(String id) async {
-    final path = p.join(
-      '/data/data/com.zephyr.breeze/files/downloads/bika/original',
-      id,
-    );
+    final downloadPath = await getDownloadPath();
+    final path = p.join(downloadPath, info.from.name, 'original', id);
     final directory = Directory(path);
 
     if (await directory.exists()) {

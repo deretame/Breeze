@@ -339,6 +339,11 @@ String buildImageUrl(
   String imageQuality,
   int proxy,
 ) {
+  final uri = Uri.tryParse(url);
+  if (uri != null && uri.hasScheme && uri.pathSegments.isNotEmpty) {
+    return url;
+  }
+
   if (url == "https://storage1.picacomic.com") {
     if (pictureType == PictureType.cover) {
       url = "https://img.picacomic.com";

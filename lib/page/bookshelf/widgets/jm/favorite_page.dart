@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global.dart';
+import 'package:zephyr/model/unified_comic_list_item.dart';
+import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 
 import '../../../../cubit/int_select.dart';
@@ -11,8 +14,8 @@ import '../../../../cubit/string_select.dart';
 import '../../../../main.dart';
 import '../../../../object_box/model.dart';
 import '../../../../type/enum.dart';
+import '../../../../widgets/comic_entry/comic_entry.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
-import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 
 class JmFavoritePage extends StatelessWidget {
@@ -145,7 +148,8 @@ class __FavoritePageState extends State<_FavoritePage>
       return _buildEmptyState();
     }
 
-    return _buildBrevityList(state);
+    final isBrevity = context.watch<BikaSettingCubit>().state.brevity;
+    return isBrevity ? _buildBrevityList(state) : _buildDetailedList(state);
   }
 
   // 构建空状态UI
@@ -168,7 +172,9 @@ class __FavoritePageState extends State<_FavoritePage>
 
   // 构建简洁模式列表
   Widget _buildBrevityList(JmFavouriteState state) {
-    final list = _toSimplifyEntries(state.comics);
+    final list = mapToUnifiedComicSimplifyEntryInfoList(
+      _toUnifiedComics(state.comics),
+    );
 
     return CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -182,14 +188,26 @@ class __FavoritePageState extends State<_FavoritePage>
     );
   }
 
-  List<ComicSimplifyEntryInfo> _toSimplifyEntries(List<dynamic> comics) {
+  Widget _buildDetailedList(JmFavouriteState state) {
+    final comics = _toUnifiedComics(state.comics);
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
+      controller: _scrollController,
+      itemCount: comics.length,
+      itemBuilder: (context, index) {
+        return ComicEntryWidget(
+          comic: comics[index],
+          type: ComicEntryType.favorite,
+          refresh: () => _refresh(),
+        );
+      },
+    );
+  }
+
+  List<UnifiedComicListItem> _toUnifiedComics(List<dynamic> comics) {
     final temp = comics.map((e) => e as JmFavorite).toList();
 
-    return mapToJmComicSimplifyEntryInfoList(
-      temp,
-      title: (element) => element.name,
-      id: (element) => element.comicId.toString(),
-    );
+    return temp.map(unifiedComicFromJmFavorite).toList();
   }
 
   void _refresh([bool goToTop = false]) {

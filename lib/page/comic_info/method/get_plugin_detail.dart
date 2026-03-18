@@ -2,11 +2,6 @@ import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
-import 'package:zephyr/page/comic_info/json/bika/comic_info/comic_info.dart'
-    as bika_comic;
-import 'package:zephyr/page/comic_info/json/bika/eps/eps.dart' as bika_eps;
-import 'package:zephyr/page/comic_info/json/bika/recommend/recommend_json.dart'
-    as bika_recommend;
 import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart' as jm;
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
@@ -14,10 +9,51 @@ import 'package:zephyr/page/comic_info/models/all_info.dart';
 import 'package:zephyr/type/enum.dart';
 
 class PluginComicDetail {
-  const PluginComicDetail({required this.normalInfo, required this.sourceInfo});
+  const PluginComicDetail({required this.normalInfo, required this.source});
 
   final normal.NormalComicAllInfo normalInfo;
-  final dynamic sourceInfo;
+  final PluginComicDetailSource source;
+}
+
+class PluginComicDetailSource {
+  const PluginComicDetailSource({
+    required this.from,
+    required this.normalInfo,
+    required this.raw,
+  });
+
+  final From from;
+  final normal.NormalComicAllInfo normalInfo;
+  final Map<String, dynamic> raw;
+
+  bool get isBika => from == From.bika;
+
+  bool get isJm => from == From.jm;
+
+  Map<String, dynamic> get rawComicInfo => asMap(raw['comicInfo']);
+
+  List<normal.Ep> get eps => normalInfo.eps;
+
+  bool get isJmSeriesEmpty => isJm && eps.isEmpty;
+
+  String get comicId => normalInfo.comicInfo.id;
+
+  String get title =>
+      rawComicInfo['name']?.toString() ?? normalInfo.comicInfo.title;
+}
+
+class UnifiedComicChapterRef {
+  const UnifiedComicChapterRef({
+    required this.id,
+    required this.name,
+    required this.sort,
+    required this.routeOrder,
+  });
+
+  final String id;
+  final String name;
+  final int sort;
+  final int routeOrder;
 }
 
 Future<PluginComicDetail> getComicDetailByPlugin(
@@ -36,14 +72,13 @@ Future<PluginComicDetail> getComicDetailByPlugin(
   );
   final detail = UnifiedPluginDetailResponse.fromMap(map);
   final normalInfo = normal.NormalComicAllInfo.fromJson(detail.normal);
+  final source = PluginComicDetailSource(
+    from: from,
+    normalInfo: normalInfo,
+    raw: detail.raw,
+  );
 
-  if (from == From.bika) {
-    final sourceInfo = _decodeBikaSourceInfo(detail.raw);
-    return PluginComicDetail(normalInfo: normalInfo, sourceInfo: sourceInfo);
-  }
-
-  final sourceInfo = _decodeJmSourceInfo(detail.raw);
-  return PluginComicDetail(normalInfo: normalInfo, sourceInfo: sourceInfo);
+  return PluginComicDetail(normalInfo: normalInfo, source: source);
 }
 
 Map<String, dynamic> _buildBikaPayload(String comicId) {
@@ -68,24 +103,64 @@ Map<String, dynamic> _buildJmPayload(String comicId) {
   };
 }
 
-AllInfo _decodeBikaSourceInfo(Map<String, dynamic> raw) {
-  final comic = bika_comic.Comic.fromJson(asMap(raw['comicInfo']));
-  final eps = asList(raw['eps']).map((item) {
-    return bika_eps.Doc.fromJson(asMap(item));
-  }).toList();
-  final recommend = asList(raw['recommend']).map((item) {
-    return bika_recommend.Comic.fromJson(asMap(item));
-  }).toList();
+List<UnifiedComicChapterRef> resolveUnifiedComicChapters(
+  dynamic comicInfo,
+  From from,
+) {
+  if (comicInfo is PluginComicDetailSource) {
+    if (from == From.jm) {
+      return comicInfo.eps
+          .map(
+            (ep) => UnifiedComicChapterRef(
+              id: ep.id,
+              name: ep.name,
+              sort: ep.order,
+              routeOrder: _toInt(ep.id, ep.order),
+            ),
+          )
+          .toList();
+    }
+    return comicInfo.eps
+        .map(
+          (ep) => UnifiedComicChapterRef(
+            id: ep.id,
+            name: ep.name,
+            sort: ep.order,
+            routeOrder: ep.order,
+          ),
+        )
+        .toList();
+  }
 
-  return AllInfo(comicInfo: comic, eps: eps, recommendJson: recommend);
+  if (from == From.bika && comicInfo is AllInfo) {
+    return comicInfo.eps
+        .map(
+          (ep) => UnifiedComicChapterRef(
+            id: ep.id,
+            name: ep.title,
+            sort: ep.order,
+            routeOrder: ep.order,
+          ),
+        )
+        .toList();
+  }
+
+  if (from == From.jm && comicInfo is jm.JmComicInfoJson) {
+    return comicInfo.series
+        .map(
+          (series) => UnifiedComicChapterRef(
+            id: series.id,
+            name: series.name,
+            sort: _toInt(series.sort, 0),
+            routeOrder: _toInt(series.id, 0),
+          ),
+        )
+        .toList();
+  }
+
+  return const <UnifiedComicChapterRef>[];
 }
 
-jm.JmComicInfoJson _decodeJmSourceInfo(Map<String, dynamic> raw) {
-  final comic = jm.JmComicInfoJson.fromJson(asMap(raw['comicInfo']));
-  if (comic.series.isNotEmpty) {
-    return comic;
-  }
-  return comic.copyWith(
-    series: [jm.Series(id: comic.id.toString(), name: '第1话', sort: 'null')],
-  );
+int _toInt(Object? value, int fallback) {
+  return int.tryParse(value?.toString() ?? '') ?? fallback;
 }

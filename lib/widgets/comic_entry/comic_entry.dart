@@ -2,132 +2,79 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:path/path.dart' as p;
-import 'package:zephyr/object_box/objectbox.g.dart';
-import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/context/context_extensions.dart';
-import 'package:zephyr/util/router/router.gr.dart';
-import 'package:zephyr/util/sundry.dart';
+import 'package:zephyr/model/unified_comic_list_item.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/cover.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import '../../main.dart';
+import '../../object_box/objectbox.g.dart';
 import '../../type/enum.dart';
-import '../picture_bloc/bloc/picture_bloc.dart';
-import '../picture_bloc/models/picture_info.dart';
-import 'comic_entry_info.dart';
+import '../../util/get_path.dart';
+import '../../util/router/router.gr.dart';
 
-class ComicEntryWidget extends StatefulWidget {
-  final ComicEntryInfo comicEntryInfo;
-  final ComicEntryType? type;
-  final VoidCallback? refresh;
-  final PictureType? pictureType;
-
+class ComicEntryWidget extends StatelessWidget {
   const ComicEntryWidget({
     super.key,
-    required this.comicEntryInfo,
-    this.type,
+    required this.comic,
+    this.type = ComicEntryType.normal,
     this.refresh,
     this.pictureType,
   });
 
-  @override
-  State<ComicEntryWidget> createState() => _ComicEntryWidgetState();
-}
-
-class _ComicEntryWidgetState extends State<ComicEntryWidget> {
-  ComicEntryInfo get comicEntryInfo => widget.comicEntryInfo;
-
-  ComicEntryType? get type => widget.type;
-
-  VoidCallback? get refresh => widget.refresh;
-
-  PictureType? get pictureType => widget.pictureType;
-
-  ComicEntryType? _type;
-
-  @override
-  void initState() {
-    super.initState();
-    _type = type ?? ComicEntryType.normal;
-  }
-
-  String _getCategories(List<String>? categories) {
-    if (categories == null) {
-      return "";
-    } else {
-      String temp = "";
-      for (var category in categories) {
-        temp += "$category ";
-      }
-      return "分类: ${temp.let(t2s)}";
-    }
-  }
+  final UnifiedComicListItem comic;
+  final ComicEntryType type;
+  final VoidCallback? refresh;
+  final PictureType? pictureType;
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.theme;
-
-    const double coverWidth = 100.0;
-    const double coverHeight = 133.0;
+    final theme = Theme.of(context);
+    const coverWidth = 100.0;
+    const coverHeight = 133.0;
+    final statText = _buildStatText();
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         context.pushRoute(
-          ComicInfoRoute(
-            comicId: comicEntryInfo.id,
-            type: _type!,
-            from: From.bika,
-          ),
+          ComicInfoRoute(comicId: comic.id, type: type, from: comic.from),
         );
       },
-      onLongPress: () {
-        if (_type == ComicEntryType.normal ||
-            _type == ComicEntryType.historyAndDownload) {
-          return;
-        }
-        deleteDialog();
-      },
+      onLongPress: type == ComicEntryType.normal
+          ? null
+          : () => _showDeleteDialog(context),
       child: Container(
-        width: ((context.screenWidth / 10) * 9.5),
-        margin: EdgeInsets.symmetric(
-          horizontal: (context.screenWidth / 10) * 0.25,
-          vertical: 6.0,
-        ),
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: context.backgroundColor,
-          borderRadius: BorderRadius.circular(10.0),
-          boxShadow: [
-            BoxShadow(
-              color: theme.colorScheme.primaryFixedDim,
-              spreadRadius: 0,
-              blurRadius: 2,
-              offset: const Offset(0, 0),
-            ),
-          ],
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Builder(
-              builder: (BuildContext context) {
-                return ImageWidget(
-                  key: ValueKey(comicEntryInfo.id),
-                  fileServer: comicEntryInfo.thumb.fileServer,
-                  path: comicEntryInfo.thumb.path,
-                  id: comicEntryInfo.id,
-                  pictureType: pictureType ?? PictureType.cover,
-                  targetWidth: coverWidth,
-                  targetHeight: coverHeight,
-                );
-              },
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                bottomLeft: Radius.circular(12),
+              ),
+              child: CoverWidget(
+                fileServer: comic.cover.url,
+                path: comic.cover.cachePath,
+                id: comic.id,
+                pictureType: pictureType ?? PictureType.cover,
+                from: comic.from,
+                roundedCorner: false,
+                width: coverWidth,
+                height: coverHeight,
+              ),
             ),
-
             Expanded(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: coverHeight),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: coverHeight),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -136,56 +83,69 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            comicEntryInfo.title,
-                            style: TextStyle(
-                              color: context.textColor,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
+                            comic.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          if (comicEntryInfo.author.toString().isNotEmpty) ...[
+                          if (comic.primaryText.isNotEmpty) ...[
+                            const SizedBox(height: 6),
                             Text(
-                              comicEntryInfo.author.toString(),
-                              style: TextStyle(
+                              comic.primaryText,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodyMedium?.copyWith(
                                 color: theme.colorScheme.primary,
-                                fontSize: 13,
                               ),
                             ),
-                            const SizedBox(height: 2),
                           ],
-                          Text(
-                            _getCategories(comicEntryInfo.categories),
-                            style: TextStyle(
-                              color: context.textColor.withValues(alpha: 0.8),
-                              fontSize: 12,
+                          if (comic.secondaryText.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              comic.secondaryText,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
                             ),
-                          ),
+                          ],
+                          if (comic.updatedAtText.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              '更新: ${comic.updatedAtText}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
-
-                      const SizedBox(height: 2),
-                      Row(
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          const Icon(
-                            Icons.favorite,
-                            color: Colors.red,
-                            size: 20.0,
-                          ),
-                          const SizedBox(width: 6.0),
                           Text(
-                            comicEntryInfo.likesCount.toString(),
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                          const SizedBox(width: 12.0),
-                          Text(
-                            comicEntryInfo.finished ? "完结" : "连载中",
-                            style: TextStyle(
-                              color: theme.colorScheme.tertiary,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                            comic.finished ? '完结' : '连载中',
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: comic.finished
+                                  ? theme.colorScheme.tertiary
+                                  : theme.colorScheme.secondary,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
+                          if (statText.isNotEmpty)
+                            Text(
+                              statText,
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
                         ],
                       ),
                     ],
@@ -199,197 +159,147 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
     );
   }
 
-  Future deleteDialog() {
-    var title = "";
-    if (_type == ComicEntryType.history) {
-      title = "删除历史记录";
-    } else if (_type == ComicEntryType.download) {
-      title = "删除下载记录";
+  String _buildStatText() {
+    final stats = <String>[];
+    if (comic.likesCount > 0) {
+      stats.add('喜欢 ${comic.likesCount}');
     }
-    var content = "确定要删除（${comicEntryInfo.title}）的";
-    if (_type == ComicEntryType.history) {
-      content += "历史记录吗？";
-    } else if (_type == ComicEntryType.download) {
-      content += "下载记录及文件吗？";
+    if (comic.viewsCount > 0) {
+      stats.add('浏览 ${comic.viewsCount}');
     }
-    logger.d(_type.toString());
-    return showDialog(
+    return stats.join('  ');
+  }
+
+  Future<void> _showDeleteDialog(BuildContext context) async {
+    final (title, content) = _dialogContent();
+    if (title.isEmpty) {
+      return;
+    }
+
+    await showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(content),
-          actions: [
-            TextButton(child: Text("取消"), onPressed: () => context.pop()),
-            TextButton(
-              child: Text("确定"),
-              onPressed: () {
-                if (_type == ComicEntryType.history) {
-                  var temp = objectbox.bikaHistoryBox
-                      .query(
-                        BikaComicHistory_.comicId.equals(comicEntryInfo.id),
-                      )
-                      .build()
-                      .findFirst();
-                  if (temp != null) {
-                    temp.deleted = true;
-                    temp.history = DateTime.now().toUtc();
-                    objectbox.bikaHistoryBox.put(temp);
-                    refresh!();
-                  }
-                }
-                if (_type == ComicEntryType.download) {
-                  var temp = objectbox.bikaDownloadBox
-                      .query(
-                        BikaComicDownload_.comicId.equals(comicEntryInfo.id),
-                      )
-                      .build()
-                      .findFirst();
-                  if (temp != null) {
-                    objectbox.bikaDownloadBox.remove(temp.id);
-                    refresh!();
-                    deleteDirectory(comicEntryInfo.id);
-                  }
-                }
-                context.pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> deleteDirectory(String id) async {
-    String path = p.join(
-      '/data/data/com.zephyr.breeze/files/downloads/bika/original',
-      id,
-    );
-    final directory = Directory(path);
-
-    // 检查目录是否存在
-    if (await directory.exists()) {
-      try {
-        // 删除目录及其内容
-        await directory.delete(recursive: true);
-        logger.d('目录已成功删除: $path');
-      } catch (e) {
-        logger.e('删除目录时发生错误: $e');
-      }
-    } else {
-      logger.e('目录不存在: $path');
-    }
-  }
-}
-
-class ImageWidget extends StatelessWidget {
-  final String fileServer;
-  final String path;
-  final String id;
-  final PictureType pictureType;
-  final double targetWidth;
-  final double targetHeight;
-
-  const ImageWidget({
-    super.key,
-    required this.fileServer,
-    required this.path,
-    required this.id,
-    required this.pictureType,
-    this.targetWidth = 100,
-    this.targetHeight = 133,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.theme;
-
-    final pictureInfo = PictureInfo(
-      from: From.bika,
-      url: fileServer,
-      path: path,
-      cartoonId: id,
-      pictureType: pictureType,
-    );
-
-    return BlocProvider(
-      create: (context) => PictureBloc()..add(GetPicture(pictureInfo)),
-      child: BlocBuilder<PictureBloc, PictureLoadState>(
-        builder: (context, state) {
-          Widget containerWrapper(Widget child) {
-            return SizedBox(
-              width: targetWidth,
-              height: targetHeight,
-              child: child,
-            );
-          }
-
-          // 定义统一的圆角
-          const borderRadius = BorderRadius.only(
-            topLeft: Radius.circular(10.0),
-            bottomLeft: Radius.circular(10.0),
-          );
-
-          switch (state.status) {
-            case PictureLoadStatus.initial:
-              return containerWrapper(
-                Center(
-                  child: LoadingAnimationWidget.waveDots(
-                    color: theme.colorScheme.primaryFixedDim,
-                    size: 30,
-                  ),
-                ),
-              );
-            case PictureLoadStatus.success:
-              return InkWell(
-                onTap: () {
-                  context.pushRoute(
-                    FullRouteImageRoute(imagePath: state.imagePath!),
-                  );
-                },
-                child: ClipRRect(
-                  borderRadius: borderRadius,
-                  child: Image.file(
-                    File(state.imagePath!),
-                    fit: BoxFit.cover,
-                    width: targetWidth,
-                    height: targetHeight,
-                  ),
-                ),
-              );
-            case PictureLoadStatus.failure:
-              if (state.result.toString().contains('404')) {
-                return ClipRRect(
-                  borderRadius: borderRadius,
-                  child: Image.asset(
-                    'asset/image/error_image/404.png',
-                    fit: BoxFit.cover,
-                    width: targetWidth,
-                    height: targetHeight,
-                  ),
-                );
-              } else {
-                return containerWrapper(
-                  InkWell(
-                    onTap: () {
-                      context.read<PictureBloc>().add(GetPicture(pictureInfo));
-                    },
-                    child: Center(
-                      child: Text(
-                        '重试',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: context.textColor,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }
-          }
-        },
+      builder: (dialogContext) => AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () => dialogContext.pop(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () async {
+              dialogContext.pop();
+              await _handleDelete();
+            },
+            child: const Text('确定'),
+          ),
+        ],
       ),
     );
+  }
+
+  (String, String) _dialogContent() {
+    return switch (type) {
+      ComicEntryType.favorite => ('删除收藏', '确定要删除（${comic.title}）的收藏记录吗？'),
+      ComicEntryType.history => ('删除历史记录', '确定要删除（${comic.title}）的历史记录吗？'),
+      ComicEntryType.download => ('删除下载记录', '确定要删除（${comic.title}）的下载记录及文件吗？'),
+      _ => ('', ''),
+    };
+  }
+
+  Future<void> _handleDelete() async {
+    try {
+      if (type == ComicEntryType.favorite) {
+        await _deleteFavorite();
+      } else if (type == ComicEntryType.history) {
+        await _deleteHistory();
+      } else if (type == ComicEntryType.download) {
+        await _deleteDownload();
+      }
+      refresh?.call();
+    } catch (e, s) {
+      logger.e('删除失败', error: e, stackTrace: s);
+      showErrorToast('删除失败');
+    }
+  }
+
+  Future<void> _deleteFavorite() async {
+    if (comic.from != From.jm) {
+      return;
+    }
+
+    final temp = objectbox.jmFavoriteBox
+        .query(JmFavorite_.comicId.equals(comic.id))
+        .build()
+        .findFirst();
+
+    if (temp != null) {
+      objectbox.jmFavoriteBox.remove(temp.id);
+    }
+  }
+
+  Future<void> _deleteHistory() async {
+    if (comic.from == From.bika) {
+      final temp = objectbox.bikaHistoryBox
+          .query(BikaComicHistory_.comicId.equals(comic.id))
+          .build()
+          .findFirst();
+
+      if (temp != null) {
+        temp.deleted = true;
+        temp.history = DateTime.now().toUtc();
+        objectbox.bikaHistoryBox.put(temp);
+      }
+      return;
+    }
+
+    if (comic.from == From.jm) {
+      final temp = objectbox.jmHistoryBox
+          .query(JmHistory_.comicId.equals(comic.id))
+          .build()
+          .findFirst();
+
+      if (temp != null) {
+        temp.deleted = true;
+        temp.history = DateTime.now().toUtc();
+        objectbox.jmHistoryBox.put(temp);
+      }
+    }
+  }
+
+  Future<void> _deleteDownload() async {
+    if (comic.from == From.bika) {
+      final temp = objectbox.bikaDownloadBox
+          .query(BikaComicDownload_.comicId.equals(comic.id))
+          .build()
+          .findFirst();
+
+      if (temp != null) {
+        objectbox.bikaDownloadBox.remove(temp.id);
+      }
+    } else if (comic.from == From.jm) {
+      final temp = objectbox.jmDownloadBox
+          .query(JmDownload_.comicId.equals(comic.id))
+          .build()
+          .findFirst();
+
+      if (temp != null) {
+        objectbox.jmDownloadBox.remove(temp.id);
+      }
+    }
+
+    await _deleteDownloadDirectory();
+  }
+
+  Future<void> _deleteDownloadDirectory() async {
+    final downloadPath = await getDownloadPath();
+    final target = p.join(downloadPath, comic.from.name, 'original', comic.id);
+    final directory = Directory(target);
+
+    if (!await directory.exists()) {
+      return;
+    }
+
+    await directory.delete(recursive: true);
   }
 }

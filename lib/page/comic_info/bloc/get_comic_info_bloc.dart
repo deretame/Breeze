@@ -47,23 +47,12 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
           normalComicInfo = jm2NormalComicAllInfo(comicInfo);
         }
       } else {
-        try {
-          final pluginResult = await getComicDetailByPlugin(
-            event.comicId,
-            event.from,
-          );
-          comicInfo = pluginResult.sourceInfo;
-          normalComicInfo = pluginResult.normalInfo;
-        } catch (e, s) {
-          logger.w('插件化详情获取失败，回退到旧逻辑', error: e, stackTrace: s);
-          if (event.from == From.bika) {
-            comicInfo = await getBikaComicAllInfo(event.comicId, event.type);
-            normalComicInfo = bika2NormalComicAllInfo(comicInfo);
-          } else {
-            comicInfo = await getJmComicAllInfo(event.comicId, event.type);
-            normalComicInfo = jm2NormalComicAllInfo(comicInfo);
-          }
-        }
+        final pluginResult = await getComicDetailByPlugin(
+          event.comicId,
+          event.from,
+        );
+        comicInfo = pluginResult.source;
+        normalComicInfo = pluginResult.normalInfo;
       }
 
       emit(

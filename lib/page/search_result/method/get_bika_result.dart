@@ -1,4 +1,6 @@
+import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
 import 'package:zephyr/network/http/bika/http_request.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/page/search_result/json/bika/advanced_search.dart';
 import 'package:zephyr/page/search_result/models/bloc_state.dart';
@@ -51,7 +53,14 @@ Future<BlocState> _processSearchResult(
       .map(
         (doc) => ComicNumber(
           buildNumber: temp.data.comics.page,
-          comicInfo: ComicInfo.bika(doc),
+          comic: unifiedComicFromPluginSearchItem(
+            UnifiedPluginSearchItem.fromMap({
+              'id': doc.id,
+              'title': doc.title,
+              'raw': doc.toJson(),
+            }),
+            'bika',
+          ),
         ),
       )
       .toList();

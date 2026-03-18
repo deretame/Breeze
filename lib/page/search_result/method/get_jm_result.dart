@@ -1,3 +1,5 @@
+import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/page/search_result/json/jm/jm_search_result_json.dart';
@@ -28,13 +30,21 @@ Future<BlocState> getJMResult(SearchEvent event, BlocState blocState) async {
 
   var tempList = data.content
       .map(
-        (e) => ComicNumber(buildNumber: event.page, comicInfo: ComicInfo.jm(e)),
+        (e) => ComicNumber(
+          buildNumber: event.page,
+          comic: unifiedComicFromPluginSearchItem(
+            UnifiedPluginSearchItem.fromMap({
+              'id': e.id,
+              'title': e.name,
+              'raw': e.toJson(),
+            }),
+            'jm',
+          ),
+        ),
       )
       .toList();
 
-  if (blocState.comics.any(
-    (c) => c.comicInfo.id == tempList.first.comicInfo.id,
-  )) {
+  if (blocState.comics.any((c) => c.comic.id == tempList.first.comic.id)) {
     blocState.hasReachedMax = true;
     return blocState;
   }
@@ -48,8 +58,4 @@ Future<BlocState> getJMResult(SearchEvent event, BlocState blocState) async {
   }
 
   return blocState;
-}
-
-extension ComicInfoX on ComicInfo {
-  String get id => when(bika: (b) => b.id, jm: (j) => j.id);
 }

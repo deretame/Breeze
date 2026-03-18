@@ -6,8 +6,9 @@ import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
-import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart';
-import 'package:zephyr/page/comic_info/models/all_info.dart';
+import 'package:zephyr/page/comic_info/comic_info.dart';
+import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart'
+    show Series;
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/router/router.gr.dart';
@@ -17,7 +18,7 @@ class JumpChapter {
   bool havePrev;
   int currentChapterIndex;
   From from;
-  AllInfo? allInfo;
+  List<UnifiedComicChapterRef> chapters;
   int order;
   int? sort;
   List<Series> seriesList;
@@ -31,7 +32,7 @@ class JumpChapter {
     required this.havePrev,
     required this.currentChapterIndex,
     required this.from,
-    required this.allInfo,
+    required this.chapters,
     required this.order,
     required this.sort,
     required this.comicInfo,
@@ -44,14 +45,12 @@ class JumpChapter {
   void jumpToChapter(BuildContext context, bool isPrev) {
     final router = AutoRouter.of(context);
     if (from == From.bika) {
-      final index = allInfo!.eps.indexOf(
-        allInfo!.eps.firstWhere((ep) => ep.order == order),
-      );
+      final index = chapters.indexWhere((chapter) => chapter.routeOrder == order);
       logger.d(index);
       if (isPrev) {
-        order = allInfo!.eps[index - 1].order;
+        order = chapters[index - 1].routeOrder;
       } else {
-        order = allInfo!.eps[index + 1].order;
+        order = chapters[index + 1].routeOrder;
       }
     } else {
       if (sort != null) {
@@ -90,10 +89,7 @@ class JumpChapter {
         type == ComicEntryType.download ||
         type == ComicEntryType.historyAndDownload;
 
-    AllInfo? allInfo;
-    if (from == From.bika) {
-      allInfo = comicInfo as AllInfo;
-    }
+    final chapters = resolveUnifiedComicChapters(comicInfo, from);
 
     var tempType = type;
     comicId = comicId;
@@ -118,10 +114,10 @@ class JumpChapter {
           havePrev = false;
           haveNext = false;
         } else {
-          if (allInfo!.eps.first.order == order) {
+          if (chapters.isNotEmpty && chapters.first.routeOrder == order) {
             havePrev = false;
           }
-          if (allInfo.eps.last.order == order) {
+          if (chapters.isNotEmpty && chapters.last.routeOrder == order) {
             haveNext = false;
           }
         }
@@ -138,7 +134,15 @@ class JumpChapter {
     List<Series> seriesList = [];
     int sort = 0;
     if (from == From.jm) {
-      seriesList = (comicInfo as JmComicInfoJson).series;
+      seriesList = chapters
+          .map(
+            (chapter) => Series(
+              id: chapter.id,
+              name: chapter.name,
+              sort: chapter.sort.toString(),
+            ),
+          )
+          .toList();
       if (isDownload) {
         final epsIds = objectbox.jmDownloadBox
             .query(JmDownload_.comicId.equals(comicId))
@@ -174,7 +178,7 @@ class JumpChapter {
       havePrev: havePrev,
       currentChapterIndex: order,
       from: from,
-      allInfo: allInfo,
+      chapters: chapters,
       order: order,
       sort: sort,
       comicInfo: comicInfo,

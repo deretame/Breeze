@@ -4,9 +4,10 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/network/http/jm/http_request.dart' as jm;
 import 'package:zephyr/page/bookshelf/json/jm_cloud_favorite/jm_cloud_favorite_json.dart';
-import 'package:zephyr/page/comic_info/comic_info.dart';
-import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
+import 'package:zephyr/page/download/models/unified_comic_download.dart';
+import 'package:zephyr/page/download/view/download.dart';
+import 'package:zephyr/page/jm/jm_download/view/view.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -94,11 +95,10 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
                       commonDialog(context, '禁止评论', '该漫画禁止评论');
                     }
                   } else {
-                    var temp = comicInfo as JmComicInfoJson;
                     context.pushRoute(
                       JmCommentsRoute(
-                        comicId: temp.id.toString(),
-                        comicTitle: temp.name,
+                        comicId: normalComicInfo.id.toString(),
+                        comicTitle: normalComicInfo.title,
                       ),
                     );
                   }
@@ -129,17 +129,19 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
             children: <Widget>[
               GestureDetector(
                 onTap: () {
+                  final info = resolveUnifiedDownloadInfo(comicInfo, widget.from);
                   if (widget.from == From.bika) {
-                    var temp = comicInfo as AllInfo;
-                    context.pushRoute(
-                      DownloadRoute(
-                        comicInfo: temp.comicInfo,
-                        epsInfo: temp.eps,
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => DownloadPage(downloadInfo: info),
                       ),
                     );
                   } else {
-                    var temp = comicInfo as JmComicInfoJson;
-                    context.pushRoute(JmDownloadRoute(jmComicInfoJson: temp));
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => JmDownloadPage(downloadInfo: info),
+                      ),
+                    );
                   }
                 },
                 child: const Icon(Icons.cloud_download_outlined, size: 24.0),
@@ -241,7 +243,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         showInfoToast("$text中...");
         await handleCollectLogic(
           context,
-          comicInfo as JmComicInfoJson,
+          normalComicInfo.id.toString(),
           isCollected,
         );
         return;
@@ -292,8 +294,8 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
     }
   }
 
-  Future<String> jmCollect(JmComicInfoJson comicInfo) async {
-    final data = await jm.favorite(comicInfo.id.toString());
+  Future<String> jmCollect(String comicId) async {
+    final data = await jm.favorite(comicId);
     if (mounted) {
       setState(() => isCollected = !isCollected);
     }
@@ -310,11 +312,11 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
   }
 
   Future<String> addFolder(
-    JmComicInfoJson comicInfo,
+    String comicId,
     FolderList folderList,
   ) async {
     final data = await jm.favoriteMoveFolder(
-      comicInfo.id.toString(),
+      comicId,
       folderList.fid.toString(),
       folderList.name,
     );
@@ -323,14 +325,14 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
 
   Future<void> handleCollectLogic(
     BuildContext context,
-    JmComicInfoJson comicInfo,
+    String comicId,
     bool currentStatus,
   ) async {
     // 1. 如果已经收藏，执行“取消收藏”
     if (currentStatus) {
       final msg = await _safeExecute(
         context,
-        () => jmCollect(comicInfo),
+        () => jmCollect(comicId),
         title: "取消收藏",
       );
       if (msg != null) {
@@ -344,7 +346,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
     List<FolderList>? folders;
 
     final collectFuture =
-        _safeExecute(context, () => jmCollect(comicInfo), title: "收藏操作").then((
+        _safeExecute(context, () => jmCollect(comicId), title: "收藏操作").then((
           val,
         ) {
           collectMsg = val;
@@ -369,7 +371,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         // 4. 执行移动到特定收藏夹
         final moveMsg = await _safeExecute(
           context,
-          () => addFolder(comicInfo, selectedFolder),
+          () => addFolder(comicId, selectedFolder),
           title: "移动到收藏夹",
         );
 

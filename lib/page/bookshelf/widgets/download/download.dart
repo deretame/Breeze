@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/model/unified_comic_list_item.dart';
+import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 
 import '../../../../config/global/global.dart';
@@ -13,7 +15,6 @@ import '../../../../object_box/model.dart';
 import '../../../../type/enum.dart';
 import '../../../../widgets/comic_entry/comic_entry.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
-import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 import '../../../../widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 
 class DownloadPage extends StatelessWidget {
@@ -153,14 +154,13 @@ class _DownloadPageState extends State<_DownloadPage>
 
     final globalState = context.watch<GlobalSettingCubit>().state;
     final bikaState = context.watch<BikaSettingCubit>().state;
-    final comicChoice = globalState.comicChoice;
     final isBrevity = bikaState.brevity;
 
-    if (comicChoice != 1 || isBrevity) {
-      return _buildBrevityList(state.comics, comicChoice);
+    if (isBrevity) {
+      return _buildBrevityList(state.comics, globalState.comicChoice);
     }
 
-    return _buildDetailedList(state.comics);
+    return _buildDetailedList(state.comics, globalState.comicChoice);
   }
 
   Widget _buildEmptyState() {
@@ -181,7 +181,9 @@ class _DownloadPageState extends State<_DownloadPage>
   }
 
   Widget _buildBrevityList(List<dynamic> comics, int comicChoice) {
-    final entryInfoList = _toSimplifyEntries(comics, comicChoice);
+    final entryInfoList = mapToUnifiedComicSimplifyEntryInfoList(
+      _toUnifiedComics(comics, comicChoice),
+    );
 
     return CustomScrollView(
       controller: _scrollController,
@@ -197,23 +199,24 @@ class _DownloadPageState extends State<_DownloadPage>
     );
   }
 
-  Widget _buildDetailedList(List<dynamic> comics) {
+  Widget _buildDetailedList(List<dynamic> comics, int comicChoice) {
+    final items = _toUnifiedComics(comics, comicChoice);
     return ListView.builder(
       controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
-      itemCount: comics.length + 1,
+      itemCount: items.length + 1,
       itemBuilder: (context, index) {
-        if (index == comics.length) {
+        if (index == items.length) {
           return _buildFooter();
         }
-        return _buildDetailItem(comics[index] as BikaComicDownload);
+        return _buildDetailItem(items[index]);
       },
     );
   }
 
-  Widget _buildDetailItem(BikaComicDownload comic) {
+  Widget _buildDetailItem(UnifiedComicListItem comic) {
     return ComicEntryWidget(
-      comicEntryInfo: downloadConvertToComicEntryInfo(comic),
+      comic: comic,
       type: ComicEntryType.download,
       refresh: () => _refresh(goToTop: true),
     );
@@ -239,24 +242,17 @@ class _DownloadPageState extends State<_DownloadPage>
     );
   }
 
-  List<ComicSimplifyEntryInfo> _toSimplifyEntries(
+  List<UnifiedComicListItem> _toUnifiedComics(
     List<dynamic> comics,
     int comicChoice,
   ) {
     if (comicChoice == 1) {
-      return mapToBikaComicSimplifyEntryInfoList(
-        comics.cast<BikaComicDownload>(),
-        title: (element) => element.title,
-        id: (element) => element.comicId,
-        fileServer: (element) => element.thumbFileServer,
-        path: (element) => element.thumbPath,
-      );
+      return comics
+          .cast<BikaComicDownload>()
+          .map(unifiedComicFromBikaDownload)
+          .toList();
     } else {
-      return mapToJmComicSimplifyEntryInfoList(
-        comics.cast<JmDownload>(),
-        title: (element) => element.name,
-        id: (element) => element.comicId.toString(),
-      );
+      return comics.cast<JmDownload>().map(unifiedComicFromJmDownload).toList();
     }
   }
 

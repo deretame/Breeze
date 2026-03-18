@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/debouncer.dart';
@@ -37,18 +38,9 @@ class RecommendWidget extends StatelessWidget {
     if (comicList.isEmpty) {
       return SizedBox.shrink();
     }
-    final comicInfoList = comicList.map((e) {
-      if (from == From.bika) {
-        return createBikaComicSimplifyEntryInfo(
-          title: e.title,
-          id: e.id,
-          fileServer: e.cover.url,
-          path: e.cover.path,
-        );
-      } else {
-        return createJmComicSimplifyEntryInfo(title: e.title, id: e.id);
-      }
-    }).toList();
+    final comicInfoList = mapToUnifiedComicSimplifyEntryInfoList(
+      comicList.map((e) => unifiedComicFromRecommend(e, from: from)),
+    );
 
     Widget scrollView = ComicFixedSizeHorizontalList(
       entries: comicInfoList,

@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart';
-import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 class EpsWidget extends StatefulWidget {
-  final Series series;
+  final UnifiedComicDownloadChapter chapter;
   final bool downloaded;
   final Function(int order) onUpdateDownloadInfo; // 用来更新观看按钮信息
 
   const EpsWidget({
     super.key,
-    required this.series,
+    required this.chapter,
     required this.downloaded,
     required this.onUpdateDownloadInfo,
   });
@@ -46,7 +45,7 @@ class _EpsWidgetState extends State<EpsWidget> {
         setState(() {
           _isChecked = !_isChecked; // 切换复选框状态
         });
-        widget.onUpdateDownloadInfo(widget.series.id.let(toInt));
+        widget.onUpdateDownloadInfo(widget.chapter.order);
       },
       child: Container(
         width: double.infinity,
@@ -72,7 +71,7 @@ class _EpsWidgetState extends State<EpsWidget> {
                 setState(() {
                   _isChecked = value ?? false; // 更新复选框状态
                 });
-                widget.onUpdateDownloadInfo(widget.series.id.let(toInt));
+                widget.onUpdateDownloadInfo(widget.chapter.order);
               },
             ),
             SizedBox(width: 12),
@@ -81,7 +80,7 @@ class _EpsWidgetState extends State<EpsWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    widget.series.name,
+                    widget.chapter.title,
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 4),

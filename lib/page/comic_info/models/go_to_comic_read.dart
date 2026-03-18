@@ -4,12 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
-import 'package:zephyr/page/comic_info/comic_info.dart';
-import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart';
 import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/router/router.gr.dart' show ComicReadRoute;
+
+import 'read_launch_adapter.dart';
 
 void goToComicRead(
   BuildContext context,
@@ -31,7 +31,19 @@ void goToBikaRead(
   ComicEntryType type,
   dynamic allInfo,
 ) {
-  var info = allInfo as AllInfo;
+  final isDownload =
+      type == ComicEntryType.download ||
+      type == ComicEntryType.historyAndDownload;
+  final epsCount = resolveReadEpsCount(
+    allInfo,
+    From.bika,
+    isDownload: isDownload,
+  );
+  final resolvedComicId = resolveReadComicId(
+    allInfo,
+    From.bika,
+    isDownload: isDownload,
+  );
   final stringSelectDate = context.read<StringSelectCubit>().state;
   if (stringSelectDate.isNotEmpty) {
     var comicHistory = objectbox.bikaHistoryBox
@@ -46,7 +58,7 @@ void goToBikaRead(
             ? ComicEntryType.historyAndDownload
             : ComicEntryType.history,
         order: comicHistory!.order,
-        epsNumber: info.comicInfo.epsCount,
+        epsNumber: epsCount,
         from: From.bika,
         stringSelectCubit: context.read<StringSelectCubit>(),
       ),
@@ -55,10 +67,10 @@ void goToBikaRead(
     context.pushRoute(
       ComicReadRoute(
         comicInfo: allInfo,
-        comicId: info.comicInfo.id,
+        comicId: resolvedComicId,
         type: type,
         order: 1,
-        epsNumber: info.comicInfo.epsCount,
+        epsNumber: epsCount,
         from: From.bika,
         stringSelectCubit: context.read<StringSelectCubit>(),
       ),
@@ -73,7 +85,6 @@ void goToJmRead(
   dynamic allInfo,
 ) {
   final String storeDate = context.read<StringSelectCubit>().state;
-  final comicInfo = allInfo as JmComicInfoJson;
 
   String comicIdVal;
   int orderVal;
@@ -100,7 +111,11 @@ void goToJmRead(
     }
   } else {
     comicIdVal = comicId;
-    epsNumberVal = comicInfo.series.length;
+    epsNumberVal = resolveReadEpsCount(
+      allInfo,
+      From.jm,
+      isDownload: false,
+    );
     typeVal = storeDate.isNotEmpty
         ? ComicEntryType.history
         : ComicEntryType.normal;
@@ -120,7 +135,7 @@ void goToJmRead(
       epsNumber: epsNumberVal,
       from: fromVal,
       type: typeVal,
-      comicInfo: comicInfo,
+      comicInfo: allInfo,
       stringSelectCubit: context.read<StringSelectCubit>(),
     ),
   );

@@ -58,19 +58,21 @@ class JmRankingBloc extends Bloc<JmRankingEvent, JmRankingState> {
       );
       final envelope = UnifiedPluginEnvelope.fromMap(pluginResponse);
       final data = asMap(envelope.data);
+      final items = asList(data['items']).map((item) => asMap(item)).toList();
       final raw = replaceNestedNullList(asMap(data['raw']));
-      final content = asList(raw['content'])
-          .map((item) => asMap(item))
-          .toList();
+      final content = asList(
+        raw['content'],
+      ).map((item) => asMap(item)).toList();
+      final nextItems = items.isNotEmpty ? items : content;
 
       list = [
         ...list,
-        ...content.map((item) => Map<String, dynamic>.from(item)),
+        ...nextItems.map((item) => Map<String, dynamic>.from(item)),
       ];
       total = toInt(raw['total']);
       hasReachedMax =
           data['hasReachedMax'] == true ||
-          content.isEmpty ||
+          nextItems.isEmpty ||
           (total > 0 && list.length >= total);
 
       emit(

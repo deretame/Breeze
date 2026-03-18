@@ -8,8 +8,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
-import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart'
-    show JmComicInfoJson;
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -116,7 +114,7 @@ class _ComicInfoState extends State<_ComicInfo>
                   _handleExport();
                   break;
                 case MenuOption.collect:
-                  collectJmComicToLocal(comicInfoDyn as JmComicInfoJson);
+                  collectJmComicToLocal(comicInfoDyn);
                   break;
                 case MenuOption.reverseOrder:
                   _toggleOrder();

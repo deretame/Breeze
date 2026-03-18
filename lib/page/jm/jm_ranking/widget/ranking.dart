@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
 import 'package:zephyr/page/jm/jm_ranking/bloc/jm_ranking_bloc.dart';
 import 'package:zephyr/page/search_result/widgets/bottom_loader.dart';
 import 'package:zephyr/type/enum.dart';
@@ -91,15 +92,7 @@ class _RankingWidgetState extends State<_RankingWidget>
     }
 
     final list = mapToUnifiedComicSimplifyEntryInfoList(
-      state.list.map((item) {
-        final map = Map<String, dynamic>.from(item);
-        return {
-          'source': 'jm',
-          'id': map['id']?.toString() ?? '',
-          'title': map['name']?.toString() ?? '',
-          'raw': map,
-        };
-      }).toList(),
+      state.list.map(unifiedComicFromMap),
     );
 
     return CustomScrollView(

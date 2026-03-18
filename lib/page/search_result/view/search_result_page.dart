@@ -3,14 +3,11 @@ import 'package:flutter/material.dart' hide Thumb;
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
-import 'package:zephyr/page/search_result/models/comic_number.dart';
 import 'package:zephyr/page/search_result/search_result.dart';
 import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/widgets/comic_entry/comic_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 
@@ -60,7 +57,6 @@ class _SearchResultPageState extends State<_SearchResultPage>
     with SingleTickerProviderStateMixin {
   late SearchEvent searchEvent;
   final _scrollController = ScrollController();
-  late List<ComicNumber> comics;
   int pagesCount = 0;
   late AnimationController _animationController;
   late Animation<Offset> _slideAnimation;
@@ -219,13 +215,10 @@ class _SearchResultPageState extends State<_SearchResultPage>
   );
 
   Widget _comicList(SearchState state) {
-    final bool isBrevity =
-        context.watch<BikaSettingCubit>().state.brevity ||
-        context.read<SearchCubit>().state.from == From.jm;
-    return isBrevity ? _brevityList(state) : _detailedList(state);
+    return _genericList(state);
   }
 
-  Widget _brevityList(SearchState state) {
+  Widget _genericList(SearchState state) {
     if (state.status == SearchStatus.success) {
       if (state.comics.length < 30 && !state.hasReachedMax) {
         _fetchSearchResult();
@@ -237,18 +230,9 @@ class _SearchResultPageState extends State<_SearchResultPage>
       }
     }
 
-    final list = state.comics.map((element) {
-      return element.comicInfo.when(
-        bika: (data) => createBikaComicSimplifyEntryInfo(
-          title: data.title,
-          id: data.id,
-          fileServer: data.thumb.fileServer,
-          path: data.thumb.path,
-        ),
-        jm: (data) =>
-            createJmComicSimplifyEntryInfo(title: data.name, id: data.id),
-      );
-    }).toList();
+    final list = mapToUnifiedComicSimplifyEntryInfoList(
+      state.comics.map((item) => item.comic),
+    );
 
     return CustomScrollView(
       controller: _scrollController,
@@ -284,86 +268,6 @@ class _SearchResultPageState extends State<_SearchResultPage>
           ),
       ],
     );
-  }
-
-  Widget _detailedList(SearchState state) {
-    comics = state.comics;
-
-    if (state.status == SearchStatus.success) {
-      if (state.comics.length < 8 && !state.hasReachedMax) {
-        _fetchSearchResult();
-      }
-      if (state.comics.isEmpty && state.hasReachedMax) {
-        return const Center(
-          child: Text('啥都没有', style: TextStyle(fontSize: 20.0)),
-        );
-      }
-    }
-
-    final itemCount = _calculateItemCount(state, state.comics.length);
-
-    return ListView.builder(
-      itemBuilder: (context, index) => _buildListItem(context, index, state),
-      itemCount: itemCount,
-      controller: _scrollController,
-    );
-  }
-
-  // 公共方法：计算item数量
-  int _calculateItemCount(SearchState state, int dataLength) {
-    var count = dataLength + 1;
-    if (!state.hasReachedMax) count--;
-    if (state.status == SearchStatus.loadingMore ||
-        state.status == SearchStatus.getMoreFailure) {
-      count++;
-    }
-    return count;
-  }
-
-  // 构建列表项（详细模式）
-  Widget _buildListItem(BuildContext context, int index, SearchState state) {
-    if (index >= state.comics.length) {
-      return _buildListFooter(state);
-    }
-    final data = state.comics[index].comicInfo;
-    if (data is Bika) {
-      return ComicEntryWidget(comicEntryInfo: docToComicEntryInfo(data.comics));
-    } else {
-      return const SizedBox.shrink();
-    }
-  }
-
-  // 构建列表底部
-  Widget _buildListFooter(SearchState state) {
-    switch (state.status) {
-      case SearchStatus.success:
-        if (state.hasReachedMax) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(30.0),
-              child: Text('没有更多了', style: TextStyle(fontSize: 20.0)),
-            ),
-          );
-        }
-        break;
-      case SearchStatus.loadingMore:
-        return const BottomLoader();
-      case SearchStatus.getMoreFailure:
-        return Center(
-          child: Column(
-            children: [
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () => _refresh(SearchStatus.loadingMore),
-                child: const Text('点击重试'),
-              ),
-            ],
-          ),
-        );
-      default:
-        return const SizedBox.shrink();
-    }
-    return const SizedBox.shrink();
   }
 
   void _refresh(SearchStatus status) {

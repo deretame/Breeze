@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
 import 'package:zephyr/page/jm/jm_week_ranking/bloc/week_ranking_bloc.dart';
 import 'package:zephyr/page/search_result/widgets/bottom_loader.dart';
 import 'package:zephyr/type/enum.dart';
@@ -90,10 +91,8 @@ class _RankingWidgetState extends State<_RankingWidget>
       );
     }
 
-    final list = mapToJmComicSimplifyEntryInfoList(
-      state.list,
-      title: (item) => item.name,
-      id: (item) => item.id,
+    final list = mapToUnifiedComicSimplifyEntryInfoList(
+      state.list.map(unifiedComicFromJmWeekRanking),
     );
 
     return CustomScrollView(

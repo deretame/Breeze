@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:zephyr/cubit/string_select.dart';
-import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart';
-import 'package:zephyr/page/comic_info/models/all_info.dart';
-import 'package:zephyr/page/comic_read/comic_read.dart'
-    show comicToBikaComicHistory;
 import 'package:zephyr/page/comic_read/method/history_writer.dart';
 import 'package:zephyr/page/comic_read/method/type_change.dart'
-    show jmToJmHistory;
+    show
+        bikaHistoryFromAny,
+        bikaNormalComicInfoFromAny,
+        isJmSeriesEmptyFromAny,
+        jmHistoryFromAny;
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 
 import '../../../main.dart'; // 引用 objectbox
@@ -49,25 +49,23 @@ class ReaderHistoryManager {
   /// 初始化：查询或创建历史记录对象
   Future<void> init() async {
     if (from == From.bika) {
-      final allInfo = comicInfo as AllInfo;
       _bikaHistory = objectbox.bikaHistoryBox
           .query(BikaComicHistory_.comicId.equals(comicId))
           .build()
           .findFirst();
 
       if (_bikaHistory == null) {
-        _bikaHistory = comicToBikaComicHistory(allInfo.comicInfo);
+        _bikaHistory = bikaHistoryFromAny(comicInfo);
         objectbox.bikaHistoryBox.put(_bikaHistory!);
       }
     } else if (from == From.jm) {
-      final jmComic = comicInfo as JmComicInfoJson;
       _jmHistory = objectbox.jmHistoryBox
           .query(JmHistory_.comicId.equals(comicId))
           .build()
           .findFirst();
 
       if (_jmHistory == null) {
-        _jmHistory = jmToJmHistory(jmComic);
+        _jmHistory = jmHistoryFromAny(comicInfo);
         objectbox.jmHistoryBox.put(_jmHistory!);
       }
     }
@@ -118,7 +116,7 @@ class ReaderHistoryManager {
     // 更新左下角文字 (StringSelectCubit)
     if (!stringSelectCubit.isClosed) {
       final isJmAndSeriesEmpty =
-          from == From.jm && (comicInfo as JmComicInfoJson).series.isEmpty;
+          from == From.jm && isJmSeriesEmptyFromAny(comicInfo);
       final historyPrefix = isJmAndSeriesEmpty
           ? '历史：第1话'
           : '历史：${epInfo.epName}';
@@ -132,11 +130,11 @@ class ReaderHistoryManager {
     _isInserting = true;
     try {
       if (from == From.bika && _bikaHistory != null) {
-        final temp = (comicInfo as AllInfo).comicInfo;
+        final temp = bikaNormalComicInfoFromAny(comicInfo);
         _bikaHistory!
-          ..thumbFileServer = temp.thumb.fileServer
-          ..thumbPath = temp.thumb.path
-          ..thumbOriginalName = temp.thumb.originalName
+          ..thumbFileServer = temp.cover.url
+          ..thumbPath = temp.cover.path
+          ..thumbOriginalName = temp.cover.name
           ..history = DateTime.now().toUtc()
           ..order = order
           ..epPageCount = pageIndex
@@ -145,8 +143,7 @@ class ReaderHistoryManager {
           ..deleted = false;
         historyWriter.updateBikaHistory(_bikaHistory!);
       } else if (from == From.jm && _jmHistory != null) {
-        final isJmAndSeriesEmpty =
-            (comicInfo as JmComicInfoJson).series.isEmpty;
+        final isJmAndSeriesEmpty = isJmSeriesEmptyFromAny(comicInfo);
         _jmHistory!
           ..history = DateTime.now().toUtc()
           ..order = order

@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../comic_info/json/bika/eps/eps.dart';
-
 class EpsWidget extends StatefulWidget {
-  final Doc doc;
+  final UnifiedComicDownloadChapter chapter;
   final bool downloaded;
   final Function(int order) onUpdateDownloadInfo; // 用来更新观看按钮信息
 
   const EpsWidget({
     super.key,
-    required this.doc,
+    required this.chapter,
     required this.downloaded,
     required this.onUpdateDownloadInfo,
   });
@@ -41,7 +40,7 @@ class _EpsWidgetState extends State<EpsWidget> {
     return InkWell(
       onTap: () {
         setState(() => _isChecked = !_isChecked);
-        widget.onUpdateDownloadInfo(widget.doc.order);
+        widget.onUpdateDownloadInfo(widget.chapter.order);
       },
       child: Container(
         width: double.infinity,
@@ -64,7 +63,7 @@ class _EpsWidgetState extends State<EpsWidget> {
               value: _isChecked,
               onChanged: (bool? value) {
                 setState(() => _isChecked = value ?? false);
-                widget.onUpdateDownloadInfo(widget.doc.order);
+                widget.onUpdateDownloadInfo(widget.chapter.order);
               },
             ),
             SizedBox(width: 12),
@@ -73,7 +72,7 @@ class _EpsWidgetState extends State<EpsWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    widget.doc.title,
+                    widget.chapter.title,
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],

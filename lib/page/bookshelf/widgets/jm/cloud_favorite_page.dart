@@ -7,6 +7,7 @@ import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/cubit/list_select.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
 import 'package:zephyr/page/bookshelf/bloc/jm/cloud_favourite/bloc/jm_cloud_favourite_bloc.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/page/bookshelf/json/jm_cloud_favorite/jm_cloud_favorite_json.dart';
@@ -14,7 +15,6 @@ import 'package:zephyr/page/search_result/widgets/bottom_loader.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
-import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 
 class JmCloudFavoritePage extends StatelessWidget {
@@ -154,7 +154,9 @@ class _JmCloudFavoritePageState extends State<_JmCloudFavoritePage>
 
   // 构建简洁模式列表
   Widget _buildBrevityList(JmCloudFavouriteState state) {
-    final list = _toSimplifyEntries(state.list);
+    final list = mapToUnifiedComicSimplifyEntryInfoList(
+      state.list.map(unifiedComicFromJmCloudFavorite),
+    );
 
     return RefreshIndicator(
       onRefresh: () async => _refresh(goTop: false),
@@ -199,14 +201,6 @@ class _JmCloudFavoritePageState extends State<_JmCloudFavoritePage>
             ),
         ],
       ),
-    );
-  }
-
-  List<ComicSimplifyEntryInfo> _toSimplifyEntries(List<ListElement> comics) {
-    return mapToJmComicSimplifyEntryInfoList(
-      comics,
-      title: (element) => element.name,
-      id: (element) => element.id.toString(),
     );
   }
 

@@ -1,7 +1,11 @@
+import 'package:zephyr/page/comic_info/json/bika/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart';
+import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
+import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
+    as normal;
+import 'package:zephyr/page/comic_info/models/all_info.dart';
 
 import '../../../object_box/model.dart';
-import '../../comic_info/json/bika/comic_info/comic_info.dart';
 
 BikaComicHistory comicToBikaComicHistory(Comic comic) {
   String creatorCharactersString = "";
@@ -95,5 +99,104 @@ JmHistory jmToJmHistory(JmComicInfoJson jmComic) {
     epId: "",
     deleted: false,
     history: DateTime.now().toUtc(),
+  );
+}
+
+BikaComicHistory pluginDetailToBikaHistory(PluginComicDetailSource source) {
+  return comicToBikaComicHistory(Comic.fromJson(source.rawComicInfo));
+}
+
+JmHistory pluginDetailToJmHistory(PluginComicDetailSource source) {
+  final raw = source.rawComicInfo;
+  return JmHistory(
+    comicId: source.comicId,
+    name: raw['name']?.toString() ?? source.normalInfo.comicInfo.title,
+    addtime: raw['addtime']?.toString() ?? '0',
+    description:
+        raw['description']?.toString() ?? source.normalInfo.comicInfo.description,
+    totalViews: raw['total_views']?.toString() ?? '0',
+    likes: raw['likes']?.toString() ?? '0',
+    seriesId: raw['series_id']?.toString() ?? '',
+    commentTotal: raw['comment_total']?.toString() ?? '0',
+    author: List<String>.from(raw['author'] as List? ?? const <String>[]),
+    tags: List<String>.from(raw['tags'] as List? ?? const <String>[]),
+    works: List<String>.from(raw['works'] as List? ?? const <String>[]),
+    actors: List<String>.from(raw['actors'] as List? ?? const <String>[]),
+    liked: raw['liked'] == true,
+    isFavorite: raw['is_favorite'] == true,
+    isAids: raw['is_aids'] == true,
+    price: raw['price']?.toString() ?? '0',
+    purchased: raw['purchased']?.toString() ?? '0',
+    order: 0,
+    epTitle: "",
+    epPageCount: 0,
+    epId: "",
+    deleted: false,
+    history: DateTime.now().toUtc(),
+  );
+}
+
+BikaComicHistory bikaHistoryFromAny(dynamic comicInfo) {
+  if (comicInfo is PluginComicDetailSource) {
+    return pluginDetailToBikaHistory(comicInfo);
+  }
+  return comicToBikaComicHistory((comicInfo as AllInfo).comicInfo);
+}
+
+JmHistory jmHistoryFromAny(dynamic comicInfo) {
+  if (comicInfo is PluginComicDetailSource) {
+    return pluginDetailToJmHistory(comicInfo);
+  }
+  return jmToJmHistory(comicInfo as JmComicInfoJson);
+}
+
+bool isJmSeriesEmptyFromAny(dynamic comicInfo) {
+  if (comicInfo is PluginComicDetailSource) {
+    return comicInfo.isJmSeriesEmpty;
+  }
+  return (comicInfo as JmComicInfoJson).series.isEmpty;
+}
+
+normal.ComicInfo bikaNormalComicInfoFromAny(dynamic comicInfo) {
+  if (comicInfo is PluginComicDetailSource) {
+    return comicInfo.normalInfo.comicInfo;
+  }
+
+  final legacy = (comicInfo as AllInfo).comicInfo;
+  return normal.ComicInfo(
+    id: legacy.id,
+    creator: normal.Creator(
+      id: legacy.creator.id,
+      name: legacy.creator.name,
+      avatar: normal.Cover(
+        url: legacy.creator.avatar.fileServer,
+        path: legacy.creator.avatar.path,
+        name: legacy.creator.avatar.originalName,
+      ),
+    ),
+    title: legacy.title,
+    description: legacy.description,
+    cover: normal.Cover(
+      url: legacy.thumb.fileServer,
+      path: legacy.thumb.path,
+      name: legacy.thumb.originalName,
+    ),
+    categories: legacy.categories,
+    tags: legacy.tags,
+    author: legacy.author.isEmpty ? const <String>[] : [legacy.author],
+    works: const <String>[],
+    actors: const <String>[],
+    chineseTeam: legacy.chineseTeam.isEmpty
+        ? const <String>[]
+        : [legacy.chineseTeam],
+    pagesCount: legacy.pagesCount,
+    epsCount: legacy.epsCount,
+    updatedAt: legacy.updatedAt,
+    allowComment: legacy.allowComment,
+    totalViews: legacy.totalViews,
+    totalLikes: legacy.totalLikes,
+    totalComments: legacy.totalComments,
+    isFavourite: legacy.isFavourite,
+    isLiked: legacy.isLiked,
   );
 }

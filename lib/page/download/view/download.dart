@@ -138,7 +138,6 @@ class _DownloadPageState extends State<DownloadPage> {
       comicId: downloadInfo.comicId,
       comicName: downloadInfo.title,
       bikaInfo: BikaInfo(
-        authorization: settings.authorization,
         proxy: settings.proxy.toString(),
       ),
       selectedChapters: selectedChapters,

@@ -3,8 +3,9 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:encrypter_plus/encrypter_plus.dart';
-import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/main.dart';
+
+const _kJmSecret = '185Hcomic3PAPP7R';
 
 class JmResponseCodec {
   static dynamic decode(dynamic data, {String? ts}) {
@@ -149,7 +150,7 @@ class JmResponseCodec {
 
   static dynamic _decodeRespData(String data, String ts) {
     final dataB64 = base64.decode(data);
-    final key = md5.convert(utf8.encode('$ts${JmConfig.kJmSecret}')).toString();
+    final key = md5.convert(utf8.encode('$ts$_kJmSecret')).toString();
     final encrypter = Encrypter(AES(Key(utf8.encode(key)), mode: AESMode.ecb));
     final dataAes = encrypter.decryptBytes(Encrypted(dataB64));
 

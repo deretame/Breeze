@@ -13,6 +13,7 @@ import 'package:zephyr/page/jm/jm_promote_list/json/jm_promote_list_json.dart'
 import 'package:zephyr/page/jm/jm_week_ranking/json/jm_week_ranking_json.dart'
     as jm_week;
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/jm_url_set.dart';
 
 UnifiedComicListItem unifiedComicFromPluginSearchItem(
   UnifiedPluginSearchItem item,
@@ -64,7 +65,7 @@ UnifiedComicListItem unifiedComicFromPluginSearchItem(
   final category = asMap(raw['category']);
   final categorySub = asMap(raw['category_sub']);
   final id = raw['id']?.toString() ?? item.id;
-  final imageUrl = raw['image']?.toString() ?? '';
+  final imageUrl = _resolveJmImageUrl(raw['image']?.toString() ?? '', id);
   return UnifiedComicListItem(
     source: 'jm',
     id: id,
@@ -76,7 +77,7 @@ UnifiedComicListItem unifiedComicFromPluginSearchItem(
     updatedAt: raw['update_at']?.toString() ?? '',
     cover: UnifiedComicCover(
       id: id,
-      url: imageUrl.isNotEmpty ? imageUrl : getJmCoverUrl(id),
+      url: imageUrl,
       extra: {'path': '$id.jpg'},
     ),
     metadata: [
@@ -97,7 +98,7 @@ UnifiedComicListItem unifiedComicFromBikaFavoriteDoc(favorite_json.Doc doc) {
   final coverUrl = buildImageUrl(
     doc.thumb.fileServer,
     doc.thumb.path,
-    PictureType.cover,
+    PictureType.favourite,
     'original',
     3,
   );
@@ -462,7 +463,7 @@ UnifiedComicListItem _buildJmComicItem({
   required Map<String, dynamic> raw,
 }) {
   final finalImageUrl = imageUrl.trim().isNotEmpty
-      ? imageUrl
+      ? _resolveJmImageUrl(imageUrl, id)
       : getJmCoverUrl(id);
   return UnifiedComicListItem(
     source: 'jm',
@@ -488,4 +489,31 @@ UnifiedComicListItem _buildJmComicItem({
     raw: raw,
     extra: {if (description.trim().isNotEmpty) 'description': description},
   );
+}
+
+String _resolveJmImageUrl(String imageUrl, String id) {
+  final normalized = imageUrl.trim();
+  if (normalized.isEmpty) {
+    return getJmCoverUrl(id);
+  }
+
+  final uri = Uri.tryParse(normalized);
+  if (uri != null && uri.hasScheme) {
+    return normalized;
+  }
+
+  final base = currentJmImageBaseUrl.trim();
+  if (base.isEmpty) {
+    return normalized;
+  }
+
+  if (normalized.startsWith('/')) {
+    return '$base$normalized';
+  }
+
+  if (normalized.startsWith('media/')) {
+    return '$base/$normalized';
+  }
+
+  return normalized;
 }

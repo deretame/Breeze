@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/network/http/jm/jm_error_message.dart';
@@ -34,7 +33,6 @@ Future<dynamic> request(
       'formData': formData,
       'cache': cache,
       'useJwt': useJwt,
-      'jwtToken': JmConfig.jwt,
     }.let(jsonEncode);
 
     var raw = "";

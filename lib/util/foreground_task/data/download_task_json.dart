@@ -34,7 +34,6 @@ abstract class DownloadTaskJson with _$DownloadTaskJson {
 @freezed
 abstract class BikaInfo with _$BikaInfo {
   const factory BikaInfo({
-    required String authorization,
     required String proxy,
   }) = _BikaInfo;
 

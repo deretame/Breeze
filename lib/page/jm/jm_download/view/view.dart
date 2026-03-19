@@ -140,7 +140,7 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
       from: "jm",
       comicId: downloadInfo.comicId,
       comicName: downloadInfo.title,
-      bikaInfo: BikaInfo(authorization: "", proxy: ""),
+      bikaInfo: BikaInfo(proxy: ""),
       selectedChapters: selectedChapters,
       slowDownload: bikaCubit.state.slowDownload,
     );

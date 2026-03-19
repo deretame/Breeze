@@ -5,7 +5,6 @@ import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
@@ -14,6 +13,25 @@ import 'package:zephyr/util/direct_dio.dart';
 
 const _kQjsRuntimeCancelled = '__QJS_RUNTIME_CANCELLED__';
 const _kDownloadTaskCancelled = '__DOWNLOAD_TASK_CANCELLED__';
+const jmBaseUrls = [
+  'https://www.cdnsha.org',
+  'https://www.cdnbea.cc',
+  'https://www.cdnbea.net',
+  'https://www.cdn-mspjmapiproxy.xyz',
+];
+const jmImageBaseUrls = [
+  'https://cdn-msp12.jmdanjonproxy.xyz',
+  'https://cdn-msp.jmapiproxy1.cc',
+  'https://cdn-msp2.jmdanjonproxy.vip',
+  'https://cdn-msp.jmdanjonproxy.vip',
+  'https://cdn-msp.jmapiproxy1.cc',
+];
+
+int _jmBaseUrlIndex = 0;
+int _jmImageBaseUrlIndex = 0;
+
+String get currentJmBaseUrl => jmBaseUrls[_jmBaseUrlIndex];
+String get currentJmImageBaseUrl => jmImageBaseUrls[_jmImageBaseUrlIndex];
 
 Future<int> _getFastestUrlIndexByQjs(
   List<String> urls, {
@@ -76,22 +94,22 @@ bool _isQjsRuntimeCancelledError(Object error) {
 
 Future<void> setFastestUrlIndex({String qjsRuntimeName = 'jmComic'}) async {
   final index = await getFastestUrlIndex(
-    JmConfig.baseUrls,
+    jmBaseUrls,
     qjsRuntimeName: qjsRuntimeName,
   );
   logger.d('Fastest URL index: $index');
-  JmConfig.setBaseUrlIndex(index);
+  _jmBaseUrlIndex = index;
 }
 
 Future<void> setFastestImagesUrlIndex({
   String qjsRuntimeName = 'jmComic',
 }) async {
   final index = await getFastestUrlIndex(
-    JmConfig.imagesUrls,
+    jmImageBaseUrls,
     qjsRuntimeName: qjsRuntimeName,
   );
   logger.d('Fastest images URL index: $index');
-  JmConfig.setImagesUrlIndex(index);
+  _jmImageBaseUrlIndex = index;
 }
 
 Future<void> enableProxy() async {

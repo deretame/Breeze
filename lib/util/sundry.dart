@@ -26,7 +26,9 @@ String onSavePluginConfig(String name, String key, String value) {
           : <String, dynamic>{key: parsedValue};
       entity = PluginConfig(name: name, data: data);
     } else {
-      final data = Map<String, dynamic>.from(entity.data ?? <String, dynamic>{});
+      final data = Map<String, dynamic>.from(
+        entity.data ?? <String, dynamic>{},
+      );
       if (key.isNotEmpty) {
         data[key] = parsedValue;
       }
@@ -48,7 +50,9 @@ String onLoadPluginConfig(String name, String key, String fallback) {
         .findFirst();
 
     final data = Map<String, dynamic>.from(entity?.data ?? <String, dynamic>{});
-    final value = key.isEmpty ? data : (data[key] ?? _decodeMaybeJson(fallback));
+    final value = key.isEmpty
+        ? data
+        : (data[key] ?? _decodeMaybeJson(fallback));
 
     return '{"ok":true,"value":${jsonEncode(value)}}';
   });
@@ -57,18 +61,6 @@ String onLoadPluginConfig(String name, String key, String fallback) {
 dynamic _decodeMaybeJson(String value) {
   final text = value.trim();
   if (text.isEmpty) {
-    return value;
-  }
-
-  final startsLikeJson =
-      text.startsWith('{') ||
-      text.startsWith('[') ||
-      text == 'true' ||
-      text == 'false' ||
-      text == 'null' ||
-      num.tryParse(text) != null;
-
-  if (!startsLikeJson) {
     return value;
   }
 
@@ -94,6 +86,10 @@ Future<void> savePluginConfigValue(
   String key,
   dynamic value,
 ) async {
+  onSavePluginConfig(pluginName, key, jsonEncode(value));
+}
+
+void savePluginConfigValueSync(String pluginName, String key, dynamic value) {
   onSavePluginConfig(pluginName, key, jsonEncode(value));
 }
 

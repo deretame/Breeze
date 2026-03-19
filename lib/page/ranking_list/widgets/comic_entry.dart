@@ -20,25 +20,7 @@ class ComicEntryWidget extends StatefulWidget {
 }
 
 class _ComicEntryWidgetState extends State<ComicEntryWidget> {
-  String get type => widget.type;
-
-  late String _type;
-
   Comic get comic => widget.comic;
-
-  @override
-  initState() {
-    if (type == "H24") {
-      _type = "24小时观看量";
-    } else if (type == "D7") {
-      _type = "一周观看量";
-    } else if (type == "D30") {
-      _type = "一月观看量";
-    } else {
-      _type = "总观看量"; // 防止未匹配的情况
-    }
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,38 +119,15 @@ class _ComicEntryWidgetState extends State<ComicEntryWidget> {
                       ),
 
                       const SizedBox(height: 2),
-                      Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: 8.0,
-                        runSpacing: 4.0,
-                        children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.favorite,
-                                color: Colors.red,
-                                size: 20.0,
-                              ),
-                              const SizedBox(width: 4.0),
-                              Text(
-                                "$_type：${comic.leaderboardCount}",
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                            ],
+                      if (comic.finished)
+                        Text(
+                          "完结",
+                          style: TextStyle(
+                            color: materialColorScheme.tertiary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
                           ),
-
-                          if (comic.finished)
-                            Text(
-                              "完结",
-                              style: TextStyle(
-                                color: materialColorScheme.tertiary,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                        ],
-                      ),
+                        ),
                     ],
                   ),
                 ),

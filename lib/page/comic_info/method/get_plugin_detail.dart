@@ -1,4 +1,3 @@
-import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
@@ -7,6 +6,7 @@ import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
 import 'package:zephyr/page/comic_info/models/all_info.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/jm_url_set.dart';
 
 class PluginComicDetail {
   const PluginComicDetail({required this.normalInfo, required this.source});
@@ -85,11 +85,9 @@ Map<String, dynamic> _buildBikaPayload(String comicId) {
   final settings = objectbox.userSettingBox.get(1)!.bikaSetting;
   return {
     'comicId': comicId,
-    'authorization': settings.authorization,
     'settings': {
       'proxy': settings.proxy,
       'imageQuality': settings.imageQuality,
-      'authorization': settings.authorization,
     },
   };
 }
@@ -97,9 +95,8 @@ Map<String, dynamic> _buildBikaPayload(String comicId) {
 Map<String, dynamic> _buildJmPayload(String comicId) {
   return {
     'comicId': comicId,
-    'path': '${JmConfig.baseUrl}/album',
+    'path': '$currentJmBaseUrl/album',
     'useJwt': true,
-    'jwtToken': JmConfig.jwt,
   };
 }
 

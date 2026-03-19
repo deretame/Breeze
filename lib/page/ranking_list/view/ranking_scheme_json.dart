@@ -8,7 +8,7 @@ const String rankingPageSchemeJson = '''
       "sections": [
         { "type": "bikaRanking" }
       ],
-      "showFilter": false,
+      "showFilter": true,
       "showSwitchFab": true
     },
     "jm": {

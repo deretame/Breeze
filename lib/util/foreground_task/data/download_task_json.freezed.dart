@@ -311,7 +311,7 @@ $BikaInfoCopyWith<$Res> get bikaInfo {
 /// @nodoc
 mixin _$BikaInfo {
 
- String get authorization; String get proxy;
+ String get proxy;
 /// Create a copy of BikaInfo
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -324,16 +324,16 @@ $BikaInfoCopyWith<BikaInfo> get copyWith => _$BikaInfoCopyWithImpl<BikaInfo>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BikaInfo&&(identical(other.authorization, authorization) || other.authorization == authorization)&&(identical(other.proxy, proxy) || other.proxy == proxy));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BikaInfo&&(identical(other.proxy, proxy) || other.proxy == proxy));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,authorization,proxy);
+int get hashCode => Object.hash(runtimeType,proxy);
 
 @override
 String toString() {
-  return 'BikaInfo(authorization: $authorization, proxy: $proxy)';
+  return 'BikaInfo(proxy: $proxy)';
 }
 
 
@@ -344,7 +344,7 @@ abstract mixin class $BikaInfoCopyWith<$Res>  {
   factory $BikaInfoCopyWith(BikaInfo value, $Res Function(BikaInfo) _then) = _$BikaInfoCopyWithImpl;
 @useResult
 $Res call({
- String authorization, String proxy
+ String proxy
 });
 
 
@@ -361,10 +361,9 @@ class _$BikaInfoCopyWithImpl<$Res>
 
 /// Create a copy of BikaInfo
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? authorization = null,Object? proxy = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? proxy = null,}) {
   return _then(_self.copyWith(
-authorization: null == authorization ? _self.authorization : authorization // ignore: cast_nullable_to_non_nullable
-as String,proxy: null == proxy ? _self.proxy : proxy // ignore: cast_nullable_to_non_nullable
+proxy: null == proxy ? _self.proxy : proxy // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -450,10 +449,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String authorization,  String proxy)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String proxy)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BikaInfo() when $default != null:
-return $default(_that.authorization,_that.proxy);case _:
+return $default(_that.proxy);case _:
   return orElse();
 
 }
@@ -471,10 +470,10 @@ return $default(_that.authorization,_that.proxy);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String authorization,  String proxy)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String proxy)  $default,) {final _that = this;
 switch (_that) {
 case _BikaInfo():
-return $default(_that.authorization,_that.proxy);case _:
+return $default(_that.proxy);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -491,10 +490,10 @@ return $default(_that.authorization,_that.proxy);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String authorization,  String proxy)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String proxy)?  $default,) {final _that = this;
 switch (_that) {
 case _BikaInfo() when $default != null:
-return $default(_that.authorization,_that.proxy);case _:
+return $default(_that.proxy);case _:
   return null;
 
 }
@@ -506,10 +505,9 @@ return $default(_that.authorization,_that.proxy);case _:
 @JsonSerializable()
 
 class _BikaInfo implements BikaInfo {
-  const _BikaInfo({required this.authorization, required this.proxy});
+  const _BikaInfo({required this.proxy});
   factory _BikaInfo.fromJson(Map<String, dynamic> json) => _$BikaInfoFromJson(json);
 
-@override final  String authorization;
 @override final  String proxy;
 
 /// Create a copy of BikaInfo
@@ -525,16 +523,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BikaInfo&&(identical(other.authorization, authorization) || other.authorization == authorization)&&(identical(other.proxy, proxy) || other.proxy == proxy));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BikaInfo&&(identical(other.proxy, proxy) || other.proxy == proxy));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,authorization,proxy);
+int get hashCode => Object.hash(runtimeType,proxy);
 
 @override
 String toString() {
-  return 'BikaInfo(authorization: $authorization, proxy: $proxy)';
+  return 'BikaInfo(proxy: $proxy)';
 }
 
 
@@ -545,7 +543,7 @@ abstract mixin class _$BikaInfoCopyWith<$Res> implements $BikaInfoCopyWith<$Res>
   factory _$BikaInfoCopyWith(_BikaInfo value, $Res Function(_BikaInfo) _then) = __$BikaInfoCopyWithImpl;
 @override @useResult
 $Res call({
- String authorization, String proxy
+ String proxy
 });
 
 
@@ -562,10 +560,9 @@ class __$BikaInfoCopyWithImpl<$Res>
 
 /// Create a copy of BikaInfo
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? authorization = null,Object? proxy = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? proxy = null,}) {
   return _then(_BikaInfo(
-authorization: null == authorization ? _self.authorization : authorization // ignore: cast_nullable_to_non_nullable
-as String,proxy: null == proxy ? _self.proxy : proxy // ignore: cast_nullable_to_non_nullable
+proxy: null == proxy ? _self.proxy : proxy // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

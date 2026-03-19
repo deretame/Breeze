@@ -1,6 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../config/jm/config.dart';
+import '../../../util/jm_url_set.dart';
 import 'http_request_build_rust.dart' as rs;
 import 'jm_error_message.dart';
 
@@ -54,7 +54,7 @@ Future<Map<String, dynamic>> search(
   String sort,
   int page,
 ) async => await _requestMap(
-  '${JmConfig.baseUrl}/search',
+  '$currentJmBaseUrl/search',
   params: {"search_query": keyword, "page": page, "o": sort},
 );
 
@@ -62,7 +62,7 @@ Future<Map<String, dynamic>> getComicInfo(
   String comicId, {
   String qjsRuntimeName = 'jmComic',
 }) async => await _requestMap(
-  '${JmConfig.baseUrl}/album',
+  '$currentJmBaseUrl/album',
   params: {'id': comicId},
   qjsRuntimeName: qjsRuntimeName,
   // cache: true,
@@ -72,7 +72,7 @@ Future<Map<String, dynamic>> getEpInfo(
   String epId, {
   String qjsRuntimeName = 'jmComic',
 }) async => await _requestMap(
-  '${JmConfig.baseUrl}/chapter',
+  '$currentJmBaseUrl/chapter',
   params: {'skip': '', 'id': epId},
   cache: true,
   qjsRuntimeName: qjsRuntimeName,
@@ -80,13 +80,11 @@ Future<Map<String, dynamic>> getEpInfo(
 
 Future<Map<String, dynamic>> login(String account, String password) async {
   final loginData = await _requestMap(
-    '${JmConfig.baseUrl}/login',
+    '$currentJmBaseUrl/login',
     formData: {'username': account, 'password': password},
     method: 'POST',
     useJwt: false,
   );
-
-  JmConfig.jwt = (loginData['jwttoken'] ??= JmConfig.jwt);
 
   return loginData;
 }
@@ -95,7 +93,7 @@ Future<dynamic> favorite(String comicId, {String? folderId}) async {
   final formData = {"aid": comicId};
 
   final data = await _requestMap(
-    '${JmConfig.baseUrl}/favorite',
+    '$currentJmBaseUrl/favorite',
     formData: formData,
     method: 'POST',
   );
@@ -108,7 +106,7 @@ Future<dynamic> getFavoriteList({
   String id = '',
   String order = 'mr',
 }) async => await _requestMap(
-  '${JmConfig.baseUrl}/favorite',
+  '$currentJmBaseUrl/favorite',
   method: 'GET',
   params: {'page': page, 'folder_id': id, 'o': order},
 );
@@ -126,7 +124,7 @@ Future<dynamic> favoriteMoveFolder(
   };
 
   final data = await _requestMap(
-    '${JmConfig.baseUrl}/favorite_folder',
+    '$currentJmBaseUrl/favorite_folder',
     formData: formData,
     method: 'POST',
   );
@@ -135,14 +133,14 @@ Future<dynamic> favoriteMoveFolder(
 }
 
 Future<Map<String, dynamic>> like(String comicId) async => await _requestMap(
-  '${JmConfig.baseUrl}/like',
+  '$currentJmBaseUrl/like',
   formData: {'id': comicId},
   method: 'POST',
 );
 
 Future<Map<String, dynamic>> getComments(int page, String comicId) async =>
     await _requestMap(
-      '${JmConfig.baseUrl}/forum',
+      '$currentJmBaseUrl/forum',
       params: {'page': page, 'mode': 'manhua', 'aid': comicId},
     );
 
@@ -160,7 +158,7 @@ Future<dynamic> comment(
   }
 
   final data = await _requestMap(
-    '${JmConfig.baseUrl}/forum',
+    '$currentJmBaseUrl/forum',
     data: body,
     method: 'POST',
   );
@@ -169,41 +167,41 @@ Future<dynamic> comment(
 }
 
 Future<dynamic> getDailyList() async => await _requestMap(
-  '${JmConfig.baseUrl}/daily_list/filter',
+  '$currentJmBaseUrl/daily_list/filter',
   formData: {'data': DateTime.now().year},
   method: 'POST',
 );
 
 Future<dynamic> dailyChk(String userId, String dailyId) async =>
     await _requestMap(
-      '${JmConfig.baseUrl}/daily_chk',
+      '$currentJmBaseUrl/daily_chk',
       formData: {'user_id': userId, 'daily_id': dailyId},
       method: 'POST',
     );
 
 Future<dynamic> getPromote() async => await _requestMap(
-  '${JmConfig.baseUrl}/promote?page=0',
+  '$currentJmBaseUrl/promote?page=0',
   method: 'GET',
   cache: true,
 );
 
 Future<dynamic> getWeekRanking(int date, String type, int page) async =>
     await _requestMap(
-      '${JmConfig.baseUrl}/serialization',
+      '$currentJmBaseUrl/serialization',
       method: 'GET',
       params: {'date': date, 'type': type, 'page': page},
       cache: true,
     );
 
 Future<dynamic> getPromoteList(int id, int page) async => await _requestMap(
-  '${JmConfig.baseUrl}/promote_list',
+  '$currentJmBaseUrl/promote_list',
   method: 'GET',
   params: {'id': id, 'page': page},
   cache: true,
 );
 
 Future<dynamic> getSuggestion(int page) async => await _requestMap(
-  '${JmConfig.baseUrl}/latest',
+  '$currentJmBaseUrl/latest',
   method: 'GET',
   params: {'page': page},
   cache: true,
@@ -215,7 +213,7 @@ Future<dynamic> getRanking({
   String c = '',
   String o = '',
 }) async => await _requestMap(
-  '${JmConfig.baseUrl}/categories/filter',
+  '$currentJmBaseUrl/categories/filter',
   method: 'GET',
   params: {'page': page, 'c': c, 'o': o},
   cache: true,

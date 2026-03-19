@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:zephyr/page/jm/jm_ranking/view/jm_ranking.dart';
-import 'package:zephyr/page/ranking_list/view/bika_rank_list.dart';
+import 'package:zephyr/page/ranking_list/view/filtered_comic_ranking_view.dart';
+import 'package:zephyr/page/ranking_list/view/ranking_content_view.dart';
 
 import 'ranking_scheme_json.dart';
 
@@ -26,7 +26,7 @@ class RankingSchemeRenderer {
 
   Widget body({
     required int comicChoice,
-    required List<String> currentFilter,
+    required Map<String, dynamic> currentFilter,
   }) {
     final mode = _findMode(comicChoice);
     final sections = _asList(mode['sections']).map((item) => _asMap(item)).toList();
@@ -34,12 +34,16 @@ class RankingSchemeRenderer {
         ? 'bikaRanking'
         : sections.first['type']?.toString() ?? 'bikaRanking';
     if (bodyType == 'jmRanking') {
-      return JmRankingPage(
-        categoryId: currentFilter[0],
-        sortId: currentFilter[1],
+      return FilteredComicRankingView(
+        type: currentFilter['type']?.toString() ?? '0',
+        order: currentFilter['order']?.toString() ?? 'new',
       );
     }
-    return const BikaRankList();
+    return RankingContentView(
+      days: currentFilter['days']?.toString() ?? 'H24',
+      rankingType: currentFilter['type']?.toString() ?? 'comic',
+      card: currentFilter['card']?.toString() ?? 'comic',
+    );
   }
 
   Map<String, dynamic> _findMode(int comicChoice) {

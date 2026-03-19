@@ -28,11 +28,9 @@ Future<Map<String, dynamic>> request(
       'body': body,
       'cache': cache,
       'imageQuality': imageQuality,
-      'authorization': settings.authorization,
       'settings': {
         'proxy': settings.proxy,
         'imageQuality': settings.imageQuality,
-        'authorization': settings.authorization,
       },
     }.let(jsonEncode);
 

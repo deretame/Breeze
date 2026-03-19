@@ -28,12 +28,9 @@ Map<String, dynamic> _$DownloadTaskJsonToJson(_DownloadTaskJson instance) =>
       'slowDownload': instance.slowDownload,
     };
 
-_BikaInfo _$BikaInfoFromJson(Map<String, dynamic> json) => _BikaInfo(
-  authorization: json['authorization'] as String,
-  proxy: json['proxy'] as String,
-);
+_BikaInfo _$BikaInfoFromJson(Map<String, dynamic> json) =>
+    _BikaInfo(proxy: json['proxy'] as String);
 
 Map<String, dynamic> _$BikaInfoToJson(_BikaInfo instance) => <String, dynamic>{
-  'authorization': instance.authorization,
   'proxy': instance.proxy,
 };

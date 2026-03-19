@@ -5,8 +5,11 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/jm/http_request.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
 
 import '../json/jm_promote_list_json.dart';
@@ -47,6 +50,8 @@ class JmPromoteListBloc extends Bloc<JmPromoteListEvent, JmPromoteListState> {
           hasReachedMax: false,
         ),
       );
+      list = [];
+      hasReachedMax = false;
     }
 
     if (event.status == JmPromoteListStatus.loadingMore) {
@@ -54,13 +59,24 @@ class JmPromoteListBloc extends Bloc<JmPromoteListEvent, JmPromoteListState> {
     }
 
     try {
-      final response = await getPromoteList(event.id, event.page)
+      final pluginResponse = await callUnifiedComicPlugin(
+        from: From.jm,
+        fnPath: 'getPromoteListData',
+        core: {
+          'id': event.id,
+          'page': event.page,
+          'path': '$currentJmBaseUrl/promote_list',
+        },
+        extern: const {'source': 'promoteList'},
+      );
+      final envelope = UnifiedPluginEnvelope.fromMap(pluginResponse);
+      final response = asMap(envelope.data['raw'])
           .let(replaceNestedNullList)
           .let(jsonEncode)
           .let(jmPromoteListJsonFromJson);
       list = [...list, ...response.list];
-      total = response.total.let(toInt);
-      if (total == list.length) hasReachedMax = true;
+      total = asMap(envelope.data)['total'].let(toInt);
+      hasReachedMax = asMap(envelope.data)['hasReachedMax'] == true;
 
       emit(
         state.copyWith(

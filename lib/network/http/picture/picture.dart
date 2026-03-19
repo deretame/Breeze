@@ -11,8 +11,8 @@ import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/direct_dio.dart';
+import 'package:zephyr/util/jm_url_set.dart';
 
-import '../../../config/jm/config.dart';
 import '../../../src/rust/api/simple.dart';
 import '../../../src/rust/decode/decode.dart';
 import '../../../util/get_path.dart';
@@ -20,6 +20,7 @@ import '../../../util/get_path.dart';
 final pictureDio = Dio();
 const _kQjsRuntimeCancelled = '__QJS_RUNTIME_CANCELLED__';
 const _kDownloadTaskCancelled = '__DOWNLOAD_TASK_CANCELLED__';
+const _kJmScrambleId = 220980;
 
 Future<String> getCachePicture({
   From from = From.bika,
@@ -98,7 +99,7 @@ Future<String> getCachePicture({
 
   // 处理 URL
   String finalUrl = from == From.jm
-      ? url
+      ? normalizeJmAssetUrl(url)
       : buildImageUrl(
           url,
           path,
@@ -114,7 +115,7 @@ Future<String> getCachePicture({
     await decodeAndSaveImage(
       imageData,
       chapterId.let(toInt),
-      JmConfig.scrambleId.let(toInt),
+      _kJmScrambleId,
       cacheFilePath,
       url,
     );
@@ -219,7 +220,7 @@ Future<String> downloadPicture({
 
   // 处理 URL
   String finalUrl = from == From.jm
-      ? url
+      ? normalizeJmAssetUrl(url)
       : buildImageUrl(
           url,
           path,
@@ -238,7 +239,7 @@ Future<String> downloadPicture({
     await decodeAndSaveImage(
       imageData,
       chapterId.let(toInt),
-      JmConfig.scrambleId.let(toInt),
+      _kJmScrambleId,
       downloadFilePath,
       url,
     );
@@ -516,10 +517,32 @@ Future<void> ensureDirectoryExists(String filePath) async {
   }
 }
 
-String get baseUrl => JmConfig.imagesUrl;
+String get baseUrl => currentJmImageBaseUrl;
 
 String getJmCoverUrl(String id) {
   return '$baseUrl/media/albums/${id}_3x4.jpg';
+}
+
+String normalizeJmAssetUrl(String url) {
+  final normalized = url.trim();
+  if (normalized.isEmpty) {
+    return normalized;
+  }
+
+  final uri = Uri.tryParse(normalized);
+  if (uri != null && uri.hasScheme) {
+    return normalized;
+  }
+
+  if (normalized.startsWith('/')) {
+    return '$baseUrl$normalized';
+  }
+
+  if (normalized.startsWith('media/')) {
+    return '$baseUrl/$normalized';
+  }
+
+  return normalized;
 }
 
 String getJmImagesUrl(String id, String imageName) {

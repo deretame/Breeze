@@ -3,10 +3,10 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
 
 part 'promote_bloc.freezed.dart';
@@ -64,7 +64,7 @@ class PromoteBloc extends Bloc<PromoteEvent, PromoteState> {
         final response = await callUnifiedComicPlugin(
           from: From.jm,
           fnPath: 'getHomeData',
-          core: {'page': -1, 'path': '${JmConfig.baseUrl}/promote?page=0'},
+          core: {'page': -1, 'path': '$currentJmBaseUrl/promote?page=0'},
           extern: const {
             'source': 'home',
             'promotePath': 'https://www.cdnsha.org/promote?page=0',
@@ -97,7 +97,7 @@ class PromoteBloc extends Bloc<PromoteEvent, PromoteState> {
         final response = await callUnifiedComicPlugin(
           from: From.jm,
           fnPath: 'getHomeData',
-          core: {'page': page, 'path': '${JmConfig.baseUrl}/latest'},
+          core: {'page': page, 'path': '$currentJmBaseUrl/latest'},
           extern: const {
             'source': 'home',
             'suggestionPath': 'https://www.cdnsha.org/latest',

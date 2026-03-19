@@ -5,7 +5,11 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/jm/http_request.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
+import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/page/jm/jm_week_ranking/json/jm_week_ranking_json.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
 
@@ -50,10 +54,21 @@ class WeekRankingBloc extends Bloc<WeekRankingEvent, WeekRankingState> {
     }
 
     try {
-      // 神经，禁漫在没有结果的情况下，total字段是数字，而不是字符串
-      final response = await getWeekRanking(event.date, event.type, event.page);
-      if (response['error'] == '没有资料') {
-        hasReachedMax = true;
+      final pluginResponse = await callUnifiedComicPlugin(
+        from: From.jm,
+        fnPath: 'getWeekRankingData',
+        core: {
+          'date': event.date,
+          'type': event.type,
+          'page': event.page,
+          'path': '$currentJmBaseUrl/serialization',
+        },
+        extern: const {'source': 'weekRanking'},
+      );
+      final envelope = UnifiedPluginEnvelope.fromMap(pluginResponse);
+      final raw = asMap(envelope.data['raw']);
+      if (raw['error'] == '没有资料') {
+        hasReachedMax = asMap(envelope.data)['hasReachedMax'] == true;
         emit(
           state.copyWith(
             hasReachedMax: hasReachedMax,
@@ -63,12 +78,13 @@ class WeekRankingBloc extends Bloc<WeekRankingEvent, WeekRankingState> {
         return;
       }
 
-      final data = response
+      final data = raw
           .let(replaceNestedNull)
           .let((d) => (d..['total'] = d['total'].toString()))
           .let(jsonEncode)
           .let(jmWeekRankingJsonFromJson);
       list = [...list, ...data.list];
+      hasReachedMax = asMap(envelope.data)['hasReachedMax'] == true;
 
       emit(
         state.copyWith(

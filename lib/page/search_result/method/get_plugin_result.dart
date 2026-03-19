@@ -27,14 +27,6 @@ Future<BlocState> getPluginSearchResult(
       .map((item) => _toUnifiedComic(item, event.page, parsed.source))
       .toList();
 
-  if (parsed.source == 'jm' && list.isNotEmpty) {
-    final firstNewId = list.first.comic.id;
-    if (blocState.comics.any((item) => item.comic.id == firstNewId)) {
-      blocState.hasReachedMax = true;
-      return blocState;
-    }
-  }
-
   blocState.pagesCount = parsed.paging.page;
   blocState.hasReachedMax = parsed.paging.hasReachedMax;
   blocState.comics = [...blocState.comics, ...list];

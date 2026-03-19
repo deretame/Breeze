@@ -1,4 +1,3 @@
-import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
@@ -9,6 +8,7 @@ import 'package:zephyr/page/comic_read/json/common_ep_info_json/common_ep_info_j
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/jm_url_set.dart';
 
 Future<NormalComicEpInfo> fetchJMMedia(
   String comicId,
@@ -28,7 +28,7 @@ Future<NormalComicEpInfo> fetchJMMediaFromNet(String epId) async {
     from: From.jm,
     fnPath: 'getChapter',
     core: {'chapterId': epId},
-    extern: {'source': 'jm', 'path': '${JmConfig.baseUrl}/chapter'},
+    extern: {'source': 'jm', 'path': '$currentJmBaseUrl/chapter'},
   );
   final chapter = UnifiedPluginChapterResponse.fromMap(response).chapter;
   final docs = chapter.docs

@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/config/jm/config.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/main.dart';
@@ -14,8 +13,8 @@ import 'package:zephyr/page/more/json/jm/jm_user_info_json.dart'
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/dialog.dart';
+import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
-import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../util/router/router.gr.dart';
@@ -133,12 +132,11 @@ class _LoginPageState extends State<LoginPage> {
         core: {
           'account': _account.text,
           'password': _password.text,
-          if (from == From.jm) 'path': '${JmConfig.baseUrl}/login',
+          if (from == From.jm) 'path': '$currentJmBaseUrl/login',
         },
         extern: const <String, dynamic>{'source': 'login'},
       );
 
-      final data = asMap(result['data']);
       final raw = asMap(result['raw']);
 
       if (from == From.jm) {
@@ -151,24 +149,9 @@ class _LoginPageState extends State<LoginPage> {
       if (from == From.bika) {
         bikaCubit.updateAccount(_account.text);
         bikaCubit.updatePassword(_password.text);
-        bikaCubit.updateAuthorization(data['token']?.toString() ?? '');
-        await savePluginConfigValue('bikaComic', 'auth.account', _account.text);
-        await savePluginConfigValue('bikaComic', 'auth.password', _password.text);
-        await savePluginConfigValue(
-          'bikaComic',
-          'auth.authorization',
-          data['token']?.toString() ?? '',
-        );
       } else if (from == From.jm) {
         jmCubit.updateAccount(_account.text);
         jmCubit.updatePassword(_password.text);
-        final jwt = data['jwtToken']?.toString() ?? '';
-        if (jwt.isNotEmpty) {
-          JmConfig.jwt = jwt;
-        }
-        await savePluginConfigValue('jmComic', 'auth.account', _account.text);
-        await savePluginConfigValue('jmComic', 'auth.password', _password.text);
-        await savePluginConfigValue('jmComic', 'auth.jwt', jwt);
         jmCubit.updateLoginStatus(LoginStatus.login);
       }
       showSuccessToast("登录成功");

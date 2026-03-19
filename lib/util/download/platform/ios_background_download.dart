@@ -7,8 +7,8 @@ import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 
-import '../../../config/jm/config.dart';
 import '../../../util/get_path.dart';
+const _kJmScrambleId = 220980;
 
 /// 使用 background_downloader 下载图片（iOS 后台 URLSession）
 ///
@@ -171,7 +171,7 @@ Future<String> downloadPictureIOS({
     await decodeAndSaveImage(
       imageData,
       chapterId.let(toInt),
-      JmConfig.scrambleId.let(toInt),
+      _kJmScrambleId,
       downloadFilePath,
       url,
     );

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
@@ -76,9 +77,6 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
                     cacheInterceptor.clear();
                     bikaCubit.updateImageQuality(value.toString());
                   }
-                  if (key == 'auth.authorization') {
-                    bikaCubit.updateAuthorization(value.toString());
-                  }
                 },
               ),
             ],
@@ -107,8 +105,14 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
                 padding: const EdgeInsets.all(16),
                 child: FilledButton.icon(
                   style: settingDangerButtonStyle(context),
-                  onPressed: () {
-                    bikaCubit.resetAuthorization();
+                  onPressed: () async {
+                    await callUnifiedComicPlugin(
+                      from: From.bika,
+                      fnPath: 'clearPluginSession',
+                      core: const <String, dynamic>{},
+                      extern: const <String, dynamic>{'source': 'logout'},
+                    );
+                    if (!mounted) return;
                     route.push(LoginRoute());
                   },
                   icon: const Icon(Icons.logout),

@@ -476,7 +476,13 @@ Future<void> checkFile(DownloadInfoJson downloadInfoJson) async {
   final comicInfo = downloadInfoJson;
 
   String downloadPath = await getDownloadPath();
-  var epsDir = p.join(downloadPath, "jm", comicInfo.id.toString(), "comic");
+  var epsDir = p.join(
+    downloadPath,
+    "jm",
+    'original',
+    comicInfo.id.toString(),
+    "comic",
+  );
   // 创建 Directory 对象
   Directory directory = Directory(epsDir);
 

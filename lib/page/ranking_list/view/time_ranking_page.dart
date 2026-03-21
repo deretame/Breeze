@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:zephyr/page/ranking_list/view/filtered_comic_ranking_view.dart';
+import 'package:zephyr/page/ranking_list/view/plugin_paged_comic_list_view.dart';
+import 'package:zephyr/type/enum.dart';
 
 const _jmRankingTypeMap = {
   '最新': 'new',
@@ -25,21 +26,14 @@ const _jmCategoryMap = {
     '日语': 'single_japanese',
     '青年漫': 'single_youth',
   },
-  '短篇': {
-    '全部': 'short',
-    '汉化': 'short_chinese',
-    '日语': 'short_japanese',
-  },
+  '短篇': {'全部': 'short', '汉化': 'short_chinese', '日语': 'short_japanese'},
   '其他类': {
     '全部': 'another',
     '其他漫画': 'another_other',
     '3D': 'another_3d',
     '角色扮演': 'another_cosplay',
   },
-  '韩漫': {
-    '全部': 'hanman',
-    '汉化': 'hanman_chinese',
-  },
+  '韩漫': {'全部': 'hanman', '汉化': 'hanman_chinese'},
   'English Manga': {
     '全部': 'meiman',
     'IRODORI': 'meiman_irodori',
@@ -109,9 +103,16 @@ class _TimeRankingPageState extends State<TimeRankingPage>
                 );
               }
 
-              return FilteredComicRankingView(
-                type: _jmCategoryMap[tag].toString(),
-                order: _jmRankingTypeMap[tab]!,
+              return PluginPagedComicListView(
+                from: From.jm,
+                fnPath: 'getRankingData',
+                coreBuilder: (page) => {'page': page},
+                externBuilder: (_) => {
+                  'type': _jmCategoryMap[tag].toString(),
+                  'order': _jmRankingTypeMap[tab]!,
+                  'source': 'ranking',
+                },
+                itemMapper: (item) => item,
               );
             }).toList(),
           ),
@@ -120,7 +121,10 @@ class _TimeRankingPageState extends State<TimeRankingPage>
     );
 
     if (widget.title != null) {
-      return Scaffold(appBar: AppBar(title: Text(widget.title!)), body: body);
+      return Scaffold(
+        appBar: AppBar(title: Text(widget.title!)),
+        body: body,
+      );
     }
 
     return body;
@@ -128,10 +132,7 @@ class _TimeRankingPageState extends State<TimeRankingPage>
 }
 
 class _CategoryTabsView extends StatefulWidget {
-  const _CategoryTabsView({
-    required this.tag,
-    required this.time,
-  });
+  const _CategoryTabsView({required this.tag, required this.time});
 
   final String tag;
   final String time;
@@ -177,9 +178,16 @@ class _CategoryTabsViewState extends State<_CategoryTabsView>
           child: TabBarView(
             controller: _tabController,
             children: tabs.map((String tab) {
-              return FilteredComicRankingView(
-                type: categoryMap[tab]!,
-                order: widget.time,
+              return PluginPagedComicListView(
+                from: From.jm,
+                fnPath: 'getRankingData',
+                coreBuilder: (page) => {'page': page},
+                externBuilder: (_) => {
+                  'type': categoryMap[tab]!,
+                  'order': widget.time,
+                  'source': 'ranking',
+                },
+                itemMapper: (item) => item,
               );
             }).toList(),
           ),

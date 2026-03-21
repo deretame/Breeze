@@ -5,7 +5,7 @@ import '../json/favorite/favourite_json.dart';
 
 class ComicNumber {
   final int buildNumber;
-  final Doc doc;
+  final dynamic doc;
 
   ComicNumber({required this.buildNumber, required this.doc});
 }

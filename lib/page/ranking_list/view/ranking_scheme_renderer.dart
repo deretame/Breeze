@@ -1,8 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:zephyr/page/ranking_list/view/filtered_comic_ranking_view.dart';
+import 'package:zephyr/page/ranking_list/view/plugin_paged_comic_list_view.dart';
 import 'package:zephyr/page/ranking_list/view/ranking_content_view.dart';
+import 'package:zephyr/type/enum.dart';
 
 import 'ranking_scheme_json.dart';
 
@@ -34,9 +35,19 @@ class RankingSchemeRenderer {
         ? 'bikaRanking'
         : sections.first['type']?.toString() ?? 'bikaRanking';
     if (bodyType == 'jmRanking') {
-      return FilteredComicRankingView(
-        type: currentFilter['type']?.toString() ?? '0',
-        order: currentFilter['order']?.toString() ?? 'new',
+      final type = currentFilter['type']?.toString() ?? '0';
+      final order = currentFilter['order']?.toString() ?? 'new';
+      return PluginPagedComicListView(
+        key: ValueKey('ranking_${type}_$order'),
+        from: From.jm,
+        fnPath: 'getRankingData',
+        coreBuilder: (page) => {'page': page},
+        externBuilder: (_) => {
+          'type': type,
+          'order': order,
+          'source': 'ranking',
+        },
+        itemMapper: (item) => item,
       );
     }
     return RankingContentView(

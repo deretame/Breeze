@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
+import 'package:zephyr/page/ranking_list/models/plugin_ranking_filter_schema.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 class PluginRankingFilterDialog extends StatefulWidget {
@@ -9,7 +9,7 @@ class PluginRankingFilterDialog extends StatefulWidget {
     required this.initialSelections,
   });
 
-  final Map<String, dynamic> scheme;
+  final PluginRankingFilterSchema scheme;
   final Map<String, String> initialSelections;
 
   @override
@@ -28,17 +28,15 @@ class _PluginRankingFilterDialogState extends State<PluginRankingFilterDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final fields = asList(
-      widget.scheme['fields'],
-    ).map((item) => asMap(item)).where(_isChoiceField).toList();
-
     return AlertDialog(
-      title: Text(widget.scheme['title']?.toString() ?? '筛选'),
+      title: Text(widget.scheme.title.isNotEmpty ? widget.scheme.title : '筛选'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: fields.map((field) => _buildField(context, field)).toList(),
+          children: widget.scheme.fields
+              .map((field) => _buildField(context, field))
+              .toList(),
         ),
       ),
       actions: [
@@ -47,63 +45,100 @@ class _PluginRankingFilterDialogState extends State<PluginRankingFilterDialog> {
           child: const Text('取消'),
         ),
         FilledButton(
-          onPressed: () => Navigator.pop(context, Map<String, String>.from(_selections)),
+          onPressed: () =>
+              Navigator.pop(context, Map<String, String>.from(_selections)),
           child: const Text('确定'),
         ),
       ],
     );
   }
 
-  Widget _buildField(BuildContext context, Map<String, dynamic> field) {
-    final label = field['label']?.toString() ?? '';
-    final key = field['key']?.toString() ?? '';
-    final options = asList(
-      field['options'],
-    ).map((item) => asMap(item)).toList();
+  Widget _buildField(BuildContext context, PluginChoiceField field) {
+    final selectedPath =
+        field.findPathByValue(_selections[field.key]) ?? const [];
+    final visibleLevelOptionSets = field.buildVisibleLevels(
+      _selections[field.key],
+    );
+
+    if (visibleLevelOptionSets.length == 1 &&
+        visibleLevelOptionSets.first.options.length <= 1) {
+      return const SizedBox.shrink();
+    }
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (label.isNotEmpty)
+          if (field.label.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-                label,
+                field.label,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: context.theme.colorScheme.onSurfaceVariant,
                 ),
               ),
             ),
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: options.map((option) {
-              final value = option['value']?.toString() ?? '';
-              final optionLabel = option['label']?.toString() ?? value;
-              final selected = _selections[key] == value;
+          ...visibleLevelOptionSets.asMap().entries.map((entry) {
+            final level = entry.key;
+            final filterLevel = entry.value;
+            final levelOptions = filterLevel.options;
+            final selectedValue = selectedPath.length > filterLevel.pathIndex
+                ? selectedPath[filterLevel.pathIndex].value
+                : '';
+            final levelLabel = level == 0
+                ? null
+                : level == 1
+                ? '子分类'
+                : '第${level + 1}级分类';
 
-              return ChoiceChip(
-                label: Text(optionLabel),
-                selected: selected,
-                showCheckmark: false,
-                onSelected: (_) {
-                  setState(() {
-                    _selections[key] = value;
-                  });
-                },
-              );
-            }).toList(),
-          ),
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: level == visibleLevelOptionSets.length - 1 ? 0 : 12,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (levelLabel != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        levelLabel,
+                        style: TextStyle(
+                          color: context.theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    children: levelOptions.map((option) {
+                      final value = option.value;
+                      final optionLabel = option.label.isNotEmpty
+                          ? option.label
+                          : value;
+                      final selected = selectedValue == value;
+
+                      return ChoiceChip(
+                        label: Text(optionLabel),
+                        selected: selected,
+                        showCheckmark: false,
+                        onSelected: (_) {
+                          setState(() {
+                            _selections[field.key] = value;
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );
-  }
-
-  bool _isChoiceField(Map<String, dynamic> field) {
-    return field['kind']?.toString() == 'choice' &&
-        (field['key']?.toString().trim().isNotEmpty ?? false);
   }
 }

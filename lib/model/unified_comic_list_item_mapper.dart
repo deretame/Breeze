@@ -8,10 +8,6 @@ import 'package:zephyr/page/bookshelf/json/jm_cloud_favorite/jm_cloud_favorite_j
     as jm_cloud;
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal_info;
-import 'package:zephyr/page/jm/jm_promote_list/json/jm_promote_list_json.dart'
-    as jm_promote;
-import 'package:zephyr/page/jm/jm_week_ranking/json/jm_week_ranking_json.dart'
-    as jm_week;
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 
@@ -378,44 +374,6 @@ UnifiedComicListItem unifiedComicFromJmCloudFavorite(
     viewsCount: 0,
     updatedAt: '',
     description: comic.description,
-    imageUrl: comic.image,
-    raw: comic.toJson(),
-  );
-}
-
-UnifiedComicListItem unifiedComicFromJmPromoteList(
-  jm_promote.ListElement comic,
-) {
-  return _buildJmComicItem(
-    id: comic.id,
-    title: comic.name,
-    authorValues: [comic.author],
-    categoryValues: [comic.category.title, comic.categorySub.title],
-    tagValues: const <String>[],
-    workValues: const <String>[],
-    actorValues: const <String>[],
-    likesCount: 0,
-    viewsCount: 0,
-    updatedAt: comic.updateAt.toString(),
-    description: '',
-    imageUrl: getJmCoverUrl(comic.id),
-    raw: comic.toJson(),
-  );
-}
-
-UnifiedComicListItem unifiedComicFromJmWeekRanking(jm_week.ListElement comic) {
-  return _buildJmComicItem(
-    id: comic.id,
-    title: comic.name,
-    authorValues: [comic.author],
-    categoryValues: [comic.category.title, comic.categorySub.title],
-    tagValues: const <String>[],
-    workValues: const <String>[],
-    actorValues: const <String>[],
-    likesCount: 0,
-    viewsCount: 0,
-    updatedAt: comic.updateAt,
-    description: comic.description?.toString() ?? '',
     imageUrl: comic.image,
     raw: comic.toJson(),
   );

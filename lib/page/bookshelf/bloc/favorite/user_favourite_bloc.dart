@@ -2,9 +2,11 @@ import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
-import 'package:zephyr/network/http/bika/http_request.dart';
+import 'package:zephyr/model/unified_comic_list_item.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
-import 'package:zephyr/page/bookshelf/json/favorite/favourite_json.dart';
+import 'package:zephyr/type/enum.dart';
 
 import '../../../../main.dart';
 
@@ -82,18 +84,28 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
     }
 
     try {
-      var temp = await getFavorites(event.pageCount);
-      var result = FavouriteJson.fromJson(temp);
+      final response = await callUnifiedComicPlugin(
+        from: From.bika,
+        fnPath: 'getFavoriteData',
+        core: {'page': event.pageCount},
+        extern: const {'source': 'favorite'},
+      );
+      final envelope = UnifiedPluginEnvelope.fromMap(response);
+      final data = asMap(envelope.data);
+      final paging = asMap(data['paging']);
+      final items = asList(data['items'])
+          .map((item) => UnifiedComicListItem.fromJson(asMap(item)))
+          .toList();
 
-      pageCont = result.data.comics.total ~/ 20 + 1;
+      pageCont = (paging['pages'] as num?)?.toInt() ?? 1;
+      hasReachedMax = paging['hasReachedMax'] == true;
 
-      if (result.data.comics.page >= pageCont) {
-        hasReachedMax = true;
-      }
-
-      for (var comic in result.data.comics.docs) {
+      for (var comic in items) {
         comics.add(
-          ComicNumber(buildNumber: result.data.comics.page, doc: comic),
+          ComicNumber(
+            buildNumber: (paging['page'] as num?)?.toInt() ?? event.pageCount,
+            doc: comic,
+          ),
         );
       }
 
@@ -104,11 +116,11 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
           hasReachedMax: hasReachedMax,
           refresh: event.refresh,
           pageCount: event.pageCount,
-          pagesCount: result.data.comics.pages,
+          pagesCount: pageCont,
         ),
       );
       initial = false;
-      totalPages = result.data.comics.pages;
+      totalPages = pageCont;
     } catch (e, s) {
       logger.e(e, stackTrace: s);
       if (comics.isNotEmpty) {
@@ -140,9 +152,12 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
     List<ComicNumber> uniqueComics = [];
 
     for (var comic in comics) {
-      if (!seenIds.contains(comic.doc.id)) {
+      final id = comic.doc is UnifiedComicListItem
+          ? (comic.doc as UnifiedComicListItem).id
+          : comic.doc.id.toString();
+      if (!seenIds.contains(id)) {
         uniqueComics.add(comic);
-        seenIds.add(comic.doc.id);
+        seenIds.add(id);
       }
     }
 
@@ -160,7 +175,10 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
     // 过滤掉包含屏蔽分类的漫画
     return comics.where((comic) {
       // 检查该漫画的分类是否与屏蔽分类列表中的任何分类匹配
-      return !comic.doc.categories.any(
+      final categories = comic.doc is UnifiedComicListItem
+          ? (comic.doc as UnifiedComicListItem).metadataValues('categories')
+          : (comic.doc.categories as List<dynamic>).map((e) => e.toString()).toList();
+      return !categories.any(
         (category) => shieldedCategoriesList.contains(category),
       );
     }).toList();

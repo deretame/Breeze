@@ -12,7 +12,10 @@ import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.da
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 import 'package:zephyr/widgets/error_view.dart';
 
-enum FilteredComicRankingStatus {
+typedef PluginPageCoreBuilder = Map<String, dynamic> Function(int page);
+typedef PluginPageExternBuilder = Map<String, dynamic> Function(int page);
+
+enum PluginPagedComicListStatus {
   initial,
   success,
   failure,
@@ -20,29 +23,29 @@ enum FilteredComicRankingStatus {
   loadingMoreFailure,
 }
 
-class FilteredComicRankingState extends Equatable {
-  const FilteredComicRankingState({
-    this.status = FilteredComicRankingStatus.initial,
+class PluginPagedComicListState extends Equatable {
+  const PluginPagedComicListState({
+    this.status = PluginPagedComicListStatus.initial,
     this.list = const <Map<String, dynamic>>[],
     this.hasReachedMax = false,
     this.page = 1,
     this.result = '',
   });
 
-  final FilteredComicRankingStatus status;
+  final PluginPagedComicListStatus status;
   final List<Map<String, dynamic>> list;
   final bool hasReachedMax;
   final int page;
   final String result;
 
-  FilteredComicRankingState copyWith({
-    FilteredComicRankingStatus? status,
+  PluginPagedComicListState copyWith({
+    PluginPagedComicListStatus? status,
     List<Map<String, dynamic>>? list,
     bool? hasReachedMax,
     int? page,
     String? result,
   }) {
-    return FilteredComicRankingState(
+    return PluginPagedComicListState(
       status: status ?? this.status,
       list: list ?? this.list,
       hasReachedMax: hasReachedMax ?? this.hasReachedMax,
@@ -55,19 +58,23 @@ class FilteredComicRankingState extends Equatable {
   List<Object?> get props => [status, list, hasReachedMax, page, result];
 }
 
-class FilteredComicRankingCubit extends Cubit<FilteredComicRankingState> {
-  FilteredComicRankingCubit({
-    required this.type,
-    required this.order,
-  }) : super(const FilteredComicRankingState());
+class PluginPagedComicListCubit extends Cubit<PluginPagedComicListState> {
+  PluginPagedComicListCubit({
+    required this.from,
+    required this.fnPath,
+    required this.coreBuilder,
+    required this.externBuilder,
+  }) : super(const PluginPagedComicListState());
 
-  final String type;
-  final String order;
+  final From from;
+  final String fnPath;
+  final PluginPageCoreBuilder coreBuilder;
+  final PluginPageExternBuilder externBuilder;
 
   Future<void> loadInitial() async {
-    emit(
+    _safeEmit(
       state.copyWith(
-        status: FilteredComicRankingStatus.initial,
+        status: PluginPagedComicListStatus.initial,
         list: const <Map<String, dynamic>>[],
         hasReachedMax: false,
         page: 1,
@@ -79,11 +86,11 @@ class FilteredComicRankingCubit extends Cubit<FilteredComicRankingState> {
 
   Future<void> loadMore() async {
     if (state.hasReachedMax ||
-        state.status == FilteredComicRankingStatus.loadingMore) {
+        state.status == PluginPagedComicListStatus.loadingMore) {
       return;
     }
 
-    emit(state.copyWith(status: FilteredComicRankingStatus.loadingMore));
+    _safeEmit(state.copyWith(status: PluginPagedComicListStatus.loadingMore));
     await _fetchPage(page: state.page + 1, append: true);
   }
 
@@ -91,37 +98,43 @@ class FilteredComicRankingCubit extends Cubit<FilteredComicRankingState> {
     await loadMore();
   }
 
-  Future<void> _fetchPage({
-    required int page,
-    required bool append,
-  }) async {
+  Future<void> _fetchPage({required int page, required bool append}) async {
     final currentList = append ? state.list : const <Map<String, dynamic>>[];
 
     try {
       final pluginResponse = await callUnifiedComicPlugin(
-        from: From.jm,
-        fnPath: 'getRankingData',
-        core: {'page': page},
-        extern: {'type': type, 'order': order, 'source': 'ranking'},
+        from: from,
+        fnPath: fnPath,
+        core: coreBuilder(page),
+        extern: externBuilder(page),
       );
       final envelope = UnifiedPluginEnvelope.fromMap(pluginResponse);
       final data = asMap(envelope.data);
       final items = asList(data['items']).map((item) => asMap(item)).toList();
       final raw = replaceNestedNullList(asMap(data['raw']));
-      final content = asList(
-        raw['content'],
-      ).map((item) => asMap(item)).toList();
-      final nextItems = items.isNotEmpty ? items : content;
+      final listLikeKeys = ['content', 'list'];
 
-      final mergedList = [
-        ...currentList,
-        ...nextItems.map((item) => Map<String, dynamic>.from(item)),
-      ];
+      List<Map<String, dynamic>> nextItems = items
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
+      if (nextItems.isEmpty) {
+        for (final key in listLikeKeys) {
+          final rawList = asList(raw[key]).map((item) => asMap(item)).toList();
+          if (rawList.isNotEmpty) {
+            nextItems = rawList
+                .map((item) => Map<String, dynamic>.from(item))
+                .toList();
+            break;
+          }
+        }
+      }
+
+      final mergedList = [...currentList, ...nextItems];
       final hasReachedMax = data['hasReachedMax'] == true;
 
-      emit(
+      _safeEmit(
         state.copyWith(
-          status: FilteredComicRankingStatus.success,
+          status: PluginPagedComicListStatus.success,
           list: mergedList,
           hasReachedMax: hasReachedMax,
           page: page,
@@ -131,54 +144,67 @@ class FilteredComicRankingCubit extends Cubit<FilteredComicRankingState> {
     } catch (e, stackTrace) {
       logger.e(e, stackTrace: stackTrace);
 
-      emit(
+      _safeEmit(
         state.copyWith(
           status: currentList.isNotEmpty
-              ? FilteredComicRankingStatus.loadingMoreFailure
-              : FilteredComicRankingStatus.failure,
+              ? PluginPagedComicListStatus.loadingMoreFailure
+              : PluginPagedComicListStatus.failure,
           list: currentList,
           result: e.toString(),
         ),
       );
     }
   }
+
+  void _safeEmit(PluginPagedComicListState nextState) {
+    if (isClosed) {
+      return;
+    }
+    emit(nextState);
+  }
 }
 
-class FilteredComicRankingView extends StatelessWidget {
-  const FilteredComicRankingView({
+class PluginPagedComicListView extends StatelessWidget {
+  const PluginPagedComicListView({
     super.key,
-    required this.type,
-    required this.order,
+    required this.from,
+    required this.fnPath,
+    required this.coreBuilder,
+    required this.externBuilder,
+    required this.itemMapper,
   });
 
-  final String type;
-  final String order;
+  final From from;
+  final String fnPath;
+  final PluginPageCoreBuilder coreBuilder;
+  final PluginPageExternBuilder externBuilder;
+  final Map<String, dynamic> Function(Map<String, dynamic> item) itemMapper;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) =>
-          FilteredComicRankingCubit(type: type, order: order)..loadInitial(),
-      child: _FilteredComicRankingBody(type: type, order: order),
+      create: (_) => PluginPagedComicListCubit(
+        from: from,
+        fnPath: fnPath,
+        coreBuilder: coreBuilder,
+        externBuilder: externBuilder,
+      )..loadInitial(),
+      child: _PluginPagedComicListBody(itemMapper: itemMapper),
     );
   }
 }
 
-class _FilteredComicRankingBody extends StatefulWidget {
-  const _FilteredComicRankingBody({
-    required this.type,
-    required this.order,
-  });
+class _PluginPagedComicListBody extends StatefulWidget {
+  const _PluginPagedComicListBody({required this.itemMapper});
 
-  final String type;
-  final String order;
+  final Map<String, dynamic> Function(Map<String, dynamic> item) itemMapper;
 
   @override
-  State<_FilteredComicRankingBody> createState() =>
-      _FilteredComicRankingBodyState();
+  State<_PluginPagedComicListBody> createState() =>
+      _PluginPagedComicListBodyState();
 }
 
-class _FilteredComicRankingBodyState extends State<_FilteredComicRankingBody>
+class _PluginPagedComicListBodyState extends State<_PluginPagedComicListBody>
     with AutomaticKeepAliveClientMixin {
   final ScrollController scrollController = ScrollController();
 
@@ -201,38 +227,37 @@ class _FilteredComicRankingBodyState extends State<_FilteredComicRankingBody>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return BlocBuilder<FilteredComicRankingCubit, FilteredComicRankingState>(
+    return BlocBuilder<PluginPagedComicListCubit, PluginPagedComicListState>(
       builder: (context, state) {
         switch (state.status) {
-          case FilteredComicRankingStatus.initial:
+          case PluginPagedComicListStatus.initial:
             return const Center(child: CircularProgressIndicator());
-          case FilteredComicRankingStatus.failure:
+          case PluginPagedComicListStatus.failure:
             return ErrorView(
               errorMessage: '${state.result}\n加载失败，请重试。',
               onRetry: () =>
-                  context.read<FilteredComicRankingCubit>().loadInitial(),
+                  context.read<PluginPagedComicListCubit>().loadInitial(),
             );
-          case FilteredComicRankingStatus.loadingMore:
-          case FilteredComicRankingStatus.loadingMoreFailure:
-          case FilteredComicRankingStatus.success:
+          case PluginPagedComicListStatus.loadingMore:
+          case PluginPagedComicListStatus.loadingMoreFailure:
+          case PluginPagedComicListStatus.success:
             return _buildContent(context, state);
         }
       },
     );
   }
 
-  Widget _buildContent(
-    BuildContext context,
-    FilteredComicRankingState state,
-  ) {
-    if (state.list.isEmpty && state.status == FilteredComicRankingStatus.success) {
+  Widget _buildContent(BuildContext context, PluginPagedComicListState state) {
+    if (state.list.isEmpty &&
+        state.status == PluginPagedComicListStatus.success) {
       return const Center(
         child: Text('啥都没有', style: TextStyle(fontSize: 20.0)),
       );
     }
 
+    final normalized = state.list.map(widget.itemMapper);
     final list = mapToUnifiedComicSimplifyEntryInfoList(
-      state.list.map(unifiedComicFromMap),
+      normalized.map(unifiedComicFromMap),
     );
 
     return CustomScrollView(
@@ -251,9 +276,9 @@ class _FilteredComicRankingBodyState extends State<_FilteredComicRankingBody>
               ),
             ),
           ),
-        if (state.status == FilteredComicRankingStatus.loadingMore)
+        if (state.status == PluginPagedComicListStatus.loadingMore)
           const SliverToBoxAdapter(child: Center(child: BottomLoader())),
-        if (state.status == FilteredComicRankingStatus.loadingMoreFailure)
+        if (state.status == PluginPagedComicListStatus.loadingMoreFailure)
           SliverToBoxAdapter(
             child: Center(
               child: Column(
@@ -261,7 +286,7 @@ class _FilteredComicRankingBodyState extends State<_FilteredComicRankingBody>
                   const SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: () => context
-                        .read<FilteredComicRankingCubit>()
+                        .read<PluginPagedComicListCubit>()
                         .retryLoadMore(),
                     child: const Text('点击重试'),
                   ),
@@ -275,7 +300,7 @@ class _FilteredComicRankingBodyState extends State<_FilteredComicRankingBody>
 
   void _onScroll() {
     if (_isBottom) {
-      context.read<FilteredComicRankingCubit>().loadMore();
+      context.read<PluginPagedComicListCubit>().loadMore();
     }
   }
 

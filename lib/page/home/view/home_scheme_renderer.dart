@@ -4,11 +4,13 @@ import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/debouncer.dart';
+import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/cover.dart';
+import 'package:zephyr/widgets/section_header.dart';
 
 class HomeSchemeRenderer {
   const HomeSchemeRenderer();
@@ -28,7 +30,7 @@ class HomeSchemeRenderer {
     required bool showLoadMoreRetry,
     required VoidCallback onRetryLoadMore,
   }) {
-    final body = _asMap(scheme['body']);
+    final body = asJsonMap(scheme['body']);
     final content = _buildNode(
       context,
       node: body,
@@ -87,14 +89,16 @@ class HomeSchemeRenderer {
     final type = node['type']?.toString() ?? '';
     switch (type) {
       case 'list':
-        final children = _asList(node['children'])
-            .map((item) => _buildNode(
-                  context,
-                  node: _asMap(item),
-                  data: data,
-                  from: from,
-                  onAction: onAction,
-                ))
+        final children = asJsonList(node['children'])
+            .map(
+              (item) => _buildNode(
+                context,
+                node: asJsonMap(item),
+                data: data,
+                from: from,
+                onAction: onAction,
+              ),
+            )
             .toList();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -117,7 +121,12 @@ class HomeSchemeRenderer {
           onAction,
         );
       case 'comic-grid':
-        return _buildComicGrid(_resolveItems(node, data));
+        return _buildComicGrid(
+          _resolveItems(node, data),
+          title: node['title']?.toString() ?? '',
+          action: asJsonMap(node['action']),
+          onAction: onAction,
+        );
       default:
         return const SizedBox.shrink();
     }
@@ -140,7 +149,7 @@ class HomeSchemeRenderer {
         children: items.map((item) {
           final label = item['label']?.toString() ?? '';
           return GestureDetector(
-            onTap: () => onAction(_asMap(item['action'])),
+            onTap: () => onAction(asJsonMap(item['action'])),
             child: Chip(
               backgroundColor: context.backgroundColor,
               shape: RoundedRectangleBorder(
@@ -186,14 +195,14 @@ class HomeSchemeRenderer {
       itemBuilder: (context, index) {
         final item = items[index];
         final title = item['title']?.toString() ?? '';
-        final cover = _asMap(item['cover']);
-        final extra = _asMap(cover['extra']);
+        final cover = asJsonMap(item['cover']);
+        final extra = asJsonMap(cover['extra']);
         final assetPath = extra['asset']?.toString().trim() ?? '';
         final coverUrl = cover['url']?.toString().trim() ?? '';
         final coverPath = extra['path']?.toString().trim() ?? '';
 
         return GestureDetector(
-          onTap: () => onAction(_asMap(item['action'])),
+          onTap: () => onAction(asJsonMap(item['action'])),
           child: Column(
             children: [
               AspectRatio(
@@ -205,9 +214,7 @@ class HomeSchemeRenderer {
                           assetPath,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) =>
-                              const ColoredBox(
-                            color: Color(0xFFE0E0E0),
-                          ),
+                              const ColoredBox(color: Color(0xFFE0E0E0)),
                         )
                       : LayoutBuilder(
                           builder: (context, constraints) => CoverWidget(
@@ -251,9 +258,9 @@ class HomeSchemeRenderer {
       children: sections.map((section) {
         final title = section['title']?.toString() ?? '';
         final subtitle = section['subtitle']?.toString() ?? '';
-        final items = _asList(section['items'])
-            .map((item) => _asMap(item))
-            .toList();
+        final items = asJsonList(
+          section['items'],
+        ).map((item) => asJsonMap(item)).toList();
         final entries = mapToUnifiedComicSimplifyEntryInfoList(items);
 
         return Padding(
@@ -261,56 +268,12 @@ class HomeSchemeRenderer {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(5),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: context.theme.colorScheme.secondaryFixed.withValues(
-                      alpha: 0.1,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          title.let(t2s),
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: context.theme.colorScheme.onSurface,
-                          ),
-                        ),
-                      ),
-                      if (subtitle.trim().isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: Text(
-                            subtitle.let(t2s),
-                            style: TextStyle(
-                              color: context.theme.colorScheme.onSurfaceVariant,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      GestureDetector(
-                        onTap: () => onAction(_asMap(section['action'])),
-                        child: Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16,
-                          color: context.theme.colorScheme.onSurface.withValues(
-                            alpha: 0.5,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 5),
-                    ],
-                  ),
-                ),
+              SectionHeader(
+                title: title.let(t2s),
+                subtitle: subtitle.let(t2s),
+                onTap: _isActionable(section['action'])
+                    ? () => onAction(asJsonMap(section['action']))
+                    : null,
               ),
               Padding(
                 padding: const EdgeInsets.only(left: 10),
@@ -327,18 +290,33 @@ class HomeSchemeRenderer {
     );
   }
 
-  Widget _buildComicGrid(List<Map<String, dynamic>> items) {
+  Widget _buildComicGrid(
+    List<Map<String, dynamic>> items, {
+    required String title,
+    required Map<String, dynamic> action,
+    required Future<void> Function(Map<String, dynamic> action) onAction,
+  }) {
     if (items.isEmpty) {
       return const SizedBox.shrink();
     }
 
     final entries = mapToUnifiedComicSimplifyEntryInfoList(items);
-    return ComicSimplifyEntryGridView(
-      entries: entries,
-      type: ComicEntryType.normal,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(10),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (title.trim().isNotEmpty)
+          SectionHeader(
+            title: title.let(t2s),
+            onTap: _isActionable(action) ? () => onAction(action) : null,
+          ),
+        ComicSimplifyEntryGridView(
+          entries: entries,
+          type: ComicEntryType.normal,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(10),
+        ),
+      ],
     );
   }
 
@@ -350,7 +328,7 @@ class HomeSchemeRenderer {
     if (key.isEmpty) {
       return const <Map<String, dynamic>>[];
     }
-    return _asList(data[key]).map((item) => _asMap(item)).toList();
+    return asJsonList(data[key]).map((item) => asJsonMap(item)).toList();
   }
 
   List<Map<String, dynamic>> _filterActionItems(
@@ -362,30 +340,19 @@ class HomeSchemeRenderer {
       return items;
     }
 
-    final shieldedMap =
-        objectbox.userSettingBox.get(1)!.bikaSetting.shieldHomePageCategoriesMap;
+    final shieldedMap = objectbox.userSettingBox
+        .get(1)!
+        .bikaSetting
+        .shieldHomePageCategoriesMap;
     return items.where((item) {
       final title = item['title']?.toString() ?? '';
       return !(shieldedMap[title] ?? false);
     }).toList();
   }
 
-  Map<String, dynamic> _asMap(dynamic value) {
-    if (value is Map<String, dynamic>) {
-      return value;
-    }
-    if (value is Map) {
-      return Map<String, dynamic>.fromEntries(
-        value.entries.map((entry) => MapEntry(entry.key.toString(), entry.value)),
-      );
-    }
-    return const <String, dynamic>{};
-  }
-
-  List<dynamic> _asList(dynamic value) {
-    if (value is List) {
-      return value;
-    }
-    return const <dynamic>[];
+  bool _isActionable(dynamic value) {
+    final action = asJsonMap(value);
+    final type = action['type']?.toString().trim() ?? '';
+    return type.isNotEmpty && type != 'none';
   }
 }

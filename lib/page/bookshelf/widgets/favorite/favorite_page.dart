@@ -318,7 +318,11 @@ class _UserFavoritePageState extends State<_FavoritePage>
       final temp = comics.map((e) => e as ComicNumber).toList();
 
       return temp
-          .map((item) => unifiedComicFromBikaFavoriteDoc(item.doc))
+          .map(
+            (item) => item.doc is UnifiedComicListItem
+                ? item.doc as UnifiedComicListItem
+                : unifiedComicFromBikaFavoriteDoc(item.doc),
+          )
           .toList();
     } else {
       return const <UnifiedComicListItem>[];

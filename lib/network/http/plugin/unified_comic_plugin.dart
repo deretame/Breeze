@@ -6,8 +6,10 @@ import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/direct_dio.dart';
+import 'package:zephyr/util/json/json_value.dart';
 
-String _defaultRuntimeName(From from) => from == From.bika ? 'bikaComic' : 'jmComic';
+String _defaultRuntimeName(From from) =>
+    from == From.bika ? 'bikaComic' : 'jmComic';
 
 Future<Map<String, dynamic>> callUnifiedComicPlugin({
   required From from,
@@ -27,7 +29,7 @@ Future<Map<String, dynamic>> callUnifiedComicPlugin({
     argsJson: argsJson,
   );
   final decoded = jsonDecode(raw);
-  return _asMap(decoded);
+  return requireJsonMap(decoded, message: '插件返回格式错误');
 }
 
 Future<String> _invokeQjs({
@@ -48,16 +50,4 @@ Future<String> _invokeQjs({
   }
 
   return qjsCall(runtimeName: runtimeName, fnPath: fnPath, argsJson: argsJson);
-}
-
-Map<String, dynamic> _asMap(dynamic value) {
-  if (value is Map<String, dynamic>) {
-    return value;
-  }
-  if (value is Map) {
-    return Map<String, dynamic>.fromEntries(
-      value.entries.map((entry) => MapEntry(entry.key.toString(), entry.value)),
-    );
-  }
-  throw Exception('插件返回格式错误: ${value.runtimeType}');
 }

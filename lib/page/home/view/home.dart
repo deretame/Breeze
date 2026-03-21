@@ -11,8 +11,10 @@ import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
+import 'package:zephyr/page/ranking_list/view/ranking_list_page.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
@@ -222,7 +224,9 @@ class _HomePageState extends State<HomePage> {
       final envelope = UnifiedPluginEnvelope.fromMap(response);
       final incoming = asMap(envelope.data);
 
-      final title = envelope.scheme['title']?.toString() ?? (from == From.bika ? '哔咔漫画' : '禁漫首页');
+      final title =
+          envelope.scheme['title']?.toString() ??
+          (from == From.bika ? '哔咔漫画' : '禁漫首页');
 
       if (!mounted) {
         return;
@@ -275,10 +279,7 @@ class _HomePageState extends State<HomePage> {
       final response = await callUnifiedComicPlugin(
         from: from,
         fnPath: 'getHomeData',
-        core: {
-          'page': snapshot.nextPage,
-          'path': '$currentJmBaseUrl/latest',
-        },
+        core: {'page': snapshot.nextPage, 'path': '$currentJmBaseUrl/latest'},
         extern: const {
           'source': 'home',
           'suggestionPath': 'https://www.cdnsha.org/latest',
@@ -287,14 +288,15 @@ class _HomePageState extends State<HomePage> {
       final envelope = UnifiedPluginEnvelope.fromMap(response);
       final incoming = asMap(envelope.data);
       final currentData = Map<String, dynamic>.from(snapshot.data);
-      final existingItems = _asList(currentData['suggestionItems'])
-          .map((item) => _asMap(item))
-          .toList();
-      final nextItems = _asList(incoming['suggestionItems'])
-          .map((item) => _asMap(item))
-          .toList();
+      final existingItems = asJsonList(
+        currentData['suggestionItems'],
+      ).map((item) => asJsonMap(item)).toList();
+      final nextItems = asJsonList(
+        incoming['suggestionItems'],
+      ).map((item) => asJsonMap(item)).toList();
       currentData['suggestionItems'] = [...existingItems, ...nextItems];
-      currentData['sections'] = currentData['sections'] ?? incoming['sections'] ?? const <dynamic>[];
+      currentData['sections'] =
+          currentData['sections'] ?? incoming['sections'] ?? const <dynamic>[];
 
       if (!mounted) {
         return;
@@ -303,7 +305,9 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _snapshots[from] = snapshot.copyWith(
           status: HomeFeedStatus.success,
-          scheme: envelope.scheme.isNotEmpty ? envelope.scheme : snapshot.scheme,
+          scheme: envelope.scheme.isNotEmpty
+              ? envelope.scheme
+              : snapshot.scheme,
           data: currentData,
           nextPage: snapshot.nextPage + 1,
           hasReachedMax: incoming['hasReachedMax'] == true,
@@ -342,7 +346,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _handleAction(Map<String, dynamic> action) async {
     final type = action['type']?.toString() ?? '';
-    final payload = _asMap(action['payload']);
+    final payload = asJsonMap(action['payload']);
 
     if (type == 'none' || type.isEmpty) {
       return;
@@ -352,15 +356,14 @@ class _HomePageState extends State<HomePage> {
       final source = _sourceFromString(payload['source']?.toString());
       final keyword = payload['keyword']?.toString() ?? '';
       final url = payload['url']?.toString() ?? '';
-      final categories = _asList(payload['categories'])
+      final categories = asJsonList(payload['categories'])
           .map((item) => item.toString())
           .where((item) => item.trim().isNotEmpty)
           .toList();
 
-      var searchStates = SearchStates.initial(context).copyWith(
-        from: source,
-        searchKeyword: keyword,
-      );
+      var searchStates = SearchStates.initial(
+        context,
+      ).copyWith(from: source, searchKeyword: keyword);
 
       if (source == From.bika && categories.isNotEmpty) {
         final selectedCategories = {
@@ -397,7 +400,7 @@ class _HomePageState extends State<HomePage> {
 
     if (type == 'openRoute') {
       final route = payload['route']?.toString() ?? '';
-      final args = _asMap(payload['args']);
+      final args = asJsonMap(payload['args']);
 
       if (route == 'jmPromoteList') {
         context.pushRoute(
@@ -410,14 +413,17 @@ class _HomePageState extends State<HomePage> {
       }
 
       if (route == 'jmWeekRanking') {
-        context.pushRoute(JmWeekRankingRoute());
+        context.pushRoute(
+          RankingListRoute(mode: RankingListMode.weekRanking, title: '每周连载更新'),
+        );
         return;
       }
 
       if (route == 'timeRanking') {
         context.pushRoute(
-          TimeRankingRoute(
-            tag: args['tag']?.toString() ?? '',
+          RankingListRoute(
+            mode: RankingListMode.timeRanking,
+            contextTag: args['tag']?.toString() ?? '',
             title: args['title']?.toString(),
           ),
         );
@@ -436,11 +442,12 @@ class _HomePageState extends State<HomePage> {
     } catch (_) {
       if (Platform.isLinux) {
         try {
-          await Process.start(
-            'cmd.exe',
-            ['/c', 'start', '', url],
-            mode: ProcessStartMode.detached,
-          );
+          await Process.start('cmd.exe', [
+            '/c',
+            'start',
+            '',
+            url,
+          ], mode: ProcessStartMode.detached);
         } catch (e) {
           logger.e('WSL fallback failed: $e');
         }
@@ -527,24 +534,5 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
-  }
-
-  Map<String, dynamic> _asMap(dynamic value) {
-    if (value is Map<String, dynamic>) {
-      return value;
-    }
-    if (value is Map) {
-      return Map<String, dynamic>.fromEntries(
-        value.entries.map((entry) => MapEntry(entry.key.toString(), entry.value)),
-      );
-    }
-    return const <String, dynamic>{};
-  }
-
-  List<dynamic> _asList(dynamic value) {
-    if (value is List) {
-      return value;
-    }
-    return const <dynamic>[];
   }
 }

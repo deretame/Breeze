@@ -7,6 +7,8 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/bookshelf/models/events.dart';
+import 'package:zephyr/page/ranking_list/models/plugin_ranking_filter_schema.dart';
+import 'package:zephyr/page/ranking_list/view/plugin_paged_comic_list_view.dart';
 import 'package:zephyr/page/ranking_list/widgets/plugin_ranking_filter_dialog.dart';
 import 'package:zephyr/type/enum.dart';
 
@@ -18,23 +20,24 @@ class _RankingFilterBundle {
     required this.defaultSelections,
   });
 
-  final Map<String, dynamic> scheme;
+  final PluginRankingFilterSchema scheme;
   final Map<String, String> defaultSelections;
 }
 
-class _ResolvedRankingFilter {
-  const _ResolvedRankingFilter({
-    required this.selections,
-    required this.params,
-  });
-
-  final Map<String, String> selections;
-  final Map<String, dynamic> params;
-}
+enum RankingListMode { standard, weekRanking, timeRanking }
 
 @RoutePage()
 class RankingListPage extends StatefulWidget {
-  const RankingListPage({super.key});
+  const RankingListPage({
+    super.key,
+    this.title,
+    this.mode = RankingListMode.standard,
+    this.contextTag,
+  });
+
+  final String? title;
+  final RankingListMode mode;
+  final String? contextTag;
 
   @override
   State<RankingListPage> createState() => _RankingListPageState();
@@ -48,12 +51,20 @@ class _RankingListPageState extends State<RankingListPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return const HotTabBar();
+    return HotTabBar(
+      title: widget.title,
+      mode: widget.mode,
+      contextTag: widget.contextTag,
+    );
   }
 }
 
 class HotTabBar extends StatefulWidget {
-  const HotTabBar({super.key});
+  const HotTabBar({super.key, this.title, required this.mode, this.contextTag});
+
+  final String? title;
+  final RankingListMode mode;
+  final String? contextTag;
 
   @override
   State<HotTabBar> createState() => _HotTabBarState();
@@ -71,15 +82,27 @@ class _HotTabBarState extends State<HotTabBar> {
   Widget build(BuildContext context) {
     final globlalSettingCubit = context.read<GlobalSettingCubit>();
     final globalSettingState = context.watch<GlobalSettingCubit>().state;
-    final currentFrom = globalSettingState.comicChoice == 1 ? From.bika : From.jm;
+    final currentFrom =
+        widget.mode == RankingListMode.weekRanking ||
+            widget.mode == RankingListMode.timeRanking
+        ? From.jm
+        : (globalSettingState.comicChoice == 1 ? From.bika : From.jm);
 
     _ensureFilterLoaded(currentFrom);
 
+    final title =
+        widget.title ??
+        (widget.mode == RankingListMode.weekRanking
+            ? '每周连载更新'
+            : widget.mode == RankingListMode.timeRanking
+            ? '排行榜'
+            : _renderer.title(globalSettingState.comicChoice));
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(_renderer.title(globalSettingState.comicChoice)),
+        title: Text(title),
         actions: [
-          if (_renderer.showFilter(globalSettingState.comicChoice))
+          if (_showFilter(globalSettingState.comicChoice))
             IconButton(
               icon: const Icon(Icons.filter_alt),
               onPressed: () => _openFilterDialog(currentFrom),
@@ -87,7 +110,10 @@ class _HotTabBarState extends State<HotTabBar> {
         ],
       ),
       body: _buildBody(globalSettingState.comicChoice, currentFrom),
-      floatingActionButton: (globalSettingState.disableBika ||
+      floatingActionButton:
+          (widget.mode == RankingListMode.weekRanking ||
+              widget.mode == RankingListMode.timeRanking ||
+              globalSettingState.disableBika ||
               !_renderer.showSwitchFab(globalSettingState.comicChoice))
           ? null
           : FloatingActionButton(
@@ -133,9 +159,41 @@ class _HotTabBarState extends State<HotTabBar> {
       );
     }
 
+    final currentFilter =
+        _filterParams[currentFrom] ?? const <String, dynamic>{};
+    if (widget.mode == RankingListMode.weekRanking) {
+      final week = _toInt(currentFilter['date'], 1);
+      final type = currentFilter['type']?.toString() ?? 'all';
+      return PluginPagedComicListView(
+        key: ValueKey('week_ranking_${week}_$type'),
+        from: From.jm,
+        fnPath: 'getWeekRankingData',
+        coreBuilder: (page) => {'date': week, 'type': type, 'page': page},
+        externBuilder: (_) => const {'source': 'weekRanking'},
+        itemMapper: (item) => item,
+      );
+    }
+
+    if (widget.mode == RankingListMode.timeRanking) {
+      final type = currentFilter['type']?.toString() ?? 'all';
+      final order = currentFilter['order']?.toString() ?? 'new';
+      return PluginPagedComicListView(
+        key: ValueKey('time_ranking_${type}_$order'),
+        from: From.jm,
+        fnPath: 'getRankingData',
+        coreBuilder: (page) => {'page': page},
+        externBuilder: (_) => {
+          'type': type,
+          'order': order,
+          'source': 'ranking',
+        },
+        itemMapper: (item) => item,
+      );
+    }
+
     return _renderer.body(
       comicChoice: comicChoice,
-      currentFilter: _filterParams[currentFrom] ?? const <String, dynamic>{},
+      currentFilter: currentFilter,
     );
   }
 
@@ -172,9 +230,18 @@ class _HotTabBarState extends State<HotTabBar> {
     try {
       final response = await callUnifiedComicPlugin(
         from: from,
-        fnPath: 'getRankingFilterBundle',
-        core: const <String, dynamic>{},
-        extern: const <String, dynamic>{'source': 'ranking'},
+        fnPath: _filterBundleFnPath,
+        core: {
+          if (widget.mode == RankingListMode.timeRanking)
+            'tag': widget.contextTag ?? '',
+        },
+        extern: {
+          'source': widget.mode == RankingListMode.weekRanking
+              ? 'weekRanking'
+              : widget.mode == RankingListMode.timeRanking
+              ? 'timeRanking'
+              : 'ranking',
+        },
       );
       final envelope = UnifiedPluginEnvelope.fromMap(response);
       final bundle = _parseFilterBundle(envelope);
@@ -219,8 +286,7 @@ class _HotTabBarState extends State<HotTabBar> {
       context: context,
       builder: (context) => PluginRankingFilterDialog(
         scheme: bundle.scheme,
-        initialSelections:
-            _filterSelections[from] ?? bundle.defaultSelections,
+        initialSelections: _filterSelections[from] ?? bundle.defaultSelections,
       ),
     );
 
@@ -243,59 +309,43 @@ class _HotTabBarState extends State<HotTabBar> {
     });
 
     return _RankingFilterBundle(
-      scheme: envelope.scheme,
+      scheme: PluginRankingFilterSchema.fromMap(envelope.scheme),
       defaultSelections: defaults,
     );
   }
 
-  _ResolvedRankingFilter _resolveRankingFilter(
+  PluginResolvedRankingFilter _resolveRankingFilter(
     _RankingFilterBundle bundle,
     Map<String, String> requestedSelections,
   ) {
-    final selections = <String, String>{};
-    final params = <String, dynamic>{};
-    final fields = asList(bundle.scheme['fields']).map((item) => asMap(item));
-
-    for (final field in fields) {
-      if (field['kind']?.toString() != 'choice') {
-        continue;
-      }
-
-      final key = field['key']?.toString() ?? '';
-      if (key.isEmpty) {
-        continue;
-      }
-
-      final options = asList(field['options']).map((item) => asMap(item)).toList();
-      if (options.isEmpty) {
-        continue;
-      }
-
-      final requestedValue = requestedSelections[key]?.trim() ?? '';
-      final fallbackValue = bundle.defaultSelections[key]?.trim() ?? '';
-      final selected = _findOptionByValue(
-            options,
-            requestedValue.isNotEmpty ? requestedValue : fallbackValue,
-          ) ??
-          options.first;
-
-      final selectedValue = selected['value']?.toString() ?? '';
-      selections[key] = selectedValue;
-      params.addAll(asMap(selected['result']));
-    }
-
-    return _ResolvedRankingFilter(selections: selections, params: params);
+    return bundle.scheme.resolve(
+      requestedSelections: requestedSelections,
+      defaultSelections: bundle.defaultSelections,
+    );
   }
 
-  Map<String, dynamic>? _findOptionByValue(
-    List<Map<String, dynamic>> options,
-    String value,
-  ) {
-    for (final option in options) {
-      if (option['value']?.toString() == value) {
-        return option;
-      }
+  bool _showFilter(int comicChoice) {
+    if (widget.mode == RankingListMode.weekRanking) {
+      return true;
     }
-    return null;
+    if (widget.mode == RankingListMode.timeRanking) {
+      return true;
+    }
+    return _renderer.showFilter(comicChoice);
+  }
+
+  String get _filterBundleFnPath {
+    return switch (widget.mode) {
+      RankingListMode.weekRanking => 'getWeekRankingFilterBundle',
+      RankingListMode.timeRanking => 'getTimeRankingFilterBundle',
+      _ => 'getRankingFilterBundle',
+    };
+  }
+
+  int _toInt(dynamic value, int fallback) {
+    if (value is num) {
+      return value.toInt();
+    }
+    return int.tryParse(value?.toString() ?? '') ?? fallback;
   }
 }

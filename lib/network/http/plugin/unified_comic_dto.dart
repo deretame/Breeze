@@ -1,3 +1,5 @@
+import 'package:zephyr/util/json/json_value.dart';
+
 class UnifiedPluginSearchPaging {
   const UnifiedPluginSearchPaging({
     required this.page,
@@ -223,22 +225,11 @@ class UnifiedPluginEnvelope {
 }
 
 Map<String, dynamic> asMap(dynamic value) {
-  if (value is Map<String, dynamic>) {
-    return value;
-  }
-  if (value is Map) {
-    return Map<String, dynamic>.fromEntries(
-      value.entries.map((entry) => MapEntry(entry.key.toString(), entry.value)),
-    );
-  }
-  return const <String, dynamic>{};
+  return asJsonMap(value);
 }
 
 List<dynamic> asList(dynamic value) {
-  if (value is List) {
-    return value;
-  }
-  return const <dynamic>[];
+  return asJsonList(value);
 }
 
 int _toInt(dynamic value, int fallback) {

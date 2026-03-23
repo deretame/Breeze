@@ -6,6 +6,7 @@ import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../main.dart';
+import '../../../object_box/objectbox.g.dart';
 
 enum DeleteType { download, history }
 
@@ -37,7 +38,7 @@ Widget deletingDialog(BuildContext context, Function refresh, DeleteType type) {
                 TextButton(
                   onPressed: () {
                     if (type == DeleteType.download) {
-                      objectbox.bikaDownloadBox.removeAll();
+                      objectbox.unifiedDownloadBox.removeAll();
                       deleteDirectory(
                         '/data/data/com.zephyr.breeze/files/downloads',
                       );
@@ -48,23 +49,31 @@ Widget deletingDialog(BuildContext context, Function refresh, DeleteType type) {
                           .comicChoice;
 
                       if (comicChoice == 1) {
-                        var allHistory = objectbox.bikaHistoryBox.getAll();
+                        var allHistory = objectbox.unifiedHistoryBox
+                            .query(UnifiedComicHistory_.source.equals('bika'))
+                            .build()
+                            .find();
 
                         for (var history in allHistory) {
                           history.deleted = true;
-                          history.history = DateTime.now().toUtc();
+                          history.updatedAt = DateTime.now().toUtc();
+                          history.lastReadAt = history.updatedAt;
                         }
 
-                        objectbox.bikaHistoryBox.putMany(allHistory);
+                        objectbox.unifiedHistoryBox.putMany(allHistory);
                       } else if (comicChoice == 2) {
-                        var allHistory = objectbox.jmHistoryBox.getAll();
+                        var allHistory = objectbox.unifiedHistoryBox
+                            .query(UnifiedComicHistory_.source.equals('jm'))
+                            .build()
+                            .find();
 
                         for (var history in allHistory) {
                           history.deleted = true;
-                          history.history = DateTime.now().toUtc();
+                          history.updatedAt = DateTime.now().toUtc();
+                          history.lastReadAt = history.updatedAt;
                         }
 
-                        objectbox.jmHistoryBox.putMany(allHistory);
+                        objectbox.unifiedHistoryBox.putMany(allHistory);
                       }
                     }
 

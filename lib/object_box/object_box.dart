@@ -15,6 +15,9 @@ class ObjectBox {
   late final Box<JmFavorite> _jmFavoriteBox;
   late final Box<JmHistory> _jmHistoryBox;
   late final Box<JmDownload> _jmDownloadBox;
+  late final Box<UnifiedComicFavorite> _unifiedComicFavoriteBox;
+  late final Box<UnifiedComicHistory> _unifiedComicHistoryBox;
+  late final Box<UnifiedComicDownload> _unifiedComicDownloadBox;
 
   late final Box<UserSetting> _userSettingBox;
 
@@ -29,6 +32,9 @@ class ObjectBox {
     _jmFavoriteBox = store.box<JmFavorite>();
     _jmHistoryBox = store.box<JmHistory>();
     _jmDownloadBox = store.box<JmDownload>();
+    _unifiedComicFavoriteBox = store.box<UnifiedComicFavorite>();
+    _unifiedComicHistoryBox = store.box<UnifiedComicHistory>();
+    _unifiedComicDownloadBox = store.box<UnifiedComicDownload>();
 
     _userSettingBox = store.box<UserSetting>();
 
@@ -87,6 +93,12 @@ class ObjectBox {
   Box<JmHistory> get jmHistoryBox => _jmHistoryBox;
 
   Box<JmDownload> get jmDownloadBox => _jmDownloadBox;
+
+  Box<UnifiedComicFavorite> get unifiedFavoriteBox => _unifiedComicFavoriteBox;
+
+  Box<UnifiedComicHistory> get unifiedHistoryBox => _unifiedComicHistoryBox;
+
+  Box<UnifiedComicDownload> get unifiedDownloadBox => _unifiedComicDownloadBox;
 
   Box<UserSetting> get userSettingBox => _userSettingBox;
 

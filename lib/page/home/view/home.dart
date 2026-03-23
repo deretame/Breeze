@@ -9,11 +9,10 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
+import 'package:zephyr/page/comic_list/models/comic_list_scene.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
-import 'package:zephyr/page/ranking_list/view/ranking_list_page.dart';
 import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/router/router.gr.dart';
@@ -398,36 +397,10 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    if (type == 'openRoute') {
-      final route = payload['route']?.toString() ?? '';
-      final args = asJsonMap(payload['args']);
-
-      if (route == 'jmPromoteList') {
-        context.pushRoute(
-          JmPromoteListRoute(
-            id: toInt(args['id']),
-            name: args['name']?.toString() ?? '',
-          ),
-        );
-        return;
-      }
-
-      if (route == 'jmWeekRanking') {
-        context.pushRoute(
-          RankingListRoute(mode: RankingListMode.weekRanking, title: '每周连载更新'),
-        );
-        return;
-      }
-
-      if (route == 'timeRanking') {
-        context.pushRoute(
-          RankingListRoute(
-            mode: RankingListMode.timeRanking,
-            contextTag: args['tag']?.toString() ?? '',
-            title: args['title']?.toString(),
-          ),
-        );
-      }
+    if (type == 'openComicList') {
+      final scene = ComicListScene.fromMap(asJsonMap(payload['scene']));
+      context.pushRoute(ComicListRoute(scene: scene, title: scene.title));
+      return;
     }
   }
 

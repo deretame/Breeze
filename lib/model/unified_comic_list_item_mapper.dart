@@ -1,14 +1,13 @@
 import 'package:zephyr/model/unified_comic_list_item.dart';
-import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/object_box/model.dart';
+import 'package:path/path.dart' as p;
 import 'package:zephyr/page/bookshelf/json/favorite/favourite_json.dart'
     as favorite_json;
 import 'package:zephyr/page/bookshelf/json/jm_cloud_favorite/jm_cloud_favorite_json.dart'
     as jm_cloud;
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal_info;
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 
 UnifiedComicListItem unifiedComicFromPluginSearchItem(
@@ -18,7 +17,31 @@ UnifiedComicListItem unifiedComicFromPluginSearchItem(
   final raw = item.raw;
   final data = item.data;
   if (data['cover'] is Map && data['metadata'] is List) {
-    return UnifiedComicListItem.fromJson(data);
+    final comic = UnifiedComicListItem.fromJson(data);
+    if (source != 'bika') {
+      return comic;
+    }
+
+    final extra = Map<String, dynamic>.from(comic.cover.extra);
+    final fileServer = extra['fileServer']?.toString().trim() ?? '';
+    if (fileServer.isEmpty) {
+      return comic;
+    }
+
+    return UnifiedComicListItem(
+      source: comic.source,
+      id: comic.id,
+      title: comic.title,
+      subtitle: comic.subtitle,
+      finished: comic.finished,
+      likesCount: comic.likesCount,
+      viewsCount: comic.viewsCount,
+      updatedAt: comic.updatedAt,
+      cover: UnifiedComicCover(id: comic.cover.id, url: fileServer, extra: extra),
+      metadata: comic.metadata,
+      raw: comic.raw,
+      extra: comic.extra,
+    );
   }
 
   if (source == 'bika') {
@@ -36,7 +59,7 @@ UnifiedComicListItem unifiedComicFromPluginSearchItem(
       updatedAt: raw['updated_at']?.toString() ?? '',
       cover: UnifiedComicCover(
         id: raw['_id']?.toString() ?? raw['id']?.toString() ?? '',
-        url: buildImageUrl(fileServer, path, PictureType.cover, 'original', 3),
+        url: fileServer,
         extra: {
           'path': path,
           'name': thumb['originalName']?.toString() ?? '',
@@ -71,11 +94,7 @@ UnifiedComicListItem unifiedComicFromPluginSearchItem(
     likesCount: _toInt(raw['likes']),
     viewsCount: _toInt(raw['total_views'] ?? raw['totalViews']),
     updatedAt: raw['update_at']?.toString() ?? '',
-    cover: UnifiedComicCover(
-      id: id,
-      url: imageUrl,
-      extra: {'path': '$id.jpg'},
-    ),
+    cover: UnifiedComicCover(id: id, url: imageUrl, extra: {'path': '$id.jpg'}),
     metadata: [
       _metadata(type: 'author', name: '作者', values: [raw['author']]),
       _metadata(
@@ -91,13 +110,6 @@ UnifiedComicListItem unifiedComicFromPluginSearchItem(
 }
 
 UnifiedComicListItem unifiedComicFromBikaFavoriteDoc(favorite_json.Doc doc) {
-  final coverUrl = buildImageUrl(
-    doc.thumb.fileServer,
-    doc.thumb.path,
-    PictureType.favourite,
-    'original',
-    3,
-  );
   return UnifiedComicListItem(
     source: 'bika',
     id: doc.id,
@@ -109,7 +121,7 @@ UnifiedComicListItem unifiedComicFromBikaFavoriteDoc(favorite_json.Doc doc) {
     updatedAt: '',
     cover: UnifiedComicCover(
       id: doc.id,
-      url: coverUrl,
+        url: doc.thumb.fileServer,
       extra: {
         'path': doc.thumb.path,
         'name': doc.thumb.originalName,
@@ -126,13 +138,6 @@ UnifiedComicListItem unifiedComicFromBikaFavoriteDoc(favorite_json.Doc doc) {
 }
 
 UnifiedComicListItem unifiedComicFromBikaHistory(BikaComicHistory comic) {
-  final coverUrl = buildImageUrl(
-    comic.thumbFileServer,
-    comic.thumbPath,
-    PictureType.cover,
-    'original',
-    3,
-  );
   return UnifiedComicListItem(
     source: 'bika',
     id: comic.comicId,
@@ -144,7 +149,7 @@ UnifiedComicListItem unifiedComicFromBikaHistory(BikaComicHistory comic) {
     updatedAt: comic.updatedAt.toIso8601String(),
     cover: UnifiedComicCover(
       id: comic.comicId,
-      url: coverUrl,
+        url: comic.thumbFileServer,
       extra: {
         'path': comic.thumbPath,
         'name': comic.thumbOriginalName,
@@ -167,13 +172,6 @@ UnifiedComicListItem unifiedComicFromBikaHistory(BikaComicHistory comic) {
 }
 
 UnifiedComicListItem unifiedComicFromBikaDownload(BikaComicDownload comic) {
-  final coverUrl = buildImageUrl(
-    comic.thumbFileServer,
-    comic.thumbPath,
-    PictureType.cover,
-    'original',
-    3,
-  );
   return UnifiedComicListItem(
     source: 'bika',
     id: comic.comicId,
@@ -185,7 +183,7 @@ UnifiedComicListItem unifiedComicFromBikaDownload(BikaComicDownload comic) {
     updatedAt: comic.updatedAt.toIso8601String(),
     cover: UnifiedComicCover(
       id: comic.comicId,
-      url: coverUrl,
+        url: comic.thumbFileServer,
       extra: {
         'path': comic.thumbPath,
         'name': comic.thumbOriginalName,
@@ -294,18 +292,75 @@ UnifiedComicListItem unifiedComicFromJmDownload(JmDownload comic) {
   );
 }
 
+UnifiedComicListItem unifiedComicFromUnifiedFavorite(UnifiedComicFavorite comic) {
+  return UnifiedComicListItem(
+    source: comic.source,
+    id: comic.comicId,
+    title: comic.title,
+    subtitle: '',
+    finished: false,
+    likesCount: 0,
+    viewsCount: _viewCountFromTitleMeta(comic.titleMeta),
+    updatedAt: comic.updatedAt.toIso8601String(),
+    cover: _coverFromFlex(comic.source, comic.comicId, comic.cover),
+    metadata: _metadataFromFlex(comic.metadata),
+    raw: comic.toJson(),
+    extra: {'description': comic.description},
+  );
+}
+
+UnifiedComicListItem unifiedComicFromUnifiedHistory(UnifiedComicHistory comic) {
+  return UnifiedComicListItem(
+    source: comic.source,
+    id: comic.comicId,
+    title: comic.title,
+    subtitle: comic.chapterTitle,
+    finished: false,
+    likesCount: 0,
+    viewsCount: _viewCountFromTitleMeta(comic.titleMeta),
+    updatedAt: comic.updatedAt.toIso8601String(),
+    cover: _coverFromFlex(comic.source, comic.comicId, comic.cover),
+    metadata: _metadataFromFlex(comic.metadata),
+    raw: comic.toJson(),
+    extra: {
+      'description': comic.description,
+      'epId': comic.chapterId,
+      'epPageCount': comic.pageIndex,
+      'order': comic.chapterOrder,
+    },
+  );
+}
+
+UnifiedComicListItem unifiedComicFromUnifiedDownload(UnifiedComicDownload comic) {
+  final cover = _coverFromFlex(comic.source, comic.comicId, comic.cover);
+  final extra = Map<String, dynamic>.from(cover.extra);
+  final storedPath = extra['path']?.toString() ?? '';
+  if (storedPath.isNotEmpty) {
+    extra['path'] = p.join(comic.storageRoot, 'cover', storedPath);
+  }
+  return UnifiedComicListItem(
+    source: comic.source,
+    id: comic.comicId,
+    title: comic.title,
+    subtitle: '',
+    finished: false,
+    likesCount: comic.totalLikes,
+    viewsCount: comic.totalViews,
+    updatedAt: comic.updatedAt.toIso8601String(),
+    cover: UnifiedComicCover(id: cover.id, url: '', extra: extra),
+    metadata: _metadataFromFlex(comic.metadata),
+    raw: comic.toJson(),
+    extra: {'description': comic.description},
+  );
+}
+
 UnifiedComicListItem unifiedComicFromRecommend(
-  normal_info.Recommend comic, {
-  required From from,
-}) {
-  if (from == From.bika) {
-    final coverUrl = buildImageUrl(
-      comic.cover.url,
-      comic.cover.path,
-      PictureType.cover,
-      'original',
-      3,
-    );
+  normal_info.Recommend comic,
+) {
+  final source = comic.source.trim().isEmpty ? 'bika' : comic.source.trim();
+  final coverExtra = comic.cover.extension;
+
+  if (source == 'bika') {
     return UnifiedComicListItem(
       source: 'bika',
       id: comic.id,
@@ -317,11 +372,11 @@ UnifiedComicListItem unifiedComicFromRecommend(
       updatedAt: '',
       cover: UnifiedComicCover(
         id: comic.id,
-        url: coverUrl,
+        url: comic.cover.url,
         extra: {
-          'path': comic.cover.path,
+          'path': coverExtra['path']?.toString() ?? comic.cover.name,
           'name': comic.cover.name,
-          'fileServer': comic.cover.url,
+          'fileServer': coverExtra['fileServer']?.toString() ?? comic.cover.url,
         },
       ),
       metadata: const <UnifiedComicMetadata>[],
@@ -330,7 +385,7 @@ UnifiedComicListItem unifiedComicFromRecommend(
         'title': comic.title,
         'cover': {
           'url': comic.cover.url,
-          'path': comic.cover.path,
+          'extension': comic.cover.extension,
           'name': comic.cover.name,
         },
       },
@@ -350,11 +405,11 @@ UnifiedComicListItem unifiedComicFromRecommend(
     viewsCount: 0,
     updatedAt: '',
     description: '',
-    imageUrl: getJmCoverUrl(comic.id),
+    imageUrl: comic.cover.url.isNotEmpty ? comic.cover.url : getJmCoverUrl(comic.id),
     raw: {
       'id': comic.id,
       'name': comic.title,
-      'image': getJmCoverUrl(comic.id),
+      'image': comic.cover.url.isNotEmpty ? comic.cover.url : getJmCoverUrl(comic.id),
     },
   );
 }
@@ -379,8 +434,24 @@ UnifiedComicListItem unifiedComicFromJmCloudFavorite(
   );
 }
 
-UnifiedComicListItem unifiedComicFromMap(Map<String, dynamic> comic) {
-  return UnifiedComicListItem.fromJson(comic);
+UnifiedComicListItem unifiedComicFromPluginListMap(
+  Map<String, dynamic> item, {
+  required String source,
+}) {
+  if (item['cover'] is Map && item['metadata'] is List) {
+    return UnifiedComicListItem.fromJson(item);
+  }
+
+  final raw = asMap(item['raw']);
+  return unifiedComicFromPluginSearchItem(
+    UnifiedPluginSearchItem(
+      id: item['id']?.toString() ?? item['_id']?.toString() ?? '',
+      title: item['title']?.toString() ?? item['name']?.toString() ?? '',
+      data: item,
+      raw: raw.isNotEmpty ? raw : item,
+    ),
+    source,
+  );
 }
 
 UnifiedComicMetadata? _metadata({
@@ -403,6 +474,56 @@ int _toInt(dynamic value) {
     return value.toInt();
   }
   return int.tryParse(value?.toString() ?? '') ?? 0;
+}
+
+UnifiedComicCover _coverFromFlex(
+  String source,
+  String comicId,
+  Map<String, dynamic>? cover,
+) {
+  final data = Map<String, dynamic>.from(cover ?? const <String, dynamic>{});
+  final extension = asMap(data['extension']);
+  final url = data['url']?.toString() ?? '';
+  final path = extension['path']?.toString() ?? data['name']?.toString() ?? '';
+  return UnifiedComicCover(
+    id: data['id']?.toString() ?? comicId,
+    url: url.isNotEmpty ? url : (source == 'jm' ? getJmCoverUrl(comicId) : ''),
+    extra: {
+      'path': path,
+      'name': data['name']?.toString() ?? '',
+      'fileServer': extension['fileServer']?.toString() ?? url,
+    },
+  );
+}
+
+List<UnifiedComicMetadata> _metadataFromFlex(List<Map<String, dynamic>>? metadata) {
+  return (metadata ?? const <Map<String, dynamic>>[])
+      .map((item) {
+        final value = asList(item['value'])
+            .map((e) => asMap(e)['name']?.toString().trim() ?? '')
+            .where((e) => e.isNotEmpty)
+            .toList();
+        if (value.isEmpty) {
+          return null;
+        }
+        return UnifiedComicMetadata(
+          type: item['type']?.toString() ?? '',
+          name: item['name']?.toString() ?? '',
+          value: value,
+        );
+      })
+      .whereType<UnifiedComicMetadata>()
+      .toList();
+}
+
+int _viewCountFromTitleMeta(List<Map<String, dynamic>>? titleMeta) {
+  for (final item in titleMeta ?? const <Map<String, dynamic>>[]) {
+    final name = item['name']?.toString() ?? '';
+    if (name.startsWith('浏览：')) {
+      return _toInt(name.substring(3));
+    }
+  }
+  return 0;
 }
 
 UnifiedComicListItem _buildJmComicItem({
@@ -446,6 +567,40 @@ UnifiedComicListItem _buildJmComicItem({
     ].whereType<UnifiedComicMetadata>().toList(),
     raw: raw,
     extra: {if (description.trim().isNotEmpty) 'description': description},
+  );
+}
+
+UnifiedComicListItem unifiedComicFromLeaderboardComic(
+  Map<String, dynamic> raw,
+) {
+  final thumb = asMap(raw['thumb']);
+  final path = thumb['path']?.toString() ?? '';
+  final fileServer = thumb['fileServer']?.toString() ?? '';
+  final categories =
+      (raw['categories'] as List?)?.map((e) => e.toString()).toList() ?? [];
+  return UnifiedComicListItem(
+    source: 'bika',
+    id: raw['_id']?.toString() ?? '',
+    title: raw['title']?.toString() ?? '',
+    subtitle: raw['author']?.toString() ?? '',
+    finished: raw['finished'] == true,
+    likesCount: _toInt(raw['totalLikes'] ?? raw['likesCount']),
+    viewsCount: _toInt(raw['totalViews'] ?? raw['viewsCount']),
+    updatedAt: '',
+    cover: UnifiedComicCover(
+      id: raw['_id']?.toString() ?? '',
+      url: fileServer,
+      extra: {
+        'path': path,
+        'name': thumb['originalName']?.toString() ?? '',
+        'fileServer': fileServer,
+      },
+    ),
+    metadata: [
+      _metadata(type: 'categories', name: '分类', values: categories),
+    ].whereType<UnifiedComicMetadata>().toList(),
+    raw: raw,
+    extra: {},
   );
 }
 

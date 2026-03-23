@@ -14,8 +14,8 @@ void initHistory(BuildContext context, String comicId, From from) {
 }
 
 void _initBikaHistory(BuildContext context, String comicId) {
-  final comicHistory = objectbox.bikaHistoryBox
-      .query(BikaComicHistory_.comicId.equals(comicId))
+  final comicHistory = objectbox.unifiedHistoryBox
+      .query(UnifiedComicHistory_.uniqueKey.equals('bika:$comicId'))
       .build()
       .findFirst();
 
@@ -27,15 +27,15 @@ void _initBikaHistory(BuildContext context, String comicId) {
 
   stringSelectCubit.setDate(
     '历史：'
-    '${comicHistory.epTitle} / '
-    '${comicHistory.epPageCount - 1} / '
-    '${comicHistory.history.toLocal().toString().substring(0, 19)}',
+    '${comicHistory.chapterTitle} / '
+    '${comicHistory.pageIndex - 1} / '
+    '${comicHistory.lastReadAt.toLocal().toString().substring(0, 19)}',
   );
 }
 
 void _initJmHistory(BuildContext context, String comicId) {
-  final jmHistory = objectbox.jmHistoryBox
-      .query(JmHistory_.comicId.equals(comicId))
+  final jmHistory = objectbox.unifiedHistoryBox
+      .query(UnifiedComicHistory_.uniqueKey.equals('jm:$comicId'))
       .build()
       .findFirst();
 
@@ -47,8 +47,8 @@ void _initJmHistory(BuildContext context, String comicId) {
 
   stringSelectCubit.setDate(
     '历史：'
-    '${jmHistory.epTitle.isNotEmpty ? jmHistory.epTitle : "第1话"} / '
-    '${jmHistory.epPageCount - 1} / '
-    '${jmHistory.history.toLocal().toString().substring(0, 19)}',
+    '${jmHistory.chapterTitle.isNotEmpty ? jmHistory.chapterTitle : "第1话"} / '
+    '${jmHistory.pageIndex - 1} / '
+    '${jmHistory.lastReadAt.toLocal().toString().substring(0, 19)}',
   );
 }

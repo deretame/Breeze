@@ -271,7 +271,7 @@ as SearchEnter,
 /// @nodoc
 mixin _$JmFavouriteState {
 
- JmFavouriteStatus get status; List<JmFavorite> get comics; String get result; SearchEnter get searchEnterConst;
+ JmFavouriteStatus get status; List<UnifiedComicFavorite> get comics; String get result; SearchEnter get searchEnterConst;
 /// Create a copy of JmFavouriteState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -302,7 +302,7 @@ abstract mixin class $JmFavouriteStateCopyWith<$Res>  {
   factory $JmFavouriteStateCopyWith(JmFavouriteState value, $Res Function(JmFavouriteState) _then) = _$JmFavouriteStateCopyWithImpl;
 @useResult
 $Res call({
- JmFavouriteStatus status, List<JmFavorite> comics, String result, SearchEnter searchEnterConst
+ JmFavouriteStatus status, List<UnifiedComicFavorite> comics, String result, SearchEnter searchEnterConst
 });
 
 
@@ -323,7 +323,7 @@ class _$JmFavouriteStateCopyWithImpl<$Res>
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as JmFavouriteStatus,comics: null == comics ? _self.comics : comics // ignore: cast_nullable_to_non_nullable
-as List<JmFavorite>,result: null == result ? _self.result : result // ignore: cast_nullable_to_non_nullable
+as List<UnifiedComicFavorite>,result: null == result ? _self.result : result // ignore: cast_nullable_to_non_nullable
 as String,searchEnterConst: null == searchEnterConst ? _self.searchEnterConst : searchEnterConst // ignore: cast_nullable_to_non_nullable
 as SearchEnter,
   ));
@@ -410,7 +410,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( JmFavouriteStatus status,  List<JmFavorite> comics,  String result,  SearchEnter searchEnterConst)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( JmFavouriteStatus status,  List<UnifiedComicFavorite> comics,  String result,  SearchEnter searchEnterConst)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _JmFavouriteState() when $default != null:
 return $default(_that.status,_that.comics,_that.result,_that.searchEnterConst);case _:
@@ -431,7 +431,7 @@ return $default(_that.status,_that.comics,_that.result,_that.searchEnterConst);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( JmFavouriteStatus status,  List<JmFavorite> comics,  String result,  SearchEnter searchEnterConst)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( JmFavouriteStatus status,  List<UnifiedComicFavorite> comics,  String result,  SearchEnter searchEnterConst)  $default,) {final _that = this;
 switch (_that) {
 case _JmFavouriteState():
 return $default(_that.status,_that.comics,_that.result,_that.searchEnterConst);case _:
@@ -451,7 +451,7 @@ return $default(_that.status,_that.comics,_that.result,_that.searchEnterConst);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( JmFavouriteStatus status,  List<JmFavorite> comics,  String result,  SearchEnter searchEnterConst)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( JmFavouriteStatus status,  List<UnifiedComicFavorite> comics,  String result,  SearchEnter searchEnterConst)?  $default,) {final _that = this;
 switch (_that) {
 case _JmFavouriteState() when $default != null:
 return $default(_that.status,_that.comics,_that.result,_that.searchEnterConst);case _:
@@ -466,12 +466,12 @@ return $default(_that.status,_that.comics,_that.result,_that.searchEnterConst);c
 
 
 class _JmFavouriteState implements JmFavouriteState {
-  const _JmFavouriteState({this.status = JmFavouriteStatus.initial, final  List<JmFavorite> comics = const [], this.result = '', this.searchEnterConst = const SearchEnter()}): _comics = comics;
+  const _JmFavouriteState({this.status = JmFavouriteStatus.initial, final  List<UnifiedComicFavorite> comics = const [], this.result = '', this.searchEnterConst = const SearchEnter()}): _comics = comics;
   
 
 @override@JsonKey() final  JmFavouriteStatus status;
- final  List<JmFavorite> _comics;
-@override@JsonKey() List<JmFavorite> get comics {
+ final  List<UnifiedComicFavorite> _comics;
+@override@JsonKey() List<UnifiedComicFavorite> get comics {
   if (_comics is EqualUnmodifiableListView) return _comics;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_comics);
@@ -510,7 +510,7 @@ abstract mixin class _$JmFavouriteStateCopyWith<$Res> implements $JmFavouriteSta
   factory _$JmFavouriteStateCopyWith(_JmFavouriteState value, $Res Function(_JmFavouriteState) _then) = __$JmFavouriteStateCopyWithImpl;
 @override @useResult
 $Res call({
- JmFavouriteStatus status, List<JmFavorite> comics, String result, SearchEnter searchEnterConst
+ JmFavouriteStatus status, List<UnifiedComicFavorite> comics, String result, SearchEnter searchEnterConst
 });
 
 
@@ -531,7 +531,7 @@ class __$JmFavouriteStateCopyWithImpl<$Res>
   return _then(_JmFavouriteState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as JmFavouriteStatus,comics: null == comics ? _self._comics : comics // ignore: cast_nullable_to_non_nullable
-as List<JmFavorite>,result: null == result ? _self.result : result // ignore: cast_nullable_to_non_nullable
+as List<UnifiedComicFavorite>,result: null == result ? _self.result : result // ignore: cast_nullable_to_non_nullable
 as String,searchEnterConst: null == searchEnterConst ? _self.searchEnterConst : searchEnterConst // ignore: cast_nullable_to_non_nullable
 as SearchEnter,
   ));

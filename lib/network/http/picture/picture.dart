@@ -6,12 +6,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/jm/http_request.dart';
-import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/direct_dio.dart';
-import 'package:zephyr/util/jm_url_set.dart';
+import 'package:zephyr/util/download/download_cancel_signal.dart';
+import 'package:zephyr/util/download/qjs_download_runtime.dart';
 
 import '../../../src/rust/api/simple.dart';
 import '../../../src/rust/decode/decode.dart';
@@ -22,49 +19,61 @@ const _kQjsRuntimeCancelled = '__QJS_RUNTIME_CANCELLED__';
 const _kDownloadTaskCancelled = '__DOWNLOAD_TASK_CANCELLED__';
 const _kJmScrambleId = 220980;
 
+void _throwIfDownloadCancelled(String taskGroupKey) {
+  if (taskGroupKey.isNotEmpty && isDownloadCancelSignaled(taskGroupKey)) {
+    throw const DownloadTaskCancelledException();
+  }
+}
+
 Future<String> getCachePicture({
-  From from = From.bika,
+  required From from,
   String url = '',
-  String path = '',
+  String localPath = '',
+  String fileName = '',
   String cartoonId = '1',
-  PictureType pictureType = PictureType.comic,
   String chapterId = '',
+  bool decodeJmComic = false,
 }) async {
   if (url.contains("nopic-Male.gif")) return "nopic-Male.gif";
 
-  if (url.isEmpty) {
-    throw Exception('URL 不能为空 404');
+  if (localPath.isNotEmpty) {
+    try {
+      final directFile = File(localPath);
+      if (await directFile.exists()) {
+        await directFile.length();
+        return localPath;
+      }
+    } catch (_) {}
   }
 
-  // 清理路径
-  String sanitizedPath = sanitizePath(path);
+  final resolvedFileName = _resolveFileName(
+    explicitFileName: fileName,
+    fallbackPath: localPath,
+    url: url,
+    fallbackId: cartoonId,
+  );
 
-  // 获取缓存和下载路径
-  String cachePath = await getCachePath();
-  String downloadPath = await getDownloadPath();
+  final cachePath = await getCachePath();
+  final downloadPath = await getDownloadPath();
 
-  // 构建文件路径
-  String cacheFilePath = buildFilePath(
+  final cacheFilePath = _buildStoredFilePath(
     cachePath,
     from,
-    pictureType,
+    resolvedFileName,
     cartoonId,
     chapterId,
-    sanitizedPath,
   );
 
-  String downloadFilePath = buildFilePath(
+  final downloadFilePath = _buildStoredFilePath(
     downloadPath,
     from,
-    pictureType,
+    resolvedFileName,
     cartoonId,
     chapterId,
-    sanitizedPath,
-    "original",
+    rootFolder: 'original',
   );
 
-  // 检查文件是否存在
-  String existingFilePath = await checkFileExists(
+  final existingFilePath = await checkFileExists(
     cacheFilePath,
     downloadFilePath,
   );
@@ -95,26 +104,16 @@ Future<String> getCachePicture({
     }
   }
 
-  final settings = objectbox.userSettingBox.get(1)!.bikaSetting;
+  if (url.isEmpty) {
+    throw Exception('404');
+  }
 
-  // 处理 URL
-  String finalUrl = from == From.jm
-      ? normalizeJmAssetUrl(url)
-      : buildImageUrl(
-          url,
-          path,
-          pictureType,
-          settings.imageQuality,
-          settings.proxy,
-        );
+  final imageData = await downloadImageWithRetry(url, source: from);
 
-  // 下载图片
-  Uint8List imageData = await downloadImageWithRetry(finalUrl);
-
-  if (from == From.jm && pictureType == PictureType.comic) {
+  if (from == From.jm && decodeJmComic) {
     await decodeAndSaveImage(
       imageData,
-      chapterId.let(toInt),
+      int.tryParse(chapterId) ?? 0,
       _kJmScrambleId,
       cacheFilePath,
       url,
@@ -139,14 +138,14 @@ Future<String> getCachePicture({
 }
 
 Future<String> downloadPicture({
-  From from = From.bika,
+  required From from,
   String url = '',
-  String path = '',
+  String fileName = '',
   String cartoonId = '',
-  PictureType pictureType = PictureType.comic,
   String chapterId = '',
-  int? proxy,
   String qjsName = "jmComic",
+  String qjsTaskGroupKey = '',
+  bool decodeJmComic = false,
 }) async {
   if (url.isEmpty) {
     throw Exception('URL 不能为空 404');
@@ -155,31 +154,32 @@ Future<String> downloadPicture({
     return "404";
   }
 
-  // 清理路径
-  String sanitizedPath = sanitizePath(path);
-
-  // 获取下载路径
-  String downloadPath = await getDownloadPath();
-  String cachePath = await getCachePath();
-
-  String cacheFilePath = buildFilePath(
-    cachePath,
-    from,
-    pictureType,
-    cartoonId,
-    chapterId,
-    sanitizedPath,
-    "original",
+  final resolvedFileName = _resolveFileName(
+    explicitFileName: fileName,
+    fallbackPath: '',
+    url: url,
+    fallbackId: cartoonId,
   );
 
-  String downloadFilePath = buildFilePath(
-    downloadPath,
+  final downloadPath = await getDownloadPath();
+  final cachePath = await getCachePath();
+
+  final cacheFilePath = _buildStoredFilePath(
+    cachePath,
     from,
-    pictureType,
+    resolvedFileName,
     cartoonId,
     chapterId,
-    sanitizedPath,
-    "original",
+    rootFolder: 'original',
+  );
+
+  final downloadFilePath = _buildStoredFilePath(
+    downloadPath,
+    from,
+    resolvedFileName,
+    cartoonId,
+    chapterId,
+    rootFolder: 'original',
   );
 
   // 检查文件是否存在
@@ -218,31 +218,26 @@ Future<String> downloadPicture({
     }
   }
 
-  // 处理 URL
-  String finalUrl = from == From.jm
-      ? normalizeJmAssetUrl(url)
-      : buildImageUrl(
-          url,
-          path,
-          pictureType,
-          "original",
-          proxy ?? objectbox.userSettingBox.get(1)!.bikaSetting.proxy,
-        );
-
-  // 下载图片
   Uint8List imageData = await downloadImageWithRetry(
-    finalUrl,
+    url,
+    source: from,
     qjsName: qjsName,
+    qjsTaskGroupKey: qjsTaskGroupKey,
   );
 
-  if (from == From.jm && pictureType == PictureType.comic) {
+  _throwIfDownloadCancelled(qjsTaskGroupKey);
+
+  if (from == From.jm && decodeJmComic) {
     await decodeAndSaveImage(
       imageData,
-      chapterId.let(toInt),
+      int.tryParse(chapterId) ?? 0,
       _kJmScrambleId,
       downloadFilePath,
       url,
     );
+
+    _throwIfDownloadCancelled(qjsTaskGroupKey);
+
     // 验证文件已成功保存
     if (await File(downloadFilePath).exists()) {
       return downloadFilePath;
@@ -252,6 +247,7 @@ Future<String> downloadPicture({
   }
 
   // 保存图片
+  _throwIfDownloadCancelled(qjsTaskGroupKey);
   await saveImage(imageData, downloadFilePath);
 
   // 验证文件已成功保存
@@ -262,44 +258,66 @@ Future<String> downloadPicture({
   }
 }
 
-String sanitizePath(String path) {
-  return path.replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_');
-}
-
-String buildFilePath(
+String _buildStoredFilePath(
   String basePath,
   From from,
-  PictureType pictureType,
+  String fileName,
   String cartoonId,
-  String chapterId,
-  String sanitizedPath, [
-  String? quality,
-]) {
-  quality =
-      quality ?? objectbox.userSettingBox.get(1)!.bikaSetting.imageQuality;
-
-  if (pictureType == PictureType.comic) {
-    return file_path.join(
-      basePath,
-      from.name,
-      quality,
-      cartoonId,
-      pictureType.name,
-      chapterId,
-      sanitizedPath,
-    );
-  } else if (pictureType == PictureType.cover) {
-    return file_path.join(
-      basePath,
-      from.name,
-      quality,
-      cartoonId,
-      pictureType.name,
-      sanitizedPath,
-    );
-  } else {
-    return file_path.join(basePath, from.name, pictureType.name, sanitizedPath);
+  String chapterId, {
+  String? rootFolder,
+}) {
+  final segments = <String>[basePath, from.name];
+  if (rootFolder != null && rootFolder.isNotEmpty) {
+    segments.add(rootFolder);
   }
+  if (cartoonId.trim().isNotEmpty) {
+    segments.add(cartoonId.trim());
+  }
+  if (chapterId.trim().isNotEmpty) {
+    segments.add(chapterId.trim());
+  }
+  segments.add(fileName);
+  return file_path.joinAll(segments);
+}
+
+Future<String?> findStoredPicturePath({
+  required From from,
+  required String cartoonId,
+  String chapterId = '',
+  required String imageId,
+  String rootFolder = 'original',
+}) async {
+  if (imageId.trim().isEmpty) {
+    return null;
+  }
+
+  final downloadPath = await getDownloadPath();
+  final segments = <String>[downloadPath, from.name, rootFolder];
+  if (cartoonId.trim().isNotEmpty) {
+    segments.add(cartoonId.trim());
+  }
+  if (chapterId.trim().isNotEmpty) {
+    segments.add(chapterId.trim());
+  }
+  final dir = Directory(file_path.joinAll(segments));
+  if (!await dir.exists()) {
+    return null;
+  }
+
+  final candidates = await dir
+      .list()
+      .where((e) => e is File)
+      .cast<File>()
+      .toList();
+  candidates.sort((a, b) => a.path.compareTo(b.path));
+
+  for (final file in candidates) {
+    final base = file_path.basenameWithoutExtension(file.path);
+    if (base == imageId) {
+      return file.path;
+    }
+  }
+  return null;
 }
 
 Future<String> checkFileExists(String cachePath, String downloadPath) async {
@@ -333,87 +351,52 @@ Future<void> copyFile(String sourcePath, String targetPath) async {
   }
 }
 
-String buildImageUrl(
-  String url,
-  String path,
-  PictureType pictureType,
-  String imageQuality,
-  int proxy,
-) {
-  final uri = Uri.tryParse(url);
-  if (uri != null && uri.hasScheme && uri.pathSegments.isNotEmpty) {
-    return url;
+String _resolveFileName({
+  required String explicitFileName,
+  required String fallbackPath,
+  required String url,
+  required String fallbackId,
+}) {
+  final candidate = explicitFileName.trim().isNotEmpty
+      ? explicitFileName.trim()
+      : fallbackPath.trim();
+  if (candidate.isNotEmpty) {
+    return _sanitizeFileName(candidate);
   }
 
-  if (url == "https://storage1.picacomic.com") {
-    if (pictureType == PictureType.cover) {
-      url = "https://img.picacomic.com";
-    } else if (pictureType == PictureType.creator ||
-        pictureType == PictureType.favourite) {
-      url = proxy == 1
-          ? "https://storage.diwodiwo.xyz"
-          : "https://s3.picacomic.com";
-    } else {
-      if (imageQuality != "original") {
-        url = "https://img.picacomic.com";
-      } else {
-        url = proxy == 1
-            ? "https://storage.diwodiwo.xyz"
-            : "https://s3.picacomic.com";
-      }
-    }
-  } else if (url == "https://storage-b.picacomic.com") {
-    if (pictureType == PictureType.creator) {
-      url = "https://storage-b.picacomic.com";
-    } else if (pictureType == PictureType.cover) {
-      url = "https://img.picacomic.com";
-    } else if (imageQuality == "original") {
-      url = "https://storage-b.diwodiwo.xyz";
-    } else if (imageQuality != "original") {
-      url = "https://img.picacomic.com";
-    }
+  final uri = Uri.tryParse(url.trim());
+  final segment = uri == null || uri.pathSegments.isEmpty
+      ? ''
+      : uri.pathSegments.last;
+  if (segment.isNotEmpty) {
+    return _sanitizeFileName(segment);
   }
 
-  if (path.contains("picacomic-paint.jpg") ||
-      path.contains("picacomic-gift.jpg")) {
-    url = proxy == 1
-        ? "https://storage.diwodiwo.xyz/static"
-        : "https://s3.picacomic.com/static";
-  }
+  final safeId = fallbackId.trim().isNotEmpty ? fallbackId.trim() : 'asset';
+  return '$safeId.bin';
+}
 
-  if (path.contains("tobeimg/")) {
-    path = path.replaceAll("tobeimg/", "");
-  } else if (path.contains("tobs/")) {
-    path = "static/${path.replaceAll("tobs/", "")}";
-  } else if (!path.contains("/") && !url.contains("static")) {
-    path = "static/$path";
-  }
-
-  return '$url/$path';
+String _sanitizeFileName(String value) {
+  final name = file_path.basename(value);
+  return name.replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_');
 }
 
 Future<Uint8List> downloadImageWithRetry(
   String url, {
+  required From source,
   bool retry = false,
   String qjsName = "jmComic",
+  String qjsTaskGroupKey = '',
 }) async {
   while (true) {
     try {
-      if (kDebugMode) {
-        final js = await directDio.get(await jmJsUrl);
-        return await qjsFetchImageBytesOnce(
-          runtimeName: qjsName,
-          bundleJs: js.data,
-          fnPath: "fetchImageBytes",
-          argsJson: {"url": url, "timeoutMs": 30000}.let(jsonEncode),
-        );
-      } else {
-        return await qjsFetchImageBytes(
-          runtimeName: qjsName,
-          fnPath: "fetchImageBytes",
-          argsJson: {"url": url, "timeoutMs": 30000}.let(jsonEncode),
-        );
-      }
+      return await executeQjsFetchImageBytes(
+        source: source.name,
+        runtimeName: qjsName,
+        fnPath: 'fetchImageBytes',
+        argsJson: jsonEncode({"url": url, "timeoutMs": 30000}),
+        taskGroupKey: qjsTaskGroupKey.isEmpty ? null : qjsTaskGroupKey,
+      );
     } catch (e) {
       if (_isQjsRuntimeCancelledError(e)) {
         throw Exception(_kDownloadTaskCancelled);
@@ -515,42 +498,6 @@ Future<void> ensureDirectoryExists(String filePath) async {
   if (!await directory.exists()) {
     await directory.create(recursive: true);
   }
-}
-
-String get baseUrl => currentJmImageBaseUrl;
-
-String getJmCoverUrl(String id) {
-  return '$baseUrl/media/albums/${id}_3x4.jpg';
-}
-
-String normalizeJmAssetUrl(String url) {
-  final normalized = url.trim();
-  if (normalized.isEmpty) {
-    return normalized;
-  }
-
-  final uri = Uri.tryParse(normalized);
-  if (uri != null && uri.hasScheme) {
-    return normalized;
-  }
-
-  if (normalized.startsWith('/')) {
-    return '$baseUrl$normalized';
-  }
-
-  if (normalized.startsWith('media/')) {
-    return '$baseUrl/$normalized';
-  }
-
-  return normalized;
-}
-
-String getJmImagesUrl(String id, String imageName) {
-  return '$baseUrl/media/photos/$id/$imageName';
-}
-
-String getUserCover(String imageName) {
-  return '$baseUrl/media/users/$imageName';
 }
 
 Future<void> decodeAndSaveImage(

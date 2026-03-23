@@ -165,38 +165,60 @@ normal.ComicInfo bikaNormalComicInfoFromAny(dynamic comicInfo) {
   final legacy = (comicInfo as AllInfo).comicInfo;
   return normal.ComicInfo(
     id: legacy.id,
+    title: legacy.title,
+    titleMeta: [
+      normal.ComicInfoActionItem(name: '更新时间：${legacy.updatedAt.toLocal()}'),
+      if (legacy.pagesCount > 0)
+        normal.ComicInfoActionItem(name: '页数：${legacy.pagesCount}'),
+      normal.ComicInfoActionItem(name: '章节数：${legacy.epsCount}'),
+    ],
     creator: normal.Creator(
       id: legacy.creator.id,
       name: legacy.creator.name,
-      avatar: normal.Cover(
+      avatar: normal.ComicImage(
+        id: legacy.creator.id,
         url: legacy.creator.avatar.fileServer,
-        path: legacy.creator.avatar.path,
         name: legacy.creator.avatar.originalName,
+        extension: {'path': legacy.creator.avatar.path},
       ),
     ),
-    title: legacy.title,
     description: legacy.description,
-    cover: normal.Cover(
+    cover: normal.ComicImage(
+      id: legacy.id,
       url: legacy.thumb.fileServer,
-      path: legacy.thumb.path,
       name: legacy.thumb.originalName,
+      extension: {'path': legacy.thumb.path},
     ),
-    categories: legacy.categories,
-    tags: legacy.tags,
-    author: legacy.author.isEmpty ? const <String>[] : [legacy.author],
-    works: const <String>[],
-    actors: const <String>[],
-    chineseTeam: legacy.chineseTeam.isEmpty
-        ? const <String>[]
-        : [legacy.chineseTeam],
-    pagesCount: legacy.pagesCount,
-    epsCount: legacy.epsCount,
-    updatedAt: legacy.updatedAt,
-    allowComment: legacy.allowComment,
-    totalViews: legacy.totalViews,
-    totalLikes: legacy.totalLikes,
-    totalComments: legacy.totalComments,
-    isFavourite: legacy.isFavourite,
-    isLiked: legacy.isLiked,
+    metadata: [
+      if (legacy.author.isNotEmpty)
+        normal.ComicInfoMetadata(
+          type: 'author',
+          name: '作者',
+          value: [normal.ComicInfoActionItem(name: legacy.author)],
+        ),
+      if (legacy.chineseTeam.isNotEmpty)
+        normal.ComicInfoMetadata(
+          type: 'chineseTeam',
+          name: '汉化',
+          value: [normal.ComicInfoActionItem(name: legacy.chineseTeam)],
+        ),
+      if (legacy.categories.isNotEmpty)
+        normal.ComicInfoMetadata(
+          type: 'categories',
+          name: '分类',
+          value: legacy.categories
+              .map((c) => normal.ComicInfoActionItem(name: c))
+              .toList(),
+        ),
+      if (legacy.tags.isNotEmpty)
+        normal.ComicInfoMetadata(
+          type: 'tags',
+          name: '标签',
+          value: legacy.tags
+              .map((t) => normal.ComicInfoActionItem(name: t))
+              .toList(),
+        ),
+    ],
+    extension: const {},
   );
 }

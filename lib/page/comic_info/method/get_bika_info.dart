@@ -5,10 +5,7 @@ import 'package:zephyr/page/comic_info/json/bika/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/bika/eps/eps.dart' show Doc, Eps;
 import 'package:zephyr/page/comic_info/json/bika/recommend/recommend_json.dart'
     as recommend_json;
-import 'package:zephyr/page/comic_info/method/type_conversion.dart';
 import 'package:zephyr/page/comic_info/models/all_info.dart';
-import 'package:zephyr/page/download/json/comic_all_info_json/comic_all_info_json.dart'
-    as bika_download;
 import 'package:zephyr/type/enum.dart';
 
 Future<AllInfo> getBikaComicAllInfo(String comicId, ComicEntryType type) async {
@@ -96,30 +93,78 @@ Future<List<recommend_json.Comic>> _fetchRecommend(String comicId) async {
 }
 
 Future<AllInfo> _getBikaComicAllInfoFromLocal(String comicId) async {
-  var comicDownload = objectbox.bikaDownloadBox
-      .query(BikaComicDownload_.comicId.equals(comicId))
+  var comicDownload = objectbox.unifiedDownloadBox
+      .query(UnifiedComicDownload_.uniqueKey.equals('bika:$comicId'))
       .build()
       .findFirst()!;
 
-  var comicAllInfo = bika_download.comicAllInfoJsonFromJson(
-    comicDownload.comicInfoAll,
-  );
+  final comic = ComicInfo.fromJson({
+    'data': {
+      'comic': {
+        '_id': comicId,
+        '_creator': {
+          '_id': (comicDownload.creator ?? const {})['id'] ?? '',
+          'gender': '',
+          'name': (comicDownload.creator ?? const {})['name'] ?? '',
+          'verified': false,
+          'exp': 0,
+          'level': 0,
+          'characters': const <String>[],
+          'role': '',
+          'avatar': {
+            'fileServer': ((comicDownload.creator ?? const {})['avatar'] as Map?)?['url'] ?? '',
+            'path': (((comicDownload.creator ?? const {})['avatar'] as Map?)?['extension'] as Map?)?['path'] ?? '',
+            'originalName': ((comicDownload.creator ?? const {})['avatar'] as Map?)?['name'] ?? '',
+          },
+          'title': '',
+          'slogan': '',
+        },
+        'title': comicDownload.title,
+        'description': comicDownload.description,
+        'thumb': {
+          'fileServer': ((comicDownload.cover ?? const {})['extension'] as Map?)?['fileServer'] ?? (comicDownload.cover ?? const {})['url'] ?? '',
+          'path': ((comicDownload.cover ?? const {})['extension'] as Map?)?['path'] ?? '',
+          'originalName': (comicDownload.cover ?? const {})['name'] ?? '',
+        },
+        'author': '',
+        'chineseTeam': '',
+        'categories': const <String>[],
+        'tags': const <String>[],
+        'pagesCount': 0,
+        'epsCount': (comicDownload.chapters ?? const []).length,
+        'finished': false,
+        'updated_at': comicDownload.updatedAt.toIso8601String(),
+        'created_at': comicDownload.createdAt.toIso8601String(),
+        'allowDownload': comicDownload.allowDownload,
+        'allowComment': comicDownload.allowComment,
+        'totalLikes': comicDownload.totalLikes,
+        'totalViews': comicDownload.totalViews,
+        'totalComments': comicDownload.totalComments,
+        'viewsCount': comicDownload.totalViews,
+        'likesCount': comicDownload.totalLikes,
+        'commentsCount': comicDownload.totalComments,
+        'isFavourite': comicDownload.isFavourite,
+        'isLiked': comicDownload.isLiked,
+      },
+    },
+  }).data.comic;
 
-  var comicInfo = comicAllInfo2Comic(comicAllInfo);
-  var epsDoc = comicAllInfo.eps.docs;
+  final epsDoc = (comicDownload.chapters ?? const <Map<String, dynamic>>[]);
 
   var epsInfo = <Doc>[];
   for (var epDoc in epsDoc) {
     epsInfo.add(
       Doc(
-        id: epDoc.id,
-        title: epDoc.title,
-        order: epDoc.order,
-        updatedAt: epDoc.updatedAt,
-        docId: epDoc.docId,
+        id: epDoc['id']?.toString() ?? '',
+        title: epDoc['name']?.toString() ?? '',
+        order: (epDoc['order'] as num?)?.toInt() ?? 0,
+        updatedAt: comicDownload.updatedAt,
+        docId: epDoc['extension'] is Map
+            ? (epDoc['extension'] as Map)['docId']?.toString() ?? ''
+            : '',
       ),
     );
   }
 
-  return AllInfo(comicInfo: comicInfo, eps: epsInfo, recommendJson: []);
+  return AllInfo(comicInfo: comic, eps: epsInfo, recommendJson: []);
 }

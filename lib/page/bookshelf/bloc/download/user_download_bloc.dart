@@ -4,10 +4,12 @@ import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/sundry.dart';
 
 import '../../../../main.dart';
 import '../../../../object_box/model.dart';
+import '../../../../object_box/objectbox.g.dart';
 
 part 'user_download_event.dart';
 part 'user_download_state.dart';
@@ -70,34 +72,18 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
     }
   }
 
-  List<BikaComicDownload> _fetchOfSort(
-    List<BikaComicDownload> comicList,
+  List<UnifiedComicDownload> _fetchOfSort(
+    List<UnifiedComicDownload> comicList,
     String sort,
   ) {
     if (sort == "dd") {
-      comicList.sort((a, b) => b.downloadTime.compareTo(a.downloadTime));
+      comicList.sort((a, b) => b.downloadedAt.compareTo(a.downloadedAt));
     }
     if (sort == "da") {
-      comicList.sort((a, b) => a.downloadTime.compareTo(b.downloadTime));
+      comicList.sort((a, b) => a.downloadedAt.compareTo(b.downloadedAt));
     }
     if (sort == "ld") {
-      comicList.sort((a, b) => b.likesCount.compareTo(a.likesCount));
-    }
-    if (sort == "vd") {
-      comicList.sort((a, b) => b.viewsCount.compareTo(a.viewsCount));
-    }
-    return comicList;
-  }
-
-  List<JmDownload> _fetchOfSortJm(List<JmDownload> comicList, String sort) {
-    if (sort == "dd") {
-      comicList.sort((a, b) => b.downloadTime.compareTo(a.downloadTime));
-    }
-    if (sort == "da") {
-      comicList.sort((a, b) => a.downloadTime.compareTo(b.downloadTime));
-    }
-    if (sort == "ld") {
-      comicList.sort((a, b) => b.likes.compareTo(a.likes));
+      comicList.sort((a, b) => b.totalLikes.compareTo(a.totalLikes));
     }
     if (sort == "vd") {
       comicList.sort((a, b) => b.totalViews.compareTo(a.totalViews));
@@ -105,8 +91,8 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
     return comicList;
   }
 
-  List<BikaComicDownload> _filterShieldedComics(
-    List<BikaComicDownload> comics,
+  List<UnifiedComicDownload> _filterShieldedComics(
+    List<UnifiedComicDownload> comics,
   ) {
     final settings = objectbox.userSettingBox.get(1)!.bikaSetting;
     // 获取所有被屏蔽的分类
@@ -118,16 +104,23 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
     // 过滤掉包含屏蔽分类的漫画
     return comics.where((comic) {
       // 检查该漫画的分类是否与屏蔽分类列表中的任何分类匹配
-      return !comic.categories.any(
-        (category) => shieldedCategoriesList.contains(category),
-      );
+      return !(comic.metadata ?? const <Map<String, dynamic>>[]).any((entry) {
+        if (entry['type']?.toString() != 'categories') return false;
+        final values = asJsonList(entry['value'])
+            .map((e) => asJsonMap(e)['name']?.toString() ?? '')
+            .toList();
+        return values.any(shieldedCategoriesList.contains);
+      });
     }).toList();
   }
 
   List<dynamic> _getComicList(UserDownloadEvent event) {
     List<dynamic> comics = [];
     if (event.comicChoice == 1) {
-      late var comicList = objectbox.bikaDownloadBox.getAll();
+      late var comicList = objectbox.unifiedDownloadBox
+          .query(UnifiedComicDownload_.source.equals('bika'))
+          .build()
+          .find();
 
       comicList = _filterShieldedComics(comicList);
 
@@ -136,7 +129,16 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
       if (event.searchEnterConst.categories.isNotEmpty) {
         for (var category in event.searchEnterConst.categories) {
           comicList = comicList
-              .where((comic) => comic.categories.contains(category))
+              .where((comic) {
+                final metadata = comic.metadata ?? const <Map<String, dynamic>>[];
+                return metadata.any((entry) {
+                  if (entry['type']?.toString() != 'categories') return false;
+                  final values = asJsonList(entry['value'])
+                      .map((e) => asJsonMap(e)['name']?.toString() ?? '')
+                      .toList();
+                  return values.contains(category);
+                });
+              })
               .toList();
         }
       }
@@ -147,34 +149,31 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
         comicList = comicList.where((comic) {
           var allString =
               comic.title +
-              comic.author +
-              comic.chineseTeam +
-              comic.categoriesString +
-              comic.tagsString +
               comic.description +
-              comic.creatorName;
+              ((comic.creator ?? const <String, dynamic>{})['name']?.toString() ?? '') +
+              comic.metadata.toString();
           return allString.toLowerCase().let(t2s).contains(keyword);
         }).toList();
       }
 
       comics = comicList;
     } else if (event.comicChoice == 2) {
-      late var comicList = objectbox.jmDownloadBox.getAll();
+      late var comicList = objectbox.unifiedDownloadBox
+          .query(UnifiedComicDownload_.source.equals('jm'))
+          .build()
+          .find();
 
-      comicList = _fetchOfSortJm(comicList, event.searchEnterConst.sort);
+      comicList = _fetchOfSort(comicList, event.searchEnterConst.sort);
 
       if (event.searchEnterConst.keyword.isNotEmpty) {
         final keyword = event.searchEnterConst.keyword.toLowerCase().let(t2s);
 
         comicList = comicList.where((comic) {
           var allString =
-              comic.comicId.toString() +
-              comic.name +
+              comic.comicId +
+              comic.title +
               comic.description +
-              comic.author.toString() +
-              comic.tags.toString() +
-              comic.works.toString() +
-              comic.actors.toString();
+              comic.metadata.toString();
           return allString.toLowerCase().let(t2s).contains(keyword);
         }).toList();
       }

@@ -8,15 +8,14 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/util/download/download_progress_reporter.dart';
+import 'package:zephyr/util/download/download_cancel_signal.dart';
 import 'package:zephyr/util/download/platform/desktop_download_runner.dart';
 import 'package:zephyr/util/download/platform/ios_download_runner.dart';
 import 'package:zephyr/util/download/qjs_download_runtime.dart';
-import 'package:zephyr/util/foreground_task/task/bika_download.dart';
-import 'package:zephyr/util/foreground_task/task/jm_download.dart';
+import 'package:zephyr/util/foreground_task/task/unified_download_task.dart';
 import 'package:zephyr/util/macos_activity.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-const _kTaskCancelledMessage = '__DOWNLOAD_TASK_CANCELLED__';
 const _kQjsRuntimeCancelledMessage = '__QJS_RUNTIME_CANCELLED__';
 
 /// 下载进度信息
@@ -101,11 +100,12 @@ class DownloadQueueManager {
     dbTask.isDownloading = false;
     dbTask.isCompleted = true;
     objectbox.downloadTaskBox.put(dbTask);
+    triggerDownloadCancelSignal(dbTask.comicId);
 
     final source = dbTask.taskInfo?.from;
     if (source != null && source.isNotEmpty) {
       unawaited(
-        dropDownloadQjsRuntime(source: source, comicId: dbTask.comicId),
+        cancelTrackedQjsTasks(source: source, taskGroupKey: dbTask.comicId),
       );
     }
 
@@ -170,6 +170,8 @@ class DownloadQueueManager {
     }
 
     _downloadingComicId = task.comicId;
+    prepareDownloadCancelSignal(task.comicId);
+    prepareDownloadCancelSignal(task.comicId);
 
     dbTask.isDownloading = true;
     dbTask.status = "开始下载...";
@@ -182,13 +184,7 @@ class DownloadQueueManager {
 
     try {
       desktopReporter.updateComicName(task.comicName);
-      if (task.from == "bika") {
-        await bikaDownloadTask(desktopReporter, task);
-      } else if (task.from == "jm") {
-        await jmDownloadTask(desktopReporter, task);
-      } else {
-        logger.w("未知任务来源: ${task.from}");
-      }
+      await unifiedDownloadTask(desktopReporter, task);
 
       logger.d("任务 ${task.comicName} 完成");
 
@@ -244,6 +240,7 @@ class DownloadQueueManager {
         );
       }
     } finally {
+      clearDownloadCancelSignal(task.comicId);
       _downloadingComicId = "";
       Future.microtask(() => _processQueueDesktop());
     }
@@ -297,13 +294,7 @@ class DownloadQueueManager {
 
     try {
       iosReporter.updateComicName(task.comicName);
-      if (task.from == "bika") {
-        await bikaDownloadTask(iosReporter, task);
-      } else if (task.from == "jm") {
-        await jmDownloadTask(iosReporter, task);
-      } else {
-        logger.w("未知任务来源: ${task.from}");
-      }
+      await unifiedDownloadTask(iosReporter, task);
 
       logger.d("任务 ${task.comicName} 完成");
 
@@ -356,6 +347,7 @@ class DownloadQueueManager {
         await iosReporter.sendNotification("下载失败", "${task.comicName} 下载失败");
       }
     } finally {
+      clearDownloadCancelSignal(task.comicId);
       _downloadingComicId = "";
       Future.microtask(() => _processQueueIOS());
     }
@@ -434,6 +426,7 @@ class DownloadQueueManager {
     }
 
     _downloadingComicId = pendingTasks.first.comicId;
+    prepareDownloadCancelSignal(pendingTasks.first.comicId);
 
     _isProcessing = true;
 
@@ -452,13 +445,7 @@ class DownloadQueueManager {
     objectbox.downloadTaskBox.put(dbTask);
 
     try {
-      if (task.from == "bika") {
-        await bikaDownloadTask(reporter, task);
-      } else if (task.from == "jm") {
-        await jmDownloadTask(reporter, task);
-      } else {
-        logger.w("未知任务来源: ${task.from}");
-      }
+      await unifiedDownloadTask(reporter, task);
 
       logger.d("任务 ${task.comicName} 完成");
 
@@ -487,6 +474,7 @@ class DownloadQueueManager {
         await reporter.sendNotification("下载失败", "${task.comicName} 下载失败");
       }
     } finally {
+      clearDownloadCancelSignal(task.comicId);
       _downloadingComicId = "";
       Future.microtask(() => processQueueWithReporter(reporter));
     }
@@ -572,7 +560,7 @@ class DownloadQueueManager {
 }
 
 bool _isTaskCancelledError(Object error) {
-  return error.toString().contains(_kTaskCancelledMessage);
+  return error.toString().contains(downloadTaskCancelledMessage);
 }
 
 bool _isTaskCancelledOrMarked(String comicId, Object error) {

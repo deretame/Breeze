@@ -3,6 +3,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
+import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
+import 'package:zephyr/page/comic_info/models/comic_info_action.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/search_result.dart';
 import 'package:zephyr/type/enum.dart';
@@ -16,15 +18,13 @@ import '../../../util/router/router.gr.dart';
 
 class AllChipWidget extends StatefulWidget {
   final String comicId;
-  final String type;
-  final List<String> chips;
+  final ComicInfoMetadata metadata;
   final From from;
 
   const AllChipWidget({
     super.key,
     required this.comicId,
-    required this.type,
-    required this.chips,
+    required this.metadata,
     required this.from,
   });
 
@@ -33,26 +33,9 @@ class AllChipWidget extends StatefulWidget {
 }
 
 class _AllChipWidgetState extends State<AllChipWidget> {
-  List<String> get items => widget.chips;
-
-  String get title {
-    switch (widget.type) {
-      case 'author':
-        return '作者';
-      case 'chineseTeam':
-        return '汉化';
-      case 'tags':
-        return '标签';
-      case 'categories':
-        return '分类';
-      case 'actors':
-        return '角色';
-      case 'works':
-        return '原作';
-      default:
-        return '';
-    }
-  }
+  List<ComicInfoActionItem> get items => widget.metadata.value;
+  String get title => widget.metadata.name;
+  String get type => widget.metadata.type;
 
   @override
   Widget build(BuildContext context) {
@@ -78,13 +61,14 @@ class _AllChipWidgetState extends State<AllChipWidget> {
                 ),
               );
             }
+            final item = items[index - 1];
             return GestureDetector(
-              onTap: () => goToSearch(index),
+              onTap: () => _onTap(index, item),
               onLongPress: () {
                 Clipboard.setData(
-                  ClipboardData(text: processText(items[index - 1])),
+                  ClipboardData(text: processText(item.name)),
                 );
-                showSuccessToast("已将${items[index - 1].let(t2s)}复制到剪贴板");
+                showSuccessToast("已将${item.name.let(t2s)}复制到剪贴板");
               },
               child: Chip(
                 backgroundColor: context.backgroundColor,
@@ -92,7 +76,7 @@ class _AllChipWidgetState extends State<AllChipWidget> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 label: Text(
-                  processText(items[index - 1]).let(t2s),
+                  processText(item.name).let(t2s),
                   style: TextStyle(
                     fontSize: 12,
                     color: context.theme.colorScheme.primary,
@@ -118,10 +102,15 @@ class _AllChipWidgetState extends State<AllChipWidget> {
     return text;
   }
 
-  void goToSearch(int index) {
-    if (title == "分类") {
+  void _onTap(int index, ComicInfoActionItem item) {
+    if (item.onTap.isNotEmpty) {
+      handleComicInfoAction(context, item.onTap, fallbackFrom: widget.from);
+      return;
+    }
+
+    if (type == 'categories') {
       final Map<String, bool> newCategories = {
-        for (var key in categoryMap.keys) key: key == items[index - 1],
+        for (var key in categoryMap.keys) key: key == item.name,
       };
 
       AutoRouter.of(context).push(
@@ -139,7 +128,7 @@ class _AllChipWidgetState extends State<AllChipWidget> {
           searchEvent: SearchEvent().copyWith(
             searchStates: SearchStates.initial(
               context,
-            ).copyWith(from: widget.from, searchKeyword: items[index - 1]),
+            ).copyWith(from: widget.from, searchKeyword: item.name),
           ),
         ),
       );

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/jm/jm_comments/json/comments_json.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
 
 import 'cover.dart';

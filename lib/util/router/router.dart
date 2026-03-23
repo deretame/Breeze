@@ -11,7 +11,7 @@ class AppRouter extends RootStackRouter {
   List<AutoRoute> get routes => [
     AutoRoute(page: NavigationBar.page, initial: true),
     AutoRoute(page: LoginRoute.page),
-    AutoRoute(page: RankingListRoute.page),
+    AutoRoute(page: ComicListRoute.page),
     AutoRoute(page: RegisterRoute.page),
     AutoRoute(page: HomeRoute.page),
     AutoRoute(page: SearchResultRoute.page),
@@ -33,8 +33,6 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: JmCommentsRoute.page),
     AutoRoute(page: JmDownloadRoute.page),
     AutoRoute(page: JMSettingRoute.page),
-    AutoRoute(page: JmPromoteListRoute.page),
-    AutoRoute(page: JmRankingRoute.page),
     AutoRoute(page: ChangelogRoute.page),
     AutoRoute(page: SearchRoute.page),
     AutoRoute(page: DownloadTaskRoute.page),

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/object_box/model.dart';
@@ -38,12 +40,45 @@ Future<jm.JmComicInfoJson> getJmComicAllInfoFromLocal(
   String comicId,
   ComicEntryType type,
 ) async {
-  var jmDownload = objectbox.jmDownloadBox
-      .query(JmDownload_.comicId.equals(comicId))
+  var jmDownload = objectbox.unifiedDownloadBox
+      .query(UnifiedComicDownload_.uniqueKey.equals('jm:$comicId'))
       .build()
       .findFirst();
-  var comicInfo = jmDownload!.allInfo.let(jm.jmComicInfoJsonFromJson);
-  return _prepareComicInfo(comicInfo, type, jmDownload: jmDownload);
+  final detail = jsonDecode(jmDownload!.detailJson) as Map<String, dynamic>;
+  final comic = detail['comicInfo'] as Map<String, dynamic>? ?? const {};
+  final metadata = (comic['metadata'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
+  final series = (detail['eps'] as List?)?.map((e) {
+        final ep = (e as Map).cast<String, dynamic>();
+        return jm.Series(
+          id: ep['id']?.toString() ?? '',
+          name: ep['name']?.toString() ?? '',
+          sort: ep['order']?.toString() ?? '1',
+        );
+      }).toList() ??
+      const <jm.Series>[];
+  final comicInfo = jm.JmComicInfoJson(
+    id: int.tryParse(comicId) ?? 0,
+    name: comic['title']?.toString() ?? jmDownload.title,
+    images: const [],
+    addtime: '0',
+    description: comic['description']?.toString() ?? jmDownload.description,
+    totalViews: jmDownload.totalViews.toString(),
+    likes: jmDownload.totalLikes.toString(),
+    series: series,
+    seriesId: '',
+    commentTotal: jmDownload.totalComments.toString(),
+    author: _metadataValues(metadata, 'author'),
+    tags: _metadataValues(metadata, 'tags'),
+    works: _metadataValues(metadata, 'works'),
+    actors: _metadataValues(metadata, 'actors'),
+    relatedList: const [],
+    liked: jmDownload.isLiked,
+    isFavorite: jmDownload.isFavourite,
+    isAids: false,
+    price: '0',
+    purchased: '0',
+  );
+  return _prepareComicInfo(comicInfo, type);
 }
 
 jm.JmComicInfoJson _prepareComicInfo(
@@ -69,4 +104,13 @@ jm.JmComicInfoJson _prepareComicInfo(
     temp = comicInfo.copyWith(series: newSeries);
   }
   return temp;
+}
+
+List<String> _metadataValues(List<Map<String, dynamic>> metadata, String type) {
+  final target = metadata.where((e) => e['type']?.toString() == type);
+  return target
+      .expand((e) => (e['value'] as List?) ?? const [])
+      .map((e) => (e as Map)['name']?.toString() ?? '')
+      .where((e) => e.isNotEmpty)
+      .toList();
 }

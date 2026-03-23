@@ -368,6 +368,169 @@ Map<String, dynamic> _$JmDownloadToJson(JmDownload instance) =>
       'downloadTime': instance.downloadTime.toIso8601String(),
     };
 
+UnifiedComicFavorite _$UnifiedComicFavoriteFromJson(
+  Map<String, dynamic> json,
+) => UnifiedComicFavorite(
+  id: (json['id'] as num?)?.toInt() ?? 0,
+  uniqueKey: json['uniqueKey'] as String,
+  source: json['source'] as String,
+  comicId: json['comicId'] as String,
+  title: json['title'] as String,
+  description: json['description'] as String,
+  cover: json['cover'] as Map<String, dynamic>?,
+  creator: json['creator'] as Map<String, dynamic>?,
+  titleMeta: (json['titleMeta'] as List<dynamic>?)
+      ?.map((e) => e as Map<String, dynamic>)
+      .toList(),
+  metadata: (json['metadata'] as List<dynamic>?)
+      ?.map((e) => e as Map<String, dynamic>)
+      .toList(),
+  createdAt: DateTime.parse(json['createdAt'] as String),
+  updatedAt: DateTime.parse(json['updatedAt'] as String),
+  deleted: json['deleted'] as bool,
+  schemaVersion: (json['schemaVersion'] as num).toInt(),
+);
+
+Map<String, dynamic> _$UnifiedComicFavoriteToJson(
+  UnifiedComicFavorite instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'uniqueKey': instance.uniqueKey,
+  'source': instance.source,
+  'comicId': instance.comicId,
+  'title': instance.title,
+  'description': instance.description,
+  'cover': instance.cover,
+  'creator': instance.creator,
+  'titleMeta': instance.titleMeta,
+  'metadata': instance.metadata,
+  'createdAt': instance.createdAt.toIso8601String(),
+  'updatedAt': instance.updatedAt.toIso8601String(),
+  'deleted': instance.deleted,
+  'schemaVersion': instance.schemaVersion,
+};
+
+UnifiedComicHistory _$UnifiedComicHistoryFromJson(Map<String, dynamic> json) =>
+    UnifiedComicHistory(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      uniqueKey: json['uniqueKey'] as String,
+      source: json['source'] as String,
+      comicId: json['comicId'] as String,
+      title: json['title'] as String,
+      description: json['description'] as String,
+      cover: json['cover'] as Map<String, dynamic>?,
+      creator: json['creator'] as Map<String, dynamic>?,
+      titleMeta: (json['titleMeta'] as List<dynamic>?)
+          ?.map((e) => e as Map<String, dynamic>)
+          .toList(),
+      metadata: (json['metadata'] as List<dynamic>?)
+          ?.map((e) => e as Map<String, dynamic>)
+          .toList(),
+      chapterId: json['chapterId'] as String,
+      chapterTitle: json['chapterTitle'] as String,
+      chapterOrder: (json['chapterOrder'] as num).toInt(),
+      pageIndex: (json['pageIndex'] as num).toInt(),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      lastReadAt: DateTime.parse(json['lastReadAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      deleted: json['deleted'] as bool,
+      schemaVersion: (json['schemaVersion'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$UnifiedComicHistoryToJson(
+  UnifiedComicHistory instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'uniqueKey': instance.uniqueKey,
+  'source': instance.source,
+  'comicId': instance.comicId,
+  'title': instance.title,
+  'description': instance.description,
+  'cover': instance.cover,
+  'creator': instance.creator,
+  'titleMeta': instance.titleMeta,
+  'metadata': instance.metadata,
+  'chapterId': instance.chapterId,
+  'chapterTitle': instance.chapterTitle,
+  'chapterOrder': instance.chapterOrder,
+  'pageIndex': instance.pageIndex,
+  'createdAt': instance.createdAt.toIso8601String(),
+  'lastReadAt': instance.lastReadAt.toIso8601String(),
+  'updatedAt': instance.updatedAt.toIso8601String(),
+  'deleted': instance.deleted,
+  'schemaVersion': instance.schemaVersion,
+};
+
+UnifiedComicDownload _$UnifiedComicDownloadFromJson(
+  Map<String, dynamic> json,
+) => UnifiedComicDownload(
+  id: (json['id'] as num?)?.toInt() ?? 0,
+  uniqueKey: json['uniqueKey'] as String,
+  source: json['source'] as String,
+  comicId: json['comicId'] as String,
+  title: json['title'] as String,
+  description: json['description'] as String,
+  cover: json['cover'] as Map<String, dynamic>?,
+  creator: json['creator'] as Map<String, dynamic>?,
+  titleMeta: (json['titleMeta'] as List<dynamic>?)
+      ?.map((e) => e as Map<String, dynamic>)
+      .toList(),
+  metadata: (json['metadata'] as List<dynamic>?)
+      ?.map((e) => e as Map<String, dynamic>)
+      .toList(),
+  totalViews: (json['totalViews'] as num).toInt(),
+  totalLikes: (json['totalLikes'] as num).toInt(),
+  totalComments: (json['totalComments'] as num).toInt(),
+  isFavourite: json['isFavourite'] as bool,
+  isLiked: json['isLiked'] as bool,
+  allowComment: json['allowComment'] as bool,
+  allowLike: json['allowLike'] as bool,
+  allowFavorite: json['allowFavorite'] as bool,
+  allowDownload: json['allowDownload'] as bool,
+  chapters: (json['chapters'] as List<dynamic>?)
+      ?.map((e) => e as Map<String, dynamic>)
+      .toList(),
+  detailJson: json['detailJson'] as String,
+  storageRoot: json['storageRoot'] as String,
+  createdAt: DateTime.parse(json['createdAt'] as String),
+  updatedAt: DateTime.parse(json['updatedAt'] as String),
+  downloadedAt: DateTime.parse(json['downloadedAt'] as String),
+  deleted: json['deleted'] as bool,
+  schemaVersion: (json['schemaVersion'] as num).toInt(),
+);
+
+Map<String, dynamic> _$UnifiedComicDownloadToJson(
+  UnifiedComicDownload instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'uniqueKey': instance.uniqueKey,
+  'source': instance.source,
+  'comicId': instance.comicId,
+  'title': instance.title,
+  'description': instance.description,
+  'cover': instance.cover,
+  'creator': instance.creator,
+  'titleMeta': instance.titleMeta,
+  'metadata': instance.metadata,
+  'totalViews': instance.totalViews,
+  'totalLikes': instance.totalLikes,
+  'totalComments': instance.totalComments,
+  'isFavourite': instance.isFavourite,
+  'isLiked': instance.isLiked,
+  'allowComment': instance.allowComment,
+  'allowLike': instance.allowLike,
+  'allowFavorite': instance.allowFavorite,
+  'allowDownload': instance.allowDownload,
+  'chapters': instance.chapters,
+  'detailJson': instance.detailJson,
+  'storageRoot': instance.storageRoot,
+  'createdAt': instance.createdAt.toIso8601String(),
+  'updatedAt': instance.updatedAt.toIso8601String(),
+  'downloadedAt': instance.downloadedAt.toIso8601String(),
+  'deleted': instance.deleted,
+  'schemaVersion': instance.schemaVersion,
+};
+
 UserSetting _$UserSettingFromJson(Map<String, dynamic> json) =>
     UserSetting(
         id: (json['id'] as num?)?.toInt() ?? 0,

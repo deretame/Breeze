@@ -4,9 +4,9 @@ import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 import 'package:zephyr/type/enum.dart';
-
-import '../../download/json/comic_all_info_json/comic_all_info_json.dart'
-    show comicAllInfoJsonFromJson;
+import 'package:zephyr/util/get_path.dart';
+import 'dart:io';
+import 'package:path/path.dart' as p;
 import '../json/common_ep_info_json/common_ep_info_json.dart';
 
 Future<NormalComicEpInfo> getBikaInfo(
@@ -35,9 +35,9 @@ Future<NormalComicEpInfo> getBikaInfoFromNet(String comicId, int epsId) async {
   final docs = chapter.docs
       .map(
         (doc) => Doc(
-          originalName: doc.originalName,
-          path: doc.path,
-          fileServer: doc.fileServer,
+          originalName: doc.name,
+          path: doc.fileName,
+          fileServer: doc.url,
           id: doc.id,
         ),
       )
@@ -56,29 +56,36 @@ Future<NormalComicEpInfo> getBikaInfoFromLocal(
   String comicId,
   int epsId,
 ) async {
-  var temp = objectbox.bikaDownloadBox
-      .query(BikaComicDownload_.comicId.equals(comicId))
+  final download = objectbox.unifiedDownloadBox
+      .query(UnifiedComicDownload_.uniqueKey.equals('bika:$comicId'))
       .build()
-      .findFirst()!
-      .comicInfoAll;
-  final downloadEpsInfo = comicAllInfoJsonFromJson(temp).eps;
-
-  final epInfo = downloadEpsInfo.docs.firstWhere((e) => e.order == epsId);
+      .findFirst()!;
+  final epInfo = (download.chapters ?? const <Map<String, dynamic>>[])
+      .firstWhere((e) => (e['order'] as num?)?.toInt() == epsId);
+  final chapterId = epInfo['id']?.toString() ?? '';
+  final chapterName = epInfo['name']?.toString() ?? '';
+  final downloadRoot = await getDownloadPath();
+  final chapterDir = Directory(
+    p.join(downloadRoot, 'bika', 'original', comicId, 'comic', chapterId),
+  );
+  final files =
+      await chapterDir.list().where((e) => e is File).cast<File>().toList()
+        ..sort((a, b) => a.path.compareTo(b.path));
 
   return NormalComicEpInfo(
-    length: epInfo.pages.docs.length,
-    epPages: epInfo.pages.docs.length.toString(),
-    docs: epInfo.pages.docs
+    length: files.length,
+    epPages: files.length.toString(),
+    docs: files
         .map(
           (e) => Doc(
-            originalName: e.media.originalName,
-            path: e.media.path,
-            fileServer: e.media.fileServer,
-            id: epInfo.id,
+            originalName: p.basename(e.path),
+            path: e.path,
+            fileServer: '',
+            id: chapterId,
           ),
         )
         .toList(),
-    epId: epInfo.id,
-    epName: epInfo.title,
+    epId: chapterId,
+    epName: chapterName,
   );
 }

@@ -20,13 +20,13 @@ import '../../../util/dialog.dart';
 import '../../../widgets/toast.dart';
 
 class ComicOperationWidget extends StatefulWidget {
-  final ComicInfo normalComicInfo;
+  final NormalComicAllInfo normalInfo;
   final From from;
   final dynamic comicInfo;
 
   const ComicOperationWidget({
     super.key,
-    required this.normalComicInfo,
+    required this.normalInfo,
     required this.from,
     required this.comicInfo,
   });
@@ -37,122 +37,143 @@ class ComicOperationWidget extends StatefulWidget {
 
 class _ComicOperationWidgetState extends State<ComicOperationWidget> {
   dynamic get comicInfo => widget.comicInfo;
-  ComicInfo get normalComicInfo => widget.normalComicInfo;
+  NormalComicAllInfo get normalInfo => widget.normalInfo;
+  ComicInfo get comicInfoView => normalInfo.comicInfo;
   bool isCollected = false;
   bool isLiked = false;
 
   @override
   void initState() {
     super.initState();
-    isCollected = normalComicInfo.isFavourite;
-    isLiked = normalComicInfo.isLiked;
+    isCollected = normalInfo.isFavourite;
+    isLiked = normalInfo.isLiked;
   }
 
   @override
   Widget build(BuildContext context) {
-    return LimitedBox(
-      maxWidth: context.screenWidth * (48 / 50),
-      maxHeight: 50,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          Column(
-            children: <Widget>[
-              const Icon(Icons.remove_red_eye, size: 24.0),
-              const SizedBox(height: 2),
-              Text('${normalComicInfo.totalViews}'),
-            ],
-          ),
-          Column(
-            children: <Widget>[
-              GestureDetector(
-                onTap: () async {
-                  toggleAction('like');
-                },
-                child: Icon(
-                  isLiked ? Icons.favorite : Icons.favorite_border,
-                  color: isLiked ? Colors.red : context.textColor,
-                  size: 24.0,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text('${normalComicInfo.totalLikes}'),
-            ],
-          ),
-          Column(
-            children: <Widget>[
-              GestureDetector(
-                onTap: () {
-                  if (widget.from == From.bika) {
-                    if (normalComicInfo.allowComment) {
-                      AutoRouter.of(context).push(
-                        CommentsRoute(
-                          comicId: normalComicInfo.id,
-                          comicTitle: normalComicInfo.title,
-                        ),
-                      );
-                    } else {
-                      commonDialog(context, '禁止评论', '该漫画禁止评论');
-                    }
-                  } else {
-                    context.pushRoute(
-                      JmCommentsRoute(
-                        comicId: normalComicInfo.id.toString(),
-                        comicTitle: normalComicInfo.title,
+    final actions = [
+      _OperationItemData(
+        icon: isLiked ? Icons.favorite : Icons.favorite_border,
+        label: '点赞',
+        value: '${normalInfo.totalLikes}',
+        highlighted: isLiked,
+        accentColor: Colors.red,
+        enabled: normalInfo.allowLike,
+        onTap: () {
+          if (!normalInfo.allowLike) return;
+          toggleAction('like');
+        },
+      ),
+      _OperationItemData(
+        icon: Icons.mode_comment_outlined,
+        label: '评论',
+        value: '${normalInfo.totalComments}',
+        enabled: normalInfo.allowComment || widget.from == From.jm,
+        onTap: _openComments,
+      ),
+      _OperationItemData(
+        icon: isCollected ? Icons.star : Icons.star_border,
+        label: '收藏',
+        value: isCollected ? '已收藏' : '收藏',
+        highlighted: isCollected,
+        accentColor: const Color(0xFFE6A700),
+        enabled: normalInfo.allowFavorite,
+        onTap: () {
+          if (!normalInfo.allowFavorite) return;
+          toggleAction('favorite');
+        },
+      ),
+      _OperationItemData(
+        icon: Icons.cloud_download_outlined,
+        label: '下载',
+        value: normalInfo.allowDownload ? '离线' : '关闭',
+        enabled: normalInfo.allowDownload,
+        onTap: _openDownload,
+      ),
+    ];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: context.theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+        ),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isDesktop = constraints.maxWidth >= 900;
+          final itemWidth = switch (constraints.maxWidth) {
+            < 420 => (constraints.maxWidth - 10) / 2,
+            < 720 => (constraints.maxWidth - 20) / 3,
+            < 900 => (constraints.maxWidth - 30) / 4,
+            _ => 136.0,
+          };
+
+          return Center(
+            child: Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              alignment: WrapAlignment.center,
+              children: actions
+                  .map(
+                    (item) => SizedBox(
+                      width: itemWidth,
+                      child: _OperationCard(
+                        item: item,
+                        compact: isDesktop,
                       ),
-                    );
-                  }
-                },
-                child: const Icon(Icons.comment_sharp, size: 24.0),
-              ),
-              const SizedBox(height: 2),
-              Text('${normalComicInfo.totalComments}'),
-            ],
-          ),
-          Column(
-            children: <Widget>[
-              GestureDetector(
-                onTap: () {
-                  toggleAction('favorite');
-                },
-                child: Icon(
-                  isCollected ? Icons.star : Icons.star_border,
-                  color: isCollected ? Colors.yellow : context.textColor,
-                  size: 24.0,
-                ),
-              ),
-              const SizedBox(height: 2),
-              const Text('收藏'),
-            ],
-          ),
-          Column(
-            children: <Widget>[
-              GestureDetector(
-                onTap: () {
-                  final info = resolveUnifiedDownloadInfo(comicInfo, widget.from);
-                  if (widget.from == From.bika) {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => DownloadPage(downloadInfo: info),
-                      ),
-                    );
-                  } else {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => JmDownloadPage(downloadInfo: info),
-                      ),
-                    );
-                  }
-                },
-                child: const Icon(Icons.cloud_download_outlined, size: 24.0),
-              ),
-              const SizedBox(height: 2),
-              const Text('下载'),
-            ],
-          ),
-        ],
+                    ),
+                  )
+                  .toList(),
+            ),
+          );
+        },
       ),
     );
+  }
+
+  void _openComments() {
+    if (widget.from == From.bika) {
+      if (normalInfo.allowComment) {
+        AutoRouter.of(context).push(
+          CommentsRoute(
+            comicId: comicInfoView.id,
+            comicTitle: comicInfoView.title,
+          ),
+        );
+      } else {
+        commonDialog(context, '禁止评论', '该漫画禁止评论');
+      }
+      return;
+    }
+
+    context.pushRoute(
+      JmCommentsRoute(
+        comicId: comicInfoView.id.toString(),
+        comicTitle: comicInfoView.title,
+      ),
+    );
+  }
+
+  void _openDownload() {
+    if (!normalInfo.allowDownload) return;
+    final info = resolveUnifiedDownloadInfo(comicInfo, widget.from);
+    if (widget.from == From.bika) {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => DownloadPage(downloadInfo: info),
+        ),
+      );
+    } else {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => JmDownloadPage(downloadInfo: info),
+        ),
+      );
+    }
   }
 
   void toggleAction(String actionType) async {
@@ -169,12 +190,12 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
 
     switch (actionType) {
       case 'like':
-        result = likeComic(normalComicInfo.id);
+        result = likeComic(comicInfoView.id);
         isCurrentlyActive = isLiked;
         actionVerb = '点赞';
         break;
       case 'favorite':
-        result = favouriteComic(normalComicInfo.id);
+        result = favouriteComic(comicInfoView.id);
         isCurrentlyActive = isCollected;
         actionVerb = '收藏';
         break;
@@ -234,7 +255,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
           showInfoToast("无法取消点赞");
           return;
         }
-        result = jm.like(normalComicInfo.id.toString());
+        result = jm.like(comicInfoView.id.toString());
         isCurrentlyActive = isLiked;
         actionVerb = '点赞';
         break;
@@ -243,7 +264,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         showInfoToast("$text中...");
         await handleCollectLogic(
           context,
-          normalComicInfo.id.toString(),
+          comicInfoView.id.toString(),
           isCollected,
         );
         return;
@@ -478,6 +499,95 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
           },
         );
       },
+    );
+  }
+}
+
+class _OperationItemData {
+  const _OperationItemData({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.onTap,
+    this.enabled = true,
+    this.highlighted = false,
+    this.accentColor,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final VoidCallback? onTap;
+  final bool enabled;
+  final bool highlighted;
+  final Color? accentColor;
+}
+
+class _OperationCard extends StatelessWidget {
+  const _OperationCard({required this.item, this.compact = false});
+
+  final _OperationItemData item;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = item.accentColor ?? context.theme.colorScheme.primary;
+    final background = item.highlighted
+        ? accent.withValues(alpha: 0.14)
+        : context.theme.colorScheme.surfaceContainerLowest;
+    final foreground = !item.enabled
+        ? context.theme.colorScheme.onSurface.withValues(alpha: 0.38)
+        : item.highlighted
+        ? accent
+        : context.textColor;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: item.onTap,
+        child: Ink(
+          decoration: BoxDecoration(
+            color: background,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: item.highlighted
+                  ? accent.withValues(alpha: 0.28)
+                  : context.theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
+            ),
+          ),
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 8 : 10,
+            vertical: compact ? 10 : 11,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(item.icon, size: compact ? 20 : 22, color: foreground),
+              SizedBox(height: compact ? 6 : 8),
+              Text(
+                item.label,
+                style: context.theme.textTheme.labelLarge?.copyWith(
+                  color: foreground,
+                  fontWeight: FontWeight.w700,
+                  fontSize: compact ? 13 : null,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                item.value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: context.theme.textTheme.bodySmall?.copyWith(
+                  color: foreground.withValues(alpha: item.enabled ? 0.82 : 0.6),
+                  fontSize: compact ? 11.5 : null,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

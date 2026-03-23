@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/model/unified_comic_list_item.dart';
-import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/int_select.dart';
@@ -40,7 +39,7 @@ class _FavoritePage extends StatefulWidget {
 
 class _UserFavoritePageState extends State<_FavoritePage>
     with AutomaticKeepAliveClientMixin {
-  late List<dynamic> comics;
+  late List<ComicNumber> comics;
   int pageCount = 0;
   String refresh = "";
   int pagesCount = 0;
@@ -311,19 +310,11 @@ class _UserFavoritePageState extends State<_FavoritePage>
     return SizedBox.shrink();
   }
 
-  List<UnifiedComicListItem> _toUnifiedComics(List<dynamic> comics) {
+  List<UnifiedComicListItem> _toUnifiedComics(List<ComicNumber> comics) {
     final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
 
     if (comicChoice == 1) {
-      final temp = comics.map((e) => e as ComicNumber).toList();
-
-      return temp
-          .map(
-            (item) => item.doc is UnifiedComicListItem
-                ? item.doc as UnifiedComicListItem
-                : unifiedComicFromBikaFavoriteDoc(item.doc),
-          )
-          .toList();
+      return comics.map((item) => item.doc).toList();
     } else {
       return const <UnifiedComicListItem>[];
     }
@@ -400,9 +391,8 @@ class _UserFavoritePageState extends State<_FavoritePage>
     var currentTime = DateTime.now().millisecondsSinceEpoch;
 
     if (currentTime - _lastExecutedTime > 100) {
-      final temp = comics.map((e) => e as ComicNumber).toList();
-      if (itemIndex >= 0 && itemIndex < temp.length) {
-        int buildNumber = temp[itemIndex].buildNumber;
+      if (itemIndex >= 0 && itemIndex < comics.length) {
+        int buildNumber = comics[itemIndex].buildNumber;
         // logger.d(comics[itemIndex].doc.title);
         context.read<StringSelectCubit>().setDate("$buildNumber/$pagesCount");
         _currentIndex = buildNumber;

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:background_downloader/background_downloader.dart' as bd;
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/type/enum.dart';
@@ -94,31 +95,28 @@ Future<String> downloadPictureIOS({
     return "404";
   }
 
-  // 清理路径 (复用 picture.dart 的公共函数)
-  String sanitizedPath = sanitizePath(path);
+  final sanitizedPath = _sanitizeFileName(path);
 
   // 获取下载路径
   String downloadPath = await getDownloadPath();
   String cachePath = await getCachePath();
 
-  String cacheFilePath = buildFilePath(
+  String cacheFilePath = _buildStoredFilePath(
     cachePath,
     from,
-    pictureType,
+    sanitizedPath,
     cartoonId,
     chapterId,
-    sanitizedPath,
-    "original",
+    rootFolder: 'original',
   );
 
-  String downloadFilePath = buildFilePath(
+  String downloadFilePath = _buildStoredFilePath(
     downloadPath,
     from,
-    pictureType,
+    sanitizedPath,
     cartoonId,
     chapterId,
-    sanitizedPath,
-    "original",
+    rootFolder: 'original',
   );
 
   // 检查文件是否存在
@@ -153,19 +151,8 @@ Future<String> downloadPictureIOS({
     }
   }
 
-  // 处理 URL
-  String finalUrl = from == From.jm
-      ? url
-      : buildImageUrl(
-          url,
-          path,
-          pictureType,
-          "original",
-          proxy ?? objectbox.userSettingBox.get(1)!.bikaSetting.proxy,
-        );
-
   // 使用 background_downloader 下载图片
-  Uint8List imageData = await downloadImageWithRetryIOS(finalUrl, retry: true);
+  Uint8List imageData = await downloadImageWithRetryIOS(url, retry: true);
 
   if (from == From.jm && pictureType == PictureType.comic) {
     await decodeAndSaveImage(
@@ -190,4 +177,31 @@ Future<String> downloadPictureIOS({
   } else {
     throw Exception('图片保存失败');
   }
+}
+
+String _sanitizeFileName(String value) {
+  final name = file_path.basename(value);
+  return name.replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_');
+}
+
+String _buildStoredFilePath(
+  String basePath,
+  From from,
+  String fileName,
+  String cartoonId,
+  String chapterId, {
+  String? rootFolder,
+}) {
+  final segments = <String>[basePath, from.name];
+  if (rootFolder != null && rootFolder.isNotEmpty) {
+    segments.add(rootFolder);
+  }
+  if (cartoonId.trim().isNotEmpty) {
+    segments.add(cartoonId.trim());
+  }
+  if (chapterId.trim().isNotEmpty) {
+    segments.add(chapterId.trim());
+  }
+  segments.add(fileName);
+  return file_path.joinAll(segments);
 }

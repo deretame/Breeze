@@ -6,107 +6,111 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `call_bundle_once_by_json`, `call_bundle_once_inner`, `call_current_bundle_by_json`, `call_current_bundle_inner`, `call_loaded_bundle_inner`, `cancel_runtime_tasks`, `create_qjs_runtime_with_bundle`, `create_qjs_runtime`, `current_bundle_name`, `dart_callback_runtime`, `insert_runtime_task_id`, `is_cancelled_error_text`, `load_bundle_inner`, `native_bytes_from_payload`, `parse_args_array`, `parse_call_input`, `parse_ok_json_payload`, `qjs_in_flight_task_map`, `qjs_runtime_init_lock`, `qjs_runtime_map`, `qjs_runtime`, `remove_runtime_task_id`, `replace_bundle_inner`, `run_dart_callback_blocking`, `take_runtime_task_ids`
 
-Future<void> qjsReplaceBundle({
-  required String runtimeName,
-  required String bundleName,
-  required String bundleJs,
-}) => RustLib.instance.api.crateApiQjsQjsReplaceBundle(
-  runtimeName: runtimeName,
-  bundleName: bundleName,
-  bundleJs: bundleJs,
-);
+            // These functions are ignored because they are not marked as `pub`: `call_bundle_once_by_json`, `call_bundle_once_inner`, `call_bundle_once_start_by_json`, `call_current_bundle_by_json`, `call_current_bundle_inner`, `call_current_bundle_start_by_json`, `call_current_bundle_start`, `call_loaded_bundle_inner`, `call_loaded_bundle_start`, `cancel_runtime_tasks_many`, `complete_tracked_task_as_cancelled`, `complete`, `create_qjs_runtime_with_bundle`, `create_qjs_runtime`, `current_bundle_name`, `dart_callback_runtime`, `get_tracked_task`, `insert_runtime_task_id`, `insert_tracked_task`, `is_cancelled_error_text`, `is_ready`, `load_bundle_inner`, `native_bytes_from_payload`, `new`, `parse_args_array`, `parse_call_input`, `parse_ok_json_payload`, `qjs_in_flight_task_map`, `qjs_runtime_init_lock`, `qjs_runtime_map`, `qjs_runtime`, `qjs_tracked_task_map`, `remove_runtime_task_id`, `remove_tracked_task`, `replace_bundle_inner`, `run_dart_callback_blocking`, `spawn_tracked_bundle_once_task_waiter`, `spawn_tracked_task_waiter`, `take_runtime_task_ids`, `tracked_task_ids_by_group`, `wait_tracked_task_output`, `wait`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `TrackedQjsTaskKind`, `TrackedQjsTaskOutput`, `TrackedQjsTaskState`, `TrackedQjsTask`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`
 
-Future<String> qjsCall({
-  required String runtimeName,
-  required String fnPath,
-  required String argsJson,
-}) => RustLib.instance.api.crateApiQjsQjsCall(
-  runtimeName: runtimeName,
-  fnPath: fnPath,
-  argsJson: argsJson,
-);
 
-Future<String> qjsCallOnce({
-  required String runtimeName,
-  required String bundleJs,
-  required String fnPath,
-  required String argsJson,
-}) => RustLib.instance.api.crateApiQjsQjsCallOnce(
-  runtimeName: runtimeName,
-  bundleJs: bundleJs,
-  fnPath: fnPath,
-  argsJson: argsJson,
-);
+            Future<void>  qjsReplaceBundle({required String runtimeName , required String bundleName , required String bundleJs }) => RustLib.instance.api.crateApiQjsQjsReplaceBundle(runtimeName: runtimeName, bundleName: bundleName, bundleJs: bundleJs);
 
-Future<bool> qjsClearBundle({required String runtimeName}) =>
-    RustLib.instance.api.crateApiQjsQjsClearBundle(runtimeName: runtimeName);
+Future<String>  qjsCall({required String runtimeName , required String fnPath , required String argsJson }) => RustLib.instance.api.crateApiQjsQjsCall(runtimeName: runtimeName, fnPath: fnPath, argsJson: argsJson);
 
-Future<String> qjsCurrentBundle({required String runtimeName}) =>
-    RustLib.instance.api.crateApiQjsQjsCurrentBundle(runtimeName: runtimeName);
+Future<BigInt>  qjsCallTaskStart({required String runtimeName , required String taskGroupKey , required String fnPath , required String argsJson }) => RustLib.instance.api.crateApiQjsQjsCallTaskStart(runtimeName: runtimeName, taskGroupKey: taskGroupKey, fnPath: fnPath, argsJson: argsJson);
 
-Future<bool> qjsDropRuntime({required String runtimeName}) =>
-    RustLib.instance.api.crateApiQjsQjsDropRuntime(runtimeName: runtimeName);
+Future<String>  qjsCallTaskWait({required String runtimeName , required BigInt taskId }) => RustLib.instance.api.crateApiQjsQjsCallTaskWait(runtimeName: runtimeName, taskId: taskId);
 
-Future<Uint8List> qjsFetchImageBytes({
-  required String runtimeName,
-  required String fnPath,
-  required String argsJson,
-}) => RustLib.instance.api.crateApiQjsQjsFetchImageBytes(
-  runtimeName: runtimeName,
-  fnPath: fnPath,
-  argsJson: argsJson,
-);
+Future<String>  qjsCallOnce({required String runtimeName , required String bundleJs , required String fnPath , required String argsJson }) => RustLib.instance.api.crateApiQjsQjsCallOnce(runtimeName: runtimeName, bundleJs: bundleJs, fnPath: fnPath, argsJson: argsJson);
 
-Future<Uint8List> qjsFetchImageBytesOnce({
-  required String runtimeName,
-  required String bundleJs,
-  required String fnPath,
-  required String argsJson,
-}) => RustLib.instance.api.crateApiQjsQjsFetchImageBytesOnce(
-  runtimeName: runtimeName,
-  bundleJs: bundleJs,
-  fnPath: fnPath,
-  argsJson: argsJson,
-);
+Future<BigInt>  qjsCallOnceTaskStart({required String runtimeName , required String bundleJs , required String fnPath , required String argsJson , required String taskGroupKey }) => RustLib.instance.api.crateApiQjsQjsCallOnceTaskStart(runtimeName: runtimeName, bundleJs: bundleJs, fnPath: fnPath, argsJson: argsJson, taskGroupKey: taskGroupKey);
 
-Future<void> setHttpProxy({required String proxy}) =>
-    RustLib.instance.api.crateApiQjsSetHttpProxy(proxy: proxy);
+Future<String>  qjsCallOnceTaskWait({required String runtimeName , required BigInt taskId }) => RustLib.instance.api.crateApiQjsQjsCallOnceTaskWait(runtimeName: runtimeName, taskId: taskId);
 
-Future<void> setSocks5Proxy({required String proxy}) =>
-    RustLib.instance.api.crateApiQjsSetSocks5Proxy(proxy: proxy);
+Future<bool>  qjsClearBundle({required String runtimeName }) => RustLib.instance.api.crateApiQjsQjsClearBundle(runtimeName: runtimeName);
 
-void setQjsErrorStackEnabled({required bool enabled}) =>
-    RustLib.instance.api.crateApiQjsSetQjsErrorStackEnabled(enabled: enabled);
+Future<String>  qjsCurrentBundle({required String runtimeName }) => RustLib.instance.api.crateApiQjsQjsCurrentBundle(runtimeName: runtimeName);
 
-Future<void> registerLoadPluginConfig({
-  required FutureOr<String> Function(String, String, String) dartCallback,
-}) => RustLib.instance.api.crateApiQjsRegisterLoadPluginConfig(
-  dartCallback: dartCallback,
-);
+Future<bool>  qjsDropRuntime({required String runtimeName }) => RustLib.instance.api.crateApiQjsQjsDropRuntime(runtimeName: runtimeName);
 
-Future<void> registerSavePluginConfig({
-  required FutureOr<String> Function(String, String, String) dartCallback,
-}) => RustLib.instance.api.crateApiQjsRegisterSavePluginConfig(
-  dartCallback: dartCallback,
-);
+Future<QjsCancelTaskResult>  qjsCancelTask({required String runtimeName , required BigInt taskId }) => RustLib.instance.api.crateApiQjsQjsCancelTask(runtimeName: runtimeName, taskId: taskId);
 
-void setLogHttpForward({required String url}) =>
-    RustLib.instance.api.crateApiQjsSetLogHttpForward(url: url);
+Future<QjsCancelTasksByGroupResult>  qjsCancelTasksByGroup({required String runtimeName , required String taskGroupKey }) => RustLib.instance.api.crateApiQjsQjsCancelTasksByGroup(runtimeName: runtimeName, taskGroupKey: taskGroupKey);
 
-String getJsBundle({required String name}) =>
-    RustLib.instance.api.crateApiQjsGetJsBundle(name: name);
+Future<Uint8List>  qjsFetchImageBytes({required String runtimeName , required String fnPath , required String argsJson }) => RustLib.instance.api.crateApiQjsQjsFetchImageBytes(runtimeName: runtimeName, fnPath: fnPath, argsJson: argsJson);
 
-Future<void> initQjsRuntime({required String name}) =>
-    RustLib.instance.api.crateApiQjsInitQjsRuntime(name: name);
+Future<BigInt>  qjsFetchImageBytesTaskStart({required String runtimeName , required String taskGroupKey , required String fnPath , required String argsJson }) => RustLib.instance.api.crateApiQjsQjsFetchImageBytesTaskStart(runtimeName: runtimeName, taskGroupKey: taskGroupKey, fnPath: fnPath, argsJson: argsJson);
 
-Future<void> initQjsRuntimeWithBundle({
-  required String runtimeName,
-  required String bundleName,
-  required String bundleJs,
-}) => RustLib.instance.api.crateApiQjsInitQjsRuntimeWithBundle(
-  runtimeName: runtimeName,
-  bundleName: bundleName,
-  bundleJs: bundleJs,
-);
+Future<Uint8List>  qjsFetchImageBytesTaskWait({required String runtimeName , required BigInt taskId }) => RustLib.instance.api.crateApiQjsQjsFetchImageBytesTaskWait(runtimeName: runtimeName, taskId: taskId);
+
+Future<Uint8List>  qjsFetchImageBytesOnce({required String runtimeName , required String bundleJs , required String fnPath , required String argsJson }) => RustLib.instance.api.crateApiQjsQjsFetchImageBytesOnce(runtimeName: runtimeName, bundleJs: bundleJs, fnPath: fnPath, argsJson: argsJson);
+
+Future<BigInt>  qjsFetchImageBytesOnceTaskStart({required String runtimeName , required String bundleJs , required String fnPath , required String argsJson , required String taskGroupKey }) => RustLib.instance.api.crateApiQjsQjsFetchImageBytesOnceTaskStart(runtimeName: runtimeName, bundleJs: bundleJs, fnPath: fnPath, argsJson: argsJson, taskGroupKey: taskGroupKey);
+
+Future<Uint8List>  qjsFetchImageBytesOnceTaskWait({required String runtimeName , required BigInt taskId }) => RustLib.instance.api.crateApiQjsQjsFetchImageBytesOnceTaskWait(runtimeName: runtimeName, taskId: taskId);
+
+Future<void>  setHttpProxy({required String proxy }) => RustLib.instance.api.crateApiQjsSetHttpProxy(proxy: proxy);
+
+Future<void>  setSocks5Proxy({required String proxy }) => RustLib.instance.api.crateApiQjsSetSocks5Proxy(proxy: proxy);
+
+void  setQjsErrorStackEnabled({required bool enabled }) => RustLib.instance.api.crateApiQjsSetQjsErrorStackEnabled(enabled: enabled);
+
+Future<void>  registerLoadPluginConfig({required FutureOr<String> Function(String, String, String) dartCallback }) => RustLib.instance.api.crateApiQjsRegisterLoadPluginConfig(dartCallback: dartCallback);
+
+Future<void>  registerSavePluginConfig({required FutureOr<String> Function(String, String, String) dartCallback }) => RustLib.instance.api.crateApiQjsRegisterSavePluginConfig(dartCallback: dartCallback);
+
+void  setLogHttpForward({required String url }) => RustLib.instance.api.crateApiQjsSetLogHttpForward(url: url);
+
+String  getJsBundle({required String name }) => RustLib.instance.api.crateApiQjsGetJsBundle(name: name);
+
+Future<void>  initQjsRuntime({required String name }) => RustLib.instance.api.crateApiQjsInitQjsRuntime(name: name);
+
+Future<void>  initQjsRuntimeWithBundle({required String runtimeName , required String bundleName , required String bundleJs }) => RustLib.instance.api.crateApiQjsInitQjsRuntimeWithBundle(runtimeName: runtimeName, bundleName: bundleName, bundleJs: bundleJs);
+
+            class QjsCancelTaskResult  {
+                final String status;
+
+                const QjsCancelTaskResult({required this.status ,});
+
+                
+                
+
+                
+        @override
+        int get hashCode => status.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is QjsCancelTaskResult &&
+                runtimeType == other.runtimeType
+                && status == other.status;
+        
+            }
+
+class QjsCancelTasksByGroupResult  {
+                final int cancelled;
+final int notFound;
+final List<String> failedRuntimeGroups;
+
+                const QjsCancelTasksByGroupResult({required this.cancelled ,required this.notFound ,required this.failedRuntimeGroups ,});
+
+                
+                
+
+                
+        @override
+        int get hashCode => cancelled.hashCode^notFound.hashCode^failedRuntimeGroups.hashCode;
+        
+
+                
+        @override
+        bool operator ==(Object other) =>
+            identical(this, other) ||
+            other is QjsCancelTasksByGroupResult &&
+                runtimeType == other.runtimeType
+                && cancelled == other.cancelled&& notFound == other.notFound&& failedRuntimeGroups == other.failedRuntimeGroups;
+        
+            }
+            

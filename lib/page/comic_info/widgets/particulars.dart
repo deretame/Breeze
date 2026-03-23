@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:zephyr/cubit/string_select.dart';
-import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     show ComicInfo;
@@ -13,87 +11,269 @@ import 'package:zephyr/widgets/toast.dart';
 
 import '../../../widgets/picture_bloc/models/picture_info.dart';
 
-// 显示漫画的一些信息
-// 封面，名字，作家，汉化组，收藏人数，章节信息
 class ComicParticularsWidget extends StatelessWidget {
   final ComicInfo comicInfo;
   final From from;
+  final VoidCallback? onContinueRead;
 
   const ComicParticularsWidget({
     super.key,
     required this.comicInfo,
     required this.from,
+    this.onContinueRead,
   });
 
   @override
   Widget build(BuildContext context) {
     final stringSelectDate = context.watch<StringSelectCubit>().state;
+    final coverExtension = comicInfo.cover.extension;
+    final pictureInfo = PictureInfo(
+      from: from,
+      url: comicInfo.cover.url,
+      path:
+          coverExtension['path']?.toString() ??
+          (comicInfo.cover.name.isNotEmpty ? comicInfo.cover.name : comicInfo.id),
+      chapterId: comicInfo.id,
+      pictureType: PictureType.cover,
+      cartoonId: comicInfo.id,
+    );
 
-    late PictureInfo pictureInfo;
-    if (from == From.jm) {
-      pictureInfo = PictureInfo(
-        from: From.jm,
-        url: getJmCoverUrl(comicInfo.id),
-        path: '${comicInfo.id}.jpg',
-        cartoonId: comicInfo.id,
-        pictureType: PictureType.cover,
-      );
-    } else {
-      pictureInfo = PictureInfo(
-        from: From.bika,
-        url: comicInfo.cover.url,
-        path: comicInfo.cover.path,
-        chapterId: comicInfo.id,
-        pictureType: PictureType.cover,
-        cartoonId: comicInfo.id,
-      );
-    }
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+        ),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 520;
+          final info = _InfoColumn(
+            comicInfo: comicInfo,
+            from: from,
+            stringSelectDate: stringSelectDate,
+            onContinueRead: onContinueRead,
+          );
 
-    return SizedBox(
-      width: context.screenWidth * (48 / 50),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Cover(pictureInfo: pictureInfo),
-          SizedBox(width: context.screenWidth / 60),
-          Flexible(
-            child: Column(
+          if (compact) {
+            return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                SelectableText(
-                  comicInfo.title,
-                  style: TextStyle(color: context.textColor, fontSize: 18),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  "更新时间：${DateFormat('yyyy-MM-dd HH:mm').format(comicInfo.updatedAt.toLocal())}",
-                ),
-                const SizedBox(height: 2),
-                if (comicInfo.pagesCount != 0) ...[
-                  Text("页数：${comicInfo.pagesCount}"),
-                  const SizedBox(height: 2),
-                ],
-                Text("章节数：${comicInfo.epsCount}"),
-                if (from == From.jm) ...[
-                  GestureDetector(
-                    onLongPress: () async {
-                      final String copyText = "jm${comicInfo.id}";
-                      await Clipboard.setData(ClipboardData(text: copyText));
-                      showSuccessToast("已复制：$copyText");
-                    },
-                    child: Text("禁漫车：jm${comicInfo.id}"),
+              children: [
+                Align(
+                  child: Cover(
+                    pictureInfo: pictureInfo,
+                    height: 220,
+                    borderRadius: 14,
                   ),
-                  const SizedBox(height: 2),
-                ],
-                Text(
-                  stringSelectDate,
-                  style: TextStyle(color: context.theme.colorScheme.primary),
                 ),
+                const SizedBox(height: 16),
+                info,
               ],
+            );
+          }
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Cover(
+                pictureInfo: pictureInfo,
+                height: 230,
+                borderRadius: 14,
+              ),
+              const SizedBox(width: 16),
+              Expanded(child: info),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _InfoColumn extends StatelessWidget {
+  const _InfoColumn({
+    required this.comicInfo,
+    required this.from,
+    required this.stringSelectDate,
+    required this.onContinueRead,
+  });
+
+  final ComicInfo comicInfo;
+  final From from;
+  final String stringSelectDate;
+  final VoidCallback? onContinueRead;
+
+  @override
+  Widget build(BuildContext context) {
+    final titleStyle = context.theme.textTheme.headlineSmall?.copyWith(
+      fontWeight: FontWeight.w800,
+      height: 1.15,
+      color: context.textColor,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: context.theme.colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+            ),
+          ),
+          child: Text(
+            from == From.jm ? 'JM Comic' : 'Bika Comic',
+            style: context.theme.textTheme.labelMedium?.copyWith(
+              letterSpacing: 0.8,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SelectableText(comicInfo.title, style: titleStyle),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: comicInfo.titleMeta
+              .map(
+                (item) => _MetaPill(
+                  label: item.name,
+                  onTap: item.onTap.isEmpty
+                      ? null
+                      : () => handleComicInfoAction(
+                          context,
+                          item.onTap,
+                          fallbackFrom: from,
+                        ),
+                ),
+              )
+              .toList(),
+        ),
+        if (stringSelectDate.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onContinueRead,
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: context.theme.colorScheme.primary.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: context.theme.colorScheme.primary.withValues(alpha: 0.30),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 34,
+                      height: 34,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: context.theme.colorScheme.primary.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(9),
+                      ),
+                      child: Icon(
+                        Icons.history_rounded,
+                        size: 18,
+                        color: context.theme.colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '阅读记录',
+                            style: context.theme.textTheme.labelMedium?.copyWith(
+                              color: context.theme.colorScheme.primary,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            stringSelectDate,
+                            style: context.theme.textTheme.bodyMedium?.copyWith(
+                              color: context.textColor,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (onContinueRead != null) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        '继续阅读',
+                        style: context.theme.textTheme.labelLarge?.copyWith(
+                          color: context.theme.colorScheme.primary,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.play_arrow_rounded,
+                        size: 20,
+                        color: context.theme.colorScheme.primary,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ),
           ),
         ],
+      ],
+    );
+  }
+}
+
+class _MetaPill extends StatelessWidget {
+  const _MetaPill({required this.label, this.onTap});
+
+  final String label;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final pill = Container(
+      constraints: const BoxConstraints(minHeight: 38),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: context.theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.32),
+        ),
       ),
+      child: Text(
+        label,
+        style: context.theme.textTheme.bodySmall?.copyWith(
+          fontWeight: FontWeight.w600,
+          height: 1.15,
+        ),
+      ),
+    );
+
+    return GestureDetector(
+      onTap: onTap,
+      onLongPress: () async {
+        await Clipboard.setData(ClipboardData(text: label));
+        showSuccessToast('已复制：$label');
+      },
+      child: pill,
     );
   }
 }

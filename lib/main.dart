@@ -31,13 +31,14 @@ import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/api/system.dart' as rust_system;
 import 'package:zephyr/src/rust/frb_generated.dart';
-import 'package:zephyr/util/compatible.dart';
+import 'package:zephyr/util/compatible/compatible.dart';
 import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/util/desktop/custom_title_bar.dart';
 import 'package:zephyr/util/desktop/intent.dart';
 import 'package:zephyr/util/desktop/native_window.dart';
 import 'package:zephyr/util/desktop/system_tray.dart';
 import 'package:zephyr/util/desktop/window_logic.dart';
+import 'package:zephyr/util/download/qjs_runtime_mode.dart';
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/jm_url_set.dart';
@@ -185,12 +186,10 @@ _initServices() async {
 
   enableStacktrace(enabled: false);
 
-  await compatibleInit();
-
   setLogHttpForward(url: "http://127.0.0.1:7878/log");
 
   // 配置http代理，方便开发测试
-  if (kDebugMode) {
+  if (useQjsCallOnce) {
     setQjsErrorStackEnabled(enabled: true);
     await enableProxy();
   } else {
@@ -237,6 +236,8 @@ _initServices() async {
   }
 
   objectbox = await ObjectBox.create();
+
+  await ensureCompatibleMigration(objectbox);
 
   final setting = objectbox.userSettingBox.get(1);
   if (setting == null) {

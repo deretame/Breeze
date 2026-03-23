@@ -152,9 +152,7 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
     List<ComicNumber> uniqueComics = [];
 
     for (var comic in comics) {
-      final id = comic.doc is UnifiedComicListItem
-          ? (comic.doc as UnifiedComicListItem).id
-          : comic.doc.id.toString();
+      final id = comic.doc.id;
       if (!seenIds.contains(id)) {
         uniqueComics.add(comic);
         seenIds.add(id);
@@ -175,9 +173,7 @@ class UserFavouriteBloc extends Bloc<UserFavouriteEvent, UserFavouriteState> {
     // 过滤掉包含屏蔽分类的漫画
     return comics.where((comic) {
       // 检查该漫画的分类是否与屏蔽分类列表中的任何分类匹配
-      final categories = comic.doc is UnifiedComicListItem
-          ? (comic.doc as UnifiedComicListItem).metadataValues('categories')
-          : (comic.doc.categories as List<dynamic>).map((e) => e.toString()).toList();
+      final categories = comic.doc.metadataValues('categories');
       return !categories.any(
         (category) => shieldedCategoriesList.contains(category),
       );

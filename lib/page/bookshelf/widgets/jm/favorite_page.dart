@@ -205,9 +205,10 @@ class __FavoritePageState extends State<_FavoritePage>
   }
 
   List<UnifiedComicListItem> _toUnifiedComics(List<dynamic> comics) {
-    final temp = comics.map((e) => e as JmFavorite).toList();
-
-    return temp.map(unifiedComicFromJmFavorite).toList();
+    return comics
+        .map((e) => e as UnifiedComicFavorite)
+        .map(unifiedComicFromUnifiedFavorite)
+        .toList();
   }
 
   void _refresh([bool goToTop = false]) {

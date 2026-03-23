@@ -15,6 +15,16 @@ _NormalComicAllInfo _$NormalComicAllInfoFromJson(Map<String, dynamic> json) =>
       recommend: (json['recommend'] as List<dynamic>)
           .map((e) => Recommend.fromJson(e as Map<String, dynamic>))
           .toList(),
+      totalViews: (json['totalViews'] as num?)?.toInt() ?? 0,
+      totalLikes: (json['totalLikes'] as num?)?.toInt() ?? 0,
+      totalComments: (json['totalComments'] as num?)?.toInt() ?? 0,
+      isFavourite: json['isFavourite'] as bool? ?? false,
+      isLiked: json['isLiked'] as bool? ?? false,
+      allowComment: json['allowComment'] as bool? ?? true,
+      allowLike: json['allowLike'] as bool? ?? true,
+      allowFavorite: json['allowFavorite'] as bool? ?? true,
+      allowDownload: json['allowDownload'] as bool? ?? true,
+      extension: json['extension'] as Map<String, dynamic>? ?? const {},
     );
 
 Map<String, dynamic> _$NormalComicAllInfoToJson(_NormalComicAllInfo instance) =>
@@ -22,104 +32,134 @@ Map<String, dynamic> _$NormalComicAllInfoToJson(_NormalComicAllInfo instance) =>
       'comicInfo': instance.comicInfo,
       'eps': instance.eps,
       'recommend': instance.recommend,
-    };
-
-_ComicInfo _$ComicInfoFromJson(Map<String, dynamic> json) => _ComicInfo(
-  id: json['id'] as String,
-  creator: Creator.fromJson(json['creator'] as Map<String, dynamic>),
-  title: json['title'] as String,
-  description: json['description'] as String,
-  cover: Cover.fromJson(json['cover'] as Map<String, dynamic>),
-  categories: (json['categories'] as List<dynamic>)
-      .map((e) => e as String)
-      .toList(),
-  tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
-  author: (json['author'] as List<dynamic>).map((e) => e as String).toList(),
-  works: (json['works'] as List<dynamic>).map((e) => e as String).toList(),
-  actors: (json['actors'] as List<dynamic>).map((e) => e as String).toList(),
-  chineseTeam: (json['chineseTeam'] as List<dynamic>)
-      .map((e) => e as String)
-      .toList(),
-  pagesCount: (json['pagesCount'] as num).toInt(),
-  epsCount: (json['epsCount'] as num).toInt(),
-  updatedAt: DateTime.parse(json['updated_at'] as String),
-  allowComment: json['allowComment'] as bool,
-  totalViews: (json['totalViews'] as num).toInt(),
-  totalLikes: (json['totalLikes'] as num).toInt(),
-  totalComments: (json['totalComments'] as num).toInt(),
-  isFavourite: json['isFavourite'] as bool,
-  isLiked: json['isLiked'] as bool,
-);
-
-Map<String, dynamic> _$ComicInfoToJson(_ComicInfo instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'creator': instance.creator,
-      'title': instance.title,
-      'description': instance.description,
-      'cover': instance.cover,
-      'categories': instance.categories,
-      'tags': instance.tags,
-      'author': instance.author,
-      'works': instance.works,
-      'actors': instance.actors,
-      'chineseTeam': instance.chineseTeam,
-      'pagesCount': instance.pagesCount,
-      'epsCount': instance.epsCount,
-      'updated_at': instance.updatedAt.toIso8601String(),
-      'allowComment': instance.allowComment,
       'totalViews': instance.totalViews,
       'totalLikes': instance.totalLikes,
       'totalComments': instance.totalComments,
       'isFavourite': instance.isFavourite,
       'isLiked': instance.isLiked,
+      'allowComment': instance.allowComment,
+      'allowLike': instance.allowLike,
+      'allowFavorite': instance.allowFavorite,
+      'allowDownload': instance.allowDownload,
+      'extension': instance.extension,
     };
 
-_Cover _$CoverFromJson(Map<String, dynamic> json) => _Cover(
+_ComicInfoActionItem _$ComicInfoActionItemFromJson(Map<String, dynamic> json) =>
+    _ComicInfoActionItem(
+      name: json['name'] as String,
+      onTap: json['onTap'] as Map<String, dynamic>? ?? const {},
+      extension: json['extension'] as Map<String, dynamic>? ?? const {},
+    );
+
+Map<String, dynamic> _$ComicInfoActionItemToJson(
+  _ComicInfoActionItem instance,
+) => <String, dynamic>{
+  'name': instance.name,
+  'onTap': instance.onTap,
+  'extension': instance.extension,
+};
+
+_ComicInfoMetadata _$ComicInfoMetadataFromJson(Map<String, dynamic> json) =>
+    _ComicInfoMetadata(
+      type: json['type'] as String,
+      name: json['name'] as String,
+      value: (json['value'] as List<dynamic>)
+          .map((e) => ComicInfoActionItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$ComicInfoMetadataToJson(_ComicInfoMetadata instance) =>
+    <String, dynamic>{
+      'type': instance.type,
+      'name': instance.name,
+      'value': instance.value,
+    };
+
+_ComicImage _$ComicImageFromJson(Map<String, dynamic> json) => _ComicImage(
+  id: json['id'] as String,
   url: json['url'] as String,
-  path: json['path'] as String,
   name: json['name'] as String,
+  extension: json['extension'] as Map<String, dynamic>? ?? const {},
 );
 
-Map<String, dynamic> _$CoverToJson(_Cover instance) => <String, dynamic>{
-  'url': instance.url,
-  'path': instance.path,
-  'name': instance.name,
-};
+Map<String, dynamic> _$ComicImageToJson(_ComicImage instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'url': instance.url,
+      'name': instance.name,
+      'extension': instance.extension,
+    };
 
 _Creator _$CreatorFromJson(Map<String, dynamic> json) => _Creator(
   id: json['id'] as String,
   name: json['name'] as String,
-  avatar: Cover.fromJson(json['avatar'] as Map<String, dynamic>),
+  avatar: ComicImage.fromJson(json['avatar'] as Map<String, dynamic>),
+  onTap: json['onTap'] as Map<String, dynamic>? ?? const {},
+  extension: json['extension'] as Map<String, dynamic>? ?? const {},
 );
 
 Map<String, dynamic> _$CreatorToJson(_Creator instance) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
   'avatar': instance.avatar,
+  'onTap': instance.onTap,
+  'extension': instance.extension,
 };
+
+_ComicInfo _$ComicInfoFromJson(Map<String, dynamic> json) => _ComicInfo(
+  id: json['id'] as String,
+  title: json['title'] as String,
+  titleMeta: (json['titleMeta'] as List<dynamic>)
+      .map((e) => ComicInfoActionItem.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  creator: Creator.fromJson(json['creator'] as Map<String, dynamic>),
+  description: json['description'] as String,
+  cover: ComicImage.fromJson(json['cover'] as Map<String, dynamic>),
+  metadata: (json['metadata'] as List<dynamic>)
+      .map((e) => ComicInfoMetadata.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  extension: json['extension'] as Map<String, dynamic>? ?? const {},
+);
+
+Map<String, dynamic> _$ComicInfoToJson(_ComicInfo instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'title': instance.title,
+      'titleMeta': instance.titleMeta,
+      'creator': instance.creator,
+      'description': instance.description,
+      'cover': instance.cover,
+      'metadata': instance.metadata,
+      'extension': instance.extension,
+    };
 
 _Ep _$EpFromJson(Map<String, dynamic> json) => _Ep(
   id: json['id'] as String,
   name: json['name'] as String,
   order: (json['order'] as num).toInt(),
+  extension: json['extension'] as Map<String, dynamic>? ?? const {},
 );
 
 Map<String, dynamic> _$EpToJson(_Ep instance) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
   'order': instance.order,
+  'extension': instance.extension,
 };
 
 _Recommend _$RecommendFromJson(Map<String, dynamic> json) => _Recommend(
+  source: json['source'] as String,
   id: json['id'] as String,
   title: json['title'] as String,
-  cover: Cover.fromJson(json['cover'] as Map<String, dynamic>),
+  cover: ComicImage.fromJson(json['cover'] as Map<String, dynamic>),
+  extension: json['extension'] as Map<String, dynamic>? ?? const {},
 );
 
 Map<String, dynamic> _$RecommendToJson(_Recommend instance) =>
     <String, dynamic>{
+      'source': instance.source,
       'id': instance.id,
       'title': instance.title,
       'cover': instance.cover,
+      'extension': instance.extension,
     };

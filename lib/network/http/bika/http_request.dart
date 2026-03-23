@@ -8,9 +8,10 @@ import 'package:zephyr/main.dart';
 import 'http_request_build_rust.dart' as rust;
 
 Future<String> get bikaJsUrl async {
-  final prefs = await SharedPreferences.getInstance();
-  return prefs.getString('debug_bika_url') ??
-      'http://127.0.0.1:7879/bikaComic.bundle.cjs';
+  // final prefs = await SharedPreferences.getInstance();
+  // return prefs.getString('debug_bika_url') ??
+  //     'http://localhost:7878/bika-comic.bundle.cjs';
+  return 'http://localhost:7878/bika-comic.bundle.cjs';
 }
 
 Future<Map<String, dynamic>> bikaRequest(
@@ -20,6 +21,7 @@ Future<Map<String, dynamic>> bikaRequest(
   bool cache = false,
   String? imageQuality,
   String qjsRuntimeName = 'bikaComic',
+  String qjsTaskGroupKey = '',
 }) async {
   url = DebugUrlSetting.replaceBikaHost(url);
 
@@ -30,6 +32,7 @@ Future<Map<String, dynamic>> bikaRequest(
     cache: cache,
     imageQuality: imageQuality,
     qjsName: qjsRuntimeName,
+    qjsTaskGroupKey: qjsTaskGroupKey,
   );
 
   if (data['code'] != 200) {
@@ -176,12 +179,14 @@ Future<Map<String, dynamic>> getComicInfo(
   String comicId, {
   String? imageQuality,
   String qjsRuntimeName = 'bikaComic',
+  String qjsTaskGroupKey = '',
 }) async {
   return bikaRequest(
     'https://picaapi.picacomic.com/comics/$comicId',
     'GET',
     imageQuality: imageQuality,
     qjsRuntimeName: qjsRuntimeName,
+    qjsTaskGroupKey: qjsTaskGroupKey,
   );
 }
 
@@ -257,6 +262,7 @@ Future<Map<String, dynamic>> getEps(
   int pageCount, {
   String? imageQuality,
   String qjsRuntimeName = 'bikaComic',
+  String qjsTaskGroupKey = '',
 }) async {
   return bikaRequest(
     'https://picaapi.picacomic.com/comics/$comicId/eps?page=$pageCount',
@@ -264,6 +270,7 @@ Future<Map<String, dynamic>> getEps(
     cache: true,
     imageQuality: imageQuality,
     qjsRuntimeName: qjsRuntimeName,
+    qjsTaskGroupKey: qjsTaskGroupKey,
   );
 }
 
@@ -281,6 +288,7 @@ Future<Map<String, dynamic>> getPages(
   int pageCount, {
   String? imageQuality,
   String qjsRuntimeName = 'bikaComic',
+  String qjsTaskGroupKey = '',
 }) async {
   return bikaRequest(
     'https://picaapi.picacomic.com/comics/$comicId/order/$epId/pages?page=$pageCount',
@@ -288,6 +296,7 @@ Future<Map<String, dynamic>> getPages(
     cache: true,
     imageQuality: imageQuality,
     qjsRuntimeName: qjsRuntimeName,
+    qjsTaskGroupKey: qjsTaskGroupKey,
   );
 }
 

@@ -4,8 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart'
     show Series;
@@ -100,17 +98,11 @@ class JumpChapter {
       tempType = ComicEntryType.normal;
     }
 
-    BikaComicDownload? bikaComicDownload;
     bool havePrev = true;
     bool haveNext = true;
     if (from == From.bika) {
       if (isDownload) {
-        bikaComicDownload = objectbox.bikaDownloadBox
-            .query(BikaComicDownload_.comicId.equals(comicId))
-            .build()
-            .findFirst();
-
-        if (bikaComicDownload?.epsTitle.length == 1) {
+        if (chapters.length <= 1) {
           havePrev = false;
           haveNext = false;
         } else {
@@ -144,13 +136,7 @@ class JumpChapter {
           )
           .toList();
       if (isDownload) {
-        final epsIds = objectbox.jmDownloadBox
-            .query(JmDownload_.comicId.equals(comicId))
-            .build()
-            .findFirst()!
-            .epsIds;
-        seriesList = seriesList.toList()
-          ..removeWhere((series) => !epsIds.contains(series.id));
+        seriesList = seriesList.toList();
       }
       if (seriesList.isEmpty) {
         havePrev = false;

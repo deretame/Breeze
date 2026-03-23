@@ -13,1866 +13,1668 @@ import 'dart:async';
 import 'dart:convert';
 import 'decode/decode.dart';
 import 'frb_generated.dart';
-import 'frb_generated.io.dart'
-    if (dart.library.js_interop) 'frb_generated.web.dart';
+import 'frb_generated.io.dart' if (dart.library.js_interop) 'frb_generated.web.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-/// Main entrypoint of the Rust API
-class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
-  @internal
-  static final instance = RustLib._();
 
-  RustLib._();
+                /// Main entrypoint of the Rust API
+                class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
+                  @internal
+                  static final instance = RustLib._();
 
-  /// Initialize flutter_rust_bridge
-  static Future<void> init({
-    RustLibApi? api,
-    BaseHandler? handler,
-    ExternalLibrary? externalLibrary,
-    bool forceSameCodegenVersion = true,
-  }) async {
-    await instance.initImpl(
-      api: api,
-      handler: handler,
-      externalLibrary: externalLibrary,
-      forceSameCodegenVersion: forceSameCodegenVersion,
-    );
-  }
+                  RustLib._();
 
-  /// Initialize flutter_rust_bridge in mock mode.
-  /// No libraries for FFI are loaded.
-  static void initMock({required RustLibApi api}) {
-    instance.initMockImpl(api: api);
-  }
+                  /// Initialize flutter_rust_bridge
+                  static Future<void> init({
+                    RustLibApi? api,
+                    BaseHandler? handler,
+                    ExternalLibrary? externalLibrary,
+                    bool forceSameCodegenVersion = true,
+                  }) async {
+                    await instance.initImpl(
+                      api: api,
+                      handler: handler,
+                      externalLibrary: externalLibrary,
+                      forceSameCodegenVersion: forceSameCodegenVersion,
+                    );
+                  }
 
-  /// Dispose flutter_rust_bridge
-  ///
-  /// The call to this function is optional, since flutter_rust_bridge (and everything else)
-  /// is automatically disposed when the app stops.
-  static void dispose() => instance.disposeImpl();
+                  /// Initialize flutter_rust_bridge in mock mode.
+                  /// No libraries for FFI are loaded.
+                  static void initMock({
+                    required RustLibApi api,
+                  }) {
+                    instance.initMockImpl(
+                      api: api,
+                    );
+                  }
 
-  @override
-  ApiImplConstructor<RustLibApiImpl, RustLibWire> get apiImplConstructor =>
-      RustLibApiImpl.new;
+                  /// Dispose flutter_rust_bridge
+                  ///
+                  /// The call to this function is optional, since flutter_rust_bridge (and everything else)
+                  /// is automatically disposed when the app stops.
+                  static void dispose() => instance.disposeImpl();
 
-  @override
-  WireConstructor<RustLibWire> get wireConstructor =>
-      RustLibWire.fromExternalLibrary;
+                  @override
+                  ApiImplConstructor<RustLibApiImpl, RustLibWire> get apiImplConstructor => RustLibApiImpl.new;
 
-  @override
-  Future<void> executeRustInitializers() async {
-    await api.crateApiSimpleInitApp();
-  }
+                  @override
+                  WireConstructor<RustLibWire> get wireConstructor => RustLibWire.fromExternalLibrary;
 
-  @override
-  ExternalLibraryLoaderConfig get defaultExternalLibraryLoaderConfig =>
-      kDefaultExternalLibraryLoaderConfig;
+                  @override
+                  Future<void> executeRustInitializers() async {
+                    await api.crateApiSimpleInitApp();
 
-  @override
-  String get codegenVersion => '2.11.1';
+                  }
 
-  @override
-  int get rustContentHash => -16901816;
+                  @override
+                  ExternalLibraryLoaderConfig get defaultExternalLibraryLoaderConfig => kDefaultExternalLibraryLoaderConfig;
 
-  static const kDefaultExternalLibraryLoaderConfig =
-      ExternalLibraryLoaderConfig(
-        stem: 'windcore',
-        ioDirectory: 'rust/target/release/',
-        webPrefix: 'pkg/',
-      );
-}
+                  @override
+                  String get codegenVersion => '2.11.1';
 
-abstract class RustLibApi extends BaseApi {
-  Future<void> crateApiSimpleAntiObfuscationPicture({
-    required ImageInfo imageInfo,
-  });
+                  @override
+                  int get rustContentHash => -1797086701;
 
-  Future<String> crateApiSimpleCompressImage({required List<int> imageBytes});
+                  static const kDefaultExternalLibraryLoaderConfig = ExternalLibraryLoaderConfig(
+                    stem: 'windcore',
+                    ioDirectory: 'rust/target/release/',
+                    webPrefix: 'pkg/',
+                  );
+                }
+                
 
-  void crateApiSimpleEnableStacktrace({required bool enabled});
+                abstract class RustLibApi extends BaseApi {
+                  Future<void> crateApiSimpleAntiObfuscationPicture({required ImageInfo imageInfo });
 
-  String crateApiQjsGetJsBundle({required String name});
+Future<String> crateApiSimpleCompressImage({required List<int> imageBytes });
 
-  Future<RustMemoryInfo> crateApiMemoryGetRustMemoryInfo();
+void crateApiSimpleEnableStacktrace({required bool enabled });
 
-  Future<String> crateApiMemoryGetRustMemorySummary();
+String crateApiQjsGetJsBundle({required String name });
 
-  Future<String> crateApiSimpleGreet({required String name});
+Future<RustMemoryInfo> crateApiMemoryGetRustMemoryInfo();
 
-  Future<void> crateApiSimpleInitApp();
+Future<String> crateApiMemoryGetRustMemorySummary();
 
-  Future<void> crateApiQjsInitQjsRuntime({required String name});
+Future<String> crateApiSimpleGreet({required String name });
 
-  Future<void> crateApiQjsInitQjsRuntimeWithBundle({
-    required String runtimeName,
-    required String bundleName,
-    required String bundleJs,
-  });
+Future<void> crateApiSimpleInitApp();
 
-  Future<void> crateApiSimplePackFolder({
-    required String destPath,
-    required PackInfo packInfo,
-  });
+Future<void> crateApiQjsInitQjsRuntime({required String name });
 
-  Future<void> crateApiSimplePackFolderZip({
-    required String destPath,
-    required PackInfo packInfo,
-  });
+Future<void> crateApiQjsInitQjsRuntimeWithBundle({required String runtimeName , required String bundleName , required String bundleJs });
 
-  Future<String> crateApiQjsQjsCall({
-    required String runtimeName,
-    required String fnPath,
-    required String argsJson,
-  });
+Future<void> crateApiSimplePackFolder({required String destPath , required PackInfo packInfo });
 
-  Future<String> crateApiQjsQjsCallOnce({
-    required String runtimeName,
-    required String bundleJs,
-    required String fnPath,
-    required String argsJson,
-  });
+Future<void> crateApiSimplePackFolderZip({required String destPath , required PackInfo packInfo });
 
-  Future<bool> crateApiQjsQjsClearBundle({required String runtimeName});
+Future<String> crateApiQjsQjsCall({required String runtimeName , required String fnPath , required String argsJson });
 
-  Future<String> crateApiQjsQjsCurrentBundle({required String runtimeName});
+Future<String> crateApiQjsQjsCallOnce({required String runtimeName , required String bundleJs , required String fnPath , required String argsJson });
 
-  Future<bool> crateApiQjsQjsDropRuntime({required String runtimeName});
+Future<BigInt> crateApiQjsQjsCallOnceTaskStart({required String runtimeName , required String bundleJs , required String fnPath , required String argsJson , required String taskGroupKey });
 
-  Future<Uint8List> crateApiQjsQjsFetchImageBytes({
-    required String runtimeName,
-    required String fnPath,
-    required String argsJson,
-  });
+Future<String> crateApiQjsQjsCallOnceTaskWait({required String runtimeName , required BigInt taskId });
 
-  Future<Uint8List> crateApiQjsQjsFetchImageBytesOnce({
-    required String runtimeName,
-    required String bundleJs,
-    required String fnPath,
-    required String argsJson,
-  });
+Future<BigInt> crateApiQjsQjsCallTaskStart({required String runtimeName , required String taskGroupKey , required String fnPath , required String argsJson });
 
-  Future<void> crateApiQjsQjsReplaceBundle({
-    required String runtimeName,
-    required String bundleName,
-    required String bundleJs,
-  });
+Future<String> crateApiQjsQjsCallTaskWait({required String runtimeName , required BigInt taskId });
 
-  Future<void> crateApiQjsRegisterLoadPluginConfig({
-    required FutureOr<String> Function(String, String, String) dartCallback,
-  });
+Future<QjsCancelTaskResult> crateApiQjsQjsCancelTask({required String runtimeName , required BigInt taskId });
 
-  Future<void> crateApiQjsRegisterSavePluginConfig({
-    required FutureOr<String> Function(String, String, String) dartCallback,
-  });
+Future<QjsCancelTasksByGroupResult> crateApiQjsQjsCancelTasksByGroup({required String runtimeName , required String taskGroupKey });
 
-  Future<void> crateApiMemoryResetRustMemoryStats();
+Future<bool> crateApiQjsQjsClearBundle({required String runtimeName });
 
-  Future<void> crateApiQjsSetHttpProxy({required String proxy});
+Future<String> crateApiQjsQjsCurrentBundle({required String runtimeName });
 
-  void crateApiQjsSetLogHttpForward({required String url});
+Future<bool> crateApiQjsQjsDropRuntime({required String runtimeName });
 
-  void crateApiQjsSetQjsErrorStackEnabled({required bool enabled});
+Future<Uint8List> crateApiQjsQjsFetchImageBytes({required String runtimeName , required String fnPath , required String argsJson });
 
-  Future<void> crateApiQjsSetSocks5Proxy({required String proxy});
+Future<Uint8List> crateApiQjsQjsFetchImageBytesOnce({required String runtimeName , required String bundleJs , required String fnPath , required String argsJson });
 
-  Future<void> crateApiUserUtilsSetupDefaultUserUtils();
+Future<BigInt> crateApiQjsQjsFetchImageBytesOnceTaskStart({required String runtimeName , required String bundleJs , required String fnPath , required String argsJson , required String taskGroupKey });
 
-  Future<String> crateApiSimpleSleepTest();
+Future<Uint8List> crateApiQjsQjsFetchImageBytesOnceTaskWait({required String runtimeName , required BigInt taskId });
 
-  Stream<bool> crateApiSystemStartShutdownListener();
+Future<BigInt> crateApiQjsQjsFetchImageBytesTaskStart({required String runtimeName , required String taskGroupKey , required String fnPath , required String argsJson });
 
-  Stream<String> crateApiSimpleStreamTest();
+Future<Uint8List> crateApiQjsQjsFetchImageBytesTaskWait({required String runtimeName , required BigInt taskId });
 
-  String crateApiSimpleTraditionalToSimplified({required String text});
+Future<void> crateApiQjsQjsReplaceBundle({required String runtimeName , required String bundleName , required String bundleJs });
 
-  Future<Uint8List> crateApiSimpleZstdCompressBytes({
-    required List<int> raw,
-    required int level,
-  });
+Future<void> crateApiQjsRegisterLoadPluginConfig({required FutureOr<String> Function(String, String, String) dartCallback });
 
-  Future<Uint8List> crateApiSimpleZstdDecompressBytes({
-    required List<int> encoded,
-  });
-}
+Future<void> crateApiQjsRegisterSavePluginConfig({required FutureOr<String> Function(String, String, String) dartCallback });
 
-class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
-  RustLibApiImpl({
-    required super.handler,
-    required super.wire,
-    required super.generalizedFrbRustBinding,
-    required super.portManager,
-  });
+Future<void> crateApiMemoryResetRustMemoryStats();
 
-  @override
-  Future<void> crateApiSimpleAntiObfuscationPicture({
-    required ImageInfo imageInfo,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_box_autoadd_image_info(imageInfo, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 1,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+Future<void> crateApiQjsSetHttpProxy({required String proxy });
+
+void crateApiQjsSetLogHttpForward({required String url });
+
+void crateApiQjsSetQjsErrorStackEnabled({required bool enabled });
+
+Future<void> crateApiQjsSetSocks5Proxy({required String proxy });
+
+Future<void> crateApiUserUtilsSetupDefaultUserUtils();
+
+Future<String> crateApiSimpleSleepTest();
+
+Stream<bool> crateApiSystemStartShutdownListener();
+
+Stream<String> crateApiSimpleStreamTest();
+
+String crateApiSimpleTraditionalToSimplified({required String text });
+
+Future<Uint8List> crateApiSimpleZstdCompressBytes({required List<int> raw , required int level });
+
+Future<Uint8List> crateApiSimpleZstdDecompressBytes({required List<int> encoded });
+
+
+                }
+                
+
+                class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
+                  RustLibApiImpl({
+                    required super.handler,
+                    required super.wire,
+                    required super.generalizedFrbRustBinding,
+                    required super.portManager,
+                  });
+
+                  @override Future<void> crateApiSimpleAntiObfuscationPicture({required ImageInfo imageInfo })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_box_autoadd_image_info(imageInfo, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 1, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiSimpleAntiObfuscationPictureConstMeta,
-        argValues: [imageInfo],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateApiSimpleAntiObfuscationPictureConstMeta,
+            argValues: [imageInfo],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateApiSimpleAntiObfuscationPictureConstMeta =>
-      const TaskConstMeta(
-        debugName: "anti_obfuscation_picture",
-        argNames: ["imageInfo"],
-      );
 
-  @override
-  Future<String> crateApiSimpleCompressImage({required List<int> imageBytes}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_list_prim_u_8_loose(imageBytes, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 2,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateApiSimpleAntiObfuscationPictureConstMeta => const TaskConstMeta(
+            debugName: "anti_obfuscation_picture",
+            argNames: ["imageInfo"],
+        );
+        
+
+@override Future<String> crateApiSimpleCompressImage({required List<int> imageBytes })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_list_prim_u_8_loose(imageBytes, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_String,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiSimpleCompressImageConstMeta,
-        argValues: [imageBytes],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateApiSimpleCompressImageConstMeta,
+            argValues: [imageBytes],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateApiSimpleCompressImageConstMeta =>
-      const TaskConstMeta(
-        debugName: "compress_image",
-        argNames: ["imageBytes"],
-      );
 
-  @override
-  void crateApiSimpleEnableStacktrace({required bool enabled}) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_bool(enabled, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateApiSimpleCompressImageConstMeta => const TaskConstMeta(
+            debugName: "compress_image",
+            argNames: ["imageBytes"],
+        );
+        
+
+@override void crateApiSimpleEnableStacktrace({required bool enabled })  { return handler.executeSync(SyncTask(
+            callFfi: () {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_bool(enabled, serializer);
+            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleEnableStacktraceConstMeta,
-        argValues: [enabled],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateApiSimpleEnableStacktraceConstMeta,
+            argValues: [enabled],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateApiSimpleEnableStacktraceConstMeta =>
-      const TaskConstMeta(
-        debugName: "enable_stacktrace",
-        argNames: ["enabled"],
-      );
 
-  @override
-  String crateApiQjsGetJsBundle({required String name}) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(name, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 4)!;
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateApiSimpleEnableStacktraceConstMeta => const TaskConstMeta(
+            debugName: "enable_stacktrace",
+            argNames: ["enabled"],
+        );
+        
+
+@override String crateApiQjsGetJsBundle({required String name })  { return handler.executeSync(SyncTask(
+            callFfi: () {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(name, serializer);
+            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 4)!;
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_String,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiQjsGetJsBundleConstMeta,
-        argValues: [name],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateApiQjsGetJsBundleConstMeta,
+            argValues: [name],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateApiQjsGetJsBundleConstMeta =>
-      const TaskConstMeta(debugName: "get_js_bundle", argNames: ["name"]);
 
-  @override
-  Future<RustMemoryInfo> crateApiMemoryGetRustMemoryInfo() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 5,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
+        TaskConstMeta get kCrateApiQjsGetJsBundleConstMeta => const TaskConstMeta(
+            debugName: "get_js_bundle",
+            argNames: ["name"],
+        );
+        
+
+@override Future<RustMemoryInfo> crateApiMemoryGetRustMemoryInfo()  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 5, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_rust_memory_info,
           decodeErrorData: null,
-        ),
-        constMeta: kCrateApiMemoryGetRustMemoryInfoConstMeta,
-        argValues: [],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateApiMemoryGetRustMemoryInfoConstMeta,
+            argValues: [],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateApiMemoryGetRustMemoryInfoConstMeta =>
-      const TaskConstMeta(debugName: "get_rust_memory_info", argNames: []);
 
-  @override
-  Future<String> crateApiMemoryGetRustMemorySummary() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 6,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiMemoryGetRustMemorySummaryConstMeta,
-        argValues: [],
-        apiImpl: this,
-      ),
-    );
-  }
+        TaskConstMeta get kCrateApiMemoryGetRustMemoryInfoConstMeta => const TaskConstMeta(
+            debugName: "get_rust_memory_info",
+            argNames: [],
+        );
+        
 
-  TaskConstMeta get kCrateApiMemoryGetRustMemorySummaryConstMeta =>
-      const TaskConstMeta(debugName: "get_rust_memory_summary", argNames: []);
-
-  @override
-  Future<String> crateApiSimpleGreet({required String name}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(name, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 7,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleGreetConstMeta,
-        argValues: [name],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleGreetConstMeta =>
-      const TaskConstMeta(debugName: "greet", argNames: ["name"]);
-
-  @override
-  Future<void> crateApiSimpleInitApp() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 8,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleInitAppConstMeta,
-        argValues: [],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleInitAppConstMeta =>
-      const TaskConstMeta(debugName: "init_app", argNames: []);
-
-  @override
-  Future<void> crateApiQjsInitQjsRuntime({required String name}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(name, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 9,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiQjsInitQjsRuntimeConstMeta,
-        argValues: [name],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiQjsInitQjsRuntimeConstMeta =>
-      const TaskConstMeta(debugName: "init_qjs_runtime", argNames: ["name"]);
-
-  @override
-  Future<void> crateApiQjsInitQjsRuntimeWithBundle({
-    required String runtimeName,
-    required String bundleName,
-    required String bundleJs,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(runtimeName, serializer);
-          sse_encode_String(bundleName, serializer);
-          sse_encode_String(bundleJs, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 10,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiQjsInitQjsRuntimeWithBundleConstMeta,
-        argValues: [runtimeName, bundleName, bundleJs],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiQjsInitQjsRuntimeWithBundleConstMeta =>
-      const TaskConstMeta(
-        debugName: "init_qjs_runtime_with_bundle",
-        argNames: ["runtimeName", "bundleName", "bundleJs"],
-      );
-
-  @override
-  Future<void> crateApiSimplePackFolder({
-    required String destPath,
-    required PackInfo packInfo,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(destPath, serializer);
-          sse_encode_box_autoadd_pack_info(packInfo, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 11,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiSimplePackFolderConstMeta,
-        argValues: [destPath, packInfo],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimplePackFolderConstMeta => const TaskConstMeta(
-    debugName: "pack_folder",
-    argNames: ["destPath", "packInfo"],
-  );
-
-  @override
-  Future<void> crateApiSimplePackFolderZip({
-    required String destPath,
-    required PackInfo packInfo,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(destPath, serializer);
-          sse_encode_box_autoadd_pack_info(packInfo, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 12,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiSimplePackFolderZipConstMeta,
-        argValues: [destPath, packInfo],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimplePackFolderZipConstMeta =>
-      const TaskConstMeta(
-        debugName: "pack_folder_zip",
-        argNames: ["destPath", "packInfo"],
-      );
-
-  @override
-  Future<String> crateApiQjsQjsCall({
-    required String runtimeName,
-    required String fnPath,
-    required String argsJson,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(runtimeName, serializer);
-          sse_encode_String(fnPath, serializer);
-          sse_encode_String(argsJson, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 13,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiQjsQjsCallConstMeta,
-        argValues: [runtimeName, fnPath, argsJson],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiQjsQjsCallConstMeta => const TaskConstMeta(
-    debugName: "qjs_call",
-    argNames: ["runtimeName", "fnPath", "argsJson"],
-  );
-
-  @override
-  Future<String> crateApiQjsQjsCallOnce({
-    required String runtimeName,
-    required String bundleJs,
-    required String fnPath,
-    required String argsJson,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(runtimeName, serializer);
-          sse_encode_String(bundleJs, serializer);
-          sse_encode_String(fnPath, serializer);
-          sse_encode_String(argsJson, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 14,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiQjsQjsCallOnceConstMeta,
-        argValues: [runtimeName, bundleJs, fnPath, argsJson],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiQjsQjsCallOnceConstMeta => const TaskConstMeta(
-    debugName: "qjs_call_once",
-    argNames: ["runtimeName", "bundleJs", "fnPath", "argsJson"],
-  );
-
-  @override
-  Future<bool> crateApiQjsQjsClearBundle({required String runtimeName}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(runtimeName, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 15,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_bool,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiQjsQjsClearBundleConstMeta,
-        argValues: [runtimeName],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiQjsQjsClearBundleConstMeta => const TaskConstMeta(
-    debugName: "qjs_clear_bundle",
-    argNames: ["runtimeName"],
-  );
-
-  @override
-  Future<String> crateApiQjsQjsCurrentBundle({required String runtimeName}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(runtimeName, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 16,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiQjsQjsCurrentBundleConstMeta,
-        argValues: [runtimeName],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiQjsQjsCurrentBundleConstMeta =>
-      const TaskConstMeta(
-        debugName: "qjs_current_bundle",
-        argNames: ["runtimeName"],
-      );
-
-  @override
-  Future<bool> crateApiQjsQjsDropRuntime({required String runtimeName}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(runtimeName, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 17,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_bool,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiQjsQjsDropRuntimeConstMeta,
-        argValues: [runtimeName],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiQjsQjsDropRuntimeConstMeta => const TaskConstMeta(
-    debugName: "qjs_drop_runtime",
-    argNames: ["runtimeName"],
-  );
-
-  @override
-  Future<Uint8List> crateApiQjsQjsFetchImageBytes({
-    required String runtimeName,
-    required String fnPath,
-    required String argsJson,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(runtimeName, serializer);
-          sse_encode_String(fnPath, serializer);
-          sse_encode_String(argsJson, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 18,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_list_prim_u_8_strict,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiQjsQjsFetchImageBytesConstMeta,
-        argValues: [runtimeName, fnPath, argsJson],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiQjsQjsFetchImageBytesConstMeta =>
-      const TaskConstMeta(
-        debugName: "qjs_fetch_image_bytes",
-        argNames: ["runtimeName", "fnPath", "argsJson"],
-      );
-
-  @override
-  Future<Uint8List> crateApiQjsQjsFetchImageBytesOnce({
-    required String runtimeName,
-    required String bundleJs,
-    required String fnPath,
-    required String argsJson,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(runtimeName, serializer);
-          sse_encode_String(bundleJs, serializer);
-          sse_encode_String(fnPath, serializer);
-          sse_encode_String(argsJson, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 19,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_list_prim_u_8_strict,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiQjsQjsFetchImageBytesOnceConstMeta,
-        argValues: [runtimeName, bundleJs, fnPath, argsJson],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiQjsQjsFetchImageBytesOnceConstMeta =>
-      const TaskConstMeta(
-        debugName: "qjs_fetch_image_bytes_once",
-        argNames: ["runtimeName", "bundleJs", "fnPath", "argsJson"],
-      );
-
-  @override
-  Future<void> crateApiQjsQjsReplaceBundle({
-    required String runtimeName,
-    required String bundleName,
-    required String bundleJs,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(runtimeName, serializer);
-          sse_encode_String(bundleName, serializer);
-          sse_encode_String(bundleJs, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 20,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiQjsQjsReplaceBundleConstMeta,
-        argValues: [runtimeName, bundleName, bundleJs],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiQjsQjsReplaceBundleConstMeta =>
-      const TaskConstMeta(
-        debugName: "qjs_replace_bundle",
-        argNames: ["runtimeName", "bundleName", "bundleJs"],
-      );
-
-  @override
-  Future<void> crateApiQjsRegisterLoadPluginConfig({
-    required FutureOr<String> Function(String, String, String) dartCallback,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(
-            dartCallback,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 21,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiQjsRegisterLoadPluginConfigConstMeta,
-        argValues: [dartCallback],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiQjsRegisterLoadPluginConfigConstMeta =>
-      const TaskConstMeta(
-        debugName: "register_load_plugin_config",
-        argNames: ["dartCallback"],
-      );
-
-  @override
-  Future<void> crateApiQjsRegisterSavePluginConfig({
-    required FutureOr<String> Function(String, String, String) dartCallback,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(
-            dartCallback,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 22,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiQjsRegisterSavePluginConfigConstMeta,
-        argValues: [dartCallback],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiQjsRegisterSavePluginConfigConstMeta =>
-      const TaskConstMeta(
-        debugName: "register_save_plugin_config",
-        argNames: ["dartCallback"],
-      );
-
-  @override
-  Future<void> crateApiMemoryResetRustMemoryStats() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 23,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiMemoryResetRustMemoryStatsConstMeta,
-        argValues: [],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiMemoryResetRustMemoryStatsConstMeta =>
-      const TaskConstMeta(debugName: "reset_rust_memory_stats", argNames: []);
-
-  @override
-  Future<void> crateApiQjsSetHttpProxy({required String proxy}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(proxy, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 24,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiQjsSetHttpProxyConstMeta,
-        argValues: [proxy],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiQjsSetHttpProxyConstMeta =>
-      const TaskConstMeta(debugName: "set_http_proxy", argNames: ["proxy"]);
-
-  @override
-  void crateApiQjsSetLogHttpForward({required String url}) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(url, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 25)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiQjsSetLogHttpForwardConstMeta,
-        argValues: [url],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiQjsSetLogHttpForwardConstMeta =>
-      const TaskConstMeta(debugName: "set_log_http_forward", argNames: ["url"]);
-
-  @override
-  void crateApiQjsSetQjsErrorStackEnabled({required bool enabled}) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_bool(enabled, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 26)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiQjsSetQjsErrorStackEnabledConstMeta,
-        argValues: [enabled],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiQjsSetQjsErrorStackEnabledConstMeta =>
-      const TaskConstMeta(
-        debugName: "set_qjs_error_stack_enabled",
-        argNames: ["enabled"],
-      );
-
-  @override
-  Future<void> crateApiQjsSetSocks5Proxy({required String proxy}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(proxy, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 27,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiQjsSetSocks5ProxyConstMeta,
-        argValues: [proxy],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiQjsSetSocks5ProxyConstMeta =>
-      const TaskConstMeta(debugName: "set_socks5_proxy", argNames: ["proxy"]);
-
-  @override
-  Future<void> crateApiUserUtilsSetupDefaultUserUtils() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 28,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiUserUtilsSetupDefaultUserUtilsConstMeta,
-        argValues: [],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiUserUtilsSetupDefaultUserUtilsConstMeta =>
-      const TaskConstMeta(debugName: "setup_default_user_utils", argNames: []);
-
-  @override
-  Future<String> crateApiSimpleSleepTest() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 29,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleSleepTestConstMeta,
-        argValues: [],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSimpleSleepTestConstMeta =>
-      const TaskConstMeta(debugName: "sleep_test", argNames: []);
-
-  @override
-  Stream<bool> crateApiSystemStartShutdownListener() {
-    final sink = RustStreamSink<bool>();
-    unawaited(
-      handler.executeNormal(
-        NormalTask(
-          callFfi: (port_) {
+@override Future<String> crateApiMemoryGetRustMemorySummary()  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
             final serializer = SseSerializer(generalizedFrbRustBinding);
-            sse_encode_StreamSink_bool_Sse(sink, serializer);
-            pdeCallFfi(
-              generalizedFrbRustBinding,
-              serializer,
-              funcId: 30,
-              port: port_,
-            );
-          },
-          codec: SseCodec(
-            decodeSuccessData: sse_decode_unit,
-            decodeErrorData: sse_decode_AnyhowException,
-          ),
-          constMeta: kCrateApiSystemStartShutdownListenerConstMeta,
-          argValues: [sink],
-          apiImpl: this,
-        ),
-      ),
-    );
-    return sink.stream;
-  }
-
-  TaskConstMeta get kCrateApiSystemStartShutdownListenerConstMeta =>
-      const TaskConstMeta(
-        debugName: "start_shutdown_listener",
-        argNames: ["sink"],
-      );
-
-  @override
-  Stream<String> crateApiSimpleStreamTest() {
-    final stream = RustStreamSink<String>();
-    unawaited(
-      handler.executeNormal(
-        NormalTask(
-          callFfi: (port_) {
-            final serializer = SseSerializer(generalizedFrbRustBinding);
-            sse_encode_StreamSink_String_Sse(stream, serializer);
-            pdeCallFfi(
-              generalizedFrbRustBinding,
-              serializer,
-              funcId: 31,
-              port: port_,
-            );
-          },
-          codec: SseCodec(
-            decodeSuccessData: sse_decode_unit,
-            decodeErrorData: sse_decode_AnyhowException,
-          ),
-          constMeta: kCrateApiSimpleStreamTestConstMeta,
-          argValues: [stream],
-          apiImpl: this,
-        ),
-      ),
-    );
-    return stream.stream;
-  }
-
-  TaskConstMeta get kCrateApiSimpleStreamTestConstMeta =>
-      const TaskConstMeta(debugName: "stream_test", argNames: ["stream"]);
-
-  @override
-  String crateApiSimpleTraditionalToSimplified({required String text}) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(text, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 32)!;
-        },
-        codec: SseCodec(
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_String,
           decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleTraditionalToSimplifiedConstMeta,
-        argValues: [text],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateApiMemoryGetRustMemorySummaryConstMeta,
+            argValues: [],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateApiSimpleTraditionalToSimplifiedConstMeta =>
-      const TaskConstMeta(
-        debugName: "traditional_to_simplified",
-        argNames: ["text"],
-      );
 
-  @override
-  Future<Uint8List> crateApiSimpleZstdCompressBytes({
-    required List<int> raw,
-    required int level,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_list_prim_u_8_loose(raw, serializer);
-          sse_encode_i_32(level, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 33,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+        TaskConstMeta get kCrateApiMemoryGetRustMemorySummaryConstMeta => const TaskConstMeta(
+            debugName: "get_rust_memory_summary",
+            argNames: [],
+        );
+        
+
+@override Future<String> crateApiSimpleGreet({required String name })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(name, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 7, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: null,
+        )
+        ,
+            constMeta: kCrateApiSimpleGreetConstMeta,
+            argValues: [name],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiSimpleGreetConstMeta => const TaskConstMeta(
+            debugName: "greet",
+            argNames: ["name"],
+        );
+        
+
+@override Future<void> crateApiSimpleInitApp()  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 8, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        )
+        ,
+            constMeta: kCrateApiSimpleInitAppConstMeta,
+            argValues: [],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiSimpleInitAppConstMeta => const TaskConstMeta(
+            debugName: "init_app",
+            argNames: [],
+        );
+        
+
+@override Future<void> crateApiQjsInitQjsRuntime({required String name })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(name, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 9, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiSimpleZstdCompressBytesConstMeta,
-        argValues: [raw, level],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateApiQjsInitQjsRuntimeConstMeta,
+            argValues: [name],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateApiSimpleZstdCompressBytesConstMeta =>
-      const TaskConstMeta(
-        debugName: "zstd_compress_bytes",
-        argNames: ["raw", "level"],
-      );
 
-  @override
-  Future<Uint8List> crateApiSimpleZstdDecompressBytes({
-    required List<int> encoded,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_list_prim_u_8_loose(encoded, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 34,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+        TaskConstMeta get kCrateApiQjsInitQjsRuntimeConstMeta => const TaskConstMeta(
+            debugName: "init_qjs_runtime",
+            argNames: ["name"],
+        );
+        
+
+@override Future<void> crateApiQjsInitQjsRuntimeWithBundle({required String runtimeName , required String bundleName , required String bundleJs })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
+sse_encode_String(bundleName, serializer);
+sse_encode_String(bundleJs, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 10, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiSimpleZstdDecompressBytesConstMeta,
-        argValues: [encoded],
-        apiImpl: this,
-      ),
-    );
-  }
+        )
+        ,
+            constMeta: kCrateApiQjsInitQjsRuntimeWithBundleConstMeta,
+            argValues: [runtimeName, bundleName, bundleJs],
+            apiImpl: this,
+        )); }
 
-  TaskConstMeta get kCrateApiSimpleZstdDecompressBytesConstMeta =>
-      const TaskConstMeta(
-        debugName: "zstd_decompress_bytes",
-        argNames: ["encoded"],
-      );
 
-  Future<void> Function(int, dynamic, dynamic, dynamic)
-  encode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(
-    FutureOr<String> Function(String, String, String) raw,
-  ) {
-    return (callId, rawArg0, rawArg1, rawArg2) async {
-      final arg0 = dco_decode_String(rawArg0);
-      final arg1 = dco_decode_String(rawArg1);
-      final arg2 = dco_decode_String(rawArg2);
+        TaskConstMeta get kCrateApiQjsInitQjsRuntimeWithBundleConstMeta => const TaskConstMeta(
+            debugName: "init_qjs_runtime_with_bundle",
+            argNames: ["runtimeName", "bundleName", "bundleJs"],
+        );
+        
 
-      Box<String>? rawOutput;
-      Box<AnyhowException>? rawError;
-      try {
-        rawOutput = Box(await raw(arg0, arg1, arg2));
-      } catch (e, s) {
-        rawError = Box(AnyhowException("$e\n\n$s"));
-      }
+@override Future<void> crateApiSimplePackFolder({required String destPath , required PackInfo packInfo })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(destPath, serializer);
+sse_encode_box_autoadd_pack_info(packInfo, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 11, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiSimplePackFolderConstMeta,
+            argValues: [destPath, packInfo],
+            apiImpl: this,
+        )); }
 
-      final serializer = SseSerializer(generalizedFrbRustBinding);
-      assert((rawOutput != null) ^ (rawError != null));
-      if (rawOutput != null) {
-        serializer.buffer.putUint8(0);
-        sse_encode_String(rawOutput.value, serializer);
-      } else {
-        serializer.buffer.putUint8(1);
-        sse_encode_AnyhowException(rawError!.value, serializer);
-      }
-      final output = serializer.intoRaw();
 
-      generalizedFrbRustBinding.dartFnDeliverOutput(
-        callId: callId,
-        ptr: output.ptr,
-        rustVecLen: output.rustVecLen,
-        dataLen: output.dataLen,
-      );
-    };
-  }
+        TaskConstMeta get kCrateApiSimplePackFolderConstMeta => const TaskConstMeta(
+            debugName: "pack_folder",
+            argNames: ["destPath", "packInfo"],
+        );
+        
 
-  @protected
-  AnyhowException dco_decode_AnyhowException(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return AnyhowException(raw as String);
-  }
+@override Future<void> crateApiSimplePackFolderZip({required String destPath , required PackInfo packInfo })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(destPath, serializer);
+sse_encode_box_autoadd_pack_info(packInfo, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiSimplePackFolderZipConstMeta,
+            argValues: [destPath, packInfo],
+            apiImpl: this,
+        )); }
 
-  @protected
-  FutureOr<String> Function(String, String, String)
-  dco_decode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    throw UnimplementedError('');
-  }
 
-  @protected
-  Object dco_decode_DartOpaque(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return decodeDartOpaque(raw, generalizedFrbRustBinding);
-  }
+        TaskConstMeta get kCrateApiSimplePackFolderZipConstMeta => const TaskConstMeta(
+            debugName: "pack_folder_zip",
+            argNames: ["destPath", "packInfo"],
+        );
+        
 
-  @protected
-  RustStreamSink<String> dco_decode_StreamSink_String_Sse(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    throw UnimplementedError();
-  }
-
-  @protected
-  RustStreamSink<bool> dco_decode_StreamSink_bool_Sse(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    throw UnimplementedError();
-  }
-
-  @protected
-  String dco_decode_String(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw as String;
-  }
-
-  @protected
-  bool dco_decode_bool(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw as bool;
-  }
-
-  @protected
-  ImageInfo dco_decode_box_autoadd_image_info(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_image_info(raw);
-  }
-
-  @protected
-  PackInfo dco_decode_box_autoadd_pack_info(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_pack_info(raw);
-  }
-
-  @protected
-  int dco_decode_i_32(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw as int;
-  }
-
-  @protected
-  ImageInfo dco_decode_image_info(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 5)
-      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
-    return ImageInfo(
-      imgData: dco_decode_list_prim_u_8_strict(arr[0]),
-      chapterId: dco_decode_i_32(arr[1]),
-      url: dco_decode_String(arr[2]),
-      scrambleId: dco_decode_i_32(arr[3]),
-      fileName: dco_decode_String(arr[4]),
-    );
-  }
-
-  @protected
-  PlatformInt64 dco_decode_isize(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dcoDecodeI64(raw);
-  }
-
-  @protected
-  List<String> dco_decode_list_String(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_String).toList();
-  }
-
-  @protected
-  List<int> dco_decode_list_prim_u_8_loose(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw as List<int>;
-  }
-
-  @protected
-  Uint8List dco_decode_list_prim_u_8_strict(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw as Uint8List;
-  }
-
-  @protected
-  List<TaggedAllocation> dco_decode_list_tagged_allocation(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return (raw as List<dynamic>).map(dco_decode_tagged_allocation).toList();
-  }
-
-  @protected
-  PackInfo dco_decode_pack_info(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 4)
-      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
-    return PackInfo(
-      comicInfoString: dco_decode_String(arr[0]),
-      processedComicInfoString: dco_decode_String(arr[1]),
-      originalImagePaths: dco_decode_list_String(arr[2]),
-      packImagePaths: dco_decode_list_String(arr[3]),
-    );
-  }
-
-  @protected
-  RustMemoryInfo dco_decode_rust_memory_info(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 5)
-      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
-    return RustMemoryInfo(
-      totalAllocated: dco_decode_u_64(arr[0]),
-      peakAllocated: dco_decode_u_64(arr[1]),
-      allocationCount: dco_decode_u_64(arr[2]),
-      deallocationCount: dco_decode_u_64(arr[3]),
-      taggedAllocations: dco_decode_list_tagged_allocation(arr[4]),
-    );
-  }
-
-  @protected
-  TaggedAllocation dco_decode_tagged_allocation(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 2)
-      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-    return TaggedAllocation(
-      tag: dco_decode_String(arr[0]),
-      size: dco_decode_u_64(arr[1]),
-    );
-  }
-
-  @protected
-  BigInt dco_decode_u_64(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dcoDecodeU64(raw);
-  }
-
-  @protected
-  int dco_decode_u_8(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw as int;
-  }
-
-  @protected
-  void dco_decode_unit(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return;
-  }
-
-  @protected
-  BigInt dco_decode_usize(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dcoDecodeU64(raw);
-  }
-
-  @protected
-  AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var inner = sse_decode_String(deserializer);
-    return AnyhowException(inner);
-  }
-
-  @protected
-  Object sse_decode_DartOpaque(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var inner = sse_decode_isize(deserializer);
-    return decodeDartOpaque(inner, generalizedFrbRustBinding);
-  }
-
-  @protected
-  RustStreamSink<String> sse_decode_StreamSink_String_Sse(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    throw UnimplementedError('Unreachable ()');
-  }
-
-  @protected
-  RustStreamSink<bool> sse_decode_StreamSink_bool_Sse(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    throw UnimplementedError('Unreachable ()');
-  }
-
-  @protected
-  String sse_decode_String(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var inner = sse_decode_list_prim_u_8_strict(deserializer);
-    return utf8.decoder.convert(inner);
-  }
-
-  @protected
-  bool sse_decode_bool(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getUint8() != 0;
-  }
-
-  @protected
-  ImageInfo sse_decode_box_autoadd_image_info(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_image_info(deserializer));
-  }
-
-  @protected
-  PackInfo sse_decode_box_autoadd_pack_info(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_pack_info(deserializer));
-  }
-
-  @protected
-  int sse_decode_i_32(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getInt32();
-  }
-
-  @protected
-  ImageInfo sse_decode_image_info(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_imgData = sse_decode_list_prim_u_8_strict(deserializer);
-    var var_chapterId = sse_decode_i_32(deserializer);
-    var var_url = sse_decode_String(deserializer);
-    var var_scrambleId = sse_decode_i_32(deserializer);
-    var var_fileName = sse_decode_String(deserializer);
-    return ImageInfo(
-      imgData: var_imgData,
-      chapterId: var_chapterId,
-      url: var_url,
-      scrambleId: var_scrambleId,
-      fileName: var_fileName,
-    );
-  }
-
-  @protected
-  PlatformInt64 sse_decode_isize(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getPlatformInt64();
-  }
-
-  @protected
-  List<String> sse_decode_list_String(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <String>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_String(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var len_ = sse_decode_i_32(deserializer);
-    return deserializer.buffer.getUint8List(len_);
-  }
-
-  @protected
-  Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var len_ = sse_decode_i_32(deserializer);
-    return deserializer.buffer.getUint8List(len_);
-  }
-
-  @protected
-  List<TaggedAllocation> sse_decode_list_tagged_allocation(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    var len_ = sse_decode_i_32(deserializer);
-    var ans_ = <TaggedAllocation>[];
-    for (var idx_ = 0; idx_ < len_; ++idx_) {
-      ans_.add(sse_decode_tagged_allocation(deserializer));
-    }
-    return ans_;
-  }
-
-  @protected
-  PackInfo sse_decode_pack_info(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_comicInfoString = sse_decode_String(deserializer);
-    var var_processedComicInfoString = sse_decode_String(deserializer);
-    var var_originalImagePaths = sse_decode_list_String(deserializer);
-    var var_packImagePaths = sse_decode_list_String(deserializer);
-    return PackInfo(
-      comicInfoString: var_comicInfoString,
-      processedComicInfoString: var_processedComicInfoString,
-      originalImagePaths: var_originalImagePaths,
-      packImagePaths: var_packImagePaths,
-    );
-  }
-
-  @protected
-  RustMemoryInfo sse_decode_rust_memory_info(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_totalAllocated = sse_decode_u_64(deserializer);
-    var var_peakAllocated = sse_decode_u_64(deserializer);
-    var var_allocationCount = sse_decode_u_64(deserializer);
-    var var_deallocationCount = sse_decode_u_64(deserializer);
-    var var_taggedAllocations = sse_decode_list_tagged_allocation(deserializer);
-    return RustMemoryInfo(
-      totalAllocated: var_totalAllocated,
-      peakAllocated: var_peakAllocated,
-      allocationCount: var_allocationCount,
-      deallocationCount: var_deallocationCount,
-      taggedAllocations: var_taggedAllocations,
-    );
-  }
-
-  @protected
-  TaggedAllocation sse_decode_tagged_allocation(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_tag = sse_decode_String(deserializer);
-    var var_size = sse_decode_u_64(deserializer);
-    return TaggedAllocation(tag: var_tag, size: var_size);
-  }
-
-  @protected
-  BigInt sse_decode_u_64(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getBigUint64();
-  }
-
-  @protected
-  int sse_decode_u_8(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getUint8();
-  }
-
-  @protected
-  void sse_decode_unit(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-  }
-
-  @protected
-  BigInt sse_decode_usize(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getBigUint64();
-  }
-
-  @protected
-  void sse_encode_AnyhowException(
-    AnyhowException self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.message, serializer);
-  }
-
-  @protected
-  void
-  sse_encode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(
-    FutureOr<String> Function(String, String, String) self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_DartOpaque(
-      encode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(
-        self,
-      ),
-      serializer,
-    );
-  }
-
-  @protected
-  void sse_encode_DartOpaque(Object self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_isize(
-      PlatformPointerUtil.ptrToPlatformInt64(
-        encodeDartOpaque(
-          self,
-          portManager.dartHandlerPort,
-          generalizedFrbRustBinding,
-        ),
-      ),
-      serializer,
-    );
-  }
-
-  @protected
-  void sse_encode_StreamSink_String_Sse(
-    RustStreamSink<String> self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(
-      self.setupAndSerialize(
-        codec: SseCodec(
+@override Future<String> crateApiQjsQjsCall({required String runtimeName , required String fnPath , required String argsJson })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
+sse_encode_String(fnPath, serializer);
+sse_encode_String(argsJson, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_String,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-      ),
-      serializer,
-    );
-  }
+        )
+        ,
+            constMeta: kCrateApiQjsQjsCallConstMeta,
+            argValues: [runtimeName, fnPath, argsJson],
+            apiImpl: this,
+        )); }
 
-  @protected
-  void sse_encode_StreamSink_bool_Sse(
-    RustStreamSink<bool> self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(
-      self.setupAndSerialize(
-        codec: SseCodec(
+
+        TaskConstMeta get kCrateApiQjsQjsCallConstMeta => const TaskConstMeta(
+            debugName: "qjs_call",
+            argNames: ["runtimeName", "fnPath", "argsJson"],
+        );
+        
+
+@override Future<String> crateApiQjsQjsCallOnce({required String runtimeName , required String bundleJs , required String fnPath , required String argsJson })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
+sse_encode_String(bundleJs, serializer);
+sse_encode_String(fnPath, serializer);
+sse_encode_String(argsJson, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsQjsCallOnceConstMeta,
+            argValues: [runtimeName, bundleJs, fnPath, argsJson],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiQjsQjsCallOnceConstMeta => const TaskConstMeta(
+            debugName: "qjs_call_once",
+            argNames: ["runtimeName", "bundleJs", "fnPath", "argsJson"],
+        );
+        
+
+@override Future<BigInt> crateApiQjsQjsCallOnceTaskStart({required String runtimeName , required String bundleJs , required String fnPath , required String argsJson , required String taskGroupKey })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
+sse_encode_String(bundleJs, serializer);
+sse_encode_String(fnPath, serializer);
+sse_encode_String(argsJson, serializer);
+sse_encode_String(taskGroupKey, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_u_64,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsQjsCallOnceTaskStartConstMeta,
+            argValues: [runtimeName, bundleJs, fnPath, argsJson, taskGroupKey],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiQjsQjsCallOnceTaskStartConstMeta => const TaskConstMeta(
+            debugName: "qjs_call_once_task_start",
+            argNames: ["runtimeName", "bundleJs", "fnPath", "argsJson", "taskGroupKey"],
+        );
+        
+
+@override Future<String> crateApiQjsQjsCallOnceTaskWait({required String runtimeName , required BigInt taskId })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
+sse_encode_u_64(taskId, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsQjsCallOnceTaskWaitConstMeta,
+            argValues: [runtimeName, taskId],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiQjsQjsCallOnceTaskWaitConstMeta => const TaskConstMeta(
+            debugName: "qjs_call_once_task_wait",
+            argNames: ["runtimeName", "taskId"],
+        );
+        
+
+@override Future<BigInt> crateApiQjsQjsCallTaskStart({required String runtimeName , required String taskGroupKey , required String fnPath , required String argsJson })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
+sse_encode_String(taskGroupKey, serializer);
+sse_encode_String(fnPath, serializer);
+sse_encode_String(argsJson, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_u_64,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsQjsCallTaskStartConstMeta,
+            argValues: [runtimeName, taskGroupKey, fnPath, argsJson],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiQjsQjsCallTaskStartConstMeta => const TaskConstMeta(
+            debugName: "qjs_call_task_start",
+            argNames: ["runtimeName", "taskGroupKey", "fnPath", "argsJson"],
+        );
+        
+
+@override Future<String> crateApiQjsQjsCallTaskWait({required String runtimeName , required BigInt taskId })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
+sse_encode_u_64(taskId, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsQjsCallTaskWaitConstMeta,
+            argValues: [runtimeName, taskId],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiQjsQjsCallTaskWaitConstMeta => const TaskConstMeta(
+            debugName: "qjs_call_task_wait",
+            argNames: ["runtimeName", "taskId"],
+        );
+        
+
+@override Future<QjsCancelTaskResult> crateApiQjsQjsCancelTask({required String runtimeName , required BigInt taskId })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
+sse_encode_u_64(taskId, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 19, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_qjs_cancel_task_result,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsQjsCancelTaskConstMeta,
+            argValues: [runtimeName, taskId],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiQjsQjsCancelTaskConstMeta => const TaskConstMeta(
+            debugName: "qjs_cancel_task",
+            argNames: ["runtimeName", "taskId"],
+        );
+        
+
+@override Future<QjsCancelTasksByGroupResult> crateApiQjsQjsCancelTasksByGroup({required String runtimeName , required String taskGroupKey })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
+sse_encode_String(taskGroupKey, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 20, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_qjs_cancel_tasks_by_group_result,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsQjsCancelTasksByGroupConstMeta,
+            argValues: [runtimeName, taskGroupKey],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiQjsQjsCancelTasksByGroupConstMeta => const TaskConstMeta(
+            debugName: "qjs_cancel_tasks_by_group",
+            argNames: ["runtimeName", "taskGroupKey"],
+        );
+        
+
+@override Future<bool> crateApiQjsQjsClearBundle({required String runtimeName })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 21, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
           decodeSuccessData: sse_decode_bool,
           decodeErrorData: sse_decode_AnyhowException,
-        ),
-      ),
-      serializer,
-    );
-  }
+        )
+        ,
+            constMeta: kCrateApiQjsQjsClearBundleConstMeta,
+            argValues: [runtimeName],
+            apiImpl: this,
+        )); }
 
-  @protected
-  void sse_encode_String(String self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer);
-  }
 
-  @protected
-  void sse_encode_bool(bool self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putUint8(self ? 1 : 0);
-  }
+        TaskConstMeta get kCrateApiQjsQjsClearBundleConstMeta => const TaskConstMeta(
+            debugName: "qjs_clear_bundle",
+            argNames: ["runtimeName"],
+        );
+        
 
-  @protected
-  void sse_encode_box_autoadd_image_info(
-    ImageInfo self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_image_info(self, serializer);
-  }
+@override Future<String> crateApiQjsQjsCurrentBundle({required String runtimeName })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 22, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsQjsCurrentBundleConstMeta,
+            argValues: [runtimeName],
+            apiImpl: this,
+        )); }
 
-  @protected
-  void sse_encode_box_autoadd_pack_info(
-    PackInfo self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_pack_info(self, serializer);
-  }
 
-  @protected
-  void sse_encode_i_32(int self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putInt32(self);
-  }
+        TaskConstMeta get kCrateApiQjsQjsCurrentBundleConstMeta => const TaskConstMeta(
+            debugName: "qjs_current_bundle",
+            argNames: ["runtimeName"],
+        );
+        
 
-  @protected
-  void sse_encode_image_info(ImageInfo self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_list_prim_u_8_strict(self.imgData, serializer);
-    sse_encode_i_32(self.chapterId, serializer);
-    sse_encode_String(self.url, serializer);
-    sse_encode_i_32(self.scrambleId, serializer);
-    sse_encode_String(self.fileName, serializer);
-  }
+@override Future<bool> crateApiQjsQjsDropRuntime({required String runtimeName })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 23, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_bool,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsQjsDropRuntimeConstMeta,
+            argValues: [runtimeName],
+            apiImpl: this,
+        )); }
 
-  @protected
-  void sse_encode_isize(PlatformInt64 self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putPlatformInt64(self);
-  }
 
-  @protected
-  void sse_encode_list_String(List<String> self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_String(item, serializer);
-    }
-  }
+        TaskConstMeta get kCrateApiQjsQjsDropRuntimeConstMeta => const TaskConstMeta(
+            debugName: "qjs_drop_runtime",
+            argNames: ["runtimeName"],
+        );
+        
 
-  @protected
-  void sse_encode_list_prim_u_8_loose(
-    List<int> self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    serializer.buffer.putUint8List(
-      self is Uint8List ? self : Uint8List.fromList(self),
-    );
-  }
+@override Future<Uint8List> crateApiQjsQjsFetchImageBytes({required String runtimeName , required String fnPath , required String argsJson })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
+sse_encode_String(fnPath, serializer);
+sse_encode_String(argsJson, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 24, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsQjsFetchImageBytesConstMeta,
+            argValues: [runtimeName, fnPath, argsJson],
+            apiImpl: this,
+        )); }
 
-  @protected
-  void sse_encode_list_prim_u_8_strict(
-    Uint8List self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    serializer.buffer.putUint8List(self);
-  }
 
-  @protected
-  void sse_encode_list_tagged_allocation(
-    List<TaggedAllocation> self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    for (final item in self) {
-      sse_encode_tagged_allocation(item, serializer);
-    }
-  }
+        TaskConstMeta get kCrateApiQjsQjsFetchImageBytesConstMeta => const TaskConstMeta(
+            debugName: "qjs_fetch_image_bytes",
+            argNames: ["runtimeName", "fnPath", "argsJson"],
+        );
+        
 
-  @protected
-  void sse_encode_pack_info(PackInfo self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.comicInfoString, serializer);
-    sse_encode_String(self.processedComicInfoString, serializer);
-    sse_encode_list_String(self.originalImagePaths, serializer);
-    sse_encode_list_String(self.packImagePaths, serializer);
-  }
+@override Future<Uint8List> crateApiQjsQjsFetchImageBytesOnce({required String runtimeName , required String bundleJs , required String fnPath , required String argsJson })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
+sse_encode_String(bundleJs, serializer);
+sse_encode_String(fnPath, serializer);
+sse_encode_String(argsJson, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 25, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsQjsFetchImageBytesOnceConstMeta,
+            argValues: [runtimeName, bundleJs, fnPath, argsJson],
+            apiImpl: this,
+        )); }
 
-  @protected
-  void sse_encode_rust_memory_info(
-    RustMemoryInfo self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_u_64(self.totalAllocated, serializer);
-    sse_encode_u_64(self.peakAllocated, serializer);
-    sse_encode_u_64(self.allocationCount, serializer);
-    sse_encode_u_64(self.deallocationCount, serializer);
-    sse_encode_list_tagged_allocation(self.taggedAllocations, serializer);
-  }
 
-  @protected
-  void sse_encode_tagged_allocation(
-    TaggedAllocation self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.tag, serializer);
-    sse_encode_u_64(self.size, serializer);
-  }
+        TaskConstMeta get kCrateApiQjsQjsFetchImageBytesOnceConstMeta => const TaskConstMeta(
+            debugName: "qjs_fetch_image_bytes_once",
+            argNames: ["runtimeName", "bundleJs", "fnPath", "argsJson"],
+        );
+        
 
-  @protected
-  void sse_encode_u_64(BigInt self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putBigUint64(self);
-  }
+@override Future<BigInt> crateApiQjsQjsFetchImageBytesOnceTaskStart({required String runtimeName , required String bundleJs , required String fnPath , required String argsJson , required String taskGroupKey })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
+sse_encode_String(bundleJs, serializer);
+sse_encode_String(fnPath, serializer);
+sse_encode_String(argsJson, serializer);
+sse_encode_String(taskGroupKey, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 26, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_u_64,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsQjsFetchImageBytesOnceTaskStartConstMeta,
+            argValues: [runtimeName, bundleJs, fnPath, argsJson, taskGroupKey],
+            apiImpl: this,
+        )); }
 
-  @protected
-  void sse_encode_u_8(int self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putUint8(self);
-  }
 
-  @protected
-  void sse_encode_unit(void self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-  }
+        TaskConstMeta get kCrateApiQjsQjsFetchImageBytesOnceTaskStartConstMeta => const TaskConstMeta(
+            debugName: "qjs_fetch_image_bytes_once_task_start",
+            argNames: ["runtimeName", "bundleJs", "fnPath", "argsJson", "taskGroupKey"],
+        );
+        
 
-  @protected
-  void sse_encode_usize(BigInt self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putBigUint64(self);
-  }
-}
+@override Future<Uint8List> crateApiQjsQjsFetchImageBytesOnceTaskWait({required String runtimeName , required BigInt taskId })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
+sse_encode_u_64(taskId, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 27, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsQjsFetchImageBytesOnceTaskWaitConstMeta,
+            argValues: [runtimeName, taskId],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiQjsQjsFetchImageBytesOnceTaskWaitConstMeta => const TaskConstMeta(
+            debugName: "qjs_fetch_image_bytes_once_task_wait",
+            argNames: ["runtimeName", "taskId"],
+        );
+        
+
+@override Future<BigInt> crateApiQjsQjsFetchImageBytesTaskStart({required String runtimeName , required String taskGroupKey , required String fnPath , required String argsJson })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
+sse_encode_String(taskGroupKey, serializer);
+sse_encode_String(fnPath, serializer);
+sse_encode_String(argsJson, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 28, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_u_64,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsQjsFetchImageBytesTaskStartConstMeta,
+            argValues: [runtimeName, taskGroupKey, fnPath, argsJson],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiQjsQjsFetchImageBytesTaskStartConstMeta => const TaskConstMeta(
+            debugName: "qjs_fetch_image_bytes_task_start",
+            argNames: ["runtimeName", "taskGroupKey", "fnPath", "argsJson"],
+        );
+        
+
+@override Future<Uint8List> crateApiQjsQjsFetchImageBytesTaskWait({required String runtimeName , required BigInt taskId })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
+sse_encode_u_64(taskId, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 29, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsQjsFetchImageBytesTaskWaitConstMeta,
+            argValues: [runtimeName, taskId],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiQjsQjsFetchImageBytesTaskWaitConstMeta => const TaskConstMeta(
+            debugName: "qjs_fetch_image_bytes_task_wait",
+            argNames: ["runtimeName", "taskId"],
+        );
+        
+
+@override Future<void> crateApiQjsQjsReplaceBundle({required String runtimeName , required String bundleName , required String bundleJs })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
+sse_encode_String(bundleName, serializer);
+sse_encode_String(bundleJs, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 30, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsQjsReplaceBundleConstMeta,
+            argValues: [runtimeName, bundleName, bundleJs],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiQjsQjsReplaceBundleConstMeta => const TaskConstMeta(
+            debugName: "qjs_replace_bundle",
+            argNames: ["runtimeName", "bundleName", "bundleJs"],
+        );
+        
+
+@override Future<void> crateApiQjsRegisterLoadPluginConfig({required FutureOr<String> Function(String, String, String) dartCallback })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(dartCallback, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 31, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsRegisterLoadPluginConfigConstMeta,
+            argValues: [dartCallback],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiQjsRegisterLoadPluginConfigConstMeta => const TaskConstMeta(
+            debugName: "register_load_plugin_config",
+            argNames: ["dartCallback"],
+        );
+        
+
+@override Future<void> crateApiQjsRegisterSavePluginConfig({required FutureOr<String> Function(String, String, String) dartCallback })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(dartCallback, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 32, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsRegisterSavePluginConfigConstMeta,
+            argValues: [dartCallback],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiQjsRegisterSavePluginConfigConstMeta => const TaskConstMeta(
+            debugName: "register_save_plugin_config",
+            argNames: ["dartCallback"],
+        );
+        
+
+@override Future<void> crateApiMemoryResetRustMemoryStats()  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 33, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        )
+        ,
+            constMeta: kCrateApiMemoryResetRustMemoryStatsConstMeta,
+            argValues: [],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiMemoryResetRustMemoryStatsConstMeta => const TaskConstMeta(
+            debugName: "reset_rust_memory_stats",
+            argNames: [],
+        );
+        
+
+@override Future<void> crateApiQjsSetHttpProxy({required String proxy })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(proxy, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 34, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsSetHttpProxyConstMeta,
+            argValues: [proxy],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiQjsSetHttpProxyConstMeta => const TaskConstMeta(
+            debugName: "set_http_proxy",
+            argNames: ["proxy"],
+        );
+        
+
+@override void crateApiQjsSetLogHttpForward({required String url })  { return handler.executeSync(SyncTask(
+            callFfi: () {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(url, serializer);
+            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 35)!;
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsSetLogHttpForwardConstMeta,
+            argValues: [url],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiQjsSetLogHttpForwardConstMeta => const TaskConstMeta(
+            debugName: "set_log_http_forward",
+            argNames: ["url"],
+        );
+        
+
+@override void crateApiQjsSetQjsErrorStackEnabled({required bool enabled })  { return handler.executeSync(SyncTask(
+            callFfi: () {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_bool(enabled, serializer);
+            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 36)!;
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsSetQjsErrorStackEnabledConstMeta,
+            argValues: [enabled],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiQjsSetQjsErrorStackEnabledConstMeta => const TaskConstMeta(
+            debugName: "set_qjs_error_stack_enabled",
+            argNames: ["enabled"],
+        );
+        
+
+@override Future<void> crateApiQjsSetSocks5Proxy({required String proxy })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(proxy, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 37, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsSetSocks5ProxyConstMeta,
+            argValues: [proxy],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiQjsSetSocks5ProxyConstMeta => const TaskConstMeta(
+            debugName: "set_socks5_proxy",
+            argNames: ["proxy"],
+        );
+        
+
+@override Future<void> crateApiUserUtilsSetupDefaultUserUtils()  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 38, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        )
+        ,
+            constMeta: kCrateApiUserUtilsSetupDefaultUserUtilsConstMeta,
+            argValues: [],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiUserUtilsSetupDefaultUserUtilsConstMeta => const TaskConstMeta(
+            debugName: "setup_default_user_utils",
+            argNames: [],
+        );
+        
+
+@override Future<String> crateApiSimpleSleepTest()  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 39, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: null,
+        )
+        ,
+            constMeta: kCrateApiSimpleSleepTestConstMeta,
+            argValues: [],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiSimpleSleepTestConstMeta => const TaskConstMeta(
+            debugName: "sleep_test",
+            argNames: [],
+        );
+        
+
+@override Stream<bool> crateApiSystemStartShutdownListener()  { 
+            final sink = RustStreamSink<bool>();
+            unawaited(handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_StreamSink_bool_Sse(sink, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 40, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiSystemStartShutdownListenerConstMeta,
+            argValues: [sink],
+            apiImpl: this,
+        )));
+            return sink.stream;
+             }
+
+
+        TaskConstMeta get kCrateApiSystemStartShutdownListenerConstMeta => const TaskConstMeta(
+            debugName: "start_shutdown_listener",
+            argNames: ["sink"],
+        );
+        
+
+@override Stream<String> crateApiSimpleStreamTest()  { 
+            final stream = RustStreamSink<String>();
+            unawaited(handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_StreamSink_String_Sse(stream, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 41, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiSimpleStreamTestConstMeta,
+            argValues: [stream],
+            apiImpl: this,
+        )));
+            return stream.stream;
+             }
+
+
+        TaskConstMeta get kCrateApiSimpleStreamTestConstMeta => const TaskConstMeta(
+            debugName: "stream_test",
+            argNames: ["stream"],
+        );
+        
+
+@override String crateApiSimpleTraditionalToSimplified({required String text })  { return handler.executeSync(SyncTask(
+            callFfi: () {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(text, serializer);
+            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 42)!;
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: null,
+        )
+        ,
+            constMeta: kCrateApiSimpleTraditionalToSimplifiedConstMeta,
+            argValues: [text],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiSimpleTraditionalToSimplifiedConstMeta => const TaskConstMeta(
+            debugName: "traditional_to_simplified",
+            argNames: ["text"],
+        );
+        
+
+@override Future<Uint8List> crateApiSimpleZstdCompressBytes({required List<int> raw , required int level })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_list_prim_u_8_loose(raw, serializer);
+sse_encode_i_32(level, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 43, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiSimpleZstdCompressBytesConstMeta,
+            argValues: [raw, level],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiSimpleZstdCompressBytesConstMeta => const TaskConstMeta(
+            debugName: "zstd_compress_bytes",
+            argNames: ["raw", "level"],
+        );
+        
+
+@override Future<Uint8List> crateApiSimpleZstdDecompressBytes({required List<int> encoded })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_list_prim_u_8_loose(encoded, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 44, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiSimpleZstdDecompressBytesConstMeta,
+            argValues: [encoded],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiSimpleZstdDecompressBytesConstMeta => const TaskConstMeta(
+            debugName: "zstd_decompress_bytes",
+            argNames: ["encoded"],
+        );
+        
+
+
+            Future<void> Function(int, dynamic, dynamic, dynamic)
+                encode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(FutureOr<String> Function(String, String, String) raw) {
+              return (callId, rawArg0, rawArg1, rawArg2) async {
+                final arg0 = dco_decode_String(rawArg0);
+final arg1 = dco_decode_String(rawArg1);
+final arg2 = dco_decode_String(rawArg2);
+
+
+                Box<String>? rawOutput;
+                Box<AnyhowException>? rawError;
+                try {
+                    rawOutput = Box(await raw(arg0, arg1, arg2));
+                } catch (e, s) {
+                    rawError = Box(AnyhowException("$e\n\n$s"));
+                }
+
+                final serializer = SseSerializer(generalizedFrbRustBinding);
+                assert((rawOutput != null) ^ (rawError != null));
+                if (rawOutput != null) {
+                    serializer.buffer.putUint8(0);
+                    sse_encode_String(rawOutput.value, serializer);
+                } else {
+                    serializer.buffer.putUint8(1);
+                    sse_encode_AnyhowException(rawError!.value, serializer);
+                }
+                final output = serializer.intoRaw();
+
+                generalizedFrbRustBinding.dartFnDeliverOutput(
+                  callId: callId, ptr: output.ptr, rustVecLen: output.rustVecLen, dataLen: output.dataLen);
+              };
+            }
+            
+
+                  @protected AnyhowException dco_decode_AnyhowException(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return AnyhowException(raw as String); }
+
+@protected FutureOr<String> Function(String, String, String) dco_decode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+throw UnimplementedError(''); }
+
+@protected Object dco_decode_DartOpaque(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return decodeDartOpaque(raw, generalizedFrbRustBinding); }
+
+@protected RustStreamSink<String> dco_decode_StreamSink_String_Sse(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+throw UnimplementedError(); }
+
+@protected RustStreamSink<bool> dco_decode_StreamSink_bool_Sse(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+throw UnimplementedError(); }
+
+@protected String dco_decode_String(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw as String; }
+
+@protected bool dco_decode_bool(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw as bool; }
+
+@protected ImageInfo dco_decode_box_autoadd_image_info(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_image_info(raw); }
+
+@protected PackInfo dco_decode_box_autoadd_pack_info(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dco_decode_pack_info(raw); }
+
+@protected int dco_decode_i_32(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw as int; }
+
+@protected ImageInfo dco_decode_image_info(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 5) throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+                return ImageInfo(imgData: dco_decode_list_prim_u_8_strict(arr[0]),
+chapterId: dco_decode_i_32(arr[1]),
+url: dco_decode_String(arr[2]),
+scrambleId: dco_decode_i_32(arr[3]),
+fileName: dco_decode_String(arr[4]),); }
+
+@protected PlatformInt64 dco_decode_isize(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dcoDecodeI64(raw); }
+
+@protected List<String> dco_decode_list_String(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return (raw as List<dynamic>).map(dco_decode_String).toList(); }
+
+@protected List<int> dco_decode_list_prim_u_8_loose(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw as List<int>; }
+
+@protected Uint8List dco_decode_list_prim_u_8_strict(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw as Uint8List; }
+
+@protected List<TaggedAllocation> dco_decode_list_tagged_allocation(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return (raw as List<dynamic>).map(dco_decode_tagged_allocation).toList(); }
+
+@protected PackInfo dco_decode_pack_info(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 4) throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+                return PackInfo(comicInfoString: dco_decode_String(arr[0]),
+processedComicInfoString: dco_decode_String(arr[1]),
+originalImagePaths: dco_decode_list_String(arr[2]),
+packImagePaths: dco_decode_list_String(arr[3]),); }
+
+@protected QjsCancelTaskResult dco_decode_qjs_cancel_task_result(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 1) throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
+                return QjsCancelTaskResult(status: dco_decode_String(arr[0]),); }
+
+@protected QjsCancelTasksByGroupResult dco_decode_qjs_cancel_tasks_by_group_result(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 3) throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+                return QjsCancelTasksByGroupResult(cancelled: dco_decode_i_32(arr[0]),
+notFound: dco_decode_i_32(arr[1]),
+failedRuntimeGroups: dco_decode_list_String(arr[2]),); }
+
+@protected RustMemoryInfo dco_decode_rust_memory_info(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 5) throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+                return RustMemoryInfo(totalAllocated: dco_decode_u_64(arr[0]),
+peakAllocated: dco_decode_u_64(arr[1]),
+allocationCount: dco_decode_u_64(arr[2]),
+deallocationCount: dco_decode_u_64(arr[3]),
+taggedAllocations: dco_decode_list_tagged_allocation(arr[4]),); }
+
+@protected TaggedAllocation dco_decode_tagged_allocation(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+final arr = raw as List<dynamic>;
+                if (arr.length != 2) throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+                return TaggedAllocation(tag: dco_decode_String(arr[0]),
+size: dco_decode_u_64(arr[1]),); }
+
+@protected BigInt dco_decode_u_64(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dcoDecodeU64(raw); }
+
+@protected int dco_decode_u_8(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return raw as int; }
+
+@protected void dco_decode_unit(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return; }
+
+@protected BigInt dco_decode_usize(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+return dcoDecodeU64(raw); }
+
+@protected AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var inner = sse_decode_String(deserializer);
+        return AnyhowException(inner); }
+
+@protected Object sse_decode_DartOpaque(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var inner = sse_decode_isize(deserializer);
+        return decodeDartOpaque(inner, generalizedFrbRustBinding); }
+
+@protected RustStreamSink<String> sse_decode_StreamSink_String_Sse(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+throw UnimplementedError('Unreachable ()'); }
+
+@protected RustStreamSink<bool> sse_decode_StreamSink_bool_Sse(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+throw UnimplementedError('Unreachable ()'); }
+
+@protected String sse_decode_String(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var inner = sse_decode_list_prim_u_8_strict(deserializer);
+        return utf8.decoder.convert(inner); }
+
+@protected bool sse_decode_bool(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return deserializer.buffer.getUint8() != 0; }
+
+@protected ImageInfo sse_decode_box_autoadd_image_info(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_image_info(deserializer)); }
+
+@protected PackInfo sse_decode_box_autoadd_pack_info(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return (sse_decode_pack_info(deserializer)); }
+
+@protected int sse_decode_i_32(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return deserializer.buffer.getInt32(); }
+
+@protected ImageInfo sse_decode_image_info(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_imgData = sse_decode_list_prim_u_8_strict(deserializer);
+var var_chapterId = sse_decode_i_32(deserializer);
+var var_url = sse_decode_String(deserializer);
+var var_scrambleId = sse_decode_i_32(deserializer);
+var var_fileName = sse_decode_String(deserializer);
+return ImageInfo(imgData: var_imgData, chapterId: var_chapterId, url: var_url, scrambleId: var_scrambleId, fileName: var_fileName); }
+
+@protected PlatformInt64 sse_decode_isize(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return deserializer.buffer.getPlatformInt64(); }
+
+@protected List<String> sse_decode_list_String(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+        var len_ = sse_decode_i_32(deserializer);
+        var ans_ = <String>[];
+        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_String(deserializer)); }
+        return ans_;
+         }
+
+@protected List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var len_ = sse_decode_i_32(deserializer);
+                return deserializer.buffer.getUint8List(len_); }
+
+@protected Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var len_ = sse_decode_i_32(deserializer);
+                return deserializer.buffer.getUint8List(len_); }
+
+@protected List<TaggedAllocation> sse_decode_list_tagged_allocation(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+
+        var len_ = sse_decode_i_32(deserializer);
+        var ans_ = <TaggedAllocation>[];
+        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_tagged_allocation(deserializer)); }
+        return ans_;
+         }
+
+@protected PackInfo sse_decode_pack_info(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_comicInfoString = sse_decode_String(deserializer);
+var var_processedComicInfoString = sse_decode_String(deserializer);
+var var_originalImagePaths = sse_decode_list_String(deserializer);
+var var_packImagePaths = sse_decode_list_String(deserializer);
+return PackInfo(comicInfoString: var_comicInfoString, processedComicInfoString: var_processedComicInfoString, originalImagePaths: var_originalImagePaths, packImagePaths: var_packImagePaths); }
+
+@protected QjsCancelTaskResult sse_decode_qjs_cancel_task_result(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_status = sse_decode_String(deserializer);
+return QjsCancelTaskResult(status: var_status); }
+
+@protected QjsCancelTasksByGroupResult sse_decode_qjs_cancel_tasks_by_group_result(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_cancelled = sse_decode_i_32(deserializer);
+var var_notFound = sse_decode_i_32(deserializer);
+var var_failedRuntimeGroups = sse_decode_list_String(deserializer);
+return QjsCancelTasksByGroupResult(cancelled: var_cancelled, notFound: var_notFound, failedRuntimeGroups: var_failedRuntimeGroups); }
+
+@protected RustMemoryInfo sse_decode_rust_memory_info(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_totalAllocated = sse_decode_u_64(deserializer);
+var var_peakAllocated = sse_decode_u_64(deserializer);
+var var_allocationCount = sse_decode_u_64(deserializer);
+var var_deallocationCount = sse_decode_u_64(deserializer);
+var var_taggedAllocations = sse_decode_list_tagged_allocation(deserializer);
+return RustMemoryInfo(totalAllocated: var_totalAllocated, peakAllocated: var_peakAllocated, allocationCount: var_allocationCount, deallocationCount: var_deallocationCount, taggedAllocations: var_taggedAllocations); }
+
+@protected TaggedAllocation sse_decode_tagged_allocation(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+var var_tag = sse_decode_String(deserializer);
+var var_size = sse_decode_u_64(deserializer);
+return TaggedAllocation(tag: var_tag, size: var_size); }
+
+@protected BigInt sse_decode_u_64(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return deserializer.buffer.getBigUint64(); }
+
+@protected int sse_decode_u_8(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return deserializer.buffer.getUint8(); }
+
+@protected void sse_decode_unit(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+ }
+
+@protected BigInt sse_decode_usize(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+return deserializer.buffer.getBigUint64(); }
+
+@protected void sse_encode_AnyhowException(AnyhowException self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.message, serializer); }
+
+@protected void sse_encode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(FutureOr<String> Function(String, String, String) self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_DartOpaque(encode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(self), serializer); }
+
+@protected void sse_encode_DartOpaque(Object self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_isize(PlatformPointerUtil.ptrToPlatformInt64(encodeDartOpaque(self, portManager.dartHandlerPort, generalizedFrbRustBinding)), serializer); }
+
+@protected void sse_encode_StreamSink_String_Sse(RustStreamSink<String> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.setupAndSerialize(codec: SseCodec(
+            decodeSuccessData: sse_decode_String,
+            decodeErrorData: sse_decode_AnyhowException,
+        )), serializer); }
+
+@protected void sse_encode_StreamSink_bool_Sse(RustStreamSink<bool> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.setupAndSerialize(codec: SseCodec(
+            decodeSuccessData: sse_decode_bool,
+            decodeErrorData: sse_decode_AnyhowException,
+        )), serializer); }
+
+@protected void sse_encode_String(String self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer); }
+
+@protected void sse_encode_bool(bool self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+serializer.buffer.putUint8(self ? 1 : 0); }
+
+@protected void sse_encode_box_autoadd_image_info(ImageInfo self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_image_info(self, serializer); }
+
+@protected void sse_encode_box_autoadd_pack_info(PackInfo self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_pack_info(self, serializer); }
+
+@protected void sse_encode_i_32(int self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+serializer.buffer.putInt32(self); }
+
+@protected void sse_encode_image_info(ImageInfo self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_list_prim_u_8_strict(self.imgData, serializer);
+sse_encode_i_32(self.chapterId, serializer);
+sse_encode_String(self.url, serializer);
+sse_encode_i_32(self.scrambleId, serializer);
+sse_encode_String(self.fileName, serializer);
+ }
+
+@protected void sse_encode_isize(PlatformInt64 self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+serializer.buffer.putPlatformInt64(self); }
+
+@protected void sse_encode_list_String(List<String> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+        for (final item in self) { sse_encode_String(item, serializer); } }
+
+@protected void sse_encode_list_prim_u_8_loose(List<int> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+                    serializer.buffer.putUint8List(self is Uint8List ? self : Uint8List.fromList(self)); }
+
+@protected void sse_encode_list_prim_u_8_strict(Uint8List self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+                    serializer.buffer.putUint8List(self); }
+
+@protected void sse_encode_list_tagged_allocation(List<TaggedAllocation> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.length, serializer);
+        for (final item in self) { sse_encode_tagged_allocation(item, serializer); } }
+
+@protected void sse_encode_pack_info(PackInfo self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.comicInfoString, serializer);
+sse_encode_String(self.processedComicInfoString, serializer);
+sse_encode_list_String(self.originalImagePaths, serializer);
+sse_encode_list_String(self.packImagePaths, serializer);
+ }
+
+@protected void sse_encode_qjs_cancel_task_result(QjsCancelTaskResult self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.status, serializer);
+ }
+
+@protected void sse_encode_qjs_cancel_tasks_by_group_result(QjsCancelTasksByGroupResult self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_i_32(self.cancelled, serializer);
+sse_encode_i_32(self.notFound, serializer);
+sse_encode_list_String(self.failedRuntimeGroups, serializer);
+ }
+
+@protected void sse_encode_rust_memory_info(RustMemoryInfo self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_u_64(self.totalAllocated, serializer);
+sse_encode_u_64(self.peakAllocated, serializer);
+sse_encode_u_64(self.allocationCount, serializer);
+sse_encode_u_64(self.deallocationCount, serializer);
+sse_encode_list_tagged_allocation(self.taggedAllocations, serializer);
+ }
+
+@protected void sse_encode_tagged_allocation(TaggedAllocation self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_String(self.tag, serializer);
+sse_encode_u_64(self.size, serializer);
+ }
+
+@protected void sse_encode_u_64(BigInt self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+serializer.buffer.putBigUint64(self); }
+
+@protected void sse_encode_u_8(int self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+serializer.buffer.putUint8(self); }
+
+@protected void sse_encode_unit(void self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+ }
+
+@protected void sse_encode_usize(BigInt self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+serializer.buffer.putBigUint64(self); }
+                }
+                

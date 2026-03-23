@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/cubit/string_select.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart'
     show Series;
@@ -13,8 +12,6 @@ import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-
-import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_read/widgets/settings/reader_settings_sheet.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/router/router.dart';
@@ -82,13 +79,7 @@ class _BottomWidgetState extends State<BottomWidget> {
           )
           .toList();
       if (isDownload) {
-        final epsIds = objectbox.jmDownloadBox
-            .query(JmDownload_.comicId.equals(comicId))
-            .build()
-            .findFirst()!
-            .epsIds;
-        seriesList = seriesList.toList()
-          ..removeWhere((series) => !epsIds.contains(series.id));
+        seriesList = seriesList.toList();
       }
     }
   }

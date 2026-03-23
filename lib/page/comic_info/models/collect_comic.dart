@@ -9,36 +9,49 @@ Future<Map<String, dynamic>> collectJmComicToLocal(
   dynamic comicInfo,
 ) async {
   final source = _toJmFavoriteSource(comicInfo);
-  var data = objectbox.jmFavoriteBox
-      .query(JmFavorite_.comicId.equals(source.comicId))
+  final key = 'jm:${source.comicId}';
+  final unified = objectbox.unifiedFavoriteBox
+      .query(UnifiedComicFavorite_.uniqueKey.equals(key))
       .build()
-      .find();
-
-  for (var item in data) {
-    objectbox.jmFavoriteBox.remove(item.id);
+      .findFirst();
+  if (unified != null) {
+    objectbox.unifiedFavoriteBox.remove(unified.id);
   }
-
-  objectbox.jmFavoriteBox.put(
-    JmFavorite(
+  final now = DateTime.now().toUtc();
+  objectbox.unifiedFavoriteBox.put(
+    UnifiedComicFavorite(
+      uniqueKey: key,
+      source: 'jm',
       comicId: source.comicId,
-      name: source.name,
-      addtime: source.addtime,
+      title: source.name,
       description: source.description,
-      totalViews: source.totalViews,
-      likes: source.likes,
-      seriesId: source.seriesId,
-      commentTotal: source.commentTotal,
-      author: source.author,
-      tags: source.tags,
-      works: source.works,
-      actors: source.actors,
-      liked: source.liked,
-      isFavorite: source.isFavorite,
-      isAids: source.isAids,
-      price: source.price,
-      purchased: source.purchased,
+      cover: {
+        'id': source.comicId,
+        'url': source.coverUrl,
+        'name': '${source.comicId}.jpg',
+        'extension': {'path': '${source.comicId}.jpg'},
+      },
+      creator: {
+        'id': '',
+        'name': '',
+        'avatar': {'id': '', 'url': '', 'name': '', 'extension': {}},
+        'onTap': {},
+        'extension': {},
+      },
+      titleMeta: [
+        {'name': '浏览：${source.totalViews}', 'onTap': {}, 'extension': {}},
+        {'name': '更新时间：${source.addtime}', 'onTap': {}, 'extension': {}},
+      ],
+      metadata: [
+        _metadata('author', '作者', source.author),
+        _metadata('tags', '标签', source.tags),
+        _metadata('works', '作品', source.works),
+        _metadata('actors', '角色', source.actors),
+      ].whereType<Map<String, dynamic>>().toList(),
+      createdAt: now,
+      updatedAt: now,
       deleted: false,
-      history: DateTime.now().toUtc(),
+      schemaVersion: 2,
     ),
   );
 
@@ -66,6 +79,7 @@ class _JmFavoriteSource {
     required this.isAids,
     required this.price,
     required this.purchased,
+    required this.coverUrl,
   });
 
   final String comicId;
@@ -85,6 +99,7 @@ class _JmFavoriteSource {
   final bool isAids;
   final String price;
   final String purchased;
+  final String coverUrl;
 }
 
 _JmFavoriteSource _toJmFavoriteSource(dynamic comicInfo) {
@@ -109,6 +124,7 @@ _JmFavoriteSource _toJmFavoriteSource(dynamic comicInfo) {
       isAids: raw['is_aids'] == true,
       price: raw['price']?.toString() ?? '0',
       purchased: raw['purchased']?.toString() ?? '0',
+      coverUrl: comicInfo.normalInfo.comicInfo.cover.url,
     );
   }
 
@@ -131,5 +147,15 @@ _JmFavoriteSource _toJmFavoriteSource(dynamic comicInfo) {
     isAids: legacy.isAids,
     price: legacy.price,
     purchased: legacy.purchased,
+    coverUrl: '',
   );
+}
+
+Map<String, dynamic>? _metadata(String type, String name, List<String> values) {
+  final list = values
+      .where((e) => e.trim().isNotEmpty)
+      .map((e) => {'name': e, 'onTap': {}, 'extension': {}})
+      .toList();
+  if (list.isEmpty) return null;
+  return {'type': type, 'name': name, 'value': list};
 }

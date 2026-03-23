@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final normalComicAllInfo = normalComicAllInfoFromJson(jsonString);
-
 import 'dart:convert';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -18,9 +14,19 @@ String normalComicAllInfoToJson(NormalComicAllInfo data) =>
 @freezed
 abstract class NormalComicAllInfo with _$NormalComicAllInfo {
   const factory NormalComicAllInfo({
-    @JsonKey(name: "comicInfo") required ComicInfo comicInfo,
-    @JsonKey(name: "eps") required List<Ep> eps,
-    @JsonKey(name: "recommend") required List<Recommend> recommend,
+    @JsonKey(name: 'comicInfo') required ComicInfo comicInfo,
+    @JsonKey(name: 'eps') required List<Ep> eps,
+    @JsonKey(name: 'recommend') required List<Recommend> recommend,
+    @JsonKey(name: 'totalViews') @Default(0) int totalViews,
+    @JsonKey(name: 'totalLikes') @Default(0) int totalLikes,
+    @JsonKey(name: 'totalComments') @Default(0) int totalComments,
+    @JsonKey(name: 'isFavourite') @Default(false) bool isFavourite,
+    @JsonKey(name: 'isLiked') @Default(false) bool isLiked,
+    @JsonKey(name: 'allowComment') @Default(true) bool allowComment,
+    @JsonKey(name: 'allowLike') @Default(true) bool allowLike,
+    @JsonKey(name: 'allowFavorite') @Default(true) bool allowFavorite,
+    @JsonKey(name: 'allowDownload') @Default(true) bool allowDownload,
+    @JsonKey(name: 'extension') @Default({}) Map<String, dynamic> extension,
   }) = _NormalComicAllInfo;
 
   factory NormalComicAllInfo.fromJson(Map<String, dynamic> json) =>
@@ -28,28 +34,66 @@ abstract class NormalComicAllInfo with _$NormalComicAllInfo {
 }
 
 @freezed
+abstract class ComicInfoActionItem with _$ComicInfoActionItem {
+  const factory ComicInfoActionItem({
+    @JsonKey(name: 'name') required String name,
+    @JsonKey(name: 'onTap') @Default({}) Map<String, dynamic> onTap,
+    @JsonKey(name: 'extension') @Default({}) Map<String, dynamic> extension,
+  }) = _ComicInfoActionItem;
+
+  factory ComicInfoActionItem.fromJson(Map<String, dynamic> json) =>
+      _$ComicInfoActionItemFromJson(json);
+}
+
+@freezed
+abstract class ComicInfoMetadata with _$ComicInfoMetadata {
+  const factory ComicInfoMetadata({
+    @JsonKey(name: 'type') required String type,
+    @JsonKey(name: 'name') required String name,
+    @JsonKey(name: 'value') required List<ComicInfoActionItem> value,
+  }) = _ComicInfoMetadata;
+
+  factory ComicInfoMetadata.fromJson(Map<String, dynamic> json) =>
+      _$ComicInfoMetadataFromJson(json);
+}
+
+@freezed
+abstract class ComicImage with _$ComicImage {
+  const factory ComicImage({
+    @JsonKey(name: 'id') required String id,
+    @JsonKey(name: 'url') required String url,
+    @JsonKey(name: 'name') required String name,
+    @JsonKey(name: 'extension') @Default({}) Map<String, dynamic> extension,
+  }) = _ComicImage;
+
+  factory ComicImage.fromJson(Map<String, dynamic> json) =>
+      _$ComicImageFromJson(json);
+}
+
+@freezed
+abstract class Creator with _$Creator {
+  const factory Creator({
+    @JsonKey(name: 'id') required String id,
+    @JsonKey(name: 'name') required String name,
+    @JsonKey(name: 'avatar') required ComicImage avatar,
+    @JsonKey(name: 'onTap') @Default({}) Map<String, dynamic> onTap,
+    @JsonKey(name: 'extension') @Default({}) Map<String, dynamic> extension,
+  }) = _Creator;
+
+  factory Creator.fromJson(Map<String, dynamic> json) => _$CreatorFromJson(json);
+}
+
+@freezed
 abstract class ComicInfo with _$ComicInfo {
   const factory ComicInfo({
-    @JsonKey(name: "id") required String id,
-    @JsonKey(name: "creator") required Creator creator,
-    @JsonKey(name: "title") required String title,
-    @JsonKey(name: "description") required String description,
-    @JsonKey(name: "cover") required Cover cover,
-    @JsonKey(name: "categories") required List<String> categories,
-    @JsonKey(name: "tags") required List<String> tags,
-    @JsonKey(name: "author") required List<String> author,
-    @JsonKey(name: "works") required List<String> works,
-    @JsonKey(name: "actors") required List<String> actors,
-    @JsonKey(name: "chineseTeam") required List<String> chineseTeam,
-    @JsonKey(name: "pagesCount") required int pagesCount,
-    @JsonKey(name: "epsCount") required int epsCount,
-    @JsonKey(name: "updated_at") required DateTime updatedAt,
-    @JsonKey(name: "allowComment") required bool allowComment,
-    @JsonKey(name: "totalViews") required int totalViews,
-    @JsonKey(name: "totalLikes") required int totalLikes,
-    @JsonKey(name: "totalComments") required int totalComments,
-    @JsonKey(name: "isFavourite") required bool isFavourite,
-    @JsonKey(name: "isLiked") required bool isLiked,
+    @JsonKey(name: 'id') required String id,
+    @JsonKey(name: 'title') required String title,
+    @JsonKey(name: 'titleMeta') required List<ComicInfoActionItem> titleMeta,
+    @JsonKey(name: 'creator') required Creator creator,
+    @JsonKey(name: 'description') required String description,
+    @JsonKey(name: 'cover') required ComicImage cover,
+    @JsonKey(name: 'metadata') required List<ComicInfoMetadata> metadata,
+    @JsonKey(name: 'extension') @Default({}) Map<String, dynamic> extension,
   }) = _ComicInfo;
 
   factory ComicInfo.fromJson(Map<String, dynamic> json) =>
@@ -57,34 +101,12 @@ abstract class ComicInfo with _$ComicInfo {
 }
 
 @freezed
-abstract class Cover with _$Cover {
-  const factory Cover({
-    @JsonKey(name: "url") required String url,
-    @JsonKey(name: "path") required String path,
-    @JsonKey(name: "name") required String name,
-  }) = _Cover;
-
-  factory Cover.fromJson(Map<String, dynamic> json) => _$CoverFromJson(json);
-}
-
-@freezed
-abstract class Creator with _$Creator {
-  const factory Creator({
-    @JsonKey(name: "id") required String id,
-    @JsonKey(name: "name") required String name,
-    @JsonKey(name: "avatar") required Cover avatar,
-  }) = _Creator;
-
-  factory Creator.fromJson(Map<String, dynamic> json) =>
-      _$CreatorFromJson(json);
-}
-
-@freezed
 abstract class Ep with _$Ep {
   const factory Ep({
-    @JsonKey(name: "id") required String id,
-    @JsonKey(name: "name") required String name,
-    @JsonKey(name: "order") required int order,
+    @JsonKey(name: 'id') required String id,
+    @JsonKey(name: 'name') required String name,
+    @JsonKey(name: 'order') required int order,
+    @JsonKey(name: 'extension') @Default({}) Map<String, dynamic> extension,
   }) = _Ep;
 
   factory Ep.fromJson(Map<String, dynamic> json) => _$EpFromJson(json);
@@ -93,9 +115,11 @@ abstract class Ep with _$Ep {
 @freezed
 abstract class Recommend with _$Recommend {
   const factory Recommend({
-    @JsonKey(name: "id") required String id,
-    @JsonKey(name: "title") required String title,
-    @JsonKey(name: "cover") required Cover cover,
+    @JsonKey(name: 'source') required String source,
+    @JsonKey(name: 'id') required String id,
+    @JsonKey(name: 'title') required String title,
+    @JsonKey(name: 'cover') required ComicImage cover,
+    @JsonKey(name: 'extension') @Default({}) Map<String, dynamic> extension,
   }) = _Recommend;
 
   factory Recommend.fromJson(Map<String, dynamic> json) =>

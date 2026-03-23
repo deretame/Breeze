@@ -5,217 +5,145 @@ import 'dart:math' show min;
 import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
+import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
-import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/compressed/compressed.dart';
 import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-/// 导出漫画为文件夹
 Future<void> jmExportComicAsFolder(String comicId, {String? exportPath}) async {
-  final jmDownload = objectbox.jmDownloadBox
-      .query(JmDownload_.comicId.equals(comicId))
-      .build()
-      .findFirst()!;
-  final comicInfo = jmDownload.allInfo.let(downloadInfoJsonFromJson);
-  final downloadedEpIds = jmDownload.epsIds;
-  var processedComicInfo = comicInfoProcess(comicInfo);
-  var downloadPath = exportPath ?? await createDownloadDir();
-  var comicDir = p.join(downloadPath, processedComicInfo.name);
+  final download = _getDownload(comicId, 'jm');
+  final detail = _exportDetail(download);
+  final title = download.title;
+  final root = exportPath ?? await createDownloadDir();
+  final comicDir = p.join(root, title);
 
-  if (!await Directory(comicDir).exists()) {
-    await Directory(comicDir).create(recursive: true);
-  } else {
-    // 如果存在，则先删除
-    await Directory(comicDir).delete(recursive: true);
-    await Directory(comicDir).create(recursive: true);
+  final dir = Directory(comicDir);
+  if (await dir.exists()) {
+    await dir.delete(recursive: true);
   }
+  await dir.create(recursive: true);
 
-  // 保存漫画下载信息
-  var comicInfoString = downloadInfoJsonToJson(comicInfo);
-  logger.d(p.join(comicDir, 'processed_comic_info.json').length);
-  var comicInfoFile = File(p.join(comicDir, 'original_comic_info.json'));
-  await comicInfoFile.writeAsString(comicInfoString);
+  await File(p.join(comicDir, 'original_comic_info.json'))
+      .writeAsString(jsonEncode(detail));
+  await File(p.join(comicDir, 'processed_comic_info.json'))
+      .writeAsString(jsonEncode(detail));
 
-  var temp = processedComicInfo.toJson();
-  temp['epsIds'] = downloadedEpIds;
-  var processedComicInfoString = temp.let(jsonEncode);
-  var processedComicInfoFile = File(
-    p.join(comicDir, 'processed_comic_info.json'),
-  );
-  await processedComicInfoFile.writeAsString(processedComicInfoString);
+  await _exportCover(download, comicDir, comicId);
+  await _copyEpisodeFiles(download, comicDir, comicId);
 
-  var coverDir = p.join(comicDir, 'cover');
-  var coverFile = File(p.join(coverDir, 'cover.jpg'));
-  await coverFile.create(recursive: true);
-  try {
-    String coverDownloadFile = await downloadPicture(
-      from: From.jm,
-      url: getJmCoverUrl(processedComicInfo.id.toString()),
-      path: "${processedComicInfo.id}.jpg",
-      cartoonId: processedComicInfo.id.toString(),
-      pictureType: PictureType.cover,
-      chapterId: processedComicInfo.id.toString(),
-    );
-    await File(coverDownloadFile).copy(coverFile.path);
-  } catch (e) {
-    logger.e('Error downloading cover: $e');
-  }
-
-  final series = processedComicInfo.series.where(
-    (ep) => downloadedEpIds.contains(ep.id),
-  );
-
-  for (var ep in series) {
-    var epDir = p.join(comicDir, 'eps', ep.name);
-    for (var page in ep.info.images) {
-      var pageFile = p.join(epDir, page);
-      if (page == "404") {
-        continue;
-      }
-      try {
-        String pageDownloadFile = await downloadPicture(
-          from: From.jm,
-          url: getJmImagesUrl(comicInfo.id.toString(), page),
-          path: page,
-          cartoonId: comicInfo.id.toString(),
-          pictureType: PictureType.comic,
-          chapterId: ep.id,
-        );
-        if (!await File(pageFile).exists()) {
-          await File(pageFile).create(recursive: true);
-        }
-        await File(pageDownloadFile).copy(pageFile);
-      } catch (e) {
-        logger.e('Error downloading $page: $e');
-      }
-    }
-  }
-
-  logger.d('漫画${comicInfo.name}导出为文件夹完成');
-  showSuccessToast('漫画${comicInfo.name}导出为文件夹完成');
+  showSuccessToast('漫画$title导出为文件夹完成');
 }
 
 Future<void> jmExportComicAsZip(String comicId, {String? exportPath}) async {
-  final jmDownload = objectbox.jmDownloadBox
-      .query(JmDownload_.comicId.equals(comicId))
-      .build()
-      .findFirst()!;
-  final comicInfo = jmDownload.allInfo.let(downloadInfoJsonFromJson);
-  final downloadedEpIds = jmDownload.epsIds;
-  var processedComicInfo = comicInfoProcess(comicInfo);
-
-  String finalZipPath;
-
-  if (exportPath != null) {
-    finalZipPath = exportPath;
-  } else {
-    final downloadPath = p.join(
-      await createDownloadDir(),
-      processedComicInfo.name.substring(
-        0,
-        min(processedComicInfo.name.length, 90),
-      ),
-    );
-    finalZipPath = '$downloadPath.zip';
-  }
-
-  var processedComicInfoString = processedComicInfo.toJson();
-  processedComicInfoString['epsIds'] = downloadedEpIds;
+  final download = _getDownload(comicId, 'jm');
+  final detail = _exportDetail(download);
+  final title = download.title;
+  final finalZipPath = exportPath ??
+      '${p.join(await createDownloadDir(), title.substring(0, min(title.length, 90)))}.zip';
 
   final packInfo = PackInfo(
-    comicInfoString: downloadInfoJsonToJson(comicInfo),
-    processedComicInfoString: processedComicInfoString.let(jsonEncode),
+    comicInfoString: jsonEncode(detail),
+    processedComicInfoString: jsonEncode(detail),
     originalImagePaths: [],
     packImagePaths: [],
   );
 
-  // 下载封面
-  if (processedComicInfo.name.isNotEmpty) {
-    var coverFile = 'cover/cover.jpg';
-    var coverDownloadFile = await downloadPicture(
-      from: From.jm,
-      url: getJmCoverUrl(processedComicInfo.id.toString()),
-      path: "${processedComicInfo.id}.jpg",
-      cartoonId: processedComicInfo.id.toString(),
-      pictureType: PictureType.cover,
-      chapterId: processedComicInfo.id.toString(),
-    );
-    packInfo.originalImagePaths.add(coverDownloadFile);
-    packInfo.packImagePaths.add(coverFile);
+  final coverPath = await _tryDownloadCover(download, comicId);
+  if (coverPath != null) {
+    packInfo.originalImagePaths.add(coverPath);
+    packInfo.packImagePaths.add('cover/cover.jpg');
   }
 
-  // 下载漫画章节
-  for (var ep in processedComicInfo.series) {
-    if (!downloadedEpIds.contains(ep.id)) {
-      continue;
-    }
-    var epDir = p.join('eps', ep.name);
-    for (var page in ep.info.images) {
-      var pageFile = p.join(epDir, page);
-      if (page == "404") {
-        continue;
-      }
-      try {
-        var pageDownloadFile = await downloadPicture(
-          from: From.jm,
-          url: getJmImagesUrl(comicInfo.id.toString(), page),
-          path: page,
-          cartoonId: comicInfo.id.toString(),
-          pictureType: PictureType.comic,
-          chapterId: ep.id,
-        );
-
-        if (pageDownloadFile == "404") {
-          logger.w("跳过 404 页面: $page");
-          continue;
-        }
-
-        packInfo.originalImagePaths.add(pageDownloadFile);
-        packInfo.packImagePaths.add(pageFile);
-      } catch (e, s) {
-        logger.e('Error downloading $page: $e', stackTrace: s);
-      }
+  final chapterRoot = await _chapterRoot(download);
+  for (final chapter in download.chapters ?? const <Map<String, dynamic>>[]) {
+    final chapterId = chapter['id']?.toString() ?? '';
+    final chapterName = chapter['name']?.toString() ?? chapterId;
+    final dir = Directory(p.join(chapterRoot, chapterId));
+    if (!await dir.exists()) continue;
+    final files = await dir.list().where((e) => e is File).cast<File>().toList()
+      ..sort((a, b) => a.path.compareTo(b.path));
+    for (final file in files) {
+      packInfo.originalImagePaths.add(file.path);
+      packInfo.packImagePaths.add(p.join('eps', chapterName, p.basename(file.path)));
     }
   }
 
-  // 压缩文件夹
   await packFolderZip(destPath: finalZipPath, packInfo: packInfo);
-
-  if (!Platform.isIOS) {
-    showSuccessToast('漫画${comicInfo.name}导出为压缩包完成');
-  }
-  logger.d('漫画${comicInfo.name}导出为压缩包完成');
+  showSuccessToast('漫画$title导出为 zip 完成');
 }
 
-DownloadInfoJson comicInfoProcess(DownloadInfoJson comicInfo) {
-  // 修改 comic 的 title
-  String originalComicName =
-      'jm_${comicInfo.name.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}';
-  final updatedComic = originalComicName.substring(
-    0,
-    min(originalComicName.length, 90),
+UnifiedComicDownload _getDownload(String comicId, String source) {
+  return objectbox.unifiedDownloadBox
+      .query(UnifiedComicDownload_.uniqueKey.equals('$source:$comicId'))
+      .build()
+      .findFirst()!;
+}
+
+Map<String, dynamic> _exportDetail(UnifiedComicDownload download) {
+  final detail = Map<String, dynamic>.from(
+    jsonDecode(download.detailJson) as Map<String, dynamic>,
   );
+  final extension = Map<String, dynamic>.from(detail['extension'] as Map? ?? const {});
+  extension['version'] = 'v2';
+  detail['extension'] = extension;
+  return detail;
+}
 
-  int i = 1;
-  // 修改 eps 的 docs
-  final updatedSeries = comicInfo.series.map((ep) {
-    // 修改 epsDoc 的 title
-    String originalEpName =
-        "$i.${ep.info.name.replaceAll(RegExp(r'[<>:"/\\|?* ]'), '_')}";
-    final updatedEp = ep.copyWith(
-      name: originalEpName.substring(0, min(originalEpName.length, 90)),
+Future<void> _exportCover(
+  UnifiedComicDownload download,
+  String comicDir,
+  String comicId,
+) async {
+  final path = await _tryDownloadCover(download, comicId);
+  if (path == null) return;
+  final coverFile = File(p.join(comicDir, 'cover', 'cover.jpg'));
+  await coverFile.create(recursive: true);
+  await File(path).copy(coverFile.path);
+}
+
+Future<String?> _tryDownloadCover(UnifiedComicDownload download, String comicId) async {
+  final cover = Map<String, dynamic>.from(download.cover ?? const <String, dynamic>{});
+  final ext = Map<String, dynamic>.from(cover['extension'] as Map? ?? const {});
+  final url = cover['url']?.toString() ?? '';
+  final path = ext['path']?.toString() ?? '$comicId.jpg';
+  if (url.isEmpty && path.isEmpty) return null;
+  try {
+    return await downloadPicture(
+      from: From.jm,
+      url: url,
+      fileName: path,
+      cartoonId: comicId,
     );
+  } catch (_) {
+    return null;
+  }
+}
 
-    i++;
+Future<void> _copyEpisodeFiles(
+  UnifiedComicDownload download,
+  String comicDir,
+  String comicId,
+) async {
+  final chapterRoot = await _chapterRoot(download);
+  for (final chapter in download.chapters ?? const <Map<String, dynamic>>[]) {
+    final chapterId = chapter['id']?.toString() ?? '';
+    final chapterName = chapter['name']?.toString() ?? chapterId;
+    final dir = Directory(p.join(chapterRoot, chapterId));
+    if (!await dir.exists()) continue;
+    final files = await dir.list().where((e) => e is File).cast<File>().toList()
+      ..sort((a, b) => a.path.compareTo(b.path));
+    for (final file in files) {
+      final target = File(p.join(comicDir, 'eps', chapterName, p.basename(file.path)));
+      await target.create(recursive: true);
+      await file.copy(target.path);
+    }
+  }
+}
 
-    // 更新 epsDoc 的 pages
-    return updatedEp;
-  }).toList();
-
-  // 返回更新后的 ComicAllInfoJson
-  return comicInfo.copyWith(name: updatedComic, series: updatedSeries);
+Future<String> _chapterRoot(UnifiedComicDownload download) async {
+  final base = await getDownloadPath();
+  return p.join(base, download.source, 'original', download.comicId, 'comic');
 }

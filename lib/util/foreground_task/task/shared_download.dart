@@ -1,0 +1,134 @@
+import 'package:pool/pool.dart';
+import 'package:zephyr/network/http/picture/picture.dart';
+import 'package:zephyr/type/enum.dart';
+import '../../download/download_progress_reporter.dart';
+
+class DownloadImageJob {
+  const DownloadImageJob({
+    required this.url,
+    required this.fileName,
+    required this.cartoonId,
+    required this.chapterId,
+    this.decodeJmComic = false,
+  });
+
+  final String url;
+  final String fileName;
+  final String cartoonId;
+  final String chapterId;
+  final bool decodeJmComic;
+}
+
+Future<String> downloadCoverAsset({
+  required From from,
+  required String url,
+  required String fileName,
+  required String cartoonId,
+  required String qjsName,
+  required String qjsTaskGroupKey,
+  bool decodeJmComic = false,
+}) {
+  return downloadPicture(
+    from: from,
+    url: url,
+    fileName: fileName,
+    cartoonId: cartoonId,
+    qjsName: qjsName,
+    qjsTaskGroupKey: qjsTaskGroupKey,
+    decodeJmComic: decodeJmComic,
+  );
+}
+
+Future<void> downloadImageJobs({
+  required From from,
+  required List<DownloadImageJob> jobs,
+  required bool slowDownload,
+  int? concurrency,
+  required String qjsRuntimeName,
+  required String qjsTaskGroupKey,
+  required Future<void> Function() ensureTaskRunning,
+  required DownloadProgressReporter reporter,
+  Future<void> Function(Object error, DownloadImageJob job)? onError,
+}) async {
+  void updateProgress(int progress, String message) {
+    reporter.updateMessage(message);
+  }
+
+  if (jobs.isEmpty) {
+    updateProgress(100, '漫画下载进度: 100%');
+    return;
+  }
+
+  if (slowDownload) {
+    var progress = 0;
+    for (final job in jobs) {
+      await ensureTaskRunning();
+      await _downloadSingleJob(
+        from: from,
+        job: job,
+        qjsRuntimeName: qjsRuntimeName,
+        qjsTaskGroupKey: qjsTaskGroupKey,
+        onError: onError,
+      );
+      progress++;
+      updateProgress(
+        progress,
+        '漫画下载进度: ${(progress / jobs.length * 100).toStringAsFixed(2)}%',
+      );
+    }
+    return;
+  }
+
+  final pool = Pool(concurrency ?? (from == From.jm ? 5 : 10));
+  var progress = 0;
+  var lastReportedPercent = 0;
+
+  final tasks = jobs.map((job) {
+    return pool.withResource(() async {
+      await ensureTaskRunning();
+      await _downloadSingleJob(
+        from: from,
+        job: job,
+        qjsRuntimeName: qjsRuntimeName,
+        qjsTaskGroupKey: qjsTaskGroupKey,
+        onError: onError,
+      );
+      progress++;
+      final currentPercent = (progress / jobs.length * 100).floor();
+      if (currentPercent > lastReportedPercent) {
+        lastReportedPercent = currentPercent;
+        updateProgress(currentPercent, '漫画下载进度: $currentPercent%');
+      }
+      await ensureTaskRunning();
+    });
+  }).toList();
+
+  await Future.wait(tasks, eagerError: true);
+}
+
+Future<void> _downloadSingleJob({
+  required From from,
+  required DownloadImageJob job,
+  required String qjsRuntimeName,
+  required String qjsTaskGroupKey,
+  Future<void> Function(Object error, DownloadImageJob job)? onError,
+}) async {
+  try {
+    await downloadPicture(
+      from: from,
+      url: job.url,
+      fileName: job.fileName,
+      cartoonId: job.cartoonId,
+      chapterId: job.chapterId,
+      qjsName: qjsRuntimeName,
+      qjsTaskGroupKey: qjsTaskGroupKey,
+      decodeJmComic: job.decodeJmComic,
+    );
+  } catch (error) {
+    if (onError != null) {
+      await onError(error, job);
+      return;
+    }
+    rethrow;
+  }
+}

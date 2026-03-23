@@ -4,10 +4,12 @@ import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/sundry.dart';
 
 import '../../../../main.dart';
 import '../../../../object_box/model.dart';
+import '../../../../object_box/objectbox.g.dart';
 
 part 'user_history_event.dart';
 part 'user_history_state.dart';
@@ -70,42 +72,26 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
     }
   }
 
-  List<BikaComicHistory> _fetchOfSort(
-    List<BikaComicHistory> comicList,
+  List<UnifiedComicHistory> _fetchOfSort(
+    List<UnifiedComicHistory> comicList,
     String sort,
   ) {
     if (sort == "dd") {
-      comicList.sort((a, b) => b.history.compareTo(a.history));
+      comicList.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     }
     if (sort == "da") {
-      comicList.sort((a, b) => a.history.compareTo(b.history));
+      comicList.sort((a, b) => a.updatedAt.compareTo(b.updatedAt));
     }
     if (sort == "ld") {
-      comicList.sort((a, b) => b.likesCount.compareTo(a.likesCount));
+      comicList.sort((a, b) => _likes(a).compareTo(_likes(b)));
     }
     if (sort == "vd") {
-      comicList.sort((a, b) => b.viewsCount.compareTo(a.viewsCount));
+      comicList.sort((a, b) => _views(b).compareTo(_views(a)));
     }
     return comicList;
   }
 
-  List<JmHistory> _fetchOfSortJm(List<JmHistory> comicList, String sort) {
-    if (sort == "dd") {
-      comicList.sort((a, b) => b.history.compareTo(a.history));
-    }
-    if (sort == "da") {
-      comicList.sort((a, b) => a.history.compareTo(b.history));
-    }
-    if (sort == "ld") {
-      comicList.sort((a, b) => b.likes.compareTo(a.likes));
-    }
-    if (sort == "vd") {
-      comicList.sort((a, b) => b.totalViews.compareTo(a.totalViews));
-    }
-    return comicList;
-  }
-
-  List<BikaComicHistory> _filterShieldedComics(List<BikaComicHistory> comics) {
+  List<UnifiedComicHistory> _filterShieldedComics(List<UnifiedComicHistory> comics) {
     final settings = objectbox.userSettingBox.get(1)!.bikaSetting;
     // 获取所有被屏蔽的分类
     List<String> shieldedCategoriesList = settings.shieldCategoryMap.entries
@@ -116,9 +102,14 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
     // 过滤掉包含屏蔽分类的漫画
     return comics.where((comic) {
       // 检查该漫画的分类是否与屏蔽分类列表中的任何分类匹配
-      return !comic.categories.any(
-        (category) => shieldedCategoriesList.contains(category),
-      );
+      return !(comic.metadata ?? const <Map<String, dynamic>>[]).any((entry) {
+        final type = entry['type']?.toString();
+        if (type != 'categories') return false;
+        final values = asJsonList(entry['value'])
+            .map((e) => asJsonMap(e)['name']?.toString() ?? '')
+            .toList();
+        return values.any(shieldedCategoriesList.contains);
+      });
     }).toList();
   }
 
@@ -126,7 +117,10 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
     logger.d("event: $event");
     List<dynamic> comics = [];
     if (event.comicChoice == 1) {
-      late var comicList = objectbox.bikaHistoryBox.getAll();
+      late var comicList = objectbox.unifiedHistoryBox
+          .query(UnifiedComicHistory_.source.equals('bika'))
+          .build()
+          .find();
 
       totalComicCount = comicList.length;
 
@@ -137,7 +131,18 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
       if (event.searchEnterConst.categories.isNotEmpty) {
         for (var category in event.searchEnterConst.categories) {
           comicList = comicList
-              .where((comic) => comic.categories.contains(category))
+              .where(
+                (comic) {
+                  final metadata = comic.metadata ?? const <Map<String, dynamic>>[];
+                  return metadata.any((entry) {
+                    if (entry['type']?.toString() != 'categories') return false;
+                    final values = asJsonList(entry['value'])
+                        .map((e) => asJsonMap(e)['name']?.toString() ?? '')
+                        .toList();
+                    return values.contains(category);
+                  });
+                },
+              )
               .toList();
         }
       }
@@ -148,12 +153,9 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
         comicList = comicList.where((comic) {
           var allString =
               comic.title +
-              comic.author +
-              comic.chineseTeam +
-              comic.categoriesString +
-              comic.tagsString +
               comic.description +
-              comic.creatorName;
+              ((comic.creator ?? const <String, dynamic>{})['name']?.toString() ?? '') +
+              comic.metadata.toString();
           return allString.toLowerCase().let(t2s).contains(keyword);
         }).toList();
       }
@@ -162,24 +164,24 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
 
       comics = comicList;
     } else if (event.comicChoice == 2) {
-      late var comicList = objectbox.jmHistoryBox.getAll();
+      late var comicList = objectbox.unifiedHistoryBox
+          .query(UnifiedComicHistory_.source.equals('jm'))
+          .build()
+          .find();
 
       totalComicCount = comicList.length;
 
-      comicList = _fetchOfSortJm(comicList, event.searchEnterConst.sort);
+      comicList = _fetchOfSort(comicList, event.searchEnterConst.sort);
 
       if (event.searchEnterConst.keyword.isNotEmpty) {
         final keyword = event.searchEnterConst.keyword.toLowerCase().let(t2s);
 
         comicList = comicList.where((comic) {
           var allString =
-              comic.comicId.toString() +
-              comic.name +
+              comic.comicId +
+              comic.title +
               comic.description +
-              comic.author.toString() +
-              comic.tags.toString() +
-              comic.works.toString() +
-              comic.actors.toString();
+              comic.metadata.toString();
           return allString.toLowerCase().let(t2s).contains(keyword);
         }).toList();
       }
@@ -189,5 +191,19 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
       comics = comicList;
     }
     return comics;
+  }
+
+  int _likes(UnifiedComicHistory item) {
+    return 0;
+  }
+
+  int _views(UnifiedComicHistory item) {
+    for (final entry in item.titleMeta ?? const <Map<String, dynamic>>[]) {
+      final name = entry['name']?.toString() ?? '';
+      if (name.startsWith('浏览：')) {
+        return int.tryParse(name.substring(3)) ?? 0;
+      }
+    }
+    return 0;
   }
 }

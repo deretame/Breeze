@@ -1,14 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/network/http/jm/jm_error_message.dart';
-import 'package:zephyr/src/rust/api/qjs.dart' as rust_qjs;
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/direct_dio.dart';
+import 'package:zephyr/util/download/qjs_download_runtime.dart';
 import 'package:zephyr/util/event/event.dart';
 
 const _kQjsRuntimeCancelled = '__QJS_RUNTIME_CANCELLED__';
@@ -23,6 +20,7 @@ Future<dynamic> request(
   bool cache = false,
   bool useJwt = true,
   String qjsName = "jmComic",
+  String qjsTaskGroupKey = '',
 }) async {
   try {
     final args = {
@@ -35,22 +33,13 @@ Future<dynamic> request(
       'useJwt': useJwt,
     }.let(jsonEncode);
 
-    var raw = "";
-    if (kDebugMode) {
-      final js = await directDio.get(await jmJsUrl);
-      raw = await rust_qjs.qjsCallOnce(
-        runtimeName: qjsName,
-        bundleJs: js.data,
-        fnPath: "jmRequest",
-        argsJson: args,
-      );
-    } else {
-      raw = await rust_qjs.qjsCall(
-        runtimeName: qjsName,
-        fnPath: "jmRequest",
-        argsJson: args,
-      );
-    }
+    final raw = await executeQjsCall(
+      source: 'jm',
+      runtimeName: qjsName,
+      fnPath: 'jmRequest',
+      argsJson: args,
+      taskGroupKey: qjsTaskGroupKey.isEmpty ? null : qjsTaskGroupKey,
+    );
 
     dynamic decoded;
     try {

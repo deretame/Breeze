@@ -4,9 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
-import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart';
 import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/router/router.gr.dart' show ComicReadRoute;
 
 import 'read_launch_adapter.dart';
@@ -46,8 +44,8 @@ void goToBikaRead(
   );
   final stringSelectDate = context.read<StringSelectCubit>().state;
   if (stringSelectDate.isNotEmpty) {
-    var comicHistory = objectbox.bikaHistoryBox
-        .query(BikaComicHistory_.comicId.equals(comicId))
+    var comicHistory = objectbox.unifiedHistoryBox
+        .query(UnifiedComicHistory_.uniqueKey.equals('bika:$comicId'))
         .build()
         .findFirst();
     context.pushRoute(
@@ -57,7 +55,7 @@ void goToBikaRead(
         type: type == ComicEntryType.download
             ? ComicEntryType.historyAndDownload
             : ComicEntryType.history,
-        order: comicHistory!.order,
+        order: comicHistory!.chapterOrder,
         epsNumber: epsCount,
         from: From.bika,
         stringSelectCubit: context.read<StringSelectCubit>(),
@@ -93,18 +91,12 @@ void goToJmRead(
   ComicEntryType typeVal = type;
 
   if (typeVal == ComicEntryType.download) {
-    var jmDownload = objectbox.jmDownloadBox
-        .query(JmDownload_.comicId.equals(comicId))
+    var jmDownload = objectbox.unifiedDownloadBox
+        .query(UnifiedComicDownload_.uniqueKey.equals('jm:$comicId'))
         .build()
         .findFirst()!;
     comicIdVal = jmDownload.comicId;
-    epsNumberVal = jmDownload.allInfo
-        .let(downloadInfoJsonFromJson)
-        .series
-        .first
-        .info
-        .series
-        .length;
+    epsNumberVal = jmDownload.chapters?.length ?? 0;
 
     if (storeDate.isNotEmpty) {
       typeVal = ComicEntryType.historyAndDownload;
@@ -121,12 +113,14 @@ void goToJmRead(
         : ComicEntryType.normal;
   }
 
-  var jmHistory = objectbox.jmHistoryBox
-      .query(JmHistory_.comicId.equals(comicId))
+  var jmHistory = objectbox.unifiedHistoryBox
+      .query(UnifiedComicHistory_.uniqueKey.equals('jm:$comicId'))
       .build()
       .findFirst();
 
-  orderVal = storeDate.isNotEmpty ? jmHistory!.order : comicId.let(toInt);
+  orderVal = storeDate.isNotEmpty
+      ? jmHistory!.chapterOrder
+      : int.tryParse(comicId) ?? 1;
 
   context.pushRoute(
     ComicReadRoute(

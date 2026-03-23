@@ -12,13 +12,20 @@ import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 
 class Cover extends StatelessWidget {
   final PictureInfo pictureInfo;
+  final double height;
+  final double borderRadius;
 
-  const Cover({super.key, required this.pictureInfo});
+  const Cover({
+    super.key,
+    required this.pictureInfo,
+    this.height = 180,
+    this.borderRadius = 14,
+  });
 
   @override
   Widget build(BuildContext context) {
-    const double height = 180;
-    const double width = height / 4 * 3;
+    final width = height / 4 * 3;
+    final radius = BorderRadius.circular(borderRadius);
 
     return SizedBox(
       height: height,
@@ -29,11 +36,19 @@ class Cover extends StatelessWidget {
           builder: (context, state) {
             switch (state.status) {
               case PictureLoadStatus.initial:
-                return Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: LoadingAnimationWidget.waveDots(
-                    color: context.theme.colorScheme.primaryFixedDim,
-                    size: 50,
+                return DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: radius,
+                    color: context.theme.colorScheme.surfaceContainerHigh,
+                    border: Border.all(
+                      color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Center(
+                    child: LoadingAnimationWidget.waveDots(
+                      color: context.theme.colorScheme.primary,
+                      size: 40,
+                    ),
                   ),
                 );
               case PictureLoadStatus.success:
@@ -44,7 +59,7 @@ class Cover extends StatelessWidget {
                     );
                   },
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10.0),
+                    borderRadius: radius,
                     child: Image.file(
                       File(state.imagePath!),
                       fit: BoxFit.cover,
@@ -55,13 +70,25 @@ class Cover extends StatelessWidget {
                 );
               case PictureLoadStatus.failure:
                 if (state.result.toString().contains('404')) {
-                  return Image.asset('asset/image/error_image/404.png');
+                  return ClipRRect(
+                    borderRadius: radius,
+                    child: Image.asset(
+                      'asset/image/error_image/404.png',
+                      fit: BoxFit.cover,
+                    ),
+                  );
                 } else {
                   return InkWell(
                     onTap: () {
                       context.read<PictureBloc>().add(GetPicture(pictureInfo));
                     },
-                    child: Icon(Icons.refresh),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius: radius,
+                        color: context.theme.colorScheme.surfaceContainerHighest,
+                      ),
+                      child: const Center(child: Icon(Icons.refresh)),
+                    ),
                   );
                 }
             }

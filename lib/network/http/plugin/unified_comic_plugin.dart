@@ -1,11 +1,7 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
-import 'package:zephyr/network/http/bika/http_request.dart';
-import 'package:zephyr/network/http/jm/http_request.dart';
-import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/util/direct_dio.dart';
+import 'package:zephyr/util/download/qjs_download_runtime.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
 String _defaultRuntimeName(From from) =>
@@ -38,16 +34,10 @@ Future<String> _invokeQjs({
   required String fnPath,
   required String argsJson,
 }) async {
-  if (kDebugMode) {
-    final bundleUrl = from == From.bika ? await bikaJsUrl : await jmJsUrl;
-    final bundleJs = (await directDio.get(bundleUrl)).data;
-    return qjsCallOnce(
-      runtimeName: runtimeName,
-      bundleJs: bundleJs,
-      fnPath: fnPath,
-      argsJson: argsJson,
-    );
-  }
-
-  return qjsCall(runtimeName: runtimeName, fnPath: fnPath, argsJson: argsJson);
+  return executeQjsCall(
+    source: from == From.bika ? 'bika' : 'jm',
+    runtimeName: runtimeName,
+    fnPath: fnPath,
+    argsJson: argsJson,
+  );
 }

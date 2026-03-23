@@ -213,22 +213,14 @@ class _ComicInfoState extends State<_ComicInfo>
         },
       ),
       floatingActionButton: _loadingComplete
-          ? SizedBox(
-              width: 100,
-              height: 56,
-              child: FloatingActionButton(
-                onPressed: () => goToComicRead(
-                  context,
-                  widget.comicId,
-                  widget.type,
-                  comicInfoDyn,
-                  widget.from,
-                ),
-                child: Text(
-                  stringSelectDate.isNotEmpty ? '继续阅读' : '开始阅读',
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
+          ? _ReadActionButton(
+              hasHistory: stringSelectDate.isNotEmpty,
+              onPressed: () => goToComicRead(
+                context,
+                widget.comicId,
+                widget.type,
+                comicInfoDyn,
+                widget.from,
               ),
             )
           : null,
@@ -250,127 +242,6 @@ class _ComicInfoState extends State<_ComicInfo>
       displayEps = displayEps.reversed.toList();
     }
 
-    var widgets = [
-      const SizedBox(height: 10),
-      ComicParticularsWidget(comicInfo: comicInfo, from: widget.from),
-      const SizedBox(height: 10),
-    ];
-
-    if (comicInfo.author.isNotEmpty) {
-      widgets.add(
-        AllChipWidget(
-          comicId: comicInfo.id,
-          type: 'author',
-          chips: comicInfo.author,
-          from: widget.from,
-        ),
-      );
-    }
-
-    if (comicInfo.chineseTeam.isNotEmpty) {
-      widgets.add(
-        AllChipWidget(
-          comicId: comicInfo.id,
-          type: 'chineseTeam',
-          chips: comicInfo.chineseTeam,
-          from: widget.from,
-        ),
-      );
-    }
-
-    if (comicInfo.categories.isNotEmpty) {
-      widgets.add(
-        AllChipWidget(
-          comicId: comicInfo.id,
-          type: 'categories',
-          chips: comicInfo.categories,
-          from: widget.from,
-        ),
-      );
-    }
-
-    if (comicInfo.tags.isNotEmpty) {
-      widgets.add(
-        AllChipWidget(
-          comicId: comicInfo.id,
-          type: 'tags',
-          chips: comicInfo.tags,
-          from: widget.from,
-        ),
-      );
-    }
-
-    if (comicInfo.actors.isNotEmpty) {
-      widgets.add(
-        AllChipWidget(
-          comicId: comicInfo.id,
-          type: 'actors',
-          chips: comicInfo.actors,
-          from: widget.from,
-        ),
-      );
-    }
-
-    if (comicInfo.works.isNotEmpty) {
-      widgets.add(
-        AllChipWidget(
-          comicId: comicInfo.id,
-          type: 'works',
-          chips: comicInfo.works,
-          from: widget.from,
-        ),
-      );
-    }
-
-    if (comicInfo.description != '') {
-      widgets.add(const SizedBox(height: 3));
-      widgets.add(
-        SelectableText(
-          comicInfo.description.let(t2s),
-          style: const TextStyle(fontSize: 14, height: 1.5),
-        ),
-      );
-    }
-
-    if (widget.from == From.bika) {
-      widgets.add(const SizedBox(height: 10));
-      widgets.add(CreatorInfoWidget(comicInfo: comicInfo));
-    }
-
-    widgets.add(const SizedBox(height: 10));
-    widgets.add(
-      ComicOperationWidget(
-        normalComicInfo: comicInfo,
-        from: widget.from,
-        comicInfo: comicInfoDyn,
-      ),
-    );
-
-    for (var e in displayEps) {
-      widgets.add(
-        Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: EpButtonWidget(
-            doc: e,
-            allInfo: comicInfoDyn,
-            epsLength: normalComicAllInfo.eps.length,
-            type: _type,
-            comicId: widget.comicId,
-            from: widget.from,
-          ),
-        ),
-      );
-    }
-
-    widgets.addAll([
-      const SizedBox(height: 10),
-      RecommendWidget(
-        comicList: normalComicAllInfo.recommend,
-        from: widget.from,
-      ),
-      const SizedBox(height: 180),
-    ]);
-
     return RefreshIndicator(
       onRefresh: () async {
         _type = ComicEntryType.normal;
@@ -390,9 +261,102 @@ class _ComicInfoState extends State<_ComicInfo>
       },
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.symmetric(horizontal: context.screenWidth / 50),
-        itemCount: widgets.length,
-        itemBuilder: (context, index) => widgets[index],
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 180),
+        itemCount: 1,
+        itemBuilder: (context, index) => Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1120),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ComicParticularsWidget(
+                  comicInfo: comicInfo,
+                  from: widget.from,
+                  onContinueRead: context.watch<StringSelectCubit>().state.isNotEmpty
+                      ? () => goToComicRead(
+                          context,
+                          widget.comicId,
+                          _type,
+                          comicInfoDyn,
+                          widget.from,
+                        )
+                      : null,
+                ),
+                const SizedBox(height: 12),
+                _SectionCard(
+                  child: ComicOperationWidget(
+                    normalInfo: normalComicAllInfo,
+                    from: widget.from,
+                    comicInfo: comicInfoDyn,
+                  ),
+                ),
+                if (comicInfo.metadata.isNotEmpty || comicInfo.description.trim().isNotEmpty)
+                  ...[
+                    const SizedBox(height: 12),
+                    _SectionCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (final meta in comicInfo.metadata) ...[
+                            AllChipWidget(
+                              comicId: comicInfo.id,
+                              metadata: meta,
+                              from: widget.from,
+                            ),
+                            const SizedBox(height: 6),
+                          ],
+                          if (comicInfo.description.trim().isNotEmpty)
+                            _DescriptionCard(description: comicInfo.description.let(t2s)),
+                        ],
+                      ),
+                    ),
+                  ],
+                if (comicInfo.creator.name.trim().isNotEmpty ||
+                    comicInfo.creator.avatar.url.trim().isNotEmpty)
+                  ...[
+                    const SizedBox(height: 12),
+                    _SectionCard(
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 460),
+                          child: CreatorInfoWidget(
+                            creator: comicInfo.creator,
+                            from: widget.from,
+                            imageKey: comicInfo.id,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                const SizedBox(height: 12),
+                _SectionCard(
+                  title: '章节目录',
+                  trailing: _EpisodeHeaderBadge(
+                    label: '${normalComicAllInfo.eps.length} 话',
+                    icon: _isReversed ? Icons.south : Icons.north,
+                    onTap: _toggleOrder,
+                  ),
+                  child: _EpisodeListSection(
+                    episodes: displayEps,
+                    allInfo: comicInfoDyn,
+                    epsLength: normalComicAllInfo.eps.length,
+                    type: _type,
+                    comicId: widget.comicId,
+                    from: widget.from,
+                  ),
+                ),
+                if (normalComicAllInfo.recommend.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  _SectionCard(
+                    title: '相关推荐',
+                    child: RecommendWidget(comicList: normalComicAllInfo.recommend),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -501,4 +465,329 @@ class _ComicInfoState extends State<_ComicInfo>
 
   // 实现章节倒序逻辑
   void _toggleOrder() => setState(() => _isReversed = !_isReversed);
+}
+
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({
+    required this.child,
+    this.title,
+    this.trailing,
+  });
+
+  final String? title;
+  final Widget child;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+          if (title != null) ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    title!,
+                    style: context.theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                if (trailing != null) ...[
+                  const SizedBox(width: 10),
+                  trailing!,
+                ],
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: 42,
+              height: 1,
+              color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.65),
+            ),
+            const SizedBox(height: 12),
+          ],
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _EpisodeHeaderBadge extends StatelessWidget {
+  const _EpisodeHeaderBadge({
+    required this.label,
+    required this.icon,
+    this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: context.theme.colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18, color: context.textColor.withValues(alpha: 0.75)),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: context.theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: context.textColor.withValues(alpha: 0.82),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DescriptionCard extends StatefulWidget {
+  const _DescriptionCard({required this.description});
+
+  final String description;
+
+  @override
+  State<_DescriptionCard> createState() => _DescriptionCardState();
+}
+
+class _DescriptionCardState extends State<_DescriptionCard> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final descriptionStyle = context.theme.textTheme.bodyMedium?.copyWith(
+      height: 1.65,
+      color: context.textColor.withValues(alpha: 0.9),
+    );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.theme.colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.28),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '简介',
+            style: context.theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 10),
+          SelectableText(
+            widget.description,
+            style: descriptionStyle,
+            maxLines: _expanded ? null : 5,
+          ),
+          if (widget.description.length > 90) ...[
+            const SizedBox(height: 10),
+            TextButton.icon(
+              onPressed: () => setState(() => _expanded = !_expanded),
+              icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
+              label: Text(_expanded ? '收起' : '展开全文'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _EpisodeListSection extends StatelessWidget {
+  const _EpisodeListSection({
+    required this.episodes,
+    required this.allInfo,
+    required this.epsLength,
+    required this.type,
+    required this.comicId,
+    required this.from,
+  });
+
+  final List<dynamic> episodes;
+  final dynamic allInfo;
+  final int epsLength;
+  final ComicEntryType type;
+  final String comicId;
+  final From from;
+
+  @override
+  Widget build(BuildContext context) {
+    if (episodes.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: context.theme.colorScheme.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.28),
+          ),
+        ),
+        child: Text(
+          '暂无章节信息',
+          style: context.theme.textTheme.bodyMedium,
+        ),
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 560) {
+          return Column(
+            children: episodes.map((item) {
+              final e = item as Ep;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: EpButtonWidget(
+                  doc: e,
+                  allInfo: allInfo,
+                  epsLength: epsLength,
+                  type: type,
+                  comicId: comicId,
+                  from: from,
+                ),
+              );
+            }).toList(),
+          );
+        }
+
+        final isDesktop = constraints.maxWidth >= 960;
+        if (isDesktop) {
+          return Center(
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: episodes.map((item) {
+                final e = item as Ep;
+                return SizedBox(
+                  width: 280,
+                  child: EpButtonWidget(
+                    doc: e,
+                    allInfo: allInfo,
+                    epsLength: epsLength,
+                    type: type,
+                    comicId: comicId,
+                    from: from,
+                  ),
+                );
+              }).toList(),
+            ),
+          );
+        }
+
+        final isWide = constraints.maxWidth >= 720;
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: episodes.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: isWide ? 2 : 1,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: isWide ? 4.8 : 3.8,
+          ),
+          itemBuilder: (context, index) {
+            final e = episodes[index] as Ep;
+            return EpButtonWidget(
+              doc: e,
+              allInfo: allInfo,
+              epsLength: epsLength,
+              type: type,
+              comicId: comicId,
+              from: from,
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _ReadActionButton extends StatelessWidget {
+  const _ReadActionButton({
+    required this.hasHistory,
+    required this.onPressed,
+  });
+
+  final bool hasHistory;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = context.theme.colorScheme.primary;
+    final background = hasHistory
+        ? primary.withValues(alpha: 0.14)
+        : primary.withValues(alpha: 0.22);
+
+    return SizedBox(
+      width: hasHistory ? 132 : 112,
+      height: 56,
+      child: FloatingActionButton(
+        onPressed: onPressed,
+        backgroundColor: background,
+        foregroundColor: hasHistory ? primary : context.textColor,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              hasHistory ? Icons.history_rounded : Icons.menu_book_rounded,
+              size: 18,
+            ),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                hasHistory ? '继续阅读' : '开始阅读',
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                style: context.theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: hasHistory ? primary : context.textColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

@@ -246,14 +246,10 @@ class _DownloadPageState extends State<_DownloadPage>
     List<dynamic> comics,
     int comicChoice,
   ) {
-    if (comicChoice == 1) {
-      return comics
-          .cast<BikaComicDownload>()
-          .map(unifiedComicFromBikaDownload)
-          .toList();
-    } else {
-      return comics.cast<JmDownload>().map(unifiedComicFromJmDownload).toList();
-    }
+    return comics
+        .cast<UnifiedComicDownload>()
+        .map(unifiedComicFromUnifiedDownload)
+        .toList();
   }
 
   void _refresh({bool goToTop = false, bool clean = false}) {

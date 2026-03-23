@@ -1214,6 +1214,399 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(13, 7056956533911703509),
+    name: 'UnifiedComicDownload',
+    lastPropertyId: const obx_int.IdUid(44, 6641464605182407416),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 8551376985404017763),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 5867969765167480522),
+        name: 'uniqueKey',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(6, 428476326380347235),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 3363397876295444329),
+        name: 'source',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 721069262462878791),
+        name: 'comicId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 8004960269618323568),
+        name: 'title',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 5756511805870665229),
+        name: 'description',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(19, 7314080298117478843),
+        name: 'storageRoot',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(21, 7700604201507429534),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(22, 1546062857236692182),
+        name: 'updatedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(23, 3055670202240573726),
+        name: 'downloadedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(24, 44796548354047765),
+        name: 'deleted',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(25, 369153443960293862),
+        name: 'schemaVersion',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(29, 3971613940500239332),
+        name: 'totalViews',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(30, 2776110938059584215),
+        name: 'totalLikes',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(31, 8724221880094270323),
+        name: 'totalComments',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(32, 8033342430312435320),
+        name: 'isFavourite',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(33, 4912182122649098998),
+        name: 'isLiked',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(34, 8502312681656899168),
+        name: 'allowComment',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(35, 4959915076311511918),
+        name: 'allowLike',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(36, 4046462907645241230),
+        name: 'allowFavorite',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(37, 1246514499952853871),
+        name: 'allowDownload',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(38, 5027229901461830052),
+        name: 'cover',
+        type: 13,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(39, 8759168431946270314),
+        name: 'creator',
+        type: 13,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(40, 25639362235108648),
+        name: 'titleMeta',
+        type: 13,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(41, 3510570848137823376),
+        name: 'metadata',
+        type: 13,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(42, 3476319643945752290),
+        name: 'chapters',
+        type: 13,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(44, 6641464605182407416),
+        name: 'detailJson',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(14, 8462109527962598587),
+    name: 'UnifiedComicFavorite',
+    lastPropertyId: const obx_int.IdUid(25, 8135343708740715392),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 5412542766664711609),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 7590524996176226212),
+        name: 'uniqueKey',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(7, 4704466037397033480),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 3874802254804219351),
+        name: 'source',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 5331815830920688964),
+        name: 'comicId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 211598958919175429),
+        name: 'title',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 8433037617001536703),
+        name: 'description',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(12, 9132475045544439541),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(13, 7899948588476536494),
+        name: 'updatedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(14, 6443741066687636908),
+        name: 'deleted',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(15, 4295050528200922892),
+        name: 'schemaVersion',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(22, 5501151332383572878),
+        name: 'cover',
+        type: 13,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(23, 4983122016659486557),
+        name: 'creator',
+        type: 13,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(24, 5201299801264681508),
+        name: 'titleMeta',
+        type: 13,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(25, 8135343708740715392),
+        name: 'metadata',
+        type: 13,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(15, 4081606024611286375),
+    name: 'UnifiedComicHistory',
+    lastPropertyId: const obx_int.IdUid(30, 2987045655491559403),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 2547959046565605285),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 4090063085802881655),
+        name: 'uniqueKey',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(8, 7380618342371259182),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 6767516492831671357),
+        name: 'source',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 7865356859592268510),
+        name: 'comicId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 7767886632729568272),
+        name: 'title',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 5418203525990396985),
+        name: 'description',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(12, 1542930051842574185),
+        name: 'chapterId',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(13, 3538571680348134588),
+        name: 'chapterTitle',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(14, 7139538324087974586),
+        name: 'chapterOrder',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(15, 931692281669960125),
+        name: 'pageIndex',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(17, 4788541391524030186),
+        name: 'lastReadAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(18, 7669061519915803113),
+        name: 'deleted',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(19, 5580427019876844568),
+        name: 'schemaVersion',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(25, 728310073806791749),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(26, 7786943575791295304),
+        name: 'updatedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(27, 9058910512094564064),
+        name: 'cover',
+        type: 13,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(28, 831710775759013977),
+        name: 'creator',
+        type: 13,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(29, 3244011229671915382),
+        name: 'titleMeta',
+        type: 13,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(30, 2987045655491559403),
+        name: 'metadata',
+        type: 13,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -1259,8 +1652,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(12, 5269818584842768822),
-    lastIndexId: const obx_int.IdUid(5, 8347243317803948936),
+    lastEntityId: const obx_int.IdUid(15, 4081606024611286375),
+    lastIndexId: const obx_int.IdUid(8, 7380618342371259182),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [
@@ -1304,6 +1697,45 @@ obx_int.ModelDefinition getObjectBoxModel() {
       3342028823562884390,
       7718478056653736549,
       3606324867592962075,
+      5999399184576279194,
+      6472382257092694355,
+      6795297860851312041,
+      2936253100620183568,
+      1167538536290154041,
+      970167094975542819,
+      7446258966973623750,
+      3087395351789087438,
+      3197625077798721459,
+      4851160974569192108,
+      6644275219072657896,
+      5321770990900672087,
+      411236541230464015,
+      232378299878644746,
+      8271534245255558701,
+      7249166977955711013,
+      3102066500876068212,
+      1355230306004556707,
+      2948711963407996635,
+      3469109071177705383,
+      2896105035494160074,
+      3734226538945342761,
+      8692096424696757264,
+      5114631873292596873,
+      887481503773810997,
+      7758363354975542307,
+      5178496860663301371,
+      5534247393538131895,
+      1671533493240766888,
+      2083583932165281287,
+      5817592066839928070,
+      6829292739699713492,
+      3371751818862665545,
+      3311247092846906609,
+      6811631582660970637,
+      3142104830071457890,
+      8771457573982425264,
+      3685067463404842804,
+      716240421870203992,
     ],
     retiredRelationUids: const [],
     modelVersion: 5,
@@ -2799,6 +3231,492 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    UnifiedComicDownload: obx_int.EntityDefinition<UnifiedComicDownload>(
+      model: _entities[9],
+      toOneRelations: (UnifiedComicDownload object) => [],
+      toManyRelations: (UnifiedComicDownload object) => {},
+      getId: (UnifiedComicDownload object) => object.id,
+      setId: (UnifiedComicDownload object, int id) {
+        object.id = id;
+      },
+      objectToFB: (UnifiedComicDownload object, fb.Builder fbb) {
+        final uniqueKeyOffset = fbb.writeString(object.uniqueKey);
+        final sourceOffset = fbb.writeString(object.source);
+        final comicIdOffset = fbb.writeString(object.comicId);
+        final titleOffset = fbb.writeString(object.title);
+        final descriptionOffset = fbb.writeString(object.description);
+        final storageRootOffset = fbb.writeString(object.storageRoot);
+        final coverOffset = object.cover == null
+            ? null
+            : fbb.writeListInt8(obx_int.toFlexBuffer(object.cover!));
+        final creatorOffset = object.creator == null
+            ? null
+            : fbb.writeListInt8(obx_int.toFlexBuffer(object.creator!));
+        final titleMetaOffset = object.titleMeta == null
+            ? null
+            : fbb.writeListInt8(obx_int.toFlexBuffer(object.titleMeta!));
+        final metadataOffset = object.metadata == null
+            ? null
+            : fbb.writeListInt8(obx_int.toFlexBuffer(object.metadata!));
+        final chaptersOffset = object.chapters == null
+            ? null
+            : fbb.writeListInt8(obx_int.toFlexBuffer(object.chapters!));
+        final detailJsonOffset = fbb.writeString(object.detailJson);
+        fbb.startTable(45);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, uniqueKeyOffset);
+        fbb.addOffset(2, sourceOffset);
+        fbb.addOffset(3, comicIdOffset);
+        fbb.addOffset(4, titleOffset);
+        fbb.addOffset(6, descriptionOffset);
+        fbb.addOffset(18, storageRootOffset);
+        fbb.addInt64(20, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(21, object.updatedAt.millisecondsSinceEpoch);
+        fbb.addInt64(22, object.downloadedAt.millisecondsSinceEpoch);
+        fbb.addBool(23, object.deleted);
+        fbb.addInt64(24, object.schemaVersion);
+        fbb.addInt64(28, object.totalViews);
+        fbb.addInt64(29, object.totalLikes);
+        fbb.addInt64(30, object.totalComments);
+        fbb.addBool(31, object.isFavourite);
+        fbb.addBool(32, object.isLiked);
+        fbb.addBool(33, object.allowComment);
+        fbb.addBool(34, object.allowLike);
+        fbb.addBool(35, object.allowFavorite);
+        fbb.addBool(36, object.allowDownload);
+        fbb.addOffset(37, coverOffset);
+        fbb.addOffset(38, creatorOffset);
+        fbb.addOffset(39, titleMetaOffset);
+        fbb.addOffset(40, metadataOffset);
+        fbb.addOffset(41, chaptersOffset);
+        fbb.addOffset(43, detailJsonOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final uniqueKeyParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final sourceParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final comicIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final titleParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final descriptionParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 16, '');
+        final coverParam = obx_int.flexBufferToMap(buffer, rootOffset, 78);
+        final creatorParam = obx_int.flexBufferToMap(buffer, rootOffset, 80);
+        final titleMetaParam = obx_int.flexBufferToListOfMaps(
+          buffer,
+          rootOffset,
+          82,
+        );
+        final metadataParam = obx_int.flexBufferToListOfMaps(
+          buffer,
+          rootOffset,
+          84,
+        );
+        final totalViewsParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          60,
+          0,
+        );
+        final totalLikesParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          62,
+          0,
+        );
+        final totalCommentsParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          64,
+          0,
+        );
+        final isFavouriteParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          66,
+          false,
+        );
+        final isLikedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          68,
+          false,
+        );
+        final allowCommentParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          70,
+          false,
+        );
+        final allowLikeParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          72,
+          false,
+        );
+        final allowFavoriteParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          74,
+          false,
+        );
+        final allowDownloadParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          76,
+          false,
+        );
+        final chaptersParam = obx_int.flexBufferToListOfMaps(
+          buffer,
+          rootOffset,
+          86,
+        );
+        final detailJsonParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 90, '');
+        final storageRootParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 40, '');
+        final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 44, 0),
+        );
+        final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 46, 0),
+        );
+        final downloadedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 48, 0),
+        );
+        final deletedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          50,
+          false,
+        );
+        final schemaVersionParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          52,
+          0,
+        );
+        final object = UnifiedComicDownload(
+          id: idParam,
+          uniqueKey: uniqueKeyParam,
+          source: sourceParam,
+          comicId: comicIdParam,
+          title: titleParam,
+          description: descriptionParam,
+          cover: coverParam,
+          creator: creatorParam,
+          titleMeta: titleMetaParam,
+          metadata: metadataParam,
+          totalViews: totalViewsParam,
+          totalLikes: totalLikesParam,
+          totalComments: totalCommentsParam,
+          isFavourite: isFavouriteParam,
+          isLiked: isLikedParam,
+          allowComment: allowCommentParam,
+          allowLike: allowLikeParam,
+          allowFavorite: allowFavoriteParam,
+          allowDownload: allowDownloadParam,
+          chapters: chaptersParam,
+          detailJson: detailJsonParam,
+          storageRoot: storageRootParam,
+          createdAt: createdAtParam,
+          updatedAt: updatedAtParam,
+          downloadedAt: downloadedAtParam,
+          deleted: deletedParam,
+          schemaVersion: schemaVersionParam,
+        );
+
+        return object;
+      },
+    ),
+    UnifiedComicFavorite: obx_int.EntityDefinition<UnifiedComicFavorite>(
+      model: _entities[10],
+      toOneRelations: (UnifiedComicFavorite object) => [],
+      toManyRelations: (UnifiedComicFavorite object) => {},
+      getId: (UnifiedComicFavorite object) => object.id,
+      setId: (UnifiedComicFavorite object, int id) {
+        object.id = id;
+      },
+      objectToFB: (UnifiedComicFavorite object, fb.Builder fbb) {
+        final uniqueKeyOffset = fbb.writeString(object.uniqueKey);
+        final sourceOffset = fbb.writeString(object.source);
+        final comicIdOffset = fbb.writeString(object.comicId);
+        final titleOffset = fbb.writeString(object.title);
+        final descriptionOffset = fbb.writeString(object.description);
+        final coverOffset = object.cover == null
+            ? null
+            : fbb.writeListInt8(obx_int.toFlexBuffer(object.cover!));
+        final creatorOffset = object.creator == null
+            ? null
+            : fbb.writeListInt8(obx_int.toFlexBuffer(object.creator!));
+        final titleMetaOffset = object.titleMeta == null
+            ? null
+            : fbb.writeListInt8(obx_int.toFlexBuffer(object.titleMeta!));
+        final metadataOffset = object.metadata == null
+            ? null
+            : fbb.writeListInt8(obx_int.toFlexBuffer(object.metadata!));
+        fbb.startTable(26);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, uniqueKeyOffset);
+        fbb.addOffset(2, sourceOffset);
+        fbb.addOffset(3, comicIdOffset);
+        fbb.addOffset(4, titleOffset);
+        fbb.addOffset(6, descriptionOffset);
+        fbb.addInt64(11, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(12, object.updatedAt.millisecondsSinceEpoch);
+        fbb.addBool(13, object.deleted);
+        fbb.addInt64(14, object.schemaVersion);
+        fbb.addOffset(21, coverOffset);
+        fbb.addOffset(22, creatorOffset);
+        fbb.addOffset(23, titleMetaOffset);
+        fbb.addOffset(24, metadataOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final uniqueKeyParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final sourceParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final comicIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final titleParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final descriptionParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 16, '');
+        final coverParam = obx_int.flexBufferToMap(buffer, rootOffset, 46);
+        final creatorParam = obx_int.flexBufferToMap(buffer, rootOffset, 48);
+        final titleMetaParam = obx_int.flexBufferToListOfMaps(
+          buffer,
+          rootOffset,
+          50,
+        );
+        final metadataParam = obx_int.flexBufferToListOfMaps(
+          buffer,
+          rootOffset,
+          52,
+        );
+        final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 26, 0),
+        );
+        final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 28, 0),
+        );
+        final deletedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          30,
+          false,
+        );
+        final schemaVersionParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          32,
+          0,
+        );
+        final object = UnifiedComicFavorite(
+          id: idParam,
+          uniqueKey: uniqueKeyParam,
+          source: sourceParam,
+          comicId: comicIdParam,
+          title: titleParam,
+          description: descriptionParam,
+          cover: coverParam,
+          creator: creatorParam,
+          titleMeta: titleMetaParam,
+          metadata: metadataParam,
+          createdAt: createdAtParam,
+          updatedAt: updatedAtParam,
+          deleted: deletedParam,
+          schemaVersion: schemaVersionParam,
+        );
+
+        return object;
+      },
+    ),
+    UnifiedComicHistory: obx_int.EntityDefinition<UnifiedComicHistory>(
+      model: _entities[11],
+      toOneRelations: (UnifiedComicHistory object) => [],
+      toManyRelations: (UnifiedComicHistory object) => {},
+      getId: (UnifiedComicHistory object) => object.id,
+      setId: (UnifiedComicHistory object, int id) {
+        object.id = id;
+      },
+      objectToFB: (UnifiedComicHistory object, fb.Builder fbb) {
+        final uniqueKeyOffset = fbb.writeString(object.uniqueKey);
+        final sourceOffset = fbb.writeString(object.source);
+        final comicIdOffset = fbb.writeString(object.comicId);
+        final titleOffset = fbb.writeString(object.title);
+        final descriptionOffset = fbb.writeString(object.description);
+        final chapterIdOffset = fbb.writeString(object.chapterId);
+        final chapterTitleOffset = fbb.writeString(object.chapterTitle);
+        final coverOffset = object.cover == null
+            ? null
+            : fbb.writeListInt8(obx_int.toFlexBuffer(object.cover!));
+        final creatorOffset = object.creator == null
+            ? null
+            : fbb.writeListInt8(obx_int.toFlexBuffer(object.creator!));
+        final titleMetaOffset = object.titleMeta == null
+            ? null
+            : fbb.writeListInt8(obx_int.toFlexBuffer(object.titleMeta!));
+        final metadataOffset = object.metadata == null
+            ? null
+            : fbb.writeListInt8(obx_int.toFlexBuffer(object.metadata!));
+        fbb.startTable(31);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, uniqueKeyOffset);
+        fbb.addOffset(2, sourceOffset);
+        fbb.addOffset(3, comicIdOffset);
+        fbb.addOffset(4, titleOffset);
+        fbb.addOffset(6, descriptionOffset);
+        fbb.addOffset(11, chapterIdOffset);
+        fbb.addOffset(12, chapterTitleOffset);
+        fbb.addInt64(13, object.chapterOrder);
+        fbb.addInt64(14, object.pageIndex);
+        fbb.addInt64(16, object.lastReadAt.millisecondsSinceEpoch);
+        fbb.addBool(17, object.deleted);
+        fbb.addInt64(18, object.schemaVersion);
+        fbb.addInt64(24, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(25, object.updatedAt.millisecondsSinceEpoch);
+        fbb.addOffset(26, coverOffset);
+        fbb.addOffset(27, creatorOffset);
+        fbb.addOffset(28, titleMetaOffset);
+        fbb.addOffset(29, metadataOffset);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final uniqueKeyParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final sourceParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final comicIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final titleParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 12, '');
+        final descriptionParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 16, '');
+        final coverParam = obx_int.flexBufferToMap(buffer, rootOffset, 56);
+        final creatorParam = obx_int.flexBufferToMap(buffer, rootOffset, 58);
+        final titleMetaParam = obx_int.flexBufferToListOfMaps(
+          buffer,
+          rootOffset,
+          60,
+        );
+        final metadataParam = obx_int.flexBufferToListOfMaps(
+          buffer,
+          rootOffset,
+          62,
+        );
+        final chapterIdParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 26, '');
+        final chapterTitleParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 28, '');
+        final chapterOrderParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          30,
+          0,
+        );
+        final pageIndexParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          32,
+          0,
+        );
+        final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 52, 0),
+        );
+        final lastReadAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 36, 0),
+        );
+        final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 54, 0),
+        );
+        final deletedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          38,
+          false,
+        );
+        final schemaVersionParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          40,
+          0,
+        );
+        final object = UnifiedComicHistory(
+          id: idParam,
+          uniqueKey: uniqueKeyParam,
+          source: sourceParam,
+          comicId: comicIdParam,
+          title: titleParam,
+          description: descriptionParam,
+          cover: coverParam,
+          creator: creatorParam,
+          titleMeta: titleMetaParam,
+          metadata: metadataParam,
+          chapterId: chapterIdParam,
+          chapterTitle: chapterTitleParam,
+          chapterOrder: chapterOrderParam,
+          pageIndex: pageIndexParam,
+          createdAt: createdAtParam,
+          lastReadAt: lastReadAtParam,
+          updatedAt: updatedAtParam,
+          deleted: deletedParam,
+          schemaVersion: schemaVersionParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -3729,5 +4647,249 @@ class PluginInfo_ {
   /// See [PluginInfo.isDeleted].
   static final isDeleted = obx.QueryBooleanProperty<PluginInfo>(
     _entities[8].properties[10],
+  );
+}
+
+/// [UnifiedComicDownload] entity fields to define ObjectBox queries.
+class UnifiedComicDownload_ {
+  /// See [UnifiedComicDownload.id].
+  static final id = obx.QueryIntegerProperty<UnifiedComicDownload>(
+    _entities[9].properties[0],
+  );
+
+  /// See [UnifiedComicDownload.uniqueKey].
+  static final uniqueKey = obx.QueryStringProperty<UnifiedComicDownload>(
+    _entities[9].properties[1],
+  );
+
+  /// See [UnifiedComicDownload.source].
+  static final source = obx.QueryStringProperty<UnifiedComicDownload>(
+    _entities[9].properties[2],
+  );
+
+  /// See [UnifiedComicDownload.comicId].
+  static final comicId = obx.QueryStringProperty<UnifiedComicDownload>(
+    _entities[9].properties[3],
+  );
+
+  /// See [UnifiedComicDownload.title].
+  static final title = obx.QueryStringProperty<UnifiedComicDownload>(
+    _entities[9].properties[4],
+  );
+
+  /// See [UnifiedComicDownload.description].
+  static final description = obx.QueryStringProperty<UnifiedComicDownload>(
+    _entities[9].properties[5],
+  );
+
+  /// See [UnifiedComicDownload.storageRoot].
+  static final storageRoot = obx.QueryStringProperty<UnifiedComicDownload>(
+    _entities[9].properties[6],
+  );
+
+  /// See [UnifiedComicDownload.createdAt].
+  static final createdAt = obx.QueryDateProperty<UnifiedComicDownload>(
+    _entities[9].properties[7],
+  );
+
+  /// See [UnifiedComicDownload.updatedAt].
+  static final updatedAt = obx.QueryDateProperty<UnifiedComicDownload>(
+    _entities[9].properties[8],
+  );
+
+  /// See [UnifiedComicDownload.downloadedAt].
+  static final downloadedAt = obx.QueryDateProperty<UnifiedComicDownload>(
+    _entities[9].properties[9],
+  );
+
+  /// See [UnifiedComicDownload.deleted].
+  static final deleted = obx.QueryBooleanProperty<UnifiedComicDownload>(
+    _entities[9].properties[10],
+  );
+
+  /// See [UnifiedComicDownload.schemaVersion].
+  static final schemaVersion = obx.QueryIntegerProperty<UnifiedComicDownload>(
+    _entities[9].properties[11],
+  );
+
+  /// See [UnifiedComicDownload.totalViews].
+  static final totalViews = obx.QueryIntegerProperty<UnifiedComicDownload>(
+    _entities[9].properties[12],
+  );
+
+  /// See [UnifiedComicDownload.totalLikes].
+  static final totalLikes = obx.QueryIntegerProperty<UnifiedComicDownload>(
+    _entities[9].properties[13],
+  );
+
+  /// See [UnifiedComicDownload.totalComments].
+  static final totalComments = obx.QueryIntegerProperty<UnifiedComicDownload>(
+    _entities[9].properties[14],
+  );
+
+  /// See [UnifiedComicDownload.isFavourite].
+  static final isFavourite = obx.QueryBooleanProperty<UnifiedComicDownload>(
+    _entities[9].properties[15],
+  );
+
+  /// See [UnifiedComicDownload.isLiked].
+  static final isLiked = obx.QueryBooleanProperty<UnifiedComicDownload>(
+    _entities[9].properties[16],
+  );
+
+  /// See [UnifiedComicDownload.allowComment].
+  static final allowComment = obx.QueryBooleanProperty<UnifiedComicDownload>(
+    _entities[9].properties[17],
+  );
+
+  /// See [UnifiedComicDownload.allowLike].
+  static final allowLike = obx.QueryBooleanProperty<UnifiedComicDownload>(
+    _entities[9].properties[18],
+  );
+
+  /// See [UnifiedComicDownload.allowFavorite].
+  static final allowFavorite = obx.QueryBooleanProperty<UnifiedComicDownload>(
+    _entities[9].properties[19],
+  );
+
+  /// See [UnifiedComicDownload.allowDownload].
+  static final allowDownload = obx.QueryBooleanProperty<UnifiedComicDownload>(
+    _entities[9].properties[20],
+  );
+
+  /// See [UnifiedComicDownload.detailJson].
+  static final detailJson = obx.QueryStringProperty<UnifiedComicDownload>(
+    _entities[9].properties[26],
+  );
+}
+
+/// [UnifiedComicFavorite] entity fields to define ObjectBox queries.
+class UnifiedComicFavorite_ {
+  /// See [UnifiedComicFavorite.id].
+  static final id = obx.QueryIntegerProperty<UnifiedComicFavorite>(
+    _entities[10].properties[0],
+  );
+
+  /// See [UnifiedComicFavorite.uniqueKey].
+  static final uniqueKey = obx.QueryStringProperty<UnifiedComicFavorite>(
+    _entities[10].properties[1],
+  );
+
+  /// See [UnifiedComicFavorite.source].
+  static final source = obx.QueryStringProperty<UnifiedComicFavorite>(
+    _entities[10].properties[2],
+  );
+
+  /// See [UnifiedComicFavorite.comicId].
+  static final comicId = obx.QueryStringProperty<UnifiedComicFavorite>(
+    _entities[10].properties[3],
+  );
+
+  /// See [UnifiedComicFavorite.title].
+  static final title = obx.QueryStringProperty<UnifiedComicFavorite>(
+    _entities[10].properties[4],
+  );
+
+  /// See [UnifiedComicFavorite.description].
+  static final description = obx.QueryStringProperty<UnifiedComicFavorite>(
+    _entities[10].properties[5],
+  );
+
+  /// See [UnifiedComicFavorite.createdAt].
+  static final createdAt = obx.QueryDateProperty<UnifiedComicFavorite>(
+    _entities[10].properties[6],
+  );
+
+  /// See [UnifiedComicFavorite.updatedAt].
+  static final updatedAt = obx.QueryDateProperty<UnifiedComicFavorite>(
+    _entities[10].properties[7],
+  );
+
+  /// See [UnifiedComicFavorite.deleted].
+  static final deleted = obx.QueryBooleanProperty<UnifiedComicFavorite>(
+    _entities[10].properties[8],
+  );
+
+  /// See [UnifiedComicFavorite.schemaVersion].
+  static final schemaVersion = obx.QueryIntegerProperty<UnifiedComicFavorite>(
+    _entities[10].properties[9],
+  );
+}
+
+/// [UnifiedComicHistory] entity fields to define ObjectBox queries.
+class UnifiedComicHistory_ {
+  /// See [UnifiedComicHistory.id].
+  static final id = obx.QueryIntegerProperty<UnifiedComicHistory>(
+    _entities[11].properties[0],
+  );
+
+  /// See [UnifiedComicHistory.uniqueKey].
+  static final uniqueKey = obx.QueryStringProperty<UnifiedComicHistory>(
+    _entities[11].properties[1],
+  );
+
+  /// See [UnifiedComicHistory.source].
+  static final source = obx.QueryStringProperty<UnifiedComicHistory>(
+    _entities[11].properties[2],
+  );
+
+  /// See [UnifiedComicHistory.comicId].
+  static final comicId = obx.QueryStringProperty<UnifiedComicHistory>(
+    _entities[11].properties[3],
+  );
+
+  /// See [UnifiedComicHistory.title].
+  static final title = obx.QueryStringProperty<UnifiedComicHistory>(
+    _entities[11].properties[4],
+  );
+
+  /// See [UnifiedComicHistory.description].
+  static final description = obx.QueryStringProperty<UnifiedComicHistory>(
+    _entities[11].properties[5],
+  );
+
+  /// See [UnifiedComicHistory.chapterId].
+  static final chapterId = obx.QueryStringProperty<UnifiedComicHistory>(
+    _entities[11].properties[6],
+  );
+
+  /// See [UnifiedComicHistory.chapterTitle].
+  static final chapterTitle = obx.QueryStringProperty<UnifiedComicHistory>(
+    _entities[11].properties[7],
+  );
+
+  /// See [UnifiedComicHistory.chapterOrder].
+  static final chapterOrder = obx.QueryIntegerProperty<UnifiedComicHistory>(
+    _entities[11].properties[8],
+  );
+
+  /// See [UnifiedComicHistory.pageIndex].
+  static final pageIndex = obx.QueryIntegerProperty<UnifiedComicHistory>(
+    _entities[11].properties[9],
+  );
+
+  /// See [UnifiedComicHistory.lastReadAt].
+  static final lastReadAt = obx.QueryDateProperty<UnifiedComicHistory>(
+    _entities[11].properties[10],
+  );
+
+  /// See [UnifiedComicHistory.deleted].
+  static final deleted = obx.QueryBooleanProperty<UnifiedComicHistory>(
+    _entities[11].properties[11],
+  );
+
+  /// See [UnifiedComicHistory.schemaVersion].
+  static final schemaVersion = obx.QueryIntegerProperty<UnifiedComicHistory>(
+    _entities[11].properties[12],
+  );
+
+  /// See [UnifiedComicHistory.createdAt].
+  static final createdAt = obx.QueryDateProperty<UnifiedComicHistory>(
+    _entities[11].properties[13],
+  );
+
+  /// See [UnifiedComicHistory.updatedAt].
+  static final updatedAt = obx.QueryDateProperty<UnifiedComicHistory>(
+    _entities[11].properties[14],
   );
 }

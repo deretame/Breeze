@@ -5,6 +5,7 @@ import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart'
     as jm;
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/page/comic_info/models/all_info.dart';
+import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/type/enum.dart';
 
 class UnifiedComicDownloadChapter {
@@ -147,6 +148,26 @@ UnifiedComicDownloadInfo resolveUnifiedDownloadInfo(
 
   if (from == From.jm && comicInfo is jm.JmComicInfoJson) {
     return UnifiedComicDownloadInfo.fromJmLegacy(comicInfo);
+  }
+
+  if (comicInfo is UnifiedComicDownload) {
+    final chapters = (comicInfo.chapters ?? const <Map<String, dynamic>>[])
+        .map(
+          (chapter) => UnifiedComicDownloadChapter(
+            id: chapter['id']?.toString() ?? '',
+            title: chapter['name']?.toString() ?? '',
+            order: _toInt(chapter['order']?.toString() ?? '', 1),
+            taskChapterId: chapter['id']?.toString() ?? '',
+            persistedKey: chapter['id']?.toString() ?? '',
+          ),
+        )
+        .toList();
+    return UnifiedComicDownloadInfo(
+      source: comicInfo.source,
+      comicId: comicInfo.comicId,
+      title: comicInfo.title,
+      chapters: chapters,
+    );
   }
 
   throw StateError('无法解析下载信息: ${comicInfo.runtimeType}');

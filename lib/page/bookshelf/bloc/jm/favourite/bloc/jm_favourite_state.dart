@@ -6,7 +6,7 @@ enum JmFavouriteStatus { initial, success, failure }
 abstract class JmFavouriteState with _$JmFavouriteState {
   const factory JmFavouriteState({
     @Default(JmFavouriteStatus.initial) JmFavouriteStatus status,
-    @Default([]) List<JmFavorite> comics,
+    @Default([]) List<UnifiedComicFavorite> comics,
     @Default('') String result,
     @Default(SearchEnter()) SearchEnter searchEnterConst,
   }) = _JmFavouriteState;

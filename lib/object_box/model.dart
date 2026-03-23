@@ -449,6 +449,213 @@ class JmDownload {
 
 @Entity()
 @JsonSerializable()
+class UnifiedComicFavorite {
+  @Id()
+  int id;
+
+  @Unique()
+  String uniqueKey;
+
+  String source;
+  String comicId;
+  String title;
+  String description;
+  @Property(type: PropertyType.flex)
+  Map<String, dynamic>? cover;
+  @Property(type: PropertyType.flex)
+  Map<String, dynamic>? creator;
+  @Property(type: PropertyType.flex)
+  List<Map<String, dynamic>>? titleMeta;
+  @Property(type: PropertyType.flex)
+  List<Map<String, dynamic>>? metadata;
+  @Property(type: PropertyType.date)
+  DateTime createdAt;
+  @Property(type: PropertyType.date)
+  DateTime updatedAt;
+  bool deleted;
+  int schemaVersion;
+
+  UnifiedComicFavorite({
+    this.id = 0,
+    required this.uniqueKey,
+    required this.source,
+    required this.comicId,
+    required this.title,
+    required this.description,
+    required this.cover,
+    required this.creator,
+    required this.titleMeta,
+    required this.metadata,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.deleted,
+    required this.schemaVersion,
+  });
+
+  Map<String, dynamic> toJson() => _$UnifiedComicFavoriteToJson(this);
+
+  factory UnifiedComicFavorite.fromJson(Map<String, dynamic> json) =>
+      _$UnifiedComicFavoriteFromJson(json);
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+}
+
+@Entity()
+@JsonSerializable()
+class UnifiedComicHistory {
+  @Id()
+  int id;
+
+  @Unique()
+  String uniqueKey;
+
+  String source;
+  String comicId;
+  String title;
+  String description;
+  @Property(type: PropertyType.flex)
+  Map<String, dynamic>? cover;
+  @Property(type: PropertyType.flex)
+  Map<String, dynamic>? creator;
+  @Property(type: PropertyType.flex)
+  List<Map<String, dynamic>>? titleMeta;
+  @Property(type: PropertyType.flex)
+  List<Map<String, dynamic>>? metadata;
+  String chapterId;
+  String chapterTitle;
+  int chapterOrder;
+  int pageIndex;
+  @Property(type: PropertyType.date)
+  DateTime createdAt;
+  @Property(type: PropertyType.date)
+  DateTime lastReadAt;
+  @Property(type: PropertyType.date)
+  DateTime updatedAt;
+  bool deleted;
+  int schemaVersion;
+
+  UnifiedComicHistory({
+    this.id = 0,
+    required this.uniqueKey,
+    required this.source,
+    required this.comicId,
+    required this.title,
+    required this.description,
+    required this.cover,
+    required this.creator,
+    required this.titleMeta,
+    required this.metadata,
+    required this.chapterId,
+    required this.chapterTitle,
+    required this.chapterOrder,
+    required this.pageIndex,
+    required this.createdAt,
+    required this.lastReadAt,
+    required this.updatedAt,
+    required this.deleted,
+    required this.schemaVersion,
+  });
+
+  Map<String, dynamic> toJson() => _$UnifiedComicHistoryToJson(this);
+
+  factory UnifiedComicHistory.fromJson(Map<String, dynamic> json) =>
+      _$UnifiedComicHistoryFromJson(json);
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+}
+
+@Entity()
+@JsonSerializable()
+class UnifiedComicDownload {
+  @Id()
+  int id;
+
+  @Unique()
+  String uniqueKey;
+
+  String source;
+  String comicId;
+  String title;
+  String description;
+  @Property(type: PropertyType.flex)
+  Map<String, dynamic>? cover;
+  @Property(type: PropertyType.flex)
+  Map<String, dynamic>? creator;
+  @Property(type: PropertyType.flex)
+  List<Map<String, dynamic>>? titleMeta;
+  @Property(type: PropertyType.flex)
+  List<Map<String, dynamic>>? metadata;
+  int totalViews;
+  int totalLikes;
+  int totalComments;
+  bool isFavourite;
+  bool isLiked;
+  bool allowComment;
+  bool allowLike;
+  bool allowFavorite;
+  bool allowDownload;
+  @Property(type: PropertyType.flex)
+  List<Map<String, dynamic>>? chapters;
+  String detailJson;
+  String storageRoot;
+  @Property(type: PropertyType.date)
+  DateTime createdAt;
+  @Property(type: PropertyType.date)
+  DateTime updatedAt;
+  @Property(type: PropertyType.date)
+  DateTime downloadedAt;
+  bool deleted;
+  int schemaVersion;
+
+  UnifiedComicDownload({
+    this.id = 0,
+    required this.uniqueKey,
+    required this.source,
+    required this.comicId,
+    required this.title,
+    required this.description,
+    required this.cover,
+    required this.creator,
+    required this.titleMeta,
+    required this.metadata,
+    required this.totalViews,
+    required this.totalLikes,
+    required this.totalComments,
+    required this.isFavourite,
+    required this.isLiked,
+    required this.allowComment,
+    required this.allowLike,
+    required this.allowFavorite,
+    required this.allowDownload,
+    required this.chapters,
+    required this.detailJson,
+    required this.storageRoot,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.downloadedAt,
+    required this.deleted,
+    required this.schemaVersion,
+  });
+
+  Map<String, dynamic> toJson() => _$UnifiedComicDownloadToJson(this);
+
+  factory UnifiedComicDownload.fromJson(Map<String, dynamic> json) =>
+      _$UnifiedComicDownloadFromJson(json);
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+}
+
+@Entity()
+@JsonSerializable()
 class UserSetting {
   @Id()
   int id;

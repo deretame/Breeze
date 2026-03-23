@@ -256,19 +256,10 @@ class __HistoryPageState extends State<_HistoryPage>
   }
 
   List<UnifiedComicListItem> _toUnifiedComics(List<dynamic> comics) {
-    final comicChoice = context.read<GlobalSettingCubit>().state.comicChoice;
-
-    if (comicChoice == 1) {
-      final temp = comics.map((e) => e as BikaComicHistory).toList();
-
-      return temp.map(unifiedComicFromBikaHistory).toList();
-    } else if (comicChoice == 2) {
-      final temp = comics.map((e) => e as JmHistory).toList();
-
-      return temp.map(unifiedComicFromJmHistory).toList();
-    }
-
-    return const <UnifiedComicListItem>[];
+    return comics
+        .map((e) => e as UnifiedComicHistory)
+        .map(unifiedComicFromUnifiedHistory)
+        .toList();
   }
 
   void _refresh([bool goToTop = false, bool clean = false]) {

@@ -68,7 +68,9 @@ class _LoginPageState extends State<LoginPage> {
       );
       final envelope = UnifiedPluginEnvelope.fromMap(response);
       final scheme = envelope.scheme;
-      final fields = asList(scheme['fields']).map((item) => asMap(item)).toList();
+      final fields = asList(
+        scheme['fields'],
+      ).map((item) => asMap(item)).toList();
       if (fields.length >= 2 && mounted) {
         setState(() {
           title = scheme['title']?.toString() ?? title;
@@ -159,6 +161,7 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       context.maybePop();
     } catch (e) {
+      logger.e(e);
       _showDialog("登录失败", e.toString());
     }
   }

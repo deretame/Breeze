@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' hide Page;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart';
@@ -11,8 +12,6 @@ import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/init.dart';
 import 'package:zephyr/widgets/toast.dart';
-
-import '../../../../object_box/model.dart';
 import '../../../comments/widgets/title.dart';
 
 @RoutePage()
@@ -35,7 +34,7 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
   UnifiedComicDownloadInfo get downloadInfo => widget.downloadInfo;
 
   late Map<int, bool> _downloadInfo;
-  late JmDownload? jmDownloadInfo;
+  late UnifiedComicDownload? jmDownloadInfo;
 
   void onUpdateDownloadInfo(int order) {
     setState(() {
@@ -51,17 +50,13 @@ class _JmDownloadPageState extends State<JmDownloadPage> {
       _downloadInfo[ep.order] = false;
     }
 
-    final query = objectbox.jmDownloadBox.query(
-      JmDownload_.comicId.equals(downloadInfo.comicId),
+    final query = objectbox.unifiedDownloadBox.query(
+      UnifiedComicDownload_.uniqueKey.equals('jm:${downloadInfo.comicId}'),
     );
     jmDownloadInfo = query.build().findFirst();
     if (jmDownloadInfo != null) {
-      for (var epId in jmDownloadInfo!.epsIds) {
-        for (var ep in downloadInfo.chapters) {
-          if (ep.persistedKey == epId) {
-            _downloadInfo[ep.order] = true;
-          }
-        }
+      for (var ep in downloadInfo.chapters) {
+        _downloadInfo[ep.order] = true;
       }
     }
   }

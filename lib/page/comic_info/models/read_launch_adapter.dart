@@ -1,6 +1,7 @@
 import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/page/comic_info/models/all_info.dart';
+import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/type/enum.dart';
 
 String resolveReadComicId(
@@ -16,6 +17,10 @@ String resolveReadComicId(
     return comicInfo.comicInfo.id;
   }
 
+  if (comicInfo is UnifiedComicDownload) {
+    return comicInfo.comicId;
+  }
+
   if (from == From.jm && comicInfo is JmComicInfoJson) {
     return comicInfo.id.toString();
   }
@@ -29,11 +34,15 @@ int resolveReadEpsCount(
   required bool isDownload,
 }) {
   if (!isDownload && comicInfo is PluginComicDetailSource) {
-    return comicInfo.normalInfo.comicInfo.epsCount;
+    return comicInfo.normalInfo.eps.length;
   }
 
   if (from == From.bika && comicInfo is AllInfo) {
     return comicInfo.comicInfo.epsCount;
+  }
+
+  if (comicInfo is UnifiedComicDownload) {
+    return comicInfo.chapters?.length ?? 0;
   }
 
   if (from == From.jm && comicInfo is JmComicInfoJson) {

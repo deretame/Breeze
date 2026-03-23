@@ -2,7 +2,11 @@ import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
+import 'dart:convert';
+import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
+import 'package:zephyr/object_box/model.dart';
+import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
@@ -39,12 +43,66 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
       late dynamic comicInfo;
 
       if (event.type == ComicEntryType.download) {
-        if (event.from == From.bika) {
-          comicInfo = await getBikaComicAllInfo(event.comicId, event.type);
-          normalComicInfo = bika2NormalComicAllInfo(comicInfo);
+        comicInfo = objectbox.unifiedDownloadBox
+            .query(
+              UnifiedComicDownload_.uniqueKey.equals(
+                '${event.from.name}:${event.comicId}',
+              ),
+            )
+            .build()
+            .findFirst();
+        if (comicInfo == null) {
+          if (event.from == From.bika) {
+            comicInfo = await getBikaComicAllInfo(event.comicId, event.type);
+            normalComicInfo = bika2NormalComicAllInfo(comicInfo);
+          } else {
+            comicInfo = await getJmComicAllInfo(event.comicId, event.type);
+            normalComicInfo = jm2NormalComicAllInfo(comicInfo);
+          }
         } else {
-          comicInfo = await getJmComicAllInfo(event.comicId, event.type);
-          normalComicInfo = jm2NormalComicAllInfo(comicInfo);
+          normalComicInfo = normal.NormalComicAllInfo.fromJson(
+            jsonDecode((comicInfo as UnifiedComicDownload).detailJson)
+                as Map<String, dynamic>,
+          );
+          final localCover = Map<String, dynamic>.from(
+            jsonDecode(jsonEncode(normalComicInfo.comicInfo.cover.toJson()))
+                as Map<String, dynamic>,
+          );
+          final localCoverExtension = Map<String, dynamic>.from(
+            localCover['extension'] as Map? ?? const <String, dynamic>{},
+          );
+          final coverPath = localCoverExtension['path']?.toString() ??
+              normalComicInfo.comicInfo.cover.name;
+          if (coverPath.isNotEmpty) {
+            localCoverExtension['path'] = p.join(
+              comicInfo.storageRoot,
+              'cover',
+              coverPath,
+            );
+          }
+          localCover['extension'] = localCoverExtension;
+
+          final localCreator = Map<String, dynamic>.from(
+            jsonDecode(jsonEncode(normalComicInfo.comicInfo.creator.toJson()))
+                as Map<String, dynamic>,
+          );
+          localCreator['avatar'] = {
+            'id': '',
+            'url': '',
+            'name': '',
+            'extension': <String, dynamic>{},
+          };
+
+          final localComicInfo = Map<String, dynamic>.from(
+            jsonDecode(jsonEncode(normalComicInfo.comicInfo.toJson()))
+                as Map<String, dynamic>,
+          )
+            ..['cover'] = localCover
+            ..['creator'] = localCreator;
+
+          normalComicInfo = normalComicInfo.copyWith(
+            comicInfo: normal.ComicInfo.fromJson(localComicInfo),
+          );
         }
       } else {
         final pluginResult = await getComicDetailByPlugin(

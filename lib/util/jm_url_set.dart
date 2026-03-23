@@ -3,13 +3,10 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/jm/http_request.dart';
-import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
-import 'package:zephyr/util/direct_dio.dart';
+import 'package:zephyr/util/download/qjs_download_runtime.dart';
 
 const _kQjsRuntimeCancelled = '__QJS_RUNTIME_CANCELLED__';
 const _kDownloadTaskCancelled = '__DOWNLOAD_TASK_CANCELLED__';
@@ -32,25 +29,34 @@ int _jmImageBaseUrlIndex = 0;
 
 String get currentJmBaseUrl => jmBaseUrls[_jmBaseUrlIndex];
 String get currentJmImageBaseUrl => jmImageBaseUrls[_jmImageBaseUrlIndex];
+final pictureDio = Dio();
+
+String getJmCoverUrl(String id) {
+  return '$currentJmImageBaseUrl/media/albums/${id}_3x4.jpg';
+}
+
+String getJmImagesUrl(String id, String imageName) {
+  return '$currentJmImageBaseUrl/media/photos/$id/$imageName';
+}
+
+String getUserCover(String imageName) {
+  return '$currentJmImageBaseUrl/media/users/$imageName';
+}
 
 Future<int> _getFastestUrlIndexByQjs(
   List<String> urls, {
   String qjsRuntimeName = 'jmComic',
+  String qjsTaskGroupKey = '',
 }) async {
   final argsJson = jsonEncode([urls]);
 
-  final raw = kDebugMode
-      ? await qjsCallOnce(
-          runtimeName: qjsRuntimeName,
-          bundleJs: (await directDio.get(await jmJsUrl)).data,
-          fnPath: 'getFastestUrlIndex',
-          argsJson: argsJson,
-        )
-      : await qjsCall(
-          runtimeName: qjsRuntimeName,
-          fnPath: 'getFastestUrlIndex',
-          argsJson: argsJson,
-        );
+  final raw = await executeQjsCall(
+    source: 'jm',
+    runtimeName: qjsRuntimeName,
+    fnPath: 'getFastestUrlIndex',
+    argsJson: argsJson,
+    taskGroupKey: qjsTaskGroupKey.isEmpty ? null : qjsTaskGroupKey,
+  );
 
   final decoded = jsonDecode(raw);
   if (decoded is int) {
@@ -65,6 +71,7 @@ Future<int> _getFastestUrlIndexByQjs(
 Future<int> getFastestUrlIndex(
   List<String> urls, {
   String qjsRuntimeName = 'jmComic',
+  String qjsTaskGroupKey = '',
 }) async {
   if (urls.isEmpty) {
     return 0;
@@ -74,6 +81,7 @@ Future<int> getFastestUrlIndex(
     final index = await _getFastestUrlIndexByQjs(
       urls,
       qjsRuntimeName: qjsRuntimeName,
+      qjsTaskGroupKey: qjsTaskGroupKey,
     );
     if (index < 0 || index >= urls.length) {
       return 0;
@@ -92,10 +100,14 @@ bool _isQjsRuntimeCancelledError(Object error) {
   return error.toString().contains(_kQjsRuntimeCancelled);
 }
 
-Future<void> setFastestUrlIndex({String qjsRuntimeName = 'jmComic'}) async {
+Future<void> setFastestUrlIndex({
+  String qjsRuntimeName = 'jmComic',
+  String qjsTaskGroupKey = '',
+}) async {
   final index = await getFastestUrlIndex(
     jmBaseUrls,
     qjsRuntimeName: qjsRuntimeName,
+    qjsTaskGroupKey: qjsTaskGroupKey,
   );
   logger.d('Fastest URL index: $index');
   _jmBaseUrlIndex = index;
@@ -103,10 +115,12 @@ Future<void> setFastestUrlIndex({String qjsRuntimeName = 'jmComic'}) async {
 
 Future<void> setFastestImagesUrlIndex({
   String qjsRuntimeName = 'jmComic',
+  String qjsTaskGroupKey = '',
 }) async {
   final index = await getFastestUrlIndex(
     jmImageBaseUrls,
     qjsRuntimeName: qjsRuntimeName,
+    qjsTaskGroupKey: qjsTaskGroupKey,
   );
   logger.d('Fastest images URL index: $index');
   _jmImageBaseUrlIndex = index;

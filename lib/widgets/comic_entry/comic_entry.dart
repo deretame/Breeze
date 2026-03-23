@@ -228,63 +228,65 @@ class ComicEntryWidget extends StatelessWidget {
       return;
     }
 
-    final temp = objectbox.jmFavoriteBox
-        .query(JmFavorite_.comicId.equals(comic.id))
+    final temp = objectbox.unifiedFavoriteBox
+        .query(UnifiedComicFavorite_.uniqueKey.equals('${comic.from.name}:${comic.id}'))
         .build()
         .findFirst();
 
     if (temp != null) {
-      objectbox.jmFavoriteBox.remove(temp.id);
+      objectbox.unifiedFavoriteBox.remove(temp.id);
     }
   }
 
   Future<void> _deleteHistory() async {
     if (comic.from == From.bika) {
-      final temp = objectbox.bikaHistoryBox
-          .query(BikaComicHistory_.comicId.equals(comic.id))
-          .build()
-          .findFirst();
+      final temp = objectbox.unifiedHistoryBox
+          .query(UnifiedComicHistory_.uniqueKey.equals('${comic.from.name}:${comic.id}'))
+        .build()
+        .findFirst();
 
       if (temp != null) {
         temp.deleted = true;
-        temp.history = DateTime.now().toUtc();
-        objectbox.bikaHistoryBox.put(temp);
+        temp.updatedAt = DateTime.now().toUtc();
+        temp.lastReadAt = temp.updatedAt;
+        objectbox.unifiedHistoryBox.put(temp);
       }
       return;
     }
 
     if (comic.from == From.jm) {
-      final temp = objectbox.jmHistoryBox
-          .query(JmHistory_.comicId.equals(comic.id))
-          .build()
-          .findFirst();
+      final temp = objectbox.unifiedHistoryBox
+          .query(UnifiedComicHistory_.uniqueKey.equals('${comic.from.name}:${comic.id}'))
+        .build()
+        .findFirst();
 
       if (temp != null) {
         temp.deleted = true;
-        temp.history = DateTime.now().toUtc();
-        objectbox.jmHistoryBox.put(temp);
+        temp.updatedAt = DateTime.now().toUtc();
+        temp.lastReadAt = temp.updatedAt;
+        objectbox.unifiedHistoryBox.put(temp);
       }
     }
   }
 
   Future<void> _deleteDownload() async {
     if (comic.from == From.bika) {
-      final temp = objectbox.bikaDownloadBox
-          .query(BikaComicDownload_.comicId.equals(comic.id))
-          .build()
-          .findFirst();
+      final temp = objectbox.unifiedDownloadBox
+          .query(UnifiedComicDownload_.uniqueKey.equals('${comic.from.name}:${comic.id}'))
+        .build()
+        .findFirst();
 
       if (temp != null) {
-        objectbox.bikaDownloadBox.remove(temp.id);
+        objectbox.unifiedDownloadBox.remove(temp.id);
       }
     } else if (comic.from == From.jm) {
-      final temp = objectbox.jmDownloadBox
-          .query(JmDownload_.comicId.equals(comic.id))
-          .build()
-          .findFirst();
+      final temp = objectbox.unifiedDownloadBox
+          .query(UnifiedComicDownload_.uniqueKey.equals('${comic.from.name}:${comic.id}'))
+        .build()
+        .findFirst();
 
       if (temp != null) {
-        objectbox.jmDownloadBox.remove(temp.id);
+        objectbox.unifiedDownloadBox.remove(temp.id);
       }
     }
 

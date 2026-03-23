@@ -9,7 +9,7 @@ import 'package:toastification/toastification.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
-import 'package:zephyr/page/ranking_list/ranking_list.dart';
+import 'package:zephyr/page/comic_list/comic_list.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/auto_check_in.dart';
@@ -56,12 +56,7 @@ class _NavigationBarState extends State<NavigationBar> {
   bool _isInitializingNotifications = false;
 
   // 页面列表
-  final _pageList = [
-    HomePage(),
-    RankingListPage(),
-    BookshelfPage(),
-    MorePage(),
-  ];
+  final _pageList = [HomePage(), ComicListPage(), BookshelfPage(), MorePage()];
 
   @override
   void initState() {

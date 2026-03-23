@@ -29,6 +29,8 @@ class EpButtonWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final episodeIndex = doc.order > 0 ? doc.order : 1;
+    final title = doc.name.trim().isEmpty ? '第$episodeIndex话' : doc.name.trim();
     return InkWell(
       onTap: () {
         if (from == From.bika) {
@@ -63,22 +65,43 @@ class EpButtonWidget extends StatelessWidget {
       },
       child: Container(
         width: double.infinity,
-        margin: EdgeInsets.symmetric(horizontal: 0),
-        padding: EdgeInsets.all(12),
+        margin: EdgeInsets.zero,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        constraints: const BoxConstraints(minHeight: 52),
         decoration: BoxDecoration(
-          color: context.backgroundColor,
+          color: context.theme.colorScheme.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: context.theme.colorScheme.secondaryFixedDim,
-              spreadRadius: 0,
-              blurRadius: 2,
+          border: Border.all(
+            color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.28),
+          ),
+        ),
+        child: Row(
+          children: [
+            Text(
+              '第$episodeIndex话',
+              style: context.theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: context.textColor.withValues(alpha: 0.68),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: context.theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 20,
+              color: context.textColor.withValues(alpha: 0.48),
             ),
           ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [Text(doc.name, style: TextStyle(fontSize: 16))],
         ),
       ),
     );

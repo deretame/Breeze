@@ -1,12 +1,12 @@
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../../util/jm_url_set.dart';
 import 'http_request_build_rust.dart' as rs;
 import 'jm_error_message.dart';
 
 Future<String> get jmJsUrl async {
-  final prefs = await SharedPreferences.getInstance();
-  return prefs.getString('debug_jm_url') ?? '';
+  return 'http://localhost:7879/jm-comic.bundle.cjs';
+  // final prefs = await SharedPreferences.getInstance();
+  // return prefs.getString('debug_jm_url') ??
+  //     'http://localhost:7879/jm-comic.bundle.cjs';
 }
 
 Future<dynamic> _requestMap(
@@ -18,6 +18,7 @@ Future<dynamic> _requestMap(
   bool cache = false,
   bool useJwt = true,
   String qjsRuntimeName = 'jmComic',
+  String qjsTaskGroupKey = '',
 }) async {
   final result = await rs.request(
     path,
@@ -28,6 +29,7 @@ Future<dynamic> _requestMap(
     cache: cache,
     useJwt: useJwt,
     qjsName: qjsRuntimeName,
+    qjsTaskGroupKey: qjsTaskGroupKey,
   );
 
   if (result is Map) {
@@ -61,21 +63,25 @@ Future<Map<String, dynamic>> search(
 Future<Map<String, dynamic>> getComicInfo(
   String comicId, {
   String qjsRuntimeName = 'jmComic',
+  String qjsTaskGroupKey = '',
 }) async => await _requestMap(
   '$currentJmBaseUrl/album',
   params: {'id': comicId},
   qjsRuntimeName: qjsRuntimeName,
+  qjsTaskGroupKey: qjsTaskGroupKey,
   // cache: true,
 );
 
 Future<Map<String, dynamic>> getEpInfo(
   String epId, {
   String qjsRuntimeName = 'jmComic',
+  String qjsTaskGroupKey = '',
 }) async => await _requestMap(
   '$currentJmBaseUrl/chapter',
   params: {'skip': '', 'id': epId},
   cache: true,
   qjsRuntimeName: qjsRuntimeName,
+  qjsTaskGroupKey: qjsTaskGroupKey,
 );
 
 Future<Map<String, dynamic>> login(String account, String password) async {

@@ -7,7 +7,6 @@ import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/debouncer.dart';
 
-import '../../../type/enum.dart';
 import '../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import '../../../widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 
@@ -22,12 +21,10 @@ class _DesktopDragScrollBehavior extends MaterialScrollBehavior {
 
 class RecommendWidget extends StatelessWidget {
   final List<Recommend> comicList;
-  final From from;
 
   const RecommendWidget({
     super.key,
     required this.comicList,
-    required this.from,
   });
 
   bool get _isDesktop =>
@@ -39,7 +36,7 @@ class RecommendWidget extends StatelessWidget {
       return SizedBox.shrink();
     }
     final comicInfoList = mapToUnifiedComicSimplifyEntryInfoList(
-      comicList.map((e) => unifiedComicFromRecommend(e, from: from)),
+      comicList.map(unifiedComicFromRecommend),
     );
 
     Widget scrollView = ComicFixedSizeHorizontalList(
@@ -57,21 +54,18 @@ class RecommendWidget extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 5.0),
+      padding: EdgeInsets.zero,
       child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 6),
         decoration: BoxDecoration(
-          color: context.backgroundColor,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: context.theme.colorScheme.secondaryFixedDim,
-              spreadRadius: 0,
-              blurRadius: 2,
-            ),
-          ],
+          color: context.theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+          ),
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(16),
           child: scrollView,
         ),
       ),

@@ -10,7 +10,7 @@ enum UserFavouriteStatus {
 
 final class UserFavouriteState extends Equatable {
   final UserFavouriteStatus status;
-  final List<dynamic> comics;
+  final List<ComicNumber> comics;
   final bool hasReachedMax;
   final String result;
   final int pageCount;
@@ -19,7 +19,7 @@ final class UserFavouriteState extends Equatable {
 
   const UserFavouriteState({
     this.status = UserFavouriteStatus.initial,
-    this.comics = const [],
+    this.comics = const <ComicNumber>[],
     this.hasReachedMax = false,
     this.result = '',
     this.pageCount = 0,
@@ -29,7 +29,7 @@ final class UserFavouriteState extends Equatable {
 
   UserFavouriteState copyWith({
     UserFavouriteStatus? status,
-    List<dynamic>? comics,
+    List<ComicNumber>? comics,
     bool? hasReachedMax,
     String? result,
     int? pageCount,

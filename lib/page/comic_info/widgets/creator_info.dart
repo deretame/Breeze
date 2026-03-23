@@ -1,184 +1,62 @@
-import 'dart:io';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
+import 'package:zephyr/page/comic_info/models/comic_info_action.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/util/context/context_extensions.dart';
-
 import '../../../util/router/router.gr.dart';
-import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
-import '../../../widgets/picture_bloc/models/picture_info.dart';
+import '../../../widgets/creator_link_card.dart';
 
 // 显示上传者信息
 class CreatorInfoWidget extends StatelessWidget {
-  final ComicInfo comicInfo;
+  final Creator creator;
+  final From from;
+  final String imageKey;
+  final List<Widget> infoChildren;
 
-  const CreatorInfoWidget({super.key, required this.comicInfo});
-
-  String timeDecode(DateTime originalTime) {
-    // 获取当前设备的时区偏移量
-    Duration timeZoneOffset = DateTime.now().timeZoneOffset;
-
-    // 根据时区偏移量调整时间
-    DateTime newDateTime = originalTime.add(timeZoneOffset);
-
-    // 按照指定格式输出
-    String formattedTime =
-        '${newDateTime.year}年${newDateTime.month}月${newDateTime.day}日 '
-        '${newDateTime.hour.toString().padLeft(2, '0')}:'
-        '${newDateTime.minute.toString().padLeft(2, '0')}:'
-        '${newDateTime.second.toString().padLeft(2, '0')}';
-
-    return "$formattedTime 更新";
-  }
+  const CreatorInfoWidget({
+    super.key,
+    required this.creator,
+    required this.from,
+    required this.imageKey,
+    this.infoChildren = const [],
+  });
 
   @override
   Widget build(BuildContext context) {
-    final materialColorScheme = context.theme.colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 5.0),
-      child: InkWell(
-        onTap: () {
-          AutoRouter.of(context).push(
-            SearchResultRoute(
-              searchEvent: SearchEvent().copyWith(
-                searchStates: SearchStates.initial(context).copyWith(
-                  from: From.bika,
-                  searchKeyword: comicInfo.creator.name,
-                ),
-                url:
-                    "https://picaapi.picacomic.com/comics?ca=${comicInfo.creator.id}&s=ld&page=1",
-              ),
-            ),
-          );
-        },
-        child: Container(
-          height: 75,
-          width: context.screenWidth * (48 / 50),
-          decoration: BoxDecoration(
-            color: context.backgroundColor,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: materialColorScheme.secondaryFixedDim,
-                spreadRadius: 0,
-                blurRadius: 2,
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              _ImagerWidget(
-                pictureInfo: PictureInfo(
-                  url: comicInfo.creator.avatar.url,
-                  path: comicInfo.creator.avatar.path,
-                  cartoonId: comicInfo.id,
-                  pictureType: PictureType.creator,
-                  chapterId: comicInfo.id,
-                  from: From.bika,
-                ),
-              ),
-              const SizedBox(width: 15),
-              Flexible(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      comicInfo.creator.name,
-                      style: TextStyle(color: materialColorScheme.tertiary),
+    final avatarExtension = creator.avatar.extension;
+    return CreatorLinkCard(
+      creatorName: creator.name,
+      avatarUrl: creator.avatar.url,
+      avatarPath:
+          avatarExtension['path']?.toString() ?? creator.avatar.name,
+      imageKey: imageKey,
+      from: from,
+      infoChildren: infoChildren,
+      onTap: creator.onTap.isNotEmpty
+          ? () => handleComicInfoAction(
+              context,
+              creator.onTap,
+              fallbackFrom: from,
+            )
+          : creator.id.isEmpty
+          ? null
+          : () {
+              AutoRouter.of(context).push(
+                SearchResultRoute(
+                  searchEvent: SearchEvent().copyWith(
+                    searchStates: SearchStates.initial(context).copyWith(
+                      from: From.bika,
+                      searchKeyword: creator.name,
                     ),
-                    Text(timeDecode(comicInfo.updatedAt)),
-                  ],
+                    url:
+                        'https://picaapi.picacomic.com/comics?ca=${creator.id}&s=ld&page=1',
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ImagerWidget extends StatelessWidget {
-  final PictureInfo pictureInfo;
-
-  const _ImagerWidget({required this.pictureInfo});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 75,
-      width: 75,
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: BlocProvider(
-          create: (context) => PictureBloc()..add(GetPicture(pictureInfo)),
-          child: BlocBuilder<PictureBloc, PictureLoadState>(
-            builder: (context, state) {
-              switch (state.status) {
-                case PictureLoadStatus.initial:
-                  return Center(
-                    child: LoadingAnimationWidget.waveDots(
-                      color: context.textColor,
-                      size: 25,
-                    ),
-                  );
-                case PictureLoadStatus.success:
-                  return InkWell(
-                    onTap: () {
-                      context.pushRoute(
-                        FullRouteImageRoute(imagePath: state.imagePath!),
-                      );
-                    },
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(50),
-                      child: SizedBox(
-                        width: 50,
-                        height: 50,
-                        child: Image.file(
-                          File(state.imagePath!),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                  );
-                case PictureLoadStatus.failure:
-                  if (state.result.toString().contains('404')) {
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(25),
-                      child: SizedBox(
-                        width: 50,
-                        height: 50,
-                        child: Image.asset(
-                          'asset/image/assets/default_cover.png',
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    );
-                  } else {
-                    return InkWell(
-                      onTap: () {
-                        context.read<PictureBloc>().add(
-                          GetPicture(pictureInfo),
-                        );
-                      },
-                      child: Icon(Icons.refresh),
-                    );
-                  }
-              }
+              );
             },
-          ),
-        ),
-      ),
+      errorAssetPath: 'asset/image/assets/default_cover.png',
     );
   }
 }

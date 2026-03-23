@@ -1,12 +1,10 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/bika/http_request.dart';
-import 'package:zephyr/src/rust/api/qjs.dart' as rust_qjs;
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/direct_dio.dart';
+import 'package:zephyr/util/download/qjs_download_runtime.dart';
 import 'package:zephyr/util/event/event.dart';
 
 const _kQjsRuntimeCancelled = '__QJS_RUNTIME_CANCELLED__';
@@ -19,6 +17,7 @@ Future<Map<String, dynamic>> request(
   bool cache = false,
   String? imageQuality,
   String qjsName = "bikaComic",
+  String qjsTaskGroupKey = '',
 }) async {
   try {
     final settings = objectbox.userSettingBox.get(1)!.bikaSetting;
@@ -28,28 +27,21 @@ Future<Map<String, dynamic>> request(
       'body': body,
       'cache': cache,
       'imageQuality': imageQuality,
+      'authorization': settings.authorization,
       'settings': {
         'proxy': settings.proxy,
         'imageQuality': settings.imageQuality,
+        'authorization': settings.authorization,
       },
     }.let(jsonEncode);
 
-    var raw = "";
-    if (kDebugMode) {
-      final js = await directDio.get(await bikaJsUrl);
-      raw = await rust_qjs.qjsCallOnce(
-        runtimeName: qjsName,
-        bundleJs: js.data,
-        fnPath: 'bikaRequest',
-        argsJson: args,
-      );
-    } else {
-      raw = await rust_qjs.qjsCall(
-        runtimeName: qjsName,
-        fnPath: 'bikaRequest',
-        argsJson: args,
-      );
-    }
+    final raw = await executeQjsCall(
+      source: 'bika',
+      runtimeName: qjsName,
+      fnPath: 'bikaRequest',
+      argsJson: args,
+      taskGroupKey: qjsTaskGroupKey.isEmpty ? null : qjsTaskGroupKey,
+    );
 
     final decoded = jsonDecode(raw);
     final data = _toStringKeyMap(decoded);

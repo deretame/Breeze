@@ -7,6 +7,7 @@ import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/jm/http_request.dart';
 import 'package:zephyr/page/jm/jm_week_ranking/json/jm_week_ranking_json.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
 
 part 'week_ranking_event.dart';
@@ -63,7 +64,7 @@ class WeekRankingBloc extends Bloc<WeekRankingEvent, WeekRankingState> {
         return;
       }
 
-      final data = response
+      final data = (response as Map<String, dynamic>)
           .let(replaceNestedNull)
           .let((d) => (d..['total'] = d['total'].toString()))
           .let(jsonEncode)

@@ -10,22 +10,13 @@ import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/init.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../../comic_info/json/bika/comic_info/comic_info.dart';
-import '../../comic_info/json/bika/eps/eps.dart';
 import '../../comments/widgets/title.dart';
 
 @RoutePage()
 class DownloadPage extends StatefulWidget {
   final UnifiedComicDownloadInfo downloadInfo;
 
-  DownloadPage({
-    super.key,
-    UnifiedComicDownloadInfo? downloadInfo,
-    Comic? comicInfo,
-    List<Doc>? epsInfo,
-  }) : assert(downloadInfo != null || (comicInfo != null && epsInfo != null)),
-       downloadInfo =
-           downloadInfo ?? UnifiedComicDownloadInfo.fromBikaLegacy(comicInfo!, epsInfo!);
+  const DownloadPage({super.key, required this.downloadInfo});
 
   @override
   State<DownloadPage> createState() => _DownloadPageState();
@@ -33,9 +24,12 @@ class DownloadPage extends StatefulWidget {
 
 class _DownloadPageState extends State<DownloadPage> {
   UnifiedComicDownloadInfo get downloadInfo => widget.downloadInfo;
+  String get source =>
+      downloadInfo.source.trim().isEmpty ? 'bika' : downloadInfo.source;
+  bool get isJm => source == 'jm';
 
   late Map<int, bool> _downloadInfo;
-  late UnifiedComicDownload? bikaComicDownloadInfo;
+  late UnifiedComicDownload? comicDownloadInfo;
 
   void onUpdateDownloadInfo(int order) {
     setState(() {
@@ -51,10 +45,10 @@ class _DownloadPageState extends State<DownloadPage> {
       _downloadInfo[ep.order] = false;
     }
     final query = objectbox.unifiedDownloadBox.query(
-      UnifiedComicDownload_.uniqueKey.equals('bika:${downloadInfo.comicId}'),
+      UnifiedComicDownload_.uniqueKey.equals('$source:${downloadInfo.comicId}'),
     );
-    bikaComicDownloadInfo = query.build().findFirst();
-    if (bikaComicDownloadInfo != null) {
+    comicDownloadInfo = query.build().findFirst();
+    if (comicDownloadInfo != null) {
       for (var ep in downloadInfo.chapters) {
         _downloadInfo[ep.order] = true;
       }
@@ -130,12 +124,10 @@ class _DownloadPageState extends State<DownloadPage> {
       return;
     }
     final task = DownloadTaskJson(
-      from: "bika",
+      from: source,
       comicId: downloadInfo.comicId,
       comicName: downloadInfo.title,
-      bikaInfo: BikaInfo(
-        proxy: settings.proxy.toString(),
-      ),
+      bikaInfo: BikaInfo(proxy: isJm ? '' : settings.proxy.toString()),
       selectedChapters: selectedChapters,
       slowDownload: settings.slowDownload,
     );

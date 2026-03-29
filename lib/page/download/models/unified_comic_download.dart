@@ -1,12 +1,79 @@
-import 'package:zephyr/page/comic_info/json/bika/comic_info/comic_info.dart'
-    as bika;
-import 'package:zephyr/page/comic_info/json/bika/eps/eps.dart' as bika_eps;
-import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart'
-    as jm;
+import 'dart:convert';
+
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
-import 'package:zephyr/page/comic_info/models/all_info.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/type/enum.dart';
+
+class UnifiedComicDownloadImage {
+  const UnifiedComicDownloadImage({
+    required this.id,
+    required this.name,
+    required this.path,
+    this.url = '',
+    this.extern = const {},
+  });
+
+  final String id;
+  final String name;
+  final String path;
+  final String url;
+  final Map<String, dynamic> extern;
+
+  factory UnifiedComicDownloadImage.fromMap(Map<String, dynamic> map) {
+    return UnifiedComicDownloadImage(
+      id: map['id']?.toString() ?? '',
+      name: map['name']?.toString() ?? '',
+      path: map['path']?.toString() ?? '',
+      url:
+          map['url']?.toString() ??
+          ((map['extern'] as Map?)?['url']?.toString() ?? ''),
+      extern: Map<String, dynamic>.from(
+        map['extern'] as Map? ?? const <String, dynamic>{},
+      ),
+    );
+  }
+
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'name': name,
+    'path': path,
+    'url': url,
+    'extern': extern,
+  };
+}
+
+class UnifiedComicDownloadStoredChapter {
+  const UnifiedComicDownloadStoredChapter({
+    required this.id,
+    required this.name,
+    required this.order,
+    this.images = const [],
+  });
+
+  final String id;
+  final String name;
+  final int order;
+  final List<UnifiedComicDownloadImage> images;
+
+  factory UnifiedComicDownloadStoredChapter.fromMap(Map<String, dynamic> map) {
+    final rawImages =
+        (map['images'] as List?) ??
+        (((map['extension'] as Map?)?['images']) as List?) ??
+        const [];
+    return UnifiedComicDownloadStoredChapter(
+      id: map['id']?.toString() ?? '',
+      name: map['name']?.toString() ?? '',
+      order: _toInt(map['order']?.toString() ?? '', 1),
+      images: rawImages
+          .whereType<Map>()
+          .map(
+            (e) =>
+                UnifiedComicDownloadImage.fromMap(Map<String, dynamic>.from(e)),
+          )
+          .toList(),
+    );
+  }
+}
 
 class UnifiedComicDownloadChapter {
   const UnifiedComicDownloadChapter({
@@ -14,14 +81,38 @@ class UnifiedComicDownloadChapter {
     required this.title,
     required this.order,
     required this.taskChapterId,
-    required this.persistedKey,
+    this.images = const [],
   });
 
   final String id;
   final String title;
   final int order;
   final String taskChapterId;
-  final String persistedKey;
+  final List<UnifiedComicDownloadImage> images;
+
+  factory UnifiedComicDownloadChapter.fromMap(Map<String, dynamic> map) {
+    return UnifiedComicDownloadChapter(
+      id: map['id']?.toString() ?? '',
+      title: map['name']?.toString() ?? map['title']?.toString() ?? '',
+      order: _toInt(map['order']?.toString() ?? '', 1),
+      taskChapterId:
+          map['taskChapterId']?.toString() ?? map['id']?.toString() ?? '',
+      images: ((map['images'] as List?) ?? const [])
+          .whereType<Map>()
+          .map(
+            (e) =>
+                UnifiedComicDownloadImage.fromMap(Map<String, dynamic>.from(e)),
+          )
+          .toList(),
+    );
+  }
+
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'name': title,
+    'order': order,
+    'taskChapterId': taskChapterId,
+  };
 }
 
 class UnifiedComicDownloadInfo {
@@ -45,11 +136,11 @@ class UnifiedComicDownloadInfo {
           (chapter) => UnifiedComicDownloadChapter(
             id: chapter.id,
             title: chapter.name,
-            order: chapter.sort,
+            order: chapter.order,
             taskChapterId: source.isBika
-                ? chapter.sort.toString()
-                : chapter.routeOrder.toString(),
-            persistedKey: source.isBika ? chapter.name : chapter.id,
+                ? chapter.order.toString()
+                : chapter.id,
+            images: const [],
           ),
         )
         .toList();
@@ -65,7 +156,7 @@ class UnifiedComicDownloadInfo {
             title: source.title,
             order: _toInt(source.comicId, 1),
             taskChapterId: source.comicId,
-            persistedKey: source.comicId,
+            images: const [],
           ),
         ],
       );
@@ -78,57 +169,6 @@ class UnifiedComicDownloadInfo {
       chapters: chapters,
     );
   }
-
-  factory UnifiedComicDownloadInfo.fromBikaLegacy(
-    bika.Comic comicInfo,
-    List<bika_eps.Doc> epsInfo,
-  ) {
-    return UnifiedComicDownloadInfo(
-      source: 'bika',
-      comicId: comicInfo.id,
-      title: comicInfo.title,
-      chapters: epsInfo
-          .map(
-            (ep) => UnifiedComicDownloadChapter(
-              id: ep.id,
-              title: ep.title,
-              order: ep.order,
-              taskChapterId: ep.order.toString(),
-              persistedKey: ep.title,
-            ),
-          )
-          .toList(),
-    );
-  }
-
-  factory UnifiedComicDownloadInfo.fromJmLegacy(jm.JmComicInfoJson comicInfo) {
-    final series = comicInfo.series.isEmpty
-        ? [
-            jm.Series(
-              id: comicInfo.id.toString(),
-              name: comicInfo.name,
-              sort: '1',
-            ),
-          ]
-        : comicInfo.series;
-
-    return UnifiedComicDownloadInfo(
-      source: 'jm',
-      comicId: comicInfo.id.toString(),
-      title: comicInfo.name,
-      chapters: series
-          .map(
-            (chapter) => UnifiedComicDownloadChapter(
-              id: chapter.id,
-              title: chapter.name,
-              order: _toInt(chapter.sort, _toInt(chapter.id, 1)),
-              taskChapterId: chapter.id,
-              persistedKey: chapter.id,
-            ),
-          )
-          .toList(),
-    );
-  }
 }
 
 UnifiedComicDownloadInfo resolveUnifiedDownloadInfo(
@@ -139,28 +179,9 @@ UnifiedComicDownloadInfo resolveUnifiedDownloadInfo(
     return UnifiedComicDownloadInfo.fromPluginSource(comicInfo);
   }
 
-  if (from == From.bika && comicInfo is AllInfo) {
-    return UnifiedComicDownloadInfo.fromBikaLegacy(
-      comicInfo.comicInfo,
-      comicInfo.eps,
-    );
-  }
-
-  if (from == From.jm && comicInfo is jm.JmComicInfoJson) {
-    return UnifiedComicDownloadInfo.fromJmLegacy(comicInfo);
-  }
-
   if (comicInfo is UnifiedComicDownload) {
     final chapters = (comicInfo.chapters ?? const <Map<String, dynamic>>[])
-        .map(
-          (chapter) => UnifiedComicDownloadChapter(
-            id: chapter['id']?.toString() ?? '',
-            title: chapter['name']?.toString() ?? '',
-            order: _toInt(chapter['order']?.toString() ?? '', 1),
-            taskChapterId: chapter['id']?.toString() ?? '',
-            persistedKey: chapter['id']?.toString() ?? '',
-          ),
-        )
+        .map((chapter) => UnifiedComicDownloadChapter.fromMap(chapter))
         .toList();
     return UnifiedComicDownloadInfo(
       source: comicInfo.source,
@@ -175,4 +196,33 @@ UnifiedComicDownloadInfo resolveUnifiedDownloadInfo(
 
 int _toInt(String value, int fallback) {
   return int.tryParse(value) ?? fallback;
+}
+
+List<UnifiedComicDownloadStoredChapter> resolveStoredDownloadChapters(
+  UnifiedComicDownload comic,
+) {
+  final detail = comic.detailJson.trim();
+  if (detail.isNotEmpty) {
+    try {
+      final map = jsonDecode(detail) as Map<String, dynamic>;
+      final chapterPayload =
+          ((map['extension'] as Map?)?['downloadChapters'] as List?) ??
+          const [];
+      final eps = chapterPayload
+          .whereType<Map>()
+          .map(
+            (e) => UnifiedComicDownloadStoredChapter.fromMap(
+              Map<String, dynamic>.from(e),
+            ),
+          )
+          .toList();
+      if (eps.isNotEmpty) {
+        return eps;
+      }
+    } catch (_) {}
+  }
+
+  return (comic.chapters ?? const <Map<String, dynamic>>[])
+      .map((e) => UnifiedComicDownloadStoredChapter.fromMap(e))
+      .toList();
 }

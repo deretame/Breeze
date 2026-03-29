@@ -46,13 +46,7 @@ normal.NormalComicAllInfo bika2NormalComicAllInfo(bika.AllInfo allInfo) {
       ].where((m) => m.value.isNotEmpty).toList(),
     ),
     eps: allInfo.eps
-        .map(
-          (e) => normal.Ep(
-            id: e.id,
-            name: e.title,
-            order: e.order,
-          ),
-        )
+        .map((e) => normal.Ep(id: e.id, name: e.title, order: e.order))
         .toList(),
     recommend: allInfo.recommendJson
         .map(
@@ -115,13 +109,7 @@ normal.NormalComicAllInfo jm2NormalComicAllInfo(jm.JmComicInfoJson allInfo) {
       ].where((m) => m.value.isNotEmpty).toList(),
     ),
     eps: allInfo.series
-        .map(
-          (e) => normal.Ep(
-            id: e.id,
-            name: e.name,
-            order: e.sort.let(toInt),
-          ),
-        )
+        .map((e) => normal.Ep(id: e.id, name: e.name, order: e.sort.let(toInt)))
         .toList(),
     recommend: allInfo.relatedList
         .map(
@@ -150,11 +138,7 @@ normal.NormalComicAllInfo jm2NormalComicAllInfo(jm.JmComicInfoJson allInfo) {
   );
 }
 
-normal.ComicInfoMetadata _meta(
-  String type,
-  String name,
-  List<dynamic> values,
-) {
+normal.ComicInfoMetadata _meta(String type, String name, List<dynamic> values) {
   return normal.ComicInfoMetadata(
     type: type,
     name: name,
@@ -183,12 +167,7 @@ normal.ComicImage _image({
   required String name,
   Map<String, dynamic> extension = const {},
 }) {
-  return normal.ComicImage(
-    id: id,
-    url: url,
-    name: name,
-    extension: extension,
-  );
+  return normal.ComicImage(id: id, url: url, name: name, extension: extension);
 }
 
 DateTime parseTimestamp(String time) => time

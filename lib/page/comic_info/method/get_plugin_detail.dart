@@ -1,10 +1,9 @@
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
-import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart' as jm;
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
-import 'package:zephyr/page/comic_info/models/all_info.dart';
+import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 
@@ -46,14 +45,12 @@ class UnifiedComicChapterRef {
   const UnifiedComicChapterRef({
     required this.id,
     required this.name,
-    required this.sort,
-    required this.routeOrder,
+    required this.order,
   });
 
   final String id;
   final String name;
-  final int sort;
-  final int routeOrder;
+  final int order;
 }
 
 Future<PluginComicDetail> getComicDetailByPlugin(
@@ -68,7 +65,7 @@ Future<PluginComicDetail> getComicDetailByPlugin(
     from: from,
     fnPath: 'getComicDetail',
     core: payload,
-    extern: {'source': from.name, 'comicId': comicId},
+    extern: const <String, dynamic>{},
   );
   final detail = UnifiedPluginDetailResponse.fromMap(map);
   final normalInfo = normal.NormalComicAllInfo.fromJson(detail.normal);
@@ -79,6 +76,46 @@ Future<PluginComicDetail> getComicDetailByPlugin(
   );
 
   return PluginComicDetail(normalInfo: normalInfo, source: source);
+}
+
+Future<void> preparePluginDownloadRuntime({
+  required From from,
+  required String runtimeName,
+  required String taskGroupKey,
+}) async {
+  if (from != From.jm) {
+    return;
+  }
+  await Future.wait([
+    setFastestUrlIndex(
+      qjsRuntimeName: runtimeName,
+      qjsTaskGroupKey: taskGroupKey,
+    ),
+    setFastestImagesUrlIndex(
+      qjsRuntimeName: runtimeName,
+      qjsTaskGroupKey: taskGroupKey,
+    ),
+  ], eagerError: true);
+}
+
+Future<UnifiedPluginChapterResponse> getComicChapterByPlugin(
+  String comicId,
+  String chapterId,
+  From from, {
+  String? runtimeName,
+}) async {
+  final payload = from == From.bika
+      ? _buildBikaChapterPayload(comicId, chapterId)
+      : _buildJmChapterPayload(comicId, chapterId);
+
+  final map = await callUnifiedComicPlugin(
+    from: from,
+    fnPath: 'getChapter',
+    core: payload,
+    extern: const <String, dynamic>{},
+    runtimeName: runtimeName,
+  );
+  return UnifiedPluginChapterResponse.fromMap(map);
 }
 
 Map<String, dynamic> _buildBikaPayload(String comicId) {
@@ -100,56 +137,49 @@ Map<String, dynamic> _buildJmPayload(String comicId) {
   };
 }
 
+Map<String, dynamic> _buildBikaChapterPayload(
+  String comicId,
+  String chapterId,
+) {
+  return {
+    'comicId': comicId,
+    'chapterId': chapterId,
+    'settings': {
+      'proxy': objectbox.userSettingBox.get(1)!.bikaSetting.proxy,
+      'imageQuality': 'original',
+    },
+  };
+}
+
+Map<String, dynamic> _buildJmChapterPayload(String comicId, String chapterId) {
+  return {
+    'comicId': comicId,
+    'chapterId': chapterId,
+    'path': '$currentJmBaseUrl/chapter',
+    'useJwt': true,
+  };
+}
+
 List<UnifiedComicChapterRef> resolveUnifiedComicChapters(
   dynamic comicInfo,
   From from,
 ) {
   if (comicInfo is PluginComicDetailSource) {
-    if (from == From.jm) {
-      return comicInfo.eps
-          .map(
-            (ep) => UnifiedComicChapterRef(
-              id: ep.id,
-              name: ep.name,
-              sort: ep.order,
-              routeOrder: _toInt(ep.id, ep.order),
-            ),
-          )
-          .toList();
-    }
     return comicInfo.eps
         .map(
-          (ep) => UnifiedComicChapterRef(
-            id: ep.id,
-            name: ep.name,
-            sort: ep.order,
-            routeOrder: ep.order,
-          ),
+          (ep) =>
+              UnifiedComicChapterRef(id: ep.id, name: ep.name, order: ep.order),
         )
         .toList();
   }
 
-  if (from == From.bika && comicInfo is AllInfo) {
-    return comicInfo.eps
+  if (comicInfo is UnifiedComicDownload) {
+    return (comicInfo.chapters ?? const <Map<String, dynamic>>[])
         .map(
           (ep) => UnifiedComicChapterRef(
-            id: ep.id,
-            name: ep.title,
-            sort: ep.order,
-            routeOrder: ep.order,
-          ),
-        )
-        .toList();
-  }
-
-  if (from == From.jm && comicInfo is jm.JmComicInfoJson) {
-    return comicInfo.series
-        .map(
-          (series) => UnifiedComicChapterRef(
-            id: series.id,
-            name: series.name,
-            sort: _toInt(series.sort, 0),
-            routeOrder: _toInt(series.id, 0),
+            id: ep['id']?.toString() ?? '',
+            name: ep['name']?.toString() ?? '',
+            order: _toInt(ep['order'], 0),
           ),
         )
         .toList();

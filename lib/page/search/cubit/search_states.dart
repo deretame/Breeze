@@ -6,23 +6,10 @@ abstract class SearchStates with _$SearchStates {
     @Default(From.jm) From from,
     @Default("") String searchKeyword,
     @Default(1) int sortBy,
-    @Default({}) Map<String, bool> categories,
-    @Default({}) Map<String, bool> categoriesBlock,
-    @Default(false) bool brevity, // 精简列表还是详细列表，仅针对哔咔
+    @Default(<String, dynamic>{}) Map<String, dynamic> pluginExtern,
   }) = _SearchStates;
 
-  factory SearchStates.initial(
-    BuildContext context, {
-    Map<String, bool>? category,
-  }) {
-    final bikaSettingCubitState = context.read<BikaSettingCubit>().state;
-
-    return SearchStates().copyWith(
-      categories: category ?? Map.of(categoryMap),
-      categoriesBlock: Map.of(bikaSettingCubitState.shieldCategoryMap),
-      brevity: bikaSettingCubitState.brevity,
-    );
-  }
+  factory SearchStates.initial() => const SearchStates();
 
   factory SearchStates.fromJson(Map<String, dynamic> json) =>
       _$SearchStatesFromJson(json);

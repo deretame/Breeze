@@ -84,22 +84,20 @@ class UnifiedPluginSearchResponse {
 class UnifiedPluginChapterDoc {
   const UnifiedPluginChapterDoc({
     required this.name,
-    required this.fileName,
+    required this.path,
     required this.url,
     required this.id,
   });
 
   final String name;
-  final String fileName;
+  final String path;
   final String url;
   final String id;
 
   factory UnifiedPluginChapterDoc.fromMap(Map<String, dynamic> map) {
     return UnifiedPluginChapterDoc(
-      name:
-          map['name']?.toString() ?? map['originalName']?.toString() ?? '',
-      fileName:
-          map['fileName']?.toString() ?? map['path']?.toString() ?? '',
+      name: map['name']?.toString() ?? map['originalName']?.toString() ?? '',
+      path: map['path']?.toString() ?? map['fileName']?.toString() ?? '',
       url: map['url']?.toString() ?? map['fileServer']?.toString() ?? '',
       id: map['id']?.toString() ?? '',
     );

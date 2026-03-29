@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart' hide Thumb;
 import 'package:flutter/rendering.dart';
@@ -82,17 +84,14 @@ class _SearchResultPageState extends State<_SearchResultPage>
     searchEvent = widget.searchEvent;
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      var keyword = widget.searchEvent.searchStates.searchKeyword.trim();
-      final url = widget.searchEvent.url;
-      if (url.isNotEmpty) {
-        keyword += "&&$url";
-      }
+      final keyword = widget.searchEvent.searchStates.searchKeyword.trim();
       if (keyword.isEmpty) return;
+      final historyItem = _buildHistoryItem(widget.searchEvent);
       final settingCubit = context.read<GlobalSettingCubit>();
       final history = settingCubit.state.searchHistory.toList();
       history
-        ..remove(keyword)
-        ..insert(0, keyword);
+        ..remove(historyItem)
+        ..insert(0, historyItem);
       await Future.delayed(const Duration(milliseconds: 200));
       settingCubit.updateState(
         (current) =>
@@ -208,11 +207,27 @@ class _SearchResultPageState extends State<_SearchResultPage>
         case SearchStatus.getMoreFailure:
           if (state.status == SearchStatus.success) {
             searchEvent = state.searchEvent;
+            final searchCubit = context.read<SearchCubit>();
+            if (searchCubit.state != state.searchEvent.searchStates) {
+              searchCubit.update(state.searchEvent.searchStates);
+            }
           }
           return _comicList(state);
       }
     },
   );
+
+  String _buildHistoryItem(SearchEvent event) {
+    final keyword = event.searchStates.searchKeyword.trim();
+    final payload = <String, dynamic>{};
+    if (event.searchStates.pluginExtern.isNotEmpty) {
+      payload['extern'] = event.searchStates.pluginExtern;
+    }
+    if (payload.isEmpty) {
+      return keyword;
+    }
+    return '$keyword&&${jsonEncode(payload)}';
+  }
 
   Widget _comicList(SearchState state) {
     return _genericList(state);

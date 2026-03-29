@@ -12,7 +12,10 @@ import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-Future<void> bikaExportComicAsFolder(String comicId, {String? exportPath}) async {
+Future<void> bikaExportComicAsFolder(
+  String comicId, {
+  String? exportPath,
+}) async {
   final download = _getDownload(comicId, 'bika');
   final detail = _exportDetail(download);
   final title = download.title;
@@ -25,10 +28,12 @@ Future<void> bikaExportComicAsFolder(String comicId, {String? exportPath}) async
   }
   await dir.create(recursive: true);
 
-  await File(p.join(comicDir, 'original_comic_info.json'))
-      .writeAsString(jsonEncode(detail));
-  await File(p.join(comicDir, 'processed_comic_info.json'))
-      .writeAsString(jsonEncode(detail));
+  await File(
+    p.join(comicDir, 'original_comic_info.json'),
+  ).writeAsString(jsonEncode(detail));
+  await File(
+    p.join(comicDir, 'processed_comic_info.json'),
+  ).writeAsString(jsonEncode(detail));
 
   await _exportCover(download, comicDir, comicId);
   await _copyEpisodeFiles(download, comicDir);
@@ -40,7 +45,8 @@ Future<void> bikaExportComicAsZip(String comicId, {String? exportPath}) async {
   final download = _getDownload(comicId, 'bika');
   final detail = _exportDetail(download);
   final title = download.title;
-  final finalZipPath = exportPath ?? '${p.join(await createDownloadDir(), title)}.zip';
+  final finalZipPath =
+      exportPath ?? '${p.join(await createDownloadDir(), title)}.zip';
 
   final packInfo = PackInfo(
     comicInfoString: jsonEncode(detail),
@@ -65,7 +71,9 @@ Future<void> bikaExportComicAsZip(String comicId, {String? exportPath}) async {
       ..sort((a, b) => a.path.compareTo(b.path));
     for (final file in files) {
       packInfo.originalImagePaths.add(file.path);
-      packInfo.packImagePaths.add(p.join('eps', chapterName, p.basename(file.path)));
+      packInfo.packImagePaths.add(
+        p.join('eps', chapterName, p.basename(file.path)),
+      );
     }
   }
 
@@ -84,7 +92,9 @@ Map<String, dynamic> _exportDetail(UnifiedComicDownload download) {
   final detail = Map<String, dynamic>.from(
     jsonDecode(download.detailJson) as Map<String, dynamic>,
   );
-  final extension = Map<String, dynamic>.from(detail['extension'] as Map? ?? const {});
+  final extension = Map<String, dynamic>.from(
+    detail['extension'] as Map? ?? const {},
+  );
   extension['version'] = 'v2';
   detail['extension'] = extension;
   return detail;
@@ -102,8 +112,13 @@ Future<void> _exportCover(
   await File(path).copy(coverFile.path);
 }
 
-Future<String?> _tryDownloadCover(UnifiedComicDownload download, String comicId) async {
-  final cover = Map<String, dynamic>.from(download.cover ?? const <String, dynamic>{});
+Future<String?> _tryDownloadCover(
+  UnifiedComicDownload download,
+  String comicId,
+) async {
+  final cover = Map<String, dynamic>.from(
+    download.cover ?? const <String, dynamic>{},
+  );
   final ext = Map<String, dynamic>.from(cover['extension'] as Map? ?? const {});
   final url = cover['url']?.toString() ?? '';
   final path = ext['path']?.toString() ?? '$comicId.jpg';
@@ -112,7 +127,7 @@ Future<String?> _tryDownloadCover(UnifiedComicDownload download, String comicId)
     return await downloadPicture(
       from: From.bika,
       url: url,
-      fileName: path,
+      path: path,
       cartoonId: comicId,
     );
   } catch (_) {
@@ -120,7 +135,10 @@ Future<String?> _tryDownloadCover(UnifiedComicDownload download, String comicId)
   }
 }
 
-Future<void> _copyEpisodeFiles(UnifiedComicDownload download, String comicDir) async {
+Future<void> _copyEpisodeFiles(
+  UnifiedComicDownload download,
+  String comicDir,
+) async {
   final chapterRoot = await _chapterRoot(download);
   for (final chapter in download.chapters ?? const <Map<String, dynamic>>[]) {
     final chapterId = chapter['id']?.toString() ?? '';
@@ -130,7 +148,9 @@ Future<void> _copyEpisodeFiles(UnifiedComicDownload download, String comicDir) a
     final files = await dir.list().where((e) => e is File).cast<File>().toList()
       ..sort((a, b) => a.path.compareTo(b.path));
     for (final file in files) {
-      final target = File(p.join(comicDir, 'eps', chapterName, p.basename(file.path)));
+      final target = File(
+        p.join(comicDir, 'eps', chapterName, p.basename(file.path)),
+      );
       await target.create(recursive: true);
       await file.copy(target.path);
     }

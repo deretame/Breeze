@@ -4,10 +4,12 @@ class BlocState {
   bool hasReachedMax = false;
   int pagesCount = 0;
   List<ComicNumber> comics = [];
+  Map<String, dynamic> pluginExtern = const <String, dynamic>{};
 
   BlocState({
     this.hasReachedMax = false,
     this.pagesCount = 0,
     this.comics = const [],
+    this.pluginExtern = const <String, dynamic>{},
   });
 }

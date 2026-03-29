@@ -2,8 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
-import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
+import 'package:zephyr/model/unified_comic_list_item.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/debouncer.dart';
 
@@ -20,12 +19,9 @@ class _DesktopDragScrollBehavior extends MaterialScrollBehavior {
 }
 
 class RecommendWidget extends StatelessWidget {
-  final List<Recommend> comicList;
+  final List<UnifiedComicListItem> comicList;
 
-  const RecommendWidget({
-    super.key,
-    required this.comicList,
-  });
+  const RecommendWidget({super.key, required this.comicList});
 
   bool get _isDesktop =>
       Platform.isWindows || Platform.isMacOS || Platform.isLinux;
@@ -33,11 +29,9 @@ class RecommendWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (comicList.isEmpty) {
-      return SizedBox.shrink();
+      return const SizedBox.shrink();
     }
-    final comicInfoList = mapToUnifiedComicSimplifyEntryInfoList(
-      comicList.map(unifiedComicFromRecommend),
-    );
+    final comicInfoList = mapToUnifiedComicSimplifyEntryInfoList(comicList);
 
     Widget scrollView = ComicFixedSizeHorizontalList(
       entries: comicInfoList,
@@ -61,7 +55,9 @@ class RecommendWidget extends StatelessWidget {
           color: context.theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+            color: context.theme.colorScheme.outlineVariant.withValues(
+              alpha: 0.4,
+            ),
           ),
         ),
         child: ClipRRect(

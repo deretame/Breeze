@@ -3,9 +3,10 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
-import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
@@ -13,13 +14,13 @@ import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/download/download_cancel_signal.dart';
 import 'package:zephyr/util/download/download_progress_reporter.dart';
 import 'package:zephyr/util/download/qjs_download_runtime.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/task/shared_download.dart';
 import 'package:zephyr/util/get_path.dart';
-import 'package:zephyr/util/jm_url_set.dart';
 
 Future<void> unifiedDownloadTask(
   DownloadProgressReporter reporter,
@@ -62,19 +63,11 @@ Future<void> unifiedDownloadTask(
   try {
     await ensureQjsRuntimeReady(source: from.name);
     await ensureTaskRunning();
-
-    if (from == From.jm) {
-      await Future.wait([
-        setFastestUrlIndex(
-          qjsRuntimeName: runtimeName,
-          qjsTaskGroupKey: task.comicId,
-        ),
-        setFastestImagesUrlIndex(
-          qjsRuntimeName: runtimeName,
-          qjsTaskGroupKey: task.comicId,
-        ),
-      ], eagerError: true);
-    }
+    await preparePluginDownloadRuntime(
+      from: from,
+      runtimeName: runtimeName,
+      taskGroupKey: task.comicId,
+    );
 
     updateTaskStatus('获取漫画信息中...');
     reporter.updateMessage('获取漫画信息中...');
@@ -100,7 +93,7 @@ Future<void> unifiedDownloadTask(
     final coverPath = await downloadCoverAsset(
       from: from,
       url: cover.url,
-      fileName: coverFileName,
+      path: coverFileName,
       cartoonId: task.comicId,
       qjsName: runtimeName,
       qjsTaskGroupKey: task.comicId,
@@ -137,14 +130,9 @@ Future<void> unifiedDownloadTask(
         jobs.add(
           DownloadImageJob(
             url: doc.url,
-            fileName: _orderedImageFileName(
-              index: index,
-              originalName: doc.fileName.isNotEmpty ? doc.fileName : doc.name,
-              url: doc.url,
-            ),
+            path: doc.path,
             cartoonId: task.comicId,
             chapterId: response.chapter.epId,
-            extern: {if (from == From.jm) 'decodeJmComic': true},
           ),
         );
       }
@@ -173,14 +161,12 @@ Future<void> unifiedDownloadTask(
           if (response.chapter.epId != job.chapterId) continue;
           final docs = response.chapter.docs;
           final index = docs.indexWhere(
-            (doc) =>
-                (doc.fileName.isNotEmpty ? doc.fileName : doc.name) ==
-                job.fileName,
+            (doc) => (doc.path.isNotEmpty ? doc.path : doc.name) == job.path,
           );
           if (index != -1) {
             docs[index] = UnifiedPluginChapterDoc(
               name: docs[index].name,
-              fileName: docs[index].fileName,
+              path: docs[index].path,
               url: '404',
               id: docs[index].id,
             );
@@ -207,10 +193,10 @@ List<UnifiedComicDownloadChapter> _resolveSelectedChapters(
   UnifiedComicDownloadInfo info,
   List<String> selectedIds,
 ) {
-  final result = info.chapters
+  return info.chapters
       .where((chapter) => selectedIds.contains(chapter.taskChapterId))
-      .toList();
-  return result.isEmpty ? info.chapters : result;
+      .toList()
+      .let((result) => result.isEmpty ? info.chapters : result);
 }
 
 Future<UnifiedPluginChapterResponse> _getChapterByPlugin({
@@ -219,34 +205,12 @@ Future<UnifiedPluginChapterResponse> _getChapterByPlugin({
   required String chapterTaskId,
   required String runtimeName,
 }) async {
-  final core = from == From.bika
-      ? {
-          'comicId': comicId,
-          'chapterId': chapterTaskId,
-          'settings': {
-            'proxy': objectbox.userSettingBox.get(1)!.bikaSetting.proxy,
-            'imageQuality': 'original',
-          },
-        }
-      : {
-          'comicId': comicId,
-          'chapterId': chapterTaskId,
-          'path': '$currentJmBaseUrl/chapter',
-          'useJwt': true,
-        };
-
-  final map = await callUnifiedComicPlugin(
-    from: from,
-    fnPath: 'getChapter',
-    core: core,
-    extern: {
-      'source': from.name,
-      'comicId': comicId,
-      'chapterId': chapterTaskId,
-    },
+  return getComicChapterByPlugin(
+    comicId,
+    chapterTaskId,
+    from,
     runtimeName: runtimeName,
   );
-  return UnifiedPluginChapterResponse.fromMap(map);
 }
 
 Future<void> _saveUnifiedDownload({
@@ -257,9 +221,9 @@ Future<void> _saveUnifiedDownload({
   required List<UnifiedPluginChapterResponse> chapterResponses,
 }) async {
   final now = DateTime.now().toUtc();
-  final eps = chapterResponses
+  final storedChapters = chapterResponses
       .map(
-        (response) => normal.Ep(
+        (response) => UnifiedComicDownloadStoredChapter(
           id: response.chapter.epId,
           name: response.chapter.epName,
           order: selectedChapters
@@ -268,40 +232,78 @@ Future<void> _saveUnifiedDownload({
                 orElse: () => selectedChapters.first,
               )
               .order,
+          images: response.chapter.docs.map((doc) {
+            final imageName = _resolveImageDisplayName(doc);
+            final imagePath = normalizeStoredAssetPath(
+              doc.path,
+              fallback: imageName,
+            );
+            return UnifiedComicDownloadImage(
+              id: doc.id.isNotEmpty
+                  ? doc.id
+                  : _fallbackImageId(doc, response.chapter.epId),
+              name: imageName,
+              path: imagePath,
+              url: doc.url,
+            );
+          }).toList(),
         ),
       )
       .toList();
+  final eps = storedChapters
+      .map(
+        (chapter) =>
+            normal.Ep(id: chapter.id, name: chapter.name, order: chapter.order),
+      )
+      .toList();
 
-  final detail = normalInfo.copyWith(eps: eps, recommend: const []);
+  final detail = normalInfo.copyWith(
+    eps: eps,
+    recommend: const [],
+    extension: {
+      ...normalInfo.extension,
+      'downloadChapters': storedChapters
+          .map(
+            (e) => {
+              'id': e.id,
+              'name': e.name,
+              'order': e.order,
+              'images': e.images.map((image) => image.toMap()).toList(),
+            },
+          )
+          .toList(),
+    },
+  );
   final key = '${from.name}:${task.comicId}';
-  final coverMap =
-      jsonDecode(jsonEncode(detail.comicInfo.cover.toJson()))
-          as Map<String, dynamic>;
-  final creatorMap =
-      jsonDecode(jsonEncode(detail.comicInfo.creator.toJson()))
-          as Map<String, dynamic>;
-  final titleMeta =
-      (jsonDecode(
-                jsonEncode(
-                  detail.comicInfo.titleMeta.map((e) => e.toJson()).toList(),
-                ),
+  final coverMap = _normalizeStoredImageMap(
+    _deepCopyMap(detail.comicInfo.cover.toJson()),
+    fallbackId: task.comicId,
+  );
+  final creatorMap = _normalizeStoredCreatorMap(
+    _deepCopyMap(detail.comicInfo.creator.toJson()),
+    fallbackId: task.comicId,
+  );
+  final titleMeta = _deepCopyMapList(
+    detail.comicInfo.titleMeta.map((e) => e.toJson()).toList(),
+  );
+  final metadata = _deepCopyMapList(
+    detail.comicInfo.metadata.map((e) => e.toJson()).toList(),
+  );
+  final chapters = storedChapters
+      .map(
+        (chapter) => UnifiedComicDownloadChapter(
+          id: chapter.id,
+          title: chapter.name,
+          order: chapter.order,
+          taskChapterId: selectedChapters
+              .firstWhere(
+                (e) => e.id == chapter.id,
+                orElse: () => selectedChapters.first,
               )
-              as List)
-          .map((e) => Map<String, dynamic>.from(e as Map))
-          .toList();
-  final metadata =
-      (jsonDecode(
-                jsonEncode(
-                  detail.comicInfo.metadata.map((e) => e.toJson()).toList(),
-                ),
-              )
-              as List)
-          .map((e) => Map<String, dynamic>.from(e as Map))
-          .toList();
-  final chapters =
-      (jsonDecode(jsonEncode(eps.map((e) => e.toJson()).toList())) as List)
-          .map((e) => Map<String, dynamic>.from(e as Map))
-          .toList();
+              .taskChapterId,
+        ).toMap(),
+      )
+      .toList();
 
   final entity = UnifiedComicDownload(
     uniqueKey: key,
@@ -345,23 +347,67 @@ Future<void> _saveUnifiedDownload({
   objectbox.unifiedDownloadBox.put(entity);
 }
 
-String _orderedImageFileName({
-  required int index,
-  required String originalName,
-  required String url,
+Map<String, dynamic> _deepCopyMap(Object value) => value
+    .let(jsonEncode)
+    .let(jsonDecode)
+    .let((decoded) => Map<String, dynamic>.from(decoded as Map));
+
+List<Map<String, dynamic>> _deepCopyMapList(Object value) => value
+    .let(jsonEncode)
+    .let(jsonDecode)
+    .let(
+      (decoded) => (decoded as List)
+          .map((item) => Map<String, dynamic>.from(item as Map))
+          .toList(),
+    );
+
+String _fallbackImageId(UnifiedPluginChapterDoc doc, String chapterId) {
+  final candidate = doc.path.isNotEmpty ? doc.path : doc.name;
+  final base = candidate.split(RegExp(r'[\\/]')).last.trim();
+  final withoutExt = base.contains('.')
+      ? base.substring(0, base.lastIndexOf('.'))
+      : base;
+  if (withoutExt.isNotEmpty) {
+    return withoutExt.replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_');
+  }
+  return '${chapterId}_${doc.id.hashCode.abs()}';
+}
+
+String _resolveImageDisplayName(UnifiedPluginChapterDoc doc) {
+  if (doc.name.trim().isNotEmpty) {
+    return doc.name.trim();
+  }
+  final pathName = p.basename(doc.path.trim());
+  if (pathName.isNotEmpty) {
+    return pathName;
+  }
+  return 'asset.bin';
+}
+
+Map<String, dynamic> _normalizeStoredImageMap(
+  Map<String, dynamic> image, {
+  required String fallbackId,
 }) {
-  final candidate = originalName.split(RegExp(r'[\\/]')).last.trim();
-  final fromUrl = Uri.tryParse(url.trim())?.pathSegments.last ?? '';
-  final seed = candidate.isNotEmpty ? candidate : fromUrl;
-  var extension = '';
-  final dotIndex = seed.lastIndexOf('.');
-  if (dotIndex != -1 && dotIndex < seed.length - 1) {
-    extension = seed.substring(dotIndex);
+  final map = Map<String, dynamic>.from(image);
+  final ext = Map<String, dynamic>.from(map['extension'] as Map? ?? const {});
+  final currentName = map['name']?.toString().trim() ?? '';
+  final fallbackName = currentName.isNotEmpty ? currentName : '$fallbackId.jpg';
+  final rawPath = ext['path']?.toString() ?? currentName;
+  ext['path'] = normalizeStoredAssetPath(rawPath, fallback: fallbackName);
+  map['extension'] = ext;
+  return map;
+}
+
+Map<String, dynamic> _normalizeStoredCreatorMap(
+  Map<String, dynamic> creator, {
+  required String fallbackId,
+}) {
+  final map = Map<String, dynamic>.from(creator);
+  final avatar = Map<String, dynamic>.from(map['avatar'] as Map? ?? const {});
+  if (avatar.isNotEmpty) {
+    map['avatar'] = _normalizeStoredImageMap(avatar, fallbackId: fallbackId);
   }
-  if (extension.isEmpty) {
-    extension = '.bin';
-  }
-  return '${(index + 1).toString().padLeft(4, '0')}$extension';
+  return map;
 }
 
 void _markTaskCompleted(String comicId) {

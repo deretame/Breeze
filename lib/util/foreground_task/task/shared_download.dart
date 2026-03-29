@@ -6,36 +6,32 @@ import '../../download/download_progress_reporter.dart';
 class DownloadImageJob {
   const DownloadImageJob({
     required this.url,
-    required this.fileName,
+    required this.path,
     required this.cartoonId,
     required this.chapterId,
-    this.decodeJmComic = false,
   });
 
   final String url;
-  final String fileName;
+  final String path;
   final String cartoonId;
   final String chapterId;
-  final bool decodeJmComic;
 }
 
 Future<String> downloadCoverAsset({
   required From from,
   required String url,
-  required String fileName,
+  required String path,
   required String cartoonId,
   required String qjsName,
   required String qjsTaskGroupKey,
-  bool decodeJmComic = false,
 }) {
   return downloadPicture(
     from: from,
     url: url,
-    fileName: fileName,
+    path: path,
     cartoonId: cartoonId,
     qjsName: qjsName,
     qjsTaskGroupKey: qjsTaskGroupKey,
-    decodeJmComic: decodeJmComic,
   );
 }
 
@@ -117,12 +113,11 @@ Future<void> _downloadSingleJob({
     await downloadPicture(
       from: from,
       url: job.url,
-      fileName: job.fileName,
+      path: job.path,
       cartoonId: job.cartoonId,
       chapterId: job.chapterId,
       qjsName: qjsRuntimeName,
       qjsTaskGroupKey: qjsTaskGroupKey,
-      decodeJmComic: job.decodeJmComic,
     );
   } catch (error) {
     if (onError != null) {

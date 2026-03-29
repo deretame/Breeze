@@ -9,7 +9,6 @@ import 'package:toastification/toastification.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
-import 'package:zephyr/page/comic_list/comic_list.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/auto_check_in.dart';
@@ -56,7 +55,7 @@ class _NavigationBarState extends State<NavigationBar> {
   bool _isInitializingNotifications = false;
 
   // 页面列表
-  final _pageList = [HomePage(), ComicListPage(), BookshelfPage(), MorePage()];
+  final _pageList = [BookshelfPage(), HomePage(), MorePage()];
 
   @override
   void initState() {
@@ -76,14 +75,18 @@ class _NavigationBarState extends State<NavigationBar> {
         DownloadQueueManager.instance.watchTasks();
       }
       downloadPlugin();
-      setLogHttpForward(url: "http://127.0.0.1:7879/log");
+      setLogHttpForward(url: "http://127.0.0.1:7878/log");
     });
-    _controller = PersistentTabController(
-      initialIndex: objectbox.userSettingBox
-          .get(1)!
-          .globalSetting
-          .welcomePageNum,
-    );
+    final configuredIndex = objectbox.userSettingBox
+        .get(1)!
+        .globalSetting
+        .welcomePageNum;
+    final initialIndex =
+        configuredIndex >= 0 && configuredIndex < _pageList.length
+        ? configuredIndex
+        : 0;
+    _controller = PersistentTabController(initialIndex: initialIndex);
+    _selectedIndex = initialIndex;
     scrollControllers.forEach((key, value) {
       _scrollControllers.add(value);
     });
@@ -204,20 +207,14 @@ class _NavigationBarState extends State<NavigationBar> {
 
     return [
       PersistentBottomNavBarItem(
-        icon: Icon(Icons.home),
-        title: "首页",
-        activeColorPrimary: activeColor,
-        inactiveColorPrimary: inactiveColor,
-      ),
-      PersistentBottomNavBarItem(
-        icon: Icon(Icons.leaderboard),
-        title: "排行",
-        activeColorPrimary: activeColor,
-        inactiveColorPrimary: inactiveColor,
-      ),
-      PersistentBottomNavBarItem(
         icon: Icon(Icons.menu_book_sharp),
         title: "书架",
+        activeColorPrimary: activeColor,
+        inactiveColorPrimary: inactiveColor,
+      ),
+      PersistentBottomNavBarItem(
+        icon: Icon(Icons.extension_outlined),
+        title: "插件",
         activeColorPrimary: activeColor,
         inactiveColorPrimary: inactiveColor,
       ),
@@ -234,19 +231,14 @@ class _NavigationBarState extends State<NavigationBar> {
   List<NavigationRailDestination> _navRailDestinations() {
     return [
       NavigationRailDestination(
-        icon: Icon(Icons.home_outlined),
-        selectedIcon: Icon(Icons.home),
-        label: Text("首页"),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.leaderboard_outlined),
-        selectedIcon: Icon(Icons.leaderboard),
-        label: Text("排行"),
-      ),
-      NavigationRailDestination(
         icon: Icon(Icons.menu_book_outlined),
         selectedIcon: Icon(Icons.menu_book_sharp),
         label: Text("书架"),
+      ),
+      NavigationRailDestination(
+        icon: Icon(Icons.extension_outlined),
+        selectedIcon: Icon(Icons.extension),
+        label: Text("插件"),
       ),
       NavigationRailDestination(
         icon: Icon(Icons.more_horiz_outlined),

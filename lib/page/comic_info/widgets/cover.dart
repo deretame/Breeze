@@ -41,7 +41,8 @@ class Cover extends StatelessWidget {
                     borderRadius: radius,
                     color: context.theme.colorScheme.surfaceContainerHigh,
                     border: Border.all(
-                      color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
+                      color: context.theme.colorScheme.outlineVariant
+                          .withValues(alpha: 0.35),
                     ),
                   ),
                   child: Center(
@@ -85,7 +86,8 @@ class Cover extends StatelessWidget {
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         borderRadius: radius,
-                        color: context.theme.colorScheme.surfaceContainerHighest,
+                        color:
+                            context.theme.colorScheme.surfaceContainerHighest,
                       ),
                       child: const Center(child: Icon(Icons.refresh)),
                     ),

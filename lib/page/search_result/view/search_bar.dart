@@ -2,11 +2,12 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search/widget/advanced_search_dialog.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/router/router.gr.dart';
-import 'package:zephyr/util/search_setting_utils.dart';
 
 class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
   final SearchEvent searchEvent;
@@ -49,6 +50,7 @@ class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
                         SearchRoute(
                           key: ValueKey(const Uuid().v4()),
                           searchState: searchEvent.searchStates,
+                          aggregateMode: false,
                         ),
                       );
                     }
@@ -110,27 +112,368 @@ class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
 
   Future<void> _search(BuildContext context) async {
     final searchCubit = context.read<SearchCubit>();
+    final source = searchCubit.state.from;
+    final scheme = await _loadAdvancedSearchScheme(
+      source,
+      searchCubit.state.pluginExtern,
+    );
+    if (!context.mounted) {
+      return;
+    }
     final newStates = await showDialog<SearchStates>(
       context: context,
-      builder: (context) =>
-          AdvancedSearchDialog(initialState: searchCubit.state),
+      builder: (context) {
+        if (scheme == null) {
+          return AdvancedSearchDialog(
+            initialState: searchCubit.state,
+            allowSourceSwitch: false,
+          );
+        }
+        return _PluginAdvancedSearchDialog(
+          initialState: searchCubit.state,
+          scheme: scheme,
+        );
+      },
     );
 
     if (newStates == null) return;
     searchCubit.update(newStates);
-
     if (!context.mounted) return;
-    updateAdvancedSearchSettings(context, newStates);
 
     final searchBloc = context.read<SearchBloc>();
-    searchBloc.add(
-      SearchEvent().copyWith(
-        searchStates: searchCubit.state,
-        url: searchEvent.url,
-      ),
-    );
+    searchBloc.add(SearchEvent().copyWith(searchStates: searchCubit.state));
   }
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight + 1); // 高度要加上分割线
+
+  Future<_AdvancedSearchScheme?> _loadAdvancedSearchScheme(
+    From from,
+    Map<String, dynamic> extern,
+  ) async {
+    Map<String, dynamic> response;
+    try {
+      response = await callUnifiedComicPlugin(
+        from: from,
+        fnPath: 'get_advanced_search_scheme',
+        core: const <String, dynamic>{},
+        extern: extern,
+      );
+    } catch (_) {
+      try {
+        response = await callUnifiedComicPlugin(
+          from: from,
+          fnPath: 'getAdvancedSearchScheme',
+          core: const <String, dynamic>{},
+          extern: extern,
+        );
+      } catch (_) {
+        return null;
+      }
+    }
+
+    final scheme = Map<String, dynamic>.from(
+      (response['scheme'] as Map?) ?? const <String, dynamic>{},
+    );
+    final data = Map<String, dynamic>.from(
+      (response['data'] as Map?) ?? const <String, dynamic>{},
+    );
+    final fields = ((scheme['fields'] as List?) ?? const [])
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
+
+    if (fields.isEmpty) {
+      return null;
+    }
+
+    final values = Map<String, dynamic>.from(
+      (data['values'] as Map?) ?? const <String, dynamic>{},
+    );
+    for (final field in fields) {
+      final key = field['key']?.toString() ?? '';
+      if (key.isEmpty || !extern.containsKey(key)) {
+        continue;
+      }
+      final externValue = extern[key];
+      if (externValue is Map) {
+        values[key] = externValue.entries
+            .where((entry) => entry.value == true)
+            .map((entry) => entry.key.toString())
+            .toList();
+      } else {
+        values[key] = externValue;
+      }
+    }
+    return _AdvancedSearchScheme(
+      source: response['source']?.toString() ?? from.name,
+      fields: fields,
+      values: values,
+    );
+  }
+}
+
+class _AdvancedSearchScheme {
+  const _AdvancedSearchScheme({
+    required this.source,
+    required this.fields,
+    required this.values,
+  });
+
+  final String source;
+  final List<Map<String, dynamic>> fields;
+  final Map<String, dynamic> values;
+}
+
+class _PluginAdvancedSearchDialog extends StatefulWidget {
+  const _PluginAdvancedSearchDialog({
+    required this.initialState,
+    required this.scheme,
+  });
+
+  final SearchStates initialState;
+  final _AdvancedSearchScheme scheme;
+
+  @override
+  State<_PluginAdvancedSearchDialog> createState() =>
+      _PluginAdvancedSearchDialogState();
+}
+
+class _PluginAdvancedSearchDialogState
+    extends State<_PluginAdvancedSearchDialog> {
+  late final Map<String, dynamic> _values;
+
+  @override
+  void initState() {
+    super.initState();
+    _values = Map<String, dynamic>.from(widget.scheme.values);
+    _values['sortBy'] = _values['sortBy'] ?? widget.initialState.sortBy;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('高级搜索选项'),
+      scrollable: true,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: widget.scheme.fields
+            .map((field) => _buildField(context, field))
+            .toList(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('取消'),
+        ),
+        FilledButton(
+          onPressed: () {
+            final sortBy =
+                int.tryParse(_values['sortBy']?.toString() ?? '') ??
+                widget.initialState.sortBy;
+            final nextExtern = <String, dynamic>{
+              ...widget.initialState.pluginExtern,
+            };
+            for (final field in widget.scheme.fields) {
+              final key = field['key']?.toString() ?? '';
+              final kind = field['kind']?.toString() ?? '';
+              if (key.isEmpty) continue;
+              if (kind == 'choice') {
+                nextExtern[key] = _values[key];
+              } else if (kind == 'multiChoice') {
+                nextExtern[key] = _multiValues(key);
+              }
+            }
+            Navigator.of(context).pop(
+              widget.initialState.copyWith(
+                sortBy: sortBy,
+                pluginExtern: nextExtern,
+              ),
+            );
+          },
+          child: const Text('应用'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildField(BuildContext context, Map<String, dynamic> field) {
+    final key = field['key']?.toString() ?? '';
+    final label = field['label']?.toString() ?? key;
+    final kind = field['kind']?.toString() ?? 'choice';
+    if (key.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final options = ((field['options'] as List?) ?? const [])
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
+    if (options.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    if (kind == 'multiChoice') {
+      final selected = _multiValues(key);
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    selected.isEmpty ? '未选择' : '已选择 ${selected.length} 项',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                OutlinedButton(
+                  onPressed: () async {
+                    final values = await _showMultiChoiceDialog(
+                      context,
+                      title: label,
+                      options: options,
+                      selected: selected.toSet(),
+                    );
+                    if (values == null) {
+                      return;
+                    }
+                    setState(() {
+                      _values[key] = values.toList();
+                    });
+                  },
+                  child: const Text('选择'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (kind != 'choice') {
+      return const SizedBox.shrink();
+    }
+
+    final current = _values[key]?.toString() ?? '';
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: options.map((option) {
+              final value = option['value']?.toString() ?? '';
+              final text = option['label']?.toString() ?? value;
+              return ChoiceChip(
+                showCheckmark: false,
+                label: Text(text),
+                selected: current == value,
+                onSelected: (selected) {
+                  if (!selected) {
+                    return;
+                  }
+                  setState(() {
+                    _values[key] = option['value'];
+                  });
+                },
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<String> _multiValues(String key) {
+    final value = _values[key];
+    if (value is List) {
+      return value.map((e) => e.toString()).where((e) => e.isNotEmpty).toList();
+    }
+    if (value is Map) {
+      return value.entries
+          .where((entry) => entry.value == true)
+          .map((entry) => entry.key.toString())
+          .where((e) => e.isNotEmpty)
+          .toList();
+    }
+    return const <String>[];
+  }
+
+  Future<Set<String>?> _showMultiChoiceDialog(
+    BuildContext context, {
+    required String title,
+    required List<Map<String, dynamic>> options,
+    required Set<String> selected,
+  }) {
+    final next = Set<String>.from(selected);
+    return showDialog<Set<String>>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(title),
+              content: SizedBox(
+                width: 420,
+                child: Wrap(
+                  alignment: WrapAlignment.start,
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: options.map((option) {
+                    final value = option['value']?.toString() ?? '';
+                    final text = option['label']?.toString() ?? value;
+                    return FilterChip(
+                      showCheckmark: false,
+                      label: Text(text),
+                      selected: next.contains(value),
+                      onSelected: (isSelected) {
+                        setState(() {
+                          if (isSelected) {
+                            next.add(value);
+                          } else {
+                            next.remove(value);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('取消'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(next),
+                  child: const Text('应用'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 }

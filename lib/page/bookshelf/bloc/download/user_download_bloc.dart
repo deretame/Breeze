@@ -106,9 +106,9 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
       // 检查该漫画的分类是否与屏蔽分类列表中的任何分类匹配
       return !(comic.metadata ?? const <Map<String, dynamic>>[]).any((entry) {
         if (entry['type']?.toString() != 'categories') return false;
-        final values = asJsonList(entry['value'])
-            .map((e) => asJsonMap(e)['name']?.toString() ?? '')
-            .toList();
+        final values = asJsonList(
+          entry['value'],
+        ).map((e) => asJsonMap(e)['name']?.toString() ?? '').toList();
         return values.any(shieldedCategoriesList.contains);
       });
     }).toList();
@@ -116,7 +116,9 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
 
   List<dynamic> _getComicList(UserDownloadEvent event) {
     List<dynamic> comics = [];
-    if (event.comicChoice == 1) {
+    final sourceFilter = event.searchEnterConst.sources;
+
+    if (sourceFilter.contains('bika')) {
       late var comicList = objectbox.unifiedDownloadBox
           .query(UnifiedComicDownload_.source.equals('bika'))
           .build()
@@ -124,22 +126,18 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
 
       comicList = _filterShieldedComics(comicList);
 
-      comicList = _fetchOfSort(comicList, event.searchEnterConst.sort);
-
       if (event.searchEnterConst.categories.isNotEmpty) {
         for (var category in event.searchEnterConst.categories) {
-          comicList = comicList
-              .where((comic) {
-                final metadata = comic.metadata ?? const <Map<String, dynamic>>[];
-                return metadata.any((entry) {
-                  if (entry['type']?.toString() != 'categories') return false;
-                  final values = asJsonList(entry['value'])
-                      .map((e) => asJsonMap(e)['name']?.toString() ?? '')
-                      .toList();
-                  return values.contains(category);
-                });
-              })
-              .toList();
+          comicList = comicList.where((comic) {
+            final metadata = comic.metadata ?? const <Map<String, dynamic>>[];
+            return metadata.any((entry) {
+              if (entry['type']?.toString() != 'categories') return false;
+              final values = asJsonList(
+                entry['value'],
+              ).map((e) => asJsonMap(e)['name']?.toString() ?? '').toList();
+              return values.contains(category);
+            });
+          }).toList();
         }
       }
 
@@ -150,20 +148,22 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
           var allString =
               comic.title +
               comic.description +
-              ((comic.creator ?? const <String, dynamic>{})['name']?.toString() ?? '') +
+              ((comic.creator ?? const <String, dynamic>{})['name']
+                      ?.toString() ??
+                  '') +
               comic.metadata.toString();
           return allString.toLowerCase().let(t2s).contains(keyword);
         }).toList();
       }
 
-      comics = comicList;
-    } else if (event.comicChoice == 2) {
+      comics.addAll(comicList);
+    }
+
+    if (sourceFilter.contains('jm')) {
       late var comicList = objectbox.unifiedDownloadBox
           .query(UnifiedComicDownload_.source.equals('jm'))
           .build()
           .find();
-
-      comicList = _fetchOfSort(comicList, event.searchEnterConst.sort);
 
       if (event.searchEnterConst.keyword.isNotEmpty) {
         final keyword = event.searchEnterConst.keyword.toLowerCase().let(t2s);
@@ -178,8 +178,13 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
         }).toList();
       }
 
-      comics = comicList;
+      comics.addAll(comicList);
     }
+
+    comics = _fetchOfSort(
+      comics.cast<UnifiedComicDownload>().toList(),
+      event.searchEnterConst.sort,
+    );
     return comics;
   }
 }

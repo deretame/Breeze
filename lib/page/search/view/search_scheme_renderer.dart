@@ -8,10 +8,11 @@ import 'package:zephyr/page/search/widget/search_bar.dart';
 import 'search_scheme_json.dart';
 
 class SearchSchemeRenderer {
-  SearchSchemeRenderer()
+  SearchSchemeRenderer({required this.aggregateMode})
     : _schema = jsonDecode(searchPageSchemeJson) as Map<String, dynamic>;
 
   final Map<String, dynamic> _schema;
+  final bool aggregateMode;
 
   Widget build() {
     final layout = asJsonMap(_schema['layout']);
@@ -23,7 +24,7 @@ class SearchSchemeRenderer {
       final type = config['type']?.toString() ?? '';
       switch (type) {
         case 'searchBar':
-          widgets.add(const SearchBar());
+          widgets.add(SearchBar(aggregateMode: aggregateMode));
           break;
         case 'divider':
           widgets.add(

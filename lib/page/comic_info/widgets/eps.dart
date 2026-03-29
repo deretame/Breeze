@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
-import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../type/enum.dart';
@@ -33,35 +32,20 @@ class EpButtonWidget extends StatelessWidget {
     final title = doc.name.trim().isEmpty ? '第$episodeIndex话' : doc.name.trim();
     return InkWell(
       onTap: () {
-        if (from == From.bika) {
-          context.pushRoute(
-            ComicReadRoute(
-              comicInfo: allInfo,
-              comicId: comicId,
-              type: type == ComicEntryType.history
-                  ? ComicEntryType.normal
-                  : type,
-              order: doc.order,
-              epsNumber: epsLength,
-              from: From.bika,
-              stringSelectCubit: context.read<StringSelectCubit>(),
-            ),
-          );
-        } else {
-          context.pushRoute(
-            ComicReadRoute(
-              comicId: comicId,
-              order: doc.id.let(toInt),
-              epsNumber: epsLength,
-              from: From.jm,
-              type: type == ComicEntryType.download
-                  ? ComicEntryType.download
-                  : ComicEntryType.normal,
-              comicInfo: allInfo,
-              stringSelectCubit: context.read<StringSelectCubit>(),
-            ),
-          );
-        }
+        final resolvedType = type == ComicEntryType.history
+            ? ComicEntryType.normal
+            : type;
+        context.pushRoute(
+          ComicReadRoute(
+            comicInfo: allInfo,
+            comicId: comicId,
+            type: resolvedType,
+            order: doc.order,
+            epsNumber: epsLength,
+            from: from,
+            stringSelectCubit: context.read<StringSelectCubit>(),
+          ),
+        );
       },
       child: Container(
         width: double.infinity,
@@ -72,7 +56,9 @@ class EpButtonWidget extends StatelessWidget {
           color: context.theme.colorScheme.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.28),
+            color: context.theme.colorScheme.outlineVariant.withValues(
+              alpha: 0.28,
+            ),
           ),
         ),
         child: Row(

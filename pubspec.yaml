@@ -78,6 +78,7 @@ dependencies:
   permission_guard: ^2.0.1 # 权限: 请求封装
   package_info_plus: ^9.0.0 # 应用: 版本信息
   device_info_plus: ^12.1.0 # 设备: 基础信息
+  mime: ^2.0.0 # 工具: MIME 类型
 
   # 后台任务与通知
   flutter_foreground_task: ^9.1.0 # 后台: 前台任务

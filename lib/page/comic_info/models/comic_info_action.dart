@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_list/models/comic_list_scene.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
@@ -26,31 +25,31 @@ Future<void> handleComicInfoAction(
   }
 
   if (type == 'openSearch') {
-    final source = _sourceFromString(payload['source']?.toString(), fallbackFrom);
+    final source = _sourceFromString(
+      payload['source']?.toString(),
+      fallbackFrom,
+    );
     final keyword = payload['keyword']?.toString() ?? '';
     final url = payload['url']?.toString() ?? '';
+    final externPatch = asJsonMap(payload['extern']);
     final categories = asJsonList(payload['categories'])
         .map((item) => item.toString())
         .where((item) => item.trim().isNotEmpty)
         .toList();
 
-    var searchStates = SearchStates.initial(
-      context,
-    ).copyWith(from: source, searchKeyword: keyword);
-
-    if (source == From.bika && categories.isNotEmpty) {
-      final selectedCategories = {
-        for (final key in categoryMap.keys) key: categories.contains(key),
-      };
-      searchStates = searchStates.copyWith(categories: selectedCategories);
-    }
+    final searchStates = SearchStates.initial().copyWith(
+      from: source,
+      searchKeyword: keyword,
+      pluginExtern: {
+        ...externPatch,
+        if (categories.isNotEmpty) 'categories': categories,
+        if (url.isNotEmpty) 'url': url,
+      },
+    );
 
     context.pushRoute(
       SearchResultRoute(
-        searchEvent: SearchEvent().copyWith(
-          searchStates: searchStates,
-          url: url,
-        ),
+        searchEvent: SearchEvent().copyWith(searchStates: searchStates),
       ),
     );
     return;

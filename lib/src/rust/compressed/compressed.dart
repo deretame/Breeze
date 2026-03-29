@@ -6,34 +6,33 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+class PackInfo {
+  final String comicInfoString;
+  final String processedComicInfoString;
+  final List<String> originalImagePaths;
+  final List<String> packImagePaths;
 
-            
+  const PackInfo({
+    required this.comicInfoString,
+    required this.processedComicInfoString,
+    required this.originalImagePaths,
+    required this.packImagePaths,
+  });
 
-            
+  @override
+  int get hashCode =>
+      comicInfoString.hashCode ^
+      processedComicInfoString.hashCode ^
+      originalImagePaths.hashCode ^
+      packImagePaths.hashCode;
 
-            class PackInfo  {
-                final String comicInfoString;
-final String processedComicInfoString;
-final List<String> originalImagePaths;
-final List<String> packImagePaths;
-
-                const PackInfo({required this.comicInfoString ,required this.processedComicInfoString ,required this.originalImagePaths ,required this.packImagePaths ,});
-
-                
-                
-
-                
-        @override
-        int get hashCode => comicInfoString.hashCode^processedComicInfoString.hashCode^originalImagePaths.hashCode^packImagePaths.hashCode;
-        
-
-                
-        @override
-        bool operator ==(Object other) =>
-            identical(this, other) ||
-            other is PackInfo &&
-                runtimeType == other.runtimeType
-                && comicInfoString == other.comicInfoString&& processedComicInfoString == other.processedComicInfoString&& originalImagePaths == other.originalImagePaths&& packImagePaths == other.packImagePaths;
-        
-            }
-            
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PackInfo &&
+          runtimeType == other.runtimeType &&
+          comicInfoString == other.comicInfoString &&
+          processedComicInfoString == other.processedComicInfoString &&
+          originalImagePaths == other.originalImagePaths &&
+          packImagePaths == other.packImagePaths;
+}

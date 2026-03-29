@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/page/comic_read/method/get_bika_info.dart';
 import 'package:zephyr/page/comic_read/method/get_jm_info.dart';
+import 'package:zephyr/page/comic_read/method/get_plugin_read_snapshot.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 
 import '../../../type/enum.dart';
@@ -31,14 +32,26 @@ class PageBloc extends Bloc<PageEvent, PageState> {
     emit(state.copyWith(status: PageStatus.initial));
 
     try {
+      final isDownload =
+          event.type == ComicEntryType.download ||
+          event.type == ComicEntryType.historyAndDownload;
+
       late final NormalComicEpInfo result;
-      if (event.from == From.bika) {
-        result = await getBikaInfo(event.comicId, event.epsId, event.type);
-      } else if (event.from == From.jm) {
-        result = await fetchJMMedia(
+      if (isDownload) {
+        if (event.from == From.bika) {
+          result = await getBikaInfoFromLocal(event.comicId, event.epsId);
+        } else {
+          result = await fetchJMMediaFromLocal(
+            event.comicId,
+            event.epsId.toString(),
+          );
+        }
+      } else {
+        result = await getPluginReadSnapshot(
           event.comicId,
-          event.epsId.toString(),
-          event.type,
+          event.epsId,
+          event.from,
+          event.comicInfo,
         );
       }
 

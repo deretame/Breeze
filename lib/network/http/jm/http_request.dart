@@ -1,12 +1,14 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../../util/jm_url_set.dart';
 import 'http_request_build_rust.dart' as rs;
 import 'jm_error_message.dart';
 
 Future<String> get jmJsUrl async {
-  return 'http://localhost:7879/jm-comic.bundle.cjs';
-  // final prefs = await SharedPreferences.getInstance();
-  // return prefs.getString('debug_jm_url') ??
-  //     'http://localhost:7879/jm-comic.bundle.cjs';
+  // return 'http://localhost:7879/jm-comic.bundle.cjs';
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString('debug_jm_url') ??
+      'http://localhost:7879/jm-comic.bundle.cjs';
 }
 
 Future<dynamic> _requestMap(
@@ -50,15 +52,6 @@ Future<dynamic> _requestMap(
 
   throw Exception('服务器返回异常，请稍后再试');
 }
-
-Future<Map<String, dynamic>> search(
-  String keyword,
-  String sort,
-  int page,
-) async => await _requestMap(
-  '$currentJmBaseUrl/search',
-  params: {"search_query": keyword, "page": page, "o": sort},
-);
 
 Future<Map<String, dynamic>> getComicInfo(
   String comicId, {

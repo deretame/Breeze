@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SearchStatusState {
 
- BookShelfStatus get status; int get pageCount; String get refresh; String get keyword; String get sort; List<String> get categories;
+ String get keyword; String get sort; List<String> get categories; List<String> get sources;
 /// Create a copy of SearchStatusState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $SearchStatusStateCopyWith<SearchStatusState> get copyWith => _$SearchStatusStat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchStatusState&&(identical(other.status, status) || other.status == status)&&(identical(other.pageCount, pageCount) || other.pageCount == pageCount)&&(identical(other.refresh, refresh) || other.refresh == refresh)&&(identical(other.keyword, keyword) || other.keyword == keyword)&&(identical(other.sort, sort) || other.sort == sort)&&const DeepCollectionEquality().equals(other.categories, categories));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchStatusState&&(identical(other.keyword, keyword) || other.keyword == keyword)&&(identical(other.sort, sort) || other.sort == sort)&&const DeepCollectionEquality().equals(other.categories, categories)&&const DeepCollectionEquality().equals(other.sources, sources));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,pageCount,refresh,keyword,sort,const DeepCollectionEquality().hash(categories));
+int get hashCode => Object.hash(runtimeType,keyword,sort,const DeepCollectionEquality().hash(categories),const DeepCollectionEquality().hash(sources));
 
 @override
 String toString() {
-  return 'SearchStatusState(status: $status, pageCount: $pageCount, refresh: $refresh, keyword: $keyword, sort: $sort, categories: $categories)';
+  return 'SearchStatusState(keyword: $keyword, sort: $sort, categories: $categories, sources: $sources)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $SearchStatusStateCopyWith<$Res>  {
   factory $SearchStatusStateCopyWith(SearchStatusState value, $Res Function(SearchStatusState) _then) = _$SearchStatusStateCopyWithImpl;
 @useResult
 $Res call({
- BookShelfStatus status, int pageCount, String refresh, String keyword, String sort, List<String> categories
+ String keyword, String sort, List<String> categories, List<String> sources
 });
 
 
@@ -62,14 +62,12 @@ class _$SearchStatusStateCopyWithImpl<$Res>
 
 /// Create a copy of SearchStatusState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? pageCount = null,Object? refresh = null,Object? keyword = null,Object? sort = null,Object? categories = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? keyword = null,Object? sort = null,Object? categories = null,Object? sources = null,}) {
   return _then(_self.copyWith(
-status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as BookShelfStatus,pageCount: null == pageCount ? _self.pageCount : pageCount // ignore: cast_nullable_to_non_nullable
-as int,refresh: null == refresh ? _self.refresh : refresh // ignore: cast_nullable_to_non_nullable
-as String,keyword: null == keyword ? _self.keyword : keyword // ignore: cast_nullable_to_non_nullable
+keyword: null == keyword ? _self.keyword : keyword // ignore: cast_nullable_to_non_nullable
 as String,sort: null == sort ? _self.sort : sort // ignore: cast_nullable_to_non_nullable
 as String,categories: null == categories ? _self.categories : categories // ignore: cast_nullable_to_non_nullable
+as List<String>,sources: null == sources ? _self.sources : sources // ignore: cast_nullable_to_non_nullable
 as List<String>,
   ));
 }
@@ -155,10 +153,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( BookShelfStatus status,  int pageCount,  String refresh,  String keyword,  String sort,  List<String> categories)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String keyword,  String sort,  List<String> categories,  List<String> sources)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SearchStatusState() when $default != null:
-return $default(_that.status,_that.pageCount,_that.refresh,_that.keyword,_that.sort,_that.categories);case _:
+return $default(_that.keyword,_that.sort,_that.categories,_that.sources);case _:
   return orElse();
 
 }
@@ -176,10 +174,10 @@ return $default(_that.status,_that.pageCount,_that.refresh,_that.keyword,_that.s
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( BookShelfStatus status,  int pageCount,  String refresh,  String keyword,  String sort,  List<String> categories)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String keyword,  String sort,  List<String> categories,  List<String> sources)  $default,) {final _that = this;
 switch (_that) {
 case _SearchStatusState():
-return $default(_that.status,_that.pageCount,_that.refresh,_that.keyword,_that.sort,_that.categories);case _:
+return $default(_that.keyword,_that.sort,_that.categories,_that.sources);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -196,10 +194,10 @@ return $default(_that.status,_that.pageCount,_that.refresh,_that.keyword,_that.s
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( BookShelfStatus status,  int pageCount,  String refresh,  String keyword,  String sort,  List<String> categories)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String keyword,  String sort,  List<String> categories,  List<String> sources)?  $default,) {final _that = this;
 switch (_that) {
 case _SearchStatusState() when $default != null:
-return $default(_that.status,_that.pageCount,_that.refresh,_that.keyword,_that.sort,_that.categories);case _:
+return $default(_that.keyword,_that.sort,_that.categories,_that.sources);case _:
   return null;
 
 }
@@ -211,12 +209,9 @@ return $default(_that.status,_that.pageCount,_that.refresh,_that.keyword,_that.s
 
 
 class _SearchStatusState implements SearchStatusState {
-  const _SearchStatusState({this.status = BookShelfStatus.favourite, this.pageCount = 0, this.refresh = "", this.keyword = "", this.sort = "dd", final  List<String> categories = const <String>[]}): _categories = categories;
+  const _SearchStatusState({this.keyword = "", this.sort = "dd", final  List<String> categories = const <String>[], final  List<String> sources = const <String>['bika', 'jm']}): _categories = categories,_sources = sources;
   
 
-@override@JsonKey() final  BookShelfStatus status;
-@override@JsonKey() final  int pageCount;
-@override@JsonKey() final  String refresh;
 @override@JsonKey() final  String keyword;
 @override@JsonKey() final  String sort;
  final  List<String> _categories;
@@ -224,6 +219,13 @@ class _SearchStatusState implements SearchStatusState {
   if (_categories is EqualUnmodifiableListView) return _categories;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_categories);
+}
+
+ final  List<String> _sources;
+@override@JsonKey() List<String> get sources {
+  if (_sources is EqualUnmodifiableListView) return _sources;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_sources);
 }
 
 
@@ -237,16 +239,16 @@ _$SearchStatusStateCopyWith<_SearchStatusState> get copyWith => __$SearchStatusS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchStatusState&&(identical(other.status, status) || other.status == status)&&(identical(other.pageCount, pageCount) || other.pageCount == pageCount)&&(identical(other.refresh, refresh) || other.refresh == refresh)&&(identical(other.keyword, keyword) || other.keyword == keyword)&&(identical(other.sort, sort) || other.sort == sort)&&const DeepCollectionEquality().equals(other._categories, _categories));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchStatusState&&(identical(other.keyword, keyword) || other.keyword == keyword)&&(identical(other.sort, sort) || other.sort == sort)&&const DeepCollectionEquality().equals(other._categories, _categories)&&const DeepCollectionEquality().equals(other._sources, _sources));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,pageCount,refresh,keyword,sort,const DeepCollectionEquality().hash(_categories));
+int get hashCode => Object.hash(runtimeType,keyword,sort,const DeepCollectionEquality().hash(_categories),const DeepCollectionEquality().hash(_sources));
 
 @override
 String toString() {
-  return 'SearchStatusState(status: $status, pageCount: $pageCount, refresh: $refresh, keyword: $keyword, sort: $sort, categories: $categories)';
+  return 'SearchStatusState(keyword: $keyword, sort: $sort, categories: $categories, sources: $sources)';
 }
 
 
@@ -257,7 +259,7 @@ abstract mixin class _$SearchStatusStateCopyWith<$Res> implements $SearchStatusS
   factory _$SearchStatusStateCopyWith(_SearchStatusState value, $Res Function(_SearchStatusState) _then) = __$SearchStatusStateCopyWithImpl;
 @override @useResult
 $Res call({
- BookShelfStatus status, int pageCount, String refresh, String keyword, String sort, List<String> categories
+ String keyword, String sort, List<String> categories, List<String> sources
 });
 
 
@@ -274,14 +276,12 @@ class __$SearchStatusStateCopyWithImpl<$Res>
 
 /// Create a copy of SearchStatusState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? pageCount = null,Object? refresh = null,Object? keyword = null,Object? sort = null,Object? categories = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? keyword = null,Object? sort = null,Object? categories = null,Object? sources = null,}) {
   return _then(_SearchStatusState(
-status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as BookShelfStatus,pageCount: null == pageCount ? _self.pageCount : pageCount // ignore: cast_nullable_to_non_nullable
-as int,refresh: null == refresh ? _self.refresh : refresh // ignore: cast_nullable_to_non_nullable
-as String,keyword: null == keyword ? _self.keyword : keyword // ignore: cast_nullable_to_non_nullable
+keyword: null == keyword ? _self.keyword : keyword // ignore: cast_nullable_to_non_nullable
 as String,sort: null == sort ? _self.sort : sort // ignore: cast_nullable_to_non_nullable
 as String,categories: null == categories ? _self._categories : categories // ignore: cast_nullable_to_non_nullable
+as List<String>,sources: null == sources ? _self._sources : sources // ignore: cast_nullable_to_non_nullable
 as List<String>,
   ));
 }

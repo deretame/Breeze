@@ -91,7 +91,9 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
     return comicList;
   }
 
-  List<UnifiedComicHistory> _filterShieldedComics(List<UnifiedComicHistory> comics) {
+  List<UnifiedComicHistory> _filterShieldedComics(
+    List<UnifiedComicHistory> comics,
+  ) {
     final settings = objectbox.userSettingBox.get(1)!.bikaSetting;
     // 获取所有被屏蔽的分类
     List<String> shieldedCategoriesList = settings.shieldCategoryMap.entries
@@ -105,9 +107,9 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
       return !(comic.metadata ?? const <Map<String, dynamic>>[]).any((entry) {
         final type = entry['type']?.toString();
         if (type != 'categories') return false;
-        final values = asJsonList(entry['value'])
-            .map((e) => asJsonMap(e)['name']?.toString() ?? '')
-            .toList();
+        final values = asJsonList(
+          entry['value'],
+        ).map((e) => asJsonMap(e)['name']?.toString() ?? '').toList();
         return values.any(shieldedCategoriesList.contains);
       });
     }).toList();
@@ -116,7 +118,9 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
   List<dynamic> _getComicList(UserHistoryEvent event) {
     logger.d("event: $event");
     List<dynamic> comics = [];
-    if (event.comicChoice == 1) {
+    final sourceFilter = event.searchEnterConst.sources;
+
+    if (sourceFilter.contains('bika')) {
       late var comicList = objectbox.unifiedHistoryBox
           .query(UnifiedComicHistory_.source.equals('bika'))
           .build()
@@ -126,24 +130,18 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
 
       comicList = _filterShieldedComics(comicList);
 
-      comicList = _fetchOfSort(comicList, event.searchEnterConst.sort);
-
       if (event.searchEnterConst.categories.isNotEmpty) {
         for (var category in event.searchEnterConst.categories) {
-          comicList = comicList
-              .where(
-                (comic) {
-                  final metadata = comic.metadata ?? const <Map<String, dynamic>>[];
-                  return metadata.any((entry) {
-                    if (entry['type']?.toString() != 'categories') return false;
-                    final values = asJsonList(entry['value'])
-                        .map((e) => asJsonMap(e)['name']?.toString() ?? '')
-                        .toList();
-                    return values.contains(category);
-                  });
-                },
-              )
-              .toList();
+          comicList = comicList.where((comic) {
+            final metadata = comic.metadata ?? const <Map<String, dynamic>>[];
+            return metadata.any((entry) {
+              if (entry['type']?.toString() != 'categories') return false;
+              final values = asJsonList(
+                entry['value'],
+              ).map((e) => asJsonMap(e)['name']?.toString() ?? '').toList();
+              return values.contains(category);
+            });
+          }).toList();
         }
       }
 
@@ -154,7 +152,9 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
           var allString =
               comic.title +
               comic.description +
-              ((comic.creator ?? const <String, dynamic>{})['name']?.toString() ?? '') +
+              ((comic.creator ?? const <String, dynamic>{})['name']
+                      ?.toString() ??
+                  '') +
               comic.metadata.toString();
           return allString.toLowerCase().let(t2s).contains(keyword);
         }).toList();
@@ -162,16 +162,16 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
 
       comicList.removeWhere((comic) => comic.deleted == true);
 
-      comics = comicList;
-    } else if (event.comicChoice == 2) {
+      comics.addAll(comicList);
+    }
+
+    if (sourceFilter.contains('jm')) {
       late var comicList = objectbox.unifiedHistoryBox
           .query(UnifiedComicHistory_.source.equals('jm'))
           .build()
           .find();
 
       totalComicCount = comicList.length;
-
-      comicList = _fetchOfSort(comicList, event.searchEnterConst.sort);
 
       if (event.searchEnterConst.keyword.isNotEmpty) {
         final keyword = event.searchEnterConst.keyword.toLowerCase().let(t2s);
@@ -188,8 +188,13 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
 
       comicList.removeWhere((comic) => comic.deleted == true);
 
-      comics = comicList;
+      comics.addAll(comicList);
     }
+
+    comics = _fetchOfSort(
+      comics.cast<UnifiedComicHistory>().toList(),
+      event.searchEnterConst.sort,
+    );
     return comics;
   }
 

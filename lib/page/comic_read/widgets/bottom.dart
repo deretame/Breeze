@@ -74,7 +74,7 @@ class _BottomWidgetState extends State<BottomWidget> {
             (chapter) => Series(
               id: chapter.id,
               name: chapter.name,
-              sort: chapter.sort.toString(),
+              sort: chapter.order.toString(),
             ),
           )
           .toList();
@@ -289,7 +289,7 @@ class _BottomWidgetState extends State<BottomWidget> {
           TextButton(
             child: Text(ep.name),
             onPressed: () =>
-                Navigator.of(context, rootNavigator: false).pop(ep.routeOrder),
+                Navigator.of(context, rootNavigator: false).pop(ep.order),
           ),
       ],
     );
@@ -303,7 +303,7 @@ class _BottomWidgetState extends State<BottomWidget> {
           onPressed: () => Navigator.of(
             context,
             rootNavigator: false,
-          ).pop(series.id.let(toInt)),
+          ).pop(series.sort.let(toInt)),
         ),
     ],
   );

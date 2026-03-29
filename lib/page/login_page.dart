@@ -64,7 +64,7 @@ class _LoginPageState extends State<LoginPage> {
         from: from,
         fnPath: 'getLoginBundle',
         core: const <String, dynamic>{},
-        extern: const <String, dynamic>{'source': 'login'},
+        extern: const <String, dynamic>{},
       );
       final envelope = UnifiedPluginEnvelope.fromMap(response);
       final scheme = envelope.scheme;
@@ -136,7 +136,7 @@ class _LoginPageState extends State<LoginPage> {
           'password': _password.text,
           if (from == From.jm) 'path': '$currentJmBaseUrl/login',
         },
-        extern: const <String, dynamic>{'source': 'login'},
+        extern: const <String, dynamic>{},
       );
 
       final raw = asMap(result['raw']);

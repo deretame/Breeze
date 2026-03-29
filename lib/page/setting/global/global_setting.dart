@@ -26,8 +26,8 @@ class GlobalSettingPage extends StatefulWidget {
 class _GlobalSettingPageState extends State<GlobalSettingPage> {
   final List<String> systemThemeList = ["跟随系统", "浅色模式", "深色模式"];
   final Map<String, int> systemTheme = {"跟随系统": 0, "浅色模式": 1, "深色模式": 2};
-  final List<String> splashPageList = ["首页", "排行", "书架", "更多"];
-  final Map<String, int> splashPage = {"首页": 0, "排行": 1, "书架": 2, "更多": 3};
+  final List<String> splashPageList = ["书架", "插件", "更多"];
+  final Map<String, int> splashPage = {"书架": 0, "插件": 1, "更多": 2};
   String _debugBikaUrl = "";
   String _debugJmUrl = '';
 
@@ -342,13 +342,19 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   }
 
   Widget _splashPage(GlobalSettingState state, GlobalSettingCubit cubit) {
+    final selectedIndex =
+        state.welcomePageNum >= 0 &&
+            state.welcomePageNum < splashPageList.length
+        ? state.welcomePageNum
+        : 0;
+
     return ListTile(
       leading: const Icon(Icons.rocket_launch_outlined),
       title: const Text('开屏页'),
       subtitle: const Text('选择启动页，打开应用直达目标'),
       trailing: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          value: splashPageList[state.welcomePageNum],
+          value: splashPageList[selectedIndex],
           icon: const Icon(Icons.expand_more),
           onChanged: (String? value) {
             if (value != null) {

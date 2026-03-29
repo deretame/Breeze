@@ -8,9 +8,20 @@ import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
-void onSearch(BuildContext context, String keyword, {String url = ""}) async {
+void onSearch(
+  BuildContext context,
+  String keyword, {
+  Map<String, dynamic> pluginExtern = const <String, dynamic>{},
+  bool aggregateMode = true,
+  Map<From, bool>? aggregateSources,
+}) async {
   final searchCubit = context.read<SearchCubit>();
-  searchCubit.update(searchCubit.state.copyWith(searchKeyword: keyword));
+  searchCubit.update(
+    searchCubit.state.copyWith(
+      searchKeyword: keyword,
+      pluginExtern: Map<String, dynamic>.from(pluginExtern),
+    ),
+  );
   if (searchCubit.state.from == From.jm) {
     if (keyword.let(toInt) >= 100 || keyword.startsWith("jm")) {
       if (!keyword.startsWith("jm")) {
@@ -44,17 +55,25 @@ void onSearch(BuildContext context, String keyword, {String url = ""}) async {
     }
   }
 
-  if (url == keyword) {
-    url = "";
+  final event = SearchEvent().copyWith(searchStates: searchCubit.state);
+
+  if (aggregateMode) {
+    final selected =
+        aggregateSources ?? const <From, bool>{From.jm: true, From.bika: true};
+    context.pushRoute(
+      SearchAggregateResultRoute(
+        searchEvent: event,
+        searchCubit: searchCubit,
+        selectedSources: {
+          From.jm.name: selected[From.jm] ?? true,
+          From.bika.name: selected[From.bika] ?? true,
+        },
+      ),
+    );
+    return;
   }
 
   context.pushRoute(
-    SearchResultRoute(
-      searchEvent: SearchEvent().copyWith(
-        searchStates: searchCubit.state,
-        url: url,
-      ),
-      searchCubit: searchCubit,
-    ),
+    SearchResultRoute(searchEvent: event, searchCubit: searchCubit),
   );
 }

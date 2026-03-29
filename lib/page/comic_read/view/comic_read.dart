@@ -56,7 +56,8 @@ class ComicReadPage extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) => PageBloc()..add(PageEvent(comicId, order, from, type)),
+          create: (_) => PageBloc()
+            ..add(PageEvent(comicId, order, from, type, comicInfo: comicInfo)),
         ),
         BlocProvider.value(value: stringSelectCubit),
         BlocProvider(create: (_) => ReaderCubit()),
@@ -170,7 +171,13 @@ class _ComicReadPageState extends State<_ComicReadPage>
           case PageStatus.failure:
             return ComicErrorWidget(
               state: state,
-              event: PageEvent(comicId, widget.order, widget.from, widget.type),
+              event: PageEvent(
+                comicId,
+                widget.order,
+                widget.from,
+                widget.type,
+                comicInfo: comicInfo,
+              ),
             );
           case PageStatus.success:
             epInfo = state.epInfo!;

@@ -113,7 +113,8 @@ JmHistory pluginDetailToJmHistory(PluginComicDetailSource source) {
     name: raw['name']?.toString() ?? source.normalInfo.comicInfo.title,
     addtime: raw['addtime']?.toString() ?? '0',
     description:
-        raw['description']?.toString() ?? source.normalInfo.comicInfo.description,
+        raw['description']?.toString() ??
+        source.normalInfo.comicInfo.description,
     totalViews: raw['total_views']?.toString() ?? '0',
     likes: raw['likes']?.toString() ?? '0',
     seriesId: raw['series_id']?.toString() ?? '',

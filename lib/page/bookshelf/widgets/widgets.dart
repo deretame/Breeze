@@ -1,10 +1,4 @@
 export './categories_select.dart';
 export './categories_shield.dart';
 export './delete_dialog.dart';
-export './download/download.dart';
-export './favorite/favorite_page.dart';
-export './history/history_page.dart';
-export './jm/favorite_page.dart';
-export './side_drawer.dart';
-export './sort.dart';
-export 'top_tab_bar.dart';
+export './local_shelf_page.dart';

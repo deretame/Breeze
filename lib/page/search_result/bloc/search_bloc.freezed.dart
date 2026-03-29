@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SearchEvent {
 
- SearchStatus get status; SearchStates get searchStates; int get page; String get url;
+ SearchStatus get status; SearchStates get searchStates; int get page;
 /// Create a copy of SearchEvent
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SearchEventCopyWith<SearchEvent> get copyWith => _$SearchEventCopyWithImpl<Sear
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchEvent&&(identical(other.status, status) || other.status == status)&&(identical(other.searchStates, searchStates) || other.searchStates == searchStates)&&(identical(other.page, page) || other.page == page)&&(identical(other.url, url) || other.url == url));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchEvent&&(identical(other.status, status) || other.status == status)&&(identical(other.searchStates, searchStates) || other.searchStates == searchStates)&&(identical(other.page, page) || other.page == page));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,status,searchStates,page,url);
+int get hashCode => Object.hash(runtimeType,status,searchStates,page);
 
 @override
 String toString() {
-  return 'SearchEvent(status: $status, searchStates: $searchStates, page: $page, url: $url)';
+  return 'SearchEvent(status: $status, searchStates: $searchStates, page: $page)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SearchEventCopyWith<$Res>  {
   factory $SearchEventCopyWith(SearchEvent value, $Res Function(SearchEvent) _then) = _$SearchEventCopyWithImpl;
 @useResult
 $Res call({
- SearchStatus status, SearchStates searchStates, int page, String url
+ SearchStatus status, SearchStates searchStates, int page
 });
 
 
@@ -65,13 +65,12 @@ class _$SearchEventCopyWithImpl<$Res>
 
 /// Create a copy of SearchEvent
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? searchStates = null,Object? page = null,Object? url = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? searchStates = null,Object? page = null,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as SearchStatus,searchStates: null == searchStates ? _self.searchStates : searchStates // ignore: cast_nullable_to_non_nullable
 as SearchStates,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
-as int,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
-as String,
+as int,
   ));
 }
 /// Create a copy of SearchEvent
@@ -165,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( SearchStatus status,  SearchStates searchStates,  int page,  String url)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( SearchStatus status,  SearchStates searchStates,  int page)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SearchEvent() when $default != null:
-return $default(_that.status,_that.searchStates,_that.page,_that.url);case _:
+return $default(_that.status,_that.searchStates,_that.page);case _:
   return orElse();
 
 }
@@ -186,10 +185,10 @@ return $default(_that.status,_that.searchStates,_that.page,_that.url);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( SearchStatus status,  SearchStates searchStates,  int page,  String url)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( SearchStatus status,  SearchStates searchStates,  int page)  $default,) {final _that = this;
 switch (_that) {
 case _SearchEvent():
-return $default(_that.status,_that.searchStates,_that.page,_that.url);case _:
+return $default(_that.status,_that.searchStates,_that.page);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -206,10 +205,10 @@ return $default(_that.status,_that.searchStates,_that.page,_that.url);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( SearchStatus status,  SearchStates searchStates,  int page,  String url)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( SearchStatus status,  SearchStates searchStates,  int page)?  $default,) {final _that = this;
 switch (_that) {
 case _SearchEvent() when $default != null:
-return $default(_that.status,_that.searchStates,_that.page,_that.url);case _:
+return $default(_that.status,_that.searchStates,_that.page);case _:
   return null;
 
 }
@@ -221,13 +220,12 @@ return $default(_that.status,_that.searchStates,_that.page,_that.url);case _:
 @JsonSerializable()
 
 class _SearchEvent implements SearchEvent {
-  const _SearchEvent({this.status = SearchStatus.initial, this.searchStates = const SearchStates(), this.page = 1, this.url = ''});
+  const _SearchEvent({this.status = SearchStatus.initial, this.searchStates = const SearchStates(), this.page = 1});
   factory _SearchEvent.fromJson(Map<String, dynamic> json) => _$SearchEventFromJson(json);
 
 @override@JsonKey() final  SearchStatus status;
 @override@JsonKey() final  SearchStates searchStates;
 @override@JsonKey() final  int page;
-@override@JsonKey() final  String url;
 
 /// Create a copy of SearchEvent
 /// with the given fields replaced by the non-null parameter values.
@@ -242,16 +240,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchEvent&&(identical(other.status, status) || other.status == status)&&(identical(other.searchStates, searchStates) || other.searchStates == searchStates)&&(identical(other.page, page) || other.page == page)&&(identical(other.url, url) || other.url == url));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchEvent&&(identical(other.status, status) || other.status == status)&&(identical(other.searchStates, searchStates) || other.searchStates == searchStates)&&(identical(other.page, page) || other.page == page));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,status,searchStates,page,url);
+int get hashCode => Object.hash(runtimeType,status,searchStates,page);
 
 @override
 String toString() {
-  return 'SearchEvent(status: $status, searchStates: $searchStates, page: $page, url: $url)';
+  return 'SearchEvent(status: $status, searchStates: $searchStates, page: $page)';
 }
 
 
@@ -262,7 +260,7 @@ abstract mixin class _$SearchEventCopyWith<$Res> implements $SearchEventCopyWith
   factory _$SearchEventCopyWith(_SearchEvent value, $Res Function(_SearchEvent) _then) = __$SearchEventCopyWithImpl;
 @override @useResult
 $Res call({
- SearchStatus status, SearchStates searchStates, int page, String url
+ SearchStatus status, SearchStates searchStates, int page
 });
 
 
@@ -279,13 +277,12 @@ class __$SearchEventCopyWithImpl<$Res>
 
 /// Create a copy of SearchEvent
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? searchStates = null,Object? page = null,Object? url = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? searchStates = null,Object? page = null,}) {
   return _then(_SearchEvent(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as SearchStatus,searchStates: null == searchStates ? _self.searchStates : searchStates // ignore: cast_nullable_to_non_nullable
 as SearchStates,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
-as int,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
-as String,
+as int,
   ));
 }
 

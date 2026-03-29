@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:zephyr/page/bookshelf/widgets/categories_select.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/type/enum.dart';
 
 class AdvancedSearchDialog extends StatefulWidget {
   final SearchStates initialState;
+  final bool allowSourceSwitch;
 
-  const AdvancedSearchDialog({super.key, required this.initialState});
+  const AdvancedSearchDialog({
+    super.key,
+    required this.initialState,
+    this.allowSourceSwitch = true,
+  });
 
   @override
   State<AdvancedSearchDialog> createState() => _AdvancedSearchDialogState();
@@ -30,17 +34,9 @@ class _AdvancedSearchDialogState extends State<AdvancedSearchDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle('数据来源'),
-          _buildSourceRow(),
-
-          if (_tempState.from == From.bika) ...[
-            const SizedBox(height: 16),
-            _buildSectionTitle('分类管理'),
-            _buildBikaCategoryRow(),
-
-            const SizedBox(height: 16),
-            _buildSectionTitle('列表显示模式'),
-            _buildBikaReadModelRow(),
+          if (widget.allowSourceSwitch) ...[
+            _buildSectionTitle('数据来源'),
+            _buildSourceRow(),
           ],
 
           const SizedBox(height: 16),
@@ -97,85 +93,6 @@ class _AdvancedSearchDialogState extends State<AdvancedSearchDialog> {
               setState(() {
                 _tempState = _tempState.copyWith(from: From.jm);
               });
-            }
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBikaCategoryRow() {
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton.icon(
-            icon: const Icon(Icons.category, size: 18),
-            label: const Text('选择分类'),
-            onPressed: () async {
-              final data = await showCategoryDialog(
-                context,
-                _tempState.categories,
-              );
-              if (data != null) {
-                setState(() {
-                  _tempState = _tempState.copyWith(categories: data);
-                });
-              }
-            },
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: OutlinedButton.icon(
-            icon: const Icon(Icons.block, size: 18),
-            label: const Text('屏蔽分类'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.error,
-            ),
-            onPressed: () async {
-              final data = await showCategoryDialog(
-                context,
-                _tempState.categoriesBlock,
-              );
-              if (data != null) {
-                setState(() {
-                  _tempState = _tempState.copyWith(categoriesBlock: data);
-                });
-              }
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBikaReadModelRow() {
-    return Wrap(
-      spacing: 8,
-      children: [
-        ChoiceChip(
-          label: const Text('简略模式'),
-          selected: _tempState.brevity,
-          onSelected: (selected) {
-            if (selected) {
-              setState(
-                () => _tempState = _tempState.copyWith(
-                  brevity: !_tempState.brevity,
-                ),
-              );
-            }
-          },
-        ),
-        ChoiceChip(
-          label: const Text('详细模式'),
-          selected: !_tempState.brevity,
-          onSelected: (selected) {
-            if (selected) {
-              setState(
-                () => _tempState = _tempState.copyWith(
-                  brevity: !_tempState.brevity,
-                ),
-              );
             }
           },
         ),

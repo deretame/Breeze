@@ -1,161 +1,245 @@
+import 'package:flutter/material.dart';
+import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
-import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
-import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-Future<Map<String, dynamic>> collectJmComicToLocal(
-  dynamic comicInfo,
-) async {
-  final source = _toJmFavoriteSource(comicInfo);
-  final key = 'jm:${source.comicId}';
+Future<bool> isLocalComicCollected({
+  required From from,
+  required String comicId,
+}) async {
+  final key = '${from.name}:$comicId';
   final unified = objectbox.unifiedFavoriteBox
       .query(UnifiedComicFavorite_.uniqueKey.equals(key))
       .build()
       .findFirst();
-  if (unified != null) {
-    objectbox.unifiedFavoriteBox.remove(unified.id);
-  }
+  return unified != null && unified.deleted == false;
+}
+
+Future<bool> toggleLocalComicFavorite({
+  required From from,
+  required NormalComicAllInfo normalInfo,
+  bool showToast = true,
+}) async {
+  final comicInfo = normalInfo.comicInfo;
+  final key = '${from.name}:${comicInfo.id}';
   final now = DateTime.now().toUtc();
+  final unified = objectbox.unifiedFavoriteBox
+      .query(UnifiedComicFavorite_.uniqueKey.equals(key))
+      .build()
+      .findFirst();
+
+  if (unified != null && unified.deleted == false) {
+    unified.deleted = true;
+    unified.updatedAt = now;
+    objectbox.unifiedFavoriteBox.put(unified);
+    if (showToast) {
+      showSuccessToast('已取消本地收藏');
+    }
+    return false;
+  }
+
+  final createdAt = unified?.createdAt ?? now;
   objectbox.unifiedFavoriteBox.put(
     UnifiedComicFavorite(
+      id: unified?.id ?? 0,
       uniqueKey: key,
-      source: 'jm',
-      comicId: source.comicId,
-      title: source.name,
-      description: source.description,
-      cover: {
-        'id': source.comicId,
-        'url': source.coverUrl,
-        'name': '${source.comicId}.jpg',
-        'extension': {'path': '${source.comicId}.jpg'},
-      },
-      creator: {
-        'id': '',
-        'name': '',
-        'avatar': {'id': '', 'url': '', 'name': '', 'extension': {}},
-        'onTap': {},
-        'extension': {},
-      },
-      titleMeta: [
-        {'name': '浏览：${source.totalViews}', 'onTap': {}, 'extension': {}},
-        {'name': '更新时间：${source.addtime}', 'onTap': {}, 'extension': {}},
-      ],
-      metadata: [
-        _metadata('author', '作者', source.author),
-        _metadata('tags', '标签', source.tags),
-        _metadata('works', '作品', source.works),
-        _metadata('actors', '角色', source.actors),
-      ].whereType<Map<String, dynamic>>().toList(),
-      createdAt: now,
+      source: from.name,
+      comicId: comicInfo.id,
+      title: comicInfo.title,
+      description: comicInfo.description,
+      cover: comicInfo.cover.toJson(),
+      creator: comicInfo.creator.toJson(),
+      titleMeta: comicInfo.titleMeta.map((item) => item.toJson()).toList(),
+      metadata: comicInfo.metadata.map((item) => item.toJson()).toList(),
+      createdAt: createdAt,
       updatedAt: now,
       deleted: false,
       schemaVersion: 2,
     ),
   );
 
-  showSuccessToast("成功收藏到本地");
+  if (showToast) {
+    showSuccessToast('成功收藏到本地');
+  }
+  return true;
+}
 
+Future<Map<String, dynamic>> collectJmComicToLocal(dynamic comicInfo) async {
+  if (comicInfo is! NormalComicAllInfo) {
+    throw StateError(
+      'collectJmComicToLocal expects NormalComicAllInfo, got ${comicInfo.runtimeType}',
+    );
+  }
+  await toggleLocalComicFavorite(from: From.jm, normalInfo: comicInfo);
   return {"error": null, "message": "收藏成功"};
 }
 
-class _JmFavoriteSource {
-  const _JmFavoriteSource({
-    required this.comicId,
-    required this.name,
-    required this.addtime,
-    required this.description,
-    required this.totalViews,
-    required this.likes,
-    required this.seriesId,
-    required this.commentTotal,
-    required this.author,
-    required this.tags,
-    required this.works,
-    required this.actors,
-    required this.liked,
-    required this.isFavorite,
-    required this.isAids,
-    required this.price,
-    required this.purchased,
-    required this.coverUrl,
-  });
-
-  final String comicId;
-  final String name;
-  final String addtime;
-  final String description;
-  final String totalViews;
-  final String likes;
-  final String seriesId;
-  final String commentTotal;
-  final List<String> author;
-  final List<String> tags;
-  final List<String> works;
-  final List<String> actors;
-  final bool liked;
-  final bool isFavorite;
-  final bool isAids;
-  final String price;
-  final String purchased;
-  final String coverUrl;
-}
-
-_JmFavoriteSource _toJmFavoriteSource(dynamic comicInfo) {
-  if (comicInfo is PluginComicDetailSource) {
-    final raw = comicInfo.rawComicInfo;
-    return _JmFavoriteSource(
-      comicId: comicInfo.comicId,
-      name: raw['name']?.toString() ?? comicInfo.normalInfo.comicInfo.title,
-      addtime: raw['addtime']?.toString() ?? '0',
-      description:
-          raw['description']?.toString() ?? comicInfo.normalInfo.comicInfo.description,
-      totalViews: raw['total_views']?.toString() ?? '0',
-      likes: raw['likes']?.toString() ?? '0',
-      seriesId: raw['series_id']?.toString() ?? '',
-      commentTotal: raw['comment_total']?.toString() ?? '0',
-      author: List<String>.from(raw['author'] as List? ?? const <String>[]),
-      tags: List<String>.from(raw['tags'] as List? ?? const <String>[]),
-      works: List<String>.from(raw['works'] as List? ?? const <String>[]),
-      actors: List<String>.from(raw['actors'] as List? ?? const <String>[]),
-      liked: raw['liked'] == true,
-      isFavorite: raw['is_favorite'] == true,
-      isAids: raw['is_aids'] == true,
-      price: raw['price']?.toString() ?? '0',
-      purchased: raw['purchased']?.toString() ?? '0',
-      coverUrl: comicInfo.normalInfo.comicInfo.cover.url,
-    );
+Future<bool> toggleCloudComicFavorite({
+  required BuildContext context,
+  required From from,
+  required String comicId,
+  required bool currentStatus,
+}) async {
+  final data = await callUnifiedComicPlugin(
+    from: from,
+    fnPath: 'toggleFavorite',
+    core: {'comicId': comicId, 'currentFavorite': currentStatus},
+    extern: const <String, dynamic>{},
+  );
+  final favorited = data['favorited'];
+  if (favorited is! bool) {
+    throw StateError('插件未返回有效 favorited 状态');
   }
 
-  final legacy = comicInfo as JmComicInfoJson;
-  return _JmFavoriteSource(
-    comicId: legacy.id.toString(),
-    name: legacy.name,
-    addtime: legacy.addtime,
-    description: legacy.description,
-    totalViews: legacy.totalViews,
-    likes: legacy.likes,
-    seriesId: legacy.seriesId,
-    commentTotal: legacy.commentTotal,
-    author: legacy.author,
-    tags: legacy.tags,
-    works: legacy.works,
-    actors: legacy.actors,
-    liked: legacy.liked,
-    isFavorite: legacy.isFavorite,
-    isAids: legacy.isAids,
-    price: legacy.price,
-    purchased: legacy.purchased,
-    coverUrl: '',
+  final nextStep = data['nextStep']?.toString() ?? 'none';
+  if (!favorited || nextStep != 'selectFolder' || !context.mounted) {
+    return favorited;
+  }
+
+  final folders = await _listCloudFavoriteFolders(from);
+  if (!context.mounted || folders.isEmpty) {
+    return favorited;
+  }
+
+  final selectedFolder = await _showFolderSelectionDialog(context, folders);
+  if (selectedFolder == null || !context.mounted) {
+    return favorited;
+  }
+
+  await _moveCloudFavoriteToFolder(
+    from: from,
+    comicId: comicId,
+    folder: selectedFolder,
+  );
+  showSuccessToast('已添加到收藏夹: ${selectedFolder.name}');
+  return favorited;
+}
+
+Future<bool> toggleCloudComicLike({
+  required From from,
+  required String comicId,
+  required bool currentStatus,
+}) async {
+  final data = await callUnifiedComicPlugin(
+    from: from,
+    fnPath: 'toggleLike',
+    core: {'comicId': comicId, 'currentLiked': currentStatus},
+    extern: const <String, dynamic>{},
+  );
+  if (data['liked'] is! bool) {
+    throw StateError('插件未返回有效 liked 状态');
+  }
+  return data['liked'] as bool;
+}
+
+Future<List<_FavoriteFolder>> _listCloudFavoriteFolders(From from) async {
+  final data = await callUnifiedComicPlugin(
+    from: from,
+    fnPath: 'listFavoriteFolders',
+    core: const <String, dynamic>{},
+    extern: const <String, dynamic>{},
+  );
+  final items = data['items'];
+  if (items is! List) {
+    return const <_FavoriteFolder>[];
+  }
+  return items
+      .whereType<Map>()
+      .map((item) => _FavoriteFolder.fromJson(Map<String, dynamic>.from(item)))
+      .where((item) => item.id.isNotEmpty)
+      .toList();
+}
+
+Future<void> _moveCloudFavoriteToFolder({
+  required From from,
+  required String comicId,
+  required _FavoriteFolder folder,
+}) async {
+  await callUnifiedComicPlugin(
+    from: from,
+    fnPath: 'moveFavoriteToFolder',
+    core: {
+      'comicId': comicId,
+      'folderId': folder.id,
+      'folderName': folder.name,
+    },
+    extern: const <String, dynamic>{},
   );
 }
 
-Map<String, dynamic>? _metadata(String type, String name, List<String> values) {
-  final list = values
-      .where((e) => e.trim().isNotEmpty)
-      .map((e) => {'name': e, 'onTap': {}, 'extension': {}})
-      .toList();
-  if (list.isEmpty) return null;
-  return {'type': type, 'name': name, 'value': list};
+Future<_FavoriteFolder?> _showFolderSelectionDialog(
+  BuildContext context,
+  List<_FavoriteFolder> folders,
+) {
+  _FavoriteFolder? selected;
+  return showDialog<_FavoriteFolder>(
+    context: context,
+    builder: (dialogContext) {
+      return StatefulBuilder(
+        builder: (ctx, setState) {
+          return AlertDialog(
+            title: const Text('添加到自定义收藏夹'),
+            content: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(ctx).size.height * 0.5,
+              ),
+              child: SizedBox(
+                width: double.maxFinite,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: folders.length,
+                  itemBuilder: (itemCtx, index) {
+                    final folder = folders[index];
+                    return RadioListTile<String>(
+                      title: Text(folder.name),
+                      subtitle: Text('ID: ${folder.id}'),
+                      value: folder.id,
+                      // ignore: deprecated_member_use
+                      groupValue: selected?.id,
+                      // ignore: deprecated_member_use
+                      onChanged: (_) {
+                        setState(() {
+                          selected = folder;
+                        });
+                      },
+                    );
+                  },
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('跳过/不添加'),
+              ),
+              ElevatedButton(
+                onPressed: selected == null
+                    ? null
+                    : () => Navigator.pop(dialogContext, selected),
+                child: const Text('确定添加'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
+class _FavoriteFolder {
+  const _FavoriteFolder({required this.id, required this.name});
+
+  final String id;
+  final String name;
+
+  factory _FavoriteFolder.fromJson(Map<String, dynamic> json) {
+    return _FavoriteFolder(
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+    );
+  }
 }

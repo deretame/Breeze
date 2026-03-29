@@ -23,7 +23,9 @@ class SectionHeader extends StatelessWidget {
       padding: margin,
       child: Container(
         decoration: BoxDecoration(
-          color: context.theme.colorScheme.secondaryFixed.withValues(alpha: 0.1),
+          color: context.theme.colorScheme.secondaryFixed.withValues(
+            alpha: 0.1,
+          ),
           borderRadius: BorderRadius.circular(8),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -56,7 +58,9 @@ class SectionHeader extends StatelessWidget {
                 child: Icon(
                   Icons.arrow_forward_ios,
                   size: 16,
-                  color: context.theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                  color: context.theme.colorScheme.onSurface.withValues(
+                    alpha: 0.5,
+                  ),
                 ),
               ),
             if (canNavigate) const SizedBox(width: 5),

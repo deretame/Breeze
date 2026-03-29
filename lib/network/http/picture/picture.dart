@@ -28,30 +28,22 @@ void _throwIfDownloadCancelled(String taskGroupKey) {
 Future<String> getCachePicture({
   required From from,
   String url = '',
-  String localPath = '',
-  String fileName = '',
+  String path = '',
   String cartoonId = '1',
   String chapterId = '',
-  bool decodeJmComic = false,
 }) async {
   if (url.contains("nopic-Male.gif")) return "nopic-Male.gif";
 
-  if (localPath.isNotEmpty) {
-    try {
-      final directFile = File(localPath);
-      if (await directFile.exists()) {
+  final directPath = path.trim();
+  if (directPath.isNotEmpty && file_path.isAbsolute(directPath)) {
+    final directFile = File(directPath);
+    if (await directFile.exists()) {
+      try {
         await directFile.length();
-        return localPath;
-      }
-    } catch (_) {}
+        return directPath;
+      } catch (_) {}
+    }
   }
-
-  final resolvedFileName = _resolveFileName(
-    explicitFileName: fileName,
-    fallbackPath: localPath,
-    url: url,
-    fallbackId: cartoonId,
-  );
 
   final cachePath = await getCachePath();
   final downloadPath = await getDownloadPath();
@@ -59,7 +51,7 @@ Future<String> getCachePicture({
   final cacheFilePath = _buildStoredFilePath(
     cachePath,
     from,
-    resolvedFileName,
+    path,
     cartoonId,
     chapterId,
   );
@@ -67,16 +59,21 @@ Future<String> getCachePicture({
   final downloadFilePath = _buildStoredFilePath(
     downloadPath,
     from,
-    resolvedFileName,
+    path,
     cartoonId,
     chapterId,
     rootFolder: 'original',
   );
 
+  // logger.d(
+  //   'getCachePicture: cacheFilePath=$cacheFilePath, downloadFilePath=$downloadFilePath',
+  // );
+
   final existingFilePath = await checkFileExists(
     cacheFilePath,
     downloadFilePath,
   );
+
   if (existingFilePath.isNotEmpty) {
     // 双重检查文件确实存在且可读
     final file = File(existingFilePath);
@@ -110,7 +107,7 @@ Future<String> getCachePicture({
 
   final imageData = await downloadImageWithRetry(url, source: from);
 
-  if (from == From.jm && decodeJmComic) {
+  if (from == From.jm && chapterId.isNotEmpty) {
     await decodeAndSaveImage(
       imageData,
       int.tryParse(chapterId) ?? 0,
@@ -140,12 +137,11 @@ Future<String> getCachePicture({
 Future<String> downloadPicture({
   required From from,
   String url = '',
-  String fileName = '',
   String cartoonId = '',
   String chapterId = '',
+  String path = '',
   String qjsName = "jmComic",
   String qjsTaskGroupKey = '',
-  bool decodeJmComic = false,
 }) async {
   if (url.isEmpty) {
     throw Exception('URL 不能为空 404');
@@ -154,20 +150,13 @@ Future<String> downloadPicture({
     return "404";
   }
 
-  final resolvedFileName = _resolveFileName(
-    explicitFileName: fileName,
-    fallbackPath: '',
-    url: url,
-    fallbackId: cartoonId,
-  );
-
   final downloadPath = await getDownloadPath();
   final cachePath = await getCachePath();
 
   final cacheFilePath = _buildStoredFilePath(
     cachePath,
     from,
-    resolvedFileName,
+    path,
     cartoonId,
     chapterId,
     rootFolder: 'original',
@@ -176,7 +165,7 @@ Future<String> downloadPicture({
   final downloadFilePath = _buildStoredFilePath(
     downloadPath,
     from,
-    resolvedFileName,
+    path,
     cartoonId,
     chapterId,
     rootFolder: 'original',
@@ -227,7 +216,7 @@ Future<String> downloadPicture({
 
   _throwIfDownloadCancelled(qjsTaskGroupKey);
 
-  if (from == From.jm && decodeJmComic) {
+  if (from == From.jm && chapterId.isNotEmpty) {
     await decodeAndSaveImage(
       imageData,
       int.tryParse(chapterId) ?? 0,
@@ -261,11 +250,12 @@ Future<String> downloadPicture({
 String _buildStoredFilePath(
   String basePath,
   From from,
-  String fileName,
+  String path,
   String cartoonId,
   String chapterId, {
   String? rootFolder,
 }) {
+  final fileName = _sanitizeStoredPath(path, cartoonId);
   final segments = <String>[basePath, from.name];
   if (rootFolder != null && rootFolder.isNotEmpty) {
     segments.add(rootFolder);
@@ -274,13 +264,44 @@ String _buildStoredFilePath(
     segments.add(cartoonId.trim());
   }
   if (chapterId.trim().isNotEmpty) {
+    if (from == From.bika) {
+      segments.add('comic');
+    }
     segments.add(chapterId.trim());
   }
   segments.add(fileName);
   return file_path.joinAll(segments);
 }
 
-Future<String?> findStoredPicturePath({
+String _sanitizeStoredPath(String path, String fallbackId) {
+  final safeId = fallbackId.trim().isNotEmpty ? fallbackId.trim() : 'asset';
+  final fallbackName = '$safeId.bin';
+  return normalizeStoredAssetPath(path, fallback: fallbackName);
+}
+
+String normalizeStoredAssetPath(
+  String rawPath, {
+  String fallback = 'asset.bin',
+}) {
+  final raw = rawPath.trim();
+  final candidate = raw.isNotEmpty
+      ? (file_path.isAbsolute(raw) ? file_path.basename(raw) : raw)
+      : fallback;
+  final sanitized = candidate.replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_');
+  if (sanitized.isNotEmpty) {
+    return sanitized;
+  }
+  final safeFallback = fallback.trim().isNotEmpty
+      ? fallback.trim()
+      : 'asset.bin';
+  final safeSanitized = safeFallback.replaceAll(
+    RegExp(r'[^a-zA-Z0-9_\-.]'),
+    '_',
+  );
+  return safeSanitized.isNotEmpty ? safeSanitized : 'asset.bin';
+}
+
+Future<String?> getStoredPicturePathById({
   required From from,
   required String cartoonId,
   String chapterId = '',
@@ -291,30 +312,54 @@ Future<String?> findStoredPicturePath({
     return null;
   }
 
-  final downloadPath = await getDownloadPath();
-  final segments = <String>[downloadPath, from.name, rootFolder];
+  final basePath = await getDownloadPath();
+  final baseSegments = <String>[basePath, from.name];
+  if (rootFolder.trim().isNotEmpty) {
+    baseSegments.add(rootFolder.trim());
+  }
   if (cartoonId.trim().isNotEmpty) {
-    segments.add(cartoonId.trim());
+    baseSegments.add(cartoonId.trim());
   }
+
+  final candidateDirs = <Directory>[];
   if (chapterId.trim().isNotEmpty) {
-    segments.add(chapterId.trim());
-  }
-  final dir = Directory(file_path.joinAll(segments));
-  if (!await dir.exists()) {
-    return null;
+    if (from == From.bika) {
+      candidateDirs.add(
+        Directory(
+          file_path.joinAll([...baseSegments, 'comic', chapterId.trim()]),
+        ),
+      );
+      candidateDirs.add(
+        Directory(file_path.joinAll([...baseSegments, chapterId.trim()])),
+      );
+    } else {
+      candidateDirs.add(
+        Directory(file_path.joinAll([...baseSegments, chapterId.trim()])),
+      );
+      candidateDirs.add(
+        Directory(
+          file_path.joinAll([...baseSegments, 'comic', chapterId.trim()]),
+        ),
+      );
+    }
+  } else {
+    candidateDirs.add(Directory(file_path.joinAll(baseSegments)));
   }
 
-  final candidates = await dir
-      .list()
-      .where((e) => e is File)
-      .cast<File>()
-      .toList();
-  candidates.sort((a, b) => a.path.compareTo(b.path));
-
-  for (final file in candidates) {
-    final base = file_path.basenameWithoutExtension(file.path);
-    if (base == imageId) {
-      return file.path;
+  for (final dir in candidateDirs) {
+    if (!await dir.exists()) {
+      continue;
+    }
+    final entries = await dir
+        .list()
+        .where((e) => e is File)
+        .cast<File>()
+        .toList();
+    entries.sort((a, b) => a.path.compareTo(b.path));
+    for (final file in entries) {
+      if (file_path.basenameWithoutExtension(file.path) == imageId) {
+        return file.path;
+      }
     }
   }
   return null;
@@ -349,36 +394,6 @@ Future<void> copyFile(String sourcePath, String targetPath) async {
     logger.e('复制文件失败: $e');
     throw Exception('复制文件失败: $e');
   }
-}
-
-String _resolveFileName({
-  required String explicitFileName,
-  required String fallbackPath,
-  required String url,
-  required String fallbackId,
-}) {
-  final candidate = explicitFileName.trim().isNotEmpty
-      ? explicitFileName.trim()
-      : fallbackPath.trim();
-  if (candidate.isNotEmpty) {
-    return _sanitizeFileName(candidate);
-  }
-
-  final uri = Uri.tryParse(url.trim());
-  final segment = uri == null || uri.pathSegments.isEmpty
-      ? ''
-      : uri.pathSegments.last;
-  if (segment.isNotEmpty) {
-    return _sanitizeFileName(segment);
-  }
-
-  final safeId = fallbackId.trim().isNotEmpty ? fallbackId.trim() : 'asset';
-  return '$safeId.bin';
-}
-
-String _sanitizeFileName(String value) {
-  final name = file_path.basename(value);
-  return name.replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_');
 }
 
 Future<Uint8List> downloadImageWithRetry(

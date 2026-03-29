@@ -2,7 +2,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/page/comic_info/models/comic_info_action.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
@@ -65,9 +64,7 @@ class _AllChipWidgetState extends State<AllChipWidget> {
             return GestureDetector(
               onTap: () => _onTap(index, item),
               onLongPress: () {
-                Clipboard.setData(
-                  ClipboardData(text: processText(item.name)),
-                );
+                Clipboard.setData(ClipboardData(text: processText(item.name)));
                 showSuccessToast("已将${item.name.let(t2s)}复制到剪贴板");
               },
               child: Chip(
@@ -109,16 +106,15 @@ class _AllChipWidgetState extends State<AllChipWidget> {
     }
 
     if (type == 'categories') {
-      final Map<String, bool> newCategories = {
-        for (var key in categoryMap.keys) key: key == item.name,
-      };
-
       AutoRouter.of(context).push(
         SearchResultRoute(
           searchEvent: SearchEvent().copyWith(
-            searchStates: SearchStates.initial(
-              context,
-            ).copyWith(from: From.bika, categories: newCategories),
+            searchStates: SearchStates.initial().copyWith(
+              from: From.bika,
+              pluginExtern: {
+                'categories': [item.name],
+              },
+            ),
           ),
         ),
       );
@@ -126,9 +122,10 @@ class _AllChipWidgetState extends State<AllChipWidget> {
       AutoRouter.of(context).push(
         SearchResultRoute(
           searchEvent: SearchEvent().copyWith(
-            searchStates: SearchStates.initial(
-              context,
-            ).copyWith(from: widget.from, searchKeyword: item.name),
+            searchStates: SearchStates.initial().copyWith(
+              from: widget.from,
+              searchKeyword: item.name,
+            ),
           ),
         ),
       );

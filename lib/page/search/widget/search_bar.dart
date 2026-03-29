@@ -4,10 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search/method/on_search.dart';
 import 'package:zephyr/page/search/widget/advanced_search_dialog.dart';
-import 'package:zephyr/util/search_setting_utils.dart';
+import 'package:zephyr/page/search/widget/source_select_dialog.dart';
+import 'package:zephyr/type/enum.dart';
 
 class SearchBar extends StatefulWidget {
-  const SearchBar({super.key});
+  const SearchBar({super.key, this.aggregateMode = true});
+
+  final bool aggregateMode;
 
   @override
   State<SearchBar> createState() => _SearchBarState();
@@ -16,6 +19,7 @@ class SearchBar extends StatefulWidget {
 class _SearchBarState extends State<SearchBar> {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
+  Map<From, bool> _aggregateSources = const {From.jm: true, From.bika: true};
 
   @override
   void initState() {
@@ -94,7 +98,11 @@ class _SearchBarState extends State<SearchBar> {
                         controller: _controller,
                         focusNode: _focusNode,
                         textInputAction: TextInputAction.search,
-                        onSubmitted: (keyword) => onSearch(context, keyword),
+                        onSubmitted: (keyword) => onSearch(
+                          context,
+                          keyword,
+                          aggregateMode: widget.aggregateMode,
+                        ),
                         style: TextStyle(
                           fontSize: 16,
                           color: colorScheme.onSurface,
@@ -123,21 +131,38 @@ class _SearchBarState extends State<SearchBar> {
             IconButton(
               icon: const Icon(Icons.tune),
               onPressed: () async {
+                if (widget.aggregateMode) {
+                  final selected = await showSourceSelectDialog(
+                    context,
+                    initial: _aggregateSources,
+                  );
+                  if (selected != null && mounted) {
+                    setState(() {
+                      _aggregateSources = selected;
+                    });
+                  }
+                  return;
+                }
                 final searchCubit = context.read<SearchCubit>();
                 final newStates = await showDialog<SearchStates>(
                   context: context,
-                  builder: (context) =>
-                      AdvancedSearchDialog(initialState: searchCubit.state),
+                  builder: (context) => AdvancedSearchDialog(
+                    initialState: searchCubit.state,
+                    allowSourceSwitch: false,
+                  ),
                 );
                 if (newStates != null && mounted) {
                   searchCubit.update(newStates);
-                  if (!context.mounted) return;
-                  updateAdvancedSearchSettings(context, newStates);
                 }
               },
             ),
             TextButton(
-              onPressed: () => onSearch(context, _controller.text),
+              onPressed: () => onSearch(
+                context,
+                _controller.text,
+                aggregateMode: widget.aggregateMode,
+                aggregateSources: _aggregateSources,
+              ),
               child: const Text("搜索"),
             ),
           ],

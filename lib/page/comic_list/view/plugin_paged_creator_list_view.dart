@@ -259,6 +259,20 @@ class _PluginPagedCreatorListBodyState
               ),
             );
           }
+          if (state.status == PluginPagedCreatorListStatus.success &&
+              !state.hasReachedMax) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 14, top: 6),
+                child: TextButton.icon(
+                  onPressed: () =>
+                      context.read<PluginPagedCreatorListCubit>().loadMore(),
+                  icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                  label: const Text('点击加载更多'),
+                ),
+              ),
+            );
+          }
           return const SizedBox(height: 10);
         }
 
@@ -288,10 +302,11 @@ class _PluginPagedCreatorListBodyState
                     context.pushRoute(
                       SearchResultRoute(
                         searchEvent: SearchEvent().copyWith(
-                          searchStates: SearchStates.initial(
-                            context,
-                          ).copyWith(from: item.from, searchKeyword: item.name),
-                          url: item.searchUrl,
+                          searchStates: SearchStates.initial().copyWith(
+                            from: item.from,
+                            searchKeyword: item.name,
+                            pluginExtern: {'url': item.searchUrl},
+                          ),
                         ),
                       ),
                     );

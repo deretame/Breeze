@@ -3,7 +3,6 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/widgets/picture_bloc/models/models.dart';
 
 import '../../../network/http/picture/picture.dart';
@@ -37,13 +36,9 @@ class PictureBloc extends Bloc<GetPicture, PictureLoadState> {
       var picturePath = await getCachePicture(
         from: event.pictureInfo.from,
         url: event.pictureInfo.url,
-        localPath: event.pictureInfo.path,
-        fileName: event.pictureInfo.path,
+        path: event.pictureInfo.path,
         cartoonId: event.pictureInfo.cartoonId,
         chapterId: event.pictureInfo.chapterId,
-        decodeJmComic:
-            event.pictureInfo.from == From.jm &&
-            event.pictureInfo.pictureType == PictureType.comic,
       );
 
       emit(

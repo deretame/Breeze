@@ -11,17 +11,9 @@ _SearchStates _$SearchStatesFromJson(Map<String, dynamic> json) =>
       from: $enumDecodeNullable(_$FromEnumMap, json['from']) ?? From.jm,
       searchKeyword: json['searchKeyword'] as String? ?? "",
       sortBy: (json['sortBy'] as num?)?.toInt() ?? 1,
-      categories:
-          (json['categories'] as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, e as bool),
-          ) ??
-          const {},
-      categoriesBlock:
-          (json['categoriesBlock'] as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(k, e as bool),
-          ) ??
-          const {},
-      brevity: json['brevity'] as bool? ?? false,
+      pluginExtern:
+          json['pluginExtern'] as Map<String, dynamic>? ??
+          const <String, dynamic>{},
     );
 
 Map<String, dynamic> _$SearchStatesToJson(_SearchStates instance) =>
@@ -29,9 +21,7 @@ Map<String, dynamic> _$SearchStatesToJson(_SearchStates instance) =>
       'from': _$FromEnumMap[instance.from]!,
       'searchKeyword': instance.searchKeyword,
       'sortBy': instance.sortBy,
-      'categories': instance.categories,
-      'categoriesBlock': instance.categoriesBlock,
-      'brevity': instance.brevity,
+      'pluginExtern': instance.pluginExtern,
     };
 
 const _$FromEnumMap = {

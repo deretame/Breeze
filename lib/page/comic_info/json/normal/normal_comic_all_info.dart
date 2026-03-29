@@ -80,7 +80,8 @@ abstract class Creator with _$Creator {
     @JsonKey(name: 'extension') @Default({}) Map<String, dynamic> extension,
   }) = _Creator;
 
-  factory Creator.fromJson(Map<String, dynamic> json) => _$CreatorFromJson(json);
+  factory Creator.fromJson(Map<String, dynamic> json) =>
+      _$CreatorFromJson(json);
 }
 
 @freezed

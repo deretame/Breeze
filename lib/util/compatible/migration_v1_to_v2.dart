@@ -2,21 +2,22 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:objectbox/objectbox.dart';
-import 'package:path/path.dart' as p;
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
-import 'package:zephyr/page/download/json/comic_all_info_json/comic_all_info_json.dart'
-    as bika_download;
-import 'package:zephyr/page/jm/jm_download/json/download_info_json.dart';
+import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/jm_url_set.dart';
 
 Future<void> migrateV1ToV2(ObjectBox objectbox) async {
+  _migrateLegacySearchHistory(objectbox);
+  _debugLogMigrationSnapshot('before', _buildLegacySnapshot(objectbox));
+  final proxy = objectbox.userSettingBox.get(1)?.bikaSetting.proxy ?? 3;
+
   final favorites = _buildFavorites(objectbox);
-  final histories = _buildHistories(objectbox);
-  final downloads = await _buildDownloads(objectbox);
+  final histories = _buildHistories(objectbox, proxy);
+  final downloads = await _buildDownloads(objectbox, proxy);
 
   objectbox.store.runInTransaction(TxMode.write, () {
     objectbox.unifiedFavoriteBox.removeAll();
@@ -33,20 +34,134 @@ Future<void> migrateV1ToV2(ObjectBox objectbox) async {
       objectbox.unifiedDownloadBox.putMany(downloads);
     }
   });
+
+  _debugLogMigrationSnapshot('after', _buildUnifiedSnapshot(objectbox));
+}
+
+void _migrateLegacySearchHistory(ObjectBox objectbox) {
+  final user = objectbox.userSettingBox.get(1);
+  if (user == null) {
+    return;
+  }
+  final setting = user.globalSetting;
+  final migrated = setting.searchHistory
+      .map(_migrateSearchHistoryEntry)
+      .where((entry) => entry.trim().isNotEmpty)
+      .toList();
+  if (_listEquals(setting.searchHistory, migrated)) {
+    return;
+  }
+  user.globalSetting = setting.copyWith(searchHistory: migrated);
+  objectbox.userSettingBox.put(user);
+}
+
+String _migrateSearchHistoryEntry(String raw) {
+  final value = raw.trim();
+  if (value.isEmpty) {
+    return value;
+  }
+  final split = value.split('&&');
+  if (split.length < 2) {
+    return value;
+  }
+  final keyword = split.first.trim();
+  final tail = split.sublist(1).join('&&').trim();
+  if (tail.startsWith('{') && tail.endsWith('}')) {
+    return value;
+  }
+  if (keyword.isEmpty || tail.isEmpty) {
+    return value;
+  }
+  final creatorId = _extractCreatorIdFromLegacyUrl(tail);
+  if (creatorId.isEmpty) {
+    return value;
+  }
+  return '$keyword&&${jsonEncode({'mode': 'creator', 'creatorId': creatorId, 'url': tail})}';
+}
+
+String _extractCreatorIdFromLegacyUrl(String url) {
+  try {
+    final uri = Uri.parse(url);
+    final creatorId = uri.queryParameters['ca']?.trim() ?? '';
+    return creatorId;
+  } catch (_) {
+    return '';
+  }
+}
+
+bool _listEquals(List<String> left, List<String> right) {
+  if (left.length != right.length) {
+    return false;
+  }
+  for (var i = 0; i < left.length; i++) {
+    if (left[i] != right[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+void _debugLogMigrationSnapshot(String stage, Map<String, dynamic> snapshot) {
+  final encoder = const JsonEncoder.withIndent('  ');
+  stdout.writeln('[migration_v1_to_v2][$stage] snapshot begin');
+  stdout.writeln(encoder.convert(snapshot));
+  stdout.writeln('[migration_v1_to_v2][$stage] snapshot end');
+}
+
+Map<String, dynamic> _buildLegacySnapshot(ObjectBox objectbox) {
+  return {
+    'jmFavorite': objectbox.jmFavoriteBox
+        .getAll()
+        .map((e) => e.toJson())
+        .toList(),
+    'bikaHistory': objectbox.bikaHistoryBox
+        .getAll()
+        .map((e) => e.toJson())
+        .toList(),
+    'jmHistory': objectbox.jmHistoryBox
+        .getAll()
+        .map((e) => e.toJson())
+        .toList(),
+    'bikaDownload': objectbox.bikaDownloadBox
+        .getAll()
+        .map((e) => e.toJson())
+        .toList(),
+    'jmDownload': objectbox.jmDownloadBox
+        .getAll()
+        .map((e) => e.toJson())
+        .toList(),
+  };
+}
+
+Map<String, dynamic> _buildUnifiedSnapshot(ObjectBox objectbox) {
+  return {
+    'unifiedFavorite': objectbox.unifiedFavoriteBox
+        .getAll()
+        .map((e) => e.toJson())
+        .toList(),
+    'unifiedHistory': objectbox.unifiedHistoryBox
+        .getAll()
+        .map((e) => e.toJson())
+        .toList(),
+    'unifiedDownload': objectbox.unifiedDownloadBox
+        .getAll()
+        .map((e) => e.toJson())
+        .toList(),
+  };
 }
 
 UnifiedComicFavorite buildUnifiedFavoriteFromLegacy(JmFavorite item) =>
     _jmFavoriteToUnified(item);
 
 UnifiedComicHistory buildUnifiedHistoryFromBikaLegacy(BikaComicHistory item) =>
-    _bikaHistoryToUnified(item);
+    _bikaHistoryToUnified(item, 3);
 
 UnifiedComicHistory buildUnifiedHistoryFromJmLegacy(JmHistory item) =>
     _jmHistoryToUnified(item);
 
 Future<UnifiedComicDownload> buildUnifiedDownloadFromBikaLegacy(
   BikaComicDownload item,
-) async => _bikaDownloadToUnified(item, await getDownloadPath());
+) async => _bikaDownloadToUnified(item, await getDownloadPath(), 3);
 
 Future<UnifiedComicDownload> buildUnifiedDownloadFromJmLegacy(
   JmDownload item,
@@ -57,19 +172,22 @@ List<UnifiedComicFavorite> _buildFavorites(ObjectBox objectbox) {
   return jmFavorites.map(_jmFavoriteToUnified).toList();
 }
 
-List<UnifiedComicHistory> _buildHistories(ObjectBox objectbox) {
+List<UnifiedComicHistory> _buildHistories(ObjectBox objectbox, int proxy) {
   final bikaHistories = objectbox.bikaHistoryBox.getAll().map(
-    _bikaHistoryToUnified,
+    (item) => _bikaHistoryToUnified(item, proxy),
   );
   final jmHistories = objectbox.jmHistoryBox.getAll().map(_jmHistoryToUnified);
   return [...bikaHistories, ...jmHistories].toList();
 }
 
-Future<List<UnifiedComicDownload>> _buildDownloads(ObjectBox objectbox) async {
+Future<List<UnifiedComicDownload>> _buildDownloads(
+  ObjectBox objectbox,
+  int proxy,
+) async {
   final downloadRoot = await getDownloadPath();
   final bikaDownloads = <UnifiedComicDownload>[];
   for (final item in objectbox.bikaDownloadBox.getAll()) {
-    bikaDownloads.add(await _bikaDownloadToUnified(item, downloadRoot));
+    bikaDownloads.add(await _bikaDownloadToUnified(item, downloadRoot, proxy));
   }
   final jmDownloads = <UnifiedComicDownload>[];
   for (final item in objectbox.jmDownloadBox.getAll()) {
@@ -141,7 +259,19 @@ UnifiedComicFavorite _jmFavoriteToUnified(JmFavorite item) {
   );
 }
 
-UnifiedComicHistory _bikaHistoryToUnified(BikaComicHistory item) {
+UnifiedComicHistory _bikaHistoryToUnified(BikaComicHistory item, int proxy) {
+  final coverUrl = _buildLegacyBikaImageUrl(
+    item.thumbFileServer,
+    item.thumbPath,
+    proxy: proxy,
+    kind: 'cover',
+  );
+  final avatarUrl = _buildLegacyBikaImageUrl(
+    item.creatorAvatarFileServer,
+    item.creatorAvatarPath,
+    proxy: proxy,
+    kind: 'creator',
+  );
   return UnifiedComicHistory(
     uniqueKey: _uniqueKey('bika', item.comicId),
     source: 'bika',
@@ -151,9 +281,15 @@ UnifiedComicHistory _bikaHistoryToUnified(BikaComicHistory item) {
     cover: _coverMap(
       normal.ComicImage(
         id: item.comicId,
-        url: item.thumbFileServer,
+        url: coverUrl,
         name: item.thumbOriginalName,
-        extension: {'path': item.thumbPath, 'fileServer': item.thumbFileServer},
+        extension: {
+          'path': _sanitizeLegacyStoredPath(
+            item.thumbPath,
+            fallbackName: item.thumbOriginalName,
+          ),
+          'fileServer': item.thumbFileServer,
+        },
       ),
     ),
     creator: _creatorMap(
@@ -162,10 +298,13 @@ UnifiedComicHistory _bikaHistoryToUnified(BikaComicHistory item) {
         name: item.creatorName,
         avatar: normal.ComicImage(
           id: item.creatorId,
-          url: item.creatorAvatarFileServer,
+          url: avatarUrl,
           name: item.creatorAvatarOriginalName,
           extension: {
-            'path': item.creatorAvatarPath,
+            'path': _sanitizeLegacyStoredPath(
+              item.creatorAvatarPath,
+              fallbackName: item.creatorAvatarOriginalName,
+            ),
             'fileServer': item.creatorAvatarFileServer,
           },
         ),
@@ -293,35 +432,50 @@ UnifiedComicHistory _jmHistoryToUnified(JmHistory item) {
 Future<UnifiedComicDownload> _bikaDownloadToUnified(
   BikaComicDownload item,
   String downloadRoot,
+  int proxy,
 ) async {
-  final coverPath = await _resolveLegacyCoverPath(
-    downloadRoot: downloadRoot,
-    source: 'bika',
-    comicId: item.comicId,
-    fallback: item.thumbPath,
+  final coverPath = _sanitizeLegacyStoredPath(
+    item.thumbPath,
+    fallbackName: item.thumbOriginalName,
   );
-  final legacy = bika_download.comicAllInfoJsonFromJson(item.comicInfoAll);
-  await _normalizeLegacyChapterFiles(
-    root: _downloadStorageRoot(downloadRoot, 'bika', item.comicId),
-    chapters: legacy.eps.docs
-        .map(
-          (e) => _LegacyChapterFiles(
-            id: e.id,
-            files: e.pages.docs.map((p) => p.media.path).toList(),
-          ),
-        )
-        .toList(),
-  );
-  final chapters = legacy.eps.docs
-      .map(
-        (e) => normal.Ep(
-          id: e.id,
-          name: e.title,
-          order: e.order,
-          extension: {'docId': e.docId},
-        ).toJson(),
-      )
+  final legacy = jsonDecode(item.comicInfoAll) as Map<String, dynamic>;
+  final epsDocs = ((legacy['eps'] as Map?)?['docs'] as List? ?? const [])
+      .whereType<Map>()
+      .map((e) => Map<String, dynamic>.from(e))
       .toList();
+  final storedChapters = epsDocs.map((e) {
+    final chapterId = e['_id']?.toString() ?? '';
+    final imageDocs = (((e['pages'] as Map?)?['docs'] as List?) ?? const [])
+        .whereType<Map>()
+        .map((p) => Map<String, dynamic>.from(p))
+        .toList();
+    final images = imageDocs.map((p) {
+      final media = Map<String, dynamic>.from(
+        (p['media'] as Map?) ?? const <String, dynamic>{},
+      );
+      final rawPath = media['path']?.toString() ?? '';
+      final originalName = media['originalName']?.toString() ?? '';
+      final fileServer = media['fileServer']?.toString() ?? '';
+      final imageName = _resolveImageDisplayName(originalName, rawPath);
+      return UnifiedComicDownloadImage(
+        id: p['_id']?.toString() ?? _legacyImageId(rawPath),
+        name: imageName,
+        path: _sanitizeLegacyStoredPath(rawPath, fallbackName: imageName),
+        url: _buildLegacyBikaImageUrl(
+          fileServer,
+          rawPath,
+          proxy: proxy,
+          kind: 'comic',
+        ),
+      );
+    }).toList();
+    return UnifiedComicDownloadStoredChapter(
+      id: chapterId,
+      name: e['title']?.toString() ?? '',
+      order: _toInt(e['order']),
+      images: images,
+    );
+  }).toList();
 
   final detail = normal.NormalComicAllInfo(
     comicInfo: normal.ComicInfo(
@@ -339,10 +493,18 @@ Future<UnifiedComicDownload> _bikaDownloadToUnified(
         name: item.creatorName,
         avatar: normal.ComicImage(
           id: item.creatorId,
-          url: item.creatorAvatarFileServer,
+          url: _buildLegacyBikaImageUrl(
+            item.creatorAvatarFileServer,
+            item.creatorAvatarPath,
+            proxy: proxy,
+            kind: 'creator',
+          ),
           name: item.creatorAvatarOriginalName,
           extension: {
-            'path': item.creatorAvatarPath,
+            'path': _sanitizeLegacyStoredPath(
+              item.creatorAvatarPath,
+              fallbackName: item.creatorAvatarOriginalName,
+            ),
             'fileServer': item.creatorAvatarFileServer,
           },
         ),
@@ -351,9 +513,20 @@ Future<UnifiedComicDownload> _bikaDownloadToUnified(
       description: item.description,
       cover: normal.ComicImage(
         id: item.comicId,
-        url: item.thumbFileServer,
+        url: _buildLegacyBikaImageUrl(
+          item.thumbFileServer,
+          item.thumbPath,
+          proxy: proxy,
+          kind: 'cover',
+        ),
         name: item.thumbOriginalName,
-        extension: {'path': coverPath, 'fileServer': item.thumbFileServer},
+        extension: {
+          'path': _sanitizeLegacyStoredPath(
+            coverPath,
+            fallbackName: item.thumbOriginalName,
+          ),
+          'fileServer': item.thumbFileServer,
+        },
       ),
       metadata: [
         normal.ComicInfoMetadata(
@@ -404,7 +577,9 @@ Future<UnifiedComicDownload> _bikaDownloadToUnified(
         ),
       ],
     ),
-    eps: chapters.map(normal.Ep.fromJson).toList(),
+    eps: storedChapters
+        .map((e) => normal.Ep(id: e.id, name: e.name, order: e.order))
+        .toList(),
     recommend: const [],
     totalViews: item.totalViews,
     totalLikes: item.totalLikes,
@@ -415,6 +590,18 @@ Future<UnifiedComicDownload> _bikaDownloadToUnified(
     allowLike: true,
     allowFavorite: true,
     allowDownload: item.allowDownload,
+    extension: {
+      'downloadChapters': storedChapters
+          .map(
+            (chapter) => {
+              'id': chapter.id,
+              'name': chapter.name,
+              'order': chapter.order,
+              'images': chapter.images.map((image) => image.toMap()).toList(),
+            },
+          )
+          .toList(),
+    },
   ).toJson();
   final normalizedDetail = _normalizeFlexValue(detail) as Map<String, dynamic>;
   final comicInfoMap = Map<String, dynamic>.from(
@@ -440,7 +627,16 @@ Future<UnifiedComicDownload> _bikaDownloadToUnified(
     allowLike: true,
     allowFavorite: true,
     allowDownload: item.allowDownload,
-    chapters: _mapList(normalizedDetail['eps']),
+    chapters: storedChapters
+        .map(
+          (chapter) => UnifiedComicDownloadChapter(
+            id: chapter.id,
+            title: chapter.name,
+            order: chapter.order,
+            taskChapterId: chapter.order.toString(),
+          ).toMap(),
+        )
+        .toList(),
     detailJson: jsonEncode(normalizedDetail),
     storageRoot: _downloadStorageRoot(downloadRoot, 'bika', item.comicId),
     createdAt: item.downloadTime,
@@ -455,23 +651,56 @@ Future<UnifiedComicDownload> _jmDownloadToUnified(
   JmDownload item,
   String downloadRoot,
 ) async {
-  final coverPath = await _resolveLegacyCoverPath(
-    downloadRoot: downloadRoot,
-    source: 'jm',
-    comicId: item.comicId,
-    fallback: '${item.comicId}.jpg',
+  final coverPath = _sanitizeLegacyStoredPath(
+    '${item.comicId}.jpg',
+    fallbackName: '${item.comicId}.jpg',
   );
-  final info = downloadInfoJsonFromJson(item.allInfo);
-  await _normalizeLegacyChapterFiles(
-    root: _downloadStorageRoot(downloadRoot, 'jm', item.comicId),
-    chapters: info.series
-        .map(
-          (e) => _LegacyChapterFiles(id: e.id, files: e.info.images.toList()),
-        )
-        .toList(),
-  );
+  final info = jsonDecode(item.allInfo) as Map<String, dynamic>;
+  final series = (info['series'] as List? ?? const [])
+      .whereType<Map>()
+      .map((e) => Map<String, dynamic>.from(e))
+      .toList();
+  final storedChapters = series.map((e) {
+    final chapterId = e['id']?.toString() ?? '';
+    final images = _toStringList((e['info'] as Map?)?['images']).map((raw) {
+      final imageName = _resolveImageDisplayName('', raw);
+      return UnifiedComicDownloadImage(
+        id: _legacyImageId(raw),
+        name: imageName,
+        path: _sanitizeLegacyStoredPath(raw, fallbackName: imageName),
+        url: getJmImagesUrl(chapterId, raw),
+      );
+    }).toList();
+    return UnifiedComicDownloadStoredChapter(
+      id: chapterId,
+      name: e['name']?.toString() ?? '',
+      order: _toInt(e['sort'], fallback: _toInt(chapterId, fallback: 1)),
+      images: images,
+    );
+  }).toList();
   final normalInfo = _jmDownloadInfoToNormal(info);
-  final detail = normalInfo.toJson();
+  final detail = normalInfo
+      .copyWith(
+        eps: storedChapters
+            .map((e) => normal.Ep(id: e.id, name: e.name, order: e.order))
+            .toList(),
+        extension: {
+          ...normalInfo.extension,
+          'downloadChapters': storedChapters
+              .map(
+                (chapter) => {
+                  'id': chapter.id,
+                  'name': chapter.name,
+                  'order': chapter.order,
+                  'images': chapter.images
+                      .map((image) => image.toMap())
+                      .toList(),
+                },
+              )
+              .toList(),
+        },
+      )
+      .toJson();
   final normalizedDetail = _normalizeFlexValue(detail) as Map<String, dynamic>;
   final comicInfoMap = Map<String, dynamic>.from(
     normalizedDetail['comicInfo'] as Map,
@@ -501,7 +730,16 @@ Future<UnifiedComicDownload> _jmDownloadToUnified(
     allowLike: normalInfo.allowLike,
     allowFavorite: normalInfo.allowFavorite,
     allowDownload: normalInfo.allowDownload,
-    chapters: _mapList(normalizedDetail['eps']),
+    chapters: storedChapters
+        .map(
+          (chapter) => UnifiedComicDownloadChapter(
+            id: chapter.id,
+            title: chapter.name,
+            order: chapter.order,
+            taskChapterId: chapter.id,
+          ).toMap(),
+        )
+        .toList(),
     detailJson: jsonEncode(normalizedDetail),
     storageRoot: _downloadStorageRoot(downloadRoot, 'jm', item.comicId),
     createdAt: item.downloadTime,
@@ -512,35 +750,50 @@ Future<UnifiedComicDownload> _jmDownloadToUnified(
   );
 }
 
-normal.NormalComicAllInfo _jmDownloadInfoToNormal(DownloadInfoJson info) {
-  final epsCount = info.series.isEmpty ? 1 : info.series.length;
+normal.NormalComicAllInfo _jmDownloadInfoToNormal(Map<String, dynamic> info) {
+  final series = (info['series'] as List? ?? const [])
+      .whereType<Map>()
+      .map((e) => Map<String, dynamic>.from(e))
+      .toList();
+  final epsCount = series.isEmpty ? 1 : series.length;
   return normal.NormalComicAllInfo(
     comicInfo: normal.ComicInfo(
-      id: info.id.toString(),
-      title: info.name,
+      id: info['id']?.toString() ?? '',
+      title: info['name']?.toString() ?? '',
       titleMeta: [
-        normal.ComicInfoActionItem(name: '浏览：${info.totalViews}'),
-        normal.ComicInfoActionItem(name: '更新时间：${_safeTitle(info.addtime)}'),
+        normal.ComicInfoActionItem(
+          name: '浏览：${info['total_views']?.toString() ?? '0'}',
+        ),
+        normal.ComicInfoActionItem(
+          name: '更新时间：${_safeTitle(info['addtime']?.toString() ?? '')}',
+        ),
         normal.ComicInfoActionItem(name: '章节数：$epsCount'),
-        normal.ComicInfoActionItem(name: '禁漫车：jm${info.id}'),
+        normal.ComicInfoActionItem(
+          name: '禁漫车：jm${info['id']?.toString() ?? ''}',
+        ),
       ],
       creator: const normal.Creator(
         id: '',
         name: '',
         avatar: normal.ComicImage(id: '', url: '', name: ''),
       ),
-      description: info.description,
+      description: info['description']?.toString() ?? '',
       cover: normal.ComicImage(
-        id: info.id.toString(),
-        url: getJmCoverUrl(info.id.toString()),
-        name: '${info.id}.jpg',
-        extension: {'path': '${info.id}.jpg'},
+        id: info['id']?.toString() ?? '',
+        url: getJmCoverUrl(info['id']?.toString() ?? ''),
+        name: '${info['id']?.toString() ?? ''}.jpg',
+        extension: {
+          'path': _sanitizeLegacyStoredPath(
+            '${info['id']?.toString() ?? ''}.jpg',
+            fallbackName: '${info['id']?.toString() ?? ''}.jpg',
+          ),
+        },
       ),
       metadata: [
         normal.ComicInfoMetadata(
           type: 'author',
           name: '作者',
-          value: info.author
+          value: _toStringList(info['author'])
               .map(
                 (e) => normal.ComicInfoActionItem(
                   name: e,
@@ -552,7 +805,7 @@ normal.NormalComicAllInfo _jmDownloadInfoToNormal(DownloadInfoJson info) {
         normal.ComicInfoMetadata(
           type: 'tags',
           name: '标签',
-          value: info.tags
+          value: _toStringList(info['tags'])
               .map(
                 (e) => normal.ComicInfoActionItem(
                   name: e,
@@ -564,7 +817,7 @@ normal.NormalComicAllInfo _jmDownloadInfoToNormal(DownloadInfoJson info) {
         normal.ComicInfoMetadata(
           type: 'works',
           name: '作品',
-          value: info.works
+          value: _toStringList(info['works'])
               .map(
                 (e) => normal.ComicInfoActionItem(
                   name: e,
@@ -576,7 +829,7 @@ normal.NormalComicAllInfo _jmDownloadInfoToNormal(DownloadInfoJson info) {
         normal.ComicInfoMetadata(
           type: 'actors',
           name: '角色',
-          value: info.actors
+          value: _toStringList(info['actors'])
               .map(
                 (e) => normal.ComicInfoActionItem(
                   name: e,
@@ -587,21 +840,21 @@ normal.NormalComicAllInfo _jmDownloadInfoToNormal(DownloadInfoJson info) {
         ),
       ],
     ),
-    eps: info.series
+    eps: series
         .map(
           (e) => normal.Ep(
-            id: e.id,
-            name: e.name,
-            order: int.tryParse(e.sort) ?? int.tryParse(e.id) ?? 1,
+            id: e['id']?.toString() ?? '',
+            name: e['name']?.toString() ?? '',
+            order: _toInt(e['sort'], fallback: _toInt(e['id'], fallback: 1)),
           ),
         )
         .toList(),
     recommend: const [],
-    totalViews: int.tryParse(info.totalViews) ?? 0,
-    totalLikes: int.tryParse(info.likes) ?? 0,
-    totalComments: int.tryParse(info.commentTotal) ?? 0,
-    isFavourite: info.isFavorite,
-    isLiked: info.liked,
+    totalViews: _toInt(info['total_views']),
+    totalLikes: _toInt(info['likes']),
+    totalComments: _toInt(info['comment_total']),
+    isFavourite: info['is_favorite'] == true,
+    isLiked: info['liked'] == true,
     allowComment: true,
     allowLike: true,
     allowFavorite: true,
@@ -617,47 +870,6 @@ String _downloadStorageRoot(
   String comicId,
 ) {
   return '$downloadRoot${Platform.pathSeparator}$source${Platform.pathSeparator}original${Platform.pathSeparator}$comicId';
-}
-
-Future<String> _resolveLegacyCoverPath({
-  required String downloadRoot,
-  required String source,
-  required String comicId,
-  required String fallback,
-}) async {
-  if (source != 'bika') {
-    return fallback;
-  }
-
-  final coverDir = Directory(
-    '${_downloadStorageRoot(downloadRoot, source, comicId)}${Platform.pathSeparator}cover',
-  );
-  if (!await coverDir.exists()) {
-    return fallback;
-  }
-  final files = await coverDir
-      .list()
-      .where((e) => e is File)
-      .cast<File>()
-      .toList();
-  if (files.isEmpty) {
-    return fallback;
-  }
-  files.sort((a, b) => a.path.compareTo(b.path));
-  final file = files.first;
-  final extension = p.extension(file.path);
-  final normalizedName = '$comicId${extension.isEmpty ? '.jpg' : extension}';
-  final normalizedPath = p.join(coverDir.path, normalizedName);
-
-  if (p.basename(file.path) != normalizedName) {
-    final normalizedFile = File(normalizedPath);
-    if (await normalizedFile.exists()) {
-      await normalizedFile.delete();
-    }
-    await file.rename(normalizedPath);
-  }
-
-  return normalizedName;
 }
 
 Map<String, dynamic> _coverMap(dynamic value) {
@@ -731,6 +943,17 @@ List<Map<String, dynamic>> _mapList(dynamic value) {
 
 String _safeTitle(String value) => value.trim().isEmpty ? '未知' : value;
 
+int _toInt(Object? value, {int fallback = 0}) {
+  return int.tryParse(value?.toString() ?? '') ?? fallback;
+}
+
+List<String> _toStringList(Object? value) {
+  return (value as List? ?? const [])
+      .map((e) => e?.toString() ?? '')
+      .where((e) => e.isNotEmpty)
+      .toList();
+}
+
 dynamic _normalizeFlexValue(dynamic value) {
   if (value == null || value is String || value is num || value is bool) {
     return value;
@@ -773,56 +996,100 @@ dynamic _normalizeFlexValue(dynamic value) {
   throw UnsupportedError('Unsupported flex value: ${value.runtimeType}');
 }
 
-class _LegacyChapterFiles {
-  const _LegacyChapterFiles({required this.id, required this.files});
-
-  final String id;
-  final List<String> files;
+String _sanitizeLegacyStoredPath(
+  String rawPath, {
+  required String fallbackName,
+}) {
+  final candidate = rawPath.trim().isNotEmpty ? rawPath.trim() : fallbackName;
+  final sanitized = candidate.replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_');
+  if (sanitized.isNotEmpty) {
+    return sanitized;
+  }
+  final safeFallback = fallbackName.trim().isNotEmpty
+      ? fallbackName.trim()
+      : 'asset.bin';
+  final fallbackSanitized = safeFallback.replaceAll(
+    RegExp(r'[^a-zA-Z0-9_\-.]'),
+    '_',
+  );
+  return fallbackSanitized.isNotEmpty ? fallbackSanitized : 'asset.bin';
 }
 
-Future<void> _normalizeLegacyChapterFiles({
-  required String root,
-  required List<_LegacyChapterFiles> chapters,
-}) async {
-  for (final chapter in chapters) {
-    final chapterDir = Directory(p.join(root, 'comic', chapter.id));
-    if (!await chapterDir.exists()) {
-      continue;
+String _resolveImageDisplayName(String originalName, String rawPath) {
+  final fromOriginal = originalName.trim();
+  if (fromOriginal.isNotEmpty) {
+    return fromOriginal;
+  }
+  final fromPath = _pathFileName(rawPath);
+  if (fromPath.isNotEmpty) {
+    return fromPath;
+  }
+  return 'asset.bin';
+}
+
+String _legacyImageId(String raw) {
+  final base = _pathFileName(raw);
+  final dotIndex = base.lastIndexOf('.');
+  final withoutExt = dotIndex > 0 ? base.substring(0, dotIndex) : base;
+  final value = withoutExt.isNotEmpty ? withoutExt : 'asset';
+  return value.replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_');
+}
+
+String _pathFileName(String raw) {
+  final value = raw.trim();
+  if (value.isEmpty) {
+    return '';
+  }
+  final parts = value.split(RegExp(r'[\\/]'));
+  return parts.isEmpty ? '' : parts.last.trim();
+}
+
+String _buildLegacyBikaImageUrl(
+  String fileServer,
+  String path, {
+  required int proxy,
+  required String kind,
+}) {
+  var url = fileServer.trim();
+  var nextPath = path.trim();
+  if (url.isEmpty || nextPath.isEmpty) {
+    return '';
+  }
+
+  if (url == 'https://storage1.picacomic.com') {
+    if (kind == 'cover') {
+      url = 'https://img.picacomic.com';
+    } else {
+      url = proxy == 1
+          ? 'https://storage.diwodiwo.xyz'
+          : 'https://s3.picacomic.com';
     }
-
-    for (var index = 0; index < chapter.files.length; index++) {
-      final raw = chapter.files[index];
-      final oldName = _sanitizeLegacyName(raw);
-      final oldPath = p.join(chapterDir.path, oldName);
-      final file = File(oldPath);
-      if (!await file.exists()) {
-        continue;
-      }
-
-      final newName = _orderedImageFileName(index, raw);
-      final newPath = p.join(chapterDir.path, newName);
-      if (oldPath == newPath) {
-        continue;
-      }
-
-      final target = File(newPath);
-      if (await target.exists()) {
-        await target.delete();
-      }
-      await file.rename(newPath);
+  } else if (url == 'https://storage-b.picacomic.com') {
+    if (kind == 'creator') {
+      url = 'https://storage-b.picacomic.com';
+    } else if (kind == 'cover') {
+      url = 'https://img.picacomic.com';
+    } else {
+      url = 'https://storage-b.diwodiwo.xyz';
     }
   }
-}
 
-String _sanitizeLegacyName(String raw) {
-  final name = raw.split(RegExp(r'[\\/]')).last.trim();
-  return name.replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_');
-}
+  if (nextPath.contains('picacomic-paint.jpg') ||
+      nextPath.contains('picacomic-gift.jpg')) {
+    url = proxy == 1
+        ? 'https://storage.diwodiwo.xyz/static'
+        : 'https://s3.picacomic.com/static';
+  }
 
-String _orderedImageFileName(int index, String raw) {
-  final base = raw.split(RegExp(r'[\\/]')).last.trim();
-  final ext = p.extension(base);
-  return '${(index + 1).toString().padLeft(4, '0')}${ext.isEmpty ? '.bin' : ext}';
+  if (nextPath.contains('tobeimg/')) {
+    nextPath = nextPath.replaceAll('tobeimg/', '');
+  } else if (nextPath.contains('tobs/')) {
+    nextPath = 'static/${nextPath.replaceAll('tobs/', '')}';
+  } else if (!nextPath.contains('/') && !url.contains('static')) {
+    nextPath = 'static/$nextPath';
+  }
+
+  return '${url.trim()}/${nextPath.trim()}';
 }
 
 Map<String, dynamic> _jmSearchAction(String keyword) {
@@ -844,7 +1111,9 @@ Map<String, dynamic> _bikaCategoryAction(String category) {
     'type': 'openSearch',
     'payload': {
       'source': 'bika',
-      'categories': [category],
+      'extern': {
+        'categories': [category],
+      },
     },
   };
 }
@@ -855,6 +1124,7 @@ Map<String, dynamic> _bikaCreatorAction(String creatorId, String creatorName) {
     'payload': {
       'source': 'bika',
       'keyword': creatorName,
+      'extern': {'mode': 'creator', 'creatorId': creatorId},
       'url': 'https://picaapi.picacomic.com/comics?ca=$creatorId&s=ld&page=1',
     },
   };

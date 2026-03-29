@@ -50,14 +50,14 @@ class CreatorLinkCard extends StatelessWidget {
 
     return Padding(
       padding: padding,
-        child: InkWell(
-          onTap: onTap,
-          child: Container(
-            height: 75,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: context.backgroundColor,
-              borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          height: 75,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: context.backgroundColor,
+            borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
                 color: materialColorScheme.secondaryFixedDim,

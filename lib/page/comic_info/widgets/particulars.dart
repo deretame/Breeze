@@ -32,7 +32,9 @@ class ComicParticularsWidget extends StatelessWidget {
       url: comicInfo.cover.url,
       path:
           coverExtension['path']?.toString() ??
-          (comicInfo.cover.name.isNotEmpty ? comicInfo.cover.name : comicInfo.id),
+          (comicInfo.cover.name.isNotEmpty
+              ? comicInfo.cover.name
+              : comicInfo.id),
       chapterId: comicInfo.id,
       pictureType: PictureType.cover,
       cartoonId: comicInfo.id,
@@ -45,7 +47,9 @@ class ComicParticularsWidget extends StatelessWidget {
         color: context.theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+          color: context.theme.colorScheme.outlineVariant.withValues(
+            alpha: 0.4,
+          ),
         ),
       ),
       child: LayoutBuilder(
@@ -78,11 +82,7 @@ class ComicParticularsWidget extends StatelessWidget {
           return Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Cover(
-                pictureInfo: pictureInfo,
-                height: 230,
-                borderRadius: 14,
-              ),
+              Cover(pictureInfo: pictureInfo, height: 230, borderRadius: 14),
               const SizedBox(width: 16),
               Expanded(child: info),
             ],
@@ -123,7 +123,9 @@ class _InfoColumn extends StatelessWidget {
             color: context.theme.colorScheme.surfaceContainerLow,
             borderRadius: BorderRadius.circular(999),
             border: Border.all(
-              color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+              color: context.theme.colorScheme.outlineVariant.withValues(
+                alpha: 0.3,
+              ),
             ),
           ),
           child: Text(
@@ -164,12 +166,19 @@ class _InfoColumn extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
-                  color: context.theme.colorScheme.primary.withValues(alpha: 0.10),
+                  color: context.theme.colorScheme.primary.withValues(
+                    alpha: 0.10,
+                  ),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: context.theme.colorScheme.primary.withValues(alpha: 0.30),
+                    color: context.theme.colorScheme.primary.withValues(
+                      alpha: 0.30,
+                    ),
                   ),
                 ),
                 child: Row(
@@ -179,7 +188,9 @@ class _InfoColumn extends StatelessWidget {
                       height: 34,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: context.theme.colorScheme.primary.withValues(alpha: 0.14),
+                        color: context.theme.colorScheme.primary.withValues(
+                          alpha: 0.14,
+                        ),
                         borderRadius: BorderRadius.circular(9),
                       ),
                       child: Icon(
@@ -196,11 +207,12 @@ class _InfoColumn extends StatelessWidget {
                         children: [
                           Text(
                             '阅读记录',
-                            style: context.theme.textTheme.labelMedium?.copyWith(
-                              color: context.theme.colorScheme.primary,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.2,
-                            ),
+                            style: context.theme.textTheme.labelMedium
+                                ?.copyWith(
+                                  color: context.theme.colorScheme.primary,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.2,
+                                ),
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -255,7 +267,9 @@ class _MetaPill extends StatelessWidget {
         color: context.theme.colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.32),
+          color: context.theme.colorScheme.outlineVariant.withValues(
+            alpha: 0.32,
+          ),
         ),
       ),
       child: Text(

@@ -9,6 +9,7 @@ import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 
 import '../../../util/get_path.dart';
+
 const _kJmScrambleId = 220980;
 
 /// 使用 background_downloader 下载图片（iOS 后台 URLSession）

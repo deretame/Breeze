@@ -1,13 +1,10 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:uuid/uuid.dart';
 import 'package:zephyr/config/global/global_setting.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_list/models/comic_list_scene.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
-import 'package:zephyr/page/bookshelf/models/events.dart';
 import 'package:zephyr/page/comic_list/scene_filter/plugin_list_filter_dialog.dart';
 import 'package:zephyr/page/comic_list/scene_filter/plugin_list_filter_schema.dart';
 import 'package:zephyr/page/comic_list/view/plugin_paged_comic_list_view.dart';
@@ -27,10 +24,20 @@ class _ListFilterBundle {
 
 @RoutePage()
 class ComicListPage extends StatefulWidget {
-  const ComicListPage({super.key, this.title, this.scene});
+  const ComicListPage({
+    super.key,
+    this.title,
+    this.scene,
+    this.sceneSource,
+    this.sceneBundleFnPath,
+    this.sceneBundleFnPathFallback,
+  });
 
   final String? title;
   final ComicListScene? scene;
+  final From? sceneSource;
+  final String? sceneBundleFnPath;
+  final String? sceneBundleFnPathFallback;
 
   @override
   State<ComicListPage> createState() => _ComicListPageState();
@@ -44,15 +51,31 @@ class _ComicListPageState extends State<ComicListPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return ComicListScaffold(title: widget.title, scene: widget.scene);
+    return ComicListScaffold(
+      title: widget.title,
+      scene: widget.scene,
+      sceneSource: widget.sceneSource,
+      sceneBundleFnPath: widget.sceneBundleFnPath,
+      sceneBundleFnPathFallback: widget.sceneBundleFnPathFallback,
+    );
   }
 }
 
 class ComicListScaffold extends StatefulWidget {
-  const ComicListScaffold({super.key, this.title, this.scene});
+  const ComicListScaffold({
+    super.key,
+    this.title,
+    this.scene,
+    this.sceneSource,
+    this.sceneBundleFnPath,
+    this.sceneBundleFnPathFallback,
+  });
 
   final String? title;
   final ComicListScene? scene;
+  final From? sceneSource;
+  final String? sceneBundleFnPath;
+  final String? sceneBundleFnPathFallback;
 
   @override
   State<ComicListScaffold> createState() => _ComicListScaffoldState();
@@ -86,11 +109,11 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    final globlalSettingCubit = context.read<GlobalSettingCubit>();
     final globalSettingState = context.watch<GlobalSettingCubit>().state;
     final currentFrom = _usesPluginScene
         ? widget.scene!.from
-        : (globalSettingState.comicChoice == 1 ? From.bika : From.jm);
+        : (widget.sceneSource ??
+              (globalSettingState.comicChoice == 1 ? From.bika : From.jm));
 
     if (!_usesPluginScene) {
       _ensureSceneLoaded(currentFrom);
@@ -116,25 +139,7 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
         ],
       ),
       body: _buildBody(globalSettingState.comicChoice, currentFrom),
-      floatingActionButton: (_usesPluginScene || globalSettingState.disableBika)
-          ? null
-          : FloatingActionButton(
-              heroTag: Uuid().v4(),
-              child: const Icon(Icons.compare_arrows),
-              onPressed: () {
-                if (globalSettingState.comicChoice == 1) {
-                  globlalSettingCubit.updateState(
-                    (current) => current.copyWith(comicChoice: 2),
-                  );
-                } else {
-                  globlalSettingCubit.updateState(
-                    (current) => current.copyWith(comicChoice: 1),
-                  );
-                }
-
-                eventBus.fire(BookShelfEvent());
-              },
-            ),
+      floatingActionButton: null,
     );
   }
 
@@ -277,12 +282,29 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
     });
 
     try {
-      final response = await callUnifiedComicPlugin(
-        from: from,
-        fnPath: 'getComicListSceneBundle',
-        core: const <String, dynamic>{},
-        extern: const <String, dynamic>{'source': 'comicList'},
-      );
+      final sceneFnPath = widget.sceneBundleFnPath?.trim().isNotEmpty == true
+          ? widget.sceneBundleFnPath!.trim()
+          : 'getComicListSceneBundle';
+      Map<String, dynamic> response;
+      try {
+        response = await callUnifiedComicPlugin(
+          from: from,
+          fnPath: sceneFnPath,
+          core: const <String, dynamic>{},
+          extern: const <String, dynamic>{},
+        );
+      } catch (_) {
+        final fallback = widget.sceneBundleFnPathFallback?.trim() ?? '';
+        if (fallback.isEmpty || fallback == sceneFnPath) {
+          rethrow;
+        }
+        response = await callUnifiedComicPlugin(
+          from: from,
+          fnPath: fallback,
+          core: const <String, dynamic>{},
+          extern: const <String, dynamic>{},
+        );
+      }
       final envelope = UnifiedPluginEnvelope.fromMap(response);
       final sceneMap = asJsonMap(envelope.data['scene']);
       final scene = ComicListScene.fromMap(

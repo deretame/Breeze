@@ -9,10 +9,10 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:typed_data' as _i43;
+import 'dart:typed_data' as _i40;
 
 import 'package:auto_route/auto_route.dart' as _i30;
-import 'package:collection/collection.dart' as _i42;
+import 'package:collection/collection.dart' as _i43;
 import 'package:flutter/foundation.dart' as _i34;
 import 'package:flutter/material.dart' as _i31;
 import 'package:zephyr/cubit/bool_select.dart' as _i37;
@@ -22,10 +22,6 @@ import 'package:zephyr/debug/show_color.dart' as _i25;
 import 'package:zephyr/page/about/view/about_page.dart' as _i1;
 import 'package:zephyr/page/bookshelf/view/bookshelf_page.dart' as _i3;
 import 'package:zephyr/page/change_log_page.dart' as _i4;
-import 'package:zephyr/page/comic_info/json/bika/comic_info/comic_info.dart'
-    as _i40;
-import 'package:zephyr/page/comic_info/json/bika/eps/eps.dart' as _i41;
-import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart' as _i44;
 import 'package:zephyr/page/comic_info/view/comic_info.dart' as _i5;
 import 'package:zephyr/page/comic_list/models/comic_list_scene.dart' as _i33;
 import 'package:zephyr/page/comic_list/view/comic_list_page.dart' as _i6;
@@ -42,14 +38,16 @@ import 'package:zephyr/page/download/view/download.dart' as _i10;
 import 'package:zephyr/page/home/view/home.dart' as _i14;
 import 'package:zephyr/page/image_crop.dart' as _i15;
 import 'package:zephyr/page/jm/jm_comments/view/jm_comments.dart' as _i17;
-import 'package:zephyr/page/jm/jm_download/view/view.dart' as _i18;
-import 'package:zephyr/page/login_page.dart' as _i20;
-import 'package:zephyr/page/navigation_bar.dart' as _i21;
-import 'package:zephyr/page/register/bika/register_page.dart' as _i22;
-import 'package:zephyr/page/register/jm/jm_register_page.dart' as _i19;
-import 'package:zephyr/page/search/cubit/search_cubit.dart' as _i45;
+import 'package:zephyr/page/login_page.dart' as _i19;
+import 'package:zephyr/page/navigation_bar.dart' as _i20;
+import 'package:zephyr/page/register/bika/register_page.dart' as _i21;
+import 'package:zephyr/page/register/jm/jm_register_page.dart' as _i18;
+import 'package:zephyr/page/search/cubit/search_cubit.dart' as _i42;
 import 'package:zephyr/page/search/view/search_page.dart' as _i23;
-import 'package:zephyr/page/search_result/search_result.dart' as _i46;
+import 'package:zephyr/page/search_aggregate/view/search_aggregate_result_page.dart'
+    as _i22;
+import 'package:zephyr/page/search_result/bloc/search_bloc.dart' as _i41;
+import 'package:zephyr/page/search_result/search_result.dart' as _i44;
 import 'package:zephyr/page/search_result/view/search_result_page.dart' as _i24;
 import 'package:zephyr/page/setting/bika/bika_setting.dart' as _i2;
 import 'package:zephyr/page/setting/global/global_setting.dart' as _i13;
@@ -204,10 +202,20 @@ class ComicListRoute extends _i30.PageRouteInfo<ComicListRouteArgs> {
     _i31.Key? key,
     String? title,
     _i33.ComicListScene? scene,
+    _i32.From? sceneSource,
+    String? sceneBundleFnPath,
+    String? sceneBundleFnPathFallback,
     List<_i30.PageRouteInfo>? children,
   }) : super(
          ComicListRoute.name,
-         args: ComicListRouteArgs(key: key, title: title, scene: scene),
+         args: ComicListRouteArgs(
+           key: key,
+           title: title,
+           scene: scene,
+           sceneSource: sceneSource,
+           sceneBundleFnPath: sceneBundleFnPath,
+           sceneBundleFnPathFallback: sceneBundleFnPathFallback,
+         ),
          initialChildren: children,
        );
 
@@ -223,13 +231,23 @@ class ComicListRoute extends _i30.PageRouteInfo<ComicListRouteArgs> {
         key: args.key,
         title: args.title,
         scene: args.scene,
+        sceneSource: args.sceneSource,
+        sceneBundleFnPath: args.sceneBundleFnPath,
+        sceneBundleFnPathFallback: args.sceneBundleFnPathFallback,
       );
     },
   );
 }
 
 class ComicListRouteArgs {
-  const ComicListRouteArgs({this.key, this.title, this.scene});
+  const ComicListRouteArgs({
+    this.key,
+    this.title,
+    this.scene,
+    this.sceneSource,
+    this.sceneBundleFnPath,
+    this.sceneBundleFnPathFallback,
+  });
 
   final _i31.Key? key;
 
@@ -237,20 +255,37 @@ class ComicListRouteArgs {
 
   final _i33.ComicListScene? scene;
 
+  final _i32.From? sceneSource;
+
+  final String? sceneBundleFnPath;
+
+  final String? sceneBundleFnPathFallback;
+
   @override
   String toString() {
-    return 'ComicListRouteArgs{key: $key, title: $title, scene: $scene}';
+    return 'ComicListRouteArgs{key: $key, title: $title, scene: $scene, sceneSource: $sceneSource, sceneBundleFnPath: $sceneBundleFnPath, sceneBundleFnPathFallback: $sceneBundleFnPathFallback}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! ComicListRouteArgs) return false;
-    return key == other.key && title == other.title && scene == other.scene;
+    return key == other.key &&
+        title == other.title &&
+        scene == other.scene &&
+        sceneSource == other.sceneSource &&
+        sceneBundleFnPath == other.sceneBundleFnPath &&
+        sceneBundleFnPathFallback == other.sceneBundleFnPathFallback;
   }
 
   @override
-  int get hashCode => key.hashCode ^ title.hashCode ^ scene.hashCode;
+  int get hashCode =>
+      key.hashCode ^
+      title.hashCode ^
+      scene.hashCode ^
+      sceneSource.hashCode ^
+      sceneBundleFnPath.hashCode ^
+      sceneBundleFnPathFallback.hashCode;
 }
 
 /// generated route for
@@ -505,18 +540,11 @@ class CommentsRouteArgs {
 class DownloadRoute extends _i30.PageRouteInfo<DownloadRouteArgs> {
   DownloadRoute({
     _i31.Key? key,
-    _i39.UnifiedComicDownloadInfo? downloadInfo,
-    _i40.Comic? comicInfo,
-    List<_i41.Doc>? epsInfo,
+    required _i39.UnifiedComicDownloadInfo downloadInfo,
     List<_i30.PageRouteInfo>? children,
   }) : super(
          DownloadRoute.name,
-         args: DownloadRouteArgs(
-           key: key,
-           downloadInfo: downloadInfo,
-           comicInfo: comicInfo,
-           epsInfo: epsInfo,
-         ),
+         args: DownloadRouteArgs(key: key, downloadInfo: downloadInfo),
          initialChildren: children,
        );
 
@@ -525,56 +553,33 @@ class DownloadRoute extends _i30.PageRouteInfo<DownloadRouteArgs> {
   static _i30.PageInfo page = _i30.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<DownloadRouteArgs>(
-        orElse: () => const DownloadRouteArgs(),
-      );
-      return _i10.DownloadPage(
-        key: args.key,
-        downloadInfo: args.downloadInfo,
-        comicInfo: args.comicInfo,
-        epsInfo: args.epsInfo,
-      );
+      final args = data.argsAs<DownloadRouteArgs>();
+      return _i10.DownloadPage(key: args.key, downloadInfo: args.downloadInfo);
     },
   );
 }
 
 class DownloadRouteArgs {
-  const DownloadRouteArgs({
-    this.key,
-    this.downloadInfo,
-    this.comicInfo,
-    this.epsInfo,
-  });
+  const DownloadRouteArgs({this.key, required this.downloadInfo});
 
   final _i31.Key? key;
 
-  final _i39.UnifiedComicDownloadInfo? downloadInfo;
-
-  final _i40.Comic? comicInfo;
-
-  final List<_i41.Doc>? epsInfo;
+  final _i39.UnifiedComicDownloadInfo downloadInfo;
 
   @override
   String toString() {
-    return 'DownloadRouteArgs{key: $key, downloadInfo: $downloadInfo, comicInfo: $comicInfo, epsInfo: $epsInfo}';
+    return 'DownloadRouteArgs{key: $key, downloadInfo: $downloadInfo}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! DownloadRouteArgs) return false;
-    return key == other.key &&
-        downloadInfo == other.downloadInfo &&
-        comicInfo == other.comicInfo &&
-        const _i42.ListEquality<_i41.Doc>().equals(epsInfo, other.epsInfo);
+    return key == other.key && downloadInfo == other.downloadInfo;
   }
 
   @override
-  int get hashCode =>
-      key.hashCode ^
-      downloadInfo.hashCode ^
-      comicInfo.hashCode ^
-      const _i42.ListEquality<_i41.Doc>().hash(epsInfo);
+  int get hashCode => key.hashCode ^ downloadInfo.hashCode;
 }
 
 /// generated route for
@@ -677,7 +682,7 @@ class HomeRoute extends _i30.PageRouteInfo<void> {
 class ImageCropRoute extends _i30.PageRouteInfo<ImageCropRouteArgs> {
   ImageCropRoute({
     _i31.Key? key,
-    required _i43.Uint8List imageData,
+    required _i40.Uint8List imageData,
     List<_i30.PageRouteInfo>? children,
   }) : super(
          ImageCropRoute.name,
@@ -701,7 +706,7 @@ class ImageCropRouteArgs {
 
   final _i31.Key? key;
 
-  final _i43.Uint8List imageData;
+  final _i40.Uint8List imageData;
 
   @override
   String toString() {
@@ -800,74 +805,7 @@ class JmCommentsRouteArgs {
 }
 
 /// generated route for
-/// [_i18.JmDownloadPage]
-class JmDownloadRoute extends _i30.PageRouteInfo<JmDownloadRouteArgs> {
-  JmDownloadRoute({
-    _i31.Key? key,
-    _i39.UnifiedComicDownloadInfo? downloadInfo,
-    _i44.JmComicInfoJson? jmComicInfoJson,
-    List<_i30.PageRouteInfo>? children,
-  }) : super(
-         JmDownloadRoute.name,
-         args: JmDownloadRouteArgs(
-           key: key,
-           downloadInfo: downloadInfo,
-           jmComicInfoJson: jmComicInfoJson,
-         ),
-         initialChildren: children,
-       );
-
-  static const String name = 'JmDownloadRoute';
-
-  static _i30.PageInfo page = _i30.PageInfo(
-    name,
-    builder: (data) {
-      final args = data.argsAs<JmDownloadRouteArgs>(
-        orElse: () => const JmDownloadRouteArgs(),
-      );
-      return _i18.JmDownloadPage(
-        key: args.key,
-        downloadInfo: args.downloadInfo,
-        jmComicInfoJson: args.jmComicInfoJson,
-      );
-    },
-  );
-}
-
-class JmDownloadRouteArgs {
-  const JmDownloadRouteArgs({
-    this.key,
-    this.downloadInfo,
-    this.jmComicInfoJson,
-  });
-
-  final _i31.Key? key;
-
-  final _i39.UnifiedComicDownloadInfo? downloadInfo;
-
-  final _i44.JmComicInfoJson? jmComicInfoJson;
-
-  @override
-  String toString() {
-    return 'JmDownloadRouteArgs{key: $key, downloadInfo: $downloadInfo, jmComicInfoJson: $jmComicInfoJson}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! JmDownloadRouteArgs) return false;
-    return key == other.key &&
-        downloadInfo == other.downloadInfo &&
-        jmComicInfoJson == other.jmComicInfoJson;
-  }
-
-  @override
-  int get hashCode =>
-      key.hashCode ^ downloadInfo.hashCode ^ jmComicInfoJson.hashCode;
-}
-
-/// generated route for
-/// [_i19.JmRegisterPage]
+/// [_i18.JmRegisterPage]
 class JmRegisterRoute extends _i30.PageRouteInfo<void> {
   const JmRegisterRoute({List<_i30.PageRouteInfo>? children})
     : super(JmRegisterRoute.name, initialChildren: children);
@@ -877,13 +815,13 @@ class JmRegisterRoute extends _i30.PageRouteInfo<void> {
   static _i30.PageInfo page = _i30.PageInfo(
     name,
     builder: (data) {
-      return const _i19.JmRegisterPage();
+      return const _i18.JmRegisterPage();
     },
   );
 }
 
 /// generated route for
-/// [_i20.LoginPage]
+/// [_i19.LoginPage]
 class LoginRoute extends _i30.PageRouteInfo<LoginRouteArgs> {
   LoginRoute({
     _i31.Key? key,
@@ -903,7 +841,7 @@ class LoginRoute extends _i30.PageRouteInfo<LoginRouteArgs> {
       final args = data.argsAs<LoginRouteArgs>(
         orElse: () => const LoginRouteArgs(),
       );
-      return _i20.LoginPage(key: args.key, from: args.from);
+      return _i19.LoginPage(key: args.key, from: args.from);
     },
   );
 }
@@ -932,7 +870,7 @@ class LoginRouteArgs {
 }
 
 /// generated route for
-/// [_i21.NavigationBar]
+/// [_i20.NavigationBar]
 class NavigationBar extends _i30.PageRouteInfo<void> {
   const NavigationBar({List<_i30.PageRouteInfo>? children})
     : super(NavigationBar.name, initialChildren: children);
@@ -942,13 +880,13 @@ class NavigationBar extends _i30.PageRouteInfo<void> {
   static _i30.PageInfo page = _i30.PageInfo(
     name,
     builder: (data) {
-      return const _i21.NavigationBar();
+      return const _i20.NavigationBar();
     },
   );
 }
 
 /// generated route for
-/// [_i22.RegisterPage]
+/// [_i21.RegisterPage]
 class RegisterRoute extends _i30.PageRouteInfo<void> {
   const RegisterRoute({List<_i30.PageRouteInfo>? children})
     : super(RegisterRoute.name, initialChildren: children);
@@ -958,9 +896,93 @@ class RegisterRoute extends _i30.PageRouteInfo<void> {
   static _i30.PageInfo page = _i30.PageInfo(
     name,
     builder: (data) {
-      return const _i22.RegisterPage();
+      return const _i21.RegisterPage();
     },
   );
+}
+
+/// generated route for
+/// [_i22.SearchAggregateResultPage]
+class SearchAggregateResultRoute
+    extends _i30.PageRouteInfo<SearchAggregateResultRouteArgs> {
+  SearchAggregateResultRoute({
+    _i31.Key? key,
+    required _i41.SearchEvent searchEvent,
+    _i42.SearchCubit? searchCubit,
+    Map<String, bool> selectedSources = const <String, bool>{
+      'jm': true,
+      'bika': true,
+    },
+    List<_i30.PageRouteInfo>? children,
+  }) : super(
+         SearchAggregateResultRoute.name,
+         args: SearchAggregateResultRouteArgs(
+           key: key,
+           searchEvent: searchEvent,
+           searchCubit: searchCubit,
+           selectedSources: selectedSources,
+         ),
+         initialChildren: children,
+       );
+
+  static const String name = 'SearchAggregateResultRoute';
+
+  static _i30.PageInfo page = _i30.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<SearchAggregateResultRouteArgs>();
+      return _i30.WrappedRoute(
+        child: _i22.SearchAggregateResultPage(
+          key: args.key,
+          searchEvent: args.searchEvent,
+          searchCubit: args.searchCubit,
+          selectedSources: args.selectedSources,
+        ),
+      );
+    },
+  );
+}
+
+class SearchAggregateResultRouteArgs {
+  const SearchAggregateResultRouteArgs({
+    this.key,
+    required this.searchEvent,
+    this.searchCubit,
+    this.selectedSources = const <String, bool>{'jm': true, 'bika': true},
+  });
+
+  final _i31.Key? key;
+
+  final _i41.SearchEvent searchEvent;
+
+  final _i42.SearchCubit? searchCubit;
+
+  final Map<String, bool> selectedSources;
+
+  @override
+  String toString() {
+    return 'SearchAggregateResultRouteArgs{key: $key, searchEvent: $searchEvent, searchCubit: $searchCubit, selectedSources: $selectedSources}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! SearchAggregateResultRouteArgs) return false;
+    return key == other.key &&
+        searchEvent == other.searchEvent &&
+        searchCubit == other.searchCubit &&
+        const _i43.MapEquality<String, bool>().equals(
+          selectedSources,
+          other.selectedSources,
+        );
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^
+      searchEvent.hashCode ^
+      searchCubit.hashCode ^
+      const _i43.MapEquality<String, bool>().hash(selectedSources);
 }
 
 /// generated route for
@@ -968,11 +990,16 @@ class RegisterRoute extends _i30.PageRouteInfo<void> {
 class SearchRoute extends _i30.PageRouteInfo<SearchRouteArgs> {
   SearchRoute({
     _i31.Key? key,
-    required _i45.SearchStates searchState,
+    required _i42.SearchStates searchState,
+    bool aggregateMode = true,
     List<_i30.PageRouteInfo>? children,
   }) : super(
          SearchRoute.name,
-         args: SearchRouteArgs(key: key, searchState: searchState),
+         args: SearchRouteArgs(
+           key: key,
+           searchState: searchState,
+           aggregateMode: aggregateMode,
+         ),
          initialChildren: children,
        );
 
@@ -982,32 +1009,45 @@ class SearchRoute extends _i30.PageRouteInfo<SearchRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<SearchRouteArgs>();
-      return _i23.SearchPage(key: args.key, searchState: args.searchState);
+      return _i23.SearchPage(
+        key: args.key,
+        searchState: args.searchState,
+        aggregateMode: args.aggregateMode,
+      );
     },
   );
 }
 
 class SearchRouteArgs {
-  const SearchRouteArgs({this.key, required this.searchState});
+  const SearchRouteArgs({
+    this.key,
+    required this.searchState,
+    this.aggregateMode = true,
+  });
 
   final _i31.Key? key;
 
-  final _i45.SearchStates searchState;
+  final _i42.SearchStates searchState;
+
+  final bool aggregateMode;
 
   @override
   String toString() {
-    return 'SearchRouteArgs{key: $key, searchState: $searchState}';
+    return 'SearchRouteArgs{key: $key, searchState: $searchState, aggregateMode: $aggregateMode}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! SearchRouteArgs) return false;
-    return key == other.key && searchState == other.searchState;
+    return key == other.key &&
+        searchState == other.searchState &&
+        aggregateMode == other.aggregateMode;
   }
 
   @override
-  int get hashCode => key.hashCode ^ searchState.hashCode;
+  int get hashCode =>
+      key.hashCode ^ searchState.hashCode ^ aggregateMode.hashCode;
 }
 
 /// generated route for
@@ -1015,8 +1055,8 @@ class SearchRouteArgs {
 class SearchResultRoute extends _i30.PageRouteInfo<SearchResultRouteArgs> {
   SearchResultRoute({
     _i31.Key? key,
-    required _i46.SearchEvent searchEvent,
-    _i45.SearchCubit? searchCubit,
+    required _i44.SearchEvent searchEvent,
+    _i42.SearchCubit? searchCubit,
     List<_i30.PageRouteInfo>? children,
   }) : super(
          SearchResultRoute.name,
@@ -1054,9 +1094,9 @@ class SearchResultRouteArgs {
 
   final _i31.Key? key;
 
-  final _i46.SearchEvent searchEvent;
+  final _i44.SearchEvent searchEvent;
 
-  final _i45.SearchCubit? searchCubit;
+  final _i42.SearchCubit? searchCubit;
 
   @override
   String toString() {
@@ -1182,10 +1222,10 @@ class WebViewRouteArgs {
     if (identical(this, other)) return true;
     if (other is! WebViewRouteArgs) return false;
     return key == other.key &&
-        const _i42.ListEquality<String>().equals(info, other.info);
+        const _i43.ListEquality<String>().equals(info, other.info);
   }
 
   @override
   int get hashCode =>
-      key.hashCode ^ const _i42.ListEquality<String>().hash(info);
+      key.hashCode ^ const _i43.ListEquality<String>().hash(info);
 }

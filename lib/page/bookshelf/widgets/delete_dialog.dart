@@ -1,12 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart'; // 1. 导入 Bloc
-import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../main.dart';
-import '../../../object_box/objectbox.g.dart';
 
 enum DeleteType { download, history }
 
@@ -43,49 +40,20 @@ Widget deletingDialog(BuildContext context, Function refresh, DeleteType type) {
                         '/data/data/com.zephyr.breeze/files/downloads',
                       );
                     } else {
-                      final comicChoice = context
-                          .read<GlobalSettingCubit>()
-                          .state
-                          .comicChoice;
+                      var allHistory = objectbox.unifiedHistoryBox.getAll();
 
-                      if (comicChoice == 1) {
-                        var allHistory = objectbox.unifiedHistoryBox
-                            .query(UnifiedComicHistory_.source.equals('bika'))
-                            .build()
-                            .find();
-
-                        for (var history in allHistory) {
-                          history.deleted = true;
-                          history.updatedAt = DateTime.now().toUtc();
-                          history.lastReadAt = history.updatedAt;
-                        }
-
-                        objectbox.unifiedHistoryBox.putMany(allHistory);
-                      } else if (comicChoice == 2) {
-                        var allHistory = objectbox.unifiedHistoryBox
-                            .query(UnifiedComicHistory_.source.equals('jm'))
-                            .build()
-                            .find();
-
-                        for (var history in allHistory) {
-                          history.deleted = true;
-                          history.updatedAt = DateTime.now().toUtc();
-                          history.lastReadAt = history.updatedAt;
-                        }
-
-                        objectbox.unifiedHistoryBox.putMany(allHistory);
+                      for (var history in allHistory) {
+                        history.deleted = true;
+                        history.updatedAt = DateTime.now().toUtc();
+                        history.lastReadAt = history.updatedAt;
                       }
+
+                      objectbox.unifiedHistoryBox.putMany(allHistory);
                     }
 
                     // 刷新页面
                     refresh();
                     showSuccessToast(deletedText);
-
-                    if (type == DeleteType.download) {
-                      eventBus.fire(DownloadEvent(EventType.showInfo, false));
-                    } else {
-                      eventBus.fire(HistoryEvent(EventType.showInfo, false));
-                    }
 
                     // 关闭对话框
                     dialogContext.pop(); // 使用 dialogContext

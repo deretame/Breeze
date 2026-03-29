@@ -7,7 +7,7 @@ Future<UnifiedPluginEnvelope> getPluginSettingsBundle(From from) async {
     from: from,
     fnPath: 'getSettingsBundle',
     core: const <String, dynamic>{},
-    extern: const <String, dynamic>{'source': 'settings'},
+    extern: const <String, dynamic>{},
   );
   return UnifiedPluginEnvelope.fromMap(response);
 }

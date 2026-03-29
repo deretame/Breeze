@@ -11,7 +11,8 @@ import 'dart:convert';
 import '../../../main.dart'; // 引用 objectbox
 import '../../../object_box/model.dart';
 import '../../../object_box/objectbox.g.dart';
-import '../../../page/comic_info/json/normal/normal_comic_all_info.dart' as normal;
+import '../../../page/comic_info/json/normal/normal_comic_all_info.dart'
+    as normal;
 import '../../../page/comic_info/models/to_normal_info.dart';
 import '../../../type/enum.dart';
 
@@ -128,8 +129,9 @@ class ReaderHistoryManager {
       return (comicInfo as PluginComicDetailSource).normalInfo.comicInfo;
     }
     if (comicInfo is UnifiedComicDownload) {
-      final detail = jsonDecode((comicInfo as UnifiedComicDownload).detailJson)
-          as Map<String, dynamic>;
+      final detail =
+          jsonDecode((comicInfo as UnifiedComicDownload).detailJson)
+              as Map<String, dynamic>;
       return normal.NormalComicAllInfo.fromJson(detail).comicInfo;
     }
     if (from == From.bika) {
@@ -152,7 +154,8 @@ class ReaderHistoryManager {
         .build()
         .findFirst();
 
-    final entity = existing ??
+    final entity =
+        existing ??
         UnifiedComicHistory(
           uniqueKey: key,
           source: from.name,
@@ -194,12 +197,23 @@ class ReaderHistoryManager {
   }
 
   Map<String, dynamic> _normalizeFlexMap(dynamic value) {
-    return Map<String, dynamic>.from(jsonDecode(jsonEncode(value)) as Map);
+    final encoded = jsonEncode(value);
+    final decoded = jsonDecode(encoded);
+    if (decoded is Map) {
+      return Map<String, dynamic>.from(decoded);
+    }
+    return <String, dynamic>{};
   }
 
   List<Map<String, dynamic>> _normalizeFlexList(List<dynamic> value) {
-    return (jsonDecode(jsonEncode(value)) as List)
-        .map((e) => Map<String, dynamic>.from(e as Map))
-        .toList();
+    final encoded = jsonEncode(value);
+    final decoded = jsonDecode(encoded);
+    if (decoded is List) {
+      return decoded
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
+    }
+    return <Map<String, dynamic>>[];
   }
 }

@@ -8,33 +8,46 @@ import 'search_scheme_renderer.dart';
 @RoutePage()
 class SearchPage extends StatelessWidget {
   final SearchStates searchState;
+  final bool aggregateMode;
 
-  const SearchPage({super.key, required this.searchState});
+  const SearchPage({
+    super.key,
+    required this.searchState,
+    this.aggregateMode = true,
+  });
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [BlocProvider(create: (_) => SearchCubit(searchState))],
-      child: _SearchPageContent(searchState: searchState),
+      child: _SearchPageContent(
+        searchState: searchState,
+        aggregateMode: aggregateMode,
+      ),
     );
   }
 }
 
 class _SearchPageContent extends StatefulWidget {
   final SearchStates searchState;
+  final bool aggregateMode;
 
-  const _SearchPageContent({required this.searchState});
+  const _SearchPageContent({
+    required this.searchState,
+    required this.aggregateMode,
+  });
 
   @override
   State<_SearchPageContent> createState() => _SearchPageState();
 }
 
 class _SearchPageState extends State<_SearchPageContent> {
-  final SearchSchemeRenderer _renderer = SearchSchemeRenderer();
+  late final SearchSchemeRenderer _renderer;
 
   @override
   void initState() {
     super.initState();
+    _renderer = SearchSchemeRenderer(aggregateMode: widget.aggregateMode);
   }
 
   @override
@@ -48,9 +61,7 @@ class _SearchPageState extends State<_SearchPageContent> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: SafeArea(
-        child: _renderer.build(),
-      ),
+      body: SafeArea(child: _renderer.build()),
     );
   }
 }

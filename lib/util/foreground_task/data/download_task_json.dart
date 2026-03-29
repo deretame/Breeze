@@ -33,9 +33,7 @@ abstract class DownloadTaskJson with _$DownloadTaskJson {
 
 @freezed
 abstract class BikaInfo with _$BikaInfo {
-  const factory BikaInfo({
-    required String proxy,
-  }) = _BikaInfo;
+  const factory BikaInfo({required String proxy}) = _BikaInfo;
 
   factory BikaInfo.fromJson(Map<String, dynamic> json) =>
       _$BikaInfoFromJson(json);

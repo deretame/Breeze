@@ -71,7 +71,6 @@ class CoverWidget extends StatelessWidget {
                 );
               case PictureLoadStatus.success:
                 return RepaintBoundary(
-                  // 优化1：强制 GPU 缓存，阻断滑动重绘
                   child: Container(
                     width: width,
                     height: height,
@@ -82,7 +81,6 @@ class CoverWidget extends StatelessWidget {
                       ),
                       image: DecorationImage(
                         fit: BoxFit.cover,
-                        // 优化2 & 3：使用 ResizeImage 限制显存，BoxDecoration 绘制圆角
                         image: ResizeImage(
                           FileImage(File(state.imagePath!)),
                           width: decodeWidth < 1 ? 1 : decodeWidth,

@@ -325,7 +325,11 @@ class ComicSimplifyEntry extends StatelessWidget {
   Future<void> _deleteHistory() async {
     if (info.from == From.bika) {
       final temp = objectbox.unifiedHistoryBox
-          .query(UnifiedComicHistory_.uniqueKey.equals('${info.from.name}:${info.id}'))
+          .query(
+            UnifiedComicHistory_.uniqueKey.equals(
+              '${info.from.name}:${info.id}',
+            ),
+          )
           .build()
           .findFirst();
 
@@ -337,7 +341,11 @@ class ComicSimplifyEntry extends StatelessWidget {
       }
     } else if (info.from == From.jm) {
       final temp = objectbox.unifiedHistoryBox
-          .query(UnifiedComicHistory_.uniqueKey.equals('${info.from.name}:${info.id}'))
+          .query(
+            UnifiedComicHistory_.uniqueKey.equals(
+              '${info.from.name}:${info.id}',
+            ),
+          )
           .build()
           .findFirst();
 
@@ -353,7 +361,11 @@ class ComicSimplifyEntry extends StatelessWidget {
   Future<void> _deleteDownload() async {
     if (info.from == From.bika) {
       final temp = objectbox.unifiedDownloadBox
-          .query(UnifiedComicDownload_.uniqueKey.equals('${info.from.name}:${info.id}'))
+          .query(
+            UnifiedComicDownload_.uniqueKey.equals(
+              '${info.from.name}:${info.id}',
+            ),
+          )
           .build()
           .findFirst();
 
@@ -363,7 +375,11 @@ class ComicSimplifyEntry extends StatelessWidget {
       }
     } else if (info.from == From.jm) {
       final temp = objectbox.unifiedDownloadBox
-          .query(UnifiedComicDownload_.uniqueKey.equals('${info.from.name}:${info.id}'))
+          .query(
+            UnifiedComicDownload_.uniqueKey.equals(
+              '${info.from.name}:${info.id}',
+            ),
+          )
           .build()
           .findFirst();
 
@@ -378,7 +394,11 @@ class ComicSimplifyEntry extends StatelessWidget {
     if (info.from == From.bika) {
     } else if (info.from == From.jm) {
       final temp = objectbox.unifiedFavoriteBox
-          .query(UnifiedComicFavorite_.uniqueKey.equals('${info.from.name}:${info.id}'))
+          .query(
+            UnifiedComicFavorite_.uniqueKey.equals(
+              '${info.from.name}:${info.id}',
+            ),
+          )
           .build()
           .findFirst();
 

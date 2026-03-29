@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/bika/http_request.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/download/qjs_download_runtime.dart';

@@ -24,7 +24,8 @@ class PluginSettingSchemeSection extends StatefulWidget {
       _PluginSettingSchemeSectionState();
 }
 
-class _PluginSettingSchemeSectionState extends State<PluginSettingSchemeSection> {
+class _PluginSettingSchemeSectionState
+    extends State<PluginSettingSchemeSection> {
   late Future<UnifiedPluginEnvelope> _future;
 
   @override
@@ -38,7 +39,7 @@ class _PluginSettingSchemeSectionState extends State<PluginSettingSchemeSection>
       from: widget.from,
       fnPath: 'getSettingsBundle',
       core: const <String, dynamic>{},
-      extern: const <String, dynamic>{'source': 'settings'},
+      extern: const <String, dynamic>{},
     );
     return UnifiedPluginEnvelope.fromMap(response);
   }
@@ -63,19 +64,21 @@ class _PluginSettingSchemeSectionState extends State<PluginSettingSchemeSection>
         }
 
         final envelope = snapshot.data!;
-        final sections = asList(envelope.scheme['sections'])
-            .map((item) => asMap(item))
-            .toList();
+        final sections = asList(
+          envelope.scheme['sections'],
+        ).map((item) => asMap(item)).toList();
         final values = asMap(envelope.data['values']);
         final widgets = <Widget>[];
 
         for (final section in sections) {
           final title = section['title']?.toString() ?? '';
           if (title.isNotEmpty) {
-            widgets.add(Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-              child: Text(title, style: const TextStyle(fontSize: 13)),
-            ));
+            widgets.add(
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                child: Text(title, style: const TextStyle(fontSize: 13)),
+              ),
+            );
           }
           final fields = asList(section['fields']).map((item) => asMap(item));
           for (final field in fields) {
@@ -95,14 +98,22 @@ class _PluginSettingSchemeSectionState extends State<PluginSettingSchemeSection>
     final value = values[key];
 
     if (kind == 'select') {
-      final options = asList(field['options']).map((e) => e.toString()).toList();
-      final current = value?.toString() ?? (options.isNotEmpty ? options.first : '');
+      final options = asList(
+        field['options'],
+      ).map((e) => e.toString()).toList();
+      final current =
+          value?.toString() ?? (options.isNotEmpty ? options.first : '');
       return ListTile(
         title: Text(label),
         trailing: DropdownButton<String>(
-          value: options.contains(current) ? current : (options.isEmpty ? null : options.first),
+          value: options.contains(current)
+              ? current
+              : (options.isEmpty ? null : options.first),
           items: options
-              .map((option) => DropdownMenuItem(value: option, child: Text(option)))
+              .map(
+                (option) =>
+                    DropdownMenuItem(value: option, child: Text(option)),
+              )
               .toList(),
           onChanged: (next) async {
             if (next == null) return;
@@ -152,10 +163,7 @@ class _PluginSettingSchemeSectionState extends State<PluginSettingSchemeSection>
 }
 
 class PluginAdvancedActionSection extends StatefulWidget {
-  const PluginAdvancedActionSection({
-    super.key,
-    required this.from,
-  });
+  const PluginAdvancedActionSection({super.key, required this.from});
 
   final From from;
 
@@ -164,7 +172,8 @@ class PluginAdvancedActionSection extends StatefulWidget {
       _PluginAdvancedActionSectionState();
 }
 
-class _PluginAdvancedActionSectionState extends State<PluginAdvancedActionSection> {
+class _PluginAdvancedActionSectionState
+    extends State<PluginAdvancedActionSection> {
   late Future<UnifiedPluginEnvelope> _future;
 
   @override
@@ -178,7 +187,7 @@ class _PluginAdvancedActionSectionState extends State<PluginAdvancedActionSectio
       from: widget.from,
       fnPath: 'getCapabilitiesBundle',
       core: const <String, dynamic>{},
-      extern: const <String, dynamic>{'source': 'advanced'},
+      extern: const <String, dynamic>{},
     );
     return UnifiedPluginEnvelope.fromMap(response);
   }
@@ -195,9 +204,9 @@ class _PluginAdvancedActionSectionState extends State<PluginAdvancedActionSectio
           return const SizedBox.shrink();
         }
 
-        final actions = asList(snapshot.data!.scheme['actions'])
-            .map((item) => asMap(item))
-            .toList();
+        final actions = asList(
+          snapshot.data!.scheme['actions'],
+        ).map((item) => asMap(item)).toList();
         if (actions.isEmpty) {
           return const SizedBox.shrink();
         }
@@ -222,10 +231,7 @@ class _PluginAdvancedActionSectionState extends State<PluginAdvancedActionSectio
                     from: widget.from,
                     fnPath: fnPath,
                     core: const <String, dynamic>{},
-                    extern: {
-                      'source': 'advanced-action',
-                      'actionKey': action['key']?.toString() ?? '',
-                    },
+                    extern: const <String, dynamic>{},
                   );
 
                   if (!dialogContext.mounted) return;

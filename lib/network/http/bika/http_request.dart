@@ -8,10 +8,9 @@ import 'package:zephyr/main.dart';
 import 'http_request_build_rust.dart' as rust;
 
 Future<String> get bikaJsUrl async {
-  // final prefs = await SharedPreferences.getInstance();
-  // return prefs.getString('debug_bika_url') ??
-  //     'http://localhost:7878/bika-comic.bundle.cjs';
-  return 'http://localhost:7878/bika-comic.bundle.cjs';
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString('debug_bika_url') ??
+      'http://localhost:7878/bika-comic.bundle.cjs';
 }
 
 Future<Map<String, dynamic>> bikaRequest(
@@ -105,66 +104,6 @@ Future<Map<String, dynamic>> getRankingList({
   }
 
   return bikaRequest(url, 'GET', cache: true);
-}
-
-Future<Map<String, dynamic>> search({
-  String url = '',
-  String from = '',
-  String keyword = '',
-  String sort = 'dd',
-  List<String> categories = const [],
-  int pageCount = 1,
-}) async {
-  final Map<String, dynamic> jsonMap = {"sort": sort};
-
-  if (keyword.isNotEmpty) {
-    jsonMap["keyword"] = keyword;
-  }
-
-  if (categories.isNotEmpty) {
-    jsonMap["categories"] = categories;
-  }
-
-  late Map<String, dynamic> data;
-
-  if (url.isNotEmpty) {
-    // 用来判断是不是根据作者来搜索
-    if (url.contains('comics?ca=')) {
-      var temp = url.split("&s")[0];
-      url = "$temp&s=$sort&page=$pageCount";
-
-      data = await bikaRequest(url, 'GET');
-    } else if (url == 'https://picaapi.picacomic.com/comics/random') {
-      data = await bikaRequest(url, 'GET');
-    } else if (url.contains("%E5%A4%A7%E5%AE%B6%E9%83%BD%E5%9C%A8%E7%9C%8B")) {
-      url =
-          'https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E5%AE%B6%E9%83%BD%E5%9C%A8%E7%9C%8B&s=$sort';
-      data = await bikaRequest(url, 'GET');
-    } else if (url ==
-        'https://picaapi.picacomic.com/comics?page=1&c=%E5%A4%A7%E6%BF%95%E6%8E%A8%E8%96%A6&s=$sort') {
-      data = await bikaRequest(url, 'GET');
-    } else if (url.contains('%E9%82%A3%E5%B9%B4%E4%BB%8A%E5%A4%A9')) {
-      data = await bikaRequest(
-        'https://picaapi.picacomic.com/comics?page=$pageCount&c=%E9%82%A3%E5%B9%B4%E4%BB%8A%E5%A4%A9&s=$sort',
-        'GET',
-      );
-    } else if (url.contains('%E5%AE%98%E6%96%B9%E9%83%BD%E5%9C%A8%E7%9C%8B')) {
-      data = await bikaRequest(
-        'https://picaapi.picacomic.com/comics?page=$pageCount&c=%E5%AE%98%E6%96%B9%E9%83%BD%E5%9C%A8%E7%9C%8B&s=$sort',
-        'GET',
-      );
-    } else if (url == 'https://picaapi.picacomic.com/comics/random') {
-      data = await bikaRequest(url, 'GET');
-    }
-  } else {
-    data = await bikaRequest(
-      'https://picaapi.picacomic.com/comics/advanced-search?page=$pageCount',
-      'POST',
-      body: json.encode(jsonMap),
-    );
-  }
-
-  return data;
 }
 
 Future<Map<String, dynamic>> getSearchKeywords() async {

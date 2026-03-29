@@ -1,21 +1,13 @@
-import 'dart:convert';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:zephyr/network/http/jm/http_request.dart' as jm;
-import 'package:zephyr/page/bookshelf/json/jm_cloud_favorite/jm_cloud_favorite_json.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
+import 'package:zephyr/page/comic_info/models/collect_comic.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/page/download/view/download.dart';
-import 'package:zephyr/page/jm/jm_download/view/view.dart';
 import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-import 'package:zephyr/util/json/json_dispose.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
-import '../../../main.dart';
-import '../../../network/http/bika/http_request.dart';
 import '../../../util/dialog.dart';
 import '../../../widgets/toast.dart';
 
@@ -45,8 +37,21 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
   @override
   void initState() {
     super.initState();
-    isCollected = normalInfo.isFavourite;
+    _syncLocalCollectStatus();
     isLiked = normalInfo.isLiked;
+  }
+
+  Future<void> _syncLocalCollectStatus() async {
+    final localCollected = await isLocalComicCollected(
+      from: widget.from,
+      comicId: comicInfoView.id,
+    );
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      isCollected = localCollected;
+    });
   }
 
   @override
@@ -59,10 +64,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         highlighted: isLiked,
         accentColor: Colors.red,
         enabled: normalInfo.allowLike,
-        onTap: () {
-          if (!normalInfo.allowLike) return;
-          toggleAction('like');
-        },
+        onTap: _toggleCloudLike,
       ),
       _OperationItemData(
         icon: Icons.mode_comment_outlined,
@@ -74,14 +76,11 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
       _OperationItemData(
         icon: isCollected ? Icons.star : Icons.star_border,
         label: '收藏',
-        value: isCollected ? '已收藏' : '收藏',
+        value: isCollected ? '本地已收藏' : '收藏到本地',
         highlighted: isCollected,
         accentColor: const Color(0xFFE6A700),
-        enabled: normalInfo.allowFavorite,
-        onTap: () {
-          if (!normalInfo.allowFavorite) return;
-          toggleAction('favorite');
-        },
+        enabled: true,
+        onTap: _toggleLocalFavorite,
       ),
       _OperationItemData(
         icon: Icons.cloud_download_outlined,
@@ -99,7 +98,9 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         color: context.theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+          color: context.theme.colorScheme.outlineVariant.withValues(
+            alpha: 0.4,
+          ),
         ),
       ),
       child: LayoutBuilder(
@@ -121,10 +122,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
                   .map(
                     (item) => SizedBox(
                       width: itemWidth,
-                      child: _OperationCard(
-                        item: item,
-                        compact: isDesktop,
-                      ),
+                      child: _OperationCard(item: item, compact: isDesktop),
                     ),
                   )
                   .toList(),
@@ -161,345 +159,61 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
   void _openDownload() {
     if (!normalInfo.allowDownload) return;
     final info = resolveUnifiedDownloadInfo(comicInfo, widget.from);
-    if (widget.from == From.bika) {
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => DownloadPage(downloadInfo: info),
-        ),
-      );
-    } else {
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => JmDownloadPage(downloadInfo: info),
-        ),
-      );
-    }
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => DownloadPage(downloadInfo: info)),
+    );
   }
 
-  void toggleAction(String actionType) async {
-    if (widget.from == From.jm) {
-      await jmToggleAction(actionType);
-      return;
-    }
-
-    late Future<Map<String, dynamic>> result;
-    late bool isCurrentlyActive;
-    late String actionVerb;
-    late String successMessage;
-    late String failureMessage;
-
-    switch (actionType) {
-      case 'like':
-        result = likeComic(comicInfoView.id);
-        isCurrentlyActive = isLiked;
-        actionVerb = '点赞';
-        break;
-      case 'favorite':
-        result = favouriteComic(comicInfoView.id);
-        isCurrentlyActive = isCollected;
-        actionVerb = '收藏';
-        break;
-      default:
-        throw ArgumentError('Invalid action type: $actionType');
-    }
-
-    showInfoToast("请求中...");
-
+  Future<void> _toggleLocalFavorite() async {
     try {
-      final data = await result;
-
-      if (data["error"] != null) {
-        logger.d('$actionVerb失败: $data');
-        if (!mounted) return;
-        failureMessage = actionType == 'like'
-            ? "请求失败: ${data["error"]}"
-            : (isCurrentlyActive ? '取消$actionVerb失败' : '$actionVerb失败');
-        showErrorToast(failureMessage, duration: const Duration(seconds: 5));
-      } else {
-        logger.d('$actionVerb成功: $data');
-        if (mounted) {
-          setState(() {
-            if (actionType == 'like') {
-              isLiked = !isLiked;
-            } else {
-              isCollected = !isCollected;
-            }
-          });
-        }
-
-        if (!mounted) return;
-        successMessage = isCurrentlyActive
-            ? '取消$actionVerb成功'
-            : '$actionVerb成功';
-        showSuccessToast(successMessage);
-      }
-    } catch (error) {
-      if (!mounted) return;
-      showErrorToast(
-        "请求过程中发生错误: ${error.toString()}",
-        duration: const Duration(seconds: 5),
+      final next = await toggleLocalComicFavorite(
+        from: widget.from,
+        normalInfo: normalInfo,
       );
-    }
-  }
-
-  Future<void> jmToggleAction(String actionType) async {
-    late Future<Map<String, dynamic>> result;
-    late bool isCurrentlyActive;
-    late String actionVerb;
-    late String successMessage;
-    late String failureMessage;
-
-    switch (actionType) {
-      case 'like':
-        if (isLiked) {
-          showInfoToast("无法取消点赞");
-          return;
-        }
-        result = jm.like(comicInfoView.id.toString());
-        isCurrentlyActive = isLiked;
-        actionVerb = '点赞';
-        break;
-      case 'favorite':
-        final text = isCollected ? '取消收藏' : '收藏';
-        showInfoToast("$text中...");
-        await handleCollectLogic(
-          context,
-          comicInfoView.id.toString(),
-          isCollected,
-        );
+      if (!mounted) {
         return;
-      default:
-        throw ArgumentError('Invalid action type: $actionType');
-    }
-
-    // 因为收藏只是往数据库里面写一下，速度很快，所以不需要显示请求中
-    if (actionType == 'like') {
-      showInfoToast("请求中...");
-    }
-
-    try {
-      final data = await result;
-
-      if (data["error"] != null) {
-        logger.d('$actionVerb失败: $data');
-        if (!mounted) return;
-        failureMessage = actionType == 'like'
-            ? "请求失败: ${data["error"]}"
-            : (isCurrentlyActive ? '取消$actionVerb失败' : '$actionVerb失败');
-        showErrorToast(failureMessage, duration: const Duration(seconds: 5));
-      } else {
-        logger.d('$actionVerb成功: $data');
-        if (mounted) {
-          setState(() {
-            if (actionType == 'like') {
-              isLiked = !isLiked;
-            } else {
-              isCollected = !isCollected;
-            }
-          });
-        }
-
-        if (!mounted) return;
-        successMessage = isCurrentlyActive
-            ? '取消$actionVerb成功'
-            : '$actionVerb成功';
-        showSuccessToast(successMessage);
       }
+      setState(() {
+        isCollected = next;
+      });
     } catch (error) {
-      if (!mounted) return;
-      logger.e(error);
+      if (!mounted) {
+        return;
+      }
       showErrorToast(
-        "请求过程中发生错误: ${error.toString()}",
+        '本地收藏失败: ${error.toString()}',
         duration: const Duration(seconds: 5),
       );
     }
   }
 
-  Future<String> jmCollect(String comicId) async {
-    final data = await jm.favorite(comicId);
-    if (mounted) {
-      setState(() => isCollected = !isCollected);
-    }
-    return data['msg'] ?? "操作成功";
-  }
-
-  Future<List<FolderList>> getFolderList() async {
-    return await jm
-        .getFavoriteList(page: 1, id: '', order: 'mr')
-        .let(replaceNestedNullList)
-        .let(jsonEncode)
-        .let(jmCloudFavoriteJsonFromJson)
-        .let((data) => data.folderList);
-  }
-
-  Future<String> addFolder(
-    String comicId,
-    FolderList folderList,
-  ) async {
-    final data = await jm.favoriteMoveFolder(
-      comicId,
-      folderList.fid.toString(),
-      folderList.name,
-    );
-    return data['msg'];
-  }
-
-  Future<void> handleCollectLogic(
-    BuildContext context,
-    String comicId,
-    bool currentStatus,
-  ) async {
-    // 1. 如果已经收藏，执行“取消收藏”
-    if (currentStatus) {
-      final msg = await _safeExecute(
-        context,
-        () => jmCollect(comicId),
-        title: "取消收藏",
-      );
-      if (msg != null) {
-        showSuccessToast("取消收藏成功");
-      }
+  Future<void> _toggleCloudLike() async {
+    if (!normalInfo.allowLike) {
       return;
     }
-
-    // 2. 如果未收藏，并行执行：收藏接口 + 获取收藏夹列表
-    String? collectMsg;
-    List<FolderList>? folders;
-
-    final collectFuture =
-        _safeExecute(context, () => jmCollect(comicId), title: "收藏操作").then((
-          val,
-        ) {
-          collectMsg = val;
-          if (val != null) showSuccessToast("收藏成功"); // 基础收藏成功提示
-        });
-
-    final folderFuture = _safeExecute(
-      context,
-      () => getFolderList(),
-      title: "获取收藏夹列表",
-      canSkip: true,
-    ).then((val) => folders = val);
-
-    await Future.wait([collectFuture, folderFuture]);
-
-    // 3. 收藏成功后，如果有自定义收藏夹，弹出选择框
-    if (collectMsg != null && folders != null && folders!.isNotEmpty) {
-      if (!context.mounted) return;
-      final selectedFolder = await showFolderSelectionDialog(context, folders!);
-
-      if (selectedFolder != null && context.mounted) {
-        // 4. 执行移动到特定收藏夹
-        final moveMsg = await _safeExecute(
-          context,
-          () => addFolder(comicId, selectedFolder),
-          title: "移动到收藏夹",
-        );
-
-        if (moveMsg != null) {
-          showSuccessToast("已添加到收藏夹: ${selectedFolder.name}");
-        }
+    try {
+      showInfoToast(isLiked ? '取消点赞中...' : '点赞中...');
+      final next = await toggleCloudComicLike(
+        from: widget.from,
+        comicId: comicInfoView.id,
+        currentStatus: isLiked,
+      );
+      if (!mounted) {
+        return;
       }
-    }
-  }
-
-  /// 通用的重试执行器
-  Future<T?> _safeExecute<T>(
-    BuildContext context,
-    Future<T> Function() task, {
-    required String title,
-    bool canSkip = false,
-  }) async {
-    while (true) {
-      try {
-        return await task();
-      } catch (e) {
-        logger.e(e);
-        if (!context.mounted) return null;
-
-        final retry = await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text('$title失败'),
-            content: Text('错误信息: $e\n是否重试？'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('取消'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('重试'),
-              ),
-            ],
-          ),
-        );
-
-        if (retry != true) {
-          return null;
-        }
+      setState(() {
+        isLiked = next;
+      });
+      showSuccessToast(next ? '点赞成功' : '已取消点赞');
+    } catch (error) {
+      if (!mounted) {
+        return;
       }
+      showErrorToast(
+        '点赞失败: ${error.toString()}',
+        duration: const Duration(seconds: 5),
+      );
     }
-  }
-
-  Future<FolderList?> showFolderSelectionDialog(
-    BuildContext context,
-    List<FolderList> folders,
-  ) {
-    FolderList? tempSelected;
-
-    return showDialog<FolderList>(
-      context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('添加到自定义收藏夹'),
-              // 限制高度，防止列表太长超出屏幕
-              content: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.5,
-                ),
-                child: SizedBox(
-                  width: double.maxFinite,
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: folders.length,
-                    itemBuilder: (ctx, index) {
-                      final folder = folders[index];
-                      return RadioListTile<String>(
-                        title: Text(folder.name),
-                        subtitle: Text("ID: ${folder.fid}"),
-                        value: folder.fid,
-                        // ignore: deprecated_member_use
-                        groupValue: tempSelected?.fid,
-                        // ignore: deprecated_member_use
-                        onChanged: (val) {
-                          setState(() => tempSelected = folder);
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('跳过/不添加'),
-                ),
-                ElevatedButton(
-                  // 只有选中了才能点击确定
-                  onPressed: tempSelected == null
-                      ? null
-                      : () => Navigator.pop(dialogContext, tempSelected),
-                  child: const Text('确定添加'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
   }
 }
 
@@ -553,7 +267,9 @@ class _OperationCard extends StatelessWidget {
             border: Border.all(
               color: item.highlighted
                   ? accent.withValues(alpha: 0.28)
-                  : context.theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
+                  : context.theme.colorScheme.outlineVariant.withValues(
+                      alpha: 0.35,
+                    ),
             ),
           ),
           padding: EdgeInsets.symmetric(
@@ -580,7 +296,9 @@ class _OperationCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: context.theme.textTheme.bodySmall?.copyWith(
-                  color: foreground.withValues(alpha: item.enabled ? 0.82 : 0.6),
+                  color: foreground.withValues(
+                    alpha: item.enabled ? 0.82 : 0.6,
+                  ),
                   fontSize: compact ? 11.5 : null,
                 ),
               ),

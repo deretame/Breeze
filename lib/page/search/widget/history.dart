@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
@@ -121,9 +123,8 @@ class _HistoryWidgetState extends State<HistoryWidget> {
           runSpacing: 12.0,
           alignment: WrapAlignment.start,
           children: sortedHistory.map((historyItem) {
-            final splitItem = historyItem.split("&&");
-            final keyword = splitItem.first;
-            final url = splitItem.last;
+            final parsed = _parseHistoryItem(historyItem);
+            final keyword = parsed.keyword;
 
             return GestureDetector(
               onLongPress: () => _deleteSingle(historyItem),
@@ -144,7 +145,8 @@ class _HistoryWidgetState extends State<HistoryWidget> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0),
-                onPressed: () => onSearch(context, keyword, url: url),
+                onPressed: () =>
+                    onSearch(context, keyword, pluginExtern: parsed.extern),
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             );
@@ -172,4 +174,41 @@ class _HistoryWidgetState extends State<HistoryWidget> {
           current.copyWith(searchHistory: defaults.searchHistory),
     );
   }
+
+  _HistoryItem _parseHistoryItem(String raw) {
+    final parts = raw.split('&&');
+    if (parts.length < 2) {
+      return _HistoryItem(keyword: raw, extern: const {});
+    }
+    final keyword = parts.first;
+    final payloadText = parts.sublist(1).join('&&').trim();
+    if (payloadText.startsWith('{') && payloadText.endsWith('}')) {
+      try {
+        final payload = jsonDecode(payloadText);
+        if (payload is Map) {
+          final map = Map<String, dynamic>.from(payload);
+          final extern = Map<String, dynamic>.from(
+            (map['extern'] as Map?) ?? const {},
+          );
+          if (map['mode'] != null && map['creatorId'] != null) {
+            extern['mode'] = map['mode'];
+            extern['creatorId'] = map['creatorId'];
+          }
+          final url = map['url']?.toString() ?? '';
+          if (url.isNotEmpty && !extern.containsKey('url')) {
+            extern['url'] = url;
+          }
+          return _HistoryItem(keyword: keyword, extern: extern);
+        }
+      } catch (_) {}
+    }
+    return _HistoryItem(keyword: keyword, extern: {'url': payloadText});
+  }
+}
+
+class _HistoryItem {
+  const _HistoryItem({required this.keyword, required this.extern});
+
+  final String keyword;
+  final Map<String, dynamic> extern;
 }

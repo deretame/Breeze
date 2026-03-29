@@ -6,12 +6,14 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as p;
+import 'package:zephyr/model/unified_comic_list_item.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/get_path.dart';
+import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/sundry.dart';
 
 import '../../../type/enum.dart';
@@ -19,7 +21,7 @@ import '../../../util/router/router.dart';
 import '../../../widgets/error_view.dart';
 import '../../../widgets/toast.dart';
 
-enum MenuOption { export, collect, reverseOrder }
+enum MenuOption { export, cloudCollect, reverseOrder }
 
 @RoutePage()
 class ComicInfoPage extends StatelessWidget {
@@ -77,6 +79,8 @@ class _ComicInfoState extends State<_ComicInfo>
   // 添加一个状态变量记录是否倒序，用于更新菜单文字
   bool _isReversed = false;
   String _title = "";
+  NormalComicAllInfo? _currentInfo;
+  bool _isCloudCollected = false;
 
   @override
   void initState() {
@@ -113,8 +117,8 @@ class _ComicInfoState extends State<_ComicInfo>
                 case MenuOption.export:
                   _handleExport();
                   break;
-                case MenuOption.collect:
-                  collectJmComicToLocal(comicInfoDyn);
+                case MenuOption.cloudCollect:
+                  _toggleCloudCollectFromMenu();
                   break;
                 case MenuOption.reverseOrder:
                   _toggleOrder();
@@ -152,20 +156,21 @@ class _ComicInfoState extends State<_ComicInfo>
                 );
               }
 
-              if (widget.from == From.jm) {
-                menuItems.add(
-                  const PopupMenuItem<MenuOption>(
-                    value: MenuOption.collect,
-                    child: Row(
-                      children: [
-                        Icon(Icons.star, color: Colors.black54),
-                        SizedBox(width: 10),
-                        Text('收藏到本地'),
-                      ],
-                    ),
+              menuItems.add(
+                PopupMenuItem<MenuOption>(
+                  value: MenuOption.cloudCollect,
+                  child: Row(
+                    children: [
+                      Icon(
+                        _isCloudCollected ? Icons.star : Icons.star_border,
+                        color: Colors.black54,
+                      ),
+                      SizedBox(width: 10),
+                      Text(_isCloudCollected ? '取消云端收藏' : '收藏到云端'),
+                    ],
                   ),
-                );
-              }
+                ),
+              );
 
               return menuItems;
             },
@@ -208,6 +213,8 @@ class _ComicInfoState extends State<_ComicInfo>
               );
             case GetComicInfoStatus.success:
               comicInfoDyn = state.comicInfo;
+              _currentInfo = state.allInfo;
+              _isCloudCollected = state.allInfo?.isFavourite ?? false;
               return _infoView(state.allInfo!);
           }
         },
@@ -272,7 +279,8 @@ class _ComicInfoState extends State<_ComicInfo>
                 ComicParticularsWidget(
                   comicInfo: comicInfo,
                   from: widget.from,
-                  onContinueRead: context.watch<StringSelectCubit>().state.isNotEmpty
+                  onContinueRead:
+                      context.watch<StringSelectCubit>().state.isNotEmpty
                       ? () => goToComicRead(
                           context,
                           widget.comicId,
@@ -290,45 +298,46 @@ class _ComicInfoState extends State<_ComicInfo>
                     comicInfo: comicInfoDyn,
                   ),
                 ),
-                if (comicInfo.metadata.isNotEmpty || comicInfo.description.trim().isNotEmpty)
-                  ...[
-                    const SizedBox(height: 12),
-                    _SectionCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          for (final meta in comicInfo.metadata) ...[
-                            AllChipWidget(
-                              comicId: comicInfo.id,
-                              metadata: meta,
-                              from: widget.from,
-                            ),
-                            const SizedBox(height: 6),
-                          ],
-                          if (comicInfo.description.trim().isNotEmpty)
-                            _DescriptionCard(description: comicInfo.description.let(t2s)),
-                        ],
-                      ),
-                    ),
-                  ],
-                if (comicInfo.creator.name.trim().isNotEmpty ||
-                    comicInfo.creator.avatar.url.trim().isNotEmpty)
-                  ...[
-                    const SizedBox(height: 12),
-                    _SectionCard(
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 460),
-                          child: CreatorInfoWidget(
-                            creator: comicInfo.creator,
+                if (comicInfo.metadata.isNotEmpty ||
+                    comicInfo.description.trim().isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  _SectionCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (final meta in comicInfo.metadata) ...[
+                          AllChipWidget(
+                            comicId: comicInfo.id,
+                            metadata: meta,
                             from: widget.from,
-                            imageKey: comicInfo.id,
                           ),
+                          const SizedBox(height: 6),
+                        ],
+                        if (comicInfo.description.trim().isNotEmpty)
+                          _DescriptionCard(
+                            description: comicInfo.description.let(t2s),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+                if (comicInfo.creator.name.trim().isNotEmpty ||
+                    comicInfo.creator.avatar.url.trim().isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  _SectionCard(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 460),
+                        child: CreatorInfoWidget(
+                          creator: comicInfo.creator,
+                          from: widget.from,
+                          imageKey: comicInfo.id,
                         ),
                       ),
                     ),
-                  ],
+                  ),
+                ],
                 const SizedBox(height: 12),
                 _SectionCard(
                   title: '章节目录',
@@ -348,10 +357,17 @@ class _ComicInfoState extends State<_ComicInfo>
                 ),
                 if (normalComicAllInfo.recommend.isNotEmpty) ...[
                   const SizedBox(height: 12),
-                  _SectionCard(
-                    title: '相关推荐',
-                    child: RecommendWidget(comicList: normalComicAllInfo.recommend),
-                  ),
+                  if (_resolveRecommendItems(
+                    normalComicAllInfo.recommend,
+                  ).isNotEmpty)
+                    _SectionCard(
+                      title: '相关推荐',
+                      child: RecommendWidget(
+                        comicList: _resolveRecommendItems(
+                          normalComicAllInfo.recommend,
+                        ),
+                      ),
+                    ),
                 ],
               ],
             ),
@@ -465,14 +481,45 @@ class _ComicInfoState extends State<_ComicInfo>
 
   // 实现章节倒序逻辑
   void _toggleOrder() => setState(() => _isReversed = !_isReversed);
+
+  List<UnifiedComicListItem> _resolveRecommendItems(List<Recommend> recommend) {
+    return recommend
+        .map((item) => asJsonMap(item.extension)['unifiedItem'])
+        .map(asJsonMap)
+        .where((json) => json.isNotEmpty)
+        .map(UnifiedComicListItem.fromJson)
+        .toList();
+  }
+
+  Future<void> _toggleCloudCollectFromMenu() async {
+    final info = _currentInfo;
+    if (info == null) {
+      showErrorToast('当前详情尚未加载完成');
+      return;
+    }
+    try {
+      showInfoToast(_isCloudCollected ? '取消云端收藏中...' : '收藏到云端中...');
+      final next = await toggleCloudComicFavorite(
+        context: context,
+        from: widget.from,
+        comicId: info.comicInfo.id,
+        currentStatus: _isCloudCollected,
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isCloudCollected = next;
+      });
+      showSuccessToast(next ? '云端收藏成功' : '已取消云端收藏');
+    } catch (e) {
+      showErrorToast('云端收藏失败: $e');
+    }
+  }
 }
 
 class _SectionCard extends StatelessWidget {
-  const _SectionCard({
-    required this.child,
-    this.title,
-    this.trailing,
-  });
+  const _SectionCard({required this.child, this.title, this.trailing});
 
   final String? title;
   final Widget child;
@@ -487,12 +534,14 @@ class _SectionCard extends StatelessWidget {
         color: context.theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+          color: context.theme.colorScheme.outlineVariant.withValues(
+            alpha: 0.4,
+          ),
         ),
       ),
       child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           if (title != null) ...[
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -505,17 +554,16 @@ class _SectionCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (trailing != null) ...[
-                  const SizedBox(width: 10),
-                  trailing!,
-                ],
+                if (trailing != null) ...[const SizedBox(width: 10), trailing!],
               ],
             ),
             const SizedBox(height: 12),
             Container(
               width: 42,
               height: 1,
-              color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.65),
+              color: context.theme.colorScheme.outlineVariant.withValues(
+                alpha: 0.65,
+              ),
             ),
             const SizedBox(height: 12),
           ],
@@ -550,13 +598,19 @@ class _EpisodeHeaderBadge extends StatelessWidget {
             color: context.theme.colorScheme.surfaceContainerLow,
             borderRadius: BorderRadius.circular(999),
             border: Border.all(
-              color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+              color: context.theme.colorScheme.outlineVariant.withValues(
+                alpha: 0.3,
+              ),
             ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 18, color: context.textColor.withValues(alpha: 0.75)),
+              Icon(
+                icon,
+                size: 18,
+                color: context.textColor.withValues(alpha: 0.75),
+              ),
               const SizedBox(width: 6),
               Text(
                 label,
@@ -599,7 +653,9 @@ class _DescriptionCardState extends State<_DescriptionCard> {
         color: context.theme.colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.28),
+          color: context.theme.colorScheme.outlineVariant.withValues(
+            alpha: 0.28,
+          ),
         ),
       ),
       child: Column(
@@ -658,13 +714,12 @@ class _EpisodeListSection extends StatelessWidget {
           color: context.theme.colorScheme.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.28),
+            color: context.theme.colorScheme.outlineVariant.withValues(
+              alpha: 0.28,
+            ),
           ),
         ),
-        child: Text(
-          '暂无章节信息',
-          style: context.theme.textTheme.bodyMedium,
-        ),
+        child: Text('暂无章节信息', style: context.theme.textTheme.bodyMedium),
       );
     }
 
@@ -742,10 +797,7 @@ class _EpisodeListSection extends StatelessWidget {
 }
 
 class _ReadActionButton extends StatelessWidget {
-  const _ReadActionButton({
-    required this.hasHistory,
-    required this.onPressed,
-  });
+  const _ReadActionButton({required this.hasHistory, required this.onPressed});
 
   final bool hasHistory;
   final VoidCallback onPressed;

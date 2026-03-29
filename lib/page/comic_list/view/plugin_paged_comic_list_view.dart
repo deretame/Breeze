@@ -297,6 +297,21 @@ class _PluginPagedComicListBodyState extends State<_PluginPagedComicListBody>
               ),
             ),
           ),
+        if (!state.hasReachedMax &&
+            state.status == PluginPagedComicListStatus.success)
+          SliverToBoxAdapter(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 14, top: 6),
+                child: TextButton.icon(
+                  onPressed: () =>
+                      context.read<PluginPagedComicListCubit>().loadMore(),
+                  icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                  label: const Text('点击加载更多'),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }

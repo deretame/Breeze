@@ -14,7 +14,6 @@ _SearchEvent _$SearchEventFromJson(Map<String, dynamic> json) => _SearchEvent(
       ? const SearchStates()
       : SearchStates.fromJson(json['searchStates'] as Map<String, dynamic>),
   page: (json['page'] as num?)?.toInt() ?? 1,
-  url: json['url'] as String? ?? '',
 );
 
 Map<String, dynamic> _$SearchEventToJson(_SearchEvent instance) =>
@@ -22,7 +21,6 @@ Map<String, dynamic> _$SearchEventToJson(_SearchEvent instance) =>
       'status': _$SearchStatusEnumMap[instance.status]!,
       'searchStates': instance.searchStates,
       'page': instance.page,
-      'url': instance.url,
     };
 
 const _$SearchStatusEnumMap = {

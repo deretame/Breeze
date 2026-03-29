@@ -229,7 +229,11 @@ class ComicEntryWidget extends StatelessWidget {
     }
 
     final temp = objectbox.unifiedFavoriteBox
-        .query(UnifiedComicFavorite_.uniqueKey.equals('${comic.from.name}:${comic.id}'))
+        .query(
+          UnifiedComicFavorite_.uniqueKey.equals(
+            '${comic.from.name}:${comic.id}',
+          ),
+        )
         .build()
         .findFirst();
 
@@ -241,9 +245,13 @@ class ComicEntryWidget extends StatelessWidget {
   Future<void> _deleteHistory() async {
     if (comic.from == From.bika) {
       final temp = objectbox.unifiedHistoryBox
-          .query(UnifiedComicHistory_.uniqueKey.equals('${comic.from.name}:${comic.id}'))
-        .build()
-        .findFirst();
+          .query(
+            UnifiedComicHistory_.uniqueKey.equals(
+              '${comic.from.name}:${comic.id}',
+            ),
+          )
+          .build()
+          .findFirst();
 
       if (temp != null) {
         temp.deleted = true;
@@ -256,9 +264,13 @@ class ComicEntryWidget extends StatelessWidget {
 
     if (comic.from == From.jm) {
       final temp = objectbox.unifiedHistoryBox
-          .query(UnifiedComicHistory_.uniqueKey.equals('${comic.from.name}:${comic.id}'))
-        .build()
-        .findFirst();
+          .query(
+            UnifiedComicHistory_.uniqueKey.equals(
+              '${comic.from.name}:${comic.id}',
+            ),
+          )
+          .build()
+          .findFirst();
 
       if (temp != null) {
         temp.deleted = true;
@@ -272,18 +284,26 @@ class ComicEntryWidget extends StatelessWidget {
   Future<void> _deleteDownload() async {
     if (comic.from == From.bika) {
       final temp = objectbox.unifiedDownloadBox
-          .query(UnifiedComicDownload_.uniqueKey.equals('${comic.from.name}:${comic.id}'))
-        .build()
-        .findFirst();
+          .query(
+            UnifiedComicDownload_.uniqueKey.equals(
+              '${comic.from.name}:${comic.id}',
+            ),
+          )
+          .build()
+          .findFirst();
 
       if (temp != null) {
         objectbox.unifiedDownloadBox.remove(temp.id);
       }
     } else if (comic.from == From.jm) {
       final temp = objectbox.unifiedDownloadBox
-          .query(UnifiedComicDownload_.uniqueKey.equals('${comic.from.name}:${comic.id}'))
-        .build()
-        .findFirst();
+          .query(
+            UnifiedComicDownload_.uniqueKey.equals(
+              '${comic.from.name}:${comic.id}',
+            ),
+          )
+          .build()
+          .findFirst();
 
       if (temp != null) {
         objectbox.unifiedDownloadBox.remove(temp.id);

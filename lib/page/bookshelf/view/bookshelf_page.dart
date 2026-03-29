@@ -1,18 +1,8 @@
-import 'dart:async';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
-import 'package:zephyr/config/jm/jm_setting.dart';
-import 'package:zephyr/cubit/int_select.dart';
-import 'package:zephyr/cubit/list_select.dart';
-import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnter;
-import 'package:zephyr/page/bookshelf/widgets/jm/jm_tab_bar.dart';
-
-import '../../../main.dart';
-import '../json/jm_cloud_favorite/jm_cloud_favorite_json.dart' show FolderList;
 
 @RoutePage()
 class BookshelfPage extends StatelessWidget {
@@ -22,20 +12,11 @@ class BookshelfPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<IntSelectCubit>(create: (context) => IntSelectCubit()),
-        BlocProvider<StringSelectCubit>(
-          create: (context) => StringSelectCubit(),
+        BlocProvider<LocalFavoriteCubit>(
+          create: (context) => LocalFavoriteCubit(),
         ),
-        BlocProvider<ListSelectCubit<FolderList>>(
-          create: (context) => ListSelectCubit<FolderList>(),
-        ),
-        BlocProvider<FavoriteCubit>(create: (context) => FavoriteCubit()),
         BlocProvider<HistoryCubit>(create: (context) => HistoryCubit()),
         BlocProvider<DownloadCubit>(create: (context) => DownloadCubit()),
-        BlocProvider<JmFavoriteCubit>(create: (context) => JmFavoriteCubit()),
-        BlocProvider<JmCloudFavoriteCubit>(
-          create: (context) => JmCloudFavoriteCubit(),
-        ),
       ],
       child: const _BookshelfPageContent(),
     );
@@ -49,190 +30,265 @@ class _BookshelfPageContent extends StatefulWidget {
   State<_BookshelfPageContent> createState() => _BookshelfPageContentState();
 }
 
-class _BookshelfPageContentState extends State<_BookshelfPageContent>
-    with TickerProviderStateMixin {
-  late final TabController _tabController;
+class _BookshelfPageContentState extends State<_BookshelfPageContent> {
   int _currentIndex = 0;
-  late final StreamSubscription _eventSubscription;
+  final TextEditingController _searchController = TextEditingController();
+  final List<int> _refreshSignals = [0, 0, 0];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this)
-      ..addListener(() {
-        if (_tabController.index != _currentIndex) {
-          _currentIndex = _tabController.index;
-
-          final indexCubit = context.read<IntSelectCubit>();
-          final comicChoice = context
-              .read<GlobalSettingCubit>()
-              .state
-              .comicChoice; // 直接读取状态
-
-          indexCubit.setDate(_currentIndex);
-
-          if (_currentIndex == 0) {
-            if (comicChoice == 1) {
-              eventBus.fire(
-                FavoriteEvent(EventType.showInfo, SortType.nullValue, 0),
-              );
-            } else {
-              eventBus.fire(JmFavoriteEvent(EventType.showInfo));
-            }
-          } else if (_currentIndex == 1) {
-            eventBus.fire(HistoryEvent(EventType.showInfo, false));
-          } else if (_currentIndex == 2) {
-            eventBus.fire(DownloadEvent(EventType.showInfo, false));
-          }
-        }
-      });
-
-    _eventSubscription = eventBus.on<BookShelfEvent>().listen((event) {
-      refreshBookShelf(event.switchComicChoice);
-    });
+    _searchController.text = _currentSearchCubit().state.keyword;
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
-    _eventSubscription.cancel();
+    _searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final settings = objectbox.userSettingBox.get(1)!.globalSetting;
     return Scaffold(
-      endDrawer: SideDrawer(),
-      appBar: _appBar(),
-      body: _body(),
-      floatingActionButton: settings.disableBika
-          ? null
-          : _floatingActionButton(),
-    );
-  }
-
-  PreferredSizeWidget _appBar() => AppBar(
-    toolbarHeight: 0,
-    bottom: PreferredSize(
-      preferredSize: const Size.fromHeight(kMinInteractiveDimension),
-      child: Row(
-        children: [
-          Expanded(
-            child: TabBar(
-              controller: _tabController,
-              tabs: const [
-                Tab(text: "收藏"),
-                Tab(text: "历史"),
-                Tab(text: "下载"),
-              ],
+      appBar: AppBar(
+        titleSpacing: 8,
+        title: Row(
+          children: [
+            _buildTabSelector(),
+            const SizedBox(width: 8),
+            Expanded(child: _buildSearchField()),
+            IconButton(
+              tooltip: '筛选',
+              icon: const Icon(Icons.tune),
+              onPressed: _openFilter,
             ),
+          ],
+        ),
+      ),
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          LocalShelfPage(
+            mode: ShelfPageMode.favorite,
+            refreshSignal: _refreshSignals[0],
           ),
-          BlocBuilder<StringSelectCubit, String>(
-            builder: (context, selectedString) {
-              return SizedBox(
-                width: 120,
-                child: Center(child: Text(selectedString)),
-              );
-            },
+          LocalShelfPage(
+            mode: ShelfPageMode.history,
+            refreshSignal: _refreshSignals[1],
           ),
-          Builder(
-            builder: (BuildContext context) {
-              return IconButton(
-                icon: const Icon(Icons.sort),
-                onPressed: () => Scaffold.of(context).openEndDrawer(), // 打开右侧抽屉
-              );
-            },
+          LocalShelfPage(
+            mode: ShelfPageMode.download,
+            refreshSignal: _refreshSignals[2],
           ),
         ],
       ),
-    ),
-  );
+    );
+  }
 
-  Widget _body() => Column(
-    children: [
-      Expanded(
-        child: TabBarView(
-          controller: _tabController,
-          children: [const FavoritesTabPage(), HistoryPage(), DownloadPage()],
+  Widget _buildTabSelector() {
+    const labels = ['收藏', '历史', '下载'];
+    return DropdownButtonHideUnderline(
+      child: DropdownButton<int>(
+        value: _currentIndex,
+        borderRadius: BorderRadius.circular(12),
+        onChanged: (value) {
+          if (value == null) return;
+          _onTabChanged(value);
+        },
+        items: List.generate(
+          labels.length,
+          (index) =>
+              DropdownMenuItem<int>(value: index, child: Text(labels[index])),
         ),
       ),
-    ],
-  );
+    );
+  }
 
-  Widget _floatingActionButton() => FloatingActionButton(
-    child: const Icon(Icons.compare_arrows),
-    onPressed: () => eventBus.fire(BookShelfEvent(switchComicChoice: true)),
-  );
+  Widget _buildSearchField() {
+    return TextField(
+      controller: _searchController,
+      textInputAction: TextInputAction.search,
+      decoration: InputDecoration(
+        hintText: '搜索当前列表',
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 10,
+        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        prefixIcon: const Icon(Icons.search, size: 20),
+        suffixIcon: _searchController.text.isEmpty
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.close, size: 18),
+                onPressed: () {
+                  _searchController.clear();
+                  _currentSearchCubit().setKeyword('');
+                  _triggerRefresh(goTop: true);
+                  setState(() {});
+                },
+              ),
+      ),
+      onChanged: (_) => setState(() {}),
+      onSubmitted: (value) {
+        _currentSearchCubit().setKeyword(value.trim());
+        _triggerRefresh(goTop: true);
+      },
+    );
+  }
 
-  void refreshBookShelf(bool switchComicChoice) {
-    final globalSettingCubit = context.read<GlobalSettingCubit>();
-    final jmSettingCubit = context.read<JmSettingCubit>();
-
-    if (switchComicChoice) {
-      final int newChoice = globalSettingCubit.state.comicChoice == 1 ? 2 : 1;
-
-      globalSettingCubit.updateState(
-        (current) => current.copyWith(comicChoice: newChoice),
+  void _onTabChanged(int index) {
+    if (index == _currentIndex) return;
+    setState(() {
+      _currentIndex = index;
+      _searchController.text = _currentSearchCubit().state.keyword;
+      _searchController.selection = TextSelection.fromPosition(
+        TextPosition(offset: _searchController.text.length),
       );
-    }
-    jmSettingCubit.updateFavoriteSet(0);
+    });
+  }
 
-    context.read<FavoriteCubit>().resetSearch();
-    context.read<HistoryCubit>().resetSearch();
-    context.read<DownloadCubit>().resetSearch();
-    context.read<JmFavoriteCubit>().resetSearch();
-    context.read<JmCloudFavoriteCubit>().resetSearch();
-
-    eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 0));
-    eventBus.fire(JmFavoriteEvent(EventType.refresh));
-    eventBus.fire(HistoryEvent(EventType.refresh, true));
-    eventBus.fire(DownloadEvent(EventType.refresh, true));
-    eventBus.fire(JmCloudFavoriteEvent(EventType.refresh));
-
-    _tabController.animateTo(0, duration: const Duration(milliseconds: 0));
-
-    if (context.read<GlobalSettingCubit>().state.comicChoice == 2) {
-      eventBus.fire(JmFavoriteEvent(EventType.showInfo));
+  SearchStatusCubit _currentSearchCubit() {
+    switch (_currentIndex) {
+      case 0:
+        return context.read<LocalFavoriteCubit>();
+      case 1:
+        return context.read<HistoryCubit>();
+      case 2:
+        return context.read<DownloadCubit>();
+      default:
+        return context.read<LocalFavoriteCubit>();
     }
   }
-}
 
-class FavoritesTabPage extends StatefulWidget {
-  const FavoritesTabPage({super.key});
+  void _triggerRefresh({bool goTop = false}) {
+    setState(() {
+      _refreshSignals[_currentIndex] = _refreshSignals[_currentIndex] + 1;
+    });
+  }
 
-  @override
-  State<FavoritesTabPage> createState() => _FavoritesTabPageState();
-}
+  Future<void> _openFilter() async {
+    final searchCubit = _currentSearchCubit();
+    final current = searchCubit.state;
+    final disableBika = context.read<GlobalSettingCubit>().state.disableBika;
+    final availableSources = [if (!disableBika) 'bika', 'jm'];
 
-class _FavoritesTabPageState extends State<FavoritesTabPage>
-    with AutomaticKeepAliveClientMixin {
-  @override
-  bool get wantKeepAlive => true;
+    var selectedSort = current.sort == 'da' ? 'da' : 'dd';
+    var selectedSources = current.sources
+        .where(availableSources.contains)
+        .toSet();
+    if (selectedSources.isEmpty) {
+      selectedSources = availableSources.toSet();
+    }
 
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-
-    final comicChoice = context.select(
-      (GlobalSettingCubit cubit) => cubit.state.comicChoice,
+    final applied = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('筛选'),
+            content: SizedBox(
+              width: 420,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('排序', style: Theme.of(context).textTheme.titleSmall),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      ChoiceChip(
+                        label: const Text('时间(晚→早)'),
+                        selected: selectedSort == 'dd',
+                        onSelected: (_) => setState(() => selectedSort = 'dd'),
+                      ),
+                      ChoiceChip(
+                        label: const Text('时间(早→晚)'),
+                        selected: selectedSort == 'da',
+                        onSelected: (_) => setState(() => selectedSort = 'da'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Text(
+                        '漫画源',
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      const SizedBox(width: 8),
+                      TextButton(
+                        onPressed: () => setState(() {
+                          if (selectedSources.length ==
+                              availableSources.length) {
+                            selectedSources.clear();
+                          } else {
+                            selectedSources = availableSources.toSet();
+                          }
+                        }),
+                        child: Text(
+                          selectedSources.length == availableSources.length
+                              ? '取消全选'
+                              : '全选',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      if (!disableBika)
+                        FilterChip(
+                          showCheckmark: false,
+                          label: const Text('哔咔'),
+                          selected: selectedSources.contains('bika'),
+                          onSelected: (selected) => setState(() {
+                            if (selected) {
+                              selectedSources.add('bika');
+                            } else {
+                              selectedSources.remove('bika');
+                            }
+                          }),
+                        ),
+                      FilterChip(
+                        showCheckmark: false,
+                        label: const Text('禁漫'),
+                        selected: selectedSources.contains('jm'),
+                        onSelected: (selected) => setState(() {
+                          if (selected) {
+                            selectedSources.add('jm');
+                          } else {
+                            selectedSources.remove('jm');
+                          }
+                        }),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('取消'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('应用'),
+              ),
+            ],
+          );
+        },
+      ),
     );
 
-    var pageIndex = (comicChoice == 1) ? 0 : 1;
+    if (applied != true) return;
 
-    final globalState = context.read<GlobalSettingCubit>().state;
-
-    var widgets = <Widget>[];
-
-    if (!globalState.disableBika) {
-      widgets.add(FavoritePage());
-    } else {
-      pageIndex = 0;
-    }
-    widgets.add(JmTabBar());
-
-    return IndexedStack(index: pageIndex, children: widgets);
+    searchCubit.setSort(selectedSort);
+    searchCubit.setSources(selectedSources.toList());
+    _triggerRefresh(goTop: true);
   }
-
-  void refreshBookShelf() {}
 }

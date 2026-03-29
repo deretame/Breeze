@@ -29,8 +29,7 @@ class CreatorInfoWidget extends StatelessWidget {
     return CreatorLinkCard(
       creatorName: creator.name,
       avatarUrl: creator.avatar.url,
-      avatarPath:
-          avatarExtension['path']?.toString() ?? creator.avatar.name,
+      avatarPath: avatarExtension['path']?.toString() ?? creator.avatar.name,
       imageKey: imageKey,
       from: from,
       infoChildren: infoChildren,
@@ -46,12 +45,14 @@ class CreatorInfoWidget extends StatelessWidget {
               AutoRouter.of(context).push(
                 SearchResultRoute(
                   searchEvent: SearchEvent().copyWith(
-                    searchStates: SearchStates.initial(context).copyWith(
+                    searchStates: SearchStates.initial().copyWith(
                       from: From.bika,
                       searchKeyword: creator.name,
+                      pluginExtern: {
+                        'mode': 'creator',
+                        'creatorId': creator.id,
+                      },
                     ),
-                    url:
-                        'https://picaapi.picacomic.com/comics?ca=${creator.id}&s=ld&page=1',
                   ),
                 ),
               );

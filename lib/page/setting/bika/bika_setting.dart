@@ -8,7 +8,6 @@ import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
-import '../../bookshelf/models/events.dart';
 import '../common/setting_ui.dart';
 import '../common/plugin_scheme_widgets.dart';
 import 'widgets.dart';
@@ -110,7 +109,7 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
                       from: From.bika,
                       fnPath: 'clearPluginSession',
                       core: const <String, dynamic>{},
-                      extern: const <String, dynamic>{'source': 'logout'},
+                      extern: const <String, dynamic>{},
                     );
                     if (!mounted) return;
                     route.push(LoginRoute());
@@ -188,9 +187,6 @@ class _BikaSettingPageState extends State<BikaSettingPage> {
       value: state.brevity,
       onChanged: (bool value) {
         cubit.updateBrevity(value);
-        eventBus.fire(HistoryEvent(EventType.refresh, false));
-        eventBus.fire(DownloadEvent(EventType.refresh, false));
-        eventBus.fire(FavoriteEvent(EventType.refresh, SortType.dd, 1));
       },
     );
   }

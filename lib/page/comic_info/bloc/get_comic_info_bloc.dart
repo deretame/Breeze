@@ -10,7 +10,6 @@ import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
-import 'package:zephyr/page/comic_info/models/to_normal_info.dart';
 import 'package:zephyr/type/enum.dart';
 
 part 'get_comic_info_event.dart';
@@ -52,56 +51,15 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
             .build()
             .findFirst();
         if (comicInfo == null) {
-          if (event.from == From.bika) {
-            comicInfo = await getBikaComicAllInfo(event.comicId, event.type);
-            normalComicInfo = bika2NormalComicAllInfo(comicInfo);
-          } else {
-            comicInfo = await getJmComicAllInfo(event.comicId, event.type);
-            normalComicInfo = jm2NormalComicAllInfo(comicInfo);
-          }
+          final pluginResult = await getComicDetailByPlugin(
+            event.comicId,
+            event.from,
+          );
+          comicInfo = pluginResult.source;
+          normalComicInfo = pluginResult.normalInfo;
         } else {
-          normalComicInfo = normal.NormalComicAllInfo.fromJson(
-            jsonDecode((comicInfo as UnifiedComicDownload).detailJson)
-                as Map<String, dynamic>,
-          );
-          final localCover = Map<String, dynamic>.from(
-            jsonDecode(jsonEncode(normalComicInfo.comicInfo.cover.toJson()))
-                as Map<String, dynamic>,
-          );
-          final localCoverExtension = Map<String, dynamic>.from(
-            localCover['extension'] as Map? ?? const <String, dynamic>{},
-          );
-          final coverPath = localCoverExtension['path']?.toString() ??
-              normalComicInfo.comicInfo.cover.name;
-          if (coverPath.isNotEmpty) {
-            localCoverExtension['path'] = p.join(
-              comicInfo.storageRoot,
-              'cover',
-              coverPath,
-            );
-          }
-          localCover['extension'] = localCoverExtension;
-
-          final localCreator = Map<String, dynamic>.from(
-            jsonDecode(jsonEncode(normalComicInfo.comicInfo.creator.toJson()))
-                as Map<String, dynamic>,
-          );
-          localCreator['avatar'] = {
-            'id': '',
-            'url': '',
-            'name': '',
-            'extension': <String, dynamic>{},
-          };
-
-          final localComicInfo = Map<String, dynamic>.from(
-            jsonDecode(jsonEncode(normalComicInfo.comicInfo.toJson()))
-                as Map<String, dynamic>,
-          )
-            ..['cover'] = localCover
-            ..['creator'] = localCreator;
-
-          normalComicInfo = normalComicInfo.copyWith(
-            comicInfo: normal.ComicInfo.fromJson(localComicInfo),
+          normalComicInfo = _localizeDownloadDetail(
+            comicInfo as UnifiedComicDownload,
           );
         }
       } else {
@@ -129,5 +87,44 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
         ),
       );
     }
+  }
+
+  normal.NormalComicAllInfo _localizeDownloadDetail(
+    UnifiedComicDownload comicInfo,
+  ) {
+    var normalComicInfo = normal.NormalComicAllInfo.fromJson(
+      jsonDecode(comicInfo.detailJson) as Map<String, dynamic>,
+    );
+    final localCover = _deepCopyMap(normalComicInfo.comicInfo.cover.toJson());
+    final localCoverExtension = Map<String, dynamic>.from(
+      localCover['extension'] as Map? ?? const <String, dynamic>{},
+    );
+    final coverPath = normalComicInfo.comicInfo.cover.name;
+    if (coverPath.isNotEmpty) {
+      localCoverExtension['path'] = p.join(
+        comicInfo.storageRoot,
+        'cover',
+        coverPath,
+      );
+    }
+    localCover['extension'] = localCoverExtension;
+
+    final localCreator = _deepCopyMap(
+      normalComicInfo.comicInfo.creator.toJson(),
+    );
+
+    final localComicInfo = _deepCopyMap(normalComicInfo.comicInfo.toJson())
+      ..['cover'] = localCover
+      ..['creator'] = localCreator;
+
+    return normalComicInfo.copyWith(
+      comicInfo: normal.ComicInfo.fromJson(localComicInfo),
+    );
+  }
+
+  Map<String, dynamic> _deepCopyMap(Object value) {
+    final encoded = jsonEncode(value);
+    final decoded = jsonDecode(encoded) as Map;
+    return Map<String, dynamic>.from(decoded);
   }
 }

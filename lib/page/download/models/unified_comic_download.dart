@@ -1,8 +1,8 @@
 import 'dart:convert';
 
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/type/enum.dart';
 
 class UnifiedComicDownloadImage {
   const UnifiedComicDownloadImage({
@@ -128,7 +128,7 @@ class UnifiedComicDownloadInfo {
   final String title;
   final List<UnifiedComicDownloadChapter> chapters;
 
-  factory UnifiedComicDownloadInfo.fromPluginSource(
+  factory UnifiedComicDownloadInfo.fromString(
     PluginComicDetailSource source,
   ) {
     final chapters = resolveUnifiedComicChapters(source, source.from)
@@ -147,7 +147,7 @@ class UnifiedComicDownloadInfo {
 
     if (source.isJm && chapters.isEmpty) {
       return UnifiedComicDownloadInfo(
-        source: 'jm',
+        source: kJmPluginUuid,
         comicId: source.comicId,
         title: source.title,
         chapters: [
@@ -163,7 +163,7 @@ class UnifiedComicDownloadInfo {
     }
 
     return UnifiedComicDownloadInfo(
-      source: source.from.name,
+      source: sanitizePluginId(source.from),
       comicId: source.comicId,
       title: source.normalInfo.comicInfo.title,
       chapters: chapters,
@@ -173,10 +173,10 @@ class UnifiedComicDownloadInfo {
 
 UnifiedComicDownloadInfo resolveUnifiedDownloadInfo(
   dynamic comicInfo,
-  From from,
+  String from,
 ) {
   if (comicInfo is PluginComicDetailSource) {
-    return UnifiedComicDownloadInfo.fromPluginSource(comicInfo);
+    return UnifiedComicDownloadInfo.fromString(comicInfo);
   }
 
   if (comicInfo is UnifiedComicDownload) {

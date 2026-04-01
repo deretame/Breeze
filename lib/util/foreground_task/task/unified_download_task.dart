@@ -13,7 +13,7 @@ import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
-import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/download/download_cancel_signal.dart';
 import 'package:zephyr/util/download/download_progress_reporter.dart';
@@ -26,8 +26,9 @@ Future<void> unifiedDownloadTask(
   DownloadProgressReporter reporter,
   DownloadTaskJson task,
 ) async {
-  final from = task.from == 'jm' ? From.jm : From.bika;
-  final runtimeName = runtimeNameForSource(from.name);
+  final pluginId = sanitizePluginId(task.from);
+  final from = pluginId == kJmPluginUuid ? kJmPluginUuid : kBikaPluginUuid;
+  final runtimeName = runtimeNameForPluginId(pluginId);
   Timer? progressTimer;
   bool running = true;
 
@@ -53,7 +54,7 @@ Future<void> unifiedDownloadTask(
         currentTask == null ||
         !currentTask.isDownloading) {
       await cancelTrackedQjsTasks(
-        source: from.name,
+        pluginId: pluginId,
         taskGroupKey: task.comicId,
       );
       throw const DownloadTaskCancelledException();
@@ -61,21 +62,24 @@ Future<void> unifiedDownloadTask(
   }
 
   try {
-    await ensureQjsRuntimeReady(source: from.name);
+    await ensureQjsRuntimeReady(pluginId: pluginId);
     await ensureTaskRunning();
     await preparePluginDownloadRuntime(
       from: from,
+      pluginId: pluginId,
       runtimeName: runtimeName,
       taskGroupKey: task.comicId,
     );
 
     updateTaskStatus('获取漫画信息中...');
     reporter.updateMessage('获取漫画信息中...');
-    final detail = await getComicDetailByPlugin(task.comicId, from);
-
-    final downloadInfo = UnifiedComicDownloadInfo.fromPluginSource(
-      detail.source,
+    final detail = await getComicDetailByPlugin(
+      task.comicId,
+      from,
+      pluginId: pluginId,
     );
+
+    final downloadInfo = UnifiedComicDownloadInfo.fromString(detail.source);
     final selectedChapters = _resolveSelectedChapters(
       downloadInfo,
       task.selectedChapters,
@@ -116,6 +120,7 @@ Future<void> unifiedDownloadTask(
       chapterResponses.add(
         await _getChapterByPlugin(
           from: from,
+          pluginId: pluginId,
           comicId: task.comicId,
           chapterTaskId: chapter.taskChapterId,
           runtimeName: runtimeName,
@@ -152,9 +157,9 @@ Future<void> unifiedDownloadTask(
       qjsTaskGroupKey: task.comicId,
       ensureTaskRunning: ensureTaskRunning,
       reporter: reporter,
-      concurrency: from == From.jm ? 5 : 10,
+      concurrency: from == kJmPluginUuid ? 5 : 10,
       onError: (error, job) async {
-        if (from != From.jm || !error.toString().contains('404')) {
+        if (from != kJmPluginUuid || !error.toString().contains('404')) {
           throw error;
         }
         for (final response in chapterResponses) {
@@ -200,7 +205,8 @@ List<UnifiedComicDownloadChapter> _resolveSelectedChapters(
 }
 
 Future<UnifiedPluginChapterResponse> _getChapterByPlugin({
-  required From from,
+  required String from,
+  required String pluginId,
   required String comicId,
   required String chapterTaskId,
   required String runtimeName,
@@ -209,12 +215,13 @@ Future<UnifiedPluginChapterResponse> _getChapterByPlugin({
     comicId,
     chapterTaskId,
     from,
+    pluginId: pluginId,
     runtimeName: runtimeName,
   );
 }
 
 Future<void> _saveUnifiedDownload({
-  required From from,
+  required String from,
   required DownloadTaskJson task,
   required normal.NormalComicAllInfo normalInfo,
   required List<UnifiedComicDownloadChapter> selectedChapters,
@@ -274,7 +281,7 @@ Future<void> _saveUnifiedDownload({
           .toList(),
     },
   );
-  final key = '${from.name}:${task.comicId}';
+  final key = '$from:${task.comicId}';
   final coverMap = _normalizeStoredImageMap(
     _deepCopyMap(detail.comicInfo.cover.toJson()),
     fallbackId: task.comicId,
@@ -307,7 +314,7 @@ Future<void> _saveUnifiedDownload({
 
   final entity = UnifiedComicDownload(
     uniqueKey: key,
-    source: from.name,
+    source: from,
     comicId: task.comicId,
     title: detail.comicInfo.title,
     description: detail.comicInfo.description,
@@ -320,9 +327,9 @@ Future<void> _saveUnifiedDownload({
     totalComments: detail.totalComments,
     isFavourite: detail.isFavourite,
     isLiked: detail.isLiked,
-    allowComment: detail.allowComment,
+    allowComment: detail.allowComments,
     allowLike: detail.allowLike,
-    allowFavorite: detail.allowFavorite,
+    allowFavorite: detail.allowCollected,
     allowDownload: detail.allowDownload,
     chapters: chapters,
     detailJson: jsonEncode(
@@ -331,7 +338,7 @@ Future<void> _saveUnifiedDownload({
           .toJson(),
     ),
     storageRoot:
-        '${await getDownloadPath()}${Platform.pathSeparator}${from.name}${Platform.pathSeparator}original${Platform.pathSeparator}${task.comicId}',
+        '${await getDownloadPath()}${Platform.pathSeparator}$from${Platform.pathSeparator}original${Platform.pathSeparator}${task.comicId}',
     createdAt: now,
     updatedAt: now,
     downloadedAt: now,

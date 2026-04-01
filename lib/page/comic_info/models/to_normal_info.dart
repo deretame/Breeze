@@ -2,6 +2,7 @@ import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart' as jm;
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
 import 'package:zephyr/page/comic_info/models/all_info.dart' as bika;
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/type/pipe.dart';
 
 normal.NormalComicAllInfo bika2NormalComicAllInfo(bika.AllInfo allInfo) {
@@ -51,7 +52,7 @@ normal.NormalComicAllInfo bika2NormalComicAllInfo(bika.AllInfo allInfo) {
     recommend: allInfo.recommendJson
         .map(
           (e) => normal.Recommend(
-            source: 'bika',
+            source: kBikaPluginUuid,
             id: e.id,
             title: e.title,
             cover: _image(
@@ -71,9 +72,9 @@ normal.NormalComicAllInfo bika2NormalComicAllInfo(bika.AllInfo allInfo) {
     totalComments: allInfo.comicInfo.totalComments,
     isFavourite: allInfo.comicInfo.isFavourite,
     isLiked: allInfo.comicInfo.isLiked,
-    allowComment: allInfo.comicInfo.allowComment,
+    allowComments: allInfo.comicInfo.allowComment,
     allowLike: true,
-    allowFavorite: true,
+    allowCollected: true,
     allowDownload: true,
   );
 }
@@ -114,7 +115,7 @@ normal.NormalComicAllInfo jm2NormalComicAllInfo(jm.JmComicInfoJson allInfo) {
     recommend: allInfo.relatedList
         .map(
           (e) => normal.Recommend(
-            source: 'jm',
+            source: kJmPluginUuid,
             id: e.id,
             title: e.name,
             cover: _image(
@@ -131,9 +132,9 @@ normal.NormalComicAllInfo jm2NormalComicAllInfo(jm.JmComicInfoJson allInfo) {
     totalComments: allInfo.commentTotal.let(toInt),
     isFavourite: allInfo.isFavorite,
     isLiked: allInfo.liked,
-    allowComment: true,
+    allowComments: true,
     allowLike: true,
-    allowFavorite: true,
+    allowCollected: true,
     allowDownload: true,
   );
 }

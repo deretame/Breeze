@@ -1,4 +1,4 @@
-import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
 class ComicListRequestConfig {
@@ -58,7 +58,7 @@ class ComicListScene {
   });
 
   final String title;
-  final From from;
+  final String from;
   final ComicListBodyConfig body;
   final ComicListRequestConfig? filter;
 
@@ -69,11 +69,7 @@ class ComicListScene {
 
     return ComicListScene(
       title: map['title']?.toString() ?? '',
-      from: switch (source) {
-        'bika' => From.bika,
-        'jm' => From.jm,
-        _ => From.unknown,
-      },
+      from: sanitizePluginId(sanitizePluginId(source)),
       body: bodyMap.isNotEmpty
           ? ComicListBodyConfig.fromMap(bodyMap)
           : ComicListBodyConfig(

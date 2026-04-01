@@ -4,14 +4,15 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
-import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 Future<bool> isLocalComicCollected({
-  required From from,
+  required String from,
   required String comicId,
 }) async {
-  final key = '${from.name}:$comicId';
+  final pluginId = sanitizePluginId(from);
+  final key = '$pluginId:$comicId';
   final unified = objectbox.unifiedFavoriteBox
       .query(UnifiedComicFavorite_.uniqueKey.equals(key))
       .build()
@@ -20,12 +21,13 @@ Future<bool> isLocalComicCollected({
 }
 
 Future<bool> toggleLocalComicFavorite({
-  required From from,
+  required String from,
   required NormalComicAllInfo normalInfo,
   bool showToast = true,
 }) async {
   final comicInfo = normalInfo.comicInfo;
-  final key = '${from.name}:${comicInfo.id}';
+  final pluginId = sanitizePluginId(from);
+  final key = '$pluginId:${comicInfo.id}';
   final now = DateTime.now().toUtc();
   final unified = objectbox.unifiedFavoriteBox
       .query(UnifiedComicFavorite_.uniqueKey.equals(key))
@@ -47,7 +49,7 @@ Future<bool> toggleLocalComicFavorite({
     UnifiedComicFavorite(
       id: unified?.id ?? 0,
       uniqueKey: key,
-      source: from.name,
+      source: pluginId,
       comicId: comicInfo.id,
       title: comicInfo.title,
       description: comicInfo.description,
@@ -74,13 +76,13 @@ Future<Map<String, dynamic>> collectJmComicToLocal(dynamic comicInfo) async {
       'collectJmComicToLocal expects NormalComicAllInfo, got ${comicInfo.runtimeType}',
     );
   }
-  await toggleLocalComicFavorite(from: From.jm, normalInfo: comicInfo);
+  await toggleLocalComicFavorite(from: kJmPluginUuid, normalInfo: comicInfo);
   return {"error": null, "message": "收藏成功"};
 }
 
 Future<bool> toggleCloudComicFavorite({
   required BuildContext context,
-  required From from,
+  required String from,
   required String comicId,
   required bool currentStatus,
 }) async {
@@ -120,7 +122,7 @@ Future<bool> toggleCloudComicFavorite({
 }
 
 Future<bool> toggleCloudComicLike({
-  required From from,
+  required String from,
   required String comicId,
   required bool currentStatus,
 }) async {
@@ -136,7 +138,7 @@ Future<bool> toggleCloudComicLike({
   return data['liked'] as bool;
 }
 
-Future<List<_FavoriteFolder>> _listCloudFavoriteFolders(From from) async {
+Future<List<_FavoriteFolder>> _listCloudFavoriteFolders(String from) async {
   final data = await callUnifiedComicPlugin(
     from: from,
     fnPath: 'listFavoriteFolders',
@@ -155,7 +157,7 @@ Future<List<_FavoriteFolder>> _listCloudFavoriteFolders(From from) async {
 }
 
 Future<void> _moveCloudFavoriteToFolder({
-  required From from,
+  required String from,
   required String comicId,
   required _FavoriteFolder folder,
 }) async {

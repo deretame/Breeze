@@ -6,17 +6,17 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/router/router.gr.dart' show ComicReadRoute;
 
 import 'read_launch_adapter.dart';
+import 'package:zephyr/type/enum.dart';
 
 void goToComicRead(
   BuildContext context,
   String comicId,
   ComicEntryType type,
   dynamic allInfo,
-  From from,
+  String from,
 ) {
   final isDownload =
       type == ComicEntryType.download ||
@@ -29,7 +29,7 @@ void goToComicRead(
   );
   final hasHistory = context.read<StringSelectCubit>().state.isNotEmpty;
   final history = objectbox.unifiedHistoryBox
-      .query(UnifiedComicHistory_.uniqueKey.equals('${from.name}:$comicId'))
+      .query(UnifiedComicHistory_.uniqueKey.equals('$from:$comicId'))
       .build()
       .findFirst();
 
@@ -55,7 +55,7 @@ void goToComicRead(
   );
 }
 
-int _resolveInitialOrder(dynamic allInfo, From from) {
+int _resolveInitialOrder(dynamic allInfo, String from) {
   final chapters = resolveUnifiedComicChapters(allInfo, from);
   if (chapters.isEmpty) {
     return 1;
@@ -65,7 +65,7 @@ int _resolveInitialOrder(dynamic allInfo, From from) {
 
 int _resolveHistoryOrder(
   dynamic allInfo,
-  From from,
+  String from,
   UnifiedComicHistory? history,
 ) {
   if (history == null) {

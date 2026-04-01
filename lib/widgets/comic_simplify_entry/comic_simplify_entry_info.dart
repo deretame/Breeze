@@ -24,7 +24,8 @@ abstract class ComicSimplifyEntryInfo with _$ComicSimplifyEntryInfo {
     @JsonKey(name: "fileServer") required String fileServer,
     @JsonKey(name: "path") required String path,
     @JsonKey(name: "pictureType") required PictureType pictureType,
-    @JsonKey(name: "from") required From from,
+    @JsonKey(name: "source") @Default('') String source,
+    @JsonKey(name: "from") required String from,
   }) = _ComicSimplifyEntryInfo;
 
   factory ComicSimplifyEntryInfo.fromJson(Map<String, dynamic> json) =>

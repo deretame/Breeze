@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/debouncer.dart';
 
 import 'comic_simplify_entry.dart';
 import 'comic_simplify_entry_info.dart';
+import 'package:zephyr/type/enum.dart';
 
 SliverGridDelegate buildComicSimplifyEntryGridDelegate({
   double mainAxisSpacing = 15,

@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     show ComicInfo;
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../widgets/picture_bloc/models/picture_info.dart';
+import 'package:zephyr/type/enum.dart';
 
 class ComicParticularsWidget extends StatelessWidget {
   final ComicInfo comicInfo;
-  final From from;
+  final String from;
   final VoidCallback? onContinueRead;
 
   const ComicParticularsWidget({
@@ -102,7 +103,7 @@ class _InfoColumn extends StatelessWidget {
   });
 
   final ComicInfo comicInfo;
-  final From from;
+  final String from;
   final String stringSelectDate;
   final VoidCallback? onContinueRead;
 
@@ -129,7 +130,7 @@ class _InfoColumn extends StatelessWidget {
             ),
           ),
           child: Text(
-            from == From.jm ? 'JM Comic' : 'Bika Comic',
+            from == kJmPluginUuid ? 'JM Comic' : 'Bika Comic',
             style: context.theme.textTheme.labelMedium?.copyWith(
               letterSpacing: 0.8,
               fontWeight: FontWeight.w700,
@@ -151,7 +152,7 @@ class _InfoColumn extends StatelessWidget {
                       : () => handleComicInfoAction(
                           context,
                           item.onTap,
-                          fallbackFrom: from,
+                          fallbackPluginId: from,
                         ),
                 ),
               )

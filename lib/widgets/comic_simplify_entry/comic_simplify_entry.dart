@@ -3,15 +3,16 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../main.dart';
 import '../../object_box/objectbox.g.dart';
-import '../../type/enum.dart';
 import '../../util/get_path.dart';
 import '../../util/router/router.gr.dart';
 import 'comic_simplify_entry_info.dart';
 import 'cover.dart';
+import 'package:zephyr/type/enum.dart';
 
 class ComicFixedSizeHorizontalList extends StatelessWidget {
   final List<ComicSimplifyEntryInfo> entries;
@@ -136,23 +137,18 @@ class ComicFixedSizeHorizontalList extends StatelessWidget {
 
   // 点击跳转逻辑 (需要把当前的 info 传进来)
   void _navigateToComicInfo(BuildContext context, ComicSimplifyEntryInfo info) {
-    if (info.from == From.bika) {
-      context.pushRoute(
-        ComicInfoRoute(
-          comicId: info.id,
-          type: ComicEntryType.normal,
-          from: From.bika,
-        ),
-      );
-    } else if (info.from == From.jm) {
-      context.pushRoute(
-        ComicInfoRoute(
-          comicId: info.id,
-          type: ComicEntryType.normal,
-          from: From.jm,
-        ),
-      );
-    }
+    final pluginId = sanitizePluginId(
+      info.source.trim().isNotEmpty ? info.source : info.from,
+    );
+    if (pluginId.isEmpty) return;
+    context.pushRoute(
+      ComicInfoRoute(
+        comicId: info.id,
+        type: ComicEntryType.normal,
+        from: pluginId,
+        pluginId: pluginId,
+      ),
+    );
   }
 }
 
@@ -258,16 +254,18 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   void _navigateToComicInfo(BuildContext context) {
-    if (info.from == From.bika) {
-      context.pushRoute(
-        ComicInfoRoute(comicId: info.id, type: type, from: From.bika),
-      );
-    }
-    if (info.from == From.jm) {
-      context.pushRoute(
-        ComicInfoRoute(comicId: info.id, type: type, from: From.jm),
-      );
-    }
+    final pluginId = sanitizePluginId(
+      info.source.trim().isNotEmpty ? info.source : info.from,
+    );
+    if (pluginId.isEmpty) return;
+    context.pushRoute(
+      ComicInfoRoute(
+        comicId: info.id,
+        type: type,
+        from: pluginId,
+        pluginId: pluginId,
+      ),
+    );
   }
 
   Future<void> _showDeleteDialog(BuildContext context) async {
@@ -323,12 +321,10 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   Future<void> _deleteHistory() async {
-    if (info.from == From.bika) {
+    if (info.from == kBikaPluginUuid) {
       final temp = objectbox.unifiedHistoryBox
           .query(
-            UnifiedComicHistory_.uniqueKey.equals(
-              '${info.from.name}:${info.id}',
-            ),
+            UnifiedComicHistory_.uniqueKey.equals('${info.from}:${info.id}'),
           )
           .build()
           .findFirst();
@@ -339,12 +335,10 @@ class ComicSimplifyEntry extends StatelessWidget {
         temp.lastReadAt = temp.updatedAt;
         objectbox.unifiedHistoryBox.put(temp);
       }
-    } else if (info.from == From.jm) {
+    } else if (info.from == kJmPluginUuid) {
       final temp = objectbox.unifiedHistoryBox
           .query(
-            UnifiedComicHistory_.uniqueKey.equals(
-              '${info.from.name}:${info.id}',
-            ),
+            UnifiedComicHistory_.uniqueKey.equals('${info.from}:${info.id}'),
           )
           .build()
           .findFirst();
@@ -359,12 +353,10 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   Future<void> _deleteDownload() async {
-    if (info.from == From.bika) {
+    if (info.from == kBikaPluginUuid) {
       final temp = objectbox.unifiedDownloadBox
           .query(
-            UnifiedComicDownload_.uniqueKey.equals(
-              '${info.from.name}:${info.id}',
-            ),
+            UnifiedComicDownload_.uniqueKey.equals('${info.from}:${info.id}'),
           )
           .build()
           .findFirst();
@@ -373,12 +365,10 @@ class ComicSimplifyEntry extends StatelessWidget {
         objectbox.unifiedDownloadBox.remove(temp.id);
         await _deleteDownloadDirectory(info.id);
       }
-    } else if (info.from == From.jm) {
+    } else if (info.from == kJmPluginUuid) {
       final temp = objectbox.unifiedDownloadBox
           .query(
-            UnifiedComicDownload_.uniqueKey.equals(
-              '${info.from.name}:${info.id}',
-            ),
+            UnifiedComicDownload_.uniqueKey.equals('${info.from}:${info.id}'),
           )
           .build()
           .findFirst();
@@ -391,13 +381,11 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   Future<void> _deleteFavorite() async {
-    if (info.from == From.bika) {
-    } else if (info.from == From.jm) {
+    if (info.from == kBikaPluginUuid) {
+    } else if (info.from == kJmPluginUuid) {
       final temp = objectbox.unifiedFavoriteBox
           .query(
-            UnifiedComicFavorite_.uniqueKey.equals(
-              '${info.from.name}:${info.id}',
-            ),
+            UnifiedComicFavorite_.uniqueKey.equals('${info.from}:${info.id}'),
           )
           .build()
           .findFirst();
@@ -410,7 +398,7 @@ class ComicSimplifyEntry extends StatelessWidget {
 
   Future<void> _deleteDownloadDirectory(String id) async {
     final downloadPath = await getDownloadPath();
-    final path = p.join(downloadPath, info.from.name, 'original', id);
+    final path = p.join(downloadPath, info.from, 'original', id);
     final directory = Directory(path);
 
     if (await directory.exists()) {

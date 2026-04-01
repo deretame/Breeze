@@ -1,4 +1,5 @@
 import 'package:auto_route/annotations.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
@@ -9,7 +10,6 @@ import 'package:zephyr/page/comic_list/scene_filter/plugin_list_filter_dialog.da
 import 'package:zephyr/page/comic_list/scene_filter/plugin_list_filter_schema.dart';
 import 'package:zephyr/page/comic_list/view/plugin_paged_comic_list_view.dart';
 import 'package:zephyr/page/comic_list/view/plugin_paged_creator_list_view.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
 class _ListFilterBundle {
@@ -35,7 +35,7 @@ class ComicListPage extends StatefulWidget {
 
   final String? title;
   final ComicListScene? scene;
-  final From? sceneSource;
+  final String? sceneSource;
   final String? sceneBundleFnPath;
   final String? sceneBundleFnPathFallback;
 
@@ -73,7 +73,7 @@ class ComicListScaffold extends StatefulWidget {
 
   final String? title;
   final ComicListScene? scene;
-  final From? sceneSource;
+  final String? sceneSource;
   final String? sceneBundleFnPath;
   final String? sceneBundleFnPathFallback;
 
@@ -82,28 +82,28 @@ class ComicListScaffold extends StatefulWidget {
 }
 
 class _ComicListScaffoldState extends State<ComicListScaffold> {
-  final Map<From, ComicListScene> _defaultScenes = {};
-  final Map<From, _ListFilterBundle> _filterBundles = {};
-  final Map<From, Map<String, String>> _filterSelections = {};
-  final Map<From, Map<String, dynamic>> _filterParams = {};
-  final Map<From, Map<String, dynamic>> _filterCoreParams = {};
-  final Map<From, Map<String, dynamic>> _filterExternParams = {};
-  final Map<From, String> _sceneErrors = {};
-  final Map<From, String> _filterErrors = {};
-  final Set<From> _loadingScenes = <From>{};
-  final Set<From> _loadingFilters = <From>{};
+  final Map<String, ComicListScene> _defaultScenes = {};
+  final Map<String, _ListFilterBundle> _filterBundles = {};
+  final Map<String, Map<String, String>> _filterSelections = {};
+  final Map<String, Map<String, dynamic>> _resolvedUiParams = {};
+  final Map<String, Map<String, dynamic>> _resolvedFilterCore = {};
+  final Map<String, Map<String, dynamic>> _resolvedFilterExtern = {};
+  final Map<String, String> _sceneErrors = {};
+  final Map<String, String> _filterErrors = {};
+  final Set<String> _loadingScenes = <String>{};
+  final Set<String> _loadingFilters = <String>{};
 
   bool get _usesPluginScene => widget.scene != null;
 
-  ComicListScene? _resolvedScene(From from) {
+  ComicListScene? _resolvedScene(String from) {
     return widget.scene ?? _defaultScenes[from];
   }
 
-  ComicListRequestConfig? _sceneFilterRequest(From from) {
+  ComicListRequestConfig? _sceneFilterRequest(String from) {
     return _resolvedScene(from)?.filter;
   }
 
-  bool _requiresFilterBundle(From from) {
+  bool _requiresFilterBundle(String from) {
     return _sceneFilterRequest(from) != null;
   }
 
@@ -113,7 +113,9 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
     final currentFrom = _usesPluginScene
         ? widget.scene!.from
         : (widget.sceneSource ??
-              (globalSettingState.comicChoice == 1 ? From.bika : From.jm));
+              (globalSettingState.comicChoice == 1
+                  ? kBikaPluginUuid
+                  : kJmPluginUuid));
 
     if (!_usesPluginScene) {
       _ensureSceneLoaded(currentFrom);
@@ -125,13 +127,13 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
     final scene = _resolvedScene(currentFrom);
     final title =
         widget.title ??
-        (scene?.title ?? (currentFrom == From.bika ? '哔咔排行榜' : '禁漫排行榜'));
+        (scene?.title ?? (currentFrom == kBikaPluginUuid ? '哔咔排行榜' : '禁漫排行榜'));
 
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
         actions: [
-          if (_showFilter(globalSettingState.comicChoice))
+          if (_showFilter(currentFrom))
             IconButton(
               icon: const Icon(Icons.filter_alt),
               onPressed: () => _openFilterDialog(currentFrom),
@@ -143,7 +145,7 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
     );
   }
 
-  Widget _buildBody(int comicChoice, From currentFrom) {
+  Widget _buildBody(int comicChoice, String currentFrom) {
     final scene = _resolvedScene(currentFrom);
     if (scene == null) {
       if (_loadingScenes.contains(currentFrom)) {
@@ -170,14 +172,14 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
 
     if (_requiresFilterBundle(currentFrom) &&
         _loadingFilters.contains(currentFrom) &&
-        !_filterParams.containsKey(currentFrom)) {
+        !_resolvedUiParams.containsKey(currentFrom)) {
       return const Center(child: CircularProgressIndicator());
     }
 
     final error = _requiresFilterBundle(currentFrom)
         ? _filterErrors[currentFrom]
         : null;
-    if (error != null && !_filterParams.containsKey(currentFrom)) {
+    if (error != null && !_resolvedUiParams.containsKey(currentFrom)) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -199,14 +201,14 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
     return const SizedBox.shrink();
   }
 
-  Widget _buildSceneBody(From currentFrom, ComicListScene scene) {
+  Widget _buildSceneBody(String currentFrom, ComicListScene scene) {
     final filterCore =
-        _filterCoreParams[currentFrom] ?? const <String, dynamic>{};
+        _resolvedFilterCore[currentFrom] ?? const <String, dynamic>{};
     final filterExtern =
-        _filterExternParams[currentFrom] ?? const <String, dynamic>{};
-    final filterParams =
-        _filterParams[currentFrom] ?? const <String, dynamic>{};
-    final effectiveBodyType = switch (filterParams['bodyType']?.toString()) {
+        _resolvedFilterExtern[currentFrom] ?? const <String, dynamic>{};
+    final uiParams =
+        _resolvedUiParams[currentFrom] ?? const <String, dynamic>{};
+    final effectiveBodyType = switch (uiParams['bodyType']?.toString()) {
       'pluginPagedCreatorList' => ComicListBodyType.pluginPagedCreatorList,
       'pluginPagedComicList' => ComicListBodyType.pluginPagedComicList,
       _ => scene.body.type,
@@ -219,26 +221,20 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
     switch (effectiveBodyType) {
       case ComicListBodyType.pluginPagedCreatorList:
         final listCore = <String, dynamic>{...request.core, ...filterCore};
-        final listExtern = <String, dynamic>{
-          ...request.extern,
-          ...filterExtern,
-        };
+        final listExtern = _buildListExtern(request.extern, filterExtern);
         return PluginPagedCreatorListView(
           key: ValueKey('${request.fnPath}_${listCore}_$listExtern'),
-          from: currentFrom,
+          pluginId: currentFrom,
           fnPath: request.fnPath,
           coreBuilder: (page) => {'page': page, ...listCore},
           externBuilder: (_) => listExtern,
         );
       case ComicListBodyType.pluginPagedComicList:
         final listCore = <String, dynamic>{...request.core, ...filterCore};
-        final listExtern = <String, dynamic>{
-          ...request.extern,
-          ...filterExtern,
-        };
+        final listExtern = _buildListExtern(request.extern, filterExtern);
         return PluginPagedComicListView(
           key: ValueKey('${request.fnPath}_${listCore}_$listExtern'),
-          from: currentFrom,
+          pluginId: currentFrom,
           fnPath: request.fnPath,
           coreBuilder: (page) => {'page': page, ...listCore},
           externBuilder: (_) => listExtern,
@@ -246,7 +242,7 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
     }
   }
 
-  void _ensureSceneLoaded(From from) {
+  void _ensureSceneLoaded(String from) {
     if (widget.scene != null ||
         _defaultScenes.containsKey(from) ||
         _loadingScenes.contains(from)) {
@@ -260,18 +256,18 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
     });
   }
 
-  Future<void> _reloadScene(From from) async {
+  Future<void> _reloadScene(String from) async {
     _defaultScenes.remove(from);
     _sceneErrors.remove(from);
     _filterBundles.remove(from);
     _filterSelections.remove(from);
-    _filterParams.remove(from);
-    _filterCoreParams.remove(from);
-    _filterExternParams.remove(from);
+    _resolvedUiParams.remove(from);
+    _resolvedFilterCore.remove(from);
+    _resolvedFilterExtern.remove(from);
     await _loadScene(from);
   }
 
-  Future<void> _loadScene(From from) async {
+  Future<void> _loadScene(String from) async {
     if (_loadingScenes.contains(from)) {
       return;
     }
@@ -330,7 +326,7 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
     }
   }
 
-  void _ensureFilterLoaded(From from) {
+  void _ensureFilterLoaded(String from) {
     final filterRequest = _sceneFilterRequest(from);
     if (filterRequest == null) {
       return;
@@ -346,17 +342,17 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
     });
   }
 
-  Future<void> _reloadFilter(From from) async {
+  Future<void> _reloadFilter(String from) async {
     _filterBundles.remove(from);
     _filterSelections.remove(from);
-    _filterParams.remove(from);
-    _filterCoreParams.remove(from);
-    _filterExternParams.remove(from);
+    _resolvedUiParams.remove(from);
+    _resolvedFilterCore.remove(from);
+    _resolvedFilterExtern.remove(from);
     _filterErrors.remove(from);
     await _loadFilterBundle(from);
   }
 
-  Future<void> _loadFilterBundle(From from) async {
+  Future<void> _loadFilterBundle(String from) async {
     if (_loadingFilters.contains(from)) {
       return;
     }
@@ -395,9 +391,9 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
       setState(() {
         _filterBundles[from] = bundle;
         _filterSelections[from] = resolved.selections;
-        _filterParams[from] = resolved.params;
-        _filterCoreParams[from] = resolved.core;
-        _filterExternParams[from] = resolved.extern;
+        _resolvedUiParams[from] = resolved.params;
+        _resolvedFilterCore[from] = resolved.core;
+        _resolvedFilterExtern[from] = resolved.extern;
         _loadingFilters.remove(from);
       });
     } catch (e) {
@@ -412,7 +408,7 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
     }
   }
 
-  Future<void> _openFilterDialog(From from) async {
+  Future<void> _openFilterDialog(String from) async {
     if (!_filterBundles.containsKey(from)) {
       await _loadFilterBundle(from);
     }
@@ -437,10 +433,17 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
     final resolved = _resolveRankingFilter(bundle, result);
     setState(() {
       _filterSelections[from] = resolved.selections;
-      _filterParams[from] = resolved.params;
-      _filterCoreParams[from] = resolved.core;
-      _filterExternParams[from] = resolved.extern;
+      _resolvedUiParams[from] = resolved.params;
+      _resolvedFilterCore[from] = resolved.core;
+      _resolvedFilterExtern[from] = resolved.extern;
     });
+  }
+
+  Map<String, dynamic> _buildListExtern(
+    Map<String, dynamic> requestExtern,
+    Map<String, dynamic> resolvedFilterExtern,
+  ) {
+    return <String, dynamic>{...requestExtern, ...resolvedFilterExtern};
   }
 
   _ListFilterBundle _parseFilterBundle(UnifiedPluginEnvelope envelope) {
@@ -466,12 +469,7 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
     );
   }
 
-  bool _showFilter(int comicChoice) {
-    return _sceneFilterRequest(
-          _usesPluginScene
-              ? widget.scene!.from
-              : (comicChoice == 1 ? From.bika : From.jm),
-        ) !=
-        null;
+  bool _showFilter(String from) {
+    return _sceneFilterRequest(from) != null;
   }
 }

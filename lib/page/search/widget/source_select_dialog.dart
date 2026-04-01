@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:zephyr/type/enum.dart';
 
-Future<Map<From, bool>?> showSourceSelectDialog(
+Future<Map<String, bool>?> showSourceSelectDialog(
   BuildContext context, {
-  required Map<From, bool> initial,
+  required Map<String, bool> initial,
+  required List<({String pluginId, String title})> sourceOptions,
 }) {
-  final next = Map<From, bool>.from(initial);
-  return showDialog<Map<From, bool>>(
+  final next = Map<String, bool>.from(initial);
+  return showDialog<Map<String, bool>>(
     context: context,
     builder: (dialogContext) {
       return StatefulBuilder(
@@ -20,26 +20,17 @@ Future<Map<From, bool>?> showSourceSelectDialog(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  FilterChip(
-                    showCheckmark: false,
-                    label: const Text('禁漫'),
-                    selected: next[From.jm] ?? true,
-                    onSelected: (selected) {
-                      setState(() {
-                        next[From.jm] = selected;
-                      });
-                    },
-                  ),
-                  FilterChip(
-                    showCheckmark: false,
-                    label: const Text('哔咔'),
-                    selected: next[From.bika] ?? true,
-                    onSelected: (selected) {
-                      setState(() {
-                        next[From.bika] = selected;
-                      });
-                    },
-                  ),
+                  for (final source in sourceOptions)
+                    FilterChip(
+                      showCheckmark: false,
+                      label: Text(source.title),
+                      selected: next[source.pluginId] ?? true,
+                      onSelected: (selected) {
+                        setState(() {
+                          next[source.pluginId] = selected;
+                        });
+                      },
+                    ),
                 ],
               ),
             ),

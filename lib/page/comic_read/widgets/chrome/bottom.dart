@@ -10,9 +10,9 @@ import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/page/comic_read/widgets/settings/reader_settings_sheet.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/router/router.dart';
 import 'package:zephyr/util/router/router.gr.dart';
+import 'package:zephyr/type/enum.dart';
 
 class BottomWidget extends StatefulWidget {
   final ComicEntryType type;
@@ -21,7 +21,7 @@ class BottomWidget extends StatefulWidget {
   final int order;
   final int epsNumber;
   final String comicId;
-  final From from;
+  final String from;
   final JumpChapter jumpChapter;
 
   const BottomWidget({

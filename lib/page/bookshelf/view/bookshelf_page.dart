@@ -1,8 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnter;
+import 'package:zephyr/plugin/plugin_registry_service.dart';
 
 @RoutePage()
 class BookshelfPage extends StatelessWidget {
@@ -170,8 +171,25 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
   Future<void> _openFilter() async {
     final searchCubit = _currentSearchCubit();
     final current = searchCubit.state;
-    final disableBika = context.read<GlobalSettingCubit>().state.disableBika;
-    final availableSources = [if (!disableBika) 'bika', 'jm'];
+    final pluginStates = context.read<PluginRegistryCubit>().state;
+    final sourceOptions =
+        pluginStates.values.where((plugin) => !plugin.isDeleted).toList()
+          ..sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
+    final availableSources = sourceOptions
+        .map((plugin) => plugin.uuid)
+        .toList();
+    String sourceTitle(String pluginId) {
+      final info = PluginRegistryService.I.getCachedPluginInfo(pluginId);
+      final name = info?['name']?.toString().trim() ?? '';
+      return name.isNotEmpty ? name : pluginId;
+    }
+
+    if (availableSources.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('暂无可筛选的插件来源')));
+      return;
+    }
 
     var selectedSort = current.sort == 'da' ? 'da' : 'dd';
     var selectedSources = current.sources
@@ -240,31 +258,19 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      if (!disableBika)
+                      for (final source in sourceOptions)
                         FilterChip(
                           showCheckmark: false,
-                          label: const Text('哔咔'),
-                          selected: selectedSources.contains('bika'),
+                          label: Text(sourceTitle(source.uuid)),
+                          selected: selectedSources.contains(source.uuid),
                           onSelected: (selected) => setState(() {
                             if (selected) {
-                              selectedSources.add('bika');
+                              selectedSources.add(source.uuid);
                             } else {
-                              selectedSources.remove('bika');
+                              selectedSources.remove(source.uuid);
                             }
                           }),
                         ),
-                      FilterChip(
-                        showCheckmark: false,
-                        label: const Text('禁漫'),
-                        selected: selectedSources.contains('jm'),
-                        onSelected: (selected) => setState(() {
-                          if (selected) {
-                            selectedSources.add('jm');
-                          } else {
-                            selectedSources.remove('jm');
-                          }
-                        }),
-                      ),
                     ],
                   ),
                 ],

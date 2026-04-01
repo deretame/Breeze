@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:zephyr/plugin/plugin_constants.dart';
 
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
@@ -14,12 +15,11 @@ import '../../../object_box/objectbox.g.dart';
 import '../../../page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
 import '../../../page/comic_info/models/to_normal_info.dart';
-import '../../../type/enum.dart';
 
 class ReaderHistoryManager {
   final String comicId;
   final int order;
-  final From from;
+  final String from;
   final dynamic comicInfo;
   final HistoryWriter historyWriter;
 
@@ -49,7 +49,7 @@ class ReaderHistoryManager {
   /// 初始化：查询或创建历史记录对象
   Future<void> init() async {
     _history = objectbox.unifiedHistoryBox
-        .query(UnifiedComicHistory_.uniqueKey.equals('${from.name}:$comicId'))
+        .query(UnifiedComicHistory_.uniqueKey.equals('$from:$comicId'))
         .build()
         .findFirst();
 
@@ -93,7 +93,7 @@ class ReaderHistoryManager {
     // 更新左下角文字 (StringSelectCubit)
     if (!stringSelectCubit.isClosed) {
       final isJmAndSeriesEmpty =
-          from == From.jm && isJmSeriesEmptyFromAny(comicInfo);
+          from == kJmPluginUuid && isJmSeriesEmptyFromAny(comicInfo);
       final historyPrefix = isJmAndSeriesEmpty
           ? '历史：第1话'
           : '历史：${epInfo.epName}';
@@ -109,7 +109,7 @@ class ReaderHistoryManager {
       final temp = _resolveNormalComicInfo();
       final timestamp = DateTime.now().toUtc();
       final isJmAndSeriesEmpty =
-          from == From.jm && isJmSeriesEmptyFromAny(comicInfo);
+          from == kJmPluginUuid && isJmSeriesEmptyFromAny(comicInfo);
       _upsertUnifiedHistory(
         normalInfo: temp,
         chapterId: epInfo.epId,
@@ -134,7 +134,7 @@ class ReaderHistoryManager {
               as Map<String, dynamic>;
       return normal.NormalComicAllInfo.fromJson(detail).comicInfo;
     }
-    if (from == From.bika) {
+    if (from == kBikaPluginUuid) {
       return bikaNormalComicInfoFromAny(comicInfo);
     }
     return jm2NormalComicAllInfo(comicInfo as dynamic).comicInfo;
@@ -148,7 +148,7 @@ class ReaderHistoryManager {
     required int pageIndex,
     required DateTime timestamp,
   }) {
-    final key = '${from.name}:$comicId';
+    final key = '$from:$comicId';
     final existing = objectbox.unifiedHistoryBox
         .query(UnifiedComicHistory_.uniqueKey.equals(key))
         .build()
@@ -158,7 +158,7 @@ class ReaderHistoryManager {
         existing ??
         UnifiedComicHistory(
           uniqueKey: key,
-          source: from.name,
+          source: from,
           comicId: comicId,
           title: normalInfo.title,
           description: normalInfo.description,

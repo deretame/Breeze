@@ -1,2 +1,1 @@
-export './bloc/comments_bloc.dart';
-export './widgets/widgets.dart';
+export './view/jm_comments.dart';

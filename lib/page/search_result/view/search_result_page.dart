@@ -9,9 +9,9 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/search_result.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
+import 'package:zephyr/type/enum.dart';
 
 @RoutePage()
 class SearchResultPage extends StatelessWidget implements AutoRouteWrapper {

@@ -1,9 +1,10 @@
-import 'package:zephyr/type/enum.dart';
-
 class NoticeSync {}
 
 class NeedLogin {
-  From from;
+  String from;
+  Map<String, dynamic>? scheme;
+  Map<String, dynamic>? data;
+  String? message;
 
-  NeedLogin({required this.from});
+  NeedLogin({required this.from, this.scheme, this.data, this.message});
 }

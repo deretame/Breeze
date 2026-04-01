@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -15,7 +14,7 @@ class PluginSettingSchemeSection extends StatefulWidget {
     this.onValueChanged,
   });
 
-  final From from;
+  final String from;
   final String pluginName;
   final Future<void> Function(String key, dynamic value)? onValueChanged;
 
@@ -165,7 +164,7 @@ class _PluginSettingSchemeSectionState
 class PluginAdvancedActionSection extends StatefulWidget {
   const PluginAdvancedActionSection({super.key, required this.from});
 
-  final From from;
+  final String from;
 
   @override
   State<PluginAdvancedActionSection> createState() =>

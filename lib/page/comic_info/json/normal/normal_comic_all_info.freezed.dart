@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$NormalComicAllInfo {
 
-@JsonKey(name: 'comicInfo') ComicInfo get comicInfo;@JsonKey(name: 'eps') List<Ep> get eps;@JsonKey(name: 'recommend') List<Recommend> get recommend;@JsonKey(name: 'totalViews') int get totalViews;@JsonKey(name: 'totalLikes') int get totalLikes;@JsonKey(name: 'totalComments') int get totalComments;@JsonKey(name: 'isFavourite') bool get isFavourite;@JsonKey(name: 'isLiked') bool get isLiked;@JsonKey(name: 'allowComment') bool get allowComment;@JsonKey(name: 'allowLike') bool get allowLike;@JsonKey(name: 'allowFavorite') bool get allowFavorite;@JsonKey(name: 'allowDownload') bool get allowDownload;@JsonKey(name: 'extension') Map<String, dynamic> get extension;
+@JsonKey(name: 'comicInfo') ComicInfo get comicInfo;@JsonKey(name: 'eps') List<Ep> get eps;@JsonKey(name: 'recommend') List<Recommend> get recommend;@JsonKey(name: 'totalViews') int get totalViews;@JsonKey(name: 'totalLikes') int get totalLikes;@JsonKey(name: 'totalComments') int get totalComments;@JsonKey(name: 'isFavourite') bool get isFavourite;@JsonKey(name: 'isLiked') bool get isLiked;@JsonKey(name: 'allowComments') bool get allowComments;@JsonKey(name: 'allowLike') bool get allowLike;@JsonKey(name: 'allowCollected') bool get allowCollected;@JsonKey(name: 'allowDownload') bool get allowDownload;@JsonKey(name: 'extension') Map<String, dynamic> get extension;
 /// Create a copy of NormalComicAllInfo
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $NormalComicAllInfoCopyWith<NormalComicAllInfo> get copyWith => _$NormalComicAll
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NormalComicAllInfo&&(identical(other.comicInfo, comicInfo) || other.comicInfo == comicInfo)&&const DeepCollectionEquality().equals(other.eps, eps)&&const DeepCollectionEquality().equals(other.recommend, recommend)&&(identical(other.totalViews, totalViews) || other.totalViews == totalViews)&&(identical(other.totalLikes, totalLikes) || other.totalLikes == totalLikes)&&(identical(other.totalComments, totalComments) || other.totalComments == totalComments)&&(identical(other.isFavourite, isFavourite) || other.isFavourite == isFavourite)&&(identical(other.isLiked, isLiked) || other.isLiked == isLiked)&&(identical(other.allowComment, allowComment) || other.allowComment == allowComment)&&(identical(other.allowLike, allowLike) || other.allowLike == allowLike)&&(identical(other.allowFavorite, allowFavorite) || other.allowFavorite == allowFavorite)&&(identical(other.allowDownload, allowDownload) || other.allowDownload == allowDownload)&&const DeepCollectionEquality().equals(other.extension, extension));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NormalComicAllInfo&&(identical(other.comicInfo, comicInfo) || other.comicInfo == comicInfo)&&const DeepCollectionEquality().equals(other.eps, eps)&&const DeepCollectionEquality().equals(other.recommend, recommend)&&(identical(other.totalViews, totalViews) || other.totalViews == totalViews)&&(identical(other.totalLikes, totalLikes) || other.totalLikes == totalLikes)&&(identical(other.totalComments, totalComments) || other.totalComments == totalComments)&&(identical(other.isFavourite, isFavourite) || other.isFavourite == isFavourite)&&(identical(other.isLiked, isLiked) || other.isLiked == isLiked)&&(identical(other.allowComments, allowComments) || other.allowComments == allowComments)&&(identical(other.allowLike, allowLike) || other.allowLike == allowLike)&&(identical(other.allowCollected, allowCollected) || other.allowCollected == allowCollected)&&(identical(other.allowDownload, allowDownload) || other.allowDownload == allowDownload)&&const DeepCollectionEquality().equals(other.extension, extension));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,comicInfo,const DeepCollectionEquality().hash(eps),const DeepCollectionEquality().hash(recommend),totalViews,totalLikes,totalComments,isFavourite,isLiked,allowComment,allowLike,allowFavorite,allowDownload,const DeepCollectionEquality().hash(extension));
+int get hashCode => Object.hash(runtimeType,comicInfo,const DeepCollectionEquality().hash(eps),const DeepCollectionEquality().hash(recommend),totalViews,totalLikes,totalComments,isFavourite,isLiked,allowComments,allowLike,allowCollected,allowDownload,const DeepCollectionEquality().hash(extension));
 
 @override
 String toString() {
-  return 'NormalComicAllInfo(comicInfo: $comicInfo, eps: $eps, recommend: $recommend, totalViews: $totalViews, totalLikes: $totalLikes, totalComments: $totalComments, isFavourite: $isFavourite, isLiked: $isLiked, allowComment: $allowComment, allowLike: $allowLike, allowFavorite: $allowFavorite, allowDownload: $allowDownload, extension: $extension)';
+  return 'NormalComicAllInfo(comicInfo: $comicInfo, eps: $eps, recommend: $recommend, totalViews: $totalViews, totalLikes: $totalLikes, totalComments: $totalComments, isFavourite: $isFavourite, isLiked: $isLiked, allowComments: $allowComments, allowLike: $allowLike, allowCollected: $allowCollected, allowDownload: $allowDownload, extension: $extension)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $NormalComicAllInfoCopyWith<$Res>  {
   factory $NormalComicAllInfoCopyWith(NormalComicAllInfo value, $Res Function(NormalComicAllInfo) _then) = _$NormalComicAllInfoCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'comicInfo') ComicInfo comicInfo,@JsonKey(name: 'eps') List<Ep> eps,@JsonKey(name: 'recommend') List<Recommend> recommend,@JsonKey(name: 'totalViews') int totalViews,@JsonKey(name: 'totalLikes') int totalLikes,@JsonKey(name: 'totalComments') int totalComments,@JsonKey(name: 'isFavourite') bool isFavourite,@JsonKey(name: 'isLiked') bool isLiked,@JsonKey(name: 'allowComment') bool allowComment,@JsonKey(name: 'allowLike') bool allowLike,@JsonKey(name: 'allowFavorite') bool allowFavorite,@JsonKey(name: 'allowDownload') bool allowDownload,@JsonKey(name: 'extension') Map<String, dynamic> extension
+@JsonKey(name: 'comicInfo') ComicInfo comicInfo,@JsonKey(name: 'eps') List<Ep> eps,@JsonKey(name: 'recommend') List<Recommend> recommend,@JsonKey(name: 'totalViews') int totalViews,@JsonKey(name: 'totalLikes') int totalLikes,@JsonKey(name: 'totalComments') int totalComments,@JsonKey(name: 'isFavourite') bool isFavourite,@JsonKey(name: 'isLiked') bool isLiked,@JsonKey(name: 'allowComments') bool allowComments,@JsonKey(name: 'allowLike') bool allowLike,@JsonKey(name: 'allowCollected') bool allowCollected,@JsonKey(name: 'allowDownload') bool allowDownload,@JsonKey(name: 'extension') Map<String, dynamic> extension
 });
 
 
@@ -65,7 +65,7 @@ class _$NormalComicAllInfoCopyWithImpl<$Res>
 
 /// Create a copy of NormalComicAllInfo
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? comicInfo = null,Object? eps = null,Object? recommend = null,Object? totalViews = null,Object? totalLikes = null,Object? totalComments = null,Object? isFavourite = null,Object? isLiked = null,Object? allowComment = null,Object? allowLike = null,Object? allowFavorite = null,Object? allowDownload = null,Object? extension = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? comicInfo = null,Object? eps = null,Object? recommend = null,Object? totalViews = null,Object? totalLikes = null,Object? totalComments = null,Object? isFavourite = null,Object? isLiked = null,Object? allowComments = null,Object? allowLike = null,Object? allowCollected = null,Object? allowDownload = null,Object? extension = null,}) {
   return _then(_self.copyWith(
 comicInfo: null == comicInfo ? _self.comicInfo : comicInfo // ignore: cast_nullable_to_non_nullable
 as ComicInfo,eps: null == eps ? _self.eps : eps // ignore: cast_nullable_to_non_nullable
@@ -75,9 +75,9 @@ as int,totalLikes: null == totalLikes ? _self.totalLikes : totalLikes // ignore:
 as int,totalComments: null == totalComments ? _self.totalComments : totalComments // ignore: cast_nullable_to_non_nullable
 as int,isFavourite: null == isFavourite ? _self.isFavourite : isFavourite // ignore: cast_nullable_to_non_nullable
 as bool,isLiked: null == isLiked ? _self.isLiked : isLiked // ignore: cast_nullable_to_non_nullable
-as bool,allowComment: null == allowComment ? _self.allowComment : allowComment // ignore: cast_nullable_to_non_nullable
+as bool,allowComments: null == allowComments ? _self.allowComments : allowComments // ignore: cast_nullable_to_non_nullable
 as bool,allowLike: null == allowLike ? _self.allowLike : allowLike // ignore: cast_nullable_to_non_nullable
-as bool,allowFavorite: null == allowFavorite ? _self.allowFavorite : allowFavorite // ignore: cast_nullable_to_non_nullable
+as bool,allowCollected: null == allowCollected ? _self.allowCollected : allowCollected // ignore: cast_nullable_to_non_nullable
 as bool,allowDownload: null == allowDownload ? _self.allowDownload : allowDownload // ignore: cast_nullable_to_non_nullable
 as bool,extension: null == extension ? _self.extension : extension // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,
@@ -174,10 +174,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'comicInfo')  ComicInfo comicInfo, @JsonKey(name: 'eps')  List<Ep> eps, @JsonKey(name: 'recommend')  List<Recommend> recommend, @JsonKey(name: 'totalViews')  int totalViews, @JsonKey(name: 'totalLikes')  int totalLikes, @JsonKey(name: 'totalComments')  int totalComments, @JsonKey(name: 'isFavourite')  bool isFavourite, @JsonKey(name: 'isLiked')  bool isLiked, @JsonKey(name: 'allowComment')  bool allowComment, @JsonKey(name: 'allowLike')  bool allowLike, @JsonKey(name: 'allowFavorite')  bool allowFavorite, @JsonKey(name: 'allowDownload')  bool allowDownload, @JsonKey(name: 'extension')  Map<String, dynamic> extension)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'comicInfo')  ComicInfo comicInfo, @JsonKey(name: 'eps')  List<Ep> eps, @JsonKey(name: 'recommend')  List<Recommend> recommend, @JsonKey(name: 'totalViews')  int totalViews, @JsonKey(name: 'totalLikes')  int totalLikes, @JsonKey(name: 'totalComments')  int totalComments, @JsonKey(name: 'isFavourite')  bool isFavourite, @JsonKey(name: 'isLiked')  bool isLiked, @JsonKey(name: 'allowComments')  bool allowComments, @JsonKey(name: 'allowLike')  bool allowLike, @JsonKey(name: 'allowCollected')  bool allowCollected, @JsonKey(name: 'allowDownload')  bool allowDownload, @JsonKey(name: 'extension')  Map<String, dynamic> extension)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _NormalComicAllInfo() when $default != null:
-return $default(_that.comicInfo,_that.eps,_that.recommend,_that.totalViews,_that.totalLikes,_that.totalComments,_that.isFavourite,_that.isLiked,_that.allowComment,_that.allowLike,_that.allowFavorite,_that.allowDownload,_that.extension);case _:
+return $default(_that.comicInfo,_that.eps,_that.recommend,_that.totalViews,_that.totalLikes,_that.totalComments,_that.isFavourite,_that.isLiked,_that.allowComments,_that.allowLike,_that.allowCollected,_that.allowDownload,_that.extension);case _:
   return orElse();
 
 }
@@ -195,10 +195,10 @@ return $default(_that.comicInfo,_that.eps,_that.recommend,_that.totalViews,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'comicInfo')  ComicInfo comicInfo, @JsonKey(name: 'eps')  List<Ep> eps, @JsonKey(name: 'recommend')  List<Recommend> recommend, @JsonKey(name: 'totalViews')  int totalViews, @JsonKey(name: 'totalLikes')  int totalLikes, @JsonKey(name: 'totalComments')  int totalComments, @JsonKey(name: 'isFavourite')  bool isFavourite, @JsonKey(name: 'isLiked')  bool isLiked, @JsonKey(name: 'allowComment')  bool allowComment, @JsonKey(name: 'allowLike')  bool allowLike, @JsonKey(name: 'allowFavorite')  bool allowFavorite, @JsonKey(name: 'allowDownload')  bool allowDownload, @JsonKey(name: 'extension')  Map<String, dynamic> extension)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'comicInfo')  ComicInfo comicInfo, @JsonKey(name: 'eps')  List<Ep> eps, @JsonKey(name: 'recommend')  List<Recommend> recommend, @JsonKey(name: 'totalViews')  int totalViews, @JsonKey(name: 'totalLikes')  int totalLikes, @JsonKey(name: 'totalComments')  int totalComments, @JsonKey(name: 'isFavourite')  bool isFavourite, @JsonKey(name: 'isLiked')  bool isLiked, @JsonKey(name: 'allowComments')  bool allowComments, @JsonKey(name: 'allowLike')  bool allowLike, @JsonKey(name: 'allowCollected')  bool allowCollected, @JsonKey(name: 'allowDownload')  bool allowDownload, @JsonKey(name: 'extension')  Map<String, dynamic> extension)  $default,) {final _that = this;
 switch (_that) {
 case _NormalComicAllInfo():
-return $default(_that.comicInfo,_that.eps,_that.recommend,_that.totalViews,_that.totalLikes,_that.totalComments,_that.isFavourite,_that.isLiked,_that.allowComment,_that.allowLike,_that.allowFavorite,_that.allowDownload,_that.extension);case _:
+return $default(_that.comicInfo,_that.eps,_that.recommend,_that.totalViews,_that.totalLikes,_that.totalComments,_that.isFavourite,_that.isLiked,_that.allowComments,_that.allowLike,_that.allowCollected,_that.allowDownload,_that.extension);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -215,10 +215,10 @@ return $default(_that.comicInfo,_that.eps,_that.recommend,_that.totalViews,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'comicInfo')  ComicInfo comicInfo, @JsonKey(name: 'eps')  List<Ep> eps, @JsonKey(name: 'recommend')  List<Recommend> recommend, @JsonKey(name: 'totalViews')  int totalViews, @JsonKey(name: 'totalLikes')  int totalLikes, @JsonKey(name: 'totalComments')  int totalComments, @JsonKey(name: 'isFavourite')  bool isFavourite, @JsonKey(name: 'isLiked')  bool isLiked, @JsonKey(name: 'allowComment')  bool allowComment, @JsonKey(name: 'allowLike')  bool allowLike, @JsonKey(name: 'allowFavorite')  bool allowFavorite, @JsonKey(name: 'allowDownload')  bool allowDownload, @JsonKey(name: 'extension')  Map<String, dynamic> extension)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'comicInfo')  ComicInfo comicInfo, @JsonKey(name: 'eps')  List<Ep> eps, @JsonKey(name: 'recommend')  List<Recommend> recommend, @JsonKey(name: 'totalViews')  int totalViews, @JsonKey(name: 'totalLikes')  int totalLikes, @JsonKey(name: 'totalComments')  int totalComments, @JsonKey(name: 'isFavourite')  bool isFavourite, @JsonKey(name: 'isLiked')  bool isLiked, @JsonKey(name: 'allowComments')  bool allowComments, @JsonKey(name: 'allowLike')  bool allowLike, @JsonKey(name: 'allowCollected')  bool allowCollected, @JsonKey(name: 'allowDownload')  bool allowDownload, @JsonKey(name: 'extension')  Map<String, dynamic> extension)?  $default,) {final _that = this;
 switch (_that) {
 case _NormalComicAllInfo() when $default != null:
-return $default(_that.comicInfo,_that.eps,_that.recommend,_that.totalViews,_that.totalLikes,_that.totalComments,_that.isFavourite,_that.isLiked,_that.allowComment,_that.allowLike,_that.allowFavorite,_that.allowDownload,_that.extension);case _:
+return $default(_that.comicInfo,_that.eps,_that.recommend,_that.totalViews,_that.totalLikes,_that.totalComments,_that.isFavourite,_that.isLiked,_that.allowComments,_that.allowLike,_that.allowCollected,_that.allowDownload,_that.extension);case _:
   return null;
 
 }
@@ -230,7 +230,7 @@ return $default(_that.comicInfo,_that.eps,_that.recommend,_that.totalViews,_that
 @JsonSerializable()
 
 class _NormalComicAllInfo implements NormalComicAllInfo {
-  const _NormalComicAllInfo({@JsonKey(name: 'comicInfo') required this.comicInfo, @JsonKey(name: 'eps') required final  List<Ep> eps, @JsonKey(name: 'recommend') required final  List<Recommend> recommend, @JsonKey(name: 'totalViews') this.totalViews = 0, @JsonKey(name: 'totalLikes') this.totalLikes = 0, @JsonKey(name: 'totalComments') this.totalComments = 0, @JsonKey(name: 'isFavourite') this.isFavourite = false, @JsonKey(name: 'isLiked') this.isLiked = false, @JsonKey(name: 'allowComment') this.allowComment = true, @JsonKey(name: 'allowLike') this.allowLike = true, @JsonKey(name: 'allowFavorite') this.allowFavorite = true, @JsonKey(name: 'allowDownload') this.allowDownload = true, @JsonKey(name: 'extension') final  Map<String, dynamic> extension = const {}}): _eps = eps,_recommend = recommend,_extension = extension;
+  const _NormalComicAllInfo({@JsonKey(name: 'comicInfo') required this.comicInfo, @JsonKey(name: 'eps') required final  List<Ep> eps, @JsonKey(name: 'recommend') required final  List<Recommend> recommend, @JsonKey(name: 'totalViews') this.totalViews = 0, @JsonKey(name: 'totalLikes') this.totalLikes = 0, @JsonKey(name: 'totalComments') this.totalComments = 0, @JsonKey(name: 'isFavourite') this.isFavourite = false, @JsonKey(name: 'isLiked') this.isLiked = false, @JsonKey(name: 'allowComments') this.allowComments = false, @JsonKey(name: 'allowLike') this.allowLike = false, @JsonKey(name: 'allowCollected') this.allowCollected = false, @JsonKey(name: 'allowDownload') this.allowDownload = true, @JsonKey(name: 'extension') final  Map<String, dynamic> extension = const {}}): _eps = eps,_recommend = recommend,_extension = extension;
   factory _NormalComicAllInfo.fromJson(Map<String, dynamic> json) => _$NormalComicAllInfoFromJson(json);
 
 @override@JsonKey(name: 'comicInfo') final  ComicInfo comicInfo;
@@ -253,9 +253,9 @@ class _NormalComicAllInfo implements NormalComicAllInfo {
 @override@JsonKey(name: 'totalComments') final  int totalComments;
 @override@JsonKey(name: 'isFavourite') final  bool isFavourite;
 @override@JsonKey(name: 'isLiked') final  bool isLiked;
-@override@JsonKey(name: 'allowComment') final  bool allowComment;
+@override@JsonKey(name: 'allowComments') final  bool allowComments;
 @override@JsonKey(name: 'allowLike') final  bool allowLike;
-@override@JsonKey(name: 'allowFavorite') final  bool allowFavorite;
+@override@JsonKey(name: 'allowCollected') final  bool allowCollected;
 @override@JsonKey(name: 'allowDownload') final  bool allowDownload;
  final  Map<String, dynamic> _extension;
 @override@JsonKey(name: 'extension') Map<String, dynamic> get extension {
@@ -278,16 +278,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NormalComicAllInfo&&(identical(other.comicInfo, comicInfo) || other.comicInfo == comicInfo)&&const DeepCollectionEquality().equals(other._eps, _eps)&&const DeepCollectionEquality().equals(other._recommend, _recommend)&&(identical(other.totalViews, totalViews) || other.totalViews == totalViews)&&(identical(other.totalLikes, totalLikes) || other.totalLikes == totalLikes)&&(identical(other.totalComments, totalComments) || other.totalComments == totalComments)&&(identical(other.isFavourite, isFavourite) || other.isFavourite == isFavourite)&&(identical(other.isLiked, isLiked) || other.isLiked == isLiked)&&(identical(other.allowComment, allowComment) || other.allowComment == allowComment)&&(identical(other.allowLike, allowLike) || other.allowLike == allowLike)&&(identical(other.allowFavorite, allowFavorite) || other.allowFavorite == allowFavorite)&&(identical(other.allowDownload, allowDownload) || other.allowDownload == allowDownload)&&const DeepCollectionEquality().equals(other._extension, _extension));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NormalComicAllInfo&&(identical(other.comicInfo, comicInfo) || other.comicInfo == comicInfo)&&const DeepCollectionEquality().equals(other._eps, _eps)&&const DeepCollectionEquality().equals(other._recommend, _recommend)&&(identical(other.totalViews, totalViews) || other.totalViews == totalViews)&&(identical(other.totalLikes, totalLikes) || other.totalLikes == totalLikes)&&(identical(other.totalComments, totalComments) || other.totalComments == totalComments)&&(identical(other.isFavourite, isFavourite) || other.isFavourite == isFavourite)&&(identical(other.isLiked, isLiked) || other.isLiked == isLiked)&&(identical(other.allowComments, allowComments) || other.allowComments == allowComments)&&(identical(other.allowLike, allowLike) || other.allowLike == allowLike)&&(identical(other.allowCollected, allowCollected) || other.allowCollected == allowCollected)&&(identical(other.allowDownload, allowDownload) || other.allowDownload == allowDownload)&&const DeepCollectionEquality().equals(other._extension, _extension));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,comicInfo,const DeepCollectionEquality().hash(_eps),const DeepCollectionEquality().hash(_recommend),totalViews,totalLikes,totalComments,isFavourite,isLiked,allowComment,allowLike,allowFavorite,allowDownload,const DeepCollectionEquality().hash(_extension));
+int get hashCode => Object.hash(runtimeType,comicInfo,const DeepCollectionEquality().hash(_eps),const DeepCollectionEquality().hash(_recommend),totalViews,totalLikes,totalComments,isFavourite,isLiked,allowComments,allowLike,allowCollected,allowDownload,const DeepCollectionEquality().hash(_extension));
 
 @override
 String toString() {
-  return 'NormalComicAllInfo(comicInfo: $comicInfo, eps: $eps, recommend: $recommend, totalViews: $totalViews, totalLikes: $totalLikes, totalComments: $totalComments, isFavourite: $isFavourite, isLiked: $isLiked, allowComment: $allowComment, allowLike: $allowLike, allowFavorite: $allowFavorite, allowDownload: $allowDownload, extension: $extension)';
+  return 'NormalComicAllInfo(comicInfo: $comicInfo, eps: $eps, recommend: $recommend, totalViews: $totalViews, totalLikes: $totalLikes, totalComments: $totalComments, isFavourite: $isFavourite, isLiked: $isLiked, allowComments: $allowComments, allowLike: $allowLike, allowCollected: $allowCollected, allowDownload: $allowDownload, extension: $extension)';
 }
 
 
@@ -298,7 +298,7 @@ abstract mixin class _$NormalComicAllInfoCopyWith<$Res> implements $NormalComicA
   factory _$NormalComicAllInfoCopyWith(_NormalComicAllInfo value, $Res Function(_NormalComicAllInfo) _then) = __$NormalComicAllInfoCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'comicInfo') ComicInfo comicInfo,@JsonKey(name: 'eps') List<Ep> eps,@JsonKey(name: 'recommend') List<Recommend> recommend,@JsonKey(name: 'totalViews') int totalViews,@JsonKey(name: 'totalLikes') int totalLikes,@JsonKey(name: 'totalComments') int totalComments,@JsonKey(name: 'isFavourite') bool isFavourite,@JsonKey(name: 'isLiked') bool isLiked,@JsonKey(name: 'allowComment') bool allowComment,@JsonKey(name: 'allowLike') bool allowLike,@JsonKey(name: 'allowFavorite') bool allowFavorite,@JsonKey(name: 'allowDownload') bool allowDownload,@JsonKey(name: 'extension') Map<String, dynamic> extension
+@JsonKey(name: 'comicInfo') ComicInfo comicInfo,@JsonKey(name: 'eps') List<Ep> eps,@JsonKey(name: 'recommend') List<Recommend> recommend,@JsonKey(name: 'totalViews') int totalViews,@JsonKey(name: 'totalLikes') int totalLikes,@JsonKey(name: 'totalComments') int totalComments,@JsonKey(name: 'isFavourite') bool isFavourite,@JsonKey(name: 'isLiked') bool isLiked,@JsonKey(name: 'allowComments') bool allowComments,@JsonKey(name: 'allowLike') bool allowLike,@JsonKey(name: 'allowCollected') bool allowCollected,@JsonKey(name: 'allowDownload') bool allowDownload,@JsonKey(name: 'extension') Map<String, dynamic> extension
 });
 
 
@@ -315,7 +315,7 @@ class __$NormalComicAllInfoCopyWithImpl<$Res>
 
 /// Create a copy of NormalComicAllInfo
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? comicInfo = null,Object? eps = null,Object? recommend = null,Object? totalViews = null,Object? totalLikes = null,Object? totalComments = null,Object? isFavourite = null,Object? isLiked = null,Object? allowComment = null,Object? allowLike = null,Object? allowFavorite = null,Object? allowDownload = null,Object? extension = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? comicInfo = null,Object? eps = null,Object? recommend = null,Object? totalViews = null,Object? totalLikes = null,Object? totalComments = null,Object? isFavourite = null,Object? isLiked = null,Object? allowComments = null,Object? allowLike = null,Object? allowCollected = null,Object? allowDownload = null,Object? extension = null,}) {
   return _then(_NormalComicAllInfo(
 comicInfo: null == comicInfo ? _self.comicInfo : comicInfo // ignore: cast_nullable_to_non_nullable
 as ComicInfo,eps: null == eps ? _self._eps : eps // ignore: cast_nullable_to_non_nullable
@@ -325,9 +325,9 @@ as int,totalLikes: null == totalLikes ? _self.totalLikes : totalLikes // ignore:
 as int,totalComments: null == totalComments ? _self.totalComments : totalComments // ignore: cast_nullable_to_non_nullable
 as int,isFavourite: null == isFavourite ? _self.isFavourite : isFavourite // ignore: cast_nullable_to_non_nullable
 as bool,isLiked: null == isLiked ? _self.isLiked : isLiked // ignore: cast_nullable_to_non_nullable
-as bool,allowComment: null == allowComment ? _self.allowComment : allowComment // ignore: cast_nullable_to_non_nullable
+as bool,allowComments: null == allowComments ? _self.allowComments : allowComments // ignore: cast_nullable_to_non_nullable
 as bool,allowLike: null == allowLike ? _self.allowLike : allowLike // ignore: cast_nullable_to_non_nullable
-as bool,allowFavorite: null == allowFavorite ? _self.allowFavorite : allowFavorite // ignore: cast_nullable_to_non_nullable
+as bool,allowCollected: null == allowCollected ? _self.allowCollected : allowCollected // ignore: cast_nullable_to_non_nullable
 as bool,allowDownload: null == allowDownload ? _self.allowDownload : allowDownload // ignore: cast_nullable_to_non_nullable
 as bool,extension: null == extension ? _self._extension : extension // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,

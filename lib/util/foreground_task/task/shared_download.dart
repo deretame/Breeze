@@ -1,6 +1,6 @@
 import 'package:pool/pool.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
-import 'package:zephyr/type/enum.dart';
 import '../../download/download_progress_reporter.dart';
 
 class DownloadImageJob {
@@ -18,7 +18,7 @@ class DownloadImageJob {
 }
 
 Future<String> downloadCoverAsset({
-  required From from,
+  required String from,
   required String url,
   required String path,
   required String cartoonId,
@@ -36,7 +36,7 @@ Future<String> downloadCoverAsset({
 }
 
 Future<void> downloadImageJobs({
-  required From from,
+  required String from,
   required List<DownloadImageJob> jobs,
   required bool slowDownload,
   int? concurrency,
@@ -75,7 +75,7 @@ Future<void> downloadImageJobs({
     return;
   }
 
-  final pool = Pool(concurrency ?? (from == From.jm ? 5 : 10));
+  final pool = Pool(concurrency ?? (from == kJmPluginUuid ? 5 : 10));
   var progress = 0;
   var lastReportedPercent = 0;
 
@@ -103,7 +103,7 @@ Future<void> downloadImageJobs({
 }
 
 Future<void> _downloadSingleJob({
-  required From from,
+  required String from,
   required DownloadImageJob job,
   required String qjsRuntimeName,
   required String qjsTaskGroupKey,

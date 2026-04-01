@@ -8,9 +8,9 @@ import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/json/common_ep_info_json/common_ep_info_json.dart';
 import 'package:zephyr/page/comic_read/widgets/image/read_image_widget.dart';
 import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
+import 'package:zephyr/type/enum.dart';
 
 class ColumnModeWidget extends StatefulWidget {
   final int length;
@@ -20,7 +20,7 @@ class ColumnModeWidget extends StatefulWidget {
   final String epsId;
   final ListObserverController observerController;
   final ScrollController scrollController;
-  final From from;
+  final String from;
   final ScrollPhysics? parentPhysics;
   final bool disableScroll;
   final ReaderVolumeController volumeController;

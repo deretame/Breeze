@@ -1,14 +1,26 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:objectbox/objectbox.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
+import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/util/get_path.dart';
-import 'package:zephyr/util/jm_url_set.dart';
+
+const _legacyJmImageBaseUrl = 'https://cdn-msp12.jmdanjonproxy.xyz';
+
+const String _kBikaPluginUuid = '0a0e5858-a467-4702-994a-79e608a4589d';
+const String _kJmPluginUuid = 'bf99008d-010b-4f17-ac7c-61a9b57dc3d9';
+
+String _legacyJmCoverUrl(String id) {
+  return '$_legacyJmImageBaseUrl/media/albums/${id}_3x4.jpg';
+}
+
+String _legacyJmImageUrl(String chapterId, String imageName) {
+  return '$_legacyJmImageBaseUrl/media/photos/$chapterId/$imageName';
+}
 
 Future<void> migrateV1ToV2(ObjectBox objectbox) async {
   _migrateLegacySearchHistory(objectbox);
@@ -18,6 +30,7 @@ Future<void> migrateV1ToV2(ObjectBox objectbox) async {
   final favorites = _buildFavorites(objectbox);
   final histories = _buildHistories(objectbox, proxy);
   final downloads = await _buildDownloads(objectbox, proxy);
+  await _seedBuiltinPlugins(objectbox);
 
   objectbox.store.runInTransaction(TxMode.write, () {
     objectbox.unifiedFavoriteBox.removeAll();
@@ -36,6 +49,68 @@ Future<void> migrateV1ToV2(ObjectBox objectbox) async {
   });
 
   _debugLogMigrationSnapshot('after', _buildUnifiedSnapshot(objectbox));
+}
+
+Future<void> _seedBuiltinPlugins(ObjectBox objectbox) async {
+  final now = DateTime.now().toUtc();
+  final pluginsRoot = await getPluginsPath();
+  final bikaDir = Directory(
+    '$pluginsRoot${Platform.pathSeparator}$_kBikaPluginUuid',
+  );
+  final jmDir = Directory(
+    '$pluginsRoot${Platform.pathSeparator}$_kJmPluginUuid',
+  );
+  if (!await bikaDir.exists()) {
+    await bikaDir.create(recursive: true);
+  }
+  if (!await jmDir.exists()) {
+    await jmDir.create(recursive: true);
+  }
+
+  final existing = objectbox.pluginInfoBox
+      .query(
+        PluginInfo_.uuid
+            .equals(_kBikaPluginUuid)
+            .or(PluginInfo_.uuid.equals(_kJmPluginUuid)),
+      )
+      .build()
+      .find();
+  final existingByUuid = {for (final item in existing) item.uuid: item};
+
+  final upserts = <PluginInfo>[
+    _buildBuiltinPluginInfo(
+      existingByUuid[_kBikaPluginUuid],
+      uuid: _kBikaPluginUuid,
+      now: now,
+    ),
+    _buildBuiltinPluginInfo(
+      existingByUuid[_kJmPluginUuid],
+      uuid: _kJmPluginUuid,
+      now: now,
+    ),
+  ];
+  objectbox.pluginInfoBox.putMany(upserts);
+}
+
+PluginInfo _buildBuiltinPluginInfo(
+  PluginInfo? existing, {
+  required String uuid,
+  required DateTime now,
+}) {
+  return PluginInfo(
+    id: existing?.id ?? 0,
+    uuid: uuid,
+    version: existing?.version ?? '0.0.0',
+    insertedAt: existing?.insertedAt ?? now,
+    updatedAt: now,
+    isEnabled: existing?.isEnabled ?? true,
+    isDeleted: false,
+    deletedAt: null,
+    lastLoadSuccess: existing?.lastLoadSuccess ?? false,
+    lastLoadError: existing?.lastLoadError,
+    debug: existing?.debug ?? false,
+    debugUrl: existing?.debugUrl,
+  );
 }
 
 void _migrateLegacySearchHistory(ObjectBox objectbox) {
@@ -198,15 +273,15 @@ Future<List<UnifiedComicDownload>> _buildDownloads(
 
 UnifiedComicFavorite _jmFavoriteToUnified(JmFavorite item) {
   return UnifiedComicFavorite(
-    uniqueKey: _uniqueKey('jm', item.comicId),
-    source: 'jm',
+    uniqueKey: _uniqueKey(_kJmPluginUuid, item.comicId),
+    source: _kJmPluginUuid,
     comicId: item.comicId,
     title: item.name,
     description: item.description,
     cover: _coverMap(
       normal.ComicImage(
         id: item.comicId,
-        url: getJmCoverUrl(item.comicId),
+        url: _legacyJmCoverUrl(item.comicId),
         name: '${item.comicId}.jpg',
         extension: {'path': '${item.comicId}.jpg'},
       ),
@@ -273,8 +348,8 @@ UnifiedComicHistory _bikaHistoryToUnified(BikaComicHistory item, int proxy) {
     kind: 'creator',
   );
   return UnifiedComicHistory(
-    uniqueKey: _uniqueKey('bika', item.comicId),
-    source: 'bika',
+    uniqueKey: _uniqueKey(_kBikaPluginUuid, item.comicId),
+    source: _kBikaPluginUuid,
     comicId: item.comicId,
     title: item.title,
     description: item.description,
@@ -363,15 +438,15 @@ UnifiedComicHistory _bikaHistoryToUnified(BikaComicHistory item, int proxy) {
 
 UnifiedComicHistory _jmHistoryToUnified(JmHistory item) {
   return UnifiedComicHistory(
-    uniqueKey: _uniqueKey('jm', item.comicId),
-    source: 'jm',
+    uniqueKey: _uniqueKey(_kJmPluginUuid, item.comicId),
+    source: _kJmPluginUuid,
     comicId: item.comicId,
     title: item.name,
     description: item.description,
     cover: _coverMap(
       normal.ComicImage(
         id: item.comicId,
-        url: getJmCoverUrl(item.comicId),
+        url: _legacyJmCoverUrl(item.comicId),
         name: '${item.comicId}.jpg',
         extension: {'path': '${item.comicId}.jpg'},
       ),
@@ -586,9 +661,9 @@ Future<UnifiedComicDownload> _bikaDownloadToUnified(
     totalComments: item.totalComments,
     isFavourite: item.isFavourite,
     isLiked: item.isLiked,
-    allowComment: item.allowComment,
+    allowComments: item.allowComment,
     allowLike: true,
-    allowFavorite: true,
+    allowCollected: true,
     allowDownload: item.allowDownload,
     extension: {
       'downloadChapters': storedChapters
@@ -609,8 +684,8 @@ Future<UnifiedComicDownload> _bikaDownloadToUnified(
   );
 
   return UnifiedComicDownload(
-    uniqueKey: _uniqueKey('bika', item.comicId),
-    source: 'bika',
+    uniqueKey: _uniqueKey(_kBikaPluginUuid, item.comicId),
+    source: _kBikaPluginUuid,
     comicId: item.comicId,
     title: item.title,
     description: item.description,
@@ -638,7 +713,11 @@ Future<UnifiedComicDownload> _bikaDownloadToUnified(
         )
         .toList(),
     detailJson: jsonEncode(normalizedDetail),
-    storageRoot: _downloadStorageRoot(downloadRoot, 'bika', item.comicId),
+    storageRoot: _downloadStorageRoot(
+      downloadRoot,
+      _kBikaPluginUuid,
+      item.comicId,
+    ),
     createdAt: item.downloadTime,
     updatedAt: item.downloadTime,
     downloadedAt: item.downloadTime,
@@ -668,7 +747,7 @@ Future<UnifiedComicDownload> _jmDownloadToUnified(
         id: _legacyImageId(raw),
         name: imageName,
         path: _sanitizeLegacyStoredPath(raw, fallbackName: imageName),
-        url: getJmImagesUrl(chapterId, raw),
+        url: _legacyJmImageUrl(chapterId, raw),
       );
     }).toList();
     return UnifiedComicDownloadStoredChapter(
@@ -712,8 +791,8 @@ Future<UnifiedComicDownload> _jmDownloadToUnified(
   cover['extension'] = extension;
 
   return UnifiedComicDownload(
-    uniqueKey: _uniqueKey('jm', item.comicId),
-    source: 'jm',
+    uniqueKey: _uniqueKey(_kJmPluginUuid, item.comicId),
+    source: _kJmPluginUuid,
     comicId: item.comicId,
     title: item.name,
     description: item.description,
@@ -726,9 +805,9 @@ Future<UnifiedComicDownload> _jmDownloadToUnified(
     totalComments: normalInfo.totalComments,
     isFavourite: normalInfo.isFavourite,
     isLiked: normalInfo.isLiked,
-    allowComment: normalInfo.allowComment,
+    allowComment: normalInfo.allowComments,
     allowLike: normalInfo.allowLike,
-    allowFavorite: normalInfo.allowFavorite,
+    allowFavorite: normalInfo.allowCollected,
     allowDownload: normalInfo.allowDownload,
     chapters: storedChapters
         .map(
@@ -741,7 +820,11 @@ Future<UnifiedComicDownload> _jmDownloadToUnified(
         )
         .toList(),
     detailJson: jsonEncode(normalizedDetail),
-    storageRoot: _downloadStorageRoot(downloadRoot, 'jm', item.comicId),
+    storageRoot: _downloadStorageRoot(
+      downloadRoot,
+      _kJmPluginUuid,
+      item.comicId,
+    ),
     createdAt: item.downloadTime,
     updatedAt: item.downloadTime,
     downloadedAt: item.downloadTime,
@@ -780,7 +863,7 @@ normal.NormalComicAllInfo _jmDownloadInfoToNormal(Map<String, dynamic> info) {
       description: info['description']?.toString() ?? '',
       cover: normal.ComicImage(
         id: info['id']?.toString() ?? '',
-        url: getJmCoverUrl(info['id']?.toString() ?? ''),
+        url: _legacyJmCoverUrl(info['id']?.toString() ?? ''),
         name: '${info['id']?.toString() ?? ''}.jpg',
         extension: {
           'path': _sanitizeLegacyStoredPath(
@@ -855,9 +938,9 @@ normal.NormalComicAllInfo _jmDownloadInfoToNormal(Map<String, dynamic> info) {
     totalComments: _toInt(info['comment_total']),
     isFavourite: info['is_favorite'] == true,
     isLiked: info['liked'] == true,
-    allowComment: true,
+    allowComments: true,
     allowLike: true,
-    allowFavorite: true,
+    allowCollected: true,
     allowDownload: true,
   );
 }
@@ -1095,14 +1178,14 @@ String _buildLegacyBikaImageUrl(
 Map<String, dynamic> _jmSearchAction(String keyword) {
   return {
     'type': 'openSearch',
-    'payload': {'source': 'jm', 'keyword': keyword},
+    'payload': {'source': _kJmPluginUuid, 'keyword': keyword},
   };
 }
 
 Map<String, dynamic> _bikaSearchAction({required String keyword}) {
   return {
     'type': 'openSearch',
-    'payload': {'source': 'bika', 'keyword': keyword},
+    'payload': {'source': _kBikaPluginUuid, 'keyword': keyword},
   };
 }
 
@@ -1110,7 +1193,7 @@ Map<String, dynamic> _bikaCategoryAction(String category) {
   return {
     'type': 'openSearch',
     'payload': {
-      'source': 'bika',
+      'source': _kBikaPluginUuid,
       'extern': {
         'categories': [category],
       },
@@ -1122,7 +1205,7 @@ Map<String, dynamic> _bikaCreatorAction(String creatorId, String creatorName) {
   return {
     'type': 'openSearch',
     'payload': {
-      'source': 'bika',
+      'source': _kBikaPluginUuid,
       'keyword': creatorName,
       'extern': {'mode': 'creator', 'creatorId': creatorId},
       'url': 'https://picaapi.picacomic.com/comics?ca=$creatorId&s=ld&page=1',

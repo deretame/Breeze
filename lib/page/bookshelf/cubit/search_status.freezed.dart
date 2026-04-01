@@ -209,7 +209,7 @@ return $default(_that.keyword,_that.sort,_that.categories,_that.sources);case _:
 
 
 class _SearchStatusState implements SearchStatusState {
-  const _SearchStatusState({this.keyword = "", this.sort = "dd", final  List<String> categories = const <String>[], final  List<String> sources = const <String>['bika', 'jm']}): _categories = categories,_sources = sources;
+  const _SearchStatusState({this.keyword = "", this.sort = "dd", final  List<String> categories = const <String>[], final  List<String> sources = const <String>[kBikaPluginUuid, kJmPluginUuid]}): _categories = categories,_sources = sources;
   
 
 @override@JsonKey() final  String keyword;

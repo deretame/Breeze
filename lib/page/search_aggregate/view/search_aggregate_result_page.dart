@@ -2,10 +2,11 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/cubit/plugin_registry_cubit.dart';
+import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search/widget/source_select_dialog.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
@@ -21,7 +22,7 @@ class SearchAggregateResultPage extends StatelessWidget
     super.key,
     required this.searchEvent,
     this.searchCubit,
-    this.selectedSources = const <String, bool>{'jm': true, 'bika': true},
+    this.selectedSources = const <String, bool>{},
   });
 
   final SearchEvent searchEvent;
@@ -30,6 +31,13 @@ class SearchAggregateResultPage extends StatelessWidget
 
   @override
   Widget wrappedRoute(BuildContext context) {
+    final pluginStates = context.read<PluginRegistryCubit>().state;
+    final visiblePlugins =
+        pluginStates.values.where((state) => !state.isDeleted).toList()
+          ..sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
+    final initial = selectedSources.isNotEmpty
+        ? selectedSources
+        : {for (final plugin in visiblePlugins) plugin.uuid: plugin.isEnabled};
     return MultiBlocProvider(
       providers: [
         searchCubit != null
@@ -38,10 +46,9 @@ class SearchAggregateResultPage extends StatelessWidget
                 create: (_) => SearchCubit(searchEvent.searchStates),
               ),
         BlocProvider(
-          create: (_) => AggregateSearchCubit(
-            searchEvent,
-            initialSelectedSources: selectedSources,
-          )..search(),
+          create: (_) =>
+              AggregateSearchCubit(searchEvent, initialSelectedSources: initial)
+                ..search(),
         ),
       ],
       child: this,
@@ -150,13 +157,38 @@ class _SearchBarTrigger extends StatelessWidget {
 
   Future<void> _showSourceDialog(BuildContext context) async {
     final cubit = context.read<AggregateSearchCubit>();
+    final options = _sourceOptions(context, cubit.state.selectedSources.keys);
     final selected = await showSourceSelectDialog(
       context,
       initial: cubit.state.selectedSources,
+      sourceOptions: options,
     );
     if (selected != null) {
       await cubit.applySelectedSources(selected);
     }
+  }
+
+  List<({String pluginId, String title})> _sourceOptions(
+    BuildContext context,
+    Iterable<String> selectedKeys,
+  ) {
+    final pluginStates = context.read<PluginRegistryCubit>().state;
+    final ordered =
+        pluginStates.values.where((state) => !state.isDeleted).toList()
+          ..sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
+    final selectedSet = selectedKeys.toSet();
+    final result = <({String pluginId, String title})>[];
+    for (final plugin in ordered) {
+      if (!selectedSet.contains(plugin.uuid)) {
+        continue;
+      }
+      final info = PluginRegistryService.I.getCachedPluginInfo(plugin.uuid);
+      final title = info?['name']?.toString().trim().isNotEmpty == true
+          ? info!['name'].toString().trim()
+          : plugin.uuid;
+      result.add((pluginId: plugin.uuid, title: title));
+    }
+    return result;
   }
 }
 
@@ -210,14 +242,25 @@ class _ResultList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final children = <Widget>[];
-    for (final from in const [From.jm, From.bika]) {
-      final selected = state.selectedSources[from] ?? false;
+    final pluginStates = context.watch<PluginRegistryCubit>().state;
+    final pluginIds = state.selectedSources.keys.toList()
+      ..sort((a, b) {
+        final aState = pluginStates[a];
+        final bState = pluginStates[b];
+        final aTime =
+            aState?.insertedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final bTime =
+            bState?.insertedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        return aTime.compareTo(bTime);
+      });
+    for (final pluginId in pluginIds) {
+      final selected = state.selectedSources[pluginId] ?? false;
       if (!selected) {
         continue;
       }
 
-      final items = state.results[from] ?? const <dynamic>[];
-      final error = state.errors[from] ?? '';
+      final items = state.results[pluginId] ?? const <dynamic>[];
+      final error = state.errors[pluginId] ?? '';
 
       final shouldShowResultSection = items.isNotEmpty || !state.showHasResults;
       if (shouldShowResultSection) {
@@ -231,9 +274,9 @@ class _ResultList extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SectionHeader(
-                  title: _sourceTitle(from),
+                  title: _sourceTitle(pluginId),
                   subtitle: '${items.length} 条',
-                  onTap: () => _openSourceSearch(context, from),
+                  onTap: () => _openSourceSearch(context, pluginId),
                 ),
                 if (entries.isNotEmpty)
                   Padding(
@@ -262,7 +305,7 @@ class _ResultList extends StatelessWidget {
             child: Card(
               child: ListTile(
                 leading: const Icon(Icons.error_outline),
-                title: Text('${_sourceTitle(from)} 加载失败'),
+                title: Text('${_sourceTitle(pluginId)} 加载失败'),
                 subtitle: Text(
                   error,
                   maxLines: 2,
@@ -282,16 +325,21 @@ class _ResultList extends StatelessWidget {
     return ListView(children: children);
   }
 
-  String _sourceTitle(From from) {
-    return from == From.jm ? '禁漫' : '哔咔';
+  String _sourceTitle(String pluginId) {
+    final info = PluginRegistryService.I.getCachedPluginInfo(pluginId);
+    final name = info?['name']?.toString().trim() ?? '';
+    if (name.isNotEmpty) {
+      return name;
+    }
+    return pluginId;
   }
 
-  void _openSourceSearch(BuildContext context, From from) {
+  void _openSourceSearch(BuildContext context, String pluginId) {
     context.pushRoute(
       SearchResultRoute(
         key: ValueKey(const Uuid().v4()),
         searchEvent: searchEvent.copyWith(
-          searchStates: searchEvent.searchStates.copyWith(from: from),
+          searchStates: searchEvent.searchStates.copyWith(from: pluginId),
           page: 1,
         ),
         searchCubit: context.read<SearchCubit>(),

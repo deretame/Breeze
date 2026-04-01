@@ -8,7 +8,6 @@ import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/page/search_result/widgets/bottom_loader.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/creator_link_card.dart';
 import 'package:zephyr/widgets/error_view.dart';
@@ -66,13 +65,13 @@ class PluginPagedCreatorListState extends Equatable {
 
 class PluginPagedCreatorListCubit extends Cubit<PluginPagedCreatorListState> {
   PluginPagedCreatorListCubit({
-    required this.from,
+    required this.pluginId,
     required this.fnPath,
     required this.coreBuilder,
     required this.externBuilder,
   }) : super(const PluginPagedCreatorListState());
 
-  final From from;
+  final String pluginId;
   final String fnPath;
   final PluginCreatorPageCoreBuilder coreBuilder;
   final PluginCreatorPageExternBuilder externBuilder;
@@ -108,7 +107,7 @@ class PluginPagedCreatorListCubit extends Cubit<PluginPagedCreatorListState> {
 
     try {
       final pluginResponse = await callUnifiedComicPlugin(
-        from: from,
+        pluginId: pluginId,
         fnPath: fnPath,
         core: coreBuilder(page),
         extern: externBuilder(page),
@@ -145,13 +144,13 @@ class PluginPagedCreatorListCubit extends Cubit<PluginPagedCreatorListState> {
 class PluginPagedCreatorListView extends StatelessWidget {
   const PluginPagedCreatorListView({
     super.key,
-    required this.from,
+    required this.pluginId,
     required this.fnPath,
     required this.coreBuilder,
     required this.externBuilder,
   });
 
-  final From from;
+  final String pluginId;
   final String fnPath;
   final PluginCreatorPageCoreBuilder coreBuilder;
   final PluginCreatorPageExternBuilder externBuilder;
@@ -160,7 +159,7 @@ class PluginPagedCreatorListView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => PluginPagedCreatorListCubit(
-        from: from,
+        pluginId: pluginId,
         fnPath: fnPath,
         coreBuilder: coreBuilder,
         externBuilder: externBuilder,
@@ -286,7 +285,7 @@ class _PluginPagedCreatorListBodyState
             from: item.from,
             imageKey: item.id,
             errorAssetPath:
-                item.extra['errorAssetPath']?.toString() ??
+                item.extern['errorAssetPath']?.toString() ??
                 'asset/image/error_image/404.png',
             infoChildren: [
               if (item.subtitle.trim().isNotEmpty) Text(item.subtitle),

@@ -105,7 +105,7 @@ class DownloadQueueManager {
     final source = dbTask.taskInfo?.from;
     if (source != null && source.isNotEmpty) {
       unawaited(
-        cancelTrackedQjsTasks(source: source, taskGroupKey: dbTask.comicId),
+        cancelTrackedQjsTasks(pluginId: source, taskGroupKey: dbTask.comicId),
       );
     }
 

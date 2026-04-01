@@ -6,7 +6,6 @@ import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search/widget/advanced_search_dialog.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
 class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
@@ -148,7 +147,7 @@ class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(kToolbarHeight + 1); // 高度要加上分割线
 
   Future<_AdvancedSearchScheme?> _loadAdvancedSearchScheme(
-    From from,
+    String from,
     Map<String, dynamic> extern,
   ) async {
     Map<String, dynamic> response;
@@ -206,7 +205,7 @@ class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
       }
     }
     return _AdvancedSearchScheme(
-      source: response['source']?.toString() ?? from.name,
+      source: response['source']?.toString() ?? from,
       fields: fields,
       values: values,
     );

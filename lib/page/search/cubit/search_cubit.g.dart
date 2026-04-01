@@ -8,7 +8,7 @@ part of 'search_cubit.dart';
 
 _SearchStates _$SearchStatesFromJson(Map<String, dynamic> json) =>
     _SearchStates(
-      from: $enumDecodeNullable(_$FromEnumMap, json['from']) ?? From.jm,
+      from: json['from'] as String? ?? kJmPluginUuid,
       searchKeyword: json['searchKeyword'] as String? ?? "",
       sortBy: (json['sortBy'] as num?)?.toInt() ?? 1,
       pluginExtern:
@@ -18,14 +18,8 @@ _SearchStates _$SearchStatesFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$SearchStatesToJson(_SearchStates instance) =>
     <String, dynamic>{
-      'from': _$FromEnumMap[instance.from]!,
+      'from': instance.from,
       'searchKeyword': instance.searchKeyword,
       'sortBy': instance.sortBy,
       'pluginExtern': instance.pluginExtern,
     };
-
-const _$FromEnumMap = {
-  From.bika: 'bika',
-  From.jm: 'jm',
-  From.unknown: 'unknown',
-};

@@ -8,9 +8,9 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
-import 'package:zephyr/type/enum.dart';
 
 part 'get_comic_info_event.dart';
 part 'get_comic_info_state.dart';
@@ -42,18 +42,28 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
       late dynamic comicInfo;
 
       if (event.type == ComicEntryType.download) {
-        comicInfo = objectbox.unifiedDownloadBox
-            .query(
-              UnifiedComicDownload_.uniqueKey.equals(
-                '${event.from.name}:${event.comicId}',
-              ),
-            )
-            .build()
-            .findFirst();
+        comicInfo =
+            objectbox.unifiedDownloadBox
+                .query(
+                  UnifiedComicDownload_.uniqueKey.equals(
+                    '${event.pluginId}:${event.comicId}',
+                  ),
+                )
+                .build()
+                .findFirst() ??
+            objectbox.unifiedDownloadBox
+                .query(
+                  UnifiedComicDownload_.uniqueKey.equals(
+                    '${event.from}:${event.comicId}',
+                  ),
+                )
+                .build()
+                .findFirst();
         if (comicInfo == null) {
           final pluginResult = await getComicDetailByPlugin(
             event.comicId,
             event.from,
+            pluginId: event.pluginId,
           );
           comicInfo = pluginResult.source;
           normalComicInfo = pluginResult.normalInfo;
@@ -66,6 +76,7 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
         final pluginResult = await getComicDetailByPlugin(
           event.comicId,
           event.from,
+          pluginId: event.pluginId,
         );
         comicInfo = pluginResult.source;
         normalComicInfo = pluginResult.normalInfo;

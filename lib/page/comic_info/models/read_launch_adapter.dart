@@ -1,10 +1,9 @@
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/type/enum.dart';
 
 String resolveReadComicId(
   dynamic comicInfo,
-  From _, {
+  String _, {
   required bool isDownload,
 }) {
   if (!isDownload && comicInfo is PluginComicDetailSource) {
@@ -18,7 +17,7 @@ String resolveReadComicId(
   throw StateError('无法解析阅读 comicId: ${comicInfo.runtimeType}');
 }
 
-int resolveReadEpsCount(dynamic comicInfo, From _, {required bool isDownload}) {
+int resolveReadEpsCount(dynamic comicInfo, String _, {required bool isDownload}) {
   if (!isDownload && comicInfo is PluginComicDetailSource) {
     return comicInfo.normalInfo.eps.length;
   }

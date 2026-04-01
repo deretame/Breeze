@@ -14,7 +14,8 @@ _ComicSimplifyEntryInfo _$ComicSimplifyEntryInfoFromJson(
   fileServer: json['fileServer'] as String,
   path: json['path'] as String,
   pictureType: $enumDecode(_$PictureTypeEnumMap, json['pictureType']),
-  from: $enumDecode(_$FromEnumMap, json['from']),
+  source: json['source'] as String? ?? '',
+  from: json['from'] as String,
 );
 
 Map<String, dynamic> _$ComicSimplifyEntryInfoToJson(
@@ -25,7 +26,8 @@ Map<String, dynamic> _$ComicSimplifyEntryInfoToJson(
   'fileServer': instance.fileServer,
   'path': instance.path,
   'pictureType': _$PictureTypeEnumMap[instance.pictureType]!,
-  'from': _$FromEnumMap[instance.from]!,
+  'source': instance.source,
+  'from': instance.from,
 };
 
 const _$PictureTypeEnumMap = {
@@ -37,10 +39,4 @@ const _$PictureTypeEnumMap = {
   PictureType.category: 'category',
   PictureType.avatar: 'avatar',
   PictureType.unknown: 'unknown',
-};
-
-const _$FromEnumMap = {
-  From.bika: 'bika',
-  From.jm: 'jm',
-  From.unknown: 'unknown',
 };

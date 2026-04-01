@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
-import 'package:zephyr/type/enum.dart';
 
 class AdvancedSearchDialog extends StatefulWidget {
   final SearchStates initialState;
@@ -76,22 +76,22 @@ class _AdvancedSearchDialogState extends State<AdvancedSearchDialog> {
       children: [
         ChoiceChip(
           label: const Text('哔咔 (Bika)'),
-          selected: _tempState.from == From.bika,
+          selected: _tempState.from == kBikaPluginUuid,
           onSelected: (selected) {
             if (selected) {
               setState(() {
-                _tempState = _tempState.copyWith(from: From.bika);
+                _tempState = _tempState.copyWith(from: kBikaPluginUuid);
               });
             }
           },
         ),
         ChoiceChip(
           label: const Text('禁漫 (JM)'),
-          selected: _tempState.from == From.jm,
+          selected: _tempState.from == kJmPluginUuid,
           onSelected: (selected) {
             if (selected) {
               setState(() {
-                _tempState = _tempState.copyWith(from: From.jm);
+                _tempState = _tempState.copyWith(from: kJmPluginUuid);
               });
             }
           },
@@ -103,7 +103,7 @@ class _AdvancedSearchDialogState extends State<AdvancedSearchDialog> {
   Widget _buildSortRow() {
     final Map<int, String> sortOptions;
 
-    if (_tempState.from == From.bika) {
+    if (_tempState.from == kBikaPluginUuid) {
       sortOptions = {1: '从新到旧', 2: '从旧到新', 3: '最多点赞', 4: '最多观看'};
     } else {
       sortOptions = {1: '从新到旧', 2: '最多观看', 3: '最多图片', 4: '最多点赞'};

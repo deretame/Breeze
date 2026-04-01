@@ -10,13 +10,9 @@ import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
-import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/util/auto_check_in.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/download/download_queue_manager.dart';
-import 'package:zephyr/util/download_plugin.dart';
 import 'package:zephyr/util/foreground_task/init.dart';
-import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/memory/memory_overlay_widget.dart';
 import 'package:zephyr/util/notice.dart';
@@ -48,6 +44,8 @@ class _NavigationBarState extends State<NavigationBar> {
   // _selectedIndex 用于控制平板侧边导航栏和页面切换
   int _selectedIndex = 0;
   final debouncer = Debouncer(milliseconds: 100);
+  DateTime? _lastLoginNavigateAt;
+  String? _lastLoginPluginId;
   final List<ScrollController> _scrollControllers = [];
   late HideOnScrollSettings hideOnScrollSettings;
 
@@ -62,8 +60,8 @@ class _NavigationBarState extends State<NavigationBar> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       checkUpdate(context);
-      bikaSignIn(context);
-      jmLogin(context);
+      // bikaSignIn(context);
+      // jmLogin(context);
       _autoSync();
       manageCacheSize(context);
       resetDownloadTasks();
@@ -74,7 +72,6 @@ class _NavigationBarState extends State<NavigationBar> {
       } else {
         DownloadQueueManager.instance.watchTasks();
       }
-      downloadPlugin();
       setLogHttpForward(url: "http://127.0.0.1:7878/log");
     });
     final configuredIndex = objectbox.userSettingBox
@@ -110,20 +107,16 @@ class _NavigationBarState extends State<NavigationBar> {
     });
 
     eventBus.on<NeedLogin>().listen((event) {
-      _goToLoginPage(event.from);
+      _goToLoginPage(
+        event.from,
+        loginScheme: event.scheme,
+        loginData: event.data,
+        message: event.message,
+      );
     });
 
     eventBus.on<ToastEvent>().listen((event) {
       _showToast(event);
-    });
-
-    Future.delayed(const Duration(seconds: 1), () async {
-      try {
-        await Future.wait([setFastestUrlIndex(), setFastestImagesUrlIndex()]);
-        showSuccessToast("禁漫已自动选择最快线路");
-      } catch (e) {
-        logger.e(e);
-      }
     });
   }
 
@@ -272,40 +265,60 @@ class _NavigationBarState extends State<NavigationBar> {
       if (globalState.syncNotify) {
         showSuccessToast("自动同步成功！");
       }
-      if (mounted) {
-        jmLogin(context);
-      }
     } catch (e, stackTrace) {
       logger.e(e.toString(), stackTrace: stackTrace);
       showErrorToast("请检查网络连接或稍后再试。\n${e.toString()}", title: "自动同步失败");
     }
   }
 
-  void _goToLoginPage(From from) {
+  void _goToLoginPage(
+    String from, {
+    Map<String, dynamic>? loginScheme,
+    Map<String, dynamic>? loginData,
+    String? message,
+  }) {
     try {
-      final navigator = Navigator.maybeOf(context); // ← 使用 maybeOf
+      final pluginId = from.trim();
+      if (pluginId.isEmpty) {
+        logger.w('Skip login navigation: empty plugin id');
+        return;
+      }
+
+      final navigator = Navigator.maybeOf(context);
       if (navigator == null) {
         logger.w('Navigator not available');
         return;
       }
 
-      String allRoutes = "";
-      for (final route in navigator.widget.pages) {
-        // 安全访问 route.name
-        final routeName = route.name ?? 'UnknownRoute'; // ← 处理 null
-        allRoutes += "$routeName ";
-      }
-
-      logger.d('All routes: $allRoutes');
-
       debouncer.run(() {
-        if (!allRoutes.contains('LoginRoute')) {
-          showErrorToast('登录过期，请重新登录');
+        if (!mounted) {
+          return;
+        }
 
-          // 确保 mounted
-          if (mounted) {
-            context.navigateTo(LoginRoute(from: from));
-          }
+        final now = DateTime.now();
+        final recentDuplicate =
+            _lastLoginPluginId == pluginId &&
+            _lastLoginNavigateAt != null &&
+            now.difference(_lastLoginNavigateAt!).inMilliseconds < 1500;
+        if (recentDuplicate) {
+          return;
+        }
+
+        final hasLoginRoute = navigator.widget.pages.any(
+          (route) => (route.name ?? '').contains('LoginRoute'),
+        );
+        if (!hasLoginRoute) {
+          showErrorToast(message ?? '登录过期，请重新登录');
+
+          _lastLoginNavigateAt = now;
+          _lastLoginPluginId = pluginId;
+          context.navigateTo(
+            LoginRoute(
+              from: pluginId,
+              loginScheme: loginScheme,
+              loginData: loginData,
+            ),
+          );
         }
       });
     } catch (e, stackTrace) {

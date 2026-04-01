@@ -35,7 +35,8 @@ fn download_to_file(url: &str, destination: &Path) {
         .call()
         .unwrap_or_else(|err| panic!("failed to download {resolved_url}: {err}"));
 
-    let mut reader = response.into_reader();
+    let mut body = response.into_body();
+    let mut reader = body.as_reader();
     let mut bytes = Vec::new();
     std::io::copy(&mut reader, &mut bytes)
         .unwrap_or_else(|err| panic!("failed to read response from {resolved_url}: {err}"));

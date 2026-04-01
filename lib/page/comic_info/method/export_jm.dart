@@ -7,14 +7,14 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/compressed/compressed.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 Future<void> jmExportComicAsFolder(String comicId, {String? exportPath}) async {
-  final download = _getDownload(comicId, 'jm');
+  final download = _getDownload(comicId, kJmPluginUuid);
   final detail = _exportDetail(download);
   final title = download.title;
   final root = exportPath ?? await createDownloadDir();
@@ -40,7 +40,7 @@ Future<void> jmExportComicAsFolder(String comicId, {String? exportPath}) async {
 }
 
 Future<void> jmExportComicAsZip(String comicId, {String? exportPath}) async {
-  final download = _getDownload(comicId, 'jm');
+  final download = _getDownload(comicId, kJmPluginUuid);
   final detail = _exportDetail(download);
   final title = download.title;
   final finalZipPath =
@@ -124,7 +124,7 @@ Future<String?> _tryDownloadCover(
   if (url.isEmpty && path.isEmpty) return null;
   try {
     return await downloadPicture(
-      from: From.jm,
+      from: kJmPluginUuid,
       url: url,
       path: path,
       cartoonId: comicId,

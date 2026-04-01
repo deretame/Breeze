@@ -1,11 +1,12 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/cubit/plugin_registry_cubit.dart';
+import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search/method/on_search.dart';
 import 'package:zephyr/page/search/widget/advanced_search_dialog.dart';
 import 'package:zephyr/page/search/widget/source_select_dialog.dart';
-import 'package:zephyr/type/enum.dart';
 
 class SearchBar extends StatefulWidget {
   const SearchBar({super.key, this.aggregateMode = true});
@@ -19,7 +20,21 @@ class SearchBar extends StatefulWidget {
 class _SearchBarState extends State<SearchBar> {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
-  Map<From, bool> _aggregateSources = const {From.jm: true, From.bika: true};
+  Map<String, bool> _aggregateSources = const {};
+
+  List<({String pluginId, String title})> _sourceOptions(BuildContext context) {
+    final pluginStates = context.read<PluginRegistryCubit>().state;
+    final states =
+        pluginStates.values.where((state) => !state.isDeleted).toList()
+          ..sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
+    return states.map((state) {
+      final info = PluginRegistryService.I.getCachedPluginInfo(state.uuid);
+      final title = info?['name']?.toString().trim().isNotEmpty == true
+          ? info!['name'].toString().trim()
+          : state.uuid;
+      return (pluginId: state.uuid, title: title);
+    }).toList();
+  }
 
   @override
   void initState() {
@@ -132,9 +147,16 @@ class _SearchBarState extends State<SearchBar> {
               icon: const Icon(Icons.tune),
               onPressed: () async {
                 if (widget.aggregateMode) {
+                  final options = _sourceOptions(context);
+                  if (_aggregateSources.isEmpty) {
+                    _aggregateSources = {
+                      for (final source in options) source.pluginId: true,
+                    };
+                  }
                   final selected = await showSourceSelectDialog(
                     context,
                     initial: _aggregateSources,
+                    sourceOptions: options,
                   );
                   if (selected != null && mounted) {
                     setState(() {

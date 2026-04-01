@@ -1,5 +1,6 @@
-import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
+import 'package:zephyr/type/enum.dart';
 
 class UnifiedComicListItem {
   const UnifiedComicListItem({
@@ -14,7 +15,7 @@ class UnifiedComicListItem {
     required this.cover,
     required this.metadata,
     required this.raw,
-    required this.extra,
+    required this.extern,
   });
 
   final String source;
@@ -28,9 +29,12 @@ class UnifiedComicListItem {
   final UnifiedComicCover cover;
   final List<UnifiedComicMetadata> metadata;
   final Map<String, dynamic> raw;
-  final Map<String, dynamic> extra;
+  final Map<String, dynamic> extern;
 
   factory UnifiedComicListItem.fromJson(Map<String, dynamic> json) {
+    if (json['cover'] is! Map || json['metadata'] is! List) {
+      throw const FormatException('Invalid UnifiedComicListItem payload');
+    }
     return UnifiedComicListItem(
       source: json['source']?.toString() ?? '',
       id: json['id']?.toString() ?? '',
@@ -45,7 +49,7 @@ class UnifiedComicListItem {
         json['metadata'],
       ).map((item) => UnifiedComicMetadata.fromJson(_asMap(item))).toList(),
       raw: _asMap(json['raw']),
-      extra: _asMap(json['extra']),
+      extern: _asMap(json['extern']),
     );
   }
 
@@ -61,15 +65,11 @@ class UnifiedComicListItem {
     'cover': cover.toJson(),
     'metadata': metadata.map((item) => item.toJson()).toList(),
     'raw': raw,
-    'extra': extra,
+    'extern': extern,
   };
 
-  From get from {
-    return switch (source) {
-      'bika' => From.bika,
-      'jm' => From.jm,
-      _ => From.unknown,
-    };
+  String get from {
+    return sanitizePluginId(source);
   }
 
   List<String> metadataValues(String type) {
@@ -124,6 +124,7 @@ class UnifiedComicListItem {
       fileServer: cover.url,
       path: cover.cachePath,
       pictureType: pictureType,
+      source: sanitizePluginId(source),
       from: from,
     );
   }
@@ -133,25 +134,28 @@ class UnifiedComicCover {
   const UnifiedComicCover({
     required this.id,
     required this.url,
-    required this.extra,
+    required this.extern,
   });
 
   final String id;
   final String url;
-  final Map<String, dynamic> extra;
+  final Map<String, dynamic> extern;
 
   factory UnifiedComicCover.fromJson(Map<String, dynamic> json) {
+    if (json.isEmpty) {
+      throw const FormatException('Invalid UnifiedComicCover payload');
+    }
     return UnifiedComicCover(
       id: json['id']?.toString() ?? '',
       url: json['url']?.toString() ?? '',
-      extra: _asMap(json['extra']),
+      extern: _asMap(json['extern']),
     );
   }
 
-  Map<String, dynamic> toJson() => {'id': id, 'url': url, 'extra': extra};
+  Map<String, dynamic> toJson() => {'id': id, 'url': url, 'extern': extern};
 
   String get cachePath {
-    final extraPath = extra['path']?.toString().trim() ?? '';
+    final extraPath = extern['path']?.toString().trim() ?? '';
     if (extraPath.isNotEmpty) {
       return extraPath;
     }

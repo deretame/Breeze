@@ -10,16 +10,6 @@ enum ExportType {
 }
 
 @JsonEnum()
-enum From {
-  @JsonValue('bika')
-  bika,
-  @JsonValue('jm')
-  jm,
-  @JsonValue('unknown')
-  unknown,
-}
-
-@JsonEnum()
 enum ComicEntryType {
   @JsonValue('normal')
   normal,

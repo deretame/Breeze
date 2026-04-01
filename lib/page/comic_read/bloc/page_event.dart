@@ -3,7 +3,7 @@ part of 'page_bloc.dart';
 class PageEvent extends Equatable {
   final String comicId;
   final int epsId;
-  final From from;
+  final String from;
   final ComicEntryType type;
   final dynamic comicInfo;
 

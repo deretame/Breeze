@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/model/unified_comic_list_item.dart';
 import 'package:zephyr/cubit/string_select.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/type/pipe.dart';
@@ -16,37 +17,54 @@ import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/sundry.dart';
 
-import '../../../type/enum.dart';
 import '../../../util/router/router.dart';
 import '../../../widgets/error_view.dart';
 import '../../../widgets/toast.dart';
+import 'package:zephyr/type/enum.dart';
 
 enum MenuOption { export, cloudCollect, reverseOrder }
 
 @RoutePage()
 class ComicInfoPage extends StatelessWidget {
   final String comicId;
-  final From from;
+  final String from;
+  final String pluginId;
   final ComicEntryType type;
 
   const ComicInfoPage({
     super.key,
     required this.comicId,
     required this.from,
+    this.pluginId = '',
     required this.type,
   });
 
   @override
   Widget build(BuildContext context) {
+    final resolvedPluginId = sanitizePluginId(
+      pluginId.trim().isNotEmpty ? pluginId : sanitizePluginId(from),
+    );
     return MultiBlocProvider(
       providers: [
         BlocProvider(
           create: (_) => GetComicInfoBloc()
-            ..add(GetComicInfoEvent(comicId: comicId, from: from, type: type)),
+            ..add(
+              GetComicInfoEvent(
+                comicId: comicId,
+                from: from,
+                pluginId: resolvedPluginId,
+                type: type,
+              ),
+            ),
         ),
         BlocProvider(create: (_) => StringSelectCubit()),
       ],
-      child: _ComicInfo(comicId: comicId, type: type, from: from),
+      child: _ComicInfo(
+        comicId: comicId,
+        type: type,
+        from: from,
+        pluginId: resolvedPluginId,
+      ),
     );
   }
 }
@@ -54,12 +72,14 @@ class ComicInfoPage extends StatelessWidget {
 class _ComicInfo extends StatefulWidget {
   final String comicId;
   final ComicEntryType type;
-  final From from;
+  final String from;
+  final String pluginId;
 
   const _ComicInfo({
     required this.comicId,
     required this.type,
     required this.from,
+    required this.pluginId,
   });
 
   @override
@@ -86,7 +106,7 @@ class _ComicInfoState extends State<_ComicInfo>
   void initState() {
     super.initState();
     _type = type;
-    initHistory(context, widget.comicId, widget.from);
+    initHistory(context, widget.comicId, widget.from, widget.pluginId);
   }
 
   @override
@@ -166,7 +186,11 @@ class _ComicInfoState extends State<_ComicInfo>
                         color: Colors.black54,
                       ),
                       SizedBox(width: 10),
-                      Text(_isCloudCollected ? '取消云端收藏' : '收藏到云端'),
+                      Text(
+                        (_currentInfo?.allowCollected ?? false)
+                            ? (_isCloudCollected ? '取消云端收藏' : '收藏到云端')
+                            : '云端收藏已关闭',
+                      ),
                     ],
                   ),
                 ),
@@ -206,6 +230,7 @@ class _ComicInfoState extends State<_ComicInfo>
                     GetComicInfoEvent(
                       comicId: widget.comicId,
                       from: widget.from,
+                      pluginId: widget.pluginId,
                       type: _type,
                     ),
                   );
@@ -258,11 +283,12 @@ class _ComicInfoState extends State<_ComicInfo>
           GetComicInfoEvent(
             comicId: widget.comicId,
             from: widget.from,
+            pluginId: widget.pluginId,
             type: _type,
           ),
         );
         setState(() {
-          initHistory(context, widget.comicId, widget.from);
+          initHistory(context, widget.comicId, widget.from, widget.pluginId);
           _loadingComplete = false;
         });
       },
@@ -497,6 +523,10 @@ class _ComicInfoState extends State<_ComicInfo>
       showErrorToast('当前详情尚未加载完成');
       return;
     }
+    if (!info.allowCollected) {
+      showInfoToast('云端收藏已关闭');
+      return;
+    }
     try {
       showInfoToast(_isCloudCollected ? '取消云端收藏中...' : '收藏到云端中...');
       final next = await toggleCloudComicFavorite(
@@ -702,7 +732,7 @@ class _EpisodeListSection extends StatelessWidget {
   final int epsLength;
   final ComicEntryType type;
   final String comicId;
-  final From from;
+  final String from;
 
   @override
   Widget build(BuildContext context) {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' hide Page;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/page/download/widgets/eps.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
@@ -24,9 +25,10 @@ class DownloadPage extends StatefulWidget {
 
 class _DownloadPageState extends State<DownloadPage> {
   UnifiedComicDownloadInfo get downloadInfo => widget.downloadInfo;
-  String get source =>
-      downloadInfo.source.trim().isEmpty ? 'bika' : downloadInfo.source;
-  bool get isJm => source == 'jm';
+  String get source => sanitizePluginId(
+    downloadInfo.source.trim().isEmpty ? kBikaPluginUuid : downloadInfo.source,
+  );
+  bool get isJm => source == kJmPluginUuid;
 
   late Map<int, bool> _downloadInfo;
   late UnifiedComicDownload? comicDownloadInfo;

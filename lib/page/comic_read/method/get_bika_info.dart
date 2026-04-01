@@ -3,13 +3,14 @@ import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import '../json/common_ep_info_json/common_ep_info_json.dart';
+import 'package:zephyr/type/enum.dart';
 
 Future<NormalComicEpInfo> getBikaInfo(
   String comicId,
@@ -28,7 +29,7 @@ Future<NormalComicEpInfo> getBikaInfo(
 
 Future<NormalComicEpInfo> getBikaInfoFromNet(String comicId, int epsId) async {
   final response = await callUnifiedComicPlugin(
-    from: From.bika,
+    from: kBikaPluginUuid,
     fnPath: 'getChapter',
     core: {'comicId': comicId, 'chapterId': epsId},
     extern: const <String, dynamic>{},
@@ -58,10 +59,19 @@ Future<NormalComicEpInfo> getBikaInfoFromLocal(
   String comicId,
   int epsId,
 ) async {
-  final download = objectbox.unifiedDownloadBox
-      .query(UnifiedComicDownload_.uniqueKey.equals('bika:$comicId'))
-      .build()
-      .findFirst()!;
+  final download =
+      objectbox.unifiedDownloadBox
+          .query(
+            UnifiedComicDownload_.uniqueKey.equals('$kBikaPluginUuid:$comicId'),
+          )
+          .build()
+          .findFirst() ??
+      objectbox.unifiedDownloadBox
+          .query(
+            UnifiedComicDownload_.uniqueKey.equals('$kBikaPluginUuid:$comicId'),
+          )
+          .build()
+          .findFirst()!;
   final epInfo = (download.chapters ?? const <Map<String, dynamic>>[])
       .firstWhere((e) => (e['order'] as num?)?.toInt() == epsId);
   final chapterId = epInfo['id']?.toString() ?? '';
@@ -98,16 +108,38 @@ Future<NormalComicEpInfo> getBikaInfoFromLocal(
 
   final downloadRoot = await getDownloadPath();
   final chapterDirs = <Directory>[
-    Directory(p.join(downloadRoot, 'bika', 'original', comicId, chapterId)),
     Directory(
-      p.join(downloadRoot, 'bika', 'original', comicId, 'comic', chapterId),
+      p.join(downloadRoot, kBikaPluginUuid, 'original', comicId, chapterId),
+    ),
+    Directory(
+      p.join(
+        downloadRoot,
+        kBikaPluginUuid,
+        'original',
+        comicId,
+        'comic',
+        chapterId,
+      ),
+    ),
+    Directory(
+      p.join(downloadRoot, kBikaPluginUuid, 'original', comicId, chapterId),
+    ),
+    Directory(
+      p.join(
+        downloadRoot,
+        kBikaPluginUuid,
+        'original',
+        comicId,
+        'comic',
+        chapterId,
+      ),
     ),
   ];
   final images = storedChapter.images;
   final imageIds = images.map((e) => e.id).where((e) => e.isNotEmpty).toList();
   final imageNames = {for (final image in images) image.id: image.name};
   final files = await _resolveOrderedFiles(
-    from: From.bika,
+    from: kBikaPluginUuid,
     comicId: comicId,
     chapterId: chapterId,
     imageIds: imageIds,
@@ -133,7 +165,7 @@ Future<NormalComicEpInfo> getBikaInfoFromLocal(
 }
 
 Future<List<File>> _resolveOrderedFiles({
-  required From from,
+  required String from,
   required String comicId,
   required String chapterId,
   required List<String> imageIds,

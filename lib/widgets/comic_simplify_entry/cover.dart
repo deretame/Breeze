@@ -3,18 +3,18 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../widgets/picture_bloc/bloc/picture_bloc.dart';
 import '../../../widgets/picture_bloc/models/picture_info.dart';
+import 'package:zephyr/type/enum.dart';
 
 class CoverWidget extends StatelessWidget {
   final String fileServer;
   final String path;
   final String id;
   final PictureType pictureType;
-  final From from;
+  final String from;
   final bool roundedCorner;
   final double? width;
   final double? height;

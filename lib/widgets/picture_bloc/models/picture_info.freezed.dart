@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PictureInfo {
 
- From get from;// 从那个漫画网站获取的
+ String get from;// 从那个漫画网站获取的
  String get url;// 网址
  String get path;// 路径
  String get cartoonId;// 漫画id
@@ -53,7 +53,7 @@ abstract mixin class $PictureInfoCopyWith<$Res>  {
   factory $PictureInfoCopyWith(PictureInfo value, $Res Function(PictureInfo) _then) = _$PictureInfoCopyWithImpl;
 @useResult
 $Res call({
- From from, String url, String path, String cartoonId, String chapterId, PictureType pictureType
+ String from, String url, String path, String cartoonId, String chapterId, PictureType pictureType
 });
 
 
@@ -73,7 +73,7 @@ class _$PictureInfoCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? from = null,Object? url = null,Object? path = null,Object? cartoonId = null,Object? chapterId = null,Object? pictureType = null,}) {
   return _then(_self.copyWith(
 from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
-as From,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
+as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
 as String,cartoonId: null == cartoonId ? _self.cartoonId : cartoonId // ignore: cast_nullable_to_non_nullable
 as String,chapterId: null == chapterId ? _self.chapterId : chapterId // ignore: cast_nullable_to_non_nullable
@@ -163,7 +163,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( From from,  String url,  String path,  String cartoonId,  String chapterId,  PictureType pictureType)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String from,  String url,  String path,  String cartoonId,  String chapterId,  PictureType pictureType)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PictureInfo() when $default != null:
 return $default(_that.from,_that.url,_that.path,_that.cartoonId,_that.chapterId,_that.pictureType);case _:
@@ -184,7 +184,7 @@ return $default(_that.from,_that.url,_that.path,_that.cartoonId,_that.chapterId,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( From from,  String url,  String path,  String cartoonId,  String chapterId,  PictureType pictureType)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String from,  String url,  String path,  String cartoonId,  String chapterId,  PictureType pictureType)  $default,) {final _that = this;
 switch (_that) {
 case _PictureInfo():
 return $default(_that.from,_that.url,_that.path,_that.cartoonId,_that.chapterId,_that.pictureType);case _:
@@ -204,7 +204,7 @@ return $default(_that.from,_that.url,_that.path,_that.cartoonId,_that.chapterId,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( From from,  String url,  String path,  String cartoonId,  String chapterId,  PictureType pictureType)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String from,  String url,  String path,  String cartoonId,  String chapterId,  PictureType pictureType)?  $default,) {final _that = this;
 switch (_that) {
 case _PictureInfo() when $default != null:
 return $default(_that.from,_that.url,_that.path,_that.cartoonId,_that.chapterId,_that.pictureType);case _:
@@ -219,10 +219,10 @@ return $default(_that.from,_that.url,_that.path,_that.cartoonId,_that.chapterId,
 @JsonSerializable()
 
 class _PictureInfo implements PictureInfo {
-  const _PictureInfo({this.from = From.bika, this.url = '', this.path = '', this.cartoonId = '', this.chapterId = '', this.pictureType = PictureType.comic});
+  const _PictureInfo({this.from = kBikaPluginUuid, this.url = '', this.path = '', this.cartoonId = '', this.chapterId = '', this.pictureType = PictureType.comic});
   factory _PictureInfo.fromJson(Map<String, dynamic> json) => _$PictureInfoFromJson(json);
 
-@override@JsonKey() final  From from;
+@override@JsonKey() final  String from;
 // 从那个漫画网站获取的
 @override@JsonKey() final  String url;
 // 网址
@@ -267,7 +267,7 @@ abstract mixin class _$PictureInfoCopyWith<$Res> implements $PictureInfoCopyWith
   factory _$PictureInfoCopyWith(_PictureInfo value, $Res Function(_PictureInfo) _then) = __$PictureInfoCopyWithImpl;
 @override @useResult
 $Res call({
- From from, String url, String path, String cartoonId, String chapterId, PictureType pictureType
+ String from, String url, String path, String cartoonId, String chapterId, PictureType pictureType
 });
 
 
@@ -287,7 +287,7 @@ class __$PictureInfoCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? from = null,Object? url = null,Object? path = null,Object? cartoonId = null,Object? chapterId = null,Object? pictureType = null,}) {
   return _then(_PictureInfo(
 from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
-as From,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
+as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
 as String,cartoonId: null == cartoonId ? _self.cartoonId : cartoonId // ignore: cast_nullable_to_non_nullable
 as String,chapterId: null == chapterId ? _self.chapterId : chapterId // ignore: cast_nullable_to_non_nullable

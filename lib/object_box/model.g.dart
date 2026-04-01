@@ -600,29 +600,33 @@ Map<String, dynamic> _$PluginConfigToJson(PluginConfig instance) =>
 
 PluginInfo _$PluginInfoFromJson(Map<String, dynamic> json) => PluginInfo(
   id: (json['id'] as num?)?.toInt() ?? 0,
-  pluginId: json['pluginId'] as String,
-  name: json['name'] as String,
-  jsCode: json['jsCode'] as String,
+  uuid: json['uuid'] as String,
   version: json['version'] as String,
-  description: json['description'] as String,
-  allInfo: json['allInfo'] as Map<String, dynamic>?,
   insertedAt: DateTime.parse(json['insertedAt'] as String),
   updatedAt: DateTime.parse(json['updatedAt'] as String),
   isEnabled: json['isEnabled'] as bool,
   isDeleted: json['isDeleted'] as bool,
+  deletedAt: json['deletedAt'] == null
+      ? null
+      : DateTime.parse(json['deletedAt'] as String),
+  lastLoadSuccess: json['lastLoadSuccess'] as bool,
+  lastLoadError: json['lastLoadError'] as String?,
+  debug: json['debug'] as bool,
+  debugUrl: json['debugUrl'] as String?,
 );
 
 Map<String, dynamic> _$PluginInfoToJson(PluginInfo instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'pluginId': instance.pluginId,
-      'name': instance.name,
-      'jsCode': instance.jsCode,
+      'uuid': instance.uuid,
       'version': instance.version,
-      'description': instance.description,
-      'allInfo': instance.allInfo,
+      'lastLoadSuccess': instance.lastLoadSuccess,
+      'lastLoadError': instance.lastLoadError,
       'insertedAt': instance.insertedAt.toIso8601String(),
       'updatedAt': instance.updatedAt.toIso8601String(),
       'isEnabled': instance.isEnabled,
       'isDeleted': instance.isDeleted,
+      'deletedAt': instance.deletedAt?.toIso8601String(),
+      'debug': instance.debug,
+      'debugUrl': instance.debugUrl,
     };

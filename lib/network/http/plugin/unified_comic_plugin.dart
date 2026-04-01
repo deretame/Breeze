@@ -1,43 +1,93 @@
 import 'dart:convert';
 
-import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/main.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
+import 'package:zephyr/network/http/plugin/unauthorized_payload.dart';
 import 'package:zephyr/util/download/qjs_download_runtime.dart';
+import 'package:zephyr/util/event/event.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
-String _defaultRuntimeName(From from) =>
-    from == From.bika ? 'bikaComic' : 'jmComic';
-
 Future<Map<String, dynamic>> callUnifiedComicPlugin({
-  required From from,
+  String? from,
+  String? pluginId,
   required String fnPath,
   required Map<String, dynamic> core,
   Map<String, dynamic>? extern,
   String? runtimeName,
 }) async {
+  final resolvedPluginId = sanitizePluginId(
+    (pluginId?.trim().isNotEmpty ?? false) ? pluginId! : (from ?? ''),
+  );
+  if (resolvedPluginId.isEmpty) {
+    throw StateError('callUnifiedComicPlugin missing valid plugin identity');
+  }
+
   final payload = <String, dynamic>{...core, 'extern': extern ?? const {}};
   final argsJson = jsonEncode(payload);
-  final runtime = runtimeName ?? _defaultRuntimeName(from);
-
-  final raw = await _invokeQjs(
-    from: from,
-    runtimeName: runtime,
-    fnPath: fnPath,
-    argsJson: argsJson,
-  );
-  final decoded = jsonDecode(raw);
-  return requireJsonMap(decoded, message: '插件返回格式错误');
+  final runtime = runtimeName ?? resolvedPluginId;
+  try {
+    final raw = await _invokeQjs(
+      pluginId: resolvedPluginId,
+      runtimeName: runtime,
+      fnPath: fnPath,
+      argsJson: argsJson,
+    );
+    final decoded = requireJsonMap(jsonDecode(raw), message: '插件返回格式错误');
+    return _normalizePluginSourceFields(decoded, resolvedPluginId);
+  } catch (error) {
+    final unauthorized = parseUnauthorizedPayload(
+      error,
+      fallbackPluginId: resolvedPluginId,
+    );
+    if (unauthorized != null) {
+      eventBus.fire(
+        NeedLogin(
+          from: unauthorized.pluginId,
+          scheme: unauthorized.scheme,
+          data: unauthorized.data,
+          message: unauthorized.message,
+        ),
+      );
+      throw Exception(unauthorized.message);
+    }
+    rethrow;
+  }
 }
 
 Future<String> _invokeQjs({
-  required From from,
+  required String pluginId,
   required String runtimeName,
   required String fnPath,
   required String argsJson,
 }) async {
   return executeQjsCall(
-    source: from == From.bika ? 'bika' : 'jm',
+    pluginId: pluginId,
     runtimeName: runtimeName,
     fnPath: fnPath,
     argsJson: argsJson,
   );
+}
+
+Map<String, dynamic> _normalizePluginSourceFields(
+  Map<String, dynamic> input,
+  String pluginId,
+) {
+  dynamic walk(dynamic node) {
+    if (node is Map) {
+      final map = Map<String, dynamic>.from(node);
+      if (map.containsKey('source')) {
+        map['source'] = pluginId;
+      }
+      for (final entry in map.entries.toList()) {
+        map[entry.key] = walk(entry.value);
+      }
+      return map;
+    }
+    if (node is List) {
+      return node.map(walk).toList();
+    }
+    return node;
+  }
+
+  return walk(input) as Map<String, dynamic>;
 }

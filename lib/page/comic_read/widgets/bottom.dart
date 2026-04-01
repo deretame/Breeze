@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:zephyr/plugin/plugin_constants.dart';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -13,9 +14,9 @@ import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
 import 'package:zephyr/page/comic_read/widgets/settings/reader_settings_sheet.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-import '../../../type/enum.dart';
 import '../../../util/router/router.dart';
 import '../../../util/router/router.gr.dart';
+import 'package:zephyr/type/enum.dart';
 
 class BottomWidget extends StatefulWidget {
   final ComicEntryType type;
@@ -24,7 +25,7 @@ class BottomWidget extends StatefulWidget {
   final int order;
   final int epsNumber;
   final String comicId;
-  final From from;
+  final String from;
   final JumpChapter jumpChapter;
 
   const BottomWidget({
@@ -68,7 +69,7 @@ class _BottomWidgetState extends State<BottomWidget> {
     if (tempType == ComicEntryType.history) {
       tempType = ComicEntryType.normal;
     }
-    if (widget.from == From.jm) {
+    if (widget.from == kJmPluginUuid) {
       seriesList = resolveUnifiedComicChapters(widget.comicInfo, widget.from)
           .map(
             (chapter) => Series(
@@ -141,7 +142,8 @@ class _BottomWidgetState extends State<BottomWidget> {
                             icon: Icons.list_alt_rounded,
                             tooltip: '跳转章节',
                             isEnabled:
-                                !(seriesList.isEmpty && widget.from == From.jm),
+                                !(seriesList.isEmpty &&
+                                    widget.from == kJmPluginUuid),
                             onPressed: _selectJumpChapter,
                           ),
                           const SizedBox(width: 10),
@@ -249,7 +251,7 @@ class _BottomWidgetState extends State<BottomWidget> {
         return AlertDialog(
           title: Text('选择章节'),
           content: SingleChildScrollView(
-            child: widget.from == From.bika
+            child: widget.from == kBikaPluginUuid
                 ? _bikaEpSelector(context)
                 : _jmEpSelector(context),
           ),

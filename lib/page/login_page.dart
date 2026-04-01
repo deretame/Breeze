@@ -1,29 +1,21 @@
-import 'dart:convert';
+import 'package:zephyr/plugin/plugin_constants.dart';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/config/bika/bika_setting.dart';
-import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
-import 'package:zephyr/page/more/json/jm/jm_user_info_json.dart'
-    show JmUserInfoJson;
-import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/dialog.dart';
-import 'package:zephyr/util/jm_url_set.dart';
-import 'package:zephyr/util/json/json_dispose.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../util/router/router.gr.dart';
 
 @RoutePage()
 class LoginPage extends StatefulWidget {
-  final From? from;
+  final String? from;
+  final Map<String, dynamic>? loginScheme;
+  final Map<String, dynamic>? loginData;
 
-  const LoginPage({super.key, this.from});
+  const LoginPage({super.key, this.from, this.loginScheme, this.loginData});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -33,32 +25,43 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _account = TextEditingController();
   final TextEditingController _password = TextEditingController();
 
-  String title = "";
-  late From from;
-  String accountLabel = '账号';
-  String passwordLabel = '密码';
+  String title = '';
+  late String from;
+  String accountLabel = '';
+  String passwordLabel = '';
+  bool _loadingScheme = true;
+  String? _schemeError;
 
   @override
   void initState() {
     super.initState();
-    final bikaSetting = objectbox.userSettingBox.get(1)!.bikaSetting;
-    final jmSetting = objectbox.userSettingBox.get(1)!.jmSetting;
-    from = widget.from ?? From.bika;
-    _account.text = from == From.bika ? bikaSetting.account : jmSetting.account;
-    _password.text = from == From.bika
-        ? bikaSetting.password
-        : jmSetting.password;
-
-    if (from == From.bika) {
-      title = "哔咔登录";
-    } else if (from == From.jm) {
-      title = "禁漫登录";
-    }
-
+    from = sanitizePluginId(widget.from ?? '');
     _loadLoginScheme();
   }
 
   Future<void> _loadLoginScheme() async {
+    if (from.isEmpty) {
+      if (mounted) {
+        setState(() {
+          _schemeError = '缺少插件标识，无法打开登录页';
+          _loadingScheme = false;
+        });
+      }
+      return;
+    }
+
+    if (mounted) {
+      setState(() {
+        _schemeError = null;
+        _loadingScheme = true;
+      });
+    }
+
+    if (widget.loginScheme != null) {
+      _applyLoginBundle(widget.loginScheme!, widget.loginData);
+      return;
+    }
+
     try {
       final response = await callUnifiedComicPlugin(
         from: from,
@@ -67,26 +70,45 @@ class _LoginPageState extends State<LoginPage> {
         extern: const <String, dynamic>{},
       );
       final envelope = UnifiedPluginEnvelope.fromMap(response);
-      final scheme = envelope.scheme;
-      final fields = asList(
-        scheme['fields'],
-      ).map((item) => asMap(item)).toList();
-      if (fields.length >= 2 && mounted) {
+      _applyLoginBundle(envelope.scheme, envelope.data);
+    } catch (e) {
+      if (mounted) {
         setState(() {
-          title = scheme['title']?.toString() ?? title;
-          accountLabel = fields.first['label']?.toString() ?? accountLabel;
-          passwordLabel = fields[1]['label']?.toString() ?? passwordLabel;
+          _schemeError = '登录配置加载失败: $e';
+          _loadingScheme = false;
         });
       }
-
-      final data = envelope.data;
-      if (mounted) {
-        _account.text = data['account']?.toString() ?? _account.text;
-        _password.text = data['password']?.toString() ?? _password.text;
-      }
-    } catch (_) {
-      // fallback to static labels
     }
+  }
+
+  void _applyLoginBundle(
+    Map<String, dynamic> scheme,
+    Map<String, dynamic>? data,
+  ) {
+    final fields = asList(scheme['fields']).map((item) => asMap(item)).toList();
+    if (fields.length < 2) {
+      if (mounted) {
+        setState(() {
+          _schemeError = '插件返回的登录字段不足';
+          _loadingScheme = false;
+        });
+      }
+      return;
+    }
+
+    if (mounted) {
+      setState(() {
+        title = scheme['title']?.toString().trim() ?? '';
+        accountLabel = fields.first['label']?.toString().trim() ?? '';
+        passwordLabel = fields[1]['label']?.toString().trim() ?? '';
+        _schemeError = null;
+        _loadingScheme = false;
+      });
+    }
+
+    final payload = data ?? const <String, dynamic>{};
+    _account.text = payload['account']?.toString() ?? _account.text;
+    _password.text = payload['password']?.toString() ?? _password.text;
   }
 
   @override
@@ -122,40 +144,21 @@ class _LoginPageState extends State<LoginPage> {
 
   void _submitForm() async {
     if (!mounted) return;
+    if (_loadingScheme || _schemeError != null) {
+      showErrorToast('登录配置未就绪，请稍后重试');
+      return;
+    }
     showInfoToast("正在登录，请耐心等待...");
-
-    final jmCubit = context.read<JmSettingCubit>();
-    final bikaCubit = context.read<BikaSettingCubit>();
 
     try {
       final result = await callUnifiedComicPlugin(
         from: from,
         fnPath: 'loginWithPassword',
-        core: {
-          'account': _account.text,
-          'password': _password.text,
-          if (from == From.jm) 'path': '$currentJmBaseUrl/login',
-        },
+        core: {'account': _account.text, 'password': _password.text},
         extern: const <String, dynamic>{},
       );
 
-      final raw = asMap(result['raw']);
-
-      if (from == From.jm) {
-        jmCubit.updateLoginStatus(LoginStatus.loggingIn);
-        jmCubit.updateUserInfo(
-          JmUserInfoJson.fromJson(raw.let(replaceNestedNull)).let(jsonEncode),
-        );
-      }
-
-      if (from == From.bika) {
-        bikaCubit.updateAccount(_account.text);
-        bikaCubit.updatePassword(_password.text);
-      } else if (from == From.jm) {
-        jmCubit.updateAccount(_account.text);
-        jmCubit.updatePassword(_password.text);
-        jmCubit.updateLoginStatus(LoginStatus.login);
-      }
+      final _ = asMap(result['raw']);
       showSuccessToast("登录成功");
 
       if (!mounted) return;
@@ -168,6 +171,32 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_loadingScheme) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (_schemeError != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('登录')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(_schemeError!, textAlign: TextAlign.center),
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: _loadLoginScheme,
+                  child: const Text('重试'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
@@ -212,33 +241,7 @@ class _LoginPageState extends State<LoginPage> {
             Expanded(
               child: Container(), // 占据剩余空间
             ),
-            // 注册和找回密码链接
-            Container(
-              alignment: AlignmentDirectional.bottomCenter,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    onPressed: from == From.bika
-                        ? () => context.pushRoute(RegisterRoute())
-                        : null,
-                    child: const Text('注册账号'),
-                  ),
-                  TextButton(
-                    onPressed: from == From.bika
-                        ? () {
-                            commonDialog(
-                              context,
-                              "找回密码",
-                              "哔咔实际上已经无法找回密码，所以这个功能实际上不存在。",
-                            );
-                          }
-                        : null,
-                    child: const Text('找回密码'),
-                  ),
-                ],
-              ),
-            ),
+            const SizedBox.shrink(),
           ],
         ),
       ),

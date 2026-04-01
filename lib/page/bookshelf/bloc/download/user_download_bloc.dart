@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/json/json_value.dart';
@@ -116,11 +117,13 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
 
   List<dynamic> _getComicList(UserDownloadEvent event) {
     List<dynamic> comics = [];
-    final sourceFilter = event.searchEnterConst.sources;
+    final sourceFilter = event.searchEnterConst.sources
+        .map(sanitizePluginId)
+        .toSet();
 
-    if (sourceFilter.contains('bika')) {
+    if (sourceFilter.contains(kBikaPluginUuid)) {
       late var comicList = objectbox.unifiedDownloadBox
-          .query(UnifiedComicDownload_.source.equals('bika'))
+          .query(UnifiedComicDownload_.source.equals(kBikaPluginUuid))
           .build()
           .find();
 
@@ -159,9 +162,9 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
       comics.addAll(comicList);
     }
 
-    if (sourceFilter.contains('jm')) {
+    if (sourceFilter.contains(kJmPluginUuid)) {
       late var comicList = objectbox.unifiedDownloadBox
-          .query(UnifiedComicDownload_.source.equals('jm'))
+          .query(UnifiedComicDownload_.source.equals(kJmPluginUuid))
           .build()
           .find();
 

@@ -3,15 +3,15 @@ import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/page/comic_read/json/common_ep_info_json/common_ep_info_json.dart'
     show Doc;
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/get_path.dart';
-import 'package:zephyr/util/jm_url_set.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
+import 'package:zephyr/type/enum.dart';
 
 Future<NormalComicEpInfo> fetchJMMedia(
   String comicId,
@@ -28,7 +28,7 @@ Future<NormalComicEpInfo> fetchJMMedia(
 
 Future<NormalComicEpInfo> fetchJMMediaFromNet(String epId) async {
   final response = await callUnifiedComicPlugin(
-    from: From.jm,
+    from: kJmPluginUuid,
     fnPath: 'getChapter',
     core: {'chapterId': epId},
     extern: const <String, dynamic>{},
@@ -58,10 +58,19 @@ Future<NormalComicEpInfo> fetchJMMediaFromLocal(
   String comicId,
   String epId,
 ) async {
-  final downloadInfo = objectbox.unifiedDownloadBox
-      .query(UnifiedComicDownload_.uniqueKey.equals('jm:$comicId'))
-      .build()
-      .findFirst()!;
+  final downloadInfo =
+      objectbox.unifiedDownloadBox
+          .query(
+            UnifiedComicDownload_.uniqueKey.equals('$kJmPluginUuid:$comicId'),
+          )
+          .build()
+          .findFirst() ??
+      objectbox.unifiedDownloadBox
+          .query(
+            UnifiedComicDownload_.uniqueKey.equals('$kJmPluginUuid:$comicId'),
+          )
+          .build()
+          .findFirst()!;
   final epInfo = (downloadInfo.chapters ?? const <Map<String, dynamic>>[])
       .firstWhere((e) => e['id']?.toString() == epId);
   final epName = epInfo['name']?.toString() ?? '';
@@ -80,9 +89,7 @@ Future<NormalComicEpInfo> fetchJMMediaFromLocal(
         (image) => Doc(
           originalName: image.name,
           path: image.path,
-          fileServer: image.url.isNotEmpty
-              ? image.url
-              : getJmImagesUrl(epId, image.name),
+          fileServer: image.url.isNotEmpty ? image.url : '',
           id: image.id.isNotEmpty ? image.id : epId,
         ),
       )
@@ -99,8 +106,14 @@ Future<NormalComicEpInfo> fetchJMMediaFromLocal(
 
   final downloadRoot = await getDownloadPath();
   final chapterDirs = <Directory>[
-    Directory(p.join(downloadRoot, 'jm', 'original', comicId, epId)),
-    Directory(p.join(downloadRoot, 'jm', 'original', comicId, 'comic', epId)),
+    Directory(p.join(downloadRoot, kJmPluginUuid, 'original', comicId, epId)),
+    Directory(
+      p.join(downloadRoot, kJmPluginUuid, 'original', comicId, 'comic', epId),
+    ),
+    Directory(p.join(downloadRoot, kJmPluginUuid, 'original', comicId, epId)),
+    Directory(
+      p.join(downloadRoot, kJmPluginUuid, 'original', comicId, 'comic', epId),
+    ),
   ];
   final images = storedChapter.images;
   final imageIds = images.map((e) => e.id).where((e) => e.isNotEmpty).toList();
@@ -121,7 +134,7 @@ Future<NormalComicEpInfo> fetchJMMediaFromLocal(
       return Doc(
         originalName: fileName,
         path: fileName,
-        fileServer: getJmImagesUrl(epId, fileName),
+        fileServer: '',
         id: epId,
       );
     }).toList(),
@@ -146,7 +159,7 @@ Future<List<File>> _resolveOrderedFiles({
   }
   for (final imageId in imageIds) {
     final path = await getStoredPicturePathById(
-      from: From.jm,
+      from: kJmPluginUuid,
       cartoonId: comicId,
       chapterId: epId,
       imageId: imageId,

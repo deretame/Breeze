@@ -4,10 +4,10 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/page/comic_list/models/comic_list_scene.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
 import '../../../util/router/router.gr.dart';
@@ -15,7 +15,7 @@ import '../../../util/router/router.gr.dart';
 Future<void> handleComicInfoAction(
   BuildContext context,
   Map<String, dynamic> action, {
-  required From fallbackFrom,
+  required String fallbackPluginId,
 }) async {
   final type = action['type']?.toString().trim() ?? '';
   final payload = asJsonMap(action['payload']);
@@ -25,9 +25,9 @@ Future<void> handleComicInfoAction(
   }
 
   if (type == 'openSearch') {
-    final source = _sourceFromString(
+    final pluginId = _pluginIdFromString(
       payload['source']?.toString(),
-      fallbackFrom,
+      fallbackPluginId,
     );
     final keyword = payload['keyword']?.toString() ?? '';
     final url = payload['url']?.toString() ?? '';
@@ -38,10 +38,11 @@ Future<void> handleComicInfoAction(
         .toList();
 
     final searchStates = SearchStates.initial().copyWith(
-      from: source,
+      from: pluginId,
       searchKeyword: keyword,
       pluginExtern: {
         ...externPatch,
+        '_pluginId': pluginId,
         if (categories.isNotEmpty) 'categories': categories,
         if (url.isNotEmpty) 'url': url,
       },
@@ -76,12 +77,9 @@ Future<void> handleComicInfoAction(
   }
 }
 
-From _sourceFromString(String? source, From fallbackFrom) {
-  return switch (source) {
-    'bika' => From.bika,
-    'jm' => From.jm,
-    _ => fallbackFrom,
-  };
+String _pluginIdFromString(String? source, String fallbackPluginId) {
+  final resolved = sanitizePluginId(source ?? '');
+  return resolved.isEmpty ? fallbackPluginId : resolved;
 }
 
 Future<void> _launchBrowser(String url) async {

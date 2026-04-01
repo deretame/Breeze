@@ -93,6 +93,7 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(0) double windowX,
     @Default(0) double windowY,
     @Default(ReadSettingState()) ReadSettingState readSetting,
+    @Default("") String compatibleVersion,
   }) = _GlobalSettingState;
 
   factory GlobalSettingState.fromJson(Map<String, dynamic> json) =>

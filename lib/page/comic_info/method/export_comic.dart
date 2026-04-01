@@ -9,14 +9,14 @@ import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/compressed/compressed.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/widgets/toast.dart';
+import 'package:zephyr/type/enum.dart';
 
 Future<void> exportComic(
   String comicId,
   ExportType type,
-  From from, {
+  String from, {
   String? path,
 }) {
   if (type == ExportType.folder) {
@@ -27,7 +27,7 @@ Future<void> exportComic(
 
 Future<void> _exportComicAsFolder(
   String comicId, {
-  required From from,
+  required String from,
   String? exportPath,
 }) async {
   final download = _getDownload(comicId, from: from);
@@ -57,7 +57,7 @@ Future<void> _exportComicAsFolder(
 
 Future<void> _exportComicAsZip(
   String comicId, {
-  required From from,
+  required String from,
   String? exportPath,
 }) async {
   final download = _getDownload(comicId, from: from);
@@ -102,9 +102,9 @@ Future<void> _exportComicAsZip(
   showSuccessToast('漫画$title导出为 zip 完成');
 }
 
-UnifiedComicDownload _getDownload(String comicId, {required From from}) {
+UnifiedComicDownload _getDownload(String comicId, {required String from}) {
   final exact = objectbox.unifiedDownloadBox
-      .query(UnifiedComicDownload_.uniqueKey.equals('${from.name}:$comicId'))
+      .query(UnifiedComicDownload_.uniqueKey.equals('$from:$comicId'))
       .build()
       .findFirst();
   if (exact != null) {
@@ -137,7 +137,7 @@ Future<void> _exportCover(
   UnifiedComicDownload download,
   String comicDir,
   String comicId, {
-  required From from,
+  required String from,
 }) async {
   final path = await _tryDownloadCover(download, comicId, from: from);
   if (path == null) {
@@ -151,7 +151,7 @@ Future<void> _exportCover(
 Future<String?> _tryDownloadCover(
   UnifiedComicDownload download,
   String comicId, {
-  required From from,
+  required String from,
 }) async {
   final cover = Map<String, dynamic>.from(
     download.cover ?? const <String, dynamic>{},

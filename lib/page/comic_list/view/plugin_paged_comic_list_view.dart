@@ -7,11 +7,11 @@ import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/search_result/widgets/bottom_loader.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 import 'package:zephyr/widgets/error_view.dart';
+import 'package:zephyr/type/enum.dart';
 
 typedef PluginPageCoreBuilder = Map<String, dynamic> Function(int page);
 typedef PluginPageExternBuilder = Map<String, dynamic> Function(int page);
@@ -65,13 +65,13 @@ class PluginPagedComicListState extends Equatable {
 
 class PluginPagedComicListCubit extends Cubit<PluginPagedComicListState> {
   PluginPagedComicListCubit({
-    required this.from,
+    required this.pluginId,
     required this.fnPath,
     required this.coreBuilder,
     required this.externBuilder,
   }) : super(const PluginPagedComicListState());
 
-  final From from;
+  final String pluginId;
   final String fnPath;
   final PluginPageCoreBuilder coreBuilder;
   final PluginPageExternBuilder externBuilder;
@@ -108,7 +108,7 @@ class PluginPagedComicListCubit extends Cubit<PluginPagedComicListState> {
 
     try {
       final pluginResponse = await callUnifiedComicPlugin(
-        from: from,
+        pluginId: pluginId,
         fnPath: fnPath,
         core: coreBuilder(page),
         extern: externBuilder(page),
@@ -117,7 +117,7 @@ class PluginPagedComicListCubit extends Cubit<PluginPagedComicListState> {
       final data = asMap(envelope.data);
       final source = envelope.source.trim().isNotEmpty
           ? envelope.source.trim()
-          : from.name;
+          : pluginId;
       final items = asList(data['items']).map(_sanitizePluginItemMap).toList();
       final raw = replaceNestedNullList(asMap(data['raw']));
       final listLikeKeys = ['content', 'list'];
@@ -177,13 +177,13 @@ class PluginPagedComicListCubit extends Cubit<PluginPagedComicListState> {
 class PluginPagedComicListView extends StatelessWidget {
   const PluginPagedComicListView({
     super.key,
-    required this.from,
+    required this.pluginId,
     required this.fnPath,
     required this.coreBuilder,
     required this.externBuilder,
   });
 
-  final From from;
+  final String pluginId;
   final String fnPath;
   final PluginPageCoreBuilder coreBuilder;
   final PluginPageExternBuilder externBuilder;
@@ -192,7 +192,7 @@ class PluginPagedComicListView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => PluginPagedComicListCubit(
-        from: from,
+        pluginId: pluginId,
         fnPath: fnPath,
         coreBuilder: coreBuilder,
         externBuilder: externBuilder,

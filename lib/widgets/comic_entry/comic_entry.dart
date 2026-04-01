@@ -3,15 +3,16 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/model/unified_comic_list_item.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/cover.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../main.dart';
 import '../../object_box/objectbox.g.dart';
-import '../../type/enum.dart';
 import '../../util/get_path.dart';
 import '../../util/router/router.gr.dart';
+import 'package:zephyr/type/enum.dart';
 
 class ComicEntryWidget extends StatelessWidget {
   const ComicEntryWidget({
@@ -38,7 +39,12 @@ class ComicEntryWidget extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: () {
         context.pushRoute(
-          ComicInfoRoute(comicId: comic.id, type: type, from: comic.from),
+          ComicInfoRoute(
+            comicId: comic.id,
+            type: type,
+            from: comic.from,
+            pluginId: sanitizePluginId(comic.source),
+          ),
         );
       },
       onLongPress: type == ComicEntryType.normal
@@ -224,15 +230,13 @@ class ComicEntryWidget extends StatelessWidget {
   }
 
   Future<void> _deleteFavorite() async {
-    if (comic.from != From.jm) {
+    if (comic.from != kJmPluginUuid) {
       return;
     }
 
     final temp = objectbox.unifiedFavoriteBox
         .query(
-          UnifiedComicFavorite_.uniqueKey.equals(
-            '${comic.from.name}:${comic.id}',
-          ),
+          UnifiedComicFavorite_.uniqueKey.equals('${comic.from}:${comic.id}'),
         )
         .build()
         .findFirst();
@@ -243,12 +247,10 @@ class ComicEntryWidget extends StatelessWidget {
   }
 
   Future<void> _deleteHistory() async {
-    if (comic.from == From.bika) {
+    if (comic.from == kBikaPluginUuid) {
       final temp = objectbox.unifiedHistoryBox
           .query(
-            UnifiedComicHistory_.uniqueKey.equals(
-              '${comic.from.name}:${comic.id}',
-            ),
+            UnifiedComicHistory_.uniqueKey.equals('${comic.from}:${comic.id}'),
           )
           .build()
           .findFirst();
@@ -262,12 +264,10 @@ class ComicEntryWidget extends StatelessWidget {
       return;
     }
 
-    if (comic.from == From.jm) {
+    if (comic.from == kJmPluginUuid) {
       final temp = objectbox.unifiedHistoryBox
           .query(
-            UnifiedComicHistory_.uniqueKey.equals(
-              '${comic.from.name}:${comic.id}',
-            ),
+            UnifiedComicHistory_.uniqueKey.equals('${comic.from}:${comic.id}'),
           )
           .build()
           .findFirst();
@@ -282,12 +282,10 @@ class ComicEntryWidget extends StatelessWidget {
   }
 
   Future<void> _deleteDownload() async {
-    if (comic.from == From.bika) {
+    if (comic.from == kBikaPluginUuid) {
       final temp = objectbox.unifiedDownloadBox
           .query(
-            UnifiedComicDownload_.uniqueKey.equals(
-              '${comic.from.name}:${comic.id}',
-            ),
+            UnifiedComicDownload_.uniqueKey.equals('${comic.from}:${comic.id}'),
           )
           .build()
           .findFirst();
@@ -295,12 +293,10 @@ class ComicEntryWidget extends StatelessWidget {
       if (temp != null) {
         objectbox.unifiedDownloadBox.remove(temp.id);
       }
-    } else if (comic.from == From.jm) {
+    } else if (comic.from == kJmPluginUuid) {
       final temp = objectbox.unifiedDownloadBox
           .query(
-            UnifiedComicDownload_.uniqueKey.equals(
-              '${comic.from.name}:${comic.id}',
-            ),
+            UnifiedComicDownload_.uniqueKey.equals('${comic.from}:${comic.id}'),
           )
           .build()
           .findFirst();
@@ -315,7 +311,7 @@ class ComicEntryWidget extends StatelessWidget {
 
   Future<void> _deleteDownloadDirectory() async {
     final downloadPath = await getDownloadPath();
-    final target = p.join(downloadPath, comic.from.name, 'original', comic.id);
+    final target = p.join(downloadPath, comic.from, 'original', comic.id);
     final directory = Directory(target);
 
     if (!await directory.exists()) {

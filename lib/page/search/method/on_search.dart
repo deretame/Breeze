@@ -2,42 +2,54 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/router/router.gr.dart';
+import 'package:zephyr/type/enum.dart';
+
+const String _jmKeywordPrefix = 'jm';
 
 void onSearch(
   BuildContext context,
   String keyword, {
   Map<String, dynamic> pluginExtern = const <String, dynamic>{},
   bool aggregateMode = true,
-  Map<From, bool>? aggregateSources,
+  Map<String, bool>? aggregateSources,
 }) async {
   final searchCubit = context.read<SearchCubit>();
+  final resolvedPluginId = sanitizePluginId(
+    pluginExtern['_pluginId']?.toString().trim().isNotEmpty == true
+        ? pluginExtern['_pluginId'].toString().trim()
+        : sanitizePluginId(searchCubit.state.from),
+  );
   searchCubit.update(
     searchCubit.state.copyWith(
       searchKeyword: keyword,
-      pluginExtern: Map<String, dynamic>.from(pluginExtern),
+      pluginExtern: {
+        ...Map<String, dynamic>.from(pluginExtern),
+        '_pluginId': resolvedPluginId,
+      },
     ),
   );
-  if (searchCubit.state.from == From.jm) {
-    if (keyword.let(toInt) >= 100 || keyword.startsWith("jm")) {
-      if (!keyword.startsWith("jm")) {
-        keyword = "jm$keyword";
+  if (searchCubit.state.from == kJmPluginUuid) {
+    if (keyword.let(toInt) >= 100 || keyword.startsWith(_jmKeywordPrefix)) {
+      if (!keyword.startsWith(_jmKeywordPrefix)) {
+        keyword = '$_jmKeywordPrefix$keyword';
       }
 
       var comicId = keyword;
-      if (keyword.startsWith("jm")) {
-        comicId = keyword.substring(2);
+      if (keyword.startsWith(_jmKeywordPrefix)) {
+        comicId = keyword.substring(_jmKeywordPrefix.length);
       }
 
       context.pushRoute(
         ComicInfoRoute(
           comicId: comicId,
           type: ComicEntryType.normal,
-          from: From.jm,
+          from: kJmPluginUuid,
+          pluginId: kJmPluginUuid,
         ),
       );
 
@@ -59,14 +71,15 @@ void onSearch(
 
   if (aggregateMode) {
     final selected =
-        aggregateSources ?? const <From, bool>{From.jm: true, From.bika: true};
+        aggregateSources ??
+        const <String, bool>{kJmPluginUuid: true, kBikaPluginUuid: true};
     context.pushRoute(
       SearchAggregateResultRoute(
         searchEvent: event,
         searchCubit: searchCubit,
         selectedSources: {
-          From.jm.name: selected[From.jm] ?? true,
-          From.bika.name: selected[From.bika] ?? true,
+          kJmPluginUuid: selected[kJmPluginUuid] ?? true,
+          kBikaPluginUuid: selected[kBikaPluginUuid] ?? true,
         },
       ),
     );

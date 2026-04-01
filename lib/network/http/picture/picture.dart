@@ -6,7 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
-import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/util/download/download_cancel_signal.dart';
 import 'package:zephyr/util/download/qjs_download_runtime.dart';
 
@@ -26,7 +26,7 @@ void _throwIfDownloadCancelled(String taskGroupKey) {
 }
 
 Future<String> getCachePicture({
-  required From from,
+  required String from,
   String url = '',
   String path = '',
   String cartoonId = '1',
@@ -107,7 +107,7 @@ Future<String> getCachePicture({
 
   final imageData = await downloadImageWithRetry(url, source: from);
 
-  if (from == From.jm && chapterId.isNotEmpty) {
+  if (from == kJmPluginUuid && chapterId.isNotEmpty) {
     await decodeAndSaveImage(
       imageData,
       int.tryParse(chapterId) ?? 0,
@@ -135,18 +135,18 @@ Future<String> getCachePicture({
 }
 
 Future<String> downloadPicture({
-  required From from,
+  required String from,
   String url = '',
   String cartoonId = '',
   String chapterId = '',
   String path = '',
-  String qjsName = "jmComic",
+  String qjsName = kJmPluginUuid,
   String qjsTaskGroupKey = '',
 }) async {
   if (url.isEmpty) {
     throw Exception('URL 不能为空 404');
   }
-  if (url.contains("404") && from == From.jm) {
+  if (url.contains("404") && from == kJmPluginUuid) {
     return "404";
   }
 
@@ -216,7 +216,7 @@ Future<String> downloadPicture({
 
   _throwIfDownloadCancelled(qjsTaskGroupKey);
 
-  if (from == From.jm && chapterId.isNotEmpty) {
+  if (from == kJmPluginUuid && chapterId.isNotEmpty) {
     await decodeAndSaveImage(
       imageData,
       int.tryParse(chapterId) ?? 0,
@@ -249,14 +249,14 @@ Future<String> downloadPicture({
 
 String _buildStoredFilePath(
   String basePath,
-  From from,
+  String from,
   String path,
   String cartoonId,
   String chapterId, {
   String? rootFolder,
 }) {
   final fileName = _sanitizeStoredPath(path, cartoonId);
-  final segments = <String>[basePath, from.name];
+  final segments = <String>[basePath, sanitizePluginId(from)];
   if (rootFolder != null && rootFolder.isNotEmpty) {
     segments.add(rootFolder);
   }
@@ -264,7 +264,7 @@ String _buildStoredFilePath(
     segments.add(cartoonId.trim());
   }
   if (chapterId.trim().isNotEmpty) {
-    if (from == From.bika) {
+    if (from == kBikaPluginUuid) {
       segments.add('comic');
     }
     segments.add(chapterId.trim());
@@ -302,7 +302,7 @@ String normalizeStoredAssetPath(
 }
 
 Future<String?> getStoredPicturePathById({
-  required From from,
+  required String from,
   required String cartoonId,
   String chapterId = '',
   required String imageId,
@@ -313,7 +313,9 @@ Future<String?> getStoredPicturePathById({
   }
 
   final basePath = await getDownloadPath();
-  final baseSegments = <String>[basePath, from.name];
+  final pluginId = sanitizePluginId(from);
+  final baseSegments = <String>[basePath, pluginId];
+  final legacyBaseSegments = <String>[basePath, from];
   if (rootFolder.trim().isNotEmpty) {
     baseSegments.add(rootFolder.trim());
   }
@@ -323,27 +325,44 @@ Future<String?> getStoredPicturePathById({
 
   final candidateDirs = <Directory>[];
   if (chapterId.trim().isNotEmpty) {
-    if (from == From.bika) {
+    if (from == kBikaPluginUuid) {
       candidateDirs.add(
         Directory(
           file_path.joinAll([...baseSegments, 'comic', chapterId.trim()]),
         ),
       );
       candidateDirs.add(
+        Directory(
+          file_path.joinAll([...legacyBaseSegments, 'comic', chapterId.trim()]),
+        ),
+      );
+      candidateDirs.add(
         Directory(file_path.joinAll([...baseSegments, chapterId.trim()])),
+      );
+      candidateDirs.add(
+        Directory(file_path.joinAll([...legacyBaseSegments, chapterId.trim()])),
       );
     } else {
       candidateDirs.add(
         Directory(file_path.joinAll([...baseSegments, chapterId.trim()])),
       );
       candidateDirs.add(
+        Directory(file_path.joinAll([...legacyBaseSegments, chapterId.trim()])),
+      );
+      candidateDirs.add(
         Directory(
           file_path.joinAll([...baseSegments, 'comic', chapterId.trim()]),
+        ),
+      );
+      candidateDirs.add(
+        Directory(
+          file_path.joinAll([...legacyBaseSegments, 'comic', chapterId.trim()]),
         ),
       );
     }
   } else {
     candidateDirs.add(Directory(file_path.joinAll(baseSegments)));
+    candidateDirs.add(Directory(file_path.joinAll(legacyBaseSegments)));
   }
 
   for (final dir in candidateDirs) {
@@ -398,15 +417,15 @@ Future<void> copyFile(String sourcePath, String targetPath) async {
 
 Future<Uint8List> downloadImageWithRetry(
   String url, {
-  required From source,
+  required String source,
   bool retry = false,
-  String qjsName = "jmComic",
+  String qjsName = kJmPluginUuid,
   String qjsTaskGroupKey = '',
 }) async {
   while (true) {
     try {
       return await executeQjsFetchImageBytes(
-        source: source.name,
+        pluginId: source == kBikaPluginUuid ? kBikaPluginUuid : kJmPluginUuid,
         runtimeName: qjsName,
         fnPath: 'fetchImageBytes',
         argsJson: jsonEncode({"url": url, "timeoutMs": 30000}),

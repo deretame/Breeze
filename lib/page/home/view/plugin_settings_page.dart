@@ -1,13 +1,15 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
-import 'package:zephyr/page/setting/bika/widgets.dart';
+import 'package:zephyr/plugin/plugin_registry_service.dart';
+import 'package:zephyr/page/setting/common/plugin_user_info_card.dart';
 import 'package:zephyr/page/setting/common/setting_ui.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/util/sundry.dart';
@@ -17,11 +19,13 @@ class PluginSettingsPage extends StatefulWidget {
   const PluginSettingsPage({
     super.key,
     required this.from,
+    required this.pluginUuid,
     required this.pluginRuntimeName,
     required this.pluginDisplayName,
   });
 
-  final From from;
+  final String from;
+  final String pluginUuid;
   final String pluginRuntimeName;
   final String pluginDisplayName;
 
@@ -35,6 +39,10 @@ class _PluginSettingsPageState extends State<PluginSettingsPage> {
   List<Map<String, dynamic>> _sections = const [];
   List<Map<String, dynamic>> _actions = const [];
   Map<String, dynamic> _values = const {};
+  Map<String, dynamic> _userInfo = const {};
+  bool _canShowUserInfo = false;
+  bool _loadingUserInfo = false;
+  String _userInfoError = '';
 
   @override
   void initState() {
@@ -60,6 +68,7 @@ class _PluginSettingsPageState extends State<PluginSettingsPage> {
         settingsEnvelope.scheme['sections'],
       ).map((item) => asJsonMap(item)).toList();
       final values = asMap(settingsEnvelope.data['values']);
+      final canShowUserInfo = settingsEnvelope.data['canShowUserInfo'] == true;
 
       List<Map<String, dynamic>> actions = const [];
       try {
@@ -82,9 +91,15 @@ class _PluginSettingsPageState extends State<PluginSettingsPage> {
       setState(() {
         _sections = settingsSections;
         _values = values;
+        _userInfo = const <String, dynamic>{};
+        _canShowUserInfo = canShowUserInfo;
+        _userInfoError = '';
         _actions = actions;
         _loading = false;
       });
+      if (canShowUserInfo) {
+        _loadUserInfo();
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -94,69 +109,266 @@ class _PluginSettingsPageState extends State<PluginSettingsPage> {
     }
   }
 
+  Future<void> _loadUserInfo() async {
+    if (_loadingUserInfo) {
+      return;
+    }
+    setState(() {
+      _loadingUserInfo = true;
+      _userInfoError = '';
+    });
+    try {
+      final response = await callUnifiedComicPlugin(
+        from: widget.from,
+        fnPath: 'getUserInfoBundle',
+        core: const <String, dynamic>{},
+        extern: const <String, dynamic>{},
+      );
+      final envelope = UnifiedPluginEnvelope.fromMap(response);
+      if (!mounted) return;
+      setState(() {
+        _userInfo = asMap(envelope.data);
+        _loadingUserInfo = false;
+        _userInfoError = '';
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _loadingUserInfo = false;
+        _userInfoError = '用户信息加载失败';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final pluginState = context
+        .watch<PluginRegistryCubit>()
+        .state[widget.pluginUuid];
+    final debugEnabled = pluginState?.debug ?? false;
+    final debugUrl = pluginState?.debugUrl ?? '';
+    final deleted = pluginState?.isDeleted == true;
 
     return Scaffold(
       appBar: AppBar(title: Text('${widget.pluginDisplayName} 设置')),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error.isNotEmpty
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _SchemeSectionCard(
+              title: '插件管理',
+              colorScheme: colorScheme,
+              children: [
+                _FieldRow(
+                  title: '调试模式',
+                  subtitle: debugEnabled ? '已开启' : '已关闭',
+                  trailing: Switch(
+                    value: debugEnabled,
+                    thumbIcon: kSettingSwitchThumbIcon,
+                    onChanged: deleted
+                        ? null
+                        : (next) =>
+                              _updateDebugConfig(enabled: next, url: debugUrl),
+                  ),
+                  onTap: deleted
+                      ? null
+                      : () => _updateDebugConfig(
+                          enabled: !debugEnabled,
+                          url: debugUrl,
+                        ),
+                ),
+                _FieldRow(
+                  title: '调试地址',
+                  subtitle: debugEnabled
+                      ? (debugUrl.isNotEmpty ? debugUrl : '未设置')
+                      : '请先开启调试模式',
+                  trailing: Icon(
+                    debugEnabled ? Icons.edit_outlined : Icons.lock_outline,
+                    size: 18,
+                  ),
+                  onTap: deleted || !debugEnabled
+                      ? null
+                      : () async {
+                          final next = await _showInputDialog(
+                            context,
+                            title: '调试地址',
+                            initialValue: debugUrl,
+                            obscure: false,
+                          );
+                          if (next == null) return;
+                          await _updateDebugConfig(
+                            enabled: debugEnabled,
+                            url: next.trim(),
+                          );
+                        },
+                ),
+                _FieldRow(
+                  title: '删除插件',
+                  subtitle: deleted ? '已删除' : '从本地移除并标记删除',
+                  trailing: Icon(
+                    Icons.delete_outline,
+                    size: 18,
+                    color: deleted ? colorScheme.outline : colorScheme.error,
+                  ),
+                  onTap: deleted ? null : _confirmDeletePlugin,
+                ),
+              ],
+            ),
+          ),
+          if (_loading)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_error.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: _SchemeSectionCard(
+                title: '插件设置',
+                colorScheme: colorScheme,
                 children: [
-                  Text(_error),
-                  const SizedBox(height: 12),
-                  OutlinedButton(onPressed: _load, child: const Text('重试')),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(_error),
+                        const SizedBox(height: 12),
+                        OutlinedButton(
+                          onPressed: _load,
+                          child: const Text('重试'),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             )
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                if (widget.from == From.bika) ...[
-                  _buildBikaAccountSection(context, colorScheme),
-                  const SizedBox(height: 12),
-                ],
-                for (final section in _sections)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _SchemeSectionCard(
-                      title: section['title']?.toString() ?? '',
-                      colorScheme: colorScheme,
-                      children: asJsonList(section['fields'])
-                          .map((item) => asJsonMap(item))
-                          .map((field) => _buildField(context, field))
-                          .toList(),
-                    ),
-                  ),
-                if (_actions.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 12),
-                    child: _SchemeSectionCard(
-                      title: '操作',
-                      colorScheme: colorScheme,
-                      children: _actions
-                          .map((action) => _buildAction(context, action))
-                          .toList(),
-                    ),
-                  ),
-              ],
-            ),
+          else ...[
+            if (_canShowUserInfo)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _SchemeSectionCard(
+                  title: _userInfo['title']?.toString() ?? '用户信息',
+                  colorScheme: colorScheme,
+                  children: _loadingUserInfo
+                      ? const [
+                          Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
+                        ]
+                      : _userInfoError.isNotEmpty
+                      ? [
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                Expanded(child: Text(_userInfoError)),
+                                OutlinedButton(
+                                  onPressed: _loadUserInfo,
+                                  child: const Text('重试'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ]
+                      : _userInfo.isNotEmpty
+                      ? [
+                          PluginUserInfoCard(
+                            from: widget.from,
+                            avatarUrl:
+                                asMap(_userInfo['avatar'])['url']?.toString() ??
+                                '',
+                            avatarPath:
+                                asMap(
+                                  asMap(_userInfo['avatar'])['extern'],
+                                )['path']?.toString() ??
+                                '',
+                            lines: asJsonList(
+                              _userInfo['lines'],
+                            ).map((item) => item?.toString() ?? '').toList(),
+                          ),
+                        ]
+                      : const [
+                          Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Text('暂无用户信息'),
+                          ),
+                        ],
+                ),
+              ),
+            for (final section in _sections)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _SchemeSectionCard(
+                  title: section['title']?.toString() ?? '',
+                  colorScheme: colorScheme,
+                  children: asJsonList(section['fields'])
+                      .map((item) => asJsonMap(item))
+                      .map((field) => _buildField(context, field))
+                      .toList(),
+                ),
+              ),
+            if (_actions.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: _SchemeSectionCard(
+                  title: '操作',
+                  colorScheme: colorScheme,
+                  children: _actions
+                      .map((action) => _buildAction(context, action))
+                      .toList(),
+                ),
+              ),
+          ],
+        ],
+      ),
     );
   }
 
-  Widget _buildBikaAccountSection(
-    BuildContext context,
-    ColorScheme colorScheme,
-  ) {
-    return _SchemeSectionCard(
-      title: '账号',
-      colorScheme: colorScheme,
-      children: [changeProfilePicture(context.router)],
+  Future<void> _updateDebugConfig({
+    required bool enabled,
+    required String url,
+  }) async {
+    await PluginRegistryService.I.updateDebugConfig(
+      widget.pluginUuid,
+      debug: enabled,
+      debugUrl: url,
     );
+    if (!mounted) return;
+    showSuccessToast('插件调试配置已更新');
+  }
+
+  Future<void> _confirmDeletePlugin() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('删除插件'),
+        content: const Text('删除后将从本地移除插件文件，并标记为已删除。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('确认删除'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) {
+      return;
+    }
+    await PluginRegistryService.I.deletePlugin(widget.pluginUuid);
+    if (!mounted) {
+      return;
+    }
+    showSuccessToast('插件已删除');
+    Navigator.of(context).pop();
   }
 
   Widget _buildField(BuildContext context, Map<String, dynamic> field) {
@@ -272,9 +484,8 @@ class _PluginSettingsPageState extends State<PluginSettingsPage> {
                 final message = result['message']?.toString() ?? '执行成功';
                 showSuccessToast(message);
                 if (!mounted) return;
-                if (fnPath == 'clearPluginSession' &&
-                    widget.from == From.bika) {
-                  this.context.router.push(LoginRoute(from: From.bika));
+                if (fnPath == 'clearPluginSession') {
+                  this.context.router.push(LoginRoute(from: widget.from));
                 }
               } catch (e) {
                 showErrorToast('执行失败: $e');
@@ -387,7 +598,7 @@ class _PluginSettingsPageState extends State<PluginSettingsPage> {
   Future<void> _saveFieldState(String key, dynamic value) async {
     if (!mounted) return;
 
-    if (widget.from == From.bika) {
+    if (widget.from == kBikaPluginUuid) {
       final bikaCubit = context.read<BikaSettingCubit>();
       if (key == 'image.quality') {
         cacheInterceptor.clear();

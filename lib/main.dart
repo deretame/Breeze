@@ -20,13 +20,14 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
-import 'package:zephyr/config/debug_url_setting.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
+import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/network/dio_cache.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
+import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/api/system.dart' as rust_system;
@@ -41,7 +42,6 @@ import 'package:zephyr/util/desktop/window_logic.dart';
 import 'package:zephyr/util/download/qjs_runtime_mode.dart';
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/get_path.dart';
-import 'package:zephyr/util/jm_url_set.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/router/router.dart';
 import 'package:zephyr/util/sundry.dart';
@@ -103,8 +103,12 @@ Future<void> main() async {
 
     try {
       // 2. 执行业务初始化
-      final (globalSettingCubit, jmSettingCubit, bikaSettingCubit) =
-          await _initServices();
+      final (
+        globalSettingCubit,
+        jmSettingCubit,
+        bikaSettingCubit,
+        pluginRegistryCubit,
+      ) = await _initServices();
 
       runApp(
         MultiBlocProvider(
@@ -112,6 +116,7 @@ Future<void> main() async {
             BlocProvider.value(value: globalSettingCubit),
             BlocProvider.value(value: jmSettingCubit),
             BlocProvider.value(value: bikaSettingCubit),
+            BlocProvider.value(value: pluginRegistryCubit),
           ],
           child: const MyApp(),
         ),
@@ -155,8 +160,12 @@ Future<void> main() async {
     },
     appRunner: () async {
       try {
-        final (globalSettingCubit, jmSettingCubit, bikaSettingCubit) =
-            await _initServices();
+        final (
+          globalSettingCubit,
+          jmSettingCubit,
+          bikaSettingCubit,
+          pluginRegistryCubit,
+        ) = await _initServices();
 
         await addArchitectureTagsToSentry();
 
@@ -167,6 +176,7 @@ Future<void> main() async {
                 BlocProvider.value(value: globalSettingCubit),
                 BlocProvider.value(value: jmSettingCubit),
                 BlocProvider.value(value: bikaSettingCubit),
+                BlocProvider.value(value: pluginRegistryCubit),
               ],
               child: MyApp(),
             ),
@@ -179,7 +189,9 @@ Future<void> main() async {
   );
 }
 
-Future<(GlobalSettingCubit, JmSettingCubit, BikaSettingCubit)>
+Future<
+  (GlobalSettingCubit, JmSettingCubit, BikaSettingCubit, PluginRegistryCubit)
+>
 _initServices() async {
   // 初始化rust
   await RustLib.init();
@@ -191,19 +203,6 @@ _initServices() async {
   // 配置http代理，方便开发测试
   if (useQjsCallOnce) {
     setQjsErrorStackEnabled(enabled: true);
-    await enableProxy();
-  } else {
-    await initQjsRuntimeWithBundle(
-      runtimeName: "bikaComic",
-      bundleName: "bikaComic",
-      bundleJs: getJsBundle(name: "bikaComic"),
-    );
-
-    await initQjsRuntimeWithBundle(
-      runtimeName: "jmComic",
-      bundleName: "jmComic",
-      bundleJs: getJsBundle(name: "jmComic"),
-    );
   }
 
   // 初始化前台任务
@@ -238,6 +237,9 @@ _initServices() async {
   objectbox = await ObjectBox.create();
 
   await ensureCompatibleMigration(objectbox);
+  await PluginRegistryService.I.init(objectbox);
+  await PluginRegistryService.I.initializeActivePluginRuntimes();
+  unawaited(PluginRegistryService.I.warmupPluginInfos());
 
   final setting = objectbox.userSettingBox.get(1);
   if (setting == null) {
@@ -245,8 +247,6 @@ _initServices() async {
   }
 
   await registerPersistentCallbacks();
-  await DebugUrlSetting.init();
-
   final globalSettingCubit = GlobalSettingCubit();
   await globalSettingCubit.initBox();
 
@@ -255,6 +255,7 @@ _initServices() async {
 
   final bikaSettingCubit = BikaSettingCubit();
   await bikaSettingCubit.initBox();
+  final pluginRegistryCubit = PluginRegistryCubit();
   // await initCfIpList('https://ip.164746.xyz/ipTop.html');
 
   if (globalSettingCubit.state.needCleanCache) {
@@ -269,7 +270,12 @@ _initServices() async {
     setSocks5Proxy(proxy: proxy);
   }
 
-  return (globalSettingCubit, jmSettingCubit, bikaSettingCubit);
+  return (
+    globalSettingCubit,
+    jmSettingCubit,
+    bikaSettingCubit,
+    pluginRegistryCubit,
+  );
 }
 
 Future<void> addArchitectureTagsToSentry() async {

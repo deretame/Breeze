@@ -6,9 +6,9 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/compressed/compressed.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -16,7 +16,7 @@ Future<void> bikaExportComicAsFolder(
   String comicId, {
   String? exportPath,
 }) async {
-  final download = _getDownload(comicId, 'bika');
+  final download = _getDownload(comicId, kBikaPluginUuid);
   final detail = _exportDetail(download);
   final title = download.title;
   final root = exportPath ?? await createDownloadDir();
@@ -42,7 +42,7 @@ Future<void> bikaExportComicAsFolder(
 }
 
 Future<void> bikaExportComicAsZip(String comicId, {String? exportPath}) async {
-  final download = _getDownload(comicId, 'bika');
+  final download = _getDownload(comicId, kBikaPluginUuid);
   final detail = _exportDetail(download);
   final title = download.title;
   final finalZipPath =
@@ -125,7 +125,7 @@ Future<String?> _tryDownloadCover(
   if (url.isEmpty && path.isEmpty) return null;
   try {
     return await downloadPicture(
-      from: From.bika,
+      from: kBikaPluginUuid,
       url: url,
       path: path,
       cartoonId: comicId,

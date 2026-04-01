@@ -22,9 +22,9 @@ abstract class NormalComicAllInfo with _$NormalComicAllInfo {
     @JsonKey(name: 'totalComments') @Default(0) int totalComments,
     @JsonKey(name: 'isFavourite') @Default(false) bool isFavourite,
     @JsonKey(name: 'isLiked') @Default(false) bool isLiked,
-    @JsonKey(name: 'allowComment') @Default(true) bool allowComment,
-    @JsonKey(name: 'allowLike') @Default(true) bool allowLike,
-    @JsonKey(name: 'allowFavorite') @Default(true) bool allowFavorite,
+    @JsonKey(name: 'allowComments') @Default(false) bool allowComments,
+    @JsonKey(name: 'allowLike') @Default(false) bool allowLike,
+    @JsonKey(name: 'allowCollected') @Default(false) bool allowCollected,
     @JsonKey(name: 'allowDownload') @Default(true) bool allowDownload,
     @JsonKey(name: 'extension') @Default({}) Map<String, dynamic> extension,
   }) = _NormalComicAllInfo;

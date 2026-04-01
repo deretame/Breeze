@@ -6,12 +6,11 @@ import 'package:zephyr/page/comic_read/method/image_size_cache_store.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 class ComicReadSuccessWidget extends StatefulWidget {
   final String comicId;
-  final From from;
+  final String from;
   final NormalComicEpInfo epInfo;
   final WidgetBuilder buildInteractiveViewer;
   final WidgetBuilder buildPageCount;
@@ -51,7 +50,7 @@ class _ComicReadSuccessWidgetState extends State<ComicReadSuccessWidget> {
     super.initState();
     _pageKeys = _buildPageKeys();
     _persistedSizeFuture = ImageSizeCacheStore(
-      sourceTag: widget.from.name,
+      sourceTag: widget.from,
       pageKeys: _pageKeys,
     ).readIndexedSizes(pageKeys: _pageKeys, count: widget.epInfo.length);
   }
@@ -71,7 +70,7 @@ class _ComicReadSuccessWidgetState extends State<ComicReadSuccessWidget> {
           create: (_) => ImageSizeCubit.create(
             defaultWidth: width,
             count: widget.epInfo.length,
-            sourceTag: widget.from.name,
+            sourceTag: widget.from,
             pageKeys: _pageKeys,
             persistedCache: persistedSize,
           ),

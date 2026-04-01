@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/jm/http_request.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/page/more/more.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
 import 'package:zephyr/widgets/toast.dart';
+import 'package:zephyr/type/enum.dart';
 
 class MorePage extends StatefulWidget {
   const MorePage({super.key});
@@ -108,11 +110,17 @@ class _MorePageState extends State<MorePage> {
     jmCubit.updateLoginStatus(LoginStatus.loggingIn);
 
     try {
-      final value = await login(jmState.account, jmState.password);
+      final value = await callUnifiedComicPlugin(
+        pluginId: kJmPluginUuid,
+        fnPath: 'loginWithPassword',
+        core: {'account': jmState.account, 'password': jmState.password},
+        extern: const <String, dynamic>{},
+      );
 
       if (!mounted) return;
 
-      jmCubit.updateUserInfo(value.let(replaceNestedNull).let(jsonEncode));
+      final raw = asJsonMap(value['raw']);
+      jmCubit.updateUserInfo(raw.let(replaceNestedNull).let(jsonEncode));
       jmCubit.updateLoginStatus(LoginStatus.login);
       logger.d(jmCubit.state.userInfo);
     } catch (e, s) {

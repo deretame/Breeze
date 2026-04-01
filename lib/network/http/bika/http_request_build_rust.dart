@@ -1,7 +1,8 @@
 import 'dart:convert';
 
 import 'package:zephyr/main.dart';
-import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/network/http/plugin/unauthorized_payload.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/download/qjs_download_runtime.dart';
 import 'package:zephyr/util/event/event.dart';
@@ -15,7 +16,7 @@ Future<Map<String, dynamic>> request(
   dynamic body,
   bool cache = false,
   String? imageQuality,
-  String qjsName = "bikaComic",
+  String qjsName = kBikaPluginUuid,
   String qjsTaskGroupKey = '',
 }) async {
   try {
@@ -35,7 +36,7 @@ Future<Map<String, dynamic>> request(
     }.let(jsonEncode);
 
     final raw = await executeQjsCall(
-      source: 'bika',
+      pluginId: kBikaPluginUuid,
       runtimeName: qjsName,
       fnPath: 'bikaRequest',
       argsJson: args,
@@ -46,7 +47,7 @@ Future<Map<String, dynamic>> request(
     final data = _toStringKeyMap(decoded);
 
     if (data['code'] == 401 && data['message'] == 'unauthorized') {
-      eventBus.fire(NeedLogin(from: From.bika));
+      eventBus.fire(NeedLogin(from: kBikaPluginUuid));
     }
 
     return data;
@@ -57,9 +58,25 @@ Future<Map<String, dynamic>> request(
     if (_isQjsRuntimeCancelled(message)) {
       throw Exception(_kDownloadTaskCancelled);
     }
+    final unauthorized = parseUnauthorizedPayload(
+      e,
+      fallbackPluginId: kBikaPluginUuid,
+    );
+    if (unauthorized != null) {
+      eventBus.fire(
+        NeedLogin(
+          from: unauthorized.pluginId,
+          scheme: unauthorized.scheme,
+          data: unauthorized.data,
+          message: unauthorized.message,
+        ),
+      );
+      throw Exception(unauthorized.message);
+    }
+
     if (message.contains('__NEED_LOGIN__') ||
         message.contains('unauthorized')) {
-      eventBus.fire(NeedLogin(from: From.bika));
+      eventBus.fire(NeedLogin(from: kBikaPluginUuid));
     }
 
     throw Exception(message);

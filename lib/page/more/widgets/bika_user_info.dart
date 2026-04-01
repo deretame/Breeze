@@ -1,142 +1,113 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/page/more/more.dart';
-import 'package:zephyr/page/more/widgets/user_avatar.dart';
-import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
+import 'package:zephyr/page/setting/common/plugin_user_info_card.dart';
+import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/router/router.gr.dart';
+import 'package:zephyr/page/more/widgets/refresh_event.dart';
 
-import '../../../../widgets/picture_bloc/models/picture_info.dart';
-import '../json/bika/profile.dart';
-
-class RefreshEvent {}
-
-class BikaUserInfoWidget extends StatelessWidget {
+class BikaUserInfoWidget extends StatefulWidget {
   const BikaUserInfoWidget({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => UserProfileBloc()..add(UserProfileEvent()),
-      child: const _BikaUserInfoWidget(),
-    );
-  }
+  State<BikaUserInfoWidget> createState() => _BikaUserInfoWidgetState();
 }
 
-class _BikaUserInfoWidget extends StatefulWidget {
-  const _BikaUserInfoWidget();
+class _BikaUserInfoWidgetState extends State<BikaUserInfoWidget> {
+  bool _loading = true;
+  String _error = '';
+  Map<String, dynamic> _userInfo = const <String, dynamic>{};
 
-  @override
-  State<_BikaUserInfoWidget> createState() => _BikaUserInfoWidgetState();
-}
-
-class _BikaUserInfoWidgetState extends State<_BikaUserInfoWidget> {
   @override
   void initState() {
     super.initState();
-    eventBus.on<RefreshEvent>().listen((event) {
-      _onRefresh();
-    });
+    eventBus.on<RefreshEvent>().listen((_) => _load());
+    _load();
+  }
+
+  Future<void> _load() async {
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _error = '';
+      });
+    }
+    try {
+      final response = await callUnifiedComicPlugin(
+        from: kBikaPluginUuid,
+        fnPath: 'getUserInfoBundle',
+        core: const <String, dynamic>{},
+        extern: const <String, dynamic>{},
+      );
+      final envelope = UnifiedPluginEnvelope.fromMap(response);
+      final userInfo = asJsonMap(envelope.data);
+      if (!mounted) {
+        return;
+      }
+      context.read<BikaSettingCubit>().updateSignIn(
+        asJsonMap(userInfo['extern'])['isPunched'] == true,
+      );
+      setState(() {
+        _userInfo = userInfo;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_error.isNotEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Expanded(child: Text('加载失败: $_error')),
+            IconButton(onPressed: _load, icon: const Icon(Icons.refresh)),
+          ],
+        ),
+      );
+    }
+
     return Column(
       children: [
-        BlocBuilder<UserProfileBloc, UserProfileState>(
-          builder: (context, state) {
-            switch (state.status) {
-              case UserProfileStatus.initial:
-                return SizedBox(
-                  height: 130,
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: CircularProgressIndicator(),
-                    ),
-                  ),
-                );
-              case UserProfileStatus.failure:
-                return SizedBox(
-                  height: 130,
-                  child: Center(
-                    child: IconButton(
-                      icon: const Icon(Icons.refresh),
-                      onPressed: () {
-                        context.read<UserProfileBloc>().add(UserProfileEvent());
-                      },
-                    ),
-                  ),
-                );
-              case UserProfileStatus.success:
-                return Center(child: _BikaWidget(profile: state.profile!));
-            }
-          },
+        PluginUserInfoCard(
+          from: kBikaPluginUuid,
+          avatarUrl: asJsonMap(_userInfo['avatar'])['url']?.toString() ?? '',
+          avatarPath:
+              asJsonMap(
+                asJsonMap(_userInfo['avatar'])['extern'],
+              )['path']?.toString() ??
+              '',
+          lines: asJsonList(
+            _userInfo['lines'],
+          ).map((item) => item?.toString() ?? '').toList(),
         ),
         ListTile(
           leading: const Icon(Icons.manage_accounts_outlined),
           title: const Text('哔咔设置'),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () {
-            context.pushRoute(BikaSettingRoute());
-          },
+          onTap: () => context.pushRoute(GlobalSettingRoute()),
         ),
-      ],
-    );
-  }
-
-  void _onRefresh() {
-    context.read<UserProfileBloc>().add(UserProfileEvent());
-  }
-}
-
-class _BikaWidget extends StatelessWidget {
-  final Profile profile;
-
-  const _BikaWidget({required this.profile});
-
-  @override
-  Widget build(BuildContext context) {
-    context.read<BikaSettingCubit>().updateSignIn(profile.data.user.isPunched);
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
-          child: Row(
-            children: <Widget>[
-              UserAvatar(
-                pictureInfo: PictureInfo(
-                  from: From.bika,
-                  url: profile.data.user.avatar.fileServer,
-                  path: profile.data.user.avatar.path,
-                  chapterId: '',
-                  pictureType: PictureType.avatar,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      '${profile.data.user.name} (${profile.data.user.slogan})',
-                    ),
-                    Text(
-                      'Lv.${profile.data.user.level} ${profile.data.user.title}',
-                    ),
-                    Text(
-                      '经验值: ${profile.data.user.exp} (${profile.data.user.isPunched ? '已签到' : '未签到'})',
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        buildCommentWidget(context),
       ],
     );
   }

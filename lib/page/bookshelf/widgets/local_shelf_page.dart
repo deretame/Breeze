@@ -5,9 +5,9 @@ import 'package:zephyr/model/unified_comic_list_item.dart';
 import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
+import 'package:zephyr/type/enum.dart';
 
 enum ShelfPageMode { favorite, history, download }
 

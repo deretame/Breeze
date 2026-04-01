@@ -4,14 +4,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/router/router.gr.dart';
+import 'package:zephyr/type/enum.dart';
 
 class JumpChapter {
   bool haveNext;
   bool havePrev;
   int currentChapterIndex;
-  From from;
+  String from;
   List<UnifiedComicChapterRef> chapters;
   int order;
   dynamic comicInfo;
@@ -71,7 +71,7 @@ class JumpChapter {
     int order,
     int epsNumber,
     String comicId,
-    From from,
+    String from,
   ) {
     final chapters = resolveUnifiedComicChapters(comicInfo, from);
 

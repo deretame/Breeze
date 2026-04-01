@@ -1,4 +1,4 @@
-import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 
 class UnifiedCreatorListItem {
   const UnifiedCreatorListItem({
@@ -9,7 +9,7 @@ class UnifiedCreatorListItem {
     required this.avatar,
     required this.stats,
     required this.raw,
-    required this.extra,
+    required this.extern,
   });
 
   final String source;
@@ -19,9 +19,12 @@ class UnifiedCreatorListItem {
   final UnifiedCreatorAvatar avatar;
   final List<String> stats;
   final Map<String, dynamic> raw;
-  final Map<String, dynamic> extra;
+  final Map<String, dynamic> extern;
 
   factory UnifiedCreatorListItem.fromJson(Map<String, dynamic> json) {
+    if (json['avatar'] is! Map || json['stats'] is! List) {
+      throw const FormatException('Invalid UnifiedCreatorListItem payload');
+    }
     return UnifiedCreatorListItem(
       source: json['source']?.toString() ?? '',
       id: json['id']?.toString() ?? '',
@@ -30,19 +33,15 @@ class UnifiedCreatorListItem {
       avatar: UnifiedCreatorAvatar.fromJson(_asMap(json['avatar'])),
       stats: _asList(json['stats']).map((item) => item.toString()).toList(),
       raw: _asMap(json['raw']),
-      extra: _asMap(json['extra']),
+      extern: _asMap(json['extern']),
     );
   }
 
-  From get from {
-    return switch (source) {
-      'bika' => From.bika,
-      'jm' => From.jm,
-      _ => From.unknown,
-    };
+  String get from {
+    return sanitizePluginId(source);
   }
 
-  String get searchUrl => extra['searchUrl']?.toString() ?? '';
+  String get searchUrl => extern['searchUrl']?.toString() ?? '';
 }
 
 class UnifiedCreatorAvatar {
@@ -52,6 +51,9 @@ class UnifiedCreatorAvatar {
   final String path;
 
   factory UnifiedCreatorAvatar.fromJson(Map<String, dynamic> json) {
+    if (json.isEmpty) {
+      throw const FormatException('Invalid UnifiedCreatorAvatar payload');
+    }
     return UnifiedCreatorAvatar(
       url: json['url']?.toString() ?? '',
       path: json['path']?.toString() ?? '',

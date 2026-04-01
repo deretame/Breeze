@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/debouncer.dart';
@@ -11,6 +11,7 @@ import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.da
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/cover.dart';
 import 'package:zephyr/widgets/section_header.dart';
+import 'package:zephyr/type/enum.dart';
 
 class HomeSchemeRenderer {
   const HomeSchemeRenderer();
@@ -21,7 +22,7 @@ class HomeSchemeRenderer {
 
   Widget buildPage(
     BuildContext context, {
-    required From from,
+    required String from,
     required Map<String, dynamic> scheme,
     required Map<String, dynamic> data,
     required Future<void> Function() onReachBottom,
@@ -83,7 +84,7 @@ class HomeSchemeRenderer {
     BuildContext context, {
     required Map<String, dynamic> node,
     required Map<String, dynamic> data,
-    required From from,
+    required String from,
     required Future<void> Function(Map<String, dynamic> action) onAction,
   }) {
     final type = node['type']?.toString() ?? '';
@@ -172,7 +173,7 @@ class HomeSchemeRenderer {
   Widget _buildActionGrid(
     BuildContext context,
     List<Map<String, dynamic>> items,
-    From from,
+    String from,
     Future<void> Function(Map<String, dynamic> action) onAction,
   ) {
     if (items.isEmpty) {
@@ -196,10 +197,10 @@ class HomeSchemeRenderer {
         final item = items[index];
         final title = item['title']?.toString() ?? '';
         final cover = asJsonMap(item['cover']);
-        final extra = asJsonMap(cover['extra']);
-        final assetPath = extra['asset']?.toString().trim() ?? '';
+        final extern = asJsonMap(cover['extern']);
+        final assetPath = extern['asset']?.toString().trim() ?? '';
         final coverUrl = cover['url']?.toString().trim() ?? '';
-        final coverPath = extra['path']?.toString().trim() ?? '';
+        final coverPath = extern['path']?.toString().trim() ?? '';
 
         return GestureDetector(
           onTap: () => onAction(asJsonMap(item['action'])),
@@ -247,7 +248,7 @@ class HomeSchemeRenderer {
   Widget _buildComicSectionList(
     BuildContext context,
     List<Map<String, dynamic>> sections,
-    From from,
+    String from,
     Future<void> Function(Map<String, dynamic> action) onAction,
   ) {
     if (sections.isEmpty) {
@@ -332,11 +333,11 @@ class HomeSchemeRenderer {
   }
 
   List<Map<String, dynamic>> _filterActionItems(
-    From from,
+    String from,
     Map<String, dynamic> node,
     List<Map<String, dynamic>> items,
   ) {
-    if (from != From.bika || node['key']?.toString() != 'navItems') {
+    if (from != kBikaPluginUuid || node['key']?.toString() != 'navItems') {
       return items;
     }
 

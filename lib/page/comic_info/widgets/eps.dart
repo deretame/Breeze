@@ -5,8 +5,8 @@ import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
-import '../../../type/enum.dart';
 import '../../../util/router/router.gr.dart';
+import 'package:zephyr/type/enum.dart';
 
 class EpButtonWidget extends StatelessWidget {
   final Ep doc;
@@ -14,7 +14,7 @@ class EpButtonWidget extends StatelessWidget {
   final int epsLength;
   final ComicEntryType type;
   final String comicId;
-  final From from;
+  final String from;
 
   const EpButtonWidget({
     super.key,

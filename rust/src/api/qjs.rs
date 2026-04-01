@@ -1042,6 +1042,12 @@ pub async fn init_qjs_runtime(name: String) -> Result<()> {
 }
 
 #[frb]
+pub async fn is_qjs_runtime_initialized(name: String) -> Result<bool> {
+    let map = qjs_runtime_map().read().await;
+    Ok(map.contains_key(&name))
+}
+
+#[frb]
 pub async fn init_qjs_runtime_with_bundle(
     runtime_name: String,
     bundle_name: String,

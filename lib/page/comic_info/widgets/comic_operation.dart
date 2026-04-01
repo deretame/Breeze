@@ -1,10 +1,10 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/page/comic_info/models/collect_comic.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/page/download/view/download.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
@@ -13,7 +13,7 @@ import '../../../widgets/toast.dart';
 
 class ComicOperationWidget extends StatefulWidget {
   final NormalComicAllInfo normalInfo;
-  final From from;
+  final String from;
   final dynamic comicInfo;
 
   const ComicOperationWidget({
@@ -70,7 +70,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         icon: Icons.mode_comment_outlined,
         label: '评论',
         value: '${normalInfo.totalComments}',
-        enabled: normalInfo.allowComment || widget.from == From.jm,
+        enabled: normalInfo.allowComments,
         onTap: _openComments,
       ),
       _OperationItemData(
@@ -134,17 +134,22 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
   }
 
   void _openComments() {
-    if (widget.from == From.bika) {
-      if (normalInfo.allowComment) {
-        AutoRouter.of(context).push(
-          CommentsRoute(
-            comicId: comicInfoView.id,
-            comicTitle: comicInfoView.title,
-          ),
-        );
-      } else {
+    if (widget.from == kBikaPluginUuid) {
+      if (!normalInfo.allowComments) {
         commonDialog(context, '禁止评论', '该漫画禁止评论');
+        return;
       }
+      AutoRouter.of(context).push(
+        CommentsRoute(
+          comicId: comicInfoView.id,
+          comicTitle: comicInfoView.title,
+        ),
+      );
+      return;
+    }
+
+    if (!normalInfo.allowComments) {
+      commonDialog(context, '禁止评论', '该漫画禁止评论');
       return;
     }
 

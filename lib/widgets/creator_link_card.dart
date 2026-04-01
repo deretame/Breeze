@@ -1,14 +1,15 @@
 import 'dart:io';
+import 'package:zephyr/plugin/plugin_constants.dart';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/picture_bloc/bloc/picture_bloc.dart';
 import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
+import 'package:zephyr/type/enum.dart';
 
 class CreatorLinkCard extends StatelessWidget {
   const CreatorLinkCard({
@@ -18,7 +19,7 @@ class CreatorLinkCard extends StatelessWidget {
     required this.avatarPath,
     required this.infoChildren,
     this.onTap,
-    this.from = From.bika,
+    this.from = kBikaPluginUuid,
     this.pictureType = PictureType.creator,
     this.imageKey = '',
     this.errorAssetPath = 'asset/image/assets/default_cover.png',
@@ -30,7 +31,7 @@ class CreatorLinkCard extends StatelessWidget {
   final String avatarPath;
   final List<Widget> infoChildren;
   final VoidCallback? onTap;
-  final From from;
+  final String from;
   final PictureType pictureType;
   final String imageKey;
   final String errorAssetPath;

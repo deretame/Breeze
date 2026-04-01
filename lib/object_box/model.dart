@@ -807,42 +807,47 @@ class PluginConfig {
 @JsonSerializable()
 class PluginInfo {
   @Id()
-  int id;
+  int id = 0;
 
   @Unique()
-  String pluginId;
-
-  String name;
-
-  String jsCode;
+  String uuid;
 
   String version;
 
-  String description;
+  bool lastLoadSuccess;
 
-  @Property(type: PropertyType.flex)
-  Map<String, dynamic>? allInfo;
+  String? lastLoadError;
 
+  @Property(type: PropertyType.date)
   DateTime insertedAt;
 
+  @Property(type: PropertyType.date)
   DateTime updatedAt;
 
   bool isEnabled;
 
   bool isDeleted;
 
+  @Property(type: PropertyType.date)
+  DateTime? deletedAt;
+
+  bool debug = false;
+
+  String? debugUrl;
+
   PluginInfo({
     this.id = 0,
-    required this.pluginId,
-    required this.name,
-    required this.jsCode,
+    required this.uuid,
     required this.version,
-    required this.description,
-    required this.allInfo,
     required this.insertedAt,
     required this.updatedAt,
     required this.isEnabled,
     required this.isDeleted,
+    this.deletedAt,
+    required this.lastLoadSuccess,
+    this.lastLoadError,
+    required this.debug,
+    this.debugUrl,
   });
 
   Map<String, dynamic> toJson() => _$PluginInfoToJson(this);

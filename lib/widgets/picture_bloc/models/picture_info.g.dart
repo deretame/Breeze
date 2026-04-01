@@ -7,7 +7,7 @@ part of 'picture_info.dart';
 // **************************************************************************
 
 _PictureInfo _$PictureInfoFromJson(Map<String, dynamic> json) => _PictureInfo(
-  from: $enumDecodeNullable(_$FromEnumMap, json['from']) ?? From.bika,
+  from: json['from'] as String? ?? kBikaPluginUuid,
   url: json['url'] as String? ?? '',
   path: json['path'] as String? ?? '',
   cartoonId: json['cartoonId'] as String? ?? '',
@@ -19,19 +19,13 @@ _PictureInfo _$PictureInfoFromJson(Map<String, dynamic> json) => _PictureInfo(
 
 Map<String, dynamic> _$PictureInfoToJson(_PictureInfo instance) =>
     <String, dynamic>{
-      'from': _$FromEnumMap[instance.from]!,
+      'from': instance.from,
       'url': instance.url,
       'path': instance.path,
       'cartoonId': instance.cartoonId,
       'chapterId': instance.chapterId,
       'pictureType': _$PictureTypeEnumMap[instance.pictureType]!,
     };
-
-const _$FromEnumMap = {
-  From.bika: 'bika',
-  From.jm: 'jm',
-  From.unknown: 'unknown',
-};
 
 const _$PictureTypeEnumMap = {
   PictureType.comic: 'comic',

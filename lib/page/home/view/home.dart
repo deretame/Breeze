@@ -4,16 +4,18 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/comic_list/models/comic_list_scene.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
-import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/plugin/plugin_constants.dart';
+import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/router/router.gr.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 import 'home_scheme_renderer.dart';
 import 'plugin_settings_page.dart';
@@ -28,7 +30,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final HomeSchemeRenderer _renderer = const HomeSchemeRenderer();
-  final Map<From, Future<Map<String, dynamic>>> _pluginInfoFutures = {};
+  final Map<String, Future<Map<String, dynamic>>> _pluginInfoFutures = {};
+  final Map<String, String> _pluginInfoCacheKeyByUuid = {};
 
   @override
   Widget build(BuildContext context) {
@@ -67,36 +70,72 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  From get _currentFrom {
-    final state = context.read<GlobalSettingCubit>().state;
-    return state.disableBika ? From.jm : From.bika;
+  String get _currentFrom {
+    final pluginStates = context.read<PluginRegistryCubit>().state;
+    final active =
+        pluginStates.values
+            .where((state) => state.isEnabled && !state.isDeleted)
+            .toList()
+          ..sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
+    if (active.isNotEmpty) {
+      return active.first.uuid;
+    }
+    final visible =
+        pluginStates.values.where((state) => !state.isDeleted).toList()
+          ..sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
+    if (visible.isNotEmpty) {
+      return visible.first.uuid;
+    }
+    return kBikaPluginUuid;
   }
 
   Future<void> _reloadCurrent() async {
     setState(() {
-      _pluginInfoFutures.remove(From.bika);
-      _pluginInfoFutures.remove(From.jm);
+      _pluginInfoFutures.clear();
     });
   }
 
   Widget _buildPluginHome() {
-    final disableBika = context.watch<GlobalSettingCubit>().state.disableBika;
+    final pluginStates = context.watch<PluginRegistryCubit>().state;
+    _reconcilePluginInfoCache(pluginStates);
+    final visiblePlugins =
+        pluginStates.values.where((state) => !state.isDeleted).toList()
+          ..sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
+
+    if (visiblePlugins.isEmpty) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        children: const [
+          SizedBox(height: 120),
+          Center(child: Text('暂无可用插件')),
+        ],
+      );
+    }
+
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       children: [
-        if (!disableBika) ...[
-          _buildPluginCardAsync(From.bika),
-          const SizedBox(height: 12),
+        for (var i = 0; i < visiblePlugins.length; i++) ...[
+          _buildPluginCardAsync(visiblePlugins[i].uuid, visiblePlugins[i]),
+          if (i != visiblePlugins.length - 1) const SizedBox(height: 12),
         ],
-        _buildPluginCardAsync(From.jm),
       ],
     );
   }
 
-  Widget _buildPluginCardAsync(From from) {
+  Widget _buildPluginCardAsync(
+    String pluginUuid,
+    PluginRuntimeState? pluginState,
+  ) {
+    final from = pluginUuid;
+    final isEnabled = pluginState?.isEnabled ?? true;
     return FutureBuilder<Map<String, dynamic>>(
-      future: _pluginInfoFutures.putIfAbsent(from, () => _loadPluginInfo(from)),
+      future: _pluginInfoFutures.putIfAbsent(
+        pluginUuid,
+        () => _loadPluginInfo(pluginUuid),
+      ),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return Material(
@@ -121,7 +160,7 @@ class _HomePageState extends State<HomePage> {
                   TextButton(
                     onPressed: () {
                       setState(() {
-                        _pluginInfoFutures.remove(from);
+                        _pluginInfoFutures.remove(pluginUuid);
                       });
                     },
                     child: const Text('重试'),
@@ -155,10 +194,12 @@ class _HomePageState extends State<HomePage> {
         return _buildPluginCard(
           context,
           from: from,
+          pluginUuid: pluginUuid,
+          pluginState: pluginState,
           title: title,
-          description: description,
+          description: isEnabled ? description : '已关闭（功能入口已隐藏）',
           iconUrl: iconUrl,
-          functions: rawFunctions,
+          functions: isEnabled ? rawFunctions : const <Map<String, dynamic>>[],
         );
       },
     );
@@ -166,15 +207,20 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildPluginCard(
     BuildContext context, {
-    required From from,
+    required String from,
+    required String pluginUuid,
+    required PluginRuntimeState? pluginState,
     required String title,
     required String description,
     required String iconUrl,
     required List<Map<String, dynamic>> functions,
   }) {
+    final isEnabled = pluginState?.isEnabled ?? true;
     final colorScheme = Theme.of(context).colorScheme;
     return Material(
-      color: colorScheme.surfaceContainerLow,
+      color: isEnabled
+          ? colorScheme.surfaceContainerLow
+          : colorScheme.surfaceContainer,
       borderRadius: BorderRadius.circular(16),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -231,6 +277,21 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                           IconButton(
+                            tooltip: isEnabled ? '关闭插件' : '开启插件',
+                            iconSize: 16,
+                            splashRadius: 14,
+                            visualDensity: VisualDensity.compact,
+                            splashColor: Colors.transparent,
+                            highlightColor: Colors.transparent,
+                            onPressed: () =>
+                                _togglePluginEnabled(pluginUuid, !isEnabled),
+                            icon: Icon(
+                              isEnabled
+                                  ? Icons.toggle_on_outlined
+                                  : Icons.toggle_off_outlined,
+                            ),
+                          ),
+                          IconButton(
                             tooltip: '设置',
                             iconSize: 18,
                             splashRadius: 16,
@@ -242,7 +303,8 @@ class _HomePageState extends State<HomePage> {
                                 MaterialPageRoute<void>(
                                   builder: (context) => PluginSettingsPage(
                                     from: from,
-                                    pluginRuntimeName: _pluginRuntimeName(from),
+                                    pluginUuid: pluginUuid,
+                                    pluginRuntimeName: pluginUuid,
                                     pluginDisplayName: title,
                                   ),
                                 ),
@@ -274,16 +336,6 @@ class _HomePageState extends State<HomePage> {
                 final id = function['id']?.toString().trim() ?? '';
                 final text = function['title']?.toString().trim() ?? '未命名';
                 var action = asJsonMap(function['action']);
-                if (from == From.jm && id == 'recommend') {
-                  action = {
-                    'type': 'openPluginFunction',
-                    'payload': {
-                      'id': 'recommend',
-                      'title': text,
-                      'presentation': 'page',
-                    },
-                  };
-                }
                 if (action.isEmpty) {
                   if (id.isNotEmpty) {
                     action = {
@@ -331,18 +383,53 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  String _pluginRuntimeName(From from) {
-    return from == From.bika ? 'bikaComic' : 'jmComic';
+  Future<void> _togglePluginEnabled(String uuid, bool enabled) async {
+    await PluginRegistryService.I.setEnabled(uuid, enabled);
   }
 
-  Future<Map<String, dynamic>> _loadPluginInfo(From from) async {
-    final response = await callUnifiedComicPlugin(
-      from: from,
-      fnPath: 'getInfo',
-      core: const <String, dynamic>{},
-      extern: const <String, dynamic>{},
-    );
-    return response;
+  void _reconcilePluginInfoCache(Map<String, PluginRuntimeState> pluginStates) {
+    for (final entry in pluginStates.entries) {
+      final plugin = entry.key;
+      final state = entry.value;
+      final cacheKey = _pluginInfoCacheKey(state);
+      final previous = _pluginInfoCacheKeyByUuid[plugin];
+      if (previous != null && previous != cacheKey) {
+        _pluginInfoFutures.remove(plugin);
+      }
+      _pluginInfoCacheKeyByUuid[plugin] = cacheKey;
+
+      if (state.isDeleted) {
+        _pluginInfoFutures.remove(plugin);
+      }
+    }
+  }
+
+  String _pluginInfoCacheKey(PluginRuntimeState? state) {
+    if (state == null) {
+      return 'none';
+    }
+    return '${state.isDeleted}|${state.debug}|${state.debugUrl ?? ''}';
+  }
+
+  Future<Map<String, dynamic>> _loadPluginInfo(String uuid) async {
+    final cached = PluginRegistryService.I.getCachedPluginInfo(uuid);
+    if (cached != null) {
+      return cached;
+    }
+    final runtimeName = uuid;
+    try {
+      final response = await PluginRegistryService.I.fetchPluginInfo(
+        uuid: uuid,
+        runtimeName: runtimeName,
+      );
+      return response;
+    } catch (e) {
+      final state = PluginRegistryService.I.getByUuid(uuid);
+      if (state?.debug == true) {
+        showErrorToast('插件调试加载失败，已回退本地: $e');
+      }
+      rethrow;
+    }
   }
 
   Future<void> _handleAction(Map<String, dynamic> action) async {
@@ -355,6 +442,7 @@ class _HomePageState extends State<HomePage> {
 
     if (type == 'openSearch') {
       final source = _sourceFromString(payload['source']?.toString());
+      final sourceId = sanitizePluginId(source);
       final keyword = payload['keyword']?.toString() ?? '';
       final url = payload['url']?.toString() ?? '';
       final categories = asJsonList(payload['categories'])
@@ -363,15 +451,14 @@ class _HomePageState extends State<HomePage> {
           .toList();
 
       final extern = <String, dynamic>{
-        if (source == From.bika && categories.isNotEmpty)
-          'categories': categories,
+        if (categories.isNotEmpty) 'categories': categories,
         if (url.isNotEmpty) 'url': url,
       };
 
       final searchStates = SearchStates.initial().copyWith(
         from: source,
         searchKeyword: keyword,
-        pluginExtern: extern,
+        pluginExtern: {...extern, '_pluginId': sourceId},
       );
 
       context.pushRoute(
@@ -405,7 +492,7 @@ class _HomePageState extends State<HomePage> {
 
     if (type == 'openCloudFavorite') {
       final parsed = _sourceFromString(payload['source']?.toString());
-      final source = parsed == From.unknown ? _currentFrom : parsed;
+      final source = parsed.isEmpty ? _currentFrom : parsed;
       final title = payload['title']?.toString();
       context.pushRoute(
         ComicListRoute(
@@ -426,7 +513,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _openPluginFunction(
-    From from,
+    String from,
     Map<String, dynamic> payload,
   ) async {
     final functionId = payload['id']?.toString().trim() ?? '';
@@ -518,21 +605,26 @@ class _HomePageState extends State<HomePage> {
 
   Map<String, dynamic> _attachActionSource(
     Map<String, dynamic> action,
-    From from,
+    String from,
   ) {
     final type = action['type']?.toString().trim() ?? '';
-    if (type != 'openPluginFunction' && type != 'openCloudFavorite') {
+    if (type != 'openPluginFunction' &&
+        type != 'openCloudFavorite' &&
+        type != 'openSearch' &&
+        type != 'openComicList') {
       return action;
     }
 
-    final payload = asJsonMap(action['payload']);
-    if ((payload['source']?.toString().trim() ?? '').isNotEmpty) {
-      return action;
+    final payload = Map<String, dynamic>.from(asJsonMap(action['payload']));
+    payload['source'] = from;
+
+    if (type == 'openComicList') {
+      final scene = Map<String, dynamic>.from(asJsonMap(payload['scene']));
+      scene['source'] = from;
+      payload['scene'] = scene;
     }
 
-    final nextPayload = Map<String, dynamic>.from(payload)
-      ..['source'] = from.name;
-    return Map<String, dynamic>.from(action)..['payload'] = nextPayload;
+    return Map<String, dynamic>.from(action)..['payload'] = payload;
   }
 
   double _estimateFunctionDialogHeight(
@@ -591,12 +683,9 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  From _sourceFromString(String? source) {
-    return switch (source) {
-      'bika' => From.bika,
-      'jm' => From.jm,
-      _ => _currentFrom,
-    };
+  String _sourceFromString(String? source) {
+    final resolved = sanitizePluginId(source ?? '');
+    return resolved.isEmpty ? _currentFrom : resolved;
   }
 
   void search() {
@@ -617,7 +706,7 @@ class _PluginFunctionPage extends StatefulWidget {
     required this.onAction,
   });
 
-  final From from;
+  final String from;
   final String functionId;
   final String title;
   final Future<void> Function(Map<String, dynamic> action) onAction;
@@ -700,11 +789,37 @@ class _PluginFunctionPageState extends State<_PluginFunctionPage> {
               scheme: _scheme,
               data: _data,
               onReachBottom: () async {},
-              onAction: widget.onAction,
+              onAction: _onAction,
               isLoadingMore: false,
               showLoadMoreRetry: false,
               onRetryLoadMore: () {},
             ),
     );
+  }
+
+  Future<void> _onAction(Map<String, dynamic> action) async {
+    final type = action['type']?.toString().trim() ?? '';
+    if (type.isEmpty) {
+      await widget.onAction(action);
+      return;
+    }
+
+    if (type == 'openPluginFunction' ||
+        type == 'openCloudFavorite' ||
+        type == 'openSearch' ||
+        type == 'openComicList') {
+      final payload = Map<String, dynamic>.from(asJsonMap(action['payload']));
+      payload['source'] = widget.from;
+      if (type == 'openComicList') {
+        final scene = Map<String, dynamic>.from(asJsonMap(payload['scene']));
+        scene['source'] = widget.from;
+        payload['scene'] = scene;
+      }
+      final next = Map<String, dynamic>.from(action)..['payload'] = payload;
+      await widget.onAction(next);
+      return;
+    }
+
+    await widget.onAction(action);
   }
 }

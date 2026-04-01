@@ -11,9 +11,9 @@ import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
 import 'package:zephyr/page/comic_read/widgets/dialogs/button_dialog.dart';
 import 'package:zephyr/page/comic_read/widgets/image/read_image_widget.dart';
 import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
+import 'package:zephyr/type/enum.dart';
 
 class RowModeWidget extends StatefulWidget {
   final List<Doc> docs;
@@ -22,7 +22,7 @@ class RowModeWidget extends StatefulWidget {
   final PageController pageController;
   final ScrollPhysics scrollPhysics;
   final VoidCallback? onPageDragStart;
-  final From from;
+  final String from;
   final JumpChapter jumpChapter;
   final ReaderVolumeController volumeController;
 

@@ -1140,7 +1140,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(12, 5269818584842768822),
     name: 'PluginInfo',
-    lastPropertyId: const obx_int.IdUid(11, 4040881004180983268),
+    lastPropertyId: const obx_int.IdUid(17, 2992597705740134405),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -1150,40 +1150,9 @@ final _entities = <obx_int.ModelEntity>[
         flags: 1,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(2, 1133420993159808527),
-        name: 'pluginId',
-        type: 9,
-        flags: 2080,
-        indexId: const obx_int.IdUid(5, 8347243317803948936),
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(3, 7940064163433904946),
-        name: 'name',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(4, 8216307126687310409),
-        name: 'jsCode',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
         id: const obx_int.IdUid(5, 1661264223867822422),
         name: 'version',
         type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(6, 2051832540735677888),
-        name: 'description',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(7, 8788850099976239757),
-        name: 'allInfo',
-        type: 13,
         flags: 0,
       ),
       obx_int.ModelProperty(
@@ -1208,6 +1177,43 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(11, 4040881004180983268),
         name: 'isDeleted',
         type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(12, 8320117874724462668),
+        name: 'uuid',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(9, 2745317186704363822),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(13, 1447546219266537485),
+        name: 'lastLoadSuccess',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(14, 7801155835772210146),
+        name: 'lastLoadError',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(15, 3993198390468947080),
+        name: 'deletedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(16, 7234527981721655349),
+        name: 'debug',
+        type: 1,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(17, 2992597705740134405),
+        name: 'debugUrl',
+        type: 9,
         flags: 0,
       ),
     ],
@@ -1653,7 +1659,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
     lastEntityId: const obx_int.IdUid(15, 4081606024611286375),
-    lastIndexId: const obx_int.IdUid(8, 7380618342371259182),
+    lastIndexId: const obx_int.IdUid(9, 2745317186704363822),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [
@@ -1666,6 +1672,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
       931357141992892300,
       6271388813384307204,
       7862266475076102896,
+      8347243317803948936,
     ],
     retiredPropertyUids: const [
       4194924827811470754,
@@ -1736,6 +1743,11 @@ obx_int.ModelDefinition getObjectBoxModel() {
       8771457573982425264,
       3685067463404842804,
       716240421870203992,
+      1133420993159808527,
+      7940064163433904946,
+      8216307126687310409,
+      2051832540735677888,
+      8788850099976239757,
     ],
     retiredRelationUids: const [],
     modelVersion: 5,
@@ -3148,54 +3160,50 @@ obx_int.ModelDefinition getObjectBoxModel() {
         object.id = id;
       },
       objectToFB: (PluginInfo object, fb.Builder fbb) {
-        final pluginIdOffset = fbb.writeString(object.pluginId);
-        final nameOffset = fbb.writeString(object.name);
-        final jsCodeOffset = fbb.writeString(object.jsCode);
         final versionOffset = fbb.writeString(object.version);
-        final descriptionOffset = fbb.writeString(object.description);
-        final allInfoOffset = object.allInfo == null
+        final uuidOffset = fbb.writeString(object.uuid);
+        final lastLoadErrorOffset = object.lastLoadError == null
             ? null
-            : fbb.writeListInt8(obx_int.toFlexBuffer(object.allInfo!));
-        fbb.startTable(12);
+            : fbb.writeString(object.lastLoadError!);
+        final debugUrlOffset = object.debugUrl == null
+            ? null
+            : fbb.writeString(object.debugUrl!);
+        fbb.startTable(18);
         fbb.addInt64(0, object.id);
-        fbb.addOffset(1, pluginIdOffset);
-        fbb.addOffset(2, nameOffset);
-        fbb.addOffset(3, jsCodeOffset);
         fbb.addOffset(4, versionOffset);
-        fbb.addOffset(5, descriptionOffset);
-        fbb.addOffset(6, allInfoOffset);
         fbb.addInt64(7, object.insertedAt.millisecondsSinceEpoch);
         fbb.addInt64(8, object.updatedAt.millisecondsSinceEpoch);
         fbb.addBool(9, object.isEnabled);
         fbb.addBool(10, object.isDeleted);
+        fbb.addOffset(11, uuidOffset);
+        fbb.addBool(12, object.lastLoadSuccess);
+        fbb.addOffset(13, lastLoadErrorOffset);
+        fbb.addInt64(14, object.deletedAt?.millisecondsSinceEpoch);
+        fbb.addBool(15, object.debug);
+        fbb.addOffset(16, debugUrlOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
       objectFromFB: (obx.Store store, ByteData fbData) {
         final buffer = fb.BufferContext(fbData);
         final rootOffset = buffer.derefObject(0);
+        final deletedAtValue = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          32,
+        );
         final idParam = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
           4,
           0,
         );
-        final pluginIdParam = const fb.StringReader(
+        final uuidParam = const fb.StringReader(
           asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 6, '');
-        final nameParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 8, '');
-        final jsCodeParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 10, '');
+        ).vTableGet(buffer, rootOffset, 26, '');
         final versionParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 12, '');
-        final descriptionParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 14, '');
-        final allInfoParam = obx_int.flexBufferToMap(buffer, rootOffset, 16);
         final insertedAtParam = DateTime.fromMillisecondsSinceEpoch(
           const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0),
         );
@@ -3214,18 +3222,40 @@ obx_int.ModelDefinition getObjectBoxModel() {
           24,
           false,
         );
+        final deletedAtParam = deletedAtValue == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(deletedAtValue);
+        final lastLoadSuccessParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          28,
+          false,
+        );
+        final lastLoadErrorParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 30);
+        final debugParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          34,
+          false,
+        );
+        final debugUrlParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 36);
         final object = PluginInfo(
           id: idParam,
-          pluginId: pluginIdParam,
-          name: nameParam,
-          jsCode: jsCodeParam,
+          uuid: uuidParam,
           version: versionParam,
-          description: descriptionParam,
-          allInfo: allInfoParam,
           insertedAt: insertedAtParam,
           updatedAt: updatedAtParam,
           isEnabled: isEnabledParam,
           isDeleted: isDeletedParam,
+          deletedAt: deletedAtParam,
+          lastLoadSuccess: lastLoadSuccessParam,
+          lastLoadError: lastLoadErrorParam,
+          debug: debugParam,
+          debugUrl: debugUrlParam,
         );
 
         return object;
@@ -4604,49 +4634,59 @@ class PluginInfo_ {
     _entities[8].properties[0],
   );
 
-  /// See [PluginInfo.pluginId].
-  static final pluginId = obx.QueryStringProperty<PluginInfo>(
-    _entities[8].properties[1],
-  );
-
-  /// See [PluginInfo.name].
-  static final name = obx.QueryStringProperty<PluginInfo>(
-    _entities[8].properties[2],
-  );
-
-  /// See [PluginInfo.jsCode].
-  static final jsCode = obx.QueryStringProperty<PluginInfo>(
-    _entities[8].properties[3],
-  );
-
   /// See [PluginInfo.version].
   static final version = obx.QueryStringProperty<PluginInfo>(
-    _entities[8].properties[4],
-  );
-
-  /// See [PluginInfo.description].
-  static final description = obx.QueryStringProperty<PluginInfo>(
-    _entities[8].properties[5],
+    _entities[8].properties[1],
   );
 
   /// See [PluginInfo.insertedAt].
   static final insertedAt = obx.QueryDateProperty<PluginInfo>(
-    _entities[8].properties[7],
+    _entities[8].properties[2],
   );
 
   /// See [PluginInfo.updatedAt].
   static final updatedAt = obx.QueryDateProperty<PluginInfo>(
-    _entities[8].properties[8],
+    _entities[8].properties[3],
   );
 
   /// See [PluginInfo.isEnabled].
   static final isEnabled = obx.QueryBooleanProperty<PluginInfo>(
-    _entities[8].properties[9],
+    _entities[8].properties[4],
   );
 
   /// See [PluginInfo.isDeleted].
   static final isDeleted = obx.QueryBooleanProperty<PluginInfo>(
+    _entities[8].properties[5],
+  );
+
+  /// See [PluginInfo.uuid].
+  static final uuid = obx.QueryStringProperty<PluginInfo>(
+    _entities[8].properties[6],
+  );
+
+  /// See [PluginInfo.lastLoadSuccess].
+  static final lastLoadSuccess = obx.QueryBooleanProperty<PluginInfo>(
+    _entities[8].properties[7],
+  );
+
+  /// See [PluginInfo.lastLoadError].
+  static final lastLoadError = obx.QueryStringProperty<PluginInfo>(
+    _entities[8].properties[8],
+  );
+
+  /// See [PluginInfo.deletedAt].
+  static final deletedAt = obx.QueryDateProperty<PluginInfo>(
+    _entities[8].properties[9],
+  );
+
+  /// See [PluginInfo.debug].
+  static final debug = obx.QueryBooleanProperty<PluginInfo>(
     _entities[8].properties[10],
+  );
+
+  /// See [PluginInfo.debugUrl].
+  static final debugUrl = obx.QueryStringProperty<PluginInfo>(
+    _entities[8].properties[11],
   );
 }
 

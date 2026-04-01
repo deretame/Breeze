@@ -16,8 +16,8 @@ import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_state.dart';
 import 'package:zephyr/page/comic_read/method/key.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/type/enum.dart';
 
 // 自动阅读相关：计时器、暂停/继续、悬浮按钮。
 part 'parts/comic_read_auto_read_part.dart';
@@ -35,7 +35,7 @@ class ComicReadPage extends StatelessWidget {
   final String comicId;
   final int order;
   final int epsNumber;
-  final From from;
+  final String from;
   final ComicEntryType type;
   final dynamic comicInfo;
   final StringSelectCubit stringSelectCubit;
@@ -78,7 +78,7 @@ class _ComicReadPage extends StatefulWidget {
   final String comicId;
   final int order;
   final int epsNumber; // 这个的意思是一共有多少章
-  final From from;
+  final String from;
   final ComicEntryType type;
   final dynamic comicInfo;
 

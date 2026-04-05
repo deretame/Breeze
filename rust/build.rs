@@ -14,6 +14,7 @@ const DOWNLOADS: [(&str, &str); 2] = [
 ];
 
 fn main() {
+    return;
     println!("cargo:rerun-if-env-changed=FORCE_PLUGIN_DOWNLOAD");
 
     let manifest_dir = PathBuf::from(

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/model/unified_comic_list_item.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/cover.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -43,7 +42,7 @@ class ComicEntryWidget extends StatelessWidget {
             comicId: comic.id,
             type: type,
             from: comic.from,
-            pluginId: sanitizePluginId(comic.source),
+            pluginId: (comic.source).trim(),
           ),
         );
       },
@@ -230,10 +229,6 @@ class ComicEntryWidget extends StatelessWidget {
   }
 
   Future<void> _deleteFavorite() async {
-    if (comic.from != kJmPluginUuid) {
-      return;
-    }
-
     final temp = objectbox.unifiedFavoriteBox
         .query(
           UnifiedComicFavorite_.uniqueKey.equals('${comic.from}:${comic.id}'),
@@ -247,63 +242,31 @@ class ComicEntryWidget extends StatelessWidget {
   }
 
   Future<void> _deleteHistory() async {
-    if (comic.from == kBikaPluginUuid) {
-      final temp = objectbox.unifiedHistoryBox
-          .query(
-            UnifiedComicHistory_.uniqueKey.equals('${comic.from}:${comic.id}'),
-          )
-          .build()
-          .findFirst();
+    final temp = objectbox.unifiedHistoryBox
+        .query(
+          UnifiedComicHistory_.uniqueKey.equals('${comic.from}:${comic.id}'),
+        )
+        .build()
+        .findFirst();
 
-      if (temp != null) {
-        temp.deleted = true;
-        temp.updatedAt = DateTime.now().toUtc();
-        temp.lastReadAt = temp.updatedAt;
-        objectbox.unifiedHistoryBox.put(temp);
-      }
-      return;
-    }
-
-    if (comic.from == kJmPluginUuid) {
-      final temp = objectbox.unifiedHistoryBox
-          .query(
-            UnifiedComicHistory_.uniqueKey.equals('${comic.from}:${comic.id}'),
-          )
-          .build()
-          .findFirst();
-
-      if (temp != null) {
-        temp.deleted = true;
-        temp.updatedAt = DateTime.now().toUtc();
-        temp.lastReadAt = temp.updatedAt;
-        objectbox.unifiedHistoryBox.put(temp);
-      }
+    if (temp != null) {
+      temp.deleted = true;
+      temp.updatedAt = DateTime.now().toUtc();
+      temp.lastReadAt = temp.updatedAt;
+      objectbox.unifiedHistoryBox.put(temp);
     }
   }
 
   Future<void> _deleteDownload() async {
-    if (comic.from == kBikaPluginUuid) {
-      final temp = objectbox.unifiedDownloadBox
-          .query(
-            UnifiedComicDownload_.uniqueKey.equals('${comic.from}:${comic.id}'),
-          )
-          .build()
-          .findFirst();
+    final temp = objectbox.unifiedDownloadBox
+        .query(
+          UnifiedComicDownload_.uniqueKey.equals('${comic.from}:${comic.id}'),
+        )
+        .build()
+        .findFirst();
 
-      if (temp != null) {
-        objectbox.unifiedDownloadBox.remove(temp.id);
-      }
-    } else if (comic.from == kJmPluginUuid) {
-      final temp = objectbox.unifiedDownloadBox
-          .query(
-            UnifiedComicDownload_.uniqueKey.equals('${comic.from}:${comic.id}'),
-          )
-          .build()
-          .findFirst();
-
-      if (temp != null) {
-        objectbox.unifiedDownloadBox.remove(temp.id);
-      }
+    if (temp != null) {
+      objectbox.unifiedDownloadBox.remove(temp.id);
     }
 
     await _deleteDownloadDirectory();

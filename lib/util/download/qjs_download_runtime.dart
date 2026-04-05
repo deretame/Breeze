@@ -1,13 +1,14 @@
-import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:typed_data';
+
 import 'package:equatable/equatable.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/http/bika/http_request.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
+import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/util/download/download_cancel_signal.dart';
 import 'package:zephyr/util/direct_dio.dart';
-import 'package:zephyr/util/download/qjs_runtime_mode.dart';
+import 'package:zephyr/util/get_path.dart';
+import 'dart:io';
+import 'package:path/path.dart' as p;
 
 class _TrackedQjsTaskRef extends Equatable {
   const _TrackedQjsTaskRef({required this.runtimeName, required this.taskId});
@@ -22,18 +23,20 @@ class _TrackedQjsTaskRef extends Equatable {
 final Map<String, Set<_TrackedQjsTaskRef>> _trackedTaskRefsByGroup = {};
 final Set<String> _runtimeInitDone = <String>{};
 
-Future<String> get jmJsUrl async {
-  final prefs = await SharedPreferences.getInstance();
-  return prefs.getString('debug_jm_url') ??
-      'http://localhost:7879/jm-comic.bundle.cjs';
+String runtimeNameForPluginId(String pluginIdOrLegacy) {
+  return normalizePluginId(pluginIdOrLegacy);
 }
 
-String runtimeNameForPluginId(String pluginIdOrLegacy) {
-  return sanitizePluginId(pluginIdOrLegacy);
+String normalizePluginId(String raw) {
+  var value = raw.trim();
+  while (value.length >= 2 && value.startsWith('(') && value.endsWith(')')) {
+    value = value.substring(1, value.length - 1).trim();
+  }
+  return value;
 }
 
 String _bundleNameForPluginId(String pluginId) {
-  return kBuiltinRuntimeNameByUuid[pluginId] ?? pluginId;
+  return pluginId;
 }
 
 String _buildTaskGroupId(String pluginId, String taskGroupKey) {
@@ -64,11 +67,7 @@ void _untrackTaskRef({
 }
 
 Future<void> ensureQjsRuntimeReady({required String pluginId}) async {
-  if (useQjsCallOnce) {
-    return;
-  }
-
-  final normalizedPluginId = sanitizePluginId(pluginId);
+  final normalizedPluginId = (pluginId).trim();
   final runtimeName = runtimeNameForPluginId(normalizedPluginId);
   final bundleName = runtimeName;
 
@@ -120,24 +119,27 @@ Future<String> executeQjsCall({
     }
   }
 
-  final normalizedPluginId = sanitizePluginId(pluginId);
+  final normalizedPluginId = (pluginId).trim();
   final resolvedRuntimeName =
       runtimeName ?? runtimeNameForPluginId(normalizedPluginId);
   final resolvedPluginId = normalizedPluginId.isNotEmpty
       ? normalizedPluginId
-      : sanitizePluginId(resolvedRuntimeName);
+      : (resolvedRuntimeName).trim();
   if (resolvedPluginId.isEmpty) {
     throw StateError('pluginId/runtimeName 不能为空');
   }
-  final bundleJs = useQjsCallOnce
-      ? await loadQjsBundleJs(resolvedPluginId)
-      : null;
+  final resolvedFnPath = fnPath.trim();
+  if (resolvedFnPath.isEmpty) {
+    throw StateError('fnPath 不能为空: pluginId=$resolvedPluginId');
+  }
+  final useCallOnce = _shouldUseQjsCallOnce(resolvedPluginId);
+  final bundleJs = useCallOnce ? await loadQjsBundleJs(resolvedPluginId) : null;
 
-  final taskId = useQjsCallOnce
+  final taskId = useCallOnce
       ? await qjsCallOnceTaskStart(
           runtimeName: resolvedRuntimeName,
           bundleJs: bundleJs!,
-          fnPath: fnPath,
+          fnPath: resolvedFnPath,
           argsJson: argsJson,
           taskGroupKey: taskGroupKey ?? '',
         )
@@ -146,7 +148,7 @@ Future<String> executeQjsCall({
           return qjsCallTaskStart(
             runtimeName: resolvedRuntimeName,
             taskGroupKey: taskGroupKey ?? '',
-            fnPath: fnPath,
+            fnPath: resolvedFnPath,
             argsJson: argsJson,
           );
         }();
@@ -164,7 +166,7 @@ Future<String> executeQjsCall({
   }
 
   try {
-    final waitFuture = useQjsCallOnce
+    final waitFuture = useCallOnce
         ? qjsCallOnceTaskWait(runtimeName: resolvedRuntimeName, taskId: taskId)
         : qjsCallTaskWait(runtimeName: resolvedRuntimeName, taskId: taskId);
     return taskGroupKey != null && taskGroupKey.isNotEmpty
@@ -194,24 +196,27 @@ Future<Uint8List> executeQjsFetchImageBytes({
     }
   }
 
-  final normalizedPluginId = sanitizePluginId(pluginId);
+  final normalizedPluginId = (pluginId).trim();
   final resolvedRuntimeName =
       runtimeName ?? runtimeNameForPluginId(normalizedPluginId);
   final resolvedPluginId = normalizedPluginId.isNotEmpty
       ? normalizedPluginId
-      : sanitizePluginId(resolvedRuntimeName);
+      : (resolvedRuntimeName).trim();
   if (resolvedPluginId.isEmpty) {
     throw StateError('pluginId/runtimeName 不能为空');
   }
-  final bundleJs = useQjsCallOnce
-      ? await loadQjsBundleJs(resolvedPluginId)
-      : null;
+  final resolvedFnPath = fnPath.trim();
+  if (resolvedFnPath.isEmpty) {
+    throw StateError('fnPath 不能为空: pluginId=$resolvedPluginId');
+  }
+  final useCallOnce = _shouldUseQjsCallOnce(resolvedPluginId);
+  final bundleJs = useCallOnce ? await loadQjsBundleJs(resolvedPluginId) : null;
 
-  final taskId = useQjsCallOnce
+  final taskId = useCallOnce
       ? await qjsFetchImageBytesOnceTaskStart(
           runtimeName: resolvedRuntimeName,
           bundleJs: bundleJs!,
-          fnPath: fnPath,
+          fnPath: resolvedFnPath,
           argsJson: argsJson,
           taskGroupKey: taskGroupKey ?? '',
         )
@@ -220,7 +225,7 @@ Future<Uint8List> executeQjsFetchImageBytes({
           return qjsFetchImageBytesTaskStart(
             runtimeName: resolvedRuntimeName,
             taskGroupKey: taskGroupKey ?? '',
-            fnPath: fnPath,
+            fnPath: resolvedFnPath,
             argsJson: argsJson,
           );
         }();
@@ -238,7 +243,7 @@ Future<Uint8List> executeQjsFetchImageBytes({
   }
 
   try {
-    final waitFuture = useQjsCallOnce
+    final waitFuture = useCallOnce
         ? qjsFetchImageBytesOnceTaskWait(
             runtimeName: resolvedRuntimeName,
             taskId: taskId,
@@ -261,11 +266,18 @@ Future<Uint8List> executeQjsFetchImageBytes({
   }
 }
 
+bool _shouldUseQjsCallOnce(String pluginId) {
+  // return true;
+  final normalized = normalizePluginId(pluginId);
+  final state = PluginRegistryService.I.getByUuid(normalized);
+  return state?.debug == true;
+}
+
 Future<void> cancelTrackedQjsTasks({
   required String pluginId,
   required String taskGroupKey,
 }) async {
-  final normalizedPluginId = sanitizePluginId(pluginId);
+  final normalizedPluginId = (pluginId).trim();
   final groupId = _buildTaskGroupId(normalizedPluginId, taskGroupKey);
   final refs = _trackedTaskRefsByGroup.remove(groupId)?.toList() ?? const [];
 
@@ -330,32 +342,52 @@ Future<void> cancelTrackedQjsTasks({
 }
 
 Future<String> loadQjsBundleJs(String pluginId) async {
-  final normalizedPluginId = sanitizePluginId(pluginId);
+  final normalizedPluginId = normalizePluginId(pluginId);
   if (normalizedPluginId.isEmpty) {
     throw StateError('pluginId 不能为空');
   }
   final bundleName = _bundleNameForPluginId(normalizedPluginId);
-  String bundledFallback() => getJsBundle(name: bundleName);
-  if (!kDebugMode) {
-    final local = bundledFallback();
-    if (local.trim().isEmpty) {
-      throw StateError('bundle_js不能为空: $bundleName');
+  String bundledFallback() {
+    final candidates = <String>{bundleName, normalizedPluginId};
+    final cachedInfo = PluginRegistryService.I.getCachedPluginInfo(
+      normalizedPluginId,
+    );
+    final infoName = cachedInfo?['name']?.toString().trim() ?? '';
+    if (infoName.isNotEmpty) {
+      candidates.add(infoName);
     }
-    return local;
+
+    for (final candidate in candidates) {
+      try {
+        final local = getJsBundle(name: candidate);
+        if (local.trim().isNotEmpty) {
+          return local;
+        }
+      } catch (_) {
+        // continue fallback chain
+      }
+    }
+
+    throw StateError('bundle_js_missing_builtin:$bundleName');
   }
 
-  final bundleUrl = switch (normalizedPluginId) {
-    kBikaPluginUuid => await bikaJsUrl,
-    kJmPluginUuid => await jmJsUrl,
-    _ => null,
-  };
-
-  if (bundleUrl == null) {
-    final local = bundledFallback();
-    if (local.trim().isEmpty) {
-      throw StateError('bundle_js不能为空: $bundleName');
+  final runtimeState = PluginRegistryService.I.getByUuid(normalizedPluginId);
+  if (runtimeState?.debug != true) {
+    final diskBundle = await _loadPluginBundleFromDisk(normalizedPluginId);
+    if (diskBundle != null && diskBundle.trim().isNotEmpty) {
+      return diskBundle;
     }
-    return local;
+    throw StateError('bundle_js_missing_disk:$normalizedPluginId');
+  }
+
+  final bundleUrl = runtimeState?.debugUrl?.trim() ?? '';
+  if (bundleUrl.isEmpty) {
+    final diskBundle = await _loadPluginBundleFromDisk(normalizedPluginId);
+    if (diskBundle != null && diskBundle.trim().isNotEmpty) {
+      return diskBundle;
+    }
+    final fallback = bundledFallback();
+    return fallback;
   }
 
   try {
@@ -368,9 +400,35 @@ Future<String> loadQjsBundleJs(String pluginId) async {
   } catch (e) {
     logger.w('debug bundle 拉取失败，回退本地: $bundleUrl', error: e);
   }
-  final local = bundledFallback();
-  if (local.trim().isEmpty) {
-    throw StateError('bundle_js不能为空: $bundleName');
+  try {
+    final diskBundle = await _loadPluginBundleFromDisk(normalizedPluginId);
+    if (diskBundle != null && diskBundle.trim().isNotEmpty) {
+      return diskBundle;
+    }
+    final fallback = bundledFallback();
+    return fallback;
+  } catch (_) {
+    throw StateError('bundle_js不能为空: $normalizedPluginId');
   }
-  return local;
+}
+
+Future<String?> _loadPluginBundleFromDisk(String pluginId) async {
+  final pluginsPath = await getPluginsPath();
+
+  final candidates = <File>[
+    File(p.join(pluginsPath, '$pluginId.bundle.js')),
+    File(p.join(pluginsPath, '$pluginId.bundle.cjs')),
+  ];
+  for (final file in candidates) {
+    if (!await file.exists()) {
+      continue;
+    }
+    try {
+      final text = await file.readAsString();
+      if (text.trim().isNotEmpty) {
+        return text;
+      }
+    } catch (_) {}
+  }
+  return null;
 }

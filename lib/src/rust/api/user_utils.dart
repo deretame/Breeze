@@ -6,11 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+// These functions are ignored because they are not marked as `pub`: `default_log_level`, `setup_backtrace`, `setup_log_to_console`
 
-            // These functions are ignored because they are not marked as `pub`: `default_log_level`, `setup_backtrace`, `setup_log_to_console`
-
-
-            Future<void>  setupDefaultUserUtils() => RustLib.instance.api.crateApiUserUtilsSetupDefaultUserUtils();
-
-            
-            
+Future<void> setupDefaultUserUtils() =>
+    RustLib.instance.api.crateApiUserUtilsSetupDefaultUserUtils();

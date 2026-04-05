@@ -7,6 +7,7 @@ import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search/widget/advanced_search_dialog.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/util/router/router.gr.dart';
+import 'package:zephyr/widgets/multi_choice_list_dialog.dart';
 
 class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
   final SearchEvent searchEvent;
@@ -338,11 +339,25 @@ class _PluginAdvancedSearchDialogState
                 const SizedBox(width: 10),
                 OutlinedButton(
                   onPressed: () async {
-                    final values = await _showMultiChoiceDialog(
+                    final values = await showMultiChoiceListDialog(
                       context,
                       title: label,
-                      options: options,
-                      selected: selected.toSet(),
+                      options: options
+                          .map(
+                            (option) => MultiChoiceDialogOption(
+                              label:
+                                  option['label']?.toString() ??
+                                  option['value']?.toString() ??
+                                  '',
+                              value: option['value']?.toString() ?? '',
+                            ),
+                          )
+                          .toList(),
+                      initialSelected: selected,
+                      confirmText: '应用',
+                      useFilledConfirmButton: true,
+                      width: 420,
+                      height: 420,
                     );
                     if (values == null) {
                       return;
@@ -417,62 +432,5 @@ class _PluginAdvancedSearchDialogState
           .toList();
     }
     return const <String>[];
-  }
-
-  Future<Set<String>?> _showMultiChoiceDialog(
-    BuildContext context, {
-    required String title,
-    required List<Map<String, dynamic>> options,
-    required Set<String> selected,
-  }) {
-    final next = Set<String>.from(selected);
-    return showDialog<Set<String>>(
-      context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text(title),
-              content: SizedBox(
-                width: 420,
-                child: Wrap(
-                  alignment: WrapAlignment.start,
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: options.map((option) {
-                    final value = option['value']?.toString() ?? '';
-                    final text = option['label']?.toString() ?? value;
-                    return FilterChip(
-                      showCheckmark: false,
-                      label: Text(text),
-                      selected: next.contains(value),
-                      onSelected: (isSelected) {
-                        setState(() {
-                          if (isSelected) {
-                            next.add(value);
-                          } else {
-                            next.remove(value);
-                          }
-                        });
-                      },
-                    );
-                  }).toList(),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('取消'),
-                ),
-                FilledButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(next),
-                  child: const Text('应用'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
   }
 }

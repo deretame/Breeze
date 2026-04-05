@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
-import 'package:zephyr/util/context/context_extensions.dart';
 
 class EpsWidget extends StatefulWidget {
   final UnifiedComicDownloadChapter chapter;
@@ -37,45 +36,51 @@ class _EpsWidgetState extends State<EpsWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isChecked = _isChecked;
+
     return InkWell(
+      borderRadius: BorderRadius.circular(12),
       onTap: () {
-        setState(() => _isChecked = !_isChecked);
         widget.onUpdateDownloadInfo(widget.chapter.order);
       },
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         width: double.infinity,
-        padding: EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: context.backgroundColor,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: context.theme.colorScheme.secondaryFixedDim,
-              spreadRadius: 0,
-              blurRadius: 2,
-            ),
-          ],
+          color: isChecked
+              ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+              : colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isChecked
+                ? colorScheme.primary.withValues(alpha: 0.5)
+                : Colors.transparent,
+            width: 1,
+          ),
         ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center, // 改为整体居中
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            Checkbox(
-              value: _isChecked,
-              onChanged: (bool? value) {
-                setState(() => _isChecked = value ?? false);
-                widget.onUpdateDownloadInfo(widget.chapter.order);
-              },
+            Icon(
+              isChecked ? Icons.check_circle : Icons.radio_button_unchecked,
+              color: isChecked
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant,
+              size: 22,
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    widget.chapter.title,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ],
+              child: Text(
+                widget.chapter.title,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: isChecked ? FontWeight.w600 : FontWeight.w500,
+                  color: isChecked
+                      ? colorScheme.onSurface
+                      : colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
           ],

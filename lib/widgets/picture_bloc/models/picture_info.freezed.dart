@@ -219,7 +219,7 @@ return $default(_that.from,_that.url,_that.path,_that.cartoonId,_that.chapterId,
 @JsonSerializable()
 
 class _PictureInfo implements PictureInfo {
-  const _PictureInfo({this.from = kBikaPluginUuid, this.url = '', this.path = '', this.cartoonId = '', this.chapterId = '', this.pictureType = PictureType.comic});
+  const _PictureInfo({this.from = '', this.url = '', this.path = '', this.cartoonId = '', this.chapterId = '', this.pictureType = PictureType.comic});
   factory _PictureInfo.fromJson(Map<String, dynamic> json) => _$PictureInfoFromJson(json);
 
 @override@JsonKey() final  String from;

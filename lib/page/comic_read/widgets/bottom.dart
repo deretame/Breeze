@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:zephyr/plugin/plugin_constants.dart';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -7,12 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
-import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart'
-    show Series;
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/method/jump_chapter.dart';
 import 'package:zephyr/page/comic_read/widgets/settings/reader_settings_sheet.dart';
-import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import '../../../util/router/router.dart';
 import '../../../util/router/router.gr.dart';
@@ -55,7 +51,6 @@ class _BottomWidgetState extends State<BottomWidget> {
 
   late ComicEntryType tempType;
   late String comicId;
-  List<Series> seriesList = [];
 
   @override
   void initState() {
@@ -68,20 +63,6 @@ class _BottomWidgetState extends State<BottomWidget> {
     }
     if (tempType == ComicEntryType.history) {
       tempType = ComicEntryType.normal;
-    }
-    if (widget.from == kJmPluginUuid) {
-      seriesList = resolveUnifiedComicChapters(widget.comicInfo, widget.from)
-          .map(
-            (chapter) => Series(
-              id: chapter.id,
-              name: chapter.name,
-              sort: chapter.order.toString(),
-            ),
-          )
-          .toList();
-      if (isDownload) {
-        seriesList = seriesList.toList();
-      }
     }
   }
 
@@ -141,9 +122,10 @@ class _BottomWidgetState extends State<BottomWidget> {
                           FloatingActionIconButton(
                             icon: Icons.list_alt_rounded,
                             tooltip: '跳转章节',
-                            isEnabled:
-                                !(seriesList.isEmpty &&
-                                    widget.from == kJmPluginUuid),
+                            isEnabled: resolveUnifiedComicChapters(
+                              widget.comicInfo,
+                              widget.from,
+                            ).isNotEmpty,
                             onPressed: _selectJumpChapter,
                           ),
                           const SizedBox(width: 10),
@@ -250,11 +232,7 @@ class _BottomWidgetState extends State<BottomWidget> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('选择章节'),
-          content: SingleChildScrollView(
-            child: widget.from == kBikaPluginUuid
-                ? _bikaEpSelector(context)
-                : _jmEpSelector(context),
-          ),
+          content: SingleChildScrollView(child: _bikaEpSelector(context)),
           actions: [
             TextButton(
               child: Text('取消'),
@@ -296,19 +274,6 @@ class _BottomWidgetState extends State<BottomWidget> {
       ],
     );
   }
-
-  Widget _jmEpSelector(BuildContext context) => ListBody(
-    children: [
-      for (final series in seriesList)
-        TextButton(
-          child: Text(series.name),
-          onPressed: () => Navigator.of(
-            context,
-            rootNavigator: false,
-          ).pop(series.sort.let(toInt)),
-        ),
-    ],
-  );
 }
 
 class ChapterNavigationButton extends StatelessWidget {

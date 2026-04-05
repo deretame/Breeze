@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/cover.dart';
-import 'package:zephyr/type/enum.dart';
 
 class PluginCommentsScaffold extends StatefulWidget {
   const PluginCommentsScaffold({
@@ -97,7 +97,10 @@ class _PluginCommentsScaffoldState extends State<PluginCommentsScaffold> {
       ListView.separated(
         controller: _scrollController,
         itemCount: count,
-        separatorBuilder: (_, _) => const Divider(height: 1),
+        separatorBuilder: (_, _) => const Padding(
+          padding: EdgeInsets.only(left: 68, right: 16),
+          child: Divider(height: 1, thickness: 0.3),
+        ),
         itemBuilder: (context, index) {
           if (index >= merged.length) {
             if (_loadingMore) {
@@ -156,109 +159,152 @@ class _PluginCommentsScaffoldState extends State<PluginCommentsScaffold> {
     final loadingReplies = _replyLoading[item.id] == true;
     final hasReachedMaxReplies = _replyHasReachedMax[item.id] == true;
 
-    return Column(
-      children: [
-        ListTile(
-          key: ValueKey('tile_${item.id}_$keySeed'),
-          contentPadding: EdgeInsets.only(
-            left: isReply ? 56 : 16,
-            right: 16,
-            top: 4,
-            bottom: 4,
-          ),
-          onTap: canExpand && !isReply ? () => _toggleReplies(item) : null,
-          leading: _buildAvatar(item, keySeed: keySeed),
-          title: Text(item.authorName),
-          subtitle: Column(
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: isReply ? 56 : 16,
+        right: 16,
+        top: 16,
+        bottom: 12,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 4),
-              Text(item.content),
-              const SizedBox(height: 6),
-              Row(
-                children: [
-                  if (item.createdAt.isNotEmpty)
+              _buildAvatar(item, keySeed: keySeed, isReply: isReply),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      item.createdAt,
-                      style: Theme.of(context).textTheme.bodySmall,
+                      item.authorName,
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.primary,
+                      ),
                     ),
-                  const Spacer(),
-                  if (!isReply && item.replyCount > 0)
+                    const SizedBox(height: 4),
                     Text(
-                      '回复 ${item.replyCount}',
-                      style: Theme.of(context).textTheme.bodySmall,
+                      item.content,
+                      style: textTheme.bodyMedium?.copyWith(
+                        height: 1.5,
+                        fontSize: 14,
+                      ),
                     ),
-                ],
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        if (item.createdAt.isNotEmpty)
+                          Text(
+                            item.createdAt,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant.withValues(
+                                alpha: 0.8,
+                              ),
+                            ),
+                          ),
+                        const SizedBox(width: 16),
+                        if (!isReply && canExpand)
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => _toggleReplies(item),
+                            child: Text(
+                              isExpanded ? '收起回复' : '${item.replyCount} 条回复',
+                              style: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        const Spacer(),
+                        if (_canCommentReply && !isReply)
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: _posting ? null : () => _postReply(item),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 2,
+                              ),
+                              child: Icon(
+                                Icons.reply_rounded,
+                                size: 18,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-          trailing: !isReply && (canExpand || _canCommentReply)
-              ? Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (_canCommentReply)
-                      IconButton(
-                        tooltip: '回复',
-                        icon: const Icon(Icons.reply),
-                        onPressed: _posting ? null : () => _postReply(item),
-                      ),
-                    if (canExpand)
-                      Icon(isExpanded ? Icons.expand_less : Icons.expand_more),
-                  ],
-                )
-              : null,
-        ),
-        if (!isReply && isExpanded) ...[
-          if (loadingReplies)
-            const Padding(
-              padding: EdgeInsets.only(bottom: 8),
-              child: SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-          for (var i = 0; i < replies.length; i++)
-            KeyedSubtree(
-              key: ValueKey(
-                'reply_${item.id}_${replies[i].id}_${i}_${replies[i].avatarUrl}_${replies[i].avatarPath}',
-              ),
-              child: _buildCommentCell(
-                replies[i],
-                isReply: true,
-                keySeed: '$keySeed-$i',
-              ),
-            ),
-          if (replies.isEmpty && !loadingReplies)
-            Padding(
-              padding: const EdgeInsets.only(left: 56, right: 16, bottom: 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  '暂无子评论',
-                  style: Theme.of(context).textTheme.bodySmall,
+          if (!isReply && isExpanded) ...[
+            if (loadingReplies)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8),
+                child: SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
                 ),
               ),
-            ),
-          if (!hasReachedMaxReplies && !loadingReplies)
-            Padding(
-              padding: const EdgeInsets.only(left: 56, right: 16, bottom: 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton(
-                  onPressed: () => _loadMoreReplies(item),
-                  child: const Text('加载更多回复'),
+            for (var i = 0; i < replies.length; i++)
+              KeyedSubtree(
+                key: ValueKey(
+                  'reply_${item.id}_${replies[i].id}_${i}_${replies[i].avatarUrl}_${replies[i].avatarPath}',
+                ),
+                child: _buildCommentCell(
+                  replies[i],
+                  isReply: true,
+                  keySeed: '$keySeed-$i',
                 ),
               ),
-            ),
+            if (replies.isEmpty && !loadingReplies)
+              Padding(
+                padding: const EdgeInsets.only(left: 48, right: 16, bottom: 8),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '暂无子评论',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+              ),
+            if (!hasReachedMaxReplies && !loadingReplies)
+              Padding(
+                padding: const EdgeInsets.only(left: 48, right: 16, bottom: 8),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: () => _loadMoreReplies(item),
+                    child: const Text('加载更多回复'),
+                  ),
+                ),
+              ),
+          ],
         ],
-      ],
+      ),
     );
   }
 
-  Widget _buildAvatar(_CommentItem item, {required String keySeed}) {
+  Widget _buildAvatar(
+    _CommentItem item, {
+    required String keySeed,
+    bool isReply = false,
+  }) {
+    final size = isReply ? 28.0 : 40.0;
     if (item.avatarUrl.trim().isEmpty && item.avatarPath.trim().isEmpty) {
-      return const CircleAvatar(radius: 20, child: Icon(Icons.person));
+      return CircleAvatar(
+        radius: size / 2,
+        child: Icon(Icons.person, size: size * 0.6),
+      );
     }
     return ClipOval(
       child: CoverWidget(
@@ -270,8 +316,8 @@ class _PluginCommentsScaffoldState extends State<PluginCommentsScaffold> {
         id: item.id,
         from: widget.from,
         pictureType: PictureType.user,
-        width: 40,
-        height: 40,
+        width: size,
+        height: size,
       ),
     );
   }

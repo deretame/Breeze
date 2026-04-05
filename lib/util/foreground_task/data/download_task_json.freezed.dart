@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DownloadTaskJson {
 
- String get from; String get comicId; String get comicName; BikaInfo get bikaInfo; List<String> get selectedChapters; bool get slowDownload;
+ String get from; String get comicId; String get comicName; List<String> get selectedChapters; bool get slowDownload;
 /// Create a copy of DownloadTaskJson
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $DownloadTaskJsonCopyWith<DownloadTaskJson> get copyWith => _$DownloadTaskJsonCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadTaskJson&&(identical(other.from, from) || other.from == from)&&(identical(other.comicId, comicId) || other.comicId == comicId)&&(identical(other.comicName, comicName) || other.comicName == comicName)&&(identical(other.bikaInfo, bikaInfo) || other.bikaInfo == bikaInfo)&&const DeepCollectionEquality().equals(other.selectedChapters, selectedChapters)&&(identical(other.slowDownload, slowDownload) || other.slowDownload == slowDownload));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadTaskJson&&(identical(other.from, from) || other.from == from)&&(identical(other.comicId, comicId) || other.comicId == comicId)&&(identical(other.comicName, comicName) || other.comicName == comicName)&&const DeepCollectionEquality().equals(other.selectedChapters, selectedChapters)&&(identical(other.slowDownload, slowDownload) || other.slowDownload == slowDownload));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,from,comicId,comicName,bikaInfo,const DeepCollectionEquality().hash(selectedChapters),slowDownload);
+int get hashCode => Object.hash(runtimeType,from,comicId,comicName,const DeepCollectionEquality().hash(selectedChapters),slowDownload);
 
 @override
 String toString() {
-  return 'DownloadTaskJson(from: $from, comicId: $comicId, comicName: $comicName, bikaInfo: $bikaInfo, selectedChapters: $selectedChapters, slowDownload: $slowDownload)';
+  return 'DownloadTaskJson(from: $from, comicId: $comicId, comicName: $comicName, selectedChapters: $selectedChapters, slowDownload: $slowDownload)';
 }
 
 
@@ -48,11 +48,11 @@ abstract mixin class $DownloadTaskJsonCopyWith<$Res>  {
   factory $DownloadTaskJsonCopyWith(DownloadTaskJson value, $Res Function(DownloadTaskJson) _then) = _$DownloadTaskJsonCopyWithImpl;
 @useResult
 $Res call({
- String from, String comicId, String comicName, BikaInfo bikaInfo, List<String> selectedChapters, bool slowDownload
+ String from, String comicId, String comicName, List<String> selectedChapters, bool slowDownload
 });
 
 
-$BikaInfoCopyWith<$Res> get bikaInfo;
+
 
 }
 /// @nodoc
@@ -65,27 +65,17 @@ class _$DownloadTaskJsonCopyWithImpl<$Res>
 
 /// Create a copy of DownloadTaskJson
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? from = null,Object? comicId = null,Object? comicName = null,Object? bikaInfo = null,Object? selectedChapters = null,Object? slowDownload = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? from = null,Object? comicId = null,Object? comicName = null,Object? selectedChapters = null,Object? slowDownload = null,}) {
   return _then(_self.copyWith(
 from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as String,comicId: null == comicId ? _self.comicId : comicId // ignore: cast_nullable_to_non_nullable
 as String,comicName: null == comicName ? _self.comicName : comicName // ignore: cast_nullable_to_non_nullable
-as String,bikaInfo: null == bikaInfo ? _self.bikaInfo : bikaInfo // ignore: cast_nullable_to_non_nullable
-as BikaInfo,selectedChapters: null == selectedChapters ? _self.selectedChapters : selectedChapters // ignore: cast_nullable_to_non_nullable
+as String,selectedChapters: null == selectedChapters ? _self.selectedChapters : selectedChapters // ignore: cast_nullable_to_non_nullable
 as List<String>,slowDownload: null == slowDownload ? _self.slowDownload : slowDownload // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
-/// Create a copy of DownloadTaskJson
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$BikaInfoCopyWith<$Res> get bikaInfo {
-  
-  return $BikaInfoCopyWith<$Res>(_self.bikaInfo, (value) {
-    return _then(_self.copyWith(bikaInfo: value));
-  });
-}
+
 }
 
 
@@ -167,10 +157,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String from,  String comicId,  String comicName,  BikaInfo bikaInfo,  List<String> selectedChapters,  bool slowDownload)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String from,  String comicId,  String comicName,  List<String> selectedChapters,  bool slowDownload)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DownloadTaskJson() when $default != null:
-return $default(_that.from,_that.comicId,_that.comicName,_that.bikaInfo,_that.selectedChapters,_that.slowDownload);case _:
+return $default(_that.from,_that.comicId,_that.comicName,_that.selectedChapters,_that.slowDownload);case _:
   return orElse();
 
 }
@@ -188,10 +178,10 @@ return $default(_that.from,_that.comicId,_that.comicName,_that.bikaInfo,_that.se
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String from,  String comicId,  String comicName,  BikaInfo bikaInfo,  List<String> selectedChapters,  bool slowDownload)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String from,  String comicId,  String comicName,  List<String> selectedChapters,  bool slowDownload)  $default,) {final _that = this;
 switch (_that) {
 case _DownloadTaskJson():
-return $default(_that.from,_that.comicId,_that.comicName,_that.bikaInfo,_that.selectedChapters,_that.slowDownload);case _:
+return $default(_that.from,_that.comicId,_that.comicName,_that.selectedChapters,_that.slowDownload);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -208,10 +198,10 @@ return $default(_that.from,_that.comicId,_that.comicName,_that.bikaInfo,_that.se
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String from,  String comicId,  String comicName,  BikaInfo bikaInfo,  List<String> selectedChapters,  bool slowDownload)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String from,  String comicId,  String comicName,  List<String> selectedChapters,  bool slowDownload)?  $default,) {final _that = this;
 switch (_that) {
 case _DownloadTaskJson() when $default != null:
-return $default(_that.from,_that.comicId,_that.comicName,_that.bikaInfo,_that.selectedChapters,_that.slowDownload);case _:
+return $default(_that.from,_that.comicId,_that.comicName,_that.selectedChapters,_that.slowDownload);case _:
   return null;
 
 }
@@ -223,13 +213,12 @@ return $default(_that.from,_that.comicId,_that.comicName,_that.bikaInfo,_that.se
 
 @JsonSerializable(explicitToJson: true)
 class _DownloadTaskJson implements DownloadTaskJson {
-  const _DownloadTaskJson({required this.from, required this.comicId, required this.comicName, required this.bikaInfo, required this.selectedChapters, required this.slowDownload});
+  const _DownloadTaskJson({required this.from, required this.comicId, required this.comicName, required this.selectedChapters, required this.slowDownload});
   factory _DownloadTaskJson.fromJson(Map<String, dynamic> json) => _$DownloadTaskJsonFromJson(json);
 
 @override final  String from;
 @override final  String comicId;
 @override final  String comicName;
-@override final  BikaInfo bikaInfo;
 @override final  List<String> selectedChapters;
 @override final  bool slowDownload;
 
@@ -246,16 +235,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadTaskJson&&(identical(other.from, from) || other.from == from)&&(identical(other.comicId, comicId) || other.comicId == comicId)&&(identical(other.comicName, comicName) || other.comicName == comicName)&&(identical(other.bikaInfo, bikaInfo) || other.bikaInfo == bikaInfo)&&const DeepCollectionEquality().equals(other.selectedChapters, selectedChapters)&&(identical(other.slowDownload, slowDownload) || other.slowDownload == slowDownload));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadTaskJson&&(identical(other.from, from) || other.from == from)&&(identical(other.comicId, comicId) || other.comicId == comicId)&&(identical(other.comicName, comicName) || other.comicName == comicName)&&const DeepCollectionEquality().equals(other.selectedChapters, selectedChapters)&&(identical(other.slowDownload, slowDownload) || other.slowDownload == slowDownload));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,from,comicId,comicName,bikaInfo,const DeepCollectionEquality().hash(selectedChapters),slowDownload);
+int get hashCode => Object.hash(runtimeType,from,comicId,comicName,const DeepCollectionEquality().hash(selectedChapters),slowDownload);
 
 @override
 String toString() {
-  return 'DownloadTaskJson(from: $from, comicId: $comicId, comicName: $comicName, bikaInfo: $bikaInfo, selectedChapters: $selectedChapters, slowDownload: $slowDownload)';
+  return 'DownloadTaskJson(from: $from, comicId: $comicId, comicName: $comicName, selectedChapters: $selectedChapters, slowDownload: $slowDownload)';
 }
 
 
@@ -266,11 +255,11 @@ abstract mixin class _$DownloadTaskJsonCopyWith<$Res> implements $DownloadTaskJs
   factory _$DownloadTaskJsonCopyWith(_DownloadTaskJson value, $Res Function(_DownloadTaskJson) _then) = __$DownloadTaskJsonCopyWithImpl;
 @override @useResult
 $Res call({
- String from, String comicId, String comicName, BikaInfo bikaInfo, List<String> selectedChapters, bool slowDownload
+ String from, String comicId, String comicName, List<String> selectedChapters, bool slowDownload
 });
 
 
-@override $BikaInfoCopyWith<$Res> get bikaInfo;
+
 
 }
 /// @nodoc
@@ -283,287 +272,14 @@ class __$DownloadTaskJsonCopyWithImpl<$Res>
 
 /// Create a copy of DownloadTaskJson
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? from = null,Object? comicId = null,Object? comicName = null,Object? bikaInfo = null,Object? selectedChapters = null,Object? slowDownload = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? from = null,Object? comicId = null,Object? comicName = null,Object? selectedChapters = null,Object? slowDownload = null,}) {
   return _then(_DownloadTaskJson(
 from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as String,comicId: null == comicId ? _self.comicId : comicId // ignore: cast_nullable_to_non_nullable
 as String,comicName: null == comicName ? _self.comicName : comicName // ignore: cast_nullable_to_non_nullable
-as String,bikaInfo: null == bikaInfo ? _self.bikaInfo : bikaInfo // ignore: cast_nullable_to_non_nullable
-as BikaInfo,selectedChapters: null == selectedChapters ? _self.selectedChapters : selectedChapters // ignore: cast_nullable_to_non_nullable
+as String,selectedChapters: null == selectedChapters ? _self.selectedChapters : selectedChapters // ignore: cast_nullable_to_non_nullable
 as List<String>,slowDownload: null == slowDownload ? _self.slowDownload : slowDownload // ignore: cast_nullable_to_non_nullable
 as bool,
-  ));
-}
-
-/// Create a copy of DownloadTaskJson
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$BikaInfoCopyWith<$Res> get bikaInfo {
-  
-  return $BikaInfoCopyWith<$Res>(_self.bikaInfo, (value) {
-    return _then(_self.copyWith(bikaInfo: value));
-  });
-}
-}
-
-
-/// @nodoc
-mixin _$BikaInfo {
-
- String get proxy;
-/// Create a copy of BikaInfo
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$BikaInfoCopyWith<BikaInfo> get copyWith => _$BikaInfoCopyWithImpl<BikaInfo>(this as BikaInfo, _$identity);
-
-  /// Serializes this BikaInfo to a JSON map.
-  Map<String, dynamic> toJson();
-
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BikaInfo&&(identical(other.proxy, proxy) || other.proxy == proxy));
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,proxy);
-
-@override
-String toString() {
-  return 'BikaInfo(proxy: $proxy)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class $BikaInfoCopyWith<$Res>  {
-  factory $BikaInfoCopyWith(BikaInfo value, $Res Function(BikaInfo) _then) = _$BikaInfoCopyWithImpl;
-@useResult
-$Res call({
- String proxy
-});
-
-
-
-
-}
-/// @nodoc
-class _$BikaInfoCopyWithImpl<$Res>
-    implements $BikaInfoCopyWith<$Res> {
-  _$BikaInfoCopyWithImpl(this._self, this._then);
-
-  final BikaInfo _self;
-  final $Res Function(BikaInfo) _then;
-
-/// Create a copy of BikaInfo
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? proxy = null,}) {
-  return _then(_self.copyWith(
-proxy: null == proxy ? _self.proxy : proxy // ignore: cast_nullable_to_non_nullable
-as String,
-  ));
-}
-
-}
-
-
-/// Adds pattern-matching-related methods to [BikaInfo].
-extension BikaInfoPatterns on BikaInfo {
-/// A variant of `map` that fallback to returning `orElse`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _BikaInfo value)?  $default,{required TResult orElse(),}){
-final _that = this;
-switch (_that) {
-case _BikaInfo() when $default != null:
-return $default(_that);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// Callbacks receives the raw object, upcasted.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case final Subclass2 value:
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _BikaInfo value)  $default,){
-final _that = this;
-switch (_that) {
-case _BikaInfo():
-return $default(_that);case _:
-  throw StateError('Unexpected subclass');
-
-}
-}
-/// A variant of `map` that fallback to returning `null`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _BikaInfo value)?  $default,){
-final _that = this;
-switch (_that) {
-case _BikaInfo() when $default != null:
-return $default(_that);case _:
-  return null;
-
-}
-}
-/// A variant of `when` that fallback to an `orElse` callback.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String proxy)?  $default,{required TResult orElse(),}) {final _that = this;
-switch (_that) {
-case _BikaInfo() when $default != null:
-return $default(_that.proxy);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// As opposed to `map`, this offers destructuring.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case Subclass2(:final field2):
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String proxy)  $default,) {final _that = this;
-switch (_that) {
-case _BikaInfo():
-return $default(_that.proxy);case _:
-  throw StateError('Unexpected subclass');
-
-}
-}
-/// A variant of `when` that fallback to returning `null`
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String proxy)?  $default,) {final _that = this;
-switch (_that) {
-case _BikaInfo() when $default != null:
-return $default(_that.proxy);case _:
-  return null;
-
-}
-}
-
-}
-
-/// @nodoc
-@JsonSerializable()
-
-class _BikaInfo implements BikaInfo {
-  const _BikaInfo({required this.proxy});
-  factory _BikaInfo.fromJson(Map<String, dynamic> json) => _$BikaInfoFromJson(json);
-
-@override final  String proxy;
-
-/// Create a copy of BikaInfo
-/// with the given fields replaced by the non-null parameter values.
-@override @JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$BikaInfoCopyWith<_BikaInfo> get copyWith => __$BikaInfoCopyWithImpl<_BikaInfo>(this, _$identity);
-
-@override
-Map<String, dynamic> toJson() {
-  return _$BikaInfoToJson(this, );
-}
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BikaInfo&&(identical(other.proxy, proxy) || other.proxy == proxy));
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,proxy);
-
-@override
-String toString() {
-  return 'BikaInfo(proxy: $proxy)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class _$BikaInfoCopyWith<$Res> implements $BikaInfoCopyWith<$Res> {
-  factory _$BikaInfoCopyWith(_BikaInfo value, $Res Function(_BikaInfo) _then) = __$BikaInfoCopyWithImpl;
-@override @useResult
-$Res call({
- String proxy
-});
-
-
-
-
-}
-/// @nodoc
-class __$BikaInfoCopyWithImpl<$Res>
-    implements _$BikaInfoCopyWith<$Res> {
-  __$BikaInfoCopyWithImpl(this._self, this._then);
-
-  final _BikaInfo _self;
-  final $Res Function(_BikaInfo) _then;
-
-/// Create a copy of BikaInfo
-/// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? proxy = null,}) {
-  return _then(_BikaInfo(
-proxy: null == proxy ? _self.proxy : proxy // ignore: cast_nullable_to_non_nullable
-as String,
   ));
 }
 

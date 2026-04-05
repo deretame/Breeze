@@ -8,7 +8,7 @@ part of 'search_cubit.dart';
 
 _SearchStates _$SearchStatesFromJson(Map<String, dynamic> json) =>
     _SearchStates(
-      from: json['from'] as String? ?? kJmPluginUuid,
+      from: json['from'] as String? ?? '',
       searchKeyword: json['searchKeyword'] as String? ?? "",
       sortBy: (json['sortBy'] as num?)?.toInt() ?? 1,
       pluginExtern:

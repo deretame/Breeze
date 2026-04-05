@@ -170,6 +170,7 @@ Future<String?> _tryDownloadCover(
       url: url,
       path: path,
       cartoonId: comicId,
+      pictureType: PictureType.cover,
     );
   } catch (_) {
     return null;

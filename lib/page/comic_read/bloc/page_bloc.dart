@@ -1,10 +1,8 @@
 import 'package:bloc/bloc.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
-import 'package:zephyr/page/comic_read/method/get_bika_info.dart';
-import 'package:zephyr/page/comic_read/method/get_jm_info.dart';
+import 'package:zephyr/page/comic_read/method/get_local_info.dart';
 import 'package:zephyr/page/comic_read/method/get_plugin_read_snapshot.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 
@@ -39,14 +37,11 @@ class PageBloc extends Bloc<PageEvent, PageState> {
 
       late final NormalComicEpInfo result;
       if (isDownload) {
-        if (event.from == kBikaPluginUuid) {
-          result = await getBikaInfoFromLocal(event.comicId, event.epsId);
-        } else {
-          result = await fetchJMMediaFromLocal(
-            event.comicId,
-            event.epsId.toString(),
-          );
-        }
+        result = await getPluginInfoFromLocal(
+          event.from,
+          event.comicId,
+          event.epsId,
+        );
       } else {
         result = await getPluginReadSnapshot(
           event.comicId,

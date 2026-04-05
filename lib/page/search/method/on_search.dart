@@ -1,15 +1,11 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/config/global/global_setting.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
+import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
-import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/download/qjs_download_runtime.dart';
 import 'package:zephyr/util/router/router.gr.dart';
-import 'package:zephyr/type/enum.dart';
-
-const String _jmKeywordPrefix = 'jm';
 
 void onSearch(
   BuildContext context,
@@ -19,10 +15,10 @@ void onSearch(
   Map<String, bool>? aggregateSources,
 }) async {
   final searchCubit = context.read<SearchCubit>();
-  final resolvedPluginId = sanitizePluginId(
+  final resolvedPluginId = normalizePluginId(
     pluginExtern['_pluginId']?.toString().trim().isNotEmpty == true
         ? pluginExtern['_pluginId'].toString().trim()
-        : sanitizePluginId(searchCubit.state.from),
+        : (searchCubit.state.from).trim(),
   );
   searchCubit.update(
     searchCubit.state.copyWith(
@@ -33,54 +29,23 @@ void onSearch(
       },
     ),
   );
-  if (searchCubit.state.from == kJmPluginUuid) {
-    if (keyword.let(toInt) >= 100 || keyword.startsWith(_jmKeywordPrefix)) {
-      if (!keyword.startsWith(_jmKeywordPrefix)) {
-        keyword = '$_jmKeywordPrefix$keyword';
-      }
-
-      var comicId = keyword;
-      if (keyword.startsWith(_jmKeywordPrefix)) {
-        comicId = keyword.substring(_jmKeywordPrefix.length);
-      }
-
-      context.pushRoute(
-        ComicInfoRoute(
-          comicId: comicId,
-          type: ComicEntryType.normal,
-          from: kJmPluginUuid,
-          pluginId: kJmPluginUuid,
-        ),
-      );
-
-      final settingCubit = context.read<GlobalSettingCubit>();
-      final history = settingCubit.state.searchHistory.toList();
-      history
-        ..remove(keyword)
-        ..insert(0, keyword);
-      await Future.delayed(const Duration(milliseconds: 200));
-      settingCubit.updateState(
-        (current) =>
-            current.copyWith(searchHistory: history.take(200).toList()),
-      );
-      return;
-    }
-  }
 
   final event = SearchEvent().copyWith(searchStates: searchCubit.state);
 
   if (aggregateMode) {
+    final pluginStates = context.read<PluginRegistryCubit>().state;
+    final availableSources = pluginStates.values
+        .where((plugin) => plugin.isEnabled && !plugin.isDeleted)
+        .map((plugin) => normalizePluginId(plugin.uuid))
+        .toList();
     final selected =
         aggregateSources ??
-        const <String, bool>{kJmPluginUuid: true, kBikaPluginUuid: true};
+        {for (final source in availableSources) source: true};
     context.pushRoute(
       SearchAggregateResultRoute(
         searchEvent: event,
         searchCubit: searchCubit,
-        selectedSources: {
-          kJmPluginUuid: selected[kJmPluginUuid] ?? true,
-          kBikaPluginUuid: selected[kBikaPluginUuid] ?? true,
-        },
+        selectedSources: selected,
       ),
     );
     return;

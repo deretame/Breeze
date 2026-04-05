@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:zephyr/plugin/plugin_constants.dart';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +18,7 @@ class CreatorLinkCard extends StatelessWidget {
     required this.avatarPath,
     required this.infoChildren,
     this.onTap,
-    this.from = kBikaPluginUuid,
+    this.from = '',
     this.pictureType = PictureType.creator,
     this.imageKey = '',
     this.errorAssetPath = 'asset/image/assets/default_cover.png',
@@ -56,17 +55,7 @@ class CreatorLinkCard extends StatelessWidget {
         child: Container(
           height: 75,
           width: double.infinity,
-          decoration: BoxDecoration(
-            color: context.backgroundColor,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: materialColorScheme.secondaryFixedDim,
-                spreadRadius: 0,
-                blurRadius: 2,
-              ),
-            ],
-          ),
+          decoration: BoxDecoration(color: Colors.transparent),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.start,

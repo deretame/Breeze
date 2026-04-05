@@ -39,6 +39,7 @@ class PictureBloc extends Bloc<GetPicture, PictureLoadState> {
         path: event.pictureInfo.path,
         cartoonId: event.pictureInfo.cartoonId,
         chapterId: event.pictureInfo.chapterId,
+        pictureType: event.pictureInfo.pictureType,
       );
 
       emit(

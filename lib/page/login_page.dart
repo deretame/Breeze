@@ -1,5 +1,3 @@
-import 'package:zephyr/plugin/plugin_constants.dart';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/main.dart';
@@ -35,7 +33,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    from = sanitizePluginId(widget.from ?? '');
+    from = (widget.from ?? '').trim();
     _loadLoginScheme();
   }
 

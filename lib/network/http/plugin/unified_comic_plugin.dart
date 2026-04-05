@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:zephyr/main.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/network/http/plugin/unauthorized_payload.dart';
 import 'package:zephyr/util/download/qjs_download_runtime.dart';
 import 'package:zephyr/util/event/event.dart';
@@ -15,7 +14,12 @@ Future<Map<String, dynamic>> callUnifiedComicPlugin({
   Map<String, dynamic>? extern,
   String? runtimeName,
 }) async {
-  final resolvedPluginId = sanitizePluginId(
+  final resolvedFnPath = fnPath.trim();
+  if (resolvedFnPath.isEmpty) {
+    throw StateError('callUnifiedComicPlugin missing fnPath');
+  }
+
+  final resolvedPluginId = normalizePluginId(
     (pluginId?.trim().isNotEmpty ?? false) ? pluginId! : (from ?? ''),
   );
   if (resolvedPluginId.isEmpty) {
@@ -29,7 +33,7 @@ Future<Map<String, dynamic>> callUnifiedComicPlugin({
     final raw = await _invokeQjs(
       pluginId: resolvedPluginId,
       runtimeName: runtime,
-      fnPath: fnPath,
+      fnPath: resolvedFnPath,
       argsJson: argsJson,
     );
     final decoded = requireJsonMap(jsonDecode(raw), message: '插件返回格式错误');

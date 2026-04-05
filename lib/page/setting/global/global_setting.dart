@@ -125,6 +125,27 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               ],
             ],
           ),
+          const SizedBox(height: 12),
+          SettingSectionCard(
+            title: '关于与更多',
+            icon: Icons.info_outline,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.history_outlined),
+                title: const Text('更新日志'),
+                subtitle: const Text('查看各个版本的更新记录'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => AutoRouter.of(context).push(ChangelogRoute()),
+              ),
+              ListTile(
+                leading: const Icon(Icons.help_outline),
+                title: const Text('关于应用'),
+                subtitle: const Text('关于 Breeze 的详细信息'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => AutoRouter.of(context).push(AboutRoute()),
+              ),
+            ],
+          ),
         ],
       ),
     );

@@ -27,7 +27,7 @@ UnifiedComicListItem unifiedComicFromUnifiedFavorite(
     updatedAt: comic.updatedAt.toIso8601String(),
     cover: _coverFromFlex(comic.source, comic.comicId, comic.cover),
     metadata: _metadataFromFlex(comic.metadata),
-    raw: comic.toJson(),
+    raw: _buildFavoriteRaw(comic),
     extern: const <String, dynamic>{},
   );
 }
@@ -44,7 +44,7 @@ UnifiedComicListItem unifiedComicFromUnifiedHistory(UnifiedComicHistory comic) {
     updatedAt: comic.updatedAt.toIso8601String(),
     cover: _coverFromFlex(comic.source, comic.comicId, comic.cover),
     metadata: _metadataFromFlex(comic.metadata),
-    raw: comic.toJson(),
+    raw: _buildHistoryRaw(comic),
     extern: const <String, dynamic>{},
   );
 }
@@ -69,9 +69,84 @@ UnifiedComicListItem unifiedComicFromUnifiedDownload(
     updatedAt: comic.updatedAt.toIso8601String(),
     cover: UnifiedComicCover(id: cover.id, url: '', extern: extern),
     metadata: _metadataFromFlex(comic.metadata),
-    raw: comic.toJson(),
+    raw: _buildDownloadRaw(comic),
     extern: const <String, dynamic>{},
   );
+}
+
+Map<String, dynamic> _buildFavoriteRaw(UnifiedComicFavorite comic) {
+  return {
+    'source': comic.source,
+    'comicId': comic.comicId,
+    'title': comic.title,
+    'description': comic.description,
+    'cover': _sanitizeDynamic(comic.cover),
+    'creator': _sanitizeDynamic(comic.creator),
+    'titleMeta': _sanitizeDynamic(comic.titleMeta),
+    'metadata': _sanitizeDynamic(comic.metadata),
+    'updatedAt': comic.updatedAt.toIso8601String(),
+  };
+}
+
+Map<String, dynamic> _buildHistoryRaw(UnifiedComicHistory comic) {
+  return {
+    'source': comic.source,
+    'comicId': comic.comicId,
+    'title': comic.title,
+    'description': comic.description,
+    'cover': _sanitizeDynamic(comic.cover),
+    'creator': _sanitizeDynamic(comic.creator),
+    'titleMeta': _sanitizeDynamic(comic.titleMeta),
+    'metadata': _sanitizeDynamic(comic.metadata),
+    'chapterId': comic.chapterId,
+    'chapterTitle': comic.chapterTitle,
+    'chapterOrder': comic.chapterOrder,
+    'pageIndex': comic.pageIndex,
+    'updatedAt': comic.updatedAt.toIso8601String(),
+  };
+}
+
+Map<String, dynamic> _buildDownloadRaw(UnifiedComicDownload comic) {
+  return {
+    'source': comic.source,
+    'comicId': comic.comicId,
+    'title': comic.title,
+    'description': comic.description,
+    'cover': _sanitizeDynamic(comic.cover),
+    'creator': _sanitizeDynamic(comic.creator),
+    'titleMeta': _sanitizeDynamic(comic.titleMeta),
+    'metadata': _sanitizeDynamic(comic.metadata),
+    'chapters': _sanitizeDynamic(comic.chapters),
+    'storageRoot': comic.storageRoot,
+    'updatedAt': comic.updatedAt.toIso8601String(),
+  };
+}
+
+dynamic _sanitizeDynamic(dynamic value) {
+  if (value == null || value is String || value is num || value is bool) {
+    return value;
+  }
+
+  if (value is DateTime) {
+    return value.toIso8601String();
+  }
+
+  if (value is Map) {
+    return value.map(
+      (key, item) => MapEntry(key.toString(), _sanitizeDynamic(item)),
+    );
+  }
+
+  if (value is List) {
+    return value.map(_sanitizeDynamic).toList();
+  }
+
+  try {
+    final json = (value as dynamic).toJson();
+    return _sanitizeDynamic(json);
+  } catch (_) {
+    return value.toString();
+  }
 }
 
 UnifiedComicListItem unifiedComicFromPluginListMap(
@@ -141,4 +216,14 @@ UnifiedComicListItem _requireUnifiedPluginItem(
     throw StateError('插件返回非统一漫画结构: $context');
   }
   return UnifiedComicListItem.fromJson(item);
+}
+
+Object getStructure(dynamic input) {
+  if (input is Map) {
+    return input.map((key, value) => MapEntry(key, getStructure(value)));
+  } else if (input is List) {
+    return input.isEmpty ? "List" : [getStructure(input.first)];
+  } else {
+    return input.runtimeType.toString(); // 只保留类型名
+  }
 }

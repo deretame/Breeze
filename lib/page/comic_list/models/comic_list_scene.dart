@@ -1,4 +1,3 @@
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
 class ComicListRequestConfig {
@@ -13,12 +12,37 @@ class ComicListRequestConfig {
   final Map<String, dynamic> extern;
 
   factory ComicListRequestConfig.fromMap(Map<String, dynamic> map) {
+    final nestedRequest = asJsonMap(map['request']);
+    final fnPath = _resolveFnPath(map, nestedRequest);
     return ComicListRequestConfig(
-      fnPath: map['fnPath']?.toString() ?? '',
+      fnPath: fnPath,
       core: asJsonMap(map['core']),
       extern: asJsonMap(map['extern']),
     );
   }
+}
+
+String _resolveFnPath(
+  Map<String, dynamic> map,
+  Map<String, dynamic> nestedRequest,
+) {
+  final candidates = <dynamic>[
+    map['fnPath'],
+    map['fn_path'],
+    map['fn'],
+    map['function'],
+    nestedRequest['fnPath'],
+    nestedRequest['fn_path'],
+    nestedRequest['fn'],
+    nestedRequest['function'],
+  ];
+  for (final item in candidates) {
+    final value = item?.toString().trim() ?? '';
+    if (value.isNotEmpty) {
+      return value;
+    }
+  }
+  return '';
 }
 
 enum ComicListBodyType { pluginPagedComicList, pluginPagedCreatorList }
@@ -69,7 +93,7 @@ class ComicListScene {
 
     return ComicListScene(
       title: map['title']?.toString() ?? '',
-      from: sanitizePluginId(sanitizePluginId(source)),
+      from: source.trim(),
       body: bodyMap.isNotEmpty
           ? ComicListBodyConfig.fromMap(bodyMap)
           : ComicListBodyConfig(

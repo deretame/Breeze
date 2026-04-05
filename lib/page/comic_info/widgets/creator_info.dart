@@ -1,5 +1,4 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/page/comic_info/models/comic_info_action.dart';
@@ -46,7 +45,7 @@ class CreatorInfoWidget extends StatelessWidget {
                 SearchResultRoute(
                   searchEvent: SearchEvent().copyWith(
                     searchStates: SearchStates.initial().copyWith(
-                      from: kBikaPluginUuid,
+                      from: from,
                       searchKeyword: creator.name,
                       pluginExtern: {
                         'mode': 'creator',

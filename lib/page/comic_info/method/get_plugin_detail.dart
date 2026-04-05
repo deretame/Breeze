@@ -1,10 +1,8 @@
-import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
 import 'package:zephyr/object_box/model.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
 
 class PluginComicDetail {
   const PluginComicDetail({required this.normalInfo, required this.source});
@@ -24,15 +22,11 @@ class PluginComicDetailSource {
   final normal.NormalComicAllInfo normalInfo;
   final Map<String, dynamic> raw;
 
-  bool get isBika => from == kBikaPluginUuid;
-
-  bool get isJm => from == kJmPluginUuid;
-
   Map<String, dynamic> get rawComicInfo => asMap(raw['comicInfo']);
 
   List<normal.Ep> get eps => normalInfo.eps;
 
-  bool get isJmSeriesEmpty => isJm && eps.isEmpty;
+  bool get isJmSeriesEmpty => eps.isEmpty;
 
   String get comicId => normalInfo.comicInfo.id;
 
@@ -57,15 +51,11 @@ Future<PluginComicDetail> getComicDetailByPlugin(
   String from, {
   String? pluginId,
 }) async {
-  final resolvedPluginId = sanitizePluginId(
-    pluginId?.trim().isNotEmpty == true
-        ? pluginId!.trim()
-        : sanitizePluginId(from),
-  );
-  final resolvedFrom = sanitizePluginId(resolvedPluginId);
-  final payload = from == kBikaPluginUuid
-      ? _buildBikaPayload(comicId)
-      : _buildJmPayload(comicId);
+  final resolvedPluginId =
+      (pluginId?.trim().isNotEmpty == true ? pluginId!.trim() : from.trim())
+          .trim();
+  final resolvedFrom = (resolvedPluginId).trim();
+  final payload = {'comicId': comicId};
 
   final map = await callUnifiedComicPlugin(
     from: resolvedPluginId,
@@ -100,14 +90,10 @@ Future<UnifiedPluginChapterResponse> getComicChapterByPlugin(
   String? pluginId,
   String? runtimeName,
 }) async {
-  final resolvedPluginId = sanitizePluginId(
-    pluginId?.trim().isNotEmpty == true
-        ? pluginId!.trim()
-        : sanitizePluginId(from),
-  );
-  final payload = from == kBikaPluginUuid
-      ? _buildBikaChapterPayload(comicId, chapterId)
-      : _buildJmChapterPayload(comicId, chapterId);
+  final resolvedPluginId =
+      (pluginId?.trim().isNotEmpty == true ? pluginId!.trim() : from.trim())
+          .trim();
+  final payload = {'comicId': comicId, 'chapterId': chapterId};
 
   final map = await callUnifiedComicPlugin(
     from: resolvedPluginId,
@@ -117,39 +103,6 @@ Future<UnifiedPluginChapterResponse> getComicChapterByPlugin(
     runtimeName: runtimeName,
   );
   return UnifiedPluginChapterResponse.fromMap(map);
-}
-
-Map<String, dynamic> _buildBikaPayload(String comicId) {
-  final settings = objectbox.userSettingBox.get(1)!.bikaSetting;
-  return {
-    'comicId': comicId,
-    'settings': {
-      'proxy': settings.proxy,
-      'imageQuality': settings.imageQuality,
-    },
-  };
-}
-
-Map<String, dynamic> _buildJmPayload(String comicId) {
-  return {'comicId': comicId, 'useJwt': true};
-}
-
-Map<String, dynamic> _buildBikaChapterPayload(
-  String comicId,
-  String chapterId,
-) {
-  return {
-    'comicId': comicId,
-    'chapterId': chapterId,
-    'settings': {
-      'proxy': objectbox.userSettingBox.get(1)!.bikaSetting.proxy,
-      'imageQuality': 'original',
-    },
-  };
-}
-
-Map<String, dynamic> _buildJmChapterPayload(String comicId, String chapterId) {
-  return {'comicId': comicId, 'chapterId': chapterId, 'useJwt': true};
 }
 
 List<UnifiedComicChapterRef> resolveUnifiedComicChapters(

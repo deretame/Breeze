@@ -74,7 +74,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
                   String get codegenVersion => '2.12.0';
 
                   @override
-                  int get rustContentHash => -2059791929;
+                  int get rustContentHash => -973651146;
 
                   static const kDefaultExternalLibraryLoaderConfig = ExternalLibraryLoaderConfig(
                     stem: 'windcore',
@@ -106,7 +106,11 @@ Future<void> crateApiQjsInitQjsRuntime({required String name });
 
 Future<void> crateApiQjsInitQjsRuntimeWithBundle({required String runtimeName , required String bundleName , required String bundleJs });
 
+void crateApiQjsInitRustFunctions();
+
 Future<bool> crateApiQjsIsQjsRuntimeInitialized({required String name });
+
+String crateApiQjsOpenccConvert({required String text , required String config });
 
 Future<void> crateApiSimplePackFolder({required String destPath , required PackInfo packInfo });
 
@@ -148,6 +152,8 @@ Future<Uint8List> crateApiQjsQjsFetchImageBytesTaskWait({required String runtime
 
 Future<void> crateApiQjsQjsReplaceBundle({required String runtimeName , required String bundleName , required String bundleJs });
 
+void crateApiQjsRegisterFunction({required String functionName , required FutureOr<String> Function(String) dartCallback });
+
 Future<void> crateApiQjsRegisterLoadPluginConfig({required FutureOr<String> Function(String, String, String) dartCallback });
 
 Future<void> crateApiQjsRegisterSavePluginConfig({required FutureOr<String> Function(String, String, String) dartCallback });
@@ -169,8 +175,6 @@ Future<String> crateApiSimpleSleepTest();
 Stream<bool> crateApiSystemStartShutdownListener();
 
 Stream<String> crateApiSimpleStreamTest();
-
-String crateApiSimpleTraditionalToSimplified({required String text });
 
 Future<Uint8List> crateApiSimpleZstdCompressBytes({required List<int> raw , required int level });
 
@@ -440,11 +444,36 @@ sse_encode_String(bundleJs, serializer);
         );
         
 
+@override void crateApiQjsInitRustFunctions()  { return handler.executeSync(SyncTask(
+            callFfi: () {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);
+            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 11)!;
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsInitRustFunctionsConstMeta,
+            argValues: [],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiQjsInitRustFunctionsConstMeta => const TaskConstMeta(
+            debugName: "init_rust_functions",
+            argNames: [],
+        );
+        
+
 @override Future<bool> crateApiQjsIsQjsRuntimeInitialized({required String name })  { return handler.executeNormal(NormalTask(
             callFfi: (port_) {
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(name, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 11, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12, port: port_);
             
             },
             codec: 
@@ -465,12 +494,38 @@ sse_encode_String(bundleJs, serializer);
         );
         
 
+@override String crateApiQjsOpenccConvert({required String text , required String config })  { return handler.executeSync(SyncTask(
+            callFfi: () {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(text, serializer);
+sse_encode_String(config, serializer);
+            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13)!;
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsOpenccConvertConstMeta,
+            argValues: [text, config],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiQjsOpenccConvertConstMeta => const TaskConstMeta(
+            debugName: "opencc_convert",
+            argNames: ["text", "config"],
+        );
+        
+
 @override Future<void> crateApiSimplePackFolder({required String destPath , required PackInfo packInfo })  { return handler.executeNormal(NormalTask(
             callFfi: (port_) {
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(destPath, serializer);
 sse_encode_box_autoadd_pack_info(packInfo, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14, port: port_);
             
             },
             codec: 
@@ -496,7 +551,7 @@ sse_encode_box_autoadd_pack_info(packInfo, serializer);
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(destPath, serializer);
 sse_encode_box_autoadd_pack_info(packInfo, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15, port: port_);
             
             },
             codec: 
@@ -523,7 +578,7 @@ sse_encode_box_autoadd_pack_info(packInfo, serializer);
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
 sse_encode_String(fnPath, serializer);
 sse_encode_String(argsJson, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16, port: port_);
             
             },
             codec: 
@@ -551,7 +606,7 @@ sse_encode_String(argsJson, serializer);
 sse_encode_String(bundleJs, serializer);
 sse_encode_String(fnPath, serializer);
 sse_encode_String(argsJson, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17, port: port_);
             
             },
             codec: 
@@ -580,7 +635,7 @@ sse_encode_String(bundleJs, serializer);
 sse_encode_String(fnPath, serializer);
 sse_encode_String(argsJson, serializer);
 sse_encode_String(taskGroupKey, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18, port: port_);
             
             },
             codec: 
@@ -606,7 +661,7 @@ sse_encode_String(taskGroupKey, serializer);
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
 sse_encode_u_64(taskId, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 19, port: port_);
             
             },
             codec: 
@@ -634,7 +689,7 @@ sse_encode_u_64(taskId, serializer);
 sse_encode_String(taskGroupKey, serializer);
 sse_encode_String(fnPath, serializer);
 sse_encode_String(argsJson, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 20, port: port_);
             
             },
             codec: 
@@ -660,7 +715,7 @@ sse_encode_String(argsJson, serializer);
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
 sse_encode_u_64(taskId, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 19, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 21, port: port_);
             
             },
             codec: 
@@ -686,7 +741,7 @@ sse_encode_u_64(taskId, serializer);
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
 sse_encode_u_64(taskId, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 20, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 22, port: port_);
             
             },
             codec: 
@@ -712,7 +767,7 @@ sse_encode_u_64(taskId, serializer);
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
 sse_encode_String(taskGroupKey, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 21, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 23, port: port_);
             
             },
             codec: 
@@ -737,7 +792,7 @@ sse_encode_String(taskGroupKey, serializer);
             callFfi: (port_) {
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 22, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 24, port: port_);
             
             },
             codec: 
@@ -762,7 +817,7 @@ sse_encode_String(taskGroupKey, serializer);
             callFfi: (port_) {
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 23, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 25, port: port_);
             
             },
             codec: 
@@ -787,7 +842,7 @@ sse_encode_String(taskGroupKey, serializer);
             callFfi: (port_) {
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 24, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 26, port: port_);
             
             },
             codec: 
@@ -814,7 +869,7 @@ sse_encode_String(taskGroupKey, serializer);
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
 sse_encode_String(fnPath, serializer);
 sse_encode_String(argsJson, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 25, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 27, port: port_);
             
             },
             codec: 
@@ -842,7 +897,7 @@ sse_encode_String(argsJson, serializer);
 sse_encode_String(bundleJs, serializer);
 sse_encode_String(fnPath, serializer);
 sse_encode_String(argsJson, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 26, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 28, port: port_);
             
             },
             codec: 
@@ -871,7 +926,7 @@ sse_encode_String(bundleJs, serializer);
 sse_encode_String(fnPath, serializer);
 sse_encode_String(argsJson, serializer);
 sse_encode_String(taskGroupKey, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 27, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 29, port: port_);
             
             },
             codec: 
@@ -897,7 +952,7 @@ sse_encode_String(taskGroupKey, serializer);
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
 sse_encode_u_64(taskId, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 28, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 30, port: port_);
             
             },
             codec: 
@@ -925,7 +980,7 @@ sse_encode_u_64(taskId, serializer);
 sse_encode_String(taskGroupKey, serializer);
 sse_encode_String(fnPath, serializer);
 sse_encode_String(argsJson, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 29, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 31, port: port_);
             
             },
             codec: 
@@ -951,7 +1006,7 @@ sse_encode_String(argsJson, serializer);
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
 sse_encode_u_64(taskId, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 30, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 32, port: port_);
             
             },
             codec: 
@@ -978,7 +1033,7 @@ sse_encode_u_64(taskId, serializer);
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(runtimeName, serializer);
 sse_encode_String(bundleName, serializer);
 sse_encode_String(bundleJs, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 31, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 33, port: port_);
             
             },
             codec: 
@@ -999,11 +1054,37 @@ sse_encode_String(bundleJs, serializer);
         );
         
 
+@override void crateApiQjsRegisterFunction({required String functionName , required FutureOr<String> Function(String) dartCallback })  { return handler.executeSync(SyncTask(
+            callFfi: () {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(functionName, serializer);
+sse_encode_DartFn_Inputs_String_Output_String_AnyhowException(dartCallback, serializer);
+            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 34)!;
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiQjsRegisterFunctionConstMeta,
+            argValues: [functionName, dartCallback],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiQjsRegisterFunctionConstMeta => const TaskConstMeta(
+            debugName: "register_function",
+            argNames: ["functionName", "dartCallback"],
+        );
+        
+
 @override Future<void> crateApiQjsRegisterLoadPluginConfig({required FutureOr<String> Function(String, String, String) dartCallback })  { return handler.executeNormal(NormalTask(
             callFfi: (port_) {
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(dartCallback, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 32, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 35, port: port_);
             
             },
             codec: 
@@ -1028,7 +1109,7 @@ sse_encode_String(bundleJs, serializer);
             callFfi: (port_) {
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(dartCallback, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 33, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 36, port: port_);
             
             },
             codec: 
@@ -1053,7 +1134,7 @@ sse_encode_String(bundleJs, serializer);
             callFfi: (port_) {
               
             final serializer = SseSerializer(generalizedFrbRustBinding);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 34, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 37, port: port_);
             
             },
             codec: 
@@ -1078,7 +1159,7 @@ sse_encode_String(bundleJs, serializer);
             callFfi: (port_) {
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(proxy, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 35, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 38, port: port_);
             
             },
             codec: 
@@ -1103,7 +1184,7 @@ sse_encode_String(bundleJs, serializer);
             callFfi: () {
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(url, serializer);
-            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 36)!;
+            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 39)!;
             
             },
             codec: 
@@ -1128,7 +1209,7 @@ sse_encode_String(bundleJs, serializer);
             callFfi: () {
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_bool(enabled, serializer);
-            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 37)!;
+            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 40)!;
             
             },
             codec: 
@@ -1153,7 +1234,7 @@ sse_encode_String(bundleJs, serializer);
             callFfi: (port_) {
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(proxy, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 38, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 41, port: port_);
             
             },
             codec: 
@@ -1178,7 +1259,7 @@ sse_encode_String(bundleJs, serializer);
             callFfi: (port_) {
               
             final serializer = SseSerializer(generalizedFrbRustBinding);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 39, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 42, port: port_);
             
             },
             codec: 
@@ -1203,7 +1284,7 @@ sse_encode_String(bundleJs, serializer);
             callFfi: (port_) {
               
             final serializer = SseSerializer(generalizedFrbRustBinding);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 40, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 43, port: port_);
             
             },
             codec: 
@@ -1230,7 +1311,7 @@ sse_encode_String(bundleJs, serializer);
             callFfi: (port_) {
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_StreamSink_bool_Sse(sink, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 41, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 44, port: port_);
             
             },
             codec: 
@@ -1259,7 +1340,7 @@ sse_encode_String(bundleJs, serializer);
             callFfi: (port_) {
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_StreamSink_String_Sse(stream, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 42, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 45, port: port_);
             
             },
             codec: 
@@ -1282,37 +1363,12 @@ sse_encode_String(bundleJs, serializer);
         );
         
 
-@override String crateApiSimpleTraditionalToSimplified({required String text })  { return handler.executeSync(SyncTask(
-            callFfi: () {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(text, serializer);
-            return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 43)!;
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiSimpleTraditionalToSimplifiedConstMeta,
-            argValues: [text],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiSimpleTraditionalToSimplifiedConstMeta => const TaskConstMeta(
-            debugName: "traditional_to_simplified",
-            argNames: ["text"],
-        );
-        
-
 @override Future<Uint8List> crateApiSimpleZstdCompressBytes({required List<int> raw , required int level })  { return handler.executeNormal(NormalTask(
             callFfi: (port_) {
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_list_prim_u_8_loose(raw, serializer);
 sse_encode_i_32(level, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 44, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 46, port: port_);
             
             },
             codec: 
@@ -1337,7 +1393,7 @@ sse_encode_i_32(level, serializer);
             callFfi: (port_) {
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_list_prim_u_8_loose(encoded, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 45, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 47, port: port_);
             
             },
             codec: 
@@ -1359,6 +1415,36 @@ sse_encode_i_32(level, serializer);
         
 
 
+            Future<void> Function(int, dynamic)
+                encode_DartFn_Inputs_String_Output_String_AnyhowException(FutureOr<String> Function(String) raw) {
+              return (callId, rawArg0) async {
+                final arg0 = dco_decode_String(rawArg0);
+
+
+                Box<String>? rawOutput;
+                Box<AnyhowException>? rawError;
+                try {
+                    rawOutput = Box(await raw(arg0));
+                } catch (e, s) {
+                    rawError = Box(AnyhowException("$e\n\n$s"));
+                }
+
+                final serializer = SseSerializer(generalizedFrbRustBinding);
+                assert((rawOutput != null) ^ (rawError != null));
+                if (rawOutput != null) {
+                    serializer.buffer.putUint8(0);
+                    sse_encode_String(rawOutput.value, serializer);
+                } else {
+                    serializer.buffer.putUint8(1);
+                    sse_encode_AnyhowException(rawError!.value, serializer);
+                }
+                final output = serializer.intoRaw();
+
+                generalizedFrbRustBinding.dartFnDeliverOutput(
+                  callId: callId, ptr: output.ptr, rustVecLen: output.rustVecLen, dataLen: output.dataLen);
+              };
+            }
+            
             Future<void> Function(int, dynamic, dynamic, dynamic)
                 encode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(FutureOr<String> Function(String, String, String) raw) {
               return (callId, rawArg0, rawArg1, rawArg2) async {
@@ -1394,6 +1480,9 @@ final arg2 = dco_decode_String(rawArg2);
 
                   @protected AnyhowException dco_decode_AnyhowException(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
 return AnyhowException(raw as String); }
+
+@protected FutureOr<String> Function(String) dco_decode_DartFn_Inputs_String_Output_String_AnyhowException(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
+throw UnimplementedError(''); }
 
 @protected FutureOr<String> Function(String, String, String) dco_decode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
 throw UnimplementedError(''); }
@@ -1602,6 +1691,9 @@ return deserializer.buffer.getBigUint64(); }
 
 @protected void sse_encode_AnyhowException(AnyhowException self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
 sse_encode_String(self.message, serializer); }
+
+@protected void sse_encode_DartFn_Inputs_String_Output_String_AnyhowException(FutureOr<String> Function(String) self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
+sse_encode_DartOpaque(encode_DartFn_Inputs_String_Output_String_AnyhowException(self), serializer); }
 
 @protected void sse_encode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(FutureOr<String> Function(String, String, String) self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
 sse_encode_DartOpaque(encode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(self), serializer); }

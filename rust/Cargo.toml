@@ -34,7 +34,8 @@ flate2 = "1.1.9"
 zstd = "0.13.3"
 rquickjs_playground = { path = "../rquickjs_playground" }
 chrono = "0.4.44"
-terminal_size = "0.4.3"
+terminal_size = "0.4.4"
+ferrous-opencc = "0.3"
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.15.1"
 tracing-logcat = "0.1.0"

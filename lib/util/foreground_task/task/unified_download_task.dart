@@ -13,8 +13,6 @@ import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
-import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/download/download_cancel_signal.dart';
 import 'package:zephyr/util/download/download_progress_reporter.dart';
 import 'package:zephyr/util/download/qjs_download_runtime.dart';
@@ -26,8 +24,9 @@ Future<void> unifiedDownloadTask(
   DownloadProgressReporter reporter,
   DownloadTaskJson task,
 ) async {
-  final pluginId = sanitizePluginId(task.from);
-  final from = pluginId == kJmPluginUuid ? kJmPluginUuid : kBikaPluginUuid;
+  logger.d('unifiedDownloadTask received payload=${task.toJson()}');
+  final pluginId = (task.from).trim();
+  final from = pluginId;
   final runtimeName = runtimeNameForPluginId(pluginId);
   Timer? progressTimer;
   bool running = true;
@@ -117,12 +116,16 @@ Future<void> unifiedDownloadTask(
     final chapterResponses = <UnifiedPluginChapterResponse>[];
     for (final chapter in selectedChapters) {
       await ensureTaskRunning();
+      final requestChapterId = _resolveChapterRequestId(chapter);
+      logger.d(
+        'download getChapter plugin=$pluginId comicId=${task.comicId} chapter.id=${chapter.id} order=${chapter.order} requestChapterId=$requestChapterId',
+      );
       chapterResponses.add(
         await _getChapterByPlugin(
           from: from,
           pluginId: pluginId,
           comicId: task.comicId,
-          chapterTaskId: chapter.taskChapterId,
+          chapterId: requestChapterId,
           runtimeName: runtimeName,
         ),
       );
@@ -157,26 +160,9 @@ Future<void> unifiedDownloadTask(
       qjsTaskGroupKey: task.comicId,
       ensureTaskRunning: ensureTaskRunning,
       reporter: reporter,
-      concurrency: from == kJmPluginUuid ? 5 : 10,
+      concurrency: 5,
       onError: (error, job) async {
-        if (from != kJmPluginUuid || !error.toString().contains('404')) {
-          throw error;
-        }
-        for (final response in chapterResponses) {
-          if (response.chapter.epId != job.chapterId) continue;
-          final docs = response.chapter.docs;
-          final index = docs.indexWhere(
-            (doc) => (doc.path.isNotEmpty ? doc.path : doc.name) == job.path,
-          );
-          if (index != -1) {
-            docs[index] = UnifiedPluginChapterDoc(
-              name: docs[index].name,
-              path: docs[index].path,
-              url: '404',
-              id: docs[index].id,
-            );
-          }
-        }
+        throw error;
       },
     );
 
@@ -194,26 +180,35 @@ Future<void> unifiedDownloadTask(
   }
 }
 
+String _resolveChapterRequestId(UnifiedComicDownloadChapter chapter) {
+  final rawId = chapter.id.trim();
+  if (rawId.isNotEmpty && int.tryParse(rawId) != null) {
+    return rawId;
+  }
+  final order = chapter.order <= 0 ? 1 : chapter.order;
+  return order.toString();
+}
+
 List<UnifiedComicDownloadChapter> _resolveSelectedChapters(
   UnifiedComicDownloadInfo info,
   List<String> selectedIds,
 ) {
-  return info.chapters
-      .where((chapter) => selectedIds.contains(chapter.taskChapterId))
-      .toList()
-      .let((result) => result.isEmpty ? info.chapters : result);
+  final matched = info.chapters
+      .where((chapter) => selectedIds.contains(chapter.id))
+      .toList();
+  return matched.isEmpty ? info.chapters : matched;
 }
 
 Future<UnifiedPluginChapterResponse> _getChapterByPlugin({
   required String from,
   required String pluginId,
   required String comicId,
-  required String chapterTaskId,
+  required String chapterId,
   required String runtimeName,
 }) async {
   return getComicChapterByPlugin(
     comicId,
-    chapterTaskId,
+    chapterId,
     from,
     pluginId: pluginId,
     runtimeName: runtimeName,
@@ -302,12 +297,6 @@ Future<void> _saveUnifiedDownload({
           id: chapter.id,
           title: chapter.name,
           order: chapter.order,
-          taskChapterId: selectedChapters
-              .firstWhere(
-                (e) => e.id == chapter.id,
-                orElse: () => selectedChapters.first,
-              )
-              .taskChapterId,
         ).toMap(),
       )
       .toList();
@@ -354,19 +343,17 @@ Future<void> _saveUnifiedDownload({
   objectbox.unifiedDownloadBox.put(entity);
 }
 
-Map<String, dynamic> _deepCopyMap(Object value) => value
-    .let(jsonEncode)
-    .let(jsonDecode)
-    .let((decoded) => Map<String, dynamic>.from(decoded as Map));
+Map<String, dynamic> _deepCopyMap(Object value) {
+  final encoded = jsonEncode(value);
+  final decoded = jsonDecode(encoded);
+  return Map<String, dynamic>.from(decoded as Map);
+}
 
-List<Map<String, dynamic>> _deepCopyMapList(Object value) => value
-    .let(jsonEncode)
-    .let(jsonDecode)
-    .let(
-      (decoded) => (decoded as List)
-          .map((item) => Map<String, dynamic>.from(item as Map))
-          .toList(),
-    );
+List<Map<String, dynamic>> _deepCopyMapList(Object value) {
+  final encoded = jsonEncode(value);
+  final decoded = jsonDecode(encoded) as List;
+  return decoded.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+}
 
 String _fallbackImageId(UnifiedPluginChapterDoc doc, String chapterId) {
   final candidate = doc.path.isNotEmpty ? doc.path : doc.name;

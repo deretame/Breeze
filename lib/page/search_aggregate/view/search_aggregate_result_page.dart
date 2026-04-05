@@ -7,6 +7,7 @@ import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search/widget/source_select_dialog.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
+import 'package:zephyr/util/download/qjs_download_runtime.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
@@ -36,7 +37,10 @@ class SearchAggregateResultPage extends StatelessWidget
         pluginStates.values.where((state) => !state.isDeleted).toList()
           ..sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
     final initial = selectedSources.isNotEmpty
-        ? selectedSources
+        ? {
+            for (final entry in selectedSources.entries)
+              normalizePluginId(entry.key): entry.value,
+          }
         : {for (final plugin in visiblePlugins) plugin.uuid: plugin.isEnabled};
     return MultiBlocProvider(
       providers: [
@@ -261,6 +265,7 @@ class _ResultList extends StatelessWidget {
 
       final items = state.results[pluginId] ?? const <dynamic>[];
       final error = state.errors[pluginId] ?? '';
+      final refreshing = state.refreshingSources.contains(pluginId);
 
       final shouldShowResultSection = items.isNotEmpty || !state.showHasResults;
       if (shouldShowResultSection) {
@@ -311,6 +316,19 @@ class _ResultList extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
+                trailing: refreshing
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : IconButton(
+                        tooltip: '刷新此源',
+                        icon: const Icon(Icons.refresh),
+                        onPressed: () => context
+                            .read<AggregateSearchCubit>()
+                            .refreshSource(pluginId),
+                      ),
               ),
             ),
           ),

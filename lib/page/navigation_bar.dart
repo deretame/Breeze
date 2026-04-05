@@ -20,7 +20,6 @@ import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/util/update/check_update.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import '../config/global/global.dart';
 import '../main.dart';
 import '../network/sync/sync_service.dart';
 import '../util/debouncer.dart';
@@ -28,7 +27,6 @@ import '../util/dialog.dart';
 import '../util/event/event.dart';
 import 'bookshelf/bookshelf.dart';
 import 'home/view/home.dart';
-import 'more/view/more.dart';
 
 @RoutePage()
 class NavigationBar extends StatefulWidget {
@@ -46,22 +44,19 @@ class _NavigationBarState extends State<NavigationBar> {
   final debouncer = Debouncer(milliseconds: 100);
   DateTime? _lastLoginNavigateAt;
   String? _lastLoginPluginId;
-  final List<ScrollController> _scrollControllers = [];
   late HideOnScrollSettings hideOnScrollSettings;
 
   static bool _notificationsInitialized = false; // ← 使用静态变量，跨实例共享
   bool _isInitializingNotifications = false;
 
   // 页面列表
-  final _pageList = [BookshelfPage(), HomePage(), MorePage()];
+  final _pageList = [const BookshelfPage(), const HomePage()];
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       checkUpdate(context);
-      // bikaSignIn(context);
-      // jmLogin(context);
       _autoSync();
       manageCacheSize(context);
       resetDownloadTasks();
@@ -84,13 +79,6 @@ class _NavigationBarState extends State<NavigationBar> {
         : 0;
     _controller = PersistentTabController(initialIndex: initialIndex);
     _selectedIndex = initialIndex;
-    scrollControllers.forEach((key, value) {
-      _scrollControllers.add(value);
-    });
-    hideOnScrollSettings = HideOnScrollSettings(
-      scrollControllers: _scrollControllers,
-    );
-    hideOnScrollSettings = HideOnScrollSettings(); // 先去掉这个东西
     initForegroundTask();
 
     initializeNotificationsOnce();
@@ -206,14 +194,8 @@ class _NavigationBarState extends State<NavigationBar> {
         inactiveColorPrimary: inactiveColor,
       ),
       PersistentBottomNavBarItem(
-        icon: Icon(Icons.extension_outlined),
-        title: "插件",
-        activeColorPrimary: activeColor,
-        inactiveColorPrimary: inactiveColor,
-      ),
-      PersistentBottomNavBarItem(
-        icon: Icon(Icons.more_horiz),
-        title: "更多",
+        icon: Icon(Icons.explore_outlined),
+        title: "发现",
         activeColorPrimary: activeColor,
         inactiveColorPrimary: inactiveColor,
       ),
@@ -229,14 +211,9 @@ class _NavigationBarState extends State<NavigationBar> {
         label: Text("书架"),
       ),
       NavigationRailDestination(
-        icon: Icon(Icons.extension_outlined),
-        selectedIcon: Icon(Icons.extension),
-        label: Text("插件"),
-      ),
-      NavigationRailDestination(
-        icon: Icon(Icons.more_horiz_outlined),
-        selectedIcon: Icon(Icons.more_horiz),
-        label: Text("更多"),
+        icon: Icon(Icons.explore_outlined),
+        selectedIcon: Icon(Icons.explore),
+        label: Text("发现"),
       ),
     ];
   }

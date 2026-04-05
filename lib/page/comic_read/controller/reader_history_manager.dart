@@ -1,11 +1,10 @@
 import 'dart:async';
-import 'package:zephyr/plugin/plugin_constants.dart';
 
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/page/comic_read/method/history_writer.dart';
 import 'package:zephyr/page/comic_read/method/type_change.dart'
-    show bikaNormalComicInfoFromAny, isJmSeriesEmptyFromAny;
+    show bikaNormalComicInfoFromAny;
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 import 'dart:convert';
 
@@ -92,11 +91,7 @@ class ReaderHistoryManager {
 
     // 更新左下角文字 (StringSelectCubit)
     if (!stringSelectCubit.isClosed) {
-      final isJmAndSeriesEmpty =
-          from == kJmPluginUuid && isJmSeriesEmptyFromAny(comicInfo);
-      final historyPrefix = isJmAndSeriesEmpty
-          ? '历史：第1话'
-          : '历史：${epInfo.epName}';
+      final historyPrefix = '历史：${epInfo.epName}';
 
       stringSelectCubit.setDate(
         '$historyPrefix / ${pageIndex - 1} / $currentTime',
@@ -108,12 +103,10 @@ class ReaderHistoryManager {
     try {
       final temp = _resolveNormalComicInfo();
       final timestamp = DateTime.now().toUtc();
-      final isJmAndSeriesEmpty =
-          from == kJmPluginUuid && isJmSeriesEmptyFromAny(comicInfo);
       _upsertUnifiedHistory(
         normalInfo: temp,
         chapterId: epInfo.epId,
-        chapterTitle: isJmAndSeriesEmpty ? '' : epInfo.epName,
+        chapterTitle: epInfo.epName,
         chapterOrder: order,
         pageIndex: pageIndex,
         timestamp: timestamp,
@@ -134,10 +127,11 @@ class ReaderHistoryManager {
               as Map<String, dynamic>;
       return normal.NormalComicAllInfo.fromJson(detail).comicInfo;
     }
-    if (from == kBikaPluginUuid) {
+    try {
       return bikaNormalComicInfoFromAny(comicInfo);
+    } catch (_) {
+      return jm2NormalComicAllInfo(comicInfo as dynamic).comicInfo;
     }
-    return jm2NormalComicAllInfo(comicInfo as dynamic).comicInfo;
   }
 
   void _upsertUnifiedHistory({

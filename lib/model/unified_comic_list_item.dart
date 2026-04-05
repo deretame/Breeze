@@ -1,4 +1,3 @@
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 import 'package:zephyr/type/enum.dart';
 
@@ -69,7 +68,7 @@ class UnifiedComicListItem {
   };
 
   String get from {
-    return sanitizePluginId(source);
+    return (source).trim();
   }
 
   List<String> metadataValues(String type) {
@@ -124,7 +123,7 @@ class UnifiedComicListItem {
       fileServer: cover.url,
       path: cover.cachePath,
       pictureType: pictureType,
-      source: sanitizePluginId(source),
+      source: (source).trim(),
       from: from,
     );
   }

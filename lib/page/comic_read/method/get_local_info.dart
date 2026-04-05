@@ -1,126 +1,105 @@
+import 'dart:io';
+
+import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
-import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
-import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/page/comic_read/json/common_ep_info_json/common_ep_info_json.dart'
     show Doc;
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/util/get_path.dart';
-import 'dart:io';
-import 'package:path/path.dart' as p;
-import 'package:zephyr/type/enum.dart';
 
-Future<NormalComicEpInfo> fetchJMMedia(
+Future<NormalComicEpInfo> getPluginInfoFromLocal(
+  String pluginId,
   String comicId,
-  String epId,
-  ComicEntryType type,
+  int epsId,
 ) async {
-  if (type == ComicEntryType.download ||
-      type == ComicEntryType.historyAndDownload) {
-    return await fetchJMMediaFromLocal(comicId, epId);
-  } else {
-    return await fetchJMMediaFromNet(epId);
+  final resolvedPluginId = pluginId.trim();
+  if (resolvedPluginId.isEmpty) {
+    throw StateError('pluginId 不能为空');
   }
-}
 
-Future<NormalComicEpInfo> fetchJMMediaFromNet(String epId) async {
-  final response = await callUnifiedComicPlugin(
-    from: kJmPluginUuid,
-    fnPath: 'getChapter',
-    core: {'chapterId': epId},
-    extern: const <String, dynamic>{},
+  final download = objectbox.unifiedDownloadBox
+      .query(
+        UnifiedComicDownload_.uniqueKey.equals('$resolvedPluginId:$comicId'),
+      )
+      .build()
+      .findFirst();
+  if (download == null) {
+    throw StateError('本地下载信息不存在: $resolvedPluginId:$comicId');
+  }
+
+  final rawChapters = (download.chapters ?? const <Map<String, dynamic>>[]);
+  final epInfo = rawChapters.firstWhere(
+    (e) =>
+        (e['order'] as num?)?.toInt() == epsId ||
+        e['id']?.toString() == '$epsId',
+    orElse: () =>
+        rawChapters.isNotEmpty ? rawChapters.first : <String, dynamic>{},
   );
-  final chapter = UnifiedPluginChapterResponse.fromMap(response).chapter;
-  final docs = chapter.docs.map((doc) {
-    final path = doc.path;
-    final fileServer = doc.url;
-    return Doc(
-      originalName: doc.name.isEmpty ? path : doc.name,
-      path: path,
-      fileServer: fileServer,
-      id: doc.id.isEmpty ? epId : doc.id,
-    );
-  }).toList();
 
-  return NormalComicEpInfo(
-    length: chapter.length,
-    epPages: chapter.epPages,
-    docs: docs,
-    epId: chapter.epId.isEmpty ? epId : chapter.epId,
-    epName: chapter.epName,
-  );
-}
+  final chapterId = epInfo['id']?.toString().trim().isNotEmpty == true
+      ? epInfo['id'].toString().trim()
+      : '$epsId';
+  final chapterName = epInfo['name']?.toString() ?? '';
 
-Future<NormalComicEpInfo> fetchJMMediaFromLocal(
-  String comicId,
-  String epId,
-) async {
-  final downloadInfo =
-      objectbox.unifiedDownloadBox
-          .query(
-            UnifiedComicDownload_.uniqueKey.equals('$kJmPluginUuid:$comicId'),
-          )
-          .build()
-          .findFirst() ??
-      objectbox.unifiedDownloadBox
-          .query(
-            UnifiedComicDownload_.uniqueKey.equals('$kJmPluginUuid:$comicId'),
-          )
-          .build()
-          .findFirst()!;
-  final epInfo = (downloadInfo.chapters ?? const <Map<String, dynamic>>[])
-      .firstWhere((e) => e['id']?.toString() == epId);
-  final epName = epInfo['name']?.toString() ?? '';
-  final storedChapters = resolveStoredDownloadChapters(downloadInfo);
+  final storedChapters = resolveStoredDownloadChapters(download);
   final storedChapter = storedChapters.firstWhere(
-    (e) => e.id == epId,
+    (e) => e.id == chapterId || e.order == epsId,
     orElse: () => UnifiedComicDownloadStoredChapter(
-      id: epId,
-      name: epName,
-      order: 1,
+      id: chapterId,
+      name: chapterName,
+      order: epsId,
       images: const [],
     ),
   );
+
   final orderedDocs = storedChapter.images
       .map(
         (image) => Doc(
           originalName: image.name,
           path: image.path,
-          fileServer: image.url.isNotEmpty ? image.url : '',
-          id: image.id.isNotEmpty ? image.id : epId,
+          fileServer: image.url,
+          id: image.id.isNotEmpty ? image.id : chapterId,
         ),
       )
       .toList();
+
   if (orderedDocs.isNotEmpty) {
     return NormalComicEpInfo(
       length: orderedDocs.length,
       epPages: orderedDocs.length.toString(),
       docs: orderedDocs,
-      epId: epId,
-      epName: epName,
+      epId: chapterId,
+      epName: chapterName,
     );
   }
 
   final downloadRoot = await getDownloadPath();
   final chapterDirs = <Directory>[
-    Directory(p.join(downloadRoot, kJmPluginUuid, 'original', comicId, epId)),
     Directory(
-      p.join(downloadRoot, kJmPluginUuid, 'original', comicId, 'comic', epId),
+      p.join(downloadRoot, resolvedPluginId, 'original', comicId, chapterId),
     ),
-    Directory(p.join(downloadRoot, kJmPluginUuid, 'original', comicId, epId)),
     Directory(
-      p.join(downloadRoot, kJmPluginUuid, 'original', comicId, 'comic', epId),
+      p.join(
+        downloadRoot,
+        resolvedPluginId,
+        'original',
+        comicId,
+        'comic',
+        chapterId,
+      ),
     ),
   ];
+
   final images = storedChapter.images;
   final imageIds = images.map((e) => e.id).where((e) => e.isNotEmpty).toList();
   final imageNames = {for (final image in images) image.id: image.name};
   final files = await _resolveOrderedFiles(
+    pluginId: resolvedPluginId,
     comicId: comicId,
-    epId: epId,
+    chapterId: chapterId,
     imageIds: imageIds,
     imageNames: imageNames,
     fallbackDirs: chapterDirs,
@@ -129,23 +108,24 @@ Future<NormalComicEpInfo> fetchJMMediaFromLocal(
   return NormalComicEpInfo(
     length: files.length,
     epPages: files.length.toString(),
-    docs: files.map((e) {
-      final fileName = p.basename(e.path);
+    docs: files.map((file) {
+      final fileName = p.basename(file.path);
       return Doc(
         originalName: fileName,
         path: fileName,
         fileServer: '',
-        id: epId,
+        id: chapterId,
       );
     }).toList(),
-    epId: epId,
-    epName: epName,
+    epId: chapterId,
+    epName: chapterName,
   );
 }
 
 Future<List<File>> _resolveOrderedFiles({
+  required String pluginId,
   required String comicId,
-  required String epId,
+  required String chapterId,
   required List<String> imageIds,
   required Map<String, String> imageNames,
   required List<Directory> fallbackDirs,
@@ -157,17 +137,19 @@ Future<List<File>> _resolveOrderedFiles({
       existingFallbackDirs.add(dir);
     }
   }
+
   for (final imageId in imageIds) {
     final path = await getStoredPicturePathById(
-      from: kJmPluginUuid,
+      from: pluginId,
       cartoonId: comicId,
-      chapterId: epId,
+      chapterId: chapterId,
       imageId: imageId,
     );
     if (path != null) {
       ordered.add(File(path));
       continue;
     }
+
     final fallbackName = imageNames[imageId];
     if (fallbackName != null && fallbackName.isNotEmpty) {
       for (final dir in existingFallbackDirs) {
@@ -179,9 +161,11 @@ Future<List<File>> _resolveOrderedFiles({
       }
     }
   }
+
   if (ordered.isNotEmpty) {
     return ordered;
   }
+
   for (final dir in existingFallbackDirs) {
     final files = await dir.list().where((e) => e is File).cast<File>().toList()
       ..sort((a, b) => a.path.compareTo(b.path));
@@ -189,5 +173,6 @@ Future<List<File>> _resolveOrderedFiles({
       return files;
     }
   }
+
   return const <File>[];
 }

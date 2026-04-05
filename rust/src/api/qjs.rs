@@ -1,12 +1,14 @@
 use anyhow::{Context, Result, anyhow};
+use ferrous_opencc::{OpenCC, config::BuiltinConfig};
 use flutter_rust_bridge::{DartFnFuture, frb};
 use rquickjs_playground::web_runtime::native_buffer_take_raw;
 use rquickjs_playground::{
     AsyncHostRuntime, HttpClientConfig, configure_http_client, configure_js_error_stack,
-    configure_log_http_endpoint, register_load_plugin_config_handler,
-    register_save_plugin_config_handler,
+    configure_log_http_endpoint, register_bridge_route_async_handler,
+    register_bridge_route_handler, register_load_plugin_config_async_handler,
+    register_save_plugin_config_async_handler,
 };
-use serde_json::Value;
+use serde_json::{Value, json};
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex, OnceLock};
 use tokio::sync::{Mutex as AsyncMutex, Notify, RwLock};
@@ -21,11 +23,47 @@ static QJS_RUNTIMES: OnceLock<RwLock<QjsRuntimeMap>> = OnceLock::new();
 static QJS_IN_FLIGHT_TASKS: OnceLock<RwLock<QjsInFlightTaskMap>> = OnceLock::new();
 static QJS_TRACKED_TASKS: OnceLock<RwLock<QjsTrackedTaskMap>> = OnceLock::new();
 static QJS_RUNTIME_INIT_LOCK: OnceLock<AsyncMutex<()>> = OnceLock::new();
-static DART_CALLBACK_RT: OnceLock<Mutex<tokio::runtime::Runtime>> = OnceLock::new();
 
-const BIKA_JS_BUNDLE: &str = include_str!("../../assets/bikaComic.bundle.cjs");
-const JM_JS_BUNDLE: &str = include_str!("../../assets/JmComic.bundle.cjs");
+const BIKA_JS_BUNDLE: &str = include_str!("../../assets/bika-comic.bundle.cjs");
+const JM_JS_BUNDLE: &str = include_str!("../../assets/jm-comic.bundle.cjs");
+const BIKA_PLUGIN_UUID: &str = "0a0e5858-a467-4702-994a-79e608a4589d";
+const JM_PLUGIN_UUID: &str = "bf99008d-010b-4f17-ac7c-61a9b57dc3d9";
 const QJS_RUNTIME_CANCELLED_ERROR_CODE: &str = "__QJS_RUNTIME_CANCELLED__";
+const BRIDGE_ROUTE_OPENCC_CONVERT: &str = "opencc.convert";
+
+fn opencc_convert_by_config(text: &str, config_name: &str) -> Result<String> {
+    if !config_name.ends_with(".json") {
+        return Err(anyhow!(
+            "opencc config 必须是 OpenCC 配置文件名，例如 t2s.json"
+        ));
+    }
+
+    let builtin = BuiltinConfig::from_filename(config_name)
+        .map_err(|err| anyhow!("不支持的 OpenCC 转换配置: {config_name} ({err})"))?;
+
+    let converter =
+        OpenCC::from_config(builtin).map_err(|err| anyhow!("初始化 OpenCC 失败: {err}"))?;
+
+    Ok(converter.convert(text))
+}
+
+fn opencc_convert_with_json_arg(arg: &Value) -> Result<String> {
+    let obj = arg
+        .as_object()
+        .ok_or_else(|| anyhow!("opencc 参数必须是 JSON 对象"))?;
+
+    let text = obj
+        .get("text")
+        .and_then(Value::as_str)
+        .ok_or_else(|| anyhow!("opencc 参数缺少 text 字段"))?;
+
+    let config_name = obj
+        .get("config")
+        .and_then(Value::as_str)
+        .ok_or_else(|| anyhow!("opencc 参数缺少 config 字段，例如 t2s.json"))?;
+
+    opencc_convert_by_config(text, config_name)
+}
 
 #[derive(Clone)]
 enum TrackedQjsTaskKind {
@@ -77,26 +115,6 @@ fn qjs_tracked_task_map() -> &'static RwLock<QjsTrackedTaskMap> {
 
 fn qjs_runtime_init_lock() -> &'static AsyncMutex<()> {
     QJS_RUNTIME_INIT_LOCK.get_or_init(|| AsyncMutex::new(()))
-}
-
-fn dart_callback_runtime() -> Result<&'static Mutex<tokio::runtime::Runtime>> {
-    if let Some(rt) = DART_CALLBACK_RT.get() {
-        return Ok(rt);
-    }
-
-    let runtime = tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .map_err(|err| anyhow!(err.to_string()))?;
-
-    match DART_CALLBACK_RT.set(Mutex::new(runtime)) {
-        Ok(()) => Ok(DART_CALLBACK_RT
-            .get()
-            .expect("dart callback runtime 初始化后必须可读取")),
-        Err(_runtime) => Ok(DART_CALLBACK_RT
-            .get()
-            .expect("dart callback runtime 并发初始化后必须可读取")),
-    }
 }
 
 impl TrackedQjsTaskState {
@@ -194,7 +212,11 @@ fn spawn_tracked_task_waiter(
     tokio::spawn(async move {
         let outcome = match handle.wait_async().await {
             Ok(raw) => match kind {
-                TrackedQjsTaskKind::Call => Ok(TrackedQjsTaskOutput::Json(raw)),
+                TrackedQjsTaskKind::Call => parse_ok_json_payload(&raw)
+                    .and_then(|payload| {
+                        serde_json::to_string(&payload).context("序列化调用结果失败")
+                    })
+                    .map(TrackedQjsTaskOutput::Json),
                 TrackedQjsTaskKind::FetchImageBytes => parse_ok_json_payload(&raw)
                     .and_then(native_bytes_from_payload)
                     .map(TrackedQjsTaskOutput::Bytes),
@@ -987,9 +1009,9 @@ pub fn register_load_plugin_config(
     dart_callback: impl Fn(String, String, String) -> DartFnFuture<String> + Send + Sync + 'static,
 ) -> Result<()> {
     let callback: PersistentCallback = Arc::new(dart_callback);
-    register_load_plugin_config_handler(move |name, key, value| {
-        run_dart_callback_blocking(Arc::clone(&callback), name, key, value)
-            .map_err(|err| anyhow!(err.to_string()))
+    register_load_plugin_config_async_handler(move |name, key, value| {
+        let callback = Arc::clone(&callback);
+        async move { Ok(callback(name, key, value).await) }
     });
     Ok(())
 }
@@ -999,25 +1021,11 @@ pub fn register_save_plugin_config(
     dart_callback: impl Fn(String, String, String) -> DartFnFuture<String> + Send + Sync + 'static,
 ) -> Result<()> {
     let callback: PersistentCallback = Arc::new(dart_callback);
-    register_save_plugin_config_handler(move |name, key, value| {
-        run_dart_callback_blocking(Arc::clone(&callback), name, key, value)
-            .map_err(|err| anyhow!(err.to_string()))
+    register_save_plugin_config_async_handler(move |name, key, value| {
+        let callback = Arc::clone(&callback);
+        async move { Ok(callback(name, key, value).await) }
     });
     Ok(())
-}
-
-fn run_dart_callback_blocking(
-    callback: PersistentCallback,
-    name: String,
-    key: String,
-    value: String,
-) -> Result<String> {
-    let rt = dart_callback_runtime()?;
-    let guard = rt
-        .lock()
-        .map_err(|_| anyhow!("dart callback runtime 锁已损坏"))?;
-    let out = guard.block_on(callback(name, key, value));
-    Ok(out)
 }
 
 #[frb(sync)]
@@ -1029,8 +1037,8 @@ pub fn set_log_http_forward(url: String) -> Result<()> {
 #[frb(sync)]
 pub fn get_js_bundle(name: String) -> Result<String> {
     match name.as_str() {
-        "bikaComic" => Ok(BIKA_JS_BUNDLE.to_string()),
-        "jmComic" => Ok(JM_JS_BUNDLE.to_string()),
+        BIKA_PLUGIN_UUID => Ok(BIKA_JS_BUNDLE.to_string()),
+        JM_PLUGIN_UUID => Ok(JM_JS_BUNDLE.to_string()),
         _ => Ok("".to_string()),
     }
 }
@@ -1054,4 +1062,53 @@ pub async fn init_qjs_runtime_with_bundle(
     bundle_js: String,
 ) -> Result<()> {
     create_qjs_runtime_with_bundle(&runtime_name, &bundle_name, &bundle_js).await
+}
+
+#[frb(sync)]
+pub fn register_function(
+    function_name: String,
+    dart_callback: impl Fn(String) -> DartFnFuture<String> + Send + Sync + 'static,
+) -> Result<()> {
+    let dart_callback = Arc::new(dart_callback);
+
+    register_bridge_route_async_handler(function_name, move |runtime, args| {
+        let runtime_name = runtime.to_string();
+        let dart_callback = Arc::clone(&dart_callback);
+
+        async move {
+            let input = args
+                .get(0)
+                .and_then(Value::as_str)
+                .unwrap_or_default()
+                .to_string();
+
+            let out = dart_callback(input).await;
+
+            Ok(json!({
+                "runtime": runtime_name,
+                "data": out
+            }))
+        }
+    })?;
+
+    Ok(())
+}
+
+#[frb(sync)]
+pub fn init_rust_functions() -> Result<()> {
+    register_bridge_route_handler(BRIDGE_ROUTE_OPENCC_CONVERT, |_, args| {
+        let arg: &Value = args
+            .first()
+            .ok_or_else(|| anyhow!("opencc 需要一个 JSON 参数"))?;
+
+        let out = opencc_convert_with_json_arg(arg)?;
+        Ok(json!(out))
+    })?;
+
+    Ok(())
+}
+
+#[frb(sync)]
+pub fn opencc_convert(text: String, config: String) -> Result<String> {
+    opencc_convert_by_config(&text, &config)
 }

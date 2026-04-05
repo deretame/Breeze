@@ -2,14 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
-import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/direct_dio.dart';
+import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
 class PluginRuntimeState {
@@ -316,9 +316,13 @@ class PluginRegistryService {
 
     try {
       final pluginsPath = await getPluginsPath();
-      final pluginDir = Directory('$pluginsPath${Platform.pathSeparator}$uuid');
-      if (await pluginDir.exists()) {
-        await pluginDir.delete(recursive: true);
+      final rootBundleJs = File(p.join(pluginsPath, '$uuid.bundle.js'));
+      if (await rootBundleJs.exists()) {
+        await rootBundleJs.delete();
+      }
+      final rootBundleCjs = File(p.join(pluginsPath, '$uuid.bundle.cjs'));
+      if (await rootBundleCjs.exists()) {
+        await rootBundleCjs.delete();
       }
     } catch (e) {
       found.lastLoadError = '删除插件文件失败: $e';
@@ -388,6 +392,7 @@ class PluginRegistryService {
         final response = await directDio.get(plugin.debugUrl!.trim());
         final debugBundle = response.data?.toString() ?? '';
         if (debugBundle.trim().isNotEmpty) {
+          logger.d('[plugin-bundle] source=debugUrl plugin=${plugin.uuid}');
           return debugBundle;
         }
         throw StateError('debug bundle 为空');
@@ -400,8 +405,42 @@ class PluginRegistryService {
         logger.w('debug bundle 拉取失败，回退本地: ${plugin.uuid}', error: e);
       }
     }
-    final bundleName = kBuiltinRuntimeNameByUuid[plugin.uuid] ?? runtimeName;
-    return getJsBundle(name: bundleName);
+
+    final diskBundle = await _loadPluginBundleFromDisk(plugin.uuid);
+    if (diskBundle != null && diskBundle.trim().isNotEmpty) {
+      logger.d('[plugin-bundle] source=disk plugin=${plugin.uuid}');
+      return diskBundle;
+    }
+
+    try {
+      final local = getJsBundle(name: runtimeName);
+      if (local.trim().isNotEmpty) {
+        logger.d('[plugin-bundle] source=builtin plugin=${plugin.uuid}');
+        return local;
+      }
+    } catch (_) {}
+    throw StateError('bundle_js不能为空: $runtimeName');
+  }
+
+  Future<String?> _loadPluginBundleFromDisk(String pluginId) async {
+    final pluginsPath = await getPluginsPath();
+
+    final candidates = <File>[
+      File(p.join(pluginsPath, '$pluginId.bundle.js')),
+      File(p.join(pluginsPath, '$pluginId.bundle.cjs')),
+    ];
+    for (final file in candidates) {
+      if (!await file.exists()) {
+        continue;
+      }
+      try {
+        final text = await file.readAsString();
+        if (text.trim().isNotEmpty) {
+          return text;
+        }
+      } catch (_) {}
+    }
+    return null;
   }
 
   PluginRuntimeState _toState(PluginInfo item) {

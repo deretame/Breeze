@@ -1,5 +1,3 @@
-import 'package:zephyr/plugin/plugin_constants.dart';
-
 class UnifiedCreatorListItem {
   const UnifiedCreatorListItem({
     required this.source,
@@ -38,7 +36,7 @@ class UnifiedCreatorListItem {
   }
 
   String get from {
-    return sanitizePluginId(source);
+    return (source).trim();
   }
 
   String get searchUrl => extern['searchUrl']?.toString() ?? '';

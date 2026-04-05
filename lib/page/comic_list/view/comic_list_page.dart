@@ -1,8 +1,5 @@
 import 'package:auto_route/annotations.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/comic_list/models/comic_list_scene.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
@@ -109,25 +106,19 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    final globalSettingState = context.watch<GlobalSettingCubit>().state;
     final currentFrom = _usesPluginScene
         ? widget.scene!.from
-        : (widget.sceneSource ??
-              (globalSettingState.comicChoice == 1
-                  ? kBikaPluginUuid
-                  : kJmPluginUuid));
+        : (widget.sceneSource ?? '').trim();
 
-    if (!_usesPluginScene) {
+    if (currentFrom.isNotEmpty && !_usesPluginScene) {
       _ensureSceneLoaded(currentFrom);
     }
-    if (_requiresFilterBundle(currentFrom)) {
+    if (currentFrom.isNotEmpty && _requiresFilterBundle(currentFrom)) {
       _ensureFilterLoaded(currentFrom);
     }
 
     final scene = _resolvedScene(currentFrom);
-    final title =
-        widget.title ??
-        (scene?.title ?? (currentFrom == kBikaPluginUuid ? '哔咔排行榜' : '禁漫排行榜'));
+    final title = widget.title ?? (scene?.title ?? '漫画列表');
 
     return Scaffold(
       appBar: AppBar(
@@ -140,12 +131,15 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
             ),
         ],
       ),
-      body: _buildBody(globalSettingState.comicChoice, currentFrom),
+      body: _buildBody(0, currentFrom),
       floatingActionButton: null,
     );
   }
 
   Widget _buildBody(int comicChoice, String currentFrom) {
+    if (currentFrom.isEmpty) {
+      return const Center(child: Text('缺少插件来源，无法加载列表'));
+    }
     final scene = _resolvedScene(currentFrom);
     if (scene == null) {
       if (_loadingScenes.contains(currentFrom)) {
@@ -216,6 +210,9 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
     final request = scene.body.request;
     if (request == null) {
       return const Center(child: Text('缺少列表请求配置'));
+    }
+    if (request.fnPath.trim().isEmpty) {
+      return const Center(child: Text('列表请求缺少 fnPath'));
     }
 
     switch (effectiveBodyType) {

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     show ComicInfo;
+import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -41,18 +41,8 @@ class ComicParticularsWidget extends StatelessWidget {
       cartoonId: comicInfo.id,
     );
 
-    return Container(
+    return SizedBox(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: context.theme.colorScheme.outlineVariant.withValues(
-            alpha: 0.4,
-          ),
-        ),
-      ),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final compact = constraints.maxWidth < 520;
@@ -109,6 +99,7 @@ class _InfoColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final displaySource = _resolvePluginDisplayName(from);
     final titleStyle = context.theme.textTheme.headlineSmall?.copyWith(
       fontWeight: FontWeight.w800,
       height: 1.15,
@@ -130,7 +121,7 @@ class _InfoColumn extends StatelessWidget {
             ),
           ),
           child: Text(
-            from == kJmPluginUuid ? 'JM Comic' : 'Bika Comic',
+            displaySource,
             style: context.theme.textTheme.labelMedium?.copyWith(
               letterSpacing: 0.8,
               fontWeight: FontWeight.w700,
@@ -250,6 +241,24 @@ class _InfoColumn extends StatelessWidget {
         ],
       ],
     );
+  }
+
+  String _resolvePluginDisplayName(String pluginIdRaw) {
+    final pluginId = _normalizePluginId(pluginIdRaw);
+    if (pluginId.isEmpty) {
+      return pluginIdRaw.trim();
+    }
+    final info = PluginRegistryService.I.getCachedPluginInfo(pluginId);
+    final name = info?['name']?.toString().trim() ?? '';
+    return name.isNotEmpty ? name : pluginId;
+  }
+
+  String _normalizePluginId(String raw) {
+    var value = raw.trim();
+    while (value.length >= 2 && value.startsWith('(') && value.endsWith(')')) {
+      value = value.substring(1, value.length - 1).trim();
+    }
+    return value;
   }
 }
 

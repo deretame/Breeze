@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/object_box/model.dart';
 
@@ -80,23 +79,23 @@ class UnifiedComicDownloadChapter {
     required this.id,
     required this.title,
     required this.order,
-    required this.taskChapterId,
     this.images = const [],
   });
 
   final String id;
   final String title;
   final int order;
-  final String taskChapterId;
   final List<UnifiedComicDownloadImage> images;
 
   factory UnifiedComicDownloadChapter.fromMap(Map<String, dynamic> map) {
+    final id = map['id']?.toString().trim().isNotEmpty == true
+        ? map['id']!.toString().trim()
+        : (map['taskChapterId']?.toString().trim() ?? '');
+    final order = _toInt(map['order']?.toString() ?? '', 1);
     return UnifiedComicDownloadChapter(
-      id: map['id']?.toString() ?? '',
+      id: id,
       title: map['name']?.toString() ?? map['title']?.toString() ?? '',
-      order: _toInt(map['order']?.toString() ?? '', 1),
-      taskChapterId:
-          map['taskChapterId']?.toString() ?? map['id']?.toString() ?? '',
+      order: order,
       images: ((map['images'] as List?) ?? const [])
           .whereType<Map>()
           .map(
@@ -107,12 +106,7 @@ class UnifiedComicDownloadChapter {
     );
   }
 
-  Map<String, dynamic> toMap() => {
-    'id': id,
-    'name': title,
-    'order': order,
-    'taskChapterId': taskChapterId,
-  };
+  Map<String, dynamic> toMap() => {'id': id, 'name': title, 'order': order};
 }
 
 class UnifiedComicDownloadInfo {
@@ -128,26 +122,23 @@ class UnifiedComicDownloadInfo {
   final String title;
   final List<UnifiedComicDownloadChapter> chapters;
 
-  factory UnifiedComicDownloadInfo.fromString(
-    PluginComicDetailSource source,
-  ) {
-    final chapters = resolveUnifiedComicChapters(source, source.from)
-        .map(
-          (chapter) => UnifiedComicDownloadChapter(
-            id: chapter.id,
-            title: chapter.name,
-            order: chapter.order,
-            taskChapterId: source.isBika
-                ? chapter.order.toString()
-                : chapter.id,
-            images: const [],
-          ),
-        )
-        .toList();
+  factory UnifiedComicDownloadInfo.fromString(PluginComicDetailSource source) {
+    final chapters = resolveUnifiedComicChapters(source, source.from).map((
+      chapter,
+    ) {
+      final id = chapter.id.trim();
+      final order = chapter.order;
+      return UnifiedComicDownloadChapter(
+        id: id.isNotEmpty ? id : source.comicId,
+        title: chapter.name,
+        order: order,
+        images: const [],
+      );
+    }).toList();
 
-    if (source.isJm && chapters.isEmpty) {
+    if (chapters.isEmpty) {
       return UnifiedComicDownloadInfo(
-        source: kJmPluginUuid,
+        source: source.from.trim(),
         comicId: source.comicId,
         title: source.title,
         chapters: [
@@ -155,7 +146,6 @@ class UnifiedComicDownloadInfo {
             id: source.comicId,
             title: source.title,
             order: _toInt(source.comicId, 1),
-            taskChapterId: source.comicId,
             images: const [],
           ),
         ],
@@ -163,7 +153,7 @@ class UnifiedComicDownloadInfo {
     }
 
     return UnifiedComicDownloadInfo(
-      source: sanitizePluginId(source.from),
+      source: (source.from).trim(),
       comicId: source.comicId,
       title: source.normalInfo.comicInfo.title,
       chapters: chapters,

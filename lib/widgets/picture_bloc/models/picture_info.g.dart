@@ -7,7 +7,7 @@ part of 'picture_info.dart';
 // **************************************************************************
 
 _PictureInfo _$PictureInfoFromJson(Map<String, dynamic> json) => _PictureInfo(
-  from: json['from'] as String? ?? kBikaPluginUuid,
+  from: json['from'] as String? ?? '',
   url: json['url'] as String? ?? '',
   path: json['path'] as String? ?? '',
   cartoonId: json['cartoonId'] as String? ?? '',

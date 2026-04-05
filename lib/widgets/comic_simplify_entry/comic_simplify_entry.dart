@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../main.dart';
@@ -137,9 +136,8 @@ class ComicFixedSizeHorizontalList extends StatelessWidget {
 
   // 点击跳转逻辑 (需要把当前的 info 传进来)
   void _navigateToComicInfo(BuildContext context, ComicSimplifyEntryInfo info) {
-    final pluginId = sanitizePluginId(
-      info.source.trim().isNotEmpty ? info.source : info.from,
-    );
+    final pluginId = (info.source.trim().isNotEmpty ? info.source : info.from)
+        .trim();
     if (pluginId.isEmpty) return;
     context.pushRoute(
       ComicInfoRoute(
@@ -254,9 +252,8 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   void _navigateToComicInfo(BuildContext context) {
-    final pluginId = sanitizePluginId(
-      info.source.trim().isNotEmpty ? info.source : info.from,
-    );
+    final pluginId = (info.source.trim().isNotEmpty ? info.source : info.from)
+        .trim();
     if (pluginId.isEmpty) return;
     context.pushRoute(
       ComicInfoRoute(
@@ -321,78 +318,43 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   Future<void> _deleteHistory() async {
-    if (info.from == kBikaPluginUuid) {
-      final temp = objectbox.unifiedHistoryBox
-          .query(
-            UnifiedComicHistory_.uniqueKey.equals('${info.from}:${info.id}'),
-          )
-          .build()
-          .findFirst();
+    final temp = objectbox.unifiedHistoryBox
+        .query(UnifiedComicHistory_.uniqueKey.equals('${info.from}:${info.id}'))
+        .build()
+        .findFirst();
 
-      if (temp != null) {
-        temp.deleted = true;
-        temp.updatedAt = DateTime.now().toUtc();
-        temp.lastReadAt = temp.updatedAt;
-        objectbox.unifiedHistoryBox.put(temp);
-      }
-    } else if (info.from == kJmPluginUuid) {
-      final temp = objectbox.unifiedHistoryBox
-          .query(
-            UnifiedComicHistory_.uniqueKey.equals('${info.from}:${info.id}'),
-          )
-          .build()
-          .findFirst();
-
-      if (temp != null) {
-        temp.deleted = true;
-        temp.updatedAt = DateTime.now().toUtc();
-        temp.lastReadAt = temp.updatedAt;
-        objectbox.unifiedHistoryBox.put(temp);
-      }
+    if (temp != null) {
+      temp.deleted = true;
+      temp.updatedAt = DateTime.now().toUtc();
+      temp.lastReadAt = temp.updatedAt;
+      objectbox.unifiedHistoryBox.put(temp);
     }
   }
 
   Future<void> _deleteDownload() async {
-    if (info.from == kBikaPluginUuid) {
-      final temp = objectbox.unifiedDownloadBox
-          .query(
-            UnifiedComicDownload_.uniqueKey.equals('${info.from}:${info.id}'),
-          )
-          .build()
-          .findFirst();
+    final temp = objectbox.unifiedDownloadBox
+        .query(
+          UnifiedComicDownload_.uniqueKey.equals('${info.from}:${info.id}'),
+        )
+        .build()
+        .findFirst();
 
-      if (temp != null) {
-        objectbox.unifiedDownloadBox.remove(temp.id);
-        await _deleteDownloadDirectory(info.id);
-      }
-    } else if (info.from == kJmPluginUuid) {
-      final temp = objectbox.unifiedDownloadBox
-          .query(
-            UnifiedComicDownload_.uniqueKey.equals('${info.from}:${info.id}'),
-          )
-          .build()
-          .findFirst();
-
-      if (temp != null) {
-        objectbox.unifiedDownloadBox.remove(temp.id);
-        await _deleteDownloadDirectory(info.id);
-      }
+    if (temp != null) {
+      objectbox.unifiedDownloadBox.remove(temp.id);
+      await _deleteDownloadDirectory(info.id);
     }
   }
 
   Future<void> _deleteFavorite() async {
-    if (info.from == kBikaPluginUuid) {
-    } else if (info.from == kJmPluginUuid) {
-      final temp = objectbox.unifiedFavoriteBox
-          .query(
-            UnifiedComicFavorite_.uniqueKey.equals('${info.from}:${info.id}'),
-          )
-          .build()
-          .findFirst();
+    final temp = objectbox.unifiedFavoriteBox
+        .query(
+          UnifiedComicFavorite_.uniqueKey.equals('${info.from}:${info.id}'),
+        )
+        .build()
+        .findFirst();
 
-      if (temp != null) {
-        objectbox.unifiedFavoriteBox.remove(temp.id);
-      }
+    if (temp != null) {
+      objectbox.unifiedFavoriteBox.remove(temp.id);
     }
   }
 

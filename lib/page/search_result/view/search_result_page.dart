@@ -7,11 +7,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
+import 'package:zephyr/page/comic_list/view/plugin_comic_grid_sliver.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/search_result.dart';
-import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
-import 'package:zephyr/type/enum.dart';
 
 @RoutePage()
 class SearchResultPage extends StatelessWidget implements AutoRouteWrapper {
@@ -249,39 +248,15 @@ class _SearchResultPageState extends State<_SearchResultPage>
       state.comics.map((item) => item.comic),
     );
 
-    return CustomScrollView(
+    return PluginComicGridSliver(
       controller: _scrollController,
-      slivers: [
-        ComicSimplifyEntrySliverGrid(
-          entries: list,
-          type: ComicEntryType.normal,
-        ),
-        if (state.hasReachedMax && state.status == SearchStatus.success)
-          const SliverToBoxAdapter(
-            child: Center(
-              child: Padding(
-                padding: EdgeInsets.all(30.0),
-                child: Text('没有更多了', style: TextStyle(fontSize: 20.0)),
-              ),
-            ),
-          ),
-        if (state.status == SearchStatus.loadingMore)
-          const SliverToBoxAdapter(child: Center(child: BottomLoader())),
-        if (state.status == SearchStatus.getMoreFailure)
-          SliverToBoxAdapter(
-            child: Center(
-              child: Column(
-                children: [
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () => _refresh(SearchStatus.loadingMore),
-                    child: const Text('点击重试'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-      ],
+      entries: list,
+      hasReachedMax:
+          state.hasReachedMax && state.status == SearchStatus.success,
+      isLoadingMore: state.status == SearchStatus.loadingMore,
+      loadMoreFailed: state.status == SearchStatus.getMoreFailure,
+      onRetryLoadMore: () => _refresh(SearchStatus.loadingMore),
+      onLoadMore: _fetchSearchResult,
     );
   }
 

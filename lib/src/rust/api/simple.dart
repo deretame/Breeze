@@ -29,8 +29,6 @@ Future<void>  packFolderZip({required String destPath , required PackInfo packIn
 
 Stream<String>  streamTest() => RustLib.instance.api.crateApiSimpleStreamTest();
 
-String  traditionalToSimplified({required String text }) => RustLib.instance.api.crateApiSimpleTraditionalToSimplified(text: text);
-
 void  enableStacktrace({required bool enabled }) => RustLib.instance.api.crateApiSimpleEnableStacktrace(enabled: enabled);
 
             

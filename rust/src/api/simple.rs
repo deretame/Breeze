@@ -68,11 +68,6 @@ pub fn stream_test(stream: StreamSink<String>) -> Result<()> {
 }
 
 #[frb(sync)]
-pub fn traditional_to_simplified(text: &str) -> String {
-    decode::traditional_to_simplified(text)
-}
-
-#[frb(sync)]
 pub fn enable_stacktrace(enabled: bool) {
     INIT.call_once(|| unsafe {
         std::env::set_var("RUST_LIB_BACKTRACE", if enabled { "1" } else { "0" });

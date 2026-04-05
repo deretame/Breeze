@@ -3,7 +3,7 @@ part of 'search_cubit.dart';
 @freezed
 abstract class SearchStates with _$SearchStates {
   const factory SearchStates({
-    @Default(kJmPluginUuid) String from,
+    @Default('') String from,
     @Default("") String searchKeyword,
     @Default(1) int sortBy,
     @Default(<String, dynamic>{}) Map<String, dynamic> pluginExtern,

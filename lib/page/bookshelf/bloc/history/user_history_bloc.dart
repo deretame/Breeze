@@ -2,7 +2,6 @@ import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/json/json_value.dart';
@@ -120,17 +119,17 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
     logger.d("event: $event");
     List<dynamic> comics = [];
     final sourceFilter = event.searchEnterConst.sources
-        .map(sanitizePluginId)
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
         .toSet();
 
-    if (sourceFilter.contains(kBikaPluginUuid)) {
-      late var comicList = objectbox.unifiedHistoryBox
-          .query(UnifiedComicHistory_.source.equals(kBikaPluginUuid))
+    for (final source in sourceFilter) {
+      var comicList = objectbox.unifiedHistoryBox
+          .query(UnifiedComicHistory_.source.equals(source))
           .build()
           .find();
 
       totalComicCount = comicList.length;
-
       comicList = _filterShieldedComics(comicList);
 
       if (event.searchEnterConst.categories.isNotEmpty) {
@@ -153,6 +152,7 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
 
         comicList = comicList.where((comic) {
           var allString =
+              comic.comicId +
               comic.title +
               comic.description +
               ((comic.creator ?? const <String, dynamic>{})['name']
@@ -164,33 +164,6 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
       }
 
       comicList.removeWhere((comic) => comic.deleted == true);
-
-      comics.addAll(comicList);
-    }
-
-    if (sourceFilter.contains(kJmPluginUuid)) {
-      late var comicList = objectbox.unifiedHistoryBox
-          .query(UnifiedComicHistory_.source.equals(kJmPluginUuid))
-          .build()
-          .find();
-
-      totalComicCount = comicList.length;
-
-      if (event.searchEnterConst.keyword.isNotEmpty) {
-        final keyword = event.searchEnterConst.keyword.toLowerCase().let(t2s);
-
-        comicList = comicList.where((comic) {
-          var allString =
-              comic.comicId +
-              comic.title +
-              comic.description +
-              comic.metadata.toString();
-          return allString.toLowerCase().let(t2s).contains(keyword);
-        }).toList();
-      }
-
-      comicList.removeWhere((comic) => comic.deleted == true);
-
       comics.addAll(comicList);
     }
 

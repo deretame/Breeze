@@ -5,11 +5,10 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
-import 'package:zephyr/src/rust/api/simple.dart';
 
 // 用来简化调用，将繁体中文转换为简体中文
 String t2s(String text) {
-  return traditionalToSimplified(text: text);
+  return openccConvert(text: text, config: 'tw2sp.json');
 }
 
 String onSavePluginConfig(String name, String key, String value) {
@@ -73,11 +72,13 @@ dynamic _decodeMaybeJson(String value) {
 
 Future<void> registerPersistentCallbacks() async {
   await registerSavePluginConfig(
-    dartCallback: (name, key, value) => onSavePluginConfig(name, key, value),
+    dartCallback: (name, key, value) =>
+        Future.sync(() => onSavePluginConfig(name, key, value)),
   );
 
   await registerLoadPluginConfig(
-    dartCallback: (name, key, value) => onLoadPluginConfig(name, key, value),
+    dartCallback: (name, key, value) =>
+        Future.sync(() => onLoadPluginConfig(name, key, value)),
   );
 }
 

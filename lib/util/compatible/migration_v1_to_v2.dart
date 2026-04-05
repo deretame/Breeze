@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
+import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/util/get_path.dart';
 
 const _legacyJmImageBaseUrl = 'https://cdn-msp12.jmdanjonproxy.xyz';
@@ -54,18 +56,10 @@ Future<void> migrateV1ToV2(ObjectBox objectbox) async {
 Future<void> _seedBuiltinPlugins(ObjectBox objectbox) async {
   final now = DateTime.now().toUtc();
   final pluginsRoot = await getPluginsPath();
-  final bikaDir = Directory(
-    '$pluginsRoot${Platform.pathSeparator}$_kBikaPluginUuid',
-  );
-  final jmDir = Directory(
-    '$pluginsRoot${Platform.pathSeparator}$_kJmPluginUuid',
-  );
-  if (!await bikaDir.exists()) {
-    await bikaDir.create(recursive: true);
-  }
-  if (!await jmDir.exists()) {
-    await jmDir.create(recursive: true);
-  }
+  await Future.wait([
+    _persistBuiltinBundleIfMissing(pluginsRoot, _kBikaPluginUuid),
+    _persistBuiltinBundleIfMissing(pluginsRoot, _kJmPluginUuid),
+  ]);
 
   final existing = objectbox.pluginInfoBox
       .query(
@@ -90,6 +84,24 @@ Future<void> _seedBuiltinPlugins(ObjectBox objectbox) async {
     ),
   ];
   objectbox.pluginInfoBox.putMany(upserts);
+}
+
+Future<void> _persistBuiltinBundleIfMissing(
+  String pluginsRoot,
+  String uuid,
+) async {
+  final rootBundleJs = File(p.join(pluginsRoot, '$uuid.bundle.js'));
+  final rootBundleCjs = File(p.join(pluginsRoot, '$uuid.bundle.cjs'));
+  if (await rootBundleJs.exists() || await rootBundleCjs.exists()) {
+    return;
+  }
+
+  final bundle = getJsBundle(name: uuid).trim();
+  if (bundle.isEmpty) {
+    throw StateError('builtin plugin bundle missing: $uuid');
+  }
+
+  await rootBundleJs.writeAsString(bundle, flush: true);
 }
 
 PluginInfo _buildBuiltinPluginInfo(
@@ -708,7 +720,6 @@ Future<UnifiedComicDownload> _bikaDownloadToUnified(
             id: chapter.id,
             title: chapter.name,
             order: chapter.order,
-            taskChapterId: chapter.order.toString(),
           ).toMap(),
         )
         .toList(),
@@ -815,7 +826,6 @@ Future<UnifiedComicDownload> _jmDownloadToUnified(
             id: chapter.id,
             title: chapter.name,
             order: chapter.order,
-            taskChapterId: chapter.id,
           ).toMap(),
         )
         .toList(),

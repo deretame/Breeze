@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/debouncer.dart';
@@ -337,18 +335,7 @@ class HomeSchemeRenderer {
     Map<String, dynamic> node,
     List<Map<String, dynamic>> items,
   ) {
-    if (from != kBikaPluginUuid || node['key']?.toString() != 'navItems') {
-      return items;
-    }
-
-    final shieldedMap = objectbox.userSettingBox
-        .get(1)!
-        .bikaSetting
-        .shieldHomePageCategoriesMap;
-    return items.where((item) {
-      final title = item['title']?.toString() ?? '';
-      return !(shieldedMap[title] ?? false);
-    }).toList();
+    return items;
   }
 
   bool _isActionable(dynamic value) {

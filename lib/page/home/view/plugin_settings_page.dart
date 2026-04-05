@@ -1,9 +1,6 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/config/bika/bika_setting.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
@@ -13,6 +10,7 @@ import 'package:zephyr/page/setting/common/setting_ui.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/util/sundry.dart';
+import 'package:zephyr/widgets/multi_choice_list_dialog.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 class PluginSettingsPage extends StatefulWidget {
@@ -151,180 +149,198 @@ class _PluginSettingsPageState extends State<PluginSettingsPage> {
     final deleted = pluginState?.isDeleted == true;
 
     return Scaffold(
-      appBar: AppBar(title: Text('${widget.pluginDisplayName} 设置')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _SchemeSectionCard(
-              title: '插件管理',
-              colorScheme: colorScheme,
-              children: [
-                _FieldRow(
-                  title: '调试模式',
-                  subtitle: debugEnabled ? '已开启' : '已关闭',
-                  trailing: Switch(
-                    value: debugEnabled,
-                    thumbIcon: kSettingSwitchThumbIcon,
-                    onChanged: deleted
-                        ? null
-                        : (next) =>
-                              _updateDebugConfig(enabled: next, url: debugUrl),
-                  ),
-                  onTap: deleted
-                      ? null
-                      : () => _updateDebugConfig(
-                          enabled: !debugEnabled,
-                          url: debugUrl,
+      appBar: AppBar(
+        title: Text('${widget.pluginDisplayName} 设置'),
+        centerTitle: false,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 680),
+          child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _SchemeSectionCard(
+                  title: '插件管理',
+                  colorScheme: colorScheme,
+                  children: [
+                    _FieldRow(
+                      title: '调试模式',
+                      subtitle: debugEnabled ? '已开启' : '已关闭',
+                      trailing: Switch(
+                        value: debugEnabled,
+                        thumbIcon: kSettingSwitchThumbIcon,
+                        onChanged: deleted
+                            ? null
+                            : (next) => _updateDebugConfig(
+                                enabled: next,
+                                url: debugUrl,
+                              ),
+                      ),
+                      onTap: deleted
+                          ? null
+                          : () => _updateDebugConfig(
+                              enabled: !debugEnabled,
+                              url: debugUrl,
+                            ),
+                    ),
+                    _FieldRow(
+                      title: '调试地址',
+                      subtitle: debugEnabled
+                          ? (debugUrl.isNotEmpty ? debugUrl : '未设置')
+                          : '请先开启调试模式',
+                      trailing: Icon(
+                        debugEnabled ? Icons.edit_outlined : Icons.lock_outline,
+                        size: 18,
+                      ),
+                      onTap: deleted || !debugEnabled
+                          ? null
+                          : () async {
+                              final next = await _showInputDialog(
+                                context,
+                                title: '调试地址',
+                                initialValue: debugUrl,
+                                obscure: false,
+                              );
+                              if (next == null) return;
+                              await _updateDebugConfig(
+                                enabled: debugEnabled,
+                                url: next.trim(),
+                              );
+                            },
+                    ),
+                    _FieldRow(
+                      title: '删除插件',
+                      subtitle: deleted ? '已删除' : '从本地移除并标记删除',
+                      trailing: Icon(
+                        Icons.delete_outline,
+                        size: 18,
+                        color: deleted
+                            ? colorScheme.outline
+                            : colorScheme.error,
+                      ),
+                      onTap: deleted ? null : _confirmDeletePlugin,
+                    ),
+                  ],
+                ),
+              ),
+              if (_loading)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (_error.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: _SchemeSectionCard(
+                    title: '插件设置',
+                    colorScheme: colorScheme,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(_error),
+                            const SizedBox(height: 12),
+                            OutlinedButton(
+                              onPressed: _load,
+                              child: const Text('重试'),
+                            ),
+                          ],
                         ),
-                ),
-                _FieldRow(
-                  title: '调试地址',
-                  subtitle: debugEnabled
-                      ? (debugUrl.isNotEmpty ? debugUrl : '未设置')
-                      : '请先开启调试模式',
-                  trailing: Icon(
-                    debugEnabled ? Icons.edit_outlined : Icons.lock_outline,
-                    size: 18,
+                      ),
+                    ],
                   ),
-                  onTap: deleted || !debugEnabled
-                      ? null
-                      : () async {
-                          final next = await _showInputDialog(
-                            context,
-                            title: '调试地址',
-                            initialValue: debugUrl,
-                            obscure: false,
-                          );
-                          if (next == null) return;
-                          await _updateDebugConfig(
-                            enabled: debugEnabled,
-                            url: next.trim(),
-                          );
-                        },
-                ),
-                _FieldRow(
-                  title: '删除插件',
-                  subtitle: deleted ? '已删除' : '从本地移除并标记删除',
-                  trailing: Icon(
-                    Icons.delete_outline,
-                    size: 18,
-                    color: deleted ? colorScheme.outline : colorScheme.error,
-                  ),
-                  onTap: deleted ? null : _confirmDeletePlugin,
-                ),
-              ],
-            ),
-          ),
-          if (_loading)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (_error.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: _SchemeSectionCard(
-                title: '插件设置',
-                colorScheme: colorScheme,
-                children: [
+                )
+              else ...[
+                if (_canShowUserInfo)
                   Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(_error),
-                        const SizedBox(height: 12),
-                        OutlinedButton(
-                          onPressed: _load,
-                          child: const Text('重试'),
-                        ),
-                      ],
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _SchemeSectionCard(
+                      title: _userInfo['title']?.toString() ?? '用户信息',
+                      colorScheme: colorScheme,
+                      children: _loadingUserInfo
+                          ? const [
+                              Padding(
+                                padding: EdgeInsets.all(16),
+                                child: Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              ),
+                            ]
+                          : _userInfoError.isNotEmpty
+                          ? [
+                              Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Row(
+                                  children: [
+                                    Expanded(child: Text(_userInfoError)),
+                                    OutlinedButton(
+                                      onPressed: _loadUserInfo,
+                                      child: const Text('重试'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ]
+                          : _userInfo.isNotEmpty
+                          ? [
+                              PluginUserInfoCard(
+                                from: widget.from,
+                                avatarUrl:
+                                    asMap(
+                                      _userInfo['avatar'],
+                                    )['url']?.toString() ??
+                                    '',
+                                avatarPath:
+                                    asMap(
+                                      asMap(_userInfo['avatar'])['extern'],
+                                    )['path']?.toString() ??
+                                    '',
+                                lines: asJsonList(_userInfo['lines'])
+                                    .map((item) => item?.toString() ?? '')
+                                    .toList(),
+                              ),
+                            ]
+                          : const [
+                              Padding(
+                                padding: EdgeInsets.all(16),
+                                child: Text('暂无用户信息'),
+                              ),
+                            ],
                     ),
                   ),
-                ],
-              ),
-            )
-          else ...[
-            if (_canShowUserInfo)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _SchemeSectionCard(
-                  title: _userInfo['title']?.toString() ?? '用户信息',
-                  colorScheme: colorScheme,
-                  children: _loadingUserInfo
-                      ? const [
-                          Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Center(child: CircularProgressIndicator()),
-                          ),
-                        ]
-                      : _userInfoError.isNotEmpty
-                      ? [
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                Expanded(child: Text(_userInfoError)),
-                                OutlinedButton(
-                                  onPressed: _loadUserInfo,
-                                  child: const Text('重试'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ]
-                      : _userInfo.isNotEmpty
-                      ? [
-                          PluginUserInfoCard(
-                            from: widget.from,
-                            avatarUrl:
-                                asMap(_userInfo['avatar'])['url']?.toString() ??
-                                '',
-                            avatarPath:
-                                asMap(
-                                  asMap(_userInfo['avatar'])['extern'],
-                                )['path']?.toString() ??
-                                '',
-                            lines: asJsonList(
-                              _userInfo['lines'],
-                            ).map((item) => item?.toString() ?? '').toList(),
-                          ),
-                        ]
-                      : const [
-                          Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Text('暂无用户信息'),
-                          ),
-                        ],
-                ),
-              ),
-            for (final section in _sections)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _SchemeSectionCard(
-                  title: section['title']?.toString() ?? '',
-                  colorScheme: colorScheme,
-                  children: asJsonList(section['fields'])
-                      .map((item) => asJsonMap(item))
-                      .map((field) => _buildField(context, field))
-                      .toList(),
-                ),
-              ),
-            if (_actions.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: _SchemeSectionCard(
-                  title: '操作',
-                  colorScheme: colorScheme,
-                  children: _actions
-                      .map((action) => _buildAction(context, action))
-                      .toList(),
-                ),
-              ),
-          ],
-        ],
+                for (final section in _sections)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _SchemeSectionCard(
+                      title: section['title']?.toString() ?? '',
+                      colorScheme: colorScheme,
+                      children: asJsonList(section['fields'])
+                          .map((item) => asJsonMap(item))
+                          .map((field) => _buildField(context, field))
+                          .toList(),
+                    ),
+                  ),
+                if (_actions.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _SchemeSectionCard(
+                      title: '操作',
+                      colorScheme: colorScheme,
+                      children: _actions
+                          .map((action) => _buildAction(context, action))
+                          .toList(),
+                    ),
+                  ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -431,14 +447,22 @@ class _PluginSettingsPageState extends State<PluginSettingsPage> {
         subtitle: current.isEmpty ? '未选择' : '已选 ${current.length} 项',
         trailing: const Icon(Icons.tune, size: 18),
         onTap: () async {
-          final picked = await _showMultiChoiceDialog(
+          final picked = await showMultiChoiceListDialog(
             context,
-            label,
-            options,
-            current,
+            title: label,
+            options: options
+                .map(
+                  (item) => MultiChoiceDialogOption(
+                    label: item.label,
+                    value: item.value.toString(),
+                  ),
+                )
+                .toList(),
+            initialSelected: current,
+            confirmText: '保存',
           );
           if (picked == null) return;
-          await _commitField(field, picked);
+          await _commitField(field, picked.toList());
         },
       );
     }
@@ -598,36 +622,6 @@ class _PluginSettingsPageState extends State<PluginSettingsPage> {
   Future<void> _saveFieldState(String key, dynamic value) async {
     if (!mounted) return;
 
-    if (widget.from == kBikaPluginUuid) {
-      final bikaCubit = context.read<BikaSettingCubit>();
-      if (key == 'image.quality') {
-        cacheInterceptor.clear();
-        bikaCubit.updateImageQuality(value.toString());
-      }
-      if (key == 'network.proxy') {
-        final parsed = int.tryParse(value.toString());
-        if (parsed != null) {
-          bikaCubit.updateProxy(parsed);
-        }
-      }
-      if (key == 'download.slow') {
-        bikaCubit.updateSlowDownload(value == true);
-      }
-      if (key == 'search.blockedCategories') {
-        final list = _asStringList(value);
-        bikaCubit.updateShieldCategoryMap({
-          for (final item in categoryMap.keys) item: list.contains(item),
-        });
-      }
-      if (key == 'home.blockedCategories') {
-        final list = _asStringList(value);
-        bikaCubit.updateShieldHomePageCategoriesMap({
-          for (final item in homePageCategoriesMap.keys)
-            item: list.contains(item),
-        });
-      }
-    }
-
     setState(() {
       _values = Map<String, dynamic>.from(_values)..[key] = value;
     });
@@ -662,58 +656,6 @@ class _PluginSettingsPageState extends State<PluginSettingsPage> {
           .toList();
     }
     return const [];
-  }
-
-  Future<List<String>?> _showMultiChoiceDialog(
-    BuildContext context,
-    String title,
-    List<_OptionPair> options,
-    List<String> initial,
-  ) {
-    final picked = initial.toSet();
-    return showDialog<List<String>>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: SizedBox(
-          width: 520,
-          child: StatefulBuilder(
-            builder: (context, setState) => SingleChildScrollView(
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: options.map((item) {
-                  final selected = picked.contains(item.value.toString());
-                  return FilterChip(
-                    label: Text(item.label),
-                    selected: selected,
-                    onSelected: (next) {
-                      setState(() {
-                        if (next) {
-                          picked.add(item.value.toString());
-                        } else {
-                          picked.remove(item.value.toString());
-                        }
-                      });
-                    },
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(picked.toList()),
-            child: const Text('保存'),
-          ),
-        ],
-      ),
-    );
   }
 
   Future<String?> _showInputDialog(
@@ -760,23 +702,23 @@ class _SchemeSectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (title.trim().isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
-              child: Text(title, style: Theme.of(context).textTheme.labelLarge),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (title.trim().isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 8, top: 16),
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: colorScheme.primary,
+              ),
             ),
-          ...children,
-        ],
-      ),
+          ),
+        ...children,
+      ],
     );
   }
 }

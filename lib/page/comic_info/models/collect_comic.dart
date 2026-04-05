@@ -4,14 +4,13 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 Future<bool> isLocalComicCollected({
   required String from,
   required String comicId,
 }) async {
-  final pluginId = sanitizePluginId(from);
+  final pluginId = (from).trim();
   final key = '$pluginId:$comicId';
   final unified = objectbox.unifiedFavoriteBox
       .query(UnifiedComicFavorite_.uniqueKey.equals(key))
@@ -26,7 +25,7 @@ Future<bool> toggleLocalComicFavorite({
   bool showToast = true,
 }) async {
   final comicInfo = normalInfo.comicInfo;
-  final pluginId = sanitizePluginId(from);
+  final pluginId = (from).trim();
   final key = '$pluginId:${comicInfo.id}';
   final now = DateTime.now().toUtc();
   final unified = objectbox.unifiedFavoriteBox
@@ -53,10 +52,10 @@ Future<bool> toggleLocalComicFavorite({
       comicId: comicInfo.id,
       title: comicInfo.title,
       description: comicInfo.description,
-      cover: comicInfo.cover.toJson(),
-      creator: comicInfo.creator.toJson(),
-      titleMeta: comicInfo.titleMeta.map((item) => item.toJson()).toList(),
-      metadata: comicInfo.metadata.map((item) => item.toJson()).toList(),
+      cover: _comicImageToMap(comicInfo.cover),
+      creator: _creatorToMap(comicInfo.creator),
+      titleMeta: comicInfo.titleMeta.map(_titleMetaToMap).toList(),
+      metadata: comicInfo.metadata.map(_metadataToMap).toList(),
       createdAt: createdAt,
       updatedAt: now,
       deleted: false,
@@ -70,14 +69,74 @@ Future<bool> toggleLocalComicFavorite({
   return true;
 }
 
-Future<Map<String, dynamic>> collectJmComicToLocal(dynamic comicInfo) async {
-  if (comicInfo is! NormalComicAllInfo) {
-    throw StateError(
-      'collectJmComicToLocal expects NormalComicAllInfo, got ${comicInfo.runtimeType}',
-    );
+Map<String, dynamic> _comicImageToMap(ComicImage image) {
+  return _sanitizeMap({
+    'id': image.id,
+    'url': image.url,
+    'name': image.name,
+    'extension': image.extension,
+  });
+}
+
+Map<String, dynamic> _creatorToMap(Creator creator) {
+  return _sanitizeMap({
+    'id': creator.id,
+    'name': creator.name,
+    'avatar': _comicImageToMap(creator.avatar),
+    'onTap': creator.onTap,
+    'extension': creator.extension,
+  });
+}
+
+Map<String, dynamic> _titleMetaToMap(ComicInfoActionItem item) {
+  return _sanitizeMap({
+    'name': item.name,
+    'onTap': item.onTap,
+    'extension': item.extension,
+  });
+}
+
+Map<String, dynamic> _metadataToMap(ComicInfoMetadata item) {
+  return _sanitizeMap({
+    'name': item.name,
+    'type': item.type,
+    'value': item.value
+        .map(
+          (entry) => _sanitizeMap({
+            'name': entry.name,
+            'onTap': entry.onTap,
+            'extension': entry.extension,
+          }),
+        )
+        .toList(),
+  });
+}
+
+Map<String, dynamic> _sanitizeMap(Map<String, dynamic> input) {
+  return input.map((key, value) => MapEntry(key, _sanitizeValue(value)));
+}
+
+dynamic _sanitizeValue(dynamic value) {
+  if (value == null || value is String || value is num || value is bool) {
+    return value;
   }
-  await toggleLocalComicFavorite(from: kJmPluginUuid, normalInfo: comicInfo);
-  return {"error": null, "message": "收藏成功"};
+  if (value is DateTime) {
+    return value.toIso8601String();
+  }
+  if (value is Map) {
+    return Map<String, dynamic>.from(
+      value,
+    ).map((key, item) => MapEntry(key, _sanitizeValue(item)));
+  }
+  if (value is List) {
+    return value.map(_sanitizeValue).toList();
+  }
+  try {
+    final json = (value as dynamic).toJson();
+    return _sanitizeValue(json);
+  } catch (_) {
+    return value.toString();
+  }
 }
 
 Future<bool> toggleCloudComicFavorite({

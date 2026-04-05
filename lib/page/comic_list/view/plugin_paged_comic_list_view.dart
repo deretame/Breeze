@@ -6,12 +6,10 @@ import 'package:zephyr/model/unified_comic_list_item.dart';
 import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
-import 'package:zephyr/page/search_result/widgets/bottom_loader.dart';
+import 'package:zephyr/page/comic_list/view/plugin_comic_grid_sliver.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
-import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 import 'package:zephyr/widgets/error_view.dart';
-import 'package:zephyr/type/enum.dart';
 
 typedef PluginPageCoreBuilder = Map<String, dynamic> Function(int page);
 typedef PluginPageExternBuilder = Map<String, dynamic> Function(int page);
@@ -105,11 +103,15 @@ class PluginPagedComicListCubit extends Cubit<PluginPagedComicListState> {
 
   Future<void> _fetchPage({required int page, required bool append}) async {
     final currentList = append ? state.list : const <UnifiedComicListItem>[];
+    final resolvedFnPath = fnPath.trim();
 
     try {
+      if (resolvedFnPath.isEmpty) {
+        throw StateError('插件列表请求缺少 fnPath: pluginId=$pluginId');
+      }
       final pluginResponse = await callUnifiedComicPlugin(
         pluginId: pluginId,
-        fnPath: fnPath,
+        fnPath: resolvedFnPath,
         core: coreBuilder(page),
         extern: externBuilder(page),
       );
@@ -263,56 +265,16 @@ class _PluginPagedComicListBodyState extends State<_PluginPagedComicListBody>
 
     final list = mapToUnifiedComicSimplifyEntryInfoList(state.list);
 
-    return CustomScrollView(
+    return PluginComicGridSliver(
       controller: scrollController,
-      slivers: [
-        ComicSimplifyEntrySliverGrid(
-          entries: list,
-          type: ComicEntryType.normal,
-        ),
-        if (state.hasReachedMax)
-          const SliverToBoxAdapter(
-            child: Center(
-              child: Padding(
-                padding: EdgeInsets.all(30.0),
-                child: Text('没有更多了', style: TextStyle(fontSize: 20.0)),
-              ),
-            ),
-          ),
-        if (state.status == PluginPagedComicListStatus.loadingMore)
-          const SliverToBoxAdapter(child: Center(child: BottomLoader())),
-        if (state.status == PluginPagedComicListStatus.loadingMoreFailure)
-          SliverToBoxAdapter(
-            child: Center(
-              child: Column(
-                children: [
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () => context
-                        .read<PluginPagedComicListCubit>()
-                        .retryLoadMore(),
-                    child: const Text('点击重试'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        if (!state.hasReachedMax &&
-            state.status == PluginPagedComicListStatus.success)
-          SliverToBoxAdapter(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 14, top: 6),
-                child: TextButton.icon(
-                  onPressed: () =>
-                      context.read<PluginPagedComicListCubit>().loadMore(),
-                  icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                  label: const Text('点击加载更多'),
-                ),
-              ),
-            ),
-          ),
-      ],
+      entries: list,
+      hasReachedMax: state.hasReachedMax,
+      isLoadingMore: state.status == PluginPagedComicListStatus.loadingMore,
+      loadMoreFailed:
+          state.status == PluginPagedComicListStatus.loadingMoreFailure,
+      onRetryLoadMore: () =>
+          context.read<PluginPagedComicListCubit>().retryLoadMore(),
+      onLoadMore: () => context.read<PluginPagedComicListCubit>().loadMore(),
     );
   }
 

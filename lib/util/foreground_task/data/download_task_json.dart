@@ -22,19 +22,10 @@ abstract class DownloadTaskJson with _$DownloadTaskJson {
     required String from,
     required String comicId,
     required String comicName,
-    required BikaInfo bikaInfo,
     required List<String> selectedChapters,
     required bool slowDownload,
   }) = _DownloadTaskJson;
 
   factory DownloadTaskJson.fromJson(Map<String, dynamic> json) =>
       _$DownloadTaskJsonFromJson(json);
-}
-
-@freezed
-abstract class BikaInfo with _$BikaInfo {
-  const factory BikaInfo({required String proxy}) = _BikaInfo;
-
-  factory BikaInfo.fromJson(Map<String, dynamic> json) =>
-      _$BikaInfoFromJson(json);
 }

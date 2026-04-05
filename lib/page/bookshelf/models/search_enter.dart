@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
 
 class SearchEnter extends Equatable {
   final String keyword; // 关键词，用来放入搜索的关键词或者作者的名字之类的
@@ -12,7 +11,7 @@ class SearchEnter extends Equatable {
     this.keyword = '',
     this.sort = 'dd',
     this.categories = const [],
-    this.sources = const [kBikaPluginUuid, kJmPluginUuid],
+    this.sources = const [],
     this.refresh = '',
   });
 

@@ -5,7 +5,7 @@ import 'package:zephyr/model/unified_comic_list_item.dart';
 import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
-import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
+import 'package:zephyr/page/comic_list/view/plugin_comic_grid_sliver.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 import 'package:zephyr/type/enum.dart';
 
@@ -212,26 +212,16 @@ class _LocalShelfPageState extends State<LocalShelfPage>
     final entries = mapToUnifiedComicSimplifyEntryInfoList(comics);
     return RefreshIndicator(
       onRefresh: () async => _dispatch(),
-      child: CustomScrollView(
+      child: PluginComicGridSliver(
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          ComicSimplifyEntrySliverGrid(entries: entries, type: type),
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                const SizedBox(height: 10),
-                IconButton(
-                  onPressed: _dispatch,
-                  icon: const Icon(Icons.refresh),
-                ),
-                if (deleteType != null)
-                  deletingDialog(context, _dispatch, deleteType),
-                const SizedBox(height: 16),
-              ],
-            ),
-          ),
-        ],
+        entries: entries,
+        type: type,
+        hasReachedMax: true,
+        isLoadingMore: false,
+        loadMoreFailed: false,
+        onRetryLoadMore: _dispatch,
+        onLoadMore: _dispatch,
       ),
     );
   }

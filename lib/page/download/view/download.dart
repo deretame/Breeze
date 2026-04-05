@@ -3,10 +3,8 @@ import 'package:flutter/material.dart' hide Page;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/page/download/widgets/eps.dart';
-import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/init.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -25,10 +23,8 @@ class DownloadPage extends StatefulWidget {
 
 class _DownloadPageState extends State<DownloadPage> {
   UnifiedComicDownloadInfo get downloadInfo => widget.downloadInfo;
-  String get source => sanitizePluginId(
-    downloadInfo.source.trim().isEmpty ? kBikaPluginUuid : downloadInfo.source,
-  );
-  bool get isJm => source == kJmPluginUuid;
+  String get source =>
+      (downloadInfo.source.trim().isEmpty ? '' : downloadInfo.source).trim();
 
   late Map<int, bool> _downloadInfo;
   late UnifiedComicDownload? comicDownloadInfo;
@@ -42,6 +38,9 @@ class _DownloadPageState extends State<DownloadPage> {
   @override
   void initState() {
     super.initState();
+    if (source.isEmpty) {
+      throw StateError('download source pluginId is required');
+    }
     _downloadInfo = {};
     for (var ep in downloadInfo.chapters) {
       _downloadInfo[ep.order] = false;
@@ -85,41 +84,47 @@ class _DownloadPageState extends State<DownloadPage> {
           ),
         ],
       ),
-      body: ListView.builder(
-        // 设置 ListView 的宽度为屏幕宽度
-        padding: EdgeInsets.symmetric(horizontal: context.screenWidth / 50),
-        itemCount: downloadInfo.chapters.length, // 列表项的数量
-        itemBuilder: (context, index) {
-          final chapter = downloadInfo.chapters[index];
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 5.0),
-            child: EpsWidget(
-              chapter: chapter,
-              downloaded: _downloadInfo[chapter.order]!,
-              onUpdateDownloadInfo: onUpdateDownloadInfo,
-            ),
-          );
-        },
-      ),
-      floatingActionButton: SizedBox(
-        width: 100, // 设置容器宽度，以容纳更长的文本
-        height: 56, // 设置容器高度，与默认的FloatingActionButton高度一致
-        child: FloatingActionButton(
-          onPressed: () {
-            logger.d("开始下载");
-            download();
-          },
-          child: Text("开始下载", overflow: TextOverflow.ellipsis, maxLines: 1),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: ListView.builder(
+            padding: const EdgeInsets.fromLTRB(
+              16,
+              16,
+              16,
+              88,
+            ), // reserved bottom padding for FAB
+            itemCount: downloadInfo.chapters.length,
+            itemBuilder: (context, index) {
+              final chapter = downloadInfo.chapters[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: EpsWidget(
+                  chapter: chapter,
+                  downloaded: _downloadInfo[chapter.order]!,
+                  onUpdateDownloadInfo: onUpdateDownloadInfo,
+                ),
+              );
+            },
+          ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        icon: const Icon(Icons.download),
+        label: const Text("开始下载"),
+        onPressed: () {
+          logger.d("开始下载");
+          download();
+        },
       ),
     );
   }
 
   Future<void> download() async {
-    final settings = objectbox.userSettingBox.get(1)!.bikaSetting;
     final selectedChapters = downloadInfo.chapters
         .where((chapter) => _downloadInfo[chapter.order] == true)
-        .map((chapter) => chapter.taskChapterId)
+        .map((chapter) => chapter.id.trim())
+        .where((chapterId) => chapterId.isNotEmpty)
         .toList();
     if (selectedChapters.isEmpty) {
       showErrorToast("请选择要下载的章节");
@@ -129,9 +134,12 @@ class _DownloadPageState extends State<DownloadPage> {
       from: source,
       comicId: downloadInfo.comicId,
       comicName: downloadInfo.title,
-      bikaInfo: BikaInfo(proxy: isJm ? '' : settings.proxy.toString()),
       selectedChapters: selectedChapters,
-      slowDownload: settings.slowDownload,
+      slowDownload: false,
+    );
+    logger.d('download task payload=${task.toJson()}');
+    logger.d(
+      'download chapter map=${downloadInfo.chapters.map((chapter) => {'order': chapter.order, 'id': chapter.id, 'selected': _downloadInfo[chapter.order] == true}).toList()}',
     );
     try {
       startDownloadTask(task);

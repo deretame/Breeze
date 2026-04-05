@@ -18,14 +18,14 @@ SliverGridDelegate buildComicSimplifyEntryGridDelegate({
   );
 }
 
-class ComicSimplifyEntrySliverGrid extends StatelessWidget {
+class BaseComicGridSliver extends StatelessWidget {
   final List<ComicSimplifyEntryInfo> entries;
   final ComicEntryType type;
   final VoidCallback? refresh;
   final bool roundedCorner;
   final EdgeInsetsGeometry padding;
 
-  const ComicSimplifyEntrySliverGrid({
+  const BaseComicGridSliver({
     super.key,
     required this.entries,
     required this.type,

@@ -212,7 +212,7 @@ return $default(_that.from,_that.searchKeyword,_that.sortBy,_that.pluginExtern);
 @JsonSerializable()
 
 class _SearchStates implements SearchStates {
-  const _SearchStates({this.from = kJmPluginUuid, this.searchKeyword = "", this.sortBy = 1, final  Map<String, dynamic> pluginExtern = const <String, dynamic>{}}): _pluginExtern = pluginExtern;
+  const _SearchStates({this.from = '', this.searchKeyword = "", this.sortBy = 1, final  Map<String, dynamic> pluginExtern = const <String, dynamic>{}}): _pluginExtern = pluginExtern;
   factory _SearchStates.fromJson(Map<String, dynamic> json) => _$SearchStatesFromJson(json);
 
 @override@JsonKey() final  String from;

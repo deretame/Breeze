@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
+import 'package:zephyr/plugin/plugin_registry_service.dart';
+import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/sundry.dart';
 
 class AdvancedSearchDialog extends StatefulWidget {
   final SearchStates initialState;
@@ -71,50 +75,49 @@ class _AdvancedSearchDialogState extends State<AdvancedSearchDialog> {
   }
 
   Widget _buildSourceRow() {
+    final pluginStates = context.watch<PluginRegistryCubit>().state;
+    final sources =
+        pluginStates.values
+            .where((plugin) => plugin.isEnabled && !plugin.isDeleted)
+            .toList()
+          ..sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
+
     return Wrap(
       spacing: 8,
-      children: [
-        ChoiceChip(
-          label: const Text('哔咔 (Bika)'),
-          selected: _tempState.from == kBikaPluginUuid,
+      children: sources.map((plugin) {
+        final info = PluginRegistryService.I.getCachedPluginInfo(plugin.uuid);
+        final name = info?['name']?.toString().trim();
+        return ChoiceChip(
+          label: Text(
+            (name?.isNotEmpty == true ? name! : plugin.uuid).let(t2s),
+          ),
+          selected: _tempState.from == plugin.uuid,
           onSelected: (selected) {
             if (selected) {
               setState(() {
-                _tempState = _tempState.copyWith(from: kBikaPluginUuid);
+                _tempState = _tempState.copyWith(from: plugin.uuid);
               });
             }
           },
-        ),
-        ChoiceChip(
-          label: const Text('禁漫 (JM)'),
-          selected: _tempState.from == kJmPluginUuid,
-          onSelected: (selected) {
-            if (selected) {
-              setState(() {
-                _tempState = _tempState.copyWith(from: kJmPluginUuid);
-              });
-            }
-          },
-        ),
-      ],
+        );
+      }).toList(),
     );
   }
 
   Widget _buildSortRow() {
-    final Map<int, String> sortOptions;
-
-    if (_tempState.from == kBikaPluginUuid) {
-      sortOptions = {1: '从新到旧', 2: '从旧到新', 3: '最多点赞', 4: '最多观看'};
-    } else {
-      sortOptions = {1: '从新到旧', 2: '最多观看', 3: '最多图片', 4: '最多点赞'};
-    }
+    const Map<int, String> sortOptions = {
+      1: '从新到旧',
+      2: '从旧到新',
+      3: '最多点赞',
+      4: '最多观看',
+    };
 
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: sortOptions.entries.map((entry) {
         return ChoiceChip(
-          label: Text(entry.value),
+          label: Text(entry.value.let(t2s)),
           selected: _tempState.sortBy == entry.key,
           onSelected: (selected) {
             if (selected) {

@@ -17,7 +17,11 @@ String resolveReadComicId(
   throw StateError('无法解析阅读 comicId: ${comicInfo.runtimeType}');
 }
 
-int resolveReadEpsCount(dynamic comicInfo, String _, {required bool isDownload}) {
+int resolveReadEpsCount(
+  dynamic comicInfo,
+  String _, {
+  required bool isDownload,
+}) {
   if (!isDownload && comicInfo is PluginComicDetailSource) {
     return comicInfo.normalInfo.eps.length;
   }

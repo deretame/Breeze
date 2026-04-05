@@ -2,7 +2,6 @@ import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/json/json_value.dart';
@@ -118,12 +117,13 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
   List<dynamic> _getComicList(UserDownloadEvent event) {
     List<dynamic> comics = [];
     final sourceFilter = event.searchEnterConst.sources
-        .map(sanitizePluginId)
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
         .toSet();
 
-    if (sourceFilter.contains(kBikaPluginUuid)) {
-      late var comicList = objectbox.unifiedDownloadBox
-          .query(UnifiedComicDownload_.source.equals(kBikaPluginUuid))
+    for (final source in sourceFilter) {
+      var comicList = objectbox.unifiedDownloadBox
+          .query(UnifiedComicDownload_.source.equals(source))
           .build()
           .find();
 
@@ -149,33 +149,12 @@ class UserDownloadBloc extends Bloc<UserDownloadEvent, UserDownloadState> {
 
         comicList = comicList.where((comic) {
           var allString =
+              comic.comicId +
               comic.title +
               comic.description +
               ((comic.creator ?? const <String, dynamic>{})['name']
                       ?.toString() ??
                   '') +
-              comic.metadata.toString();
-          return allString.toLowerCase().let(t2s).contains(keyword);
-        }).toList();
-      }
-
-      comics.addAll(comicList);
-    }
-
-    if (sourceFilter.contains(kJmPluginUuid)) {
-      late var comicList = objectbox.unifiedDownloadBox
-          .query(UnifiedComicDownload_.source.equals(kJmPluginUuid))
-          .build()
-          .find();
-
-      if (event.searchEnterConst.keyword.isNotEmpty) {
-        final keyword = event.searchEnterConst.keyword.toLowerCase().let(t2s);
-
-        comicList = comicList.where((comic) {
-          var allString =
-              comic.comicId +
-              comic.title +
-              comic.description +
               comic.metadata.toString();
           return allString.toLowerCase().let(t2s).contains(keyword);
         }).toList();

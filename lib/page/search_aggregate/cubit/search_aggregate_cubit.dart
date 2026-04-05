@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/page/search_result/method/get_plugin_result.dart';
 import 'package:zephyr/page/search_result/models/bloc_state.dart';
+import 'package:zephyr/util/download/qjs_download_runtime.dart';
 
 enum AggregateSearchStatus { initial, loading, success, failure }
 
@@ -11,10 +11,8 @@ class AggregateSearchState {
     this.status = AggregateSearchStatus.initial,
     this.results = const <String, List<dynamic>>{},
     this.errors = const <String, String>{},
-    this.selectedSources = const <String, bool>{
-      kJmPluginUuid: true,
-      kBikaPluginUuid: true,
-    },
+    this.selectedSources = const <String, bool>{},
+    this.refreshingSources = const <String>{},
     this.showHasResults = true,
     this.showErrors = true,
   });
@@ -23,6 +21,7 @@ class AggregateSearchState {
   final Map<String, List<dynamic>> results;
   final Map<String, String> errors;
   final Map<String, bool> selectedSources;
+  final Set<String> refreshingSources;
   final bool showHasResults;
   final bool showErrors;
 
@@ -31,6 +30,7 @@ class AggregateSearchState {
     Map<String, List<dynamic>>? results,
     Map<String, String>? errors,
     Map<String, bool>? selectedSources,
+    Set<String>? refreshingSources,
     bool? showHasResults,
     bool? showErrors,
   }) {
@@ -39,6 +39,7 @@ class AggregateSearchState {
       results: results ?? this.results,
       errors: errors ?? this.errors,
       selectedSources: selectedSources ?? this.selectedSources,
+      refreshingSources: refreshingSources ?? this.refreshingSources,
       showHasResults: showHasResults ?? this.showHasResults,
       showErrors: showErrors ?? this.showErrors,
     );
@@ -64,6 +65,7 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
         status: AggregateSearchStatus.loading,
         results: const <String, List<dynamic>>{},
         errors: const <String, String>{},
+        refreshingSources: const <String>{},
       ),
     );
 
@@ -83,22 +85,14 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
 
     await Future.wait(
       selected.map((pluginId) async {
+        final resolvedPluginId = normalizePluginId(pluginId);
         try {
-          final event = baseEvent.copyWith(
-            page: 1,
-            searchStates: baseEvent.searchStates.copyWith(
-              from: pluginId,
-              pluginExtern: {
-                ...baseEvent.searchStates.pluginExtern,
-                '_pluginId': pluginId,
-              },
-            ),
+          nextResults[resolvedPluginId] = await _searchSingleSource(
+            resolvedPluginId,
           );
-          final result = await getPluginSearchResult(event, BlocState());
-          nextResults[pluginId] = result.comics.map((e) => e.comic).toList();
         } catch (error) {
-          nextErrors[pluginId] = error.toString();
-          nextResults[pluginId] = const <dynamic>[];
+          nextErrors[resolvedPluginId] = error.toString();
+          nextResults[resolvedPluginId] = const <dynamic>[];
         }
       }),
     );
@@ -119,6 +113,56 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
     next[pluginId] = enabled;
     emit(state.copyWith(selectedSources: next));
     await search();
+  }
+
+  Future<void> refreshSource(String pluginId) async {
+    final resolvedPluginId = normalizePluginId(pluginId);
+    if (resolvedPluginId.isEmpty ||
+        !(state.selectedSources[resolvedPluginId] ?? false)) {
+      return;
+    }
+
+    final refreshing = Set<String>.from(state.refreshingSources)
+      ..add(resolvedPluginId);
+    emit(state.copyWith(refreshingSources: refreshing));
+
+    final nextResults = Map<String, List<dynamic>>.from(state.results);
+    final nextErrors = Map<String, String>.from(state.errors);
+    try {
+      nextResults[resolvedPluginId] = await _searchSingleSource(
+        resolvedPluginId,
+      );
+      nextErrors.remove(resolvedPluginId);
+    } catch (error) {
+      nextResults[resolvedPluginId] = const <dynamic>[];
+      nextErrors[resolvedPluginId] = error.toString();
+    } finally {
+      refreshing.remove(resolvedPluginId);
+    }
+
+    emit(
+      state.copyWith(
+        status: AggregateSearchStatus.success,
+        results: nextResults,
+        errors: nextErrors,
+        refreshingSources: refreshing,
+      ),
+    );
+  }
+
+  Future<List<dynamic>> _searchSingleSource(String pluginId) async {
+    final event = baseEvent.copyWith(
+      page: 1,
+      searchStates: baseEvent.searchStates.copyWith(
+        from: pluginId,
+        pluginExtern: {
+          ...baseEvent.searchStates.pluginExtern,
+          '_pluginId': pluginId,
+        },
+      ),
+    );
+    final result = await getPluginSearchResult(event, BlocState());
+    return result.comics.map((e) => e.comic).toList();
   }
 
   Future<void> applySelectedSources(Map<String, bool> selectedSources) async {

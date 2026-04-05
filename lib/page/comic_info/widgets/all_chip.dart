@@ -1,6 +1,5 @@
 // 通用的标签/分类 Widget
 import 'package:auto_route/auto_route.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
@@ -55,7 +54,7 @@ class _AllChipWidgetState extends State<AllChipWidget> {
                 ),
                 side: BorderSide(color: context.textColor),
                 label: Text(
-                  title,
+                  processText(title).let(t2s),
                   style: TextStyle(fontSize: 12, color: context.textColor),
                 ),
               );
@@ -110,7 +109,7 @@ class _AllChipWidgetState extends State<AllChipWidget> {
         SearchResultRoute(
           searchEvent: SearchEvent().copyWith(
             searchStates: SearchStates.initial().copyWith(
-              from: kBikaPluginUuid,
+              from: widget.from,
               pluginExtern: {
                 'categories': [item.name],
               },

@@ -31,6 +31,8 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_io.dart';
 
                   @protected AnyhowException dco_decode_AnyhowException(dynamic raw);
 
+@protected FutureOr<String> Function(String) dco_decode_DartFn_Inputs_String_Output_String_AnyhowException(dynamic raw);
+
 @protected FutureOr<String> Function(String, String, String) dco_decode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(dynamic raw);
 
 @protected Object dco_decode_DartOpaque(dynamic raw);
@@ -128,6 +130,8 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_io.dart';
 @protected BigInt sse_decode_usize(SseDeserializer deserializer);
 
 @protected void sse_encode_AnyhowException(AnyhowException self, SseSerializer serializer);
+
+@protected void sse_encode_DartFn_Inputs_String_Output_String_AnyhowException(FutureOr<String> Function(String) self, SseSerializer serializer);
 
 @protected void sse_encode_DartFn_Inputs_String_String_String_Output_String_AnyhowException(FutureOr<String> Function(String, String, String) self, SseSerializer serializer);
 

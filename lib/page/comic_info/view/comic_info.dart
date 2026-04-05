@@ -8,7 +8,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/model/unified_comic_list_item.dart';
 import 'package:zephyr/cubit/string_select.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/type/pipe.dart';
@@ -41,9 +40,8 @@ class ComicInfoPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final resolvedPluginId = sanitizePluginId(
-      pluginId.trim().isNotEmpty ? pluginId : sanitizePluginId(from),
-    );
+    final resolvedPluginId =
+        (pluginId.trim().isNotEmpty ? pluginId : from.trim()).trim();
     return MultiBlocProvider(
       providers: [
         BlocProvider(
@@ -294,7 +292,7 @@ class _ComicInfoState extends State<_ComicInfo>
       },
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(14, 14, 14, 180),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 180),
         itemCount: 1,
         itemBuilder: (context, index) => Center(
           child: ConstrainedBox(
@@ -316,17 +314,15 @@ class _ComicInfoState extends State<_ComicInfo>
                         )
                       : null,
                 ),
-                const SizedBox(height: 12),
-                _SectionCard(
-                  child: ComicOperationWidget(
-                    normalInfo: normalComicAllInfo,
-                    from: widget.from,
-                    comicInfo: comicInfoDyn,
-                  ),
+                _buildDivider(context),
+                ComicOperationWidget(
+                  normalInfo: normalComicAllInfo,
+                  from: widget.from,
+                  comicInfo: comicInfoDyn,
                 ),
                 if (comicInfo.metadata.isNotEmpty ||
                     comicInfo.description.trim().isNotEmpty) ...[
-                  const SizedBox(height: 12),
+                  _buildDivider(context),
                   _SectionCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,7 +345,7 @@ class _ComicInfoState extends State<_ComicInfo>
                 ],
                 if (comicInfo.creator.name.trim().isNotEmpty ||
                     comicInfo.creator.avatar.url.trim().isNotEmpty) ...[
-                  const SizedBox(height: 12),
+                  _buildDivider(context),
                   _SectionCard(
                     child: Align(
                       alignment: Alignment.centerLeft,
@@ -364,7 +360,7 @@ class _ComicInfoState extends State<_ComicInfo>
                     ),
                   ),
                 ],
-                const SizedBox(height: 12),
+                _buildDivider(context),
                 _SectionCard(
                   title: '章节目录',
                   trailing: _EpisodeHeaderBadge(
@@ -382,7 +378,7 @@ class _ComicInfoState extends State<_ComicInfo>
                   ),
                 ),
                 if (normalComicAllInfo.recommend.isNotEmpty) ...[
-                  const SizedBox(height: 12),
+                  _buildDivider(context),
                   if (_resolveRecommendItems(
                     normalComicAllInfo.recommend,
                   ).isNotEmpty)
@@ -399,6 +395,17 @@ class _ComicInfoState extends State<_ComicInfo>
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildDivider(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Divider(
+        height: 1,
+        thickness: 0.5,
+        color: context.theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
       ),
     );
   }
@@ -559,16 +566,7 @@ class _SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: context.theme.colorScheme.outlineVariant.withValues(
-            alpha: 0.4,
-          ),
-        ),
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -586,14 +584,6 @@ class _SectionCard extends StatelessWidget {
                 ),
                 if (trailing != null) ...[const SizedBox(width: 10), trailing!],
               ],
-            ),
-            const SizedBox(height: 12),
-            Container(
-              width: 42,
-              height: 1,
-              color: context.theme.colorScheme.outlineVariant.withValues(
-                alpha: 0.65,
-              ),
             ),
             const SizedBox(height: 12),
           ],
@@ -678,16 +668,7 @@ class _DescriptionCardState extends State<_DescriptionCard> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: context.theme.colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: context.theme.colorScheme.outlineVariant.withValues(
-            alpha: 0.28,
-          ),
-        ),
-      ),
+      padding: const EdgeInsets.only(top: 8, bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -739,16 +720,7 @@ class _EpisodeListSection extends StatelessWidget {
     if (episodes.isEmpty) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: context.theme.colorScheme.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: context.theme.colorScheme.outlineVariant.withValues(
-              alpha: 0.28,
-            ),
-          ),
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 18),
         child: Text('暂无章节信息', style: context.theme.textTheme.bodyMedium),
       );
     }

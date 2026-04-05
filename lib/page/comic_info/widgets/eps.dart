@@ -53,21 +53,16 @@ class EpButtonWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         constraints: const BoxConstraints(minHeight: 52),
         decoration: BoxDecoration(
-          color: context.theme.colorScheme.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: context.theme.colorScheme.outlineVariant.withValues(
-              alpha: 0.28,
-            ),
-          ),
+          color: context.theme.colorScheme.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
             Text(
               '第$episodeIndex话',
               style: context.theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: context.textColor.withValues(alpha: 0.68),
+                fontWeight: FontWeight.w700,
+                color: context.theme.colorScheme.primary,
               ),
             ),
             const SizedBox(width: 12),
@@ -79,13 +74,14 @@ class EpButtonWidget extends StatelessWidget {
                 style: context.theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                   fontSize: 15,
+                  color: context.textColor,
                 ),
               ),
             ),
             Icon(
               Icons.chevron_right_rounded,
               size: 20,
-              color: context.textColor.withValues(alpha: 0.48),
+              color: context.textColor.withValues(alpha: 0.5),
             ),
           ],
         ),

@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:zephyr/plugin/plugin_constants.dart';
 
 import 'package:background_downloader/background_downloader.dart' as bd;
 import 'package:flutter/foundation.dart';
@@ -7,6 +6,7 @@ import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/download/qjs_download_runtime.dart';
 
 import '../../../util/get_path.dart';
 import 'package:zephyr/type/enum.dart';
@@ -82,7 +82,7 @@ Future<Uint8List> downloadImageWithRetryIOS(
 /// 与 [downloadPicture] 功能完全相同，但内部使用 [downloadImageWithRetryIOS]
 /// 通过 iOS URLSession 后台传输 API 进行下载，支持 App 在后台继续下载。
 Future<String> downloadPictureIOS({
-  String from = kBikaPluginUuid,
+  String from = '',
   String url = '',
   String path = '',
   String cartoonId = '',
@@ -90,10 +90,14 @@ Future<String> downloadPictureIOS({
   String chapterId = '',
   int? proxy,
 }) async {
+  final resolvedFrom = normalizePluginId(from);
+  if (resolvedFrom.isEmpty) {
+    throw StateError('downloadPictureIOS missing pluginId');
+  }
   if (url.isEmpty) {
     throw Exception('URL 不能为空 404');
   }
-  if (url.contains("404") && from == kJmPluginUuid) {
+  if (url.contains("404")) {
     return "404";
   }
 
@@ -105,7 +109,7 @@ Future<String> downloadPictureIOS({
 
   String cacheFilePath = _buildStoredFilePath(
     cachePath,
-    from,
+    resolvedFrom,
     sanitizedPath,
     cartoonId,
     chapterId,
@@ -114,7 +118,7 @@ Future<String> downloadPictureIOS({
 
   String downloadFilePath = _buildStoredFilePath(
     downloadPath,
-    from,
+    resolvedFrom,
     sanitizedPath,
     cartoonId,
     chapterId,
@@ -156,7 +160,8 @@ Future<String> downloadPictureIOS({
   // 使用 background_downloader 下载图片
   Uint8List imageData = await downloadImageWithRetryIOS(url, retry: true);
 
-  if (from == kJmPluginUuid && pictureType == PictureType.comic) {
+  if (resolvedFrom == 'bf99008d-010b-4f17-ac7c-61a9b57dc3d9' &&
+      pictureType == PictureType.comic) {
     await decodeAndSaveImage(
       imageData,
       chapterId.let(toInt),

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/model/unified_comic_list_item.dart';
-import 'package:zephyr/util/context/context_extensions.dart';
+
 import 'package:zephyr/util/debouncer.dart';
 
 import '../../../widgets/comic_simplify_entry/comic_simplify_entry.dart';
@@ -36,7 +36,7 @@ class RecommendWidget extends StatelessWidget {
     Widget scrollView = ComicFixedSizeHorizontalList(
       entries: comicInfoList,
       spacing: 0,
-      roundedCorner: false,
+      roundedCorner: true,
       itemWidth: (isTabletWithOutContext() ? 200 : 150) * 0.75,
     );
 
@@ -51,19 +51,7 @@ class RecommendWidget extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 6),
-        decoration: BoxDecoration(
-          color: context.theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: context.theme.colorScheme.outlineVariant.withValues(
-              alpha: 0.4,
-            ),
-          ),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: scrollView,
-        ),
+        child: scrollView,
       ),
     );
   }

@@ -104,11 +104,15 @@ class PluginPagedCreatorListCubit extends Cubit<PluginPagedCreatorListState> {
 
   Future<void> _fetchPage({required int page, required bool append}) async {
     final currentList = append ? state.list : const <UnifiedCreatorListItem>[];
+    final resolvedFnPath = fnPath.trim();
 
     try {
+      if (resolvedFnPath.isEmpty) {
+        throw StateError('插件作者列表请求缺少 fnPath: pluginId=$pluginId');
+      }
       final pluginResponse = await callUnifiedComicPlugin(
         pluginId: pluginId,
-        fnPath: fnPath,
+        fnPath: resolvedFnPath,
         core: coreBuilder(page),
         extern: externBuilder(page),
       );

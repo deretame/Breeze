@@ -1,20 +1,20 @@
 import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/page/search_result/models/bloc_state.dart';
 import 'package:zephyr/page/search_result/models/comic_number.dart';
+import 'package:zephyr/util/download/qjs_download_runtime.dart';
 
 Future<BlocState> getPluginSearchResult(
   SearchEvent event,
   BlocState blocState,
 ) async {
   final extern = Map<String, dynamic>.from(event.searchStates.pluginExtern);
-  final pluginId = sanitizePluginId(
+  final pluginId = normalizePluginId(
     extern['_pluginId']?.toString().trim().isNotEmpty == true
         ? extern['_pluginId'].toString().trim()
-        : sanitizePluginId(event.searchStates.from),
+        : (event.searchStates.from).trim(),
   );
   extern['_pluginId'] = pluginId;
   final response = await callUnifiedComicPlugin(

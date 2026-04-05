@@ -39,12 +39,12 @@ import 'package:zephyr/util/desktop/intent.dart';
 import 'package:zephyr/util/desktop/native_window.dart';
 import 'package:zephyr/util/desktop/system_tray.dart';
 import 'package:zephyr/util/desktop/window_logic.dart';
-import 'package:zephyr/util/download/qjs_runtime_mode.dart';
 import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/router/router.dart';
 import 'package:zephyr/util/sundry.dart';
+import 'package:zephyr/util/update/check_update.dart';
 
 late final ObjectBox objectbox;
 
@@ -201,7 +201,7 @@ _initServices() async {
   setLogHttpForward(url: "http://127.0.0.1:7878/log");
 
   // 配置http代理，方便开发测试
-  if (useQjsCallOnce) {
+  if (kDebugMode) {
     setQjsErrorStackEnabled(enabled: true);
   }
 
@@ -235,18 +235,25 @@ _initServices() async {
   }
 
   objectbox = await ObjectBox.create();
-
-  await ensureCompatibleMigration(objectbox);
-  await PluginRegistryService.I.init(objectbox);
-  await PluginRegistryService.I.initializeActivePluginRuntimes();
-  unawaited(PluginRegistryService.I.warmupPluginInfos());
-
   final setting = objectbox.userSettingBox.get(1);
   if (setting == null) {
     objectbox.userSettingBox.put(UserSetting());
   }
 
   await registerPersistentCallbacks();
+  initRustFunctions();
+  final appVersion = await getAppVersion();
+
+  registerFunction(
+    functionName: 'getAppVersion',
+    dartCallback: (temp) async => appVersion,
+  );
+
+  await ensureCompatibleMigration(objectbox);
+  await PluginRegistryService.I.init(objectbox);
+  await PluginRegistryService.I.initializeActivePluginRuntimes();
+  unawaited(PluginRegistryService.I.warmupPluginInfos());
+
   final globalSettingCubit = GlobalSettingCubit();
   await globalSettingCubit.initBox();
 

@@ -11,7 +11,6 @@ import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/comic_list/models/comic_list_scene.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/router/router.gr.dart';
@@ -29,43 +28,83 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final HomeSchemeRenderer _renderer = const HomeSchemeRenderer();
   final Map<String, Future<Map<String, dynamic>>> _pluginInfoFutures = {};
   final Map<String, String> _pluginInfoCacheKeyByUuid = {};
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width >= 600;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("插件管理"),
+        title: const Text("发现"),
         actions: [
-          IconButton(icon: const Icon(Icons.search), onPressed: search),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            onSelected: (value) {
-              if (value == 'downloads') {
-                context.pushRoute(DownloadTaskRoute());
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem<String>(
-                value: 'downloads',
-                child: Row(
-                  children: [
-                    Icon(Icons.download),
-                    SizedBox(width: 8),
-                    Text("下载任务"),
-                  ],
-                ),
-              ),
-            ],
+          IconButton(
+            tooltip: '搜索',
+            icon: const Icon(Icons.search),
+            onPressed: search,
           ),
+          if (isDesktop) ...[
+            IconButton(
+              tooltip: '下载任务',
+              icon: const Icon(Icons.download_outlined),
+              onPressed: () => context.pushRoute(DownloadTaskRoute()),
+            ),
+            IconButton(
+              tooltip: '全局设置',
+              icon: const Icon(Icons.settings_outlined),
+              onPressed: () => context.pushRoute(GlobalSettingRoute()),
+            ),
+            const SizedBox(width: 8),
+          ] else
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              onSelected: (value) {
+                if (value == 'downloads') {
+                  context.pushRoute(DownloadTaskRoute());
+                }
+                if (value == 'settings') {
+                  context.pushRoute(GlobalSettingRoute());
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem<String>(
+                  value: 'downloads',
+                  child: Row(
+                    children: [
+                      Icon(Icons.download_outlined, size: 20),
+                      SizedBox(width: 12),
+                      Text("下载任务"),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'settings',
+                  child: Row(
+                    children: [
+                      Icon(Icons.settings_outlined, size: 20),
+                      SizedBox(width: 12),
+                      Text("全局设置"),
+                    ],
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
       resizeToAvoidBottomInset: false,
       body: RefreshIndicator(
         onRefresh: () => _reloadCurrent(),
-        child: _buildPluginHome(),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: _buildPluginHome(),
+          ),
+        ),
       ),
     );
   }
@@ -86,7 +125,7 @@ class _HomePageState extends State<HomePage> {
     if (visible.isNotEmpty) {
       return visible.first.uuid;
     }
-    return kBikaPluginUuid;
+    return '';
   }
 
   Future<void> _reloadCurrent() async {
@@ -102,26 +141,41 @@ class _HomePageState extends State<HomePage> {
         pluginStates.values.where((state) => !state.isDeleted).toList()
           ..sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
 
-    if (visiblePlugins.isEmpty) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        children: const [
-          SizedBox(height: 120),
-          Center(child: Text('暂无可用插件')),
-        ],
-      );
-    }
-
     return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
+      padding: const EdgeInsets.only(bottom: 40),
       children: [
-        for (var i = 0; i < visiblePlugins.length; i++) ...[
-          _buildPluginCardAsync(visiblePlugins[i].uuid, visiblePlugins[i]),
-          if (i != visiblePlugins.length - 1) const SizedBox(height: 12),
-        ],
+        const SizedBox(height: 16),
+        _buildSectionHeader('扩展插件'),
+        if (visiblePlugins.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(32),
+            child: Center(
+              child: Text('暂无可用插件', style: TextStyle(color: Colors.grey)),
+            ),
+          )
+        else
+          for (var i = 0; i < visiblePlugins.length; i++) ...[
+            _buildPluginCardAsync(visiblePlugins[i].uuid, visiblePlugins[i]),
+            if (i != visiblePlugins.length - 1)
+              const Divider(height: 1, indent: 80, endIndent: 16),
+          ],
       ],
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 20, bottom: 8, top: 4),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+          color: Theme.of(context).colorScheme.primary,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 
@@ -138,35 +192,66 @@ class _HomePageState extends State<HomePage> {
       ),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return Material(
-            color: Theme.of(context).colorScheme.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(16),
-            child: const Padding(
-              padding: EdgeInsets.all(20),
-              child: Center(child: CircularProgressIndicator()),
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                const Text('加载中...'),
+              ],
             ),
           );
         }
         if (snapshot.hasError || !snapshot.hasData) {
-          return Material(
-            color: Theme.of(context).colorScheme.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(16),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Expanded(child: Text('插件信息加载失败: ${snapshot.error}')),
-                  const SizedBox(width: 12),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _pluginInfoFutures.remove(pluginUuid);
-                      });
-                    },
-                    child: const Text('重试'),
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ],
-              ),
+                  child: Center(
+                    child: Icon(
+                      Icons.error_outline,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    '插件信息加载失败: ${snapshot.error}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _pluginInfoFutures.remove(pluginUuid);
+                    });
+                  },
+                  child: const Text('重试'),
+                ),
+              ],
             ),
           );
         }
@@ -217,168 +302,134 @@ class _HomePageState extends State<HomePage> {
   }) {
     final isEnabled = pluginState?.isEnabled ?? true;
     final colorScheme = Theme.of(context).colorScheme;
-    return Material(
-      color: isEnabled
-          ? colorScheme.surfaceContainerLow
-          : colorScheme.surfaceContainer,
-      borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+
+    Widget iconWidget = ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: iconUrl.isNotEmpty
+          ? Image.network(
+              iconUrl,
+              key: ValueKey(iconUrl),
+              fit: BoxFit.cover,
+              headers: const {'User-Agent': 'Breeze/1.0'},
+              errorBuilder: (context, error, stackTrace) {
+                return ColoredBox(
+                  color: colorScheme.surfaceContainerHighest,
+                  child: const Center(child: Icon(Icons.extension_outlined)),
+                );
+              },
+            )
+          : ColoredBox(
+              color: colorScheme.surfaceContainerHighest,
+              child: const Center(child: Icon(Icons.extension_outlined)),
+            ),
+    );
+
+    return Opacity(
+      opacity: isEnabled ? 1.0 : 0.6,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 8,
+            ),
+            leading: SizedBox(width: 48, height: 48, child: iconWidget),
+            title: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+            ),
+            subtitle: Text(
+              description,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 13,
+              ),
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(
-                  width: 72,
-                  height: 72,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: iconUrl.isNotEmpty
-                        ? Image.network(
-                            iconUrl,
-                            key: ValueKey(iconUrl),
-                            fit: BoxFit.cover,
-                            headers: const {'User-Agent': 'Breeze/1.0'},
-                            errorBuilder: (context, error, stackTrace) {
-                              return ColoredBox(
-                                color: colorScheme.surfaceContainerHighest,
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.extension_outlined,
-                                    size: 22,
-                                  ),
-                                ),
-                              );
-                            },
-                          )
-                        : ColoredBox(
-                            color: colorScheme.surfaceContainerHighest,
-                            child: const Center(
-                              child: Icon(Icons.extension_outlined, size: 22),
-                            ),
-                          ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                          ),
-                          IconButton(
-                            tooltip: isEnabled ? '关闭插件' : '开启插件',
-                            iconSize: 16,
-                            splashRadius: 14,
-                            visualDensity: VisualDensity.compact,
-                            splashColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                            onPressed: () =>
-                                _togglePluginEnabled(pluginUuid, !isEnabled),
-                            icon: Icon(
-                              isEnabled
-                                  ? Icons.toggle_on_outlined
-                                  : Icons.toggle_off_outlined,
-                            ),
-                          ),
-                          IconButton(
-                            tooltip: '设置',
-                            iconSize: 18,
-                            splashRadius: 16,
-                            visualDensity: VisualDensity.compact,
-                            splashColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (context) => PluginSettingsPage(
-                                    from: from,
-                                    pluginUuid: pluginUuid,
-                                    pluginRuntimeName: pluginUuid,
-                                    pluginDisplayName: title,
-                                  ),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.settings_outlined),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                IconButton(
+                  tooltip: '设置',
+                  icon: const Icon(Icons.settings_outlined, size: 20),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (context) => PluginSettingsPage(
+                          from: from,
+                          pluginUuid: pluginUuid,
+                          pluginRuntimeName: pluginUuid,
+                          pluginDisplayName: title,
                         ),
                       ),
-                    ],
-                  ),
+                    );
+                  },
+                ),
+                Switch(
+                  value: isEnabled,
+                  onChanged: (val) => _togglePluginEnabled(pluginUuid, val),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: functions.map((function) {
-                final id = function['id']?.toString().trim() ?? '';
-                final text = function['title']?.toString().trim() ?? '未命名';
-                var action = asJsonMap(function['action']);
-                if (action.isEmpty) {
-                  if (id.isNotEmpty) {
-                    action = {
-                      'type': 'openPluginFunction',
-                      'payload': {
-                        'id': id,
-                        'title': text,
-                        'presentation': 'page',
-                      },
-                    };
+          ),
+          if (functions.isNotEmpty && isEnabled)
+            Padding(
+              padding: const EdgeInsets.only(left: 84, right: 20, bottom: 16),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: functions.map((function) {
+                  final id = function['id']?.toString().trim() ?? '';
+                  final text = function['title']?.toString().trim() ?? '未命名';
+                  var action = asJsonMap(function['action']);
+                  if (action.isEmpty) {
+                    if (id.isNotEmpty) {
+                      action = {
+                        'type': 'openPluginFunction',
+                        'payload': {
+                          'id': id,
+                          'title': text,
+                          'presentation': 'page',
+                        },
+                      };
+                    }
                   }
-                }
-                final enabled = action.isNotEmpty;
-                return GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: enabled
-                      ? () => _handleAction(_attachActionSource(action, from))
-                      : null,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: enabled
-                          ? colorScheme.surfaceContainerHighest
-                          : colorScheme.surfaceContainer,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      text,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: enabled
-                            ? colorScheme.onSurface
-                            : colorScheme.onSurfaceVariant,
+                  final enabled = action.isNotEmpty;
+                  return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: enabled
+                        ? () => _handleAction(_attachActionSource(action, from))
+                        : null,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest.withValues(
+                          alpha: 0.6,
+                        ),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        text,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: enabled
+                              ? colorScheme.onSurface
+                              : colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ),
-                );
-              }).toList(),
+                  );
+                }).toList(),
+              ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -442,7 +493,7 @@ class _HomePageState extends State<HomePage> {
 
     if (type == 'openSearch') {
       final source = _sourceFromString(payload['source']?.toString());
-      final sourceId = sanitizePluginId(source);
+      final sourceId = (source).trim();
       final keyword = payload['keyword']?.toString() ?? '';
       final url = payload['url']?.toString() ?? '';
       final categories = asJsonList(payload['categories'])
@@ -486,6 +537,10 @@ class _HomePageState extends State<HomePage> {
 
     if (type == 'openPluginFunction') {
       final source = _sourceFromString(payload['source']?.toString());
+      if (source.isEmpty) {
+        showErrorToast('缺少插件来源，无法打开功能页');
+        return;
+      }
       await _openPluginFunction(source, payload);
       return;
     }
@@ -493,6 +548,10 @@ class _HomePageState extends State<HomePage> {
     if (type == 'openCloudFavorite') {
       final parsed = _sourceFromString(payload['source']?.toString());
       final source = parsed.isEmpty ? _currentFrom : parsed;
+      if (source.isEmpty) {
+        showErrorToast('缺少插件来源，无法打开云端收藏');
+        return;
+      }
       final title = payload['title']?.toString();
       context.pushRoute(
         ComicListRoute(
@@ -538,32 +597,7 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    Map<String, dynamic> response;
-    try {
-      response = await callUnifiedComicPlugin(
-        from: from,
-        fnPath: 'getFunctionPage',
-        core: {'id': functionId},
-        extern: const <String, dynamic>{},
-      );
-    } catch (_) {
-      response = await callUnifiedComicPlugin(
-        from: from,
-        fnPath: 'get_function_page',
-        core: {'id': functionId},
-        extern: const <String, dynamic>{},
-      );
-    }
-
     if (!mounted) return;
-
-    final envelope = UnifiedPluginEnvelope.fromMap(response);
-    final contentData = asMap(envelope.data);
-    final dialogHeight = _estimateFunctionDialogHeight(
-      context,
-      envelope.scheme,
-      contentData,
-    );
     final mediaSize = MediaQuery.sizeOf(context);
     final dialogWidth = (mediaSize.width * 0.9).clamp(280.0, 560.0).toDouble();
 
@@ -576,19 +610,11 @@ class _HomePageState extends State<HomePage> {
           contentPadding: const EdgeInsets.only(top: 8),
           content: SizedBox(
             width: dialogWidth,
-            height: dialogHeight,
-            child: Builder(
-              builder: (dialogContext) => _renderer.buildPage(
-                dialogContext,
-                from: from,
-                scheme: envelope.scheme,
-                data: contentData,
-                onReachBottom: () async {},
-                onAction: _handleAction,
-                isLoadingMore: false,
-                showLoadMoreRetry: false,
-                onRetryLoadMore: () {},
-              ),
+            height: 320,
+            child: _PluginFunctionDialogContent(
+              from: from,
+              functionId: functionId,
+              onAction: _handleAction,
             ),
           ),
           actions: [
@@ -627,38 +653,6 @@ class _HomePageState extends State<HomePage> {
     return Map<String, dynamic>.from(action)..['payload'] = payload;
   }
 
-  double _estimateFunctionDialogHeight(
-    BuildContext context,
-    Map<String, dynamic> scheme,
-    Map<String, dynamic> data,
-  ) {
-    final body = asJsonMap(scheme['body']);
-    final screenHeight = MediaQuery.sizeOf(context).height;
-    final maxHeight = screenHeight * 0.68;
-
-    String chipKey = '';
-    if (body['type']?.toString() == 'chip-list') {
-      chipKey = body['key']?.toString() ?? '';
-    } else if (body['type']?.toString() == 'list') {
-      final children = asJsonList(body['children']).map((e) => asJsonMap(e));
-      for (final child in children) {
-        if (child['type']?.toString() == 'chip-list') {
-          chipKey = child['key']?.toString() ?? '';
-          if (chipKey.isNotEmpty) break;
-        }
-      }
-    }
-
-    if (chipKey.isNotEmpty) {
-      final count = asJsonList(data[chipKey]).length;
-      final rows = ((count + 3) ~/ 4).clamp(1, 8);
-      final estimated = 108 + rows * 44;
-      return estimated.toDouble().clamp(170.0, maxHeight);
-    }
-
-    return 320.0.clamp(220.0, maxHeight);
-  }
-
   Future<void> _launchBrowser(String url) async {
     try {
       if (!await launchUrl(
@@ -684,14 +678,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   String _sourceFromString(String? source) {
-    final resolved = sanitizePluginId(source ?? '');
-    return resolved.isEmpty ? _currentFrom : resolved;
+    final resolved = (source ?? '').trim();
+    return resolved;
   }
 
   void search() {
+    final source = _currentFrom;
+    if (source.isEmpty) {
+      showErrorToast('暂无可用插件，无法搜索');
+      return;
+    }
     context.pushRoute(
       SearchRoute(
-        searchState: SearchStates.initial().copyWith(from: _currentFrom),
+        searchState: SearchStates.initial().copyWith(from: source),
         aggregateMode: true,
       ),
     );
@@ -713,6 +712,113 @@ class _PluginFunctionPage extends StatefulWidget {
 
   @override
   State<_PluginFunctionPage> createState() => _PluginFunctionPageState();
+}
+
+class _PluginFunctionDialogContent extends StatefulWidget {
+  const _PluginFunctionDialogContent({
+    required this.from,
+    required this.functionId,
+    required this.onAction,
+  });
+
+  final String from;
+  final String functionId;
+  final Future<void> Function(Map<String, dynamic> action) onAction;
+
+  @override
+  State<_PluginFunctionDialogContent> createState() =>
+      _PluginFunctionDialogContentState();
+}
+
+class _PluginFunctionDialogContentState
+    extends State<_PluginFunctionDialogContent> {
+  final HomeSchemeRenderer _renderer = const HomeSchemeRenderer();
+  bool _loading = true;
+  String _error = '';
+  Map<String, dynamic> _scheme = const <String, dynamic>{};
+  Map<String, dynamic> _data = const <String, dynamic>{};
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    if (!mounted) return;
+    setState(() {
+      _loading = true;
+      _error = '';
+    });
+
+    try {
+      Map<String, dynamic> response;
+      try {
+        response = await callUnifiedComicPlugin(
+          from: widget.from,
+          fnPath: 'getFunctionPage',
+          core: {'id': widget.functionId},
+          extern: const <String, dynamic>{},
+        );
+      } catch (_) {
+        response = await callUnifiedComicPlugin(
+          from: widget.from,
+          fnPath: 'get_function_page',
+          core: {'id': widget.functionId},
+          extern: const <String, dynamic>{},
+        );
+      }
+
+      if (!mounted) return;
+      final envelope = UnifiedPluginEnvelope.fromMap(response);
+      setState(() {
+        _scheme = envelope.scheme;
+        _data = asMap(envelope.data);
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_error.isNotEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_error, textAlign: TextAlign.center),
+              const SizedBox(height: 8),
+              TextButton(onPressed: _load, child: const Text('重试')),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return _renderer.buildPage(
+      context,
+      from: widget.from,
+      scheme: _scheme,
+      data: _data,
+      onReachBottom: () async {},
+      onAction: widget.onAction,
+      isLoadingMore: false,
+      showLoadMoreRetry: false,
+      onRetryLoadMore: () {},
+    );
+  }
 }
 
 class _PluginFunctionPageState extends State<_PluginFunctionPage> {

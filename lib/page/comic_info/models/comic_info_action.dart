@@ -4,7 +4,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/main.dart';
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/page/comic_list/models/comic_list_scene.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
@@ -78,7 +77,7 @@ Future<void> handleComicInfoAction(
 }
 
 String _pluginIdFromString(String? source, String fallbackPluginId) {
-  final resolved = sanitizePluginId(source ?? '');
+  final resolved = (source ?? '').trim();
   return resolved.isEmpty ? fallbackPluginId : resolved;
 }
 

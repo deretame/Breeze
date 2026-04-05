@@ -2,7 +2,6 @@ import 'package:zephyr/page/comic_info/json/jm/jm_comic_info_json.dart' as jm;
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
 import 'package:zephyr/page/comic_info/models/all_info.dart' as bika;
-import 'package:zephyr/plugin/plugin_constants.dart';
 import 'package:zephyr/type/pipe.dart';
 
 normal.NormalComicAllInfo bika2NormalComicAllInfo(bika.AllInfo allInfo) {
@@ -52,7 +51,7 @@ normal.NormalComicAllInfo bika2NormalComicAllInfo(bika.AllInfo allInfo) {
     recommend: allInfo.recommendJson
         .map(
           (e) => normal.Recommend(
-            source: kBikaPluginUuid,
+            source: '',
             id: e.id,
             title: e.title,
             cover: _image(
@@ -115,7 +114,7 @@ normal.NormalComicAllInfo jm2NormalComicAllInfo(jm.JmComicInfoJson allInfo) {
     recommend: allInfo.relatedList
         .map(
           (e) => normal.Recommend(
-            source: kJmPluginUuid,
+            source: '',
             id: e.id,
             title: e.name,
             cover: _image(

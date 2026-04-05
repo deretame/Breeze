@@ -11,7 +11,6 @@ _DownloadTaskJson _$DownloadTaskJsonFromJson(Map<String, dynamic> json) =>
       from: json['from'] as String,
       comicId: json['comicId'] as String,
       comicName: json['comicName'] as String,
-      bikaInfo: BikaInfo.fromJson(json['bikaInfo'] as Map<String, dynamic>),
       selectedChapters: (json['selectedChapters'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
@@ -23,14 +22,6 @@ Map<String, dynamic> _$DownloadTaskJsonToJson(_DownloadTaskJson instance) =>
       'from': instance.from,
       'comicId': instance.comicId,
       'comicName': instance.comicName,
-      'bikaInfo': instance.bikaInfo.toJson(),
       'selectedChapters': instance.selectedChapters,
       'slowDownload': instance.slowDownload,
     };
-
-_BikaInfo _$BikaInfoFromJson(Map<String, dynamic> json) =>
-    _BikaInfo(proxy: json['proxy'] as String);
-
-Map<String, dynamic> _$BikaInfoToJson(_BikaInfo instance) => <String, dynamic>{
-  'proxy': instance.proxy,
-};

@@ -1,9 +1,11 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnter;
 import 'package:zephyr/plugin/plugin_registry_service.dart';
+import 'package:zephyr/util/context/context_extensions.dart';
 
 @RoutePage()
 class BookshelfPage extends StatelessWidget {
@@ -35,10 +37,13 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
   int _currentIndex = 0;
   final TextEditingController _searchController = TextEditingController();
   final List<int> _refreshSignals = [0, 0, 0];
+  List<String> _lastAvailableSources = const <String>[];
+  bool _isSearchExpanded = false;
 
   @override
   void initState() {
     super.initState();
+    _syncSourcesFromRegistry();
     _searchController.text = _currentSearchCubit().state.keyword;
   }
 
@@ -50,21 +55,13 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
 
   @override
   Widget build(BuildContext context) {
+    _syncSourcesFromRegistry();
+    final isDesktop = MediaQuery.of(context).size.width >= 600;
+
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 8,
-        title: Row(
-          children: [
-            _buildTabSelector(),
-            const SizedBox(width: 8),
-            Expanded(child: _buildSearchField()),
-            IconButton(
-              tooltip: '筛选',
-              icon: const Icon(Icons.tune),
-              onPressed: _openFilter,
-            ),
-          ],
-        ),
+        titleSpacing: isDesktop ? 16 : 8,
+        title: isDesktop ? _buildDesktopHeader() : _buildMobileHeader(),
       ),
       body: IndexedStack(
         index: _currentIndex,
@@ -86,55 +83,163 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
     );
   }
 
-  Widget _buildTabSelector() {
-    const labels = ['收藏', '历史', '下载'];
-    return DropdownButtonHideUnderline(
-      child: DropdownButton<int>(
-        value: _currentIndex,
-        borderRadius: BorderRadius.circular(12),
-        onChanged: (value) {
-          if (value == null) return;
-          _onTabChanged(value);
-        },
-        items: List.generate(
-          labels.length,
-          (index) =>
-              DropdownMenuItem<int>(value: index, child: Text(labels[index])),
+  Widget _buildDesktopHeader() {
+    return Row(
+      children: [
+        _buildSleekTabs(),
+        const SizedBox(width: 24),
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Flexible(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: _buildMinimalistSearchField(false),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                tooltip: '筛选',
+                icon: const Icon(Icons.tune),
+                onPressed: _openFilter,
+              ),
+            ],
+          ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildMobileHeader() {
+    if (_isSearchExpanded) {
+      return Row(
+        children: [
+          Expanded(child: _buildMinimalistSearchField(true)),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              setState(() => _isSearchExpanded = false);
+            },
+          ),
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        _buildSleekTabs(),
+        const Spacer(),
+        IconButton(
+          icon: const Icon(Icons.search),
+          onPressed: () => setState(() => _isSearchExpanded = true),
+        ),
+        IconButton(
+          tooltip: '筛选',
+          icon: const Icon(Icons.tune),
+          onPressed: _openFilter,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSleekTabs() {
+    const labels = ['收藏', '历史', '下载'];
+    return Container(
+      decoration: BoxDecoration(
+        color: context.theme.colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.5,
+        ),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: List.generate(labels.length, (index) {
+          final isSelected = _currentIndex == index;
+          return GestureDetector(
+            onTap: () => _onTabChanged(index),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? context.theme.colorScheme.surface
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ]
+                    : [],
+              ),
+              child: Text(
+                labels[index],
+                style: TextStyle(
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  fontSize: 14,
+                  color: isSelected
+                      ? context.textColor
+                      : context.textColor.withValues(alpha: 0.6),
+                ),
+              ),
+            ),
+          );
+        }),
       ),
     );
   }
 
-  Widget _buildSearchField() {
-    return TextField(
-      controller: _searchController,
-      textInputAction: TextInputAction.search,
-      decoration: InputDecoration(
-        hintText: '搜索当前列表',
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 10,
+  Widget _buildMinimalistSearchField(bool isMobile) {
+    return Container(
+      height: 38,
+      decoration: BoxDecoration(
+        color: context.theme.colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.4,
         ),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        prefixIcon: const Icon(Icons.search, size: 20),
-        suffixIcon: _searchController.text.isEmpty
-            ? null
-            : IconButton(
-                icon: const Icon(Icons.close, size: 18),
-                onPressed: () {
-                  _searchController.clear();
-                  _currentSearchCubit().setKeyword('');
-                  _triggerRefresh(goTop: true);
-                  setState(() {});
-                },
-              ),
+        borderRadius: BorderRadius.circular(20),
       ),
-      onChanged: (_) => setState(() {}),
-      onSubmitted: (value) {
-        _currentSearchCubit().setKeyword(value.trim());
-        _triggerRefresh(goTop: true);
-      },
+      child: TextField(
+        controller: _searchController,
+        textInputAction: TextInputAction.search,
+        textAlignVertical: TextAlignVertical.center,
+        style: const TextStyle(fontSize: 14),
+        decoration: InputDecoration(
+          hintText: '搜索列表',
+          hintStyle: TextStyle(color: context.textColor.withValues(alpha: 0.5)),
+          isCollapsed: true,
+          border: InputBorder.none,
+          prefixIcon: Icon(
+            Icons.search,
+            size: 18,
+            color: context.textColor.withValues(alpha: 0.6),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 0,
+          ),
+          suffixIcon: _searchController.text.isEmpty
+              ? null
+              : IconButton(
+                  icon: const Icon(Icons.close, size: 16),
+                  onPressed: () {
+                    _searchController.clear();
+                    _currentSearchCubit().setKeyword('');
+                    _triggerRefresh(goTop: true);
+                    setState(() {});
+                  },
+                ),
+        ),
+        onChanged: (_) => setState(() {}),
+        onSubmitted: (value) {
+          _currentSearchCubit().setKeyword(value.trim());
+          _triggerRefresh(goTop: true);
+        },
+      ),
     );
   }
 
@@ -202,7 +307,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
     final applied = await showDialog<bool>(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) {
+        builder: (context, setModalState) {
           return AlertDialog(
             title: const Text('筛选'),
             content: SizedBox(
@@ -217,14 +322,18 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
                     spacing: 8,
                     children: [
                       ChoiceChip(
+                        showCheckmark: false,
                         label: const Text('时间(晚→早)'),
                         selected: selectedSort == 'dd',
-                        onSelected: (_) => setState(() => selectedSort = 'dd'),
+                        onSelected: (_) =>
+                            setModalState(() => selectedSort = 'dd'),
                       ),
                       ChoiceChip(
+                        showCheckmark: false,
                         label: const Text('时间(早→晚)'),
                         selected: selectedSort == 'da',
-                        onSelected: (_) => setState(() => selectedSort = 'da'),
+                        onSelected: (_) =>
+                            setModalState(() => selectedSort = 'da'),
                       ),
                     ],
                   ),
@@ -237,7 +346,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
                       ),
                       const SizedBox(width: 8),
                       TextButton(
-                        onPressed: () => setState(() {
+                        onPressed: () => setModalState(() {
                           if (selectedSources.length ==
                               availableSources.length) {
                             selectedSources.clear();
@@ -263,7 +372,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
                           showCheckmark: false,
                           label: Text(sourceTitle(source.uuid)),
                           selected: selectedSources.contains(source.uuid),
-                          onSelected: (selected) => setState(() {
+                          onSelected: (selected) => setModalState(() {
                             if (selected) {
                               selectedSources.add(source.uuid);
                             } else {
@@ -296,5 +405,35 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
     searchCubit.setSort(selectedSort);
     searchCubit.setSources(selectedSources.toList());
     _triggerRefresh(goTop: true);
+  }
+
+  void _syncSourcesFromRegistry() {
+    final pluginStates = context.read<PluginRegistryCubit>().state;
+    final available =
+        pluginStates.values
+            .where((plugin) => plugin.isEnabled && !plugin.isDeleted)
+            .map((plugin) => plugin.uuid)
+            .toList()
+          ..sort();
+
+    if (listEquals(_lastAvailableSources, available)) {
+      return;
+    }
+    _lastAvailableSources = List<String>.from(available);
+
+    void syncCubit(SearchStatusCubit cubit) {
+      final current = cubit.state.sources.where(
+        (item) => item.trim().isNotEmpty,
+      );
+      final filtered = current.where(available.contains).toList();
+      final next = filtered.isEmpty ? available : filtered;
+      if (!listEquals(cubit.state.sources, next)) {
+        cubit.setSources(next);
+      }
+    }
+
+    syncCubit(context.read<LocalFavoriteCubit>());
+    syncCubit(context.read<HistoryCubit>());
+    syncCubit(context.read<DownloadCubit>());
   }
 }

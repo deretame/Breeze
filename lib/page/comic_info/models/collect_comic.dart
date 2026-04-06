@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
@@ -52,10 +53,10 @@ Future<bool> toggleLocalComicFavorite({
       comicId: comicInfo.id,
       title: comicInfo.title,
       description: comicInfo.description,
-      cover: _comicImageToMap(comicInfo.cover),
-      creator: _creatorToMap(comicInfo.creator),
-      titleMeta: comicInfo.titleMeta.map(_titleMetaToMap).toList(),
-      metadata: comicInfo.metadata.map(_metadataToMap).toList(),
+      cover: jsonEncode(_comicImageToMap(comicInfo.cover)),
+      creator: jsonEncode(_creatorToMap(comicInfo.creator)),
+      titleMeta: jsonEncode(comicInfo.titleMeta.map(_titleMetaToMap).toList()),
+      metadata: jsonEncode(comicInfo.metadata.map(_metadataToMap).toList()),
       createdAt: createdAt,
       updatedAt: now,
       deleted: false,

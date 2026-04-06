@@ -49,6 +49,27 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     }
   }
 
+  Widget _buildSectionTitle(BuildContext context, String title, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.primary,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final globalSettingCubit = context.watch<GlobalSettingCubit>();
@@ -56,59 +77,52 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     final configuredSync = isSyncServiceConfigured(state);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('全局设置')),
-      body: ListView(
-        padding: kSettingPagePadding,
-        children: [
-          SettingSectionCard(
-            title: '外观与显示',
-            icon: Icons.palette_outlined,
+      appBar: AppBar(
+        title: const Text(
+          '全局设置',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        ),
+        centerTitle: false,
+        scrolledUnderElevation: 0,
+      ),
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 768),
+          child: ListView(
             children: [
+              _buildSectionTitle(context, '外观与显示', Icons.palette_outlined),
               _systemTheme(state, globalSettingCubit),
               _dynamicColor(state, globalSettingCubit),
               if (!state.dynamicColor) changeThemeColor(context),
               _comicReadTopContainer(state, globalSettingCubit),
               _isAMOLED(state, globalSettingCubit),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SettingSectionCard(
-            title: '内容与网络',
-            icon: Icons.tune_outlined,
-            children: [
+
+              const SizedBox(height: 8),
+              const Divider(height: 1, thickness: 0.3),
+              _buildSectionTitle(context, '内容与网络', Icons.tune_outlined),
               editMaskedKeywords(context),
               socks5ProxyEdit(context, state.socks5Proxy),
               _updateAccelerate(state, globalSettingCubit),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SettingSectionCard(
-            title: '同步',
-            icon: Icons.sync_outlined,
-            children: [
+
+              const SizedBox(height: 8),
+              const Divider(height: 1, thickness: 0.3),
+              _buildSectionTitle(context, '同步', Icons.sync_outlined),
               _syncServiceType(state, globalSettingCubit),
-              webdavSync(context, state.syncServiceType),
+              webdavSync(context, state.syncSetting.syncServiceType),
               if (configuredSync) _autoSync(state, globalSettingCubit),
-              if (configuredSync && state.autoSync)
+              if (configuredSync && state.syncSetting.autoSync)
                 _syncNotify(state, globalSettingCubit),
               if (configuredSync) _syncSettings(state, globalSettingCubit),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SettingSectionCard(
-            title: '应用行为',
-            icon: Icons.settings_outlined,
-            children: [
-              _splashPage(state, globalSettingCubit),
-              _disableBika(state, globalSettingCubit),
-            ],
-          ),
 
-          const SizedBox(height: 12),
-          SettingSectionCard(
-            title: '调试',
-            icon: Icons.bug_report_outlined,
-            children: [
+              const SizedBox(height: 8),
+              const Divider(height: 1, thickness: 0.3),
+              _buildSectionTitle(context, '应用行为', Icons.settings_outlined),
+              _splashPage(state, globalSettingCubit),
+
+              const SizedBox(height: 8),
+              const Divider(height: 1, thickness: 0.3),
+              _buildSectionTitle(context, '调试', Icons.bug_report_outlined),
               _enableMemoryDebug(state, globalSettingCubit),
               if (defaultTargetPlatform == TargetPlatform.android)
                 _forceEnableImpeller(state, globalSettingCubit),
@@ -123,13 +137,10 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                   },
                 ),
               ],
-            ],
-          ),
-          const SizedBox(height: 12),
-          SettingSectionCard(
-            title: '关于与更多',
-            icon: Icons.info_outline,
-            children: [
+
+              const SizedBox(height: 8),
+              const Divider(height: 1, thickness: 0.3),
+              _buildSectionTitle(context, '关于与更多', Icons.info_outline),
               ListTile(
                 leading: const Icon(Icons.history_outlined),
                 title: const Text('更新日志'),
@@ -144,9 +155,10 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => AutoRouter.of(context).push(AboutRoute()),
               ),
+              const SizedBox(height: 32),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -235,7 +247,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       title: const Text('自动同步'),
       subtitle: const Text('开启后在后台定期同步配置'),
       thumbIcon: kSettingSwitchThumbIcon,
-      value: state.autoSync,
+      value: state.syncSetting.autoSync,
       onChanged: (bool value) {
         cubit.updateSyncSetting((current) => current.copyWith(autoSync: value));
         if (value) {
@@ -267,10 +279,10 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       subtitle: const Text('选择服务，统一管理同步策略'),
       trailing: DropdownButtonHideUnderline(
         child: DropdownButton<SyncServiceType>(
-          value: state.syncServiceType,
+          value: state.syncSetting.syncServiceType,
           icon: const Icon(Icons.expand_more),
           onChanged: (SyncServiceType? value) {
-            if (value == null || value == state.syncServiceType) {
+            if (value == null || value == state.syncSetting.syncServiceType) {
               return;
             }
 
@@ -303,7 +315,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       title: const Text('自动同步通知'),
       subtitle: const Text('开启后在同步开始与完成时提醒'),
       thumbIcon: kSettingSwitchThumbIcon,
-      value: state.syncNotify,
+      value: state.syncSetting.syncNotify,
       onChanged: (bool value) {
         cubit.updateSyncSetting(
           (current) => current.copyWith(syncNotify: value),
@@ -318,7 +330,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       title: const Text('同步设置'),
       subtitle: const Text('开启后使用云端设置覆盖本地设置'),
       thumbIcon: kSettingSwitchThumbIcon,
-      value: state.syncSettings,
+      value: state.syncSetting.syncSettings,
       onChanged: (bool value) {
         cubit.updateSyncSetting(
           (current) => current.copyWith(syncSettings: value),
@@ -336,7 +348,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       title: const Text('异形屏适配'),
       subtitle: const Text('开启后预留安全区，避免内容遮挡'),
       thumbIcon: kSettingSwitchThumbIcon,
-      value: state.comicReadTopContainer,
+      value: state.readSetting.comicReadTopContainer,
       onChanged: (bool value) {
         cubit.updateReadSetting(
           (current) => current.copyWith(comicReadTopContainer: value),
@@ -375,22 +387,6 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           style: TextStyle(color: context.textColor, fontSize: 15),
         ),
       ),
-    );
-  }
-
-  Widget _disableBika(GlobalSettingState state, GlobalSettingCubit cubit) {
-    return SwitchListTile(
-      secondary: const Icon(Icons.block_outlined),
-      title: const Text('禁用哔咔相关功能'),
-      subtitle: const Text('开启后隐藏相关入口，重启生效'),
-      thumbIcon: kSettingSwitchThumbIcon,
-      value: state.disableBika,
-      onChanged: (bool value) {
-        cubit.updateState(
-          (current) => current.copyWith(disableBika: value, comicChoice: 2),
-        );
-        showSuccessToast("设置成功，重启生效");
-      },
     );
   }
 

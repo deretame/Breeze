@@ -1,22 +1,15 @@
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:archive/archive.dart';
-import 'package:encrypter_plus/encrypter_plus.dart';
-import 'package:zephyr/config/bika/bika_setting.dart';
-import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
-import 'package:zephyr/config/jm/jm_setting.dart';
-import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
-import 'package:zephyr/util/get_path.dart';
+import 'package:zephyr/object_box/model.dart';
 
 import 'comic_sync_core.dart';
 import 's3_sync_service.dart';
 import 'webdav_sync_service.dart';
 
 bool isSyncServiceConfigured(GlobalSettingState state) {
-  switch (state.syncServiceType) {
+  switch (state.syncSetting.syncServiceType) {
     case SyncServiceType.none:
       return false;
     case SyncServiceType.webdav:
@@ -31,7 +24,7 @@ ComicSyncRemoteAdapter? createSyncAdapter(GlobalSettingState state) {
     return null;
   }
 
-  switch (state.syncServiceType) {
+  switch (state.syncSetting.syncServiceType) {
     case SyncServiceType.none:
       return null;
     case SyncServiceType.webdav:
@@ -44,8 +37,6 @@ ComicSyncRemoteAdapter? createSyncAdapter(GlobalSettingState state) {
 Future<void> autoSync(
   GlobalSettingState state, {
   GlobalSettingCubit? globalSettingCubit,
-  BikaSettingCubit? bikaSettingCubit,
-  JmSettingCubit? jmSettingCubit,
 }) async {
   final adapter = createSyncAdapter(state);
   if (adapter == null) {
@@ -54,38 +45,48 @@ Future<void> autoSync(
 
   await runComicSync(adapter);
 
-  final syncSettingsEnabled =
-      state.syncSettings &&
-      globalSettingCubit != null &&
-      bikaSettingCubit != null &&
-      jmSettingCubit != null;
-  if (!syncSettingsEnabled) {
-    logger.d('设置同步未启用或上下文不完整，跳过设置同步');
+  if (!state.syncSetting.syncSettings) {
+    logger.d('设置同步未启用，跳过设置同步');
     return;
   }
 
   await _syncSettings(
     adapter,
     globalSettingCubit: globalSettingCubit,
-    bikaSettingCubit: bikaSettingCubit,
-    jmSettingCubit: jmSettingCubit,
+    currentGlobalSetting: state,
   );
 }
 
 Future<void> _syncSettings(
   ComicSyncRemoteAdapter adapter, {
-  required GlobalSettingCubit globalSettingCubit,
-  required BikaSettingCubit bikaSettingCubit,
-  required JmSettingCubit jmSettingCubit,
+  required GlobalSettingState currentGlobalSetting,
+  GlobalSettingCubit? globalSettingCubit,
 }) async {
-  final localPayload = _buildSettingsPayload(
-    globalSettingCubit.state,
-    bikaSettingCubit.state,
-    jmSettingCubit.state,
+  final localGlobal = globalSettingCubit?.state ?? currentGlobalSetting;
+  var localSyncTime = localGlobal.syncSetting.settingsSyncTime;
+  if (localSyncTime <= 0) {
+    localSyncTime = DateTime.now().toUtc().millisecondsSinceEpoch;
+    await _updateLocalSettingsSyncTime(
+      localGlobal,
+      syncTime: localSyncTime,
+      globalSettingCubit: globalSettingCubit,
+    );
+  }
+
+  final localPayload = _buildSettingsPayload(localGlobal, localSyncTime);
+  final localBytes = await ComicSyncCore.encodeEncryptedPayload(
+    utf8.encode(jsonEncode(localPayload)),
   );
-  final localBytes = _encodeSettingsPayload(localPayload);
   final localMd5 = ComicSyncCore.calculateMd5(localBytes);
-  final localSyncState = await _readLocalSettingsSyncState();
+
+  final allRemote = await adapter.listRemoteDataFiles();
+  final legacyFiles = allRemote
+      .where(ComicSyncCore.isLegacyRemotePath)
+      .toList();
+  if (legacyFiles.isNotEmpty) {
+    await adapter.deleteRemoteFiles(legacyFiles);
+  }
+  final syncRootFiles = allRemote.where(ComicSyncCore.isSyncRootPath).toList();
 
   final remoteMd5 = await _downloadRemoteText(
     adapter,
@@ -94,182 +95,314 @@ Future<void> _syncSettings(
   );
 
   logger.d(
-    '设置同步状态: remoteMd5=$remoteMd5, '
-    'lastRemoteMd5=${localSyncState.lastRemoteMd5}, '
-    'localMd5=$localMd5, '
-    'lastLocalMd5=${localSyncState.lastLocalMd5}',
+    '[sync][settings] precheck localTime=$localSyncTime localMd5=$localMd5 remoteMd5=$remoteMd5 remoteFiles=${syncRootFiles.length}',
   );
 
-  if (remoteMd5.isEmpty) {
-    logger.d('设置同步决策: 远端不存在设置，上传本地设置');
-    await _uploadSettingsPayload(adapter, localBytes, localMd5);
-    await _writeLocalSettingsSyncState(
-      _LocalSettingsSyncState(lastRemoteMd5: localMd5, lastLocalMd5: localMd5),
-    );
+  if (remoteMd5.isNotEmpty && remoteMd5 == localMd5) {
+    logger.d('[sync][settings] decision=skip reason=md5_equal');
     return;
   }
 
-  if (remoteMd5 == localSyncState.lastRemoteMd5) {
-    if (localMd5 != localSyncState.lastLocalMd5) {
-      logger.d('设置同步决策: 远端未变且本地已变，上传本地设置');
-      await _uploadSettingsPayload(adapter, localBytes, localMd5);
-      await _writeLocalSettingsSyncState(
-        _LocalSettingsSyncState(
-          lastRemoteMd5: localMd5,
-          lastLocalMd5: localMd5,
-        ),
-      );
-    } else {
-      logger.d('设置同步决策: 本地远端均未变，跳过设置同步');
-    }
-    return;
-  }
-
-  final localChangedSinceLastSync =
-      localSyncState.lastLocalMd5.isNotEmpty &&
-      localMd5 != localSyncState.lastLocalMd5;
-  if (localChangedSinceLastSync) {
-    logger.d('设置同步决策: 检测到双端可能冲突，按本地优先上传覆盖远端');
-    await _uploadSettingsPayload(adapter, localBytes, localMd5);
-    await _writeLocalSettingsSyncState(
-      _LocalSettingsSyncState(lastRemoteMd5: localMd5, lastLocalMd5: localMd5),
-    );
-    return;
-  }
-
-  final remoteBytes = await _downloadRemoteBytes(
+  final remoteData = await _selectLatestRemoteSettingsData(
     adapter,
-    _remoteSettingsJsonPath,
-    returnEmptyIfMissing: true,
+    syncRootFiles,
+    remoteMd5,
   );
-  if (remoteBytes.isEmpty) {
-    logger.w('设置同步决策: 远端 md5 存在但 settings.json 缺失，回填本地设置');
-    await _uploadSettingsPayload(adapter, localBytes, localMd5);
-    await _writeLocalSettingsSyncState(
-      _LocalSettingsSyncState(lastRemoteMd5: localMd5, lastLocalMd5: localMd5),
+
+  if (remoteMd5.isEmpty || remoteData == null) {
+    logger.d('[sync][settings] decision=upload reason=remote_missing');
+    await _uploadSettingsPayload(
+      adapter,
+      payloadBytes: localBytes,
+      payloadMd5: localMd5,
+      syncTime: localSyncTime,
     );
+    await _updateLocalSettingsSyncTime(
+      localGlobal,
+      syncTime: localSyncTime,
+      globalSettingCubit: globalSettingCubit,
+    );
+    await _cleanupRemoteSettingsFiles(adapter);
     return;
   }
 
-  final remotePayloadMd5 = ComicSyncCore.calculateMd5(remoteBytes);
-  if (remotePayloadMd5 != remoteMd5) {
-    logger.w('设置同步决策: 远端 settings.json 校验失败，回填本地设置');
-    await _uploadSettingsPayload(adapter, localBytes, localMd5);
-    await _writeLocalSettingsSyncState(
-      _LocalSettingsSyncState(lastRemoteMd5: localMd5, lastLocalMd5: localMd5),
+  final remotePayload = await _decodeSettingsPayload(remoteData.bytes);
+  final remoteSyncTime = _extractSyncTimeFromPayload(
+    remotePayload,
+    fallbackFromFileName: remoteData.timestamp,
+  );
+
+  logger.d(
+    '[sync][settings] compare localTime=$localSyncTime remoteTime=$remoteSyncTime '
+    'localMd5=$localMd5 remoteMd5=$remoteMd5 remoteFileTs=${remoteData.timestamp}',
+  );
+
+  if (localSyncTime > remoteSyncTime && localMd5 != remoteMd5) {
+    logger.d('[sync][settings] decision=upload reason=local_newer');
+    await _uploadSettingsPayload(
+      adapter,
+      payloadBytes: localBytes,
+      payloadMd5: localMd5,
+      syncTime: localSyncTime,
     );
+    await _updateLocalSettingsSyncTime(
+      localGlobal,
+      syncTime: localSyncTime,
+      globalSettingCubit: globalSettingCubit,
+    );
+    await _cleanupRemoteSettingsFiles(adapter);
     return;
   }
 
-  logger.d('设置同步决策: 远端已更新且本地未改，应用远端设置到本地');
-
-  final remotePayload = _decodeSettingsPayload(remoteBytes);
-  final globalSettingJson = _toJsonMap(remotePayload['globalSetting']);
-  if (globalSettingJson.isNotEmpty) {
-    final remoteGlobalSetting = GlobalSettingState.fromJson(
-      globalSettingJson,
-    ).syncLegacyAndNested();
-    globalSettingCubit.updateState((_) => remoteGlobalSetting);
-  }
-
-  final bikaSettingJson = _toJsonMap(remotePayload['bikaSetting']);
-  if (bikaSettingJson.isNotEmpty) {
-    final localAuthorization = bikaSettingCubit.state.authorization;
-    bikaSettingCubit.applySyncedState(
-      BikaSettingState.fromJson(
-        bikaSettingJson,
-      ).copyWith(authorization: localAuthorization),
+  if (localSyncTime < remoteSyncTime) {
+    logger.d('[sync][settings] decision=apply_remote reason=remote_newer');
+    await _applyRemoteSettingsPayload(
+      remotePayload,
+      remoteSyncTime: remoteSyncTime,
+      globalSettingCubit: globalSettingCubit,
     );
+    await _cleanupRemoteSettingsFiles(adapter);
+    return;
   }
 
-  final jmSettingJson = _toJsonMap(remotePayload['jmSetting']);
-  if (jmSettingJson.isNotEmpty) {
-    final localLoginStatus = jmSettingCubit.state.loginStatus;
-    jmSettingCubit.applySyncedState(
-      JmSettingState.fromJson(
-        jmSettingJson,
-      ).copyWith(loginStatus: localLoginStatus),
+  if (localMd5 != remoteMd5) {
+    logger.d(
+      '[sync][settings] decision=upload reason=same_time_local_preferred',
     );
+    await _uploadSettingsPayload(
+      adapter,
+      payloadBytes: localBytes,
+      payloadMd5: localMd5,
+      syncTime: localSyncTime,
+    );
+    await _updateLocalSettingsSyncTime(
+      localGlobal,
+      syncTime: localSyncTime,
+      globalSettingCubit: globalSettingCubit,
+    );
+    await _cleanupRemoteSettingsFiles(adapter);
+    return;
   }
 
-  final appliedPayload = _buildSettingsPayload(
-    globalSettingCubit.state,
-    bikaSettingCubit.state,
-    jmSettingCubit.state,
+  await _updateLocalSettingsSyncTime(
+    localGlobal,
+    syncTime: remoteSyncTime,
+    globalSettingCubit: globalSettingCubit,
   );
-  final appliedLocalMd5 = ComicSyncCore.calculateMd5(
-    _encodeSettingsPayload(appliedPayload),
-  );
-  await _writeLocalSettingsSyncState(
-    _LocalSettingsSyncState(
-      lastRemoteMd5: remoteMd5,
-      lastLocalMd5: appliedLocalMd5,
-    ),
-  );
-  logger.d('设置同步完成: 已应用远端设置并刷新本地同步状态');
+  await _cleanupRemoteSettingsFiles(adapter);
+  logger.d('[sync][settings] decision=skip reason=content_equal_after_compare');
 }
 
 Map<String, dynamic> _buildSettingsPayload(
   GlobalSettingState globalSetting,
-  BikaSettingState bikaSetting,
-  JmSettingState jmSetting,
+  int syncTime,
 ) {
+  final sanitizedGlobal = globalSetting.copyWith(
+    syncSetting: globalSetting.syncSetting.copyWith(settingsSyncTime: 0),
+  );
+
+  final pluginConfigs = objectbox.pluginConfigBox.getAll().map((item) {
+    final json = item.toJson();
+    json.remove('id');
+    return json;
+  }).toList();
+
+  final pluginInfos = objectbox.pluginInfoBox.getAll().map((item) {
+    final json = item.toJson();
+    json.remove('id');
+    return json;
+  }).toList();
+
   return {
-    'globalSetting': globalSetting.copyWith(md5: '').toJson(),
-    'bikaSetting': () {
-      final json = Map<String, dynamic>.from(bikaSetting.toJson());
-      json.remove('authorization');
-      return json;
-    }(),
-    'jmSetting': () {
-      final json = Map<String, dynamic>.from(jmSetting.toJson());
-      json.remove('loginStatus');
-      return json;
-    }(),
+    'version': syncDataVersion,
+    'syncTime': syncTime,
+    'globalSetting': sanitizedGlobal.toJson(),
+    'pluginConfigs': pluginConfigs,
+    'pluginInfos': pluginInfos,
   };
 }
 
-List<int> _encodeSettingsPayload(Map<String, dynamic> payload) {
-  final source = jsonEncode(payload);
-  final key = Key.fromUtf8('XY!Ex3j3hP^BGPFanYEjBA!L!oD2kkCN');
-  final iv = IV.fromUtf8('7qFwTxwH&iyuw35f');
-  final encrypter = Encrypter(AES(key, mode: AESMode.ctr));
-  final encrypted = encrypter.encrypt(source, iv: iv);
-  final encoded = utf8.encode(encrypted.base64);
-  return GZipEncoder().encode(encoded);
-}
+Future<void> _applyRemoteSettingsPayload(
+  Map<String, dynamic> remotePayload, {
+  required int remoteSyncTime,
+  required GlobalSettingCubit? globalSettingCubit,
+}) async {
+  final localGlobal =
+      globalSettingCubit?.state ??
+      objectbox.userSettingBox.get(1)!.globalSetting;
+  final globalSettingJson = _toJsonMap(remotePayload['globalSetting']);
+  final pluginConfigJsonList = _toJsonMapList(remotePayload['pluginConfigs']);
+  final pluginInfoJsonList = _toJsonMapList(remotePayload['pluginInfos']);
 
-Map<String, dynamic> _decodeSettingsPayload(List<int> payloadBytes) {
-  try {
-    final jsonString = _decompressAndDecryptSettings(payloadBytes);
-    final payloadRaw = jsonDecode(jsonString);
-    return _toJsonMap(payloadRaw);
-  } catch (_) {
-    final payloadRaw = jsonDecode(utf8.decode(payloadBytes));
-    return _toJsonMap(payloadRaw);
+  final remoteGlobal = globalSettingJson.isEmpty
+      ? localGlobal
+      : GlobalSettingState.fromJson(globalSettingJson);
+  final mergedGlobal = remoteGlobal.copyWith(
+    syncSetting: remoteGlobal.syncSetting.copyWith(
+      settingsSyncTime: remoteSyncTime,
+    ),
+  );
+
+  if (globalSettingCubit != null) {
+    globalSettingCubit.applySyncedState(mergedGlobal);
+  } else {
+    final user = objectbox.userSettingBox.get(1);
+    if (user != null) {
+      user.globalSetting = mergedGlobal;
+      objectbox.userSettingBox.put(user);
+    }
+  }
+
+  final remotePluginConfigs = pluginConfigJsonList
+      .map(PluginConfig.fromJson)
+      .map((item) => PluginConfig(name: item.name, config: item.config))
+      .toList();
+  objectbox.pluginConfigBox.removeAll();
+  if (remotePluginConfigs.isNotEmpty) {
+    objectbox.pluginConfigBox.putMany(remotePluginConfigs);
+  }
+
+  final remotePluginInfos = pluginInfoJsonList
+      .map(PluginInfo.fromJson)
+      .map(
+        (item) => PluginInfo(
+          uuid: item.uuid,
+          version: item.version,
+          originScript: item.originScript,
+          insertedAt: item.insertedAt,
+          updatedAt: item.updatedAt,
+          isEnabled: item.isEnabled,
+          isDeleted: item.isDeleted,
+          deletedAt: item.deletedAt,
+          lastLoadSuccess: item.lastLoadSuccess,
+          lastLoadError: item.lastLoadError,
+          debug: item.debug,
+          debugUrl: item.debugUrl,
+        ),
+      )
+      .toList();
+  objectbox.pluginInfoBox.removeAll();
+  if (remotePluginInfos.isNotEmpty) {
+    objectbox.pluginInfoBox.putMany(remotePluginInfos);
   }
 }
 
-String _decompressAndDecryptSettings(List<int> payloadBytes) {
-  final decodedBytes = GZipDecoder().decodeBytes(payloadBytes);
-  final encryptedText = utf8.decode(decodedBytes);
-  final key = Key.fromUtf8('XY!Ex3j3hP^BGPFanYEjBA!L!oD2kkCN');
-  final iv = IV.fromUtf8('7qFwTxwH&iyuw35f');
-  final encrypter = Encrypter(AES(key, mode: AESMode.ctr));
-  return encrypter.decrypt64(encryptedText, iv: iv);
+Future<void> _updateLocalSettingsSyncTime(
+  GlobalSettingState localGlobal, {
+  required int syncTime,
+  required GlobalSettingCubit? globalSettingCubit,
+}) async {
+  final merged = localGlobal.copyWith(
+    syncSetting: localGlobal.syncSetting.copyWith(settingsSyncTime: syncTime),
+  );
+  if (globalSettingCubit != null) {
+    globalSettingCubit.applySyncedState(merged);
+  } else {
+    final user = objectbox.userSettingBox.get(1);
+    if (user != null) {
+      user.globalSetting = merged;
+      objectbox.userSettingBox.put(user);
+    }
+  }
 }
 
 Future<void> _uploadSettingsPayload(
-  ComicSyncRemoteAdapter adapter,
-  List<int> payloadBytes,
-  String payloadMd5,
-) async {
-  await adapter.uploadRemoteFile(_remoteSettingsJsonPath, payloadBytes);
+  ComicSyncRemoteAdapter adapter, {
+  required List<int> payloadBytes,
+  required String payloadMd5,
+  required int syncTime,
+}) async {
+  final fileName = ComicSyncCore.buildSettingsDataFileName(syncTime);
+  await adapter.uploadRemoteFile(fileName, payloadBytes);
   await adapter.uploadRemoteFile(
     _remoteSettingsMd5Path,
     utf8.encode(payloadMd5),
     contentType: 'text/plain; charset=utf-8',
   );
+  logger.d('[sync][settings] uploaded file=$fileName md5=$payloadMd5');
+}
+
+Future<void> _cleanupRemoteSettingsFiles(ComicSyncRemoteAdapter adapter) async {
+  final allRemote = await adapter.listRemoteDataFiles();
+
+  final legacyFiles = allRemote
+      .where(ComicSyncCore.isLegacyRemotePath)
+      .toList();
+  if (legacyFiles.isNotEmpty) {
+    await adapter.deleteRemoteFiles(legacyFiles);
+  }
+
+  final syncRootFiles = allRemote.where(ComicSyncCore.isSyncRootPath).toList();
+  final settingsFiles = syncRootFiles.where((path) {
+    final fileName = ComicSyncCore.extractFileName(path);
+    return ComicSyncCore.isSettingsDataFileName(fileName);
+  }).toList();
+  final sorted = ComicSyncCore.sortSettingsFilesByTimestampDesc(settingsFiles);
+
+  final keep = <String>{
+    '${ComicSyncCore.syncRemoteRootName}/${ComicSyncCore.settingsMd5FileName}',
+  };
+  for (var i = 0; i < sorted.length; i++) {
+    if (i < 3) {
+      keep.add(ComicSyncCore.normalizeRemotePathNoLeadingSlash(sorted[i]));
+    }
+  }
+
+  final stale = settingsFiles.where((path) {
+    final normalized = ComicSyncCore.normalizeRemotePathNoLeadingSlash(path);
+    return !keep.contains(normalized);
+  }).toList();
+  if (stale.isNotEmpty) {
+    await adapter.deleteRemoteFiles(stale);
+  }
+}
+
+Future<_RemoteSettingsData?> _selectLatestRemoteSettingsData(
+  ComicSyncRemoteAdapter adapter,
+  List<String> remotePaths,
+  String remoteMd5,
+) async {
+  final sorted = ComicSyncCore.sortSettingsFilesByTimestampDesc(remotePaths);
+  if (sorted.isEmpty || remoteMd5.isEmpty) {
+    return null;
+  }
+
+  for (final path in sorted) {
+    try {
+      final bytes = await adapter.downloadRemoteFile(path);
+      final md5 = ComicSyncCore.calculateMd5(bytes);
+      if (md5 == remoteMd5) {
+        return _RemoteSettingsData(
+          bytes: bytes,
+          timestamp:
+              ComicSyncCore.extractSettingsTimestampFromRemotePath(path) ?? 0,
+        );
+      }
+    } catch (e) {
+      logger.w('远端设置文件读取失败，尝试更旧版本: $path, error: $e');
+    }
+  }
+
+  return null;
+}
+
+Future<Map<String, dynamic>> _decodeSettingsPayload(
+  List<int> payloadBytes,
+) async {
+  final raw = await ComicSyncCore.decodeEncryptedPayload(payloadBytes);
+  final payloadRaw = jsonDecode(utf8.decode(raw));
+  return _toJsonMap(payloadRaw);
+}
+
+int _extractSyncTimeFromPayload(
+  Map<String, dynamic> payload, {
+  required int fallbackFromFileName,
+}) {
+  final syncTime = int.tryParse(payload['syncTime']?.toString() ?? '') ?? 0;
+  if (syncTime > 0) {
+    return syncTime;
+  }
+  return fallbackFromFileName;
 }
 
 Future<String> _downloadRemoteText(
@@ -315,69 +448,38 @@ bool _isNotFoundError(Object error) {
       lower.contains('no such key');
 }
 
-Future<_LocalSettingsSyncState> _readLocalSettingsSyncState() async {
-  final file = await _localSettingsSyncStateFile();
-  if (!await file.exists()) {
-    return const _LocalSettingsSyncState();
-  }
-
-  try {
-    final text = await file.readAsString();
-    if (text.trim().isEmpty) {
-      return const _LocalSettingsSyncState();
-    }
-    final raw = jsonDecode(text);
-    return _LocalSettingsSyncState.fromJson(_toJsonMap(raw));
-  } catch (_) {
-    return const _LocalSettingsSyncState();
-  }
-}
-
-Future<void> _writeLocalSettingsSyncState(_LocalSettingsSyncState state) async {
-  final file = await _localSettingsSyncStateFile();
-  await file.writeAsString(jsonEncode(state.toJson()), flush: true);
-}
-
-Future<File> _localSettingsSyncStateFile() async {
-  final dbPath = await getDbPath();
-  return File(p.join(dbPath, 'settings_sync_state.json'));
-}
-
-String get _remoteSettingsBaseDir => '${appName}_setting';
-
-String get _remoteSettingsJsonPath => '$_remoteSettingsBaseDir/settings.json';
-
-String get _remoteSettingsMd5Path => '$_remoteSettingsBaseDir/settings.md5';
-
 Map<String, dynamic> _toJsonMap(Object? value) {
   if (value is Map<String, dynamic>) {
     return Map<String, dynamic>.from(value);
   }
-
   if (value is Map) {
     return value.map((key, val) => MapEntry(key.toString(), val));
   }
-
   return <String, dynamic>{};
 }
 
-class _LocalSettingsSyncState {
-  const _LocalSettingsSyncState({
-    this.lastRemoteMd5 = '',
-    this.lastLocalMd5 = '',
-  });
+List<Map<String, dynamic>> _toJsonMapList(Object? value) {
+  final raw = (value as List? ?? const []);
+  return raw
+      .map((item) {
+        if (item is Map<String, dynamic>) {
+          return Map<String, dynamic>.from(item);
+        }
+        if (item is Map) {
+          return item.map((key, val) => MapEntry(key.toString(), val));
+        }
+        return <String, dynamic>{};
+      })
+      .where((item) => item.isNotEmpty)
+      .toList();
+}
 
-  final String lastRemoteMd5;
-  final String lastLocalMd5;
+String get _remoteSettingsMd5Path =>
+    '${ComicSyncCore.syncRemoteRootName}/${ComicSyncCore.settingsMd5FileName}';
 
-  factory _LocalSettingsSyncState.fromJson(Map<String, dynamic> json) {
-    return _LocalSettingsSyncState(
-      lastRemoteMd5: (json['lastRemoteMd5'] ?? '').toString(),
-      lastLocalMd5: (json['lastLocalMd5'] ?? '').toString(),
-    );
-  }
+class _RemoteSettingsData {
+  const _RemoteSettingsData({required this.bytes, required this.timestamp});
 
-  Map<String, dynamic> toJson() {
-    return {'lastRemoteMd5': lastRemoteMd5, 'lastLocalMd5': lastLocalMd5};
-  }
+  final List<int> bytes;
+  final int timestamp;
 }

@@ -110,12 +110,12 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
     final localCoverExtension = Map<String, dynamic>.from(
       localCover['extension'] as Map? ?? const <String, dynamic>{},
     );
-    final coverPath = normalComicInfo.comicInfo.cover.name;
-    if (coverPath.isNotEmpty) {
+    final coverPathFromExt =
+        localCoverExtension['path']?.toString().trim() ?? '';
+    if (coverPathFromExt.isNotEmpty) {
       localCoverExtension['path'] = p.join(
         comicInfo.storageRoot,
-        'cover',
-        coverPath,
+        coverPathFromExt,
       );
     }
     localCover['extension'] = localCoverExtension;

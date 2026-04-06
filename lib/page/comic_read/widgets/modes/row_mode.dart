@@ -62,7 +62,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
   @override
   Widget build(BuildContext context) {
     final globalSettingState = context.watch<GlobalSettingCubit>().state;
-    final readMode = globalSettingState.readMode;
+    final readMode = globalSettingState.readSetting.readMode;
     final readSetting = globalSettingState.readSetting;
     final isDoublePage = readSetting.doublePageMode;
     final slotCount = getReadModeSlotCount(
@@ -269,7 +269,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
         path: widget.docs[docIndex].path,
         cartoonId: widget.comicId,
         chapterId: widget.epsId,
-        pictureType: PictureType.comic,
+        pictureType: PictureType.page,
       ),
       index: slotIndex,
       isColumn: false,

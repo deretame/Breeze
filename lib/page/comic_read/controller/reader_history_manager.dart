@@ -156,10 +156,10 @@ class ReaderHistoryManager {
           comicId: comicId,
           title: normalInfo.title,
           description: normalInfo.description,
-          cover: _normalizeFlexMap(normalInfo.cover),
-          creator: _normalizeFlexMap(normalInfo.creator),
-          titleMeta: _normalizeFlexList(normalInfo.titleMeta),
-          metadata: _normalizeFlexList(normalInfo.metadata),
+          cover: _normalizeFlexMapString(normalInfo.cover),
+          creator: _normalizeFlexMapString(normalInfo.creator),
+          titleMeta: _normalizeFlexListString(normalInfo.titleMeta),
+          metadata: _normalizeMetadataString(normalInfo.metadata),
           chapterId: chapterId,
           chapterTitle: chapterTitle,
           chapterOrder: chapterOrder,
@@ -174,10 +174,10 @@ class ReaderHistoryManager {
     entity
       ..title = normalInfo.title
       ..description = normalInfo.description
-      ..cover = _normalizeFlexMap(normalInfo.cover)
-      ..creator = _normalizeFlexMap(normalInfo.creator)
-      ..titleMeta = _normalizeFlexList(normalInfo.titleMeta)
-      ..metadata = _normalizeFlexList(normalInfo.metadata)
+      ..cover = _normalizeFlexMapString(normalInfo.cover)
+      ..creator = _normalizeFlexMapString(normalInfo.creator)
+      ..titleMeta = _normalizeFlexListString(normalInfo.titleMeta)
+      ..metadata = _normalizeMetadataString(normalInfo.metadata)
       ..chapterId = chapterId
       ..chapterTitle = chapterTitle
       ..chapterOrder = chapterOrder
@@ -209,5 +209,18 @@ class ReaderHistoryManager {
           .toList();
     }
     return <Map<String, dynamic>>[];
+  }
+
+  String _normalizeFlexMapString(dynamic value) {
+    return jsonEncode(_normalizeFlexMap(value));
+  }
+
+  String _normalizeFlexListString(List<dynamic> value) {
+    return jsonEncode(_normalizeFlexList(value));
+  }
+
+  String _normalizeMetadataString(List<dynamic> value) {
+    final normalized = _normalizeFlexList(value);
+    return jsonEncode(normalized);
   }
 }

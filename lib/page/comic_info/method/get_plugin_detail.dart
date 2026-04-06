@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
@@ -119,7 +121,7 @@ List<UnifiedComicChapterRef> resolveUnifiedComicChapters(
   }
 
   if (comicInfo is UnifiedComicDownload) {
-    return (comicInfo.chapters ?? const <Map<String, dynamic>>[])
+    return _decodeListOfMaps(comicInfo.chapters)
         .map(
           (ep) => UnifiedComicChapterRef(
             id: ep['id']?.toString() ?? '',
@@ -131,6 +133,24 @@ List<UnifiedComicChapterRef> resolveUnifiedComicChapters(
   }
 
   return const <UnifiedComicChapterRef>[];
+}
+
+List<Map<String, dynamic>> _decodeListOfMaps(String raw) {
+  if (raw.trim().isEmpty) {
+    return const <Map<String, dynamic>>[];
+  }
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is! List) {
+      return const <Map<String, dynamic>>[];
+    }
+    return decoded
+        .whereType<Map>()
+        .map((entry) => Map<String, dynamic>.from(entry))
+        .toList();
+  } catch (_) {
+    return const <Map<String, dynamic>>[];
+  }
 }
 
 int _toInt(Object? value, int fallback) {

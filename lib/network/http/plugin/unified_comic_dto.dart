@@ -97,7 +97,7 @@ class UnifiedPluginChapterDoc {
   factory UnifiedPluginChapterDoc.fromMap(Map<String, dynamic> map) {
     return UnifiedPluginChapterDoc(
       name: map['name']?.toString() ?? map['originalName']?.toString() ?? '',
-      path: map['path']?.toString() ?? map['fileName']?.toString() ?? '',
+      path: map['path']?.toString() ?? '',
       url: map['url']?.toString() ?? map['fileServer']?.toString() ?? '',
       id: map['id']?.toString() ?? '',
     );

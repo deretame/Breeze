@@ -37,7 +37,7 @@ Future<void> testWebDavServer(
     }
 
     final propfindResponse = await dio.request(
-      '/$appName/',
+      '/${appName}_$syncVersion/',
       options: Options(
         method: 'PROPFIND',
         headers: {'Depth': '0'},

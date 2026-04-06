@@ -45,9 +45,9 @@ class _ReadModeSection extends StatelessWidget {
           children: [
             _SettingsChoiceChip(
               title: '条漫',
-              selected: globalSettingState.readMode == 0,
+              selected: globalSettingState.readSetting.readMode == 0,
               onTap: () {
-                if (globalSettingState.readMode == 0) {
+                if (globalSettingState.readSetting.readMode == 0) {
                   return;
                 }
                 globalSettingCubit.updateReadSetting(
@@ -58,9 +58,9 @@ class _ReadModeSection extends StatelessWidget {
             ),
             _SettingsChoiceChip(
               title: '单页式（从左到右）',
-              selected: globalSettingState.readMode == 1,
+              selected: globalSettingState.readSetting.readMode == 1,
               onTap: () {
-                if (globalSettingState.readMode == 1) {
+                if (globalSettingState.readSetting.readMode == 1) {
                   return;
                 }
                 globalSettingCubit.updateReadSetting(
@@ -71,9 +71,9 @@ class _ReadModeSection extends StatelessWidget {
             ),
             _SettingsChoiceChip(
               title: '单页式（从右到左）',
-              selected: globalSettingState.readMode == 2,
+              selected: globalSettingState.readSetting.readMode == 2,
               onTap: () {
-                if (globalSettingState.readMode == 2) {
+                if (globalSettingState.readSetting.readMode == 2) {
                   return;
                 }
                 globalSettingCubit.updateReadSetting(

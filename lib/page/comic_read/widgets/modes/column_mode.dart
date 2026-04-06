@@ -59,7 +59,7 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final hideTop = context.select(
-          (GlobalSettingCubit c) => !c.state.comicReadTopContainer,
+          (GlobalSettingCubit c) => !c.state.readSetting.comicReadTopContainer,
         );
         final mediaQuery = MediaQuery.of(context);
         final readSetting = context.select(
@@ -246,7 +246,7 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
         path: widget.docs[index].path,
         cartoonId: widget.comicId,
         chapterId: widget.epsId,
-        pictureType: PictureType.comic,
+        pictureType: PictureType.page,
       ),
       index: index,
       isColumn: true,

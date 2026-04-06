@@ -36,6 +36,7 @@ rquickjs_playground = { path = "../rquickjs_playground" }
 chrono = "0.4.44"
 terminal_size = "0.4.4"
 ferrous-opencc = "0.3"
+brotli = "8.0.2"
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.15.1"
 tracing-logcat = "0.1.0"
@@ -48,3 +49,13 @@ unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
 
 [build-dependencies]
 ureq = "3.3.0"
+
+[profile.dev]
+# 关闭调试符号生成
+debug = 0
+
+# 减少中间产物
+opt-level = 1
+
+# 减少增量编译生成的碎片文件
+incremental = true

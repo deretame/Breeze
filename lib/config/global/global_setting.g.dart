@@ -25,11 +25,6 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
   syncSetting: json['syncSetting'] == null
       ? const SyncSettingState()
       : SyncSettingState.fromJson(json['syncSetting'] as Map<String, dynamic>),
-  md5: json['md5'] as String? ?? '',
-  autoSync: json['autoSync'] as bool? ?? true,
-  syncNotify: json['syncNotify'] as bool? ?? true,
-  comicReadTopContainer: json['comicReadTopContainer'] as bool? ?? true,
-  readMode: (json['readMode'] as num?)?.toInt() ?? 0,
   maskedKeywords:
       (json['maskedKeywords'] as List<dynamic>?)
           ?.map((e) => e as String)
@@ -67,11 +62,6 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'locale': const LocaleConverter().toJson(instance.locale),
       'welcomePageNum': instance.welcomePageNum,
       'syncSetting': instance.syncSetting,
-      'md5': instance.md5,
-      'autoSync': instance.autoSync,
-      'syncNotify': instance.syncNotify,
-      'comicReadTopContainer': instance.comicReadTopContainer,
-      'readMode': instance.readMode,
       'maskedKeywords': instance.maskedKeywords,
       'socks5Proxy': instance.socks5Proxy,
       'needCleanCache': instance.needCleanCache,
@@ -150,6 +140,7 @@ _SyncSettingState _$SyncSettingStateFromJson(Map<String, dynamic> json) =>
       syncSettings: json['syncSettings'] as bool? ?? false,
       autoSync: json['autoSync'] as bool? ?? true,
       syncNotify: json['syncNotify'] as bool? ?? true,
+      settingsSyncTime: (json['settingsSyncTime'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$SyncSettingStateToJson(_SyncSettingState instance) =>
@@ -160,6 +151,7 @@ Map<String, dynamic> _$SyncSettingStateToJson(_SyncSettingState instance) =>
       'syncSettings': instance.syncSettings,
       'autoSync': instance.autoSync,
       'syncNotify': instance.syncNotify,
+      'settingsSyncTime': instance.settingsSyncTime,
     };
 
 const _$SyncServiceTypeEnumMap = {

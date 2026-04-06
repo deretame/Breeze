@@ -2,7 +2,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
-import 'package:zephyr/main.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../util/router/router.gr.dart';
@@ -126,93 +125,175 @@ class _KeywordManagementDialogState extends State<_KeywordManagementDialog> {
 
     return BlocBuilder<GlobalSettingCubit, GlobalSettingState>(
       builder: (context, state) {
-        return AlertDialog(
-          title: const Text('屏蔽关键词管理'),
-          content: SizedBox(
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
             width: double.maxFinite,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (state.maskedKeywords.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: Center(
-                        child: Text(
-                          "暂无屏蔽词",
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ),
-                    )
-                  else
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: List.generate(state.maskedKeywords.length, (
-                        index,
-                      ) {
-                        return Chip(
-                          label: Text(state.maskedKeywords[index]),
-                          deleteIcon: const Icon(Icons.close, size: 18),
-                          avatar: const Icon(
-                            Icons.label_important_outline,
-                            size: 18,
-                          ),
-                          onDeleted: () {
-                            final newList = List<String>.from(
-                              state.maskedKeywords,
-                            );
-                            newList.removeAt(index);
-                            logger.d(newList);
-                            globalSettingCubit.updateState(
-                              (current) =>
-                                  current.copyWith(maskedKeywords: newList),
-                            );
-                          },
-                        );
-                      }),
-                    ),
-                  const SizedBox(height: 16),
-                  const Divider(),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _controller,
-                          decoration: const InputDecoration(
-                            hintText: '输入新关键词',
-                            isDense: true,
-                            prefixIcon: Icon(Icons.search_outlined),
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 10,
+            constraints: const BoxConstraints(maxWidth: 400),
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '屏蔽关键词',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '添加过滤不喜欢的内容标签',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.all(12),
+                  constraints: const BoxConstraints(
+                    minHeight: 120,
+                    maxHeight: 240,
+                  ),
+                  width: double.infinity,
+                  child: SingleChildScrollView(
+                    child: state.maskedKeywords.isEmpty
+                        ? const Center(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 36),
+                              child: Text(
+                                "暂无屏蔽词",
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          )
+                        : Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: List.generate(
+                              state.maskedKeywords.length,
+                              (index) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primaryContainer,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        state.maskedKeywords[index],
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimaryContainer,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      MouseRegion(
+                                        cursor: SystemMouseCursors.click,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            final newList = List<String>.from(
+                                              state.maskedKeywords,
+                                            );
+                                            newList.removeAt(index);
+                                            globalSettingCubit.updateState(
+                                              (current) => current.copyWith(
+                                                maskedKeywords: newList,
+                                              ),
+                                            );
+                                          },
+                                          child: Icon(
+                                            Icons.close,
+                                            size: 14,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onPrimaryContainer
+                                                .withValues(alpha: 0.7),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
                             ),
                           ),
-                          onSubmitted: (_) =>
-                              _addKeyword(globalSettingCubit, state),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      FilledButton.tonalIcon(
-                        icon: const Icon(Icons.add),
-                        label: const Text('添加'),
-                        onPressed: () => _addKeyword(globalSettingCubit, state),
-                      ),
-                    ],
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        style: const TextStyle(fontSize: 14),
+                        decoration: InputDecoration(
+                          hintText: '输入新关键词...',
+                          hintStyle: const TextStyle(fontSize: 14),
+                          filled: true,
+                          fillColor: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest
+                              .withValues(alpha: 0.5),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        onSubmitted: (_) =>
+                            _addKeyword(globalSettingCubit, state),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton.filledTonal(
+                      onPressed: () => _addKeyword(globalSettingCubit, state),
+                      icon: const Icon(Icons.add, size: 20),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text('完成'),
+                  ),
+                ),
+              ],
             ),
           ),
-          actions: [
-            TextButton(
-              child: const Text('关闭'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
         );
       },
     );

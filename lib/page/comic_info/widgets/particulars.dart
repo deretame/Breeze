@@ -31,12 +31,8 @@ class ComicParticularsWidget extends StatelessWidget {
     final pictureInfo = PictureInfo(
       from: from,
       url: comicInfo.cover.url,
-      path:
-          coverExtension['path']?.toString() ??
-          (comicInfo.cover.name.isNotEmpty
-              ? comicInfo.cover.name
-              : comicInfo.id),
-      chapterId: comicInfo.id,
+      path: coverExtension['path']?.toString() ?? '',
+      chapterId: '',
       pictureType: PictureType.cover,
       cartoonId: comicInfo.id,
     );

@@ -1,5 +1,5 @@
 import 'package:zephyr/main.dart';
-import 'package:zephyr/network/sync/comic_sync_core.dart';
+import 'package:zephyr/network/sync/sync_service.dart';
 import 'package:zephyr/network/sync/webdav_sync_service.dart';
 
 Future<void> testWebDavServer() async {
@@ -10,6 +10,5 @@ Future<void> testWebDavServer() async {
 
 Future<void> syncWithWebDav() async {
   final settings = objectbox.userSettingBox.get(1)!.globalSetting;
-  final service = WebDavSyncService(settings);
-  await runComicSync(service);
+  await autoSync(settings);
 }

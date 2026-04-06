@@ -39,7 +39,6 @@ Future<String> downloadCoverAsset({
 Future<void> downloadImageJobs({
   required String from,
   required List<DownloadImageJob> jobs,
-  required bool slowDownload,
   int? concurrency,
   required String qjsRuntimeName,
   required String qjsTaskGroupKey,
@@ -56,26 +55,6 @@ Future<void> downloadImageJobs({
     return;
   }
 
-  if (slowDownload) {
-    var progress = 0;
-    for (final job in jobs) {
-      await ensureTaskRunning();
-      await _downloadSingleJob(
-        from: from,
-        job: job,
-        qjsRuntimeName: qjsRuntimeName,
-        qjsTaskGroupKey: qjsTaskGroupKey,
-        onError: onError,
-      );
-      progress++;
-      updateProgress(
-        progress,
-        '漫画下载进度: ${(progress / jobs.length * 100).toStringAsFixed(2)}%',
-      );
-    }
-    return;
-  }
-
   final pool = Pool(concurrency ?? 5);
   var progress = 0;
   var lastReportedPercent = 0;
@@ -89,6 +68,7 @@ Future<void> downloadImageJobs({
         qjsRuntimeName: qjsRuntimeName,
         qjsTaskGroupKey: qjsTaskGroupKey,
         onError: onError,
+        pictureType: PictureType.page,
       );
       progress++;
       final currentPercent = (progress / jobs.length * 100).floor();
@@ -109,6 +89,7 @@ Future<void> _downloadSingleJob({
   required String qjsRuntimeName,
   required String qjsTaskGroupKey,
   Future<void> Function(Object error, DownloadImageJob job)? onError,
+  PictureType pictureType = PictureType.comic,
 }) async {
   try {
     await downloadPicture(
@@ -117,7 +98,7 @@ Future<void> _downloadSingleJob({
       path: job.path,
       cartoonId: job.cartoonId,
       chapterId: job.chapterId,
-      pictureType: PictureType.comic,
+      pictureType: pictureType,
       qjsName: qjsRuntimeName,
       qjsTaskGroupKey: qjsTaskGroupKey,
     );

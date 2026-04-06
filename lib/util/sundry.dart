@@ -23,15 +23,13 @@ String onSavePluginConfig(String name, String key, String value) {
       final data = key.isEmpty
           ? <String, dynamic>{}
           : <String, dynamic>{key: parsedValue};
-      entity = PluginConfig(name: name, data: data);
+      entity = PluginConfig(name: name, config: jsonEncode(data));
     } else {
-      final data = Map<String, dynamic>.from(
-        entity.data ?? <String, dynamic>{},
-      );
+      final data = _decodeObjectMap(entity.config);
       if (key.isNotEmpty) {
         data[key] = parsedValue;
       }
-      entity.data = data;
+      entity.config = jsonEncode(data);
     }
 
     box.put(entity);
@@ -48,13 +46,30 @@ String onLoadPluginConfig(String name, String key, String fallback) {
         .build()
         .findFirst();
 
-    final data = Map<String, dynamic>.from(entity?.data ?? <String, dynamic>{});
+    final data = _decodeObjectMap(entity?.config ?? '');
     final value = key.isEmpty
         ? data
         : (data[key] ?? _decodeMaybeJson(fallback));
 
     return '{"ok":true,"value":${jsonEncode(value)}}';
   });
+}
+
+Map<String, dynamic> _decodeObjectMap(String raw) {
+  final text = raw.trim();
+  if (text.isEmpty) {
+    return <String, dynamic>{};
+  }
+  try {
+    final decoded = jsonDecode(text);
+    if (decoded is Map<String, dynamic>) {
+      return decoded;
+    }
+    if (decoded is Map) {
+      return decoded.map((key, value) => MapEntry(key.toString(), value));
+    }
+  } catch (_) {}
+  return <String, dynamic>{};
 }
 
 dynamic _decodeMaybeJson(String value) {

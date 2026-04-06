@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
+import 'dart:convert';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
@@ -103,8 +104,9 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
 
     // 过滤掉包含屏蔽分类的漫画
     return comics.where((comic) {
+      final metadata = _historyMetadata(comic.metadata);
       // 检查该漫画的分类是否与屏蔽分类列表中的任何分类匹配
-      return !(comic.metadata ?? const <Map<String, dynamic>>[]).any((entry) {
+      return !metadata.any((entry) {
         final type = entry['type']?.toString();
         if (type != 'categories') return false;
         final values = asJsonList(
@@ -135,7 +137,7 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
       if (event.searchEnterConst.categories.isNotEmpty) {
         for (var category in event.searchEnterConst.categories) {
           comicList = comicList.where((comic) {
-            final metadata = comic.metadata ?? const <Map<String, dynamic>>[];
+            final metadata = _historyMetadata(comic.metadata);
             return metadata.any((entry) {
               if (entry['type']?.toString() != 'categories') return false;
               final values = asJsonList(
@@ -155,9 +157,7 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
               comic.comicId +
               comic.title +
               comic.description +
-              ((comic.creator ?? const <String, dynamic>{})['name']
-                      ?.toString() ??
-                  '') +
+              _historyCreatorName(comic.creator) +
               comic.metadata.toString();
           return allString.toLowerCase().let(t2s).contains(keyword);
         }).toList();
@@ -179,12 +179,61 @@ class UserHistoryBloc extends Bloc<UserHistoryEvent, UserHistoryState> {
   }
 
   int _views(UnifiedComicHistory item) {
-    for (final entry in item.titleMeta ?? const <Map<String, dynamic>>[]) {
+    for (final entry in _historyTitleMeta(item.titleMeta)) {
       final name = entry['name']?.toString() ?? '';
       if (name.startsWith('浏览：')) {
         return int.tryParse(name.substring(3)) ?? 0;
       }
     }
     return 0;
+  }
+}
+
+String _historyCreatorName(String creatorJson) {
+  if (creatorJson.trim().isEmpty) {
+    return '';
+  }
+  try {
+    final decoded = jsonDecode(creatorJson);
+    if (decoded is Map) {
+      return decoded['name']?.toString() ?? '';
+    }
+  } catch (_) {}
+  return '';
+}
+
+List<Map<String, dynamic>> _historyTitleMeta(String titleMetaJson) {
+  if (titleMetaJson.trim().isEmpty) {
+    return const <Map<String, dynamic>>[];
+  }
+  try {
+    final decoded = jsonDecode(titleMetaJson);
+    if (decoded is! List) {
+      return const <Map<String, dynamic>>[];
+    }
+    return decoded
+        .whereType<Map>()
+        .map((entry) => Map<String, dynamic>.from(entry))
+        .toList();
+  } catch (_) {
+    return const <Map<String, dynamic>>[];
+  }
+}
+
+List<Map<String, dynamic>> _historyMetadata(String metadataJson) {
+  if (metadataJson.trim().isEmpty) {
+    return const <Map<String, dynamic>>[];
+  }
+  try {
+    final decoded = jsonDecode(metadataJson);
+    if (decoded is! List) {
+      return const <Map<String, dynamic>>[];
+    }
+    return decoded
+        .whereType<Map>()
+        .map((entry) => Map<String, dynamic>.from(entry))
+        .toList();
+  } catch (_) {
+    return const <Map<String, dynamic>>[];
   }
 }

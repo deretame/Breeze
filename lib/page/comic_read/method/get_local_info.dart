@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
@@ -30,7 +31,7 @@ Future<NormalComicEpInfo> getPluginInfoFromLocal(
     throw StateError('本地下载信息不存在: $resolvedPluginId:$comicId');
   }
 
-  final rawChapters = (download.chapters ?? const <Map<String, dynamic>>[]);
+  final rawChapters = _decodeListOfMaps(download.chapters);
   final epInfo = rawChapters.firstWhere(
     (e) =>
         (e['order'] as num?)?.toInt() == epsId ||
@@ -120,6 +121,24 @@ Future<NormalComicEpInfo> getPluginInfoFromLocal(
     epId: chapterId,
     epName: chapterName,
   );
+}
+
+List<Map<String, dynamic>> _decodeListOfMaps(String raw) {
+  if (raw.trim().isEmpty) {
+    return const <Map<String, dynamic>>[];
+  }
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is! List) {
+      return const <Map<String, dynamic>>[];
+    }
+    return decoded
+        .whereType<Map>()
+        .map((entry) => Map<String, dynamic>.from(entry))
+        .toList();
+  } catch (_) {
+    return const <Map<String, dynamic>>[];
+  }
 }
 
 Future<List<File>> _resolveOrderedFiles({

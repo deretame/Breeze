@@ -1,21 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/util/direct_dio.dart';
-import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
 class PluginRuntimeState {
   const PluginRuntimeState({
     required this.uuid,
     required this.version,
+    required this.originScript,
     required this.isEnabled,
     required this.isDeleted,
     required this.debug,
@@ -29,6 +27,7 @@ class PluginRuntimeState {
 
   final String uuid;
   final String version;
+  final String originScript;
   final bool isEnabled;
   final bool isDeleted;
   final bool debug;
@@ -43,6 +42,7 @@ class PluginRuntimeState {
 
   PluginRuntimeState copyWith({
     String? version,
+    String? originScript,
     bool? isEnabled,
     bool? isDeleted,
     bool? debug,
@@ -56,6 +56,7 @@ class PluginRuntimeState {
     return PluginRuntimeState(
       uuid: uuid,
       version: version ?? this.version,
+      originScript: originScript ?? this.originScript,
       isEnabled: isEnabled ?? this.isEnabled,
       isDeleted: isDeleted ?? this.isDeleted,
       debug: debug ?? this.debug,
@@ -166,7 +167,7 @@ class PluginRegistryService {
     }
 
     final onceRuntimeName = 'plugin_info_${uuid.replaceAll('-', '_')}';
-    final bundleJs = await _resolveBundleJs(plugin, runtimeName: runtimeName);
+    final bundleJs = await _resolveBundleJs(plugin);
     final raw = await qjsCallOnce(
       runtimeName: onceRuntimeName,
       bundleJs: bundleJs,
@@ -228,7 +229,7 @@ class PluginRegistryService {
     objectbox.pluginInfoBox.put(found);
     _states[uuid] = _toState(found);
     if (enabled) {
-      final runtimeName = resolveRuntimeName(uuid, fallback: uuid);
+      final runtimeName = resolveRuntimeName(uuid);
       await _ensurePluginRuntimeReady(_states[uuid]!, runtimeName: runtimeName);
       await _runPluginInitIfNeeded(_states[uuid]!, runtimeName: runtimeName);
     }
@@ -304,7 +305,7 @@ class PluginRegistryService {
     found.deletedAt = now;
     found.updatedAt = now;
 
-    final runtimeName = resolveRuntimeName(uuid, fallback: uuid);
+    final runtimeName = resolveRuntimeName(uuid);
     try {
       final runtimeReady = await isQjsRuntimeInitialized(name: runtimeName);
       if (runtimeReady) {
@@ -314,20 +315,6 @@ class PluginRegistryService {
       found.lastLoadError = 'runtime 销毁失败: $e';
     }
 
-    try {
-      final pluginsPath = await getPluginsPath();
-      final rootBundleJs = File(p.join(pluginsPath, '$uuid.bundle.js'));
-      if (await rootBundleJs.exists()) {
-        await rootBundleJs.delete();
-      }
-      final rootBundleCjs = File(p.join(pluginsPath, '$uuid.bundle.cjs'));
-      if (await rootBundleCjs.exists()) {
-        await rootBundleCjs.delete();
-      }
-    } catch (e) {
-      found.lastLoadError = '删除插件文件失败: $e';
-    }
-
     objectbox.pluginInfoBox.put(found);
     _states[uuid] = _toState(found);
     _pluginInfoCache.remove(uuid);
@@ -335,8 +322,8 @@ class PluginRegistryService {
     _emit();
   }
 
-  String resolveRuntimeName(String uuid, {String? fallback}) {
-    return fallback ?? uuid;
+  String resolveRuntimeName(String uuid) {
+    return uuid;
   }
 
   Future<void> _ensurePluginRuntimeReady(
@@ -347,7 +334,7 @@ class PluginRegistryService {
     if (ready) {
       return;
     }
-    final bundleJs = await _resolveBundleJs(plugin, runtimeName: runtimeName);
+    final bundleJs = await _resolveBundleJs(plugin);
     await initQjsRuntimeWithBundle(
       runtimeName: runtimeName,
       bundleName: runtimeName,
@@ -383,10 +370,7 @@ class PluginRegistryService {
     }
   }
 
-  Future<String> _resolveBundleJs(
-    PluginRuntimeState plugin, {
-    required String runtimeName,
-  }) async {
+  Future<String> _resolveBundleJs(PluginRuntimeState plugin) async {
     if (plugin.debug && (plugin.debugUrl?.trim().isNotEmpty ?? false)) {
       try {
         final response = await directDio.get(plugin.debugUrl!.trim());
@@ -402,51 +386,32 @@ class PluginRegistryService {
           success: false,
           error: 'debug bundle 拉取失败: $e',
         );
-        logger.w('debug bundle 拉取失败，回退本地: ${plugin.uuid}', error: e);
+        logger.w('debug bundle 拉取失败，回退数据库: ${plugin.uuid}', error: e);
       }
     }
 
-    final diskBundle = await _loadPluginBundleFromDisk(plugin.uuid);
-    if (diskBundle != null && diskBundle.trim().isNotEmpty) {
-      logger.d('[plugin-bundle] source=disk plugin=${plugin.uuid}');
-      return diskBundle;
+    final dbBundle = _loadPluginBundleFromDb(plugin.uuid);
+    if (dbBundle != null) {
+      logger.d('[plugin-bundle] source=db plugin=${plugin.uuid}');
+      return dbBundle;
     }
 
-    try {
-      final local = getJsBundle(name: runtimeName);
-      if (local.trim().isNotEmpty) {
-        logger.d('[plugin-bundle] source=builtin plugin=${plugin.uuid}');
-        return local;
-      }
-    } catch (_) {}
-    throw StateError('bundle_js不能为空: $runtimeName');
+    throw StateError('bundle_js不能为空: ${plugin.uuid}');
   }
 
-  Future<String?> _loadPluginBundleFromDisk(String pluginId) async {
-    final pluginsPath = await getPluginsPath();
-
-    final candidates = <File>[
-      File(p.join(pluginsPath, '$pluginId.bundle.js')),
-      File(p.join(pluginsPath, '$pluginId.bundle.cjs')),
-    ];
-    for (final file in candidates) {
-      if (!await file.exists()) {
-        continue;
-      }
-      try {
-        final text = await file.readAsString();
-        if (text.trim().isNotEmpty) {
-          return text;
-        }
-      } catch (_) {}
+  String? _loadPluginBundleFromDb(String pluginId) {
+    final text = _states[pluginId]?.originScript ?? '';
+    if (text.trim().isEmpty) {
+      return null;
     }
-    return null;
+    return text;
   }
 
   PluginRuntimeState _toState(PluginInfo item) {
     return PluginRuntimeState(
       uuid: item.uuid,
       version: item.version,
+      originScript: item.originScript,
       isEnabled: item.isEnabled,
       isDeleted: item.isDeleted,
       debug: item.debug,

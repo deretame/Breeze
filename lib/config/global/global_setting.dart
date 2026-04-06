@@ -74,11 +74,6 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @LocaleConverter() @Default(Locale('zh', 'CN')) Locale locale,
     @Default(0) int welcomePageNum,
     @Default(SyncSettingState()) SyncSettingState syncSetting,
-    @Default('') String md5,
-    @Default(true) bool autoSync,
-    @Default(true) bool syncNotify,
-    @Default(true) bool comicReadTopContainer,
-    @Default(0) int readMode,
     @Default([]) List<String> maskedKeywords,
     @Default('') String socks5Proxy,
     @Default(false) bool needCleanCache,
@@ -97,7 +92,7 @@ abstract class GlobalSettingState with _$GlobalSettingState {
   }) = _GlobalSettingState;
 
   factory GlobalSettingState.fromJson(Map<String, dynamic> json) =>
-      _$GlobalSettingStateFromJson(_migrateGlobalSettingJson(json));
+      _$GlobalSettingStateFromJson(json);
 }
 
 @freezed
@@ -137,6 +132,7 @@ abstract class SyncSettingState with _$SyncSettingState {
     @Default(false) bool syncSettings,
     @Default(true) bool autoSync,
     @Default(true) bool syncNotify,
+    @Default(0) int settingsSyncTime,
   }) = _SyncSettingState;
 
   factory SyncSettingState.fromJson(Map<String, dynamic> json) =>
@@ -184,216 +180,6 @@ abstract class ReadSettingState with _$ReadSettingState {
       _$ReadSettingStateFromJson(json);
 }
 
-Map<String, dynamic> _toMutableJsonMap(Object? value) {
-  if (value is Map<String, dynamic>) {
-    return Map<String, dynamic>.from(value);
-  }
-
-  if (value is Map) {
-    return value.map((key, mapValue) => MapEntry(key.toString(), mapValue));
-  }
-
-  return <String, dynamic>{};
-}
-
-Map<String, dynamic> _migrateGlobalSettingJson(Map<String, dynamic> json) {
-  final migrated = Map<String, dynamic>.from(json);
-
-  final syncSetting = _toMutableJsonMap(migrated['syncSetting']);
-  final webdavSetting = _toMutableJsonMap(syncSetting['webdavSetting']);
-
-  if (!syncSetting.containsKey('syncServiceType') &&
-      migrated.containsKey('syncServiceType')) {
-    syncSetting['syncServiceType'] = migrated['syncServiceType'];
-  }
-
-  if (!syncSetting.containsKey('autoSync') &&
-      migrated.containsKey('autoSync')) {
-    syncSetting['autoSync'] = migrated['autoSync'];
-  }
-
-  if (!syncSetting.containsKey('syncNotify') &&
-      migrated.containsKey('syncNotify')) {
-    syncSetting['syncNotify'] = migrated['syncNotify'];
-  }
-
-  if (!migrated.containsKey('autoSync') &&
-      syncSetting.containsKey('autoSync')) {
-    migrated['autoSync'] = syncSetting['autoSync'];
-  }
-
-  if (!migrated.containsKey('syncNotify') &&
-      syncSetting.containsKey('syncNotify')) {
-    migrated['syncNotify'] = syncSetting['syncNotify'];
-  }
-
-  if (!webdavSetting.containsKey('host') &&
-      migrated.containsKey('webdavHost')) {
-    webdavSetting['host'] = migrated['webdavHost'];
-  }
-
-  if (!webdavSetting.containsKey('username') &&
-      migrated.containsKey('webdavUsername')) {
-    webdavSetting['username'] = migrated['webdavUsername'];
-  }
-
-  if (!webdavSetting.containsKey('password') &&
-      migrated.containsKey('webdavPassword')) {
-    webdavSetting['password'] = migrated['webdavPassword'];
-  }
-
-  if (webdavSetting.isNotEmpty || syncSetting.containsKey('webdavSetting')) {
-    syncSetting['webdavSetting'] = webdavSetting;
-  }
-
-  if (syncSetting.isNotEmpty || migrated.containsKey('syncSetting')) {
-    migrated['syncSetting'] = syncSetting;
-  }
-
-  final readSetting = _toMutableJsonMap(migrated['readSetting']);
-
-  if (!readSetting.containsKey('comicReadTopContainer') &&
-      migrated.containsKey('comicReadTopContainer')) {
-    readSetting['comicReadTopContainer'] = migrated['comicReadTopContainer'];
-  }
-
-  if (!readSetting.containsKey('readMode') &&
-      migrated.containsKey('readMode')) {
-    readSetting['readMode'] = migrated['readMode'];
-  }
-
-  final rawReadMode =
-      (readSetting['readMode'] as num?)?.toInt() ??
-      (migrated['readMode'] as num?)?.toInt();
-  if (rawReadMode != null && rawReadMode >= 3) {
-    readSetting['doublePageMode'] = true;
-    if (rawReadMode == 3) {
-      readSetting['readMode'] = 1;
-    } else if (rawReadMode == 4) {
-      readSetting['readMode'] = 2;
-    } else {
-      readSetting['readMode'] = 0;
-    }
-  }
-
-  if (!migrated.containsKey('comicReadTopContainer') &&
-      readSetting.containsKey('comicReadTopContainer')) {
-    migrated['comicReadTopContainer'] = readSetting['comicReadTopContainer'];
-  }
-
-  if (!migrated.containsKey('readMode') &&
-      readSetting.containsKey('readMode')) {
-    migrated['readMode'] = readSetting['readMode'];
-  }
-
-  if (readSetting.isNotEmpty || migrated.containsKey('readSetting')) {
-    migrated['readSetting'] = readSetting;
-  }
-
-  return migrated;
-}
-
-const _defaultGlobalSetting = GlobalSettingState();
-
-T _resolveCanonicalValue<T>({
-  required T legacy,
-  required T nested,
-  required T previousLegacy,
-  required T previousNested,
-}) {
-  final legacyChanged = legacy != previousLegacy;
-  final nestedChanged = nested != previousNested;
-
-  if (legacyChanged && !nestedChanged) {
-    return legacy;
-  }
-
-  if (nestedChanged && !legacyChanged) {
-    return nested;
-  }
-
-  return nested;
-}
-
-extension GlobalSettingStateLegacySync on GlobalSettingState {
-  GlobalSettingState syncLegacyAndNested({GlobalSettingState? previous}) {
-    final autoSyncValue = previous == null
-        ? (autoSync != _defaultGlobalSetting.autoSync
-              ? autoSync
-              : syncSetting.autoSync)
-        : _resolveCanonicalValue(
-            legacy: autoSync,
-            nested: syncSetting.autoSync,
-            previousLegacy: previous.autoSync,
-            previousNested: previous.syncSetting.autoSync,
-          );
-
-    final syncNotifyValue = previous == null
-        ? (syncNotify != _defaultGlobalSetting.syncNotify
-              ? syncNotify
-              : syncSetting.syncNotify)
-        : _resolveCanonicalValue(
-            legacy: syncNotify,
-            nested: syncSetting.syncNotify,
-            previousLegacy: previous.syncNotify,
-            previousNested: previous.syncSetting.syncNotify,
-          );
-
-    final comicReadTopContainerValue = previous == null
-        ? (comicReadTopContainer != _defaultGlobalSetting.comicReadTopContainer
-              ? comicReadTopContainer
-              : readSetting.comicReadTopContainer)
-        : _resolveCanonicalValue(
-            legacy: comicReadTopContainer,
-            nested: readSetting.comicReadTopContainer,
-            previousLegacy: previous.comicReadTopContainer,
-            previousNested: previous.readSetting.comicReadTopContainer,
-          );
-
-    final readModeValue = previous == null
-        ? (readMode != _defaultGlobalSetting.readMode
-              ? readMode
-              : readSetting.readMode)
-        : _resolveCanonicalValue(
-            legacy: readMode,
-            nested: readSetting.readMode,
-            previousLegacy: previous.readMode,
-            previousNested: previous.readSetting.readMode,
-          );
-
-    return copyWith(
-      autoSync: autoSyncValue,
-      syncNotify: syncNotifyValue,
-      comicReadTopContainer: comicReadTopContainerValue,
-      readMode: readModeValue,
-      syncSetting: syncSetting.copyWith(
-        autoSync: autoSyncValue,
-        syncNotify: syncNotifyValue,
-      ),
-      readSetting: readSetting.copyWith(
-        comicReadTopContainer: comicReadTopContainerValue,
-        readMode: readModeValue,
-      ),
-    );
-  }
-}
-
-extension GlobalSettingStateCompat on GlobalSettingState {
-  SyncServiceType get syncServiceType => syncSetting.syncServiceType;
-
-  bool get syncSettings => syncSetting.syncSettings;
-
-  WebDavSettingState get webdavSetting => syncSetting.webdavSetting;
-
-  String get webdavHost => webdavSetting.host;
-
-  String get webdavUsername => webdavSetting.username;
-
-  String get webdavPassword => webdavSetting.password;
-
-  S3SettingState get s3Setting => syncSetting.s3Setting;
-}
-
 class GlobalSettingCubit extends Cubit<GlobalSettingState> {
   // 构造函数，传入由 freezed 生成的默认 state
   GlobalSettingCubit() : super(const GlobalSettingState());
@@ -404,12 +190,7 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
   late final Color _defaultSeedColor = colorThemeList[6].color;
 
   Future<void> initBox() async {
-    final dbState = objectbox.userSettingBox.get(1)!.globalSetting;
-    final migratedState = dbState.syncLegacyAndNested();
-    if (migratedState != dbState) {
-      _updateDataBase(migratedState);
-    }
-    emit(migratedState);
+    emit(objectbox.userSettingBox.get(1)!.globalSetting);
   }
 
   GlobalSettingState get defaults =>
@@ -459,15 +240,17 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
   }
 
   void _persistAndEmit(GlobalSettingState newState) {
-    final syncedState = newState.syncLegacyAndNested(previous: state);
-    final currentDbState = objectbox.userSettingBox.get(1)?.globalSetting;
-    final reconciledState = currentDbState == null
-        ? syncedState
-        : syncedState.copyWith(md5: currentDbState.md5);
+    final nowMs = DateTime.now().toUtc().millisecondsSinceEpoch;
+    final syncSetting = newState.syncSetting.copyWith(settingsSyncTime: nowMs);
+    final normalizedState = newState.copyWith(syncSetting: syncSetting);
+    if (normalizedState == state) return;
+    _updateDataBase(normalizedState);
+    emit(normalizedState);
+  }
 
-    if (reconciledState == state) return;
-    _updateDataBase(reconciledState);
-    emit(reconciledState);
+  void applySyncedState(GlobalSettingState value) {
+    _updateDataBase(value);
+    emit(value);
   }
 
   void _updateDataBase(GlobalSettingState state) {

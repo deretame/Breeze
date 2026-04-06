@@ -39,18 +39,18 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
   void initState() {
     super.initState();
     final settings = objectbox.userSettingBox.get(1)!.globalSetting;
-    _webdavHost.text = settings.webdavHost;
-    _webdavUsername.text = settings.webdavUsername;
-    _webdavPassword.text = settings.webdavPassword;
-    _s3Endpoint.text = settings.s3Setting.endpoint;
-    _s3AccessKey.text = settings.s3Setting.accessKey;
-    _s3SecretKey.text = settings.s3Setting.secretKey;
-    _s3Bucket.text = settings.s3Setting.bucket;
-    _s3Region.text = settings.s3Setting.region;
-    _s3Port.text = settings.s3Setting.port > 0
-        ? settings.s3Setting.port.toString()
+    _webdavHost.text = settings.syncSetting.webdavSetting.host;
+    _webdavUsername.text = settings.syncSetting.webdavSetting.username;
+    _webdavPassword.text = settings.syncSetting.webdavSetting.password;
+    _s3Endpoint.text = settings.syncSetting.s3Setting.endpoint;
+    _s3AccessKey.text = settings.syncSetting.s3Setting.accessKey;
+    _s3SecretKey.text = settings.syncSetting.s3Setting.secretKey;
+    _s3Bucket.text = settings.syncSetting.s3Setting.bucket;
+    _s3Region.text = settings.syncSetting.s3Setting.region;
+    _s3Port.text = settings.syncSetting.s3Setting.port > 0
+        ? settings.syncSetting.s3Setting.port.toString()
         : '';
-    _s3UseSSL = settings.s3Setting.useSSL;
+    _s3UseSSL = settings.syncSetting.s3Setting.useSSL;
   }
 
   @override
@@ -70,7 +70,8 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
   @override
   Widget build(BuildContext context) {
     final globalSettingCubit = context.watch<GlobalSettingCubit>();
-    final syncServiceType = globalSettingCubit.state.syncServiceType;
+    final syncServiceType =
+        globalSettingCubit.state.syncSetting.syncServiceType;
     final title = syncServiceType == SyncServiceType.none
         ? '云同步配置'
         : '${syncServiceType.label} 同步配置';

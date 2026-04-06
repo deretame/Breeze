@@ -50,16 +50,20 @@ Future<String> getCachePicture({
       } catch (_) {}
     }
   }
+  if (directPath.isEmpty) {
+    return '404';
+  }
 
   final cachePath = await getCachePath();
   final downloadPath = await getDownloadPath();
+  final storedChapterId = _resolveStoredChapterId(chapterId, pictureType);
 
   final cacheFilePath = _buildStoredFilePath(
     cachePath,
     resolvedFrom,
     path,
     cartoonId,
-    chapterId,
+    storedChapterId,
   );
 
   final downloadFilePath = _buildStoredFilePath(
@@ -67,13 +71,13 @@ Future<String> getCachePicture({
     resolvedFrom,
     path,
     cartoonId,
-    chapterId,
+    storedChapterId,
     rootFolder: 'original',
   );
 
-  // logger.d(
-  //   'getCachePicture: cacheFilePath=$cacheFilePath, downloadFilePath=$downloadFilePath',
-  // );
+  logger.d(
+    'getCachePicture: cacheFilePath=$cacheFilePath, downloadFilePath=$downloadFilePath',
+  );
 
   final existingFilePath = await checkFileExists(
     cacheFilePath,
@@ -113,9 +117,7 @@ Future<String> getCachePicture({
 
   final imageData = await downloadImageWithRetry(url, source: resolvedFrom);
 
-  if (resolvedFrom == _kJmPluginUuid &&
-      pictureType == PictureType.comic &&
-      chapterId.isNotEmpty) {
+  if (resolvedFrom == _kJmPluginUuid && pictureType == PictureType.page) {
     await decodeAndSaveImage(
       imageData,
       int.tryParse(chapterId) ?? 0,
@@ -162,16 +164,21 @@ Future<String> downloadPicture({
   if (url.contains("404")) {
     return "404";
   }
+  final directPath = path.trim();
+  if (directPath.isEmpty) {
+    return '404';
+  }
 
   final downloadPath = await getDownloadPath();
   final cachePath = await getCachePath();
+  final storedChapterId = _resolveStoredChapterId(chapterId, pictureType);
 
   final cacheFilePath = _buildStoredFilePath(
     cachePath,
     resolvedFrom,
     path,
     cartoonId,
-    chapterId,
+    storedChapterId,
     rootFolder: 'original',
   );
 
@@ -180,7 +187,7 @@ Future<String> downloadPicture({
     resolvedFrom,
     path,
     cartoonId,
-    chapterId,
+    storedChapterId,
     rootFolder: 'original',
   );
 
@@ -229,9 +236,7 @@ Future<String> downloadPicture({
 
   _throwIfDownloadCancelled(qjsTaskGroupKey);
 
-  if (resolvedFrom == _kJmPluginUuid &&
-      pictureType == PictureType.comic &&
-      chapterId.isNotEmpty) {
+  if (resolvedFrom == _kJmPluginUuid && pictureType == PictureType.page) {
     await decodeAndSaveImage(
       imageData,
       int.tryParse(chapterId) ?? 0,
@@ -262,6 +267,13 @@ Future<String> downloadPicture({
   }
 }
 
+String _resolveStoredChapterId(String chapterId, PictureType pictureType) {
+  if (pictureType == PictureType.cover) {
+    return '';
+  }
+  return chapterId;
+}
+
 String _buildStoredFilePath(
   String basePath,
   String from,
@@ -270,7 +282,7 @@ String _buildStoredFilePath(
   String chapterId, {
   String? rootFolder,
 }) {
-  final fileName = _sanitizeStoredPath(path, cartoonId);
+  final fileName = _sanitizeStoredPath(path);
   final segments = <String>[basePath, (from).trim()];
   if (rootFolder != null && rootFolder.isNotEmpty) {
     segments.add(rootFolder);
@@ -285,32 +297,24 @@ String _buildStoredFilePath(
   return file_path.joinAll(segments);
 }
 
-String _sanitizeStoredPath(String path, String fallbackId) {
-  final safeId = fallbackId.trim().isNotEmpty ? fallbackId.trim() : 'asset';
-  final fallbackName = '$safeId.bin';
-  return normalizeStoredAssetPath(path, fallback: fallbackName);
+String _sanitizeStoredPath(String path) {
+  return normalizeStoredAssetPath(path);
 }
 
-String normalizeStoredAssetPath(
-  String rawPath, {
-  String fallback = 'asset.bin',
-}) {
+String normalizeStoredAssetPath(String rawPath, {bool allowEmpty = false}) {
   final raw = rawPath.trim();
-  final candidate = raw.isNotEmpty
-      ? (file_path.isAbsolute(raw) ? file_path.basename(raw) : raw)
-      : fallback;
+  if (raw.isEmpty) {
+    if (allowEmpty) {
+      return '';
+    }
+    throw StateError('normalizeStoredAssetPath requires non-empty path');
+  }
+  final candidate = file_path.isAbsolute(raw) ? file_path.basename(raw) : raw;
   final sanitized = candidate.replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_');
   if (sanitized.isNotEmpty) {
     return sanitized;
   }
-  final safeFallback = fallback.trim().isNotEmpty
-      ? fallback.trim()
-      : 'asset.bin';
-  final safeSanitized = safeFallback.replaceAll(
-    RegExp(r'[^a-zA-Z0-9_\-.]'),
-    '_',
-  );
-  return safeSanitized.isNotEmpty ? safeSanitized : 'asset.bin';
+  throw StateError('normalizeStoredAssetPath received invalid path: $rawPath');
 }
 
 Future<String?> getStoredPicturePathById({

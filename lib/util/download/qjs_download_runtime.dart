@@ -6,9 +6,6 @@ import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/util/download/download_cancel_signal.dart';
 import 'package:zephyr/util/direct_dio.dart';
-import 'package:zephyr/util/get_path.dart';
-import 'dart:io';
-import 'package:path/path.dart' as p;
 
 class _TrackedQjsTaskRef extends Equatable {
   const _TrackedQjsTaskRef({required this.runtimeName, required this.taskId});
@@ -33,10 +30,6 @@ String normalizePluginId(String raw) {
     value = value.substring(1, value.length - 1).trim();
   }
   return value;
-}
-
-String _bundleNameForPluginId(String pluginId) {
-  return pluginId;
 }
 
 String _buildTaskGroupId(String pluginId, String taskGroupKey) {
@@ -346,48 +339,25 @@ Future<String> loadQjsBundleJs(String pluginId) async {
   if (normalizedPluginId.isEmpty) {
     throw StateError('pluginId 不能为空');
   }
-  final bundleName = _bundleNameForPluginId(normalizedPluginId);
-  String bundledFallback() {
-    final candidates = <String>{bundleName, normalizedPluginId};
-    final cachedInfo = PluginRegistryService.I.getCachedPluginInfo(
-      normalizedPluginId,
-    );
-    final infoName = cachedInfo?['name']?.toString().trim() ?? '';
-    if (infoName.isNotEmpty) {
-      candidates.add(infoName);
-    }
-
-    for (final candidate in candidates) {
-      try {
-        final local = getJsBundle(name: candidate);
-        if (local.trim().isNotEmpty) {
-          return local;
-        }
-      } catch (_) {
-        // continue fallback chain
-      }
-    }
-
-    throw StateError('bundle_js_missing_builtin:$bundleName');
-  }
-
   final runtimeState = PluginRegistryService.I.getByUuid(normalizedPluginId);
-  if (runtimeState?.debug != true) {
-    final diskBundle = await _loadPluginBundleFromDisk(normalizedPluginId);
-    if (diskBundle != null && diskBundle.trim().isNotEmpty) {
-      return diskBundle;
+  if (runtimeState == null || runtimeState.isDeleted) {
+    throw StateError('plugin_not_found:$normalizedPluginId');
+  }
+  if (!runtimeState.debug) {
+    final dbBundle = runtimeState.originScript;
+    if (dbBundle.trim().isNotEmpty) {
+      return dbBundle;
     }
-    throw StateError('bundle_js_missing_disk:$normalizedPluginId');
+    throw StateError('bundle_js_missing_db:$normalizedPluginId');
   }
 
-  final bundleUrl = runtimeState?.debugUrl?.trim() ?? '';
+  final bundleUrl = runtimeState.debugUrl?.trim() ?? '';
   if (bundleUrl.isEmpty) {
-    final diskBundle = await _loadPluginBundleFromDisk(normalizedPluginId);
-    if (diskBundle != null && diskBundle.trim().isNotEmpty) {
-      return diskBundle;
+    final dbBundle = runtimeState.originScript;
+    if (dbBundle.trim().isNotEmpty) {
+      return dbBundle;
     }
-    final fallback = bundledFallback();
-    return fallback;
+    throw StateError('bundle_js_missing_db:$normalizedPluginId');
   }
 
   try {
@@ -396,39 +366,13 @@ Future<String> loadQjsBundleJs(String pluginId) async {
     if (body.trim().isNotEmpty) {
       return body;
     }
-    logger.w('debug bundle 为空，回退本地: $bundleUrl');
+    logger.w('debug bundle 为空，回退数据库: $bundleUrl');
   } catch (e) {
-    logger.w('debug bundle 拉取失败，回退本地: $bundleUrl', error: e);
+    logger.w('debug bundle 拉取失败，回退数据库: $bundleUrl', error: e);
   }
-  try {
-    final diskBundle = await _loadPluginBundleFromDisk(normalizedPluginId);
-    if (diskBundle != null && diskBundle.trim().isNotEmpty) {
-      return diskBundle;
-    }
-    final fallback = bundledFallback();
-    return fallback;
-  } catch (_) {
-    throw StateError('bundle_js不能为空: $normalizedPluginId');
+  final dbBundle = runtimeState.originScript;
+  if (dbBundle.trim().isNotEmpty) {
+    return dbBundle;
   }
-}
-
-Future<String?> _loadPluginBundleFromDisk(String pluginId) async {
-  final pluginsPath = await getPluginsPath();
-
-  final candidates = <File>[
-    File(p.join(pluginsPath, '$pluginId.bundle.js')),
-    File(p.join(pluginsPath, '$pluginId.bundle.cjs')),
-  ];
-  for (final file in candidates) {
-    if (!await file.exists()) {
-      continue;
-    }
-    try {
-      final text = await file.readAsString();
-      if (text.trim().isNotEmpty) {
-        return text;
-      }
-    } catch (_) {}
-  }
-  return null;
+  throw StateError('bundle_js不能为空: $normalizedPluginId');
 }

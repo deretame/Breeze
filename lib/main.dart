@@ -24,7 +24,6 @@ import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
-import 'package:zephyr/network/dio_cache.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
@@ -50,8 +49,6 @@ late final ObjectBox objectbox;
 
 // 定义全局Dio实例
 final dio = Dio();
-// 定义缓存拦截器
-final cacheInterceptor = DioCacheInterceptor(ExpiringMemoryCache());
 final appRouter = AppRouter();
 
 // 全局事件总线实例
@@ -78,6 +75,12 @@ class AppScrollBehavior extends MaterialScrollBehavior {
 Future<void> main() async {
   // 1. 基础初始化
   WidgetsFlutterBinding.ensureInitialized();
+
+  // logger = Logger(
+  //   filter: ProductionFilter(),
+  //   printer: PrettyPrinter(),
+  //   output: ConsoleOutput(),
+  // );
 
   const sentryDsn = String.fromEnvironment('sentry_dsn', defaultValue: '');
 

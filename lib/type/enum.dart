@@ -49,6 +49,8 @@ enum PictureType {
   category,
   @JsonValue('avatar')
   avatar,
+  @JsonValue('page')
+  page,
   @JsonValue('unknown')
   unknown,
 }

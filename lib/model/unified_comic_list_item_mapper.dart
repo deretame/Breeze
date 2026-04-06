@@ -1,7 +1,8 @@
+import 'dart:convert';
+import 'package:path/path.dart' as p;
 import 'package:zephyr/model/unified_comic_list_item.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/object_box/model.dart';
-import 'package:path/path.dart' as p;
 
 UnifiedComicListItem unifiedComicFromPluginSearchItem(
   UnifiedPluginSearchItem item,
@@ -25,8 +26,8 @@ UnifiedComicListItem unifiedComicFromUnifiedFavorite(
     likesCount: 0,
     viewsCount: _viewCountFromTitleMeta(comic.titleMeta),
     updatedAt: comic.updatedAt.toIso8601String(),
-    cover: _coverFromFlex(comic.source, comic.comicId, comic.cover),
-    metadata: _metadataFromFlex(comic.metadata),
+    cover: _coverFromStored(comic.source, comic.comicId, comic.cover),
+    metadata: _metadataFromString(comic.metadata),
     raw: _buildFavoriteRaw(comic),
     extern: const <String, dynamic>{},
   );
@@ -42,8 +43,8 @@ UnifiedComicListItem unifiedComicFromUnifiedHistory(UnifiedComicHistory comic) {
     likesCount: 0,
     viewsCount: _viewCountFromTitleMeta(comic.titleMeta),
     updatedAt: comic.updatedAt.toIso8601String(),
-    cover: _coverFromFlex(comic.source, comic.comicId, comic.cover),
-    metadata: _metadataFromFlex(comic.metadata),
+    cover: _coverFromStored(comic.source, comic.comicId, comic.cover),
+    metadata: _metadataFromString(comic.metadata),
     raw: _buildHistoryRaw(comic),
     extern: const <String, dynamic>{},
   );
@@ -52,11 +53,11 @@ UnifiedComicListItem unifiedComicFromUnifiedHistory(UnifiedComicHistory comic) {
 UnifiedComicListItem unifiedComicFromUnifiedDownload(
   UnifiedComicDownload comic,
 ) {
-  final cover = _coverFromFlex(comic.source, comic.comicId, comic.cover);
+  final cover = _coverFromStored(comic.source, comic.comicId, comic.cover);
   final extern = Map<String, dynamic>.from(cover.extern);
   final storedPath = extern['path']?.toString() ?? '';
   if (storedPath.isNotEmpty) {
-    extern['path'] = p.join(comic.storageRoot, 'cover', storedPath);
+    extern['path'] = p.join(comic.storageRoot, storedPath);
   }
   return UnifiedComicListItem(
     source: comic.source,
@@ -68,7 +69,7 @@ UnifiedComicListItem unifiedComicFromUnifiedDownload(
     viewsCount: comic.totalViews,
     updatedAt: comic.updatedAt.toIso8601String(),
     cover: UnifiedComicCover(id: cover.id, url: '', extern: extern),
-    metadata: _metadataFromFlex(comic.metadata),
+    metadata: _metadataFromString(comic.metadata),
     raw: _buildDownloadRaw(comic),
     extern: const <String, dynamic>{},
   );
@@ -83,7 +84,7 @@ Map<String, dynamic> _buildFavoriteRaw(UnifiedComicFavorite comic) {
     'cover': _sanitizeDynamic(comic.cover),
     'creator': _sanitizeDynamic(comic.creator),
     'titleMeta': _sanitizeDynamic(comic.titleMeta),
-    'metadata': _sanitizeDynamic(comic.metadata),
+    'metadata': _sanitizeDynamic(_decodeMetadataString(comic.metadata)),
     'updatedAt': comic.updatedAt.toIso8601String(),
   };
 }
@@ -97,7 +98,7 @@ Map<String, dynamic> _buildHistoryRaw(UnifiedComicHistory comic) {
     'cover': _sanitizeDynamic(comic.cover),
     'creator': _sanitizeDynamic(comic.creator),
     'titleMeta': _sanitizeDynamic(comic.titleMeta),
-    'metadata': _sanitizeDynamic(comic.metadata),
+    'metadata': _sanitizeDynamic(_decodeMetadataString(comic.metadata)),
     'chapterId': comic.chapterId,
     'chapterTitle': comic.chapterTitle,
     'chapterOrder': comic.chapterOrder,
@@ -115,7 +116,7 @@ Map<String, dynamic> _buildDownloadRaw(UnifiedComicDownload comic) {
     'cover': _sanitizeDynamic(comic.cover),
     'creator': _sanitizeDynamic(comic.creator),
     'titleMeta': _sanitizeDynamic(comic.titleMeta),
-    'metadata': _sanitizeDynamic(comic.metadata),
+    'metadata': _sanitizeDynamic(_decodeMetadataString(comic.metadata)),
     'chapters': _sanitizeDynamic(comic.chapters),
     'storageRoot': comic.storageRoot,
     'updatedAt': comic.updatedAt.toIso8601String(),
@@ -159,12 +160,12 @@ UnifiedComicListItem unifiedComicFromPluginListMap(
   );
 }
 
-UnifiedComicCover _coverFromFlex(
+UnifiedComicCover _coverFromStored(
   String source,
   String comicId,
-  Map<String, dynamic>? cover,
+  String cover,
 ) {
-  final data = Map<String, dynamic>.from(cover ?? const <String, dynamic>{});
+  final data = _decodeMapString(cover);
   final url = data['url']?.toString() ?? '';
   final extern = asMap(data['extern']);
   final extension = asMap(data['extension']);
@@ -198,14 +199,74 @@ List<UnifiedComicMetadata> _metadataFromFlex(
       .toList();
 }
 
-int _viewCountFromTitleMeta(List<Map<String, dynamic>>? titleMeta) {
-  for (final item in titleMeta ?? const <Map<String, dynamic>>[]) {
+List<UnifiedComicMetadata> _metadataFromString(String metadataJson) {
+  final mapped = _decodeMetadataString(metadataJson);
+  if (mapped.isEmpty) {
+    return const <UnifiedComicMetadata>[];
+  }
+  return _metadataFromFlex(mapped);
+}
+
+List<Map<String, dynamic>> _decodeMetadataString(String metadataJson) {
+  if (metadataJson.trim().isEmpty) {
+    return const <Map<String, dynamic>>[];
+  }
+  try {
+    final decoded = jsonDecode(metadataJson);
+    if (decoded is! List) {
+      return const <Map<String, dynamic>>[];
+    }
+    return decoded
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+  } catch (_) {
+    return const <Map<String, dynamic>>[];
+  }
+}
+
+int _viewCountFromTitleMeta(String titleMetaJson) {
+  for (final item in _decodeListOfMapsString(titleMetaJson)) {
     final name = item['name']?.toString() ?? '';
     if (name.startsWith('浏览：')) {
       return int.tryParse(name.substring(3)) ?? 0;
     }
   }
   return 0;
+}
+
+Map<String, dynamic> _decodeMapString(String raw) {
+  if (raw.trim().isEmpty) {
+    return const <String, dynamic>{};
+  }
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is Map<String, dynamic>) {
+      return decoded;
+    }
+    if (decoded is Map) {
+      return decoded.map((key, value) => MapEntry(key.toString(), value));
+    }
+  } catch (_) {}
+  return const <String, dynamic>{};
+}
+
+List<Map<String, dynamic>> _decodeListOfMapsString(String raw) {
+  if (raw.trim().isEmpty) {
+    return const <Map<String, dynamic>>[];
+  }
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is! List) {
+      return const <Map<String, dynamic>>[];
+    }
+    return decoded
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+  } catch (_) {
+    return const <Map<String, dynamic>>[];
+  }
 }
 
 UnifiedComicListItem _requireUnifiedPluginItem(

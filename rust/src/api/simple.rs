@@ -73,3 +73,13 @@ pub fn enable_stacktrace(enabled: bool) {
         std::env::set_var("RUST_LIB_BACKTRACE", if enabled { "1" } else { "0" });
     });
 }
+
+#[frb]
+pub async fn compress_extreme(data: Vec<u8>) -> Vec<u8> {
+    compressed::compress_extreme(data).await
+}
+
+#[frb]
+pub async fn decompress_extreme(data: Vec<u8>) -> Vec<u8> {
+    compressed::decompress_extreme(data).await
+}

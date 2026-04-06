@@ -477,7 +477,7 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       final state = PluginRegistryService.I.getByUuid(uuid);
       if (state?.debug == true) {
-        showErrorToast('插件调试加载失败，已回退本地: $e');
+        showErrorToast('插件调试加载失败，已回退数据库: $e');
       }
       rethrow;
     }

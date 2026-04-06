@@ -3234,6 +3234,7 @@ dependencies = [
  "android_logger",
  "anyhow",
  "base64",
+ "brotli",
  "chrono",
  "env_logger",
  "ferrous-opencc",

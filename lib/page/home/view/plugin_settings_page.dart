@@ -214,7 +214,7 @@ class _PluginSettingsPageState extends State<PluginSettingsPage> {
                     ),
                     _FieldRow(
                       title: '删除插件',
-                      subtitle: deleted ? '已删除' : '从本地移除并标记删除',
+                      subtitle: deleted ? '已删除' : '标记删除并停用',
                       trailing: Icon(
                         Icons.delete_outline,
                         size: 18,
@@ -363,7 +363,7 @@ class _PluginSettingsPageState extends State<PluginSettingsPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('删除插件'),
-        content: const Text('删除后将从本地移除插件文件，并标记为已删除。'),
+        content: const Text('删除后将停用插件并标记为已删除。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),

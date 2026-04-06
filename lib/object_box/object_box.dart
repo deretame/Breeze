@@ -1,4 +1,5 @@
 import 'package:path/path.dart' as p;
+import 'package:zephyr/main.dart';
 import 'package:zephyr/util/get_path.dart';
 
 import 'model.dart';
@@ -109,4 +110,44 @@ class ObjectBox {
   Box<PluginConfig> get pluginConfigBox => _pluginConfigBox;
 
   Box<PluginInfo> get pluginInfoBox => _pluginInfoBox;
+
+  void dumpAllData() {
+    logger.d("========= ObjectBox Data Dump Start =========");
+
+    _dumpBoxData<BikaComicHistory>(_bikaComicHistoryBox, "BikaComicHistory");
+    _dumpBoxData<BikaComicDownload>(_bikaComicDownloadBox, "BikaComicDownload");
+
+    _dumpBoxData<JmFavorite>(_jmFavoriteBox, "JmFavorite");
+    _dumpBoxData<JmHistory>(_jmHistoryBox, "JmHistory");
+    _dumpBoxData<JmDownload>(_jmDownloadBox, "JmDownload");
+
+    _dumpBoxData<UnifiedComicFavorite>(
+      _unifiedComicFavoriteBox,
+      "UnifiedComicFavorite",
+    );
+    _dumpBoxData<UnifiedComicHistory>(
+      _unifiedComicHistoryBox,
+      "UnifiedComicHistory",
+    );
+    _dumpBoxData<UnifiedComicDownload>(
+      _unifiedComicDownloadBox,
+      "UnifiedComicDownload",
+    );
+
+    _dumpBoxData<UserSetting>(_userSettingBox, "UserSetting");
+    _dumpBoxData<DownloadTask>(_downloadTaskBox, "DownloadTask");
+    _dumpBoxData<PluginConfig>(_pluginConfigBox, "PluginConfig");
+    _dumpBoxData<PluginInfo>(_pluginInfoBox, "PluginInfo");
+
+    logger.d("=========  ObjectBox Data Dump End  =========");
+  }
+
+  /// 私有辅助方法，用于统一格式化输出
+  void _dumpBoxData<T>(Box<T> box, String entityName) {
+    final data = box.getAll();
+    logger.d("[$entityName] 共有 ${data.length} 条记录");
+    // for (var item in data) {
+    //   logger.d("  -> $item");
+    // }
+  }
 }

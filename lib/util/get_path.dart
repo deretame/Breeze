@@ -103,14 +103,6 @@ Future<String> getDownloadPath() async {
   return downloadPath;
 }
 
-/// 获取插件存储路径
-Future<String> getPluginsPath() async {
-  final fileDir = await getFilePath();
-  final pluginsPath = p.join(fileDir, 'plugins');
-  await _ensureDirExists(pluginsPath);
-  return pluginsPath;
-}
-
 /// 获取日志文件路径
 Future<File> getLogPath() async {
   String logDirPath;

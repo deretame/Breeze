@@ -3,7 +3,6 @@ import 'dart:collection';
 
 import 'package:dio/dio.dart';
 import 'package:xml/xml.dart';
-import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 
@@ -13,10 +12,10 @@ class WebDavSyncService implements ComicSyncRemoteAdapter {
   WebDavSyncService(this._settings)
     : _dio = Dio(
         BaseOptions(
-          baseUrl: _settings.webdavHost,
+          baseUrl: _settings.syncSetting.webdavSetting.host,
           headers: {
             'Authorization':
-                'Basic ${base64Encode(utf8.encode('${_settings.webdavUsername}:${_settings.webdavPassword}'))}',
+                'Basic ${base64Encode(utf8.encode('${_settings.syncSetting.webdavSetting.username}:${_settings.syncSetting.webdavSetting.password}'))}',
           },
           connectTimeout: const Duration(seconds: 10),
           receiveTimeout: const Duration(seconds: 10),
@@ -31,9 +30,9 @@ class WebDavSyncService implements ComicSyncRemoteAdapter {
   final Dio _dio;
 
   static bool isConfigured(GlobalSettingState settings) {
-    return settings.webdavHost.trim().isNotEmpty &&
-        settings.webdavUsername.trim().isNotEmpty &&
-        settings.webdavPassword.isNotEmpty;
+    return settings.syncSetting.webdavSetting.host.trim().isNotEmpty &&
+        settings.syncSetting.webdavSetting.username.trim().isNotEmpty &&
+        settings.syncSetting.webdavSetting.password.isNotEmpty;
   }
 
   @override
@@ -60,8 +59,7 @@ class WebDavSyncService implements ComicSyncRemoteAdapter {
 
   @override
   Future<void> ensureRemoteReady() async {
-    await _ensureDirectory(_dataRootDirPath);
-    await _ensureDirectory(_settingsRootDirPath);
+    await _ensureDirectory(_syncRootDirPath);
   }
 
   @override
@@ -103,7 +101,10 @@ class WebDavSyncService implements ComicSyncRemoteAdapter {
   @override
   Future<List<String>> listRemoteDataFiles() async {
     final paths = <String>{};
-    final pendingDirs = Queue<String>()..add(_dataRootPath);
+    final pendingDirs = Queue<String>()
+      ..add(_syncRootPath)
+      ..add(_legacyDataRootPath)
+      ..add(_legacySettingsRootPath);
     final visitedDirs = <String>{};
 
     while (pendingDirs.isNotEmpty) {
@@ -114,7 +115,9 @@ class WebDavSyncService implements ComicSyncRemoteAdapter {
 
       final entries = await _listDirectoryEntries(currentDir);
       for (final entry in entries) {
-        if (entry.path == _dataRootPath) {
+        if (entry.path == _syncRootPath ||
+            entry.path == _legacyDataRootPath ||
+            entry.path == _legacySettingsRootPath) {
           continue;
         }
 
@@ -177,7 +180,13 @@ class WebDavSyncService implements ComicSyncRemoteAdapter {
   Future<void> deleteRemoteFiles(List<String> remotePaths) async {
     final normalizedPaths = remotePaths
         .map(_toManagedRemotePath)
-        .where((path) => path != _dataRootPath && _isManagedPath(path))
+        .where(
+          (path) =>
+              path != _syncRootPath &&
+              path != _legacyDataRootPath &&
+              path != _legacySettingsRootPath &&
+              _isManagedPath(path),
+        )
         .toSet()
         .toList();
 
@@ -209,15 +218,17 @@ class WebDavSyncService implements ComicSyncRemoteAdapter {
     }
   }
 
-  String get _dataRootPath => '/$appName';
+  String get _syncRootPath => '/${ComicSyncCore.syncRemoteRootName}';
 
-  String get _dataRootDirPath => '$_dataRootPath/';
+  String get _syncRootDirPath => '$_syncRootPath/';
 
-  String get _settingsRootPath => '/${appName}_setting';
+  String get _legacyDataRootPath => '/${ComicSyncCore.legacyDataRootName}';
 
-  String get _settingsRootDirPath => '$_settingsRootPath/';
+  String get _legacySettingsRootPath =>
+      '/${ComicSyncCore.legacySettingsRootName}';
 
-  String get _remoteMd5Path => '/$appName/${ComicSyncCore.md5FileName}';
+  String get _remoteMd5Path =>
+      '/${ComicSyncCore.syncRemoteRootName}/${ComicSyncCore.comicMd5FileName}';
 
   Future<void> _ensureDirectory(String dirPath) async {
     try {
@@ -394,7 +405,7 @@ class WebDavSyncService implements ComicSyncRemoteAdapter {
       return '';
     }
 
-    return '/$appName/${Uri.encodeComponent(displayName)}';
+    return '$_syncRootPath/${Uri.encodeComponent(displayName)}';
   }
 
   String _toManagedRemotePath(String remotePath) {
@@ -407,15 +418,17 @@ class WebDavSyncService implements ComicSyncRemoteAdapter {
       return normalized;
     }
 
-    final joined = '$_dataRootPath/$normalized';
+    final joined = '$_syncRootPath/$normalized';
     return joined.replaceAll(RegExp(r'/+'), '/');
   }
 
   bool _isManagedPath(String remotePath) {
-    return remotePath == _dataRootPath ||
-        remotePath.startsWith('$_dataRootPath/') ||
-        remotePath == _settingsRootPath ||
-        remotePath.startsWith('$_settingsRootPath/');
+    return remotePath == _syncRootPath ||
+        remotePath.startsWith('$_syncRootPath/') ||
+        remotePath == _legacyDataRootPath ||
+        remotePath.startsWith('$_legacyDataRootPath/') ||
+        remotePath == _legacySettingsRootPath ||
+        remotePath.startsWith('$_legacySettingsRootPath/');
   }
 
   String _normalizeRemotePath(String remotePath) {
@@ -441,7 +454,7 @@ class WebDavSyncService implements ComicSyncRemoteAdapter {
   String _asDirectoryRequestPath(String remotePath) {
     final normalized = _normalizeRemotePath(remotePath);
     if (normalized.isEmpty) {
-      return _dataRootDirPath;
+      return _syncRootDirPath;
     }
     return '$normalized/';
   }

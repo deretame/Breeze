@@ -1112,7 +1112,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(11, 6838395240994816150),
     name: 'PluginConfig',
-    lastPropertyId: const obx_int.IdUid(3, 328827950385735598),
+    lastPropertyId: const obx_int.IdUid(4, 1329960872676121073),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -1128,9 +1128,9 @@ final _entities = <obx_int.ModelEntity>[
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(3, 328827950385735598),
-        name: 'data',
-        type: 13,
+        id: const obx_int.IdUid(4, 1329960872676121073),
+        name: 'config',
+        type: 9,
         flags: 0,
       ),
     ],
@@ -1140,7 +1140,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(12, 5269818584842768822),
     name: 'PluginInfo',
-    lastPropertyId: const obx_int.IdUid(17, 2992597705740134405),
+    lastPropertyId: const obx_int.IdUid(18, 4398518863020863280),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -1213,6 +1213,12 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(17, 2992597705740134405),
         name: 'debugUrl',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(18, 4398518863020863280),
+        name: 'originScript',
         type: 9,
         flags: 0,
       ),
@@ -1356,31 +1362,31 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(38, 5027229901461830052),
         name: 'cover',
-        type: 13,
+        type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
         id: const obx_int.IdUid(39, 8759168431946270314),
         name: 'creator',
-        type: 13,
+        type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
         id: const obx_int.IdUid(40, 25639362235108648),
         name: 'titleMeta',
-        type: 13,
+        type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
         id: const obx_int.IdUid(41, 3510570848137823376),
         name: 'metadata',
-        type: 13,
+        type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
         id: const obx_int.IdUid(42, 3476319643945752290),
         name: 'chapters',
-        type: 13,
+        type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
@@ -1463,25 +1469,25 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(22, 5501151332383572878),
         name: 'cover',
-        type: 13,
+        type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
         id: const obx_int.IdUid(23, 4983122016659486557),
         name: 'creator',
-        type: 13,
+        type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
         id: const obx_int.IdUid(24, 5201299801264681508),
         name: 'titleMeta',
-        type: 13,
+        type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
         id: const obx_int.IdUid(25, 8135343708740715392),
         name: 'metadata',
-        type: 13,
+        type: 9,
         flags: 0,
       ),
     ],
@@ -1588,25 +1594,25 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(27, 9058910512094564064),
         name: 'cover',
-        type: 13,
+        type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
         id: const obx_int.IdUid(28, 831710775759013977),
         name: 'creator',
-        type: 13,
+        type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
         id: const obx_int.IdUid(29, 3244011229671915382),
         name: 'titleMeta',
-        type: 13,
+        type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
         id: const obx_int.IdUid(30, 2987045655491559403),
         name: 'metadata',
-        type: 13,
+        type: 9,
         flags: 0,
       ),
     ],
@@ -1748,6 +1754,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
       8216307126687310409,
       2051832540735677888,
       8788850099976239757,
+      328827950385735598,
     ],
     retiredRelationUids: const [],
     modelVersion: 5,
@@ -3119,13 +3126,11 @@ obx_int.ModelDefinition getObjectBoxModel() {
       },
       objectToFB: (PluginConfig object, fb.Builder fbb) {
         final nameOffset = fbb.writeString(object.name);
-        final dataOffset = object.data == null
-            ? null
-            : fbb.writeListInt8(obx_int.toFlexBuffer(object.data!));
-        fbb.startTable(4);
+        final configOffset = fbb.writeString(object.config);
+        fbb.startTable(5);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, nameOffset);
-        fbb.addOffset(2, dataOffset);
+        fbb.addOffset(3, configOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -3141,11 +3146,13 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final nameParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 6, '');
-        final dataParam = obx_int.flexBufferToMap(buffer, rootOffset, 8);
+        final configParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
         final object = PluginConfig(
           id: idParam,
           name: nameParam,
-          data: dataParam,
+          config: configParam,
         );
 
         return object;
@@ -3168,7 +3175,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final debugUrlOffset = object.debugUrl == null
             ? null
             : fbb.writeString(object.debugUrl!);
-        fbb.startTable(18);
+        final originScriptOffset = fbb.writeString(object.originScript);
+        fbb.startTable(19);
         fbb.addInt64(0, object.id);
         fbb.addOffset(4, versionOffset);
         fbb.addInt64(7, object.insertedAt.millisecondsSinceEpoch);
@@ -3181,6 +3189,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addInt64(14, object.deletedAt?.millisecondsSinceEpoch);
         fbb.addBool(15, object.debug);
         fbb.addOffset(16, debugUrlOffset);
+        fbb.addOffset(17, originScriptOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -3204,6 +3213,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final versionParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 12, '');
+        final originScriptParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 38, '');
         final insertedAtParam = DateTime.fromMillisecondsSinceEpoch(
           const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0),
         );
@@ -3247,6 +3259,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           id: idParam,
           uuid: uuidParam,
           version: versionParam,
+          originScript: originScriptParam,
           insertedAt: insertedAtParam,
           updatedAt: updatedAtParam,
           isEnabled: isEnabledParam,
@@ -3276,21 +3289,11 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final titleOffset = fbb.writeString(object.title);
         final descriptionOffset = fbb.writeString(object.description);
         final storageRootOffset = fbb.writeString(object.storageRoot);
-        final coverOffset = object.cover == null
-            ? null
-            : fbb.writeListInt8(obx_int.toFlexBuffer(object.cover!));
-        final creatorOffset = object.creator == null
-            ? null
-            : fbb.writeListInt8(obx_int.toFlexBuffer(object.creator!));
-        final titleMetaOffset = object.titleMeta == null
-            ? null
-            : fbb.writeListInt8(obx_int.toFlexBuffer(object.titleMeta!));
-        final metadataOffset = object.metadata == null
-            ? null
-            : fbb.writeListInt8(obx_int.toFlexBuffer(object.metadata!));
-        final chaptersOffset = object.chapters == null
-            ? null
-            : fbb.writeListInt8(obx_int.toFlexBuffer(object.chapters!));
+        final coverOffset = fbb.writeString(object.cover);
+        final creatorOffset = fbb.writeString(object.creator);
+        final titleMetaOffset = fbb.writeString(object.titleMeta);
+        final metadataOffset = fbb.writeString(object.metadata);
+        final chaptersOffset = fbb.writeString(object.chapters);
         final detailJsonOffset = fbb.writeString(object.detailJson);
         fbb.startTable(45);
         fbb.addInt64(0, object.id);
@@ -3347,18 +3350,18 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final descriptionParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 16, '');
-        final coverParam = obx_int.flexBufferToMap(buffer, rootOffset, 78);
-        final creatorParam = obx_int.flexBufferToMap(buffer, rootOffset, 80);
-        final titleMetaParam = obx_int.flexBufferToListOfMaps(
-          buffer,
-          rootOffset,
-          82,
-        );
-        final metadataParam = obx_int.flexBufferToListOfMaps(
-          buffer,
-          rootOffset,
-          84,
-        );
+        final coverParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 78, '');
+        final creatorParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 80, '');
+        final titleMetaParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 82, '');
+        final metadataParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 84, '');
         final totalViewsParam = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
@@ -3413,11 +3416,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
           76,
           false,
         );
-        final chaptersParam = obx_int.flexBufferToListOfMaps(
-          buffer,
-          rootOffset,
-          86,
-        );
+        final chaptersParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 86, '');
         final detailJsonParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 90, '');
@@ -3492,18 +3493,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final comicIdOffset = fbb.writeString(object.comicId);
         final titleOffset = fbb.writeString(object.title);
         final descriptionOffset = fbb.writeString(object.description);
-        final coverOffset = object.cover == null
-            ? null
-            : fbb.writeListInt8(obx_int.toFlexBuffer(object.cover!));
-        final creatorOffset = object.creator == null
-            ? null
-            : fbb.writeListInt8(obx_int.toFlexBuffer(object.creator!));
-        final titleMetaOffset = object.titleMeta == null
-            ? null
-            : fbb.writeListInt8(obx_int.toFlexBuffer(object.titleMeta!));
-        final metadataOffset = object.metadata == null
-            ? null
-            : fbb.writeListInt8(obx_int.toFlexBuffer(object.metadata!));
+        final coverOffset = fbb.writeString(object.cover);
+        final creatorOffset = fbb.writeString(object.creator);
+        final titleMetaOffset = fbb.writeString(object.titleMeta);
+        final metadataOffset = fbb.writeString(object.metadata);
         fbb.startTable(26);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, uniqueKeyOffset);
@@ -3546,18 +3539,18 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final descriptionParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 16, '');
-        final coverParam = obx_int.flexBufferToMap(buffer, rootOffset, 46);
-        final creatorParam = obx_int.flexBufferToMap(buffer, rootOffset, 48);
-        final titleMetaParam = obx_int.flexBufferToListOfMaps(
-          buffer,
-          rootOffset,
-          50,
-        );
-        final metadataParam = obx_int.flexBufferToListOfMaps(
-          buffer,
-          rootOffset,
-          52,
-        );
+        final coverParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 46, '');
+        final creatorParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 48, '');
+        final titleMetaParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 50, '');
+        final metadataParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 52, '');
         final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
           const fb.Int64Reader().vTableGet(buffer, rootOffset, 26, 0),
         );
@@ -3612,18 +3605,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final descriptionOffset = fbb.writeString(object.description);
         final chapterIdOffset = fbb.writeString(object.chapterId);
         final chapterTitleOffset = fbb.writeString(object.chapterTitle);
-        final coverOffset = object.cover == null
-            ? null
-            : fbb.writeListInt8(obx_int.toFlexBuffer(object.cover!));
-        final creatorOffset = object.creator == null
-            ? null
-            : fbb.writeListInt8(obx_int.toFlexBuffer(object.creator!));
-        final titleMetaOffset = object.titleMeta == null
-            ? null
-            : fbb.writeListInt8(obx_int.toFlexBuffer(object.titleMeta!));
-        final metadataOffset = object.metadata == null
-            ? null
-            : fbb.writeListInt8(obx_int.toFlexBuffer(object.metadata!));
+        final coverOffset = fbb.writeString(object.cover);
+        final creatorOffset = fbb.writeString(object.creator);
+        final titleMetaOffset = fbb.writeString(object.titleMeta);
+        final metadataOffset = fbb.writeString(object.metadata);
         fbb.startTable(31);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, uniqueKeyOffset);
@@ -3671,18 +3656,18 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final descriptionParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 16, '');
-        final coverParam = obx_int.flexBufferToMap(buffer, rootOffset, 56);
-        final creatorParam = obx_int.flexBufferToMap(buffer, rootOffset, 58);
-        final titleMetaParam = obx_int.flexBufferToListOfMaps(
-          buffer,
-          rootOffset,
-          60,
-        );
-        final metadataParam = obx_int.flexBufferToListOfMaps(
-          buffer,
-          rootOffset,
-          62,
-        );
+        final coverParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 56, '');
+        final creatorParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 58, '');
+        final titleMetaParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 60, '');
+        final metadataParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 62, '');
         final chapterIdParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGet(buffer, rootOffset, 26, '');
@@ -4625,6 +4610,11 @@ class PluginConfig_ {
   static final name = obx.QueryStringProperty<PluginConfig>(
     _entities[7].properties[1],
   );
+
+  /// See [PluginConfig.config].
+  static final config = obx.QueryStringProperty<PluginConfig>(
+    _entities[7].properties[2],
+  );
 }
 
 /// [PluginInfo] entity fields to define ObjectBox queries.
@@ -4687,6 +4677,11 @@ class PluginInfo_ {
   /// See [PluginInfo.debugUrl].
   static final debugUrl = obx.QueryStringProperty<PluginInfo>(
     _entities[8].properties[11],
+  );
+
+  /// See [PluginInfo.originScript].
+  static final originScript = obx.QueryStringProperty<PluginInfo>(
+    _entities[8].properties[12],
   );
 }
 
@@ -4797,6 +4792,31 @@ class UnifiedComicDownload_ {
     _entities[9].properties[20],
   );
 
+  /// See [UnifiedComicDownload.cover].
+  static final cover = obx.QueryStringProperty<UnifiedComicDownload>(
+    _entities[9].properties[21],
+  );
+
+  /// See [UnifiedComicDownload.creator].
+  static final creator = obx.QueryStringProperty<UnifiedComicDownload>(
+    _entities[9].properties[22],
+  );
+
+  /// See [UnifiedComicDownload.titleMeta].
+  static final titleMeta = obx.QueryStringProperty<UnifiedComicDownload>(
+    _entities[9].properties[23],
+  );
+
+  /// See [UnifiedComicDownload.metadata].
+  static final metadata = obx.QueryStringProperty<UnifiedComicDownload>(
+    _entities[9].properties[24],
+  );
+
+  /// See [UnifiedComicDownload.chapters].
+  static final chapters = obx.QueryStringProperty<UnifiedComicDownload>(
+    _entities[9].properties[25],
+  );
+
   /// See [UnifiedComicDownload.detailJson].
   static final detailJson = obx.QueryStringProperty<UnifiedComicDownload>(
     _entities[9].properties[26],
@@ -4853,6 +4873,26 @@ class UnifiedComicFavorite_ {
   /// See [UnifiedComicFavorite.schemaVersion].
   static final schemaVersion = obx.QueryIntegerProperty<UnifiedComicFavorite>(
     _entities[10].properties[9],
+  );
+
+  /// See [UnifiedComicFavorite.cover].
+  static final cover = obx.QueryStringProperty<UnifiedComicFavorite>(
+    _entities[10].properties[10],
+  );
+
+  /// See [UnifiedComicFavorite.creator].
+  static final creator = obx.QueryStringProperty<UnifiedComicFavorite>(
+    _entities[10].properties[11],
+  );
+
+  /// See [UnifiedComicFavorite.titleMeta].
+  static final titleMeta = obx.QueryStringProperty<UnifiedComicFavorite>(
+    _entities[10].properties[12],
+  );
+
+  /// See [UnifiedComicFavorite.metadata].
+  static final metadata = obx.QueryStringProperty<UnifiedComicFavorite>(
+    _entities[10].properties[13],
   );
 }
 
@@ -4931,5 +4971,25 @@ class UnifiedComicHistory_ {
   /// See [UnifiedComicHistory.updatedAt].
   static final updatedAt = obx.QueryDateProperty<UnifiedComicHistory>(
     _entities[11].properties[14],
+  );
+
+  /// See [UnifiedComicHistory.cover].
+  static final cover = obx.QueryStringProperty<UnifiedComicHistory>(
+    _entities[11].properties[15],
+  );
+
+  /// See [UnifiedComicHistory.creator].
+  static final creator = obx.QueryStringProperty<UnifiedComicHistory>(
+    _entities[11].properties[16],
+  );
+
+  /// See [UnifiedComicHistory.titleMeta].
+  static final titleMeta = obx.QueryStringProperty<UnifiedComicHistory>(
+    _entities[11].properties[17],
+  );
+
+  /// See [UnifiedComicHistory.metadata].
+  static final metadata = obx.QueryStringProperty<UnifiedComicHistory>(
+    _entities[11].properties[18],
   );
 }

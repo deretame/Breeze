@@ -8,28 +8,53 @@ import '../decode/decode.dart';
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+Future<String> greet({required String name}) =>
+    RustLib.instance.api.crateApiSimpleGreet(name: name);
 
-            
+Future<String> sleepTest() => RustLib.instance.api.crateApiSimpleSleepTest();
 
-            Future<String>  greet({required String name }) => RustLib.instance.api.crateApiSimpleGreet(name: name);
+Future<void> antiObfuscationPicture({required ImageInfo imageInfo}) => RustLib
+    .instance
+    .api
+    .crateApiSimpleAntiObfuscationPicture(imageInfo: imageInfo);
 
-Future<String>  sleepTest() => RustLib.instance.api.crateApiSimpleSleepTest();
+Future<String> compressImage({required List<int> imageBytes}) =>
+    RustLib.instance.api.crateApiSimpleCompressImage(imageBytes: imageBytes);
 
-Future<void>  antiObfuscationPicture({required ImageInfo imageInfo }) => RustLib.instance.api.crateApiSimpleAntiObfuscationPicture(imageInfo: imageInfo);
+Future<Uint8List> zstdCompressBytes({
+  required List<int> raw,
+  required int level,
+}) => RustLib.instance.api.crateApiSimpleZstdCompressBytes(
+  raw: raw,
+  level: level,
+);
 
-Future<String>  compressImage({required List<int> imageBytes }) => RustLib.instance.api.crateApiSimpleCompressImage(imageBytes: imageBytes);
+Future<Uint8List> zstdDecompressBytes({required List<int> encoded}) =>
+    RustLib.instance.api.crateApiSimpleZstdDecompressBytes(encoded: encoded);
 
-Future<Uint8List>  zstdCompressBytes({required List<int> raw , required int level }) => RustLib.instance.api.crateApiSimpleZstdCompressBytes(raw: raw, level: level);
+Future<void> packFolder({
+  required String destPath,
+  required PackInfo packInfo,
+}) => RustLib.instance.api.crateApiSimplePackFolder(
+  destPath: destPath,
+  packInfo: packInfo,
+);
 
-Future<Uint8List>  zstdDecompressBytes({required List<int> encoded }) => RustLib.instance.api.crateApiSimpleZstdDecompressBytes(encoded: encoded);
+Future<void> packFolderZip({
+  required String destPath,
+  required PackInfo packInfo,
+}) => RustLib.instance.api.crateApiSimplePackFolderZip(
+  destPath: destPath,
+  packInfo: packInfo,
+);
 
-Future<void>  packFolder({required String destPath , required PackInfo packInfo }) => RustLib.instance.api.crateApiSimplePackFolder(destPath: destPath, packInfo: packInfo);
+Stream<String> streamTest() => RustLib.instance.api.crateApiSimpleStreamTest();
 
-Future<void>  packFolderZip({required String destPath , required PackInfo packInfo }) => RustLib.instance.api.crateApiSimplePackFolderZip(destPath: destPath, packInfo: packInfo);
+void enableStacktrace({required bool enabled}) =>
+    RustLib.instance.api.crateApiSimpleEnableStacktrace(enabled: enabled);
 
-Stream<String>  streamTest() => RustLib.instance.api.crateApiSimpleStreamTest();
+Future<Uint8List> compressExtreme({required List<int> data}) =>
+    RustLib.instance.api.crateApiSimpleCompressExtreme(data: data);
 
-void  enableStacktrace({required bool enabled }) => RustLib.instance.api.crateApiSimpleEnableStacktrace(enabled: enabled);
-
-            
-            
+Future<Uint8List> decompressExtreme({required List<int> data}) =>
+    RustLib.instance.api.crateApiSimpleDecompressExtreme(data: data);

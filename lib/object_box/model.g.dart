@@ -377,14 +377,10 @@ UnifiedComicFavorite _$UnifiedComicFavoriteFromJson(
   comicId: json['comicId'] as String,
   title: json['title'] as String,
   description: json['description'] as String,
-  cover: json['cover'] as Map<String, dynamic>?,
-  creator: json['creator'] as Map<String, dynamic>?,
-  titleMeta: (json['titleMeta'] as List<dynamic>?)
-      ?.map((e) => e as Map<String, dynamic>)
-      .toList(),
-  metadata: (json['metadata'] as List<dynamic>?)
-      ?.map((e) => e as Map<String, dynamic>)
-      .toList(),
+  cover: json['cover'] as String,
+  creator: json['creator'] as String,
+  titleMeta: json['titleMeta'] as String,
+  metadata: json['metadata'] as String,
   createdAt: DateTime.parse(json['createdAt'] as String),
   updatedAt: DateTime.parse(json['updatedAt'] as String),
   deleted: json['deleted'] as bool,
@@ -418,14 +414,10 @@ UnifiedComicHistory _$UnifiedComicHistoryFromJson(Map<String, dynamic> json) =>
       comicId: json['comicId'] as String,
       title: json['title'] as String,
       description: json['description'] as String,
-      cover: json['cover'] as Map<String, dynamic>?,
-      creator: json['creator'] as Map<String, dynamic>?,
-      titleMeta: (json['titleMeta'] as List<dynamic>?)
-          ?.map((e) => e as Map<String, dynamic>)
-          .toList(),
-      metadata: (json['metadata'] as List<dynamic>?)
-          ?.map((e) => e as Map<String, dynamic>)
-          .toList(),
+      cover: json['cover'] as String,
+      creator: json['creator'] as String,
+      titleMeta: json['titleMeta'] as String,
+      metadata: json['metadata'] as String,
       chapterId: json['chapterId'] as String,
       chapterTitle: json['chapterTitle'] as String,
       chapterOrder: (json['chapterOrder'] as num).toInt(),
@@ -470,14 +462,10 @@ UnifiedComicDownload _$UnifiedComicDownloadFromJson(
   comicId: json['comicId'] as String,
   title: json['title'] as String,
   description: json['description'] as String,
-  cover: json['cover'] as Map<String, dynamic>?,
-  creator: json['creator'] as Map<String, dynamic>?,
-  titleMeta: (json['titleMeta'] as List<dynamic>?)
-      ?.map((e) => e as Map<String, dynamic>)
-      .toList(),
-  metadata: (json['metadata'] as List<dynamic>?)
-      ?.map((e) => e as Map<String, dynamic>)
-      .toList(),
+  cover: json['cover'] as String,
+  creator: json['creator'] as String,
+  titleMeta: json['titleMeta'] as String,
+  metadata: json['metadata'] as String,
   totalViews: (json['totalViews'] as num).toInt(),
   totalLikes: (json['totalLikes'] as num).toInt(),
   totalComments: (json['totalComments'] as num).toInt(),
@@ -487,9 +475,7 @@ UnifiedComicDownload _$UnifiedComicDownloadFromJson(
   allowLike: json['allowLike'] as bool,
   allowFavorite: json['allowFavorite'] as bool,
   allowDownload: json['allowDownload'] as bool,
-  chapters: (json['chapters'] as List<dynamic>?)
-      ?.map((e) => e as Map<String, dynamic>)
-      .toList(),
+  chapters: json['chapters'] as String,
   detailJson: json['detailJson'] as String,
   storageRoot: json['storageRoot'] as String,
   createdAt: DateTime.parse(json['createdAt'] as String),
@@ -588,20 +574,21 @@ Map<String, dynamic> _$DownloadTaskToJson(DownloadTask instance) =>
 PluginConfig _$PluginConfigFromJson(Map<String, dynamic> json) => PluginConfig(
   id: (json['id'] as num?)?.toInt() ?? 0,
   name: json['name'] as String,
-  data: json['data'] as Map<String, dynamic>?,
+  config: json['config'] as String,
 );
 
 Map<String, dynamic> _$PluginConfigToJson(PluginConfig instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
-      'data': instance.data,
+      'config': instance.config,
     };
 
 PluginInfo _$PluginInfoFromJson(Map<String, dynamic> json) => PluginInfo(
   id: (json['id'] as num?)?.toInt() ?? 0,
   uuid: json['uuid'] as String,
   version: json['version'] as String,
+  originScript: json['originScript'] as String,
   insertedAt: DateTime.parse(json['insertedAt'] as String),
   updatedAt: DateTime.parse(json['updatedAt'] as String),
   isEnabled: json['isEnabled'] as bool,
@@ -620,6 +607,7 @@ Map<String, dynamic> _$PluginInfoToJson(PluginInfo instance) =>
       'id': instance.id,
       'uuid': instance.uuid,
       'version': instance.version,
+      'originScript': instance.originScript,
       'lastLoadSuccess': instance.lastLoadSuccess,
       'lastLoadError': instance.lastLoadError,
       'insertedAt': instance.insertedAt.toIso8601String(),

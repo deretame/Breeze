@@ -69,7 +69,7 @@ extension _ComicReadAutoReadPart on _ComicReadPageState {
 
     final globalSettingState = context.read<GlobalSettingCubit>().state;
     final intervalMs =
-        (globalSettingState.readMode == 0
+        (globalSettingState.readSetting.readMode == 0
                 ? globalSettingState.readSetting.autoScrollColumnIntervalMs
                 : globalSettingState.readSetting.autoScrollPageIntervalMs)
             .clamp(300, 10000);

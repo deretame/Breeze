@@ -38,7 +38,7 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
             });
           }
 
-          if (!newCtrlPressed && globalSettingState.readMode != 0) {
+          if (!newCtrlPressed && globalSettingState.readSetting.readMode != 0) {
             if (event.scrollDelta.dy > 0) {
               _actionController.onPageActionNext();
             } else if (event.scrollDelta.dy < 0) {
@@ -66,7 +66,7 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
             interactionEndFrictionCoefficient: 0.00001,
             onInteractionUpdate: (_) => _updateMultiTouchScrollLock(),
             onInteractionEnd: (_) => _updateMultiTouchScrollLock(),
-            child: isColumnReadMode(globalSettingState.readMode)
+            child: isColumnReadMode(globalSettingState.readSetting.readMode)
                 ? _columnModeWidget(
                     enableDoublePage: readSetting.doublePageMode,
                   )
@@ -189,7 +189,7 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
   Widget _rowModeWidget() {
     final globalSettingState = context.watch<GlobalSettingCubit>().state;
     return RowModeWidget(
-      key: ValueKey(globalSettingState.readMode.toString()),
+      key: ValueKey(globalSettingState.readSetting.readMode.toString()),
       comicId: comicId,
       epsId: epInfo.epId,
       docs: epInfo.docs,

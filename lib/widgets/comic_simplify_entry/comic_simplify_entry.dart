@@ -326,7 +326,6 @@ class ComicSimplifyEntry extends StatelessWidget {
     if (temp != null) {
       temp.deleted = true;
       temp.updatedAt = DateTime.now().toUtc();
-      temp.lastReadAt = temp.updatedAt;
       objectbox.unifiedHistoryBox.put(temp);
     }
   }
@@ -354,7 +353,9 @@ class ComicSimplifyEntry extends StatelessWidget {
         .findFirst();
 
     if (temp != null) {
-      objectbox.unifiedFavoriteBox.remove(temp.id);
+      temp.deleted = true;
+      temp.updatedAt = DateTime.now().toUtc();
+      objectbox.unifiedFavoriteBox.put(temp);
     }
   }
 

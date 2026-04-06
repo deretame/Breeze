@@ -14,7 +14,6 @@ _DownloadTaskJson _$DownloadTaskJsonFromJson(Map<String, dynamic> json) =>
       selectedChapters: (json['selectedChapters'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
-      slowDownload: json['slowDownload'] as bool,
     );
 
 Map<String, dynamic> _$DownloadTaskJsonToJson(_DownloadTaskJson instance) =>
@@ -23,5 +22,4 @@ Map<String, dynamic> _$DownloadTaskJsonToJson(_DownloadTaskJson instance) =>
       'comicId': instance.comicId,
       'comicName': instance.comicName,
       'selectedChapters': instance.selectedChapters,
-      'slowDownload': instance.slowDownload,
     };

@@ -151,7 +151,7 @@ class _SliderWidgetState extends State<SliderWidget> {
                           .state;
 
                       try {
-                        if (globalSettingState.readMode == 0) {
+                        if (globalSettingState.readSetting.readMode == 0) {
                           widget.observerController.jumpTo(
                             index: newValue.toInt(),
                             offset: (offset) {

@@ -12,7 +12,7 @@ class ReaderGestureLogic {
     required VoidCallback onToggleMenu,
     VoidCallback? onBeforePageTurn,
   }) {
-    if (context.read<GlobalSettingCubit>().state.readMode == 0) {
+    if (context.read<GlobalSettingCubit>().state.readSetting.readMode == 0) {
       onToggleMenu();
       return;
     }

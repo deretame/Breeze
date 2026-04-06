@@ -218,7 +218,7 @@ class HomeSchemeRenderer {
                       : LayoutBuilder(
                           builder: (context, constraints) => CoverWidget(
                             fileServer: coverUrl,
-                            path: coverPath.isNotEmpty ? coverPath : title,
+                            path: coverPath,
                             id: title,
                             pictureType: PictureType.category,
                             from: from,

@@ -17,7 +17,8 @@ extension _ComicReadInitPart on _ComicReadPageState {
       scrollController: scrollController,
       observerController: observerController,
       pageController: _pageController,
-      getReadMode: () => context.read<GlobalSettingCubit>().state.readMode,
+      getReadMode: () =>
+          context.read<GlobalSettingCubit>().state.readSetting.readMode,
       getPageIndex: () => context.read<ReaderCubit>().state.pageIndex,
       getTotalSlots: () => context.read<ReaderCubit>().state.totalSlots,
       getNoAnimation: () =>

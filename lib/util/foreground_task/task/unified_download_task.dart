@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:path/path.dart' as p;
+import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
@@ -88,25 +89,32 @@ Future<void> unifiedDownloadTask(
     reporter.updateMessage('下载封面中...');
     final cover = detail.normalInfo.comicInfo.cover;
     final coverExtension = Map<String, dynamic>.from(cover.extension);
-    final coverFileName =
-        coverExtension['path']?.toString() ??
-        (cover.name.trim().isNotEmpty
-            ? cover.name.trim()
-            : '${task.comicId}.jpg');
-    final coverPath = await downloadCoverAsset(
-      from: from,
-      url: cover.url,
-      path: coverFileName,
-      cartoonId: task.comicId,
-      qjsName: runtimeName,
-      qjsTaskGroupKey: task.comicId,
-    );
+    final rawCoverFileName = coverExtension['path']?.toString() ?? '';
+    String coverPath = '404';
+    if (rawCoverFileName.trim().isNotEmpty && cover.url.trim().isNotEmpty) {
+      final coverFileName = normalizeStoredAssetPath(rawCoverFileName);
+      coverPath = await downloadCoverAsset(
+        from: from,
+        url: cover.url,
+        path: coverFileName,
+        cartoonId: task.comicId,
+        qjsName: runtimeName,
+        qjsTaskGroupKey: task.comicId,
+      );
+    }
 
     var normalInfo = detail.normalInfo.copyWith(recommend: const []);
     if (coverPath.startsWith('404')) {
+      final clearedCoverExtension = {
+        ...normalInfo.comicInfo.cover.extension,
+        'path': '',
+      };
       normalInfo = normalInfo.copyWith(
         comicInfo: normalInfo.comicInfo.copyWith(
-          cover: normalInfo.comicInfo.cover.copyWith(url: ''),
+          cover: normalInfo.comicInfo.cover.copyWith(
+            url: '',
+            extension: clearedCoverExtension,
+          ),
         ),
       );
     }
@@ -155,7 +163,6 @@ Future<void> unifiedDownloadTask(
     await downloadImageJobs(
       from: from,
       jobs: jobs,
-      slowDownload: task.slowDownload,
       qjsRuntimeName: runtimeName,
       qjsTaskGroupKey: task.comicId,
       ensureTaskRunning: ensureTaskRunning,
@@ -236,10 +243,7 @@ Future<void> _saveUnifiedDownload({
               .order,
           images: response.chapter.docs.map((doc) {
             final imageName = _resolveImageDisplayName(doc);
-            final imagePath = normalizeStoredAssetPath(
-              doc.path,
-              fallback: imageName,
-            );
+            final imagePath = normalizeStoredAssetPath(doc.path);
             return UnifiedComicDownloadImage(
               id: doc.id.isNotEmpty
                   ? doc.id
@@ -279,18 +283,14 @@ Future<void> _saveUnifiedDownload({
   final key = '$from:${task.comicId}';
   final coverMap = _normalizeStoredImageMap(
     _deepCopyMap(detail.comicInfo.cover.toJson()),
-    fallbackId: task.comicId,
   );
   final creatorMap = _normalizeStoredCreatorMap(
     _deepCopyMap(detail.comicInfo.creator.toJson()),
-    fallbackId: task.comicId,
   );
   final titleMeta = _deepCopyMapList(
     detail.comicInfo.titleMeta.map((e) => e.toJson()).toList(),
   );
-  final metadata = _deepCopyMapList(
-    detail.comicInfo.metadata.map((e) => e.toJson()).toList(),
-  );
+  final metadata = _normalizeMetadataForStorage(detail.comicInfo.metadata);
   final chapters = storedChapters
       .map(
         (chapter) => UnifiedComicDownloadChapter(
@@ -307,9 +307,9 @@ Future<void> _saveUnifiedDownload({
     comicId: task.comicId,
     title: detail.comicInfo.title,
     description: detail.comicInfo.description,
-    cover: coverMap,
-    creator: creatorMap,
-    titleMeta: titleMeta,
+    cover: jsonEncode(coverMap),
+    creator: jsonEncode(creatorMap),
+    titleMeta: jsonEncode(titleMeta),
     metadata: metadata,
     totalViews: detail.totalViews,
     totalLikes: detail.totalLikes,
@@ -320,10 +320,10 @@ Future<void> _saveUnifiedDownload({
     allowLike: detail.allowLike,
     allowFavorite: detail.allowCollected,
     allowDownload: detail.allowDownload,
-    chapters: chapters,
+    chapters: jsonEncode(chapters),
     detailJson: jsonEncode(
       detail
-          .copyWith(extension: {...detail.extension, 'version': 'v2'})
+          .copyWith(extension: {...detail.extension, 'version': mainVersion})
           .toJson(),
     ),
     storageRoot:
@@ -355,6 +355,22 @@ List<Map<String, dynamic>> _deepCopyMapList(Object value) {
   return decoded.map((item) => Map<String, dynamic>.from(item as Map)).toList();
 }
 
+String _normalizeMetadataForStorage(List<normal.ComicInfoMetadata> metadata) {
+  final normalized = <Map<String, dynamic>>[];
+  for (final item in metadata) {
+    final values = item.value
+        .map((entry) => entry.name.trim())
+        .where((entry) => entry.isNotEmpty)
+        .map((entry) => {'name': entry})
+        .toList();
+    if (values.isEmpty) {
+      continue;
+    }
+    normalized.add({'type': item.type, 'name': item.name, 'value': values});
+  }
+  return jsonEncode(normalized);
+}
+
 String _fallbackImageId(UnifiedPluginChapterDoc doc, String chapterId) {
   final candidate = doc.path.isNotEmpty ? doc.path : doc.name;
   final base = candidate.split(RegExp(r'[\\/]')).last.trim();
@@ -378,28 +394,20 @@ String _resolveImageDisplayName(UnifiedPluginChapterDoc doc) {
   return 'asset.bin';
 }
 
-Map<String, dynamic> _normalizeStoredImageMap(
-  Map<String, dynamic> image, {
-  required String fallbackId,
-}) {
+Map<String, dynamic> _normalizeStoredImageMap(Map<String, dynamic> image) {
   final map = Map<String, dynamic>.from(image);
   final ext = Map<String, dynamic>.from(map['extension'] as Map? ?? const {});
-  final currentName = map['name']?.toString().trim() ?? '';
-  final fallbackName = currentName.isNotEmpty ? currentName : '$fallbackId.jpg';
-  final rawPath = ext['path']?.toString() ?? currentName;
-  ext['path'] = normalizeStoredAssetPath(rawPath, fallback: fallbackName);
+  final rawPath = ext['path']?.toString() ?? '';
+  ext['path'] = normalizeStoredAssetPath(rawPath, allowEmpty: true);
   map['extension'] = ext;
   return map;
 }
 
-Map<String, dynamic> _normalizeStoredCreatorMap(
-  Map<String, dynamic> creator, {
-  required String fallbackId,
-}) {
+Map<String, dynamic> _normalizeStoredCreatorMap(Map<String, dynamic> creator) {
   final map = Map<String, dynamic>.from(creator);
   final avatar = Map<String, dynamic>.from(map['avatar'] as Map? ?? const {});
   if (avatar.isNotEmpty) {
-    map['avatar'] = _normalizeStoredImageMap(avatar, fallbackId: fallbackId);
+    map['avatar'] = _normalizeStoredImageMap(avatar);
   }
   return map;
 }

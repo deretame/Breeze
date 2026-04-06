@@ -30,3 +30,13 @@ mslnk = "0.1"
 
 [target.'cfg(windows)'.dependencies]
 winreg = "0.52"
+
+[profile.dev]
+# 关闭调试符号生成
+debug = 0
+
+# 减少中间产物
+opt-level = 1
+
+# 减少增量编译生成的碎片文件
+incremental = true

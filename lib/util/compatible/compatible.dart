@@ -7,14 +7,23 @@ const _defaultCompatibleVersion = 'v1';
 const _latestCompatibleVersion = 'v2';
 
 Future<void> ensureCompatibleMigration(ObjectBox objectbox) async {
+  objectbox.dumpAllData();
+
   try {
     final version = await getCompatibleVersion();
     if (version == 'v1') {
+      logger.d('Compatible migration start: v1 -> v2');
       await migrateV1ToV2(objectbox);
+      logger.d(
+        'Compatible migration db finished, start download files migration',
+      );
+      await migrateLegacyDownloadFilesToPluginUuidLayout();
+      logger.d('Compatible migration download files finished');
       await setCompatibleVersion(_latestCompatibleVersion);
+      logger.d('Compatible migration done: version=v2');
     }
-  } catch (e) {
-    logger.e('Compatible migration failed: $e');
+  } catch (e, stackTrace) {
+    logger.e('Compatible migration failed', error: e, stackTrace: stackTrace);
   }
 }
 

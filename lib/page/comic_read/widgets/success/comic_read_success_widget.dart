@@ -78,7 +78,7 @@ class _ComicReadSuccessWidgetState extends State<ComicReadSuccessWidget> {
             builder: (innerContext) {
               final cubit = innerContext.read<ReaderCubit>();
               final readMode = innerContext.select(
-                (GlobalSettingCubit c) => c.state.readMode,
+                (GlobalSettingCubit c) => c.state.readSetting.readMode,
               );
               final readSetting = innerContext.select(
                 (GlobalSettingCubit c) => c.state.readSetting,

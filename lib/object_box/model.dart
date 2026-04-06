@@ -460,14 +460,10 @@ class UnifiedComicFavorite {
   String comicId;
   String title;
   String description;
-  @Property(type: PropertyType.flex)
-  Map<String, dynamic>? cover;
-  @Property(type: PropertyType.flex)
-  Map<String, dynamic>? creator;
-  @Property(type: PropertyType.flex)
-  List<Map<String, dynamic>>? titleMeta;
-  @Property(type: PropertyType.flex)
-  List<Map<String, dynamic>>? metadata;
+  String cover;
+  String creator;
+  String titleMeta;
+  String metadata;
   @Property(type: PropertyType.date)
   DateTime createdAt;
   @Property(type: PropertyType.date)
@@ -516,14 +512,10 @@ class UnifiedComicHistory {
   String comicId;
   String title;
   String description;
-  @Property(type: PropertyType.flex)
-  Map<String, dynamic>? cover;
-  @Property(type: PropertyType.flex)
-  Map<String, dynamic>? creator;
-  @Property(type: PropertyType.flex)
-  List<Map<String, dynamic>>? titleMeta;
-  @Property(type: PropertyType.flex)
-  List<Map<String, dynamic>>? metadata;
+  String cover;
+  String creator;
+  String titleMeta;
+  String metadata;
   String chapterId;
   String chapterTitle;
   int chapterOrder;
@@ -583,14 +575,10 @@ class UnifiedComicDownload {
   String comicId;
   String title;
   String description;
-  @Property(type: PropertyType.flex)
-  Map<String, dynamic>? cover;
-  @Property(type: PropertyType.flex)
-  Map<String, dynamic>? creator;
-  @Property(type: PropertyType.flex)
-  List<Map<String, dynamic>>? titleMeta;
-  @Property(type: PropertyType.flex)
-  List<Map<String, dynamic>>? metadata;
+  String cover;
+  String creator;
+  String titleMeta;
+  String metadata;
   int totalViews;
   int totalLikes;
   int totalComments;
@@ -600,8 +588,7 @@ class UnifiedComicDownload {
   bool allowLike;
   bool allowFavorite;
   bool allowDownload;
-  @Property(type: PropertyType.flex)
-  List<Map<String, dynamic>>? chapters;
+  String chapters;
   String detailJson;
   String storageRoot;
   @Property(type: PropertyType.date)
@@ -787,10 +774,9 @@ class PluginConfig {
 
   String name;
 
-  @Property(type: PropertyType.flex)
-  Map<String, dynamic>? data;
+  String config;
 
-  PluginConfig({this.id = 0, required this.name, required this.data});
+  PluginConfig({this.id = 0, required this.name, required this.config});
 
   Map<String, dynamic> toJson() => _$PluginConfigToJson(this);
 
@@ -813,6 +799,8 @@ class PluginInfo {
   String uuid;
 
   String version;
+
+  String originScript;
 
   bool lastLoadSuccess;
 
@@ -839,6 +827,7 @@ class PluginInfo {
     this.id = 0,
     required this.uuid,
     required this.version,
+    required this.originScript,
     required this.insertedAt,
     required this.updatedAt,
     required this.isEnabled,

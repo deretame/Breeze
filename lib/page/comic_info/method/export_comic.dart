@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math' show min;
 
 import 'package:path/path.dart' as p;
+import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/object_box/model.dart';
@@ -81,7 +82,7 @@ Future<void> _exportComicAsZip(
   }
 
   final chapterRoot = await _chapterRoot(download);
-  for (final chapter in download.chapters ?? const <Map<String, dynamic>>[]) {
+  for (final chapter in _decodeListOfMaps(download.chapters)) {
     final chapterId = chapter['id']?.toString() ?? '';
     final chapterName = chapter['name']?.toString() ?? chapterId;
     final dir = Directory(p.join(chapterRoot, chapterId));
@@ -128,7 +129,7 @@ Map<String, dynamic> _exportDetail(UnifiedComicDownload download) {
   final extension = Map<String, dynamic>.from(
     detail['extension'] as Map? ?? const <String, dynamic>{},
   );
-  extension['version'] = 'v2';
+  extension['version'] = mainVersion;
   detail['extension'] = extension;
   return detail;
 }
@@ -153,9 +154,7 @@ Future<String?> _tryDownloadCover(
   String comicId, {
   required String from,
 }) async {
-  final cover = Map<String, dynamic>.from(
-    download.cover ?? const <String, dynamic>{},
-  );
+  final cover = _decodeMap(download.cover);
   final ext = Map<String, dynamic>.from(
     cover['extension'] as Map? ?? const <String, dynamic>{},
   );
@@ -182,7 +181,7 @@ Future<void> _copyEpisodeFiles(
   String comicDir,
 ) async {
   final chapterRoot = await _chapterRoot(download);
-  for (final chapter in download.chapters ?? const <Map<String, dynamic>>[]) {
+  for (final chapter in _decodeListOfMaps(download.chapters)) {
     final chapterId = chapter['id']?.toString() ?? '';
     final chapterName = chapter['name']?.toString() ?? chapterId;
     final dir = Directory(p.join(chapterRoot, chapterId));
@@ -198,6 +197,40 @@ Future<void> _copyEpisodeFiles(
       await target.create(recursive: true);
       await file.copy(target.path);
     }
+  }
+}
+
+Map<String, dynamic> _decodeMap(String raw) {
+  if (raw.trim().isEmpty) {
+    return const <String, dynamic>{};
+  }
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is Map<String, dynamic>) {
+      return decoded;
+    }
+    if (decoded is Map) {
+      return decoded.map((key, value) => MapEntry(key.toString(), value));
+    }
+  } catch (_) {}
+  return const <String, dynamic>{};
+}
+
+List<Map<String, dynamic>> _decodeListOfMaps(String raw) {
+  if (raw.trim().isEmpty) {
+    return const <Map<String, dynamic>>[];
+  }
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is! List) {
+      return const <Map<String, dynamic>>[];
+    }
+    return decoded
+        .whereType<Map>()
+        .map((entry) => Map<String, dynamic>.from(entry))
+        .toList();
+  } catch (_) {
+    return const <Map<String, dynamic>>[];
   }
 }
 

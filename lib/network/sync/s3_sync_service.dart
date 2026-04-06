@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:minio/minio.dart';
-import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 
 import 'comic_sync_core.dart';
@@ -18,17 +17,21 @@ class S3SyncService implements ComicSyncRemoteAdapter {
   final Minio _minio;
 
   static bool isConfigured(GlobalSettingState settings) {
-    return settings.s3Setting.endpoint.trim().isNotEmpty &&
-        settings.s3Setting.accessKey.trim().isNotEmpty &&
-        settings.s3Setting.secretKey.isNotEmpty &&
-        settings.s3Setting.bucket.trim().isNotEmpty;
+    return settings.syncSetting.s3Setting.endpoint.trim().isNotEmpty &&
+        settings.syncSetting.s3Setting.accessKey.trim().isNotEmpty &&
+        settings.syncSetting.s3Setting.secretKey.isNotEmpty &&
+        settings.syncSetting.s3Setting.bucket.trim().isNotEmpty;
   }
 
   @override
   Future<void> testConnection() async {
-    final exists = await _minio.bucketExists(_settings.s3Setting.bucket);
+    final exists = await _minio.bucketExists(
+      _settings.syncSetting.s3Setting.bucket,
+    );
     if (!exists) {
-      throw Exception('S3 Bucket 不存在或没有访问权限: ${_settings.s3Setting.bucket}');
+      throw Exception(
+        'S3 Bucket 不存在或没有访问权限: ${_settings.syncSetting.s3Setting.bucket}',
+      );
     }
   }
 
@@ -40,7 +43,7 @@ class S3SyncService implements ComicSyncRemoteAdapter {
     for (final candidate in _md5ObjectKeyCandidates) {
       try {
         final stream = await _minio.getObject(
-          _settings.s3Setting.bucket,
+          _settings.syncSetting.s3Setting.bucket,
           candidate,
         );
         final bytes = await _collectStream(stream);
@@ -66,7 +69,7 @@ class S3SyncService implements ComicSyncRemoteAdapter {
     final bytes = utf8.encode(value);
     final data = Uint8List.fromList(bytes);
     await _minio.putObject(
-      _settings.s3Setting.bucket,
+      _settings.syncSetting.s3Setting.bucket,
       _md5ObjectKey,
       Stream<Uint8List>.value(data),
       size: bytes.length,
@@ -75,28 +78,26 @@ class S3SyncService implements ComicSyncRemoteAdapter {
 
   @override
   Future<List<String>> listRemoteDataFiles() async {
-    final result = await _minio.listAllObjects(
-      _settings.s3Setting.bucket,
-      prefix: _dataPrefix,
-      recursive: true,
-    );
-
     final files = <String>[];
     final seen = <String>{};
-    for (final object in result.objects) {
-      final key = object.key;
-      if (key == null || key.isEmpty) {
-        continue;
-      }
+    for (final prefix in _listPrefixes) {
+      final result = await _minio.listAllObjects(
+        _settings.syncSetting.s3Setting.bucket,
+        prefix: prefix,
+        recursive: true,
+      );
+      for (final object in result.objects) {
+        final key = object.key;
+        if (key == null || key.isEmpty) {
+          continue;
+        }
 
-      final normalized = _normalizeObjectKey(key);
-      if (!normalized.startsWith(_dataPrefix)) {
-        continue;
+        final normalized = _normalizeObjectKey(key);
+        if (!seen.add(normalized)) {
+          continue;
+        }
+        files.add(normalized);
       }
-      if (!seen.add(normalized)) {
-        continue;
-      }
-      files.add(normalized);
     }
     return files;
   }
@@ -105,7 +106,7 @@ class S3SyncService implements ComicSyncRemoteAdapter {
   Future<List<int>> downloadRemoteFile(String remotePath) async {
     final objectKey = _toManagedObjectKey(remotePath);
     final stream = await _minio.getObject(
-      _settings.s3Setting.bucket,
+      _settings.syncSetting.s3Setting.bucket,
       objectKey,
     );
     return _collectStream(stream);
@@ -120,7 +121,7 @@ class S3SyncService implements ComicSyncRemoteAdapter {
     final remoteObject = _toManagedObjectKey(remotePath);
 
     await _minio.putObject(
-      _settings.s3Setting.bucket,
+      _settings.syncSetting.s3Setting.bucket,
       remoteObject,
       Stream<Uint8List>.value(Uint8List.fromList(data)),
       size: data.length,
@@ -145,7 +146,7 @@ class S3SyncService implements ComicSyncRemoteAdapter {
 
     for (final path in normalizedPaths) {
       try {
-        await _minio.removeObject(_settings.s3Setting.bucket, path);
+        await _minio.removeObject(_settings.syncSetting.s3Setting.bucket, path);
       } on MinioS3Error catch (e) {
         final code = e.error?.code;
         if (code == 'NoSuchKey' ||
@@ -158,27 +159,35 @@ class S3SyncService implements ComicSyncRemoteAdapter {
     }
   }
 
-  String get _dataPrefix => '$appName/';
+  String get _syncRootPrefix => '${ComicSyncCore.syncRemoteRootName}/';
 
-  String get _settingsPrefix => '${appName}_setting/';
+  String get _legacyDataPrefix => '${ComicSyncCore.legacyDataRootName}/';
 
-  String get _md5ObjectKey => '$_dataPrefix${ComicSyncCore.md5FileName}';
+  String get _legacySettingsPrefix =>
+      '${ComicSyncCore.legacySettingsRootName}/';
 
-  List<String> get _md5ObjectKeyCandidates => [
-    _md5ObjectKey,
-    ComicSyncCore.md5FileName,
+  List<String> get _listPrefixes => [
+    _syncRootPrefix,
+    _legacyDataPrefix,
+    _legacySettingsPrefix,
   ];
+
+  String get _md5ObjectKey =>
+      '$_syncRootPrefix${ComicSyncCore.comicMd5FileName}';
+
+  List<String> get _md5ObjectKeyCandidates => [_md5ObjectKey];
 
   String _toManagedObjectKey(String key) {
     final normalized = _normalizeObjectKey(key);
     if (normalized.isEmpty) {
-      return _dataPrefix;
+      return _syncRootPrefix;
     }
-    if (normalized.startsWith(_dataPrefix) ||
-        normalized.startsWith(_settingsPrefix)) {
+    if (normalized.startsWith(_syncRootPrefix) ||
+        normalized.startsWith(_legacyDataPrefix) ||
+        normalized.startsWith(_legacySettingsPrefix)) {
       return normalized;
     }
-    return '$_dataPrefix$normalized';
+    return '$_syncRootPrefix$normalized';
   }
 
   String _normalizeObjectKey(String key) {
@@ -196,18 +205,18 @@ class S3SyncService implements ComicSyncRemoteAdapter {
 
 Minio _createMinio(GlobalSettingState settings) {
   final resolved = _resolveEndpoint(
-    settings.s3Setting.endpoint,
-    settings.s3Setting.port,
+    settings.syncSetting.s3Setting.endpoint,
+    settings.syncSetting.s3Setting.port,
   );
   return Minio(
     endPoint: resolved.host,
     port: resolved.port,
-    accessKey: settings.s3Setting.accessKey,
-    secretKey: settings.s3Setting.secretKey,
-    useSSL: settings.s3Setting.useSSL,
-    region: settings.s3Setting.region.isEmpty
+    accessKey: settings.syncSetting.s3Setting.accessKey,
+    secretKey: settings.syncSetting.s3Setting.secretKey,
+    useSSL: settings.syncSetting.s3Setting.useSSL,
+    region: settings.syncSetting.s3Setting.region.isEmpty
         ? null
-        : settings.s3Setting.region,
+        : settings.syncSetting.s3Setting.region,
   );
 }
 

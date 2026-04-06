@@ -1,7 +1,12 @@
+use std::io::{Read, Write};
+
 use anyhow::{Context, Result};
 use base64::{Engine as _, engine::general_purpose};
+use brotli::CompressorWriter;
+use brotli::reader::Decompressor as DecompressorReader;
 use image::{ExtendedColorType, codecs::jpeg::JpegEncoder};
 use tokio::fs::File;
+use tokio::task;
 
 use crate::memory::TrackedAllocation;
 use tokio_tar::Builder;
@@ -252,4 +257,36 @@ pub async fn compress_image(image_bytes: Vec<u8>) -> Result<String> {
         final_base64.len()
     );
     Ok(final_base64)
+}
+
+pub async fn compress_extreme(data: Vec<u8>) -> Vec<u8> {
+    task::spawn_blocking(move || {
+        let mut compressed = Vec::new();
+        let mut writer = CompressorWriter::new(&mut compressed, 4096, 11, 24);
+
+        writer.write_all(&data).expect("压缩失败");
+        writer.flush().expect("刷写失败");
+
+        drop(writer);
+
+        compressed
+    })
+    .await
+    .expect("线程池执行失败")
+}
+
+pub async fn decompress_extreme(compressed_data: Vec<u8>) -> Vec<u8> {
+    task::spawn_blocking(move || {
+        let mut decompressed = Vec::new();
+
+        let mut reader = DecompressorReader::new(&compressed_data[..], 4096);
+
+        reader
+            .read_to_end(&mut decompressed)
+            .expect("解压失败：数据可能损坏或非标准格式");
+
+        decompressed
+    })
+    .await
+    .expect("线程池执行失败")
 }

@@ -154,24 +154,7 @@ class UnifiedComicCover {
   Map<String, dynamic> toJson() => {'id': id, 'url': url, 'extern': extern};
 
   String get cachePath {
-    final extraPath = extern['path']?.toString().trim() ?? '';
-    if (extraPath.isNotEmpty) {
-      return extraPath;
-    }
-
-    final uri = Uri.tryParse(url);
-    final lastSegment = uri == null || uri.pathSegments.isEmpty
-        ? ''
-        : uri.pathSegments.last;
-    if (lastSegment.isNotEmpty) {
-      return lastSegment;
-    }
-
-    if (id.isNotEmpty) {
-      return '$id.jpg';
-    }
-
-    return 'cover.jpg';
+    return extern['path']?.toString().trim() ?? '';
   }
 }
 

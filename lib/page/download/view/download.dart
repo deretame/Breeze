@@ -135,7 +135,6 @@ class _DownloadPageState extends State<DownloadPage> {
       comicId: downloadInfo.comicId,
       comicName: downloadInfo.title,
       selectedChapters: selectedChapters,
-      slowDownload: false,
     );
     logger.d('download task payload=${task.toJson()}');
     logger.d(

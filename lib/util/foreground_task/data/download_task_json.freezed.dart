@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DownloadTaskJson {
 
- String get from; String get comicId; String get comicName; List<String> get selectedChapters; bool get slowDownload;
+ String get from; String get comicId; String get comicName; List<String> get selectedChapters;
 /// Create a copy of DownloadTaskJson
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $DownloadTaskJsonCopyWith<DownloadTaskJson> get copyWith => _$DownloadTaskJsonCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadTaskJson&&(identical(other.from, from) || other.from == from)&&(identical(other.comicId, comicId) || other.comicId == comicId)&&(identical(other.comicName, comicName) || other.comicName == comicName)&&const DeepCollectionEquality().equals(other.selectedChapters, selectedChapters)&&(identical(other.slowDownload, slowDownload) || other.slowDownload == slowDownload));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadTaskJson&&(identical(other.from, from) || other.from == from)&&(identical(other.comicId, comicId) || other.comicId == comicId)&&(identical(other.comicName, comicName) || other.comicName == comicName)&&const DeepCollectionEquality().equals(other.selectedChapters, selectedChapters));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,from,comicId,comicName,const DeepCollectionEquality().hash(selectedChapters),slowDownload);
+int get hashCode => Object.hash(runtimeType,from,comicId,comicName,const DeepCollectionEquality().hash(selectedChapters));
 
 @override
 String toString() {
-  return 'DownloadTaskJson(from: $from, comicId: $comicId, comicName: $comicName, selectedChapters: $selectedChapters, slowDownload: $slowDownload)';
+  return 'DownloadTaskJson(from: $from, comicId: $comicId, comicName: $comicName, selectedChapters: $selectedChapters)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $DownloadTaskJsonCopyWith<$Res>  {
   factory $DownloadTaskJsonCopyWith(DownloadTaskJson value, $Res Function(DownloadTaskJson) _then) = _$DownloadTaskJsonCopyWithImpl;
 @useResult
 $Res call({
- String from, String comicId, String comicName, List<String> selectedChapters, bool slowDownload
+ String from, String comicId, String comicName, List<String> selectedChapters
 });
 
 
@@ -65,14 +65,13 @@ class _$DownloadTaskJsonCopyWithImpl<$Res>
 
 /// Create a copy of DownloadTaskJson
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? from = null,Object? comicId = null,Object? comicName = null,Object? selectedChapters = null,Object? slowDownload = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? from = null,Object? comicId = null,Object? comicName = null,Object? selectedChapters = null,}) {
   return _then(_self.copyWith(
 from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as String,comicId: null == comicId ? _self.comicId : comicId // ignore: cast_nullable_to_non_nullable
 as String,comicName: null == comicName ? _self.comicName : comicName // ignore: cast_nullable_to_non_nullable
 as String,selectedChapters: null == selectedChapters ? _self.selectedChapters : selectedChapters // ignore: cast_nullable_to_non_nullable
-as List<String>,slowDownload: null == slowDownload ? _self.slowDownload : slowDownload // ignore: cast_nullable_to_non_nullable
-as bool,
+as List<String>,
   ));
 }
 
@@ -157,10 +156,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String from,  String comicId,  String comicName,  List<String> selectedChapters,  bool slowDownload)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String from,  String comicId,  String comicName,  List<String> selectedChapters)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DownloadTaskJson() when $default != null:
-return $default(_that.from,_that.comicId,_that.comicName,_that.selectedChapters,_that.slowDownload);case _:
+return $default(_that.from,_that.comicId,_that.comicName,_that.selectedChapters);case _:
   return orElse();
 
 }
@@ -178,10 +177,10 @@ return $default(_that.from,_that.comicId,_that.comicName,_that.selectedChapters,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String from,  String comicId,  String comicName,  List<String> selectedChapters,  bool slowDownload)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String from,  String comicId,  String comicName,  List<String> selectedChapters)  $default,) {final _that = this;
 switch (_that) {
 case _DownloadTaskJson():
-return $default(_that.from,_that.comicId,_that.comicName,_that.selectedChapters,_that.slowDownload);case _:
+return $default(_that.from,_that.comicId,_that.comicName,_that.selectedChapters);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -198,10 +197,10 @@ return $default(_that.from,_that.comicId,_that.comicName,_that.selectedChapters,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String from,  String comicId,  String comicName,  List<String> selectedChapters,  bool slowDownload)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String from,  String comicId,  String comicName,  List<String> selectedChapters)?  $default,) {final _that = this;
 switch (_that) {
 case _DownloadTaskJson() when $default != null:
-return $default(_that.from,_that.comicId,_that.comicName,_that.selectedChapters,_that.slowDownload);case _:
+return $default(_that.from,_that.comicId,_that.comicName,_that.selectedChapters);case _:
   return null;
 
 }
@@ -213,14 +212,13 @@ return $default(_that.from,_that.comicId,_that.comicName,_that.selectedChapters,
 
 @JsonSerializable(explicitToJson: true)
 class _DownloadTaskJson implements DownloadTaskJson {
-  const _DownloadTaskJson({required this.from, required this.comicId, required this.comicName, required this.selectedChapters, required this.slowDownload});
+  const _DownloadTaskJson({required this.from, required this.comicId, required this.comicName, required this.selectedChapters});
   factory _DownloadTaskJson.fromJson(Map<String, dynamic> json) => _$DownloadTaskJsonFromJson(json);
 
 @override final  String from;
 @override final  String comicId;
 @override final  String comicName;
 @override final  List<String> selectedChapters;
-@override final  bool slowDownload;
 
 /// Create a copy of DownloadTaskJson
 /// with the given fields replaced by the non-null parameter values.
@@ -235,16 +233,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadTaskJson&&(identical(other.from, from) || other.from == from)&&(identical(other.comicId, comicId) || other.comicId == comicId)&&(identical(other.comicName, comicName) || other.comicName == comicName)&&const DeepCollectionEquality().equals(other.selectedChapters, selectedChapters)&&(identical(other.slowDownload, slowDownload) || other.slowDownload == slowDownload));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadTaskJson&&(identical(other.from, from) || other.from == from)&&(identical(other.comicId, comicId) || other.comicId == comicId)&&(identical(other.comicName, comicName) || other.comicName == comicName)&&const DeepCollectionEquality().equals(other.selectedChapters, selectedChapters));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,from,comicId,comicName,const DeepCollectionEquality().hash(selectedChapters),slowDownload);
+int get hashCode => Object.hash(runtimeType,from,comicId,comicName,const DeepCollectionEquality().hash(selectedChapters));
 
 @override
 String toString() {
-  return 'DownloadTaskJson(from: $from, comicId: $comicId, comicName: $comicName, selectedChapters: $selectedChapters, slowDownload: $slowDownload)';
+  return 'DownloadTaskJson(from: $from, comicId: $comicId, comicName: $comicName, selectedChapters: $selectedChapters)';
 }
 
 
@@ -255,7 +253,7 @@ abstract mixin class _$DownloadTaskJsonCopyWith<$Res> implements $DownloadTaskJs
   factory _$DownloadTaskJsonCopyWith(_DownloadTaskJson value, $Res Function(_DownloadTaskJson) _then) = __$DownloadTaskJsonCopyWithImpl;
 @override @useResult
 $Res call({
- String from, String comicId, String comicName, List<String> selectedChapters, bool slowDownload
+ String from, String comicId, String comicName, List<String> selectedChapters
 });
 
 
@@ -272,14 +270,13 @@ class __$DownloadTaskJsonCopyWithImpl<$Res>
 
 /// Create a copy of DownloadTaskJson
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? from = null,Object? comicId = null,Object? comicName = null,Object? selectedChapters = null,Object? slowDownload = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? from = null,Object? comicId = null,Object? comicName = null,Object? selectedChapters = null,}) {
   return _then(_DownloadTaskJson(
 from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as String,comicId: null == comicId ? _self.comicId : comicId // ignore: cast_nullable_to_non_nullable
 as String,comicName: null == comicName ? _self.comicName : comicName // ignore: cast_nullable_to_non_nullable
 as String,selectedChapters: null == selectedChapters ? _self.selectedChapters : selectedChapters // ignore: cast_nullable_to_non_nullable
-as List<String>,slowDownload: null == slowDownload ? _self.slowDownload : slowDownload // ignore: cast_nullable_to_non_nullable
-as bool,
+as List<String>,
   ));
 }
 

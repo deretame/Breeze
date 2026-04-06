@@ -170,9 +170,9 @@ UnifiedComicDownloadInfo resolveUnifiedDownloadInfo(
   }
 
   if (comicInfo is UnifiedComicDownload) {
-    final chapters = (comicInfo.chapters ?? const <Map<String, dynamic>>[])
-        .map((chapter) => UnifiedComicDownloadChapter.fromMap(chapter))
-        .toList();
+    final chapters = _decodeListOfMaps(
+      comicInfo.chapters,
+    ).map((chapter) => UnifiedComicDownloadChapter.fromMap(chapter)).toList();
     return UnifiedComicDownloadInfo(
       source: comicInfo.source,
       comicId: comicInfo.comicId,
@@ -212,7 +212,25 @@ List<UnifiedComicDownloadStoredChapter> resolveStoredDownloadChapters(
     } catch (_) {}
   }
 
-  return (comic.chapters ?? const <Map<String, dynamic>>[])
-      .map((e) => UnifiedComicDownloadStoredChapter.fromMap(e))
-      .toList();
+  return _decodeListOfMaps(
+    comic.chapters,
+  ).map((e) => UnifiedComicDownloadStoredChapter.fromMap(e)).toList();
+}
+
+List<Map<String, dynamic>> _decodeListOfMaps(String raw) {
+  if (raw.trim().isEmpty) {
+    return const <Map<String, dynamic>>[];
+  }
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is! List) {
+      return const <Map<String, dynamic>>[];
+    }
+    return decoded
+        .whereType<Map>()
+        .map((entry) => Map<String, dynamic>.from(entry))
+        .toList();
+  } catch (_) {
+    return const <Map<String, dynamic>>[];
+  }
 }

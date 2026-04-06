@@ -27,7 +27,7 @@ int resolveReadEpsCount(
   }
 
   if (comicInfo is UnifiedComicDownload) {
-    return comicInfo.chapters?.length ?? 0;
+    return comicInfo.chapters.length;
   }
 
   throw StateError('无法解析阅读章节数: ${comicInfo.runtimeType}');

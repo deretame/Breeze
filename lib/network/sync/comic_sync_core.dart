@@ -1,16 +1,15 @@
-import 'dart:collection';
 import 'dart:convert';
+import 'dart:typed_data';
 
-import 'package:archive/archive.dart';
 import 'package:crypto/crypto.dart';
 import 'package:encrypter_plus/encrypter_plus.dart';
-import 'package:flutter/foundation.dart' show compute;
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/src/rust/api/simple.dart';
 
-const String syncDataVersion = '2.3.0';
+const String syncDataVersion = 'v1';
 
 abstract class ComicSyncRemoteAdapter {
   Future<void> testConnection();
@@ -35,202 +34,174 @@ abstract class ComicSyncRemoteAdapter {
 }
 
 class ComicSyncCore {
-  static String get md5FileName => '$appName.md5';
+  static String get syncRemoteRootName => '${appName}_$syncVersion';
 
-  static String buildDataFileName() {
-    final time = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
-    return '${appName}_${time}_$syncDataVersion.gz';
+  static String get legacyDataRootName => appName;
+
+  static String get legacySettingsRootName => '${appName}_setting';
+
+  static String get comicMd5FileName => 'comic.md5';
+
+  static String get settingsMd5FileName => 'settings.md5';
+
+  static String buildComicDataFileName([int? timestamp]) {
+    final ts = timestamp ?? DateTime.now().toUtc().millisecondsSinceEpoch;
+    return 'comic_$ts.bin';
   }
 
-  static String? pickLatestRemoteDataFile(List<String> remotePaths) {
-    final sorted = sortRemoteDataFilesByTimestampDesc(remotePaths);
-    if (sorted.isEmpty) {
-      return null;
-    }
-    return sorted.first;
+  static String buildSettingsDataFileName([int? timestamp]) {
+    final ts = timestamp ?? DateTime.now().toUtc().millisecondsSinceEpoch;
+    return 'settings_$ts.bin';
   }
 
-  static List<String> sortRemoteDataFilesByTimestampDesc(
-    List<String> remotePaths,
-  ) {
-    final sorted = remotePaths.where((remotePath) {
-      final fileName = _extractFileName(remotePath);
-      return isSyncDataFileName(fileName);
-    }).toList();
-    sorted.sort((a, b) {
-      final aTs = extractTimestampFromRemotePath(a) ?? -1;
-      final bTs = extractTimestampFromRemotePath(b) ?? -1;
-      if (aTs == bTs) {
-        return b.compareTo(a);
-      }
-      return bTs.compareTo(aTs);
-    });
-    return sorted;
+  static bool isComicDataFileName(String fileName) {
+    return _comicDataRegex.hasMatch(fileName);
   }
 
-  static int? extractTimestampFromRemotePath(String remotePath) {
-    final fileName = _extractFileName(remotePath);
-    if (fileName.isEmpty) {
-      return null;
-    }
-    final match = _syncDataRegex.firstMatch(fileName);
+  static bool isSettingsDataFileName(String fileName) {
+    return _settingsDataRegex.hasMatch(fileName);
+  }
+
+  static int? extractComicTimestampFromRemotePath(String remotePath) {
+    final fileName = extractFileName(remotePath);
+    final match = _comicDataRegex.firstMatch(fileName);
     if (match == null) {
       return null;
     }
     return int.tryParse(match.group(1) ?? '');
   }
 
-  static bool isSyncDataFileName(String fileName) {
-    return _syncDataRegex.hasMatch(fileName);
+  static int? extractSettingsTimestampFromRemotePath(String remotePath) {
+    final fileName = extractFileName(remotePath);
+    final match = _settingsDataRegex.firstMatch(fileName);
+    if (match == null) {
+      return null;
+    }
+    return int.tryParse(match.group(1) ?? '');
   }
 
-  static final RegExp _syncDataRegex = RegExp(
-    '^${RegExp.escape(appName)}_(\\d+)_${RegExp.escape(syncDataVersion)}\\.gz\$',
-  );
+  static List<String> sortComicFilesByTimestampDesc(List<String> remotePaths) {
+    final candidates = remotePaths.where((remotePath) {
+      return isComicDataFileName(extractFileName(remotePath));
+    }).toList();
+    candidates.sort((a, b) {
+      final aTs = extractComicTimestampFromRemotePath(a) ?? -1;
+      final bTs = extractComicTimestampFromRemotePath(b) ?? -1;
+      if (aTs == bTs) {
+        return b.compareTo(a);
+      }
+      return bTs.compareTo(aTs);
+    });
+    return candidates;
+  }
+
+  static List<String> sortSettingsFilesByTimestampDesc(
+    List<String> remotePaths,
+  ) {
+    final candidates = remotePaths.where((remotePath) {
+      return isSettingsDataFileName(extractFileName(remotePath));
+    }).toList();
+    candidates.sort((a, b) {
+      final aTs = extractSettingsTimestampFromRemotePath(a) ?? -1;
+      final bTs = extractSettingsTimestampFromRemotePath(b) ?? -1;
+      if (aTs == bTs) {
+        return b.compareTo(a);
+      }
+      return bTs.compareTo(aTs);
+    });
+    return candidates;
+  }
 
   static String calculateMd5(List<int> data) {
     return md5.convert(data).toString();
   }
 
-  static String get localMd5 {
-    return objectbox.userSettingBox.get(1)?.globalSetting.md5 ?? '';
-  }
-
-  static void updateLocalMd5(String value) {
-    final userSettings = objectbox.userSettingBox.get(1);
-    if (userSettings == null || userSettings.globalSetting.md5 == value) {
-      return;
-    }
-
-    userSettings.globalSetting = userSettings.globalSetting.copyWith(
-      md5: value,
-    );
-    objectbox.userSettingBox.put(userSettings);
-  }
-
   static Future<List<int>> buildCompressedPayload() async {
-    final allHistory = objectbox.bikaHistoryBox.getAll();
-    allHistory.sort((a, b) => b.history.compareTo(a.history));
+    final favorites = objectbox.unifiedFavoriteBox.getAll();
+    favorites.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
-    final comicHistoriesJson = allHistory
-        .map((comic) => comic.toJson())
-        .toList();
-
-    final jmFavorite = objectbox.jmFavoriteBox.getAll();
-    final jmFavoritesJson = jmFavorite.map((item) => item.toJson()).toList();
-
-    final jmHistory = objectbox.jmHistoryBox.getAll();
-    final jmHistoriesJson = jmHistory.map((item) => item.toJson()).toList();
+    final histories = objectbox.unifiedHistoryBox.getAll();
+    histories.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
     final data = {
-      'comicHistories': comicHistoriesJson,
-      'jmFavorites': jmFavoritesJson,
-      'jmHistories': jmHistoriesJson,
+      'version': syncDataVersion,
+      'favorites': favorites.map((e) => e.toJson()).toList(),
+      'histories': histories.map((e) => e.toJson()).toList(),
     };
 
-    final compressedBytes = await compute(
-      _encryptAndCompress,
-      jsonEncode(data),
-    );
-
-    if (compressedBytes == null) {
-      throw Exception('加密压缩失败');
-    }
-
-    return compressedBytes;
+    final raw = utf8.encode(jsonEncode(data));
+    return encodeEncryptedPayload(raw);
   }
 
   static Future<Map<String, dynamic>> decodeCompressedPayload(
-    List<int> compressedBytes,
+    List<int> encryptedCompressedBytes,
   ) async {
-    final jsonString = await compute(_decompressAndDecrypt, compressedBytes);
-    if (jsonString.isEmpty) {
-      throw Exception('下载数据为空');
-    }
-
+    final raw = await decodeEncryptedPayload(encryptedCompressedBytes);
+    final jsonString = utf8.decode(raw);
     return jsonDecode(jsonString) as Map<String, dynamic>;
   }
 
-  static int mergeHistory(Store store, Map<String, dynamic> data) {
-    final bikaHistoryBox = store.box<BikaComicHistory>();
-    final jmFavoriteBox = store.box<JmFavorite>();
-    final jmHistoryBox = store.box<JmHistory>();
-    final localHistories = bikaHistoryBox.getAll();
-    final cloudHistories = (data['comicHistories'] as List<dynamic>)
-        .map((comic) => BikaComicHistory.fromJson(comic))
-        .toList();
-
-    final combined = [...cloudHistories, ...localHistories];
-    combined.sort((a, b) => b.history.compareTo(a.history));
-
-    final uniqueMap = LinkedHashMap<String, BikaComicHistory>(
-      equals: (a, b) => a == b,
-      hashCode: (e) => e.hashCode,
-    );
-    for (final item in combined) {
-      uniqueMap.putIfAbsent(item.comicId, () => item);
-    }
-
-    final finalList = uniqueMap.values.toList();
-    for (final item in finalList) {
-      item.id = 0;
-    }
-
-    bikaHistoryBox.removeAll();
-    bikaHistoryBox.putMany(finalList);
-
-    final jmLocalFavorites = jmFavoriteBox.getAll();
-    final jmCloudFavorites = (data['jmFavorites'] as List<dynamic>)
-        .map((item) => JmFavorite.fromJson(item))
-        .toList();
-    final jmCombinedFavorites = [...jmCloudFavorites, ...jmLocalFavorites];
-    jmCombinedFavorites.sort((a, b) => b.history.compareTo(a.history));
-
-    final jmFavoriteUniqueMap = LinkedHashMap<String, JmFavorite>(
-      equals: (a, b) => a == b,
-      hashCode: (e) => e.hashCode,
-    );
-    for (final item in jmCombinedFavorites) {
-      jmFavoriteUniqueMap.putIfAbsent(item.comicId, () => item);
-    }
-
-    final jmFavoriteFinalList = jmFavoriteUniqueMap.values.toList();
-    for (final item in jmFavoriteFinalList) {
-      item.id = 0;
-    }
-
-    jmFavoriteBox.removeAll();
-    jmFavoriteBox.putMany(jmFavoriteFinalList);
-
-    final jmLocalHistories = jmHistoryBox.getAll();
-    final jmCloudHistories = (data['jmHistories'] as List<dynamic>)
-        .map((item) => JmHistory.fromJson(item))
-        .toList();
-    final jmCombinedHistories = [...jmCloudHistories, ...jmLocalHistories];
-    jmCombinedHistories.sort((a, b) => b.history.compareTo(a.history));
-
-    final jmHistoryUniqueMap = LinkedHashMap<String, JmHistory>(
-      equals: (a, b) => a == b,
-      hashCode: (e) => e.hashCode,
-    );
-    for (final item in jmCombinedHistories) {
-      jmHistoryUniqueMap.putIfAbsent(item.comicId, () => item);
-    }
-
-    final jmHistoryFinalList = jmHistoryUniqueMap.values.toList();
-    for (final item in jmHistoryFinalList) {
-      item.id = 0;
-    }
-
-    jmHistoryBox.removeAll();
-    jmHistoryBox.putMany(jmHistoryFinalList);
-
-    return finalList.length +
-        jmFavoriteFinalList.length +
-        jmHistoryFinalList.length;
+  static Future<List<int>> encodeEncryptedPayload(List<int> raw) async {
+    final compressed = await compressExtreme(data: raw);
+    final encrypted = _encryptBytes(compressed);
+    return encrypted;
   }
 
-  static String _extractFileName(String remotePath) {
+  static Future<List<int>> decodeEncryptedPayload(
+    List<int> encryptedCompressedBytes,
+  ) async {
+    final compressed = _decryptBytes(encryptedCompressedBytes);
+    final raw = await decompressExtreme(data: compressed);
+    return raw;
+  }
+
+  static int mergeUnifiedData(Store store, Map<String, dynamic> data) {
+    final favoriteBox = store.box<UnifiedComicFavorite>();
+    final historyBox = store.box<UnifiedComicHistory>();
+
+    final localFavorites = favoriteBox.getAll();
+    final localHistories = historyBox.getAll();
+
+    final cloudFavorites = _parseJsonList(
+      data['favorites'],
+    ).map(UnifiedComicFavorite.fromJson).toList();
+    final cloudHistories = _parseJsonList(
+      data['histories'],
+    ).map(UnifiedComicHistory.fromJson).toList();
+
+    final mergedFavorites = _mergeByUniqueKey(
+      localFavorites,
+      cloudFavorites,
+      keyOf: (item) => item.uniqueKey,
+      updatedAtOf: (item) => item.updatedAt,
+    );
+    final mergedHistories = _mergeByUniqueKey(
+      localHistories,
+      cloudHistories,
+      keyOf: (item) => item.uniqueKey,
+      updatedAtOf: (item) => item.updatedAt,
+    );
+
+    for (final item in mergedFavorites) {
+      item.id = 0;
+    }
+    for (final item in mergedHistories) {
+      item.id = 0;
+    }
+
+    favoriteBox.removeAll();
+    historyBox.removeAll();
+    if (mergedFavorites.isNotEmpty) {
+      favoriteBox.putMany(mergedFavorites);
+    }
+    if (mergedHistories.isNotEmpty) {
+      historyBox.putMany(mergedHistories);
+    }
+
+    return mergedFavorites.length + mergedHistories.length;
+  }
+
+  static String extractFileName(String remotePath) {
     final normalized = remotePath.replaceAll('\\', '/');
     final segments = normalized.split('/').where((item) => item.isNotEmpty);
     if (segments.isEmpty) {
@@ -238,24 +209,110 @@ class ComicSyncCore {
     }
     return segments.last;
   }
+
+  static String normalizeRemotePathNoLeadingSlash(String path) {
+    final normalized = path.replaceAll('\\', '/').trim();
+    return normalized.replaceFirst(RegExp(r'^/+'), '');
+  }
+
+  static bool isLegacyRemotePath(String path) {
+    final normalized = normalizeRemotePathNoLeadingSlash(path);
+    return normalized == legacyDataRootName ||
+        normalized.startsWith('$legacyDataRootName/') ||
+        normalized == legacySettingsRootName ||
+        normalized.startsWith('$legacySettingsRootName/');
+  }
+
+  static bool isSyncRootPath(String path) {
+    final normalized = normalizeRemotePathNoLeadingSlash(path);
+    return normalized == syncRemoteRootName ||
+        normalized.startsWith('$syncRemoteRootName/');
+  }
+
+  static List<Map<String, dynamic>> _parseJsonList(Object? value) {
+    final list = (value as List? ?? const []);
+    return list
+        .map((item) {
+          if (item is Map<String, dynamic>) {
+            return Map<String, dynamic>.from(item);
+          }
+          if (item is Map) {
+            return item.map((key, val) => MapEntry(key.toString(), val));
+          }
+          return <String, dynamic>{};
+        })
+        .where((item) => item.isNotEmpty)
+        .toList();
+  }
+
+  static List<T> _mergeByUniqueKey<T>(
+    List<T> local,
+    List<T> cloud, {
+    required String Function(T item) keyOf,
+    required DateTime Function(T item) updatedAtOf,
+  }) {
+    final merged = <String, T>{for (final item in local) keyOf(item): item};
+    for (final cloudItem in cloud) {
+      final key = keyOf(cloudItem);
+      final localItem = merged[key];
+      if (localItem == null ||
+          updatedAtOf(cloudItem).isAfter(updatedAtOf(localItem))) {
+        merged[key] = cloudItem;
+      }
+    }
+    return merged.values.toList();
+  }
+
+  static List<int> _encryptBytes(List<int> bytes) {
+    final key = Key.fromUtf8('XY!Ex3j3hP^BGPFanYEjBA!L!oD2kkCN');
+    final iv = IV.fromUtf8('7qFwTxwH&iyuw35f');
+    final encrypter = Encrypter(AES(key, mode: AESMode.ctr));
+    return encrypter.encryptBytes(bytes, iv: iv).bytes;
+  }
+
+  static List<int> _decryptBytes(List<int> bytes) {
+    final key = Key.fromUtf8('XY!Ex3j3hP^BGPFanYEjBA!L!oD2kkCN');
+    final iv = IV.fromUtf8('7qFwTxwH&iyuw35f');
+    final encrypter = Encrypter(AES(key, mode: AESMode.ctr));
+    return encrypter.decryptBytes(Encrypted(Uint8List.fromList(bytes)), iv: iv);
+  }
+
+  static final RegExp _comicDataRegex = RegExp(r'^comic_(\d+)\.bin$');
+  static final RegExp _settingsDataRegex = RegExp(r'^settings_(\d+)\.bin$');
 }
 
 Future<void> runComicSync(ComicSyncRemoteAdapter adapter) async {
   await adapter.testConnection();
   await adapter.ensureRemoteReady();
 
+  final localPayload = await ComicSyncCore.buildCompressedPayload();
+  final localMd5 = ComicSyncCore.calculateMd5(localPayload);
+
+  final allRemoteFiles = await adapter.listRemoteDataFiles();
+  final legacyFiles = allRemoteFiles
+      .where(ComicSyncCore.isLegacyRemotePath)
+      .toList();
+  if (legacyFiles.isNotEmpty) {
+    await adapter.deleteRemoteFiles(legacyFiles);
+  }
+
+  final syncRootFiles = allRemoteFiles
+      .where(ComicSyncCore.isSyncRootPath)
+      .toList();
   final remoteMd5 = await adapter.downloadRemoteMd5();
-  final localMd5 = ComicSyncCore.localMd5;
+
+  logger.d(
+    '[sync][comic] precheck localMd5=$localMd5 remoteMd5=$remoteMd5 remoteFiles=${syncRootFiles.length}',
+  );
 
   if (remoteMd5.isNotEmpty && remoteMd5 == localMd5) {
-    logger.d('云端与本地 md5 一致，跳过同步');
+    logger.d('[sync][comic] decision=skip reason=md5_equal');
     return;
   }
 
-  final remotePaths = await adapter.listRemoteDataFiles();
-  final remoteData = await _selectRemoteDataForSync(
+  final remoteData = await _selectLatestRemoteComicData(
     adapter,
-    remotePaths,
+    syncRootFiles,
     remoteMd5,
   );
 
@@ -266,67 +323,79 @@ Future<void> runComicSync(ComicSyncRemoteAdapter adapter) async {
     final count = await objectbox.store
         .runInTransactionAsync<int, Map<String, dynamic>>(
           TxMode.write,
-          ComicSyncCore.mergeHistory,
+          ComicSyncCore.mergeUnifiedData,
           cloudData,
         );
-    logger.d('更新历史记录成功，共 $count 条记录');
+    logger.d(
+      '[sync][comic] decision=apply_remote remoteFile=${remoteData.path} mergedCount=$count',
+    );
   }
 
   final currentPayload = await ComicSyncCore.buildCompressedPayload();
   final currentMd5 = ComicSyncCore.calculateMd5(currentPayload);
-
-  final uploadFile = ComicSyncCore.buildDataFileName();
-  await adapter.uploadRemoteFile(uploadFile, currentPayload);
-  await adapter.uploadRemoteMd5(currentMd5);
-  ComicSyncCore.updateLocalMd5(currentMd5);
-
-  await _cleanupRemoteFiles(
-    adapter,
-    keepRemotePaths: [
-      '$appName/$uploadFile',
-      '$appName/${ComicSyncCore.md5FileName}',
-    ],
-  );
-}
-
-Future<void> _cleanupRemoteFiles(
-  ComicSyncRemoteAdapter adapter, {
-  required List<String> keepRemotePaths,
-}) async {
-  final allRemoteFiles = await adapter.listRemoteDataFiles();
-  if (allRemoteFiles.isEmpty) {
+  if (currentMd5 == remoteMd5 && remoteData != null) {
+    logger.d('[sync][comic] decision=skip_upload reason=post_merge_md5_equal');
     return;
   }
 
-  final keepNormalizedPaths = keepRemotePaths
-      .map(_normalizeRemotePath)
-      .where((item) => item.isNotEmpty)
-      .toSet();
+  final uploadFile = ComicSyncCore.buildComicDataFileName();
+  final keepComicPath = '${ComicSyncCore.syncRemoteRootName}/$uploadFile';
+  await adapter.uploadRemoteFile(uploadFile, currentPayload);
+  await adapter.uploadRemoteMd5(currentMd5);
+  logger.d('[sync][comic] decision=upload file=$uploadFile md5=$currentMd5');
 
-  final staleFiles = allRemoteFiles.where((remotePath) {
-    final normalized = _normalizeRemotePath(remotePath);
-    return !keepNormalizedPaths.contains(normalized);
+  await _cleanupRemoteComicFiles(
+    adapter,
+    allSyncRootFiles: await adapter.listRemoteDataFiles(),
+    keepComicPath: keepComicPath,
+  );
+}
+
+Future<void> _cleanupRemoteComicFiles(
+  ComicSyncRemoteAdapter adapter, {
+  required List<String> allSyncRootFiles,
+  required String keepComicPath,
+}) async {
+  final syncRootFiles = allSyncRootFiles
+      .where(ComicSyncCore.isSyncRootPath)
+      .toList();
+  final comicCandidates = syncRootFiles.where((path) {
+    final fileName = ComicSyncCore.extractFileName(path);
+    return ComicSyncCore.isComicDataFileName(fileName);
   }).toList();
 
-  if (staleFiles.isNotEmpty) {
-    await adapter.deleteRemoteFiles(staleFiles);
+  final sortedComic = ComicSyncCore.sortComicFilesByTimestampDesc(
+    comicCandidates,
+  );
+  final keep = <String>{
+    ComicSyncCore.normalizeRemotePathNoLeadingSlash(keepComicPath),
+    '${ComicSyncCore.syncRemoteRootName}/${ComicSyncCore.comicMd5FileName}',
+  };
+
+  for (var i = 0; i < sortedComic.length; i++) {
+    if (i < 3) {
+      keep.add(ComicSyncCore.normalizeRemotePathNoLeadingSlash(sortedComic[i]));
+    }
+  }
+
+  final stale = syncRootFiles.where((path) {
+    final normalized = ComicSyncCore.normalizeRemotePathNoLeadingSlash(path);
+    return !keep.contains(normalized) &&
+        ComicSyncCore.isComicDataFileName(ComicSyncCore.extractFileName(path));
+  }).toList();
+
+  if (stale.isNotEmpty) {
+    await adapter.deleteRemoteFiles(stale);
   }
 }
 
-Future<_RemoteFileData?> _selectRemoteDataForSync(
+Future<_RemoteFileData?> _selectLatestRemoteComicData(
   ComicSyncRemoteAdapter adapter,
   List<String> remotePaths,
   String remoteMd5,
 ) async {
-  final sortedFiles = ComicSyncCore.sortRemoteDataFilesByTimestampDesc(
-    remotePaths,
-  );
-  if (sortedFiles.isEmpty) {
-    return null;
-  }
-
-  if (remoteMd5.isEmpty) {
-    logger.w('远端 md5 文件不存在，将按无云端文件处理');
+  final sortedFiles = ComicSyncCore.sortComicFilesByTimestampDesc(remotePaths);
+  if (sortedFiles.isEmpty || remoteMd5.isEmpty) {
     return null;
   }
 
@@ -337,17 +406,12 @@ Future<_RemoteFileData?> _selectRemoteDataForSync(
       if (fileMd5 == remoteMd5) {
         return _RemoteFileData(path: remotePath, bytes: remoteBytes);
       }
-
-      logger.w(
-        '远端文件 md5 不匹配，尝试更旧版本: '
-        '$remotePath, expect: $remoteMd5, actual: $fileMd5',
-      );
+      logger.w('远端漫画文件 md5 不匹配，尝试更旧版本: $remotePath');
     } catch (e) {
-      logger.w('远端文件下载或校验失败，尝试更旧版本: $remotePath, error: $e');
+      logger.w('远端漫画文件下载失败，尝试更旧版本: $remotePath, error: $e');
     }
   }
 
-  logger.w('远端所有同步文件均与 md5 不匹配，将按无云端文件处理');
   return null;
 }
 
@@ -356,37 +420,4 @@ class _RemoteFileData {
 
   final String path;
   final List<int> bytes;
-}
-
-String _normalizeRemotePath(String path) {
-  final normalized = path.replaceAll('\\', '/').trim();
-  return normalized.replaceFirst(RegExp(r'^/+'), '');
-}
-
-List<int>? _encryptAndCompress(String data) {
-  try {
-    final key = Key.fromUtf8('XY!Ex3j3hP^BGPFanYEjBA!L!oD2kkCN');
-    final iv = IV.fromUtf8('7qFwTxwH&iyuw35f');
-    final encrypter = Encrypter(AES(key, mode: AESMode.ctr));
-    final encrypted = encrypter.encrypt(data, iv: iv);
-    final jsonBytes = utf8.encode(encrypted.base64);
-    return GZipEncoder().encode(jsonBytes);
-  } catch (_) {
-    return null;
-  }
-}
-
-String _decompressAndDecrypt(List<int> compressedBytes) {
-  try {
-    final jsonBytes = GZipDecoder().decodeBytes(compressedBytes);
-    final encryptedBase64 = utf8.decode(jsonBytes);
-    final key = Key.fromUtf8('XY!Ex3j3hP^BGPFanYEjBA!L!oD2kkCN');
-    final iv = IV.fromUtf8('7qFwTxwH&iyuw35f');
-    final encrypter = Encrypter(AES(key, mode: AESMode.ctr));
-    final encrypted = Encrypted.fromBase64(encryptedBase64);
-    return encrypter.decrypt(encrypted, iv: iv);
-  } catch (e) {
-    logger.d('解压或解密失败: $e');
-    return '';
-  }
 }

@@ -58,7 +58,7 @@ extension _ComicReadViewPart on _ComicReadPageState {
       ).clamp(0, totalSlots - 1);
       cubit.updatePageIndex(targetIndex);
 
-      if (isColumnReadMode(globalSettingState.readMode)) {
+      if (isColumnReadMode(globalSettingState.readSetting.readMode)) {
         observerController.jumpTo(
           index: targetIndex,
           offset: (offset) => MediaQuery.of(context).padding.top + 5.0,

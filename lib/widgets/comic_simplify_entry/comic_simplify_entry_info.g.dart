@@ -38,5 +38,6 @@ const _$PictureTypeEnumMap = {
   PictureType.user: 'user',
   PictureType.category: 'category',
   PictureType.avatar: 'avatar',
+  PictureType.page: 'page',
   PictureType.unknown: 'unknown',
 };

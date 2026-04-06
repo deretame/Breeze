@@ -55,9 +55,9 @@ UnifiedComicListItem unifiedComicFromUnifiedDownload(
 ) {
   final cover = _coverFromStored(comic.source, comic.comicId, comic.cover);
   final extern = Map<String, dynamic>.from(cover.extern);
-  final storedPath = extern['path']?.toString() ?? '';
+  var storedPath = cover.path;
   if (storedPath.isNotEmpty) {
-    extern['path'] = p.join(comic.storageRoot, storedPath);
+    storedPath = p.join(comic.storageRoot, storedPath);
   }
   return UnifiedComicListItem(
     source: comic.source,
@@ -68,7 +68,12 @@ UnifiedComicListItem unifiedComicFromUnifiedDownload(
     likesCount: comic.totalLikes,
     viewsCount: comic.totalViews,
     updatedAt: comic.updatedAt.toIso8601String(),
-    cover: UnifiedComicCover(id: cover.id, url: '', extern: extern),
+    cover: UnifiedComicCover(
+      id: cover.id,
+      url: '',
+      path: storedPath,
+      extern: extern,
+    ),
     metadata: _metadataFromString(comic.metadata),
     raw: _buildDownloadRaw(comic),
     extern: const <String, dynamic>{},
@@ -170,9 +175,11 @@ UnifiedComicCover _coverFromStored(
   final extern = asMap(data['extern']);
   final extension = asMap(data['extension']);
   final coverExtern = extern.isNotEmpty ? extern : extension;
+  final resolvedPath = data['path']?.toString().trim() ?? '';
   return UnifiedComicCover(
     id: data['id']?.toString() ?? comicId,
     url: url,
+    path: resolvedPath,
     extern: coverExtern,
   );
 }

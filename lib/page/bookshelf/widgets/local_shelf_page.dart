@@ -6,10 +6,8 @@ import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/page/comic_list/view/plugin_comic_grid_sliver.dart';
-import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 import 'package:zephyr/type/enum.dart';
-
-enum ShelfPageMode { favorite, history, download }
+import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 
 class LocalShelfPage extends StatefulWidget {
   const LocalShelfPage({
@@ -28,7 +26,8 @@ class LocalShelfPage extends StatefulWidget {
 class _LocalShelfPageState extends State<LocalShelfPage>
     with AutomaticKeepAliveClientMixin {
   final ScrollController _scrollController = ScrollController();
-  late final Object _bloc;
+  late final BookshelfSectionBloc _bloc;
+  bool _autoLoadArmed = true;
 
   @override
   bool get wantKeepAlive => true;
@@ -36,7 +35,8 @@ class _LocalShelfPageState extends State<LocalShelfPage>
   @override
   void initState() {
     super.initState();
-    _bloc = _createBloc();
+    _bloc = BookshelfSectionBloc(mode: widget.mode);
+    _scrollController.addListener(_onScroll);
     _dispatch();
   }
 
@@ -57,23 +57,39 @@ class _LocalShelfPageState extends State<LocalShelfPage>
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
-    if (_bloc is LocalFavoriteBloc) {
-      (_bloc).close();
-    } else if (_bloc is UserHistoryBloc) {
-      (_bloc).close();
-    } else if (_bloc is UserDownloadBloc) {
-      (_bloc).close();
-    }
+    _bloc.close();
     super.dispose();
   }
 
-  Object _createBloc() {
-    return switch (widget.mode) {
-      ShelfPageMode.favorite => LocalFavoriteBloc(),
-      ShelfPageMode.history => UserHistoryBloc(),
-      ShelfPageMode.download => UserDownloadBloc(),
-    };
+  void _onScroll() {
+    if (!_scrollController.hasClients) {
+      return;
+    }
+    final extentAfter = _scrollController.position.extentAfter;
+    if (extentAfter > 640) {
+      _autoLoadArmed = true;
+      return;
+    }
+    if (!_autoLoadArmed || extentAfter > 320) {
+      return;
+    }
+    _autoLoadArmed = false;
+    _tryAutoLoadMore();
+  }
+
+  void _tryAutoLoadMore() {
+    final section = _bloc.state;
+    if (section.status != BookshelfLoadStatus.success) {
+      return;
+    }
+    if (section.hasReachedMax ||
+        section.isLoadingMore ||
+        section.loadMoreFailed) {
+      return;
+    }
+    _dispatch(append: true);
   }
 
   SearchEnter _buildSearchEnter(SearchStatusState state) {
@@ -86,95 +102,70 @@ class _LocalShelfPageState extends State<LocalShelfPage>
     );
   }
 
-  void _dispatch() {
-    if (widget.mode == ShelfPageMode.favorite) {
-      final state = context.read<LocalFavoriteCubit>().state;
-      (_bloc as LocalFavoriteBloc).add(
-        LocalFavoriteEvent(searchEnterConst: _buildSearchEnter(state)),
-      );
-      return;
-    }
+  SearchStatusState _currentSearchState() {
+    return context.read<BookshelfSearchCubit>().state.stateOf(widget.mode);
+  }
 
-    if (widget.mode == ShelfPageMode.history) {
-      final state = context.read<HistoryCubit>().state;
-      (_bloc as UserHistoryBloc).add(
-        UserHistoryEvent(_buildSearchEnter(state), 0),
-      );
-      return;
-    }
-
-    final state = context.read<DownloadCubit>().state;
-    (_bloc as UserDownloadBloc).add(
-      UserDownloadEvent(_buildSearchEnter(state), 0),
+  void _dispatch({bool append = false}) {
+    _bloc.add(
+      BookshelfLoadRequested(
+        searchEnterConst: _buildSearchEnter(_currentSearchState()),
+        append: append,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return switch (widget.mode) {
-      ShelfPageMode.favorite => BlocProvider.value(
-        value: _bloc as LocalFavoriteBloc,
-        child: BlocBuilder<LocalFavoriteBloc, LocalFavoriteState>(
-          builder: (context, state) {
-            if (state.status == LocalFavoriteStatus.initial) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (state.status == LocalFavoriteStatus.failure) {
-              return _buildError(state.result);
-            }
-            final comics = state.comics
-                .map(unifiedComicFromUnifiedFavorite)
-                .toList();
-            return _buildList(comics, type: ComicEntryType.favorite);
-          },
-        ),
-      ),
-      ShelfPageMode.history => BlocProvider.value(
-        value: _bloc as UserHistoryBloc,
-        child: BlocBuilder<UserHistoryBloc, UserHistoryState>(
-          builder: (context, state) {
-            if (state.status == UserHistoryStatus.initial) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (state.status == UserHistoryStatus.failure) {
-              return _buildError(state.result);
-            }
-            final comics = state.comics
-                .cast<UnifiedComicHistory>()
-                .map(unifiedComicFromUnifiedHistory)
-                .toList();
-            return _buildList(
-              comics,
+    return BlocProvider.value(
+      value: _bloc,
+      child: BlocBuilder<BookshelfSectionBloc, BookshelfSectionState>(
+        builder: (context, state) {
+          if (state.status == BookshelfLoadStatus.initial) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (state.status == BookshelfLoadStatus.failure) {
+            return _buildError(state.result);
+          }
+
+          return switch (widget.mode) {
+            ShelfPageMode.favorite => _buildList(
+              state.comics
+                  .cast<UnifiedComicFavorite>()
+                  .map(unifiedComicFromUnifiedFavorite)
+                  .toList(),
+              type: ComicEntryType.favorite,
+              hasReachedMax: state.hasReachedMax,
+              isLoadingMore: state.isLoadingMore,
+              loadMoreFailed: state.loadMoreFailed,
+            ),
+            ShelfPageMode.history => _buildList(
+              state.comics
+                  .cast<UnifiedComicHistory>()
+                  .map(unifiedComicFromUnifiedHistory)
+                  .toList(),
               type: ComicEntryType.history,
               deleteType: DeleteType.history,
-            );
-          },
-        ),
-      ),
-      ShelfPageMode.download => BlocProvider.value(
-        value: _bloc as UserDownloadBloc,
-        child: BlocBuilder<UserDownloadBloc, UserDownloadState>(
-          builder: (context, state) {
-            if (state.status == UserDownloadStatus.initial) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (state.status == UserDownloadStatus.failure) {
-              return _buildError(state.result);
-            }
-            final comics = state.comics
-                .cast<UnifiedComicDownload>()
-                .map(unifiedComicFromUnifiedDownload)
-                .toList();
-            return _buildList(
-              comics,
+              hasReachedMax: state.hasReachedMax,
+              isLoadingMore: state.isLoadingMore,
+              loadMoreFailed: state.loadMoreFailed,
+            ),
+            ShelfPageMode.download => _buildList(
+              state.comics
+                  .cast<UnifiedComicDownload>()
+                  .map(unifiedComicFromUnifiedDownload)
+                  .toList(),
               type: ComicEntryType.download,
               deleteType: DeleteType.download,
-            );
-          },
-        ),
+              hasReachedMax: state.hasReachedMax,
+              isLoadingMore: state.isLoadingMore,
+              loadMoreFailed: state.loadMoreFailed,
+            ),
+          };
+        },
       ),
-    };
+    );
   }
 
   Widget _buildError(String message) {
@@ -194,6 +185,9 @@ class _LocalShelfPageState extends State<LocalShelfPage>
     List<UnifiedComicListItem> comics, {
     required ComicEntryType type,
     DeleteType? deleteType,
+    required bool hasReachedMax,
+    required bool isLoadingMore,
+    required bool loadMoreFailed,
   }) {
     if (comics.isEmpty) {
       return Center(
@@ -217,11 +211,11 @@ class _LocalShelfPageState extends State<LocalShelfPage>
         physics: const AlwaysScrollableScrollPhysics(),
         entries: entries,
         type: type,
-        hasReachedMax: true,
-        isLoadingMore: false,
-        loadMoreFailed: false,
-        onRetryLoadMore: _dispatch,
-        onLoadMore: _dispatch,
+        hasReachedMax: hasReachedMax,
+        isLoadingMore: isLoadingMore,
+        loadMoreFailed: loadMoreFailed,
+        onRetryLoadMore: () => _dispatch(append: true),
+        onLoadMore: () => _dispatch(append: true),
       ),
     );
   }

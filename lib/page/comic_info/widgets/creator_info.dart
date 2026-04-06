@@ -24,11 +24,10 @@ class CreatorInfoWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final avatarExtension = creator.avatar.extension;
     return CreatorLinkCard(
       creatorName: creator.name,
       avatarUrl: creator.avatar.url,
-      avatarPath: avatarExtension['path']?.toString() ?? creator.avatar.name,
+      avatarPath: creator.avatar.path,
       imageKey: imageKey,
       from: from,
       infoChildren: infoChildren,

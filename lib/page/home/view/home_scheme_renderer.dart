@@ -198,7 +198,7 @@ class HomeSchemeRenderer {
         final extern = asJsonMap(cover['extern']);
         final assetPath = extern['asset']?.toString().trim() ?? '';
         final coverUrl = cover['url']?.toString().trim() ?? '';
-        final coverPath = extern['path']?.toString().trim() ?? '';
+        final coverPath = cover['path']?.toString().trim() ?? '';
 
         return GestureDetector(
           onTap: () => onAction(asJsonMap(item['action'])),

@@ -107,18 +107,10 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
       jsonDecode(comicInfo.detailJson) as Map<String, dynamic>,
     );
     final localCover = _deepCopyMap(normalComicInfo.comicInfo.cover.toJson());
-    final localCoverExtension = Map<String, dynamic>.from(
-      localCover['extension'] as Map? ?? const <String, dynamic>{},
-    );
-    final coverPathFromExt =
-        localCoverExtension['path']?.toString().trim() ?? '';
-    if (coverPathFromExt.isNotEmpty) {
-      localCoverExtension['path'] = p.join(
-        comicInfo.storageRoot,
-        coverPathFromExt,
-      );
+    final coverPath = localCover['path']?.toString().trim() ?? '';
+    if (coverPath.isNotEmpty) {
+      localCover['path'] = p.join(comicInfo.storageRoot, coverPath);
     }
-    localCover['extension'] = localCoverExtension;
 
     final localCreator = _deepCopyMap(
       normalComicInfo.comicInfo.creator.toJson(),

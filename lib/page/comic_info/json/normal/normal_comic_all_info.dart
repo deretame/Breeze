@@ -63,6 +63,7 @@ abstract class ComicImage with _$ComicImage {
     @JsonKey(name: 'id') required String id,
     @JsonKey(name: 'url') required String url,
     @JsonKey(name: 'name') required String name,
+    @JsonKey(name: 'path') @Default('') String path,
     @JsonKey(name: 'extension') @Default({}) Map<String, dynamic> extension,
   }) = _ComicImage;
 

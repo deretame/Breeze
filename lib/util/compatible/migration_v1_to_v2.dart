@@ -455,13 +455,11 @@ UnifiedComicFavorite _jmFavoriteToUnified(JmFavorite item) {
     title: item.name,
     description: item.description,
     cover: jsonEncode(
-      _coverMap(
-        normal.ComicImage(
-          id: item.comicId,
-          url: _legacyJmCoverUrl(item.comicId),
-          name: '${item.comicId}.jpg',
-          extension: {'path': '${item.comicId}.jpg'},
-        ),
+      _migratedImageJson(
+        id: item.comicId,
+        url: _legacyJmCoverUrl(item.comicId),
+        name: '${item.comicId}.jpg',
+        path: '${item.comicId}.jpg',
       ),
     ),
     creator: jsonEncode(
@@ -528,38 +526,25 @@ UnifiedComicHistory _bikaHistoryToUnified(BikaComicHistory item, int proxy) {
     title: item.title,
     description: item.description,
     cover: jsonEncode(
-      _coverMap(
-        normal.ComicImage(
-          id: item.comicId,
-          url: coverUrl,
-          name: item.thumbOriginalName,
-          extension: {
-            'path': _sanitizeLegacyStoredPath(item.thumbPath, allowEmpty: true),
-            'fileServer': item.thumbFileServer,
-          },
-        ),
+      _migratedImageJson(
+        id: item.comicId,
+        url: coverUrl,
+        name: item.thumbOriginalName,
+        path: item.thumbPath,
       ),
     ),
-    creator: jsonEncode(
-      _creatorMap(
-        normal.Creator(
-          id: item.creatorId,
-          name: item.creatorName,
-          avatar: normal.ComicImage(
-            id: item.creatorId,
-            url: avatarUrl,
-            name: item.creatorAvatarOriginalName,
-            extension: {
-              'path': _sanitizeLegacyStoredPath(
-                item.creatorAvatarPath,
-                allowEmpty: true,
-              ),
-              'fileServer': item.creatorAvatarFileServer,
-            },
-          ),
-        ),
+    creator: jsonEncode({
+      'id': item.creatorId,
+      'name': item.creatorName,
+      'avatar': _migratedImageJson(
+        id: item.creatorId,
+        url: avatarUrl,
+        name: item.creatorAvatarOriginalName,
+        path: item.creatorAvatarPath,
       ),
-    ),
+      'onTap': const <String, dynamic>{},
+      'extension': const <String, dynamic>{},
+    }),
     titleMeta: jsonEncode(
       _titleMetaList([
         normal.ComicInfoActionItem(name: '浏览：${item.totalViews}'),
@@ -617,13 +602,11 @@ UnifiedComicHistory _jmHistoryToUnified(JmHistory item) {
     title: item.name,
     description: item.description,
     cover: jsonEncode(
-      _coverMap(
-        normal.ComicImage(
-          id: item.comicId,
-          url: _legacyJmCoverUrl(item.comicId),
-          name: '${item.comicId}.jpg',
-          extension: {'path': '${item.comicId}.jpg'},
-        ),
+      _migratedImageJson(
+        id: item.comicId,
+        url: _legacyJmCoverUrl(item.comicId),
+        name: '${item.comicId}.jpg',
+        path: '${item.comicId}.jpg',
       ),
     ),
     creator: jsonEncode(
@@ -842,6 +825,30 @@ Future<UnifiedComicDownload> _bikaDownloadToUnified(
   final comicInfoMap = Map<String, dynamic>.from(
     normalizedDetail['comicInfo'] as Map,
   );
+  final migratedCover = _migratedImageJson(
+    id: item.comicId,
+    url: comicInfoMap['cover'] is Map
+        ? _asDynamicMap(comicInfoMap['cover'])['url']?.toString() ?? ''
+        : '',
+    name: comicInfoMap['cover'] is Map
+        ? _asDynamicMap(comicInfoMap['cover'])['name']?.toString() ?? ''
+        : '',
+    path: item.thumbPath,
+  );
+  final creatorMap = _asDynamicMap(comicInfoMap['creator']);
+  final migratedAvatar = _migratedImageJson(
+    id: item.creatorId,
+    url: _asDynamicMap(creatorMap['avatar'])['url']?.toString() ?? '',
+    name: _asDynamicMap(creatorMap['avatar'])['name']?.toString() ?? '',
+    path: item.creatorAvatarPath,
+  );
+  comicInfoMap['cover'] = migratedCover;
+  comicInfoMap['creator'] = {
+    ...creatorMap,
+    'avatar': migratedAvatar,
+    'extension': const <String, dynamic>{},
+  };
+  normalizedDetail['comicInfo'] = comicInfoMap;
 
   return UnifiedComicDownload(
     uniqueKey: _uniqueKey(_kBikaPluginUuid, item.comicId),
@@ -945,11 +952,15 @@ Future<UnifiedComicDownload> _jmDownloadToUnified(
   final comicInfoMap = Map<String, dynamic>.from(
     normalizedDetail['comicInfo'] as Map,
   );
-  final cover = _coverMap(comicInfoMap['cover']);
-  final extension = Map<String, dynamic>.from(
-    (cover['extension'] as Map?) ?? const <String, dynamic>{},
-  )..['path'] = coverPath;
-  cover['extension'] = extension;
+  final coverSource = _asDynamicMap(comicInfoMap['cover']);
+  final cover = _migratedImageJson(
+    id: coverSource['id']?.toString() ?? item.comicId,
+    url: coverSource['url']?.toString() ?? '',
+    name: coverSource['name']?.toString() ?? '${item.comicId}.jpg',
+    path: coverPath,
+  );
+  comicInfoMap['cover'] = cover;
+  normalizedDetail['comicInfo'] = comicInfoMap;
 
   return UnifiedComicDownload(
     uniqueKey: _uniqueKey(_kJmPluginUuid, item.comicId),
@@ -1340,10 +1351,10 @@ String _downloadStorageRoot(
 Map<String, dynamic> _coverMap(dynamic value) {
   value = _normalizeFlexValue(value);
   if (value is Map<String, dynamic>) {
-    return Map<String, dynamic>.from(value);
+    return _toMigratedImageMap(Map<String, dynamic>.from(value));
   }
   if (value is normal.ComicImage) {
-    return value.toJson();
+    return _toMigratedImageMap(value.toJson());
   }
   return <String, dynamic>{};
 }
@@ -1351,12 +1362,45 @@ Map<String, dynamic> _coverMap(dynamic value) {
 Map<String, dynamic> _creatorMap(dynamic value) {
   value = _normalizeFlexValue(value);
   if (value is Map<String, dynamic>) {
-    return Map<String, dynamic>.from(value);
+    final map = Map<String, dynamic>.from(value);
+    final avatar = _asDynamicMap(map['avatar']);
+    if (avatar.isNotEmpty) {
+      map['avatar'] = _toMigratedImageMap(avatar);
+    }
+    return map;
   }
   if (value is normal.Creator) {
-    return value.toJson();
+    final map = value.toJson();
+    final avatar = _asDynamicMap(map['avatar']);
+    if (avatar.isNotEmpty) {
+      map['avatar'] = _toMigratedImageMap(avatar);
+    }
+    return map;
   }
   return <String, dynamic>{};
+}
+
+Map<String, dynamic> _migratedImageJson({
+  required String id,
+  required String url,
+  required String name,
+  required String path,
+}) {
+  return {
+    'id': id,
+    'url': url,
+    'name': name,
+    'path': _sanitizeLegacyStoredPath(path, allowEmpty: true),
+    'extension': const <String, dynamic>{},
+  };
+}
+
+Map<String, dynamic> _toMigratedImageMap(Map<String, dynamic> image) {
+  final map = Map<String, dynamic>.from(image);
+  final currentPath = map['path']?.toString().trim() ?? '';
+  map['path'] = _sanitizeLegacyStoredPath(currentPath, allowEmpty: true);
+  map['extension'] = const <String, dynamic>{};
+  return map;
 }
 
 List<Map<String, dynamic>> _titleMetaList(

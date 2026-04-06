@@ -15,11 +15,9 @@ class BookshelfPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<LocalFavoriteCubit>(
-          create: (context) => LocalFavoriteCubit(),
+        BlocProvider<BookshelfSearchCubit>(
+          create: (context) => BookshelfSearchCubit(),
         ),
-        BlocProvider<HistoryCubit>(create: (context) => HistoryCubit()),
-        BlocProvider<DownloadCubit>(create: (context) => DownloadCubit()),
       ],
       child: const _BookshelfPageContent(),
     );
@@ -44,7 +42,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
   void initState() {
     super.initState();
     _syncSourcesFromRegistry();
-    _searchController.text = _currentSearchCubit().state.keyword;
+    _searchController.text = _currentSearchState().keyword;
   }
 
   @override
@@ -228,7 +226,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
                   icon: const Icon(Icons.close, size: 16),
                   onPressed: () {
                     _searchController.clear();
-                    _currentSearchCubit().setKeyword('');
+                    _setKeyword('');
                     _triggerRefresh(goTop: true);
                     setState(() {});
                   },
@@ -236,7 +234,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
         ),
         onChanged: (_) => setState(() {}),
         onSubmitted: (value) {
-          _currentSearchCubit().setKeyword(value.trim());
+          _setKeyword(value.trim());
           _triggerRefresh(goTop: true);
         },
       ),
@@ -247,24 +245,29 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
     if (index == _currentIndex) return;
     setState(() {
       _currentIndex = index;
-      _searchController.text = _currentSearchCubit().state.keyword;
+      _searchController.text = _currentSearchState().keyword;
       _searchController.selection = TextSelection.fromPosition(
         TextPosition(offset: _searchController.text.length),
       );
     });
   }
 
-  SearchStatusCubit _currentSearchCubit() {
-    switch (_currentIndex) {
-      case 0:
-        return context.read<LocalFavoriteCubit>();
-      case 1:
-        return context.read<HistoryCubit>();
-      case 2:
-        return context.read<DownloadCubit>();
-      default:
-        return context.read<LocalFavoriteCubit>();
-    }
+  ShelfPageMode _currentMode() {
+    return switch (_currentIndex) {
+      0 => ShelfPageMode.favorite,
+      1 => ShelfPageMode.history,
+      2 => ShelfPageMode.download,
+      _ => ShelfPageMode.favorite,
+    };
+  }
+
+  SearchStatusState _currentSearchState() {
+    final cubit = context.read<BookshelfSearchCubit>();
+    return cubit.state.stateOf(_currentMode());
+  }
+
+  void _setKeyword(String keyword) {
+    context.read<BookshelfSearchCubit>().setKeyword(_currentMode(), keyword);
   }
 
   void _triggerRefresh({bool goTop = false}) {
@@ -274,8 +277,9 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
   }
 
   Future<void> _openFilter() async {
-    final searchCubit = _currentSearchCubit();
-    final current = searchCubit.state;
+    final searchCubit = context.read<BookshelfSearchCubit>();
+    final currentMode = _currentMode();
+    final current = searchCubit.state.stateOf(currentMode);
     final pluginStates = context.read<PluginRegistryCubit>().state;
     final sourceOptions =
         pluginStates.values.where((plugin) => !plugin.isDeleted).toList()
@@ -402,8 +406,8 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
 
     if (applied != true) return;
 
-    searchCubit.setSort(selectedSort);
-    searchCubit.setSources(selectedSources.toList());
+    searchCubit.setSort(currentMode, selectedSort);
+    searchCubit.setSources(currentMode, selectedSources.toList());
     _triggerRefresh(goTop: true);
   }
 
@@ -421,19 +425,6 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
     }
     _lastAvailableSources = List<String>.from(available);
 
-    void syncCubit(SearchStatusCubit cubit) {
-      final current = cubit.state.sources.where(
-        (item) => item.trim().isNotEmpty,
-      );
-      final filtered = current.where(available.contains).toList();
-      final next = filtered.isEmpty ? available : filtered;
-      if (!listEquals(cubit.state.sources, next)) {
-        cubit.setSources(next);
-      }
-    }
-
-    syncCubit(context.read<LocalFavoriteCubit>());
-    syncCubit(context.read<HistoryCubit>());
-    syncCubit(context.read<DownloadCubit>());
+    context.read<BookshelfSearchCubit>().syncSources(available);
   }
 }

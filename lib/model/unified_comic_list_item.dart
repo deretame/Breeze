@@ -133,11 +133,13 @@ class UnifiedComicCover {
   const UnifiedComicCover({
     required this.id,
     required this.url,
+    required this.path,
     required this.extern,
   });
 
   final String id;
   final String url;
+  final String path;
   final Map<String, dynamic> extern;
 
   factory UnifiedComicCover.fromJson(Map<String, dynamic> json) {
@@ -147,14 +149,20 @@ class UnifiedComicCover {
     return UnifiedComicCover(
       id: json['id']?.toString() ?? '',
       url: json['url']?.toString() ?? '',
+      path: json['path']?.toString().trim() ?? '',
       extern: _asMap(json['extern']),
     );
   }
 
-  Map<String, dynamic> toJson() => {'id': id, 'url': url, 'extern': extern};
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'url': url,
+    'path': path,
+    'extern': extern,
+  };
 
   String get cachePath {
-    return extern['path']?.toString().trim() ?? '';
+    return path.trim();
   }
 }
 

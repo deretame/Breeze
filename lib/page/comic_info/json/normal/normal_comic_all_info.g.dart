@@ -79,6 +79,7 @@ _ComicImage _$ComicImageFromJson(Map<String, dynamic> json) => _ComicImage(
   id: json['id'] as String,
   url: json['url'] as String,
   name: json['name'] as String,
+  path: json['path'] as String? ?? '',
   extension: json['extension'] as Map<String, dynamic>? ?? const {},
 );
 
@@ -87,6 +88,7 @@ Map<String, dynamic> _$ComicImageToJson(_ComicImage instance) =>
       'id': instance.id,
       'url': instance.url,
       'name': instance.name,
+      'path': instance.path,
       'extension': instance.extension,
     };
 

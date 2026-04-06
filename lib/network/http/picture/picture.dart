@@ -75,9 +75,9 @@ Future<String> getCachePicture({
     rootFolder: 'original',
   );
 
-  logger.d(
-    'getCachePicture: cacheFilePath=$cacheFilePath, downloadFilePath=$downloadFilePath',
-  );
+  // logger.d(
+  //   'getCachePicture: cacheFilePath=$cacheFilePath, downloadFilePath=$downloadFilePath',
+  // );
 
   final existingFilePath = await checkFileExists(
     cacheFilePath,

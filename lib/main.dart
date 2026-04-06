@@ -19,10 +19,8 @@ import 'package:logger/logger.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:zephyr/config/bika/bika_setting.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
-import 'package:zephyr/config/jm/jm_setting.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
@@ -76,12 +74,6 @@ Future<void> main() async {
   // 1. 基础初始化
   WidgetsFlutterBinding.ensureInitialized();
 
-  // logger = Logger(
-  //   filter: ProductionFilter(),
-  //   printer: PrettyPrinter(),
-  //   output: ConsoleOutput(),
-  // );
-
   const sentryDsn = String.fromEnvironment('sentry_dsn', defaultValue: '');
 
   if (sentryDsn.isEmpty) {
@@ -106,19 +98,12 @@ Future<void> main() async {
 
     try {
       // 2. 执行业务初始化
-      final (
-        globalSettingCubit,
-        jmSettingCubit,
-        bikaSettingCubit,
-        pluginRegistryCubit,
-      ) = await _initServices();
+      final (globalSettingCubit, pluginRegistryCubit) = await _initServices();
 
       runApp(
         MultiBlocProvider(
           providers: [
             BlocProvider.value(value: globalSettingCubit),
-            BlocProvider.value(value: jmSettingCubit),
-            BlocProvider.value(value: bikaSettingCubit),
             BlocProvider.value(value: pluginRegistryCubit),
           ],
           child: const MyApp(),
@@ -163,12 +148,7 @@ Future<void> main() async {
     },
     appRunner: () async {
       try {
-        final (
-          globalSettingCubit,
-          jmSettingCubit,
-          bikaSettingCubit,
-          pluginRegistryCubit,
-        ) = await _initServices();
+        final (globalSettingCubit, pluginRegistryCubit) = await _initServices();
 
         await addArchitectureTagsToSentry();
 
@@ -177,8 +157,6 @@ Future<void> main() async {
             child: MultiBlocProvider(
               providers: [
                 BlocProvider.value(value: globalSettingCubit),
-                BlocProvider.value(value: jmSettingCubit),
-                BlocProvider.value(value: bikaSettingCubit),
                 BlocProvider.value(value: pluginRegistryCubit),
               ],
               child: MyApp(),
@@ -192,10 +170,7 @@ Future<void> main() async {
   );
 }
 
-Future<
-  (GlobalSettingCubit, JmSettingCubit, BikaSettingCubit, PluginRegistryCubit)
->
-_initServices() async {
+Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
   // 初始化rust
   await RustLib.init();
 
@@ -260,11 +235,6 @@ _initServices() async {
   final globalSettingCubit = GlobalSettingCubit();
   await globalSettingCubit.initBox();
 
-  final jmSettingCubit = JmSettingCubit();
-  await jmSettingCubit.initBox();
-
-  final bikaSettingCubit = BikaSettingCubit();
-  await bikaSettingCubit.initBox();
   final pluginRegistryCubit = PluginRegistryCubit();
   // await initCfIpList('https://ip.164746.xyz/ipTop.html');
 
@@ -280,12 +250,7 @@ _initServices() async {
     setSocks5Proxy(proxy: proxy);
   }
 
-  return (
-    globalSettingCubit,
-    jmSettingCubit,
-    bikaSettingCubit,
-    pluginRegistryCubit,
-  );
+  return (globalSettingCubit, pluginRegistryCubit);
 }
 
 Future<void> addArchitectureTagsToSentry() async {

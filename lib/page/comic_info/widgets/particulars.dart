@@ -27,11 +27,10 @@ class ComicParticularsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final stringSelectDate = context.watch<StringSelectCubit>().state;
-    final coverExtension = comicInfo.cover.extension;
     final pictureInfo = PictureInfo(
       from: from,
       url: comicInfo.cover.url,
-      path: coverExtension['path']?.toString() ?? '',
+      path: comicInfo.cover.path,
       chapterId: '',
       pictureType: PictureType.cover,
       cartoonId: comicInfo.id,

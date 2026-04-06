@@ -232,7 +232,7 @@ class _BottomWidgetState extends State<BottomWidget> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('选择章节'),
-          content: SingleChildScrollView(child: _bikaEpSelector(context)),
+          content: SingleChildScrollView(child: _episodeSelector(context)),
           actions: [
             TextButton(
               child: Text('取消'),
@@ -260,7 +260,7 @@ class _BottomWidgetState extends State<BottomWidget> {
     }
   }
 
-  Widget _bikaEpSelector(BuildContext context) {
+  Widget _episodeSelector(BuildContext context) {
     final epsList = resolveUnifiedComicChapters(widget.comicInfo, widget.from);
 
     return ListBody(

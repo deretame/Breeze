@@ -3,8 +3,6 @@ import 'dart:async';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/page/comic_read/method/history_writer.dart';
-import 'package:zephyr/page/comic_read/method/type_change.dart'
-    show bikaNormalComicInfoFromAny;
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 import 'dart:convert';
 
@@ -13,7 +11,6 @@ import '../../../object_box/model.dart';
 import '../../../object_box/objectbox.g.dart';
 import '../../../page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
-import '../../../page/comic_info/models/to_normal_info.dart';
 
 class ReaderHistoryManager {
   final String comicId;
@@ -127,11 +124,40 @@ class ReaderHistoryManager {
               as Map<String, dynamic>;
       return normal.NormalComicAllInfo.fromJson(detail).comicInfo;
     }
-    try {
-      return bikaNormalComicInfoFromAny(comicInfo);
-    } catch (_) {
-      return jm2NormalComicAllInfo(comicInfo as dynamic).comicInfo;
+
+    final map = _toDynamicMap(comicInfo);
+    final comicInfoMap = _toDynamicMap(map['comicInfo']);
+    if (comicInfoMap.isNotEmpty) {
+      return normal.ComicInfo.fromJson(comicInfoMap);
     }
+    if (_looksLikeComicInfoMap(map)) {
+      return normal.ComicInfo.fromJson(map);
+    }
+
+    throw StateError('Unsupported comicInfo type: ${comicInfo.runtimeType}');
+  }
+
+  Map<String, dynamic> _toDynamicMap(dynamic value) {
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+    if (value is Map) {
+      return Map<String, dynamic>.from(value);
+    }
+    try {
+      final normalized = jsonDecode(jsonEncode(value));
+      if (normalized is Map) {
+        return Map<String, dynamic>.from(normalized);
+      }
+    } catch (_) {}
+    return const <String, dynamic>{};
+  }
+
+  bool _looksLikeComicInfoMap(Map<String, dynamic> map) {
+    return map['id'] != null &&
+        map['title'] != null &&
+        map['cover'] is Map &&
+        map['creator'] is Map;
   }
 
   void _upsertUnifiedHistory({

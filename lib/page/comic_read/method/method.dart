@@ -5,4 +5,3 @@ export './history_writer.dart';
 export './image_size_cache_store.dart';
 export './jump_chapter.dart';
 export './reader_gesture_logic.dart';
-export './type_change.dart';

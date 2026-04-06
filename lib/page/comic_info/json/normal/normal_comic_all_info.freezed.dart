@@ -906,7 +906,7 @@ as List<ComicInfoActionItem>,
 /// @nodoc
 mixin _$ComicImage {
 
-@JsonKey(name: 'id') String get id;@JsonKey(name: 'url') String get url;@JsonKey(name: 'name') String get name;@JsonKey(name: 'extension') Map<String, dynamic> get extension;
+@JsonKey(name: 'id') String get id;@JsonKey(name: 'url') String get url;@JsonKey(name: 'name') String get name;@JsonKey(name: 'path') String get path;@JsonKey(name: 'extension') Map<String, dynamic> get extension;
 /// Create a copy of ComicImage
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -919,16 +919,16 @@ $ComicImageCopyWith<ComicImage> get copyWith => _$ComicImageCopyWithImpl<ComicIm
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ComicImage&&(identical(other.id, id) || other.id == id)&&(identical(other.url, url) || other.url == url)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.extension, extension));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ComicImage&&(identical(other.id, id) || other.id == id)&&(identical(other.url, url) || other.url == url)&&(identical(other.name, name) || other.name == name)&&(identical(other.path, path) || other.path == path)&&const DeepCollectionEquality().equals(other.extension, extension));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,url,name,const DeepCollectionEquality().hash(extension));
+int get hashCode => Object.hash(runtimeType,id,url,name,path,const DeepCollectionEquality().hash(extension));
 
 @override
 String toString() {
-  return 'ComicImage(id: $id, url: $url, name: $name, extension: $extension)';
+  return 'ComicImage(id: $id, url: $url, name: $name, path: $path, extension: $extension)';
 }
 
 
@@ -939,7 +939,7 @@ abstract mixin class $ComicImageCopyWith<$Res>  {
   factory $ComicImageCopyWith(ComicImage value, $Res Function(ComicImage) _then) = _$ComicImageCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'id') String id,@JsonKey(name: 'url') String url,@JsonKey(name: 'name') String name,@JsonKey(name: 'extension') Map<String, dynamic> extension
+@JsonKey(name: 'id') String id,@JsonKey(name: 'url') String url,@JsonKey(name: 'name') String name,@JsonKey(name: 'path') String path,@JsonKey(name: 'extension') Map<String, dynamic> extension
 });
 
 
@@ -956,11 +956,12 @@ class _$ComicImageCopyWithImpl<$Res>
 
 /// Create a copy of ComicImage
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? url = null,Object? name = null,Object? extension = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? url = null,Object? name = null,Object? path = null,Object? extension = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
 as String,extension: null == extension ? _self.extension : extension // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,
   ));
@@ -1047,10 +1048,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'id')  String id, @JsonKey(name: 'url')  String url, @JsonKey(name: 'name')  String name, @JsonKey(name: 'extension')  Map<String, dynamic> extension)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'id')  String id, @JsonKey(name: 'url')  String url, @JsonKey(name: 'name')  String name, @JsonKey(name: 'path')  String path, @JsonKey(name: 'extension')  Map<String, dynamic> extension)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ComicImage() when $default != null:
-return $default(_that.id,_that.url,_that.name,_that.extension);case _:
+return $default(_that.id,_that.url,_that.name,_that.path,_that.extension);case _:
   return orElse();
 
 }
@@ -1068,10 +1069,10 @@ return $default(_that.id,_that.url,_that.name,_that.extension);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'id')  String id, @JsonKey(name: 'url')  String url, @JsonKey(name: 'name')  String name, @JsonKey(name: 'extension')  Map<String, dynamic> extension)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'id')  String id, @JsonKey(name: 'url')  String url, @JsonKey(name: 'name')  String name, @JsonKey(name: 'path')  String path, @JsonKey(name: 'extension')  Map<String, dynamic> extension)  $default,) {final _that = this;
 switch (_that) {
 case _ComicImage():
-return $default(_that.id,_that.url,_that.name,_that.extension);case _:
+return $default(_that.id,_that.url,_that.name,_that.path,_that.extension);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1088,10 +1089,10 @@ return $default(_that.id,_that.url,_that.name,_that.extension);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'id')  String id, @JsonKey(name: 'url')  String url, @JsonKey(name: 'name')  String name, @JsonKey(name: 'extension')  Map<String, dynamic> extension)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'id')  String id, @JsonKey(name: 'url')  String url, @JsonKey(name: 'name')  String name, @JsonKey(name: 'path')  String path, @JsonKey(name: 'extension')  Map<String, dynamic> extension)?  $default,) {final _that = this;
 switch (_that) {
 case _ComicImage() when $default != null:
-return $default(_that.id,_that.url,_that.name,_that.extension);case _:
+return $default(_that.id,_that.url,_that.name,_that.path,_that.extension);case _:
   return null;
 
 }
@@ -1103,12 +1104,13 @@ return $default(_that.id,_that.url,_that.name,_that.extension);case _:
 @JsonSerializable()
 
 class _ComicImage implements ComicImage {
-  const _ComicImage({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'url') required this.url, @JsonKey(name: 'name') required this.name, @JsonKey(name: 'extension') final  Map<String, dynamic> extension = const {}}): _extension = extension;
+  const _ComicImage({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'url') required this.url, @JsonKey(name: 'name') required this.name, @JsonKey(name: 'path') this.path = '', @JsonKey(name: 'extension') final  Map<String, dynamic> extension = const {}}): _extension = extension;
   factory _ComicImage.fromJson(Map<String, dynamic> json) => _$ComicImageFromJson(json);
 
 @override@JsonKey(name: 'id') final  String id;
 @override@JsonKey(name: 'url') final  String url;
 @override@JsonKey(name: 'name') final  String name;
+@override@JsonKey(name: 'path') final  String path;
  final  Map<String, dynamic> _extension;
 @override@JsonKey(name: 'extension') Map<String, dynamic> get extension {
   if (_extension is EqualUnmodifiableMapView) return _extension;
@@ -1130,16 +1132,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ComicImage&&(identical(other.id, id) || other.id == id)&&(identical(other.url, url) || other.url == url)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other._extension, _extension));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ComicImage&&(identical(other.id, id) || other.id == id)&&(identical(other.url, url) || other.url == url)&&(identical(other.name, name) || other.name == name)&&(identical(other.path, path) || other.path == path)&&const DeepCollectionEquality().equals(other._extension, _extension));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,url,name,const DeepCollectionEquality().hash(_extension));
+int get hashCode => Object.hash(runtimeType,id,url,name,path,const DeepCollectionEquality().hash(_extension));
 
 @override
 String toString() {
-  return 'ComicImage(id: $id, url: $url, name: $name, extension: $extension)';
+  return 'ComicImage(id: $id, url: $url, name: $name, path: $path, extension: $extension)';
 }
 
 
@@ -1150,7 +1152,7 @@ abstract mixin class _$ComicImageCopyWith<$Res> implements $ComicImageCopyWith<$
   factory _$ComicImageCopyWith(_ComicImage value, $Res Function(_ComicImage) _then) = __$ComicImageCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'id') String id,@JsonKey(name: 'url') String url,@JsonKey(name: 'name') String name,@JsonKey(name: 'extension') Map<String, dynamic> extension
+@JsonKey(name: 'id') String id,@JsonKey(name: 'url') String url,@JsonKey(name: 'name') String name,@JsonKey(name: 'path') String path,@JsonKey(name: 'extension') Map<String, dynamic> extension
 });
 
 
@@ -1167,11 +1169,12 @@ class __$ComicImageCopyWithImpl<$Res>
 
 /// Create a copy of ComicImage
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? url = null,Object? name = null,Object? extension = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? url = null,Object? name = null,Object? path = null,Object? extension = null,}) {
   return _then(_ComicImage(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
 as String,extension: null == extension ? _self._extension : extension // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,
   ));

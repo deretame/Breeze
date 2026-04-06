@@ -3,9 +3,7 @@ class HistoryWriter {
 
   Future<void> start() async {}
 
-  void updateBikaHistory(dynamic data) {}
-
-  void updateJmHistory(dynamic data) {}
+  void updateHistory(dynamic data) {}
 
   void stop() {}
 }

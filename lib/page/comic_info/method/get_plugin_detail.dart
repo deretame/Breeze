@@ -28,7 +28,7 @@ class PluginComicDetailSource {
 
   List<normal.Ep> get eps => normalInfo.eps;
 
-  bool get isJmSeriesEmpty => eps.isEmpty;
+  bool get isSeriesEmpty => eps.isEmpty;
 
   String get comicId => normalInfo.comicInfo.id;
 

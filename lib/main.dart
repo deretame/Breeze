@@ -24,12 +24,10 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
-import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/api/system.dart' as rust_system;
 import 'package:zephyr/src/rust/frb_generated.dart';
-import 'package:zephyr/util/compatible/compatible.dart';
 import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/util/desktop/custom_title_bar.dart';
 import 'package:zephyr/util/desktop/intent.dart';
@@ -40,8 +38,6 @@ import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/router/router.dart';
-import 'package:zephyr/util/sundry.dart';
-import 'package:zephyr/util/update/check_update.dart';
 
 late final ObjectBox objectbox;
 
@@ -218,33 +214,16 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
     objectbox.userSettingBox.put(UserSetting());
   }
 
-  await registerPersistentCallbacks();
-  initRustFunctions();
-  final appVersion = await getAppVersion();
-
-  registerFunction(
-    functionName: 'getAppVersion',
-    dartCallback: (temp) async => appVersion,
-  );
-
-  await ensureCompatibleMigration(objectbox);
-  await PluginRegistryService.I.init(objectbox);
-  await PluginRegistryService.I.initializeActivePluginRuntimes();
-  unawaited(PluginRegistryService.I.warmupPluginInfos());
-
   final globalSettingCubit = GlobalSettingCubit();
   await globalSettingCubit.initBox();
 
   final pluginRegistryCubit = PluginRegistryCubit();
-  // await initCfIpList('https://ip.164746.xyz/ipTop.html');
 
   if (globalSettingCubit.state.needCleanCache) {
     await clearCache(await getCachePath());
   }
 
-  // logger.d(globalSetting.socks5Proxy);
   if (globalSettingCubit.state.socks5Proxy.isNotEmpty) {
-    // proxy -> "SOCKS5/SOCKS4/PROXY username:password@host:port;" or "DIRECT"
     final proxy = globalSettingCubit.state.socks5Proxy;
     SocksProxy.initProxy(proxy: 'SOCKS5 $proxy');
     setSocks5Proxy(proxy: proxy);

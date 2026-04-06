@@ -417,12 +417,10 @@ async fn replace_bundle_inner(
         .map_err(|err| anyhow!("读取 bundle 列表失败: {err}"))?;
 
     for existing in names {
-        if existing != name {
-            runtime
-                .bundle_unload(&existing)
-                .await
-                .map_err(|err| anyhow!("卸载旧 bundle 失败({existing}): {err}"))?;
-        }
+        runtime
+            .bundle_unload(&existing)
+            .await
+            .map_err(|err| anyhow!("卸载旧 bundle 失败({existing}): {err}"))?;
     }
 
     load_bundle_inner(runtime, name, bundle_js).await

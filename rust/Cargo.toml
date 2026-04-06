@@ -37,6 +37,7 @@ chrono = "0.4.44"
 terminal_size = "0.4.4"
 ferrous-opencc = "0.3"
 brotli = "8.0.2"
+webp = "0.3.1"
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.15.1"
 tracing-logcat = "0.1.0"

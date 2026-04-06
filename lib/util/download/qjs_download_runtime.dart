@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
@@ -65,8 +66,7 @@ Future<void> ensureQjsRuntimeReady({required String pluginId}) async {
   final bundleName = runtimeName;
 
   try {
-    final ready = await isQjsRuntimeInitialized(name: runtimeName);
-    if (!ready) {
+    Future<void> installBundle() async {
       final bundleJs = await loadQjsBundleJs(normalizedPluginId);
       await initQjsRuntimeWithBundle(
         runtimeName: runtimeName,
@@ -74,6 +74,24 @@ Future<void> ensureQjsRuntimeReady({required String pluginId}) async {
         bundleJs: bundleJs,
       );
       _runtimeInitDone.remove(runtimeName);
+    }
+
+    final ready = await isQjsRuntimeInitialized(name: runtimeName);
+    if (!ready) {
+      await installBundle();
+    } else {
+      String? currentBundle;
+      try {
+        final currentBundleRaw = await qjsCurrentBundle(
+          runtimeName: runtimeName,
+        );
+        currentBundle = jsonDecode(currentBundleRaw) as String?;
+      } catch (_) {
+        currentBundle = null;
+      }
+      if (currentBundle == null || currentBundle.trim().isEmpty) {
+        await installBundle();
+      }
     }
     await _runRuntimeInitIfNeeded(runtimeName);
   } catch (e) {

@@ -7,6 +7,7 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
+import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/models/search_enter.dart';
 import 'package:zephyr/page/bookshelf/models/shelf_page_mode.dart';
 
@@ -136,22 +137,24 @@ class BookshelfSectionBloc
 
     try {
       await _workerReady;
-      final sourceItems = _fetchRawItems();
+      final offset = event.append ? current.comics.length : 0;
+      final raw = _fetchRawItems(
+        search: event.searchEnterConst,
+        offset: offset,
+        limit: _kPageSize,
+      );
       final maskedKeywords = objectbox.userSettingBox
           .get(1)!
           .globalSetting
           .maskedKeywords
           .where((keyword) => keyword.trim().isNotEmpty)
           .toList();
-      final offset = event.append ? current.comics.length : 0;
 
       final response = await _bookshelfWorkerService.query(
         mode: mode,
         search: event.searchEnterConst,
-        sourceItems: sourceItems,
+        sourceItems: raw.items,
         maskedKeywords: maskedKeywords,
-        offset: offset,
-        limit: _kPageSize,
       );
 
       final error = response['error']?.toString() ?? '';
@@ -160,8 +163,8 @@ class BookshelfSectionBloc
       }
 
       final pageItems = _decodeItems(response['items']);
-      final total = response['total'] as int? ?? 0;
-      final hasReachedMax = response['hasReachedMax'] as bool? ?? true;
+      final total = raw.total;
+      final hasReachedMax = (offset + raw.items.length) >= total;
 
       emit(
         current.copyWith(
@@ -193,24 +196,147 @@ class BookshelfSectionBloc
     }
   }
 
-  List<Map<String, dynamic>> _fetchRawItems() {
+  _RawQueryResult _fetchRawItems({
+    required SearchEnter search,
+    required int offset,
+    required int limit,
+  }) {
     return switch (mode) {
-      ShelfPageMode.favorite =>
-        objectbox.unifiedFavoriteBox
-            .getAll()
-            .map((item) => item.toJson())
-            .toList(),
-      ShelfPageMode.history =>
-        objectbox.unifiedHistoryBox
-            .getAll()
-            .map((item) => item.toJson())
-            .toList(),
-      ShelfPageMode.download =>
-        objectbox.unifiedDownloadBox
-            .getAll()
-            .map((item) => item.toJson())
-            .toList(),
+      ShelfPageMode.favorite => _queryFavoriteRaw(search, offset, limit),
+      ShelfPageMode.history => _queryHistoryRaw(search, offset, limit),
+      ShelfPageMode.download => _queryDownloadRaw(search, offset, limit),
     };
+  }
+
+  _RawQueryResult _queryFavoriteRaw(SearchEnter search, int offset, int limit) {
+    final query = objectbox.unifiedFavoriteBox
+        .query(_favoriteBaseCondition(search))
+        .order(
+          UnifiedComicFavorite_.createdAt,
+          flags: search.sort == 'da' ? 0 : Order.descending,
+        )
+        .build();
+    try {
+      final total = query.count();
+      query.offset = offset;
+      query.limit = limit;
+      final items = query.find();
+      return _RawQueryResult(
+        items.map((item) => item.toJson()).toList(),
+        total,
+      );
+    } finally {
+      query.close();
+    }
+  }
+
+  _RawQueryResult _queryHistoryRaw(SearchEnter search, int offset, int limit) {
+    final query = objectbox.unifiedHistoryBox
+        .query(_historyBaseCondition(search))
+        .order(
+          UnifiedComicHistory_.updatedAt,
+          flags: search.sort == 'da' ? 0 : Order.descending,
+        )
+        .build();
+    try {
+      final total = query.count();
+      query.offset = offset;
+      query.limit = limit;
+      final items = query.find();
+      return _RawQueryResult(
+        items.map((item) => item.toJson()).toList(),
+        total,
+      );
+    } finally {
+      query.close();
+    }
+  }
+
+  _RawQueryResult _queryDownloadRaw(SearchEnter search, int offset, int limit) {
+    final query = objectbox.unifiedDownloadBox
+        .query(_downloadBaseCondition(search))
+        .order(
+          UnifiedComicDownload_.downloadedAt,
+          flags: search.sort == 'da' ? 0 : Order.descending,
+        )
+        .build();
+    try {
+      final total = query.count();
+      query.offset = offset;
+      query.limit = limit;
+      final items = query.find();
+      return _RawQueryResult(
+        items.map((item) => item.toJson()).toList(),
+        total,
+      );
+    } finally {
+      query.close();
+    }
+  }
+
+  Condition<UnifiedComicFavorite> _favoriteBaseCondition(SearchEnter search) {
+    return _favoriteSourceCondition(
+      search.sources,
+    ).and(UnifiedComicFavorite_.deleted.equals(false));
+  }
+
+  Condition<UnifiedComicHistory> _historyBaseCondition(SearchEnter search) {
+    return _historySourceCondition(
+      search.sources,
+    ).and(UnifiedComicHistory_.deleted.equals(false));
+  }
+
+  Condition<UnifiedComicDownload> _downloadBaseCondition(SearchEnter search) {
+    return _downloadSourceCondition(search.sources);
+  }
+
+  Condition<UnifiedComicFavorite> _favoriteSourceCondition(
+    List<String> sources,
+  ) {
+    final cleaned = sources
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+    if (cleaned.isEmpty) {
+      return UnifiedComicFavorite_.id.greaterThan(0);
+    }
+    var condition = UnifiedComicFavorite_.source.equals(cleaned.first);
+    for (final source in cleaned.skip(1)) {
+      condition = condition.or(UnifiedComicFavorite_.source.equals(source));
+    }
+    return condition;
+  }
+
+  Condition<UnifiedComicHistory> _historySourceCondition(List<String> sources) {
+    final cleaned = sources
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+    if (cleaned.isEmpty) {
+      return UnifiedComicHistory_.id.greaterThan(0);
+    }
+    var condition = UnifiedComicHistory_.source.equals(cleaned.first);
+    for (final source in cleaned.skip(1)) {
+      condition = condition.or(UnifiedComicHistory_.source.equals(source));
+    }
+    return condition;
+  }
+
+  Condition<UnifiedComicDownload> _downloadSourceCondition(
+    List<String> sources,
+  ) {
+    final cleaned = sources
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+    if (cleaned.isEmpty) {
+      return UnifiedComicDownload_.id.greaterThan(0);
+    }
+    var condition = UnifiedComicDownload_.source.equals(cleaned.first);
+    for (final source in cleaned.skip(1)) {
+      condition = condition.or(UnifiedComicDownload_.source.equals(source));
+    }
+    return condition;
   }
 
   List<dynamic> _decodeItems(dynamic payload) {
@@ -250,8 +376,10 @@ class BookshelfSectionBloc
 final _bookshelfWorkerService = _BookshelfWorkerService();
 
 class _BookshelfWorkerService {
+  Isolate? _worker;
   SendPort? _sendPort;
   ReceivePort? _receivePort;
+  StreamSubscription? _subscription;
   int _requestId = 0;
   final Map<int, Completer<Map<String, dynamic>>> _pending = {};
   Future<void>? _readyFuture;
@@ -263,10 +391,10 @@ class _BookshelfWorkerService {
 
   Future<void> _start() async {
     _receivePort = ReceivePort();
-    await Isolate.spawn(_bookshelfWorkerMain, _receivePort!.sendPort);
+    _worker = await Isolate.spawn(_bookshelfWorkerMain, _receivePort!.sendPort);
 
     final ready = Completer<void>();
-    _receivePort!.listen((message) {
+    _subscription = _receivePort!.listen((message) {
       if (message is SendPort) {
         _sendPort = message;
         if (!ready.isCompleted) {
@@ -291,8 +419,7 @@ class _BookshelfWorkerService {
     required SearchEnter search,
     required List<Map<String, dynamic>> sourceItems,
     required List<String> maskedKeywords,
-    required int offset,
-    required int limit,
+    bool isRetry = false,
   }) async {
     await ensureReady();
     if (_sendPort == null) {
@@ -314,14 +441,43 @@ class _BookshelfWorkerService {
       },
       'items': sourceItems,
       'maskedKeywords': maskedKeywords,
-      'offset': offset,
-      'limit': limit,
     });
 
-    return completer.future;
+    final response = await completer.future;
+    final error = response['error']?.toString() ?? '';
+    if (!isRetry && error.contains('_filterAndSort')) {
+      await _restart();
+      return query(
+        mode: mode,
+        search: search,
+        sourceItems: sourceItems,
+        maskedKeywords: maskedKeywords,
+        isRetry: true,
+      );
+    }
+    return response;
+  }
+
+  Future<void> _restart() async {
+    for (final pending in _pending.values) {
+      if (!pending.isCompleted) {
+        pending.completeError(StateError('Bookshelf worker restarting'));
+      }
+    }
+    _pending.clear();
+    await _subscription?.cancel();
+    _subscription = null;
+    _receivePort?.close();
+    _receivePort = null;
+    _sendPort = null;
+    _worker?.kill(priority: Isolate.immediate);
+    _worker = null;
+    _readyFuture = null;
+    await ensureReady();
   }
 }
 
+@pragma('vm:entry-point')
 void _bookshelfWorkerMain(SendPort sendPort) {
   final receivePort = ReceivePort();
   sendPort.send(receivePort.sendPort);
@@ -336,7 +492,6 @@ void _bookshelfWorkerMain(SendPort sendPort) {
     }
 
     try {
-      final mode = message['mode']?.toString() ?? '';
       final search = Map<String, dynamic>.from(
         (message['search'] as Map?) ?? const <String, dynamic>{},
       );
@@ -349,29 +504,13 @@ void _bookshelfWorkerMain(SendPort sendPort) {
               .map((entry) => entry.toString().trim())
               .where((entry) => entry.isNotEmpty)
               .toList();
-      final offset = (message['offset'] as int?) ?? 0;
-      final limit = (message['limit'] as int?) ?? _kPageSize;
-
       final filtered = _filterAndSort(
-        mode: mode,
         items: items,
         search: search,
         maskedKeywords: maskedKeywords,
       );
 
-      final total = filtered.length;
-      final start = offset < 0 ? 0 : offset;
-      final end = (start + limit) > total ? total : (start + limit);
-      final page = start >= total
-          ? const <Map<String, dynamic>>[]
-          : filtered.sublist(start, end);
-
-      sendPort.send({
-        'id': id,
-        'items': page,
-        'total': total,
-        'hasReachedMax': end >= total,
-      });
+      sendPort.send({'id': id, 'items': filtered});
     } catch (e) {
       sendPort.send({'id': id, 'error': e.toString(), 'items': [], 'total': 0});
     }
@@ -379,31 +518,17 @@ void _bookshelfWorkerMain(SendPort sendPort) {
 }
 
 List<Map<String, dynamic>> _filterAndSort({
-  required String mode,
   required List<Map<String, dynamic>> items,
   required Map<String, dynamic> search,
   required List<String> maskedKeywords,
 }) {
   final keyword = (search['keyword']?.toString() ?? '').trim().toLowerCase();
-  final sort = (search['sort']?.toString() ?? 'dd').trim();
-  final sources = ((search['sources'] as List?) ?? const <dynamic>[])
-      .map((item) => item.toString().trim())
-      .where((item) => item.isNotEmpty)
-      .toSet();
   final categories = ((search['categories'] as List?) ?? const <dynamic>[])
       .map((item) => item.toString().trim())
       .where((item) => item.isNotEmpty)
       .toList();
 
-  var data = items.where((item) {
-    if (sources.isNotEmpty && !sources.contains(item['source']?.toString())) {
-      return false;
-    }
-    if (item['deleted'] == true) {
-      return false;
-    }
-    return true;
-  }).toList();
+  var data = items;
 
   if (maskedKeywords.isNotEmpty) {
     data = data.where((item) {
@@ -451,51 +576,7 @@ List<Map<String, dynamic>> _filterAndSort({
     }).toList();
   }
 
-  data.sort((a, b) => _sortCompare(mode, sort, a, b));
   return data;
-}
-
-int _sortCompare(
-  String mode,
-  String sort,
-  Map<String, dynamic> left,
-  Map<String, dynamic> right,
-) {
-  if (sort == 'da') {
-    final l = _num(left['updatedAt'] ?? left['downloadedAt']);
-    final r = _num(right['updatedAt'] ?? right['downloadedAt']);
-    return l.compareTo(r);
-  }
-  if (sort == 'ld') {
-    if (mode == ShelfPageMode.download.name) {
-      return _num(right['totalLikes']).compareTo(_num(left['totalLikes']));
-    }
-    return (right['title']?.toString() ?? '').compareTo(
-      left['title']?.toString() ?? '',
-    );
-  }
-  if (sort == 'vd') {
-    if (mode == ShelfPageMode.download.name) {
-      return _num(right['totalViews']).compareTo(_num(left['totalViews']));
-    }
-    if (mode == ShelfPageMode.history.name) {
-      return _viewsFromTitleMeta(
-        right['titleMeta'],
-      ).compareTo(_viewsFromTitleMeta(left['titleMeta']));
-    }
-    return (right['title']?.toString() ?? '').compareTo(
-      left['title']?.toString() ?? '',
-    );
-  }
-
-  final l = _num(left['updatedAt'] ?? left['downloadedAt']);
-  final r = _num(right['updatedAt'] ?? right['downloadedAt']);
-  return r.compareTo(l);
-}
-
-int _num(dynamic value) {
-  if (value is int) return value;
-  return int.tryParse(value?.toString() ?? '') ?? 0;
 }
 
 List<Map<String, dynamic>> _decodeMetadata(String raw) {
@@ -520,18 +601,9 @@ String _creatorName(String raw) {
   return '';
 }
 
-int _viewsFromTitleMeta(dynamic raw) {
-  final input = raw?.toString() ?? '';
-  if (input.trim().isEmpty) return 0;
-  try {
-    final decoded = jsonDecode(input);
-    if (decoded is! List) return 0;
-    for (final entry in decoded.whereType<Map>()) {
-      final name = entry['name']?.toString() ?? '';
-      if (name.startsWith('浏览：')) {
-        return int.tryParse(name.substring(3)) ?? 0;
-      }
-    }
-  } catch (_) {}
-  return 0;
+class _RawQueryResult {
+  const _RawQueryResult(this.items, this.total);
+
+  final List<Map<String, dynamic>> items;
+  final int total;
 }

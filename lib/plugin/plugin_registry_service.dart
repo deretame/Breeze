@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -92,7 +93,7 @@ class PluginRegistryService {
   Map<String, dynamic>? getCachedPluginInfo(String uuid) =>
       _pluginInfoCache[uuid];
 
-  Future<void> init(ObjectBox objectbox) async {
+  Future<void> init() async {
     _objectbox = objectbox;
     await refreshFromDb();
   }
@@ -330,16 +331,13 @@ class PluginRegistryService {
     PluginRuntimeState plugin, {
     required String runtimeName,
   }) async {
-    final ready = await isQjsRuntimeInitialized(name: runtimeName);
-    if (ready) {
-      return;
-    }
     final bundleJs = await _resolveBundleJs(plugin);
     await initQjsRuntimeWithBundle(
       runtimeName: runtimeName,
       bundleName: runtimeName,
       bundleJs: bundleJs,
     );
+    _pluginInitDone.remove(plugin.uuid);
   }
 
   Future<void> _runPluginInitIfNeeded(
@@ -351,7 +349,11 @@ class PluginRegistryService {
     }
 
     try {
-      await qjsCall(runtimeName: runtimeName, fnPath: 'init', argsJson: '{}');
+      await callUnifiedComicPlugin(
+        pluginId: runtimeName,
+        fnPath: 'init',
+        core: {},
+      );
       _pluginInitDone.add(plugin.uuid);
       await updateLoadResult(plugin.uuid, success: true, error: null);
     } catch (e) {

@@ -21,7 +21,9 @@ pub fn segmentation_picture_to_disk(image_info: ImageInfo) -> Result<()> {
         file_name,
     } = image_info;
 
+    tracing::debug!("{} origin {}", img_data.len(), file_name);
     let bytes = super::segmentation::segmentation_picture(img_data, chapter_id, scramble_id, &url)?;
+    tracing::debug!("{} after {}", bytes.len(), file_name);
     save_image(&bytes, &file_name)?;
     Ok(())
 }

@@ -288,7 +288,10 @@ jobs:
       - name: Patch sentry native fetch (Windows)
         shell: pwsh
         run: |
+          [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
           flutter.bat pub get
+          $env:PYTHONUTF8 = '1'
+          $env:PYTHONIOENCODING = 'utf-8'
           $code = @'
           import os
           from pathlib import Path
@@ -306,7 +309,7 @@ jobs:
                   files.extend(root.glob('hosted/pub.dev/sentry_flutter-*/sentry-native/sentry-native.cmake'))
 
           if not files:
-              raise SystemExit('未找到 sentry-native.cmake（请确认 flutter pub get 成功）')
+              raise SystemExit('sentry-native.cmake not found (verify flutter pub get succeeded)')
 
           old = 'GIT_TAG ${SENTRY_NATIVE_version}\n    EXCLUDE_FROM_ALL'
           new = 'GIT_TAG ${SENTRY_NATIVE_version}\n    GIT_SUBMODULES ""\n    GIT_SUBMODULES_RECURSE FALSE\n    EXCLUDE_FROM_ALL'
@@ -317,9 +320,9 @@ jobs:
               if old in text and 'GIT_SUBMODULES ""' not in text:
                   path.write_text(text.replace(old, new, 1), encoding='utf-8')
                   patched += 1
-                  print(f'已应用补丁: {path}')
+                  print(f'Patched: {path}')
 
-          print(f'扫描 {len(files)} 个文件，补丁应用 {patched} 个')
+          print(f'Scanned {len(files)} files, patched {patched}')
           '@
           python -c $code
 

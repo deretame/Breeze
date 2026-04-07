@@ -192,6 +192,8 @@ jobs:
           git config --global --get-regexp "^url\\..*insteadof"
 
       - name: 构建 Flatpak
+        env:
+          SENTRY_NATIVE_BACKEND: none
         run: |
           fvm flutter build linux --release --split-debug-info=build/symbols
           mkdir -p build-flatpak repo-flatpak
@@ -255,6 +257,7 @@ jobs:
           node-version: 22
 
       - name: Fix Sentry Native Submodule (Windows)
+        shell: bash
         run: |
           git config --global --add url."https://github.com/madler/zlib.git".insteadof "https://chromium.googlesource.com/chromium/src/third_party/zlib"
           git config --global --add url."https://github.com/madler/zlib.git".insteadof "https://chromium.googlesource.com/chromium/src/third_party/zlib/"
@@ -262,6 +265,8 @@ jobs:
           git config --global --get-regexp "^url\\..*insteadof"
 
       - name: 运行 Windows 构建脚本
+        env:
+          SENTRY_NATIVE_BACKEND: none
         run: |
           fvm flutter pub get
           fvm dart ./script/build_windows.dart

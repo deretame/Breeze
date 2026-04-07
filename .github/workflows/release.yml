@@ -213,6 +213,7 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          SENTRY_NATIVE_BACKEND: none
         run: |
           fvm flutter build linux --release --dart-define=sentry_dsn=$SENTRY_DSN --split-debug-info=build/symbols
 
@@ -296,6 +297,7 @@ jobs:
           node-version: 22
 
       - name: Fix Sentry Native Submodule (Windows)
+        shell: bash
         run: |
           git config --global --add url."https://github.com/madler/zlib.git".insteadof "https://chromium.googlesource.com/chromium/src/third_party/zlib"
           git config --global --add url."https://github.com/madler/zlib.git".insteadof "https://chromium.googlesource.com/chromium/src/third_party/zlib/"
@@ -308,6 +310,7 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          SENTRY_NATIVE_BACKEND: none
         run: |
           fvm flutter pub get
           fvm dart ./script/build_windows.dart

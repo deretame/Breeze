@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
-use image::{ImageBuffer, ImageFormat, Rgba, RgbaImage};
-use std::io::Cursor;
+use image::{ImageBuffer, ImageFormat, Rgb, RgbImage};
+use webp::Encoder;
 
 pub(crate) fn segmentation_picture(
     img_data: Vec<u8>,
@@ -21,10 +21,9 @@ pub(crate) fn segmentation_picture(
         return Ok(img_data);
     }
 
-    // 直接解码成 rgba8，方便后续按整行内存拷贝
-    let src_img: RgbaImage = image::load_from_memory(&img_data)
+    let src_img: RgbImage = image::load_from_memory(&img_data)
         .context("Failed to decode image")?
-        .to_rgba8();
+        .to_rgb8();
 
     let (width, height) = src_img.dimensions();
     let block_size = height / num as u32;
@@ -41,13 +40,13 @@ pub(crate) fn segmentation_picture(
         blocks.push((start, end));
     }
 
-    let mut des_img: RgbaImage = ImageBuffer::<Rgba<u8>, Vec<u8>>::new(width, height);
+    let mut des_img: RgbImage = ImageBuffer::<Rgb<u8>, Vec<u8>>::new(width, height);
     rearrange_blocks_by_block(&src_img, &mut des_img, &blocks);
 
-    let mut bytes = Vec::new();
-    let mut cursor = Cursor::new(&mut bytes);
-    des_img.write_to(&mut cursor, image::ImageFormat::WebP)?;
-    Ok(bytes)
+    let encoder = Encoder::from_rgb(&des_img, width, height);
+    let webp_memory = encoder.encode(75.0);
+
+    Ok(webp_memory.to_vec())
 }
 
 fn get_segmentation_num(eps_id: i32, scramble_id: i32, picture_name: &str) -> i32 {
@@ -70,9 +69,9 @@ fn get_segmentation_num(eps_id: i32, scramble_id: i32, picture_name: &str) -> i3
     }
 }
 
-fn rearrange_blocks_by_block(src: &RgbaImage, dst: &mut RgbaImage, blocks: &[(u32, u32)]) {
+fn rearrange_blocks_by_block(src: &RgbImage, dst: &mut RgbImage, blocks: &[(u32, u32)]) {
     let width = src.width() as usize;
-    let row_bytes = width * 4;
+    let row_bytes = width * 3;
 
     let src_raw = src.as_raw();
     let dst_raw = dst.as_mut();

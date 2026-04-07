@@ -200,6 +200,11 @@ jobs:
           workspaces: |
             rust
 
+      - name: Fix Sentry Native Submodule (Linux)
+        run: |
+          git config --global url."https://github.com/madler/zlib.git".insteadOf "https://chromium.googlesource.com/chromium/src/third_party/zlib"
+          git config --global url."https://github.com/google/crashpad.git".insteadOf "https://chromium.googlesource.com/crashpad/crashpad"
+
       - name: 构建 Linux Release
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
@@ -287,6 +292,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      - name: Fix Sentry Native Submodule (Windows)
+        run: |
+          git config --global url."https://github.com/madler/zlib.git".insteadOf "https://chromium.googlesource.com/chromium/src/third_party/zlib"
+          git config --global url."https://github.com/google/crashpad.git".insteadOf "https://chromium.googlesource.com/crashpad/crashpad"
 
       - name: 运行 Windows 构建脚本
         env:

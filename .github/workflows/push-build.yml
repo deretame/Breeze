@@ -186,8 +186,10 @@ jobs:
 
       - name: Fix Sentry Native Submodule (Linux)
         run: |
-          git config --global url."https://github.com/madler/zlib.git".insteadOf "https://chromium.googlesource.com/chromium/src/third_party/zlib"
-          git config --global url."https://github.com/google/crashpad.git".insteadOf "https://chromium.googlesource.com/crashpad/crashpad"
+          git config --global --add url."https://github.com/madler/zlib.git".insteadof "https://chromium.googlesource.com/chromium/src/third_party/zlib"
+          git config --global --add url."https://github.com/madler/zlib.git".insteadof "https://chromium.googlesource.com/chromium/src/third_party/zlib/"
+          git config --global --add url."https://github.com/getsentry/crashpad.git".insteadof "https://chromium.googlesource.com/crashpad/crashpad"
+          git config --global --get-regexp "^url\\..*insteadof"
 
       - name: 构建 Flatpak
         run: |
@@ -254,8 +256,10 @@ jobs:
 
       - name: Fix Sentry Native Submodule (Windows)
         run: |
-          git config --global url."https://github.com/madler/zlib.git".insteadOf "https://chromium.googlesource.com/chromium/src/third_party/zlib"
-          git config --global url."https://github.com/google/crashpad.git".insteadOf "https://chromium.googlesource.com/crashpad/crashpad"
+          git config --global --add url."https://github.com/madler/zlib.git".insteadof "https://chromium.googlesource.com/chromium/src/third_party/zlib"
+          git config --global --add url."https://github.com/madler/zlib.git".insteadof "https://chromium.googlesource.com/chromium/src/third_party/zlib/"
+          git config --global --add url."https://github.com/getsentry/crashpad.git".insteadof "https://chromium.googlesource.com/crashpad/crashpad"
+          git config --global --get-regexp "^url\\..*insteadof"
 
       - name: 运行 Windows 构建脚本
         run: |

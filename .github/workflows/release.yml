@@ -202,8 +202,39 @@ jobs:
 
       - name: Patch sentry native fetch (Linux)
         run: |
-          fvm flutter pub get
-          python3 -c "from pathlib import Path; p=Path('flutter/ephemeral/.plugin_symlinks/sentry_flutter/sentry-native/sentry-native.cmake'); s=p.read_text(encoding='utf-8'); old='GIT_TAG ${SENTRY_NATIVE_version}\n    EXCLUDE_FROM_ALL'; new='GIT_TAG ${SENTRY_NATIVE_version}\n    GIT_SUBMODULES \"\"\n    GIT_SUBMODULES_RECURSE FALSE\n    EXCLUDE_FROM_ALL'; assert old in s, '未匹配到 FetchContent_Declare 块，补丁未应用'; p.write_text(s.replace(old,new,1), encoding='utf-8'); print('已应用补丁:', p)"
+          flutter pub get
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          roots = []
+          pub_cache = os.environ.get('PUB_CACHE')
+          if pub_cache:
+              roots.append(Path(pub_cache))
+          roots.append(Path.home() / '.pub-cache')
+          roots.append(Path.home() / 'AppData/Local/Pub/Cache')
+
+          files = []
+          for root in roots:
+              if root.exists():
+                  files.extend(root.glob('hosted/pub.dev/sentry_flutter-*/sentry-native/sentry-native.cmake'))
+
+          if not files:
+              raise SystemExit('未找到 sentry-native.cmake（请确认 flutter pub get 成功）')
+
+          old = 'GIT_TAG ${SENTRY_NATIVE_version}\n    EXCLUDE_FROM_ALL'
+          new = 'GIT_TAG ${SENTRY_NATIVE_version}\n    GIT_SUBMODULES ""\n    GIT_SUBMODULES_RECURSE FALSE\n    EXCLUDE_FROM_ALL'
+
+          patched = 0
+          for path in files:
+              text = path.read_text(encoding='utf-8')
+              if old in text and 'GIT_SUBMODULES ""' not in text:
+                  path.write_text(text.replace(old, new, 1), encoding='utf-8')
+                  patched += 1
+                  print(f'已应用补丁: {path}')
+
+          print(f'扫描 {len(files)} 个文件，补丁应用 {patched} 个')
+          PY
 
       - name: 构建 Linux Release
         env:
@@ -295,10 +326,42 @@ jobs:
           node-version: 22
 
       - name: Patch sentry native fetch (Windows)
-        shell: bash
+        shell: pwsh
         run: |
-          fvm flutter pub get
-          python -c "from pathlib import Path; p=Path('flutter/ephemeral/.plugin_symlinks/sentry_flutter/sentry-native/sentry-native.cmake'); s=p.read_text(encoding='utf-8'); old='GIT_TAG ${SENTRY_NATIVE_version}\n    EXCLUDE_FROM_ALL'; new='GIT_TAG ${SENTRY_NATIVE_version}\n    GIT_SUBMODULES \"\"\n    GIT_SUBMODULES_RECURSE FALSE\n    EXCLUDE_FROM_ALL'; assert old in s, '未匹配到 FetchContent_Declare 块，补丁未应用'; p.write_text(s.replace(old,new,1), encoding='utf-8'); print('已应用补丁:', p)"
+          flutter.bat pub get
+          $code = @'
+          import os
+          from pathlib import Path
+
+          roots = []
+          pub_cache = os.environ.get('PUB_CACHE')
+          if pub_cache:
+              roots.append(Path(pub_cache))
+          roots.append(Path.home() / '.pub-cache')
+          roots.append(Path.home() / 'AppData/Local/Pub/Cache')
+
+          files = []
+          for root in roots:
+              if root.exists():
+                  files.extend(root.glob('hosted/pub.dev/sentry_flutter-*/sentry-native/sentry-native.cmake'))
+
+          if not files:
+              raise SystemExit('未找到 sentry-native.cmake（请确认 flutter pub get 成功）')
+
+          old = 'GIT_TAG ${SENTRY_NATIVE_version}\n    EXCLUDE_FROM_ALL'
+          new = 'GIT_TAG ${SENTRY_NATIVE_version}\n    GIT_SUBMODULES ""\n    GIT_SUBMODULES_RECURSE FALSE\n    EXCLUDE_FROM_ALL'
+
+          patched = 0
+          for path in files:
+              text = path.read_text(encoding='utf-8')
+              if old in text and 'GIT_SUBMODULES ""' not in text:
+                  path.write_text(text.replace(old, new, 1), encoding='utf-8')
+                  patched += 1
+                  print(f'已应用补丁: {path}')
+
+          print(f'扫描 {len(files)} 个文件，补丁应用 {patched} 个')
+          '@
+          python -c $code
 
       - name: 运行 Windows 构建脚本
         env:

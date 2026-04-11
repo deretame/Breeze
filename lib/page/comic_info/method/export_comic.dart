@@ -8,6 +8,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/src/rust/compressed/compressed.dart';
 import 'package:zephyr/util/get_path.dart';
@@ -78,23 +79,15 @@ Future<void> _exportComicAsZip(
   final coverPath = await _tryDownloadCover(download, comicId, from: from);
   if (coverPath != null) {
     packInfo.originalImagePaths.add(coverPath);
-    packInfo.packImagePaths.add('cover/cover.jpg');
+    packInfo.packImagePaths.add('cover.jpg');
   }
 
-  final chapterRoot = await _chapterRoot(download);
-  for (final chapter in _decodeListOfMaps(download.chapters)) {
-    final chapterId = chapter['id']?.toString() ?? '';
-    final chapterName = chapter['name']?.toString() ?? chapterId;
-    final dir = Directory(p.join(chapterRoot, chapterId));
-    if (!await dir.exists()) {
-      continue;
-    }
-    final files = await dir.list().where((e) => e is File).cast<File>().toList()
-      ..sort((a, b) => a.path.compareTo(b.path));
-    for (final file in files) {
+  final chapterEntries = await _collectChapterEntries(download);
+  for (final chapter in chapterEntries) {
+    for (final file in chapter.files) {
       packInfo.originalImagePaths.add(file.path);
       packInfo.packImagePaths.add(
-        p.join('eps', chapterName, p.basename(file.path)),
+        p.join(chapter.folderName, p.basename(file.path)),
       );
     }
   }
@@ -144,7 +137,7 @@ Future<void> _exportCover(
   if (path == null) {
     return;
   }
-  final coverFile = File(p.join(comicDir, 'cover', 'cover.jpg'));
+  final coverFile = File(p.join(comicDir, 'cover.jpg'));
   await coverFile.create(recursive: true);
   await File(path).copy(coverFile.path);
 }
@@ -180,24 +173,123 @@ Future<void> _copyEpisodeFiles(
   UnifiedComicDownload download,
   String comicDir,
 ) async {
+  final chapterEntries = await _collectChapterEntries(download);
+  for (final chapter in chapterEntries) {
+    final chapterDir = Directory(p.join(comicDir, chapter.folderName));
+    await chapterDir.create(recursive: true);
+    for (final file in chapter.files) {
+      final target = File(p.join(chapterDir.path, p.basename(file.path)));
+      await target.create(recursive: true);
+      await file.copy(target.path);
+    }
+  }
+}
+
+Future<List<_ExportChapterEntry>> _collectChapterEntries(
+  UnifiedComicDownload download,
+) async {
+  var chapters = resolveStoredDownloadChapters(download);
+  if (chapters.isEmpty) {
+    chapters = _decodeListOfMaps(download.chapters)
+        .map((chapter) => UnifiedComicDownloadStoredChapter.fromMap(chapter))
+        .toList();
+  }
+
   final chapterRoot = await _chapterRoot(download);
-  for (final chapter in _decodeListOfMaps(download.chapters)) {
-    final chapterId = chapter['id']?.toString() ?? '';
-    final chapterName = chapter['name']?.toString() ?? chapterId;
-    final dir = Directory(p.join(chapterRoot, chapterId));
+  final chapterRootLegacy = await _chapterRootLegacy(download);
+  final usedFolderNames = <String>{};
+  final result = <_ExportChapterEntry>[];
+
+  for (final chapter in chapters) {
+    final chapterId = chapter.id.trim();
+    final rawName = chapter.name.trim();
+    final fallbackName = chapterId.isNotEmpty
+        ? chapterId
+        : chapter.order.toString();
+    final folderName = _uniqueFolderName(
+      _sanitizeFolderName(rawName.isNotEmpty ? rawName : fallbackName),
+      usedFolderNames,
+    );
+    usedFolderNames.add(folderName);
+
+    final files = await _resolveChapterFiles(
+      pluginId: download.source,
+      comicId: download.comicId,
+      chapterId: chapterId,
+      chapterRoot: chapterRoot,
+      chapterRootLegacy: chapterRootLegacy,
+      images: chapter.images,
+    );
+    result.add(_ExportChapterEntry(folderName: folderName, files: files));
+  }
+
+  return result;
+}
+
+Future<List<File>> _resolveChapterFiles({
+  required String pluginId,
+  required String comicId,
+  required String chapterId,
+  required String chapterRoot,
+  required String chapterRootLegacy,
+  required List<UnifiedComicDownloadImage> images,
+}) async {
+  final ordered = <File>[];
+  for (final image in images) {
+    if (image.id.trim().isEmpty) {
+      continue;
+    }
+    final path = await getStoredPicturePathById(
+      from: pluginId,
+      cartoonId: comicId,
+      chapterId: chapterId,
+      imageId: image.id,
+    );
+    if (path != null) {
+      ordered.add(File(path));
+    }
+  }
+  if (ordered.isNotEmpty) {
+    return ordered;
+  }
+
+  final candidateDirs = <Directory>[];
+  if (chapterId.trim().isNotEmpty) {
+    candidateDirs.add(Directory(p.join(chapterRoot, chapterId)));
+    candidateDirs.add(Directory(p.join(chapterRootLegacy, chapterId)));
+  }
+
+  for (final dir in candidateDirs) {
     if (!await dir.exists()) {
       continue;
     }
     final files = await dir.list().where((e) => e is File).cast<File>().toList()
       ..sort((a, b) => a.path.compareTo(b.path));
-    for (final file in files) {
-      final target = File(
-        p.join(comicDir, 'eps', chapterName, p.basename(file.path)),
-      );
-      await target.create(recursive: true);
-      await file.copy(target.path);
+    if (files.isNotEmpty) {
+      return files;
     }
   }
+
+  return const <File>[];
+}
+
+String _sanitizeFolderName(String value) {
+  final sanitized = value.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_').trim();
+  if (sanitized.isEmpty) {
+    return 'chapter';
+  }
+  return sanitized;
+}
+
+String _uniqueFolderName(String baseName, Set<String> usedNames) {
+  if (!usedNames.contains(baseName)) {
+    return baseName;
+  }
+  var index = 2;
+  while (usedNames.contains('$baseName ($index)')) {
+    index++;
+  }
+  return '$baseName ($index)';
 }
 
 Map<String, dynamic> _decodeMap(String raw) {
@@ -237,4 +329,16 @@ List<Map<String, dynamic>> _decodeListOfMaps(String raw) {
 Future<String> _chapterRoot(UnifiedComicDownload download) async {
   final base = await getDownloadPath();
   return p.join(base, download.source, 'original', download.comicId, 'comic');
+}
+
+Future<String> _chapterRootLegacy(UnifiedComicDownload download) async {
+  final base = await getDownloadPath();
+  return p.join(base, download.source, 'original', download.comicId);
+}
+
+class _ExportChapterEntry {
+  const _ExportChapterEntry({required this.folderName, required this.files});
+
+  final String folderName;
+  final List<File> files;
 }

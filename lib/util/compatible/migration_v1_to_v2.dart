@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
@@ -10,6 +11,7 @@ import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
+import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/util/get_path.dart';
 
 const _legacyJmImageBaseUrl = 'https://cdn-msp12.jmdanjonproxy.xyz';
@@ -27,7 +29,13 @@ String _legacyJmImageUrl(String chapterId, String imageName) {
   return '$_legacyJmImageBaseUrl/media/photos/$chapterId/$imageName';
 }
 
-Future<void> migrateV1ToV2(ObjectBox objectbox) async {
+Future<void> migrateV1ToV2() async {
+  return compute(_migrateV1ToV2OnIsolate, null);
+}
+
+Future<void> _migrateV1ToV2OnIsolate(Null _) async {
+  await RustLib.init();
+  final objectbox = await ObjectBox.create();
   _migrateLegacySearchHistory(objectbox);
   _migrateLegacyPluginSettings(objectbox);
   _debugLogMigrationSnapshot('before', _buildLegacySnapshot(objectbox));
@@ -291,6 +299,9 @@ void _migrateLegacySearchHistory(ObjectBox objectbox) {
     return;
   }
   user.globalSetting = setting.copyWith(searchHistory: migrated);
+  logger.d(
+    "user.globalSetting.compatibleVersion : ${user.globalSetting.compatibleVersion}",
+  );
   objectbox.userSettingBox.put(user);
 }
 

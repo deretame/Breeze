@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/main.dart';
 
@@ -18,13 +19,19 @@ Future<void> ensureCompatibleMigration(BuildContext context) async {
         context.read<StringSelectCubit>().setDate("数据迁移中，请耐心等待");
       }
       logger.d('Compatible migration start: v1 -> v2');
-      await migrateV1ToV2(objectbox);
+      await migrateV1ToV2();
       logger.d(
         'Compatible migration db finished, start download files migration',
       );
       await migrateLegacyDownloadFilesToPluginUuidLayout();
       logger.d('Compatible migration download files finished');
       await setCompatibleVersion(_latestCompatibleVersion);
+      if (context.mounted) {
+        context.read<GlobalSettingCubit>().updateState(
+          (current) =>
+              current.copyWith(compatibleVersion: _latestCompatibleVersion),
+        );
+      }
       logger.d('Compatible migration done: version=v2');
     }
   } catch (e, stackTrace) {
@@ -56,5 +63,6 @@ Future<void> setCompatibleVersion(String version) async {
   var globalSetting = setting.globalSetting;
   globalSetting = globalSetting.copyWith(compatibleVersion: version);
   setting.globalSetting = globalSetting;
+
   objectbox.userSettingBox.put(setting);
 }

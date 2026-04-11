@@ -242,22 +242,45 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
   void _persistAndEmit(GlobalSettingState newState) {
     final nowMs = DateTime.now().toUtc().millisecondsSinceEpoch;
     final syncSetting = newState.syncSetting.copyWith(settingsSyncTime: nowMs);
-    final normalizedState = newState.copyWith(syncSetting: syncSetting);
+    final normalizedState = _preserveCompatibleVersion(
+      newState.copyWith(syncSetting: syncSetting),
+      state,
+    );
     if (normalizedState == state) return;
     _updateDataBase(normalizedState);
     emit(normalizedState);
   }
 
   void applySyncedState(GlobalSettingState value) {
-    _updateDataBase(value);
-    emit(value);
+    final normalized = _preserveCompatibleVersion(value, state);
+    _updateDataBase(normalized);
+    emit(normalized);
+  }
+
+  GlobalSettingState _preserveCompatibleVersion(
+    GlobalSettingState incoming,
+    GlobalSettingState fallback,
+  ) {
+    if (incoming.compatibleVersion.trim().isNotEmpty) {
+      return incoming;
+    }
+    final preserved = fallback.compatibleVersion.trim();
+    if (preserved.isEmpty) {
+      return incoming;
+    }
+    return incoming.copyWith(compatibleVersion: preserved);
   }
 
   void _updateDataBase(GlobalSettingState state) {
     // logger.d(state.toJson());
     final userBox = objectbox.userSettingBox;
     var dbSettings = userBox.get(1)!;
-    dbSettings.globalSetting = state;
+    var toSave = state;
+    final existingVersion = dbSettings.globalSetting.compatibleVersion.trim();
+    if (toSave.compatibleVersion.trim().isEmpty && existingVersion.isNotEmpty) {
+      toSave = toSave.copyWith(compatibleVersion: existingVersion);
+    }
+    dbSettings.globalSetting = toSave;
     userBox.put(dbSettings);
   }
 }

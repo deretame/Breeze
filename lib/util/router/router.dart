@@ -31,6 +31,7 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: ChangelogRoute.page),
     AutoRoute(page: SearchRoute.page),
     AutoRoute(page: DownloadTaskRoute.page),
+    AutoRoute(page: PluginStoreRoute.page),
   ];
 
   @override

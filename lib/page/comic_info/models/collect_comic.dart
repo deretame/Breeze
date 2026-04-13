@@ -17,7 +17,11 @@ Future<bool> isLocalComicCollected({
       .query(UnifiedComicFavorite_.uniqueKey.equals(key))
       .build()
       .findFirst();
-  return unified != null && unified.deleted == false;
+  final collected = unified != null && unified.deleted == false;
+  if (collected) {
+    _repairFavoriteCoverPathIfNeeded(unified);
+  }
+  return collected;
 }
 
 Future<bool> toggleLocalComicFavorite({
@@ -45,6 +49,8 @@ Future<bool> toggleLocalComicFavorite({
   }
 
   final createdAt = unified?.createdAt ?? now;
+  final coverMap = _comicImageToMap(comicInfo.cover);
+
   objectbox.unifiedFavoriteBox.put(
     UnifiedComicFavorite(
       id: unified?.id ?? 0,
@@ -53,7 +59,7 @@ Future<bool> toggleLocalComicFavorite({
       comicId: comicInfo.id,
       title: comicInfo.title,
       description: comicInfo.description,
-      cover: jsonEncode(_comicImageToMap(comicInfo.cover)),
+      cover: jsonEncode(coverMap),
       creator: jsonEncode(_creatorToMap(comicInfo.creator)),
       titleMeta: jsonEncode(comicInfo.titleMeta.map(_titleMetaToMap).toList()),
       metadata: jsonEncode(comicInfo.metadata.map(_metadataToMap).toList()),
@@ -75,8 +81,87 @@ Map<String, dynamic> _comicImageToMap(ComicImage image) {
     'id': image.id,
     'url': image.url,
     'name': image.name,
+    'path': _resolveImagePath(
+      id: image.id,
+      url: image.url,
+      rawPath: image.path,
+    ),
     'extension': image.extension,
   });
+}
+
+void _repairFavoriteCoverPathIfNeeded(UnifiedComicFavorite favorite) {
+  final coverRaw = favorite.cover.trim();
+  if (coverRaw.isEmpty) {
+    return;
+  }
+
+  Map<String, dynamic> coverMap;
+  try {
+    final decoded = jsonDecode(coverRaw);
+    if (decoded is! Map) {
+      return;
+    }
+    coverMap = Map<String, dynamic>.from(decoded);
+  } catch (_) {
+    return;
+  }
+
+  final currentPath = coverMap['path']?.toString().trim() ?? '';
+  if (currentPath.isNotEmpty) {
+    return;
+  }
+
+  final repairedPath = _resolveImagePath(
+    id: coverMap['id']?.toString() ?? favorite.comicId,
+    url: coverMap['url']?.toString() ?? '',
+    rawPath: currentPath,
+  );
+  if (repairedPath.isEmpty) {
+    return;
+  }
+
+  coverMap['path'] = repairedPath;
+  favorite.cover = jsonEncode(_sanitizeMap(coverMap));
+  favorite.updatedAt = DateTime.now().toUtc();
+  objectbox.unifiedFavoriteBox.put(favorite);
+}
+
+String _resolveImagePath({
+  required String id,
+  required String url,
+  required String rawPath,
+}) {
+  final path = rawPath.trim();
+  if (path.isNotEmpty) {
+    return path;
+  }
+
+  final safeId = _sanitizePathSegment(id.trim().isEmpty ? 'cover' : id);
+  final extension = _extractImageExtension(url);
+  return '$safeId.$extension';
+}
+
+String _sanitizePathSegment(String input) {
+  final sanitized = input
+      .replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_')
+      .replaceAll(RegExp(r'_+'), '_')
+      .replaceAll(RegExp(r'^_+|_+$'), '');
+  return sanitized.isEmpty ? 'cover' : sanitized;
+}
+
+String _extractImageExtension(String url) {
+  try {
+    final uri = Uri.parse(url);
+    final lastDot = uri.path.lastIndexOf('.');
+    if (lastDot >= 0 && lastDot < uri.path.length - 1) {
+      final ext = uri.path.substring(lastDot + 1).toLowerCase();
+      if (RegExp(r'^[a-z0-9]{1,8}$').hasMatch(ext)) {
+        return ext;
+      }
+    }
+  } catch (_) {}
+  return 'jpg';
 }
 
 Map<String, dynamic> _creatorToMap(Creator creator) {

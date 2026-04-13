@@ -1,14 +1,11 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/model/unified_creator_list_item.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
-import 'package:zephyr/page/search/cubit/search_cubit.dart';
-import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
+import 'package:zephyr/page/comic_info/models/comic_info_action.dart';
 import 'package:zephyr/page/search_result/widgets/bottom_loader.dart';
-import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/creator_link_card.dart';
 import 'package:zephyr/widgets/error_view.dart';
 
@@ -288,9 +285,7 @@ class _PluginPagedCreatorListBodyState
             avatarPath: item.avatar.path,
             from: item.from,
             imageKey: item.id,
-            errorAssetPath:
-                item.extern['errorAssetPath']?.toString() ??
-                'asset/image/error_image/404.png',
+            errorAssetPath: 'asset/image/error_image/404.png',
             infoChildren: [
               if (item.subtitle.trim().isNotEmpty) Text(item.subtitle),
               if (item.stats.isNotEmpty)
@@ -299,21 +294,13 @@ class _PluginPagedCreatorListBodyState
                   children: item.stats.map((text) => Text(text)).toList(),
                 ),
             ],
-            onTap: item.searchUrl.trim().isEmpty
-                ? null
-                : () {
-                    context.pushRoute(
-                      SearchResultRoute(
-                        searchEvent: SearchEvent().copyWith(
-                          searchStates: SearchStates.initial().copyWith(
-                            from: item.from,
-                            searchKeyword: item.name,
-                            pluginExtern: {'url': item.searchUrl},
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+            onTap: item.onTap.isNotEmpty
+                ? () => handleComicInfoAction(
+                    context,
+                    item.onTap,
+                    fallbackPluginId: item.from,
+                  )
+                : null,
           ),
         );
       },

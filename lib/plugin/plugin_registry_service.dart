@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
+import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/direct_dio.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
@@ -229,12 +232,13 @@ class PluginRegistryService {
     found.updatedAt = DateTime.now().toUtc();
     objectbox.pluginInfoBox.put(found);
     _states[uuid] = _toState(found);
+    _emit();
+
     if (enabled) {
       final runtimeName = resolveRuntimeName(uuid);
       await _ensurePluginRuntimeReady(_states[uuid]!, runtimeName: runtimeName);
       await _runPluginInitIfNeeded(_states[uuid]!, runtimeName: runtimeName);
     }
-    _emit();
   }
 
   Future<void> updateLoadResult(
@@ -297,14 +301,11 @@ class PluginRegistryService {
         .build()
         .findFirst();
     if (found == null) {
-      return;
+      throw StateError('插件不存在: $uuid');
     }
 
-    final now = DateTime.now().toUtc();
-    found.isDeleted = true;
-    found.isEnabled = false;
-    found.deletedAt = now;
-    found.updatedAt = now;
+    await _deletePluginDownloadFolders(uuid);
+    _deletePluginRelatedData(uuid);
 
     final runtimeName = resolveRuntimeName(uuid);
     try {
@@ -312,15 +313,54 @@ class PluginRegistryService {
       if (runtimeReady) {
         await qjsDropRuntime(runtimeName: runtimeName);
       }
-    } catch (e) {
-      found.lastLoadError = 'runtime 销毁失败: $e';
+    } catch (_) {
+      // runtime 失败不阻断删除主流程
     }
 
-    objectbox.pluginInfoBox.put(found);
-    _states[uuid] = _toState(found);
+    objectbox.pluginInfoBox.remove(found.id);
+    _states.remove(uuid);
     _pluginInfoCache.remove(uuid);
     _pluginInitDone.remove(uuid);
     _emit();
+  }
+
+  Future<void> _deletePluginDownloadFolders(String uuid) async {
+    final downloadRoot = await getDownloadPath();
+    final root = p.join(downloadRoot, uuid);
+    final directory = Directory(root);
+    final exists = await directory.exists();
+    if (!exists) {
+      return;
+    }
+    try {
+      await directory.delete(recursive: true);
+    } catch (e) {
+      throw StateError('删除下载目录失败: $root, error: $e');
+    }
+  }
+
+  void _deletePluginRelatedData(String uuid) {
+    final objectbox = _objectbox;
+    if (objectbox == null) {
+      return;
+    }
+
+    objectbox.pluginConfigBox
+        .query(PluginConfig_.name.equals(uuid))
+        .build()
+        .remove();
+    objectbox.unifiedFavoriteBox
+        .query(UnifiedComicFavorite_.source.equals(uuid))
+        .build()
+        .remove();
+    objectbox.unifiedHistoryBox
+        .query(UnifiedComicHistory_.source.equals(uuid))
+        .build()
+        .remove();
+    objectbox.unifiedDownloadBox
+        .query(UnifiedComicDownload_.source.equals(uuid))
+        .build()
+        .remove();
   }
 
   String resolveRuntimeName(String uuid) {

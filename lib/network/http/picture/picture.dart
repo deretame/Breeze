@@ -33,6 +33,7 @@ Future<String> getCachePicture({
   String cartoonId = '1',
   String chapterId = '',
   PictureType pictureType = PictureType.comic,
+  Map<String, dynamic> extern = const <String, dynamic>{},
 }) async {
   final resolvedFrom = normalizePluginId(from);
   if (resolvedFrom.isEmpty) {
@@ -115,7 +116,11 @@ Future<String> getCachePicture({
     throw Exception('404');
   }
 
-  final imageData = await downloadImageWithRetry(url, source: resolvedFrom);
+  final imageData = await downloadImageWithRetry(
+    url,
+    source: resolvedFrom,
+    extern: extern,
+  );
 
   if (resolvedFrom == _kJmPluginUuid && pictureType == PictureType.page) {
     await decodeAndSaveImage(
@@ -153,6 +158,8 @@ Future<String> downloadPicture({
   PictureType pictureType = PictureType.comic,
   String? qjsName,
   String qjsTaskGroupKey = '',
+  bool retry = false,
+  Map<String, dynamic> extern = const <String, dynamic>{},
 }) async {
   final resolvedFrom = normalizePluginId(from);
   if (resolvedFrom.isEmpty) {
@@ -230,8 +237,10 @@ Future<String> downloadPicture({
   Uint8List imageData = await downloadImageWithRetry(
     url,
     source: resolvedFrom,
+    retry: retry,
     qjsName: qjsName,
     qjsTaskGroupKey: qjsTaskGroupKey,
+    extern: extern,
   );
 
   _throwIfDownloadCancelled(qjsTaskGroupKey);
@@ -418,6 +427,7 @@ Future<Uint8List> downloadImageWithRetry(
   bool retry = false,
   String? qjsName,
   String qjsTaskGroupKey = '',
+  Map<String, dynamic> extern = const <String, dynamic>{},
 }) async {
   while (true) {
     try {
@@ -428,11 +438,15 @@ Future<Uint8List> downloadImageWithRetry(
       final runtimeName = qjsName?.trim().isNotEmpty == true
           ? qjsName!.trim()
           : pluginId;
+      final args = <String, dynamic>{"url": url, "timeoutMs": 30000};
+      if (extern.isNotEmpty) {
+        args["extern"] = extern;
+      }
       final bytes = await executeQjsFetchImageBytes(
         pluginId: pluginId,
         runtimeName: runtimeName,
         fnPath: 'fetchImageBytes',
-        argsJson: jsonEncode({"url": url, "timeoutMs": 30000}),
+        argsJson: jsonEncode(args),
         taskGroupKey: qjsTaskGroupKey.isEmpty ? null : qjsTaskGroupKey,
       );
 

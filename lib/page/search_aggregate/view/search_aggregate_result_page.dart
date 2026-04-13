@@ -2,12 +2,12 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search/widget/source_select_dialog.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
-import 'package:zephyr/util/download/qjs_download_runtime.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
@@ -37,10 +37,7 @@ class SearchAggregateResultPage extends StatelessWidget
         pluginStates.values.where((state) => !state.isDeleted).toList()
           ..sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
     final initial = selectedSources.isNotEmpty
-        ? {
-            for (final entry in selectedSources.entries)
-              normalizePluginId(entry.key): entry.value,
-          }
+        ? {for (final entry in selectedSources.entries) entry.key: entry.value}
         : {for (final plugin in visiblePlugins) plugin.uuid: plugin.isEnabled};
     return MultiBlocProvider(
       providers: [
@@ -65,17 +62,53 @@ class SearchAggregateResultPage extends StatelessWidget
   }
 }
 
-class _SearchAggregateResultPage extends StatelessWidget {
+class _SearchAggregateResultPage extends StatefulWidget {
   const _SearchAggregateResultPage({required this.searchEvent});
 
   final SearchEvent searchEvent;
+
+  @override
+  State<_SearchAggregateResultPage> createState() =>
+      _SearchAggregateResultPageState();
+}
+
+class _SearchAggregateResultPageState
+    extends State<_SearchAggregateResultPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final keyword = widget.searchEvent.searchStates.searchKeyword.trim();
+      if (keyword.isEmpty || !mounted) {
+        return;
+      }
+      final historyItem = _buildHistoryItem(widget.searchEvent);
+      final settingCubit = context.read<GlobalSettingCubit>();
+      final history = settingCubit.state.searchHistory.toList();
+      history
+        ..remove(historyItem)
+        ..insert(0, historyItem);
+      await Future.delayed(const Duration(milliseconds: 200));
+      if (!mounted) {
+        return;
+      }
+      settingCubit.updateState(
+        (current) =>
+            current.copyWith(searchHistory: history.take(200).toList()),
+      );
+    });
+  }
+
+  String _buildHistoryItem(SearchEvent event) {
+    return event.searchStates.searchKeyword.trim();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 0,
-        title: _SearchBarTrigger(searchEvent: searchEvent),
+        title: _SearchBarTrigger(searchEvent: widget.searchEvent),
       ),
       body: Column(
         children: [
@@ -86,7 +119,10 @@ class _SearchAggregateResultPage extends StatelessWidget {
                 if (state.status == AggregateSearchStatus.loading) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                return _ResultList(searchEvent: searchEvent, state: state);
+                return _ResultList(
+                  searchEvent: widget.searchEvent,
+                  state: state,
+                );
               },
             ),
           ),
@@ -353,11 +389,12 @@ class _ResultList extends StatelessWidget {
   }
 
   void _openSourceSearch(BuildContext context, String pluginId) {
+    final currentStates = searchEvent.searchStates;
     context.pushRoute(
       SearchResultRoute(
         key: ValueKey(const Uuid().v4()),
         searchEvent: searchEvent.copyWith(
-          searchStates: searchEvent.searchStates.copyWith(from: pluginId),
+          searchStates: currentStates.copyWith(from: pluginId),
           page: 1,
         ),
         searchCubit: context.read<SearchCubit>(),

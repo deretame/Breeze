@@ -41,7 +41,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
   @override
   void initState() {
     super.initState();
-    _syncSourcesFromRegistry();
+    _syncSourcesFromRegistry(context.read<PluginRegistryCubit>().state);
     _searchController.text = _currentSearchState().keyword;
   }
 
@@ -53,30 +53,38 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
 
   @override
   Widget build(BuildContext context) {
-    _syncSourcesFromRegistry();
     final isDesktop = MediaQuery.of(context).size.width >= 600;
 
-    return Scaffold(
-      appBar: AppBar(
-        titleSpacing: isDesktop ? 16 : 8,
-        title: isDesktop ? _buildDesktopHeader() : _buildMobileHeader(),
-      ),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: [
-          LocalShelfPage(
-            mode: ShelfPageMode.favorite,
-            refreshSignal: _refreshSignals[0],
-          ),
-          LocalShelfPage(
-            mode: ShelfPageMode.history,
-            refreshSignal: _refreshSignals[1],
-          ),
-          LocalShelfPage(
-            mode: ShelfPageMode.download,
-            refreshSignal: _refreshSignals[2],
-          ),
-        ],
+    return BlocListener<PluginRegistryCubit, Map<String, PluginRuntimeState>>(
+      listenWhen: (previous, current) =>
+          _pluginAvailabilityRevision(previous) !=
+          _pluginAvailabilityRevision(current),
+      listener: (context, pluginStates) {
+        _syncSourcesFromRegistry(pluginStates);
+        _triggerRefreshAll();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          titleSpacing: isDesktop ? 16 : 8,
+          title: isDesktop ? _buildDesktopHeader() : _buildMobileHeader(),
+        ),
+        body: IndexedStack(
+          index: _currentIndex,
+          children: [
+            LocalShelfPage(
+              mode: ShelfPageMode.favorite,
+              refreshSignal: _refreshSignals[0],
+            ),
+            LocalShelfPage(
+              mode: ShelfPageMode.history,
+              refreshSignal: _refreshSignals[1],
+            ),
+            LocalShelfPage(
+              mode: ShelfPageMode.download,
+              refreshSignal: _refreshSignals[2],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -276,13 +284,26 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
     });
   }
 
+  void _triggerRefreshAll() {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      for (var i = 0; i < _refreshSignals.length; i++) {
+        _refreshSignals[i] = _refreshSignals[i] + 1;
+      }
+    });
+  }
+
   Future<void> _openFilter() async {
     final searchCubit = context.read<BookshelfSearchCubit>();
     final currentMode = _currentMode();
     final current = searchCubit.state.stateOf(currentMode);
     final pluginStates = context.read<PluginRegistryCubit>().state;
     final sourceOptions =
-        pluginStates.values.where((plugin) => !plugin.isDeleted).toList()
+        pluginStates.values
+            .where((plugin) => plugin.isEnabled && !plugin.isDeleted)
+            .toList()
           ..sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
     final availableSources = sourceOptions
         .map((plugin) => plugin.uuid)
@@ -411,8 +432,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
     _triggerRefresh(goTop: true);
   }
 
-  void _syncSourcesFromRegistry() {
-    final pluginStates = context.read<PluginRegistryCubit>().state;
+  void _syncSourcesFromRegistry(Map<String, PluginRuntimeState> pluginStates) {
     final available =
         pluginStates.values
             .where((plugin) => plugin.isEnabled && !plugin.isDeleted)
@@ -423,8 +443,28 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
     if (listEquals(_lastAvailableSources, available)) {
       return;
     }
+    final addedSources = available
+        .where((item) => !_lastAvailableSources.contains(item))
+        .toList();
     _lastAvailableSources = List<String>.from(available);
 
-    context.read<BookshelfSearchCubit>().syncSources(available);
+    context.read<BookshelfSearchCubit>().syncSources(
+      available,
+      autoSelect: addedSources,
+    );
+  }
+
+  String _pluginAvailabilityRevision(
+    Map<String, PluginRuntimeState> pluginStates,
+  ) {
+    final entries =
+        pluginStates.entries
+            .map(
+              (entry) =>
+                  '${entry.key}:${entry.value.isEnabled ? 1 : 0}:${entry.value.isDeleted ? 1 : 0}',
+            )
+            .toList()
+          ..sort();
+    return entries.join('|');
   }
 }

@@ -4,19 +4,16 @@ import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/page/search_result/models/bloc_state.dart';
 import 'package:zephyr/page/search_result/models/comic_number.dart';
-import 'package:zephyr/util/download/qjs_download_runtime.dart';
 
 Future<BlocState> getPluginSearchResult(
   SearchEvent event,
   BlocState blocState,
 ) async {
+  final pluginId = event.searchStates.from.trim();
+  if (pluginId.isEmpty) {
+    throw StateError('search source is empty');
+  }
   final extern = Map<String, dynamic>.from(event.searchStates.pluginExtern);
-  final pluginId = normalizePluginId(
-    extern['_pluginId']?.toString().trim().isNotEmpty == true
-        ? extern['_pluginId'].toString().trim()
-        : (event.searchStates.from).trim(),
-  );
-  extern['_pluginId'] = pluginId;
   final response = await callUnifiedComicPlugin(
     pluginId: pluginId,
     fnPath: 'searchComic',

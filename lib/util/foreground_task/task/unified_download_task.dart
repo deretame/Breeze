@@ -89,7 +89,9 @@ Future<void> unifiedDownloadTask(
     reporter.updateMessage('下载封面中...');
     final cover = detail.normalInfo.comicInfo.cover;
     final coverExtension = Map<String, dynamic>.from(cover.extension);
-    final rawCoverFileName = coverExtension['path']?.toString() ?? '';
+    final rawCoverFileName = cover.path.trim().isNotEmpty
+        ? cover.path
+        : coverExtension['path']?.toString() ?? '';
     String coverPath = '404';
     if (rawCoverFileName.trim().isNotEmpty && cover.url.trim().isNotEmpty) {
       final coverFileName = normalizeStoredAssetPath(rawCoverFileName);
@@ -113,6 +115,7 @@ Future<void> unifiedDownloadTask(
         comicInfo: normalInfo.comicInfo.copyWith(
           cover: normalInfo.comicInfo.cover.copyWith(
             url: '',
+            path: '',
             extension: clearedCoverExtension,
           ),
         ),
@@ -397,8 +400,20 @@ String _resolveImageDisplayName(UnifiedPluginChapterDoc doc) {
 Map<String, dynamic> _normalizeStoredImageMap(Map<String, dynamic> image) {
   final map = Map<String, dynamic>.from(image);
   final ext = Map<String, dynamic>.from(map['extension'] as Map? ?? const {});
-  final rawPath = ext['path']?.toString() ?? '';
-  ext['path'] = normalizeStoredAssetPath(rawPath, allowEmpty: true);
+  final topLevelRawPath = map['path']?.toString() ?? '';
+  final extRawPath = ext['path']?.toString() ?? '';
+
+  final normalizedTopLevelPath = normalizeStoredAssetPath(
+    topLevelRawPath,
+    allowEmpty: true,
+  );
+  final normalizedExtPath = normalizeStoredAssetPath(extRawPath, allowEmpty: true);
+  final mergedPath = normalizedTopLevelPath.isNotEmpty
+      ? normalizedTopLevelPath
+      : normalizedExtPath;
+
+  map['path'] = mergedPath;
+  ext['path'] = mergedPath;
   map['extension'] = ext;
   return map;
 }

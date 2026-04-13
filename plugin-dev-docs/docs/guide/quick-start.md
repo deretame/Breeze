@@ -1,11 +1,11 @@
 # 快速开始
 
-## 1) 你需要准备什么
+## 1) 环境准备
 
 - Node.js 18+
 - pnpm 8+
 - TypeScript 基础
-- 一个可访问的静态文件地址（用于调试模式加载 bundle）
+- 可访问的静态文件地址（用于调试模式加载 bundle）
 
 ## 2) 初始化插件项目
 
@@ -17,7 +17,7 @@ pnpm add axios
 pnpm add -D typescript tsx @types/node @rspack/core @rspack/cli cross-env
 ```
 
-建议脚本：
+推荐脚本：
 
 ```json
 {
@@ -50,7 +50,7 @@ breeze-plugin-demo/
 
 ## 4) 最小可运行插件
 
-下面是一份可直接改造的最小骨架：
+以下为可直接改造的最小骨架：
 
 ```ts
 const PLUGIN_ID = "replace-with-your-plugin-id";
@@ -169,7 +169,7 @@ export default {
 
 1. 本地构建出 bundle
 2. 在 Breeze 插件管理中打开调试模式
-3. 设置 `debugUrl` 指向你的最新 bundle 地址
+3. 设置 `debugUrl` 指向最新 bundle 地址
 4. 在客户端触发搜索、详情、阅读做冒烟
 
 如果页面出现 `target is not function`，基本就是 `export default` 漏函数。

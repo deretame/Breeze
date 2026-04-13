@@ -1,8 +1,6 @@
 # 插件 API 契约（按 fnPath）
 
-这页是给第三方作者直接抄规格用的。
-
-目标：你实现的每个 `fnPath`，都能被 Breeze 正常消费，不靠猜。
+本文档给出 Breeze 插件 `fnPath` 的调用语义、请求结构与返回结构。
 
 ## 0. 通用调用规则
 
@@ -17,7 +15,7 @@ const payload = {
 };
 ```
 
-所以你的函数签名通常写成：
+函数签名通常可写为：
 
 ```ts
 async function someFn(payload: {
@@ -31,7 +29,7 @@ async function someFn(payload: {
 
 ### 0.2 通用返回 envelope
 
-大部分接口建议返回：
+大部分接口返回结构可统一为：
 
 ```ts
 type PluginEnvelope = {
@@ -45,17 +43,49 @@ type PluginEnvelope = {
 
 ### 0.3 错误与格式
 
-- 插件必须返回可 JSON 解析的对象（非对象会报“返回格式错误”）
-- `source` 字段建议始终返回（便于调试）
-- 你抛出错误时，字符串会直接显示给用户
+- 插件返回值必须是可 JSON 解析的对象（非对象会触发“返回格式错误”）
+- 建议始终返回 `source` 字段，便于排障
+- 抛出的错误字符串会直接显示在客户端
 
 ### 0.4 `init` 是可选但推荐实现
 
 - 客户端可能在 runtime 启动后调用 `init`
 - 如果没实现，客户端会跳过
-- 如果实现了，建议返回 `{ source, data: { ok: true } }`
+- 若实现 `init`，建议返回 `{ source, data: { ok: true } }`
 
-## 1. 必需 API（建议全部实现）
+## 0.5 fnPath 职责总览
+
+下表用于快速定位每个函数的职责与触发时机。
+
+| fnPath | 做什么 | 典型触发位置 |
+| --- | --- | --- |
+| `getInfo` | 返回插件基本信息和首页功能入口 | 主页加载插件卡片时 |
+| `searchComic` | 按关键词/筛选返回漫画列表 | 用户在搜索页点击搜索 |
+| `getComicDetail` | 返回漫画详情与章节目录 | 用户打开漫画详情页 |
+| `getChapter` | 返回某一章节的图片列表 | 用户进入阅读页后 |
+| `fetchImageBytes` | 把图片 URL 转成可下载二进制缓冲 | 阅读/下载图片时 |
+| `getLoginBundle` | 返回登录表单结构 | 进入插件登录页或登录过期 |
+| `loginWithPassword` | 执行账号密码登录并保存会话 | 用户点登录按钮 |
+| `clearPluginSession` | 清理插件登录态/会话数据 | 设置页点击“清理会话” |
+| `getSettingsBundle` | 返回插件设置项结构和值 | 打开插件设置页 |
+| `getCapabilitiesBundle` | 返回设置页“操作按钮”列表 | 打开插件设置页 |
+| `getUserInfoBundle` | 返回用户头像与信息摘要 | 设置页显示用户卡片 |
+| `getFunctionPage` / `get_function_page` | 返回某个“插件功能页”的页面方案 | 主页功能入口 `openPluginFunction` |
+| `getComicListSceneBundle` | 返回默认漫画列表场景定义 | 列表页按 source 自动加载时 |
+| `getCloudFavoriteSceneBundle` / `get_cloud_favorite_scene_bundle` | 返回“云端收藏”列表场景 | 点击云端收藏入口 |
+| `getRankingFilterBundle` 等 filter bundle | 返回列表筛选项与默认值 | 列表页点筛选按钮 |
+| `getAdvancedSearchScheme` / `get_advanced_search_scheme` | 返回高级搜索选项结构 | 搜索页点高级筛选 |
+| `toggleLike` | 切换点赞状态 | 详情页点点赞 |
+| `toggleFavorite` | 切换收藏状态 | 详情页点收藏 |
+| `listFavoriteFolders` | 返回收藏夹列表 | 收藏后需选择收藏夹时 |
+| `moveFavoriteToFolder` | 把漫画移动到指定收藏夹 | 用户确认收藏夹后 |
+| `getCommentFeed` | 返回评论主列表 | 评论面板首次加载 |
+| `loadCommentReplies` | 分页加载某条评论的回复 | 评论展开回复时 |
+| `postComment` | 发布主评论 | 用户发主评论 |
+| `postCommentReply` | 发布回复评论 | 用户回复某条评论 |
+| `getReadSnapshot` | 返回“漫画+当前章节+页面+章节列表”快照 | 阅读页初始化或切章 |
+
+## 1. 必需 API（推荐实现）
 
 ## `getInfo()`
 
@@ -145,7 +175,7 @@ type SearchComicPayload = {
 }
 ```
 
-`items[]` 单项必须可映射为统一漫画卡：
+`items[]` 单项应可映射为统一漫画卡：
 
 ```ts
 type SearchComicItem = {
@@ -239,7 +269,7 @@ type ComicDetailPayload = {
 }
 ```
 
-说明：`normal` 建议完整返回；客户端详情页依赖字段较多。
+说明：`normal` 建议完整返回，详情页依赖字段较多。
 
 ## `getChapter(payload)`
 
@@ -280,7 +310,7 @@ type ChapterPayload = {
 }
 ```
 
-兼容建议：可额外顶层双写 `chapter`，提高旧调用兼容性。
+兼容建议：可额外在顶层返回 `chapter`，用于兼容旧调用链。
 
 ## `fetchImageBytes(payload)`
 
@@ -293,7 +323,7 @@ type FetchImageBytesPayload = {
 };
 ```
 
-返回（必须）：
+返回（必需）：
 
 ```json
 { "nativeBufferId": 123 }
@@ -338,7 +368,7 @@ type FetchImageBytesPayload = {
 
 请求：`{ account?: string; password?: string; extern?: object }`
 
-返回建议：
+返回结构（推荐）：
 
 ```json
 {
@@ -352,17 +382,17 @@ type FetchImageBytesPayload = {
 }
 ```
 
-说明：客户端当前只看调用是否成功，不强依赖字段名，但建议返回 `data` 与 `raw`。
+说明：客户端当前只校验调用是否成功，不强依赖字段名；建议保留 `data` 与 `raw`。
 
 ## `clearPluginSession()`（可选）
 
-返回建议：
+返回结构（推荐）：
 
 ```json
 { "ok": true, "message": "插件会话已清理" }
 ```
 
-若你在 `getCapabilitiesBundle` 暴露了这个动作，建议实现。
+若在 `getCapabilitiesBundle` 暴露该动作，建议实现。
 
 ## 3. 设置与用户信息 API
 
@@ -433,9 +463,22 @@ type UserInfoData = {
 
 ## `getFunctionPage(payload)` / `get_function_page(payload)`
 
+用途：
+
+- 该函数用于返回功能页页面定义，而非普通数据列表。
+- 当 `getInfo().function[]` 中配置 `action.type = openPluginFunction` 时，客户端会按 `payload.id` 调用该函数。
+- 返回的 `scheme + data` 会被渲染为独立页面或弹窗。
+
+调用链：
+
+1. `getInfo` 返回功能入口：`{ action: { type: "openPluginFunction", payload: { id: "hotSearch" }}}`
+2. 用户点击入口
+3. 客户端调用 `getFunctionPage({ id: "hotSearch" })`
+4. 客户端按 `scheme.body` 与 `data` 渲染 UI
+
 请求常见：`{ id?: string, extern?: object }`
 
-返回必须是 `scheme + data` 页面方案。
+返回值应为 `scheme + data` 页面方案。
 
 支持的 `scheme.body` 节点类型：
 
@@ -501,7 +544,7 @@ type ComicListScene = {
 
 ## `getCloudFavoriteSceneBundle()` / `get_cloud_favorite_scene_bundle()`
 
-同上，区别是默认 scene 指向你的云端收藏列表函数。
+结构同上，差异在于默认 scene 指向云端收藏列表函数。
 
 ## 过滤器 bundle（例如 `getRankingFilterBundle`）
 
@@ -696,7 +739,7 @@ type CommentItem = {
 - 发主评论：`{ comicId?: string; content?: string }`
 - 发回复：`{ commentId?: string; content?: string; extern?: { commentId?: string } }`
 
-返回建议：
+返回结构（推荐）：
 
 ```json
 {
@@ -784,4 +827,4 @@ type ReadSnapshotPayload = {
 - 评论：`getCommentFeed` `loadCommentReplies` `postComment` `postCommentReply`
 - 阅读：`getReadSnapshot`
 
-如果你只实现最小可用集，至少先把第 1 节五件套做完整，再逐步加可选能力。
+若仅实现最小可用集，建议先完成第 1 节五件套，再逐步补齐可选能力。

@@ -31,6 +31,7 @@ Future<String> downloadCoverAsset({
     path: path,
     cartoonId: cartoonId,
     pictureType: PictureType.cover,
+    retry: true,
     qjsName: qjsName,
     qjsTaskGroupKey: qjsTaskGroupKey,
   );
@@ -99,6 +100,7 @@ Future<void> _downloadSingleJob({
       cartoonId: job.cartoonId,
       chapterId: job.chapterId,
       pictureType: pictureType,
+      retry: true,
       qjsName: qjsRuntimeName,
       qjsTaskGroupKey: qjsTaskGroupKey,
     );

@@ -298,7 +298,7 @@ class BookshelfSectionBloc
         .where((e) => e.isNotEmpty)
         .toList();
     if (cleaned.isEmpty) {
-      return UnifiedComicFavorite_.id.greaterThan(0);
+      return UnifiedComicFavorite_.id.lessThan(0);
     }
     var condition = UnifiedComicFavorite_.source.equals(cleaned.first);
     for (final source in cleaned.skip(1)) {
@@ -313,7 +313,7 @@ class BookshelfSectionBloc
         .where((e) => e.isNotEmpty)
         .toList();
     if (cleaned.isEmpty) {
-      return UnifiedComicHistory_.id.greaterThan(0);
+      return UnifiedComicHistory_.id.lessThan(0);
     }
     var condition = UnifiedComicHistory_.source.equals(cleaned.first);
     for (final source in cleaned.skip(1)) {
@@ -330,7 +330,7 @@ class BookshelfSectionBloc
         .where((e) => e.isNotEmpty)
         .toList();
     if (cleaned.isEmpty) {
-      return UnifiedComicDownload_.id.greaterThan(0);
+      return UnifiedComicDownload_.id.lessThan(0);
     }
     var condition = UnifiedComicDownload_.source.equals(cleaned.first);
     for (final source in cleaned.skip(1)) {

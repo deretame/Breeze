@@ -40,6 +40,7 @@ class PictureBloc extends Bloc<GetPicture, PictureLoadState> {
         cartoonId: event.pictureInfo.cartoonId,
         chapterId: event.pictureInfo.chapterId,
         pictureType: event.pictureInfo.pictureType,
+        extern: event.pictureInfo.extern,
       );
       if (picturePath == '404') {
         throw Exception('404');

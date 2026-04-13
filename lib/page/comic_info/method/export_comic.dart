@@ -15,6 +15,31 @@ import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/widgets/toast.dart';
 import 'package:zephyr/type/enum.dart';
 
+const Set<String> _kWindowsReservedNames = {
+  'CON',
+  'PRN',
+  'AUX',
+  'NUL',
+  'COM1',
+  'COM2',
+  'COM3',
+  'COM4',
+  'COM5',
+  'COM6',
+  'COM7',
+  'COM8',
+  'COM9',
+  'LPT1',
+  'LPT2',
+  'LPT3',
+  'LPT4',
+  'LPT5',
+  'LPT6',
+  'LPT7',
+  'LPT8',
+  'LPT9',
+};
+
 Future<void> exportComic(
   String comicId,
   ExportType type,
@@ -34,9 +59,12 @@ Future<void> _exportComicAsFolder(
 }) async {
   final download = _getDownload(comicId, from: from);
   final detail = _exportDetail(download);
+  final chapterEntries = await _collectChapterEntries(download);
+  final processedDetail = _buildProcessedDetail(detail, chapterEntries);
   final title = download.title;
+  final safeTitle = _sanitizeFolderName(title, fallback: comicId);
   final root = exportPath ?? await createDownloadDir();
-  final comicDir = p.join(root, title);
+  final comicDir = p.join(root, safeTitle);
 
   final dir = Directory(comicDir);
   if (await dir.exists()) {
@@ -49,10 +77,10 @@ Future<void> _exportComicAsFolder(
   ).writeAsString(jsonEncode(detail));
   await File(
     p.join(comicDir, 'processed_comic_info.json'),
-  ).writeAsString(jsonEncode(detail));
+  ).writeAsString(jsonEncode(processedDetail));
 
   await _exportCover(download, comicDir, comicId, from: from);
-  await _copyEpisodeFiles(download, comicDir);
+  await _copyEpisodeFiles(chapterEntries, comicDir);
 
   showSuccessToast('漫画$title导出为文件夹完成');
 }
@@ -64,14 +92,17 @@ Future<void> _exportComicAsZip(
 }) async {
   final download = _getDownload(comicId, from: from);
   final detail = _exportDetail(download);
+  final chapterEntries = await _collectChapterEntries(download);
+  final processedDetail = _buildProcessedDetail(detail, chapterEntries);
   final title = download.title;
+  final safeTitle = _sanitizeFolderName(title, fallback: comicId);
   final finalZipPath =
       exportPath ??
-      '${p.join(await createDownloadDir(), title.substring(0, min(title.length, 90)))}.zip';
+      '${p.join(await createDownloadDir(), safeTitle.substring(0, min(safeTitle.length, 90)))}.zip';
 
   final packInfo = PackInfo(
     comicInfoString: jsonEncode(detail),
-    processedComicInfoString: jsonEncode(detail),
+    processedComicInfoString: jsonEncode(processedDetail),
     originalImagePaths: [],
     packImagePaths: [],
   );
@@ -82,12 +113,11 @@ Future<void> _exportComicAsZip(
     packInfo.packImagePaths.add('cover.jpg');
   }
 
-  final chapterEntries = await _collectChapterEntries(download);
   for (final chapter in chapterEntries) {
-    for (final file in chapter.files) {
-      packInfo.originalImagePaths.add(file.path);
+    for (final image in chapter.images) {
+      packInfo.originalImagePaths.add(image.source.path);
       packInfo.packImagePaths.add(
-        p.join(chapter.folderName, p.basename(file.path)),
+        p.join(chapter.folderName, image.exportFileName),
       );
     }
   }
@@ -170,17 +200,16 @@ Future<String?> _tryDownloadCover(
 }
 
 Future<void> _copyEpisodeFiles(
-  UnifiedComicDownload download,
+  List<_ExportChapterEntry> chapterEntries,
   String comicDir,
 ) async {
-  final chapterEntries = await _collectChapterEntries(download);
   for (final chapter in chapterEntries) {
     final chapterDir = Directory(p.join(comicDir, chapter.folderName));
     await chapterDir.create(recursive: true);
-    for (final file in chapter.files) {
-      final target = File(p.join(chapterDir.path, p.basename(file.path)));
+    for (final image in chapter.images) {
+      final target = File(p.join(chapterDir.path, image.exportFileName));
       await target.create(recursive: true);
-      await file.copy(target.path);
+      await image.source.copy(target.path);
     }
   }
 }
@@ -194,20 +223,34 @@ Future<List<_ExportChapterEntry>> _collectChapterEntries(
         .map((chapter) => UnifiedComicDownloadStoredChapter.fromMap(chapter))
         .toList();
   }
+  chapters.sort((a, b) {
+    final orderCompare = a.order.compareTo(b.order);
+    if (orderCompare != 0) {
+      return orderCompare;
+    }
+    final nameCompare = _naturalCompareString(a.name, b.name);
+    if (nameCompare != 0) {
+      return nameCompare;
+    }
+    return _naturalCompareString(a.id, b.id);
+  });
 
   final chapterRoot = await _chapterRoot(download);
   final chapterRootLegacy = await _chapterRootLegacy(download);
   final usedFolderNames = <String>{};
   final result = <_ExportChapterEntry>[];
+  final hasMultipleChapters = chapters.length > 1;
 
-  for (final chapter in chapters) {
+  for (var chapterIndex = 0; chapterIndex < chapters.length; chapterIndex++) {
+    final chapter = chapters[chapterIndex];
     final chapterId = chapter.id.trim();
     final rawName = chapter.name.trim();
     final fallbackName = chapterId.isNotEmpty
         ? chapterId
         : chapter.order.toString();
+    final chapterPrefix = hasMultipleChapters ? '${chapterIndex + 1}.' : '';
     final folderName = _uniqueFolderName(
-      _sanitizeFolderName(rawName.isNotEmpty ? rawName : fallbackName),
+      '$chapterPrefix${_sanitizeFolderName(rawName.isNotEmpty ? rawName : fallbackName)}',
       usedFolderNames,
     );
     usedFolderNames.add(folderName);
@@ -220,7 +263,22 @@ Future<List<_ExportChapterEntry>> _collectChapterEntries(
       chapterRootLegacy: chapterRootLegacy,
       images: chapter.images,
     );
-    result.add(_ExportChapterEntry(folderName: folderName, files: files));
+    final numberedImages = <_ExportImageEntry>[];
+    final numberWidth = files.length.toString().length;
+    for (var imageIndex = 0; imageIndex < files.length; imageIndex++) {
+      final file = files[imageIndex];
+      final indexLabel = (imageIndex + 1).toString().padLeft(numberWidth, '0');
+      final extension = _safeExportExtension(file.path);
+      numberedImages.add(
+        _ExportImageEntry(
+          source: file,
+          exportFileName: '$indexLabel$extension',
+        ),
+      );
+    }
+    result.add(
+      _ExportChapterEntry(folderName: folderName, images: numberedImages),
+    );
   }
 
   return result;
@@ -263,8 +321,11 @@ Future<List<File>> _resolveChapterFiles({
     if (!await dir.exists()) {
       continue;
     }
-    final files = await dir.list().where((e) => e is File).cast<File>().toList()
-      ..sort((a, b) => a.path.compareTo(b.path));
+    final files = await dir
+        .list()
+        .where((e) => e is File)
+        .cast<File>()
+        .toList();
     if (files.isNotEmpty) {
       return files;
     }
@@ -273,12 +334,153 @@ Future<List<File>> _resolveChapterFiles({
   return const <File>[];
 }
 
-String _sanitizeFolderName(String value) {
-  final sanitized = value.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_').trim();
-  if (sanitized.isEmpty) {
-    return 'chapter';
+Map<String, dynamic> _buildProcessedDetail(
+  Map<String, dynamic> detail,
+  List<_ExportChapterEntry> chapterEntries,
+) {
+  final processed = Map<String, dynamic>.from(
+    jsonDecode(jsonEncode(detail)) as Map<String, dynamic>,
+  );
+
+  final eps = ((processed['eps'] as List?) ?? const [])
+      .whereType<Map>()
+      .map((item) => Map<String, dynamic>.from(item))
+      .toList();
+
+  final updatedEps = <Map<String, dynamic>>[];
+  for (var i = 0; i < chapterEntries.length; i++) {
+    final base = i < eps.length
+        ? Map<String, dynamic>.from(eps[i])
+        : <String, dynamic>{};
+    base['name'] = chapterEntries[i].folderName;
+    base['order'] = i + 1;
+    updatedEps.add(base);
   }
-  return sanitized;
+  if (updatedEps.isNotEmpty) {
+    processed['eps'] = updatedEps;
+  }
+
+  final extension = Map<String, dynamic>.from(
+    processed['extension'] as Map? ?? const <String, dynamic>{},
+  );
+  final rawDownloadChapters =
+      ((extension['downloadChapters'] as List?) ?? const [])
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
+
+  final updatedDownloadChapters = <Map<String, dynamic>>[];
+  for (
+    var chapterIndex = 0;
+    chapterIndex < chapterEntries.length;
+    chapterIndex++
+  ) {
+    final chapter = chapterEntries[chapterIndex];
+    final base = chapterIndex < rawDownloadChapters.length
+        ? Map<String, dynamic>.from(rawDownloadChapters[chapterIndex])
+        : <String, dynamic>{};
+
+    final rawImages = ((base['images'] as List?) ?? const [])
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+    final updatedImages = <Map<String, dynamic>>[];
+    for (var imageIndex = 0; imageIndex < chapter.images.length; imageIndex++) {
+      final image = chapter.images[imageIndex];
+      final imageBase = imageIndex < rawImages.length
+          ? Map<String, dynamic>.from(rawImages[imageIndex])
+          : <String, dynamic>{};
+      imageBase['name'] = image.exportFileName;
+      imageBase['path'] = p.join(chapter.folderName, image.exportFileName);
+      updatedImages.add(imageBase);
+    }
+
+    base['name'] = chapter.folderName;
+    base['order'] = chapterIndex + 1;
+    base['images'] = updatedImages;
+    updatedDownloadChapters.add(base);
+  }
+
+  extension['downloadChapters'] = updatedDownloadChapters;
+  processed['extension'] = extension;
+  return processed;
+}
+
+int _naturalCompareString(String a, String b) {
+  final left = a.trim().toLowerCase();
+  final right = b.trim().toLowerCase();
+  if (left == right) {
+    return 0;
+  }
+
+  final exp = RegExp(r'(\d+)|(\D+)');
+  final leftParts = exp.allMatches(left).map((m) => m.group(0)!).toList();
+  final rightParts = exp.allMatches(right).map((m) => m.group(0)!).toList();
+  final partCount = min(leftParts.length, rightParts.length);
+
+  for (var i = 0; i < partCount; i++) {
+    final l = leftParts[i];
+    final r = rightParts[i];
+    final lNum = int.tryParse(l);
+    final rNum = int.tryParse(r);
+    if (lNum != null && rNum != null) {
+      final compared = lNum.compareTo(rNum);
+      if (compared != 0) {
+        return compared;
+      }
+      continue;
+    }
+    final compared = l.compareTo(r);
+    if (compared != 0) {
+      return compared;
+    }
+  }
+
+  return leftParts.length.compareTo(rightParts.length);
+}
+
+String _sanitizeFolderName(String value, {String fallback = 'chapter'}) {
+  final fallbackNameRaw = _sanitizePathSegment(fallback);
+  final fallbackName = _avoidReservedName(
+    fallbackNameRaw.isEmpty ? 'chapter' : fallbackNameRaw,
+    'chapter',
+  );
+  final sanitized = _sanitizePathSegment(value);
+  if (sanitized.isEmpty) {
+    return fallbackName;
+  }
+  return _avoidReservedName(sanitized, fallbackName);
+}
+
+String _sanitizePathSegment(String value) {
+  return value
+      .replaceAll(RegExp(r'[\\/:*?"<>|]'), '_')
+      .replaceAll(RegExp(r'[\x00-\x1F]'), '')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim()
+      .replaceAll(RegExp(r'[\.\s]+$'), '');
+}
+
+String _avoidReservedName(String value, String fallback) {
+  if (value.isEmpty) {
+    return fallback;
+  }
+  if (_kWindowsReservedNames.contains(value.toUpperCase())) {
+    return '${value}_';
+  }
+  return value;
+}
+
+String _safeExportExtension(String filePath) {
+  final raw = p.extension(filePath).toLowerCase();
+  if (raw.isEmpty) {
+    return '.img';
+  }
+  final normalized = raw.replaceAll(RegExp(r'[^a-z0-9.]'), '');
+  if (RegExp(r'^\.[a-z0-9]{1,10}$').hasMatch(normalized)) {
+    return normalized;
+  }
+  return '.img';
 }
 
 String _uniqueFolderName(String baseName, Set<String> usedNames) {
@@ -337,8 +539,15 @@ Future<String> _chapterRootLegacy(UnifiedComicDownload download) async {
 }
 
 class _ExportChapterEntry {
-  const _ExportChapterEntry({required this.folderName, required this.files});
+  const _ExportChapterEntry({required this.folderName, required this.images});
 
   final String folderName;
-  final List<File> files;
+  final List<_ExportImageEntry> images;
+}
+
+class _ExportImageEntry {
+  const _ExportImageEntry({required this.source, required this.exportFileName});
+
+  final File source;
+  final String exportFileName;
 }

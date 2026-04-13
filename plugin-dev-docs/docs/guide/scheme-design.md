@@ -2,7 +2,7 @@
 
 `scheme + data` 是插件驱动 UI 的核心协议。
 
-一句话理解：
+定义：
 
 - `scheme` 定义页面长什么样、有哪些字段和动作
 - `data` 提供当前页面值
@@ -83,7 +83,7 @@ Breeze 读取 `scheme.actions[]`，每项至少包含：
 
 Breeze 要求 `scheme.fields` 至少两个字段（账号、密码）。
 
-建议：
+约定：
 
 - `scheme.title` 指定页面标题
 - `data.account` / `data.password` 可做默认填充
@@ -114,7 +114,7 @@ Breeze 要求 `scheme.fields` 至少两个字段（账号、密码）。
 - `openComicList`
 - `openWeb`
 
-`openPluginFunction` 会继续调用 `getFunctionPage({ id })`，你返回一个页面方案。
+`openPluginFunction` 会继续调用 `getFunctionPage({ id })`，由插件返回页面方案。
 
 函数页返回示例：
 
@@ -189,7 +189,7 @@ Breeze 会解析 `data.scene`（或直接 `data`）作为列表页配置。
 - `extern`
 - 其他平铺参数（给 UI 用）
 
-实战建议：
+实践建议：
 
 - 所有 `options.value` 保持稳定，不要随版本改变语义
 - `data.values` 一定给默认值，避免空选项导致请求参数缺失

@@ -247,6 +247,7 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
         cartoonId: widget.comicId,
         chapterId: widget.epsId,
         pictureType: PictureType.page,
+        extern: widget.docs[index].extern,
       ),
       index: index,
       isColumn: true,

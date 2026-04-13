@@ -148,6 +148,8 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.only(bottom: 40),
       children: [
         const SizedBox(height: 16),
+        _buildPluginStoreButton(),
+        const SizedBox(height: 8),
         _buildSectionHeader('扩展插件'),
         if (visiblePlugins.isEmpty)
           const Padding(
@@ -163,6 +165,50 @@ class _HomePageState extends State<HomePage> {
               const Divider(height: 1, indent: 80, endIndent: 16),
           ],
       ],
+    );
+  }
+
+  Widget _buildPluginStoreButton() {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Material(
+        color: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => context.pushRoute(const PluginStoreRoute()),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Icon(Icons.storefront_outlined, color: colorScheme.primary),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '插件商店',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      Text(
+                        '浏览和管理可用插件',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -354,6 +400,11 @@ class _HomePageState extends State<HomePage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
+                  tooltip: '搜索',
+                  icon: const Icon(Icons.search, size: 20),
+                  onPressed: isEnabled ? () => _openPluginSearch(from) : null,
+                ),
+                IconButton(
                   tooltip: '设置',
                   icon: const Icon(Icons.settings_outlined, size: 20),
                   onPressed: () {
@@ -493,23 +544,13 @@ class _HomePageState extends State<HomePage> {
 
     if (type == 'openSearch') {
       final source = _sourceFromString(payload['source']?.toString());
-      final sourceId = (source).trim();
       final keyword = payload['keyword']?.toString() ?? '';
-      final url = payload['url']?.toString() ?? '';
-      final categories = asJsonList(payload['categories'])
-          .map((item) => item.toString())
-          .where((item) => item.trim().isNotEmpty)
-          .toList();
-
-      final extern = <String, dynamic>{
-        if (categories.isNotEmpty) 'categories': categories,
-        if (url.isNotEmpty) 'url': url,
-      };
+      final extern = asJsonMap(payload['extern']);
 
       final searchStates = SearchStates.initial().copyWith(
         from: source,
         searchKeyword: keyword,
-        pluginExtern: {...extern, '_pluginId': sourceId},
+        pluginExtern: extern,
       );
 
       context.pushRoute(
@@ -680,6 +721,20 @@ class _HomePageState extends State<HomePage> {
   String _sourceFromString(String? source) {
     final resolved = (source ?? '').trim();
     return resolved;
+  }
+
+  void _openPluginSearch(String from) {
+    final source = _sourceFromString(from);
+    if (source.isEmpty) {
+      showErrorToast('缺少插件来源，无法搜索');
+      return;
+    }
+    context.pushRoute(
+      SearchRoute(
+        searchState: SearchStates.initial().copyWith(from: source),
+        aggregateMode: false,
+      ),
+    );
   }
 
   void search() {

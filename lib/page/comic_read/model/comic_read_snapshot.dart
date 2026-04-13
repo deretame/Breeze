@@ -39,6 +39,7 @@ class ComicReadSnapshot {
             path: page.path,
             fileServer: page.url,
             id: page.id.isNotEmpty ? page.id : fallbackChapterId,
+            extern: page.extern,
           ),
         )
         .toList();

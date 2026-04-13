@@ -306,37 +306,13 @@ void _migrateLegacySearchHistory(ObjectBox objectbox) {
 }
 
 String _migrateSearchHistoryEntry(String raw) {
+  logger.d("migrateSearchHistoryEntry: $raw");
   final value = raw.trim();
-  if (value.isEmpty) {
-    return value;
+  if (value.contains('&&')) {
+    final values = value.split("&&");
+    return values.first;
   }
-  final split = value.split('&&');
-  if (split.length < 2) {
-    return value;
-  }
-  final keyword = split.first.trim();
-  final tail = split.sublist(1).join('&&').trim();
-  if (tail.startsWith('{') && tail.endsWith('}')) {
-    return value;
-  }
-  if (keyword.isEmpty || tail.isEmpty) {
-    return value;
-  }
-  final creatorId = _extractCreatorIdFromLegacyUrl(tail);
-  if (creatorId.isEmpty) {
-    return value;
-  }
-  return '$keyword&&${jsonEncode({'mode': 'creator', 'creatorId': creatorId, 'url': tail})}';
-}
-
-String _extractCreatorIdFromLegacyUrl(String url) {
-  try {
-    final uri = Uri.parse(url);
-    final creatorId = uri.queryParameters['ca']?.trim() ?? '';
-    return creatorId;
-  } catch (_) {
-    return '';
-  }
+  return value;
 }
 
 bool _listEquals(List<String> left, List<String> right) {
@@ -1729,7 +1705,6 @@ Map<String, dynamic> _bikaCreatorAction(String creatorId, String creatorName) {
       'source': _kBikaPluginUuid,
       'keyword': creatorName,
       'extern': {'mode': 'creator', 'creatorId': creatorId},
-      'url': 'https://picaapi.picacomic.com/comics?ca=$creatorId&s=ld&page=1',
     },
   };
 }

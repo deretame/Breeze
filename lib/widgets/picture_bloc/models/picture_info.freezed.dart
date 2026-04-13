@@ -20,7 +20,8 @@ mixin _$PictureInfo {
  String get path;// 路径
  String get cartoonId;// 漫画id
  String get chapterId;// 章节id
- PictureType get pictureType;
+ PictureType get pictureType;// 图片类型
+ Map<String, dynamic> get extern;
 /// Create a copy of PictureInfo
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -33,16 +34,16 @@ $PictureInfoCopyWith<PictureInfo> get copyWith => _$PictureInfoCopyWithImpl<Pict
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PictureInfo&&(identical(other.from, from) || other.from == from)&&(identical(other.url, url) || other.url == url)&&(identical(other.path, path) || other.path == path)&&(identical(other.cartoonId, cartoonId) || other.cartoonId == cartoonId)&&(identical(other.chapterId, chapterId) || other.chapterId == chapterId)&&(identical(other.pictureType, pictureType) || other.pictureType == pictureType));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PictureInfo&&(identical(other.from, from) || other.from == from)&&(identical(other.url, url) || other.url == url)&&(identical(other.path, path) || other.path == path)&&(identical(other.cartoonId, cartoonId) || other.cartoonId == cartoonId)&&(identical(other.chapterId, chapterId) || other.chapterId == chapterId)&&(identical(other.pictureType, pictureType) || other.pictureType == pictureType)&&const DeepCollectionEquality().equals(other.extern, extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,from,url,path,cartoonId,chapterId,pictureType);
+int get hashCode => Object.hash(runtimeType,from,url,path,cartoonId,chapterId,pictureType,const DeepCollectionEquality().hash(extern));
 
 @override
 String toString() {
-  return 'PictureInfo(from: $from, url: $url, path: $path, cartoonId: $cartoonId, chapterId: $chapterId, pictureType: $pictureType)';
+  return 'PictureInfo(from: $from, url: $url, path: $path, cartoonId: $cartoonId, chapterId: $chapterId, pictureType: $pictureType, extern: $extern)';
 }
 
 
@@ -53,7 +54,7 @@ abstract mixin class $PictureInfoCopyWith<$Res>  {
   factory $PictureInfoCopyWith(PictureInfo value, $Res Function(PictureInfo) _then) = _$PictureInfoCopyWithImpl;
 @useResult
 $Res call({
- String from, String url, String path, String cartoonId, String chapterId, PictureType pictureType
+ String from, String url, String path, String cartoonId, String chapterId, PictureType pictureType, Map<String, dynamic> extern
 });
 
 
@@ -70,7 +71,7 @@ class _$PictureInfoCopyWithImpl<$Res>
 
 /// Create a copy of PictureInfo
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? from = null,Object? url = null,Object? path = null,Object? cartoonId = null,Object? chapterId = null,Object? pictureType = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? from = null,Object? url = null,Object? path = null,Object? cartoonId = null,Object? chapterId = null,Object? pictureType = null,Object? extern = null,}) {
   return _then(_self.copyWith(
 from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
@@ -78,7 +79,8 @@ as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non
 as String,cartoonId: null == cartoonId ? _self.cartoonId : cartoonId // ignore: cast_nullable_to_non_nullable
 as String,chapterId: null == chapterId ? _self.chapterId : chapterId // ignore: cast_nullable_to_non_nullable
 as String,pictureType: null == pictureType ? _self.pictureType : pictureType // ignore: cast_nullable_to_non_nullable
-as PictureType,
+as PictureType,extern: null == extern ? _self.extern : extern // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,
   ));
 }
 
@@ -163,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String from,  String url,  String path,  String cartoonId,  String chapterId,  PictureType pictureType)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String from,  String url,  String path,  String cartoonId,  String chapterId,  PictureType pictureType,  Map<String, dynamic> extern)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PictureInfo() when $default != null:
-return $default(_that.from,_that.url,_that.path,_that.cartoonId,_that.chapterId,_that.pictureType);case _:
+return $default(_that.from,_that.url,_that.path,_that.cartoonId,_that.chapterId,_that.pictureType,_that.extern);case _:
   return orElse();
 
 }
@@ -184,10 +186,10 @@ return $default(_that.from,_that.url,_that.path,_that.cartoonId,_that.chapterId,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String from,  String url,  String path,  String cartoonId,  String chapterId,  PictureType pictureType)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String from,  String url,  String path,  String cartoonId,  String chapterId,  PictureType pictureType,  Map<String, dynamic> extern)  $default,) {final _that = this;
 switch (_that) {
 case _PictureInfo():
-return $default(_that.from,_that.url,_that.path,_that.cartoonId,_that.chapterId,_that.pictureType);case _:
+return $default(_that.from,_that.url,_that.path,_that.cartoonId,_that.chapterId,_that.pictureType,_that.extern);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +206,10 @@ return $default(_that.from,_that.url,_that.path,_that.cartoonId,_that.chapterId,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String from,  String url,  String path,  String cartoonId,  String chapterId,  PictureType pictureType)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String from,  String url,  String path,  String cartoonId,  String chapterId,  PictureType pictureType,  Map<String, dynamic> extern)?  $default,) {final _that = this;
 switch (_that) {
 case _PictureInfo() when $default != null:
-return $default(_that.from,_that.url,_that.path,_that.cartoonId,_that.chapterId,_that.pictureType);case _:
+return $default(_that.from,_that.url,_that.path,_that.cartoonId,_that.chapterId,_that.pictureType,_that.extern);case _:
   return null;
 
 }
@@ -219,7 +221,7 @@ return $default(_that.from,_that.url,_that.path,_that.cartoonId,_that.chapterId,
 @JsonSerializable()
 
 class _PictureInfo implements PictureInfo {
-  const _PictureInfo({this.from = '', this.url = '', this.path = '', this.cartoonId = '', this.chapterId = '', this.pictureType = PictureType.comic});
+  const _PictureInfo({this.from = '', this.url = '', this.path = '', this.cartoonId = '', this.chapterId = '', this.pictureType = PictureType.comic, final  Map<String, dynamic> extern = const <String, dynamic>{}}): _extern = extern;
   factory _PictureInfo.fromJson(Map<String, dynamic> json) => _$PictureInfoFromJson(json);
 
 @override@JsonKey() final  String from;
@@ -233,6 +235,15 @@ class _PictureInfo implements PictureInfo {
 @override@JsonKey() final  String chapterId;
 // 章节id
 @override@JsonKey() final  PictureType pictureType;
+// 图片类型
+ final  Map<String, dynamic> _extern;
+// 图片类型
+@override@JsonKey() Map<String, dynamic> get extern {
+  if (_extern is EqualUnmodifiableMapView) return _extern;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_extern);
+}
+
 
 /// Create a copy of PictureInfo
 /// with the given fields replaced by the non-null parameter values.
@@ -247,16 +258,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PictureInfo&&(identical(other.from, from) || other.from == from)&&(identical(other.url, url) || other.url == url)&&(identical(other.path, path) || other.path == path)&&(identical(other.cartoonId, cartoonId) || other.cartoonId == cartoonId)&&(identical(other.chapterId, chapterId) || other.chapterId == chapterId)&&(identical(other.pictureType, pictureType) || other.pictureType == pictureType));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PictureInfo&&(identical(other.from, from) || other.from == from)&&(identical(other.url, url) || other.url == url)&&(identical(other.path, path) || other.path == path)&&(identical(other.cartoonId, cartoonId) || other.cartoonId == cartoonId)&&(identical(other.chapterId, chapterId) || other.chapterId == chapterId)&&(identical(other.pictureType, pictureType) || other.pictureType == pictureType)&&const DeepCollectionEquality().equals(other._extern, _extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,from,url,path,cartoonId,chapterId,pictureType);
+int get hashCode => Object.hash(runtimeType,from,url,path,cartoonId,chapterId,pictureType,const DeepCollectionEquality().hash(_extern));
 
 @override
 String toString() {
-  return 'PictureInfo(from: $from, url: $url, path: $path, cartoonId: $cartoonId, chapterId: $chapterId, pictureType: $pictureType)';
+  return 'PictureInfo(from: $from, url: $url, path: $path, cartoonId: $cartoonId, chapterId: $chapterId, pictureType: $pictureType, extern: $extern)';
 }
 
 
@@ -267,7 +278,7 @@ abstract mixin class _$PictureInfoCopyWith<$Res> implements $PictureInfoCopyWith
   factory _$PictureInfoCopyWith(_PictureInfo value, $Res Function(_PictureInfo) _then) = __$PictureInfoCopyWithImpl;
 @override @useResult
 $Res call({
- String from, String url, String path, String cartoonId, String chapterId, PictureType pictureType
+ String from, String url, String path, String cartoonId, String chapterId, PictureType pictureType, Map<String, dynamic> extern
 });
 
 
@@ -284,7 +295,7 @@ class __$PictureInfoCopyWithImpl<$Res>
 
 /// Create a copy of PictureInfo
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? from = null,Object? url = null,Object? path = null,Object? cartoonId = null,Object? chapterId = null,Object? pictureType = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? from = null,Object? url = null,Object? path = null,Object? cartoonId = null,Object? chapterId = null,Object? pictureType = null,Object? extern = null,}) {
   return _then(_PictureInfo(
 from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
@@ -292,7 +303,8 @@ as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non
 as String,cartoonId: null == cartoonId ? _self.cartoonId : cartoonId // ignore: cast_nullable_to_non_nullable
 as String,chapterId: null == chapterId ? _self.chapterId : chapterId // ignore: cast_nullable_to_non_nullable
 as String,pictureType: null == pictureType ? _self.pictureType : pictureType // ignore: cast_nullable_to_non_nullable
-as PictureType,
+as PictureType,extern: null == extern ? _self._extern : extern // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,
   ));
 }
 

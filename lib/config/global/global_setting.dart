@@ -196,6 +196,10 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
   GlobalSettingState get defaults =>
       _defaults.copyWith(seedColor: _defaultSeedColor);
 
+  void updateALl(GlobalSettingState state) {
+    _persistAndEmit(state);
+  }
+
   void updateState(
     GlobalSettingState Function(GlobalSettingState current) updates,
   ) {

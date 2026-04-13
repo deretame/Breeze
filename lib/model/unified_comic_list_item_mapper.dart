@@ -171,17 +171,46 @@ UnifiedComicCover _coverFromStored(
   String cover,
 ) {
   final data = _decodeMapString(cover);
+  final coverId = data['id']?.toString() ?? comicId;
   final url = data['url']?.toString() ?? '';
   final extern = asMap(data['extern']);
   final extension = asMap(data['extension']);
   final coverExtern = extern.isNotEmpty ? extern : extension;
-  final resolvedPath = data['path']?.toString().trim() ?? '';
+  final rawPath = data['path']?.toString().trim() ?? '';
+  final resolvedPath = rawPath.isNotEmpty
+      ? rawPath
+      : _buildFallbackCoverPath(coverId, url);
   return UnifiedComicCover(
-    id: data['id']?.toString() ?? comicId,
+    id: coverId,
     url: url,
     path: resolvedPath,
     extern: coverExtern,
   );
+}
+
+String _buildFallbackCoverPath(String id, String url) {
+  final safeId = _sanitizeAssetName(id.trim().isEmpty ? 'cover' : id);
+  final extension = _extractImageExtension(url);
+  return '$safeId.$extension';
+}
+
+String _sanitizeAssetName(String input) {
+  final sanitized = input
+      .replaceAll(RegExp(r'[^a-zA-Z0-9_\-.]'), '_')
+      .replaceAll(RegExp(r'_+'), '_')
+      .replaceAll(RegExp(r'^_+|_+$'), '');
+  return sanitized.isEmpty ? 'cover' : sanitized;
+}
+
+String _extractImageExtension(String url) {
+  try {
+    final uri = Uri.parse(url);
+    final ext = p.extension(uri.path).replaceFirst('.', '').toLowerCase();
+    if (RegExp(r'^[a-z0-9]{1,8}$').hasMatch(ext)) {
+      return ext;
+    }
+  } catch (_) {}
+  return 'jpg';
 }
 
 List<UnifiedComicMetadata> _metadataFromFlex(

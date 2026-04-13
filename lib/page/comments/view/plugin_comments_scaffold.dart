@@ -735,7 +735,6 @@ class _CommentItem {
   factory _CommentItem.fromMap(Map<String, dynamic> map) {
     final author = asJsonMap(map['author']);
     final avatar = asJsonMap(author['avatar']);
-    final avatarExtern = asJsonMap(avatar['extern']);
     final replies = asJsonList(
       map['replies'],
     ).map(asJsonMap).map(_CommentItem.fromMap).toList();
@@ -743,7 +742,7 @@ class _CommentItem {
       id: map['id']?.toString() ?? '',
       authorName: author['name']?.toString() ?? '匿名用户',
       avatarUrl: avatar['url']?.toString() ?? '',
-      avatarPath: avatarExtern['path']?.toString() ?? '',
+      avatarPath: avatar['path']?.toString() ?? '',
       content: map['content']?.toString() ?? '',
       createdAt: map['createdAt']?.toString() ?? '',
       replyCount: _toInt(map['replyCount']),

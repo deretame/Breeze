@@ -270,6 +270,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
         cartoonId: widget.comicId,
         chapterId: widget.epsId,
         pictureType: PictureType.page,
+        extern: widget.docs[docIndex].extern,
       ),
       index: slotIndex,
       isColumn: false,

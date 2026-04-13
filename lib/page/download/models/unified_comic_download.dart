@@ -23,9 +23,7 @@ class UnifiedComicDownloadImage {
       id: map['id']?.toString() ?? '',
       name: map['name']?.toString() ?? '',
       path: map['path']?.toString() ?? '',
-      url:
-          map['url']?.toString() ??
-          ((map['extern'] as Map?)?['url']?.toString() ?? ''),
+      url: map['url']?.toString() ?? '',
       extern: Map<String, dynamic>.from(
         map['extern'] as Map? ?? const <String, dynamic>{},
       ),
@@ -55,10 +53,7 @@ class UnifiedComicDownloadStoredChapter {
   final List<UnifiedComicDownloadImage> images;
 
   factory UnifiedComicDownloadStoredChapter.fromMap(Map<String, dynamic> map) {
-    final rawImages =
-        (map['images'] as List?) ??
-        (((map['extension'] as Map?)?['images']) as List?) ??
-        const [];
+    final rawImages = (map['images'] as List?) ?? const [];
     return UnifiedComicDownloadStoredChapter(
       id: map['id']?.toString() ?? '',
       name: map['name']?.toString() ?? '',
@@ -191,27 +186,6 @@ int _toInt(String value, int fallback) {
 List<UnifiedComicDownloadStoredChapter> resolveStoredDownloadChapters(
   UnifiedComicDownload comic,
 ) {
-  final detail = comic.detailJson.trim();
-  if (detail.isNotEmpty) {
-    try {
-      final map = jsonDecode(detail) as Map<String, dynamic>;
-      final chapterPayload =
-          ((map['extension'] as Map?)?['downloadChapters'] as List?) ??
-          const [];
-      final eps = chapterPayload
-          .whereType<Map>()
-          .map(
-            (e) => UnifiedComicDownloadStoredChapter.fromMap(
-              Map<String, dynamic>.from(e),
-            ),
-          )
-          .toList();
-      if (eps.isNotEmpty) {
-        return eps;
-      }
-    } catch (_) {}
-  }
-
   return _decodeListOfMaps(
     comic.chapters,
   ).map((e) => UnifiedComicDownloadStoredChapter.fromMap(e)).toList();

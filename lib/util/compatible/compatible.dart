@@ -10,8 +10,6 @@ const _defaultCompatibleVersion = 'v1';
 const _latestCompatibleVersion = 'v2';
 
 Future<void> ensureCompatibleMigration(BuildContext context) async {
-  objectbox.dumpAllData();
-
   try {
     final version = await getCompatibleVersion();
     if (version == 'v1') {
@@ -25,14 +23,14 @@ Future<void> ensureCompatibleMigration(BuildContext context) async {
       );
       await migrateLegacyDownloadFilesToPluginUuidLayout();
       logger.d('Compatible migration download files finished');
+      logger.d('Compatible migration done: version=v2');
       await setCompatibleVersion(_latestCompatibleVersion);
       if (context.mounted) {
-        context.read<GlobalSettingCubit>().updateState(
-          (current) =>
-              current.copyWith(compatibleVersion: _latestCompatibleVersion),
+        context.read<GlobalSettingCubit>().updateALl(
+          objectbox.userSettingBox.get(1)!.globalSetting,
         );
       }
-      logger.d('Compatible migration done: version=v2');
+      return;
     }
   } catch (e, stackTrace) {
     logger.e('Compatible migration failed', error: e, stackTrace: stackTrace);

@@ -13,6 +13,7 @@ abstract class PictureInfo with _$PictureInfo {
     @Default('') String cartoonId, // 漫画id
     @Default('') String chapterId, // 章节id
     @Default(PictureType.comic) PictureType pictureType, // 图片类型
+    @Default(<String, dynamic>{}) Map<String, dynamic> extern, // 插件附加参数
   }) = _PictureInfo;
 
   factory PictureInfo.fromJson(Map<String, dynamic> json) =>

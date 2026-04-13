@@ -7,6 +7,7 @@ class UnifiedCreatorListItem {
     required this.avatar,
     required this.stats,
     required this.raw,
+    required this.onTap,
     required this.extern,
   });
 
@@ -17,6 +18,7 @@ class UnifiedCreatorListItem {
   final UnifiedCreatorAvatar avatar;
   final List<String> stats;
   final Map<String, dynamic> raw;
+  final Map<String, dynamic> onTap;
   final Map<String, dynamic> extern;
 
   factory UnifiedCreatorListItem.fromJson(Map<String, dynamic> json) {
@@ -31,6 +33,7 @@ class UnifiedCreatorListItem {
       avatar: UnifiedCreatorAvatar.fromJson(_asMap(json['avatar'])),
       stats: _asList(json['stats']).map((item) => item.toString()).toList(),
       raw: _asMap(json['raw']),
+      onTap: _asMap(json['onTap']),
       extern: _asMap(json['extern']),
     );
   }
@@ -38,8 +41,6 @@ class UnifiedCreatorListItem {
   String get from {
     return (source).trim();
   }
-
-  String get searchUrl => extern['searchUrl']?.toString() ?? '';
 }
 
 class UnifiedCreatorAvatar {

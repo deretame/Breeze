@@ -15,6 +15,7 @@ _PictureInfo _$PictureInfoFromJson(Map<String, dynamic> json) => _PictureInfo(
   pictureType:
       $enumDecodeNullable(_$PictureTypeEnumMap, json['pictureType']) ??
       PictureType.comic,
+  extern: json['extern'] as Map<String, dynamic>? ?? const <String, dynamic>{},
 );
 
 Map<String, dynamic> _$PictureInfoToJson(_PictureInfo instance) =>
@@ -25,6 +26,7 @@ Map<String, dynamic> _$PictureInfoToJson(_PictureInfo instance) =>
       'cartoonId': instance.cartoonId,
       'chapterId': instance.chapterId,
       'pictureType': _$PictureTypeEnumMap[instance.pictureType]!,
+      'extern': instance.extern,
     };
 
 const _$PictureTypeEnumMap = {

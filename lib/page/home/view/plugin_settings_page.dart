@@ -214,7 +214,7 @@ class _PluginSettingsPageState extends State<PluginSettingsPage> {
                     ),
                     _FieldRow(
                       title: '删除插件',
-                      subtitle: deleted ? '已删除' : '标记删除并停用',
+                      subtitle: '彻底删除插件',
                       trailing: Icon(
                         Icons.delete_outline,
                         size: 18,
@@ -298,7 +298,7 @@ class _PluginSettingsPageState extends State<PluginSettingsPage> {
                                     '',
                                 avatarPath:
                                     asMap(
-                                      asMap(_userInfo['avatar'])['extern'],
+                                      _userInfo['avatar'],
                                     )['path']?.toString() ??
                                     '',
                                 lines: asJsonList(_userInfo['lines'])
@@ -363,7 +363,7 @@ class _PluginSettingsPageState extends State<PluginSettingsPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('删除插件'),
-        content: const Text('删除后将停用插件并标记为已删除。'),
+        content: const Text('删除后将从插件列表彻底移除，并清理该插件的所有数据。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -379,7 +379,15 @@ class _PluginSettingsPageState extends State<PluginSettingsPage> {
     if (ok != true) {
       return;
     }
-    await PluginRegistryService.I.deletePlugin(widget.pluginUuid);
+    try {
+      await PluginRegistryService.I.deletePlugin(widget.pluginUuid);
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+      showErrorToast('删除失败: $e');
+      return;
+    }
     if (!mounted) {
       return;
     }

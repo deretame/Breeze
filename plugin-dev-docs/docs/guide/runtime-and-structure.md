@@ -1,15 +1,15 @@
 # 生命周期与结构
 
-本章只讲第三方作者需要知道的运行规则。
+本章描述第三方插件运行规则与数据流。
 
-## 1) Breeze 怎么调用你的插件
+## 1) Breeze 如何调用插件
 
-1. Breeze 加载你的 bundle
+1. Breeze 加载插件 bundle
 2. Breeze 按 `fnPath` 找到同名函数
 3. Breeze 把参数传给这个函数
 4. Breeze 渲染函数返回的数据
 
-最关键的一句：**`fnPath` 必须和 `export default` 的键名一致。**
+核心规则：**`fnPath` 必须与 `export default` 的键名一致。**
 
 ## 2) 参数模型
 
@@ -21,14 +21,14 @@ type PluginPayload<T extends Record<string, unknown>> = T & {
 };
 ```
 
-建议约定：
+推荐约定：
 
 - 业务主参数（如 `comicId/page/keyword`）放顶层
 - 会话/上下文透传信息放 `extern`
 
 ## 3) 返回模型
 
-绝大多数接口建议返回：
+绝大多数接口可返回：
 
 ```ts
 type PluginEnvelope = {
@@ -55,11 +55,11 @@ type PluginEnvelope = {
 - `runtime.cache.*`：内存缓存
 - `runtime.bridge.call(...)`：桥接能力（加解密等）
 
-建议：为这些 API 做一层 `requireApi` 封装，缺失时抛出清晰错误。
+工程建议：为这些 API 增加 `requireApi` 封装，缺失时抛出明确错误。
 
 ## 5) 未登录错误（推荐）
 
-当接口需要登录态时，建议抛出结构化 unauthorized 错误，让客户端可直接进入登录流程：
+当接口依赖登录态时，建议抛出结构化 unauthorized 错误，便于客户端直接进入登录流程：
 
 ```json
 {
@@ -71,7 +71,7 @@ type PluginEnvelope = {
 }
 ```
 
-## 6) 兼容性建议
+## 6) 兼容性
 
 - API 新增时优先保持向后兼容
 - 对可选字段做默认值兜底

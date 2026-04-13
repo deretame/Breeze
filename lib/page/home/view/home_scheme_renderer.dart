@@ -195,8 +195,6 @@ class HomeSchemeRenderer {
         final item = items[index];
         final title = item['title']?.toString() ?? '';
         final cover = asJsonMap(item['cover']);
-        final extern = asJsonMap(cover['extern']);
-        final assetPath = extern['asset']?.toString().trim() ?? '';
         final coverUrl = cover['url']?.toString().trim() ?? '';
         final coverPath = cover['path']?.toString().trim() ?? '';
 
@@ -208,24 +206,17 @@ class HomeSchemeRenderer {
                 aspectRatio: 1,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: assetPath.isNotEmpty && coverUrl.isEmpty
-                      ? Image.asset(
-                          assetPath,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const ColoredBox(color: Color(0xFFE0E0E0)),
-                        )
-                      : LayoutBuilder(
-                          builder: (context, constraints) => CoverWidget(
-                            fileServer: coverUrl,
-                            path: coverPath,
-                            id: title,
-                            pictureType: PictureType.category,
-                            from: from,
-                            width: constraints.maxWidth,
-                            height: constraints.maxHeight,
-                          ),
-                        ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => CoverWidget(
+                      fileServer: coverUrl,
+                      path: coverPath,
+                      id: title,
+                      pictureType: PictureType.category,
+                      from: from,
+                      width: constraints.maxWidth,
+                      height: constraints.maxHeight,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 5),

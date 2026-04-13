@@ -1,18 +1,13 @@
 // 通用的标签/分类 Widget
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/page/comic_info/models/comic_info_action.dart';
-import 'package:zephyr/page/search/cubit/search_cubit.dart';
-import 'package:zephyr/page/search_result/search_result.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/desktop/window_logic.dart';
 import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/toast.dart';
-
-import '../../../util/router/router.gr.dart';
 
 class AllChipWidget extends StatefulWidget {
   final String comicId;
@@ -33,7 +28,6 @@ class AllChipWidget extends StatefulWidget {
 class _AllChipWidgetState extends State<AllChipWidget> {
   List<ComicInfoActionItem> get items => widget.metadata.value;
   String get title => widget.metadata.name;
-  String get type => widget.metadata.type;
 
   @override
   Widget build(BuildContext context) {
@@ -101,33 +95,6 @@ class _AllChipWidgetState extends State<AllChipWidget> {
   void _onTap(int index, ComicInfoActionItem item) {
     if (item.onTap.isNotEmpty) {
       handleComicInfoAction(context, item.onTap, fallbackPluginId: widget.from);
-      return;
-    }
-
-    if (type == 'categories') {
-      AutoRouter.of(context).push(
-        SearchResultRoute(
-          searchEvent: SearchEvent().copyWith(
-            searchStates: SearchStates.initial().copyWith(
-              from: widget.from,
-              pluginExtern: {
-                'categories': [item.name],
-              },
-            ),
-          ),
-        ),
-      );
-    } else {
-      AutoRouter.of(context).push(
-        SearchResultRoute(
-          searchEvent: SearchEvent().copyWith(
-            searchStates: SearchStates.initial().copyWith(
-              from: widget.from,
-              searchKeyword: item.name,
-            ),
-          ),
-        ),
-      );
     }
   }
 }

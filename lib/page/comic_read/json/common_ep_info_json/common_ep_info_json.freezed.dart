@@ -299,7 +299,7 @@ as List<Doc>,
 /// @nodoc
 mixin _$Doc {
 
-@JsonKey(name: "originalName") String get originalName;@JsonKey(name: "path") String get path;@JsonKey(name: "fileServer") String get fileServer;@JsonKey(name: "id") String get id;
+@JsonKey(name: "originalName") String get originalName;@JsonKey(name: "path") String get path;@JsonKey(name: "fileServer") String get fileServer;@JsonKey(name: "id") String get id;@JsonKey(name: "extern") Map<String, dynamic> get extern;
 /// Create a copy of Doc
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -312,16 +312,16 @@ $DocCopyWith<Doc> get copyWith => _$DocCopyWithImpl<Doc>(this as Doc, _$identity
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Doc&&(identical(other.originalName, originalName) || other.originalName == originalName)&&(identical(other.path, path) || other.path == path)&&(identical(other.fileServer, fileServer) || other.fileServer == fileServer)&&(identical(other.id, id) || other.id == id));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Doc&&(identical(other.originalName, originalName) || other.originalName == originalName)&&(identical(other.path, path) || other.path == path)&&(identical(other.fileServer, fileServer) || other.fileServer == fileServer)&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.extern, extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,originalName,path,fileServer,id);
+int get hashCode => Object.hash(runtimeType,originalName,path,fileServer,id,const DeepCollectionEquality().hash(extern));
 
 @override
 String toString() {
-  return 'Doc(originalName: $originalName, path: $path, fileServer: $fileServer, id: $id)';
+  return 'Doc(originalName: $originalName, path: $path, fileServer: $fileServer, id: $id, extern: $extern)';
 }
 
 
@@ -332,7 +332,7 @@ abstract mixin class $DocCopyWith<$Res>  {
   factory $DocCopyWith(Doc value, $Res Function(Doc) _then) = _$DocCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "originalName") String originalName,@JsonKey(name: "path") String path,@JsonKey(name: "fileServer") String fileServer,@JsonKey(name: "id") String id
+@JsonKey(name: "originalName") String originalName,@JsonKey(name: "path") String path,@JsonKey(name: "fileServer") String fileServer,@JsonKey(name: "id") String id,@JsonKey(name: "extern") Map<String, dynamic> extern
 });
 
 
@@ -349,13 +349,14 @@ class _$DocCopyWithImpl<$Res>
 
 /// Create a copy of Doc
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? originalName = null,Object? path = null,Object? fileServer = null,Object? id = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? originalName = null,Object? path = null,Object? fileServer = null,Object? id = null,Object? extern = null,}) {
   return _then(_self.copyWith(
 originalName: null == originalName ? _self.originalName : originalName // ignore: cast_nullable_to_non_nullable
 as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
 as String,fileServer: null == fileServer ? _self.fileServer : fileServer // ignore: cast_nullable_to_non_nullable
 as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,
+as String,extern: null == extern ? _self.extern : extern // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,
   ));
 }
 
@@ -440,10 +441,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "originalName")  String originalName, @JsonKey(name: "path")  String path, @JsonKey(name: "fileServer")  String fileServer, @JsonKey(name: "id")  String id)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "originalName")  String originalName, @JsonKey(name: "path")  String path, @JsonKey(name: "fileServer")  String fileServer, @JsonKey(name: "id")  String id, @JsonKey(name: "extern")  Map<String, dynamic> extern)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Doc() when $default != null:
-return $default(_that.originalName,_that.path,_that.fileServer,_that.id);case _:
+return $default(_that.originalName,_that.path,_that.fileServer,_that.id,_that.extern);case _:
   return orElse();
 
 }
@@ -461,10 +462,10 @@ return $default(_that.originalName,_that.path,_that.fileServer,_that.id);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "originalName")  String originalName, @JsonKey(name: "path")  String path, @JsonKey(name: "fileServer")  String fileServer, @JsonKey(name: "id")  String id)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "originalName")  String originalName, @JsonKey(name: "path")  String path, @JsonKey(name: "fileServer")  String fileServer, @JsonKey(name: "id")  String id, @JsonKey(name: "extern")  Map<String, dynamic> extern)  $default,) {final _that = this;
 switch (_that) {
 case _Doc():
-return $default(_that.originalName,_that.path,_that.fileServer,_that.id);case _:
+return $default(_that.originalName,_that.path,_that.fileServer,_that.id,_that.extern);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -481,10 +482,10 @@ return $default(_that.originalName,_that.path,_that.fileServer,_that.id);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "originalName")  String originalName, @JsonKey(name: "path")  String path, @JsonKey(name: "fileServer")  String fileServer, @JsonKey(name: "id")  String id)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "originalName")  String originalName, @JsonKey(name: "path")  String path, @JsonKey(name: "fileServer")  String fileServer, @JsonKey(name: "id")  String id, @JsonKey(name: "extern")  Map<String, dynamic> extern)?  $default,) {final _that = this;
 switch (_that) {
 case _Doc() when $default != null:
-return $default(_that.originalName,_that.path,_that.fileServer,_that.id);case _:
+return $default(_that.originalName,_that.path,_that.fileServer,_that.id,_that.extern);case _:
   return null;
 
 }
@@ -496,13 +497,20 @@ return $default(_that.originalName,_that.path,_that.fileServer,_that.id);case _:
 @JsonSerializable()
 
 class _Doc implements Doc {
-  const _Doc({@JsonKey(name: "originalName") required this.originalName, @JsonKey(name: "path") required this.path, @JsonKey(name: "fileServer") required this.fileServer, @JsonKey(name: "id") required this.id});
+  const _Doc({@JsonKey(name: "originalName") required this.originalName, @JsonKey(name: "path") required this.path, @JsonKey(name: "fileServer") required this.fileServer, @JsonKey(name: "id") required this.id, @JsonKey(name: "extern") final  Map<String, dynamic> extern = const <String, dynamic>{}}): _extern = extern;
   factory _Doc.fromJson(Map<String, dynamic> json) => _$DocFromJson(json);
 
 @override@JsonKey(name: "originalName") final  String originalName;
 @override@JsonKey(name: "path") final  String path;
 @override@JsonKey(name: "fileServer") final  String fileServer;
 @override@JsonKey(name: "id") final  String id;
+ final  Map<String, dynamic> _extern;
+@override@JsonKey(name: "extern") Map<String, dynamic> get extern {
+  if (_extern is EqualUnmodifiableMapView) return _extern;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_extern);
+}
+
 
 /// Create a copy of Doc
 /// with the given fields replaced by the non-null parameter values.
@@ -517,16 +525,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Doc&&(identical(other.originalName, originalName) || other.originalName == originalName)&&(identical(other.path, path) || other.path == path)&&(identical(other.fileServer, fileServer) || other.fileServer == fileServer)&&(identical(other.id, id) || other.id == id));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Doc&&(identical(other.originalName, originalName) || other.originalName == originalName)&&(identical(other.path, path) || other.path == path)&&(identical(other.fileServer, fileServer) || other.fileServer == fileServer)&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other._extern, _extern));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,originalName,path,fileServer,id);
+int get hashCode => Object.hash(runtimeType,originalName,path,fileServer,id,const DeepCollectionEquality().hash(_extern));
 
 @override
 String toString() {
-  return 'Doc(originalName: $originalName, path: $path, fileServer: $fileServer, id: $id)';
+  return 'Doc(originalName: $originalName, path: $path, fileServer: $fileServer, id: $id, extern: $extern)';
 }
 
 
@@ -537,7 +545,7 @@ abstract mixin class _$DocCopyWith<$Res> implements $DocCopyWith<$Res> {
   factory _$DocCopyWith(_Doc value, $Res Function(_Doc) _then) = __$DocCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "originalName") String originalName,@JsonKey(name: "path") String path,@JsonKey(name: "fileServer") String fileServer,@JsonKey(name: "id") String id
+@JsonKey(name: "originalName") String originalName,@JsonKey(name: "path") String path,@JsonKey(name: "fileServer") String fileServer,@JsonKey(name: "id") String id,@JsonKey(name: "extern") Map<String, dynamic> extern
 });
 
 
@@ -554,13 +562,14 @@ class __$DocCopyWithImpl<$Res>
 
 /// Create a copy of Doc
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? originalName = null,Object? path = null,Object? fileServer = null,Object? id = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? originalName = null,Object? path = null,Object? fileServer = null,Object? id = null,Object? extern = null,}) {
   return _then(_Doc(
 originalName: null == originalName ? _self.originalName : originalName // ignore: cast_nullable_to_non_nullable
 as String,path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
 as String,fileServer: null == fileServer ? _self.fileServer : fileServer // ignore: cast_nullable_to_non_nullable
 as String,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,
+as String,extern: null == extern ? _self._extern : extern // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>,
   ));
 }
 

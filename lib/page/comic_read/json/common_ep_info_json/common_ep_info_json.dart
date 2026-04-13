@@ -35,6 +35,9 @@ abstract class Doc with _$Doc {
     @JsonKey(name: "path") required String path,
     @JsonKey(name: "fileServer") required String fileServer,
     @JsonKey(name: "id") required String id,
+    @JsonKey(name: "extern")
+    @Default(<String, dynamic>{})
+    Map<String, dynamic> extern,
   }) = _Doc;
 
   factory Doc.fromJson(Map<String, dynamic> json) => _$DocFromJson(json);

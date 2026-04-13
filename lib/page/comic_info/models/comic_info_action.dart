@@ -24,27 +24,17 @@ Future<void> handleComicInfoAction(
   }
 
   if (type == 'openSearch') {
-    final pluginId = _pluginIdFromString(
+    final pluginId = _sourceIdFromString(
       payload['source']?.toString(),
       fallbackPluginId,
     );
     final keyword = payload['keyword']?.toString() ?? '';
-    final url = payload['url']?.toString() ?? '';
     final externPatch = asJsonMap(payload['extern']);
-    final categories = asJsonList(payload['categories'])
-        .map((item) => item.toString())
-        .where((item) => item.trim().isNotEmpty)
-        .toList();
 
     final searchStates = SearchStates.initial().copyWith(
       from: pluginId,
       searchKeyword: keyword,
-      pluginExtern: {
-        ...externPatch,
-        '_pluginId': pluginId,
-        if (categories.isNotEmpty) 'categories': categories,
-        if (url.isNotEmpty) 'url': url,
-      },
+      pluginExtern: externPatch,
     );
 
     context.pushRoute(
@@ -76,7 +66,7 @@ Future<void> handleComicInfoAction(
   }
 }
 
-String _pluginIdFromString(String? source, String fallbackPluginId) {
+String _sourceIdFromString(String? source, String fallbackPluginId) {
   final resolved = (source ?? '').trim();
   return resolved.isEmpty ? fallbackPluginId : resolved;
 }

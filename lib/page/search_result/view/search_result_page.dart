@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart' hide Thumb;
 import 'package:flutter/rendering.dart';
@@ -217,15 +215,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
   );
 
   String _buildHistoryItem(SearchEvent event) {
-    final keyword = event.searchStates.searchKeyword.trim();
-    final payload = <String, dynamic>{};
-    if (event.searchStates.pluginExtern.isNotEmpty) {
-      payload['extern'] = event.searchStates.pluginExtern;
-    }
-    if (payload.isEmpty) {
-      return keyword;
-    }
-    return '$keyword&&${jsonEncode(payload)}';
+    return event.searchStates.searchKeyword.trim();
   }
 
   Widget _comicList(SearchState state) {
@@ -234,9 +224,6 @@ class _SearchResultPageState extends State<_SearchResultPage>
 
   Widget _genericList(SearchState state) {
     if (state.status == SearchStatus.success) {
-      if (state.comics.length < 30 && !state.hasReachedMax) {
-        _fetchSearchResult();
-      }
       if (state.comics.isEmpty && state.hasReachedMax) {
         return const Center(
           child: Text('啥都没有', style: TextStyle(fontSize: 20.0)),

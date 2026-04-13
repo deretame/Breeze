@@ -60,18 +60,41 @@ class BookshelfSearchCubit extends Cubit<BookshelfSearchState> {
     emit(state.copyMode(mode, next));
   }
 
-  void syncSources(List<String> available) {
+  void syncSources(
+    List<String> available, {
+    List<String> autoSelect = const [],
+  }) {
     if (available.isEmpty) {
+      var nextState = state;
+      for (final mode in ShelfPageMode.values) {
+        if (nextState.stateOf(mode).sources.isNotEmpty) {
+          nextState = nextState.copyMode(
+            mode,
+            nextState.stateOf(mode).copyWith(sources: const <String>[]),
+          );
+        }
+      }
+      if (!identical(nextState, state)) {
+        emit(nextState);
+      }
       return;
     }
+    final autoSelectSet = autoSelect
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toSet();
+
     var nextState = state;
     for (final mode in ShelfPageMode.values) {
       final current = nextState
           .stateOf(mode)
           .sources
           .where((item) => item.trim().isNotEmpty);
-      final filtered = current.where(available.contains).toList();
-      final nextSources = filtered.isEmpty ? available : filtered;
+      final filtered = current.where(available.contains).toSet();
+      filtered.addAll(autoSelectSet.where(available.contains));
+      final nextSources = filtered.isEmpty
+          ? available
+          : available.where(filtered.contains).toList();
       if (!_listEquals(nextState.stateOf(mode).sources, nextSources)) {
         nextState = nextState.copyMode(
           mode,

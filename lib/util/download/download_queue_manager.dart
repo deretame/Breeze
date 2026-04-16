@@ -11,7 +11,7 @@ import 'package:zephyr/util/download/download_progress_reporter.dart';
 import 'package:zephyr/util/download/download_cancel_signal.dart';
 import 'package:zephyr/util/download/platform/desktop_download_runner.dart';
 import 'package:zephyr/util/download/platform/ios_download_runner.dart';
-import 'package:zephyr/util/download/qjs_download_runtime.dart';
+import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 import 'package:zephyr/util/foreground_task/task/unified_download_task.dart';
 import 'package:zephyr/util/macos_activity.dart';
 import 'package:zephyr/widgets/toast.dart';

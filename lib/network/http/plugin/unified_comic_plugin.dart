@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unauthorized_payload.dart';
-import 'package:zephyr/util/download/qjs_download_runtime.dart';
+import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 import 'package:zephyr/util/event/event.dart';
 import 'package:zephyr/util/json/json_value.dart';
 

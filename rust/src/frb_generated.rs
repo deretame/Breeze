@@ -107,11 +107,9 @@ fn wire__crate__api__simple__compress_extreme_impl(
             let api_data = <Vec<u8>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, ()>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
-                        let output_ok = Result::<_, ()>::Ok(
-                            crate::api::simple::compress_extreme(api_data).await,
-                        )?;
+                        let output_ok = crate::api::simple::compress_extreme(api_data).await?;
                         Ok(output_ok)
                     })()
                     .await,
@@ -181,11 +179,9 @@ fn wire__crate__api__simple__decompress_extreme_impl(
             let api_data = <Vec<u8>>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
-                transform_result_sse::<_, ()>(
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
                     (move || async move {
-                        let output_ok = Result::<_, ()>::Ok(
-                            crate::api::simple::decompress_extreme(api_data).await,
-                        )?;
+                        let output_ok = crate::api::simple::decompress_extreme(api_data).await?;
                         Ok(output_ok)
                     })()
                     .await,

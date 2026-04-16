@@ -8,7 +8,7 @@ import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/download/download_cancel_signal.dart';
-import 'package:zephyr/util/download/qjs_download_runtime.dart';
+import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 
 import '../../../src/rust/api/simple.dart';
 import '../../../src/rust/decode/decode.dart';

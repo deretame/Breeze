@@ -6,7 +6,7 @@ import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/type/pipe.dart';
-import 'package:zephyr/util/download/qjs_download_runtime.dart';
+import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 
 import '../../../util/get_path.dart';
 import 'package:zephyr/type/enum.dart';

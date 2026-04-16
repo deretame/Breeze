@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
+import 'package:zephyr/src/rust/api/simple.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/download/download_cancel_signal.dart';
 import 'package:zephyr/util/direct_dio.dart';
 
@@ -379,10 +382,21 @@ Future<String> loadQjsBundleJs(String pluginId) async {
   }
 
   try {
-    final response = await directDio.get(bundleUrl);
-    final body = response.data?.toString() ?? '';
-    if (body.trim().isNotEmpty) {
-      return body;
+    if (bundleUrl.split(".").last == "br") {
+      final response = await directDio.get<List<int>>(
+        bundleUrl,
+        options: Options(
+          responseType: ResponseType.bytes,
+          followRedirects: true,
+        ),
+      );
+      return await decompressExtreme(data: response.data!).let(utf8.decode);
+    } else {
+      final response = await directDio.get(bundleUrl);
+      final body = response.data?.toString() ?? '';
+      if (body.trim().isNotEmpty) {
+        return body;
+      }
     }
     logger.w('debug bundle 为空，回退数据库: $bundleUrl');
   } catch (e) {

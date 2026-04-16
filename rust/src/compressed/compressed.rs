@@ -259,34 +259,34 @@ pub async fn compress_image(image_bytes: Vec<u8>) -> Result<String> {
     Ok(final_base64)
 }
 
-pub async fn compress_extreme(data: Vec<u8>) -> Vec<u8> {
+pub async fn compress_extreme(data: Vec<u8>) -> Result<Vec<u8>> {
     task::spawn_blocking(move || {
         let mut compressed = Vec::new();
         let mut writer = CompressorWriter::new(&mut compressed, 4096, 11, 24);
 
-        writer.write_all(&data).expect("压缩失败");
-        writer.flush().expect("刷写失败");
+        writer.write_all(&data).context("写入压缩流数据失败")?;
+
+        writer.flush().context("刷写压缩流失败")?;
 
         drop(writer);
 
-        compressed
+        Ok(compressed)
     })
     .await
-    .expect("线程池执行失败")
+    .context("压缩线程池调度失败")? // 捕获 JoinError
 }
 
-pub async fn decompress_extreme(compressed_data: Vec<u8>) -> Vec<u8> {
+pub async fn decompress_extreme(compressed_data: Vec<u8>) -> Result<Vec<u8>> {
     task::spawn_blocking(move || {
         let mut decompressed = Vec::new();
-
         let mut reader = DecompressorReader::new(&compressed_data[..], 4096);
 
         reader
             .read_to_end(&mut decompressed)
-            .expect("解压失败：数据可能损坏或非标准格式");
+            .context("Brotli 解压失败：数据可能损坏或非标准格式")?;
 
-        decompressed
+        Ok(decompressed)
     })
     .await
-    .expect("线程池执行失败")
+    .context("解压线程池调度失败")? // 捕获 JoinError
 }

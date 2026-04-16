@@ -16,7 +16,7 @@ import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/util/download/download_cancel_signal.dart';
 import 'package:zephyr/util/download/download_progress_reporter.dart';
-import 'package:zephyr/util/download/qjs_download_runtime.dart';
+import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/task/shared_download.dart';
 import 'package:zephyr/util/get_path.dart';
@@ -407,7 +407,10 @@ Map<String, dynamic> _normalizeStoredImageMap(Map<String, dynamic> image) {
     topLevelRawPath,
     allowEmpty: true,
   );
-  final normalizedExtPath = normalizeStoredAssetPath(extRawPath, allowEmpty: true);
+  final normalizedExtPath = normalizeStoredAssetPath(
+    extRawPath,
+    allowEmpty: true,
+  );
   final mergedPath = normalizedTopLevelPath.isNotEmpty
       ? normalizedTopLevelPath
       : normalizedExtPath;

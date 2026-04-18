@@ -95,6 +95,17 @@ class _ReadModeSection extends StatelessWidget {
             changePageIndex(0);
           },
         ),
+        if (globalSettingState.readMode != 0)
+          _SettingsSwitchTile(
+            title: '自动下一章',
+            subtitle: '单页式翻到最后一页时自动加载下一章',
+            value: globalSettingState.readSetting.autoNextChapter,
+            onChanged: (value) {
+              globalSettingCubit.updateReadSetting(
+                (current) => current.copyWith(autoNextChapter: value),
+              );
+            },
+          ),
       ],
     );
   }

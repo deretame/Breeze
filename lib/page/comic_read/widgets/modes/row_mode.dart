@@ -96,12 +96,17 @@ class _RowModeWidgetState extends State<RowModeWidget> {
         void jumpToNext() {
           isJumping = true;
           logger.d("🛑 检测到在最后一页尝试获取【下一话】 (Overscroll End)");
-          buttonDialog(context, '跳转', '是否要跳转到下一章？').then((value) {
-            if (value && context.mounted) {
-              jumpChapter.jumpToChapter(context, false);
-            }
+          if (readSetting.autoNextChapter) {
+            jumpChapter.jumpToChapter(context, false);
             isJumping = false;
-          });
+          } else {
+            buttonDialog(context, '跳转', '是否要跳转到下一章？').then((value) {
+              if (value && context.mounted) {
+                jumpChapter.jumpToChapter(context, false);
+              }
+              isJumping = false;
+            });
+          }
         }
 
         if (notification is ScrollUpdateNotification && !isJumping) {

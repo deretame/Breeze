@@ -6,7 +6,8 @@ import 'jm_error_message.dart';
 
 Future<String> get jmJsUrl async {
   final prefs = await SharedPreferences.getInstance();
-  return prefs.getString('debug_jm_url') ?? '';
+  return prefs.getString('debug_jm_url') ??
+      'http://127.0.0.1:7879/JmComic.bundle.cjs';
 }
 
 Future<dynamic> _requestMap(

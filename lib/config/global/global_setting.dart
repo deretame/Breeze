@@ -177,6 +177,7 @@ abstract class ReadSettingState with _$ReadSettingState {
     @Default(12) int pageInfoEdgePadding,
     @Default(82) int pageInfoOpacityPercent,
     @Default(12) int pageInfoFontSize,
+    @Default(false) bool autoNextChapter,
   }) = _ReadSettingState;
 
   factory ReadSettingState.fromJson(Map<String, dynamic> json) =>

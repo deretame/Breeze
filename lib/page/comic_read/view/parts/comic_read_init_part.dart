@@ -39,6 +39,19 @@ extension _ComicReadInitPart on _ComicReadPageState {
           .volumeKeyPageTurnDistancePercent,
       getContext: () => _imageSizeContext ?? context,
       onBeforeTurnPage: _restoreScaleBeforeTurnPage,
+      getAutoNextChapter: () => context
+          .read<GlobalSettingCubit>()
+          .state
+          .readSetting
+          .autoNextChapter,
+      onAutoNextChapter: () {
+        if (!mounted || !_jumpChapter.haveNext) return;
+        _jumpChapter.jumpToChapter(context, false);
+      },
+      onAutoPrevChapter: () {
+        if (!mounted || !_jumpChapter.havePrev) return;
+        _jumpChapter.jumpToChapter(context, true);
+      },
     );
   }
 

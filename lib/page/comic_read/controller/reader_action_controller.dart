@@ -16,6 +16,9 @@ class ReaderActionController {
   final bool Function() getVolumeKeyPageTurnEnabled;
   final int Function() getVolumeKeyPageTurnDistancePercent;
   final bool Function(bool isNext)? onBeforeTurnPage;
+  final bool Function()? getAutoNextChapter;
+  final VoidCallback? onAutoNextChapter;
+  final VoidCallback? onAutoPrevChapter;
 
   ReaderActionController({
     required this.scrollController,
@@ -30,6 +33,9 @@ class ReaderActionController {
     required this.getVolumeKeyPageTurnEnabled,
     required this.getVolumeKeyPageTurnDistancePercent,
     this.onBeforeTurnPage,
+    this.getAutoNextChapter,
+    this.onAutoNextChapter,
+    this.onAutoPrevChapter,
   });
 
   // ================= 1. 键盘专用逻辑 (桌面体验) =================
@@ -220,12 +226,23 @@ class ReaderActionController {
     final readMode = getReadMode();
     final shouldGoForward = isReverseRowReadMode(readMode) ? !isNext : isNext;
     final noAnimation = getNoAnimation();
+    final totalSlots = getTotalSlots();
+    final currentPage = getPageIndex();
+
+    if (totalSlots > 0 && (getAutoNextChapter?.call() ?? false)) {
+      if (isNext && currentPage >= totalSlots - 1) {
+        onAutoNextChapter?.call();
+        return;
+      }
+      if (!isNext && currentPage <= 0) {
+        onAutoPrevChapter?.call();
+        return;
+      }
+    }
 
     if (noAnimation) {
-      final totalSlots = getTotalSlots();
       if (totalSlots <= 0) return;
 
-      final currentPage = getPageIndex();
       final targetPage = (currentPage + (shouldGoForward ? 1 : -1)).clamp(
         0,
         totalSlots - 1,

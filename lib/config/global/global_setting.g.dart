@@ -218,6 +218,7 @@ _ReadSettingState _$ReadSettingStateFromJson(Map<String, dynamic> json) =>
       pageInfoOpacityPercent:
           (json['pageInfoOpacityPercent'] as num?)?.toInt() ?? 82,
       pageInfoFontSize: (json['pageInfoFontSize'] as num?)?.toInt() ?? 12,
+      autoNextChapter: json['autoNextChapter'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$ReadSettingStateToJson(
@@ -256,6 +257,7 @@ Map<String, dynamic> _$ReadSettingStateToJson(
   'pageInfoEdgePadding': instance.pageInfoEdgePadding,
   'pageInfoOpacityPercent': instance.pageInfoOpacityPercent,
   'pageInfoFontSize': instance.pageInfoFontSize,
+  'autoNextChapter': instance.autoNextChapter,
 };
 
 const _$ReaderBackgroundModeEnumMap = {

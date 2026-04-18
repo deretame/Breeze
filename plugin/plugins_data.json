@@ -1,0 +1,190 @@
+[
+  {
+    "repo": "deretame/Breeze-plugin-ehentai",
+    "manifest": {
+      "name": "e-hentai",
+      "uuid": "dba2a6cf-c495-4416-accf-c29263ab4016",
+      "iconUrl": "",
+      "creator": {
+        "name": "",
+        "describe": "e-hentai minimal reader plugin"
+      },
+      "describe": "e-hentai minimal reader plugin",
+      "version": "0.0.1",
+      "home": "https://e-hentai.org",
+      "updateUrl": "",
+      "function": []
+    }
+  },
+  {
+    "repo": "deretame/Breeze-plugin-JmComic",
+    "manifest": {
+      "name": "禁漫天堂",
+      "uuid": "bf99008d-010b-4f17-ac7c-61a9b57dc3d9",
+      "iconUrl": "https://raw.githubusercontent.com/deretame/Breeze-plugin-JmComic/main/assets/fO.png",
+      "creator": {
+        "name": "",
+        "describe": ""
+      },
+      "describe": "禁漫天堂插件",
+      "version": "0.0.1",
+      "home": "https://github.com/deretame/Breeze-plugin-JmComic",
+      "updateUrl": "https://api.github.com/repos/deretame/Breeze-plugin-JmComic/releases/latest",
+      "function": [
+        {
+          "id": "recommend",
+          "title": "推荐",
+          "action": {
+            "type": "openPluginFunction",
+            "payload": {
+              "id": "recommend",
+              "title": "推荐",
+              "presentation": "page"
+            }
+          }
+        },
+        {
+          "id": "latest",
+          "title": "最新",
+          "action": {
+            "type": "openComicList",
+            "payload": {
+              "scene": {
+                "title": "最新",
+                "source": "bf99008d-010b-4f17-ac7c-61a9b57dc3d9",
+                "list": {
+                  "fnPath": "getLatestData",
+                  "core": {},
+                  "extern": {
+                    "source": "latest"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "ranking",
+          "title": "排行榜",
+          "action": {
+            "type": "openComicList",
+            "payload": {
+              "scene": {
+                "title": "禁漫排行榜",
+                "source": "bf99008d-010b-4f17-ac7c-61a9b57dc3d9",
+                "list": {
+                  "fnPath": "getRankingData",
+                  "core": {},
+                  "extern": {
+                    "source": "ranking"
+                  }
+                },
+                "filter": {
+                  "fnPath": "getRankingFilterBundle",
+                  "core": {},
+                  "extern": {
+                    "source": "ranking"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "cloudFavorite",
+          "title": "云端收藏",
+          "action": {
+            "type": "openCloudFavorite",
+            "payload": {
+              "title": "云端收藏"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "repo": "deretame/Breeze-plugin-bikaComic",
+    "manifest": {
+      "name": "哔咔漫画",
+      "uuid": "0a0e5858-a467-4702-994a-79e608a4589d",
+      "iconUrl": "https://raw.githubusercontent.com/deretame/Breeze-plugin-bikaComic/main/assets/logo_round.png",
+      "creator": {
+        "name": "",
+        "describe": ""
+      },
+      "describe": "哔咔漫画插件",
+      "version": "0.0.1",
+      "updateUrl": "",
+      "home": "",
+      "function": [
+        {
+          "id": "hotSearch",
+          "title": "热搜",
+          "action": {
+            "type": "openPluginFunction",
+            "payload": {
+              "id": "hotSearch",
+              "title": "热搜",
+              "presentation": "dialog"
+            }
+          }
+        },
+        {
+          "id": "navigation",
+          "title": "导航",
+          "action": {
+            "type": "openPluginFunction",
+            "payload": {
+              "id": "navigation",
+              "title": "导航",
+              "presentation": "page"
+            }
+          }
+        },
+        {
+          "id": "ranking",
+          "title": "排行榜",
+          "action": {
+            "type": "openComicList",
+            "payload": {
+              "scene": {
+                "title": "哔咔排行榜",
+                "source": "0a0e5858-a467-4702-994a-79e608a4589d",
+                "body": {
+                  "type": "pluginPagedComicList",
+                  "request": {
+                    "fnPath": "getRankingData",
+                    "core": {
+                      "days": "H24",
+                      "type": "comic"
+                    },
+                    "extern": {
+                      "source": "ranking"
+                    }
+                  }
+                },
+                "filter": {
+                  "fnPath": "getRankingFilterBundle",
+                  "extern": {
+                    "source": "ranking"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "cloudFavorite",
+          "title": "云端收藏",
+          "action": {
+            "type": "openCloudFavorite",
+            "payload": {
+              "title": "云端收藏"
+            }
+          }
+        }
+      ]
+    }
+  }
+]

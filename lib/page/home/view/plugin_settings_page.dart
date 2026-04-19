@@ -13,6 +13,7 @@ import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/multi_choice_list_dialog.dart';
 import 'package:zephyr/widgets/toast.dart';
 
+@RoutePage()
 class PluginSettingsPage extends StatefulWidget {
   const PluginSettingsPage({
     super.key,

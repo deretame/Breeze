@@ -17,6 +17,7 @@ class ComicReadSuccessWidget extends StatefulWidget {
   final WidgetBuilder buildAppBar;
   final WidgetBuilder buildBottom;
   final WidgetBuilder buildAutoReadControl;
+  final int Function(ReadSettingState readSetting)? resolveTotalSlots;
   final void Function(
     BuildContext innerContext,
     ReadSettingState readSetting,
@@ -34,6 +35,7 @@ class ComicReadSuccessWidget extends StatefulWidget {
     required this.buildAppBar,
     required this.buildBottom,
     required this.buildAutoReadControl,
+    this.resolveTotalSlots,
     required this.onReady,
   });
 
@@ -100,7 +102,9 @@ class _ComicReadSuccessWidgetState extends State<ComicReadSuccessWidget> {
                 imageCount: widget.epInfo.length,
                 enableDoublePage: readSetting.doublePageMode,
               );
-              cubit.updateTotalSlots(totalSlots);
+              final resolvedTotalSlots =
+                  widget.resolveTotalSlots?.call(readSetting) ?? totalSlots;
+              cubit.updateTotalSlots(resolvedTotalSlots);
               widget.onReady(innerContext, readSetting, readMode);
 
               return Container(

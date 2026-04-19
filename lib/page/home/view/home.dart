@@ -17,7 +17,6 @@ import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import 'home_scheme_renderer.dart';
-import 'plugin_settings_page.dart';
 
 @RoutePage()
 class HomePage extends StatefulWidget {
@@ -170,43 +169,38 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildPluginStoreButton() {
     final colorScheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Material(
-        color: colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () => context.pushRoute(const PluginStoreRoute()),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(
-              children: [
-                Icon(Icons.storefront_outlined, color: colorScheme.primary),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '插件商店',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                      Text(
-                        '浏览和管理可用插件',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
-              ],
+    return InkWell(
+      onTap: () => context.pushRoute(const PluginStoreRoute()),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Row(
+          children: [
+            Icon(
+              Icons.storefront_outlined,
+              size: 22,
+              color: colorScheme.primary,
             ),
-          ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                '插件商店',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+              ),
+            ),
+            Text(
+              '浏览和管理',
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              Icons.chevron_right,
+              size: 20,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ],
         ),
       ),
     );
@@ -408,14 +402,12 @@ class _HomePageState extends State<HomePage> {
                   tooltip: '设置',
                   icon: const Icon(Icons.settings_outlined, size: 20),
                   onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (context) => PluginSettingsPage(
-                          from: from,
-                          pluginUuid: pluginUuid,
-                          pluginRuntimeName: pluginUuid,
-                          pluginDisplayName: title,
-                        ),
+                    context.pushRoute(
+                      PluginSettingsRoute(
+                        from: from,
+                        pluginUuid: pluginUuid,
+                        pluginRuntimeName: pluginUuid,
+                        pluginDisplayName: title,
                       ),
                     );
                   },
@@ -625,14 +617,12 @@ class _HomePageState extends State<HomePage> {
 
     if (presentation != 'dialog') {
       if (!mounted) return;
-      await Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (context) => _PluginFunctionPage(
-            from: from,
-            functionId: functionId,
-            title: title,
-            onAction: _handleAction,
-          ),
+      await context.pushRoute(
+        PluginFunctionRoute(
+          from: from,
+          functionId: functionId,
+          title: title,
+          onAction: _handleAction,
         ),
       );
       return;
@@ -752,23 +742,6 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class _PluginFunctionPage extends StatefulWidget {
-  const _PluginFunctionPage({
-    required this.from,
-    required this.functionId,
-    required this.title,
-    required this.onAction,
-  });
-
-  final String from;
-  final String functionId;
-  final String title;
-  final Future<void> Function(Map<String, dynamic> action) onAction;
-
-  @override
-  State<_PluginFunctionPage> createState() => _PluginFunctionPageState();
-}
-
 class _PluginFunctionDialogContent extends StatefulWidget {
   const _PluginFunctionDialogContent({
     required this.from,
@@ -873,114 +846,5 @@ class _PluginFunctionDialogContentState
       showLoadMoreRetry: false,
       onRetryLoadMore: () {},
     );
-  }
-}
-
-class _PluginFunctionPageState extends State<_PluginFunctionPage> {
-  final HomeSchemeRenderer _renderer = const HomeSchemeRenderer();
-  bool _loading = true;
-  String _error = '';
-  Map<String, dynamic> _scheme = const <String, dynamic>{};
-  Map<String, dynamic> _data = const <String, dynamic>{};
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = '';
-    });
-    try {
-      Map<String, dynamic> response;
-      try {
-        response = await callUnifiedComicPlugin(
-          from: widget.from,
-          fnPath: 'getFunctionPage',
-          core: {'id': widget.functionId},
-          extern: const <String, dynamic>{},
-        );
-      } catch (_) {
-        response = await callUnifiedComicPlugin(
-          from: widget.from,
-          fnPath: 'get_function_page',
-          core: {'id': widget.functionId},
-          extern: const <String, dynamic>{},
-        );
-      }
-      final envelope = UnifiedPluginEnvelope.fromMap(response);
-      if (!mounted) return;
-      setState(() {
-        _scheme = envelope.scheme;
-        _data = asMap(envelope.data);
-        _loading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = e.toString();
-        _loading = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error.isNotEmpty
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(_error),
-                  const SizedBox(height: 12),
-                  ElevatedButton(onPressed: _load, child: const Text('重试')),
-                ],
-              ),
-            )
-          : _renderer.buildPage(
-              context,
-              from: widget.from,
-              scheme: _scheme,
-              data: _data,
-              onReachBottom: () async {},
-              onAction: _onAction,
-              isLoadingMore: false,
-              showLoadMoreRetry: false,
-              onRetryLoadMore: () {},
-            ),
-    );
-  }
-
-  Future<void> _onAction(Map<String, dynamic> action) async {
-    final type = action['type']?.toString().trim() ?? '';
-    if (type.isEmpty) {
-      await widget.onAction(action);
-      return;
-    }
-
-    if (type == 'openPluginFunction' ||
-        type == 'openCloudFavorite' ||
-        type == 'openSearch' ||
-        type == 'openComicList') {
-      final payload = Map<String, dynamic>.from(asJsonMap(action['payload']));
-      payload['source'] = widget.from;
-      if (type == 'openComicList') {
-        final scene = Map<String, dynamic>.from(asJsonMap(payload['scene']));
-        scene['source'] = widget.from;
-        payload['scene'] = scene;
-      }
-      final next = Map<String, dynamic>.from(action)..['payload'] = payload;
-      await widget.onAction(next);
-      return;
-    }
-
-    await widget.onAction(action);
   }
 }

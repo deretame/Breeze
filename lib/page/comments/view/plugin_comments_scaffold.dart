@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
@@ -5,6 +6,7 @@ import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/cover.dart';
 
+@RoutePage(name: 'PluginCommentsScaffoldRoute')
 class PluginCommentsScaffold extends StatefulWidget {
   const PluginCommentsScaffold({
     super.key,

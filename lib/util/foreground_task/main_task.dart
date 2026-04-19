@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_socks_proxy/socks_proxy.dart';
+import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/src/rust/frb_generated.dart';
@@ -23,6 +25,7 @@ class MyTaskHandler extends TaskHandler {
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
     objectbox = await ObjectBox.create();
     await RustLib.init();
+    await workerManager.init(isolatesCount: Platform.numberOfProcessors);
     final setting = objectbox.userSettingBox.get(1);
     final globalSetting = setting?.globalSetting;
     if (globalSetting?.socks5Proxy != null &&

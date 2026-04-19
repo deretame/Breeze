@@ -11,13 +11,15 @@ import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 class ImageDisplay extends StatefulWidget {
   final String imagePath;
   final bool isColumn;
-  final int index;
+  final int pageSlotIndex;
+  final int sizeCacheIndex;
 
   const ImageDisplay({
     super.key,
     required this.imagePath,
     required this.isColumn,
-    required this.index,
+    required this.pageSlotIndex,
+    required this.sizeCacheIndex,
   });
 
   @override
@@ -131,7 +133,7 @@ class _ImageDisplayState extends State<ImageDisplay> {
   void _updateCubitSize(double actualWidth) {
     if (_rawWidth == null || _rawHeight == null || _rawWidth == 0) return;
 
-    final index = widget.index - 1;
+    final index = widget.sizeCacheIndex;
     final cubit = context.read<ImageSizeCubit>();
 
     final double finalHeight = (_rawHeight! / _rawWidth!) * actualWidth;
@@ -181,7 +183,8 @@ class _ImageDisplayState extends State<ImageDisplay> {
     );
     final canUseEinkMask =
         !isColumn && readMode != 0 && readSetting.einkOptimization;
-    final isActiveRowImage = !isColumn && currentPageIndex + 1 == widget.index;
+    final isActiveRowImage =
+        !isColumn && currentPageIndex == widget.pageSlotIndex;
 
     if (canUseEinkMask && isActiveRowImage && !_wasRowActive) {
       _wasRowActive = true;

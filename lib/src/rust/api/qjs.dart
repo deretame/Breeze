@@ -4,11 +4,8 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
+import '../qjs.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
-
-// These functions are ignored because they are not marked as `pub`: `call_bundle_once_by_json`, `call_bundle_once_inner`, `call_bundle_once_start_by_json`, `call_current_bundle_by_json`, `call_current_bundle_inner`, `call_current_bundle_start_by_json`, `call_current_bundle_start`, `call_loaded_bundle_inner`, `call_loaded_bundle_start`, `cancel_runtime_tasks_many`, `complete_tracked_task_as_cancelled`, `complete`, `create_qjs_runtime_with_bundle`, `create_qjs_runtime`, `current_bundle_name`, `get_tracked_task`, `insert_runtime_task_id`, `insert_tracked_task`, `is_cancelled_error_text`, `is_ready`, `load_bundle_inner`, `native_bytes_from_payload`, `new`, `opencc_convert_by_config`, `opencc_convert_with_json_arg`, `parse_args_array`, `parse_call_input`, `parse_ok_json_payload`, `qjs_in_flight_task_map`, `qjs_runtime_init_lock`, `qjs_runtime_map`, `qjs_runtime`, `qjs_tracked_task_map`, `remove_runtime_task_id`, `remove_tracked_task`, `replace_bundle_inner`, `spawn_tracked_bundle_once_task_waiter`, `spawn_tracked_task_waiter`, `take_runtime_task_ids`, `tracked_task_ids_by_group`, `wait_tracked_task_output`, `wait`
-// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `TrackedQjsTaskKind`, `TrackedQjsTaskOutput`, `TrackedQjsTaskState`, `TrackedQjsTask`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`
 
 Future<void> qjsReplaceBundle({
   required String runtimeName,
@@ -228,44 +225,3 @@ void initRustFunctions() => RustLib.instance.api.crateApiQjsInitRustFunctions();
 
 String openccConvert({required String text, required String config}) =>
     RustLib.instance.api.crateApiQjsOpenccConvert(text: text, config: config);
-
-class QjsCancelTaskResult {
-  final String status;
-
-  const QjsCancelTaskResult({required this.status});
-
-  @override
-  int get hashCode => status.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is QjsCancelTaskResult &&
-          runtimeType == other.runtimeType &&
-          status == other.status;
-}
-
-class QjsCancelTasksByGroupResult {
-  final int cancelled;
-  final int notFound;
-  final List<String> failedRuntimeGroups;
-
-  const QjsCancelTasksByGroupResult({
-    required this.cancelled,
-    required this.notFound,
-    required this.failedRuntimeGroups,
-  });
-
-  @override
-  int get hashCode =>
-      cancelled.hashCode ^ notFound.hashCode ^ failedRuntimeGroups.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is QjsCancelTasksByGroupResult &&
-          runtimeType == other.runtimeType &&
-          cancelled == other.cancelled &&
-          notFound == other.notFound &&
-          failedRuntimeGroups == other.failedRuntimeGroups;
-}

@@ -1,10 +1,10 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:zephyr/page/comments/view/plugin_comments_scaffold.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/page/comic_info/models/collect_comic.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
-import 'package:zephyr/page/download/view/download.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../../util/dialog.dart';
 import '../../../widgets/toast.dart';
@@ -123,13 +123,11 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
       return;
     }
 
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => PluginCommentsScaffold(
-          from: widget.from,
-          comicId: comicInfoView.id.toString(),
-          comicTitle: comicInfoView.title,
-        ),
+    context.pushRoute(
+      PluginCommentsScaffoldRoute(
+        from: widget.from,
+        comicId: comicInfoView.id.toString(),
+        comicTitle: comicInfoView.title,
       ),
     );
   }
@@ -137,9 +135,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
   void _openDownload() {
     if (!normalInfo.allowDownload) return;
     final info = resolveUnifiedDownloadInfo(comicInfo, widget.from);
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => DownloadPage(downloadInfo: info)),
-    );
+    context.pushRoute(DownloadRoute(downloadInfo: info));
   }
 
   Future<void> _toggleLocalFavorite() async {

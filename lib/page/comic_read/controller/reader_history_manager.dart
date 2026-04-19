@@ -21,6 +21,7 @@ class ReaderHistoryManager {
 
   // 状态回调
   final int Function() getPageIndex;
+  final int Function() getCurrentChapterOrder;
   final NormalComicEpInfo Function() getEpInfo;
   final StringSelectCubit stringSelectCubit;
 
@@ -38,6 +39,7 @@ class ReaderHistoryManager {
     required this.comicInfo,
     required this.historyWriter,
     required this.getPageIndex,
+    required this.getCurrentChapterOrder,
     required this.getEpInfo,
     required this.stringSelectCubit,
   });
@@ -104,7 +106,7 @@ class ReaderHistoryManager {
         normalInfo: temp,
         chapterId: epInfo.epId,
         chapterTitle: epInfo.epName,
-        chapterOrder: order,
+        chapterOrder: getCurrentChapterOrder(),
         pageIndex: pageIndex,
         timestamp: timestamp,
       );

@@ -186,9 +186,21 @@ int _toInt(String value, int fallback) {
 List<UnifiedComicDownloadStoredChapter> resolveStoredDownloadChapters(
   UnifiedComicDownload comic,
 ) {
-  return _decodeListOfMaps(
+  final chaptersFromMain = _decodeListOfMaps(
     comic.chapters,
   ).map((e) => UnifiedComicDownloadStoredChapter.fromMap(e)).toList();
+  if (chaptersFromMain.any((chapter) => chapter.images.isNotEmpty)) {
+    return chaptersFromMain;
+  }
+
+  final chaptersFromDetail = _decodeStoredChaptersFromDetailJson(
+    comic.detailJson,
+  );
+  if (chaptersFromDetail.isNotEmpty) {
+    return chaptersFromDetail;
+  }
+
+  return chaptersFromMain;
 }
 
 List<Map<String, dynamic>> _decodeListOfMaps(String raw) {
@@ -206,5 +218,38 @@ List<Map<String, dynamic>> _decodeListOfMaps(String raw) {
         .toList();
   } catch (_) {
     return const <Map<String, dynamic>>[];
+  }
+}
+
+List<UnifiedComicDownloadStoredChapter> _decodeStoredChaptersFromDetailJson(
+  String rawDetailJson,
+) {
+  if (rawDetailJson.trim().isEmpty) {
+    return const <UnifiedComicDownloadStoredChapter>[];
+  }
+
+  try {
+    final decoded = jsonDecode(rawDetailJson);
+    if (decoded is! Map) {
+      return const <UnifiedComicDownloadStoredChapter>[];
+    }
+
+    final detail = Map<String, dynamic>.from(decoded);
+    final extension = Map<String, dynamic>.from(
+      detail['extension'] as Map? ?? const <String, dynamic>{},
+    );
+    final rawDownloadChapters =
+        (extension['downloadChapters'] as List?) ?? const [];
+
+    return rawDownloadChapters
+        .whereType<Map>()
+        .map(
+          (entry) => UnifiedComicDownloadStoredChapter.fromMap(
+            Map<String, dynamic>.from(entry),
+          ),
+        )
+        .toList();
+  } catch (_) {
+    return const <UnifiedComicDownloadStoredChapter>[];
   }
 }

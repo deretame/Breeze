@@ -19,6 +19,7 @@ import 'package:logger/logger.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
@@ -169,6 +170,8 @@ Future<void> main() async {
 Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
   // 初始化rust
   await RustLib.init();
+
+  await workerManager.init(isolatesCount: Platform.numberOfProcessors);
 
   enableStacktrace(enabled: false);
 

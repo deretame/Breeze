@@ -32,7 +32,7 @@ class SearchSchemeRenderer {
           );
           break;
         case 'history':
-          final child = const HistoryWidget();
+          final child = HistoryWidget(aggregateMode: aggregateMode);
           widgets.add(
             config['expanded'] == true ? Expanded(child: child) : child,
           );

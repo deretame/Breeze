@@ -11,8 +11,19 @@ import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
 
 class PageCountWidget extends StatefulWidget {
   final String epPages;
+  final int Function()? getCurrentChapterStartSlot;
+  final int Function()? getCurrentChapterSlotCount;
+  final bool Function(int globalSlot)? isTransitionSlot;
+  final String transitionText;
 
-  const PageCountWidget({super.key, required this.epPages});
+  const PageCountWidget({
+    super.key,
+    required this.epPages,
+    this.getCurrentChapterStartSlot,
+    this.getCurrentChapterSlotCount,
+    this.isTransitionSlot,
+    this.transitionText = '章节过渡中',
+  });
 
   @override
   State<PageCountWidget> createState() => _PageCountWidgetState();
@@ -116,6 +127,7 @@ class _PageCountWidgetState extends State<PageCountWidget> {
     const priorityOrder = [
       ConnectivityResult.wifi,
       ConnectivityResult.mobile,
+      ConnectivityResult.satellite,
       ConnectivityResult.none,
       ConnectivityResult.ethernet,
       ConnectivityResult.bluetooth,
@@ -139,6 +151,8 @@ class _PageCountWidgetState extends State<PageCountWidget> {
         return Icons.router;
       case ConnectivityResult.mobile:
         return Icons.network_cell;
+      case ConnectivityResult.satellite:
+        return Icons.satellite_alt;
       case ConnectivityResult.none:
         return Icons.signal_wifi_off;
       case ConnectivityResult.vpn:
@@ -216,13 +230,27 @@ class _PageCountWidgetState extends State<PageCountWidget> {
     final totalPageCount = (parsedEpPages != null && parsedEpPages > 0)
         ? parsedEpPages
         : 1;
-    final currentDisplayPage = getDisplayPageNumber(
-      slotIndex: pageIndex,
-      enableDoublePage: readSetting.doublePageMode,
-    ).clamp(1, totalPageCount);
+    final chapterStartSlot = widget.getCurrentChapterStartSlot?.call() ?? 0;
+    final chapterSlotCount =
+        widget.getCurrentChapterSlotCount?.call() ?? totalPageCount;
+    final isTransitionSlot = widget.isTransitionSlot?.call(pageIndex) ?? false;
+    final String pageText;
+    if (isTransitionSlot) {
+      pageText = widget.transitionText;
+    } else {
+      final localSlotIndex = (pageIndex - chapterStartSlot).clamp(
+        0,
+        chapterSlotCount > 0 ? chapterSlotCount - 1 : 0,
+      );
+      final currentDisplayPage = getDisplayPageNumber(
+        slotIndex: localSlotIndex,
+        enableDoublePage: readSetting.doublePageMode,
+      ).clamp(1, totalPageCount);
+      pageText = '$currentDisplayPage/$totalPageCount';
+    }
 
     final panel = _PageInfoPanel(
-      pageText: '$currentDisplayPage/$totalPageCount',
+      pageText: pageText,
       showPage: showPage,
       showNetwork: showNetwork,
       showBattery: showBattery,

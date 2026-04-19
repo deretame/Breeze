@@ -4,10 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
-import 'package:zephyr/page/search/widget/advanced_search_dialog.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/multi_choice_list_dialog.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
   final SearchEvent searchEvent;
@@ -113,6 +113,10 @@ class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
   Future<void> _search(BuildContext context) async {
     final searchCubit = context.read<SearchCubit>();
     final source = searchCubit.state.from;
+    if (source.trim().isEmpty) {
+      showWarningToast('当前插件不支持高级搜索');
+      return;
+    }
     final scheme = await _loadAdvancedSearchScheme(
       source,
       searchCubit.state.pluginExtern,
@@ -120,20 +124,16 @@ class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
     if (!context.mounted) {
       return;
     }
+    if (scheme == null) {
+      showWarningToast('当前插件不支持高级搜索');
+      return;
+    }
     final newStates = await showDialog<SearchStates>(
       context: context,
-      builder: (context) {
-        if (scheme == null) {
-          return AdvancedSearchDialog(
-            initialState: searchCubit.state,
-            allowSourceSwitch: false,
-          );
-        }
-        return _PluginAdvancedSearchDialog(
-          initialState: searchCubit.state,
-          scheme: scheme,
-        );
-      },
+      builder: (context) => _PluginAdvancedSearchDialog(
+        initialState: searchCubit.state,
+        scheme: scheme,
+      ),
     );
 
     if (newStates == null) return;

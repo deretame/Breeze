@@ -12,12 +12,16 @@ class ReadImageWidget extends StatefulWidget {
   final PictureInfo pictureInfo;
   final int index;
   final bool isColumn;
+  final int? cacheIndex;
+  final int? displayNumber;
 
   const ReadImageWidget({
     super.key,
     required this.pictureInfo,
     required this.index,
     required this.isColumn,
+    this.cacheIndex,
+    this.displayNumber,
   });
 
   @override
@@ -25,7 +29,8 @@ class ReadImageWidget extends StatefulWidget {
 }
 
 class _ReadImageWidgetState extends State<ReadImageWidget> {
-  int get index => widget.index + 1;
+  int get displayIndex => widget.displayNumber ?? widget.index + 1;
+  int get cacheIndex => widget.cacheIndex ?? widget.index;
   bool get isColumn => widget.isColumn;
 
   @override
@@ -65,7 +70,8 @@ class _ReadImageWidgetState extends State<ReadImageWidget> {
                     child: ImageDisplay(
                       imagePath: state.imagePath!,
                       isColumn: isColumn,
-                      index: index,
+                      pageSlotIndex: widget.index,
+                      sizeCacheIndex: cacheIndex,
                     ),
                   ),
                 );
@@ -111,7 +117,7 @@ class _ReadImageWidgetState extends State<ReadImageWidget> {
     color: backgroundColor,
     child: Center(
       child: Text(
-        index.toString(),
+        displayIndex.toString(),
         style: TextStyle(
           fontFamily: 'Pacifico-Regular',
           color: foregroundColor,

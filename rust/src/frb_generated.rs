@@ -2104,21 +2104,21 @@ impl SseDecode for crate::compressed::compressed::PackInfo {
     }
 }
 
-impl SseDecode for crate::api::qjs::QjsCancelTaskResult {
+impl SseDecode for crate::qjs::QjsCancelTaskResult {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_status = <String>::sse_decode(deserializer);
-        return crate::api::qjs::QjsCancelTaskResult { status: var_status };
+        return crate::qjs::QjsCancelTaskResult { status: var_status };
     }
 }
 
-impl SseDecode for crate::api::qjs::QjsCancelTasksByGroupResult {
+impl SseDecode for crate::qjs::QjsCancelTasksByGroupResult {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_cancelled = <i32>::sse_decode(deserializer);
         let mut var_notFound = <i32>::sse_decode(deserializer);
         let mut var_failedRuntimeGroups = <Vec<String>>::sse_decode(deserializer);
-        return crate::api::qjs::QjsCancelTasksByGroupResult {
+        return crate::qjs::QjsCancelTasksByGroupResult {
             cancelled: var_cancelled,
             not_found: var_notFound,
             failed_runtime_groups: var_failedRuntimeGroups,
@@ -2387,24 +2387,24 @@ impl flutter_rust_bridge::IntoIntoDart<crate::compressed::compressed::PackInfo>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::qjs::QjsCancelTaskResult {
+impl flutter_rust_bridge::IntoDart for crate::qjs::QjsCancelTaskResult {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [self.status.into_into_dart().into_dart()].into_dart()
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::qjs::QjsCancelTaskResult
+    for crate::qjs::QjsCancelTaskResult
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<crate::api::qjs::QjsCancelTaskResult>
-    for crate::api::qjs::QjsCancelTaskResult
+impl flutter_rust_bridge::IntoIntoDart<crate::qjs::QjsCancelTaskResult>
+    for crate::qjs::QjsCancelTaskResult
 {
-    fn into_into_dart(self) -> crate::api::qjs::QjsCancelTaskResult {
+    fn into_into_dart(self) -> crate::qjs::QjsCancelTaskResult {
         self
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for crate::api::qjs::QjsCancelTasksByGroupResult {
+impl flutter_rust_bridge::IntoDart for crate::qjs::QjsCancelTasksByGroupResult {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.cancelled.into_into_dart().into_dart(),
@@ -2415,13 +2415,13 @@ impl flutter_rust_bridge::IntoDart for crate::api::qjs::QjsCancelTasksByGroupRes
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for crate::api::qjs::QjsCancelTasksByGroupResult
+    for crate::qjs::QjsCancelTasksByGroupResult
 {
 }
-impl flutter_rust_bridge::IntoIntoDart<crate::api::qjs::QjsCancelTasksByGroupResult>
-    for crate::api::qjs::QjsCancelTasksByGroupResult
+impl flutter_rust_bridge::IntoIntoDart<crate::qjs::QjsCancelTasksByGroupResult>
+    for crate::qjs::QjsCancelTasksByGroupResult
 {
-    fn into_into_dart(self) -> crate::api::qjs::QjsCancelTasksByGroupResult {
+    fn into_into_dart(self) -> crate::qjs::QjsCancelTasksByGroupResult {
         self
     }
 }
@@ -2581,14 +2581,14 @@ impl SseEncode for crate::compressed::compressed::PackInfo {
     }
 }
 
-impl SseEncode for crate::api::qjs::QjsCancelTaskResult {
+impl SseEncode for crate::qjs::QjsCancelTaskResult {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.status, serializer);
     }
 }
 
-impl SseEncode for crate::api::qjs::QjsCancelTasksByGroupResult {
+impl SseEncode for crate::qjs::QjsCancelTasksByGroupResult {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(self.cancelled, serializer);

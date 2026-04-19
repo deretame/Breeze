@@ -152,28 +152,39 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
   }
 
   Widget _columnModeWidget({required bool enableDoublePage}) {
-    final slotCount = getReadModeSlotCount(
-      imageCount: epInfo.length,
-      enableDoublePage: enableDoublePage,
-    );
+    final readSetting = context.read<GlobalSettingCubit>().state.readSetting;
+    final seamlessEnabled = _isSeamlessEnabled(readSetting);
+    final entries = _buildColumnEntries(readSetting: readSetting);
+    final canLoadPrev = seamlessEnabled
+        ? _canLoadPreviousChapter()
+        : _jumpChapter.havePrev;
+    final canLoadNext = seamlessEnabled
+        ? _canLoadNextChapter()
+        : _jumpChapter.haveNext;
 
     return VerticalPullNavigator(
-      havePrev: _jumpChapter.havePrev,
-      haveNext: _jumpChapter.haveNext,
+      havePrev: canLoadPrev,
+      haveNext: canLoadNext,
       onPrev: () async {
         if (!mounted) return;
+        if (seamlessEnabled) {
+          await _triggerSeamlessBoundary(previous: true);
+          return;
+        }
         _jumpChapter.jumpToChapter(context, true);
       },
       onNext: () async {
         if (!mounted) return;
+        if (seamlessEnabled) {
+          await _triggerSeamlessBoundary(previous: false);
+          return;
+        }
         _jumpChapter.jumpToChapter(context, false);
       },
       builder: (context, physics) {
         return ColumnModeWidget(
           comicId: comicId,
-          epsId: epInfo.epId,
-          length: slotCount,
-          docs: epInfo.docs,
+          entries: entries,
           enableDoublePage: enableDoublePage,
           observerController: observerController,
           scrollController: scrollController,
@@ -181,6 +192,10 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
           parentPhysics: physics,
           disableScroll: _isScrollLockedByMultiTouch,
           volumeController: _volumeController,
+          onMiddleSlotObserved: seamlessEnabled
+              ? _onSeamlessGlobalSlotObserved
+              : null,
+          onTransitionAction: seamlessEnabled ? _onTransitionAction : null,
         );
       },
     );
@@ -188,11 +203,19 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
 
   Widget _rowModeWidget() {
     final globalSettingState = context.watch<GlobalSettingCubit>().state;
+    final readSetting = globalSettingState.readSetting;
+    final seamlessEnabled = _isSeamlessEnabled(readSetting);
+    final entries = _buildRowEntries(readSetting: readSetting);
+    final canLoadPrev = seamlessEnabled
+        ? _canLoadPreviousChapter()
+        : _jumpChapter.havePrev;
+    final canLoadNext = seamlessEnabled
+        ? _canLoadNextChapter()
+        : _jumpChapter.haveNext;
     return RowModeWidget(
-      key: ValueKey(globalSettingState.readSetting.readMode.toString()),
+      key: ValueKey(readSetting.readMode.toString()),
       comicId: comicId,
-      epsId: epInfo.epId,
-      docs: epInfo.docs,
+      entries: entries,
       pageController: _pageController,
       scrollPhysics: _isScrollLockedByMultiTouch
           ? const NeverScrollableScrollPhysics()
@@ -201,6 +224,16 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
       from: widget.from,
       jumpChapter: _jumpChapter,
       volumeController: _volumeController,
+      havePrev: canLoadPrev,
+      haveNext: canLoadNext,
+      onSlotChanged: seamlessEnabled ? _onSeamlessGlobalSlotObserved : null,
+      onEdgePrevious: seamlessEnabled
+          ? () => _triggerSeamlessBoundary(previous: true)
+          : null,
+      onEdgeNext: seamlessEnabled
+          ? () => _triggerSeamlessBoundary(previous: false)
+          : null,
+      onTransitionAction: seamlessEnabled ? _onTransitionAction : null,
     );
   }
 

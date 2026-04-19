@@ -46,16 +46,16 @@ class ObjectBox {
     _pluginInfoBox = store.box<PluginInfo>();
   }
 
-  static Future<ObjectBox> create() async {
+  static Future<ObjectBox> create({String? dbRootPath}) async {
     // A. 同 Isolate 保护：如果已经有初始化任务在跑，直接返回同一个 Future
     if (_initFuture != null) return _initFuture!;
 
-    _initFuture = _doInit();
+    _initFuture = _doInit(dbRootPath: dbRootPath);
     return _initFuture!;
   }
 
-  static Future<ObjectBox> _doInit() async {
-    final dbPath = p.join(await getDbPath(), "breeze_db");
+  static Future<ObjectBox> _doInit({String? dbRootPath}) async {
+    final dbPath = p.join(dbRootPath ?? await getDbPath(), "breeze_db");
 
     // 尝试次数限制，防止死循环
     int retryCount = 0;

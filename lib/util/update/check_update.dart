@@ -1,21 +1,18 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:markdown_widget/widget/markdown_block.dart';
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:permission_guard/permission_guard.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/get_path.dart';
-import 'package:zephyr/util/update/github_update_accelerator.dart';
+import 'package:zephyr/util/github_proxy.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../../../main.dart';
@@ -35,54 +32,17 @@ Future<String> getAppVersion() async {
   return version;
 }
 
-Future<GithubReleaseJson> getCloudVersion({
-  GithubUpdateAccelerationSession? accelerator,
-}) async {
-  const releasesApi = "https://api.github.com/repos/deretame/Breeze/releases";
+Future<GithubReleaseJson> getCloudVersion() async {
+  const releasesApi =
+      "https://api.github.com/repos/deretame/Breeze/releases/latest";
 
   while (true) {
     try {
-      final activeAccelerator =
-          accelerator ??
-          GithubUpdateAccelerator.createSession(
-            enabled: globalSetting.updateAccelerate,
-          );
+      final response = await fetchReleaseData(
+        releasesApi,
+      ).let(GithubReleaseJson.fromJson);
 
-      try {
-        await activeAccelerator.prepare();
-      } catch (e, stackTrace) {
-        logger.w('检查更新 API 加速不可用，回退直连', error: e, stackTrace: stackTrace);
-      }
-
-      final userAgent = await GithubUpdateAccelerator.createGithubUserAgent();
-      final requestUrls = activeAccelerator.requestCandidates(releasesApi);
-
-      Object? lastError;
-      for (final requestUrl in requestUrls) {
-        try {
-          final response = await Dio()
-              .get(
-                requestUrl,
-                options: Options(
-                  headers: {
-                    'User-Agent': userAgent,
-                    'Accept': 'application/vnd.github.v3+json',
-                  },
-                ),
-              )
-              .let((d) => d.data)
-              .let(jsonEncode)
-              .let(githubReleaseJsonFromJson)
-              .let((d) => d[0]);
-
-          return response;
-        } catch (e, stackTrace) {
-          lastError = e;
-          logger.w('获取云端版本失败: $requestUrl', error: e, stackTrace: stackTrace);
-        }
-      }
-
-      throw lastError ?? Exception('无法获取云端版本信息');
+      return response;
     } catch (e) {
       logger.e(e);
       await Future.delayed(const Duration(minutes: 5));
@@ -115,19 +75,21 @@ bool isUpdateAvailable(String cloudVersion, String localVersion) {
 Future<void> installApk(String apkUrl) async {
   if (await _requestInstallPackagesPermission()) {
     try {
-      // 使用 Dio 下载 APK 文件
-      Response response = await dio.get(
-        apkUrl,
-        options: Options(responseType: ResponseType.bytes),
-      );
-
       // 获取应用的文档目录，存储 APK 文件
       String tempDir = await getCachePath();
       String apkFilePath = p.join(tempDir, 'app.apk');
 
-      // 将下载的字节写入 APK 文件
-      File apkFile = File(apkFilePath);
-      await apkFile.writeAsBytes(response.data);
+      if (_isGithubReleaseDownloadUrl(apkUrl)) {
+        await smartDownload(apkUrl, apkFilePath);
+      } else {
+        // 非发行文件链接走原始下载逻辑
+        Response response = await dio.get(
+          apkUrl,
+          options: Options(responseType: ResponseType.bytes),
+        );
+        File apkFile = File(apkFilePath);
+        await apkFile.writeAsBytes(response.data);
+      }
 
       // 打开 APK 文件以启动安装
       OpenFile.open(apkFilePath);
@@ -152,12 +114,28 @@ Future<bool> _requestInstallPackagesPermission() async {
   return false; // 仅考虑 Android 平台
 }
 
+bool _isGithubReleaseDownloadUrl(String url) {
+  final uri = Uri.tryParse(url);
+  if (uri == null || uri.scheme != 'https') {
+    return false;
+  }
+
+  final host = uri.host.toLowerCase();
+  if (host != 'github.com' && host != 'www.github.com') {
+    return false;
+  }
+
+  final segments = uri.pathSegments;
+  if (segments.length < 6) {
+    return false;
+  }
+
+  return segments[2] == 'releases' && segments[3] == 'download';
+}
+
 Future<void> checkUpdate(BuildContext context) async {
   if (!context.mounted) return;
-  final accelerator = GithubUpdateAccelerator.createSession(
-    enabled: context.read<GlobalSettingCubit>().state.updateAccelerate,
-  );
-  final temp = await getCloudVersion(accelerator: accelerator);
+  final temp = await getCloudVersion();
   final cloudVersion = temp.tagName;
   final releaseInfo = temp.body;
   final String localVersion = await getAppVersion();
@@ -180,8 +158,8 @@ Future<void> checkUpdate(BuildContext context) async {
 
   if (isUpdateAvailable(cloudVersion, localVersion)) {
     if (!context.mounted) return;
-    var releaseNotes = accelerator.accelerateMarkdown(releaseInfo);
-    var releasePageUrl = accelerator.accelerateIfGithub(url);
+    var releaseNotes = releaseInfo;
+    var releasePageUrl = url;
 
     if (!context.mounted) return;
     showDialog(
@@ -210,9 +188,6 @@ Future<void> checkUpdate(BuildContext context) async {
                     if (apkUrl.browserDownloadUrl.contains(arch) &&
                         !apkUrl.browserDownloadUrl.contains("skia")) {
                       var androidDownloadUrl = apkUrl.browserDownloadUrl;
-                      androidDownloadUrl = accelerator.accelerateIfGithub(
-                        androidDownloadUrl,
-                      );
                       await installApk(androidDownloadUrl);
                     }
                   }

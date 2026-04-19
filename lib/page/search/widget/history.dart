@@ -4,7 +4,9 @@ import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/page/search/method/on_search.dart';
 
 class HistoryWidget extends StatefulWidget {
-  const HistoryWidget({super.key});
+  const HistoryWidget({super.key, this.aggregateMode = true});
+
+  final bool aggregateMode;
 
   @override
   State<HistoryWidget> createState() => _HistoryWidgetState();
@@ -142,7 +144,11 @@ class _HistoryWidgetState extends State<HistoryWidget> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0),
-                onPressed: () => onSearch(context, keyword),
+                onPressed: () => onSearch(
+                  context,
+                  keyword,
+                  aggregateMode: widget.aggregateMode,
+                ),
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             );

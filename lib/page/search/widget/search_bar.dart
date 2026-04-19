@@ -6,9 +6,9 @@ import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search/method/on_search.dart';
-import 'package:zephyr/page/search/widget/advanced_search_dialog.dart';
 import 'package:zephyr/page/search/widget/source_select_dialog.dart';
 import 'package:zephyr/widgets/multi_choice_list_dialog.dart';
+import 'package:zephyr/widgets/toast.dart';
 
 class SearchBar extends StatefulWidget {
   const SearchBar({super.key, this.aggregateMode = true});
@@ -190,25 +190,23 @@ class _SearchBarState extends State<SearchBar> {
     final state = searchCubit.state;
     final source = state.from;
 
-    _AdvancedSearchScheme? scheme;
-    if (source.trim().isNotEmpty) {
-      scheme = await _loadAdvancedSearchScheme(source, state.pluginExtern);
+    if (source.trim().isEmpty) {
+      showWarningToast('当前插件不支持高级搜索');
+      return;
     }
+    final scheme = await _loadAdvancedSearchScheme(source, state.pluginExtern);
     if (!context.mounted) {
+      return;
+    }
+    if (scheme == null) {
+      showWarningToast('当前插件不支持高级搜索');
       return;
     }
 
     final newStates = await showDialog<SearchStates>(
       context: context,
-      builder: (context) {
-        if (scheme == null) {
-          return AdvancedSearchDialog(
-            initialState: state,
-            allowSourceSwitch: false,
-          );
-        }
-        return _PluginAdvancedSearchDialog(initialState: state, scheme: scheme);
-      },
+      builder: (context) =>
+          _PluginAdvancedSearchDialog(initialState: state, scheme: scheme),
     );
 
     if (newStates != null && context.mounted) {

@@ -70,13 +70,14 @@ extension _ComicReadInitPart on _ComicReadPageState {
       comicInfo: widget.comicInfo,
       historyWriter: HistoryWriter(),
       stringSelectCubit: context.read<StringSelectCubit>(),
+      getCurrentChapterOrder: () => _jumpChapter.order,
       getPageIndex: () {
-        final slotIndex = context.read<ReaderCubit>().state.pageIndex;
-        final enableDoublePage = context
-            .read<GlobalSettingCubit>()
-            .state
-            .readSetting
-            .doublePageMode;
+        final setting = context.read<GlobalSettingCubit>().state.readSetting;
+        final globalSlotIndex = context.read<ReaderCubit>().state.pageIndex;
+        final slotIndex = _isSeamlessEnabled(setting)
+            ? _mapGlobalToCurrentChapterLocalSlot(globalSlotIndex)
+            : globalSlotIndex;
+        final enableDoublePage = setting.doublePageMode;
         return getStoredHistoryPageIndex(
           slotIndex: slotIndex,
           enableDoublePage: enableDoublePage,
@@ -110,6 +111,16 @@ extension _ComicReadInitPart on _ComicReadPageState {
       comicId,
       widget.from,
     );
+    if (_chapterRefs.isEmpty && _jumpChapter.chapters.isNotEmpty) {
+      _chapterRefs = List<UnifiedComicChapterRef>.from(_jumpChapter.chapters);
+      _chapterOrderToCatalogIndex
+        ..clear()
+        ..addEntries(
+          _chapterRefs.asMap().entries.map(
+            (entry) => MapEntry(entry.value.order, entry.key),
+          ),
+        );
+    }
   }
 
   // 集中释放资源，避免退出后残留订阅和计时器。

@@ -296,11 +296,12 @@ Future<void> _saveUnifiedDownload({
   final metadata = _normalizeMetadataForStorage(detail.comicInfo.metadata);
   final chapters = storedChapters
       .map(
-        (chapter) => UnifiedComicDownloadChapter(
-          id: chapter.id,
-          title: chapter.name,
-          order: chapter.order,
-        ).toMap(),
+        (chapter) => {
+          'id': chapter.id,
+          'name': chapter.name,
+          'order': chapter.order,
+          'images': chapter.images.map((image) => image.toMap()).toList(),
+        },
       )
       .toList();
 

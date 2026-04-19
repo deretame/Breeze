@@ -83,6 +83,9 @@ class _AppBootstrapViewState extends State<AppBootstrapView> {
     updateStatus("初始化中....");
     await PluginRegistryService.I.init();
     await PluginRegistryService.I.warmupPluginInfos();
+    PluginRegistryService.I.scheduleSilentCloudUpdate(
+      delay: const Duration(minutes: 5),
+    );
     unawaited(() async {
       try {
         await PluginRegistryService.I.initializeActivePluginRuntimes();

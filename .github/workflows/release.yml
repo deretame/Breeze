@@ -11,6 +11,9 @@ on:
 permissions:
   contents: write
 
+env:
+  BREEZE_PLUGIN_GITHUB_TOKEN: ${{ secrets.BREEZE_PLUGIN_GITHUB_TOKEN != '' && secrets.BREEZE_PLUGIN_GITHUB_TOKEN || github.token }}
+
 jobs:
   # ══════════════════════════════════════════
   # 1. Android 构建 (含 git-crypt & Sentry)

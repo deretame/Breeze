@@ -16,6 +16,8 @@ import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_state.dart';
 import 'package:zephyr/page/comic_read/method/key.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
+import 'package:zephyr/page/comic_read/model/seamless_transition_state.dart';
+import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/type/enum.dart';
 
@@ -29,6 +31,8 @@ part 'parts/comic_read_interaction_part.dart';
 part 'parts/comic_read_system_ui_part.dart';
 // 页面拼装与历史定位相关。
 part 'parts/comic_read_view_part.dart';
+// 竖向章节半无缝拼接与章节范围映射。
+part 'parts/comic_read_seamless_part.dart';
 
 @RoutePage()
 class ComicReadPage extends StatelessWidget {
@@ -112,6 +116,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
   late final ReaderVolumeController _volumeController; // 音量键翻页控制器
   late final ReaderHistoryManager _historyManager; // 历史记录管理器
   NormalComicEpInfo epInfo = NormalComicEpInfo(); // 通用漫画章节信息
+  NormalComicEpInfo _initialEpInfo = NormalComicEpInfo();
   late final ListObserverController observerController; // 列表观察控制器
   final scrollController = ScrollController(); // 列表滚动控制器
   BuildContext? _imageSizeContext;
@@ -125,6 +130,19 @@ class _ComicReadPageState extends State<_ComicReadPage>
   bool _lastAutoScrollEnabled = false;
   int _lastAutoReadIntervalMs = 0;
   int _lastAutoReadMode = -1;
+  bool _hasBootstrappedReadState = false;
+  late List<UnifiedComicChapterRef> _chapterRefs;
+  late Map<int, int> _chapterOrderToCatalogIndex;
+  final List<_LoadedChapterData> _loadedChapters = <_LoadedChapterData>[];
+  final Set<int> _loadingChapterOrders = <int>{};
+  final Set<int> _prefetchingChapterOrders = <int>{};
+  final Map<int, NormalComicEpInfo> _prefetchedChapterInfoByOrder =
+      <int, NormalComicEpInfo>{};
+  final Set<int> _visibleTransitionNextOrders = <int>{};
+  final Map<int, SeamlessTransitionStatus> _transitionStatusByNextOrder =
+      <int, SeamlessTransitionStatus>{};
+  int _currentChapterStartSlot = 0;
+  int _currentChapterSlotCount = 0;
   final TransformationController _transformationController =
       TransformationController();
   final Set<int> _activeTouchPointers = <int>{};
@@ -144,6 +162,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
     _transformationController.addListener(_onTransformationChanged);
     observerController = ListObserverController(controller: scrollController);
     _type = widget.type;
+    _initChapterCatalog();
     final cubit = context.read<ReaderCubit>();
 
     _initMenuVisibilitySubscription(cubit);
@@ -180,11 +199,17 @@ class _ComicReadPageState extends State<_ComicReadPage>
               ),
             );
           case PageStatus.success:
-            epInfo = state.epInfo!;
+            if (!_hasBootstrappedReadState) {
+              _hasBootstrappedReadState = true;
+              epInfo = state.epInfo!;
+              _initialEpInfo = state.epInfo!;
+              _bootstrapInitialChapterFeed(epInfo);
+            }
             return ComicReadSuccessWidget(
               comicId: comicId,
               from: widget.from,
-              epInfo: epInfo,
+              epInfo: _initialEpInfo,
+              resolveTotalSlots: _resolveTotalSlots,
               buildInteractiveViewer: (_) => _buildInteractiveViewer(),
               buildPageCount: (_) => _pageCountWidget(),
               buildAppBar: (_) => _comicReadAppBar(),

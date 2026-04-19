@@ -11,7 +11,6 @@ import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
-import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/util/get_path.dart';
 
 const _legacyJmImageBaseUrl = 'https://cdn-msp12.jmdanjonproxy.xyz';
@@ -20,6 +19,7 @@ const String _kBikaPluginUuid = '0a0e5858-a467-4702-994a-79e608a4589d';
 const String _kJmPluginUuid = 'bf99008d-010b-4f17-ac7c-61a9b57dc3d9';
 const String _kLegacyBikaSource = 'bika';
 const String _kLegacyJmSource = 'jm';
+String _downloadRoot = "";
 
 String _legacyJmCoverUrl(String id) {
   return '$_legacyJmImageBaseUrl/media/albums/${id}_3x4.jpg';
@@ -30,39 +30,82 @@ String _legacyJmImageUrl(String chapterId, String imageName) {
 }
 
 Future<void> migrateV1ToV2() async {
-  return compute(_migrateV1ToV2OnIsolate, null);
+  final downloadRoot = await getDownloadPath();
+  _downloadRoot = downloadRoot;
+  await _migrateV1ToV2InCurrentIsolate();
 }
 
-Future<void> _migrateV1ToV2OnIsolate(Null _) async {
-  await RustLib.init();
-  final objectbox = await ObjectBox.create();
-  _migrateLegacySearchHistory(objectbox);
-  _migrateLegacyPluginSettings(objectbox);
-  _debugLogMigrationSnapshot('before', _buildLegacySnapshot(objectbox));
-  final proxy = objectbox.userSettingBox.get(1)?.bikaSetting.proxy ?? 3;
+Future<void> _migrateV1ToV2InCurrentIsolate() async {
+  final box = objectbox;
+  _migrateLegacySearchHistory(box);
+  _migrateLegacyPluginSettings(box);
+  _debugLogMigrationSnapshot('before', _buildLegacySnapshot(box));
+  final proxy = box.userSettingBox.get(1)?.bikaSetting.proxy ?? 3;
 
-  final favorites = _buildFavorites(objectbox);
-  final histories = _buildHistories(objectbox, proxy);
-  final downloads = await _buildDownloads(objectbox, proxy);
-  await _seedBuiltinPlugins(objectbox);
+  final jmFavoritesJson = box.jmFavoriteBox
+      .getAll()
+      .map((e) => e.toJson())
+      .toList();
+  final bikaHistoriesJson = box.bikaHistoryBox
+      .getAll()
+      .map((e) => e.toJson())
+      .toList();
+  final jmHistoriesJson = box.jmHistoryBox
+      .getAll()
+      .map((e) => e.toJson())
+      .toList();
+  final bikaDownloadsJson = box.bikaDownloadBox
+      .getAll()
+      .map((e) => e.toJson())
+      .toList();
+  final jmDownloadsJson = box.jmDownloadBox
+      .getAll()
+      .map((e) => e.toJson())
+      .toList();
 
-  objectbox.store.runInTransaction(TxMode.write, () {
-    objectbox.unifiedFavoriteBox.removeAll();
-    objectbox.unifiedHistoryBox.removeAll();
-    objectbox.unifiedDownloadBox.removeAll();
+  final converted = await Future.wait<List<Map<String, dynamic>>>([
+    compute(_buildFavoritesOnCompute, jmFavoritesJson),
+    compute(_buildHistoriesOnCompute, {
+      'proxy': proxy,
+      'bikaHistories': bikaHistoriesJson,
+      'jmHistories': jmHistoriesJson,
+    }),
+    compute(_buildDownloadsOnCompute, {
+      'proxy': proxy,
+      'downloadRoot': _downloadRoot,
+      'bikaDownloads': bikaDownloadsJson,
+      'jmDownloads': jmDownloadsJson,
+    }),
+  ]);
+
+  final favorites = converted[0]
+      .map((e) => UnifiedComicFavorite.fromJson(e))
+      .toList();
+  final histories = converted[1]
+      .map((e) => UnifiedComicHistory.fromJson(e))
+      .toList();
+  final downloads = converted[2]
+      .map((e) => UnifiedComicDownload.fromJson(e))
+      .toList();
+
+  await _seedBuiltinPlugins(box);
+  box.store.runInTransaction(TxMode.write, () {
+    box.unifiedFavoriteBox.removeAll();
+    box.unifiedHistoryBox.removeAll();
+    box.unifiedDownloadBox.removeAll();
 
     if (favorites.isNotEmpty) {
-      objectbox.unifiedFavoriteBox.putMany(favorites);
+      box.unifiedFavoriteBox.putMany(favorites);
     }
     if (histories.isNotEmpty) {
-      objectbox.unifiedHistoryBox.putMany(histories);
+      box.unifiedHistoryBox.putMany(histories);
     }
     if (downloads.isNotEmpty) {
-      objectbox.unifiedDownloadBox.putMany(downloads);
+      box.unifiedDownloadBox.putMany(downloads);
     }
   });
 
-  _debugLogMigrationSnapshot('after', _buildUnifiedSnapshot(objectbox));
+  _debugLogMigrationSnapshot('after', _buildUnifiedSnapshot(box));
 }
 
 void _migrateLegacyPluginSettings(ObjectBox objectbox) {
@@ -211,7 +254,7 @@ bool _hasMeaningfulValue(dynamic value) {
 }
 
 Future<void> migrateLegacyDownloadFilesToPluginUuidLayout() async {
-  final downloadRoot = await getDownloadPath();
+  final downloadRoot = _downloadRoot;
   logger.d('[migration_v1_to_v2][files] start migrate root=$downloadRoot');
   await _migrateLegacyDownloadRoot(
     downloadRoot: downloadRoot,
@@ -398,38 +441,102 @@ UnifiedComicHistory buildUnifiedHistoryFromJmLegacy(JmHistory item) =>
 
 Future<UnifiedComicDownload> buildUnifiedDownloadFromBikaLegacy(
   BikaComicDownload item,
-) async => _bikaDownloadToUnified(item, await getDownloadPath(), 3);
+) async => _bikaDownloadToUnified(item, _downloadRoot, 3);
 
 Future<UnifiedComicDownload> buildUnifiedDownloadFromJmLegacy(
   JmDownload item,
-) async => _jmDownloadToUnified(item, await getDownloadPath());
+) async => _jmDownloadToUnified(item, _downloadRoot);
 
-List<UnifiedComicFavorite> _buildFavorites(ObjectBox objectbox) {
-  final jmFavorites = objectbox.jmFavoriteBox.getAll();
+List<Map<String, dynamic>> _buildFavoritesOnCompute(
+  List<Map<String, dynamic>> jmFavoritesJson,
+) {
+  final jmFavorites = jmFavoritesJson
+      .map((item) => JmFavorite.fromJson(item))
+      .toList();
+  final favorites = _buildFavoritesFromLegacy(jmFavorites);
+  return favorites.map((item) => item.toJson()).toList();
+}
+
+List<Map<String, dynamic>> _buildHistoriesOnCompute(
+  Map<String, dynamic> payload,
+) {
+  final proxy = (payload['proxy'] as num?)?.toInt() ?? 3;
+  final bikaHistories =
+      ((payload['bikaHistories'] as List<dynamic>?) ?? const [])
+          .map(
+            (item) => BikaComicHistory.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
+          .toList();
+  final jmHistories = ((payload['jmHistories'] as List<dynamic>?) ?? const [])
+      .map((item) => JmHistory.fromJson(Map<String, dynamic>.from(item as Map)))
+      .toList();
+  final histories = _buildHistoriesFromLegacy(
+    bikaHistories,
+    jmHistories,
+    proxy,
+  );
+  return histories.map((item) => item.toJson()).toList();
+}
+
+List<Map<String, dynamic>> _buildDownloadsOnCompute(
+  Map<String, dynamic> payload,
+) {
+  final proxy = (payload['proxy'] as num?)?.toInt() ?? 3;
+  final downloadRoot = payload['downloadRoot']?.toString() ?? '';
+  final bikaDownloads =
+      ((payload['bikaDownloads'] as List<dynamic>?) ?? const [])
+          .map(
+            (item) => BikaComicDownload.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
+          .toList();
+  final jmDownloads = ((payload['jmDownloads'] as List<dynamic>?) ?? const [])
+      .map(
+        (item) => JmDownload.fromJson(Map<String, dynamic>.from(item as Map)),
+      )
+      .toList();
+  final downloads = _buildDownloadsFromLegacy(
+    bikaDownloads,
+    jmDownloads,
+    proxy: proxy,
+    downloadRoot: downloadRoot,
+  );
+  return downloads.map((item) => item.toJson()).toList();
+}
+
+List<UnifiedComicFavorite> _buildFavoritesFromLegacy(
+  List<JmFavorite> jmFavorites,
+) {
   return jmFavorites.map(_jmFavoriteToUnified).toList();
 }
 
-List<UnifiedComicHistory> _buildHistories(ObjectBox objectbox, int proxy) {
-  final bikaHistories = objectbox.bikaHistoryBox.getAll().map(
-    (item) => _bikaHistoryToUnified(item, proxy),
-  );
-  final jmHistories = objectbox.jmHistoryBox.getAll().map(_jmHistoryToUnified);
-  return [...bikaHistories, ...jmHistories].toList();
+List<UnifiedComicHistory> _buildHistoriesFromLegacy(
+  List<BikaComicHistory> bikaHistories,
+  List<JmHistory> jmHistories,
+  int proxy,
+) {
+  final bika = bikaHistories.map((item) => _bikaHistoryToUnified(item, proxy));
+  final jm = jmHistories.map(_jmHistoryToUnified);
+  return [...bika, ...jm].toList();
 }
 
-Future<List<UnifiedComicDownload>> _buildDownloads(
-  ObjectBox objectbox,
-  int proxy,
-) async {
-  final downloadRoot = await getDownloadPath();
+List<UnifiedComicDownload> _buildDownloadsFromLegacy(
+  List<BikaComicDownload> bikaLegacyDownloads,
+  List<JmDownload> jmLegacyDownloads, {
+  required int proxy,
+  required String downloadRoot,
+}) {
   final bikaDownloads = <UnifiedComicDownload>[];
-  for (final item in objectbox.bikaDownloadBox.getAll()) {
-    bikaDownloads.add(await _bikaDownloadToUnified(item, downloadRoot, proxy));
+  for (final item in bikaLegacyDownloads) {
+    bikaDownloads.add(_bikaDownloadToUnified(item, downloadRoot, proxy));
   }
 
   final jmDownloads = <UnifiedComicDownload>[];
-  for (final item in objectbox.jmDownloadBox.getAll()) {
-    jmDownloads.add(await _jmDownloadToUnified(item, downloadRoot));
+  for (final item in jmLegacyDownloads) {
+    jmDownloads.add(_jmDownloadToUnified(item, downloadRoot));
   }
   return [...bikaDownloads, ...jmDownloads];
 }
@@ -645,11 +752,11 @@ UnifiedComicHistory _jmHistoryToUnified(JmHistory item) {
   );
 }
 
-Future<UnifiedComicDownload> _bikaDownloadToUnified(
+UnifiedComicDownload _bikaDownloadToUnified(
   BikaComicDownload item,
   String downloadRoot,
   int proxy,
-) async {
+) {
   final coverPath = _sanitizeLegacyStoredPath(item.thumbPath, allowEmpty: true);
   final legacy = jsonDecode(item.comicInfoAll) as Map<String, dynamic>;
   final epsDocs = ((legacy['eps'] as Map?)?['docs'] as List? ?? const [])
@@ -859,11 +966,12 @@ Future<UnifiedComicDownload> _bikaDownloadToUnified(
     chapters: jsonEncode(
       storedChapters
           .map(
-            (chapter) => UnifiedComicDownloadChapter(
-              id: chapter.id,
-              title: chapter.name,
-              order: chapter.order,
-            ).toMap(),
+            (chapter) => {
+              'id': chapter.id,
+              'name': chapter.name,
+              'order': chapter.order,
+              'images': chapter.images.map((image) => image.toMap()).toList(),
+            },
           )
           .toList(),
     ),
@@ -881,10 +989,10 @@ Future<UnifiedComicDownload> _bikaDownloadToUnified(
   );
 }
 
-Future<UnifiedComicDownload> _jmDownloadToUnified(
+UnifiedComicDownload _jmDownloadToUnified(
   JmDownload item,
   String downloadRoot,
-) async {
+) {
   final coverPath = _sanitizeLegacyStoredPath('${item.comicId}.jpg');
   final info = jsonDecode(item.allInfo) as Map<String, dynamic>;
   final series = (info['series'] as List? ?? const [])
@@ -971,11 +1079,12 @@ Future<UnifiedComicDownload> _jmDownloadToUnified(
     chapters: jsonEncode(
       storedChapters
           .map(
-            (chapter) => UnifiedComicDownloadChapter(
-              id: chapter.id,
-              title: chapter.name,
-              order: chapter.order,
-            ).toMap(),
+            (chapter) => {
+              'id': chapter.id,
+              'name': chapter.name,
+              'order': chapter.order,
+              'images': chapter.images.map((image) => image.toMap()).toList(),
+            },
           )
           .toList(),
     ),
@@ -1109,9 +1218,18 @@ String _uniqueKey(String source, String comicId) => '$source:$comicId';
 List<UnifiedComicDownloadStoredChapter> _withSequentialChapterOrders(
   List<UnifiedComicDownloadStoredChapter> chapters,
 ) {
+  final indexed = chapters.asMap().entries.toList()
+    ..sort((left, right) {
+      final orderCompare = left.value.order.compareTo(right.value.order);
+      if (orderCompare != 0) {
+        return orderCompare;
+      }
+      return left.key.compareTo(right.key);
+    });
+
   final normalized = <UnifiedComicDownloadStoredChapter>[];
-  for (var i = 0; i < chapters.length; i++) {
-    final chapter = chapters[i];
+  for (var i = 0; i < indexed.length; i++) {
+    final chapter = indexed[i].value;
     normalized.add(
       UnifiedComicDownloadStoredChapter(
         id: chapter.id,

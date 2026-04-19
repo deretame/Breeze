@@ -16,11 +16,21 @@ import 'package:zephyr/main.dart';
 class SliderWidget extends StatefulWidget {
   final ListObserverController observerController;
   final PageController pageController;
+  final int Function()? getCurrentChapterSlotCount;
+  final int Function(int globalSlot)? mapGlobalToLocalSlot;
+  final int Function(int localSlot)? mapLocalToGlobalSlot;
+  final bool Function(int globalSlot)? isTransitionSlot;
+  final String transitionLabel;
 
   const SliderWidget({
     super.key,
     required this.observerController,
     required this.pageController,
+    this.getCurrentChapterSlotCount,
+    this.mapGlobalToLocalSlot,
+    this.mapLocalToGlobalSlot,
+    this.isTransitionSlot,
+    this.transitionLabel = '章节过渡中',
   });
 
   @override
@@ -30,6 +40,7 @@ class SliderWidget extends StatefulWidget {
 class _SliderWidgetState extends State<SliderWidget> {
   Timer? _sliderIsRollingTimer; // 用来控制滚动隐藏组件的操作
   Timer? _comicRollingTimer; // 漫画本身是否在滚动
+  Timer? _secondCorrectionTimer; // 滑块跳转后延迟二次校正
   OverlayEntry? _overlayEntry; // 用于存储 OverlayEntry
   int? _lastHapticStep;
 
@@ -37,13 +48,13 @@ class _SliderWidgetState extends State<SliderWidget> {
   void dispose() {
     _sliderIsRollingTimer?.cancel();
     _comicRollingTimer?.cancel();
+    _secondCorrectionTimer?.cancel();
     _overlayEntry?.remove();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    double maxValue = 0;
     final cubit = context.read<ReaderCubit>();
     final totalSlots = context.select(
       (ReaderCubit cubit) => cubit.state.totalSlots,
@@ -54,18 +65,38 @@ class _SliderWidgetState extends State<SliderWidget> {
     final sliderValue = context.select(
       (ReaderCubit cubit) => cubit.state.sliderValue,
     );
-    maxValue = totalSlots > 0 ? totalSlots.toDouble() - 1 : 0;
-    final safeSliderValue = sliderValue.clamp(0.0, maxValue).toDouble();
+    final globalMaxValue = totalSlots > 0 ? totalSlots.toDouble() - 1 : 0;
+    final safeGlobalSliderValue = sliderValue
+        .clamp(0.0, globalMaxValue)
+        .toDouble();
+    final currentChapterSlotCount =
+        widget.getCurrentChapterSlotCount?.call() ?? totalSlots;
+    final localMaxValue = currentChapterSlotCount > 0
+        ? currentChapterSlotCount.toDouble() - 1
+        : 0.0;
+    final mappedLocalSliderValue =
+        widget.mapGlobalToLocalSlot?.call(safeGlobalSliderValue.round()) ??
+        safeGlobalSliderValue.round();
+    final safeSliderValue = mappedLocalSliderValue.toDouble().clamp(
+      0.0,
+      localMaxValue,
+    );
 
     final sliderDisplayPage = getDisplayPageNumber(
       slotIndex: safeSliderValue.round(),
       enableDoublePage: readSetting.doublePageMode,
     );
+    final currentGlobalSlot = safeGlobalSliderValue.round();
+    final isCurrentTransitionSlot =
+        widget.isTransitionSlot?.call(currentGlobalSlot) ?? false;
+    final sliderLabelText = isCurrentTransitionSlot
+        ? widget.transitionLabel
+        : sliderDisplayPage.toString();
 
-    if (safeSliderValue != sliderValue) {
+    if (safeGlobalSliderValue != sliderValue) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        cubit.updateSliderChanged(safeSliderValue);
+        cubit.updateSliderChanged(safeGlobalSliderValue);
       });
     }
 
@@ -105,31 +136,40 @@ class _SliderWidgetState extends State<SliderWidget> {
               child: Slider(
                 value: safeSliderValue,
                 min: 0,
-                max: maxValue,
-                divisions: maxValue > 0 ? maxValue.toInt() : null,
-                label: sliderDisplayPage.toString(),
+                max: localMaxValue,
+                divisions: localMaxValue > 0 ? localMaxValue.toInt() : null,
+                label: sliderLabelText,
                 onChangeStart: (value) {
                   _lastHapticStep = value.round();
                 },
                 onChanged: (double newValue) {
-                  final currentStep = newValue.round();
+                  final clampedLocalValue = newValue.clamp(0.0, localMaxValue);
+                  final currentStep = clampedLocalValue.round();
+                  final targetGlobalSlot =
+                      widget.mapLocalToGlobalSlot?.call(currentStep) ??
+                      currentStep;
+                  final targetGlobalValue = targetGlobalSlot.toDouble();
                   if (_lastHapticStep != currentStep) {
                     HapticFeedback.selectionClick();
                     _lastHapticStep = currentStep;
                   }
 
-                  if (sliderValue != newValue) {
-                    cubit.updateSliderChanged(newValue);
+                  if (sliderValue != targetGlobalValue) {
+                    cubit.updateSliderChanged(targetGlobalValue);
                   }
 
                   cubit.updateIsComicRolling(true);
                   _sliderIsRollingTimer?.cancel();
 
                   final displayPage = getDisplayPageNumber(
-                    slotIndex: newValue.round(),
+                    slotIndex: currentStep,
                     enableDoublePage: readSetting.doublePageMode,
                   );
-                  _showOverlayToast(displayPage.toString());
+                  final toastMessage =
+                      widget.isTransitionSlot?.call(targetGlobalSlot) ?? false
+                      ? widget.transitionLabel
+                      : displayPage.toString();
+                  _showOverlayToast(toastMessage);
 
                   _sliderIsRollingTimer = Timer(
                     const Duration(milliseconds: 300),
@@ -152,15 +192,10 @@ class _SliderWidgetState extends State<SliderWidget> {
 
                       try {
                         if (globalSettingState.readSetting.readMode == 0) {
-                          widget.observerController.jumpTo(
-                            index: newValue.toInt(),
-                            offset: (offset) {
-                              return MediaQuery.of(context).padding.top + 5.0;
-                            },
-                          );
+                          _jumpColumnWithSecondCorrection(targetGlobalSlot);
                         } else {
                           widget.pageController.animateToPage(
-                            newValue.toInt(),
+                            targetGlobalSlot,
                             duration: const Duration(milliseconds: 300),
                             curve: Curves.easeInOut,
                           );
@@ -183,6 +218,8 @@ class _SliderWidgetState extends State<SliderWidget> {
   }
 
   void _showOverlayToast(String message) {
+    final isNumeric = int.tryParse(message) != null;
+    final fontSize = isNumeric ? 60.0 : 34.0;
     // 移除之前的 Overlay
     _overlayEntry?.remove();
 
@@ -212,7 +249,7 @@ class _SliderWidgetState extends State<SliderWidget> {
                       text: TextSpan(
                         text: message,
                         style: TextStyle(
-                          fontSize: 60,
+                          fontSize: fontSize,
                           color: context.textColor.withValues(alpha: 0.8),
                         ),
                       ),
@@ -228,6 +265,35 @@ class _SliderWidgetState extends State<SliderWidget> {
 
     // 插入 Overlay
     Overlay.of(context).insert(_overlayEntry!);
+  }
+
+  void _jumpColumnWithSecondCorrection(int targetGlobalSlot) {
+    void jumpNow() {
+      widget.observerController.jumpTo(
+        index: targetGlobalSlot,
+        offset: (offset) => MediaQuery.of(context).padding.top + 5.0,
+      );
+    }
+
+    jumpNow();
+    _secondCorrectionTimer?.cancel();
+    _secondCorrectionTimer = Timer(const Duration(milliseconds: 260), () {
+      if (!mounted) return;
+      final readMode = context
+          .read<GlobalSettingCubit>()
+          .state
+          .readSetting
+          .readMode;
+      if (readMode != 0) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        try {
+          jumpNow();
+        } catch (e) {
+          logger.e(e);
+        }
+      });
+    });
   }
 }
 

@@ -19,6 +19,7 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: ComicInfoRoute.page),
     AutoRoute(page: DownloadRoute.page),
     AutoRoute(page: CommentsRoute.page),
+    AutoRoute(page: PluginCommentsScaffoldRoute.page),
     AutoRoute(page: ComicReadRoute.page),
     AutoRoute(page: WebViewRoute.page),
     AutoRoute(page: GlobalSettingRoute.page),
@@ -32,6 +33,8 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: SearchRoute.page),
     AutoRoute(page: DownloadTaskRoute.page),
     AutoRoute(page: PluginStoreRoute.page),
+    AutoRoute(page: PluginSettingsRoute.page),
+    AutoRoute(page: PluginFunctionRoute.page),
   ];
 
   @override

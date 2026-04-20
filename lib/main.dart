@@ -480,7 +480,6 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
         }
 
         return MaterialApp.router(
-          showPerformanceOverlay: true,
           routerConfig: appRouter.config(),
           scrollBehavior: const AppScrollBehavior(),
           builder: (context, child) {

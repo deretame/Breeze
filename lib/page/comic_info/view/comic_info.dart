@@ -114,7 +114,6 @@ class _ComicInfoState extends State<_ComicInfo>
 
   @override
   Widget build(BuildContext context) {
-    final stringSelectDate = context.watch<StringSelectCubit>().state;
     super.build(context);
     return Scaffold(
       appBar: AppBar(
@@ -243,21 +242,29 @@ class _ComicInfoState extends State<_ComicInfo>
         },
       ),
       floatingActionButton: _loadingComplete
-          ? _ReadActionButton(
-              hasHistory: stringSelectDate.isNotEmpty,
-              onPressed: () => goToComicRead(
-                context,
-                widget.comicId,
-                widget.type,
-                comicInfoDyn,
-                widget.from,
-              ),
+          ? BlocBuilder<StringSelectCubit, String>(
+              builder: (context, stringSelectDate) {
+                return _ReadActionButton(
+                  hasHistory: stringSelectDate.isNotEmpty,
+                  onPressed: () => goToComicRead(
+                    context,
+                    widget.comicId,
+                    widget.type,
+                    comicInfoDyn,
+                    widget.from,
+                  ),
+                );
+              },
             )
           : null,
     );
   }
 
   Widget _infoView(NormalComicAllInfo normalComicAllInfo) {
+    final hasHistory = context.select<StringSelectCubit, bool>(
+      (cubit) => cubit.state.isNotEmpty,
+    );
+
     final comicInfo = normalComicAllInfo.comicInfo;
     _title = comicInfo.title;
 
@@ -303,8 +310,7 @@ class _ComicInfoState extends State<_ComicInfo>
                 ComicParticularsWidget(
                   comicInfo: comicInfo,
                   from: widget.from,
-                  onContinueRead:
-                      context.watch<StringSelectCubit>().state.isNotEmpty
+                  onContinueRead: hasHistory
                       ? () => goToComicRead(
                           context,
                           widget.comicId,

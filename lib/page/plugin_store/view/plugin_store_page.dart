@@ -58,61 +58,67 @@ class _PluginStorePageState extends State<PluginStorePage> {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(title: const Text('插件商店')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _buildSearchCard(colorScheme),
-          const SizedBox(height: 14),
-          _buildInstallButtons(colorScheme),
-          const SizedBox(height: 16),
-          _buildCloudPluginsSection(colorScheme),
-          if (_installing) ...[
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _buildSearchCard(colorScheme),
+              const SizedBox(height: 14),
+              _buildInstallButtons(colorScheme),
+              const SizedBox(height: 16),
+              _buildCloudPluginsSection(colorScheme),
+              if (_installing) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  const SizedBox(width: 12),
-                  Text(
-                    '正在处理中...',
-                    style: TextStyle(color: colorScheme.onPrimaryContainer),
+                  child: Row(
+                    children: [
+                      const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        '正在处理中...',
+                        style: TextStyle(color: colorScheme.onPrimaryContainer),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          ],
-          if (_lastMessage.trim().isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: colorScheme.errorContainer,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.error_outline, color: colorScheme.error),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: SelectableText(
-                      _lastMessage,
-                      style: TextStyle(color: colorScheme.onErrorContainer),
-                    ),
+                ),
+              ],
+              if (_lastMessage.trim().isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                ],
-              ),
-            ),
-          ],
-        ],
+                  child: Row(
+                    children: [
+                      Icon(Icons.error_outline, color: colorScheme.error),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: SelectableText(
+                          _lastMessage,
+                          style: TextStyle(color: colorScheme.onErrorContainer),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

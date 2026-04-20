@@ -175,8 +175,6 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
 
   enableStacktrace(enabled: false);
 
-  setLogHttpForward(url: "http://127.0.0.1:7878/log");
-
   // 配置http代理，方便开发测试
   if (kDebugMode) {
     setQjsErrorStackEnabled(enabled: true);
@@ -231,6 +229,10 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
     SocksProxy.initProxy(proxy: 'SOCKS5 $proxy');
     setSocks5Proxy(proxy: proxy);
   }
+
+  final logAddress = objectbox.userSettingBox.get(1)!.globalSetting.logAddress;
+
+  setLogHttpForward(url: logAddress);
 
   return (globalSettingCubit, pluginRegistryCubit);
 }

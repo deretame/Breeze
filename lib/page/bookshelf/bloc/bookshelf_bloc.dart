@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:isolate';
 
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
+import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -95,12 +95,10 @@ class BookshelfSectionBloc
     extends Bloc<BookshelfSectionEvent, BookshelfSectionState> {
   BookshelfSectionBloc({required this.mode})
     : super(const BookshelfSectionState()) {
-    _workerReady = _bookshelfWorkerService.ensureReady();
     on<BookshelfLoadRequested>(_onLoadRequested, transformer: sequential());
   }
 
   final ShelfPageMode mode;
-  late final Future<void> _workerReady;
 
   Future<void> _onLoadRequested(
     BookshelfLoadRequested event,
@@ -136,7 +134,6 @@ class BookshelfSectionBloc
     }
 
     try {
-      await _workerReady;
       final offset = event.append ? current.comics.length : 0;
       final raw = _fetchRawItems(
         search: event.searchEnterConst,
@@ -150,11 +147,17 @@ class BookshelfSectionBloc
           .where((keyword) => keyword.trim().isNotEmpty)
           .toList();
 
-      final response = await _bookshelfWorkerService.query(
-        mode: mode,
-        search: event.searchEnterConst,
-        sourceItems: raw.items,
-        maskedKeywords: maskedKeywords,
+      final response = await workerManager.execute<Map<String, dynamic>>(
+        () => _runBookshelfFilterTask({
+          'search': {
+            'keyword': event.searchEnterConst.keyword,
+            'sort': event.searchEnterConst.sort,
+            'categories': event.searchEnterConst.categories,
+            'sources': event.searchEnterConst.sources,
+          },
+          'items': raw.items,
+          'maskedKeywords': maskedKeywords,
+        }),
       );
 
       final error = response['error']?.toString() ?? '';
@@ -373,148 +376,32 @@ class BookshelfSectionBloc
   }
 }
 
-final _bookshelfWorkerService = _BookshelfWorkerService();
+Future<Map<String, dynamic>> _runBookshelfFilterTask(
+  Map<String, dynamic> payload,
+) async {
+  try {
+    final search = Map<String, dynamic>.from(
+      (payload['search'] as Map?) ?? const <String, dynamic>{},
+    );
+    final items = ((payload['items'] as List?) ?? const <dynamic>[])
+        .whereType<Map>()
+        .map((entry) => Map<String, dynamic>.from(entry))
+        .toList();
+    final maskedKeywords =
+        ((payload['maskedKeywords'] as List?) ?? const <dynamic>[])
+            .map((entry) => entry.toString().trim())
+            .where((entry) => entry.isNotEmpty)
+            .toList();
+    final filtered = _filterAndSort(
+      items: items,
+      search: search,
+      maskedKeywords: maskedKeywords,
+    );
 
-class _BookshelfWorkerService {
-  Isolate? _worker;
-  SendPort? _sendPort;
-  ReceivePort? _receivePort;
-  StreamSubscription? _subscription;
-  int _requestId = 0;
-  final Map<int, Completer<Map<String, dynamic>>> _pending = {};
-  Future<void>? _readyFuture;
-
-  Future<void> ensureReady() {
-    _readyFuture ??= _start();
-    return _readyFuture!;
+    return {'items': filtered};
+  } catch (e) {
+    return {'error': e.toString(), 'items': [], 'total': 0};
   }
-
-  Future<void> _start() async {
-    _receivePort = ReceivePort();
-    _worker = await Isolate.spawn(_bookshelfWorkerMain, _receivePort!.sendPort);
-
-    final ready = Completer<void>();
-    _subscription = _receivePort!.listen((message) {
-      if (message is SendPort) {
-        _sendPort = message;
-        if (!ready.isCompleted) {
-          ready.complete();
-        }
-        return;
-      }
-
-      if (message is Map) {
-        final id = message['id'];
-        if (id is int && _pending.containsKey(id)) {
-          _pending.remove(id)!.complete(Map<String, dynamic>.from(message));
-        }
-      }
-    });
-
-    await ready.future;
-  }
-
-  Future<Map<String, dynamic>> query({
-    required ShelfPageMode mode,
-    required SearchEnter search,
-    required List<Map<String, dynamic>> sourceItems,
-    required List<String> maskedKeywords,
-    bool isRetry = false,
-  }) async {
-    await ensureReady();
-    if (_sendPort == null) {
-      throw StateError('Bookshelf worker send port missing');
-    }
-
-    final id = ++_requestId;
-    final completer = Completer<Map<String, dynamic>>();
-    _pending[id] = completer;
-
-    _sendPort!.send({
-      'id': id,
-      'mode': mode.name,
-      'search': {
-        'keyword': search.keyword,
-        'sort': search.sort,
-        'categories': search.categories,
-        'sources': search.sources,
-      },
-      'items': sourceItems,
-      'maskedKeywords': maskedKeywords,
-    });
-
-    final response = await completer.future;
-    final error = response['error']?.toString() ?? '';
-    if (!isRetry && error.contains('_filterAndSort')) {
-      await _restart();
-      return query(
-        mode: mode,
-        search: search,
-        sourceItems: sourceItems,
-        maskedKeywords: maskedKeywords,
-        isRetry: true,
-      );
-    }
-    return response;
-  }
-
-  Future<void> _restart() async {
-    for (final pending in _pending.values) {
-      if (!pending.isCompleted) {
-        pending.completeError(StateError('Bookshelf worker restarting'));
-      }
-    }
-    _pending.clear();
-    await _subscription?.cancel();
-    _subscription = null;
-    _receivePort?.close();
-    _receivePort = null;
-    _sendPort = null;
-    _worker?.kill(priority: Isolate.immediate);
-    _worker = null;
-    _readyFuture = null;
-    await ensureReady();
-  }
-}
-
-@pragma('vm:entry-point')
-void _bookshelfWorkerMain(SendPort sendPort) {
-  final receivePort = ReceivePort();
-  sendPort.send(receivePort.sendPort);
-
-  receivePort.listen((message) {
-    if (message is! Map) {
-      return;
-    }
-    final id = message['id'];
-    if (id is! int) {
-      return;
-    }
-
-    try {
-      final search = Map<String, dynamic>.from(
-        (message['search'] as Map?) ?? const <String, dynamic>{},
-      );
-      final items = ((message['items'] as List?) ?? const <dynamic>[])
-          .whereType<Map>()
-          .map((entry) => Map<String, dynamic>.from(entry))
-          .toList();
-      final maskedKeywords =
-          ((message['maskedKeywords'] as List?) ?? const <dynamic>[])
-              .map((entry) => entry.toString().trim())
-              .where((entry) => entry.isNotEmpty)
-              .toList();
-      final filtered = _filterAndSort(
-        items: items,
-        search: search,
-        maskedKeywords: maskedKeywords,
-      );
-
-      sendPort.send({'id': id, 'items': filtered});
-    } catch (e) {
-      sendPort.send({'id': id, 'error': e.toString(), 'items': [], 'total': 0});
-    }
-  });
 }
 
 List<Map<String, dynamic>> _filterAndSort({

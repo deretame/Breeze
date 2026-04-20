@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
+import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
@@ -37,6 +37,7 @@ Future<void> migrateV1ToV2() async {
 
 Future<void> _migrateV1ToV2InCurrentIsolate() async {
   final box = objectbox;
+  box.downloadTaskBox.removeAll();
   _migrateLegacySearchHistory(box);
   _migrateLegacyPluginSettings(box);
   _debugLogMigrationSnapshot('before', _buildLegacySnapshot(box));
@@ -64,18 +65,22 @@ Future<void> _migrateV1ToV2InCurrentIsolate() async {
       .toList();
 
   final converted = await Future.wait<List<Map<String, dynamic>>>([
-    compute(_buildFavoritesOnCompute, jmFavoritesJson),
-    compute(_buildHistoriesOnCompute, {
-      'proxy': proxy,
-      'bikaHistories': bikaHistoriesJson,
-      'jmHistories': jmHistoriesJson,
-    }),
-    compute(_buildDownloadsOnCompute, {
-      'proxy': proxy,
-      'downloadRoot': _downloadRoot,
-      'bikaDownloads': bikaDownloadsJson,
-      'jmDownloads': jmDownloadsJson,
-    }),
+    workerManager.execute(() => _buildFavoritesOnCompute(jmFavoritesJson)),
+    workerManager.execute(
+      () => _buildHistoriesOnCompute({
+        'proxy': proxy,
+        'bikaHistories': bikaHistoriesJson,
+        'jmHistories': jmHistoriesJson,
+      }),
+    ),
+    workerManager.execute(
+      () => _buildDownloadsOnCompute({
+        'proxy': proxy,
+        'downloadRoot': _downloadRoot,
+        'bikaDownloads': bikaDownloadsJson,
+        'jmDownloads': jmDownloadsJson,
+      }),
+    ),
   ]);
 
   final favorites = converted[0]

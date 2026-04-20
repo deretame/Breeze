@@ -50,8 +50,14 @@ pub async fn qjs_call_once_task_start(
     args_json: String,
     task_group_key: String,
 ) -> Result<u64> {
-    crate::qjs::qjs_call_once_task_start(runtime_name, bundle_js, fn_path, args_json, task_group_key)
-        .await
+    crate::qjs::qjs_call_once_task_start(
+        runtime_name,
+        bundle_js,
+        fn_path,
+        args_json,
+        task_group_key,
+    )
+    .await
 }
 
 #[frb]

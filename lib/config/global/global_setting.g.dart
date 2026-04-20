@@ -35,6 +35,7 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
   comicChoice: (json['comicChoice'] as num?)?.toInt() ?? 1,
   disableBika: json['disableBika'] as bool? ?? false,
   enableMemoryDebug: json['enableMemoryDebug'] as bool? ?? false,
+  logAddress: json['logAddress'] as String? ?? '',
   forceEnableImpeller: json['forceEnableImpeller'] as bool? ?? false,
   updateAccelerate: json['updateAccelerate'] as bool? ?? true,
   searchHistory:
@@ -68,6 +69,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'comicChoice': instance.comicChoice,
       'disableBika': instance.disableBika,
       'enableMemoryDebug': instance.enableMemoryDebug,
+      'logAddress': instance.logAddress,
       'forceEnableImpeller': instance.forceEnableImpeller,
       'updateAccelerate': instance.updateAccelerate,
       'searchHistory': instance.searchHistory,
@@ -138,6 +140,7 @@ _SyncSettingState _$SyncSettingStateFromJson(Map<String, dynamic> json) =>
           ? const S3SettingState()
           : S3SettingState.fromJson(json['s3Setting'] as Map<String, dynamic>),
       syncSettings: json['syncSettings'] as bool? ?? false,
+      syncPlugins: json['syncPlugins'] as bool? ?? false,
       autoSync: json['autoSync'] as bool? ?? true,
       syncNotify: json['syncNotify'] as bool? ?? true,
       settingsSyncTime: (json['settingsSyncTime'] as num?)?.toInt() ?? 0,
@@ -149,6 +152,7 @@ Map<String, dynamic> _$SyncSettingStateToJson(_SyncSettingState instance) =>
       'webdavSetting': instance.webdavSetting,
       's3Setting': instance.s3Setting,
       'syncSettings': instance.syncSettings,
+      'syncPlugins': instance.syncPlugins,
       'autoSync': instance.autoSync,
       'syncNotify': instance.syncNotify,
       'settingsSyncTime': instance.settingsSyncTime,

@@ -65,7 +65,6 @@ class _NavigationBarState extends State<NavigationBar> {
       } else {
         DownloadQueueManager.instance.watchTasks();
       }
-      setLogHttpForward(url: "http://127.0.0.1:7878/log");
     });
     final configuredIndex = objectbox.userSettingBox
         .get(1)!

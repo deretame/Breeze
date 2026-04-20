@@ -6,6 +6,7 @@ use rquickjs_playground::web_runtime::native_buffer_take_raw;
 use rquickjs_playground::{
     AsyncHostRuntime, HttpClientConfig, configure_http_client, configure_js_error_stack,
     configure_log_http_endpoint, register_bridge_route_async_handler,
+    register_bridge_route_blocking_handler, register_bridge_route_sync_handler,
 };
 use serde_json::{Value, json};
 use std::collections::{HashMap, HashSet};
@@ -1147,7 +1148,7 @@ pub fn register_function(
 }
 
 pub fn init_rust_functions() -> Result<()> {
-    register_bridge_route_async_handler(BRIDGE_ROUTE_OPENCC_CONVERT, |_, args| async move {
+    register_bridge_route_blocking_handler(BRIDGE_ROUTE_OPENCC_CONVERT, |_, args| {
         let arg: &Value = args
             .first()
             .ok_or_else(|| anyhow!("opencc 需要一个 JSON 参数"))?;
@@ -1156,7 +1157,7 @@ pub fn init_rust_functions() -> Result<()> {
         Ok(json!(out))
     })?;
 
-    register_bridge_route_async_handler(BRIDGE_ROUTE_CACHE_GET, |runtime, args| async move {
+    register_bridge_route_sync_handler(BRIDGE_ROUTE_CACHE_GET, |runtime, args| {
         let key = args
             .first()
             .and_then(Value::as_str)
@@ -1170,7 +1171,7 @@ pub fn init_rust_functions() -> Result<()> {
         Ok(out)
     })?;
 
-    register_bridge_route_async_handler(BRIDGE_ROUTE_CACHE_SET, |runtime, args| async move {
+    register_bridge_route_sync_handler(BRIDGE_ROUTE_CACHE_SET, |runtime, args| {
         let key = args
             .first()
             .and_then(Value::as_str)
@@ -1181,47 +1182,41 @@ pub fn init_rust_functions() -> Result<()> {
         Ok(json!(true))
     })?;
 
-    register_bridge_route_async_handler(
-        BRIDGE_ROUTE_CACHE_SET_IF_ABSENT,
-        |runtime, args| async move {
-            let key = args
-                .first()
-                .and_then(Value::as_str)
-                .ok_or_else(|| anyhow!("cache.set_if_absent 参数无效: 缺少 key"))?;
-            let value = args.get(1).cloned().unwrap_or(Value::Null);
-            let scoped_key = scoped_route_key(&runtime, key);
-            let cache = host_cache_store_cell();
-            if let dashmap::mapref::entry::Entry::Vacant(entry) = cache.entry(scoped_key) {
-                entry.insert(value);
-                return Ok(json!(true));
+    register_bridge_route_sync_handler(BRIDGE_ROUTE_CACHE_SET_IF_ABSENT, |runtime, args| {
+        let key = args
+            .first()
+            .and_then(Value::as_str)
+            .ok_or_else(|| anyhow!("cache.set_if_absent 参数无效: 缺少 key"))?;
+        let value = args.get(1).cloned().unwrap_or(Value::Null);
+        let scoped_key = scoped_route_key(&runtime, key);
+        let cache = host_cache_store_cell();
+        if let dashmap::mapref::entry::Entry::Vacant(entry) = cache.entry(scoped_key) {
+            entry.insert(value);
+            return Ok(json!(true));
+        }
+        Ok(json!(false))
+    })?;
+
+    register_bridge_route_sync_handler(BRIDGE_ROUTE_CACHE_COMPARE_AND_SET, |runtime, args| {
+        let key = args
+            .first()
+            .and_then(Value::as_str)
+            .ok_or_else(|| anyhow!("cache.compare_and_set 参数无效: 缺少 key"))?;
+        let expected = args.get(1).cloned().unwrap_or(Value::Null);
+        let next = args.get(2).cloned().unwrap_or(Value::Null);
+        let scoped_key = scoped_route_key(&runtime, key);
+        let cache = host_cache_store_cell();
+        let updated = match cache.get_mut(&scoped_key) {
+            Some(mut current) if *current == expected => {
+                *current = next;
+                true
             }
-            Ok(json!(false))
-        },
-    )?;
+            _ => false,
+        };
+        Ok(json!(updated))
+    })?;
 
-    register_bridge_route_async_handler(
-        BRIDGE_ROUTE_CACHE_COMPARE_AND_SET,
-        |runtime, args| async move {
-            let key = args
-                .first()
-                .and_then(Value::as_str)
-                .ok_or_else(|| anyhow!("cache.compare_and_set 参数无效: 缺少 key"))?;
-            let expected = args.get(1).cloned().unwrap_or(Value::Null);
-            let next = args.get(2).cloned().unwrap_or(Value::Null);
-            let scoped_key = scoped_route_key(&runtime, key);
-            let cache = host_cache_store_cell();
-            let updated = match cache.get_mut(&scoped_key) {
-                Some(mut current) if *current == expected => {
-                    *current = next;
-                    true
-                }
-                _ => false,
-            };
-            Ok(json!(updated))
-        },
-    )?;
-
-    register_bridge_route_async_handler(BRIDGE_ROUTE_CACHE_DELETE, |runtime, args| async move {
+    register_bridge_route_sync_handler(BRIDGE_ROUTE_CACHE_DELETE, |runtime, args| {
         let key = args
             .first()
             .and_then(Value::as_str)

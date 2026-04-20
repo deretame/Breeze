@@ -201,17 +201,22 @@ Map<String, dynamic> _buildSettingsPayload(
     syncSetting: globalSetting.syncSetting.copyWith(settingsSyncTime: 0),
   );
 
-  final pluginConfigs = objectbox.pluginConfigBox.getAll().map((item) {
-    final json = item.toJson();
-    json.remove('id');
-    return json;
-  }).toList();
+  final syncPlugins = globalSetting.syncSetting.syncPlugins;
+  final pluginConfigs = syncPlugins
+      ? objectbox.pluginConfigBox.getAll().map((item) {
+          final json = item.toJson();
+          json.remove('id');
+          return json;
+        }).toList()
+      : <Map<String, dynamic>>[];
 
-  final pluginInfos = objectbox.pluginInfoBox.getAll().map((item) {
-    final json = item.toJson();
-    json.remove('id');
-    return json;
-  }).toList();
+  final pluginInfos = syncPlugins
+      ? objectbox.pluginInfoBox.getAll().map((item) {
+          final json = item.toJson();
+          json.remove('id');
+          return json;
+        }).toList()
+      : <Map<String, dynamic>>[];
 
   return {
     'version': syncDataVersion,
@@ -233,6 +238,7 @@ Future<void> _applyRemoteSettingsPayload(
   final globalSettingJson = _toJsonMap(remotePayload['globalSetting']);
   final pluginConfigJsonList = _toJsonMapList(remotePayload['pluginConfigs']);
   final pluginInfoJsonList = _toJsonMapList(remotePayload['pluginInfos']);
+  final shouldSyncPlugins = localGlobal.syncSetting.syncPlugins;
 
   final remoteGlobal = globalSettingJson.isEmpty
       ? localGlobal
@@ -251,6 +257,11 @@ Future<void> _applyRemoteSettingsPayload(
       user.globalSetting = mergedGlobal;
       objectbox.userSettingBox.put(user);
     }
+  }
+
+  if (!shouldSyncPlugins) {
+    logger.d('插件同步未启用，跳过插件数据同步');
+    return;
   }
 
   final remotePluginConfigs = pluginConfigJsonList

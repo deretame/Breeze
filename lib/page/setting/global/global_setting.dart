@@ -114,6 +114,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               if (configuredSync && state.syncSetting.autoSync)
                 _syncNotify(state, globalSettingCubit),
               if (configuredSync) _syncSettings(state, globalSettingCubit),
+              if (configuredSync) _syncPlugins(state, globalSettingCubit),
 
               const SizedBox(height: 8),
               const Divider(height: 1, thickness: 0.3),
@@ -123,6 +124,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               const SizedBox(height: 8),
               const Divider(height: 1, thickness: 0.3),
               _buildSectionTitle(context, '调试', Icons.bug_report_outlined),
+              _logAddress(state, globalSettingCubit),
               _enableMemoryDebug(state, globalSettingCubit),
               if (defaultTargetPlatform == TargetPlatform.android)
                 _forceEnableImpeller(state, globalSettingCubit),
@@ -339,6 +341,21 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
     );
   }
 
+  Widget _syncPlugins(GlobalSettingState state, GlobalSettingCubit cubit) {
+    return SwitchListTile(
+      secondary: const Icon(Icons.extension_outlined),
+      title: const Text('同步插件'),
+      subtitle: const Text('开启后同步插件配置与安装状态'),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.syncSetting.syncPlugins,
+      onChanged: (bool value) {
+        cubit.updateSyncSetting(
+          (current) => current.copyWith(syncPlugins: value),
+        );
+      },
+    );
+  }
+
   Widget _comicReadTopContainer(
     GlobalSettingState state,
     GlobalSettingCubit cubit,
@@ -404,6 +421,53 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
         cubit.updateState(
           (current) => current.copyWith(enableMemoryDebug: value),
         );
+      },
+    );
+  }
+
+  Widget _logAddress(GlobalSettingState state, GlobalSettingCubit cubit) {
+    final logAddress = state.logAddress.trim();
+    return ListTile(
+      leading: const Icon(Icons.link_outlined),
+      title: const Text('调试日志地址'),
+      subtitle: Text(
+        logAddress.isEmpty ? '点击设置日志上传地址' : logAddress,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () async {
+        final controller = TextEditingController(text: logAddress);
+        final result = await showDialog<String>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('设置日志地址'),
+            content: TextField(
+              controller: controller,
+              autofocus: true,
+              decoration: const InputDecoration(
+                hintText: 'https://example.com/log',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            actions: [
+              TextButton(
+                child: const Text('取消'),
+                onPressed: () => Navigator.pop(context),
+              ),
+              TextButton(
+                child: const Text('确定'),
+                onPressed: () => Navigator.pop(context, controller.text.trim()),
+              ),
+            ],
+          ),
+        );
+
+        controller.dispose();
+        if (result != null && result != logAddress) {
+          cubit.updateState((current) => current.copyWith(logAddress: result));
+          showSuccessToast('设置成功');
+        }
       },
     );
   }

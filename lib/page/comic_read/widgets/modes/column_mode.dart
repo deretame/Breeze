@@ -260,7 +260,9 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
     }
 
     return BlocSelector<ImageSizeCubit, ImageSizeState, Size>(
-      selector: (state) => state.getSizeValue(index),
+      selector: (state) => state.getSizeValue(
+        _resolveStableSizeCacheIndex(entry: entry, fallbackIndex: index),
+      ),
       builder: (itemContext, cachedSize) {
         final finalHeight = _resolveDisplayHeight(
           cachedSize: cachedSize,
@@ -326,8 +328,20 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
 
     return BlocSelector<ImageSizeCubit, ImageSizeState, (Size, Size)>(
       selector: (state) => (
-        state.getSizeValue(left.entryIndex),
-        right != null ? state.getSizeValue(right.entryIndex) : const Size(0, 0),
+        state.getSizeValue(
+          _resolveStableSizeCacheIndex(
+            entry: left.entry,
+            fallbackIndex: left.entryIndex,
+          ),
+        ),
+        right != null
+            ? state.getSizeValue(
+                _resolveStableSizeCacheIndex(
+                  entry: right.entry,
+                  fallbackIndex: right.entryIndex,
+                ),
+              )
+            : const Size(0, 0),
       ),
       builder: (itemContext, pairSize) {
         final leftEntry = left.entry;
@@ -432,9 +446,24 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
         extern: entry.doc!.extern,
       ),
       index: localPageIndex,
-      cacheIndex: index,
+      cacheIndex: _resolveStableSizeCacheIndex(
+        entry: entry,
+        fallbackIndex: index,
+      ),
       isColumn: true,
     );
+  }
+
+  int _resolveStableSizeCacheIndex({
+    required ColumnModeEntry entry,
+    required int fallbackIndex,
+  }) {
+    final localPageIndex = entry.chapterLocalPageIndex;
+    if (entry.type != ColumnModeEntryType.image || localPageIndex == null) {
+      return fallbackIndex;
+    }
+    final mixed = Object.hash(entry.chapterOrder, localPageIndex) & 0x3FFFFFFF;
+    return 100000 + mixed;
   }
 
   double _resolveDisplayHeight({

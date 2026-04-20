@@ -345,9 +345,6 @@ class PluginRegistryService {
           uri.host == 'github.com' ||
           uri.host == 'www.github.com';
       if (isGithubHost) {
-        final suffix = uri.hasQuery ? '?${uri.query}' : '';
-        final repoPath = '/${uri.host}${uri.path}$suffix';
-        result.add('https://api.windy-78.xyz/proxy?path=$repoPath');
         result.add('https://gh-proxy.org/$sourceUrl');
       }
     }

@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:path/path.dart' as p;
+import 'package:worker_manager/worker_manager.dart';
 import 'package:zephyr/cubit/string_select.dart';
+import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/page/comic_read/method/history_writer.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
-import 'dart:convert';
 
 import '../../../main.dart'; // 引用 objectbox
 import '../../../object_box/model.dart';
@@ -46,10 +49,14 @@ class ReaderHistoryManager {
 
   /// 初始化：查询或创建历史记录对象
   Future<void> init() async {
-    _history = objectbox.unifiedHistoryBox
+    final query = objectbox.unifiedHistoryBox
         .query(UnifiedComicHistory_.uniqueKey.equals('$from:$comicId'))
-        .build()
-        .findFirst();
+        .build();
+    try {
+      _history = query.findFirst();
+    } finally {
+      query.close();
+    }
 
     _startTimer();
   }
@@ -100,16 +107,26 @@ class ReaderHistoryManager {
     // 写入数据库
     _isInserting = true;
     try {
-      final temp = _resolveNormalComicInfo();
+      final normalInfo = _resolveNormalComicInfo();
       final timestamp = DateTime.now().toUtc();
-      _upsertUnifiedHistory(
-        normalInfo: temp,
-        chapterId: epInfo.epId,
-        chapterTitle: epInfo.epName,
-        chapterOrder: getCurrentChapterOrder(),
-        pageIndex: pageIndex,
-        timestamp: timestamp,
+      final payload = <String, dynamic>{
+        'dbRootPath': p.dirname(objectbox.store.directoryPath),
+        'source': from,
+        'comicId': comicId,
+        'normalInfo': _serializeComicInfoForWorker(normalInfo),
+        'chapterId': epInfo.epId,
+        'chapterTitle': epInfo.epName,
+        'chapterOrder': getCurrentChapterOrder(),
+        'pageIndex': pageIndex,
+        'timestamp': timestamp.toIso8601String(),
+      };
+      final historyJson = await workerManager.execute<Map<String, dynamic>>(
+        () => _upsertUnifiedHistoryOnWorker(payload),
       );
+      _history = UnifiedComicHistory.fromJson(historyJson);
+    } catch (e, s) {
+      logger.w('history write offloaded to worker failed', error: e);
+      logger.d(s);
     } finally {
       _isInserting = false;
       _lastUpdateTime = DateTime.now();
@@ -162,32 +179,57 @@ class ReaderHistoryManager {
         map['creator'] is Map;
   }
 
-  void _upsertUnifiedHistory({
-    required normal.ComicInfo normalInfo,
-    required String chapterId,
-    required String chapterTitle,
-    required int chapterOrder,
-    required int pageIndex,
-    required DateTime timestamp,
-  }) {
-    final key = '$from:$comicId';
-    final existing = objectbox.unifiedHistoryBox
-        .query(UnifiedComicHistory_.uniqueKey.equals(key))
-        .build()
-        .findFirst();
+  Map<String, dynamic> _serializeComicInfoForWorker(normal.ComicInfo info) {
+    final normalized = jsonDecode(jsonEncode(info.toJson()));
+    if (normalized is Map) {
+      return Map<String, dynamic>.from(normalized);
+    }
+    throw StateError('Failed to serialize ComicInfo for worker isolate');
+  }
+}
 
+Future<Map<String, dynamic>> _upsertUnifiedHistoryOnWorker(
+  Map<String, dynamic> payload,
+) async {
+  final dbRootPath = payload['dbRootPath']?.toString() ?? '';
+  if (dbRootPath.trim().isEmpty) {
+    throw StateError('missing dbRootPath for history worker write');
+  }
+
+  final source = payload['source']?.toString() ?? '';
+  final comicId = payload['comicId']?.toString() ?? '';
+  final normalInfo = normal.ComicInfo.fromJson(
+    _toWorkerMap(payload['normalInfo']),
+  );
+  final chapterId = payload['chapterId']?.toString() ?? '';
+  final chapterTitle = payload['chapterTitle']?.toString() ?? '';
+  final chapterOrder = (payload['chapterOrder'] as num?)?.toInt() ?? 0;
+  final pageIndex = (payload['pageIndex'] as num?)?.toInt() ?? 0;
+  final timestamp = DateTime.parse(
+    payload['timestamp']?.toString() ??
+        DateTime.now().toUtc().toIso8601String(),
+  ).toUtc();
+
+  final box = await ObjectBox.create(dbRootPath: dbRootPath);
+  final key = '$source:$comicId';
+  final query = box.unifiedHistoryBox
+      .query(UnifiedComicHistory_.uniqueKey.equals(key))
+      .build();
+
+  try {
+    final existing = query.findFirst();
     final entity =
         existing ??
         UnifiedComicHistory(
           uniqueKey: key,
-          source: from,
+          source: source,
           comicId: comicId,
           title: normalInfo.title,
           description: normalInfo.description,
-          cover: _normalizeFlexMapString(normalInfo.cover),
-          creator: _normalizeFlexMapString(normalInfo.creator),
-          titleMeta: _normalizeFlexListString(normalInfo.titleMeta),
-          metadata: _normalizeMetadataString(normalInfo.metadata),
+          cover: _normalizeWorkerFlexMapString(normalInfo.cover),
+          creator: _normalizeWorkerFlexMapString(normalInfo.creator),
+          titleMeta: _normalizeWorkerFlexListString(normalInfo.titleMeta),
+          metadata: _normalizeWorkerMetadataString(normalInfo.metadata),
           chapterId: chapterId,
           chapterTitle: chapterTitle,
           chapterOrder: chapterOrder,
@@ -202,10 +244,10 @@ class ReaderHistoryManager {
     entity
       ..title = normalInfo.title
       ..description = normalInfo.description
-      ..cover = _normalizeFlexMapString(normalInfo.cover)
-      ..creator = _normalizeFlexMapString(normalInfo.creator)
-      ..titleMeta = _normalizeFlexListString(normalInfo.titleMeta)
-      ..metadata = _normalizeMetadataString(normalInfo.metadata)
+      ..cover = _normalizeWorkerFlexMapString(normalInfo.cover)
+      ..creator = _normalizeWorkerFlexMapString(normalInfo.creator)
+      ..titleMeta = _normalizeWorkerFlexListString(normalInfo.titleMeta)
+      ..metadata = _normalizeWorkerMetadataString(normalInfo.metadata)
       ..chapterId = chapterId
       ..chapterTitle = chapterTitle
       ..chapterOrder = chapterOrder
@@ -214,41 +256,53 @@ class ReaderHistoryManager {
       ..updatedAt = timestamp
       ..deleted = false;
 
-    entity.id = objectbox.unifiedHistoryBox.put(entity);
-    _history = entity;
+    entity.id = box.unifiedHistoryBox.put(entity);
+    return entity.toJson();
+  } finally {
+    query.close();
   }
+}
 
-  Map<String, dynamic> _normalizeFlexMap(dynamic value) {
-    final encoded = jsonEncode(value);
-    final decoded = jsonDecode(encoded);
-    if (decoded is Map) {
-      return Map<String, dynamic>.from(decoded);
-    }
-    return <String, dynamic>{};
+Map<String, dynamic> _toWorkerMap(dynamic value) {
+  if (value is Map<String, dynamic>) {
+    return value;
   }
+  if (value is Map) {
+    return Map<String, dynamic>.from(value);
+  }
+  return const <String, dynamic>{};
+}
 
-  List<Map<String, dynamic>> _normalizeFlexList(List<dynamic> value) {
-    final encoded = jsonEncode(value);
-    final decoded = jsonDecode(encoded);
-    if (decoded is List) {
-      return decoded
-          .whereType<Map>()
-          .map((item) => Map<String, dynamic>.from(item))
-          .toList();
-    }
-    return <Map<String, dynamic>>[];
+Map<String, dynamic> _normalizeWorkerFlexMap(dynamic value) {
+  final encoded = jsonEncode(value);
+  final decoded = jsonDecode(encoded);
+  if (decoded is Map) {
+    return Map<String, dynamic>.from(decoded);
   }
+  return <String, dynamic>{};
+}
 
-  String _normalizeFlexMapString(dynamic value) {
-    return jsonEncode(_normalizeFlexMap(value));
+List<Map<String, dynamic>> _normalizeWorkerFlexList(List<dynamic> value) {
+  final encoded = jsonEncode(value);
+  final decoded = jsonDecode(encoded);
+  if (decoded is List) {
+    return decoded
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
   }
+  return <Map<String, dynamic>>[];
+}
 
-  String _normalizeFlexListString(List<dynamic> value) {
-    return jsonEncode(_normalizeFlexList(value));
-  }
+String _normalizeWorkerFlexMapString(dynamic value) {
+  return jsonEncode(_normalizeWorkerFlexMap(value));
+}
 
-  String _normalizeMetadataString(List<dynamic> value) {
-    final normalized = _normalizeFlexList(value);
-    return jsonEncode(normalized);
-  }
+String _normalizeWorkerFlexListString(List<dynamic> value) {
+  return jsonEncode(_normalizeWorkerFlexList(value));
+}
+
+String _normalizeWorkerMetadataString(List<dynamic> value) {
+  final normalized = _normalizeWorkerFlexList(value);
+  return jsonEncode(normalized);
 }

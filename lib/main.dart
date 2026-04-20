@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 
@@ -6,6 +7,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:event_bus/event_bus.dart';
+import 'package:extended_image/extended_image.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -49,7 +51,11 @@ final appRouter = AppRouter();
 // 全局事件总线实例
 EventBus eventBus = EventBus();
 
-var logger = Logger(printer: TersePrettyPrinter());
+var logger = Logger(
+  printer: TersePrettyPrinter(),
+  // filter: MyAlwaysLogFilter(),
+  // output: RemoteOutput(),
+);
 
 List<String> cfIpList = [];
 
@@ -67,6 +73,30 @@ class AppScrollBehavior extends MaterialScrollBehavior {
   };
 }
 
+class RemoteOutput extends LogOutput {
+  @override
+  void output(OutputEvent event) {
+    _sendToServer(event.lines.join('\n'), event.level);
+  }
+
+  Future<void> _sendToServer(String message, Level level) async {
+    try {
+      await http.post(
+        Uri.parse('http://localhost:7878/log'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'level': level.name, 'message': '\n$message'}),
+      );
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+}
+
+class MyAlwaysLogFilter extends LogFilter {
+  @override
+  bool shouldLog(LogEvent event) => true; // 强制通过所有日志
+}
+
 Future<void> main() async {
   // 1. 基础初始化
   WidgetsFlutterBinding.ensureInitialized();
@@ -74,7 +104,6 @@ Future<void> main() async {
   const sentryDsn = String.fromEnvironment('sentry_dsn', defaultValue: '');
 
   if (sentryDsn.isEmpty) {
-    if (!kDebugMode) logger = Logger(filter: ProductionFilter());
     // 1. 如果是调试模式，配置 logger 捕获全局错误
     if (kDebugMode || sentryDsn.isEmpty) {
       // 捕获 Flutter 框架层错误（如 Widget 构建中的异常）
@@ -451,6 +480,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
         }
 
         return MaterialApp.router(
+          showPerformanceOverlay: true,
           routerConfig: appRouter.config(),
           scrollBehavior: const AppScrollBehavior(),
           builder: (context, child) {

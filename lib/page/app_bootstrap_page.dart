@@ -68,6 +68,8 @@ class _AppBootstrapViewState extends State<AppBootstrapView> {
       if (mounted) context.read<StringSelectCubit>().setDate(msg);
     }
 
+    final stopwatch = Stopwatch()..start();
+
     await registerPersistentCallbacks();
 
     initRustFunctions();
@@ -94,7 +96,12 @@ class _AppBootstrapViewState extends State<AppBootstrapView> {
       }
     }());
 
-    await Future.delayed(const Duration(milliseconds: 200));
+    stopwatch.stop();
+    final int delayTime = (200 - stopwatch.elapsedMilliseconds).clamp(0, 200);
+
+    if (delayTime > 0) {
+      await Future.delayed(Duration(milliseconds: delayTime));
+    }
 
     if (!mounted) return;
     context.router.replace(const app_router.NavigationBar());

@@ -31,8 +31,12 @@ class _BookshelfPageContent extends StatefulWidget {
   State<_BookshelfPageContent> createState() => _BookshelfPageContentState();
 }
 
-class _BookshelfPageContentState extends State<_BookshelfPageContent> {
+class _BookshelfPageContentState extends State<_BookshelfPageContent>
+    with SingleTickerProviderStateMixin {
+  static const List<String> _labels = ['收藏', '历史', '下载'];
+
   int _currentIndex = 0;
+  late final TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   final List<int> _refreshSignals = [0, 0, 0];
   List<String> _lastAvailableSources = const <String>[];
@@ -41,12 +45,17 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: _labels.length, vsync: this)
+      ..addListener(_handleTabControllerChanged);
     _syncSourcesFromRegistry(context.read<PluginRegistryCubit>().state);
-    _searchController.text = _currentSearchState().keyword;
+    _syncSearchFieldWithCurrentMode();
   }
 
   @override
   void dispose() {
+    _tabController
+      ..removeListener(_handleTabControllerChanged)
+      ..dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -68,8 +77,8 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
           titleSpacing: isDesktop ? 16 : 8,
           title: isDesktop ? _buildDesktopHeader() : _buildMobileHeader(),
         ),
-        body: IndexedStack(
-          index: _currentIndex,
+        body: TabBarView(
+          controller: _tabController,
           children: [
             LocalShelfPage(
               mode: ShelfPageMode.favorite,
@@ -151,7 +160,6 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
   }
 
   Widget _buildSleekTabs() {
-    const labels = ['收藏', '历史', '下载'];
     return Container(
       decoration: BoxDecoration(
         color: context.theme.colorScheme.surfaceContainerHighest.withValues(
@@ -162,11 +170,13 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
       padding: const EdgeInsets.all(4),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: List.generate(labels.length, (index) {
+        children: List.generate(_labels.length, (index) {
           final isSelected = _currentIndex == index;
           return GestureDetector(
             onTap: () => _onTabChanged(index),
-            child: Container(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOutCubic,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
                 color: isSelected
@@ -184,7 +194,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
                     : [],
               ),
               child: Text(
-                labels[index],
+                _labels[index],
                 style: TextStyle(
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                   fontSize: 14,
@@ -251,13 +261,25 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent> {
 
   void _onTabChanged(int index) {
     if (index == _currentIndex) return;
+    _tabController.animateTo(index);
+  }
+
+  void _handleTabControllerChanged() {
+    if (!mounted || _currentIndex == _tabController.index) {
+      return;
+    }
     setState(() {
-      _currentIndex = index;
-      _searchController.text = _currentSearchState().keyword;
-      _searchController.selection = TextSelection.fromPosition(
-        TextPosition(offset: _searchController.text.length),
-      );
+      _currentIndex = _tabController.index;
+      _syncSearchFieldWithCurrentMode();
     });
+  }
+
+  void _syncSearchFieldWithCurrentMode() {
+    final keyword = _currentSearchState().keyword;
+    _searchController.value = TextEditingValue(
+      text: keyword,
+      selection: TextSelection.collapsed(offset: keyword.length),
+    );
   }
 
   ShelfPageMode _currentMode() {

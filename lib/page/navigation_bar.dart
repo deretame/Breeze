@@ -7,7 +7,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 import 'package:toastification/toastification.dart';
 import 'package:zephyr/config/global/global_setting.dart';
-import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/download/download_queue_manager.dart';
 import 'package:zephyr/util/foreground_task/init.dart';

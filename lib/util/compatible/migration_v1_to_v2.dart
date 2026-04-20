@@ -65,22 +65,18 @@ Future<void> _migrateV1ToV2InCurrentIsolate() async {
       .toList();
 
   final converted = await Future.wait<List<Map<String, dynamic>>>([
-    workerManager.execute(() => _buildFavoritesOnCompute(jmFavoritesJson)),
-    workerManager.execute(
-      () => _buildHistoriesOnCompute({
-        'proxy': proxy,
-        'bikaHistories': bikaHistoriesJson,
-        'jmHistories': jmHistoriesJson,
-      }),
-    ),
-    workerManager.execute(
-      () => _buildDownloadsOnCompute({
-        'proxy': proxy,
-        'downloadRoot': _downloadRoot,
-        'bikaDownloads': bikaDownloadsJson,
-        'jmDownloads': jmDownloadsJson,
-      }),
-    ),
+    _buildFavoritesJsonOnWorker(jmFavoritesJson),
+    _buildHistoriesJsonOnWorker({
+      'proxy': proxy,
+      'bikaHistories': bikaHistoriesJson,
+      'jmHistories': jmHistoriesJson,
+    }),
+    _buildDownloadsJsonOnWorker({
+      'proxy': proxy,
+      'downloadRoot': _downloadRoot,
+      'bikaDownloads': bikaDownloadsJson,
+      'jmDownloads': jmDownloadsJson,
+    }),
   ]);
 
   final favorites = converted[0]
@@ -451,6 +447,46 @@ Future<UnifiedComicDownload> buildUnifiedDownloadFromBikaLegacy(
 Future<UnifiedComicDownload> buildUnifiedDownloadFromJmLegacy(
   JmDownload item,
 ) async => _jmDownloadToUnified(item, _downloadRoot);
+
+Future<List<Map<String, dynamic>>> _buildFavoritesJsonOnWorker(
+  List<Map<String, dynamic>> jmFavoritesJson,
+) {
+  final payload = jmFavoritesJson
+      .map((item) => Map<String, dynamic>.from(item))
+      .toList();
+  return workerManager.execute(() => _buildFavoritesOnCompute(payload));
+}
+
+Future<List<Map<String, dynamic>>> _buildHistoriesJsonOnWorker(
+  Map<String, dynamic> payload,
+) {
+  final safePayload = <String, dynamic>{
+    'proxy': payload['proxy'],
+    'bikaHistories': ((payload['bikaHistories'] as List<dynamic>?) ?? const [])
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList(),
+    'jmHistories': ((payload['jmHistories'] as List<dynamic>?) ?? const [])
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList(),
+  };
+  return workerManager.execute(() => _buildHistoriesOnCompute(safePayload));
+}
+
+Future<List<Map<String, dynamic>>> _buildDownloadsJsonOnWorker(
+  Map<String, dynamic> payload,
+) {
+  final safePayload = <String, dynamic>{
+    'proxy': payload['proxy'],
+    'downloadRoot': payload['downloadRoot'],
+    'bikaDownloads': ((payload['bikaDownloads'] as List<dynamic>?) ?? const [])
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList(),
+    'jmDownloads': ((payload['jmDownloads'] as List<dynamic>?) ?? const [])
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList(),
+  };
+  return workerManager.execute(() => _buildDownloadsOnCompute(safePayload));
+}
 
 List<Map<String, dynamic>> _buildFavoritesOnCompute(
   List<Map<String, dynamic>> jmFavoritesJson,

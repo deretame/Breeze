@@ -49,7 +49,7 @@ dependencies:
   cookie_jar: ^4.0.8 # 网络: Cookie 持久化
   flutter_inappwebview: ^6.1.5 # 网络: 内嵌 WebView
   url_launcher: ^6.3.1 # 网络: 调起系统链接
-  connectivity_plus: 7.0.0 # 网络: 状态监听（7.1.1 需要 Xcode 26.1.1，CI 暂不兼容）
+  connectivity_plus: ^7.1.0 # 网络: 状态监听（7.1.1 需要 Xcode 26.1.1，CI 暂不兼容）
   html: ^0.15.5+1 # 网络: HTML 解析
   flutter_socks_proxy: ^0.0.3 # 网络: SOCKS5 代理配置
   minio: ^3.5.8 # 网络: 对象存储
@@ -73,11 +73,11 @@ dependencies:
   pool: ^1.5.2 # 工具: 并发资源池
   window_manager: ^0.5.1 # 桌面: 窗口控制
   tray_manager: ^0.5.2 # 桌面: 系统托盘
-  win32: ^5.15.0 # 平台: Windows API
+  win32: ^6.0.1 # 平台: Windows API
   battery_plus: ^7.0.0 # 设备: 电池信息
   permission_guard: ^2.0.1 # 权限: 请求封装
-  package_info_plus: ^9.0.0 # 应用: 版本信息
-  device_info_plus: ^12.1.0 # 设备: 基础信息
+  package_info_plus: ^10.0.0 # 应用: 版本信息
+  device_info_plus: ^13.0.0 # 设备: 基础信息
   mime: ^2.0.0 # 工具: MIME 类型
 
   # 后台任务与通知

@@ -12,7 +12,8 @@ permissions:
   contents: write
 
 env:
-  BREEZE_PLUGIN_GITHUB_TOKEN: ${{ secrets.BREEZE_PLUGIN_GITHUB_TOKEN != '' && secrets.BREEZE_PLUGIN_GITHUB_TOKEN || github.token }}
+  BREEZE_PLUGIN_GITHUB_TOKEN: ${{ secrets.BREEZE_PLUGIN_GITHUB_TOKEN != '' &&
+    secrets.BREEZE_PLUGIN_GITHUB_TOKEN || github.token }}
 
 jobs:
   # ══════════════════════════════════════════
@@ -331,6 +332,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
       - name: 克隆 rquickjs_playground
         run: git clone https://github.com/deretame/rquickjs_playground.git
 
@@ -436,6 +442,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
       - name: 克隆 rquickjs_playground
         run: git clone https://github.com/deretame/rquickjs_playground.git
 
@@ -514,7 +525,7 @@ jobs:
   # 6. 汇总发布至 GitHub Release
   # ══════════════════════════════════════════
   publish:
-    needs: [build-android, build-linux, build-windows, build-macos, build-ios]
+    needs: [ build-android, build-linux, build-windows, build-macos, build-ios ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -564,7 +575,7 @@ jobs:
   # 7. 自动更新 Homebrew Tap (仅限 macOS Cask)
   # ══════════════════════════════════════════
   update-homebrew:
-    needs: [publish]
+    needs: [ publish ]
     runs-on: ubuntu-latest
     steps:
       - name: 检出 Homebrew Tap 仓库

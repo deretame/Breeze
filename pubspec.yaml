@@ -49,7 +49,7 @@ dependencies:
   cookie_jar: ^4.0.8 # 网络: Cookie 持久化
   flutter_inappwebview: ^6.1.5 # 网络: 内嵌 WebView
   url_launcher: ^6.3.1 # 网络: 调起系统链接
-  connectivity_plus: ^7.0.0 # 网络: 状态监听
+  connectivity_plus: 7.1.0 # 网络: 状态监听（7.1.1 需要 Xcode 26.1.1，CI 暂不兼容）
   html: ^0.15.5+1 # 网络: HTML 解析
   flutter_socks_proxy: ^0.0.3 # 网络: SOCKS5 代理配置
   minio: ^3.5.8 # 网络: 对象存储

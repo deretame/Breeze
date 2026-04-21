@@ -24,6 +24,7 @@ class NativeWindow {
   NativeWindow._();
 
   static int _hwnd = 0;
+  static win32.HWND get _windowHandle => win32.HWND(Pointer.fromAddress(_hwnd));
 
   /// 初始化，缓存窗口句柄（在 window ready 之后调用一次）
   static void init() {
@@ -36,32 +37,37 @@ class NativeWindow {
 
   /// 同步最小化
   static void minimize() {
-    if (_hwnd != 0) win32.ShowWindow(_hwnd, win32.SW_MINIMIZE);
+    if (_hwnd != 0) win32.ShowWindow(_windowHandle, win32.SW_MINIMIZE);
   }
 
   /// 同步最大化
   static void maximize() {
-    if (_hwnd != 0) win32.ShowWindow(_hwnd, win32.SW_MAXIMIZE);
+    if (_hwnd != 0) win32.ShowWindow(_windowHandle, win32.SW_MAXIMIZE);
   }
 
   /// 同步还原
   static void restore() {
-    if (_hwnd != 0) win32.ShowWindow(_hwnd, win32.SW_RESTORE);
+    if (_hwnd != 0) win32.ShowWindow(_windowHandle, win32.SW_RESTORE);
   }
 
   /// 同步隐藏
   static void hide() {
-    if (_hwnd != 0) win32.ShowWindow(_hwnd, win32.SW_HIDE);
+    if (_hwnd != 0) win32.ShowWindow(_windowHandle, win32.SW_HIDE);
   }
 
   static void destroy() {
-    if (_hwnd != 0) win32.DestroyWindow(_hwnd);
+    if (_hwnd != 0) win32.DestroyWindow(_windowHandle);
   }
 
   /// 发送关闭消息，会触发 window_manager 的 onWindowClose 回调
   static void close() {
     if (_hwnd != 0) {
-      win32.PostMessage(_hwnd, win32.WM_CLOSE, 0, 0);
+      win32.PostMessage(
+        _windowHandle,
+        win32.WM_CLOSE,
+        win32.WPARAM(0),
+        win32.LPARAM(0),
+      );
     }
   }
 
@@ -80,7 +86,7 @@ class NativeWindow {
   /// 显示窗口并获得焦点
   static void show() {
     if (_hwnd != 0) {
-      win32.ShowWindow(_hwnd, win32.SW_RESTORE);
+      win32.ShowWindow(_windowHandle, win32.SW_RESTORE);
       windowManager.focus();
     }
   }

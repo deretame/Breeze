@@ -6,10 +6,11 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as p;
-import 'package:zephyr/model/unified_comic_list_item.dart';
 import 'package:zephyr/cubit/string_select.dart';
+import 'package:zephyr/model/unified_comic_list_item.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/get_path.dart';
@@ -19,7 +20,6 @@ import 'package:zephyr/util/sundry.dart';
 import '../../../util/router/router.dart';
 import '../../../widgets/error_view.dart';
 import '../../../widgets/toast.dart';
-import 'package:zephyr/type/enum.dart';
 
 enum MenuOption { export, cloudCollect, reverseOrder }
 
@@ -261,10 +261,6 @@ class _ComicInfoState extends State<_ComicInfo>
   }
 
   Widget _infoView(NormalComicAllInfo normalComicAllInfo) {
-    final hasHistory = context.select<StringSelectCubit, bool>(
-      (cubit) => cubit.state.isNotEmpty,
-    );
-
     final comicInfo = normalComicAllInfo.comicInfo;
     _title = comicInfo.title;
 
@@ -279,129 +275,139 @@ class _ComicInfoState extends State<_ComicInfo>
       displayEps = displayEps.reversed.toList();
     }
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        _type = ComicEntryType.normal;
-        _isReversed = false;
+    return BlocSelector<StringSelectCubit, String, bool>(
+      selector: (state) => state.isNotEmpty,
+      builder: (context, hasHistory) {
+        return RefreshIndicator(
+          onRefresh: () async {
+            _type = ComicEntryType.normal;
+            _isReversed = false;
 
-        context.read<GetComicInfoBloc>().add(
-          GetComicInfoEvent(
-            comicId: widget.comicId,
-            from: widget.from,
-            pluginId: widget.pluginId,
-            type: _type,
-          ),
-        );
-        setState(() {
-          initHistory(context, widget.comicId, widget.from, widget.pluginId);
-          _loadingComplete = false;
-        });
-      },
-      child: ListView.builder(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 180),
-        itemCount: 1,
-        itemBuilder: (context, index) => Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1120),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ComicParticularsWidget(
-                  comicInfo: comicInfo,
-                  from: widget.from,
-                  onContinueRead: hasHistory
-                      ? () => goToComicRead(
-                          context,
-                          widget.comicId,
-                          _type,
-                          comicInfoDyn,
-                          widget.from,
-                        )
-                      : null,
-                ),
-                _buildDivider(context),
-                ComicOperationWidget(
-                  normalInfo: normalComicAllInfo,
-                  from: widget.from,
-                  comicInfo: comicInfoDyn,
-                ),
-                if (comicInfo.metadata.isNotEmpty ||
-                    comicInfo.description.trim().isNotEmpty) ...[
-                  _buildDivider(context),
-                  _SectionCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        for (final meta in comicInfo.metadata) ...[
-                          AllChipWidget(
-                            comicId: comicInfo.id,
-                            metadata: meta,
-                            from: widget.from,
-                          ),
-                          const SizedBox(height: 6),
-                        ],
-                        if (comicInfo.description.trim().isNotEmpty)
-                          _DescriptionCard(
-                            description: comicInfo.description.let(t2s),
-                          ),
-                      ],
+            context.read<GetComicInfoBloc>().add(
+              GetComicInfoEvent(
+                comicId: widget.comicId,
+                from: widget.from,
+                pluginId: widget.pluginId,
+                type: _type,
+              ),
+            );
+            setState(() {
+              initHistory(
+                context,
+                widget.comicId,
+                widget.from,
+                widget.pluginId,
+              );
+              _loadingComplete = false;
+            });
+          },
+          child: ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 180),
+            itemCount: 1,
+            itemBuilder: (context, index) => Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1120),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ComicParticularsWidget(
+                      comicInfo: comicInfo,
+                      from: widget.from,
+                      onContinueRead: hasHistory
+                          ? () => goToComicRead(
+                              context,
+                              widget.comicId,
+                              _type,
+                              comicInfoDyn,
+                              widget.from,
+                            )
+                          : null,
                     ),
-                  ),
-                ],
-                if (comicInfo.creator.name.trim().isNotEmpty ||
-                    comicInfo.creator.avatar.url.trim().isNotEmpty) ...[
-                  _buildDivider(context),
-                  _SectionCard(
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 460),
-                        child: CreatorInfoWidget(
-                          creator: comicInfo.creator,
-                          from: widget.from,
-                          imageKey: comicInfo.id,
+                    _buildDivider(context),
+                    ComicOperationWidget(
+                      normalInfo: normalComicAllInfo,
+                      from: widget.from,
+                      comicInfo: comicInfoDyn,
+                    ),
+                    if (comicInfo.metadata.isNotEmpty ||
+                        comicInfo.description.trim().isNotEmpty) ...[
+                      _buildDivider(context),
+                      _SectionCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (final meta in comicInfo.metadata) ...[
+                              AllChipWidget(
+                                comicId: comicInfo.id,
+                                metadata: meta,
+                                from: widget.from,
+                              ),
+                              const SizedBox(height: 6),
+                            ],
+                            if (comicInfo.description.trim().isNotEmpty)
+                              _DescriptionCard(
+                                description: comicInfo.description.let(t2s),
+                              ),
+                          ],
                         ),
                       ),
-                    ),
-                  ),
-                ],
-                _buildDivider(context),
-                _SectionCard(
-                  title: '章节目录',
-                  trailing: _EpisodeHeaderBadge(
-                    label: '${normalComicAllInfo.eps.length} 话',
-                    icon: _isReversed ? Icons.south : Icons.north,
-                    onTap: _toggleOrder,
-                  ),
-                  child: _EpisodeListSection(
-                    episodes: displayEps,
-                    allInfo: comicInfoDyn,
-                    epsLength: normalComicAllInfo.eps.length,
-                    type: _type,
-                    comicId: widget.comicId,
-                    from: widget.from,
-                  ),
-                ),
-                if (normalComicAllInfo.recommend.isNotEmpty) ...[
-                  _buildDivider(context),
-                  if (_resolveRecommendItems(
-                    normalComicAllInfo.recommend,
-                  ).isNotEmpty)
+                    ],
+                    if (comicInfo.creator.name.trim().isNotEmpty ||
+                        comicInfo.creator.avatar.url.trim().isNotEmpty) ...[
+                      _buildDivider(context),
+                      _SectionCard(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 460),
+                            child: CreatorInfoWidget(
+                              creator: comicInfo.creator,
+                              from: widget.from,
+                              imageKey: comicInfo.id,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                    _buildDivider(context),
                     _SectionCard(
-                      title: '相关推荐',
-                      child: RecommendWidget(
-                        comicList: _resolveRecommendItems(
-                          normalComicAllInfo.recommend,
-                        ),
+                      title: '章节目录',
+                      trailing: _EpisodeHeaderBadge(
+                        label: '${normalComicAllInfo.eps.length} 话',
+                        icon: _isReversed ? Icons.south : Icons.north,
+                        onTap: _toggleOrder,
+                      ),
+                      child: _EpisodeListSection(
+                        episodes: displayEps,
+                        allInfo: comicInfoDyn,
+                        epsLength: normalComicAllInfo.eps.length,
+                        type: _type,
+                        comicId: widget.comicId,
+                        from: widget.from,
                       ),
                     ),
-                ],
-              ],
+                    if (normalComicAllInfo.recommend.isNotEmpty) ...[
+                      _buildDivider(context),
+                      if (_resolveRecommendItems(
+                        normalComicAllInfo.recommend,
+                      ).isNotEmpty)
+                        _SectionCard(
+                          title: '相关推荐',
+                          child: RecommendWidget(
+                            comicList: _resolveRecommendItems(
+                              normalComicAllInfo.recommend,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

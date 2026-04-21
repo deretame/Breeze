@@ -246,15 +246,20 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
   }
 
   void _persistAndEmit(GlobalSettingState newState) {
+    final normalizedState = _preserveCompatibleVersion(newState, state);
+    if (_withoutSettingsSyncTime(normalizedState) ==
+        _withoutSettingsSyncTime(state)) {
+      return;
+    }
+
     final nowMs = DateTime.now().toUtc().millisecondsSinceEpoch;
-    final syncSetting = newState.syncSetting.copyWith(settingsSyncTime: nowMs);
-    final normalizedState = _preserveCompatibleVersion(
-      newState.copyWith(syncSetting: syncSetting),
-      state,
+    final persistedState = normalizedState.copyWith(
+      syncSetting: normalizedState.syncSetting.copyWith(
+        settingsSyncTime: nowMs,
+      ),
     );
-    if (normalizedState == state) return;
-    _updateDataBase(normalizedState);
-    emit(normalizedState);
+    _updateDataBase(persistedState);
+    emit(persistedState);
   }
 
   void applySyncedState(GlobalSettingState value) {
@@ -275,6 +280,12 @@ class GlobalSettingCubit extends Cubit<GlobalSettingState> {
       return incoming;
     }
     return incoming.copyWith(compatibleVersion: preserved);
+  }
+
+  GlobalSettingState _withoutSettingsSyncTime(GlobalSettingState value) {
+    return value.copyWith(
+      syncSetting: value.syncSetting.copyWith(settingsSyncTime: 0),
+    );
   }
 
   void _updateDataBase(GlobalSettingState state) {

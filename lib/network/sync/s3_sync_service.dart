@@ -217,6 +217,7 @@ Minio _createMinio(GlobalSettingState settings) {
     region: settings.syncSetting.s3Setting.region.isEmpty
         ? null
         : settings.syncSetting.s3Setting.region,
+    pathStyle: true,
   );
 }
 

@@ -122,6 +122,69 @@ class PluginRegistryService {
     _emit();
   }
 
+  Future<void> reconcileAfterExternalSync({
+    Map<String, PluginRuntimeState>? previousSnapshot,
+  }) async {
+    final previous = Map<String, PluginRuntimeState>.from(
+      previousSnapshot ?? snapshot,
+    );
+    logger.d('[plugin-sync] reconcile_start previous=${previous.length}');
+
+    await refreshFromDb();
+
+    final current = snapshot;
+    final affected = <String>{...previous.keys, ...current.keys}.where((uuid) {
+      final before = previous[uuid];
+      final after = current[uuid];
+      if (before == null || after == null) {
+        return true;
+      }
+      return before.version != after.version ||
+          before.originScript != after.originScript ||
+          before.isEnabled != after.isEnabled ||
+          before.isDeleted != after.isDeleted ||
+          before.debug != after.debug ||
+          before.debugUrl != after.debugUrl;
+    }).toList();
+    logger.d(
+      '[plugin-sync] reconcile_diff current=${current.length} '
+      'affected=${affected.length} uuids=${affected.join(',')}',
+    );
+
+    for (final uuid in affected) {
+      _pluginInfoCache.remove(uuid);
+      _pluginInitDone.remove(uuid);
+
+      final runtimeName = resolveRuntimeName(uuid);
+      try {
+        final runtimeReady = await isQjsRuntimeInitialized(name: runtimeName);
+        if (runtimeReady) {
+          await qjsDropRuntime(runtimeName: runtimeName);
+        }
+      } catch (e, st) {
+        logger.w('同步后清理插件 runtime 失败: $uuid', error: e, stackTrace: st);
+      }
+    }
+
+    for (final uuid in affected) {
+      final plugin = current[uuid];
+      if (plugin == null || !plugin.isActive) {
+        continue;
+      }
+
+      final runtimeName = resolveRuntimeName(uuid);
+      try {
+        await _ensurePluginRuntimeReady(plugin, runtimeName: runtimeName);
+        await _runPluginInitIfNeeded(plugin, runtimeName: runtimeName);
+      } catch (e, st) {
+        logger.w('同步后重建插件 runtime 失败: $uuid', error: e, stackTrace: st);
+      }
+    }
+    logger.d(
+      '[plugin-sync] reconcile_done active=${current.values.where((e) => e.isActive).length}',
+    );
+  }
+
   Future<void> initializeGlobalRuntime() async {
     const globalRuntimeName = 'global';
     final ready = await isQjsRuntimeInitialized(name: globalRuntimeName);

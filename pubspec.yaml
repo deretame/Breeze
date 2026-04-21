@@ -49,7 +49,7 @@ dependencies:
   cookie_jar: ^4.0.8 # 网络: Cookie 持久化
   flutter_inappwebview: ^6.1.5 # 网络: 内嵌 WebView
   url_launcher: ^6.3.1 # 网络: 调起系统链接
-  connectivity_plus: 7.1.0 # 网络: 状态监听（7.1.1 需要 Xcode 26.1.1，CI 暂不兼容）
+  connectivity_plus: 7.0.0 # 网络: 状态监听（7.1.1 需要 Xcode 26.1.1，CI 暂不兼容）
   html: ^0.15.5+1 # 网络: HTML 解析
   flutter_socks_proxy: ^0.0.3 # 网络: SOCKS5 代理配置
   minio: ^3.5.8 # 网络: 对象存储
@@ -96,7 +96,8 @@ dependencies:
   stream_transform: ^2.1.1 # 工具: Stream 变换
   xml: ^6.5.0 # 解析: XML 解析
   intl: ^0.20.2 # 国际化: 文案与格式化
-  windcore: # FFI: 本地 Rust 核心模块
+  windcore:
+    # FFI: 本地 Rust 核心模块
     path: rust_builder
   flutter_rust_bridge: ^2.10.0 # FFI: Flutter-Rust 桥接
   ffi: ^2.2.0 # FFI: Dart 原生互操作
@@ -122,9 +123,10 @@ dev_dependencies:
   # 构建与发布辅助
   sentry_dart_plugin: ^3.2.1 # 发布: Sentry 构建上传
   flutter_launcher_icons: # 发布: 启动图标生成
-  flutter_native_splash: # 发布: 启动画面生成
+  flutter_native_splash:
+    # 发布: 启动画面生成
 
-# Flutter 配置
+    # Flutter 配置
 flutter:
   uses-material-design: true
   fonts:
@@ -138,9 +140,9 @@ flutter:
   # 资源文件配置
   assets:
     - path: asset/image/app_icon.ico
-      platforms: [windows, linux, macos]
+      platforms: [ windows, linux, macos ]
     - path: asset/image/app-icon.png
-      platforms: [windows, linux, macos]
+      platforms: [ windows, linux, macos ]
     - asset/image/error_image/404.png
     - asset/image/bika_image/cat_forum.jpg
     - asset/image/bika_image/cat_latest.jpg

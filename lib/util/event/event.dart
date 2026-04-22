@@ -1,4 +1,8 @@
-class NoticeSync {}
+class NoticeSync {
+  final bool force;
+
+  const NoticeSync({this.force = false});
+}
 
 class NeedLogin {
   String from;

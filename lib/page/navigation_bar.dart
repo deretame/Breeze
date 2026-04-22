@@ -69,10 +69,7 @@ class _NavigationBarState extends State<NavigationBar> {
         .get(1)!
         .globalSetting
         .welcomePageNum;
-    final initialIndex =
-        configuredIndex >= 0 && configuredIndex < _pageList.length
-        ? configuredIndex
-        : 0;
+    final initialIndex = _normalizeWelcomePageIndex(configuredIndex);
     _controller = PersistentTabController(initialIndex: initialIndex);
     _selectedIndex = initialIndex;
     initForegroundTask();
@@ -87,7 +84,7 @@ class _NavigationBarState extends State<NavigationBar> {
 
     // 用来手动触发同步
     eventBus.on<NoticeSync>().listen((event) {
-      _autoSync();
+      _autoSync(force: event.force);
     });
 
     eventBus.on<NeedLogin>().listen((event) {
@@ -198,6 +195,13 @@ class _NavigationBarState extends State<NavigationBar> {
     ];
   }
 
+  int _normalizeWelcomePageIndex(int rawIndex) {
+    if (_pageList.isEmpty) {
+      return 0;
+    }
+    return rawIndex.clamp(0, _pageList.length - 1);
+  }
+
   // 为平板侧边导航栏生成 NavigationRailDestination
   List<NavigationRailDestination> _navRailDestinations() {
     return [
@@ -214,11 +218,11 @@ class _NavigationBarState extends State<NavigationBar> {
     ];
   }
 
-  Future<void> _autoSync() async {
+  Future<void> _autoSync({bool force = false}) async {
     final globalSettingCubit = context.read<GlobalSettingCubit>();
     final globalState = globalSettingCubit.state;
 
-    if (globalState.syncSetting.autoSync == false) {
+    if (!force && globalState.syncSetting.autoSync == false) {
       return;
     }
 
@@ -229,11 +233,14 @@ class _NavigationBarState extends State<NavigationBar> {
     try {
       await autoSync(globalState, globalSettingCubit: globalSettingCubit);
       if (globalState.syncSetting.syncNotify) {
-        showSuccessToast("自动同步成功！");
+        showSuccessToast(force ? "同步成功！" : "自动同步成功！");
       }
     } catch (e, stackTrace) {
       logger.e(e.toString(), stackTrace: stackTrace);
-      showErrorToast("请检查网络连接或稍后再试。\n${e.toString()}", title: "自动同步失败");
+      showErrorToast(
+        "请检查网络连接或稍后再试。\n${e.toString()}",
+        title: force ? "同步失败" : "自动同步失败",
+      );
     }
   }
 

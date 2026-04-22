@@ -4,9 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
-import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/page/setting/common/plugin_user_info_card.dart';
 import 'package:zephyr/page/setting/common/setting_ui.dart';
+import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/util/sundry.dart';
@@ -215,7 +215,7 @@ class _PluginSettingsPageState extends State<PluginSettingsPage> {
                     ),
                     _FieldRow(
                       title: '删除插件',
-                      subtitle: '彻底删除插件',
+                      subtitle: '彻底删除插件，并删除相关数据',
                       trailing: Icon(
                         Icons.delete_outline,
                         size: 18,
@@ -364,7 +364,7 @@ class _PluginSettingsPageState extends State<PluginSettingsPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('删除插件'),
-        content: const Text('删除后将从插件列表彻底移除，并清理该插件的所有数据。'),
+        content: const Text('确认删除该插件？此操作将删除插件及其相关数据。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),

@@ -7,51 +7,48 @@
 | [![Sentry Logo](asset/sentry-wordmark-dark-400x119.png)](https://sentry.io/) | 本项目由 **[Sentry](https://sentry.io/)** 提供全方位的错误监控赞助，其 Sponsored Business 计划帮助我们更快速地捕获并修复崩溃，提升用户体验。 |
 | :--------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------- |
 
-## 必读⚠️
-
-- Breeze 是一款安卓的哔咔及禁漫的三方客户端，基于 flutter 开发。
-- 本应用包含限制级内容（如色情、血腥、暴力、毒品相关场景）。18 岁以下用户应在家长监督下使用，并请遵守当地法律法规。
-
-## 功能
-
-- [x] 用户
-  - [x] 登录 / 注册 / 获取个人信息 / 自动签到
-  - [x] 修改密码 / 签名 / 头像
-- [x] 漫画
-  - [x] 分类 / 搜索 / 随机漫画 / 也在看此漫画 / 排行榜
-  - [x] 在分类中搜索 / 按“分类 / 标签 / 创作者 / 汉化组”搜索
-  - [x] 漫画详情 / 章节 / 查看图片 / 保存图片到相册
-  - [x] 收藏 / 点赞
-  - [x] 获取评论 / 发送评论 / 回复评论
-- [x] 下载
-  - [x] 导出 / 导出为 zip
-- [x] 缓存 / 自动清理
-
----
-
 ## 项目开发指南
 
-### 1. 环境准备
+### 1. 核心工具链安装
 
-在开始之前，请确保你的开发环境已安装以下工具：
+在开始之前，请确保基础工具已正确安装并处于最新稳定版：
 
-- **Flutter SDK**: 请参考 [Flutter 官方安装指南](https://docs.flutter.dev/get-started/install) 完成配置，并确保 `flutter doctor` 检测通过。
-- **Rust Toolchain**: 请参考 [Rust 官方安装指南](https://www.rust-lang.org/tools/install) 安装 `rustup` 及最新的稳定版工具链。
-- **各平台编译依赖**:
-  - **Android**: 需要安装 Android SDK 和 NDK。
+- **Flutter SDK**: 需通过 `flutter doctor` 验证。
+- **Rust Toolchain**: 通过 `rustup` 安装，并添加相应的交叉编译 Target（如 `aarch64-linux-android`）。
+- **LLVM / Clang**: 由于涉及 `rustqjs` 等需要解析 C 头的库，必须安装 LLVM 环境（Windows 下推荐使用 `choco install llvm` 或从官网下载），并确保 `LIBCLANG_PATH` 环境变量已配置。
 
-### 2. 项目初始化
+### 2. 环境变量配置
 
-确定配置好开发环境后，使用以下命令生成相关代码：
+针对不同的编译需求，必须在系统中配置以下环境变量：
 
-```shell
-flutter pub get
-dart ./script/code_generate.dart
-```
+| 变量名               | 说明                                  | 示例路径 (参考)                                   |
+| :------------------- | :------------------------------------ | :------------------------------------------------ |
+| **JAVA_HOME**        | 编译 Android windows 和 Linux必需     | `C:\Program Files\Android\Android Studio\jbr`     |
+| **ANDROID_NDK_HOME** | Rust 交叉编译 Android 库必需          | `...\AppData\Local\Android\Sdk\ndk\29.0.14206865` |
+| **LIBCLANG_PATH**    | 供 `bindgen` (Rust) 生成 FFI 绑定使用 | `C:\Program Files\LLVM\bin`                       |
 
-相关代码生成完毕后，即可开始开发。
+> **注意**：请确保 `PATH` 变量中包含 `javac` 和 `clang` 的二进制文件路径。
 
----
+### 3. 依赖初始化流程
+
+由于项目采用了 Rust 插件模式（`rust_builder` 分离设计），依赖获取需要分为两步执行：
+
+1.  **根项目依赖**:
+    在项目根目录下执行，下载 Flutter 相关依赖：
+    ```bash
+    flutter pub get
+    ```
+2.  **桥接层依赖**:
+    进入 Rust 编译辅助目录执行，确保桥接层的 Pub 依赖同步（这对生成某些 `bridge_generated` 文件至关重要）：
+    ```bash
+    cd rust_builder
+    flutter pub get
+    ```
+
+### 4. 各平台特定说明
+
+- **Android**: 确保 `local.properties` 中已指向正确的 SDK 路径。
+- **Windows/Linux**: 确保安装了 Visual Studio (C++) 或相应的 GCC 工具链，以支持 Rust 的本地编译。
 
 # 🚀 如何安装
 

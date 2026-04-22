@@ -322,7 +322,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
         ),
       );
 
-      eventBus.fire(NoticeSync());
+      eventBus.fire(const NoticeSync(force: true));
 
       if (!mounted) return;
       commonDialog(context, '成功', 'WebDAV连接成功，已保存设置。');
@@ -394,7 +394,7 @@ class _WebDavSyncPageState extends State<WebDavSyncPage> {
         ),
       );
 
-      eventBus.fire(NoticeSync());
+      eventBus.fire(const NoticeSync(force: true));
 
       if (!mounted) return;
       commonDialog(context, '成功', 'S3 连接成功，已保存设置。');

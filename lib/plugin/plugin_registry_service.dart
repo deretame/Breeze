@@ -11,8 +11,8 @@ import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
-import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/direct_dio.dart';
+import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/github_proxy.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
@@ -797,9 +797,6 @@ class PluginRegistryService {
       throw StateError('插件不存在: $uuid');
     }
 
-    await _deletePluginDownloadFolders(uuid);
-    _deletePluginRelatedData(uuid);
-
     final runtimeName = resolveRuntimeName(uuid);
     try {
       final runtimeReady = await isQjsRuntimeInitialized(name: runtimeName);
@@ -810,8 +807,21 @@ class PluginRegistryService {
       // runtime 失败不阻断删除主流程
     }
 
-    objectbox.pluginInfoBox.remove(found.id);
-    _states.remove(uuid);
+    await _deletePluginDownloadFolders(uuid);
+    _deletePluginConfigs(objectbox, uuid);
+    _deletePluginRelatedData(objectbox, uuid);
+
+    final now = DateTime.now().toUtc();
+    found
+      ..originScript = ''
+      ..isEnabled = false
+      ..isDeleted = true
+      ..deletedAt = now
+      ..updatedAt = now
+      ..lastLoadSuccess = false
+      ..lastLoadError = null;
+    objectbox.pluginInfoBox.put(found);
+    _states[uuid] = _toState(found);
     _pluginInfoCache.remove(uuid);
     _pluginInitDone.remove(uuid);
     _emit();
@@ -832,13 +842,7 @@ class PluginRegistryService {
     }
   }
 
-  void _deletePluginRelatedData(String uuid) {
-    final objectbox = _objectbox;
-    if (objectbox == null) {
-      return;
-    }
-
-    _deletePluginConfigs(objectbox, uuid);
+  void _deletePluginRelatedData(ObjectBox objectbox, String uuid) {
     objectbox.unifiedFavoriteBox
         .query(UnifiedComicFavorite_.source.equals(uuid))
         .build()

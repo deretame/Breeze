@@ -225,7 +225,8 @@ Map<String, dynamic> _buildSettingsPayload(
     'pluginConfigs': pluginConfigs,
     'pluginInfos': pluginInfos,
     'blocks': {
-      for (final entry in snapshot.blocks.entries) entry.key: entry.value.toJson(),
+      for (final entry in snapshot.blocks.entries)
+        entry.key: entry.value.toJson(),
     },
   };
 }
@@ -281,7 +282,9 @@ Future<_SettingsSnapshot> _buildLocalSettingsSnapshot(
       data: pluginData,
     );
     blockPayloads[_pluginsBlockName] = pluginBlock;
-    nextMeta[_pluginsBlockName] = _LocalSettingsBlockMeta.fromBlock(pluginBlock);
+    nextMeta[_pluginsBlockName] = _LocalSettingsBlockMeta.fromBlock(
+      pluginBlock,
+    );
     logger.d(
       '[sync][plugins] local_snapshot '
       'count=${_toJsonMapList(pluginData['pluginInfos']).length} '
@@ -355,10 +358,7 @@ _SettingsSnapshot _snapshotFromPayload(
       blocks[_pluginsBlockName] = _SettingsBlockPayload(
         name: _pluginsBlockName,
         updatedAt: remoteSyncTime,
-        data: {
-          'pluginConfigs': pluginConfigs,
-          'pluginInfos': pluginInfos,
-        },
+        data: {'pluginConfigs': pluginConfigs, 'pluginInfos': pluginInfos},
       );
     }
   }
@@ -397,7 +397,19 @@ Future<_SettingsMergeResult> _mergeSettingsSnapshots(
   final remotePluginBlock = remoteSnapshot.blocks[_pluginsBlockName];
 
   if (localGlobal.syncSetting.syncPlugins) {
-    final mergedPluginBlock = _pickPreferredBlock(localPluginBlock, remotePluginBlock);
+    final mergedPluginBlock = _mergePluginBlocks(
+      localPluginBlock,
+      remotePluginBlock,
+    );
+    final decision = mergedPluginBlock == null
+        ? 'none'
+        : (localPluginBlock != null &&
+              mergedPluginBlock.contentMd5 == localPluginBlock.contentMd5)
+        ? 'local_or_merged_local'
+        : (remotePluginBlock != null &&
+              mergedPluginBlock.contentMd5 == remotePluginBlock.contentMd5)
+        ? 'remote_or_merged_remote'
+        : 'merged_union';
     logger.d(
       '[sync][plugins] merge '
       'localCount=${_pluginBlockCount(localPluginBlock)} '
@@ -406,7 +418,7 @@ Future<_SettingsMergeResult> _mergeSettingsSnapshots(
       'remoteCount=${_pluginBlockCount(remotePluginBlock)} '
       'remoteTs=${remotePluginBlock?.updatedAt ?? 0} '
       'remoteHash=${remotePluginBlock?.contentMd5 ?? ''} '
-      'decision=${mergedPluginBlock == null ? 'none' : (identical(mergedPluginBlock, localPluginBlock) ? 'local' : 'remote')}',
+      'decision=$decision',
     );
     if (mergedPluginBlock != null) {
       mergedBlocks[_pluginsBlockName] = mergedPluginBlock;
@@ -429,7 +441,8 @@ Future<_SettingsMergeResult> _mergeSettingsSnapshots(
 
   final syncTimeBlocks = <String, _SettingsBlockPayload>{
     for (final blockName in _syncableSettingsBlockNames)
-      if (mergedBlocks.containsKey(blockName)) blockName: mergedBlocks[blockName]!,
+      if (mergedBlocks.containsKey(blockName))
+        blockName: mergedBlocks[blockName]!,
   };
   if (localGlobal.syncSetting.syncPlugins &&
       mergedBlocks.containsKey(_pluginsBlockName)) {
@@ -437,12 +450,12 @@ Future<_SettingsMergeResult> _mergeSettingsSnapshots(
   }
 
   final mergedSyncTime = _computeSnapshotSyncTime(syncTimeBlocks);
-  final mergedState = _applySyncableBlocksToState(
-    localGlobal,
-    mergedBlocks,
-  ).copyWith(
-    syncSetting: localGlobal.syncSetting.copyWith(settingsSyncTime: mergedSyncTime),
-  );
+  final mergedState = _applySyncableBlocksToState(localGlobal, mergedBlocks)
+      .copyWith(
+        syncSetting: localGlobal.syncSetting.copyWith(
+          settingsSyncTime: mergedSyncTime,
+        ),
+      );
 
   return _SettingsMergeResult(
     mergedState: mergedState,
@@ -480,32 +493,53 @@ Map<String, Map<String, dynamic>> _extractSyncableSettingsBlocks(
 }
 
 Map<String, dynamic> _buildPluginBlockData() {
-  final pluginConfigs = objectbox.pluginConfigBox.getAll().map((item) {
-    final json = item.toJson();
-    json.remove('id');
-    return json;
-  }).toList();
+  final deletedUuids = objectbox.pluginInfoBox
+      .getAll()
+      .where((item) => item.isDeleted)
+      .map((item) => item.uuid.trim())
+      .where((uuid) => uuid.isNotEmpty)
+      .toSet();
+  final blockedConfigNames = <String>{
+    for (final uuid in deletedUuids)
+      ..._buildPluginConfigNameCandidatesForSync(uuid),
+  };
+
+  final pluginConfigs = objectbox.pluginConfigBox
+      .getAll()
+      .map((item) {
+        final name = item.name.trim();
+        if (name.isEmpty || blockedConfigNames.contains(name)) {
+          return <String, dynamic>{};
+        }
+        final json = item.toJson();
+        json.remove('id');
+        json['name'] = name;
+        return json;
+      })
+      .where((item) => item.isNotEmpty)
+      .toList();
   pluginConfigs.sort((a, b) {
     final aName = a['name']?.toString() ?? '';
     final bName = b['name']?.toString() ?? '';
     return aName.compareTo(bName);
   });
 
-  final pluginInfos = objectbox.pluginInfoBox.getAll().map((item) {
-    final json = item.toJson();
-    json.remove('id');
-    return json;
-  }).toList();
+  final pluginInfos = objectbox.pluginInfoBox
+      .getAll()
+      .where((item) => !item.isDeleted)
+      .map((item) {
+        final json = item.toJson();
+        json.remove('id');
+        return json;
+      })
+      .toList();
   pluginInfos.sort((a, b) {
     final aKey = '${a['uuid'] ?? ''}:${a['version'] ?? ''}';
     final bKey = '${b['uuid'] ?? ''}:${b['version'] ?? ''}';
     return aKey.compareTo(bKey);
   });
 
-  return {
-    'pluginConfigs': pluginConfigs,
-    'pluginInfos': pluginInfos,
-  };
+  return {'pluginConfigs': pluginConfigs, 'pluginInfos': pluginInfos};
 }
 
 GlobalSettingState _applySyncableBlocksToState(
@@ -558,41 +592,135 @@ Future<void> _applyPluginBlockData(Map<String, dynamic> pluginBlockData) async {
     'previousRegistry=${previousSnapshot.length}',
   );
 
-  final remotePluginConfigs = pluginConfigJsonList
-      .map(PluginConfig.fromJson)
-      .map((item) => PluginConfig(name: item.name, config: item.config))
-      .toList();
-  objectbox.pluginConfigBox.removeAll();
-  if (remotePluginConfigs.isNotEmpty) {
-    objectbox.pluginConfigBox.putMany(remotePluginConfigs);
+  final localPluginInfos = objectbox.pluginInfoBox.getAll();
+  final localPluginByUuid = <String, PluginInfo>{
+    for (final item in localPluginInfos)
+      if (item.uuid.trim().isNotEmpty) item.uuid.trim(): item,
+  };
+  final localDeletedUuids = localPluginByUuid.values
+      .where((item) => item.isDeleted)
+      .map((item) => item.uuid.trim())
+      .where((uuid) => uuid.isNotEmpty)
+      .toSet();
+
+  final remotePluginInfos = <PluginInfo>[];
+  for (final json in pluginInfoJsonList) {
+    try {
+      final parsed = PluginInfo.fromJson(json);
+      final uuid = parsed.uuid.trim();
+      if (uuid.isEmpty || parsed.isDeleted) {
+        continue;
+      }
+      remotePluginInfos.add(
+        PluginInfo(
+          uuid: uuid,
+          version: parsed.version,
+          originScript: parsed.originScript,
+          insertedAt: parsed.insertedAt.toUtc(),
+          updatedAt: parsed.updatedAt.toUtc(),
+          isEnabled: parsed.isEnabled,
+          isDeleted: false,
+          deletedAt: null,
+          lastLoadSuccess: parsed.lastLoadSuccess,
+          lastLoadError: parsed.lastLoadError,
+          debug: parsed.debug,
+          debugUrl: parsed.debugUrl,
+        ),
+      );
+    } catch (e) {
+      logger.w('[sync][plugins] 忽略无效插件信息: $e');
+    }
   }
 
-  final remotePluginInfos = pluginInfoJsonList
-      .map(PluginInfo.fromJson)
-      .map(
-        (item) => PluginInfo(
-          uuid: item.uuid,
-          version: item.version,
-          originScript: item.originScript,
-          insertedAt: item.insertedAt,
-          updatedAt: item.updatedAt,
-          isEnabled: item.isEnabled,
-          isDeleted: item.isDeleted,
-          deletedAt: item.deletedAt,
-          lastLoadSuccess: item.lastLoadSuccess,
-          lastLoadError: item.lastLoadError,
-          debug: item.debug,
-          debugUrl: item.debugUrl,
+  final infoUpserts = <PluginInfo>[];
+  var skippedDeletedLocal = 0;
+  for (final incoming in remotePluginInfos) {
+    final uuid = incoming.uuid.trim();
+    if (localDeletedUuids.contains(uuid)) {
+      skippedDeletedLocal++;
+      continue;
+    }
+    final existing = localPluginByUuid[uuid];
+    if (existing != null &&
+        !_shouldApplyIncomingPluginInfo(existing, incoming)) {
+      continue;
+    }
+    final upsert = PluginInfo(
+      id: existing?.id ?? 0,
+      uuid: uuid,
+      version: incoming.version,
+      originScript: incoming.originScript,
+      insertedAt: existing?.insertedAt ?? incoming.insertedAt,
+      updatedAt: incoming.updatedAt,
+      isEnabled: incoming.isEnabled,
+      isDeleted: false,
+      deletedAt: null,
+      lastLoadSuccess: incoming.lastLoadSuccess,
+      lastLoadError: incoming.lastLoadError,
+      debug: incoming.debug,
+      debugUrl: incoming.debugUrl,
+    );
+    infoUpserts.add(upsert);
+    localPluginByUuid[uuid] = upsert;
+  }
+  if (infoUpserts.isNotEmpty) {
+    objectbox.pluginInfoBox.putMany(infoUpserts);
+  }
+
+  final blockedConfigNames = <String>{
+    for (final uuid in localDeletedUuids)
+      ..._buildPluginConfigNameCandidatesForSync(uuid),
+  };
+  final blockedConfigIds = <int>[];
+  final localConfigByName = <String, PluginConfig>{
+    for (final item in objectbox.pluginConfigBox.getAll())
+      if (item.name.trim().isNotEmpty &&
+          !blockedConfigNames.contains(item.name.trim()))
+        item.name.trim(): PluginConfig(
+          id: item.id,
+          name: item.name.trim(),
+          config: item.config,
         ),
-      )
-      .toList();
-  objectbox.pluginInfoBox.removeAll();
-  if (remotePluginInfos.isNotEmpty) {
-    objectbox.pluginInfoBox.putMany(remotePluginInfos);
+  };
+  for (final item in objectbox.pluginConfigBox.getAll()) {
+    final name = item.name.trim();
+    if (name.isNotEmpty && blockedConfigNames.contains(name)) {
+      blockedConfigIds.add(item.id);
+    }
+  }
+  if (blockedConfigIds.isNotEmpty) {
+    objectbox.pluginConfigBox.removeMany(blockedConfigIds);
+  }
+  var skippedBlockedConfig = 0;
+  for (final json in pluginConfigJsonList) {
+    try {
+      final parsed = PluginConfig.fromJson(json);
+      final name = parsed.name.trim();
+      if (name.isEmpty) {
+        continue;
+      }
+      if (blockedConfigNames.contains(name)) {
+        skippedBlockedConfig++;
+        continue;
+      }
+      final existing = localConfigByName[name];
+      localConfigByName[name] = PluginConfig(
+        id: existing?.id ?? 0,
+        name: name,
+        config: parsed.config,
+      );
+    } catch (e) {
+      logger.w('[sync][plugins] 忽略无效插件配置: $e');
+    }
+  }
+  if (localConfigByName.isNotEmpty) {
+    objectbox.pluginConfigBox.putMany(localConfigByName.values.toList());
   }
   logger.d(
     '[sync][plugins] apply_remote_db '
-    'savedInfos=${remotePluginInfos.length} savedConfigs=${remotePluginConfigs.length}',
+    'upsertInfos=${infoUpserts.length} totalLocalInfos=${localPluginByUuid.length} '
+    'savedConfigs=${localConfigByName.length} '
+    'skippedDeletedLocal=$skippedDeletedLocal skippedBlockedConfig=$skippedBlockedConfig',
   );
 
   await PluginRegistryService.I.reconcileAfterExternalSync(
@@ -600,7 +728,8 @@ Future<void> _applyPluginBlockData(Map<String, dynamic> pluginBlockData) async {
   );
 }
 
-Future<Map<String, _LocalSettingsBlockMeta>> _loadLocalSettingsBlockMeta() async {
+Future<Map<String, _LocalSettingsBlockMeta>>
+_loadLocalSettingsBlockMeta() async {
   final prefs = await SharedPreferences.getInstance();
   final raw = prefs.getString(_settingsBlockMetaPrefsKey);
   if (raw == null || raw.trim().isEmpty) {
@@ -845,6 +974,196 @@ int _pluginBlockCount(_SettingsBlockPayload? block) {
   return _toJsonMapList(block.data['pluginInfos']).length;
 }
 
+_SettingsBlockPayload? _mergePluginBlocks(
+  _SettingsBlockPayload? localBlock,
+  _SettingsBlockPayload? remoteBlock,
+) {
+  if (localBlock == null) {
+    return remoteBlock;
+  }
+  if (remoteBlock == null) {
+    return localBlock;
+  }
+  if (_sameBlock(localBlock, remoteBlock)) {
+    return localBlock;
+  }
+
+  final preferRemoteOnConflict = remoteBlock.updatedAt > localBlock.updatedAt;
+  final mergedData = _mergePluginBlockData(
+    localBlock.data,
+    remoteBlock.data,
+    preferRemoteOnConflict: preferRemoteOnConflict,
+  );
+  final mergedMd5 = _calculateStructuredMd5(mergedData);
+  if (mergedMd5 == localBlock.contentMd5) {
+    return localBlock;
+  }
+  if (mergedMd5 == remoteBlock.contentMd5) {
+    return remoteBlock;
+  }
+
+  return _SettingsBlockPayload(
+    name: _pluginsBlockName,
+    updatedAt: localBlock.updatedAt >= remoteBlock.updatedAt
+        ? localBlock.updatedAt
+        : remoteBlock.updatedAt,
+    data: mergedData,
+  );
+}
+
+Map<String, dynamic> _mergePluginBlockData(
+  Map<String, dynamic> localData,
+  Map<String, dynamic> remoteData, {
+  required bool preferRemoteOnConflict,
+}) {
+  final localInfos = _toJsonMapList(localData['pluginInfos'])
+      .where((item) {
+        final uuid = item['uuid']?.toString().trim() ?? '';
+        return uuid.isNotEmpty && item['isDeleted'] != true;
+      })
+      .map((item) {
+        final next = Map<String, dynamic>.from(item);
+        next['uuid'] = item['uuid']?.toString().trim() ?? '';
+        return next;
+      })
+      .toList();
+  final remoteInfos = _toJsonMapList(remoteData['pluginInfos'])
+      .where((item) {
+        final uuid = item['uuid']?.toString().trim() ?? '';
+        return uuid.isNotEmpty && item['isDeleted'] != true;
+      })
+      .map((item) {
+        final next = Map<String, dynamic>.from(item);
+        next['uuid'] = item['uuid']?.toString().trim() ?? '';
+        return next;
+      })
+      .toList();
+
+  final mergedInfoByUuid = <String, Map<String, dynamic>>{
+    for (final item in localInfos) item['uuid'] as String: item,
+  };
+  for (final remote in remoteInfos) {
+    final uuid = remote['uuid'] as String;
+    final local = mergedInfoByUuid[uuid];
+    if (local == null) {
+      mergedInfoByUuid[uuid] = remote;
+      continue;
+    }
+    final remoteUpdatedAt = _pluginInfoUpdatedAtMs(remote);
+    final localUpdatedAt = _pluginInfoUpdatedAtMs(local);
+    if (remoteUpdatedAt > localUpdatedAt ||
+        (preferRemoteOnConflict && remoteUpdatedAt == localUpdatedAt)) {
+      mergedInfoByUuid[uuid] = remote;
+    }
+  }
+
+  final localConfigs = _toJsonMapList(localData['pluginConfigs']);
+  final remoteConfigs = _toJsonMapList(remoteData['pluginConfigs']);
+  final mergedConfigByName = <String, Map<String, dynamic>>{};
+
+  for (final item in localConfigs) {
+    final name = item['name']?.toString().trim() ?? '';
+    if (name.isEmpty) {
+      continue;
+    }
+    final next = Map<String, dynamic>.from(item);
+    next['name'] = name;
+    mergedConfigByName[name] = next;
+  }
+  for (final item in remoteConfigs) {
+    final name = item['name']?.toString().trim() ?? '';
+    if (name.isEmpty) {
+      continue;
+    }
+    final next = Map<String, dynamic>.from(item);
+    next['name'] = name;
+    if (!mergedConfigByName.containsKey(name) || preferRemoteOnConflict) {
+      mergedConfigByName[name] = next;
+    }
+  }
+
+  final mergedInfos = mergedInfoByUuid.values.toList()
+    ..sort((a, b) {
+      final aKey = '${a['uuid'] ?? ''}:${a['version'] ?? ''}';
+      final bKey = '${b['uuid'] ?? ''}:${b['version'] ?? ''}';
+      return aKey.compareTo(bKey);
+    });
+  final mergedConfigs = mergedConfigByName.values.toList()
+    ..sort((a, b) {
+      final aName = a['name']?.toString() ?? '';
+      final bName = b['name']?.toString() ?? '';
+      return aName.compareTo(bName);
+    });
+
+  return <String, dynamic>{
+    'pluginConfigs': mergedConfigs,
+    'pluginInfos': mergedInfos,
+  };
+}
+
+int _pluginInfoUpdatedAtMs(Map<String, dynamic> item) {
+  final updatedAt = DateTime.tryParse(item['updatedAt']?.toString() ?? '');
+  final insertedAt = DateTime.tryParse(item['insertedAt']?.toString() ?? '');
+  final updatedAtMs = updatedAt?.toUtc().millisecondsSinceEpoch ?? 0;
+  final insertedAtMs = insertedAt?.toUtc().millisecondsSinceEpoch ?? 0;
+  return updatedAtMs > insertedAtMs ? updatedAtMs : insertedAtMs;
+}
+
+bool _shouldApplyIncomingPluginInfo(PluginInfo existing, PluginInfo incoming) {
+  if (existing.isDeleted) {
+    return false;
+  }
+
+  final remoteUpdatedAt = incoming.updatedAt.toUtc().millisecondsSinceEpoch;
+  final localUpdatedAt = existing.updatedAt.toUtc().millisecondsSinceEpoch;
+  if (remoteUpdatedAt > localUpdatedAt) {
+    return true;
+  }
+  if (remoteUpdatedAt < localUpdatedAt) {
+    return false;
+  }
+  return existing.version != incoming.version ||
+      existing.originScript != incoming.originScript ||
+      existing.isEnabled != incoming.isEnabled ||
+      existing.debug != incoming.debug ||
+      (existing.debugUrl ?? '') != (incoming.debugUrl ?? '') ||
+      existing.lastLoadSuccess != incoming.lastLoadSuccess ||
+      (existing.lastLoadError ?? '') != (incoming.lastLoadError ?? '');
+}
+
+Set<String> _buildPluginConfigNameCandidatesForSync(String uuid) {
+  final candidates = <String>{};
+  for (final raw in <String>{uuid.trim()}) {
+    for (final normalized in _normalizePluginNameCandidatesForSync(raw)) {
+      candidates.add(normalized);
+      candidates.add('($normalized)');
+      final onceRuntime = 'plugin_info_${normalized.replaceAll('-', '_')}';
+      candidates.add(onceRuntime);
+      candidates.add('($onceRuntime)');
+    }
+  }
+  return candidates.where((item) => item.trim().isNotEmpty).toSet();
+}
+
+Set<String> _normalizePluginNameCandidatesForSync(String raw) {
+  final names = <String>{};
+  var value = raw.trim();
+  if (value.isEmpty) {
+    return names;
+  }
+  names.add(value);
+
+  while (value.length >= 2 && value.startsWith('(') && value.endsWith(')')) {
+    value = value.substring(1, value.length - 1).trim();
+    if (value.isEmpty) {
+      break;
+    }
+    names.add(value);
+  }
+
+  return names;
+}
+
 _SettingsBlockPayload? _pickPreferredBlock(
   _SettingsBlockPayload? localBlock,
   _SettingsBlockPayload? remoteBlock,
@@ -918,10 +1237,7 @@ class _SettingsBlockPayload {
   final String contentMd5;
 
   Map<String, dynamic> toJson() {
-    return {
-      'updatedAt': updatedAt,
-      'data': data,
-    };
+    return {'updatedAt': updatedAt, 'data': data};
   }
 }
 
@@ -946,10 +1262,7 @@ class _LocalSettingsBlockMeta {
   final String hash;
 
   Map<String, dynamic> toJson() {
-    return {
-      'updatedAt': updatedAt,
-      'hash': hash,
-    };
+    return {'updatedAt': updatedAt, 'hash': hash};
   }
 }
 

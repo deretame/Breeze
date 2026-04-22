@@ -25,8 +25,8 @@ class GlobalSettingPage extends StatefulWidget {
 class _GlobalSettingPageState extends State<GlobalSettingPage> {
   final List<String> systemThemeList = ["跟随系统", "浅色模式", "深色模式"];
   final Map<String, int> systemTheme = {"跟随系统": 0, "浅色模式": 1, "深色模式": 2};
-  final List<String> splashPageList = ["书架", "插件", "更多"];
-  final Map<String, int> splashPage = {"书架": 0, "插件": 1, "更多": 2};
+  final List<String> splashPageList = ["书架", "发现"];
+  final Map<String, int> splashPage = {"书架": 0, "发现": 1};
   @override
   void initState() {
     super.initState();
@@ -375,11 +375,9 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
   }
 
   Widget _splashPage(GlobalSettingState state, GlobalSettingCubit cubit) {
-    final selectedIndex =
-        state.welcomePageNum >= 0 &&
-            state.welcomePageNum < splashPageList.length
-        ? state.welcomePageNum
-        : 0;
+    final selectedIndex = splashPageList.isEmpty
+        ? 0
+        : state.welcomePageNum.clamp(0, splashPageList.length - 1);
 
     return ListTile(
       leading: const Icon(Icons.rocket_launch_outlined),

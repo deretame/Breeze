@@ -416,7 +416,7 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
 
   void _validateUuidNotDuplicated(String uuid) {
     final existing = PluginRegistryService.I.getByUuid(uuid);
-    if (existing != null) {
+    if (existing != null && !existing.isDeleted) {
       throw StateError('插件已存在，禁止重复安装: uuid=$uuid');
     }
   }

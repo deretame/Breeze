@@ -23,11 +23,9 @@ class CloudPluginCard extends StatelessWidget {
     final localState = manifest.uuid.isNotEmpty
         ? PluginRegistryService.I.getByUuid(manifest.uuid)
         : null;
-    final installed = localState != null;
+    final installed = localState != null && !localState.isDeleted;
     final localVersion = localState?.version.trim() ?? '';
-    final creatorText = manifest.creatorName.trim().isNotEmpty
-        ? manifest.creatorName.trim()
-        : manifest.creatorDescribe.trim();
+    final creatorText = manifest.creatorName.trim();
     final title = manifest.name.trim().isNotEmpty
         ? manifest.name.trim()
         : item.repo;
@@ -89,8 +87,8 @@ class CloudPluginCard extends StatelessWidget {
             runSpacing: 6,
             children: [
               _CloudMetaTag(label: '仓库', value: item.repo),
-              if (manifest.uuid.trim().isNotEmpty)
-                _CloudMetaTag(label: 'UUID', value: manifest.uuid.trim()),
+              // if (manifest.uuid.trim().isNotEmpty)
+              //   _CloudMetaTag(label: 'UUID', value: manifest.uuid.trim()),
               if (creatorText.isNotEmpty)
                 _CloudMetaTag(label: '作者', value: creatorText),
             ],

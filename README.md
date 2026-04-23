@@ -31,14 +31,25 @@
 
 ### 3. 依赖初始化流程
 
-由于项目采用了 Rust 插件模式（`rust_builder` 分离设计），依赖获取需要分为两步执行：
+由于项目采用了 Rust 插件模式（`rust_builder` 分离设计），依赖获取需要分步执行。
 
-1.  **根项目依赖**:
+> `rquickjs_playground` 目前尚未发布到 crates.io，且处于持续迭代阶段。  
+> 本项目通过源码路径依赖直接接入：`rust/Cargo.toml` 中为 `rquickjs_playground = { path = "../rquickjs_playground" }`。  
+> 因此请确保项目根目录存在 `rquickjs_playground/` 源码目录。
+
+1.  **拉取 `rquickjs_playground` 源码（首次开发必做）**:
+    在项目根目录下执行：
+    ```bash
+    git clone https://github.com/deretame/rquickjs_playground.git ./rquickjs_playground
+    ```
+    若目录已存在，可跳过此步骤；若需更新可在该目录执行 `git pull`。
+
+2.  **根项目依赖**:
     在项目根目录下执行，下载 Flutter 相关依赖：
     ```bash
     flutter pub get
     ```
-2.  **桥接层依赖**:
+3.  **桥接层依赖**:
     进入 Rust 编译辅助目录执行，确保桥接层的 Pub 依赖同步（这对生成某些 `bridge_generated` 文件至关重要）：
     ```bash
     cd rust_builder

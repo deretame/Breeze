@@ -265,7 +265,7 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
 
   final logAddress = objectbox.userSettingBox.get(1)!.globalSetting.logAddress;
 
-  if (logAddress.isNotEmpty) {
+  if (logAddress.isNotEmpty && kDebugMode) {
     setLogHttpForward(url: logAddress);
     logger = Logger(
       printer: TersePrettyPrinter(),

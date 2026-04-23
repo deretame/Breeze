@@ -9,6 +9,8 @@ import 'package:zephyr/util/context/context_extensions.dart';
 import '../../../util/router/router.gr.dart';
 
 class EpButtonWidget extends StatelessWidget {
+  static const double fixedHeight = 56;
+
   final Ep doc;
   final dynamic allInfo;
   final int epsLength;
@@ -51,9 +53,9 @@ class EpButtonWidget extends StatelessWidget {
       },
       child: Container(
         width: double.infinity,
+        height: fixedHeight,
         margin: EdgeInsets.zero,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        constraints: const BoxConstraints(minHeight: 52),
         decoration: BoxDecoration(
           color: context.theme.colorScheme.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(8),

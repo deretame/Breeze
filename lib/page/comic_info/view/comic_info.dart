@@ -796,7 +796,7 @@ class _EpisodeListSection extends StatelessWidget {
             crossAxisCount: isWide ? 2 : 1,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: isWide ? 4.8 : 3.8,
+            mainAxisExtent: EpButtonWidget.fixedHeight,
           ),
           itemBuilder: (context, index) {
             final e = episodes[index] as Ep;
@@ -824,42 +824,14 @@ class _ReadActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = context.theme.colorScheme.primary;
-    final background = hasHistory
-        ? primary.withValues(alpha: 0.14)
-        : primary.withValues(alpha: 0.22);
-
-    return SizedBox(
-      width: hasHistory ? 132 : 112,
-      height: 56,
-      child: FloatingActionButton(
-        onPressed: onPressed,
-        backgroundColor: background,
-        foregroundColor: hasHistory ? primary : context.textColor,
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              hasHistory ? Icons.history_rounded : Icons.menu_book_rounded,
-              size: 18,
-            ),
-            const SizedBox(width: 6),
-            Flexible(
-              child: Text(
-                hasHistory ? '继续阅读' : '开始阅读',
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                style: context.theme.textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: hasHistory ? primary : context.textColor,
-                ),
-              ),
-            ),
-          ],
-        ),
+    return FloatingActionButton.extended(
+      onPressed: onPressed,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      icon: Icon(
+        hasHistory ? Icons.history_rounded : Icons.menu_book_rounded,
+        size: 18,
       ),
+      label: Text(hasHistory ? '继续阅读' : '开始阅读'),
     );
   }
 }

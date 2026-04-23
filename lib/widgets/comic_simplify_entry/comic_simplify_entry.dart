@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
+import 'package:uuid/uuid.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -18,6 +19,7 @@ class ComicFixedSizeHorizontalList extends StatelessWidget {
   final double spacing; // 卡片之间的横向间距
   final double itemWidth; // 卡片固定宽度
   final bool roundedCorner; // 是否有圆角
+  final bool useRandomImageKey;
 
   const ComicFixedSizeHorizontalList({
     super.key,
@@ -25,6 +27,7 @@ class ComicFixedSizeHorizontalList extends StatelessWidget {
     this.spacing = 10.0, // 默认间距设为 10
     this.itemWidth = 200, // 固定宽度，不随窗口宽高比变化
     this.roundedCorner = true,
+    this.useRandomImageKey = false,
   });
 
   @override
@@ -59,7 +62,14 @@ class ComicFixedSizeHorizontalList extends StatelessWidget {
               child: SizedBox(
                 width: itemWidth,
                 height: itemHeight,
-                child: _buildCoverWithTitle(info, itemWidth, itemHeight),
+                child: _buildCoverWithTitle(
+                  info,
+                  itemWidth,
+                  itemHeight,
+                  useRandomImageKey
+                      ? ValueKey('cover-${const Uuid().v4()}')
+                      : ValueKey('cover-${info.from}:${info.id}:${info.path}'),
+                ),
               ),
             ),
           );
@@ -72,12 +82,14 @@ class ComicFixedSizeHorizontalList extends StatelessWidget {
     ComicSimplifyEntryInfo info,
     double width,
     double height,
+    Key coverKey,
   ) {
     double circular = roundedCorner ? 5.0 : 0.0;
     return Stack(
       children: [
         // 1. 底层封面图
         CoverWidget(
+          key: coverKey,
           fileServer: info.fileServer,
           path: info.path,
           id: info.id,

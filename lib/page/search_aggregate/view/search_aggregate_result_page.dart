@@ -322,6 +322,7 @@ class _ResultList extends StatelessWidget {
             : const <ComicSimplifyEntryInfo>[];
         children.add(
           Padding(
+            key: ValueKey('aggregate-source-$pluginId'),
             padding: const EdgeInsets.only(bottom: 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -335,9 +336,11 @@ class _ResultList extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(left: 10),
                     child: ComicFixedSizeHorizontalList(
+                      key: ValueKey('aggregate-list-$pluginId'),
                       entries: entries,
                       spacing: 10,
                       itemWidth: 112,
+                      useRandomImageKey: true,
                     ),
                   ),
                 if (entries.isEmpty)

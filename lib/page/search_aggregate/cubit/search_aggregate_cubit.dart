@@ -52,8 +52,10 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
   }) : super(AggregateSearchState(selectedSources: initialSelectedSources));
 
   final SearchEvent baseEvent;
+  int _searchVersion = 0;
 
   Future<void> search() async {
+    final int searchVersion = ++_searchVersion;
     final selected = state.selectedSources.entries
         .where((entry) => entry.value)
         .map((entry) => entry.key)
@@ -81,27 +83,44 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
 
     final nextResults = <String, List<dynamic>>{};
     final nextErrors = <String, String>{};
+    var completed = 0;
 
     await Future.wait(
       selected.map((pluginId) async {
         try {
-          nextResults[pluginId] = await _searchSingleSource(pluginId);
+          final result = await _searchSingleSource(pluginId);
+          if (!_isSearchActive(searchVersion)) {
+            return;
+          }
+          nextResults[pluginId] = result;
+          nextErrors.remove(pluginId);
         } catch (error) {
+          if (!_isSearchActive(searchVersion)) {
+            return;
+          }
           nextErrors[pluginId] = error.toString();
           nextResults[pluginId] = const <dynamic>[];
+        } finally {
+          if (_isSearchActive(searchVersion)) {
+            completed++;
+            final allDone = completed >= selected.length;
+            emit(
+              state.copyWith(
+                status: allDone
+                    ? AggregateSearchStatus.success
+                    : AggregateSearchStatus.loading,
+                results: Map<String, List<dynamic>>.from(nextResults),
+                errors: Map<String, String>.from(nextErrors),
+              ),
+            );
+          }
         }
       }),
     );
+  }
 
-    emit(
-      state.copyWith(
-        status: nextResults.isEmpty && nextErrors.isNotEmpty
-            ? AggregateSearchStatus.failure
-            : AggregateSearchStatus.success,
-        results: nextResults,
-        errors: nextErrors,
-      ),
-    );
+  bool _isSearchActive(int searchVersion) {
+    return !isClosed && searchVersion == _searchVersion;
   }
 
   Future<void> toggleSource(String pluginId, bool enabled) async {

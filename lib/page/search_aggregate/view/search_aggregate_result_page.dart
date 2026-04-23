@@ -116,12 +116,24 @@ class _SearchAggregateResultPageState
           Expanded(
             child: BlocBuilder<AggregateSearchCubit, AggregateSearchState>(
               builder: (context, state) {
-                if (state.status == AggregateSearchStatus.loading) {
+                final hasAnyResponse =
+                    state.results.isNotEmpty || state.errors.isNotEmpty;
+                if (state.status == AggregateSearchStatus.loading &&
+                    !hasAnyResponse) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                return _ResultList(
-                  searchEvent: widget.searchEvent,
-                  state: state,
+                return Stack(
+                  children: [
+                    _ResultList(
+                      searchEvent: widget.searchEvent,
+                      state: state,
+                    ),
+                    if (state.status == AggregateSearchStatus.loading)
+                      const Align(
+                        alignment: Alignment.topCenter,
+                        child: LinearProgressIndicator(minHeight: 2),
+                      ),
+                  ],
                 );
               },
             ),

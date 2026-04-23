@@ -211,6 +211,7 @@ class _LocalShelfPageState extends State<LocalShelfPage>
         physics: const AlwaysScrollableScrollPhysics(),
         entries: entries,
         type: type,
+        refresh: _dispatch,
         hasReachedMax: hasReachedMax,
         isLoadingMore: isLoadingMore,
         loadMoreFailed: loadMoreFailed,

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../main.dart';
@@ -11,7 +12,6 @@ import '../../util/get_path.dart';
 import '../../util/router/router.gr.dart';
 import 'comic_simplify_entry_info.dart';
 import 'cover.dart';
-import 'package:zephyr/type/enum.dart';
 
 class ComicFixedSizeHorizontalList extends StatelessWidget {
   final List<ComicSimplifyEntryInfo> entries;
@@ -310,7 +310,7 @@ class ComicSimplifyEntry extends StatelessWidget {
       } else if (type == ComicEntryType.favorite) {
         await _deleteFavorite();
       }
-      refresh!();
+      refresh?.call();
     } catch (e, s) {
       logger.e('删除失败', error: e, stackTrace: s);
       showErrorToast("删除失败");

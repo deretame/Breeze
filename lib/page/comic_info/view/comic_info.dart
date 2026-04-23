@@ -741,20 +741,21 @@ class _EpisodeListSection extends StatelessWidget {
       builder: (context, constraints) {
         if (constraints.maxWidth < 560) {
           return Column(
-            children: episodes.map((item) {
-              final e = item as Ep;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: EpButtonWidget(
-                  doc: e,
-                  allInfo: allInfo,
-                  epsLength: epsLength,
-                  type: type,
-                  comicId: comicId,
-                  from: from,
+            children: [
+              for (var i = 0; i < episodes.length; i++)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: EpButtonWidget(
+                    index: i,
+                    doc: episodes[i] as Ep,
+                    allInfo: allInfo,
+                    epsLength: epsLength,
+                    type: type,
+                    comicId: comicId,
+                    from: from,
+                  ),
                 ),
-              );
-            }).toList(),
+            ],
           );
         }
 
@@ -764,20 +765,24 @@ class _EpisodeListSection extends StatelessWidget {
             child: Wrap(
               spacing: 12,
               runSpacing: 12,
-              children: episodes.map((item) {
-                final e = item as Ep;
-                return SizedBox(
-                  width: 280,
-                  child: EpButtonWidget(
-                    doc: e,
-                    allInfo: allInfo,
-                    epsLength: epsLength,
-                    type: type,
-                    comicId: comicId,
-                    from: from,
+              children: [
+                for (var i = 0; i < episodes.length; i++)
+                  SizedBox(
+                    width: 280,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: EpButtonWidget(
+                        index: i,
+                        doc: episodes[i] as Ep,
+                        allInfo: allInfo,
+                        epsLength: epsLength,
+                        type: type,
+                        comicId: comicId,
+                        from: from,
+                      ),
+                    ),
                   ),
-                );
-              }).toList(),
+              ],
             ),
           );
         }
@@ -802,6 +807,7 @@ class _EpisodeListSection extends StatelessWidget {
               type: type,
               comicId: comicId,
               from: from,
+              index: index,
             );
           },
         );

@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
 import '../../../util/router/router.gr.dart';
-import 'package:zephyr/type/enum.dart';
 
 class EpButtonWidget extends StatelessWidget {
   final Ep doc;
@@ -15,6 +15,7 @@ class EpButtonWidget extends StatelessWidget {
   final ComicEntryType type;
   final String comicId;
   final String from;
+  final int index;
 
   const EpButtonWidget({
     super.key,
@@ -24,6 +25,7 @@ class EpButtonWidget extends StatelessWidget {
     required this.type,
     required this.comicId,
     required this.from,
+    required this.index,
   });
 
   @override
@@ -59,7 +61,7 @@ class EpButtonWidget extends StatelessWidget {
         child: Row(
           children: [
             Text(
-              '第$episodeIndex话',
+              '第${index + 1}话',
               style: context.theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: context.theme.colorScheme.primary,

@@ -345,6 +345,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.12"
+  desktop_webview_linux:
+    dependency: "direct main"
+    description:
+      name: desktop_webview_linux
+      sha256: b3522872c1ab49dffed2f0fb7990e7b793a0eec123ae9bb0e381038bcf784fe9
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.4"
   device_info_plus:
     dependency: "direct main"
     description:

@@ -169,6 +169,12 @@ _ReadSettingState _$ReadSettingStateFromJson(Map<String, dynamic> json) =>
       noAnimation: json['noAnimation'] as bool? ?? false,
       comicReadTopContainer: json['comicReadTopContainer'] as bool? ?? true,
       readMode: (json['readMode'] as num?)?.toInt() ?? 0,
+      tapPageTurnMode:
+          $enumDecodeNullable(
+            _$ReaderTapPageTurnModeEnumMap,
+            json['tapPageTurnMode'],
+          ) ??
+          ReaderTapPageTurnMode.rightHand,
       readerBackgroundMode:
           $enumDecodeNullable(
             _$ReaderBackgroundModeEnumMap,
@@ -224,6 +230,7 @@ Map<String, dynamic> _$ReadSettingStateToJson(
   'noAnimation': instance.noAnimation,
   'comicReadTopContainer': instance.comicReadTopContainer,
   'readMode': instance.readMode,
+  'tapPageTurnMode': _$ReaderTapPageTurnModeEnumMap[instance.tapPageTurnMode]!,
   'readerBackgroundMode':
       _$ReaderBackgroundModeEnumMap[instance.readerBackgroundMode]!,
   'readFilterEnabled': instance.readFilterEnabled,
@@ -254,6 +261,12 @@ Map<String, dynamic> _$ReadSettingStateToJson(
   'pageInfoEdgePadding': instance.pageInfoEdgePadding,
   'pageInfoOpacityPercent': instance.pageInfoOpacityPercent,
   'pageInfoFontSize': instance.pageInfoFontSize,
+};
+
+const _$ReaderTapPageTurnModeEnumMap = {
+  ReaderTapPageTurnMode.fullScreen: 'fullScreen',
+  ReaderTapPageTurnMode.leftHand: 'leftHand',
+  ReaderTapPageTurnMode.rightHand: 'rightHand',
 };
 
 const _$ReaderBackgroundModeEnumMap = {

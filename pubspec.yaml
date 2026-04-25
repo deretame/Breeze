@@ -48,8 +48,9 @@ dependencies:
   dio_cookie_manager: ^3.0.1 # 网络: Dio Cookie 同步
   cookie_jar: ^4.0.8 # 网络: Cookie 持久化
   flutter_inappwebview: ^6.1.5 # 网络: 内嵌 WebView
+  desktop_webview_linux: ^0.1.4 # 网络: Linux专用的webview
   url_launcher: ^6.3.1 # 网络: 调起系统链接
-  connectivity_plus: ^7.1.0 # 网络: 状态监听（7.1.1 需要 Xcode 26.1.1，CI 暂不兼容）
+  connectivity_plus: ^7.1.0 # 网络: 状态监听
   html: ^0.15.5+1 # 网络: HTML 解析
   flutter_socks_proxy: ^0.0.3 # 网络: SOCKS5 代理配置
   minio: ^3.5.8 # 网络: 对象存储

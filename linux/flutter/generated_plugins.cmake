@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  desktop_webview_linux
   dynamic_color
   file_selector_linux
   objectbox_flutter_libs

@@ -12,44 +12,40 @@ class ReaderGestureLogic {
     required VoidCallback onToggleMenu,
     VoidCallback? onBeforePageTurn,
   }) {
-    if (context.read<GlobalSettingCubit>().state.readSetting.readMode == 0) {
+    final readSetting = context.read<GlobalSettingCubit>().state.readSetting;
+    if (readSetting.readMode == 0) {
       onToggleMenu();
       return;
     }
 
-    // 获取点击的全局坐标
     final Offset tapPosition = details.globalPosition;
-    // 将屏幕宽度分为三等份
-    final double thirdWidth = MediaQuery.of(context).size.width / 3;
-    // 将中间区域的高度分为三等份
-    final double middleTopHeight =
-        MediaQuery.of(context).size.height / 3; // 上三分之一
-    final double middleBottomHeight =
-        MediaQuery.of(context).size.height * 2 / 3; // 下三分之一
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+    final thirdWidth = screenWidth / 3;
+    final thirdHeight = screenHeight / 3;
+    final inCenterControlArea =
+        tapPosition.dx >= thirdWidth &&
+        tapPosition.dx < thirdWidth * 2 &&
+        tapPosition.dy >= thirdHeight &&
+        tapPosition.dy < thirdHeight * 2;
 
-    // 判断点击区域
-    if (tapPosition.dx < thirdWidth) {
-      // 点击左边三分之一
-      onBeforePageTurn?.call();
-      actionController.onPageActionPrev();
-    } else if (tapPosition.dx < 2 * thirdWidth) {
-      // 点击中间三分之一
-      if (tapPosition.dy < middleTopHeight) {
-        // 点击中间区域的上三分之一
-        onBeforePageTurn?.call();
-        actionController.onPageActionPrev();
-      } else if (tapPosition.dy < middleBottomHeight) {
-        // 点击中间区域的中三分之一
-        onToggleMenu();
-      } else {
-        // 点击中间区域的下三分之一
-        onBeforePageTurn?.call();
-        actionController.onPageActionNext();
-      }
-    } else {
-      // 点击右边三分之一
-      onBeforePageTurn?.call();
+    if (inCenterControlArea) {
+      onToggleMenu();
+      return;
+    }
+
+    final shouldNext = switch (readSetting.tapPageTurnMode) {
+      ReaderTapPageTurnMode.fullScreen => true,
+      ReaderTapPageTurnMode.leftHand => tapPosition.dx < (screenWidth / 2),
+      ReaderTapPageTurnMode.rightHand => tapPosition.dx >= (screenWidth / 2),
+    };
+
+    onBeforePageTurn?.call();
+    if (shouldNext) {
       actionController.onPageActionNext();
+    } else {
+      actionController.onPageActionPrev();
     }
   }
 }

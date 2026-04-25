@@ -260,7 +260,7 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
   if (globalSettingCubit.state.socks5Proxy.isNotEmpty) {
     final proxy = globalSettingCubit.state.socks5Proxy;
     SocksProxy.initProxy(proxy: 'SOCKS5 $proxy');
-    setSocks5Proxy(proxy: proxy);
+    await setSocks5Proxy(proxy: proxy);
   }
 
   final logAddress = objectbox.userSettingBox.get(1)!.globalSetting.logAddress;

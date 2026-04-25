@@ -16,6 +16,8 @@ enum ReaderInfoHorizontalPosition { left, center, right }
 
 enum ReaderBackgroundMode { auto, black, white, grey }
 
+enum ReaderTapPageTurnMode { fullScreen, leftHand, rightHand }
+
 enum SyncServiceType { none, webdav, s3 }
 
 extension SyncServiceTypeExtension on SyncServiceType {
@@ -147,6 +149,8 @@ abstract class ReadSettingState with _$ReadSettingState {
     @Default(false) bool noAnimation,
     @Default(true) bool comicReadTopContainer,
     @Default(0) int readMode,
+    @Default(ReaderTapPageTurnMode.rightHand)
+    ReaderTapPageTurnMode tapPageTurnMode,
     @Default(ReaderBackgroundMode.auto)
     ReaderBackgroundMode readerBackgroundMode,
     @Default(true) bool readFilterEnabled,

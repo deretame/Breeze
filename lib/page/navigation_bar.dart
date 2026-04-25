@@ -24,6 +24,8 @@ import '../util/dialog.dart';
 import '../util/event/event.dart';
 import 'bookshelf/bookshelf.dart';
 import 'home/view/home.dart';
+import 'old_page/old_home/old_home_page.dart';
+import 'old_page/old_ranking/old_ranking_page.dart';
 
 @RoutePage()
 class NavigationBar extends StatefulWidget {
@@ -46,9 +48,6 @@ class _NavigationBarState extends State<NavigationBar> {
   static bool _notificationsInitialized = false; // ← 使用静态变量，跨实例共享
   bool _isInitializingNotifications = false;
 
-  // 页面列表
-  final _pageList = [const BookshelfPage(), const HomePage()];
-
   @override
   void initState() {
     super.initState();
@@ -65,11 +64,12 @@ class _NavigationBarState extends State<NavigationBar> {
         DownloadQueueManager.instance.watchTasks();
       }
     });
-    final configuredIndex = objectbox.userSettingBox
-        .get(1)!
-        .globalSetting
-        .welcomePageNum;
-    final initialIndex = _normalizeWelcomePageIndex(configuredIndex);
+    final globalSetting = objectbox.userSettingBox.get(1)!.globalSetting;
+    final configuredIndex = globalSetting.welcomePageNum;
+    final initialIndex = _normalizeWelcomePageIndex(
+      configuredIndex,
+      _buildPageList(globalSetting.oldPageRollbackEnabled).length,
+    );
     _controller = PersistentTabController(initialIndex: initialIndex);
     _selectedIndex = initialIndex;
     initForegroundTask();
@@ -109,7 +109,20 @@ class _NavigationBarState extends State<NavigationBar> {
 
   @override
   Widget build(BuildContext context) {
-    final globalSettingState = context.read<GlobalSettingCubit>().state;
+    final globalSettingState = context.watch<GlobalSettingCubit>().state;
+    final pageList = _buildPageList(globalSettingState.oldPageRollbackEnabled);
+    final navBarItems = _navBarItems(globalSettingState.oldPageRollbackEnabled);
+    final navRailDestinations = _navRailDestinations(
+      globalSettingState.oldPageRollbackEnabled,
+    );
+    final normalizedIndex = _normalizeWelcomePageIndex(
+      _selectedIndex,
+      pageList.length,
+    );
+    if (normalizedIndex != _selectedIndex) {
+      _selectedIndex = normalizedIndex;
+      _controller.index = normalizedIndex;
+    }
     return MemoryOverlayWidget(
       enabled: globalSettingState.enableMemoryDebug,
       updateInterval: Duration(seconds: 1),
@@ -119,21 +132,30 @@ class _NavigationBarState extends State<NavigationBar> {
               Platform.isWindows ||
               Platform.isLinux ||
               Platform.isMacOS) {
-            return _buildTabletLayout();
+            return _buildTabletLayout(
+              pageList: pageList,
+              navRailDestinations: navRailDestinations,
+            );
           } else {
-            return _buildMobileLayout();
+            return _buildMobileLayout(
+              pageList: pageList,
+              navBarItems: navBarItems,
+            );
           }
         },
       ),
     );
   }
 
-  Widget _buildMobileLayout() {
+  Widget _buildMobileLayout({
+    required List<Widget> pageList,
+    required List<PersistentBottomNavBarItem> navBarItems,
+  }) {
     return PersistentTabView(
       context,
       controller: _controller,
-      screens: _pageList,
-      items: _navBarItems(),
+      screens: pageList,
+      items: navBarItems,
       backgroundColor: context.backgroundColor,
       handleAndroidBackButtonPress: true,
       resizeToAvoidBottomInset: false,
@@ -149,7 +171,10 @@ class _NavigationBarState extends State<NavigationBar> {
   }
 
   // 平板布局 (使用 NavigationRail)
-  Widget _buildTabletLayout() {
+  Widget _buildTabletLayout({
+    required List<Widget> pageList,
+    required List<NavigationRailDestination> navRailDestinations,
+  }) {
     return Scaffold(
       backgroundColor: context.backgroundColor,
       body: Row(
@@ -159,15 +184,16 @@ class _NavigationBarState extends State<NavigationBar> {
             onDestinationSelected: (int index) {
               setState(() {
                 _selectedIndex = index;
+                _controller.index = index;
               });
             },
             labelType: NavigationRailLabelType.all,
             backgroundColor: context.backgroundColor,
-            destinations: _navRailDestinations(),
+            destinations: navRailDestinations,
           ),
           const VerticalDivider(thickness: 1, width: 1),
           Expanded(
-            child: IndexedStack(index: _selectedIndex, children: _pageList),
+            child: IndexedStack(index: _selectedIndex, children: pageList),
           ),
         ],
       ),
@@ -175,11 +201,11 @@ class _NavigationBarState extends State<NavigationBar> {
   }
 
   // 底部导航栏的配置项
-  List<PersistentBottomNavBarItem> _navBarItems() {
+  List<PersistentBottomNavBarItem> _navBarItems(bool oldPageRollbackEnabled) {
     final activeColor = context.theme.colorScheme.primary;
     final inactiveColor = context.textColor;
 
-    return [
+    final items = <PersistentBottomNavBarItem>[
       PersistentBottomNavBarItem(
         icon: Icon(Icons.menu_book_sharp),
         title: "书架",
@@ -193,18 +219,39 @@ class _NavigationBarState extends State<NavigationBar> {
         inactiveColorPrimary: inactiveColor,
       ),
     ];
+    if (!oldPageRollbackEnabled) {
+      return items;
+    }
+
+    return [
+      PersistentBottomNavBarItem(
+        icon: Icon(Icons.home_outlined),
+        title: "首页",
+        activeColorPrimary: activeColor,
+        inactiveColorPrimary: inactiveColor,
+      ),
+      PersistentBottomNavBarItem(
+        icon: Icon(Icons.leaderboard_outlined),
+        title: "排行",
+        activeColorPrimary: activeColor,
+        inactiveColorPrimary: inactiveColor,
+      ),
+      ...items,
+    ];
   }
 
-  int _normalizeWelcomePageIndex(int rawIndex) {
-    if (_pageList.isEmpty) {
+  int _normalizeWelcomePageIndex(int rawIndex, int pageCount) {
+    if (pageCount <= 0) {
       return 0;
     }
-    return rawIndex.clamp(0, _pageList.length - 1);
+    return rawIndex.clamp(0, pageCount - 1);
   }
 
   // 为平板侧边导航栏生成 NavigationRailDestination
-  List<NavigationRailDestination> _navRailDestinations() {
-    return [
+  List<NavigationRailDestination> _navRailDestinations(
+    bool oldPageRollbackEnabled,
+  ) {
+    final destinations = <NavigationRailDestination>[
       NavigationRailDestination(
         icon: Icon(Icons.menu_book_outlined),
         selectedIcon: Icon(Icons.menu_book_sharp),
@@ -216,6 +263,30 @@ class _NavigationBarState extends State<NavigationBar> {
         label: Text("发现"),
       ),
     ];
+    if (!oldPageRollbackEnabled) {
+      return destinations;
+    }
+    return [
+      NavigationRailDestination(
+        icon: Icon(Icons.home_outlined),
+        selectedIcon: Icon(Icons.home),
+        label: Text("首页"),
+      ),
+      NavigationRailDestination(
+        icon: Icon(Icons.leaderboard_outlined),
+        selectedIcon: Icon(Icons.leaderboard),
+        label: Text("排行"),
+      ),
+      ...destinations,
+    ];
+  }
+
+  List<Widget> _buildPageList(bool oldPageRollbackEnabled) {
+    final pages = <Widget>[const BookshelfPage(), const HomePage()];
+    if (!oldPageRollbackEnabled) {
+      return pages;
+    }
+    return [const OldHomePage(), const OldRankingPage(), ...pages];
   }
 
   Future<void> _autoSync({bool force = false}) async {

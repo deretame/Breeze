@@ -17,6 +17,7 @@ class PluginComicGridSliver extends StatelessWidget {
     required this.onLoadMore,
     this.controller,
     this.physics,
+    this.shrinkWrap = false,
   });
 
   final List<ComicSimplifyEntryInfo> entries;
@@ -29,12 +30,14 @@ class PluginComicGridSliver extends StatelessWidget {
   final VoidCallback onLoadMore;
   final ScrollController? controller;
   final ScrollPhysics? physics;
+  final bool shrinkWrap;
 
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
       controller: controller,
       physics: physics,
+      shrinkWrap: shrinkWrap,
       slivers: [
         BaseComicGridSliver(entries: entries, type: type, refresh: refresh),
         if (hasReachedMax)

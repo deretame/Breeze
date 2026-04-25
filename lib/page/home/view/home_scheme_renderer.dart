@@ -28,6 +28,8 @@ class HomeSchemeRenderer {
     required bool isLoadingMore,
     required bool showLoadMoreRetry,
     required VoidCallback onRetryLoadMore,
+    bool shrinkWrap = false,
+    ScrollPhysics? physics,
   }) {
     final body = asJsonMap(scheme['body']);
     final content = _buildNode(
@@ -72,7 +74,8 @@ class HomeSchemeRenderer {
         return false;
       },
       child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
+        physics: physics ?? const AlwaysScrollableScrollPhysics(),
+        shrinkWrap: shrinkWrap,
         children: children,
       ),
     );

@@ -124,10 +124,7 @@ class _SearchAggregateResultPageState
                 }
                 return Stack(
                   children: [
-                    _ResultList(
-                      searchEvent: widget.searchEvent,
-                      state: state,
-                    ),
+                    _ResultList(searchEvent: widget.searchEvent, state: state),
                     if (state.status == AggregateSearchStatus.loading)
                       const Align(
                         alignment: Alignment.topCenter,

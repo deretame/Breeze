@@ -183,12 +183,16 @@ class PluginPagedComicListView extends StatelessWidget {
     required this.fnPath,
     required this.coreBuilder,
     required this.externBuilder,
+    this.shrinkWrap = false,
+    this.physics,
   });
 
   final String pluginId;
   final String fnPath;
   final PluginPageCoreBuilder coreBuilder;
   final PluginPageExternBuilder externBuilder;
+  final bool shrinkWrap;
+  final ScrollPhysics? physics;
 
   @override
   Widget build(BuildContext context) {
@@ -199,13 +203,22 @@ class PluginPagedComicListView extends StatelessWidget {
         coreBuilder: coreBuilder,
         externBuilder: externBuilder,
       )..loadInitial(),
-      child: const _PluginPagedComicListBody(),
+      child: _PluginPagedComicListBody(
+        shrinkWrap: shrinkWrap,
+        physics: physics,
+      ),
     );
   }
 }
 
 class _PluginPagedComicListBody extends StatefulWidget {
-  const _PluginPagedComicListBody();
+  const _PluginPagedComicListBody({
+    required this.shrinkWrap,
+    required this.physics,
+  });
+
+  final bool shrinkWrap;
+  final ScrollPhysics? physics;
 
   @override
   State<_PluginPagedComicListBody> createState() =>
@@ -275,6 +288,8 @@ class _PluginPagedComicListBodyState extends State<_PluginPagedComicListBody>
       onRetryLoadMore: () =>
           context.read<PluginPagedComicListCubit>().retryLoadMore(),
       onLoadMore: () => context.read<PluginPagedComicListCubit>().loadMore(),
+      shrinkWrap: widget.shrinkWrap,
+      physics: widget.physics,
     );
   }
 

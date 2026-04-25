@@ -85,6 +85,7 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default('') String logAddress,
     @Default(false) bool forceEnableImpeller,
     @Default(true) bool updateAccelerate,
+    @Default(false) bool oldPageRollbackEnabled,
     @Default([]) List<String> searchHistory,
     @Default(1280.0) double windowWidth,
     @Default(720.0) double windowHeight,

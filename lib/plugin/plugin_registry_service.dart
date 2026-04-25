@@ -688,10 +688,17 @@ class PluginRegistryService {
       return;
     }
 
+    final runtimeName = resolveRuntimeName(payload.uuid);
     if (latest.isEnabled) {
-      final runtimeName = resolveRuntimeName(payload.uuid);
       await _ensurePluginRuntimeReady(latest, runtimeName: runtimeName);
       await _runPluginInitIfNeeded(latest, runtimeName: runtimeName);
+    }
+
+    // 静默更新会清理 info cache，主动回填以避免 UI 暂时回退为 uuid。
+    try {
+      await fetchPluginInfo(uuid: payload.uuid, runtimeName: runtimeName);
+    } catch (e, st) {
+      logger.w('插件更新后回填信息失败: ${payload.uuid}', error: e, stackTrace: st);
     }
   }
 

@@ -120,6 +120,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               const Divider(height: 1, thickness: 0.3),
               _buildSectionTitle(context, '应用行为', Icons.settings_outlined),
               _splashPage(state, globalSettingCubit),
+              _oldPageRollback(state, globalSettingCubit),
 
               const SizedBox(height: 8),
               const Divider(height: 1, thickness: 0.3),
@@ -402,6 +403,22 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
           style: TextStyle(color: context.textColor, fontSize: 15),
         ),
       ),
+    );
+  }
+
+  Widget _oldPageRollback(GlobalSettingState state, GlobalSettingCubit cubit) {
+    return SwitchListTile(
+      secondary: const Icon(Icons.restore_outlined),
+      title: const Text('回退开关'),
+      subtitle: const Text('开启后启用旧版页面入口'),
+      thumbIcon: kSettingSwitchThumbIcon,
+      value: state.oldPageRollbackEnabled,
+      onChanged: (bool value) {
+        cubit.updateState(
+          (current) => current.copyWith(oldPageRollbackEnabled: value),
+        );
+        showSuccessToast("设置成功，重启生效");
+      },
     );
   }
 

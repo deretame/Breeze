@@ -38,6 +38,7 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
   logAddress: json['logAddress'] as String? ?? '',
   forceEnableImpeller: json['forceEnableImpeller'] as bool? ?? false,
   updateAccelerate: json['updateAccelerate'] as bool? ?? true,
+  oldPageRollbackEnabled: json['oldPageRollbackEnabled'] as bool? ?? false,
   searchHistory:
       (json['searchHistory'] as List<dynamic>?)
           ?.map((e) => e as String)
@@ -72,6 +73,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'logAddress': instance.logAddress,
       'forceEnableImpeller': instance.forceEnableImpeller,
       'updateAccelerate': instance.updateAccelerate,
+      'oldPageRollbackEnabled': instance.oldPageRollbackEnabled,
       'searchHistory': instance.searchHistory,
       'windowWidth': instance.windowWidth,
       'windowHeight': instance.windowHeight,

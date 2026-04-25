@@ -536,8 +536,12 @@ class _HomePageState extends State<HomePage> {
 
     if (type == 'openSearch') {
       final source = _sourceFromString(payload['source']?.toString());
-      final keyword = payload['keyword']?.toString() ?? '';
-      final extern = asJsonMap(payload['extern']);
+      final extern = _normalizeOpenSearchExtern(payload);
+      final keywordFromPayload = payload['keyword']?.toString() ?? '';
+      final keywordFromExtern = extern['keyword']?.toString() ?? '';
+      final keyword = keywordFromPayload.isNotEmpty
+          ? keywordFromPayload
+          : keywordFromExtern;
 
       final searchStates = SearchStates.initial().copyWith(
         from: source,
@@ -602,6 +606,28 @@ class _HomePageState extends State<HomePage> {
       context.pushRoute(ComicListRoute(scene: scene, title: scene.title));
       return;
     }
+  }
+
+  Map<String, dynamic> _normalizeOpenSearchExtern(
+    Map<String, dynamic> payload,
+  ) {
+    final extern = Map<String, dynamic>.from(asJsonMap(payload['extern']));
+    for (final entry in payload.entries) {
+      final key = entry.key.toString();
+      if (key == 'source' || key == 'extern' || extern.containsKey(key)) {
+        continue;
+      }
+      final value = entry.value;
+      if (value == null) {
+        continue;
+      }
+      if (value is String && value.trim().isEmpty) {
+        continue;
+      }
+      extern[key] = value;
+    }
+
+    return extern;
   }
 
   Future<void> _openPluginFunction(

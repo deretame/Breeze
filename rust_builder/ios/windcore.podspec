@@ -20,6 +20,7 @@ A new Flutter FFI plugin project.
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
+  s.frameworks = 'SystemConfiguration'
   s.platform = :ios, '11.0'
 
   # Flutter.framework does not contain a i386 slice.

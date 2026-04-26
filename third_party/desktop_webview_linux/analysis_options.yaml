@@ -1,0 +1,3 @@
+include: package:carapacik_lints/core.yaml
+formatter:
+  page_width: 80

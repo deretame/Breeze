@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 
+import 'package:desktop_webview_linux/desktop_webview_linux.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:dynamic_color/dynamic_color.dart';
@@ -101,9 +102,15 @@ class MyAlwaysLogFilter extends LogFilter {
   bool shouldLog(LogEvent event) => true; // 强制通过所有日志
 }
 
-Future<void> main() async {
+Future<void> main(List<String> args) async {
   // 1. 基础初始化
   WidgetsFlutterBinding.ensureInitialized();
+
+  // desktop_webview_linux 必需的标题栏子进程入口
+  // 不添加会导致 Linux 下 WebView 窗口关闭时 segfault 崩溃
+  if (!kIsWeb && Platform.isLinux && runWebViewTitleBarWidget(args)) {
+    return;
+  }
 
   const sentryDsn = String.fromEnvironment('sentry_dsn', defaultValue: '');
 

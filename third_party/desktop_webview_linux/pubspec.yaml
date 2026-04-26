@@ -1,0 +1,26 @@
+name: desktop_webview_linux
+description: Webview on Linux using webkit2gtk. Linux implementation of desktop_webview_window.
+version: 0.1.4
+repository: https://github.com/Carapacik/desktop_webview_linux
+topics:
+  - webview
+  - linux
+  - webkit2gtk
+  - webkitgtk
+
+environment:
+  sdk: ^3.10.0
+  flutter: '>=3.38.10'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  carapacik_lints: ^3.10.2
+
+flutter:
+  plugin:
+    platforms:
+      linux:
+        pluginClass: DesktopWebviewLinuxPlugin

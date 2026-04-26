@@ -106,6 +106,10 @@ dependencies:
   vm_service: ^15.0.2 # 监控: 运行时内存监控
   worker_manager: ^7.2.9 # 并发: 全局 Isolate 任务池管理
 
+dependency_overrides:
+  desktop_webview_linux:
+    path: third_party/desktop_webview_linux
+
 dev_dependencies:
   # 测试与规范
   flutter_test:

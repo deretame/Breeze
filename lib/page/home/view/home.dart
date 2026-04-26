@@ -564,12 +564,7 @@ class _HomePageState extends State<HomePage> {
         return;
       }
 
-      if (Platform.isLinux) {
-        await _launchBrowser(url);
-      } else {
-        context.pushRoute(WebViewRoute(info: [title, url]));
-      }
-      return;
+      context.pushRoute(WebViewRoute(info: [title, url]));
     }
 
     if (type == 'openPluginFunction') {
@@ -708,30 +703,6 @@ class _HomePageState extends State<HomePage> {
     }
 
     return Map<String, dynamic>.from(action)..['payload'] = payload;
-  }
-
-  Future<void> _launchBrowser(String url) async {
-    try {
-      if (!await launchUrl(
-        Uri.parse(url),
-        mode: LaunchMode.externalApplication,
-      )) {
-        throw Exception('launchUrl return false');
-      }
-    } catch (_) {
-      if (Platform.isLinux) {
-        try {
-          await Process.start('cmd.exe', [
-            '/c',
-            'start',
-            '',
-            url,
-          ], mode: ProcessStartMode.detached);
-        } catch (e) {
-          logger.e('WSL fallback failed: $e');
-        }
-      }
-    }
   }
 
   String _sourceFromString(String? source) {

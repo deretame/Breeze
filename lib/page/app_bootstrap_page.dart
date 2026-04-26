@@ -10,7 +10,7 @@ import 'package:zephyr/src/rust/api/qjs.dart';
 import 'package:zephyr/util/compatible/compatible.dart';
 import 'package:zephyr/util/router/router.gr.dart' as app_router;
 import 'package:zephyr/util/sundry.dart';
-import 'package:zephyr/util/update/check_update.dart';
+import 'package:zephyr/util/tools_register.dart';
 
 @RoutePage()
 class AppBootstrapPage extends StatelessWidget {
@@ -72,13 +72,9 @@ class _AppBootstrapViewState extends State<AppBootstrapView> {
 
     await registerPersistentCallbacks();
 
-    initRustFunctions();
+    await registerDartTools();
 
-    final appVersion = await getAppVersion();
-    registerFunction(
-      functionName: 'getAppVersion',
-      dartCallback: (temp) async => appVersion,
-    );
+    initRustFunctions();
 
     if (mounted) await ensureCompatibleMigration(context);
 

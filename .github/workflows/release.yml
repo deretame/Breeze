@@ -543,7 +543,11 @@ jobs:
           VERSION="${{ github.event.inputs.version }}"
           REPO="${{ github.repository }}"
 
-          awk -v ver="## [$VERSION]" 'index($0,ver)==1 {flag=1; print; next} /^## /{if(flag) exit} flag' CHANGELOG.md > changelog_section.txt
+          awk -v ver="$VERSION" '
+            index($0, "## [" ver "]") == 1 {flag=1; print; next}
+            flag && /^## \[[^]]+\]/ {exit}
+            flag
+          ' CHANGELOG.md > changelog_section.txt
 
           echo "## 📝 更新日志" > release_body.md
           cat changelog_section.txt >> release_body.md

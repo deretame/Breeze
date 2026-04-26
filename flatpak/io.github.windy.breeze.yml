@@ -10,6 +10,7 @@ finish-args:
   - --device=dri
   - --share=network
   - --talk-name=org.kde.StatusNotifierWatcher
+  - --talk-name=org.freedesktop.Flatpak
   - --env=LD_LIBRARY_PATH=/app/lib
 modules:
   - name: intltool

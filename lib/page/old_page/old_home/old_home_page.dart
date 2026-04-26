@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
@@ -99,13 +98,9 @@ class _OldHomePageState extends State<OldHomePage> {
       if (url.isEmpty) {
         return;
       }
-      final opened = await launchUrl(
-        Uri.parse(url),
-        mode: LaunchMode.externalApplication,
-      );
-      if (!opened && mounted) {
-        context.pushRoute(WebViewRoute(info: [title, url]));
-      }
+
+      context.pushRoute(WebViewRoute(info: [title, url]));
+
       return;
     }
 

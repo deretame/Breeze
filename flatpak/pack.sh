@@ -40,7 +40,7 @@ if [[ "${FLATPAK_BUILDER_USER:-1}" == "1" ]]; then
   FLATPAK_BUILDER_ARGS+=(--user)
 fi
 if [[ -n "${FLATPAK_INSTALL_DEPS_FROM:-flathub}" ]]; then
-  FLATPAK_BUILDER_ARGS+=("--install-deps-from=${FLATPAK_INSTALL_DEPS_FROM}")
+  FLATPAK_BUILDER_ARGS+=("--install-deps-from=${FLATPAK_INSTALL_DEPS_FROM:-flathub}")
 fi
 
 flatpak-builder "${FLATPAK_BUILDER_ARGS[@]}" "${BUILD_DIR}" "${MANIFEST}"

@@ -190,10 +190,7 @@ jobs:
 
       - name: 构建 Flatpak
         run: |
-          fvm flutter build linux --release --split-debug-info=build/symbols
-          mkdir -p build-flatpak repo-flatpak
-          flatpak-builder --user --force-clean --repo=repo-flatpak --install-deps-from=flathub build-flatpak flatpak/io.github.windy.breeze.yml
-          flatpak build-bundle repo-flatpak breeze.flatpak io.github.windy.breeze
+          bash flatpak/pack.sh
 
       - name: 上传 Linux 产物
         uses: actions/upload-artifact@v4

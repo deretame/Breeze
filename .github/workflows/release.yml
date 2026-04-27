@@ -204,11 +204,11 @@ jobs:
           workspaces: |
             rust
 
-      - name: 构建 Flatpak
+      - name: 构建 Linux Release
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
-          bash flatpak/pack.sh
+          SKIP_FLATPAK_BUILD=1 bash flatpak/pack.sh
 
       - name: 上传 Linux 符号表到 Sentry（可选）
         continue-on-error: true
@@ -223,6 +223,10 @@ jobs:
             exit 0
           fi
           fvm dart run sentry_dart_plugin --sentry-define=auth_token="$SENTRY_AUTH_TOKEN"
+
+      - name: 构建 Flatpak
+        run: |
+          SKIP_FLUTTER_BUILD=1 bash flatpak/pack.sh
 
       - name: 上传 Linux 产物
         uses: actions/upload-artifact@v4

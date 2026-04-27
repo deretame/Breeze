@@ -197,21 +197,11 @@ void setLogHttpForward({required String url}) =>
 String getJsBundle({required String name}) =>
     RustLib.instance.api.crateApiQjsGetJsBundle(name: name);
 
-Future<void> initQjsRuntime({required String name}) =>
-    RustLib.instance.api.crateApiQjsInitQjsRuntime(name: name);
-
 Future<bool> isQjsRuntimeInitialized({required String name}) =>
     RustLib.instance.api.crateApiQjsIsQjsRuntimeInitialized(name: name);
 
-Future<void> initQjsRuntimeWithBundle({
-  required String runtimeName,
-  required String bundleName,
-  required String bundleJs,
-}) => RustLib.instance.api.crateApiQjsInitQjsRuntimeWithBundle(
-  runtimeName: runtimeName,
-  bundleName: bundleName,
-  bundleJs: bundleJs,
-);
+Future<void> buildQjsRuntime({required QjsRuntimeBuildRequest request}) =>
+    RustLib.instance.api.crateApiQjsBuildQjsRuntime(request: request);
 
 void registerFunction({
   required String functionName,

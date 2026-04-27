@@ -4,9 +4,10 @@ use ferrous_opencc::{OpenCC, config::BuiltinConfig};
 use flutter_rust_bridge::DartFnFuture;
 use rquickjs_playground::web_runtime::native_buffer_take_raw;
 use rquickjs_playground::{
-    AsyncHostRuntime, HttpClientConfig, configure_http_client, configure_js_error_stack,
-    configure_log_http_endpoint, register_bridge_route_async_handler,
-    register_bridge_route_blocking_handler, register_bridge_route_sync_handler,
+    AsyncHostRuntime, AsyncHostRuntimeBuilder, HttpClientConfig, WebRuntimeOptions,
+    configure_http_client, configure_js_error_stack, configure_log_http_endpoint,
+    register_bridge_route_async_handler, register_bridge_route_blocking_handler,
+    register_bridge_route_sync_handler,
 };
 use serde_json::{Value, json};
 use std::collections::{HashMap, HashSet};
@@ -113,6 +114,87 @@ pub struct QjsCancelTasksByGroupResult {
     pub cancelled: i32,
     pub not_found: i32,
     pub failed_runtime_groups: Vec<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct QjsRuntimeBundleBuild {
+    pub bundle_name: String,
+    pub bundle_js: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct QjsRuntimeBuildRequest {
+    pub runtime_name: String,
+    pub inject_filesystem: bool,
+    pub enable_wasi: bool,
+    pub bundle: Option<QjsRuntimeBundleBuild>,
+}
+
+#[derive(Debug, Clone)]
+pub struct QjsRuntimeBuilder {
+    runtime_name: String,
+    options: WebRuntimeOptions,
+    bundle: Option<QjsRuntimeBundleBuild>,
+}
+
+impl QjsRuntimeBuilder {
+    pub fn new(runtime_name: impl Into<String>) -> Self {
+        Self {
+            runtime_name: runtime_name.into(),
+            options: WebRuntimeOptions::default(),
+            bundle: None,
+        }
+    }
+
+    pub fn filesystem(mut self, enabled: bool) -> Self {
+        self.options.fs = enabled;
+        self
+    }
+
+    pub fn wasi(mut self, enabled: bool) -> Self {
+        self.options.wasi = enabled;
+        self
+    }
+
+    pub fn bundle(mut self, bundle_name: impl Into<String>, bundle_js: impl Into<String>) -> Self {
+        self.bundle = Some(QjsRuntimeBundleBuild {
+            bundle_name: bundle_name.into(),
+            bundle_js: bundle_js.into(),
+        });
+        self
+    }
+
+    pub fn with_bundle(mut self, bundle: QjsRuntimeBundleBuild) -> Self {
+        self.bundle = Some(bundle);
+        self
+    }
+
+    pub async fn build(self) -> Result<()> {
+        let runtime_name = self.runtime_name.trim().to_string();
+        if runtime_name.is_empty() {
+            return Err(anyhow!("runtime_name 不能为空"));
+        }
+
+        if let Some(bundle) = self.bundle {
+            let bundle_name = bundle.bundle_name.trim().to_string();
+            if bundle_name.is_empty() {
+                return Err(anyhow!("bundle_name 不能为空"));
+            }
+            if bundle.bundle_js.trim().is_empty() {
+                return Err(anyhow!("bundle_js 不能为空"));
+            }
+            return create_qjs_runtime_with_bundle_and_options(
+                &runtime_name,
+                &bundle_name,
+                &bundle.bundle_js,
+                self.options,
+            )
+            .await;
+        }
+
+        let _runtime = qjs_runtime_with_options(&runtime_name, self.options).await?;
+        Ok(())
+    }
 }
 
 fn qjs_runtime_map() -> &'static RwLock<QjsRuntimeMap> {
@@ -282,8 +364,15 @@ fn spawn_tracked_bundle_once_task_waiter(
     });
 }
 
-async fn create_qjs_runtime(runtime_name: &str) -> Result<AsyncHostRuntime> {
-    let runtime = AsyncHostRuntime::new(runtime_name).map_err(|err| anyhow!(err))?;
+async fn create_qjs_runtime_with_options(
+    runtime_name: &str,
+    options: WebRuntimeOptions,
+) -> Result<AsyncHostRuntime> {
+    let runtime = AsyncHostRuntimeBuilder::new(runtime_name)
+        .filesystem(options.fs)
+        .wasi(options.wasi)
+        .build()
+        .map_err(|err| anyhow!(err))?;
     let init_script = r#"(async () => {
             return "ok";
     })()"#;
@@ -294,6 +383,64 @@ async fn create_qjs_runtime(runtime_name: &str) -> Result<AsyncHostRuntime> {
         .await
         .map_err(|err| anyhow!("等待 QJS 初始化任务失败: {err}"))?;
     Ok(runtime)
+}
+
+fn ensure_runtime_options(
+    runtime_name: &str,
+    runtime: &AsyncHostRuntime,
+    expected: WebRuntimeOptions,
+) -> Result<()> {
+    let actual = runtime.options();
+    if actual == expected {
+        return Ok(());
+    }
+    Err(anyhow!(
+        "runtime '{runtime_name}' 已存在且配置不匹配 (existing: wasi={}, fs={}; requested: wasi={}, fs={})",
+        actual.wasi,
+        actual.fs,
+        expected.wasi,
+        expected.fs
+    ))
+}
+
+async fn qjs_runtime_with_options(
+    runtime_name: &str,
+    options: WebRuntimeOptions,
+) -> Result<Arc<AsyncHostRuntime>> {
+    if runtime_name.trim().is_empty() {
+        return Err(anyhow!("runtime_name 不能为空"));
+    }
+
+    {
+        let map = qjs_runtime_map().read().await;
+        if let Some(runtime) = map.get(runtime_name) {
+            ensure_runtime_options(runtime_name, runtime, options)?;
+            return Ok(runtime.clone());
+        }
+    }
+
+    let _init_guard = qjs_runtime_init_lock().lock().await;
+
+    {
+        let map = qjs_runtime_map().read().await;
+        if let Some(runtime) = map.get(runtime_name) {
+            ensure_runtime_options(runtime_name, runtime, options)?;
+            return Ok(runtime.clone());
+        }
+    }
+
+    let new_runtime = Arc::new(create_qjs_runtime_with_options(runtime_name, options).await?);
+
+    let mut map = qjs_runtime_map().write().await;
+    map.insert(runtime_name.to_owned(), new_runtime.clone());
+
+    tracing::info!(
+        "新建了一个 qjs 实例: {runtime_name} (wasi={}, fs={})，thread id : {:?}",
+        options.wasi,
+        options.fs,
+        std::thread::current().id()
+    );
+    Ok(new_runtime)
 }
 
 async fn qjs_runtime(runtime_name: &str) -> Result<Arc<AsyncHostRuntime>> {
@@ -308,31 +455,14 @@ async fn qjs_runtime(runtime_name: &str) -> Result<Arc<AsyncHostRuntime>> {
         }
     }
 
-    let _init_guard = qjs_runtime_init_lock().lock().await;
-
-    {
-        let map = qjs_runtime_map().read().await;
-        if let Some(runtime) = map.get(runtime_name) {
-            return Ok(runtime.clone());
-        }
-    }
-
-    let new_runtime = Arc::new(create_qjs_runtime(runtime_name).await?);
-
-    let mut map = qjs_runtime_map().write().await;
-    map.insert(runtime_name.to_owned(), new_runtime.clone());
-
-    tracing::info!(
-        "新建了一个 qjs 实例: {runtime_name}，thread id : {:?}",
-        std::thread::current().id()
-    );
-    Ok(new_runtime)
+    qjs_runtime_with_options(runtime_name, WebRuntimeOptions::default()).await
 }
 
-async fn create_qjs_runtime_with_bundle(
+async fn create_qjs_runtime_with_bundle_and_options(
     runtime_name: &str,
     bundle_name: &str,
     bundle_js: &str,
+    options: WebRuntimeOptions,
 ) -> Result<()> {
     if runtime_name.trim().is_empty() {
         return Err(anyhow!("runtime_name 不能为空"));
@@ -349,19 +479,24 @@ async fn create_qjs_runtime_with_bundle(
     {
         let map = qjs_runtime_map().read().await;
         if let Some(existing_runtime) = map.get(runtime_name) {
+            ensure_runtime_options(runtime_name, existing_runtime, options)?;
             replace_bundle_inner(existing_runtime, bundle_name, bundle_js).await?;
             tracing::info!("复用 qjs 实例并替换 bundle: {runtime_name} -> {bundle_name}");
             return Ok(());
         }
     }
 
-    let new_runtime = Arc::new(create_qjs_runtime(runtime_name).await?);
+    let new_runtime = Arc::new(create_qjs_runtime_with_options(runtime_name, options).await?);
     load_bundle_inner(&new_runtime, bundle_name, bundle_js).await?;
 
     let mut map = qjs_runtime_map().write().await;
     map.insert(runtime_name.to_owned(), new_runtime);
 
-    tracing::info!("新建 qjs 实例并加载 bundle: {runtime_name} -> {bundle_name}");
+    tracing::info!(
+        "新建 qjs 实例并加载 bundle: {runtime_name} -> {bundle_name} (wasi={}, fs={})",
+        options.wasi,
+        options.fs
+    );
     Ok(())
 }
 
@@ -1100,22 +1235,21 @@ pub fn get_js_bundle(name: String) -> Result<String> {
     }
 }
 
-pub async fn init_qjs_runtime(name: String) -> Result<()> {
-    let _runtime = qjs_runtime(&name).await?;
-    Ok(())
-}
-
 pub async fn is_qjs_runtime_initialized(name: String) -> Result<bool> {
     let map = qjs_runtime_map().read().await;
     Ok(map.contains_key(&name))
 }
 
-pub async fn init_qjs_runtime_with_bundle(
-    runtime_name: String,
-    bundle_name: String,
-    bundle_js: String,
-) -> Result<()> {
-    create_qjs_runtime_with_bundle(&runtime_name, &bundle_name, &bundle_js).await
+pub async fn build_qjs_runtime(request: QjsRuntimeBuildRequest) -> Result<()> {
+    let mut builder = QjsRuntimeBuilder::new(request.runtime_name)
+        .filesystem(request.inject_filesystem)
+        .wasi(request.enable_wasi);
+
+    if let Some(bundle) = request.bundle {
+        builder = builder.with_bundle(bundle);
+    }
+
+    builder.build().await
 }
 
 pub fn register_function(

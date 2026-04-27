@@ -6,6 +6,7 @@ import 'package:equatable/equatable.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
+import 'package:zephyr/src/rust/qjs.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/download/download_cancel_signal.dart';
@@ -71,10 +72,16 @@ Future<void> ensureQjsRuntimeReady({required String pluginId}) async {
   try {
     Future<void> installBundle() async {
       final bundleJs = await loadQjsBundleJs(normalizedPluginId);
-      await initQjsRuntimeWithBundle(
-        runtimeName: runtimeName,
-        bundleName: bundleName,
-        bundleJs: bundleJs,
+      await buildQjsRuntime(
+        request: QjsRuntimeBuildRequest(
+          runtimeName: runtimeName,
+          injectFilesystem: false,
+          enableWasi: false,
+          bundle: QjsRuntimeBundleBuild(
+            bundleName: bundleName,
+            bundleJs: bundleJs,
+          ),
+        ),
       );
       _runtimeInitDone.remove(runtimeName);
     }

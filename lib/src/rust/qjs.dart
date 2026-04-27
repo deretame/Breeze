@@ -46,3 +46,55 @@ class QjsCancelTasksByGroupResult {
           notFound == other.notFound &&
           failedRuntimeGroups == other.failedRuntimeGroups;
 }
+
+class QjsRuntimeBuildRequest {
+  final String runtimeName;
+  final bool injectFilesystem;
+  final bool enableWasi;
+  final QjsRuntimeBundleBuild? bundle;
+
+  const QjsRuntimeBuildRequest({
+    required this.runtimeName,
+    required this.injectFilesystem,
+    required this.enableWasi,
+    this.bundle,
+  });
+
+  @override
+  int get hashCode =>
+      runtimeName.hashCode ^
+      injectFilesystem.hashCode ^
+      enableWasi.hashCode ^
+      bundle.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is QjsRuntimeBuildRequest &&
+          runtimeType == other.runtimeType &&
+          runtimeName == other.runtimeName &&
+          injectFilesystem == other.injectFilesystem &&
+          enableWasi == other.enableWasi &&
+          bundle == other.bundle;
+}
+
+class QjsRuntimeBundleBuild {
+  final String bundleName;
+  final String bundleJs;
+
+  const QjsRuntimeBundleBuild({
+    required this.bundleName,
+    required this.bundleJs,
+  });
+
+  @override
+  int get hashCode => bundleName.hashCode ^ bundleJs.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is QjsRuntimeBundleBuild &&
+          runtimeType == other.runtimeType &&
+          bundleName == other.bundleName &&
+          bundleJs == other.bundleJs;
+}

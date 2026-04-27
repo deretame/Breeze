@@ -60,6 +60,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PackInfo dco_decode_box_autoadd_pack_info(dynamic raw);
 
   @protected
+  QjsRuntimeBuildRequest dco_decode_box_autoadd_qjs_runtime_build_request(
+    dynamic raw,
+  );
+
+  @protected
+  QjsRuntimeBundleBuild dco_decode_box_autoadd_qjs_runtime_bundle_build(
+    dynamic raw,
+  );
+
+  @protected
   int dco_decode_i_32(dynamic raw);
 
   @protected
@@ -81,6 +91,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<TaggedAllocation> dco_decode_list_tagged_allocation(dynamic raw);
 
   @protected
+  QjsRuntimeBundleBuild? dco_decode_opt_box_autoadd_qjs_runtime_bundle_build(
+    dynamic raw,
+  );
+
+  @protected
   PackInfo dco_decode_pack_info(dynamic raw);
 
   @protected
@@ -90,6 +105,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   QjsCancelTasksByGroupResult dco_decode_qjs_cancel_tasks_by_group_result(
     dynamic raw,
   );
+
+  @protected
+  QjsRuntimeBuildRequest dco_decode_qjs_runtime_build_request(dynamic raw);
+
+  @protected
+  QjsRuntimeBundleBuild dco_decode_qjs_runtime_bundle_build(dynamic raw);
 
   @protected
   RustMemoryInfo dco_decode_rust_memory_info(dynamic raw);
@@ -138,6 +159,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PackInfo sse_decode_box_autoadd_pack_info(SseDeserializer deserializer);
 
   @protected
+  QjsRuntimeBuildRequest sse_decode_box_autoadd_qjs_runtime_build_request(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  QjsRuntimeBundleBuild sse_decode_box_autoadd_qjs_runtime_bundle_build(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
@@ -161,6 +192,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  QjsRuntimeBundleBuild? sse_decode_opt_box_autoadd_qjs_runtime_bundle_build(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   PackInfo sse_decode_pack_info(SseDeserializer deserializer);
 
   @protected
@@ -170,6 +206,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   QjsCancelTasksByGroupResult sse_decode_qjs_cancel_tasks_by_group_result(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  QjsRuntimeBuildRequest sse_decode_qjs_runtime_build_request(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  QjsRuntimeBundleBuild sse_decode_qjs_runtime_bundle_build(
     SseDeserializer deserializer,
   );
 
@@ -244,6 +290,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_qjs_runtime_build_request(
+    QjsRuntimeBuildRequest self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_qjs_runtime_bundle_build(
+    QjsRuntimeBundleBuild self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_i_32(int self, SseSerializer serializer);
 
   @protected
@@ -271,6 +329,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_qjs_runtime_bundle_build(
+    QjsRuntimeBundleBuild? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_pack_info(PackInfo self, SseSerializer serializer);
 
   @protected
@@ -282,6 +346,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_qjs_cancel_tasks_by_group_result(
     QjsCancelTasksByGroupResult self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_qjs_runtime_build_request(
+    QjsRuntimeBuildRequest self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_qjs_runtime_bundle_build(
+    QjsRuntimeBundleBuild self,
     SseSerializer serializer,
   );
 

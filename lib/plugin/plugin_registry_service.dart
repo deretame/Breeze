@@ -10,6 +10,7 @@ import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/object_box.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/src/rust/api/qjs.dart';
+import 'package:zephyr/src/rust/qjs.dart';
 import 'package:zephyr/src/rust/api/simple.dart';
 import 'package:zephyr/util/direct_dio.dart';
 import 'package:zephyr/util/get_path.dart';
@@ -189,7 +190,13 @@ class PluginRegistryService {
     const globalRuntimeName = 'global';
     final ready = await isQjsRuntimeInitialized(name: globalRuntimeName);
     if (!ready) {
-      await initQjsRuntime(name: globalRuntimeName);
+      await buildQjsRuntime(
+        request: const QjsRuntimeBuildRequest(
+          runtimeName: globalRuntimeName,
+          injectFilesystem: false,
+          enableWasi: false,
+        ),
+      );
     }
   }
 
@@ -923,10 +930,16 @@ class PluginRegistryService {
     required String runtimeName,
   }) async {
     final bundleJs = await _resolveBundleJs(plugin);
-    await initQjsRuntimeWithBundle(
-      runtimeName: runtimeName,
-      bundleName: runtimeName,
-      bundleJs: bundleJs,
+    await buildQjsRuntime(
+      request: QjsRuntimeBuildRequest(
+        runtimeName: runtimeName,
+        injectFilesystem: false,
+        enableWasi: false,
+        bundle: QjsRuntimeBundleBuild(
+          bundleName: runtimeName,
+          bundleJs: bundleJs,
+        ),
+      ),
     );
     _pluginInitDone.remove(plugin.uuid);
   }

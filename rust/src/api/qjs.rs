@@ -1,7 +1,7 @@
 use anyhow::Result;
 use flutter_rust_bridge::{DartFnFuture, frb};
 
-pub use crate::qjs::{QjsCancelTaskResult, QjsCancelTasksByGroupResult};
+pub use crate::qjs::{QjsCancelTaskResult, QjsCancelTasksByGroupResult, QjsRuntimeBuildRequest};
 
 #[frb]
 pub async fn qjs_replace_bundle(
@@ -197,22 +197,13 @@ pub fn get_js_bundle(name: String) -> Result<String> {
 }
 
 #[frb]
-pub async fn init_qjs_runtime(name: String) -> Result<()> {
-    crate::qjs::init_qjs_runtime(name).await
-}
-
-#[frb]
 pub async fn is_qjs_runtime_initialized(name: String) -> Result<bool> {
     crate::qjs::is_qjs_runtime_initialized(name).await
 }
 
 #[frb]
-pub async fn init_qjs_runtime_with_bundle(
-    runtime_name: String,
-    bundle_name: String,
-    bundle_js: String,
-) -> Result<()> {
-    crate::qjs::init_qjs_runtime_with_bundle(runtime_name, bundle_name, bundle_js).await
+pub async fn build_qjs_runtime(request: QjsRuntimeBuildRequest) -> Result<()> {
+    crate::qjs::build_qjs_runtime(request).await
 }
 
 #[frb(sync)]

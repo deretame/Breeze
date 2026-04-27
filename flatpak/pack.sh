@@ -39,8 +39,12 @@ FLATPAK_BUILDER_ARGS=(--force-clean "--repo=${REPO_DIR}")
 if [[ "${FLATPAK_BUILDER_USER:-1}" == "1" ]]; then
   FLATPAK_BUILDER_ARGS+=(--user)
 fi
-if [[ -n "${FLATPAK_INSTALL_DEPS_FROM:-flathub}" ]]; then
-  FLATPAK_BUILDER_ARGS+=("--install-deps-from=${FLATPAK_INSTALL_DEPS_FROM:-flathub}")
+FLATPAK_INSTALL_DEPS_FROM_VALUE="${FLATPAK_INSTALL_DEPS_FROM-}"
+if [[ -z "${FLATPAK_INSTALL_DEPS_FROM_VALUE}" ]]; then
+  FLATPAK_INSTALL_DEPS_FROM_VALUE="flathub"
+fi
+if [[ -n "${FLATPAK_INSTALL_DEPS_FROM_VALUE}" ]]; then
+  FLATPAK_BUILDER_ARGS+=("--install-deps-from=${FLATPAK_INSTALL_DEPS_FROM_VALUE}")
 fi
 
 flatpak-builder "${FLATPAK_BUILDER_ARGS[@]}" "${BUILD_DIR}" "${MANIFEST}"

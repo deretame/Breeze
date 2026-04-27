@@ -496,6 +496,19 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
             brightness: Brightness.dark,
           );
         }
+        final isLinuxDesktop = !kIsWeb && Platform.isLinux;
+        const linuxFontFamily = 'Noto Sans CJK SC';
+        const linuxFontFamilyFallback = <String>[
+          'WenQuanYi Micro Hei',
+          'Droid Sans Fallback',
+        ];
+        TextTheme withLinuxFont(TextTheme base) {
+          if (!isLinuxDesktop) return base;
+          return base.apply(
+            fontFamily: linuxFontFamily,
+            fontFamilyFallback: linuxFontFamilyFallback,
+          );
+        }
 
         return MaterialApp.router(
           routerConfig: appRouter.config(),
@@ -562,6 +575,8 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
             dialogTheme: DialogThemeData(
               backgroundColor: lightColorScheme.surfaceContainer,
             ),
+            textTheme: withLinuxFont(ThemeData.light().textTheme),
+            primaryTextTheme: withLinuxFont(ThemeData.light().primaryTextTheme),
           ),
           darkTheme: ThemeData.dark().copyWith(
             scaffoldBackgroundColor: globalSettingState.isAMOLED
@@ -569,6 +584,8 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                 : darkColorScheme.surface,
             tabBarTheme: TabBarThemeData(dividerColor: Colors.transparent),
             colorScheme: darkColorScheme,
+            textTheme: withLinuxFont(ThemeData.dark().textTheme),
+            primaryTextTheme: withLinuxFont(ThemeData.dark().primaryTextTheme),
           ),
         );
       },

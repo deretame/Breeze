@@ -7,6 +7,15 @@ cd "$(dirname "$0")/.."
 echo "🚀 Building Flutter application (Release)..."
 flutter build linux --release
 
+CRASHPAD_HANDLER="build/linux/x64/release/bundle/lib/crashpad_handler"
+if [[ -f "$CRASHPAD_HANDLER" ]]; then
+  echo "🔧 Fixing executable permission: $CRASHPAD_HANDLER"
+  chmod +x "$CRASHPAD_HANDLER"
+else
+  echo "❌ Missing file: $CRASHPAD_HANDLER"
+  exit 1
+fi
+
 echo "📦 Building Flatpak..."
 # Define directories
 BUILD_DIR="build-flatpak"

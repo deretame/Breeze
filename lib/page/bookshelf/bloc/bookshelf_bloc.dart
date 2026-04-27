@@ -91,11 +91,21 @@ class BookshelfLoadRequested extends BookshelfSectionEvent {
   List<Object> get props => [searchEnterConst, append];
 }
 
+class BookshelfItemRemoved extends BookshelfSectionEvent {
+  const BookshelfItemRemoved({required this.uniqueKey});
+
+  final String uniqueKey;
+
+  @override
+  List<Object> get props => [uniqueKey];
+}
+
 class BookshelfSectionBloc
     extends Bloc<BookshelfSectionEvent, BookshelfSectionState> {
   BookshelfSectionBloc({required this.mode})
     : super(const BookshelfSectionState()) {
     on<BookshelfLoadRequested>(_onLoadRequested, transformer: sequential());
+    on<BookshelfItemRemoved>(_onItemRemoved);
   }
 
   final ShelfPageMode mode;
@@ -197,6 +207,37 @@ class BookshelfSectionBloc
         );
       }
     }
+  }
+
+  void _onItemRemoved(
+    BookshelfItemRemoved event,
+    Emitter<BookshelfSectionState> emit,
+  ) {
+    final current = state;
+    if (current.status != BookshelfLoadStatus.success) {
+      return;
+    }
+
+    final nextComics = current.comics
+        .where((item) => _uniqueKeyOfItem(item) != event.uniqueKey)
+        .toList();
+    if (nextComics.length == current.comics.length) {
+      return;
+    }
+
+    final removedCount = current.comics.length - nextComics.length;
+    final remaining = current.total - removedCount;
+    final nextTotal = remaining < 0 ? 0 : remaining;
+    final nextHasReachedMax = nextComics.length >= nextTotal;
+
+    emit(
+      current.copyWith(
+        comics: nextComics,
+        total: nextTotal,
+        hasReachedMax: nextHasReachedMax,
+        result: nextTotal.toString(),
+      ),
+    );
   }
 
   _RawQueryResult _fetchRawItems({
@@ -372,6 +413,15 @@ class BookshelfSectionBloc
               ),
             )
             .toList(),
+    };
+  }
+
+  String _uniqueKeyOfItem(dynamic item) {
+    return switch (item) {
+      UnifiedComicFavorite comic => comic.uniqueKey,
+      UnifiedComicHistory comic => comic.uniqueKey,
+      UnifiedComicDownload comic => comic.uniqueKey,
+      _ => '',
     };
   }
 }

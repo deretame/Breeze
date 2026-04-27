@@ -115,6 +115,10 @@ class _LocalShelfPageState extends State<LocalShelfPage>
     );
   }
 
+  void _handleItemDeleted(String uniqueKey) {
+    _bloc.add(BookshelfItemRemoved(uniqueKey: uniqueKey));
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -212,6 +216,7 @@ class _LocalShelfPageState extends State<LocalShelfPage>
         entries: entries,
         type: type,
         refresh: _dispatch,
+        onDeleteSuccess: _handleItemDeleted,
         hasReachedMax: hasReachedMax,
         isLoadingMore: isLoadingMore,
         loadMoreFailed: loadMoreFailed,

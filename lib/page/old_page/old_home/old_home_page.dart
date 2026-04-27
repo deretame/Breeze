@@ -30,6 +30,25 @@ class _OldHomePageState extends State<OldHomePage> {
 
   int _tabIndex = 0;
 
+  String get _currentFrom {
+    final pluginStates = context.read<PluginRegistryCubit>().state;
+    final active =
+        pluginStates.values
+            .where((state) => state.isEnabled && !state.isDeleted)
+            .toList()
+          ..sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
+    if (active.isNotEmpty) {
+      return active.first.uuid;
+    }
+    final visible =
+        pluginStates.values.where((state) => !state.isDeleted).toList()
+          ..sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
+    if (visible.isNotEmpty) {
+      return visible.first.uuid;
+    }
+    return '';
+  }
+
   @override
   Widget build(BuildContext context) {
     final pluginStates = context.watch<PluginRegistryCubit>().state;
@@ -46,7 +65,18 @@ class _OldHomePageState extends State<OldHomePage> {
         : _tabIndex.clamp(0, panels.length - 1);
 
     return Scaffold(
-      appBar: hasAnyPanel ? AppBar(title: const Text('首页')) : null,
+      appBar: hasAnyPanel
+          ? AppBar(
+              title: const Text('首页'),
+              actions: [
+                IconButton(
+                  tooltip: '搜索',
+                  icon: const Icon(Icons.search),
+                  onPressed: search,
+                ),
+              ],
+            )
+          : null,
       body: hasAnyPanel
           ? IndexedStack(index: effectiveIndex, children: panels)
           : const SizedBox.expand(),
@@ -60,6 +90,20 @@ class _OldHomePageState extends State<OldHomePage> {
               child: const Icon(Icons.swap_horiz),
             )
           : null,
+    );
+  }
+
+  void search() {
+    final source = _currentFrom;
+    if (source.isEmpty) {
+      showErrorToast('暂无可用插件，无法搜索');
+      return;
+    }
+    context.pushRoute(
+      SearchRoute(
+        searchState: SearchStates.initial().copyWith(from: source),
+        aggregateMode: true,
+      ),
     );
   }
 

@@ -22,6 +22,7 @@ class BaseComicGridSliver extends StatelessWidget {
   final List<ComicSimplifyEntryInfo> entries;
   final ComicEntryType type;
   final VoidCallback? refresh;
+  final ValueChanged<String>? onDeleteSuccess;
   final bool roundedCorner;
   final EdgeInsetsGeometry padding;
 
@@ -30,6 +31,7 @@ class BaseComicGridSliver extends StatelessWidget {
     required this.entries,
     required this.type,
     this.refresh,
+    this.onDeleteSuccess,
     this.roundedCorner = true,
     this.padding = const EdgeInsets.all(10),
   });
@@ -46,6 +48,7 @@ class BaseComicGridSliver extends StatelessWidget {
             info: entries[index],
             type: type,
             refresh: refresh,
+            onDeleteSuccess: onDeleteSuccess,
             roundedCorner: roundedCorner,
           );
         }, childCount: entries.length),
@@ -58,6 +61,7 @@ class ComicSimplifyEntryGridView extends StatelessWidget {
   final List<ComicSimplifyEntryInfo> entries;
   final ComicEntryType type;
   final VoidCallback? refresh;
+  final ValueChanged<String>? onDeleteSuccess;
   final bool roundedCorner;
   final bool shrinkWrap;
   final ScrollPhysics? physics;
@@ -68,6 +72,7 @@ class ComicSimplifyEntryGridView extends StatelessWidget {
     required this.entries,
     required this.type,
     this.refresh,
+    this.onDeleteSuccess,
     this.roundedCorner = true,
     this.shrinkWrap = false,
     this.physics,
@@ -88,6 +93,7 @@ class ComicSimplifyEntryGridView extends StatelessWidget {
           info: entries[index],
           type: type,
           refresh: refresh,
+          onDeleteSuccess: onDeleteSuccess,
           roundedCorner: roundedCorner,
         );
       },

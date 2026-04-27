@@ -166,6 +166,7 @@ class ComicSimplifyEntry extends StatelessWidget {
   final ComicSimplifyEntryInfo info;
   final ComicEntryType type;
   final VoidCallback? refresh;
+  final ValueChanged<String>? onDeleteSuccess;
   final bool topPadding;
   final bool roundedCorner;
 
@@ -174,6 +175,7 @@ class ComicSimplifyEntry extends StatelessWidget {
     required this.info,
     required this.type,
     this.refresh,
+    this.onDeleteSuccess,
     this.topPadding = true,
     this.roundedCorner = true,
   });
@@ -322,7 +324,12 @@ class ComicSimplifyEntry extends StatelessWidget {
       } else if (type == ComicEntryType.favorite) {
         await _deleteFavorite();
       }
-      refresh?.call();
+      final deletedKey = '${info.from}:${info.id}';
+      if (onDeleteSuccess != null) {
+        onDeleteSuccess!(deletedKey);
+      } else {
+        refresh?.call();
+      }
     } catch (e, s) {
       logger.e('删除失败', error: e, stackTrace: s);
       showErrorToast("删除失败");

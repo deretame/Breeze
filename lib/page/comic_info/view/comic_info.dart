@@ -15,6 +15,7 @@ import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/json/json_value.dart';
+import 'package:zephyr/util/permission.dart';
 import 'package:zephyr/util/sundry.dart';
 
 import '../../../util/router/router.dart';
@@ -458,6 +459,57 @@ class _ComicInfoState extends State<_ComicInfo>
 
   Future<String?> _pickExportDirectory() async => getDirectoryPath();
 
+  Future<String?> _resolveExportDirectory() async {
+    if (Platform.isAndroid) {
+      final granted = await requestExportPermission();
+      if (!granted) {
+        throw StateError('未授予所有文件访问权限，导出已取消');
+      }
+      return createDownloadDir();
+    }
+    return _pickExportDirectory();
+  }
+
+  void _logExportPath(String path) {
+    if (!(Platform.isAndroid ||
+        Platform.isMacOS ||
+        Platform.isWindows ||
+        Platform.isLinux)) {
+      return;
+    }
+
+    final displayPath = Platform.isAndroid
+        ? _simplifyAndroidPathForLog(path)
+        : path;
+    debugPrint('Exported comic path: $displayPath');
+  }
+
+  String _simplifyAndroidPathForLog(String path) {
+    final normalized = path.replaceAll('\\', '/');
+    final downloadIndex = normalized.indexOf('/Download/');
+    if (downloadIndex >= 0) {
+      return normalized.substring(downloadIndex + 1);
+    }
+    return normalized;
+  }
+
+  void _showExportDirectory(String exportedPath, ExportType exportType) {
+    if (!(Platform.isAndroid ||
+        Platform.isMacOS ||
+        Platform.isWindows ||
+        Platform.isLinux)) {
+      return;
+    }
+
+    final exportDirectory = exportType == ExportType.zip
+        ? p.dirname(exportedPath)
+        : exportedPath;
+    final displayPath = Platform.isAndroid
+        ? _simplifyAndroidPathForLog(exportDirectory)
+        : exportDirectory;
+    showInfoToast('导出目录：$displayPath', duration: const Duration(seconds: 5));
+  }
+
   // 导出逻辑
   Future<void> _handleExport() async {
     String? cacheZipPath;
@@ -468,7 +520,7 @@ class _ComicInfoState extends State<_ComicInfo>
       final exportType = await _pickExportType();
       if (exportType == null) return;
 
-      final exportDir = await _pickExportDirectory();
+      final exportDir = await _resolveExportDirectory();
       if (exportDir == null) return;
 
       final zipFileName = _buildZipFileName();
@@ -496,6 +548,7 @@ class _ComicInfoState extends State<_ComicInfo>
         }
         await cacheZipFile.copy(targetZipPath);
         showSuccessToast('导出成功');
+        _logExportPath(targetZipPath);
         return;
       }
 
@@ -503,17 +556,19 @@ class _ComicInfoState extends State<_ComicInfo>
           ? targetZipPath
           : exportDir;
 
-      await exportComic(
+      final exportedPath = await exportComic(
         widget.comicId,
         exportType,
         widget.from,
         path: exportPath,
       );
+      _showExportDirectory(exportedPath, exportType);
+      _logExportPath(exportedPath);
     } catch (e) {
-      showErrorToast(
-        "导出失败，请重试。\n${e.toString()}",
-        duration: const Duration(seconds: 5),
-      );
+      final errorMessage = e is StateError
+          ? e.message.toString()
+          : "导出失败，请重试。\n${e.toString()}";
+      showErrorToast(errorMessage, duration: const Duration(seconds: 5));
     } finally {
       if (cacheZipPath != null) {
         final cacheZipFile = File(cacheZipPath);

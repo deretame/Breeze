@@ -10,6 +10,7 @@ class PluginComicGridSliver extends StatelessWidget {
     required this.entries,
     this.type = ComicEntryType.normal,
     this.refresh,
+    this.onDeleteSuccess,
     required this.hasReachedMax,
     required this.isLoadingMore,
     required this.loadMoreFailed,
@@ -23,6 +24,7 @@ class PluginComicGridSliver extends StatelessWidget {
   final List<ComicSimplifyEntryInfo> entries;
   final ComicEntryType type;
   final VoidCallback? refresh;
+  final ValueChanged<String>? onDeleteSuccess;
   final bool hasReachedMax;
   final bool isLoadingMore;
   final bool loadMoreFailed;
@@ -39,7 +41,12 @@ class PluginComicGridSliver extends StatelessWidget {
       physics: physics,
       shrinkWrap: shrinkWrap,
       slivers: [
-        BaseComicGridSliver(entries: entries, type: type, refresh: refresh),
+        BaseComicGridSliver(
+          entries: entries,
+          type: type,
+          refresh: refresh,
+          onDeleteSuccess: onDeleteSuccess,
+        ),
         if (hasReachedMax)
           const SliverToBoxAdapter(
             child: Center(

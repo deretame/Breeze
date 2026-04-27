@@ -40,7 +40,7 @@ const Set<String> _kWindowsReservedNames = {
   'LPT9',
 };
 
-Future<void> exportComic(
+Future<String> exportComic(
   String comicId,
   ExportType type,
   String from, {
@@ -52,7 +52,7 @@ Future<void> exportComic(
   return _exportComicAsZip(comicId, from: from, exportPath: path);
 }
 
-Future<void> _exportComicAsFolder(
+Future<String> _exportComicAsFolder(
   String comicId, {
   required String from,
   String? exportPath,
@@ -83,9 +83,10 @@ Future<void> _exportComicAsFolder(
   await _copyEpisodeFiles(chapterEntries, comicDir);
 
   showSuccessToast('漫画$title导出为文件夹完成');
+  return comicDir;
 }
 
-Future<void> _exportComicAsZip(
+Future<String> _exportComicAsZip(
   String comicId, {
   required String from,
   String? exportPath,
@@ -124,6 +125,7 @@ Future<void> _exportComicAsZip(
 
   await packFolderZip(destPath: finalZipPath, packInfo: packInfo);
   showSuccessToast('漫画$title导出为 zip 完成');
+  return finalZipPath;
 }
 
 UnifiedComicDownload _getDownload(String comicId, {required String from}) {

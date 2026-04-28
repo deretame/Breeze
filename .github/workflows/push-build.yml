@@ -188,9 +188,14 @@ jobs:
           workspaces: |
             rust
 
-      - name: 构建 Flatpak
+      - name: 构建 Linux + 可选上传符号 + 构建 Flatpak
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
-          bash flatpak/pack.sh
+          fvm dart ./script/build_linux_flatpak.dart
 
       - name: 上传 Linux 产物
         uses: actions/upload-artifact@v4

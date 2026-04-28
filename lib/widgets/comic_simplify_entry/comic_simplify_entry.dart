@@ -167,6 +167,10 @@ class ComicSimplifyEntry extends StatelessWidget {
   final ComicEntryType type;
   final VoidCallback? refresh;
   final ValueChanged<String>? onDeleteSuccess;
+  final ValueChanged<ComicSimplifyEntryInfo>? onTapOverride;
+  final ValueChanged<ComicSimplifyEntryInfo>? onLongPressOverride;
+  final bool isSelected;
+  final bool selectionMode;
   final bool topPadding;
   final bool roundedCorner;
 
@@ -176,6 +180,10 @@ class ComicSimplifyEntry extends StatelessWidget {
     required this.type,
     this.refresh,
     this.onDeleteSuccess,
+    this.onTapOverride,
+    this.onLongPressOverride,
+    this.isSelected = false,
+    this.selectionMode = false,
     this.topPadding = true,
     this.roundedCorner = true,
   });
@@ -193,9 +201,24 @@ class ComicSimplifyEntry extends StatelessWidget {
 
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () => _navigateToComicInfo(context),
-          onLongPress: () =>
-              type != ComicEntryType.normal ? _showDeleteDialog(context) : null,
+          onTap: () {
+            final onTapHandler = onTapOverride;
+            if (onTapHandler != null) {
+              onTapHandler(info);
+              return;
+            }
+            _navigateToComicInfo(context);
+          },
+          onLongPress: () {
+            final onLongPressHandler = onLongPressOverride;
+            if (onLongPressHandler != null) {
+              onLongPressHandler(info);
+              return;
+            }
+            if (type != ComicEntryType.normal) {
+              _showDeleteDialog(context);
+            }
+          },
           child: SizedBox(
             width: width,
             height: height,
@@ -261,6 +284,18 @@ class ComicSimplifyEntry extends StatelessWidget {
             ),
           ),
         ),
+        if (selectionMode)
+          Positioned(
+            top: 6,
+            right: 6,
+            child: Icon(
+              isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+              color: isSelected
+                  ? Colors.lightBlueAccent
+                  : Colors.white.withValues(alpha: 0.9),
+              size: 22,
+            ),
+          ),
       ],
     );
   }

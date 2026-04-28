@@ -19,6 +19,10 @@ class PluginComicGridSliver extends StatelessWidget {
     this.controller,
     this.physics,
     this.shrinkWrap = false,
+    this.onEntryTap,
+    this.onEntryLongPress,
+    this.isEntrySelected,
+    this.selectionMode = false,
   });
 
   final List<ComicSimplifyEntryInfo> entries;
@@ -33,6 +37,10 @@ class PluginComicGridSliver extends StatelessWidget {
   final ScrollController? controller;
   final ScrollPhysics? physics;
   final bool shrinkWrap;
+  final ValueChanged<ComicSimplifyEntryInfo>? onEntryTap;
+  final ValueChanged<ComicSimplifyEntryInfo>? onEntryLongPress;
+  final bool Function(ComicSimplifyEntryInfo entry)? isEntrySelected;
+  final bool selectionMode;
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +54,10 @@ class PluginComicGridSliver extends StatelessWidget {
           type: type,
           refresh: refresh,
           onDeleteSuccess: onDeleteSuccess,
+          onEntryTap: onEntryTap,
+          onEntryLongPress: onEntryLongPress,
+          isEntrySelected: isEntrySelected,
+          selectionMode: selectionMode,
         ),
         if (hasReachedMax)
           const SliverToBoxAdapter(

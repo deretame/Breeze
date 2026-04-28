@@ -204,29 +204,14 @@ jobs:
           workspaces: |
             rust
 
-      - name: 构建 Linux Release
+      - name: 构建 Linux + 可选上传符号 + 构建 Flatpak
         env:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-        run: |
-          SKIP_FLATPAK_BUILD=1 bash flatpak/pack.sh
-
-      - name: 上传 Linux 符号表到 Sentry（可选）
-        continue-on-error: true
-        working-directory: ${{ github.workspace }}
-        env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
-          if [ -z "$SENTRY_AUTH_TOKEN" ]; then
-            echo "未配置 SENTRY_AUTH_TOKEN，跳过 Linux 符号表上传。"
-            exit 0
-          fi
-          fvm dart run sentry_dart_plugin --sentry-define=auth_token="$SENTRY_AUTH_TOKEN"
-
-      - name: 构建 Flatpak
-        run: |
-          SKIP_FLUTTER_BUILD=1 bash flatpak/pack.sh
+          fvm dart ./script/build_linux_flatpak.dart
 
       - name: 上传 Linux 产物
         uses: actions/upload-artifact@v4

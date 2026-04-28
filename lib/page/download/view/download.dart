@@ -27,6 +27,7 @@ class _DownloadPageState extends State<DownloadPage> {
       (downloadInfo.source.trim().isEmpty ? '' : downloadInfo.source).trim();
 
   late Map<int, bool> _downloadInfo;
+  late Map<String, Map<String, dynamic>> _chapterExternById;
   late UnifiedComicDownload? comicDownloadInfo;
 
   void onUpdateDownloadInfo(int order) {
@@ -42,8 +43,13 @@ class _DownloadPageState extends State<DownloadPage> {
       throw StateError('download source pluginId is required');
     }
     _downloadInfo = {};
+    _chapterExternById = <String, Map<String, dynamic>>{};
     for (var ep in downloadInfo.chapters) {
       _downloadInfo[ep.order] = false;
+      final chapterId = ep.id.trim();
+      if (chapterId.isNotEmpty) {
+        _chapterExternById[chapterId] = Map<String, dynamic>.from(ep.extern);
+      }
     }
     final query = objectbox.unifiedDownloadBox.query(
       UnifiedComicDownload_.uniqueKey.equals('$source:${downloadInfo.comicId}'),
@@ -135,6 +141,16 @@ class _DownloadPageState extends State<DownloadPage> {
       comicId: downloadInfo.comicId,
       comicName: downloadInfo.title,
       selectedChapters: selectedChapters,
+      chapterExternById: selectedChapters.fold<Map<String, dynamic>>(
+        <String, dynamic>{},
+        (acc, chapterId) {
+          final extern = _chapterExternById[chapterId];
+          if (extern != null && extern.isNotEmpty) {
+            acc[chapterId] = extern;
+          }
+          return acc;
+        },
+      ),
     );
     logger.d('download task payload=${task.toJson()}');
     logger.d(

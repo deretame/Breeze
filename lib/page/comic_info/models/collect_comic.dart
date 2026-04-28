@@ -86,7 +86,7 @@ Map<String, dynamic> _comicImageToMap(ComicImage image) {
       url: image.url,
       rawPath: image.path,
     ),
-    'extension': image.extension,
+    'extern': image.extern,
   });
 }
 
@@ -170,7 +170,7 @@ Map<String, dynamic> _creatorToMap(Creator creator) {
     'name': creator.name,
     'avatar': _comicImageToMap(creator.avatar),
     'onTap': creator.onTap,
-    'extension': creator.extension,
+    'extern': creator.extern,
   });
 }
 
@@ -178,7 +178,7 @@ Map<String, dynamic> _titleMetaToMap(ComicInfoActionItem item) {
   return _sanitizeMap({
     'name': item.name,
     'onTap': item.onTap,
-    'extension': item.extension,
+    'extern': item.extern,
   });
 }
 
@@ -191,7 +191,7 @@ Map<String, dynamic> _metadataToMap(ComicInfoMetadata item) {
           (entry) => _sanitizeMap({
             'name': entry.name,
             'onTap': entry.onTap,
-            'extension': entry.extension,
+            'extern': entry.extern,
           }),
         )
         .toList(),

@@ -88,7 +88,7 @@ Future<void> unifiedDownloadTask(
     updateTaskStatus('下载封面中...');
     reporter.updateMessage('下载封面中...');
     final cover = detail.normalInfo.comicInfo.cover;
-    final coverExtension = Map<String, dynamic>.from(cover.extension);
+    final coverExtension = Map<String, dynamic>.from(cover.extern);
     final rawCoverFileName = cover.path.trim().isNotEmpty
         ? cover.path
         : coverExtension['path']?.toString() ?? '';
@@ -108,7 +108,7 @@ Future<void> unifiedDownloadTask(
     var normalInfo = detail.normalInfo.copyWith(recommend: const []);
     if (coverPath.startsWith('404')) {
       final clearedCoverExtension = {
-        ...normalInfo.comicInfo.cover.extension,
+        ...normalInfo.comicInfo.cover.extern,
         'path': '',
       };
       normalInfo = normalInfo.copyWith(
@@ -116,7 +116,7 @@ Future<void> unifiedDownloadTask(
           cover: normalInfo.comicInfo.cover.copyWith(
             url: '',
             path: '',
-            extension: clearedCoverExtension,
+            extern: clearedCoverExtension,
           ),
         ),
       );
@@ -128,8 +128,9 @@ Future<void> unifiedDownloadTask(
     for (final chapter in selectedChapters) {
       await ensureTaskRunning();
       final requestChapterId = _resolveChapterRequestId(chapter);
+      final chapterExtern = _resolveChapterExtern(task, chapter.id);
       logger.d(
-        'download getChapter plugin=$pluginId comicId=${task.comicId} chapter.id=${chapter.id} order=${chapter.order} requestChapterId=$requestChapterId',
+        'download getChapter plugin=$pluginId comicId=${task.comicId} chapter.id=${chapter.id} order=${chapter.order} requestChapterId=$requestChapterId extern=$chapterExtern',
       );
       chapterResponses.add(
         await _getChapterByPlugin(
@@ -138,6 +139,7 @@ Future<void> unifiedDownloadTask(
           comicId: task.comicId,
           chapterId: requestChapterId,
           runtimeName: runtimeName,
+          extern: {'chapterId': requestChapterId, ...chapterExtern},
         ),
       );
     }
@@ -152,6 +154,7 @@ Future<void> unifiedDownloadTask(
             path: doc.path,
             cartoonId: task.comicId,
             chapterId: response.chapter.epId,
+            extern: doc.extern,
           ),
         );
       }
@@ -215,6 +218,7 @@ Future<UnifiedPluginChapterResponse> _getChapterByPlugin({
   required String comicId,
   required String chapterId,
   required String runtimeName,
+  required Map<String, dynamic> extern,
 }) async {
   return getComicChapterByPlugin(
     comicId,
@@ -222,6 +226,7 @@ Future<UnifiedPluginChapterResponse> _getChapterByPlugin({
     from,
     pluginId: pluginId,
     runtimeName: runtimeName,
+    extern: extern,
   );
 }
 
@@ -254,6 +259,7 @@ Future<void> _saveUnifiedDownload({
               name: imageName,
               path: imagePath,
               url: doc.url,
+              extern: doc.extern,
             );
           }).toList(),
         ),
@@ -269,8 +275,8 @@ Future<void> _saveUnifiedDownload({
   final detail = normalInfo.copyWith(
     eps: eps,
     recommend: const [],
-    extension: {
-      ...normalInfo.extension,
+    extern: {
+      ...normalInfo.extern,
       'downloadChapters': storedChapters
           .map(
             (e) => {
@@ -327,7 +333,7 @@ Future<void> _saveUnifiedDownload({
     chapters: jsonEncode(chapters),
     detailJson: jsonEncode(
       detail
-          .copyWith(extension: {...detail.extension, 'version': mainVersion})
+          .copyWith(extern: {...detail.extern, 'version': mainVersion})
           .toJson(),
     ),
     storageRoot:
@@ -400,7 +406,7 @@ String _resolveImageDisplayName(UnifiedPluginChapterDoc doc) {
 
 Map<String, dynamic> _normalizeStoredImageMap(Map<String, dynamic> image) {
   final map = Map<String, dynamic>.from(image);
-  final ext = Map<String, dynamic>.from(map['extension'] as Map? ?? const {});
+  final ext = _readExternFirst(map);
   final topLevelRawPath = map['path']?.toString() ?? '';
   final extRawPath = ext['path']?.toString() ?? '';
 
@@ -418,7 +424,7 @@ Map<String, dynamic> _normalizeStoredImageMap(Map<String, dynamic> image) {
 
   map['path'] = mergedPath;
   ext['path'] = mergedPath;
-  map['extension'] = ext;
+  map['extern'] = ext;
   return map;
 }
 
@@ -445,4 +451,29 @@ void _markTaskCompleted(String comicId) {
   if (tasks.isNotEmpty) {
     objectbox.downloadTaskBox.putMany(tasks);
   }
+}
+
+Map<String, dynamic> _readExternFirst(Map<String, dynamic> map) {
+  final extern = map['extern'] as Map?;
+  if (extern != null && extern.isNotEmpty) {
+    return Map<String, dynamic>.from(extern);
+  }
+  return Map<String, dynamic>.from(
+    map['extension'] as Map? ?? const <String, dynamic>{},
+  );
+}
+
+Map<String, dynamic> _resolveChapterExtern(
+  DownloadTaskJson task,
+  String chapterId,
+) {
+  final id = chapterId.trim();
+  if (id.isEmpty) {
+    return const <String, dynamic>{};
+  }
+  final raw = task.chapterExternById[id];
+  if (raw is Map) {
+    return Map<String, dynamic>.from(raw);
+  }
+  return const <String, dynamic>{};
 }

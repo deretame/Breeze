@@ -21,6 +21,7 @@ class _ImageSlotContext {
 
 extension _ComicReadSeamlessPart on _ComicReadPageState {
   static const int _nextPrefetchThreshold = 2;
+  static const int _nextAutoResolveThreshold = 1;
 
   bool get _isDownloadEntryType =>
       _type == ComicEntryType.download ||
@@ -651,6 +652,13 @@ extension _ComicReadSeamlessPart on _ComicReadPageState {
     if (totalSlots <= 0) return;
 
     final remainToEnd = totalSlots - globalSlot - 1;
+    if (remainToEnd <= _nextAutoResolveThreshold && _canLoadNextChapter()) {
+      final nextOrder = _resolveAdjacentChapterOrder(previous: false);
+      if (nextOrder != null) {
+        unawaited(_ensureBoundaryResolved(nextOrder: nextOrder));
+      }
+    }
+
     if (remainToEnd <= _nextPrefetchThreshold && _canLoadNextChapter()) {
       unawaited(_prefetchNextChapterIfNeeded());
     }

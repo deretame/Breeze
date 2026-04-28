@@ -9,12 +9,14 @@ class DownloadImageJob {
     required this.path,
     required this.cartoonId,
     required this.chapterId,
+    this.extern = const <String, dynamic>{},
   });
 
   final String url;
   final String path;
   final String cartoonId;
   final String chapterId;
+  final Map<String, dynamic> extern;
 }
 
 Future<String> downloadCoverAsset({
@@ -103,6 +105,7 @@ Future<void> _downloadSingleJob({
       retry: true,
       qjsName: qjsRuntimeName,
       qjsTaskGroupKey: qjsTaskGroupKey,
+      extern: job.extern,
     );
   } catch (error) {
     if (onError != null) {

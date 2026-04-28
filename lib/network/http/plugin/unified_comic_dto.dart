@@ -87,12 +87,14 @@ class UnifiedPluginChapterDoc {
     required this.path,
     required this.url,
     required this.id,
+    required this.extern,
   });
 
   final String name;
   final String path;
   final String url;
   final String id;
+  final Map<String, dynamic> extern;
 
   factory UnifiedPluginChapterDoc.fromMap(Map<String, dynamic> map) {
     return UnifiedPluginChapterDoc(
@@ -100,6 +102,7 @@ class UnifiedPluginChapterDoc {
       path: map['path']?.toString() ?? '',
       url: map['url']?.toString() ?? map['fileServer']?.toString() ?? '',
       id: map['id']?.toString() ?? '',
+      extern: _readExternFirst(map),
     );
   }
 }
@@ -237,4 +240,12 @@ int _toInt(dynamic value, int fallback) {
     return value.toInt();
   }
   return int.tryParse(value?.toString() ?? '') ?? fallback;
+}
+
+Map<String, dynamic> _readExternFirst(Map<String, dynamic> map) {
+  final extern = asMap(map['extern']);
+  if (extern.isNotEmpty) {
+    return extern;
+  }
+  return asMap(map['extension']);
 }

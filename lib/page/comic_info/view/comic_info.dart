@@ -584,7 +584,7 @@ class _ComicInfoState extends State<_ComicInfo>
 
   List<UnifiedComicListItem> _resolveRecommendItems(List<Recommend> recommend) {
     return recommend
-        .map((item) => asJsonMap(item.extension)['unifiedItem'])
+        .map((item) => asJsonMap(item.extern)['unifiedItem'])
         .map(asJsonMap)
         .where((json) => json.isNotEmpty)
         .map(UnifiedComicListItem.fromJson)

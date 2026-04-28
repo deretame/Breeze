@@ -41,11 +41,13 @@ class UnifiedComicChapterRef {
     required this.id,
     required this.name,
     required this.order,
+    this.extern = const <String, dynamic>{},
   });
 
   final String id;
   final String name;
   final int order;
+  final Map<String, dynamic> extern;
 }
 
 Future<PluginComicDetail> getComicDetailByPlugin(
@@ -91,6 +93,7 @@ Future<UnifiedPluginChapterResponse> getComicChapterByPlugin(
   String from, {
   String? pluginId,
   String? runtimeName,
+  Map<String, dynamic> extern = const <String, dynamic>{},
 }) async {
   final resolvedPluginId =
       (pluginId?.trim().isNotEmpty == true ? pluginId!.trim() : from.trim())
@@ -101,7 +104,7 @@ Future<UnifiedPluginChapterResponse> getComicChapterByPlugin(
     from: resolvedPluginId,
     fnPath: 'getChapter',
     core: payload,
-    extern: const <String, dynamic>{},
+    extern: extern,
     runtimeName: runtimeName,
   );
   return UnifiedPluginChapterResponse.fromMap(map);
@@ -114,8 +117,12 @@ List<UnifiedComicChapterRef> resolveUnifiedComicChapters(
   if (comicInfo is PluginComicDetailSource) {
     return comicInfo.eps
         .map(
-          (ep) =>
-              UnifiedComicChapterRef(id: ep.id, name: ep.name, order: ep.order),
+          (ep) => UnifiedComicChapterRef(
+            id: ep.id,
+            name: ep.name,
+            order: ep.order,
+            extern: Map<String, dynamic>.from(ep.extern),
+          ),
         )
         .toList();
   }
@@ -127,6 +134,7 @@ List<UnifiedComicChapterRef> resolveUnifiedComicChapters(
             id: ep['id']?.toString() ?? '',
             name: ep['name']?.toString() ?? '',
             order: _toInt(ep['order'], 0),
+            extern: asMap(ep['extern']),
           ),
         )
         .toList();

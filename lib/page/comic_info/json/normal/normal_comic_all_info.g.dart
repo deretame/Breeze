@@ -24,7 +24,7 @@ _NormalComicAllInfo _$NormalComicAllInfoFromJson(Map<String, dynamic> json) =>
       allowLike: json['allowLike'] as bool? ?? false,
       allowCollected: json['allowCollected'] as bool? ?? false,
       allowDownload: json['allowDownload'] as bool? ?? true,
-      extension: json['extension'] as Map<String, dynamic>? ?? const {},
+      extern: json['extern'] as Map<String, dynamic>? ?? const {},
     );
 
 Map<String, dynamic> _$NormalComicAllInfoToJson(_NormalComicAllInfo instance) =>
@@ -41,14 +41,14 @@ Map<String, dynamic> _$NormalComicAllInfoToJson(_NormalComicAllInfo instance) =>
       'allowLike': instance.allowLike,
       'allowCollected': instance.allowCollected,
       'allowDownload': instance.allowDownload,
-      'extension': instance.extension,
+      'extern': instance.extern,
     };
 
 _ComicInfoActionItem _$ComicInfoActionItemFromJson(Map<String, dynamic> json) =>
     _ComicInfoActionItem(
       name: json['name'] as String,
       onTap: json['onTap'] as Map<String, dynamic>? ?? const {},
-      extension: json['extension'] as Map<String, dynamic>? ?? const {},
+      extern: json['extern'] as Map<String, dynamic>? ?? const {},
     );
 
 Map<String, dynamic> _$ComicInfoActionItemToJson(
@@ -56,7 +56,7 @@ Map<String, dynamic> _$ComicInfoActionItemToJson(
 ) => <String, dynamic>{
   'name': instance.name,
   'onTap': instance.onTap,
-  'extension': instance.extension,
+  'extern': instance.extern,
 };
 
 _ComicInfoMetadata _$ComicInfoMetadataFromJson(Map<String, dynamic> json) =>
@@ -80,7 +80,7 @@ _ComicImage _$ComicImageFromJson(Map<String, dynamic> json) => _ComicImage(
   url: json['url'] as String,
   name: json['name'] as String,
   path: json['path'] as String? ?? '',
-  extension: json['extension'] as Map<String, dynamic>? ?? const {},
+  extern: json['extern'] as Map<String, dynamic>? ?? const {},
 );
 
 Map<String, dynamic> _$ComicImageToJson(_ComicImage instance) =>
@@ -89,7 +89,7 @@ Map<String, dynamic> _$ComicImageToJson(_ComicImage instance) =>
       'url': instance.url,
       'name': instance.name,
       'path': instance.path,
-      'extension': instance.extension,
+      'extern': instance.extern,
     };
 
 _Creator _$CreatorFromJson(Map<String, dynamic> json) => _Creator(
@@ -97,7 +97,7 @@ _Creator _$CreatorFromJson(Map<String, dynamic> json) => _Creator(
   name: json['name'] as String,
   avatar: ComicImage.fromJson(json['avatar'] as Map<String, dynamic>),
   onTap: json['onTap'] as Map<String, dynamic>? ?? const {},
-  extension: json['extension'] as Map<String, dynamic>? ?? const {},
+  extern: json['extern'] as Map<String, dynamic>? ?? const {},
 );
 
 Map<String, dynamic> _$CreatorToJson(_Creator instance) => <String, dynamic>{
@@ -105,7 +105,7 @@ Map<String, dynamic> _$CreatorToJson(_Creator instance) => <String, dynamic>{
   'name': instance.name,
   'avatar': instance.avatar,
   'onTap': instance.onTap,
-  'extension': instance.extension,
+  'extern': instance.extern,
 };
 
 _ComicInfo _$ComicInfoFromJson(Map<String, dynamic> json) => _ComicInfo(
@@ -120,7 +120,7 @@ _ComicInfo _$ComicInfoFromJson(Map<String, dynamic> json) => _ComicInfo(
   metadata: (json['metadata'] as List<dynamic>)
       .map((e) => ComicInfoMetadata.fromJson(e as Map<String, dynamic>))
       .toList(),
-  extension: json['extension'] as Map<String, dynamic>? ?? const {},
+  extern: json['extern'] as Map<String, dynamic>? ?? const {},
 );
 
 Map<String, dynamic> _$ComicInfoToJson(_ComicInfo instance) =>
@@ -132,21 +132,21 @@ Map<String, dynamic> _$ComicInfoToJson(_ComicInfo instance) =>
       'description': instance.description,
       'cover': instance.cover,
       'metadata': instance.metadata,
-      'extension': instance.extension,
+      'extern': instance.extern,
     };
 
 _Ep _$EpFromJson(Map<String, dynamic> json) => _Ep(
   id: json['id'] as String,
   name: json['name'] as String,
   order: (json['order'] as num).toInt(),
-  extension: json['extension'] as Map<String, dynamic>? ?? const {},
+  extern: json['extern'] as Map<String, dynamic>? ?? const {},
 );
 
 Map<String, dynamic> _$EpToJson(_Ep instance) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
   'order': instance.order,
-  'extension': instance.extension,
+  'extern': instance.extern,
 };
 
 _Recommend _$RecommendFromJson(Map<String, dynamic> json) => _Recommend(
@@ -154,7 +154,7 @@ _Recommend _$RecommendFromJson(Map<String, dynamic> json) => _Recommend(
   id: json['id'] as String,
   title: json['title'] as String,
   cover: ComicImage.fromJson(json['cover'] as Map<String, dynamic>),
-  extension: json['extension'] as Map<String, dynamic>? ?? const {},
+  extern: json['extern'] as Map<String, dynamic>? ?? const {},
 );
 
 Map<String, dynamic> _$RecommendToJson(_Recommend instance) =>
@@ -163,5 +163,5 @@ Map<String, dynamic> _$RecommendToJson(_Recommend instance) =>
       'id': instance.id,
       'title': instance.title,
       'cover': instance.cover,
-      'extension': instance.extension,
+      'extern': instance.extern,
     };

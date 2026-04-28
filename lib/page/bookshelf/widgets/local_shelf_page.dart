@@ -376,11 +376,9 @@ class _LocalShelfPageState extends State<LocalShelfPage>
               }
               _toggleSelection(entry);
             },
-            onEntryTap: (entry) {
-              if (_selectionMode) {
-                _toggleSelection(entry);
-              }
-            },
+            onEntryTap: _selectionMode
+                ? (entry) => _toggleSelection(entry)
+                : null,
           ),
         ),
         Positioned(

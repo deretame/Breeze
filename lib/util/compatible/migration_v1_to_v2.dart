@@ -678,7 +678,7 @@ UnifiedComicHistory _bikaHistoryToUnified(BikaComicHistory item, int proxy) {
         path: item.creatorAvatarPath,
       ),
       'onTap': const <String, dynamic>{},
-      'extension': const <String, dynamic>{},
+      'extern': const <String, dynamic>{},
     }),
     titleMeta: jsonEncode(
       _titleMetaList([
@@ -863,7 +863,7 @@ UnifiedComicDownload _bikaDownloadToUnified(
             kind: 'creator',
           ),
           name: item.creatorAvatarOriginalName,
-          extension: {
+          extern: {
             'path': _sanitizeLegacyStoredPath(
               item.creatorAvatarPath,
               allowEmpty: true,
@@ -883,7 +883,7 @@ UnifiedComicDownload _bikaDownloadToUnified(
           kind: 'cover',
         ),
         name: item.thumbOriginalName,
-        extension: {
+        extern: {
           'path': _sanitizeLegacyStoredPath(coverPath, allowEmpty: true),
           'fileServer': item.thumbFileServer,
         },
@@ -942,7 +942,7 @@ UnifiedComicDownload _bikaDownloadToUnified(
     allowLike: true,
     allowCollected: true,
     allowDownload: item.allowDownload,
-    extension: {
+    extern: {
       'version': 'v2',
       'downloadChapters': storedChapters
           .map(
@@ -981,7 +981,7 @@ UnifiedComicDownload _bikaDownloadToUnified(
   comicInfoMap['creator'] = {
     ...creatorMap,
     'avatar': migratedAvatar,
-    'extension': const <String, dynamic>{},
+    'extern': const <String, dynamic>{},
   };
   normalizedDetail['comicInfo'] = comicInfoMap;
 
@@ -1066,8 +1066,8 @@ UnifiedComicDownload _jmDownloadToUnified(
         eps: storedChapters
             .map((e) => normal.Ep(id: e.id, name: e.name, order: e.order))
             .toList(),
-        extension: {
-          ...normalInfo.extension,
+        extern: {
+          ...normalInfo.extern,
           'version': 'v2',
           'downloadChapters': storedChapters
               .map(
@@ -1175,7 +1175,7 @@ normal.NormalComicAllInfo _jmDownloadInfoToNormal(Map<String, dynamic> info) {
         id: info['id']?.toString() ?? '',
         url: _legacyJmCoverUrl(info['id']?.toString() ?? ''),
         name: '${info['id']?.toString() ?? ''}.jpg',
-        extension: {
+        extern: {
           'path': _sanitizeLegacyStoredPath(
             '${info['id']?.toString() ?? ''}.jpg',
           ),
@@ -1537,7 +1537,7 @@ Map<String, dynamic> _migratedImageJson({
     'url': url,
     'name': name,
     'path': _sanitizeLegacyStoredPath(path, allowEmpty: true),
-    'extension': const <String, dynamic>{},
+    'extern': const <String, dynamic>{},
   };
 }
 
@@ -1545,7 +1545,7 @@ Map<String, dynamic> _toMigratedImageMap(Map<String, dynamic> image) {
   final map = Map<String, dynamic>.from(image);
   final currentPath = map['path']?.toString().trim() ?? '';
   map['path'] = _sanitizeLegacyStoredPath(currentPath, allowEmpty: true);
-  map['extension'] = const <String, dynamic>{};
+  map['extern'] = const <String, dynamic>{};
   return map;
 }
 
@@ -1867,3 +1867,4 @@ Map<String, dynamic> _bikaCreatorAction(String creatorId, String creatorName) {
     },
   };
 }
+

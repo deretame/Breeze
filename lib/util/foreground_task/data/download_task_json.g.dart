@@ -14,6 +14,9 @@ _DownloadTaskJson _$DownloadTaskJsonFromJson(Map<String, dynamic> json) =>
       selectedChapters: (json['selectedChapters'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
+      chapterExternById:
+          json['chapterExternById'] as Map<String, dynamic>? ??
+          const <String, dynamic>{},
     );
 
 Map<String, dynamic> _$DownloadTaskJsonToJson(_DownloadTaskJson instance) =>
@@ -22,4 +25,5 @@ Map<String, dynamic> _$DownloadTaskJsonToJson(_DownloadTaskJson instance) =>
       'comicId': instance.comicId,
       'comicName': instance.comicName,
       'selectedChapters': instance.selectedChapters,
+      'chapterExternById': instance.chapterExternById,
     };

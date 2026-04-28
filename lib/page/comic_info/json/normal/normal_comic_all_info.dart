@@ -11,6 +11,20 @@ NormalComicAllInfo normalComicAllInfoFromJson(String str) =>
 String normalComicAllInfoToJson(NormalComicAllInfo data) =>
     json.encode(data.toJson());
 
+Map<String, dynamic> _normalizeExternWithExtension(Map<String, dynamic> json) {
+  final next = Map<String, dynamic>.from(json);
+  final extern = next['extern'];
+  if (extern is Map && extern.isNotEmpty) {
+    next['extern'] = Map<String, dynamic>.from(extern);
+    return next;
+  }
+  final extension = next['extension'];
+  if (extension is Map && extension.isNotEmpty) {
+    next['extern'] = Map<String, dynamic>.from(extension);
+  }
+  return next;
+}
+
 @freezed
 abstract class NormalComicAllInfo with _$NormalComicAllInfo {
   const factory NormalComicAllInfo({
@@ -26,11 +40,11 @@ abstract class NormalComicAllInfo with _$NormalComicAllInfo {
     @JsonKey(name: 'allowLike') @Default(false) bool allowLike,
     @JsonKey(name: 'allowCollected') @Default(false) bool allowCollected,
     @JsonKey(name: 'allowDownload') @Default(true) bool allowDownload,
-    @JsonKey(name: 'extension') @Default({}) Map<String, dynamic> extension,
+    @JsonKey(name: 'extern') @Default({}) Map<String, dynamic> extern,
   }) = _NormalComicAllInfo;
 
   factory NormalComicAllInfo.fromJson(Map<String, dynamic> json) =>
-      _$NormalComicAllInfoFromJson(json);
+      _$NormalComicAllInfoFromJson(_normalizeExternWithExtension(json));
 }
 
 @freezed
@@ -38,11 +52,11 @@ abstract class ComicInfoActionItem with _$ComicInfoActionItem {
   const factory ComicInfoActionItem({
     @JsonKey(name: 'name') required String name,
     @JsonKey(name: 'onTap') @Default({}) Map<String, dynamic> onTap,
-    @JsonKey(name: 'extension') @Default({}) Map<String, dynamic> extension,
+    @JsonKey(name: 'extern') @Default({}) Map<String, dynamic> extern,
   }) = _ComicInfoActionItem;
 
   factory ComicInfoActionItem.fromJson(Map<String, dynamic> json) =>
-      _$ComicInfoActionItemFromJson(json);
+      _$ComicInfoActionItemFromJson(_normalizeExternWithExtension(json));
 }
 
 @freezed
@@ -64,11 +78,11 @@ abstract class ComicImage with _$ComicImage {
     @JsonKey(name: 'url') required String url,
     @JsonKey(name: 'name') required String name,
     @JsonKey(name: 'path') @Default('') String path,
-    @JsonKey(name: 'extension') @Default({}) Map<String, dynamic> extension,
+    @JsonKey(name: 'extern') @Default({}) Map<String, dynamic> extern,
   }) = _ComicImage;
 
   factory ComicImage.fromJson(Map<String, dynamic> json) =>
-      _$ComicImageFromJson(json);
+      _$ComicImageFromJson(_normalizeExternWithExtension(json));
 }
 
 @freezed
@@ -78,11 +92,11 @@ abstract class Creator with _$Creator {
     @JsonKey(name: 'name') required String name,
     @JsonKey(name: 'avatar') required ComicImage avatar,
     @JsonKey(name: 'onTap') @Default({}) Map<String, dynamic> onTap,
-    @JsonKey(name: 'extension') @Default({}) Map<String, dynamic> extension,
+    @JsonKey(name: 'extern') @Default({}) Map<String, dynamic> extern,
   }) = _Creator;
 
   factory Creator.fromJson(Map<String, dynamic> json) =>
-      _$CreatorFromJson(json);
+      _$CreatorFromJson(_normalizeExternWithExtension(json));
 }
 
 @freezed
@@ -95,11 +109,11 @@ abstract class ComicInfo with _$ComicInfo {
     @JsonKey(name: 'description') required String description,
     @JsonKey(name: 'cover') required ComicImage cover,
     @JsonKey(name: 'metadata') required List<ComicInfoMetadata> metadata,
-    @JsonKey(name: 'extension') @Default({}) Map<String, dynamic> extension,
+    @JsonKey(name: 'extern') @Default({}) Map<String, dynamic> extern,
   }) = _ComicInfo;
 
   factory ComicInfo.fromJson(Map<String, dynamic> json) =>
-      _$ComicInfoFromJson(json);
+      _$ComicInfoFromJson(_normalizeExternWithExtension(json));
 }
 
 @freezed
@@ -108,10 +122,11 @@ abstract class Ep with _$Ep {
     @JsonKey(name: 'id') required String id,
     @JsonKey(name: 'name') required String name,
     @JsonKey(name: 'order') required int order,
-    @JsonKey(name: 'extension') @Default({}) Map<String, dynamic> extension,
+    @JsonKey(name: 'extern') @Default({}) Map<String, dynamic> extern,
   }) = _Ep;
 
-  factory Ep.fromJson(Map<String, dynamic> json) => _$EpFromJson(json);
+  factory Ep.fromJson(Map<String, dynamic> json) =>
+      _$EpFromJson(_normalizeExternWithExtension(json));
 }
 
 @freezed
@@ -121,9 +136,9 @@ abstract class Recommend with _$Recommend {
     @JsonKey(name: 'id') required String id,
     @JsonKey(name: 'title') required String title,
     @JsonKey(name: 'cover') required ComicImage cover,
-    @JsonKey(name: 'extension') @Default({}) Map<String, dynamic> extension,
+    @JsonKey(name: 'extern') @Default({}) Map<String, dynamic> extern,
   }) = _Recommend;
 
   factory Recommend.fromJson(Map<String, dynamic> json) =>
-      _$RecommendFromJson(json);
+      _$RecommendFromJson(_normalizeExternWithExtension(json));
 }

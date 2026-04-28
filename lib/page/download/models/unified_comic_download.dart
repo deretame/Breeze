@@ -75,12 +75,14 @@ class UnifiedComicDownloadChapter {
     required this.title,
     required this.order,
     this.images = const [],
+    this.extern = const <String, dynamic>{},
   });
 
   final String id;
   final String title;
   final int order;
   final List<UnifiedComicDownloadImage> images;
+  final Map<String, dynamic> extern;
 
   factory UnifiedComicDownloadChapter.fromMap(Map<String, dynamic> map) {
     final id = map['id']?.toString().trim().isNotEmpty == true
@@ -98,10 +100,16 @@ class UnifiedComicDownloadChapter {
                 UnifiedComicDownloadImage.fromMap(Map<String, dynamic>.from(e)),
           )
           .toList(),
+      extern: _readExternFirst(map),
     );
   }
 
-  Map<String, dynamic> toMap() => {'id': id, 'name': title, 'order': order};
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'name': title,
+    'order': order,
+    'extern': extern,
+  };
 }
 
 class UnifiedComicDownloadInfo {
@@ -128,6 +136,7 @@ class UnifiedComicDownloadInfo {
         title: chapter.name,
         order: order,
         images: const [],
+        extern: chapter.extern,
       );
     }).toList();
 
@@ -235,9 +244,7 @@ List<UnifiedComicDownloadStoredChapter> _decodeStoredChaptersFromDetailJson(
     }
 
     final detail = Map<String, dynamic>.from(decoded);
-    final extension = Map<String, dynamic>.from(
-      detail['extension'] as Map? ?? const <String, dynamic>{},
-    );
+    final extension = _readExternFirst(detail);
     final rawDownloadChapters =
         (extension['downloadChapters'] as List?) ?? const [];
 
@@ -252,4 +259,14 @@ List<UnifiedComicDownloadStoredChapter> _decodeStoredChaptersFromDetailJson(
   } catch (_) {
     return const <UnifiedComicDownloadStoredChapter>[];
   }
+}
+
+Map<String, dynamic> _readExternFirst(Map<String, dynamic> map) {
+  final extern = map['extern'] as Map?;
+  if (extern != null && extern.isNotEmpty) {
+    return Map<String, dynamic>.from(extern);
+  }
+  return Map<String, dynamic>.from(
+    map['extension'] as Map? ?? const <String, dynamic>{},
+  );
 }

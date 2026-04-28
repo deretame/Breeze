@@ -240,7 +240,7 @@ class PluginRegistryService {
   }
 
   void scheduleSilentCloudUpdate({
-    Duration delay = const Duration(minutes: 5),
+    Duration delay = const Duration(minutes: 1),
   }) {
     if (_silentCloudUpdateScheduled) {
       return;

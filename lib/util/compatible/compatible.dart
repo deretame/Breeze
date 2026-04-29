@@ -5,32 +5,40 @@ import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/main.dart';
 
 import 'migration_v1_to_v2.dart';
+import 'migration_v2_to_v3.dart';
 
 const _defaultCompatibleVersion = 'v1';
-const _latestCompatibleVersion = 'v2';
+const _latestCompatibleVersion = 'v3';
 
 Future<void> ensureCompatibleMigration(BuildContext context) async {
   try {
-    final version = await getCompatibleVersion();
-    if (version == 'v1') {
+    var version = await getCompatibleVersion();
+    var migrated = false;
+
+    if (version == 'v1' || version == 'v2') {
       if (context.mounted) {
         context.read<StringSelectCubit>().setDate("数据迁移中，请耐心等待");
       }
-      logger.d('Compatible migration start: v1 -> v2');
+    }
+
+    if (version == 'v1') {
       await migrateV1ToV2();
-      logger.d(
-        'Compatible migration db finished, start download files migration',
-      );
       await migrateLegacyDownloadFilesToPluginUuidLayout();
-      logger.d('Compatible migration download files finished');
-      logger.d('Compatible migration done: version=v2');
+      await setCompatibleVersion('v2');
+      version = 'v2';
+      migrated = true;
+    }
+
+    if (version == 'v2') {
+      await migrateV2ToV3();
       await setCompatibleVersion(_latestCompatibleVersion);
-      if (context.mounted) {
-        context.read<GlobalSettingCubit>().updateALl(
-          objectbox.userSettingBox.get(1)!.globalSetting,
-        );
-      }
-      return;
+      migrated = true;
+    }
+
+    if (migrated && context.mounted) {
+      context.read<GlobalSettingCubit>().updateALl(
+        objectbox.userSettingBox.get(1)!.globalSetting,
+      );
     }
   } catch (e, stackTrace) {
     logger.e('Compatible migration failed', error: e, stackTrace: stackTrace);

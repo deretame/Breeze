@@ -55,6 +55,8 @@ Future<int> _runCommand(
     arguments,
     workingDirectory: workingDirectory,
     runInShell: true,
+    environment: Platform.isWindows ? {'VSLANG': '1033'} : null,
+    includeParentEnvironment: true,
   );
   _currentProcess = process;
 

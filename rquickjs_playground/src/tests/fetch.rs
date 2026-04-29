@@ -1,4 +1,5 @@
 use crate::tests::{run_async_script, spawn_test_server};
+use crate::web_runtime::{configure_http_client, current_http_client_config};
 use serde_json::Value;
 #[cfg(feature = "wasi")]
 use wat::parse_str;
@@ -426,6 +427,32 @@ fn fetch_abort_controller() {
 
     let result = run_async_script(script).expect("执行脚本失败");
     assert!(result.starts_with("AbortError:"));
+}
+
+#[test]
+fn fetch_block_private_network_by_default() {
+    let mut config = current_http_client_config();
+    config.allow_private_network = false;
+    configure_http_client(config).expect("更新 HTTP 配置失败");
+
+    let runtime = crate::host_runtime::AsyncHostRuntime::new("test-web-runtime-private-block")
+        .expect("创建 runtime 失败");
+    let task = runtime
+        .spawn(
+            r#"
+          (async () => {
+            try {
+              await fetch("http://127.0.0.1:9/blocked");
+              return "unexpected";
+            } catch (err) {
+              return String(err.message || err);
+            }
+          })()
+        "#,
+        )
+        .expect("执行脚本失败");
+    let result = task.wait().expect("等待脚本结果失败");
+    assert!(result.contains("已拦截内网请求"));
 }
 
 #[test]

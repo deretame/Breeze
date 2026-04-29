@@ -26,8 +26,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 克隆 rquickjs_playground
-        run: git clone https://github.com/deretame/rquickjs_playground.git
+      # - name: 克隆 rquickjs_playground
+      #   run: git clone https://github.com/deretame/rquickjs_playground.git
 
       - name: 释放空间 (Nuclear Mode)
         run: |
@@ -155,8 +155,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 克隆 rquickjs_playground
-        run: git clone https://github.com/deretame/rquickjs_playground.git
+      # - name: 克隆 rquickjs_playground
+      #   run: git clone https://github.com/deretame/rquickjs_playground.git
 
       - name: 设置 Java 21
         uses: actions/setup-java@v4
@@ -231,8 +231,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: 克隆 rquickjs_playground
-        run: git clone https://github.com/deretame/rquickjs_playground.git
+      # - name: 克隆 rquickjs_playground
+      #   run: git clone https://github.com/deretame/rquickjs_playground.git
 
       - name: 设置 Java 21
         uses: actions/setup-java@v4
@@ -312,8 +312,8 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      - name: 克隆 rquickjs_playground
-        run: git clone https://github.com/deretame/rquickjs_playground.git
+      # - name: 克隆 rquickjs_playground
+      #   run: git clone https://github.com/deretame/rquickjs_playground.git
 
       - name: 安装打包依赖 (create-dmg)
         run: brew install create-dmg
@@ -422,8 +422,8 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      - name: 克隆 rquickjs_playground
-        run: git clone https://github.com/deretame/rquickjs_playground.git
+      # - name: 克隆 rquickjs_playground
+      #   run: git clone https://github.com/deretame/rquickjs_playground.git
 
       - name: 设置 Dart SDK
         uses: dart-lang/setup-dart@v1

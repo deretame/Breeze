@@ -5,14 +5,15 @@ import 'package:background_downloader/background_downloader.dart' as bd;
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
-import 'package:zephyr/util/download/download_progress_reporter.dart';
 import 'package:zephyr/util/download/download_cancel_signal.dart';
+import 'package:zephyr/util/download/download_progress_reporter.dart';
 import 'package:zephyr/util/download/platform/desktop_download_runner.dart';
 import 'package:zephyr/util/download/platform/ios_download_runner.dart';
-import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 import 'package:zephyr/util/foreground_task/task/unified_download_task.dart';
+import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/macos_activity.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -205,7 +206,7 @@ class DownloadQueueManager {
     } catch (e, s) {
       if (_isTaskCancelledOrMarked(task.comicId, e)) {
         logger.i('任务已取消: ${task.comicName}');
-        _removeCancelledTaskRecord(task.comicId);
+        await _removeCancelledTaskRecord(task.comicId, source: task.from);
 
         _progressController.add(
           DownloadProgress(comicName: task.comicName, message: '已取消'),
@@ -213,7 +214,7 @@ class DownloadQueueManager {
       } else {
         if (_isTaskGoneOrCompleted(task.comicId)) {
           logger.i('任务状态已变更，跳过失败回写: ${task.comicName}');
-          _removeCancelledTaskRecord(task.comicId);
+          await _removeCancelledTaskRecord(task.comicId, source: task.from);
           _progressController.add(
             DownloadProgress(comicName: task.comicName, message: '已取消'),
           );
@@ -315,7 +316,7 @@ class DownloadQueueManager {
     } catch (e, s) {
       if (_isTaskCancelledOrMarked(task.comicId, e)) {
         logger.i('任务已取消: ${task.comicName}');
-        _removeCancelledTaskRecord(task.comicId);
+        await _removeCancelledTaskRecord(task.comicId, source: task.from);
 
         _progressController.add(
           DownloadProgress(comicName: task.comicName, message: '已取消'),
@@ -323,7 +324,7 @@ class DownloadQueueManager {
       } else {
         if (_isTaskGoneOrCompleted(task.comicId)) {
           logger.i('任务状态已变更，跳过失败回写: ${task.comicName}');
-          _removeCancelledTaskRecord(task.comicId);
+          await _removeCancelledTaskRecord(task.comicId, source: task.from);
           _progressController.add(
             DownloadProgress(comicName: task.comicName, message: '已取消'),
           );
@@ -458,11 +459,11 @@ class DownloadQueueManager {
     } catch (e, s) {
       if (_isTaskCancelledOrMarked(task.comicId, e)) {
         logger.i('任务已取消: ${task.comicName}');
-        _removeCancelledTaskRecord(task.comicId);
+        await _removeCancelledTaskRecord(task.comicId, source: task.from);
       } else {
         if (_isTaskGoneOrCompleted(task.comicId)) {
           logger.i('任务状态已变更，跳过失败回写: ${task.comicName}');
-          _removeCancelledTaskRecord(task.comicId);
+          await _removeCancelledTaskRecord(task.comicId, source: task.from);
           return;
         }
 
@@ -546,14 +547,48 @@ class DownloadQueueManager {
     stopWatchingTasks();
   }
 
-  void _removeCancelledTaskRecord(String comicId) {
+  Future<void> _removeCancelledTaskRecord(
+    String comicId, {
+    String? source,
+  }) async {
     final cancelledTasks = objectbox.downloadTaskBox
         .query(DownloadTask_.comicId.equals(comicId))
         .build()
         .find();
+    final fallbackSource = cancelledTasks.isNotEmpty
+        ? (cancelledTasks.first.taskInfo?.from ?? "")
+        : "";
+    final resolvedSource = (source ?? fallbackSource).trim();
     if (cancelledTasks.isNotEmpty) {
       objectbox.downloadTaskBox.removeMany(
         cancelledTasks.map((e) => e.id).toList(),
+      );
+    }
+    await _deleteCancelledTaskFiles(comicId, source: resolvedSource);
+  }
+
+  Future<void> _deleteCancelledTaskFiles(
+    String comicId, {
+    required String source,
+  }) async {
+    if (comicId.trim().isEmpty || source.trim().isEmpty) {
+      return;
+    }
+    try {
+      final pluginId = normalizePluginId(source);
+      final downloadRoot = await getDownloadPath();
+      final targetDir = Directory(
+        '$downloadRoot${Platform.pathSeparator}$pluginId${Platform.pathSeparator}original${Platform.pathSeparator}${comicId.trim()}',
+      );
+      if (await targetDir.exists()) {
+        await targetDir.delete(recursive: true);
+        logger.i('已删除取消任务文件夹: ${targetDir.path}');
+      }
+    } catch (e, s) {
+      logger.w(
+        '删除取消任务文件夹失败: comicId=$comicId, source=$source',
+        error: e,
+        stackTrace: s,
       );
     }
   }

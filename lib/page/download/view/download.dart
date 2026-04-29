@@ -56,8 +56,21 @@ class _DownloadPageState extends State<DownloadPage> {
     );
     comicDownloadInfo = query.build().findFirst();
     if (comicDownloadInfo != null) {
+      final storedChapters = resolveStoredDownloadChapters(comicDownloadInfo!);
+      final downloadedChapterIds = storedChapters
+          .map((chapter) => chapter.id.trim())
+          .where((id) => id.isNotEmpty)
+          .toSet();
+      final downloadedOrders = storedChapters
+          .map((chapter) => chapter.order)
+          .where((order) => order > 0)
+          .toSet();
       for (var ep in downloadInfo.chapters) {
-        _downloadInfo[ep.order] = true;
+        final chapterId = ep.id.trim();
+        final selectedById =
+            chapterId.isNotEmpty && downloadedChapterIds.contains(chapterId);
+        final selectedByOrder = downloadedOrders.contains(ep.order);
+        _downloadInfo[ep.order] = selectedById || selectedByOrder;
       }
     }
   }

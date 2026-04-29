@@ -6,9 +6,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
+import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/download/download_cancel_signal.dart';
-import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 
 import '../../../src/rust/api/simple.dart';
 import '../../../src/rust/decode/decode.dart';
@@ -17,6 +17,7 @@ import '../../../util/get_path.dart';
 final pictureDio = Dio();
 const _kQjsRuntimeCancelled = '__QJS_RUNTIME_CANCELLED__';
 const _kDownloadTaskCancelled = '__DOWNLOAD_TASK_CANCELLED__';
+const _kDownloadSkipMessage = '__DOWNLOAD_SKIP__';
 const _kJmScrambleId = 220980;
 const _kJmPluginUuid = 'bf99008d-010b-4f17-ac7c-61a9b57dc3d9';
 
@@ -33,7 +34,7 @@ Future<String> getCachePicture({
   String cartoonId = '1',
   String chapterId = '',
   PictureType pictureType = PictureType.comic,
-  Map<String, dynamic> extern = const <String, dynamic>{},
+  Map<String, dynamic>? extern,
 }) async {
   final resolvedFrom = normalizePluginId(from);
   if (resolvedFrom.isEmpty) {
@@ -116,6 +117,9 @@ Future<String> getCachePicture({
     throw Exception('404');
   }
 
+  extern = {...?extern};
+  extern['priority'] ??= 0;
+
   final imageData = await downloadImageWithRetry(
     url,
     source: resolvedFrom,
@@ -166,7 +170,7 @@ Future<String> downloadPicture({
     throw StateError('downloadPicture missing pluginId');
   }
   if (url.isEmpty) {
-    throw Exception('URL 不能为空 404');
+    return '404';
   }
   if (url.contains("404")) {
     return "404";
@@ -234,14 +238,24 @@ Future<String> downloadPicture({
     }
   }
 
-  Uint8List imageData = await downloadImageWithRetry(
-    url,
-    source: resolvedFrom,
-    retry: retry,
-    qjsName: qjsName,
-    qjsTaskGroupKey: qjsTaskGroupKey,
-    extern: extern,
-  );
+  Uint8List imageData;
+  try {
+    imageData = await downloadImageWithRetry(
+      url,
+      source: resolvedFrom,
+      retry: retry,
+      qjsName: qjsName,
+      qjsTaskGroupKey: qjsTaskGroupKey,
+      extern: extern,
+      maxRetries: 10,
+    );
+  } catch (e) {
+    if (_isDownloadTaskCancelledError(e) || _isQjsRuntimeCancelledError(e)) {
+      rethrow;
+    }
+    logger.w('downloadPicture skip source=$resolvedFrom url=$url error=$e');
+    return '404';
+  }
 
   _throwIfDownloadCancelled(qjsTaskGroupKey);
 
@@ -260,7 +274,7 @@ Future<String> downloadPicture({
     if (await File(downloadFilePath).exists()) {
       return downloadFilePath;
     } else {
-      throw Exception('图片保存失败');
+      return '404';
     }
   }
 
@@ -272,7 +286,7 @@ Future<String> downloadPicture({
   if (await File(downloadFilePath).exists()) {
     return downloadFilePath;
   } else {
-    throw Exception('图片保存失败');
+    return '404';
   }
 }
 
@@ -425,12 +439,16 @@ Future<Uint8List> downloadImageWithRetry(
   String url, {
   required String source,
   bool retry = false,
+  int maxRetries = 10,
   String? qjsName,
   String qjsTaskGroupKey = '',
   Map<String, dynamic> extern = const <String, dynamic>{},
 }) async {
+  var attempts = 0;
   while (true) {
     try {
+      attempts += 1;
+      _throwIfDownloadCancelled(qjsTaskGroupKey);
       final pluginId = source.trim();
       if (pluginId.isEmpty) {
         throw StateError('downloadImageWithRetry missing plugin id');
@@ -439,8 +457,15 @@ Future<Uint8List> downloadImageWithRetry(
           ? qjsName!.trim()
           : pluginId;
       final args = <String, dynamic>{"url": url, "timeoutMs": 30000};
-      if (extern.isNotEmpty) {
-        args["extern"] = extern;
+      if (qjsTaskGroupKey.isNotEmpty) {
+        args["taskGroupKey"] = qjsTaskGroupKey;
+      }
+      final externPayload = <String, dynamic>{...extern};
+      if (qjsTaskGroupKey.isNotEmpty) {
+        externPayload["taskGroupKey"] = qjsTaskGroupKey;
+      }
+      if (externPayload.isNotEmpty) {
+        args["extern"] = externPayload;
       }
       final bytes = await executeQjsFetchImageBytes(
         pluginId: pluginId,
@@ -452,32 +477,57 @@ Future<Uint8List> downloadImageWithRetry(
 
       return bytes;
     } catch (e) {
-      logger.w('fetchImageBytes failed source=$source url=$url error=$e');
+      if (_isDownloadTaskCancelledError(e)) {
+        throw const DownloadTaskCancelledException();
+      }
       if (_isQjsRuntimeCancelledError(e)) {
-        throw Exception(_kDownloadTaskCancelled);
+        throw const DownloadTaskCancelledException();
       }
+      logger.w('fetchImageBytes failed source=$source url=$url error=$e');
+      final isNotFound =
+          (e is DioException && e.toString().contains('422')) ||
+          e.toString().contains('404');
+      if (isNotFound) {
+        logger.w('下载图片资源不存在，跳过: $url');
+        throw Exception(_kDownloadSkipMessage);
+      }
+
       if (e is TimeoutException) {
-        logger.e('下载图片超时: $url, 准备重试...');
-      } else if (e is DioException && e.toString().contains('422')) {
-        logger.e('下载图片遇到 422 错误 (当作 404 处理): $url');
-        throw Exception('404');
+        logger.e('下载图片超时: $url, 准备重试...($attempts/$maxRetries)');
       } else {
-        logger.e('下载图片失败: $e, URL: $url');
-        if (!retry) {
-          rethrow;
-        }
+        logger.e('下载图片失败: $e, URL: $url, 准备重试...($attempts/$maxRetries)');
       }
-      if (retry && !(e is DioException && e.toString().contains('422'))) {
-        await Future.delayed(const Duration(seconds: 1));
-      } else if (!retry) {
-        rethrow;
+
+      if (!retry || attempts >= maxRetries) {
+        throw Exception(_kDownloadSkipMessage);
       }
+
+      await _delayWithCancel(
+        taskGroupKey: qjsTaskGroupKey,
+        duration: const Duration(seconds: 1),
+      );
     }
   }
 }
 
 bool _isQjsRuntimeCancelledError(Object error) {
   return error.toString().contains(_kQjsRuntimeCancelled);
+}
+
+bool _isDownloadTaskCancelledError(Object error) {
+  return error.toString().contains(_kDownloadTaskCancelled) ||
+      error.toString().contains(downloadTaskCancelledMessage);
+}
+
+Future<void> _delayWithCancel({
+  required String taskGroupKey,
+  required Duration duration,
+}) async {
+  if (taskGroupKey.isEmpty) {
+    await Future.delayed(duration);
+    return;
+  }
+  await raceWithDownloadCancel(taskGroupKey, Future<void>.delayed(duration));
 }
 
 Future<void> saveImage(Uint8List imageData, String filePath) async {

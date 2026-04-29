@@ -17,6 +17,7 @@ use std::future::Future;
 use std::io;
 use std::io::Read;
 use std::io::Write;
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::path::{Path, PathBuf};
 use std::pin::Pin;
 #[cfg(target_os = "macos")]
@@ -40,6 +41,7 @@ use rquickjs::{Ctx, Function, Promise, function::Func};
 use tokio::runtime::{Builder as TokioRuntimeBuilder, Runtime as TokioRuntime};
 use tokio::sync::Semaphore;
 use tokio::task::JoinHandle;
+use tokio::net::lookup_host;
 use tokio::time::timeout;
 #[cfg(feature = "wasi")]
 use wasmtime::{Engine, Linker, Module, Store};
@@ -323,6 +325,7 @@ pub struct HttpClientConfig {
     pub http_proxy: Option<String>,
     pub socks5_proxy: Option<String>,
     pub disable_tls_verify: bool,
+    pub allow_private_network: bool,
 }
 
 impl Default for HttpClientConfig {
@@ -333,6 +336,7 @@ impl Default for HttpClientConfig {
             http_proxy: None,
             socks5_proxy: None,
             disable_tls_verify: false,
+            allow_private_network: false,
         }
     }
 }
@@ -2016,6 +2020,7 @@ async fn http_request_inner_async(
     body: Option<String>,
 ) -> AnyResult<String> {
     let method = Method::from_bytes(method.as_bytes()).context("解析 HTTP method 失败")?;
+    ensure_http_target_allowed(&url).await?;
     let mut headers_map = Map::new();
     let headers_value: Value =
         serde_json::from_str(&headers_json).context("解析 HTTP headers JSON 失败")?;
@@ -2144,6 +2149,63 @@ async fn http_request_inner_async(
         "body": body_text
     })
     .to_string())
+}
+
+async fn ensure_http_target_allowed(url: &str) -> AnyResult<()> {
+    let config = current_http_client_config();
+    if config.allow_private_network {
+        return Ok(());
+    }
+
+    let parsed = reqwest::Url::parse(url).with_context(|| format!("解析 URL 失败: {url}"))?;
+    let host = parsed
+        .host_str()
+        .ok_or_else(|| anyhow!("URL 缺少 host: {url}"))?
+        .trim();
+
+    if host.eq_ignore_ascii_case("localhost") || host.to_ascii_lowercase().ends_with(".localhost")
+    {
+        return Err(anyhow!("已拦截内网请求: {host}"));
+    }
+
+    if let Ok(ip) = host.parse::<IpAddr>() {
+        if is_private_or_local_ip(ip) {
+            return Err(anyhow!("已拦截内网请求: {host}"));
+        }
+        return Ok(());
+    }
+
+    let port = parsed.port_or_known_default().unwrap_or(80);
+    let resolved = lookup_host((host, port))
+        .await
+        .with_context(|| format!("解析域名失败: {host}"))?;
+    for socket in resolved {
+        if is_private_or_local_ip(socket.ip()) {
+            return Err(anyhow!("已拦截内网请求: {host}"));
+        }
+    }
+
+    Ok(())
+}
+
+fn is_private_or_local_ip(ip: IpAddr) -> bool {
+    match ip {
+        IpAddr::V4(ipv4) => is_private_or_local_ipv4(ipv4),
+        IpAddr::V6(ipv6) => is_private_or_local_ipv6(ipv6),
+    }
+}
+
+fn is_private_or_local_ipv4(ip: Ipv4Addr) -> bool {
+    let [a, b, ..] = ip.octets();
+    ip.is_loopback()
+        || ip.is_private()
+        || ip.is_link_local()
+        || ip.is_unspecified()
+        || (a == 100 && (64..=127).contains(&b))
+}
+
+fn is_private_or_local_ipv6(ip: Ipv6Addr) -> bool {
+    ip.is_loopback() || ip.is_unspecified() || ip.is_unique_local() || ip.is_unicast_link_local()
 }
 
 static NATIVE_BUF_ID: AtomicU64 = AtomicU64::new(1);
@@ -3628,6 +3690,9 @@ pub fn fs_mkdtemp(prefix: String) -> String {
 
 #[cfg(test)]
 pub fn run_async_script(script: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let mut config = current_http_client_config();
+    config.allow_private_network = true;
+    let _ = configure_http_client(config);
     let runtime = crate::host_runtime::AsyncHostRuntime::new("test-web-runtime")?;
     let task = runtime.spawn(script)?;
     task.wait().map_err(|e| e.into())
@@ -3635,6 +3700,9 @@ pub fn run_async_script(script: &str) -> Result<String, Box<dyn std::error::Erro
 
 #[cfg(test)]
 pub fn run_async_script_without_wasi(script: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let mut config = current_http_client_config();
+    config.allow_private_network = true;
+    let _ = configure_http_client(config);
     let runtime = crate::host_runtime::AsyncHostRuntime::new("test-web-runtime-no-wasi")?;
     let task = runtime.spawn(script)?;
     task.wait().map_err(|e| e.into())
@@ -3642,6 +3710,9 @@ pub fn run_async_script_without_wasi(script: &str) -> Result<String, Box<dyn std
 
 #[cfg(test)]
 pub fn run_async_script_with_fs(script: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let mut config = current_http_client_config();
+    config.allow_private_network = true;
+    let _ = configure_http_client(config);
     let runtime = crate::host_runtime::AsyncHostRuntime::builder("test-web-runtime-fs")
         .filesystem(true)
         .build()?;
@@ -3651,6 +3722,9 @@ pub fn run_async_script_with_fs(script: &str) -> Result<String, Box<dyn std::err
 
 #[cfg(test)]
 pub fn run_async_script_with_wasi(script: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let mut config = current_http_client_config();
+    config.allow_private_network = true;
+    let _ = configure_http_client(config);
     let runtime = crate::host_runtime::AsyncHostRuntime::builder("test-web-runtime-wasi")
         .wasi(true)
         .build()?;
@@ -3662,6 +3736,9 @@ pub fn run_async_script_with_wasi(script: &str) -> Result<String, Box<dyn std::e
 pub fn run_async_script_with_wasi_and_fs(
     script: &str,
 ) -> Result<String, Box<dyn std::error::Error>> {
+    let mut config = current_http_client_config();
+    config.allow_private_network = true;
+    let _ = configure_http_client(config);
     let runtime = crate::host_runtime::AsyncHostRuntime::builder("test-web-runtime-wasi-fs")
         .wasi(true)
         .filesystem(true)

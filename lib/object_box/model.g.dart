@@ -554,7 +554,7 @@ DownloadTask _$DownloadTaskFromJson(Map<String, dynamic> json) => DownloadTask()
   ..isCompleted = json['isCompleted'] as bool
   ..isDownloading = json['isDownloading'] as bool
   ..status = json['status'] as String
-  ..dbTaskInfo = json['dbTaskInfo'] as Map<String, dynamic>?
+  ..dbTaskInfoStr = json['dbTaskInfoStr'] as String?
   ..taskInfo = json['taskInfo'] == null
       ? null
       : DownloadTaskJson.fromJson(json['taskInfo'] as Map<String, dynamic>);
@@ -567,7 +567,7 @@ Map<String, dynamic> _$DownloadTaskToJson(DownloadTask instance) =>
       'isCompleted': instance.isCompleted,
       'isDownloading': instance.isDownloading,
       'status': instance.status,
-      'dbTaskInfo': instance.dbTaskInfo,
+      'dbTaskInfoStr': instance.dbTaskInfoStr,
       'taskInfo': instance.taskInfo,
     };
 

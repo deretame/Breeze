@@ -736,23 +736,26 @@ class DownloadTask {
 
   String status = "";
 
-  @Property(type: PropertyType.flex)
-  Map<String, dynamic>? dbTaskInfo;
+  String? dbTaskInfoStr;
 
   @Transient()
   DownloadTaskJson? _taskInfo;
 
   @Transient()
   DownloadTaskJson? get taskInfo {
-    if (_taskInfo == null && dbTaskInfo != null) {
-      _taskInfo = DownloadTaskJson.fromJson(dbTaskInfo!);
+    if (_taskInfo == null &&
+        dbTaskInfoStr != null &&
+        dbTaskInfoStr!.isNotEmpty) {
+      _taskInfo = DownloadTaskJson.fromJson(
+        jsonDecode(dbTaskInfoStr!) as Map<String, dynamic>,
+      );
     }
     return _taskInfo;
   }
 
   set taskInfo(DownloadTaskJson? value) {
     _taskInfo = value;
-    dbTaskInfo = value?.toJson();
+    dbTaskInfoStr = value == null ? null : jsonEncode(value.toJson());
   }
 
   Map<String, dynamic> toJson() => _$DownloadTaskToJson(this);

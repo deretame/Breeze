@@ -12,7 +12,9 @@ use rquickjs_playground::{
 use serde_json::{Value, json};
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex, OnceLock, RwLock as StdRwLock};
+use std::time::{Duration, Instant};
 use tokio::sync::{Mutex as AsyncMutex, Notify, RwLock};
+use tokio::time;
 
 type QjsRuntimeMap = HashMap<String, Arc<AsyncHostRuntime>>;
 type QjsInFlightTaskMap = HashMap<String, HashSet<u64>>;
@@ -39,12 +41,23 @@ const BRIDGE_ROUTE_CACHE_SET_IF_ABSENT: &str = "cache.set_if_absent";
 const BRIDGE_ROUTE_CACHE_COMPARE_AND_SET: &str = "cache.compare_and_set";
 const BRIDGE_ROUTE_CACHE_DELETE: &str = "cache.delete";
 const BRIDGE_ROUTE_RUNTIME_GC: &str = "runtime.gc";
+const BRIDGE_ROUTE_RUNTIME_IS_TASK_GROUP_CANCELLED: &str = "runtime.is_task_group_cancelled";
+const HOST_CACHE_VALUE_MAX_BYTES: usize = 500 * 1024;
+const CANCELLED_GROUP_TTL: Duration = Duration::from_secs(120);
 
 static SAVE_PLUGIN_CONFIG_CALLBACK: OnceLock<StdRwLock<Option<PersistentCallback>>> =
     OnceLock::new();
 static LOAD_PLUGIN_CONFIG_CALLBACK: OnceLock<StdRwLock<Option<PersistentCallback>>> =
     OnceLock::new();
-static HOST_CACHE_STORE: OnceLock<DashMap<String, Value>> = OnceLock::new();
+static HOST_CACHE_STORE: OnceLock<DashMap<String, HostCacheEntry>> = OnceLock::new();
+static HOST_CACHE_GC_STARTED: OnceLock<()> = OnceLock::new();
+static CANCELLED_TASK_GROUPS: OnceLock<DashMap<String, Instant>> = OnceLock::new();
+
+#[derive(Clone)]
+struct HostCacheEntry {
+    value: Value,
+    expires_at: Instant,
+}
 
 fn opencc_convert_by_config(text: &str, config_name: &str) -> Result<String> {
     if !config_name.ends_with(".json") {
@@ -78,6 +91,46 @@ fn opencc_convert_with_json_arg(arg: &Value) -> Result<String> {
         .ok_or_else(|| anyhow!("opencc 参数缺少 config 字段，例如 t2s.json"))?;
 
     opencc_convert_by_config(text, config_name)
+}
+
+fn cancelled_task_groups_cell() -> &'static DashMap<String, Instant> {
+    CANCELLED_TASK_GROUPS.get_or_init(DashMap::new)
+}
+
+fn cancelled_group_key(runtime_name: &str, task_group_key: &str) -> String {
+    format!("{runtime_name}::{task_group_key}")
+}
+
+fn mark_task_group_cancelled(runtime_name: &str, task_group_key: &str) {
+    if task_group_key.trim().is_empty() {
+        return;
+    }
+    cancelled_task_groups_cell().insert(
+        cancelled_group_key(runtime_name, task_group_key),
+        Instant::now() + CANCELLED_GROUP_TTL,
+    );
+}
+
+fn clear_task_group_cancelled(runtime_name: &str, task_group_key: &str) {
+    if task_group_key.trim().is_empty() {
+        return;
+    }
+    cancelled_task_groups_cell().remove(&cancelled_group_key(runtime_name, task_group_key));
+}
+
+fn is_task_group_cancelled(runtime_name: &str, task_group_key: &str) -> bool {
+    if task_group_key.trim().is_empty() {
+        return false;
+    }
+    let key = cancelled_group_key(runtime_name, task_group_key);
+    let now = Instant::now();
+    if let Some(entry) = cancelled_task_groups_cell().get(&key) {
+        if *entry > now {
+            return true;
+        }
+    }
+    cancelled_task_groups_cell().remove(&key);
+    false
 }
 
 #[derive(Clone)]
@@ -221,12 +274,73 @@ fn load_plugin_config_callback_cell() -> &'static StdRwLock<Option<PersistentCal
     LOAD_PLUGIN_CONFIG_CALLBACK.get_or_init(|| StdRwLock::new(None))
 }
 
-fn host_cache_store_cell() -> &'static DashMap<String, Value> {
+fn host_cache_store_cell() -> &'static DashMap<String, HostCacheEntry> {
     HOST_CACHE_STORE.get_or_init(DashMap::new)
 }
 
 fn scoped_route_key(runtime: &str, key: &str) -> String {
     format!("{runtime}::{key}")
+}
+
+fn cache_value_size_exceeds_limit(value: &Value) -> bool {
+    serde_json::to_vec(value)
+        .map(|bytes| bytes.len() > HOST_CACHE_VALUE_MAX_BYTES)
+        .unwrap_or(true)
+}
+
+fn new_host_cache_entry(value: Value) -> HostCacheEntry {
+    HostCacheEntry {
+        value,
+        expires_at: Instant::now() + Duration::from_secs(30 * 60),
+    }
+}
+
+fn ensure_host_cache_gc_started() {
+    if HOST_CACHE_GC_STARTED.get().is_some() {
+        return;
+    }
+
+    HOST_CACHE_GC_STARTED.get_or_init(|| {
+        if tokio::runtime::Handle::try_current().is_ok() {
+            tokio::spawn(async move {
+                let mut ticker = time::interval(Duration::from_secs(60));
+                loop {
+                    ticker.tick().await;
+                    let now = Instant::now();
+                    let cache = host_cache_store_cell();
+                    let mut expired_keys = Vec::new();
+
+                    for entry in cache.iter() {
+                        if entry.value().expires_at <= now {
+                            expired_keys.push(entry.key().clone());
+                        }
+                    }
+
+                    if expired_keys.is_empty() {
+                        continue;
+                    }
+
+                    let mut removed = 0usize;
+                    for key in expired_keys {
+                        if let Some((_, item)) = cache.remove(&key) {
+                            if item.expires_at <= now {
+                                removed += 1;
+                            } else {
+                                cache.insert(key, item);
+                            }
+                        }
+                    }
+
+                    if removed > 0 {
+                        tracing::debug!("host cache gc removed expired entries: {}", removed);
+                    }
+                }
+            });
+            tracing::info!("host cache gc started: ttl=1800s, interval=60s");
+        } else {
+            tracing::warn!("host cache gc start skipped: no tokio runtime");
+        }
+    });
 }
 
 impl TrackedQjsTaskState {
@@ -864,6 +978,7 @@ pub async fn qjs_call_task_start(
     fn_path: String,
     args_json: String,
 ) -> Result<u64> {
+    clear_task_group_cancelled(&runtime_name, &task_group_key);
     call_current_bundle_start_by_json(
         &runtime_name,
         &fn_path,
@@ -898,6 +1013,7 @@ pub async fn qjs_call_once_task_start(
     args_json: String,
     task_group_key: String,
 ) -> Result<u64> {
+    clear_task_group_cancelled(&runtime_name, &task_group_key);
     call_bundle_once_start_by_json(
         &runtime_name,
         &bundle_js,
@@ -991,6 +1107,7 @@ pub async fn qjs_cancel_tasks_by_group(
     runtime_name: String,
     task_group_key: String,
 ) -> Result<QjsCancelTasksByGroupResult> {
+    mark_task_group_cancelled(&runtime_name, &task_group_key);
     let task_ids = tracked_task_ids_by_group(&runtime_name, &task_group_key).await;
     if task_ids.is_empty() {
         return Ok(QjsCancelTasksByGroupResult {
@@ -1066,6 +1183,7 @@ pub async fn qjs_fetch_image_bytes_task_start(
     fn_path: String,
     args_json: String,
 ) -> Result<u64> {
+    clear_task_group_cancelled(&runtime_name, &task_group_key);
     call_current_bundle_start_by_json(
         &runtime_name,
         &fn_path,
@@ -1102,6 +1220,7 @@ pub async fn qjs_fetch_image_bytes_once_task_start(
     args_json: String,
     task_group_key: String,
 ) -> Result<u64> {
+    clear_task_group_cancelled(&runtime_name, &task_group_key);
     call_bundle_once_start_by_json(
         &runtime_name,
         &bundle_js,
@@ -1130,6 +1249,7 @@ pub fn set_http_proxy(proxy: String) -> Result<()> {
         http_proxy: Some(proxy),
         socks5_proxy: None,
         disable_tls_verify: true,
+        allow_private_network: false,
     })
     .map_err(|err| anyhow!("设置 http 代理失败: {err}"))
 }
@@ -1141,6 +1261,7 @@ pub fn set_socks5_proxy(proxy: String) -> Result<()> {
         http_proxy: None,
         socks5_proxy: Some(proxy),
         disable_tls_verify: false,
+        allow_private_network: false,
     })
     .map_err(|err| anyhow!("设置 socks5 代理失败: {err}"))
 }
@@ -1298,10 +1419,15 @@ pub fn init_rust_functions() -> Result<()> {
             .ok_or_else(|| anyhow!("cache.get 参数无效: 缺少 key"))?;
         let fallback = args.get(1).cloned().unwrap_or(Value::Null);
         let scoped_key = scoped_route_key(&runtime, key);
-        let out = host_cache_store_cell()
-            .get(&scoped_key)
-            .map(|v| v.clone())
-            .unwrap_or(fallback);
+        let cache = host_cache_store_cell();
+        let out = match cache.get(&scoped_key) {
+            Some(entry) if entry.expires_at > Instant::now() => entry.value.clone(),
+            Some(_) => {
+                cache.remove(&scoped_key);
+                fallback
+            }
+            None => fallback,
+        };
         Ok(out)
     })?;
 
@@ -1311,8 +1437,18 @@ pub fn init_rust_functions() -> Result<()> {
             .and_then(Value::as_str)
             .ok_or_else(|| anyhow!("cache.set 参数无效: 缺少 key"))?;
         let value = args.get(1).cloned().unwrap_or(Value::Null);
+        if cache_value_size_exceeds_limit(&value) {
+            tracing::warn!(
+                "cache.set 跳过超限写入: runtime={}, key={}, max_bytes={}",
+                runtime,
+                key,
+                HOST_CACHE_VALUE_MAX_BYTES
+            );
+            return Ok(json!(false));
+        }
+        ensure_host_cache_gc_started();
         let scoped_key = scoped_route_key(&runtime, key);
-        host_cache_store_cell().insert(scoped_key, value);
+        host_cache_store_cell().insert(scoped_key, new_host_cache_entry(value));
         Ok(json!(true))
     })?;
 
@@ -1322,13 +1458,33 @@ pub fn init_rust_functions() -> Result<()> {
             .and_then(Value::as_str)
             .ok_or_else(|| anyhow!("cache.set_if_absent 参数无效: 缺少 key"))?;
         let value = args.get(1).cloned().unwrap_or(Value::Null);
+        if cache_value_size_exceeds_limit(&value) {
+            tracing::warn!(
+                "cache.set_if_absent 跳过超限写入: runtime={}, key={}, max_bytes={}",
+                runtime,
+                key,
+                HOST_CACHE_VALUE_MAX_BYTES
+            );
+            return Ok(json!(false));
+        }
+        ensure_host_cache_gc_started();
         let scoped_key = scoped_route_key(&runtime, key);
         let cache = host_cache_store_cell();
-        if let dashmap::mapref::entry::Entry::Vacant(entry) = cache.entry(scoped_key) {
-            entry.insert(value);
-            return Ok(json!(true));
+        let now = Instant::now();
+        match cache.entry(scoped_key) {
+            dashmap::mapref::entry::Entry::Vacant(entry) => {
+                entry.insert(new_host_cache_entry(value));
+                Ok(json!(true))
+            }
+            dashmap::mapref::entry::Entry::Occupied(mut entry) => {
+                if entry.get().expires_at <= now {
+                    entry.insert(new_host_cache_entry(value));
+                    Ok(json!(true))
+                } else {
+                    Ok(json!(false))
+                }
+            }
         }
-        Ok(json!(false))
     })?;
 
     register_bridge_route_sync_handler(BRIDGE_ROUTE_CACHE_COMPARE_AND_SET, |runtime, args| {
@@ -1338,11 +1494,23 @@ pub fn init_rust_functions() -> Result<()> {
             .ok_or_else(|| anyhow!("cache.compare_and_set 参数无效: 缺少 key"))?;
         let expected = args.get(1).cloned().unwrap_or(Value::Null);
         let next = args.get(2).cloned().unwrap_or(Value::Null);
+        if cache_value_size_exceeds_limit(&next) {
+            tracing::warn!(
+                "cache.compare_and_set 跳过超限写入: runtime={}, key={}, max_bytes={}",
+                runtime,
+                key,
+                HOST_CACHE_VALUE_MAX_BYTES
+            );
+            return Ok(json!(false));
+        }
+        ensure_host_cache_gc_started();
         let scoped_key = scoped_route_key(&runtime, key);
         let cache = host_cache_store_cell();
         let updated = match cache.get_mut(&scoped_key) {
-            Some(mut current) if *current == expected => {
-                *current = next;
+            Some(mut current)
+                if current.expires_at > Instant::now() && current.value == expected =>
+            {
+                *current = new_host_cache_entry(next);
                 true
             }
             _ => false,
@@ -1365,6 +1533,17 @@ pub fn init_rust_functions() -> Result<()> {
         runtime.run_gc().await.map_err(|e| anyhow!(e))?;
         Ok(json!(true))
     })?;
+
+    register_bridge_route_sync_handler(
+        BRIDGE_ROUTE_RUNTIME_IS_TASK_GROUP_CANCELLED,
+        |runtime_name, args| {
+            let task_group_key = args.first().and_then(Value::as_str).unwrap_or_default();
+            Ok(json!(is_task_group_cancelled(
+                &runtime_name,
+                task_group_key
+            )))
+        },
+    )?;
 
     Ok(())
 }

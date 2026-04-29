@@ -1,12 +1,12 @@
-import 'dart:io';
-
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
+import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
@@ -16,7 +16,6 @@ import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/util/download/download_cancel_signal.dart';
 import 'package:zephyr/util/download/download_progress_reporter.dart';
-import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/task/shared_download.dart';
 import 'package:zephyr/util/get_path.dart';
@@ -122,10 +121,23 @@ Future<void> unifiedDownloadTask(
       );
     }
 
-    updateTaskStatus('获取章节信息中...');
-    reporter.updateMessage('获取章节信息中...');
+    void reportChapterFetchProgress(int completed, int total) {
+      if (total <= 0) {
+        const message = '获取章节信息中...';
+        updateTaskStatus(message);
+        reporter.updateMessage(message);
+        return;
+      }
+      final percent = ((completed / total) * 100).floor();
+      final message = '获取章节信息中... ($completed/$total, $percent%)';
+      updateTaskStatus(message);
+      reporter.updateMessage(message);
+    }
+
+    reportChapterFetchProgress(0, selectedChapters.length);
     final chapterResponses = <UnifiedPluginChapterResponse>[];
-    for (final chapter in selectedChapters) {
+    for (var index = 0; index < selectedChapters.length; index++) {
+      final chapter = selectedChapters[index];
       await ensureTaskRunning();
       final requestChapterId = _resolveChapterRequestId(chapter);
       final chapterExtern = _resolveChapterExtern(task, chapter.id);
@@ -142,6 +154,7 @@ Future<void> unifiedDownloadTask(
           extern: {'chapterId': requestChapterId, ...chapterExtern},
         ),
       );
+      reportChapterFetchProgress(index + 1, selectedChapters.length);
     }
 
     final jobs = <DownloadImageJob>[];
@@ -174,9 +187,6 @@ Future<void> unifiedDownloadTask(
       ensureTaskRunning: ensureTaskRunning,
       reporter: reporter,
       concurrency: 5,
-      onError: (error, job) async {
-        throw error;
-      },
     );
 
     await _saveUnifiedDownload(

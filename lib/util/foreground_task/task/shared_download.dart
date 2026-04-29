@@ -1,6 +1,7 @@
 import 'package:pool/pool.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
 import 'package:zephyr/type/enum.dart';
+
 import '../../download/download_progress_reporter.dart';
 
 class DownloadImageJob {
@@ -59,15 +60,28 @@ Future<void> downloadImageJobs({
   }
 
   final pool = Pool(concurrency ?? 5);
+  final workerCount = concurrency ?? 5;
   var progress = 0;
   var lastReportedPercent = 0;
+  var nextIndex = 0;
 
-  final tasks = jobs.map((job) {
-    return pool.withResource(() async {
+  Future<void> runWorker() async {
+    while (true) {
       await ensureTaskRunning();
+      DownloadImageJob? job;
+      await pool.withResource(() async {
+        if (nextIndex >= jobs.length) {
+          return;
+        }
+        job = jobs[nextIndex];
+        nextIndex += 1;
+      });
+      if (job == null) {
+        return;
+      }
       await _downloadSingleJob(
         from: from,
-        job: job,
+        job: job!,
         qjsRuntimeName: qjsRuntimeName,
         qjsTaskGroupKey: qjsTaskGroupKey,
         onError: onError,
@@ -80,8 +94,10 @@ Future<void> downloadImageJobs({
         updateProgress(currentPercent, '漫画下载进度: $currentPercent%');
       }
       await ensureTaskRunning();
-    });
-  }).toList();
+    }
+  }
+
+  final tasks = List.generate(workerCount, (_) => runWorker());
 
   await Future.wait(tasks, eagerError: true);
 }
@@ -95,7 +111,7 @@ Future<void> _downloadSingleJob({
   PictureType pictureType = PictureType.comic,
 }) async {
   try {
-    await downloadPicture(
+    final result = await downloadPicture(
       from: from,
       url: job.url,
       path: job.path,
@@ -107,11 +123,14 @@ Future<void> _downloadSingleJob({
       qjsTaskGroupKey: qjsTaskGroupKey,
       extern: job.extern,
     );
+    if (result == '404') {
+      return;
+    }
   } catch (error) {
     if (onError != null) {
       await onError(error, job);
       return;
     }
-    rethrow;
+    return;
   }
 }

@@ -1,16 +1,17 @@
+import 'dart:convert';
+
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
-import 'package:stream_transform/stream_transform.dart';
-import 'dart:convert';
 import 'package:path/path.dart' as p;
+import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
+import 'package:zephyr/type/enum.dart';
 
 part 'get_comic_info_event.dart';
 part 'get_comic_info_state.dart';

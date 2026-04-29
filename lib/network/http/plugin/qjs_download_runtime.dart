@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
@@ -178,6 +179,19 @@ Future<String> executeQjsCall({
     runtimeName: resolvedRuntimeName,
     taskId: taskId,
   );
+  var didUntrack = false;
+  void untrackOnce() {
+    if (didUntrack) return;
+    didUntrack = true;
+    if (taskGroupKey != null && taskGroupKey.isNotEmpty) {
+      _untrackTaskRef(
+        pluginId: resolvedPluginId,
+        taskGroupKey: taskGroupKey,
+        taskRef: taskRef,
+      );
+    }
+  }
+
   if (taskGroupKey != null && taskGroupKey.isNotEmpty) {
     _trackTaskRef(
       pluginId: resolvedPluginId,
@@ -186,20 +200,19 @@ Future<String> executeQjsCall({
     );
   }
 
+  final waitFuture = useCallOnce
+      ? qjsCallOnceTaskWait(runtimeName: resolvedRuntimeName, taskId: taskId)
+      : qjsCallTaskWait(runtimeName: resolvedRuntimeName, taskId: taskId);
+  unawaited(
+    waitFuture.then<void>((_) {}).catchError((_) {}).whenComplete(untrackOnce),
+  );
   try {
-    final waitFuture = useCallOnce
-        ? qjsCallOnceTaskWait(runtimeName: resolvedRuntimeName, taskId: taskId)
-        : qjsCallTaskWait(runtimeName: resolvedRuntimeName, taskId: taskId);
     return taskGroupKey != null && taskGroupKey.isNotEmpty
         ? raceWithDownloadCancel(taskGroupKey, waitFuture)
         : waitFuture;
   } finally {
-    if (taskGroupKey != null && taskGroupKey.isNotEmpty) {
-      _untrackTaskRef(
-        pluginId: resolvedPluginId,
-        taskGroupKey: taskGroupKey,
-        taskRef: taskRef,
-      );
+    if (taskGroupKey == null || taskGroupKey.isEmpty) {
+      untrackOnce();
     }
   }
 }
@@ -255,6 +268,19 @@ Future<Uint8List> executeQjsFetchImageBytes({
     runtimeName: resolvedRuntimeName,
     taskId: taskId,
   );
+  var didUntrack = false;
+  void untrackOnce() {
+    if (didUntrack) return;
+    didUntrack = true;
+    if (taskGroupKey != null && taskGroupKey.isNotEmpty) {
+      _untrackTaskRef(
+        pluginId: resolvedPluginId,
+        taskGroupKey: taskGroupKey,
+        taskRef: taskRef,
+      );
+    }
+  }
+
   if (taskGroupKey != null && taskGroupKey.isNotEmpty) {
     _trackTaskRef(
       pluginId: resolvedPluginId,
@@ -263,26 +289,25 @@ Future<Uint8List> executeQjsFetchImageBytes({
     );
   }
 
+  final waitFuture = useCallOnce
+      ? qjsFetchImageBytesOnceTaskWait(
+          runtimeName: resolvedRuntimeName,
+          taskId: taskId,
+        )
+      : qjsFetchImageBytesTaskWait(
+          runtimeName: resolvedRuntimeName,
+          taskId: taskId,
+        );
+  unawaited(
+    waitFuture.then<void>((_) {}).catchError((_) {}).whenComplete(untrackOnce),
+  );
   try {
-    final waitFuture = useCallOnce
-        ? qjsFetchImageBytesOnceTaskWait(
-            runtimeName: resolvedRuntimeName,
-            taskId: taskId,
-          )
-        : qjsFetchImageBytesTaskWait(
-            runtimeName: resolvedRuntimeName,
-            taskId: taskId,
-          );
     return taskGroupKey != null && taskGroupKey.isNotEmpty
         ? raceWithDownloadCancel(taskGroupKey, waitFuture)
         : waitFuture;
   } finally {
-    if (taskGroupKey != null && taskGroupKey.isNotEmpty) {
-      _untrackTaskRef(
-        pluginId: resolvedPluginId,
-        taskGroupKey: taskGroupKey,
-        taskRef: taskRef,
-      );
+    if (taskGroupKey == null || taskGroupKey.isEmpty) {
+      untrackOnce();
     }
   }
 }
@@ -301,16 +326,23 @@ Future<void> cancelTrackedQjsTasks({
   final normalizedPluginId = (pluginId).trim();
   final groupId = _buildTaskGroupId(normalizedPluginId, taskGroupKey);
   final refs = _trackedTaskRefsByGroup.remove(groupId)?.toList() ?? const [];
+  final runtimeNames = refs.map((ref) => ref.runtimeName).toSet().toList();
+  if (runtimeNames.isEmpty) {
+    final fallbackRuntime = runtimeNameForPluginId(normalizedPluginId);
+    if (fallbackRuntime.isNotEmpty) {
+      runtimeNames.add(fallbackRuntime);
+    }
+  }
 
   if (refs.isEmpty) {
-    logger.d('取消 QJS 任务组: $groupId -> no_tracked_tasks');
-    return;
+    logger.d(
+      '取消 QJS 任务组: $groupId -> no_tracked_tasks, fallback_runtime_cancel',
+    );
   }
 
   var cancelledCount = 0;
   var notFoundCount = 0;
   final failedTaskIds = <String>[];
-  final runtimeNames = refs.map((ref) => ref.runtimeName).toSet().toList();
 
   await Future.wait(
     runtimeNames.map((runtimeName) async {
@@ -323,9 +355,10 @@ Future<void> cancelTrackedQjsTasks({
         if (result.cancelled == 0 &&
             result.notFound == 0 &&
             result.failedRuntimeGroups.isEmpty) {
-          notFoundCount += refs
+          final trackedInRuntime = refs
               .where((ref) => ref.runtimeName == runtimeName)
               .length;
+          notFoundCount += trackedInRuntime;
           logger.d('取消 QJS 任务组未找到: $runtimeName/$taskGroupKey');
           return;
         }

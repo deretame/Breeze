@@ -1060,7 +1060,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(9, 1295001450362172173),
     name: 'DownloadTask',
-    lastPropertyId: const obx_int.IdUid(9, 1218148378627650374),
+    lastPropertyId: const obx_int.IdUid(10, 8345640469567232653),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -1073,12 +1073,6 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(4, 1099512386743691966),
         name: 'isDownloading',
         type: 1,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(5, 2490628595983957882),
-        name: 'dbTaskInfo',
-        type: 13,
         flags: 0,
       ),
       obx_int.ModelProperty(
@@ -1102,6 +1096,12 @@ final _entities = <obx_int.ModelEntity>[
       obx_int.ModelProperty(
         id: const obx_int.IdUid(9, 1218148378627650374),
         name: 'status',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 8345640469567232653),
+        name: 'dbTaskInfoStr',
         type: 9,
         flags: 0,
       ),
@@ -1756,6 +1756,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
       2051832540735677888,
       8788850099976239757,
       328827950385735598,
+      2490628595983957882,
     ],
     retiredRelationUids: const [],
     modelVersion: 5,
@@ -3068,20 +3069,20 @@ obx_int.ModelDefinition getObjectBoxModel() {
         object.id = id;
       },
       objectToFB: (DownloadTask object, fb.Builder fbb) {
-        final dbTaskInfoOffset = object.dbTaskInfo == null
-            ? null
-            : fbb.writeListInt8(obx_int.toFlexBuffer(object.dbTaskInfo!));
         final comicIdOffset = fbb.writeString(object.comicId);
         final comicNameOffset = fbb.writeString(object.comicName);
         final statusOffset = fbb.writeString(object.status);
-        fbb.startTable(10);
+        final dbTaskInfoStrOffset = object.dbTaskInfoStr == null
+            ? null
+            : fbb.writeString(object.dbTaskInfoStr!);
+        fbb.startTable(11);
         fbb.addInt64(0, object.id);
         fbb.addBool(3, object.isDownloading);
-        fbb.addOffset(4, dbTaskInfoOffset);
         fbb.addOffset(5, comicIdOffset);
         fbb.addOffset(6, comicNameOffset);
         fbb.addBool(7, object.isCompleted);
         fbb.addOffset(8, statusOffset);
+        fbb.addOffset(9, dbTaskInfoStrOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -3097,7 +3098,6 @@ obx_int.ModelDefinition getObjectBoxModel() {
             10,
             false,
           )
-          ..dbTaskInfo = obx_int.flexBufferToMap(buffer, rootOffset, 12)
           ..comicId = const fb.StringReader(
             asciiOptimization: true,
           ).vTableGet(buffer, rootOffset, 14, '')
@@ -3112,7 +3112,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
           )
           ..status = const fb.StringReader(
             asciiOptimization: true,
-          ).vTableGet(buffer, rootOffset, 20, '');
+          ).vTableGet(buffer, rootOffset, 20, '')
+          ..dbTaskInfoStr = const fb.StringReader(
+            asciiOptimization: true,
+          ).vTableGetNullable(buffer, rootOffset, 22);
 
         return object;
       },
@@ -4581,21 +4584,26 @@ class DownloadTask_ {
 
   /// See [DownloadTask.comicId].
   static final comicId = obx.QueryStringProperty<DownloadTask>(
-    _entities[6].properties[3],
+    _entities[6].properties[2],
   );
 
   /// See [DownloadTask.comicName].
   static final comicName = obx.QueryStringProperty<DownloadTask>(
-    _entities[6].properties[4],
+    _entities[6].properties[3],
   );
 
   /// See [DownloadTask.isCompleted].
   static final isCompleted = obx.QueryBooleanProperty<DownloadTask>(
-    _entities[6].properties[5],
+    _entities[6].properties[4],
   );
 
   /// See [DownloadTask.status].
   static final status = obx.QueryStringProperty<DownloadTask>(
+    _entities[6].properties[5],
+  );
+
+  /// See [DownloadTask.dbTaskInfoStr].
+  static final dbTaskInfoStr = obx.QueryStringProperty<DownloadTask>(
     _entities[6].properties[6],
   );
 }

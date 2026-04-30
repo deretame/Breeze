@@ -16,10 +16,33 @@ import 'package:zephyr/widgets/toast.dart';
 ///
 /// Android 端：启动前台服务，通过 IPC 发送任务
 /// 桌面端：直接将任务添加到 [DownloadQueueManager]
-void startDownloadTask(DownloadTaskJson task) {
+Future<void> startDownloadTask(DownloadTaskJson task) async {
+  if (Platform.isAndroid) {
+    await _ensureAndroidNotificationPermission();
+  }
   _updateDb(task);
   if (Platform.isAndroid) {
-    unawaited(_startAndroidDownload());
+    await _startAndroidDownload();
+  }
+}
+
+Future<void> _ensureAndroidNotificationPermission() async {
+  if (!Platform.isAndroid) return;
+
+  NotificationPermission notificationPermission =
+      await FlutterForegroundTask.checkNotificationPermission();
+
+  if (notificationPermission == NotificationPermission.granted) {
+    return;
+  }
+
+  showInfoToast('下载需要通知权限来启动前台任务，请在系统弹窗中允许通知权限');
+
+  notificationPermission =
+      await FlutterForegroundTask.requestNotificationPermission();
+
+  if (notificationPermission != NotificationPermission.granted) {
+    throw Exception('无法开始下载：请先在系统设置中开启通知权限');
   }
 }
 
@@ -36,17 +59,7 @@ Future<void> _startAndroidDownload() async {
 Future<void> initDownloadTask() async {
   if (!Platform.isAndroid) return;
 
-  NotificationPermission notificationPermission =
-      await FlutterForegroundTask.checkNotificationPermission();
-
-  if (notificationPermission != NotificationPermission.granted) {
-    notificationPermission =
-        await FlutterForegroundTask.requestNotificationPermission();
-  }
-
-  if (notificationPermission != NotificationPermission.granted) {
-    throw Exception('无法启动下载任务：未授予通知权限');
-  }
+  await _ensureAndroidNotificationPermission();
 
   final ServiceRequestResult result = await FlutterForegroundTask.startService(
     serviceTypes: [ForegroundServiceTypes.dataSync],

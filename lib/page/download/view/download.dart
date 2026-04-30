@@ -170,7 +170,7 @@ class _DownloadPageState extends State<DownloadPage> {
       'download chapter map=${downloadInfo.chapters.map((chapter) => {'order': chapter.order, 'id': chapter.id, 'selected': _downloadInfo[chapter.order] == true}).toList()}',
     );
     try {
-      startDownloadTask(task);
+      await startDownloadTask(task);
       showInfoToast("下载任务已启动");
     } catch (e, s) {
       logger.e(e, stackTrace: s);

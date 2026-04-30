@@ -337,25 +337,30 @@ Future<_FavoriteFolder?> _showFolderSelectionDialog(
               ),
               child: SizedBox(
                 width: double.maxFinite,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: folders.length,
-                  itemBuilder: (itemCtx, index) {
-                    final folder = folders[index];
-                    return RadioListTile<String>(
-                      title: Text(folder.name),
-                      subtitle: Text('ID: ${folder.id}'),
-                      value: folder.id,
-                      // ignore: deprecated_member_use
-                      groupValue: selected?.id,
-                      // ignore: deprecated_member_use
-                      onChanged: (_) {
-                        setState(() {
-                          selected = folder;
-                        });
-                      },
-                    );
+                child: RadioGroup<String>(
+                  groupValue: selected?.id,
+                  onChanged: (value) {
+                    setState(() {
+                      final selectedIndex = folders.indexWhere(
+                        (item) => item.id == value,
+                      );
+                      selected = selectedIndex >= 0
+                          ? folders[selectedIndex]
+                          : null;
+                    });
                   },
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: folders.length,
+                    itemBuilder: (itemCtx, index) {
+                      final folder = folders[index];
+                      return RadioListTile<String>(
+                        title: Text(folder.name),
+                        subtitle: Text('ID: ${folder.id}'),
+                        value: folder.id,
+                      );
+                    },
+                  ),
                 ),
               ),
             ),

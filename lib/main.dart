@@ -270,6 +270,8 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
     await setSocks5Proxy(proxy: proxy);
   }
 
+  await _tryApplyHttpProxyFromEnv();
+
   final logAddress = objectbox.userSettingBox.get(1)!.globalSetting.logAddress;
 
   if (logAddress.isNotEmpty) {
@@ -284,6 +286,60 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
   }
 
   return (globalSettingCubit, pluginRegistryCubit);
+}
+
+Future<void> _tryApplyHttpProxyFromEnv() async {
+  if (!kDebugMode) return;
+
+  final rawProxy = await _readProxyFromEnvAsset();
+  if (rawProxy == null || rawProxy.isEmpty) return;
+
+  final proxyUrl =
+      rawProxy.startsWith('http://') || rawProxy.startsWith('https://')
+      ? rawProxy
+      : 'http://$rawProxy';
+
+  final reachable = await _probeProxyWithTimeout(proxyUrl);
+  if (!reachable) return;
+
+  await setHttpProxy(proxy: proxyUrl);
+}
+
+Future<String?> _readProxyFromEnvAsset() async {
+  try {
+    final content = await rootBundle.loadString('.env.proxy');
+    for (final rawLine in const LineSplitter().convert(content)) {
+      final line = rawLine.trim();
+      if (line.isEmpty || line.startsWith('#')) continue;
+      if (!line.startsWith('proxy=')) continue;
+      final value = line.substring('proxy='.length).trim();
+      if (value.isNotEmpty) return value;
+    }
+  } catch (_) {
+    return null;
+  }
+  return null;
+}
+
+Future<bool> _probeProxyWithTimeout(String proxyUrl) async {
+  HttpClient? client;
+  try {
+    client = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 3)
+      ..findProxy = (_) => 'PROXY ${Uri.parse(proxyUrl).authority}';
+
+    final request = await client
+        .getUrl(Uri.parse('http://www.gstatic.com/generate_204'))
+        .timeout(const Duration(seconds: 3));
+    request.followRedirects = false;
+    final response = await request.close().timeout(const Duration(seconds: 3));
+    await response.drain();
+    return response.statusCode >= 200 && response.statusCode < 500;
+  } catch (_) {
+    return false;
+  } finally {
+    client?.close(force: true);
+  }
 }
 
 Future<void> addArchitectureTagsToSentry() async {

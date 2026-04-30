@@ -625,10 +625,23 @@ fn parse_args_array(args_json: &str) -> Result<Value> {
 
 fn is_cancelled_error_text(message: &str) -> bool {
     let lower = message.to_ascii_lowercase();
-    lower.contains("cancel")
-        || lower.contains("abort")
+    if message.contains(QJS_RUNTIME_CANCELLED_ERROR_CODE) {
+        return true;
+    }
+
+    // 只识别“明确取消”，避免把 TimeoutError 或诊断文本中的 AbortSignal/AbortController
+    // 误判为取消。
+    lower.contains("cancelled")
+        || lower.contains("canceled")
+        || lower.contains("cancellederror")
+        || lower.contains("cancelederror")
         || lower.contains("interrupted")
-        || message.contains("取消")
+        || lower.contains("request aborted")
+        || lower.contains("operation was aborted")
+        || message.contains("已取消")
+        || message.contains("被取消")
+        || message.contains("任务取消")
+        || message.contains("用户取消")
 }
 
 fn parse_ok_json_payload(raw: &str) -> Result<Value> {
@@ -1550,4 +1563,22 @@ pub fn init_rust_functions() -> Result<()> {
 
 pub fn opencc_convert(text: String, config: String) -> Result<String> {
     opencc_convert_by_config(&text, &config)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_cancelled_error_text;
+
+    #[test]
+    fn cancelled_detection_should_not_match_timeout_diagnostics() {
+        let msg = "ky request failed: TimeoutError: Request timed out: GET https://example.com | diagnostics: typeof AbortController=function; typeof AbortSignal=function; typeof AbortSignal.any=function";
+        assert!(!is_cancelled_error_text(msg));
+    }
+
+    #[test]
+    fn cancelled_detection_should_match_explicit_cancel() {
+        assert!(is_cancelled_error_text("__QJS_RUNTIME_CANCELLED__"));
+        assert!(is_cancelled_error_text("request canceled by user"));
+        assert!(is_cancelled_error_text("任务已取消"));
+    }
 }

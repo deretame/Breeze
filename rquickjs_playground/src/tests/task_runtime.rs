@@ -298,6 +298,66 @@ fn bundle_call_once_is_serialized_per_runtime() {
 }
 
 #[test]
+fn bundle_call_once_error_contains_context_and_source_url() {
+    let runtime = AsyncHostRuntime::new("task-runtime-bundle-call-once-error-context")
+        .expect("创建 AsyncHostRuntime 失败");
+    let rt = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .expect("创建 tokio runtime 失败");
+
+    let bundle_source = r#"
+      module.exports = {
+        boom() {
+          throw new Error("boom");
+        },
+      };
+    "#;
+
+    let err = rt
+        .block_on(async { runtime.bundle_call_once(bundle_source, "boom", &json!([])).await })
+        .expect_err("调用应失败");
+
+    assert!(
+        err.contains("[bundle:__once__ fn:boom argc:0 source:__bundle_once__.cjs]"),
+        "缺少调用上下文: {err}"
+    );
+    assert!(
+        err.contains("source:__bundle_once__.cjs"),
+        "缺少逻辑源码名: {err}"
+    );
+}
+
+#[test]
+fn bundle_call_once_error_shows_export_shape() {
+    let runtime = AsyncHostRuntime::new("task-runtime-bundle-call-once-export-shape")
+        .expect("创建 AsyncHostRuntime 失败");
+    let rt = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .expect("创建 tokio runtime 失败");
+
+    let bundle_source = r#"
+      module.exports = {
+        searchComic: "oops",
+        okFn() { return 1; },
+      };
+    "#;
+
+    let err = rt
+        .block_on(async {
+            runtime
+                .bundle_call_once(bundle_source, "searchComic", &json!([{}]))
+                .await
+        })
+        .expect_err("调用应失败");
+
+    assert!(err.contains("targetType=string"), "缺少 targetType: {err}");
+    assert!(err.contains("ownerKeys="), "缺少 ownerKeys: {err}");
+    assert!(err.contains("rootKeys="), "缺少 rootKeys: {err}");
+}
+
+#[test]
 fn async_runtime_drop_unblocks_pending_waiter() {
     let runtime =
         AsyncHostRuntime::new("task-runtime-drop-unblock").expect("创建 AsyncHostRuntime 失败");

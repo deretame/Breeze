@@ -118,17 +118,23 @@
         return stringToArrayBuffer(text);
       });
     }
+
+    blob() {
+      return this.arrayBuffer().then((ab) => new Blob([ab]));
+    }
   }
 
   class Request extends BodyMixin {
     constructor(input, init = {}) {
       super();
+      this._hasBody = false;
 
       if (input instanceof Request) {
         this.url = input.url;
         this.method = input.method;
         this.headers = new Headers(input.headers);
         this._initBody(input._bodyText);
+        this._hasBody = Boolean(input._hasBody);
         this.timeout = input.timeout;
         this.signal = input.signal || null;
       } else {
@@ -166,6 +172,7 @@
           throw new TypeError("GET/HEAD 请求不能带 body");
         }
         this._initBody(bodyInit.bodyText);
+        this._hasBody = true;
         if (!this.headers.has("content-type") && bodyInit.contentType) {
           this.headers.set("content-type", bodyInit.contentType);
         }
@@ -173,6 +180,32 @@
           this.headers.set(HOST_FORMDATA_BODY_HEADER, "1");
         }
       }
+    }
+
+    clone() {
+      if (this.bodyUsed) {
+        throw new TypeError("Body 已被读取，无法 clone");
+      }
+      const clonedInit = {
+        method: this.method,
+        headers: new Headers(this.headers),
+        signal: this.signal,
+        timeout: this.timeout,
+        credentials: this.credentials,
+        mode: this.mode,
+        redirect: this.redirect,
+        referrer: this.referrer,
+        referrerPolicy: this.referrerPolicy,
+        integrity: this.integrity,
+        keepalive: this.keepalive,
+        cache: this.cache,
+      };
+      if (this._hasBody) {
+        clonedInit.body = this._bodyText;
+      }
+      return new Request(this, {
+        ...clonedInit,
+      });
     }
   }
 

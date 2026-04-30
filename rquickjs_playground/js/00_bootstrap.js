@@ -23,8 +23,8 @@
 
     function hasHostTimer() {
       return (
-        typeof globalThis.__timer_start_evented === "function"
-        && typeof globalThis.__timer_drop_evented === "function"
+        typeof globalThis.__timer_start_evented === "function" &&
+        typeof globalThis.__timer_drop_evented === "function"
       );
     }
 
@@ -40,8 +40,7 @@
       if (typeof entry.cb !== "function") return;
       try {
         entry.cb(...entry.args);
-      } catch (_err) {
-      }
+      } catch (_err) {}
     }
 
     function scheduleHostTimer(localId) {
@@ -63,38 +62,38 @@
       hostToLocal.set(hostId, localId);
     }
 
-    globalThis.__host_runtime_timer_complete = function __host_runtime_timer_complete(hostId, payloadRaw) {
-      if (typeof prevTimerComplete === "function") {
-        try {
-          prevTimerComplete(hostId, payloadRaw);
-        } catch (_err) {
+    globalThis.__host_runtime_timer_complete =
+      function __host_runtime_timer_complete(hostId, payloadRaw) {
+        if (typeof prevTimerComplete === "function") {
+          try {
+            prevTimerComplete(hostId, payloadRaw);
+          } catch (_err) {}
         }
-      }
 
-      const hId = Number(hostId);
-      const localId = hostToLocal.get(hId);
-      if (localId === undefined) return;
+        const hId = Number(hostId);
+        const localId = hostToLocal.get(hId);
+        if (localId === undefined) return;
 
-      hostToLocal.delete(hId);
-      const entry = active.get(localId);
-      if (!entry) return;
+        hostToLocal.delete(hId);
+        const entry = active.get(localId);
+        if (!entry) return;
 
-      entry.hostId = null;
-      if (entry.kind === "timeout") {
-        active.delete(localId);
+        entry.hostId = null;
+        if (entry.kind === "timeout") {
+          active.delete(localId);
+          runCallback(entry);
+          return;
+        }
+
         runCallback(entry);
-        return;
-      }
+        if (!active.has(localId) || !hasHostTimer()) return;
 
-      runCallback(entry);
-      if (!active.has(localId) || !hasHostTimer()) return;
-
-      try {
-        scheduleHostTimer(localId);
-      } catch (_err) {
-        active.delete(localId);
-      }
-    };
+        try {
+          scheduleHostTimer(localId);
+        } catch (_err) {
+          active.delete(localId);
+        }
+      };
 
     globalThis.setTimeout = function setTimeout(cb, ms, ...args) {
       const id = timerId;
@@ -132,14 +131,18 @@
       if (!entry) return;
 
       active.delete(localId);
-      if (!hasHostTimer() || entry.hostId === null || entry.hostId === undefined) return;
+      if (
+        !hasHostTimer() ||
+        entry.hostId === null ||
+        entry.hostId === undefined
+      )
+        return;
 
       const hostId = Number(entry.hostId);
       hostToLocal.delete(hostId);
       try {
         globalThis.__timer_drop_evented(hostId);
-      } catch (_err) {
-      }
+      } catch (_err) {}
     };
 
     globalThis.setInterval = function setInterval(cb, ms, ...args) {
@@ -238,7 +241,15 @@
 
   __web.normalizeMethod = function normalizeMethod(method) {
     const m = String(method || "GET").toUpperCase();
-    const allowed = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"];
+    const allowed = [
+      "GET",
+      "POST",
+      "PUT",
+      "PATCH",
+      "DELETE",
+      "HEAD",
+      "OPTIONS",
+    ];
     if (!allowed.includes(m)) {
       throw new TypeError(`不支持的 HTTP 方法: ${m}`);
     }
@@ -247,7 +258,8 @@
 
   function byteViewToBinaryText(view) {
     let text = "";
-    for (let i = 0; i < view.length; i += 1) text += String.fromCharCode(view[i]);
+    for (let i = 0; i < view.length; i += 1)
+      text += String.fromCharCode(view[i]);
     return text;
   }
 
@@ -284,7 +296,9 @@
       return cloneBytes(new Uint8Array(part));
     }
     if (ArrayBuffer.isView(part)) {
-      return cloneBytes(new Uint8Array(part.buffer, part.byteOffset, part.byteLength));
+      return cloneBytes(
+        new Uint8Array(part.buffer, part.byteOffset, part.byteLength),
+      );
     }
     return encodeUtf8(String(part));
   }
@@ -496,7 +510,10 @@
       };
     }
 
-    if (typeof URLSearchParams !== "undefined" && body instanceof URLSearchParams) {
+    if (
+      typeof URLSearchParams !== "undefined" &&
+      body instanceof URLSearchParams
+    ) {
       return {
         bodyText: body.toString(),
         contentType: "application/x-www-form-urlencoded;charset=UTF-8",
@@ -524,7 +541,9 @@
     }
     if (ArrayBuffer.isView(body)) {
       return {
-        bodyText: byteViewToBinaryText(new Uint8Array(body.buffer, body.byteOffset, body.byteLength)),
+        bodyText: byteViewToBinaryText(
+          new Uint8Array(body.buffer, body.byteOffset, body.byteLength),
+        ),
         contentType: null,
       };
     }
@@ -580,7 +599,11 @@
       if (input instanceof Uint8Array) {
         bytes = input;
       } else if (ArrayBuffer.isView(input)) {
-        bytes = new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
+        bytes = new Uint8Array(
+          input.buffer,
+          input.byteOffset,
+          input.byteLength,
+        );
       } else if (input instanceof ArrayBuffer) {
         bytes = new Uint8Array(input);
       } else {
@@ -606,7 +629,9 @@
       }
 
       if (ArrayBuffer.isView(input)) {
-        return new Buffer(new Uint8Array(input.buffer, input.byteOffset, input.byteLength));
+        return new Buffer(
+          new Uint8Array(input.buffer, input.byteOffset, input.byteLength),
+        );
       }
 
       if (Array.isArray(input)) {
@@ -638,10 +663,13 @@
         throw new TypeError("Buffer.concat 参数必须是数组");
       }
 
-      const chunks = list.map((item) => (Buffer.isBuffer(item) ? item : Buffer.from(item)));
-      const size = totalLength === undefined
-        ? chunks.reduce((n, c) => n + c.length, 0)
-        : Number(totalLength);
+      const chunks = list.map((item) =>
+        Buffer.isBuffer(item) ? item : Buffer.from(item),
+      );
+      const size =
+        totalLength === undefined
+          ? chunks.reduce((n, c) => n + c.length, 0)
+          : Number(totalLength);
 
       const out = Buffer.alloc(size);
       let offset = 0;
@@ -738,7 +766,11 @@
       return new Uint8Array(input.slice(0));
     }
     if (ArrayBuffer.isView(input)) {
-      const view = new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
+      const view = new Uint8Array(
+        input.buffer,
+        input.byteOffset,
+        input.byteLength,
+      );
       return cloneBytes(view);
     }
     if (Array.isArray(input)) {
@@ -777,7 +809,11 @@
       throw new TypeError(`crypto host ${actionName} 返回格式无效`);
     }
     if (!parsed || parsed.ok !== true) {
-      throw new TypeError(parsed && parsed.error ? parsed.error : `crypto host ${actionName} 执行失败`);
+      throw new TypeError(
+        parsed && parsed.error
+          ? parsed.error
+          : `crypto host ${actionName} 执行失败`,
+      );
     }
     return parsed;
   }
@@ -815,14 +851,22 @@
       this._digested = true;
       const input = concatChunks(this._chunks);
       const inputB64 = bytesToBase64(input);
-      const out = parseHostCryptoResult(globalThis.__crypto_sha256_b64(inputB64), "sha256");
-      if (outputEncoding === undefined || outputEncoding === null || normalizeEncoding(outputEncoding, "hex") === "buffer") {
+      const out = parseHostCryptoResult(
+        globalThis.__crypto_sha256_b64(inputB64),
+        "sha256",
+      );
+      if (
+        outputEncoding === undefined ||
+        outputEncoding === null ||
+        normalizeEncoding(outputEncoding, "hex") === "buffer"
+      ) {
         return Buffer.from(bytesFromBase64(out.base64));
       }
       const enc = normalizeEncoding(outputEncoding, "hex");
       if (enc === "hex") return out.hex;
       if (enc === "base64") return out.base64;
-      if (enc === "latin1") return byteViewToBinaryText(bytesFromBase64(out.base64));
+      if (enc === "latin1")
+        return byteViewToBinaryText(bytesFromBase64(out.base64));
       if (enc === "utf8") return decodeUtf8(bytesFromBase64(out.base64));
       throw new TypeError(`不支持的编码: ${outputEncoding}`);
     }
@@ -852,14 +896,22 @@
       const message = concatChunks(this._chunks);
       const keyB64 = bytesToBase64(this._key);
       const msgB64 = bytesToBase64(message);
-      const out = parseHostCryptoResult(globalThis.__crypto_hmac_sha256_b64(keyB64, msgB64), "hmac-sha256");
-      if (outputEncoding === undefined || outputEncoding === null || normalizeEncoding(outputEncoding, "hex") === "buffer") {
+      const out = parseHostCryptoResult(
+        globalThis.__crypto_hmac_sha256_b64(keyB64, msgB64),
+        "hmac-sha256",
+      );
+      if (
+        outputEncoding === undefined ||
+        outputEncoding === null ||
+        normalizeEncoding(outputEncoding, "hex") === "buffer"
+      ) {
         return Buffer.from(bytesFromBase64(out.base64));
       }
       const enc = normalizeEncoding(outputEncoding, "hex");
       if (enc === "hex") return out.hex;
       if (enc === "base64") return out.base64;
-      if (enc === "latin1") return byteViewToBinaryText(bytesFromBase64(out.base64));
+      if (enc === "latin1")
+        return byteViewToBinaryText(bytesFromBase64(out.base64));
       if (enc === "utf8") return decodeUtf8(bytesFromBase64(out.base64));
       throw new TypeError(`不支持的编码: ${outputEncoding}`);
     }
@@ -878,7 +930,10 @@
     if (!Number.isInteger(n) || n < 0) {
       throw new TypeError("size 必须是非负整数");
     }
-    const out = parseHostCryptoResult(globalThis.__crypto_random_bytes_b64(n), "randomBytes");
+    const out = parseHostCryptoResult(
+      globalThis.__crypto_random_bytes_b64(n),
+      "randomBytes",
+    );
     return Buffer.from(bytesFromBase64(out.base64));
   }
 
@@ -888,7 +943,8 @@
     randomBytes,
   };
 
-  const BASE64_TABLE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  const BASE64_TABLE =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
   function btoaImpl(input) {
     const text = String(input);
@@ -897,7 +953,10 @@
       const a = text.charCodeAt(i) & 0xff;
       const b = i + 1 < text.length ? text.charCodeAt(i + 1) & 0xff : NaN;
       const c = i + 2 < text.length ? text.charCodeAt(i + 2) & 0xff : NaN;
-      const n = (a << 16) | ((Number.isNaN(b) ? 0 : b) << 8) | (Number.isNaN(c) ? 0 : c);
+      const n =
+        (a << 16) |
+        ((Number.isNaN(b) ? 0 : b) << 8) |
+        (Number.isNaN(c) ? 0 : c);
       out += BASE64_TABLE[(n >> 18) & 63];
       out += BASE64_TABLE[(n >> 12) & 63];
       out += Number.isNaN(b) ? "=" : BASE64_TABLE[(n >> 6) & 63];
@@ -917,10 +976,16 @@
       const c2 = BASE64_TABLE.indexOf(clean[i + 1]);
       const c3 = clean[i + 2] === "=" ? -1 : BASE64_TABLE.indexOf(clean[i + 2]);
       const c4 = clean[i + 3] === "=" ? -1 : BASE64_TABLE.indexOf(clean[i + 3]);
-      if (c1 < 0 || c2 < 0 || (c3 < 0 && clean[i + 2] !== "=") || (c4 < 0 && clean[i + 3] !== "=")) {
+      if (
+        c1 < 0 ||
+        c2 < 0 ||
+        (c3 < 0 && clean[i + 2] !== "=") ||
+        (c4 < 0 && clean[i + 3] !== "=")
+      ) {
         throw new TypeError("无效的 base64 字符串");
       }
-      const n = (c1 << 18) | (c2 << 12) | ((c3 < 0 ? 0 : c3) << 6) | (c4 < 0 ? 0 : c4);
+      const n =
+        (c1 << 18) | (c2 << 12) | ((c3 < 0 ? 0 : c3) << 6) | (c4 < 0 ? 0 : c4);
       out += String.fromCharCode((n >> 16) & 0xff);
       if (clean[i + 2] !== "=") out += String.fromCharCode((n >> 8) & 0xff);
       if (clean[i + 3] !== "=") out += String.fromCharCode(n & 0xff);
@@ -955,6 +1020,14 @@
     return formatUuid(bytes);
   }
 
+  function formEncodeComponent(input) {
+    return encodeURIComponent(String(input)).replace(/%20/g, "+");
+  }
+
+  function formDecodeComponent(input) {
+    return decodeURIComponent(String(input).replace(/\+/g, "%20"));
+  }
+
   class URLSearchParams {
     constructor(init = "") {
       this._pairs = [];
@@ -969,11 +1042,19 @@
             const idx = seg.indexOf("=");
             const k = idx >= 0 ? seg.slice(0, idx) : seg;
             const v = idx >= 0 ? seg.slice(idx + 1) : "";
-            this._pairs.push([decodeURIComponent(k), decodeURIComponent(v)]);
+            this._pairs.push([formDecodeComponent(k), formDecodeComponent(v)]);
           }
         }
       } else if (Array.isArray(init)) {
         for (const item of init) {
+          if (!item || item.length < 2)
+            throw new TypeError("URLSearchParams 初始化项必须是 [name, value]");
+          this.append(item[0], item[1]);
+        }
+      } else if (init && typeof init[Symbol.iterator] === "function") {
+        for (const item of init) {
+          if (!item || item.length < 2)
+            throw new TypeError("URLSearchParams 初始化项必须是 [name, value]");
           this.append(item[0], item[1]);
         }
       } else if (init && typeof init === "object") {
@@ -1015,18 +1096,51 @@
 
     has(name) {
       const key = String(name);
+      if (arguments.length >= 2) {
+        const val = String(arguments[1]);
+        return this._pairs.some((p) => p[0] === key && p[1] === val);
+      }
       return this._pairs.some((p) => p[0] === key);
     }
 
     delete(name) {
       const key = String(name);
-      this._pairs = this._pairs.filter((p) => p[0] !== key);
+      if (arguments.length >= 2) {
+        const val = String(arguments[1]);
+        this._pairs = this._pairs.filter(
+          (p) => !(p[0] === key && p[1] === val),
+        );
+      } else {
+        this._pairs = this._pairs.filter((p) => p[0] !== key);
+      }
+      this._notify();
+    }
+
+    sort() {
+      this._pairs.sort((a, b) => {
+        if (a[0] < b[0]) return -1;
+        if (a[0] > b[0]) return 1;
+        return 0;
+      });
+      this._notify();
+    }
+
+    get size() {
+      return this._pairs.length;
+    }
+
+    _clonePairs() {
+      return this._pairs.map((p) => [p[0], p[1]]);
+    }
+
+    _replacePairs(pairs) {
+      this._pairs = pairs;
       this._notify();
     }
 
     toString() {
       return this._pairs
-        .map((p) => `${encodeURIComponent(p[0])}=${encodeURIComponent(p[1])}`)
+        .map((p) => `${formEncodeComponent(p[0])}=${formEncodeComponent(p[1])}`)
         .join("&");
     }
 
@@ -1049,40 +1163,102 @@
     [Symbol.iterator]() {
       return this.entries();
     }
+
+    get [Symbol.toStringTag]() {
+      return "URLSearchParams";
+    }
   }
 
   function parseAbsoluteUrl(input) {
     const text = String(input);
-    const m = text.match(/^(https?):\/\/([^/?#]*)([^?#]*)(\?[^#]*)?(#.*)?$/i);
+    const m = text.match(
+      /^(https?):\/\/(?:([^:@/?#]*)(?::([^@/?#]*))?@)?([^/?#:]*)(?::(\d+))?([^?#]*)(\?[^#]*)?(#.*)?$/i,
+    );
     if (!m) throw new TypeError(`无效的 URL: ${text}`);
     const protocol = `${m[1].toLowerCase()}:`;
-    const host = m[2] || "";
-    const pathname = m[3] || "/";
-    const search = m[4] || "";
-    const hash = m[5] || "";
-    const p = host.split(":");
-    const hostname = p[0] || "";
-    const port = p[1] || "";
+    const username = m[2] ? decodeURIComponent(m[2]) : "";
+    const password = m[3] ? decodeURIComponent(m[3]) : "";
+    const hostname = m[4] || "";
+    const port = m[5] || "";
+    const pathname = m[6] || "/";
+    const search = m[7] || "";
+    const hash = m[8] || "";
+    const host = port ? `${hostname}:${port}` : hostname;
+    const auth = username
+      ? `${encodeURIComponent(username)}${password ? `:${encodeURIComponent(password)}` : ""}@`
+      : "";
     return {
       protocol,
       host,
       hostname,
       port,
+      username,
+      password,
       pathname: pathname.startsWith("/") ? pathname : `/${pathname}`,
       search,
       hash,
       origin: `${protocol}//${host}`,
+      authority: `${auth}${host}`,
     };
+  }
+
+  function normalizeUrlPath(pathname) {
+    const absolute = String(pathname || "").startsWith("/");
+    const parts = String(pathname || "").split("/");
+    const stack = [];
+    for (const part of parts) {
+      if (!part || part === ".") continue;
+      if (part === "..") {
+        if (stack.length > 0) stack.pop();
+      } else {
+        stack.push(part);
+      }
+    }
+    const joined = stack.join("/");
+    if (absolute) return `/${joined}` || "/";
+    return joined || "/";
   }
 
   function resolveUrl(input, base) {
     const text = String(input);
     if (/^https?:\/\//i.test(text)) return text;
+    if (/^\/\//.test(text)) {
+      if (!base) throw new TypeError(`无效的 URL: ${text}`);
+      const b = parseAbsoluteUrl(base);
+      return `${b.protocol}${text}`;
+    }
     if (!base) throw new TypeError(`无效的 URL: ${text}`);
     const b = parseAbsoluteUrl(base);
-    if (text.startsWith("/")) return `${b.origin}${text}`;
-    const baseDir = b.pathname.replace(/\/[^/]*$/, "/");
-    return `${b.origin}${baseDir}${text}`;
+    if (!text)
+      return `${b.protocol}//${b.authority}${b.pathname}${b.search}${b.hash}`;
+    if (text.startsWith("#"))
+      return `${b.protocol}//${b.authority}${b.pathname}${b.search}${text}`;
+    if (text.startsWith("?"))
+      return `${b.protocol}//${b.authority}${b.pathname}${text}`;
+
+    let body = text;
+    let hash = "";
+    const hashIdx = body.indexOf("#");
+    if (hashIdx >= 0) {
+      hash = body.slice(hashIdx);
+      body = body.slice(0, hashIdx);
+    }
+    let search = "";
+    let pathInput = body;
+    const qIdx = body.indexOf("?");
+    if (qIdx >= 0) {
+      search = body.slice(qIdx);
+      pathInput = body.slice(0, qIdx);
+    }
+
+    let path;
+    if (pathInput.startsWith("/")) {
+      path = normalizeUrlPath(pathInput);
+    } else {
+      const baseDir = b.pathname.replace(/\/[^/]*$/, "/");
+      path = normalizeUrlPath(`${baseDir}${pathInput}`);
+    }
+    return `${b.protocol}//${b.authority}${path}${search}${hash}`;
   }
 
   class URL {
@@ -1097,7 +1273,10 @@
     }
 
     _refreshHref() {
-      this._href = `${this._origin}${this._pathname}${this._search}${this._hash}`;
+      const auth = this._username
+        ? `${encodeURIComponent(this._username)}${this._password ? `:${encodeURIComponent(this._password)}` : ""}@`
+        : "";
+      this._href = `${this._protocol}//${auth}${this._host}${this._pathname}${this._search}${this._hash}`;
     }
 
     _setHref(href) {
@@ -1106,6 +1285,8 @@
       this._host = p.host;
       this._hostname = p.hostname;
       this._port = p.port;
+      this._username = p.username;
+      this._password = p.password;
       this._pathname = p.pathname;
       this._search = p.search;
       this._hash = p.hash;
@@ -1115,10 +1296,16 @@
       this._refreshHref();
     }
 
-    get href() { return this._href; }
-    set href(v) { this._setHref(String(v)); }
+    get href() {
+      return this._href;
+    }
+    set href(v) {
+      this._setHref(String(v));
+    }
 
-    get protocol() { return this._protocol; }
+    get protocol() {
+      return this._protocol;
+    }
     set protocol(v) {
       const p = String(v).replace(/:$/, "").toLowerCase();
       this._protocol = `${p}:`;
@@ -1126,7 +1313,9 @@
       this._refreshHref();
     }
 
-    get host() { return this._host; }
+    get host() {
+      return this._host;
+    }
     set host(v) {
       this._host = String(v);
       const p = this._host.split(":");
@@ -1136,30 +1325,42 @@
       this._refreshHref();
     }
 
-    get hostname() { return this._hostname; }
+    get hostname() {
+      return this._hostname;
+    }
     set hostname(v) {
       this._hostname = String(v);
-      this._host = this._port ? `${this._hostname}:${this._port}` : this._hostname;
+      this._host = this._port
+        ? `${this._hostname}:${this._port}`
+        : this._hostname;
       this._origin = `${this._protocol}//${this._host}`;
       this._refreshHref();
     }
 
-    get port() { return this._port; }
+    get port() {
+      return this._port;
+    }
     set port(v) {
       this._port = String(v || "");
-      this._host = this._port ? `${this._hostname}:${this._port}` : this._hostname;
+      this._host = this._port
+        ? `${this._hostname}:${this._port}`
+        : this._hostname;
       this._origin = `${this._protocol}//${this._host}`;
       this._refreshHref();
     }
 
-    get pathname() { return this._pathname; }
+    get pathname() {
+      return this._pathname;
+    }
     set pathname(v) {
-      const p = String(v);
-      this._pathname = p.startsWith("/") ? p : `/${p}`;
+      const p = String(v || "");
+      this._pathname = normalizeUrlPath(p.startsWith("/") ? p : `/${p}`);
       this._refreshHref();
     }
 
-    get search() { return this._search; }
+    get search() {
+      return this._search;
+    }
     set search(v) {
       const s = String(v || "");
       this._search = s ? (s.startsWith("?") ? s : `?${s}`) : "";
@@ -1168,16 +1369,62 @@
       this._refreshHref();
     }
 
-    get hash() { return this._hash; }
+    get hash() {
+      return this._hash;
+    }
     set hash(v) {
       const h = String(v || "");
       this._hash = h ? (h.startsWith("#") ? h : `#${h}`) : "";
       this._refreshHref();
     }
 
-    get origin() { return this._origin; }
+    get origin() {
+      return this._origin;
+    }
+    get username() {
+      return this._username;
+    }
+    set username(v) {
+      this._username = String(v || "");
+      this._refreshHref();
+    }
 
-    toString() { return this.href; }
+    get password() {
+      return this._password;
+    }
+    set password(v) {
+      this._password = String(v || "");
+      this._refreshHref();
+    }
+
+    toString() {
+      return this.href;
+    }
+    toJSON() {
+      return this.href;
+    }
+
+    get [Symbol.toStringTag]() {
+      return "URL";
+    }
+
+    static canParse(input, base) {
+      try {
+        // eslint-disable-next-line no-new
+        new URL(input, base);
+        return true;
+      } catch (_err) {
+        return false;
+      }
+    }
+
+    static parse(input, base) {
+      try {
+        return new URL(input, base);
+      } catch (_err) {
+        return null;
+      }
+    }
   }
 
   function normalizePath(path) {
@@ -1209,7 +1456,9 @@
       return normalizePath(input);
     },
     isAbsolute(input) {
-      return String(input || "").replace(/\\/g, "/").startsWith("/");
+      return String(input || "")
+        .replace(/\\/g, "/")
+        .startsWith("/");
     },
     join(...parts) {
       return normalizePath(parts.map((p) => String(p || "")).join("/"));

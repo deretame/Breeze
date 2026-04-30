@@ -99,7 +99,34 @@ const BUNDLE_DISPATCHER_JS: &str = r#"(async () => {
     };
 
     const isSafeKey = (k) => k !== "__proto__" && k !== "prototype" && k !== "constructor";
+    const sanitizeSourceName = (name) => String(name || "bundle")
+      .replace(/[^a-zA-Z0-9._-]/g, "_")
+      .slice(0, 120);
+    const appendSourceUrl = (source, logicalName) =>
+      `${String(source || "")}\n//# sourceURL=${sanitizeSourceName(logicalName)}.cjs`;
+    const withInvokeContextError = (err, ctx) => {
+      const base = String(err && err.message ? err.message : err || "执行失败");
+      const stack = String(err && err.stack ? err.stack : "");
+      const scope = `[bundle:${ctx?.name || "?"} fn:${ctx?.fnPath || "?"} argc:${ctx?.argc ?? 0} source:${ctx?.sourceName || "?"}]`;
+      const msg = `${scope} ${base}`;
+      const enriched = new Error(msg);
+      if (stack) enriched.stack = `${msg}\n${stack}`;
+      return enriched;
+    };
 
+    const safeTypeOf = (value) => {
+      if (value === null) return "null";
+      if (Array.isArray(value)) return "array";
+      return typeof value;
+    };
+    const ownKeysPreview = (obj, max = 24) => {
+      if (!obj || (typeof obj !== "object" && typeof obj !== "function")) return [];
+      try {
+        return Object.keys(obj).slice(0, max);
+      } catch (_err) {
+        return [];
+      }
+    };
     const resolveCallable = (api, fnPath) => {
       const parts = String(fnPath).split(".").filter(Boolean);
       if (parts.length === 0) {
@@ -112,7 +139,9 @@ const BUNDLE_DISPATCHER_JS: &str = r#"(async () => {
         if (!isSafeKey(key)) throw new TypeError(`unsafe path segment: ${key}`);
         owner = owner?.[key];
         if (owner === undefined || owner === null) {
-          throw new Error(`function path not found: ${fnPath}`);
+          throw new Error(
+            `function path not found: ${fnPath}; missing segment=${key}; rootType=${safeTypeOf(api)}; rootKeys=${JSON.stringify(ownKeysPreview(api))}`
+          );
         }
       }
 
@@ -120,7 +149,9 @@ const BUNDLE_DISPATCHER_JS: &str = r#"(async () => {
       if (!isSafeKey(leaf)) throw new TypeError(`unsafe path segment: ${leaf}`);
       const fn = owner?.[leaf];
       if (typeof fn !== "function") {
-        throw new TypeError(`target is not function: ${fnPath}`);
+        throw new TypeError(
+          `target is not function: ${fnPath}; targetType=${safeTypeOf(fn)}; ownerType=${safeTypeOf(owner)}; ownerKeys=${JSON.stringify(ownKeysPreview(owner))}; rootKeys=${JSON.stringify(ownKeysPreview(api))}`
+        );
       }
 
       return { owner, fn };
@@ -132,7 +163,7 @@ const BUNDLE_DISPATCHER_JS: &str = r#"(async () => {
         const module = { exports: {} };
         const exports = module.exports;
         const requireFn = typeof require === "function" ? require.bind(globalThis) : undefined;
-        const runner = new Function("module", "exports", "require", source);
+        const runner = new Function("module", "exports", "require", appendSourceUrl(source, name));
         runner(module, exports, requireFn);
         registry.set(String(name), normalizeApi(module.exports));
       },
@@ -147,8 +178,12 @@ const BUNDLE_DISPATCHER_JS: &str = r#"(async () => {
           throw new Error(`bundle not found: ${name}`);
         }
 
-        const { owner, fn } = resolveCallable(api, fnPath);
-        return await fn.apply(owner, args);
+        try {
+          const { owner, fn } = resolveCallable(api, fnPath);
+          return await fn.apply(owner, args);
+        } catch (err) {
+          throw withInvokeContextError(err, { name, fnPath, argc: args.length, sourceName: `${sanitizeSourceName(name)}.cjs` });
+        }
       },
       unloadBundle(name) {
         const registry = ensureRegistry();
@@ -168,16 +203,21 @@ const BUNDLE_DISPATCHER_JS: &str = r#"(async () => {
         const source = String(payload?.source || "");
         const fnPath = String(payload?.fnPath || "");
         const args = Array.isArray(payload?.args) ? payload.args : [];
+        const sourceName = "__bundle_once__.cjs";
 
         const module = { exports: {} };
         const exports = module.exports;
         const requireFn = typeof require === "function" ? require.bind(globalThis) : undefined;
-        const runner = new Function("module", "exports", "require", source);
-        runner(module, exports, requireFn);
+        try {
+          const runner = new Function("module", "exports", "require", appendSourceUrl(source, "__bundle_once__"));
+          runner(module, exports, requireFn);
 
-        const api = normalizeApi(module.exports);
-        const { owner, fn } = resolveCallable(api, fnPath);
-        return await fn.apply(owner, args);
+          const api = normalizeApi(module.exports);
+          const { owner, fn } = resolveCallable(api, fnPath);
+          return await fn.apply(owner, args);
+        } catch (err) {
+          throw withInvokeContextError(err, { name: "__once__", fnPath, argc: args.length, sourceName });
+        }
       },
     };
 

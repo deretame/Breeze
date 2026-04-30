@@ -111,6 +111,110 @@ fn runtime_url_and_search_params() {
 }
 
 #[test]
+fn runtime_url_library_complete() {
+    let script = r#"
+      (async () => {
+        const sp = new URLSearchParams("a=1&b=hello+world&a=2");
+        const beforeSize = sp.size;
+        const hasA2 = sp.has("a", "2");
+        sp.delete("a", "1");
+        sp.append("c", "x y");
+        sp.sort();
+
+        const url = new URL("../v2/item?id=9#h", "https://u:p@example.com/api/v1/list?q=1");
+        const beforeHref = url.href;
+        url.username = "alice";
+        url.password = "secret";
+        url.searchParams.set("lang", "zh CN");
+        url.pathname = "/a/./b/../c";
+
+        const resolved = new URL("?page=2", url.href).href;
+
+        return JSON.stringify({
+          spBeforeSize: beforeSize,
+          spAfterSize: sp.size,
+          spHasA2: hasA2,
+          spAllA: sp.getAll("a"),
+          spText: sp.toString(),
+          beforeHref,
+          href: url.href,
+          origin: url.origin,
+          username: url.username,
+          password: url.password,
+          resolved
+        });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+
+    assert_eq!(parsed["spBeforeSize"], 3);
+    assert_eq!(parsed["spAfterSize"], 3);
+    assert_eq!(parsed["spHasA2"], true);
+    assert_eq!(parsed["spAllA"][0], "2");
+    assert_eq!(parsed["spText"], "a=2&b=hello+world&c=x+y");
+
+    assert_eq!(parsed["origin"], "https://example.com");
+    assert_eq!(parsed["username"], "alice");
+    assert_eq!(parsed["password"], "secret");
+    assert!(
+        parsed["beforeHref"]
+            .as_str()
+            .unwrap_or("")
+            .starts_with("https://u:p@example.com/api/v2/item")
+    );
+    assert!(
+        parsed["href"]
+            .as_str()
+            .unwrap_or("")
+            .starts_with("https://alice:secret@example.com/a/c?")
+    );
+    assert_eq!(
+        parsed["resolved"],
+        "https://alice:secret@example.com/a/c?page=2"
+    );
+}
+
+#[test]
+fn runtime_url_web_global_api_surface() {
+    let script = r#"
+      (async () => {
+        const parsed = URL.parse("/x?a=1", "https://example.com/base/");
+        const invalid = URL.parse("::::");
+
+        const json = JSON.stringify({
+          u: new URL("/api?q=1", "https://example.com").toJSON()
+        });
+
+        const spTag = Object.prototype.toString.call(new URLSearchParams());
+        const urlTag = Object.prototype.toString.call(new URL("https://example.com"));
+
+        return JSON.stringify({
+          can1: URL.canParse("/x", "https://example.com"),
+          can2: URL.canParse("::::"),
+          parsedHref: parsed ? parsed.href : null,
+          invalidIsNull: invalid === null,
+          json,
+          spTag,
+          urlTag
+        });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+
+    assert_eq!(parsed["can1"], true);
+    assert_eq!(parsed["can2"], false);
+    assert_eq!(parsed["parsedHref"], "https://example.com/x?a=1");
+    assert_eq!(parsed["invalidIsNull"], true);
+    assert_eq!(parsed["json"], "{\"u\":\"https://example.com/api?q=1\"}");
+    assert_eq!(parsed["spTag"], "[object URLSearchParams]");
+    assert_eq!(parsed["urlTag"], "[object URL]");
+}
+
+#[test]
 fn runtime_process_and_immediate() {
     let script = r#"
       (async () => {
@@ -153,6 +257,99 @@ fn runtime_process_and_immediate() {
     assert_eq!(parsed["hrtimeOk"], true);
     assert_eq!(parsed["bigintOk"], true);
     assert!(parsed["argvLen"].as_u64().unwrap_or(0) >= 1);
+}
+
+#[test]
+fn runtime_abort_signal_static_methods() {
+    let script = r#"
+      (async () => {
+        const c1 = new AbortController();
+        const c2 = new AbortController();
+        const any = AbortSignal.any([c1.signal, c2.signal]);
+        c2.abort("boom");
+
+        const aborted = AbortSignal.abort("x");
+        const timed = AbortSignal.timeout(1);
+        await new Promise((resolve) => setTimeout(resolve, 5));
+
+        return JSON.stringify({
+          hasAny: typeof AbortSignal.any === "function",
+          hasAbort: typeof AbortSignal.abort === "function",
+          hasTimeout: typeof AbortSignal.timeout === "function",
+          anyAborted: any.aborted,
+          anyReason: String(any.reason),
+          abortedNow: aborted.aborted,
+          abortedReason: String(aborted.reason),
+          timedAborted: timed.aborted
+        });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+
+    assert_eq!(parsed["hasAny"], true);
+    assert_eq!(parsed["hasAbort"], true);
+    assert_eq!(parsed["hasTimeout"], true);
+    assert_eq!(parsed["anyAborted"], true);
+    assert_eq!(parsed["anyReason"], "boom");
+    assert_eq!(parsed["abortedNow"], true);
+    assert_eq!(parsed["abortedReason"], "x");
+    assert_eq!(parsed["timedAborted"], true);
+}
+
+#[test]
+fn runtime_request_clone_available() {
+    let script = r#"
+      (async () => {
+        const req = new Request("https://example.com/a", {
+          method: "POST",
+          headers: { "x-a": "1" },
+          body: "hello"
+        });
+        const cloned = req.clone();
+        return JSON.stringify({
+          hasClone: typeof req.clone === "function",
+          method: cloned.method,
+          url: cloned.url,
+          body: await cloned.text(),
+          header: cloned.headers.get("x-a")
+        });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+
+    assert_eq!(parsed["hasClone"], true);
+    assert_eq!(parsed["method"], "POST");
+    assert_eq!(parsed["url"], "https://example.com/a");
+    assert_eq!(parsed["body"], "hello");
+    assert_eq!(parsed["header"], "1");
+}
+
+#[test]
+fn runtime_request_clone_get_without_body() {
+    let script = r#"
+      (async () => {
+        const req = new Request("https://example.com/a?x=1", { method: "GET" });
+        const cloned = req.clone();
+        return JSON.stringify({
+          method: cloned.method,
+          url: cloned.url,
+          bodyUsed: cloned.bodyUsed,
+          text: await cloned.text()
+        });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+
+    assert_eq!(parsed["method"], "GET");
+    assert_eq!(parsed["url"], "https://example.com/a?x=1");
+    assert_eq!(parsed["bodyUsed"], false);
+    assert_eq!(parsed["text"], "");
 }
 
 #[test]

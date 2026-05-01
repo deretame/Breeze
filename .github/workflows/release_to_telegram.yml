@@ -1,0 +1,74 @@
+name: Notify Telegram on Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Build release message
+        id: build
+        env:
+          REPO: ${{ github.repository }}
+          TAG: ${{ github.event.release.tag_name }}
+          NAME: ${{ github.event.release.name }}
+          URL: ${{ github.event.release.html_url }}
+          BODY: ${{ github.event.release.body }}
+        run: |
+          {
+            echo "text<<EOF"
+            echo "🚀 ${REPO} 发布新版本"
+            echo "版本: ${TAG}"
+            echo "标题: ${NAME}"
+            echo "链接: ${URL}"
+            echo ""
+            echo "更新内容:"
+            if [ -n "${BODY}" ]; then
+              echo "${BODY}" | head -n 30
+            else
+              echo "(无)"
+            fi
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Send release message to Telegram
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TEXT: ${{ steps.build.outputs.text }}
+        run: |
+          curl -sS -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${CHAT_ID}" \
+            --data-urlencode "text=${TEXT}" \
+            --data-urlencode "disable_web_page_preview=true"
+
+      - name: Send release assets to Telegram
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ASSETS_JSON: ${{ toJson(github.event.release.assets) }}
+        run: |
+          echo "$ASSETS_JSON" > assets.json
+          count=$(jq length assets.json)
+
+          if [ "$count" -eq 0 ]; then
+            echo "No assets, skip."
+            exit 0
+          fi
+
+          for i in $(seq 0 $((count - 1))); do
+            name=$(jq -r ".[$i].name" assets.json)
+            url=$(jq -r ".[$i].browser_download_url" assets.json)
+
+            echo "Downloading ${name}"
+            curl -fL "$url" -o "$name"
+
+            echo "Uploading ${name} to Telegram"
+            curl -sS -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendDocument" \
+              -F "chat_id=${CHAT_ID}" \
+              -F "caption=${name}" \
+              -F "document=@${name}"
+          done

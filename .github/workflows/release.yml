@@ -550,6 +550,57 @@ jobs:
             release-assets/macos-dmg/Breeze-macOS.dmg
             release-assets/ios-ipa/Breeze-iOS.ipa
 
+      - name: 发送 Release 消息到 Telegram
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          REPO: ${{ github.repository }}
+          VERSION: ${{ github.event.inputs.version }}
+        run: |
+          if [ -z "$BOT_TOKEN" ] || [ -z "$CHAT_ID" ]; then
+            echo "未配置 TELEGRAM_BOT_TOKEN 或 TELEGRAM_CHAT_ID，跳过 Telegram 通知。"
+            exit 0
+          fi
+
+          RELEASE_URL="https://github.com/${REPO}/releases/tag/${VERSION}"
+          BODY="$(head -n 60 release_body.md)"
+          TEXT="🚀 ${REPO} 发布新版本
+          版本: ${VERSION}
+          链接: ${RELEASE_URL}
+
+          ${BODY}"
+
+          curl -sS -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${CHAT_ID}" \
+            --data-urlencode "text=${TEXT}" \
+            --data-urlencode "disable_web_page_preview=true"
+
+      - name: 发送 Release 附件到 Telegram
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -z "$BOT_TOKEN" ] || [ -z "$CHAT_ID" ]; then
+            echo "未配置 TELEGRAM_BOT_TOKEN 或 TELEGRAM_CHAT_ID，跳过 Telegram 附件发送。"
+            exit 0
+          fi
+
+          mapfile -t files < <(find release-assets -type f \( -name "*.apk" -o -name "*.flatpak" -o -name "*.exe" -o -name "*.dmg" -o -name "*.ipa" \) | sort)
+
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "未找到可发送附件，跳过。"
+            exit 0
+          fi
+
+          for file in "${files[@]}"; do
+            name="$(basename "$file")"
+            echo "Uploading ${name} to Telegram"
+            curl -sS -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendDocument" \
+              -F "chat_id=${CHAT_ID}" \
+              -F "caption=${name}" \
+              -F "document=@${file}"
+          done
+
   # ══════════════════════════════════════════
   # 7. 自动更新 Homebrew Tap (仅限 macOS Cask)
   # ══════════════════════════════════════════

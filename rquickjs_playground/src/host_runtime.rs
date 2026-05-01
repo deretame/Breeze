@@ -107,10 +107,10 @@ const BUNDLE_DISPATCHER_JS: &str = r#"(async () => {
     const withInvokeContextError = (err, ctx) => {
       const base = String(err && err.message ? err.message : err || "执行失败");
       const stack = String(err && err.stack ? err.stack : "");
-      const scope = `[bundle:${ctx?.name || "?"} fn:${ctx?.fnPath || "?"} argc:${ctx?.argc ?? 0} source:${ctx?.sourceName || "?"}]`;
-      const msg = `${scope} ${base}`;
-      const enriched = new Error(msg);
-      if (stack) enriched.stack = `${msg}\n${stack}`;
+      const scope = `bundle:${ctx?.name || "?"} fn:${ctx?.fnPath || "?"} argc:${ctx?.argc ?? 0} source:${ctx?.sourceName || "?"}`;
+      const enriched = new Error(base);
+      enriched.__bundle_scope = scope;
+      if (stack) enriched.stack = stack;
       return enriched;
     };
 
@@ -225,8 +225,8 @@ const BUNDLE_DISPATCHER_JS: &str = r#"(async () => {
   } catch (err) {
     const base = String(err && err.message ? err.message : err || "执行失败");
     const stack = String(err && err.stack ? err.stack : "");
-    const message = stack ? `${base}\n${stack}` : base;
-    return JSON.stringify({ ok: false, error: message });
+    const debugScope = String(err && err.__bundle_scope ? err.__bundle_scope : "");
+    return JSON.stringify({ ok: false, error: base, stack, debug_scope: debugScope });
   }
 })()"#;
 
@@ -757,8 +757,8 @@ impl AsyncHostRuntime {
               }} catch (err) {{
                 const base = String(err && err.message ? err.message : err || "执行失败");
                 const stack = String(err && err.stack ? err.stack : "");
-                const message = stack ? `${{base}}\n${{stack}}` : base;
-                return JSON.stringify({{ ok: false, error: message }});
+                const debugScope = String(err && err.__bundle_scope ? err.__bundle_scope : "");
+                return JSON.stringify({{ ok: false, error: base, stack, debug_scope: debugScope }});
               }}
             }})()
             "#
@@ -858,8 +858,8 @@ impl AsyncHostRuntime {
               }} catch (err) {{
                 const base = String(err && err.message ? err.message : err || "执行失败");
                 const stack = String(err && err.stack ? err.stack : "");
-                const message = stack ? `${{base}}\n${{stack}}` : base;
-                return JSON.stringify({{ ok: false, error: message }});
+                const debugScope = String(err && err.__bundle_scope ? err.__bundle_scope : "");
+                return JSON.stringify({{ ok: false, error: base, stack, debug_scope: debugScope }});
               }}
             }})()
             "#
@@ -889,8 +889,8 @@ impl AsyncHostRuntime {
               } catch (err) {
                 const base = String(err && err.message ? err.message : err || "执行失败");
                 const stack = String(err && err.stack ? err.stack : "");
-                const message = stack ? `${base}\n${stack}` : base;
-                return JSON.stringify({ ok: false, error: message });
+                const debugScope = String(err && err.__bundle_scope ? err.__bundle_scope : "");
+                return JSON.stringify({ ok: false, error: base, stack, debug_scope: debugScope });
               }
             })()
         "#;
@@ -1104,8 +1104,8 @@ fn build_bundle_call_once_script(
           }} catch (err) {{
             const base = String(err && err.message ? err.message : err || "执行失败");
             const stack = String(err && err.stack ? err.stack : "");
-            const message = stack ? `${{base}}\n${{stack}}` : base;
-            return JSON.stringify({{ ok: false, error: message }});
+            const debugScope = String(err && err.__bundle_scope ? err.__bundle_scope : "");
+            return JSON.stringify({{ ok: false, error: base, stack, debug_scope: debugScope }});
           }} finally {{
             try {{
               clearBundles();
@@ -1126,7 +1126,12 @@ fn parse_ok_json_payload(raw: &str) -> Result<Value, String> {
             .get("error")
             .and_then(Value::as_str)
             .unwrap_or("执行失败");
-        Err(format_js_error(raw_error))
+        let raw_stack = payload.get("stack").and_then(Value::as_str).unwrap_or("");
+        let debug_scope = payload
+            .get("debug_scope")
+            .and_then(Value::as_str)
+            .unwrap_or("");
+        Err(format_js_error_with_stack(raw_error, raw_stack, debug_scope))
     }
 }
 
@@ -1153,6 +1158,32 @@ fn format_js_error(raw: &str) -> String {
     trimmed.lines().next().unwrap_or(trimmed).trim().to_string()
 }
 
+fn format_js_error_with_stack(raw_error: &str, raw_stack: &str, debug_scope: &str) -> String {
+    let message = format_js_error(raw_error);
+    if !js_error_stack_enabled() {
+        return message;
+    }
+
+    let scope = debug_scope.trim();
+    let scoped_message = if scope.is_empty() {
+        message.clone()
+    } else {
+        format!("[{scope}] {message}")
+    };
+
+    let stack = raw_stack.trim();
+    if stack.is_empty() {
+        return scoped_message;
+    }
+    if stack.starts_with(message.as_str()) {
+        if scope.is_empty() {
+            return stack.to_string();
+        }
+        return format!("[{scope}] {stack}");
+    }
+    format!("{scoped_message}\n{stack}")
+}
+
 fn build_bundle_call_script(name: &str, fn_path: &str, args: &Value) -> Result<String, String> {
     let name_literal =
         serde_json::to_string(name).map_err(|e| format!("序列化 bundle 名称失败: {e}"))?;
@@ -1174,8 +1205,8 @@ fn build_bundle_call_script(name: &str, fn_path: &str, args: &Value) -> Result<S
           }} catch (err) {{
             const base = String(err && err.message ? err.message : err || "执行失败");
             const stack = String(err && err.stack ? err.stack : "");
-            const message = stack ? `${{base}}\n${{stack}}` : base;
-            return JSON.stringify({{ ok: false, error: message }});
+            const debugScope = String(err && err.__bundle_scope ? err.__bundle_scope : "");
+            return JSON.stringify({{ ok: false, error: base, stack, debug_scope: debugScope }});
           }}
         }})()
         "#

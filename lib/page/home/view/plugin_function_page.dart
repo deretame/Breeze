@@ -5,6 +5,7 @@ import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/util/json/json_value.dart';
 
 import 'home_scheme_renderer.dart';
+import 'package:zephyr/util/error_filter.dart';
 
 @RoutePage()
 class PluginFunctionPage extends StatefulWidget {
@@ -70,7 +71,7 @@ class _PluginFunctionPageState extends State<PluginFunctionPage> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = normalizeSearchErrorMessage(e);
         _loading = false;
       });
     }

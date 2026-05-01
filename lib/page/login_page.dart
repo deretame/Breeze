@@ -6,6 +6,7 @@ import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../util/router/router.gr.dart';
+import 'package:zephyr/util/error_filter.dart';
 
 @RoutePage()
 class LoginPage extends StatefulWidget {
@@ -163,7 +164,7 @@ class _LoginPageState extends State<LoginPage> {
       context.maybePop();
     } catch (e) {
       logger.e(e);
-      _showDialog("登录失败", e.toString());
+      _showDialog("登录失败", normalizeSearchErrorMessage(e));
     }
   }
 

@@ -19,6 +19,7 @@ import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/util/sundry.dart';
 import 'package:zephyr/widgets/multi_choice_list_dialog.dart';
 import 'package:zephyr/widgets/toast.dart';
+import 'package:zephyr/util/error_filter.dart';
 
 @RoutePage()
 class PluginSettingsPage extends StatefulWidget {
@@ -127,7 +128,7 @@ class _PluginSettingsPageState extends State<PluginSettingsPage> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = normalizeSearchErrorMessage(e);
         _loading = false;
       });
     }

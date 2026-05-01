@@ -456,6 +456,45 @@ fn fetch_block_private_network_by_default() {
 }
 
 #[test]
+fn fetch_allow_private_network_when_config_enabled() {
+    let previous = current_http_client_config();
+    let mut config = current_http_client_config();
+    config.allow_private_network = true;
+    configure_http_client(config).expect("更新 HTTP 配置失败");
+
+    let (base_url, tx, handle) = spawn_test_server(2);
+    let script = format!(
+        r#"
+          (async () => {{
+            const res = await fetch("{}/hello?from=private-enabled");
+            const data = await res.json();
+            return JSON.stringify({{
+              status: res.status,
+              method: data.method,
+              path: data.path
+            }});
+          }})()
+        "#,
+        base_url
+    );
+
+    let runtime = crate::host_runtime::AsyncHostRuntime::new("test-web-runtime-private-allowed")
+        .expect("创建 runtime 失败");
+    let task = runtime.spawn(&script).expect("执行脚本失败");
+    let result = task.wait().expect("等待脚本结果失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+
+    assert_eq!(parsed["status"], 200);
+    assert_eq!(parsed["method"], "GET");
+    assert_eq!(parsed["path"], "/hello?from=private-enabled");
+    assert!(!result.contains("已拦截内网请求"));
+
+    configure_http_client(previous).expect("恢复 HTTP 配置失败");
+    let _ = tx.send(());
+    let _ = handle.join();
+}
+
+#[test]
 fn fetch_multiple_headers() {
     let (base_url, tx, handle) = spawn_test_server(2);
     let script = format!(

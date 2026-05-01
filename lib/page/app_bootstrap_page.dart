@@ -82,7 +82,7 @@ class _AppBootstrapViewState extends State<AppBootstrapView> {
     await PluginRegistryService.I.init();
     await PluginRegistryService.I.warmupPluginInfos();
     PluginRegistryService.I.scheduleSilentCloudUpdate(
-      delay: const Duration(minutes: 5),
+      delay: const Duration(minutes: 1),
     );
     unawaited(() async {
       try {

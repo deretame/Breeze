@@ -13,6 +13,7 @@ import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import 'home_scheme_renderer.dart';
+import 'package:zephyr/util/error_filter.dart';
 
 @RoutePage()
 class HomePage extends StatefulWidget {
@@ -800,7 +801,7 @@ class _PluginFunctionDialogContentState
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = normalizeSearchErrorMessage(e);
         _loading = false;
       });
     }

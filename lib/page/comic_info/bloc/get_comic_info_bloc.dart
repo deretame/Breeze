@@ -12,6 +12,7 @@ import 'package:zephyr/page/comic_info/comic_info.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/error_filter.dart';
 
 part 'get_comic_info_event.dart';
 part 'get_comic_info_state.dart';
@@ -95,7 +96,7 @@ class GetComicInfoBloc extends Bloc<GetComicInfoEvent, GetComicInfoState> {
       emit(
         state.copyWith(
           status: GetComicInfoStatus.failure,
-          result: e.toString(),
+          result: normalizeSearchErrorMessage(e),
         ),
       );
     }

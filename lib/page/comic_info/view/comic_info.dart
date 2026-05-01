@@ -21,6 +21,7 @@ import 'package:zephyr/util/sundry.dart';
 import '../../../util/router/router.dart';
 import '../../../widgets/error_view.dart';
 import '../../../widgets/toast.dart';
+import 'package:zephyr/util/error_filter.dart';
 
 enum MenuOption { export, cloudCollect, reverseOrder }
 
@@ -567,7 +568,7 @@ class _ComicInfoState extends State<_ComicInfo>
     } catch (e) {
       final errorMessage = e is StateError
           ? e.message.toString()
-          : "导出失败，请重试。\n${e.toString()}";
+          : "导出失败，请重试。\n${normalizeSearchErrorMessage(e)}";
       showErrorToast(errorMessage, duration: const Duration(seconds: 5));
     } finally {
       if (cacheZipPath != null) {

@@ -319,7 +319,7 @@ class _LocalShelfPageState extends State<LocalShelfPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('$message\n加载失败', textAlign: TextAlign.center),
+          Text(message, textAlign: TextAlign.center),
           const SizedBox(height: 10),
           ElevatedButton(onPressed: _dispatch, child: const Text('点击重试')),
         ],

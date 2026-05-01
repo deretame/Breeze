@@ -10,6 +10,7 @@ import 'package:zephyr/config/global/global.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../main.dart';
+import 'package:zephyr/util/error_filter.dart';
 
 @RoutePage()
 class FullScreenImagePage extends StatelessWidget {
@@ -61,7 +62,9 @@ class FullScreenImagePage extends StatelessWidget {
                     }
                   } catch (e, s) {
                     logger.e("桌面端保存图片失败", error: e, stackTrace: s);
-                    showErrorToast("图片保存失败！\n${e.toString()}");
+                    showErrorToast(
+                      "图片保存失败！\n${normalizeSearchErrorMessage(e)}",
+                    );
                   }
                 } else if (Platform.isAndroid || Platform.isIOS) {
                   // 移动端 (iOS & Android) 使用 gal 插件保存到相册

@@ -135,7 +135,7 @@ class PluginPagedCreatorListCubit extends Cubit<PluginPagedCreatorListState> {
               ? PluginPagedCreatorListStatus.loadingMoreFailure
               : PluginPagedCreatorListStatus.failure,
           list: currentList,
-          result: e.toString(),
+          result: (e as Exception).toString(),
         ),
       );
     }
@@ -212,7 +212,7 @@ class _PluginPagedCreatorListBodyState
             return const Center(child: CircularProgressIndicator());
           case PluginPagedCreatorListStatus.failure:
             return ErrorView(
-              errorMessage: '${state.result}\n加载失败，请重试。',
+              errorMessage: state.result,
               onRetry: () =>
                   context.read<PluginPagedCreatorListCubit>().loadInitial(),
             );

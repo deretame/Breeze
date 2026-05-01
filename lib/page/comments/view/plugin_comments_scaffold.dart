@@ -5,6 +5,7 @@ import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/cover.dart';
+import 'package:zephyr/util/error_filter.dart';
 
 @RoutePage(name: 'PluginCommentsScaffoldRoute')
 class PluginCommentsScaffold extends StatefulWidget {
@@ -359,7 +360,7 @@ class _PluginCommentsScaffoldState extends State<PluginCommentsScaffold> {
       }
       setState(() {
         _loading = false;
-        _error = e.toString();
+        _error = normalizeSearchErrorMessage(e);
       });
     }
   }
@@ -390,7 +391,7 @@ class _PluginCommentsScaffoldState extends State<PluginCommentsScaffold> {
       }
       setState(() {
         _loadingMore = false;
-        _error = e.toString();
+        _error = normalizeSearchErrorMessage(e);
       });
     }
   }

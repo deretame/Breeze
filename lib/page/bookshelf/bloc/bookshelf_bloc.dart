@@ -10,6 +10,7 @@ import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/models/search_enter.dart';
 import 'package:zephyr/page/bookshelf/models/shelf_page_mode.dart';
+import 'package:zephyr/util/error_filter.dart';
 
 const _kPageSize = 200;
 
@@ -199,7 +200,7 @@ class BookshelfSectionBloc
         emit(
           current.copyWith(
             status: BookshelfLoadStatus.failure,
-            result: e.toString(),
+            result: normalizeSearchErrorMessage(e),
             isLoadingMore: false,
             loadMoreFailed: false,
             searchEnterConst: event.searchEnterConst,
@@ -450,7 +451,7 @@ Future<Map<String, dynamic>> _runBookshelfFilterTask(
 
     return {'items': filtered};
   } catch (e) {
-    return {'error': e.toString(), 'items': [], 'total': 0};
+    return {'error': normalizeSearchErrorMessage(e), 'items': [], 'total': 0};
   }
 }
 

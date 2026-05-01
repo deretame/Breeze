@@ -7,6 +7,7 @@ import 'package:zephyr/page/comic_read/method/get_plugin_read_snapshot.dart';
 import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/error_filter.dart';
 
 part 'page_event.dart';
 part 'page_state.dart';
@@ -55,7 +56,12 @@ class PageBloc extends Bloc<PageEvent, PageState> {
     } on StateError catch (_) {
       emit(state.copyWith(status: PageStatus.failure, result: "no element"));
     } catch (e) {
-      emit(state.copyWith(status: PageStatus.failure, result: e.toString()));
+      emit(
+        state.copyWith(
+          status: PageStatus.failure,
+          result: normalizeSearchErrorMessage(e),
+        ),
+      );
     }
   }
 }

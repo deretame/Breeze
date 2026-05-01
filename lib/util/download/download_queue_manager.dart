@@ -16,6 +16,7 @@ import 'package:zephyr/util/foreground_task/task/unified_download_task.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/macos_activity.dart';
 import 'package:zephyr/widgets/toast.dart';
+import 'package:zephyr/util/error_filter.dart';
 
 const _kQjsRuntimeCancelledMessage = '__QJS_RUNTIME_CANCELLED__';
 
@@ -223,7 +224,9 @@ class DownloadQueueManager {
 
         logger.e("任务 ${task.comicName} 失败", error: e, stackTrace: s);
 
-        showErrorToast("${task.comicName} 下载失败 ${e.toString()}");
+        showErrorToast(
+          "${task.comicName} 下载失败 ${normalizeSearchErrorMessage(e)}",
+        );
 
         dbTask.isDownloading = false;
         objectbox.downloadTaskBox.put(dbTask);
@@ -333,7 +336,9 @@ class DownloadQueueManager {
 
         logger.e("任务 ${task.comicName} 失败", error: e, stackTrace: s);
 
-        showErrorToast("${task.comicName} 下载失败 ${e.toString()}");
+        showErrorToast(
+          "${task.comicName} 下载失败 ${normalizeSearchErrorMessage(e)}",
+        );
 
         dbTask.isDownloading = false;
         objectbox.downloadTaskBox.put(dbTask);

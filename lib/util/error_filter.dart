@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:logger/logger.dart';
 import 'package:stack_trace/stack_trace.dart';
 
@@ -37,4 +38,15 @@ class TersePrettyPrinter extends PrettyPrinter {
       methodCount,
     );
   }
+}
+
+String normalizeSearchErrorMessage(Object error) {
+  final message = switch (error) {
+    AnyhowException(message: final message) => message.trim(),
+    _ => error.toString().trim(),
+  };
+  if (message.isNotEmpty) {
+    return message;
+  }
+  return '执行失败';
 }

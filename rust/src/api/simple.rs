@@ -3,6 +3,7 @@ use crate::decode;
 use crate::frb_generated::StreamSink;
 use anyhow::{Result, anyhow};
 use flutter_rust_bridge::frb;
+use rquickjs_playground::{configure_http_client, current_http_client_config};
 use std::sync::Once;
 
 static INIT: Once = Once::new();
@@ -10,6 +11,9 @@ static INIT: Once = Once::new();
 #[frb(init)]
 pub fn init_app() {
     crate::api::user_utils::setup_default_user_utils();
+    let mut config = current_http_client_config();
+    config.allow_private_network = true;
+    configure_http_client(config).expect("更新 HTTP 配置失败");
 }
 
 #[frb]

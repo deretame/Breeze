@@ -10,6 +10,7 @@ import 'package:zephyr/page/comic_list/view/plugin_comic_grid_sliver.dart';
 import 'package:zephyr/util/json/json_dispose.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 import 'package:zephyr/widgets/error_view.dart';
+import 'package:zephyr/util/error_filter.dart';
 
 typedef PluginPageCoreBuilder = Map<String, dynamic> Function(int page);
 typedef PluginPageExternBuilder = Map<String, dynamic> Function(int page);
@@ -162,7 +163,7 @@ class PluginPagedComicListCubit extends Cubit<PluginPagedComicListState> {
               ? PluginPagedComicListStatus.loadingMoreFailure
               : PluginPagedComicListStatus.failure,
           list: currentList,
-          result: e.toString(),
+          result: normalizeSearchErrorMessage(e),
         ),
       );
     }

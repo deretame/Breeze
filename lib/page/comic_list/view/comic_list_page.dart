@@ -8,6 +8,7 @@ import 'package:zephyr/page/comic_list/scene_filter/plugin_list_filter_schema.da
 import 'package:zephyr/page/comic_list/view/plugin_paged_comic_list_view.dart';
 import 'package:zephyr/page/comic_list/view/plugin_paged_creator_list_view.dart';
 import 'package:zephyr/util/json/json_value.dart';
+import 'package:zephyr/util/error_filter.dart';
 
 class _ListFilterBundle {
   const _ListFilterBundle({
@@ -317,7 +318,7 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
       }
 
       setState(() {
-        _sceneErrors[from] = e.toString();
+        _sceneErrors[from] = normalizeSearchErrorMessage(e);
         _loadingScenes.remove(from);
       });
     }
@@ -399,7 +400,7 @@ class _ComicListScaffoldState extends State<ComicListScaffold> {
       }
 
       setState(() {
-        _filterErrors[from] = e.toString();
+        _filterErrors[from] = normalizeSearchErrorMessage(e);
         _loadingFilters.remove(from);
       });
     }

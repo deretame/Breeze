@@ -240,7 +240,7 @@ class PluginRegistryService {
   }
 
   void scheduleSilentCloudUpdate({
-    Duration delay = const Duration(minutes: 1),
+    Duration delay = const Duration(minutes: 5),
   }) {
     if (_silentCloudUpdateScheduled) {
       return;
@@ -303,7 +303,7 @@ class PluginRegistryService {
       }
 
       try {
-        final payload = await _downloadCloudPluginUpdate(
+        final payload = await _downloadCloudPluginUpdateWithRetry(
           repo: cloud.repo,
           updateUrl: updateUrl,
           expectedUuid: local.uuid,
@@ -523,6 +523,75 @@ class PluginRegistryService {
       script: trimmed,
       sourceLabel: '静默更新: $repo${assetName.isNotEmpty ? '/$assetName' : ''}',
     );
+  }
+
+  Future<_PluginUpdatePayload> _downloadCloudPluginUpdateWithRetry({
+    required String repo,
+    required String updateUrl,
+    required String expectedUuid,
+    required String cloudVersion,
+  }) async {
+    const maxAttempts = 3;
+    Object? lastError;
+
+    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await _downloadCloudPluginUpdate(
+          repo: repo,
+          updateUrl: updateUrl,
+          expectedUuid: expectedUuid,
+          cloudVersion: cloudVersion,
+        );
+      } catch (e, st) {
+        lastError = e;
+        final isNetworkError = _isNetworkRetryableError(e);
+        if (!isNetworkError) {
+          rethrow;
+        }
+        if (attempt >= maxAttempts) {
+          break;
+        }
+        logger.w(
+          '插件静默更新网络错误，准备重试($attempt/$maxAttempts): $expectedUuid',
+          error: e,
+          stackTrace: st,
+        );
+        await Future.delayed(Duration(milliseconds: 400 * attempt));
+      }
+    }
+
+    throw StateError('插件静默更新网络错误，重试次数用尽: $expectedUuid, error: $lastError');
+  }
+
+  bool _isNetworkRetryableError(Object error) {
+    if (error is TimeoutException ||
+        error is SocketException ||
+        error is HandshakeException) {
+      return true;
+    }
+    if (error is DioException) {
+      switch (error.type) {
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+        case DioExceptionType.connectionError:
+          return true;
+        case DioExceptionType.badResponse:
+          final status = error.response?.statusCode ?? 0;
+          return status >= 500 || status == 429 || status == 408;
+        case DioExceptionType.cancel:
+        case DioExceptionType.badCertificate:
+        case DioExceptionType.unknown:
+          return false;
+      }
+    }
+    final text = error.toString().toLowerCase();
+    return text.contains('socketexception') ||
+        text.contains('timed out') ||
+        text.contains('timeout') ||
+        text.contains('connection reset') ||
+        text.contains('connection refused') ||
+        text.contains('network');
   }
 
   Map<String, dynamic>? _pickPreferredPluginAsset(List<dynamic> rawAssets) {

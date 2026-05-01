@@ -218,6 +218,7 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
   // 配置http代理，方便开发测试
   if (kDebugMode) {
     setQjsErrorStackEnabled(enabled: true);
+    await _tryApplyHttpProxyFromEnv();
   }
 
   // 初始化前台任务
@@ -269,8 +270,6 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
     SocksProxy.initProxy(proxy: 'SOCKS5 $proxy');
     await setSocks5Proxy(proxy: proxy);
   }
-
-  await _tryApplyHttpProxyFromEnv();
 
   final logAddress = objectbox.userSettingBox.get(1)!.globalSetting.logAddress;
 

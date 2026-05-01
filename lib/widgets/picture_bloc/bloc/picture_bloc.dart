@@ -3,6 +3,7 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/widgets/picture_bloc/models/models.dart';
 
 import '../../../network/http/picture/picture.dart';
@@ -57,7 +58,10 @@ class PictureBloc extends Bloc<GetPicture, PictureLoadState> {
         logger.e(e, stackTrace: s);
       }
       emit(
-        state.copyWith(status: PictureLoadStatus.failure, result: e.toString()),
+        state.copyWith(
+          status: PictureLoadStatus.failure,
+          result: normalizeSearchErrorMessage(e),
+        ),
       );
     }
   }

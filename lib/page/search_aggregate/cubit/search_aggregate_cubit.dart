@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/page/search_result/method/get_plugin_result.dart';
 import 'package:zephyr/page/search_result/models/bloc_state.dart';
+import 'package:zephyr/util/error_filter.dart';
 
 enum AggregateSearchStatus { initial, loading, success, failure }
 
@@ -98,7 +99,7 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
           if (!_isSearchActive(searchVersion)) {
             return;
           }
-          nextErrors[pluginId] = error.toString();
+          nextErrors[pluginId] = normalizeSearchErrorMessage(error);
           nextResults[pluginId] = const <dynamic>[];
         } finally {
           if (_isSearchActive(searchVersion)) {
@@ -145,7 +146,7 @@ class AggregateSearchCubit extends Cubit<AggregateSearchState> {
       nextErrors.remove(pluginId);
     } catch (error) {
       nextResults[pluginId] = const <dynamic>[];
-      nextErrors[pluginId] = error.toString();
+      nextErrors[pluginId] = normalizeSearchErrorMessage(error);
     } finally {
       refreshing.remove(pluginId);
     }

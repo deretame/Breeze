@@ -4,6 +4,7 @@ import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/page/comic_info/models/collect_comic.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 
 import '../../../util/dialog.dart';
@@ -155,7 +156,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         return;
       }
       showErrorToast(
-        '本地收藏失败: ${error.toString()}',
+        '本地收藏失败: ${normalizeSearchErrorMessage(error)}',
         duration: const Duration(seconds: 5),
       );
     }
@@ -184,7 +185,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         return;
       }
       showErrorToast(
-        '点赞失败: ${error.toString()}',
+        '点赞失败: ${normalizeSearchErrorMessage(error)}',
         duration: const Duration(seconds: 5),
       );
     }

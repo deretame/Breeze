@@ -8,6 +8,7 @@ import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/method/get_plugin_result.dart';
 import 'package:zephyr/page/search_result/models/bloc_state.dart';
 import 'package:zephyr/type/pipe.dart';
+import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/sundry.dart';
 
 import '../models/models.dart';
@@ -191,7 +192,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
             status: SearchStatus.getMoreFailure,
             comics: blocState.visibleComics,
             searchEvent: event,
-            result: e.toString(),
+            result: normalizeSearchErrorMessage(e),
           ),
         );
         return;
@@ -201,7 +202,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         state.copyWith(
           status: SearchStatus.failure,
           searchEvent: event,
-          result: e.toString(),
+          result: normalizeSearchErrorMessage(e),
         ),
       );
     }

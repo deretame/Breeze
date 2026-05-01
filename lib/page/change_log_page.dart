@@ -8,6 +8,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zephyr/util/update/json/github_release_json.dart';
+import 'package:zephyr/util/error_filter.dart';
 
 final dio = Dio();
 const _releasesApiUrl = 'https://api.github.com/repos/deretame/Breeze/releases';
@@ -105,7 +106,7 @@ class _ChangelogPageState extends State<ChangelogPage> {
         if (_releases.isEmpty && refresh) {
           setState(() {
             _isLoading = false;
-            _errorMsg = e.toString();
+            _errorMsg = normalizeSearchErrorMessage(e);
           });
         } else {
           // 如果是加载更多时出错，提示 Toast 或在底部显示失败

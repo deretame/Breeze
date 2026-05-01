@@ -6,8 +6,8 @@ use rquickjs_playground::web_runtime::native_buffer_take_raw;
 use rquickjs_playground::{
     AsyncHostRuntime, AsyncHostRuntimeBuilder, HttpClientConfig, WebRuntimeOptions,
     configure_http_client, configure_js_error_stack, configure_log_http_endpoint,
-    register_bridge_route_async_handler, register_bridge_route_blocking_handler,
-    register_bridge_route_sync_handler,
+    js_error_stack_enabled, register_bridge_route_async_handler,
+    register_bridge_route_blocking_handler, register_bridge_route_sync_handler,
 };
 use serde_json::{Value, json};
 use std::collections::{HashMap, HashSet};
@@ -296,6 +296,7 @@ fn new_host_cache_entry(value: Value) -> HostCacheEntry {
 }
 
 fn ensure_host_cache_gc_started() {
+    return;
     if HOST_CACHE_GC_STARTED.get().is_some() {
         return;
     }
@@ -653,12 +654,63 @@ fn parse_ok_json_payload(raw: &str) -> Result<Value> {
             .get("error")
             .and_then(Value::as_str)
             .unwrap_or("执行失败");
-        if is_cancelled_error_text(error_message) {
+        let error_stack = payload.get("stack").and_then(Value::as_str).unwrap_or("");
+        let debug_scope = payload
+            .get("debug_scope")
+            .and_then(Value::as_str)
+            .unwrap_or("");
+        let error_message = format_qjs_error_message(error_message, error_stack, debug_scope);
+        if is_cancelled_error_text(&error_message) {
             tracing::info!("QJS 任务被取消(解析返回体): {error_message}");
             return Err(anyhow!(QJS_RUNTIME_CANCELLED_ERROR_CODE));
         }
         Err(anyhow!("{}", error_message))
     }
+}
+
+fn simplify_stack_message(raw: &str) -> String {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return "执行失败".to_string();
+    }
+
+    for line in trimmed.lines() {
+        let text = line.trim();
+        if text.is_empty() {
+            continue;
+        }
+        if !text.starts_with("at ") {
+            return text.to_string();
+        }
+    }
+
+    trimmed.lines().next().unwrap_or(trimmed).trim().to_string()
+}
+
+fn format_qjs_error_message(error: &str, stack: &str, debug_scope: &str) -> String {
+    let message = simplify_stack_message(error);
+    if !js_error_stack_enabled() {
+        return message;
+    }
+
+    let scope = debug_scope.trim();
+    let scoped_message = if scope.is_empty() {
+        message.clone()
+    } else {
+        format!("[{scope}] {message}")
+    };
+
+    let stack = stack.trim();
+    if stack.is_empty() {
+        return scoped_message;
+    }
+    if stack.starts_with(message.as_str()) {
+        if scope.is_empty() {
+            return stack.to_string();
+        }
+        return format!("[{scope}] {stack}");
+    }
+    format!("{scoped_message}\n{stack}")
 }
 
 async fn insert_runtime_task_id(runtime_name: &str, task_id: u64) {

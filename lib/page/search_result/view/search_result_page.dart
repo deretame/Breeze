@@ -185,10 +185,7 @@ class _SearchResultPageState extends State<_SearchResultPage>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  '${state.result.toString()}\n加载失败',
-                  style: TextStyle(fontSize: 20),
-                ),
+                Text(state.result, style: TextStyle(fontSize: 20)),
                 SizedBox(height: 10), // 添加间距
                 ElevatedButton(
                   onPressed: () {

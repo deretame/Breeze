@@ -10,6 +10,7 @@ import 'package:zephyr/util/foreground_task/init.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../comments/widgets/title.dart';
+import 'package:zephyr/util/error_filter.dart';
 
 @RoutePage()
 class DownloadPage extends StatefulWidget {
@@ -174,7 +175,7 @@ class _DownloadPageState extends State<DownloadPage> {
       showInfoToast("下载任务已启动");
     } catch (e, s) {
       logger.e(e, stackTrace: s);
-      showErrorToast("下载任务启动失败，${e.toString()}");
+      showErrorToast("下载任务启动失败，${normalizeSearchErrorMessage(e)}");
     }
   }
 }

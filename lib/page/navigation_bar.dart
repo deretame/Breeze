@@ -26,6 +26,7 @@ import 'bookshelf/bookshelf.dart';
 import 'home/view/home.dart';
 import 'old_page/old_home/old_home_page.dart';
 import 'old_page/old_ranking/old_ranking_page.dart';
+import 'package:zephyr/util/error_filter.dart';
 
 @RoutePage()
 class NavigationBar extends StatefulWidget {
@@ -309,7 +310,7 @@ class _NavigationBarState extends State<NavigationBar> {
     } catch (e, stackTrace) {
       logger.e(e.toString(), stackTrace: stackTrace);
       showErrorToast(
-        "请检查网络连接或稍后再试。\n${e.toString()}",
+        "请检查网络连接或稍后再试。\n${normalizeSearchErrorMessage(e)}",
         title: force ? "同步失败" : "自动同步失败",
       );
     }

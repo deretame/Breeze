@@ -452,14 +452,15 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       ),
       trailing: const Icon(Icons.chevron_right),
       onTap: () async {
-        final controller = TextEditingController(text: logAddress);
+        var inputValue = logAddress;
         final result = await showDialog<String>(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('设置日志地址'),
-            content: TextField(
-              controller: controller,
+            content: TextFormField(
+              initialValue: logAddress,
               autofocus: true,
+              onChanged: (value) => inputValue = value.trim(),
               decoration: const InputDecoration(
                 hintText: 'https://example.com/log',
                 border: OutlineInputBorder(),
@@ -472,13 +473,12 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               ),
               TextButton(
                 child: const Text('确定'),
-                onPressed: () => Navigator.pop(context, controller.text.trim()),
+                onPressed: () => Navigator.pop(context, inputValue),
               ),
             ],
           ),
         );
 
-        controller.dispose();
         if (result != null && result != logAddress) {
           cubit.updateState((current) => current.copyWith(logAddress: result));
           showSuccessToast('设置成功');

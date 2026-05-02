@@ -172,6 +172,17 @@ pub fn set_qjs_error_stack_enabled(enabled: bool) -> Result<()> {
     crate::qjs::set_qjs_error_stack_enabled(enabled)
 }
 
+#[frb(sync)]
+pub fn set_host_cache_gc_enabled(enabled: bool) -> Result<()> {
+    crate::qjs::set_host_cache_gc_enabled(enabled);
+    Ok(())
+}
+
+#[frb(sync)]
+pub fn is_host_cache_gc_enabled() -> Result<bool> {
+    Ok(crate::qjs::is_host_cache_gc_enabled())
+}
+
 #[frb]
 pub fn register_load_plugin_config(
     dart_callback: impl Fn(String, String, String) -> DartFnFuture<String> + Send + Sync + 'static,

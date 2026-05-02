@@ -51,6 +51,8 @@ static LOAD_PLUGIN_CONFIG_CALLBACK: OnceLock<StdRwLock<Option<PersistentCallback
     OnceLock::new();
 static HOST_CACHE_STORE: OnceLock<DashMap<String, HostCacheEntry>> = OnceLock::new();
 static HOST_CACHE_GC_STARTED: OnceLock<()> = OnceLock::new();
+static HOST_CACHE_GC_ENABLED: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
 static CANCELLED_TASK_GROUPS: OnceLock<DashMap<String, Instant>> = OnceLock::new();
 
 #[derive(Clone)]
@@ -296,7 +298,10 @@ fn new_host_cache_entry(value: Value) -> HostCacheEntry {
 }
 
 fn ensure_host_cache_gc_started() {
-    return;
+    if !is_host_cache_gc_enabled() {
+        return;
+    }
+
     if HOST_CACHE_GC_STARTED.get().is_some() {
         return;
     }
@@ -342,6 +347,17 @@ fn ensure_host_cache_gc_started() {
             tracing::warn!("host cache gc start skipped: no tokio runtime");
         }
     });
+}
+
+pub fn set_host_cache_gc_enabled(enabled: bool) {
+    HOST_CACHE_GC_ENABLED.store(enabled, std::sync::atomic::Ordering::Relaxed);
+    if enabled {
+        ensure_host_cache_gc_started();
+    }
+}
+
+pub fn is_host_cache_gc_enabled() -> bool {
+    HOST_CACHE_GC_ENABLED.load(std::sync::atomic::Ordering::Relaxed)
 }
 
 impl TrackedQjsTaskState {
@@ -1511,7 +1527,6 @@ pub fn init_rust_functions() -> Result<()> {
             );
             return Ok(json!(false));
         }
-        ensure_host_cache_gc_started();
         let scoped_key = scoped_route_key(&runtime, key);
         host_cache_store_cell().insert(scoped_key, new_host_cache_entry(value));
         Ok(json!(true))
@@ -1532,7 +1547,6 @@ pub fn init_rust_functions() -> Result<()> {
             );
             return Ok(json!(false));
         }
-        ensure_host_cache_gc_started();
         let scoped_key = scoped_route_key(&runtime, key);
         let cache = host_cache_store_cell();
         let now = Instant::now();
@@ -1568,7 +1582,6 @@ pub fn init_rust_functions() -> Result<()> {
             );
             return Ok(json!(false));
         }
-        ensure_host_cache_gc_started();
         let scoped_key = scoped_route_key(&runtime, key);
         let cache = host_cache_store_cell();
         let updated = match cache.get_mut(&scoped_key) {

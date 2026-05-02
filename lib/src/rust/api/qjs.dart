@@ -179,6 +179,12 @@ Future<void> setSocks5Proxy({required String proxy}) =>
 void setQjsErrorStackEnabled({required bool enabled}) =>
     RustLib.instance.api.crateApiQjsSetQjsErrorStackEnabled(enabled: enabled);
 
+void setHostCacheGcEnabled({required bool enabled}) =>
+    RustLib.instance.api.crateApiQjsSetHostCacheGcEnabled(enabled: enabled);
+
+bool isHostCacheGcEnabled() =>
+    RustLib.instance.api.crateApiQjsIsHostCacheGcEnabled();
+
 Future<void> registerLoadPluginConfig({
   required FutureOr<String> Function(String, String, String) dartCallback,
 }) => RustLib.instance.api.crateApiQjsRegisterLoadPluginConfig(

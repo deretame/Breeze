@@ -211,13 +211,15 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
   // 初始化rust
   await RustLib.init();
 
+  // 初始化工作线程
   await workerManager.init(isolatesCount: Platform.numberOfProcessors);
 
+  // 关掉rust端，主要是anyhow的堆栈调用信息
   enableStacktrace(enabled: false);
 
-  // 配置http代理，方便开发测试
   if (kDebugMode) {
     setQjsErrorStackEnabled(enabled: true);
+    // 配置http代理，方便开发测试
     await _tryApplyHttpProxyFromEnv();
   }
 
@@ -239,6 +241,7 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
   final isWin = Platform.isWindows;
   final cache = PaintingBinding.instance.imageCache;
 
+  // 设置图片缓存数量和内存占用大小（桌面端设置的稍微大点）
   cache.maximumSizeBytes = 200 * 1024 * 1024 * (isWin ? 3 : 1);
   cache.maximumSize = 50 * (isWin ? 3 : 1);
 
@@ -271,7 +274,8 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
     await setSocks5Proxy(proxy: proxy);
   }
 
-  final logAddress = objectbox.userSettingBox.get(1)!.globalSetting.logAddress;
+  // 设置日志转发（包含flutter和qjs的日志）
+  final logAddress = globalSettingCubit.state.logAddress;
 
   if (logAddress.isNotEmpty) {
     if (!kDebugMode) {
@@ -283,6 +287,9 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
     }
     setLogHttpForward(url: logAddress);
   }
+
+  // 关掉缓存定时清理
+  setHostCacheGcEnabled(enabled: false);
 
   return (globalSettingCubit, pluginRegistryCubit);
 }

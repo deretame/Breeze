@@ -30,15 +30,16 @@ Widget socks5ProxyEdit(BuildContext context, String currentProxy) {
     trailing: const Icon(Icons.chevron_right),
     onTap: () async {
       final globalSettingCubit = context.read<GlobalSettingCubit>();
-      final controller = TextEditingController(text: currentProxy);
+      var inputValue = currentProxy;
 
       final result = await showDialog<String>(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('设置SOCKS5代理'),
-          content: TextField(
-            controller: controller,
+          content: TextFormField(
+            initialValue: currentProxy,
             autofocus: true,
+            onChanged: (value) => inputValue = value.trim(),
             decoration: const InputDecoration(
               hintText: 'ip:port',
               border: OutlineInputBorder(),
@@ -51,13 +52,11 @@ Widget socks5ProxyEdit(BuildContext context, String currentProxy) {
             ),
             TextButton(
               child: const Text('确定'),
-              onPressed: () => Navigator.pop(context, controller.text.trim()),
+              onPressed: () => Navigator.pop(context, inputValue),
             ),
           ],
         ),
       );
-
-      controller.dispose();
 
       if (result != null && result != currentProxy) {
         globalSettingCubit.updateState(

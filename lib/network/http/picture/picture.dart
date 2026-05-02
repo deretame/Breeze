@@ -17,7 +17,6 @@ import '../../../util/get_path.dart';
 final pictureDio = Dio();
 const _kQjsRuntimeCancelled = '__QJS_RUNTIME_CANCELLED__';
 const _kDownloadTaskCancelled = '__DOWNLOAD_TASK_CANCELLED__';
-const _kDownloadSkipMessage = '__DOWNLOAD_SKIP__';
 const _kJmScrambleId = 220980;
 const _kJmPluginUuid = 'bf99008d-010b-4f17-ac7c-61a9b57dc3d9';
 
@@ -489,7 +488,7 @@ Future<Uint8List> downloadImageWithRetry(
           e.toString().contains('404');
       if (isNotFound) {
         logger.w('下载图片资源不存在，跳过: $url');
-        throw Exception(_kDownloadSkipMessage);
+        rethrow;
       }
 
       if (e is TimeoutException) {
@@ -499,7 +498,7 @@ Future<Uint8List> downloadImageWithRetry(
       }
 
       if (!retry || attempts >= maxRetries) {
-        throw Exception(_kDownloadSkipMessage);
+        rethrow;
       }
 
       await _delayWithCancel(

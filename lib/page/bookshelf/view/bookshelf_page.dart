@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/cubit/plugin_registry_cubit.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart' hide SearchEnter;
+import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
@@ -336,7 +337,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
       return name.isNotEmpty ? name : pluginId;
     }
 
-    if (availableSources.isEmpty) {
+    if (availableSources.isEmpty && currentMode != ShelfPageMode.favorite) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('暂无可筛选的插件来源')));
@@ -344,7 +345,12 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     }
 
     var selectedSort = current.sort == 'da' ? 'da' : 'dd';
-    var selectedSources = current.sources
+    final currentFolderKey =
+        FavoriteFolderService.parseFolderKeyFromSources(current.sources) ??
+        kFavoriteFolderAllKey;
+    var selectedFolderKey = currentFolderKey;
+    var selectedSources = FavoriteFolderService
+        .stripFolderSourceTokens(current.sources)
         .where(availableSources.contains)
         .toSet();
     if (selectedSources.isEmpty) {
@@ -385,6 +391,105 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
                     ],
                   ),
                   const SizedBox(height: 16),
+                  if (currentMode == ShelfPageMode.favorite) ...[
+                    Row(
+                      children: [
+                        Text(
+                          '收藏夹',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        const Spacer(),
+                        TextButton(
+                          onPressed: () async {
+                            final created = await _showCreateFolderDialog(context);
+                            if (created == null || created.trim().isEmpty) {
+                              return;
+                            }
+                            try {
+                              final folder = FavoriteFolderService.createFolder(created);
+                              setModalState(() => selectedFolderKey = folder.key);
+                            } catch (e) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(e.toString())),
+                              );
+                            }
+                          },
+                          child: const Text('新建'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final folder in FavoriteFolderService.listFolders())
+                          GestureDetector(
+                            onLongPress: folder.isAll
+                                ? null
+                                : () async {
+                                    if (!mounted) return;
+                                    final rootContext = this.context;
+                                    final action =
+                                        await _showFolderActionDialog(
+                                          rootContext,
+                                          folder.name,
+                                        );
+                                    if (action == null) return;
+                                    if (action == _FolderAction.delete) {
+                                      if (!rootContext.mounted) return;
+                                      final ok = await _confirmDeleteFolder(
+                                        rootContext,
+                                        folder.name,
+                                      );
+                                      if (ok != true) return;
+                                      if (!mounted) return;
+                                      FavoriteFolderService.deleteFolder(
+                                        folder.key,
+                                      );
+                                      setModalState(() {
+                                        selectedFolderKey =
+                                            kFavoriteFolderAllKey;
+                                      });
+                                      return;
+                                    }
+                                    if (!rootContext.mounted) return;
+                                    final renamed = await _showRenameFolderDialog(
+                                      rootContext,
+                                      initialName: folder.name,
+                                    );
+                                    if (renamed == null ||
+                                        renamed.trim().isEmpty) {
+                                      return;
+                                    }
+                                    if (!mounted) return;
+                                    try {
+                                      FavoriteFolderService.renameFolder(
+                                        folder.key,
+                                        renamed.trim(),
+                                      );
+                                      setModalState(() {});
+                                    } catch (e) {
+                                      if (!mounted || !rootContext.mounted) return;
+                                      ScaffoldMessenger.of(rootContext).showSnackBar(
+                                        SnackBar(content: Text(e.toString())),
+                                      );
+                                    }
+                                  },
+                            child: ChoiceChip(
+                              showCheckmark: false,
+                              label: Text(folder.name),
+                              selected: selectedFolderKey == folder.key,
+                              onSelected: (_) => setModalState(
+                                () => selectedFolderKey = folder.key,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   Row(
                     children: [
                       Text(
@@ -450,8 +555,116 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     if (applied != true) return;
 
     searchCubit.setSort(currentMode, selectedSort);
-    searchCubit.setSources(currentMode, selectedSources.toList());
+    final nextSources = selectedSources.toList();
+    if (currentMode == ShelfPageMode.favorite) {
+      nextSources.add(FavoriteFolderService.sourceToken(selectedFolderKey));
+    }
+    searchCubit.setSources(currentMode, nextSources);
     _triggerRefresh(goTop: true);
+  }
+
+  Future<bool?> _confirmDeleteFolder(BuildContext context, String name) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('删除收藏夹'),
+        content: Text('是否删除当前文件夹「$name」？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<_FolderAction?> _showFolderActionDialog(
+    BuildContext context,
+    String name,
+  ) {
+    return showDialog<_FolderAction>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(name),
+        content: const Text('请选择操作'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(_FolderAction.rename),
+            child: const Text('重命名'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(_FolderAction.delete),
+            child: const Text('删除'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<String?> _showRenameFolderDialog(
+    BuildContext context, {
+    required String initialName,
+  }) async {
+    final controller = TextEditingController(text: initialName);
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('重命名收藏夹'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: '输入新的收藏夹名称'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return result;
+  }
+
+  Future<String?> _showCreateFolderDialog(BuildContext context) async {
+    final controller = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('新建收藏夹'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: '输入收藏夹名称'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+            child: const Text('创建'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return result;
   }
 
   void _syncSourcesFromRegistry(Map<String, PluginRuntimeState> pluginStates) {
@@ -490,3 +703,5 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     return entries.join('|');
   }
 }
+
+enum _FolderAction { rename, delete }

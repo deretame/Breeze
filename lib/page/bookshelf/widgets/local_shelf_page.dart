@@ -8,6 +8,7 @@ import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
+import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/page/comic_list/view/plugin_comic_grid_sliver.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/get_path.dart';
@@ -127,7 +128,8 @@ class _LocalShelfPageState extends State<LocalShelfPage>
     _bloc.add(BookshelfItemRemoved(uniqueKey: uniqueKey));
   }
 
-  String _entryKey(ComicSimplifyEntryInfo info) => '${info.from}:${info.id}';
+  String _entryKey(ComicSimplifyEntryInfo info) =>
+      '${info.from.trim()}:${info.id}';
 
   void _enterSelectionModeWith(ComicSimplifyEntryInfo info) {
     final key = _entryKey(info);
@@ -208,18 +210,28 @@ class _LocalShelfPageState extends State<LocalShelfPage>
     if (ok != true) return;
 
     try {
+      final folderKey = FavoriteFolderService.parseFolderKeyFromSources(
+        _currentSearchState().sources,
+      );
+      final inAllFolder =
+          folderKey == null || folderKey == kFavoriteFolderAllKey;
       for (final entry in selected) {
         final uniqueKey = _entryKey(entry);
         switch (widget.mode) {
           case ShelfPageMode.favorite:
-            final temp = objectbox.unifiedFavoriteBox
-                .query(UnifiedComicFavorite_.uniqueKey.equals(uniqueKey))
-                .build()
-                .findFirst();
-            if (temp != null) {
-              temp.deleted = true;
-              temp.updatedAt = DateTime.now().toUtc();
-              objectbox.unifiedFavoriteBox.put(temp);
+            if (!inAllFolder) {
+              FavoriteFolderService.removeMembers(folderKey, [uniqueKey]);
+            } else {
+              final temp = objectbox.unifiedFavoriteBox
+                  .query(UnifiedComicFavorite_.uniqueKey.equals(uniqueKey))
+                  .build()
+                  .findFirst();
+              if (temp != null) {
+                temp.deleted = true;
+                temp.updatedAt = DateTime.now().toUtc();
+                objectbox.unifiedFavoriteBox.put(temp);
+                FavoriteFolderService.removeMemberFromAllFolders(uniqueKey);
+              }
             }
             break;
           case ShelfPageMode.history:
@@ -420,6 +432,14 @@ class _LocalShelfPageState extends State<LocalShelfPage>
                               onPressed: () => _selectAll(entries),
                               child: const Text('全选'),
                             ),
+                            if (widget.mode == ShelfPageMode.favorite)
+                              IconButton(
+                                tooltip: '加入收藏夹',
+                                onPressed: () => _addSelectedToFolder(entries),
+                                icon: const Icon(
+                                  Icons.create_new_folder_outlined,
+                                ),
+                              ),
                             IconButton(
                               tooltip: '删除选中',
                               onPressed: () => _confirmBatchDelete(entries),
@@ -437,5 +457,79 @@ class _LocalShelfPageState extends State<LocalShelfPage>
         ),
       ],
     );
+  }
+
+  Future<void> _addSelectedToFolder(
+    List<ComicSimplifyEntryInfo> entries,
+  ) async {
+    if (_selectedKeys.isEmpty) return;
+    final selected = entries
+        .where((entry) => _selectedKeys.contains(_entryKey(entry)))
+        .toList();
+    if (selected.isEmpty) return;
+    final folders = FavoriteFolderService.listFolders()
+        .where((item) => !item.isAll)
+        .toList();
+    if (folders.isEmpty) {
+      showErrorToast('请先创建自定义收藏夹');
+      return;
+    }
+    final selectedFolderKeys = await _showFolderPickDialog(folders);
+    if (selectedFolderKeys.isEmpty) {
+      return;
+    }
+    for (final folderKey in selectedFolderKeys) {
+      FavoriteFolderService.addMembers(folderKey, selected.map(_entryKey));
+    }
+    showSuccessToast('已加入收藏夹');
+  }
+
+  Future<List<String>> _showFolderPickDialog(
+    List<FavoriteFolderView> folders,
+  ) async {
+    final selected = <String>{};
+    return (await showDialog<List<String>>(
+          context: context,
+          builder: (context) => StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: const Text('选择收藏夹（可多选）'),
+                content: SizedBox(
+                  width: 360,
+                  child: ListView(
+                    shrinkWrap: true,
+                    children: [
+                      for (final folder in folders)
+                        CheckboxListTile(
+                          value: selected.contains(folder.key),
+                          title: Text(folder.name),
+                          onChanged: (value) => setState(() {
+                            if (value == true) {
+                              selected.add(folder.key);
+                            } else {
+                              selected.remove(folder.key);
+                            }
+                          }),
+                        ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('取消'),
+                  ),
+                  FilledButton(
+                    onPressed: selected.isEmpty
+                        ? null
+                        : () => Navigator.of(context).pop(selected.toList()),
+                    child: const Text('确定'),
+                  ),
+                ],
+              );
+            },
+          ),
+        )) ??
+        const <String>[];
   }
 }

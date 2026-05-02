@@ -10,6 +10,7 @@ import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/models/search_enter.dart';
 import 'package:zephyr/page/bookshelf/models/shelf_page_mode.dart';
+import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/util/error_filter.dart';
 
 const _kPageSize = 200;
@@ -254,8 +255,13 @@ class BookshelfSectionBloc
   }
 
   _RawQueryResult _queryFavoriteRaw(SearchEnter search, int offset, int limit) {
+    final folderKey = FavoriteFolderService.parseFolderKeyFromSources(search.sources);
+    final sourcesWithoutFolder = FavoriteFolderService.stripFolderSourceTokens(
+      search.sources,
+    );
+    final folderFiltering = folderKey != null && folderKey != kFavoriteFolderAllKey;
     final query = objectbox.unifiedFavoriteBox
-        .query(_favoriteBaseCondition(search))
+        .query(_favoriteBaseCondition(search.copyWith(sources: sourcesWithoutFolder)))
         .order(
           UnifiedComicFavorite_.createdAt,
           flags: search.sort == 'da' ? 0 : Order.descending,
@@ -263,6 +269,15 @@ class BookshelfSectionBloc
         .build();
     try {
       final total = query.count();
+      if (folderFiltering) {
+        final all = query.find();
+        final members = FavoriteFolderService.membersOf(folderKey);
+        final filtered = all.where((item) => members.contains(item.uniqueKey)).toList();
+        final start = offset > filtered.length ? filtered.length : offset;
+        final end = (start + limit) > filtered.length ? filtered.length : (start + limit);
+        final items = filtered.sublist(start, end);
+        return _RawQueryResult(items.map((item) => item.toJson()).toList(), filtered.length);
+      }
       query.offset = offset;
       query.limit = limit;
       final items = query.find();

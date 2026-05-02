@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/page/comic_info/models/collect_comic.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
@@ -77,6 +78,7 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         accentColor: const Color(0xFFE6A700),
         enabled: true,
         onTap: _toggleLocalFavorite,
+        onLongPress: _quickFavoriteToFolders,
       ),
       _OperationItemData(
         icon: Icons.cloud_download_outlined,
@@ -151,6 +153,12 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
       setState(() {
         isCollected = next;
       });
+      final uniqueKey = '${widget.from.trim()}:${comicInfoView.id}';
+      if (next) {
+        _showFavoriteSavedSnackbar(uniqueKey);
+      } else {
+        showSuccessToast('已取消本地收藏');
+      }
     } catch (error) {
       if (!mounted) {
         return;
@@ -160,6 +168,171 @@ class _ComicOperationWidgetState extends State<ComicOperationWidget> {
         duration: const Duration(seconds: 5),
       );
     }
+  }
+
+  Future<void> _quickFavoriteToFolders() async {
+    try {
+      var collected = isCollected;
+      if (!collected) {
+        collected = await toggleLocalComicFavorite(
+          from: widget.from,
+          normalInfo: normalInfo,
+          showToast: false,
+        );
+        if (mounted) {
+          setState(() {
+            isCollected = collected;
+          });
+        }
+      }
+      if (!mounted || !collected) {
+        return;
+      }
+      final uniqueKey = '${widget.from.trim()}:${comicInfoView.id}';
+      await _showManageFolderDialog(uniqueKey: uniqueKey);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      showErrorToast(
+        '操作失败: ${normalizeSearchErrorMessage(error)}',
+        duration: const Duration(seconds: 5),
+      );
+    }
+  }
+
+  void _showFavoriteSavedSnackbar(String uniqueKey) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        content: const Text('已添加至全部（长按收藏可直接修改文件夹）'),
+        duration: const Duration(seconds: 3),
+        action: SnackBarAction(
+          label: '修改文件夹',
+          onPressed: () => _showManageFolderDialog(uniqueKey: uniqueKey),
+        ),
+      ),
+    );
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      messenger.hideCurrentSnackBar();
+    });
+  }
+
+  Future<void> _showManageFolderDialog({required String uniqueKey}) async {
+    if (!mounted) return;
+    var folders = FavoriteFolderService.listFolders()
+        .where((item) => !item.isAll)
+        .toList();
+    final selected = FavoriteFolderService.folderKeysOfFavorite(uniqueKey);
+    final result = await showDialog<Set<String>>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          Future<void> createFolderInDialog() async {
+            final name = await _showCreateFolderDialog();
+            if (name == null || name.trim().isEmpty) {
+              return;
+            }
+            try {
+              final created = FavoriteFolderService.createFolder(name.trim());
+              setState(() {
+                folders = FavoriteFolderService.listFolders()
+                    .where((item) => !item.isAll)
+                    .toList();
+                selected.add(created.key);
+              });
+            } catch (e) {
+              if (!mounted) return;
+              showErrorToast(e.toString());
+            }
+          }
+
+          return AlertDialog(
+            title: const Text('修改收藏夹'),
+            content: SizedBox(
+              width: 380,
+              child: folders.isEmpty
+                  ? const Text('暂无自定义收藏夹，请先新建。')
+                  : ListView(
+                      shrinkWrap: true,
+                      children: [
+                        for (final folder in folders)
+                          CheckboxListTile(
+                            value: selected.contains(folder.key),
+                            title: Text(folder.name),
+                            onChanged: (value) => setState(() {
+                              if (value == true) {
+                                selected.add(folder.key);
+                              } else {
+                                selected.remove(folder.key);
+                              }
+                            }),
+                          ),
+                      ],
+                    ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: createFolderInDialog,
+                child: const Text('新建文件夹'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('取消'),
+              ),
+              FilledButton(
+                onPressed: () =>
+                    Navigator.of(context).pop(Set<String>.from(selected)),
+                child: const Text('保存'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    if (result == null) {
+      return;
+    }
+    final before = FavoriteFolderService.folderKeysOfFavorite(uniqueKey);
+    final toAdd = result.difference(before);
+    final toRemove = before.difference(result);
+    for (final folderKey in toAdd) {
+      FavoriteFolderService.addMembers(folderKey, [uniqueKey]);
+    }
+    for (final folderKey in toRemove) {
+      FavoriteFolderService.removeMembers(folderKey, [uniqueKey]);
+    }
+    if (!mounted) return;
+    showSuccessToast('收藏夹已更新');
+  }
+
+  Future<String?> _showCreateFolderDialog() async {
+    final controller = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('新建收藏夹'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: '输入收藏夹名称'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+            child: const Text('创建'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return result;
   }
 
   Future<void> _toggleCloudLike() async {
@@ -200,6 +373,7 @@ class _OperationItemData {
     this.enabled = true,
     this.highlighted = false,
     this.accentColor,
+    this.onLongPress,
   });
 
   final IconData icon;
@@ -208,6 +382,7 @@ class _OperationItemData {
   final bool enabled;
   final bool highlighted;
   final Color? accentColor;
+  final VoidCallback? onLongPress;
 }
 
 class _OperationCard extends StatelessWidget {
@@ -233,6 +408,7 @@ class _OperationCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: item.onTap,
+        onLongPress: item.onLongPress,
         child: Ink(
           decoration: BoxDecoration(
             color: background,

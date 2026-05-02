@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/page/bookshelf/cubit/search_status.dart';
 import 'package:zephyr/page/bookshelf/models/shelf_page_mode.dart';
+import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 
 class BookshelfSearchState {
   const BookshelfSearchState({
@@ -90,11 +91,21 @@ class BookshelfSearchCubit extends Cubit<BookshelfSearchState> {
           .stateOf(mode)
           .sources
           .where((item) => item.trim().isNotEmpty);
+      final folderToken = FavoriteFolderService.parseFolderKeyFromSources(
+        current.toList(),
+      );
       final filtered = current.where(available.contains).toSet();
       filtered.addAll(autoSelectSet.where(available.contains));
       final nextSources = filtered.isEmpty
           ? available
           : available.where(filtered.contains).toList();
+      if (mode == ShelfPageMode.favorite) {
+        nextSources.add(
+          FavoriteFolderService.sourceToken(
+            folderToken ?? kFavoriteFolderAllKey,
+          ),
+        );
+      }
       if (!_listEquals(nextState.stateOf(mode).sources, nextSources)) {
         nextState = nextState.copyMode(
           mode,

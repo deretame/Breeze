@@ -643,6 +643,83 @@ class UnifiedComicDownload {
 
 @Entity()
 @JsonSerializable()
+class FavoriteFolder {
+  @Id()
+  int id;
+
+  @Unique()
+  String folderKey;
+
+  String name;
+
+  @Property(type: PropertyType.date)
+  DateTime createdAt;
+
+  @Property(type: PropertyType.date)
+  DateTime updatedAt;
+
+  bool deleted;
+
+  FavoriteFolder({
+    this.id = 0,
+    required this.folderKey,
+    required this.name,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.deleted,
+  });
+
+  Map<String, dynamic> toJson() => _$FavoriteFolderToJson(this);
+
+  factory FavoriteFolder.fromJson(Map<String, dynamic> json) =>
+      _$FavoriteFolderFromJson(json);
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+}
+
+@Entity()
+@JsonSerializable()
+class FavoriteFolderItem {
+  @Id()
+  int id;
+
+  @Unique()
+  String uniqueKey;
+
+  String folderKey;
+  String favoriteUniqueKey;
+  @Property(type: PropertyType.date)
+  DateTime createdAt;
+  @Property(type: PropertyType.date)
+  DateTime updatedAt;
+  bool deleted;
+
+  FavoriteFolderItem({
+    this.id = 0,
+    required this.uniqueKey,
+    required this.folderKey,
+    required this.favoriteUniqueKey,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.deleted,
+  });
+
+  Map<String, dynamic> toJson() => _$FavoriteFolderItemToJson(this);
+
+  factory FavoriteFolderItem.fromJson(Map<String, dynamic> json) =>
+      _$FavoriteFolderItemFromJson(json);
+
+  @override
+  String toString() {
+    return jsonEncode(toJson());
+  }
+}
+
+@Entity()
+@JsonSerializable()
 class UserSetting {
   @Id()
   int id;

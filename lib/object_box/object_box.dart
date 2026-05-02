@@ -19,6 +19,8 @@ class ObjectBox {
   late final Box<UnifiedComicFavorite> _unifiedComicFavoriteBox;
   late final Box<UnifiedComicHistory> _unifiedComicHistoryBox;
   late final Box<UnifiedComicDownload> _unifiedComicDownloadBox;
+  late final Box<FavoriteFolder> _favoriteFolderBox;
+  late final Box<FavoriteFolderItem> _favoriteFolderItemBox;
 
   late final Box<UserSetting> _userSettingBox;
 
@@ -37,6 +39,8 @@ class ObjectBox {
     _unifiedComicFavoriteBox = store.box<UnifiedComicFavorite>();
     _unifiedComicHistoryBox = store.box<UnifiedComicHistory>();
     _unifiedComicDownloadBox = store.box<UnifiedComicDownload>();
+    _favoriteFolderBox = store.box<FavoriteFolder>();
+    _favoriteFolderItemBox = store.box<FavoriteFolderItem>();
 
     _userSettingBox = store.box<UserSetting>();
 
@@ -102,6 +106,8 @@ class ObjectBox {
   Box<UnifiedComicHistory> get unifiedHistoryBox => _unifiedComicHistoryBox;
 
   Box<UnifiedComicDownload> get unifiedDownloadBox => _unifiedComicDownloadBox;
+  Box<FavoriteFolder> get favoriteFolderBox => _favoriteFolderBox;
+  Box<FavoriteFolderItem> get favoriteFolderItemBox => _favoriteFolderItemBox;
 
   Box<UserSetting> get userSettingBox => _userSettingBox;
 
@@ -132,6 +138,11 @@ class ObjectBox {
     _dumpBoxData<UnifiedComicDownload>(
       _unifiedComicDownloadBox,
       "UnifiedComicDownload",
+    );
+    _dumpBoxData<FavoriteFolder>(_favoriteFolderBox, "FavoriteFolder");
+    _dumpBoxData<FavoriteFolderItem>(
+      _favoriteFolderItemBox,
+      "FavoriteFolderItem",
     );
 
     _dumpBoxData<UserSetting>(_userSettingBox, "UserSetting");

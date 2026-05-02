@@ -359,7 +359,7 @@ class ComicSimplifyEntry extends StatelessWidget {
       } else if (type == ComicEntryType.favorite) {
         await _deleteFavorite();
       }
-      final deletedKey = '${info.from}:${info.id}';
+      final deletedKey = '${info.from.trim()}:${info.id}';
       if (onDeleteSuccess != null) {
         onDeleteSuccess!(deletedKey);
       } else {
@@ -372,8 +372,9 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   Future<void> _deleteHistory() async {
+    final uniqueKey = '${info.from.trim()}:${info.id}';
     final temp = objectbox.unifiedHistoryBox
-        .query(UnifiedComicHistory_.uniqueKey.equals('${info.from}:${info.id}'))
+        .query(UnifiedComicHistory_.uniqueKey.equals(uniqueKey))
         .build()
         .findFirst();
 
@@ -385,10 +386,9 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   Future<void> _deleteDownload() async {
+    final uniqueKey = '${info.from.trim()}:${info.id}';
     final temp = objectbox.unifiedDownloadBox
-        .query(
-          UnifiedComicDownload_.uniqueKey.equals('${info.from}:${info.id}'),
-        )
+        .query(UnifiedComicDownload_.uniqueKey.equals(uniqueKey))
         .build()
         .findFirst();
 
@@ -399,10 +399,9 @@ class ComicSimplifyEntry extends StatelessWidget {
   }
 
   Future<void> _deleteFavorite() async {
+    final uniqueKey = '${info.from.trim()}:${info.id}';
     final temp = objectbox.unifiedFavoriteBox
-        .query(
-          UnifiedComicFavorite_.uniqueKey.equals('${info.from}:${info.id}'),
-        )
+        .query(UnifiedComicFavorite_.uniqueKey.equals(uniqueKey))
         .build()
         .findFirst();
 

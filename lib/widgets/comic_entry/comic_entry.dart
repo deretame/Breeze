@@ -229,23 +229,23 @@ class ComicEntryWidget extends StatelessWidget {
   }
 
   Future<void> _deleteFavorite() async {
+    final uniqueKey = '${comic.from.trim()}:${comic.id}';
     final temp = objectbox.unifiedFavoriteBox
-        .query(
-          UnifiedComicFavorite_.uniqueKey.equals('${comic.from}:${comic.id}'),
-        )
+        .query(UnifiedComicFavorite_.uniqueKey.equals(uniqueKey))
         .build()
         .findFirst();
 
     if (temp != null) {
-      objectbox.unifiedFavoriteBox.remove(temp.id);
+      temp.deleted = true;
+      temp.updatedAt = DateTime.now().toUtc();
+      objectbox.unifiedFavoriteBox.put(temp);
     }
   }
 
   Future<void> _deleteHistory() async {
+    final uniqueKey = '${comic.from.trim()}:${comic.id}';
     final temp = objectbox.unifiedHistoryBox
-        .query(
-          UnifiedComicHistory_.uniqueKey.equals('${comic.from}:${comic.id}'),
-        )
+        .query(UnifiedComicHistory_.uniqueKey.equals(uniqueKey))
         .build()
         .findFirst();
 
@@ -258,10 +258,9 @@ class ComicEntryWidget extends StatelessWidget {
   }
 
   Future<void> _deleteDownload() async {
+    final uniqueKey = '${comic.from.trim()}:${comic.id}';
     final temp = objectbox.unifiedDownloadBox
-        .query(
-          UnifiedComicDownload_.uniqueKey.equals('${comic.from}:${comic.id}'),
-        )
+        .query(UnifiedComicDownload_.uniqueKey.equals(uniqueKey))
         .build()
         .findFirst();
 

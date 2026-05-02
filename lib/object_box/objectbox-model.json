@@ -1348,10 +1348,97 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "16:4683267141234852980",
+      "lastPropertyId": "6:4213704760336173955",
+      "name": "FavoriteFolder",
+      "properties": [
+        {
+          "id": "1:6945716509727272076",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:6235609258707742665",
+          "name": "folderKey",
+          "indexId": "11:1240751833000433404",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:3442780145775718167",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "4:3348616849527062490",
+          "name": "createdAt",
+          "type": 10
+        },
+        {
+          "id": "5:3731452627344411868",
+          "name": "updatedAt",
+          "type": 10
+        },
+        {
+          "id": "6:4213704760336173955",
+          "name": "deleted",
+          "type": 1
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "17:6011038726690231230",
+      "lastPropertyId": "7:1218572692134792001",
+      "name": "FavoriteFolderItem",
+      "properties": [
+        {
+          "id": "1:8673710042050950019",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2387566729962031895",
+          "name": "uniqueKey",
+          "indexId": "12:7477328395011863297",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:5480739183676994490",
+          "name": "folderKey",
+          "type": 9
+        },
+        {
+          "id": "4:2235637352583080247",
+          "name": "favoriteUniqueKey",
+          "type": 9
+        },
+        {
+          "id": "5:4620339642990864139",
+          "name": "createdAt",
+          "type": 10
+        },
+        {
+          "id": "6:7382791055814857375",
+          "name": "updatedAt",
+          "type": 10
+        },
+        {
+          "id": "7:1218572692134792001",
+          "name": "deleted",
+          "type": 1
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "15:4081606024611286375",
-  "lastIndexId": "10:870440076051955039",
+  "lastEntityId": "17:6011038726690231230",
+  "lastIndexId": "12:7477328395011863297",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

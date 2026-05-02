@@ -1619,6 +1619,106 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(16, 4683267141234852980),
+    name: 'FavoriteFolder',
+    lastPropertyId: const obx_int.IdUid(6, 4213704760336173955),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 6945716509727272076),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 6235609258707742665),
+        name: 'folderKey',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(11, 1240751833000433404),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 3442780145775718167),
+        name: 'name',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 3348616849527062490),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 3731452627344411868),
+        name: 'updatedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 4213704760336173955),
+        name: 'deleted',
+        type: 1,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(17, 6011038726690231230),
+    name: 'FavoriteFolderItem',
+    lastPropertyId: const obx_int.IdUid(7, 1218572692134792001),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 8673710042050950019),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 2387566729962031895),
+        name: 'uniqueKey',
+        type: 9,
+        flags: 2080,
+        indexId: const obx_int.IdUid(12, 7477328395011863297),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 5480739183676994490),
+        name: 'folderKey',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 2235637352583080247),
+        name: 'favoriteUniqueKey',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 4620339642990864139),
+        name: 'createdAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 7382791055814857375),
+        name: 'updatedAt',
+        type: 10,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 1218572692134792001),
+        name: 'deleted',
+        type: 1,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -1664,8 +1764,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(15, 4081606024611286375),
-    lastIndexId: const obx_int.IdUid(10, 870440076051955039),
+    lastEntityId: const obx_int.IdUid(17, 6011038726690231230),
+    lastIndexId: const obx_int.IdUid(12, 7477328395011863297),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [
@@ -3736,6 +3836,134 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    FavoriteFolder: obx_int.EntityDefinition<FavoriteFolder>(
+      model: _entities[12],
+      toOneRelations: (FavoriteFolder object) => [],
+      toManyRelations: (FavoriteFolder object) => {},
+      getId: (FavoriteFolder object) => object.id,
+      setId: (FavoriteFolder object, int id) {
+        object.id = id;
+      },
+      objectToFB: (FavoriteFolder object, fb.Builder fbb) {
+        final folderKeyOffset = fbb.writeString(object.folderKey);
+        final nameOffset = fbb.writeString(object.name);
+        fbb.startTable(7);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, folderKeyOffset);
+        fbb.addOffset(2, nameOffset);
+        fbb.addInt64(3, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(4, object.updatedAt.millisecondsSinceEpoch);
+        fbb.addBool(5, object.deleted);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final folderKeyParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final nameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0),
+        );
+        final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0),
+        );
+        final deletedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          14,
+          false,
+        );
+        final object = FavoriteFolder(
+          id: idParam,
+          folderKey: folderKeyParam,
+          name: nameParam,
+          createdAt: createdAtParam,
+          updatedAt: updatedAtParam,
+          deleted: deletedParam,
+        );
+
+        return object;
+      },
+    ),
+    FavoriteFolderItem: obx_int.EntityDefinition<FavoriteFolderItem>(
+      model: _entities[13],
+      toOneRelations: (FavoriteFolderItem object) => [],
+      toManyRelations: (FavoriteFolderItem object) => {},
+      getId: (FavoriteFolderItem object) => object.id,
+      setId: (FavoriteFolderItem object, int id) {
+        object.id = id;
+      },
+      objectToFB: (FavoriteFolderItem object, fb.Builder fbb) {
+        final uniqueKeyOffset = fbb.writeString(object.uniqueKey);
+        final folderKeyOffset = fbb.writeString(object.folderKey);
+        final favoriteUniqueKeyOffset = fbb.writeString(
+          object.favoriteUniqueKey,
+        );
+        fbb.startTable(8);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, uniqueKeyOffset);
+        fbb.addOffset(2, folderKeyOffset);
+        fbb.addOffset(3, favoriteUniqueKeyOffset);
+        fbb.addInt64(4, object.createdAt.millisecondsSinceEpoch);
+        fbb.addInt64(5, object.updatedAt.millisecondsSinceEpoch);
+        fbb.addBool(6, object.deleted);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final uniqueKeyParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final folderKeyParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 8, '');
+        final favoriteUniqueKeyParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0),
+        );
+        final updatedAtParam = DateTime.fromMillisecondsSinceEpoch(
+          const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
+        );
+        final deletedParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          16,
+          false,
+        );
+        final object = FavoriteFolderItem(
+          id: idParam,
+          uniqueKey: uniqueKeyParam,
+          folderKey: folderKeyParam,
+          favoriteUniqueKey: favoriteUniqueKeyParam,
+          createdAt: createdAtParam,
+          updatedAt: updatedAtParam,
+          deleted: deletedParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -5000,5 +5228,76 @@ class UnifiedComicHistory_ {
   /// See [UnifiedComicHistory.metadata].
   static final metadata = obx.QueryStringProperty<UnifiedComicHistory>(
     _entities[11].properties[18],
+  );
+}
+
+/// [FavoriteFolder] entity fields to define ObjectBox queries.
+class FavoriteFolder_ {
+  /// See [FavoriteFolder.id].
+  static final id = obx.QueryIntegerProperty<FavoriteFolder>(
+    _entities[12].properties[0],
+  );
+
+  /// See [FavoriteFolder.folderKey].
+  static final folderKey = obx.QueryStringProperty<FavoriteFolder>(
+    _entities[12].properties[1],
+  );
+
+  /// See [FavoriteFolder.name].
+  static final name = obx.QueryStringProperty<FavoriteFolder>(
+    _entities[12].properties[2],
+  );
+
+  /// See [FavoriteFolder.createdAt].
+  static final createdAt = obx.QueryDateProperty<FavoriteFolder>(
+    _entities[12].properties[3],
+  );
+
+  /// See [FavoriteFolder.updatedAt].
+  static final updatedAt = obx.QueryDateProperty<FavoriteFolder>(
+    _entities[12].properties[4],
+  );
+
+  /// See [FavoriteFolder.deleted].
+  static final deleted = obx.QueryBooleanProperty<FavoriteFolder>(
+    _entities[12].properties[5],
+  );
+}
+
+/// [FavoriteFolderItem] entity fields to define ObjectBox queries.
+class FavoriteFolderItem_ {
+  /// See [FavoriteFolderItem.id].
+  static final id = obx.QueryIntegerProperty<FavoriteFolderItem>(
+    _entities[13].properties[0],
+  );
+
+  /// See [FavoriteFolderItem.uniqueKey].
+  static final uniqueKey = obx.QueryStringProperty<FavoriteFolderItem>(
+    _entities[13].properties[1],
+  );
+
+  /// See [FavoriteFolderItem.folderKey].
+  static final folderKey = obx.QueryStringProperty<FavoriteFolderItem>(
+    _entities[13].properties[2],
+  );
+
+  /// See [FavoriteFolderItem.favoriteUniqueKey].
+  static final favoriteUniqueKey = obx.QueryStringProperty<FavoriteFolderItem>(
+    _entities[13].properties[3],
+  );
+
+  /// See [FavoriteFolderItem.createdAt].
+  static final createdAt = obx.QueryDateProperty<FavoriteFolderItem>(
+    _entities[13].properties[4],
+  );
+
+  /// See [FavoriteFolderItem.updatedAt].
+  static final updatedAt = obx.QueryDateProperty<FavoriteFolderItem>(
+    _entities[13].properties[5],
+  );
+
+  /// See [FavoriteFolderItem.deleted].
+  static final deleted = obx.QueryBooleanProperty<FavoriteFolderItem>(
+    _entities[13].properties[6],
   );
 }

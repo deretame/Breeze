@@ -517,6 +517,48 @@ Map<String, dynamic> _$UnifiedComicDownloadToJson(
   'schemaVersion': instance.schemaVersion,
 };
 
+FavoriteFolder _$FavoriteFolderFromJson(Map<String, dynamic> json) =>
+    FavoriteFolder(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      folderKey: json['folderKey'] as String,
+      name: json['name'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      deleted: json['deleted'] as bool,
+    );
+
+Map<String, dynamic> _$FavoriteFolderToJson(FavoriteFolder instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'folderKey': instance.folderKey,
+      'name': instance.name,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
+      'deleted': instance.deleted,
+    };
+
+FavoriteFolderItem _$FavoriteFolderItemFromJson(Map<String, dynamic> json) =>
+    FavoriteFolderItem(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      uniqueKey: json['uniqueKey'] as String,
+      folderKey: json['folderKey'] as String,
+      favoriteUniqueKey: json['favoriteUniqueKey'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      deleted: json['deleted'] as bool,
+    );
+
+Map<String, dynamic> _$FavoriteFolderItemToJson(FavoriteFolderItem instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'uniqueKey': instance.uniqueKey,
+      'folderKey': instance.folderKey,
+      'favoriteUniqueKey': instance.favoriteUniqueKey,
+      'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
+      'deleted': instance.deleted,
+    };
+
 UserSetting _$UserSettingFromJson(Map<String, dynamic> json) =>
     UserSetting(
         id: (json['id'] as num?)?.toInt() ?? 0,

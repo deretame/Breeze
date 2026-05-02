@@ -5,6 +5,7 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
+import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/widgets/toast.dart';
 
@@ -43,6 +44,7 @@ Future<bool> toggleLocalComicFavorite({
     unified.deleted = true;
     unified.updatedAt = now;
     objectbox.unifiedFavoriteBox.put(unified);
+    FavoriteFolderService.removeMemberFromAllFolders(key);
     if (showToast) {
       // showSuccessToast('已取消本地收藏');
     }

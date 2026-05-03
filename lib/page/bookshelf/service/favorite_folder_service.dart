@@ -18,7 +18,8 @@ class FavoriteFolderView {
 }
 
 class FavoriteFolderService {
-  static String sourceToken(String folderKey) => '$_kFolderSourcePrefix$folderKey';
+  static String sourceToken(String folderKey) =>
+      '$_kFolderSourcePrefix$folderKey';
 
   static String? parseFolderKeyFromSources(List<String> sources) {
     for (final source in sources) {
@@ -50,7 +51,9 @@ class FavoriteFolderService {
         ),
       ];
       for (final folder in query.find()) {
-        folders.add(FavoriteFolderView(key: folder.folderKey, name: folder.name));
+        folders.add(
+          FavoriteFolderView(key: folder.folderKey, name: folder.name),
+        );
       }
       return folders;
     } finally {
@@ -65,9 +68,9 @@ class FavoriteFolderService {
     }
     final existed = objectbox.favoriteFolderBox
         .query(
-          FavoriteFolder_.name.equals(safeName).and(
-            FavoriteFolder_.deleted.equals(false),
-          ),
+          FavoriteFolder_.name
+              .equals(safeName)
+              .and(FavoriteFolder_.deleted.equals(false)),
         )
         .build()
         .findFirst();
@@ -135,9 +138,9 @@ class FavoriteFolderService {
     }
     final duplicated = objectbox.favoriteFolderBox
         .query(
-          FavoriteFolder_.name.equals(safeName).and(
-            FavoriteFolder_.deleted.equals(false),
-          ),
+          FavoriteFolder_.name
+              .equals(safeName)
+              .and(FavoriteFolder_.deleted.equals(false)),
         )
         .build()
         .findFirst();
@@ -202,7 +205,9 @@ class FavoriteFolderService {
       return;
     }
     final now = DateTime.now().toUtc();
-    final normalized = uniqueKeys.map((e) => e.trim()).where((e) => e.isNotEmpty);
+    final normalized = uniqueKeys
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty);
     for (final favoriteUniqueKey in normalized) {
       final uniqueKey = _itemUniqueKey(folderKey, favoriteUniqueKey);
       final existing = objectbox.favoriteFolderItemBox
@@ -235,7 +240,9 @@ class FavoriteFolderService {
       return;
     }
     final now = DateTime.now().toUtc();
-    final normalized = uniqueKeys.map((e) => e.trim()).where((e) => e.isNotEmpty);
+    final normalized = uniqueKeys
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty);
     for (final favoriteUniqueKey in normalized) {
       final uniqueKey = _itemUniqueKey(folderKey, favoriteUniqueKey);
       final existing = objectbox.favoriteFolderItemBox

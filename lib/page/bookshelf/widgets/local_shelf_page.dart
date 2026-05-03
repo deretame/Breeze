@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as p;
@@ -9,9 +12,11 @@ import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
+import 'package:zephyr/page/comic_info/method/export_comic.dart';
 import 'package:zephyr/page/comic_list/view/plugin_comic_grid_sliver.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/get_path.dart';
+import 'package:zephyr/util/permission.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -179,13 +184,24 @@ class _LocalShelfPageState extends State<LocalShelfPage>
       return;
     }
 
+    final currentFolderKey = FavoriteFolderService.parseFolderKeyFromSources(
+      _currentSearchState().sources,
+    );
+    final inCustomFavoriteFolder =
+        widget.mode == ShelfPageMode.favorite &&
+        currentFolderKey != null &&
+        currentFolderKey != kFavoriteFolderAllKey;
+
     final deleteTitle = switch (widget.mode) {
-      ShelfPageMode.favorite => '删除收藏',
+      ShelfPageMode.favorite => inCustomFavoriteFolder ? '移出收藏夹' : '删除收藏',
       ShelfPageMode.history => '删除历史记录',
       ShelfPageMode.download => '删除下载记录',
     };
     final deleteContent = switch (widget.mode) {
-      ShelfPageMode.favorite => '确定要删除选中的 ${selected.length} 条收藏记录吗？',
+      ShelfPageMode.favorite =>
+        inCustomFavoriteFolder
+            ? '是否要从本文件夹中移除'
+            : '确定要删除选中的 ${selected.length} 条收藏记录吗？',
       ShelfPageMode.history => '确定要删除选中的 ${selected.length} 条历史记录吗？',
       ShelfPageMode.download => '确定要删除选中的 ${selected.length} 条下载记录及文件吗？',
     };
@@ -440,6 +456,12 @@ class _LocalShelfPageState extends State<LocalShelfPage>
                                   Icons.create_new_folder_outlined,
                                 ),
                               ),
+                            if (widget.mode == ShelfPageMode.download)
+                              IconButton(
+                                tooltip: '批量导出',
+                                onPressed: () => _batchExportSelected(entries),
+                                icon: const Icon(Icons.file_upload_outlined),
+                              ),
                             IconButton(
                               tooltip: '删除选中',
                               onPressed: () => _confirmBatchDelete(entries),
@@ -457,6 +479,94 @@ class _LocalShelfPageState extends State<LocalShelfPage>
         ),
       ],
     );
+  }
+
+  Future<void> _batchExportSelected(
+    List<ComicSimplifyEntryInfo> entries,
+  ) async {
+    if (_selectedKeys.isEmpty) return;
+    final selected = entries
+        .where((entry) => _selectedKeys.contains(_entryKey(entry)))
+        .toList();
+    if (selected.isEmpty) return;
+
+    try {
+      final exportType = await _pickBatchExportType();
+      if (exportType == null) return;
+      final exportRoot = await _resolveBatchExportDirectory();
+      if (exportRoot == null || exportRoot.trim().isEmpty) return;
+
+      var success = 0;
+      for (final entry in selected) {
+        final from = entry.from.trim();
+        if (from.isEmpty) {
+          continue;
+        }
+        String? exportPath;
+        if (exportType == ExportType.folder) {
+          exportPath = exportRoot;
+        } else {
+          final safeTitle = _sanitizeFileName(
+            entry.title.trim().isEmpty ? entry.id : entry.title,
+          );
+          exportPath = p.join(exportRoot, '$safeTitle.zip');
+        }
+        await exportComic(entry.id, exportType, from, path: exportPath);
+        success++;
+      }
+
+      if (!mounted) return;
+      showSuccessToast('批量导出完成：$success/${selected.length}');
+      _cancelSelectionMode();
+    } catch (e) {
+      if (!mounted) return;
+      showErrorToast('批量导出失败: $e');
+    }
+  }
+
+  Future<ExportType?> _pickBatchExportType() async {
+    if (Platform.isIOS) return ExportType.zip;
+    return showDialog<ExportType>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('选择导出方式'),
+        content: const Text('请选择批量导出为压缩包或文件夹'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(ExportType.folder),
+            child: const Text('文件夹'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(ExportType.zip),
+            child: const Text('压缩包'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<String?> _resolveBatchExportDirectory() async {
+    if (Platform.isAndroid) {
+      final granted = await requestExportPermission();
+      if (!granted) {
+        throw StateError('未授予所有文件访问权限，导出已取消');
+      }
+      return createDownloadDir();
+    }
+    return getDirectoryPath();
+  }
+
+  String _sanitizeFileName(String input) {
+    final safe = input
+        .replaceAll(RegExp(r'[<>:"/\\|?*]'), '_')
+        .replaceAll(RegExp(r'\s+'), '_')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_+|_+$'), '');
+    return safe.isEmpty ? 'comic' : safe;
   }
 
   Future<void> _addSelectedToFolder(

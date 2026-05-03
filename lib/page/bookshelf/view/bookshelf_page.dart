@@ -349,10 +349,9 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
         FavoriteFolderService.parseFolderKeyFromSources(current.sources) ??
         kFavoriteFolderAllKey;
     var selectedFolderKey = currentFolderKey;
-    var selectedSources = FavoriteFolderService
-        .stripFolderSourceTokens(current.sources)
-        .where(availableSources.contains)
-        .toSet();
+    var selectedSources = FavoriteFolderService.stripFolderSourceTokens(
+      current.sources,
+    ).where(availableSources.contains).toSet();
     if (selectedSources.isEmpty) {
       selectedSources = availableSources.toSet();
     }
@@ -401,13 +400,19 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
                         const Spacer(),
                         TextButton(
                           onPressed: () async {
-                            final created = await _showCreateFolderDialog(context);
+                            final created = await _showCreateFolderDialog(
+                              context,
+                            );
                             if (created == null || created.trim().isEmpty) {
                               return;
                             }
                             try {
-                              final folder = FavoriteFolderService.createFolder(created);
-                              setModalState(() => selectedFolderKey = folder.key);
+                              final folder = FavoriteFolderService.createFolder(
+                                created,
+                              );
+                              setModalState(
+                                () => selectedFolderKey = folder.key,
+                              );
                             } catch (e) {
                               if (!context.mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -424,7 +429,8 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        for (final folder in FavoriteFolderService.listFolders())
+                        for (final folder
+                            in FavoriteFolderService.listFolders())
                           GestureDetector(
                             onLongPress: folder.isAll
                                 ? null
@@ -455,10 +461,11 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
                                       return;
                                     }
                                     if (!rootContext.mounted) return;
-                                    final renamed = await _showRenameFolderDialog(
-                                      rootContext,
-                                      initialName: folder.name,
-                                    );
+                                    final renamed =
+                                        await _showRenameFolderDialog(
+                                          rootContext,
+                                          initialName: folder.name,
+                                        );
                                     if (renamed == null ||
                                         renamed.trim().isEmpty) {
                                       return;
@@ -471,8 +478,11 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
                                       );
                                       setModalState(() {});
                                     } catch (e) {
-                                      if (!mounted || !rootContext.mounted) return;
-                                      ScaffoldMessenger.of(rootContext).showSnackBar(
+                                      if (!mounted || !rootContext.mounted)
+                                        return;
+                                      ScaffoldMessenger.of(
+                                        rootContext,
+                                      ).showSnackBar(
                                         SnackBar(content: Text(e.toString())),
                                       );
                                     }

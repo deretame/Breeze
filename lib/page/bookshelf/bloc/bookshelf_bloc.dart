@@ -255,13 +255,20 @@ class BookshelfSectionBloc
   }
 
   _RawQueryResult _queryFavoriteRaw(SearchEnter search, int offset, int limit) {
-    final folderKey = FavoriteFolderService.parseFolderKeyFromSources(search.sources);
+    final folderKey = FavoriteFolderService.parseFolderKeyFromSources(
+      search.sources,
+    );
     final sourcesWithoutFolder = FavoriteFolderService.stripFolderSourceTokens(
       search.sources,
     );
-    final folderFiltering = folderKey != null && folderKey != kFavoriteFolderAllKey;
+    final folderFiltering =
+        folderKey != null && folderKey != kFavoriteFolderAllKey;
     final query = objectbox.unifiedFavoriteBox
-        .query(_favoriteBaseCondition(search.copyWith(sources: sourcesWithoutFolder)))
+        .query(
+          _favoriteBaseCondition(
+            search.copyWith(sources: sourcesWithoutFolder),
+          ),
+        )
         .order(
           UnifiedComicFavorite_.createdAt,
           flags: search.sort == 'da' ? 0 : Order.descending,
@@ -272,11 +279,18 @@ class BookshelfSectionBloc
       if (folderFiltering) {
         final all = query.find();
         final members = FavoriteFolderService.membersOf(folderKey);
-        final filtered = all.where((item) => members.contains(item.uniqueKey)).toList();
+        final filtered = all
+            .where((item) => members.contains(item.uniqueKey))
+            .toList();
         final start = offset > filtered.length ? filtered.length : offset;
-        final end = (start + limit) > filtered.length ? filtered.length : (start + limit);
+        final end = (start + limit) > filtered.length
+            ? filtered.length
+            : (start + limit);
         final items = filtered.sublist(start, end);
-        return _RawQueryResult(items.map((item) => item.toJson()).toList(), filtered.length);
+        return _RawQueryResult(
+          items.map((item) => item.toJson()).toList(),
+          filtered.length,
+        );
       }
       query.offset = offset;
       query.limit = limit;

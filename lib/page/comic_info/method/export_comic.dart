@@ -222,23 +222,17 @@ Future<void> _copyEpisodeFiles(
 Future<List<_ExportChapterEntry>> _collectChapterEntries(
   UnifiedComicDownload download,
 ) async {
-  var chapters = resolveStoredDownloadChapters(download);
+  var chapters = _decodeStoredChaptersFromDetailJson(download.detailJson);
+  if (chapters.isEmpty) {
+    chapters = resolveStoredDownloadChapters(download);
+  }
   if (chapters.isEmpty) {
     chapters = _decodeListOfMaps(download.chapters)
         .map((chapter) => UnifiedComicDownloadStoredChapter.fromMap(chapter))
         .toList();
   }
-  chapters.sort((a, b) {
-    final orderCompare = a.order.compareTo(b.order);
-    if (orderCompare != 0) {
-      return orderCompare;
-    }
-    final nameCompare = _naturalCompareString(a.name, b.name);
-    if (nameCompare != 0) {
-      return nameCompare;
-    }
-    return _naturalCompareString(a.id, b.id);
-  });
+  // Keep persisted chapter order exactly as stored.
+  // Do not reorder by name/order here, otherwise exported page sequence may drift.
 
   final chapterRoot = await _chapterRoot(download);
   final chapterRootLegacy = await _chapterRootLegacy(download);
@@ -298,45 +292,123 @@ Future<List<File>> _resolveChapterFiles({
   required List<UnifiedComicDownloadImage> images,
 }) async {
   final ordered = <File>[];
-  for (final image in images) {
-    if (image.id.trim().isEmpty) {
-      continue;
+  final usedPaths = <String>{};
+  final existingCandidateDirs = <Directory>[];
+  final candidateDirs = <Directory>[];
+  if (chapterId.trim().isNotEmpty) {
+    candidateDirs.add(Directory(p.join(chapterRoot, chapterId)));
+    candidateDirs.add(Directory(p.join(chapterRootLegacy, chapterId)));
+  }
+  candidateDirs.add(Directory(chapterRoot));
+  candidateDirs.add(Directory(chapterRootLegacy));
+  for (final dir in candidateDirs) {
+    if (await dir.exists()) {
+      existingCandidateDirs.add(dir);
     }
+  }
+
+  Future<File?> tryByPath(String rawPath) async {
+    final trimmed = rawPath.trim();
+    if (trimmed.isEmpty) return null;
+    final baseName = p.basename(trimmed);
+    for (final dir in existingCandidateDirs) {
+      final file = File(p.join(dir.path, baseName));
+      if (await file.exists()) {
+        return file;
+      }
+    }
+    if (p.isAbsolute(trimmed)) {
+      final file = File(trimmed);
+      if (await file.exists()) {
+        return file;
+      }
+    }
+    return null;
+  }
+
+  Future<File?> tryByName(String rawName) async {
+    final trimmed = rawName.trim();
+    if (trimmed.isEmpty) return null;
+    final baseName = p.basename(trimmed);
+    for (final dir in existingCandidateDirs) {
+      final file = File(p.join(dir.path, baseName));
+      if (await file.exists()) {
+        return file;
+      }
+    }
+    return null;
+  }
+
+  Future<File?> tryById(String rawId) async {
+    final id = rawId.trim();
+    if (id.isEmpty) return null;
     final path = await getStoredPicturePathById(
       from: pluginId,
       cartoonId: comicId,
       chapterId: chapterId,
-      imageId: image.id,
+      imageId: id,
     );
-    if (path != null) {
-      ordered.add(File(path));
+    if (path == null) return null;
+    final file = File(path);
+    if (await file.exists()) {
+      return file;
+    }
+    return null;
+  }
+
+  // Strict per-image order: path -> name -> id.
+  for (final image in images) {
+    File? hit = await tryByPath(image.path);
+    hit ??= await tryByName(image.name);
+    hit ??= await tryById(image.id);
+    if (hit == null) {
+      continue;
+    }
+    if (usedPaths.add(hit.path)) {
+      ordered.add(hit);
     }
   }
   if (ordered.isNotEmpty) {
     return ordered;
   }
 
-  final candidateDirs = <Directory>[];
-  if (chapterId.trim().isNotEmpty) {
-    candidateDirs.add(Directory(p.join(chapterRoot, chapterId)));
-    candidateDirs.add(Directory(p.join(chapterRootLegacy, chapterId)));
-  }
-
-  for (final dir in candidateDirs) {
-    if (!await dir.exists()) {
-      continue;
-    }
-    final files = await dir
-        .list()
-        .where((e) => e is File)
-        .cast<File>()
-        .toList();
+  // Last resort only when metadata mapping cannot find any file.
+  for (final dir in existingCandidateDirs) {
+    final files = await dir.list().where((e) => e is File).cast<File>().toList()
+      ..sort((a, b) => a.path.compareTo(b.path));
     if (files.isNotEmpty) {
       return files;
     }
   }
-
   return const <File>[];
+}
+
+List<UnifiedComicDownloadStoredChapter> _decodeStoredChaptersFromDetailJson(
+  String rawDetailJson,
+) {
+  if (rawDetailJson.trim().isEmpty) {
+    return const <UnifiedComicDownloadStoredChapter>[];
+  }
+  try {
+    final decoded = jsonDecode(rawDetailJson);
+    if (decoded is! Map) {
+      return const <UnifiedComicDownloadStoredChapter>[];
+    }
+    final detail = Map<String, dynamic>.from(decoded);
+    final extern = _readExternFirst(detail);
+    final rawDownloadChapters =
+        (extern['downloadChapters'] as List?) ?? const <dynamic>[];
+    return rawDownloadChapters
+        .whereType<Map>()
+        .map(
+          (entry) => UnifiedComicDownloadStoredChapter.fromMap(
+            Map<String, dynamic>.from(entry),
+          ),
+        )
+        .toList();
+  } catch (_) {
+    return const <UnifiedComicDownloadStoredChapter>[];
+  }
 }
 
 Map<String, dynamic> _buildProcessedDetail(
@@ -407,39 +479,6 @@ Map<String, dynamic> _buildProcessedDetail(
   extern['downloadChapters'] = updatedDownloadChapters;
   processed['extern'] = extern;
   return processed;
-}
-
-int _naturalCompareString(String a, String b) {
-  final left = a.trim().toLowerCase();
-  final right = b.trim().toLowerCase();
-  if (left == right) {
-    return 0;
-  }
-
-  final exp = RegExp(r'(\d+)|(\D+)');
-  final leftParts = exp.allMatches(left).map((m) => m.group(0)!).toList();
-  final rightParts = exp.allMatches(right).map((m) => m.group(0)!).toList();
-  final partCount = min(leftParts.length, rightParts.length);
-
-  for (var i = 0; i < partCount; i++) {
-    final l = leftParts[i];
-    final r = rightParts[i];
-    final lNum = int.tryParse(l);
-    final rNum = int.tryParse(r);
-    if (lNum != null && rNum != null) {
-      final compared = lNum.compareTo(rNum);
-      if (compared != 0) {
-        return compared;
-      }
-      continue;
-    }
-    final compared = l.compareTo(r);
-    if (compared != 0) {
-      return compared;
-    }
-  }
-
-  return leftParts.length.compareTo(rightParts.length);
 }
 
 String _sanitizeFolderName(String value, {String fallback = 'chapter'}) {

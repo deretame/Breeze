@@ -404,16 +404,51 @@ type FetchImageBytesPayload = {
 - `data.values`
 - `data.canShowUserInfo`
 
-字段结构：
+类型参考（TS）：
 
 ```ts
-type SettingsField = {
+type SettingsFieldKind =
+  | "text"
+  | "password"
+  | "switch"
+  | "select"
+  | "choice"
+  | "multiChoice";
+
+type BaseSettingsField = {
   key: string;
-  kind: "text" | "password" | "switch" | "select" | "choice" | "multiChoice";
+  kind: SettingsFieldKind;
   label: string;
-  options?: Array<string | { label?: string; value: unknown }>;
   fnPath?: string;
-  persist?: boolean;
+  persist?: boolean; // 默认 true
+};
+
+type OptionSettingsField = BaseSettingsField & {
+  kind: "select" | "choice" | "multiChoice";
+  options?: Array<{ label: string; value: unknown }>;
+};
+
+type PlainSettingsField = BaseSettingsField & {
+  kind: "text" | "password" | "switch";
+};
+
+type SettingsField = OptionSettingsField | PlainSettingsField;
+
+export type SettingsBundleContract = {
+  source: string;
+  scheme: {
+    version: "1.0.0";
+    type: "settings";
+    sections: Array<{
+      id: string;
+      title: string;
+      fields: SettingsField[];
+    }>;
+  };
+  data: {
+    canShowUserInfo: boolean;
+    values: Record<string, unknown>;
+  };
 };
 ```
 
@@ -435,6 +470,16 @@ type CapabilityAction = {
   key?: string;
   title: string;
   fnPath: string;
+};
+
+export type CapabilitiesBundleContract = {
+  source: string;
+  scheme: {
+    version: "1.0.0";
+    type: "capabilities";
+    actions: CapabilityAction[];
+  };
+  data: Record<string, unknown>;
 };
 ```
 

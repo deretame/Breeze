@@ -1,4 +1,5 @@
 use rquickjs::{Context, Function, Runtime, function::Func};
+use base64::Engine as _;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -14,7 +15,7 @@ use tokio::sync::oneshot;
 use crate::web_runtime::{
     WebRuntimeOptions, http_request_drop_evented, http_request_start_evented,
     install_host_bindings, polyfill_script, timer_drop_evented, timer_start_evented,
-    wasi_run_drop_evented, wasi_run_start_evented,
+    wasi_run_drop_evented, wasi_run_start_evented, native_buffer_take_raw,
 };
 
 #[cfg(feature = "host-fs")]
@@ -39,9 +40,55 @@ const ASYNC_TASK_DISPATCHER_JS: &str = r#"(function () {
     }
 
     Promise.resolve(__value).then(
-      (result) => {
+      async (result) => {
         let __out;
-        if (typeof result === "string") {
+        if (
+          (
+            typeof globalThis.__native_buffer_put_raw === "function"
+            || typeof globalThis.__native_buffer_put === "function"
+          )
+          && (
+            result instanceof Uint8Array
+            || result instanceof ArrayBuffer
+            || ArrayBuffer.isView(result)
+          )
+        ) {
+          let __bytes;
+          if (result instanceof Uint8Array) {
+            __bytes = result;
+          } else if (result instanceof ArrayBuffer) {
+            __bytes = new Uint8Array(result);
+          } else {
+            __bytes = new Uint8Array(result.buffer, result.byteOffset, result.byteLength);
+          }
+          let __id;
+          if (typeof globalThis.__native_buffer_put_raw === "function") {
+            try {
+              __id = globalThis.__native_buffer_put_raw(__bytes);
+            } catch (_err) {}
+          }
+          if ((__id === undefined || __id === null) && typeof globalThis.__native_buffer_put === "function") {
+            const __raw = globalThis.__native_buffer_put(JSON.stringify(Array.from(__bytes)));
+            const __payload = JSON.parse(__raw);
+            if (!__payload || __payload.ok !== true) {
+              throw new Error(__payload && __payload.error ? String(__payload.error) : "native put failed");
+            }
+            __id = __payload.id;
+          }
+          if (__id === undefined || __id === null) {
+            throw new Error("native binary bridge unavailable");
+          }
+          __out = JSON.stringify({
+            ok: true,
+            data: {
+              __hostReturnKind: "bytes",
+              nativeBufferId: __id,
+              tag: Object.prototype.toString.call(result),
+              ctor: result && result.constructor ? String(result.constructor.name || "") : "",
+              byteLength: Number(__bytes.byteLength || 0),
+            },
+          });
+        } else if (typeof result === "string") {
           __out = result;
         } else if (result === undefined) {
           __out = "undefined";
@@ -789,6 +836,18 @@ impl AsyncHostRuntime {
         parse_ok_json_payload(&raw)
     }
 
+    pub async fn bundle_call_bytes(
+        &self,
+        name: &str,
+        fn_path: &str,
+        args: &Value,
+    ) -> Result<Vec<u8>, String> {
+        self.bundle_call_start(name, fn_path, args)
+            .await?
+            .wait_bytes_async()
+            .await
+    }
+
     pub async fn bundle_call_start(
         &self,
         name: &str,
@@ -818,6 +877,18 @@ impl AsyncHostRuntime {
             .await
             .map_err(|e| format!("执行一次性 bundle 调用失败: {e}"))?;
         parse_ok_json_payload(&raw)
+    }
+
+    pub async fn bundle_call_once_bytes(
+        &self,
+        source: &str,
+        fn_path: &str,
+        args: &Value,
+    ) -> Result<Vec<u8>, String> {
+        self.bundle_call_once_start(source, fn_path, args)
+            .await?
+            .wait_bytes_async()
+            .await
     }
 
     pub async fn bundle_call_once_start(
@@ -983,6 +1054,14 @@ impl RuntimeTaskHandle {
         self.drop_cleanup = false;
         out
     }
+
+    pub fn wait_bytes(self) -> Result<Vec<u8>, String> {
+        parse_bytes_payload(self.wait())
+    }
+
+    pub async fn wait_bytes_async(self) -> Result<Vec<u8>, String> {
+        parse_bytes_payload(self.wait_async().await)
+    }
 }
 
 impl Drop for RuntimeTaskHandle {
@@ -1058,6 +1137,56 @@ where
     }
 }
 
+fn parse_bytes_payload(raw: Result<String, String>) -> Result<Vec<u8>, String> {
+    let data = parse_ok_json_payload(&raw?)?;
+    bytes_from_value(&data)
+}
+
+fn bytes_from_value(data: &Value) -> Result<Vec<u8>, String> {
+    if let Some(obj) = data.as_object() {
+        if let Some(id) = obj.get("nativeBufferId").and_then(Value::as_u64) {
+            return native_buffer_take_raw(id)
+                .ok_or_else(|| format!("native buffer 不存在或已被消费: {id}"));
+        }
+    }
+
+    if let Some(arr) = data.as_array() {
+        let mut out = Vec::with_capacity(arr.len());
+        for (idx, item) in arr.iter().enumerate() {
+            let n = item
+                .as_u64()
+                .ok_or_else(|| format!("字节数组第 {idx} 项不是无符号整数"))?;
+            if n > 255 {
+                return Err(format!("字节数组第 {idx} 项超出范围: {n}"));
+            }
+            out.push(n as u8);
+        }
+        return Ok(out);
+    }
+
+    if let Some(raw) = data.as_str() {
+        let text = raw.trim();
+        if text.is_empty() {
+            return Ok(Vec::new());
+        }
+        let b64 = if let Some(idx) = text.find(',') {
+            let (prefix, tail) = text.split_at(idx);
+            if prefix.to_ascii_lowercase().contains(";base64") {
+                tail.trim_start_matches(',').trim()
+            } else {
+                text
+            }
+        } else {
+            text
+        };
+        return base64::engine::general_purpose::STANDARD
+            .decode(b64)
+            .map_err(|e| format!("无法将字符串解码为 base64 字节: {e}"));
+    }
+
+    Err("不支持的二进制返回类型：期望 nativeBufferId / number[] / base64字符串".to_string())
+}
+
 fn build_bundle_call_once_script(
     source: &str,
     fn_path: &str,
@@ -1073,6 +1202,49 @@ fn build_bundle_call_once_script(
     Ok(format!(
         r#"
         (async () => {{
+          const encodeHostData = (value) => {{
+            if (
+              (
+                typeof globalThis.__native_buffer_put_raw === "function"
+                || typeof globalThis.__native_buffer_put === "function"
+              )
+              && (
+                value instanceof Uint8Array
+                || value instanceof ArrayBuffer
+                || ArrayBuffer.isView(value)
+              )
+            ) {{
+              let bytes;
+              if (value instanceof Uint8Array) bytes = value;
+              else if (value instanceof ArrayBuffer) bytes = new Uint8Array(value);
+              else bytes = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+              let id;
+              if (typeof globalThis.__native_buffer_put_raw === "function") {{
+                try {{
+                  id = globalThis.__native_buffer_put_raw(bytes);
+                }} catch (_err) {{}}
+              }}
+              if ((id === undefined || id === null) && typeof globalThis.__native_buffer_put === "function") {{
+                const raw = globalThis.__native_buffer_put(JSON.stringify(Array.from(bytes)));
+                const payload = JSON.parse(raw);
+                if (!payload || payload.ok !== true) {{
+                  throw new Error(payload && payload.error ? String(payload.error) : "native put failed");
+                }}
+                id = payload.id;
+              }}
+              if (id === undefined || id === null) {{
+                throw new Error("native binary bridge unavailable");
+              }}
+              return {{
+                __hostReturnKind: "bytes",
+                nativeBufferId: id,
+                tag: Object.prototype.toString.call(value),
+                ctor: value && value.constructor ? String(value.constructor.name || "") : "",
+                byteLength: Number(bytes.byteLength || 0),
+              }};
+            }}
+            return value;
+          }};
           const clearBundles = () => {{
             const host = globalThis.__host_bundle_runtime;
             if (!host) {{
@@ -1100,7 +1272,7 @@ fn build_bundle_call_once_script(
             }}
             clearBundles();
             const data = await host.callOnce({{ source: {source_literal}, fnPath: {fn_path_literal}, args: {args_literal} }});
-            return JSON.stringify({{ ok: true, data }});
+            return JSON.stringify({{ ok: true, data: encodeHostData(data) }});
           }} catch (err) {{
             const base = String(err && err.message ? err.message : err || "执行失败");
             const stack = String(err && err.stack ? err.stack : "");
@@ -1195,13 +1367,56 @@ fn build_bundle_call_script(name: &str, fn_path: &str, args: &Value) -> Result<S
     Ok(format!(
         r#"
         (async () => {{
+          const encodeHostData = (value) => {{
+            if (
+              (
+                typeof globalThis.__native_buffer_put_raw === "function"
+                || typeof globalThis.__native_buffer_put === "function"
+              )
+              && (
+                value instanceof Uint8Array
+                || value instanceof ArrayBuffer
+                || ArrayBuffer.isView(value)
+              )
+            ) {{
+              let bytes;
+              if (value instanceof Uint8Array) bytes = value;
+              else if (value instanceof ArrayBuffer) bytes = new Uint8Array(value);
+              else bytes = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+              let id;
+              if (typeof globalThis.__native_buffer_put_raw === "function") {{
+                try {{
+                  id = globalThis.__native_buffer_put_raw(bytes);
+                }} catch (_err) {{}}
+              }}
+              if ((id === undefined || id === null) && typeof globalThis.__native_buffer_put === "function") {{
+                const raw = globalThis.__native_buffer_put(JSON.stringify(Array.from(bytes)));
+                const payload = JSON.parse(raw);
+                if (!payload || payload.ok !== true) {{
+                  throw new Error(payload && payload.error ? String(payload.error) : "native put failed");
+                }}
+                id = payload.id;
+              }}
+              if (id === undefined || id === null) {{
+                throw new Error("native binary bridge unavailable");
+              }}
+              return {{
+                __hostReturnKind: "bytes",
+                nativeBufferId: id,
+                tag: Object.prototype.toString.call(value),
+                ctor: value && value.constructor ? String(value.constructor.name || "") : "",
+                byteLength: Number(bytes.byteLength || 0),
+              }};
+            }}
+            return value;
+          }};
           try {{
             const host = globalThis.__host_bundle_runtime;
             if (!host || typeof host.invoke !== "function") {{
               throw new Error("bundle dispatcher unavailable");
             }}
             const data = await host.invoke({{ name: {name_literal}, fnPath: {fn_path_literal}, args: {args_literal} }});
-            return JSON.stringify({{ ok: true, data }});
+            return JSON.stringify({{ ok: true, data: encodeHostData(data) }});
           }} catch (err) {{
             const base = String(err && err.message ? err.message : err || "执行失败");
             const stack = String(err && err.stack ? err.stack : "");

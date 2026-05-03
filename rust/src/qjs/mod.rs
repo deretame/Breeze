@@ -2,7 +2,6 @@ use anyhow::{Context, Result, anyhow};
 use dashmap::DashMap;
 use ferrous_opencc::{OpenCC, config::BuiltinConfig};
 use flutter_rust_bridge::DartFnFuture;
-use rquickjs_playground::web_runtime::native_buffer_take_raw;
 use rquickjs_playground::{
     AsyncHostRuntime, AsyncHostRuntimeBuilder, HttpClientConfig, WebRuntimeOptions,
     configure_http_client, configure_js_error_stack, configure_log_http_endpoint,
@@ -453,18 +452,20 @@ fn spawn_tracked_task_waiter(
     kind: TrackedQjsTaskKind,
 ) {
     tokio::spawn(async move {
-        let outcome = match handle.wait_async().await {
-            Ok(raw) => match kind {
-                TrackedQjsTaskKind::Call => parse_ok_json_payload(&raw)
+        let outcome = match kind {
+            TrackedQjsTaskKind::Call => match handle.wait_async().await {
+                Ok(raw) => parse_ok_json_payload(&raw)
                     .and_then(|payload| {
                         serde_json::to_string(&payload).context("序列化调用结果失败")
                     })
                     .map(TrackedQjsTaskOutput::Json),
-                TrackedQjsTaskKind::CallBytes => parse_ok_json_payload(&raw)
-                    .and_then(native_bytes_from_payload)
-                    .map(TrackedQjsTaskOutput::Bytes),
+                Err(err) => Err(anyhow!(err)),
             },
-            Err(err) => Err(anyhow!(err)),
+            TrackedQjsTaskKind::CallBytes => handle
+                .wait_bytes_async()
+                .await
+                .map(TrackedQjsTaskOutput::Bytes)
+                .map_err(|err| anyhow!(err)),
         };
 
         state.complete(outcome.map_err(|err| err.to_string()));
@@ -477,18 +478,20 @@ fn spawn_tracked_bundle_once_task_waiter(
     kind: TrackedQjsTaskKind,
 ) {
     tokio::spawn(async move {
-        let outcome = match handle.wait_async().await {
-            Ok(raw) => match kind {
-                TrackedQjsTaskKind::Call => parse_ok_json_payload(&raw)
+        let outcome = match kind {
+            TrackedQjsTaskKind::Call => match handle.wait_async().await {
+                Ok(raw) => parse_ok_json_payload(&raw)
                     .and_then(|payload| {
                         serde_json::to_string(&payload).context("序列化一次性调用结果失败")
                     })
                     .map(TrackedQjsTaskOutput::Json),
-                TrackedQjsTaskKind::CallBytes => parse_ok_json_payload(&raw)
-                    .and_then(native_bytes_from_payload)
-                    .map(TrackedQjsTaskOutput::Bytes),
+                Err(err) => Err(anyhow!(err)),
             },
-            Err(err) => Err(anyhow!(err)),
+            TrackedQjsTaskKind::CallBytes => handle
+                .wait_bytes_async()
+                .await
+                .map(TrackedQjsTaskOutput::Bytes)
+                .map_err(|err| anyhow!(err)),
         };
 
         state.complete(outcome.map_err(|err| err.to_string()));
@@ -931,16 +934,6 @@ async fn call_bundle_once_inner(
         .map_err(|err| anyhow!(err))
 }
 
-fn native_bytes_from_payload(payload: Value) -> Result<Vec<u8>> {
-    let native_buffer_id = payload
-        .get("nativeBufferId")
-        .and_then(Value::as_u64)
-        .ok_or_else(|| anyhow!("JS 返回缺少 nativeBufferId"))?;
-
-    native_buffer_take_raw(native_buffer_id)
-        .ok_or_else(|| anyhow!("native buffer 不存在或已被消费: {native_buffer_id}"))
-}
-
 fn parse_call_input(fn_path: &str, args_json: &str) -> Result<Value> {
     if fn_path.trim().is_empty() {
         return Err(anyhow!("fn_path 不能为空"));
@@ -985,23 +978,39 @@ async fn call_bundle_once_by_json(
     call_bundle_once_inner(&runtime, bundle_js, fn_path, &args).await
 }
 
-async fn call_current_bundle_bytes_by_json(
+async fn call_current_bundle_bytes_auto_by_json(
     runtime_name: &str,
     fn_path: &str,
     args_json: &str,
 ) -> Result<Vec<u8>> {
-    let payload = call_current_bundle_by_json(runtime_name, fn_path, args_json).await?;
-    native_bytes_from_payload(payload)
+    let runtime = qjs_runtime(runtime_name).await?;
+    let args = parse_call_input(fn_path, args_json)?;
+    let Some(name) = current_bundle_name(&runtime).await? else {
+        return Err(anyhow!(
+            "当前 runtime 未加载 bundle，请先调用 qjs_replace_bundle"
+        ));
+    };
+    runtime
+        .bundle_call_bytes(&name, fn_path, &args)
+        .await
+        .map_err(|err| anyhow!(err))
 }
 
-async fn call_bundle_once_bytes_by_json(
+async fn call_bundle_once_bytes_auto_by_json(
     runtime_name: &str,
     bundle_js: &str,
     fn_path: &str,
     args_json: &str,
 ) -> Result<Vec<u8>> {
-    let payload = call_bundle_once_by_json(runtime_name, bundle_js, fn_path, args_json).await?;
-    native_bytes_from_payload(payload)
+    if bundle_js.trim().is_empty() {
+        return Err(anyhow!("bundle_js 不能为空"));
+    }
+    let runtime = qjs_runtime(runtime_name).await?;
+    let args = parse_call_input(fn_path, args_json)?;
+    runtime
+        .bundle_call_once_bytes(bundle_js, fn_path, &args)
+        .await
+        .map_err(|err| anyhow!(err))
 }
 
 async fn current_bundle_name(runtime: &AsyncHostRuntime) -> Result<Option<String>> {
@@ -1255,7 +1264,7 @@ pub async fn qjs_fetch_image_bytes(
     fn_path: String,
     args_json: String,
 ) -> Result<Vec<u8>> {
-    call_current_bundle_bytes_by_json(&runtime_name, &fn_path, &args_json).await
+    qjs_fetch_bytes_auto(runtime_name, fn_path, args_json).await
 }
 
 pub async fn qjs_fetch_image_bytes_task_start(
@@ -1291,7 +1300,24 @@ pub async fn qjs_fetch_image_bytes_once(
     fn_path: String,
     args_json: String,
 ) -> Result<Vec<u8>> {
-    call_bundle_once_bytes_by_json(&runtime_name, &bundle_js, &fn_path, &args_json).await
+    qjs_fetch_bytes_auto_once(runtime_name, bundle_js, fn_path, args_json).await
+}
+
+pub async fn qjs_fetch_bytes_auto(
+    runtime_name: String,
+    fn_path: String,
+    args_json: String,
+) -> Result<Vec<u8>> {
+    call_current_bundle_bytes_auto_by_json(&runtime_name, &fn_path, &args_json).await
+}
+
+pub async fn qjs_fetch_bytes_auto_once(
+    runtime_name: String,
+    bundle_js: String,
+    fn_path: String,
+    args_json: String,
+) -> Result<Vec<u8>> {
+    call_bundle_once_bytes_auto_by_json(&runtime_name, &bundle_js, &fn_path, &args_json).await
 }
 
 pub async fn qjs_fetch_image_bytes_once_task_start(

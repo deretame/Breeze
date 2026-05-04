@@ -478,8 +478,7 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
                                       );
                                       setModalState(() {});
                                     } catch (e) {
-                                      if (!mounted || !rootContext.mounted)
-                                        return;
+                                      if (!rootContext.mounted) return;
                                       ScaffoldMessenger.of(
                                         rootContext,
                                       ).showSnackBar(

@@ -9,15 +9,19 @@ import 'package:zephyr/util/router/router.gr.dart';
 void onSearch(
   BuildContext context,
   String keyword, {
-  Map<String, dynamic> pluginExtern = const <String, dynamic>{},
+  Map<String, dynamic>? pluginExtern,
   bool aggregateMode = true,
   Map<String, bool>? aggregateSources,
 }) async {
   final searchCubit = context.read<SearchCubit>();
+  final nextExtern =
+      pluginExtern == null
+          ? Map<String, dynamic>.from(searchCubit.state.pluginExtern)
+          : Map<String, dynamic>.from(pluginExtern);
   searchCubit.update(
     searchCubit.state.copyWith(
       searchKeyword: keyword,
-      pluginExtern: Map<String, dynamic>.from(pluginExtern),
+      pluginExtern: nextExtern,
     ),
   );
 

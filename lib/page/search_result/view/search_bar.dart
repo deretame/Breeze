@@ -151,45 +151,47 @@ class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
     String from,
     Map<String, dynamic> extern,
   ) async {
-    Map<String, dynamic> response;
     try {
-      response = await callUnifiedComicPlugin(
+      final response = await callUnifiedComicPlugin(
         from: from,
-        fnPath: 'get_advanced_search_scheme',
+        fnPath: 'getAdvancedSearchScheme',
         core: const <String, dynamic>{},
         extern: extern,
       );
-    } catch (_) {
-      try {
-        response = await callUnifiedComicPlugin(
-          from: from,
-          fnPath: 'getAdvancedSearchScheme',
-          core: const <String, dynamic>{},
-          extern: extern,
-        );
-      } catch (_) {
+      final scheme = Map<String, dynamic>.from(
+        (response['scheme'] as Map?) ?? const <String, dynamic>{},
+      );
+      final data = Map<String, dynamic>.from(
+        (response['data'] as Map?) ?? const <String, dynamic>{},
+      );
+      final fields = ((scheme['fields'] as List?) ?? const [])
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+
+      if (fields.isEmpty) {
         return null;
       }
-    }
 
-    final scheme = Map<String, dynamic>.from(
-      (response['scheme'] as Map?) ?? const <String, dynamic>{},
-    );
-    final data = Map<String, dynamic>.from(
-      (response['data'] as Map?) ?? const <String, dynamic>{},
-    );
-    final fields = ((scheme['fields'] as List?) ?? const [])
-        .whereType<Map>()
-        .map((e) => Map<String, dynamic>.from(e))
-        .toList();
-
-    if (fields.isEmpty) {
+      final values = Map<String, dynamic>.from(
+        (data['values'] as Map?) ?? const <String, dynamic>{},
+      );
+      _mergeExternValues(fields, extern, values);
+      return _AdvancedSearchScheme(
+        source: response['source']?.toString() ?? from,
+        fields: fields,
+        values: values,
+      );
+    } catch (_) {
       return null;
     }
+  }
 
-    final values = Map<String, dynamic>.from(
-      (data['values'] as Map?) ?? const <String, dynamic>{},
-    );
+  void _mergeExternValues(
+    List<Map<String, dynamic>> fields,
+    Map<String, dynamic> extern,
+    Map<String, dynamic> values,
+  ) {
     for (final field in fields) {
       final key = field['key']?.toString() ?? '';
       if (key.isEmpty || !extern.containsKey(key)) {
@@ -205,11 +207,6 @@ class SearchResultBar extends StatelessWidget implements PreferredSizeWidget {
         values[key] = externValue;
       }
     }
-    return _AdvancedSearchScheme(
-      source: response['source']?.toString() ?? from,
-      fields: fields,
-      values: values,
-    );
   }
 }
 
@@ -283,6 +280,10 @@ class _PluginAdvancedSearchDialogState
                 nextExtern[key] = _values[key];
               } else if (kind == 'multiChoice') {
                 nextExtern[key] = _multiValues(key);
+              } else if (kind == 'switch') {
+                nextExtern[key] = _switchValue(key);
+              } else if (kind == 'text') {
+                nextExtern[key] = _textValue(key);
               }
             }
             Navigator.of(context).pop(
@@ -304,6 +305,40 @@ class _PluginAdvancedSearchDialogState
     final kind = field['kind']?.toString() ?? 'choice';
     if (key.isEmpty) {
       return const SizedBox.shrink();
+    }
+
+    if (kind == 'switch') {
+      final current = _switchValue(key);
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: SwitchListTile(
+          value: current,
+          title: Text(label),
+          contentPadding: EdgeInsets.zero,
+          onChanged: (value) {
+            setState(() {
+              _values[key] = value;
+            });
+          },
+        ),
+      );
+    }
+
+    if (kind == 'text') {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: TextFormField(
+          initialValue: _textValue(key),
+          decoration: InputDecoration(
+            labelText: label,
+            border: const OutlineInputBorder(),
+            isDense: true,
+          ),
+          onChanged: (value) {
+            _values[key] = value;
+          },
+        ),
+      );
     }
 
     final options = ((field['options'] as List?) ?? const [])
@@ -432,5 +467,22 @@ class _PluginAdvancedSearchDialogState
           .toList();
     }
     return const <String>[];
+  }
+
+  bool _switchValue(String key) {
+    final value = _values[key];
+    if (value is bool) {
+      return value;
+    }
+    if (value is num) {
+      return value != 0;
+    }
+    final text = value?.toString().toLowerCase();
+    return text == 'true' || text == '1';
+  }
+
+  String _textValue(String key) {
+    final value = _values[key];
+    return value == null ? '' : value.toString();
   }
 }

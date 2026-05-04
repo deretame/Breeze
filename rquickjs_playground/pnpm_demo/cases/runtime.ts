@@ -1,7 +1,7 @@
 import { getApi, requireCryptoLike, runtime } from "../src/runtime-api";
 
 export default async function main() {
-  const BufferRef = runtime.Buffer;
+  const BufferRef = Buffer;
   const runtimePath = getApi("path");
   const pathRef: { join: (...parts: string[]) => string } =
     runtimePath && typeof runtimePath.join === "function"

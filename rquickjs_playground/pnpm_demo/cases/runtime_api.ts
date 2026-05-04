@@ -9,7 +9,7 @@ export default async function main(config: unknown = {}) {
   const shaHex = crypto.createHash("sha256").update("The quick brown fox jumps over the lazy dog").digest("hex");
   const hmacHex = crypto.createHmac("sha256", "key").update("The quick brown fox jumps over the lazy dog").digest("hex");
 
-  const id = runtime.uuidv4();
+  const id = globalThis.uuidv4();
   const uuidOk = /^[0-9a-f]{32}$/i.test(id)
     || /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
 
@@ -42,12 +42,12 @@ export default async function main(config: unknown = {}) {
   const fileRaw = await fsApi.promises.readFile(filePath);
   const fileText = typeof fileRaw === "string"
     ? fileRaw
-    : new runtime.TextDecoder().decode(fileRaw);
+    : new TextDecoder().decode(fileRaw);
   await fsApi.promises.rm(filePath, { force: true });
 
-  const fetchFn = requireApi("fetch");
+  const fetchFn = fetch;
 
-  const formData = new runtime.FormData();
+  const formData = new FormData();
   formData.append("name", "runtime-api");
 
   const ok =

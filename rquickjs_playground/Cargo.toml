@@ -40,6 +40,8 @@ filetime = "0.2.26"
 getrandom = "0.3.4"
 hmac = "0.12.1"
 sha2 = "0.10.9"
+pbkdf2 = "0.12.2"
+uuid = { version = "1.18.1", features = ["v4", "fast-rng"] }
 md5 = "0.8.0"
 aes = "0.8.4"
 ecb = "0.1.2"

@@ -22,6 +22,7 @@
     TextEncoder,
     TextDecoder,
     Buffer,
+    structuredClone,
   } = globalThis.__web;
 
   globalThis.Headers = Headers;
@@ -46,4 +47,5 @@
   globalThis.TextEncoder = TextEncoder;
   globalThis.TextDecoder = TextDecoder;
   globalThis.Buffer = Buffer;
+  globalThis.structuredClone = structuredClone;
 })();

@@ -49,6 +49,7 @@
 
   const {
     parseBodyInit,
+    parseBodyInitAsync,
     stringToArrayBuffer,
     normalizeMethod,
     Headers,
@@ -166,8 +167,25 @@
         this.timeout = Number.isFinite(timeout) && timeout > 0 ? Math.floor(timeout) : null;
       }
 
-      const bodyInit = parseBodyInit(init.body);
-      if (bodyInit.bodyText !== undefined) {
+      const syncBodyInit = parseBodyInit(init.body);
+      if (syncBodyInit.bodyText !== undefined) {
+        if (this.method === "GET" || this.method === "HEAD") {
+          throw new TypeError("GET/HEAD 请求不能带 body");
+        }
+        this._initBody(syncBodyInit.bodyText);
+        this._hasBody = true;
+        if (!this.headers.has("content-type") && syncBodyInit.contentType) {
+          this.headers.set("content-type", syncBodyInit.contentType);
+        }
+        if (syncBodyInit.hostBodyKind === "formData") {
+          this.headers.set(HOST_FORMDATA_BODY_HEADER, "1");
+        }
+      }
+
+      this._bodyInitPromise = Promise.resolve();
+      if (init.body instanceof FormData || init.body instanceof Blob) {
+        this._bodyInitPromise = parseBodyInitAsync(init.body).then((bodyInit) => {
+        if (bodyInit.bodyText === undefined) return;
         if (this.method === "GET" || this.method === "HEAD") {
           throw new TypeError("GET/HEAD 请求不能带 body");
         }
@@ -179,6 +197,7 @@
         if (bodyInit.hostBodyKind === "formData") {
           this.headers.set(HOST_FORMDATA_BODY_HEADER, "1");
         }
+        });
       }
     }
 
@@ -281,9 +300,12 @@
   }
 
   function fetch(input, init = {}) {
-    const request = input instanceof Request ? new Request(input, init) : new Request(input, init);
+      const request = input instanceof Request ? new Request(input, init) : new Request(input, init);
+      const waitBodyInit = request && request._bodyInitPromise
+        ? request._bodyInitPromise
+        : Promise.resolve();
 
-    return new Promise((resolve, reject) => {
+    return waitBodyInit.then(() => new Promise((resolve, reject) => {
       let requestId = null;
       let settled = false;
       let timeoutId = null;
@@ -452,7 +474,7 @@
         dropPending();
         finish(() => reject(err));
       }
-    });
+    }));
   }
 
   globalThis.__web.Request = Request;

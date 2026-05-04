@@ -215,6 +215,61 @@ fn runtime_url_web_global_api_surface() {
 }
 
 #[test]
+fn runtime_structured_clone() {
+    let script = r#"
+      (async () => {
+        const now = new Date("2026-01-02T03:04:05.000Z");
+        const map = new Map([["k", { n: 1 }]]);
+        const set = new Set(["a", "b"]);
+        const bytes = new Uint8Array([1, 2, 3]);
+        const source = {
+          nested: { ok: true },
+          date: now,
+          map,
+          set,
+          bytes,
+        };
+        source.self = source;
+
+        const cloned = structuredClone(source);
+        cloned.nested.ok = false;
+        cloned.map.get("k").n = 99;
+        cloned.set.add("c");
+        cloned.bytes[0] = 9;
+
+        return JSON.stringify({
+          sameRef: cloned === source,
+          cycleOk: cloned.self === cloned,
+          nestedOriginal: source.nested.ok,
+          nestedCloned: cloned.nested.ok,
+          mapOriginal: source.map.get("k").n,
+          mapCloned: cloned.map.get("k").n,
+          setOriginalSize: source.set.size,
+          setClonedSize: cloned.set.size,
+          bytesOriginal0: source.bytes[0],
+          bytesCloned0: cloned.bytes[0],
+          dateIso: cloned.date.toISOString(),
+        });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+
+    assert_eq!(parsed["sameRef"], false);
+    assert_eq!(parsed["cycleOk"], true);
+    assert_eq!(parsed["nestedOriginal"], true);
+    assert_eq!(parsed["nestedCloned"], false);
+    assert_eq!(parsed["mapOriginal"], 1);
+    assert_eq!(parsed["mapCloned"], 99);
+    assert_eq!(parsed["setOriginalSize"], 2);
+    assert_eq!(parsed["setClonedSize"], 3);
+    assert_eq!(parsed["bytesOriginal0"], 1);
+    assert_eq!(parsed["bytesCloned0"], 9);
+    assert_eq!(parsed["dateIso"], "2026-01-02T03:04:05.000Z");
+}
+
+#[test]
 fn runtime_process_and_immediate() {
     let script = r#"
       (async () => {
@@ -496,6 +551,64 @@ fn runtime_crypto_hash_and_hmac_basic() {
         parsed["hmacBase64"],
         "97yD9DBThCSxMpjmqm+xQ+9NWaFJRhdZl0edvC0aPNg="
     );
+}
+
+#[test]
+fn runtime_crypto_common_extra_apis() {
+    let script = r#"
+      (async () => {
+        const crypto = require("crypto");
+        const a = Buffer.from([1, 2, 3]);
+        const b = Buffer.from([1, 2, 3]);
+        const c = Buffer.from([1, 2, 4]);
+        const toHex = (buf) =>
+          Array.from(buf)
+            .map((x) => x.toString(16).padStart(2, "0"))
+            .join("");
+
+        const dk = crypto.pbkdf2Sync("password", "salt", 1000, 32, "sha256");
+        const uuid = crypto.randomUUID();
+        const re = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+
+        const asyncHex = await new Promise((resolve, reject) => {
+          crypto.pbkdf2("password", "salt", 1000, 32, "sha256", (err, key) => {
+            if (err) return reject(err);
+            resolve(toHex(key));
+          });
+        });
+
+        return JSON.stringify({
+          hasRandomUUID: typeof crypto.randomUUID === "function",
+          hasTimingSafeEqual: typeof crypto.timingSafeEqual === "function",
+          hasPbkdf2Sync: typeof crypto.pbkdf2Sync === "function",
+          hasPbkdf2: typeof crypto.pbkdf2 === "function",
+          eq1: crypto.timingSafeEqual(a, b),
+          eq2: crypto.timingSafeEqual(a, c),
+          dkHex: toHex(dk),
+          asyncHex,
+          uuidValid: re.test(uuid),
+        });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+
+    assert_eq!(parsed["hasRandomUUID"], true);
+    assert_eq!(parsed["hasTimingSafeEqual"], true);
+    assert_eq!(parsed["hasPbkdf2Sync"], true);
+    assert_eq!(parsed["hasPbkdf2"], true);
+    assert_eq!(parsed["eq1"], true);
+    assert_eq!(parsed["eq2"], false);
+    assert_eq!(
+        parsed["dkHex"],
+        "632c2812e46d4604102ba7618e9d6d7d2f8128f6266b4a03264d2a0460b7dcb3"
+    );
+    assert_eq!(
+        parsed["asyncHex"],
+        "632c2812e46d4604102ba7618e9d6d7d2f8128f6266b4a03264d2a0460b7dcb3"
+    );
+    assert_eq!(parsed["uuidValid"], true);
 }
 
 #[test]

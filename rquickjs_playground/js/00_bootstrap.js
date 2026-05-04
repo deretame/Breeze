@@ -264,12 +264,10 @@
   }
 
   function bytesToBase64(bytes) {
-    return btoaImpl(byteViewToBinaryText(bytes));
-  }
-
-  function normalizeMimeType(input) {
-    if (input === undefined || input === null) return "";
-    return String(input).trim().toLowerCase();
+    if (typeof globalThis.btoa !== "function") {
+      throw new TypeError("btoa 不可用");
+    }
+    return globalThis.btoa(byteViewToBinaryText(bytes));
   }
 
   function cloneBytes(view) {
@@ -288,225 +286,42 @@
     return out;
   }
 
-  function blobPartToBytes(part) {
-    if (part instanceof Blob) {
-      return cloneBytes(part._bytes);
-    }
-    if (part instanceof ArrayBuffer) {
-      return cloneBytes(new Uint8Array(part));
-    }
-    if (ArrayBuffer.isView(part)) {
-      return cloneBytes(
-        new Uint8Array(part.buffer, part.byteOffset, part.byteLength),
-      );
-    }
-    return encodeUtf8(String(part));
-  }
-
-  class Blob {
-    constructor(parts = [], options = {}) {
-      const list = Array.isArray(parts) ? parts : [parts];
-      const chunks = [];
-      let total = 0;
-      for (const part of list) {
-        const bytes = blobPartToBytes(part);
-        chunks.push(bytes);
-        total += bytes.length;
-      }
-      this._bytes = concatBytes(chunks, total);
-      this.type = normalizeMimeType(options && options.type);
-    }
-
-    get size() {
-      return this._bytes.length;
-    }
-
-    arrayBuffer() {
-      const out = cloneBytes(this._bytes);
-      return Promise.resolve(out.buffer);
-    }
-
-    text() {
-      return Promise.resolve(decodeUtf8(this._bytes));
-    }
-
-    slice(start = 0, end = this.size, contentType = "") {
-      const size = this.size;
-      let from = Number(start);
-      let to = Number(end);
-      if (!Number.isFinite(from)) from = 0;
-      if (!Number.isFinite(to)) to = size;
-      if (from < 0) from = Math.max(size + from, 0);
-      if (to < 0) to = Math.max(size + to, 0);
-      from = Math.min(Math.max(from, 0), size);
-      to = Math.min(Math.max(to, 0), size);
-      if (to < from) to = from;
-      const bytes = this._bytes.slice(from, to);
-      return new Blob([bytes], { type: contentType });
-    }
-
-    get [Symbol.toStringTag]() {
-      return "Blob";
-    }
-  }
-
-  class File extends Blob {
-    constructor(parts = [], name = "", options = {}) {
-      super(parts, options);
-      this.name = String(name);
-      const lm = options && options.lastModified;
-      const ts = Number(lm);
-      this.lastModified = Number.isFinite(ts) ? ts : Date.now();
-    }
-
-    get [Symbol.toStringTag]() {
-      return "File";
-    }
-  }
-
-  function normalizeFormDataEntry(value, filename) {
-    if (value instanceof Blob) {
-      let resolvedFilename;
-      if (filename !== undefined) {
-        resolvedFilename = String(filename);
-      } else if (value instanceof File) {
-        resolvedFilename = value.name;
+  async function formDataToHostMultipartPlan(formData) {
+    const entries = [];
+    for (const [name, value] of formData.entries()) {
+      if (value instanceof Blob) {
+        const ab = await value.arrayBuffer();
+        const bytes = new Uint8Array(ab);
+        const filename =
+          typeof value.name === "string" && value.name.length > 0
+            ? value.name
+            : "blob";
+        entries.push({
+          name: String(name),
+          kind: "binary",
+          dataB64: bytesToBase64(bytes),
+          filename,
+          contentType: value.type || null,
+        });
       } else {
-        resolvedFilename = "blob";
+        entries.push({
+          name: String(name),
+          kind: "text",
+          value: String(value),
+        });
       }
-      return {
-        value,
-        filename: resolvedFilename,
-      };
     }
-
     return {
-      value: String(value),
-      filename: null,
+      kind: "rquickjs-formdata-v1",
+      entries,
     };
   }
-
-  class FormData {
-    constructor(init) {
-      this._entries = [];
-      if (init instanceof FormData) {
-        for (const entry of init._entries) {
-          this._entries.push({ ...entry });
-        }
-      }
-    }
-
-    append(name, value, filename) {
-      const normalized = normalizeFormDataEntry(value, filename);
-      this._entries.push({
-        name: String(name),
-        value: normalized.value,
-        filename: normalized.filename,
-      });
-    }
-
-    set(name, value, filename) {
-      const key = String(name);
-      this.delete(key);
-      this.append(key, value, filename);
-    }
-
-    get(name) {
-      const key = String(name);
-      for (const entry of this._entries) {
-        if (entry.name === key) return entry.value;
-      }
-      return null;
-    }
-
-    getAll(name) {
-      const key = String(name);
-      const out = [];
-      for (const entry of this._entries) {
-        if (entry.name === key) out.push(entry.value);
-      }
-      return out;
-    }
-
-    has(name) {
-      const key = String(name);
-      return this._entries.some((entry) => entry.name === key);
-    }
-
-    delete(name) {
-      const key = String(name);
-      this._entries = this._entries.filter((entry) => entry.name !== key);
-    }
-
-    forEach(callback, thisArg) {
-      for (const entry of this._entries) {
-        callback.call(thisArg, entry.value, entry.name, this);
-      }
-    }
-
-    *entries() {
-      for (const entry of this._entries) {
-        yield [entry.name, entry.value];
-      }
-    }
-
-    *keys() {
-      for (const entry of this._entries) {
-        yield entry.name;
-      }
-    }
-
-    *values() {
-      for (const entry of this._entries) {
-        yield entry.value;
-      }
-    }
-
-    [Symbol.iterator]() {
-      return this.entries();
-    }
-
-    _toHostMultipartPlan() {
-      const entries = this._entries.map((entry) => {
-        if (entry.value instanceof Blob) {
-          return {
-            name: entry.name,
-            kind: "binary",
-            dataB64: bytesToBase64(entry.value._bytes),
-            filename: entry.filename,
-            contentType: entry.value.type || null,
-          };
-        }
-        return {
-          name: entry.name,
-          kind: "text",
-          value: String(entry.value),
-        };
-      });
-
-      return {
-        kind: "rquickjs-formdata-v1",
-        entries,
-      };
-    }
-  }
-
-  __web.FormData = FormData;
 
   __web.parseBodyInit = function parseBodyInit(body) {
     if (body === undefined || body === null) {
       return {
         bodyText: undefined,
         contentType: null,
-      };
-    }
-
-    if (body instanceof FormData) {
-      const plan = body._toHostMultipartPlan();
-      return {
-        bodyText: JSON.stringify(plan),
-        contentType: null,
-        hostBodyKind: "formData",
       };
     }
 
@@ -519,14 +334,6 @@
         contentType: "application/x-www-form-urlencoded;charset=UTF-8",
       };
     }
-
-    if (body instanceof Blob) {
-      return {
-        bodyText: byteViewToBinaryText(body._bytes),
-        contentType: body.type || null,
-      };
-    }
-
     if (typeof body === "string") {
       return { bodyText: body, contentType: null };
     }
@@ -547,11 +354,31 @@
         contentType: null,
       };
     }
-
     return {
       bodyText: JSON.stringify(body),
       contentType: "application/json",
     };
+  };
+
+  __web.parseBodyInitAsync = async function parseBodyInitAsync(body) {
+    if (body instanceof FormData) {
+      const plan = await formDataToHostMultipartPlan(body);
+      return {
+        bodyText: JSON.stringify(plan),
+        contentType: null,
+        hostBodyKind: "formData",
+      };
+    }
+
+    if (body instanceof Blob) {
+      const ab = await body.arrayBuffer();
+      return {
+        bodyText: byteViewToBinaryText(new Uint8Array(ab)),
+        contentType: body.type || null,
+      };
+    }
+
+    return __web.parseBodyInit(body);
   };
 
   __web.stringToArrayBuffer = function stringToArrayBuffer(text) {
@@ -613,100 +440,6 @@
     }
   }
 
-  class Buffer extends Uint8Array {
-    static from(input, encoding = "utf8") {
-      if (typeof input === "string") {
-        const enc = String(encoding).toLowerCase();
-        if (enc !== "utf8" && enc !== "utf-8") {
-          throw new TypeError(`不支持的编码: ${encoding}`);
-        }
-        const bytes = encodeUtf8(input);
-        return new Buffer(bytes);
-      }
-
-      if (input instanceof ArrayBuffer) {
-        return new Buffer(new Uint8Array(input));
-      }
-
-      if (ArrayBuffer.isView(input)) {
-        return new Buffer(
-          new Uint8Array(input.buffer, input.byteOffset, input.byteLength),
-        );
-      }
-
-      if (Array.isArray(input)) {
-        return new Buffer(Uint8Array.from(input));
-      }
-
-      throw new TypeError("Buffer.from 不支持该输入类型");
-    }
-
-    static alloc(size, fill = 0) {
-      const out = new Buffer(Number(size) || 0);
-      if (typeof fill === "string") {
-        const src = encodeUtf8(fill);
-        for (let i = 0; i < out.length; i += 1) {
-          out[i] = src[i % src.length] || 0;
-        }
-      } else {
-        out.fill(Number(fill) & 0xff);
-      }
-      return out;
-    }
-
-    static isBuffer(value) {
-      return value instanceof Buffer;
-    }
-
-    static concat(list, totalLength) {
-      if (!Array.isArray(list)) {
-        throw new TypeError("Buffer.concat 参数必须是数组");
-      }
-
-      const chunks = list.map((item) =>
-        Buffer.isBuffer(item) ? item : Buffer.from(item),
-      );
-      const size =
-        totalLength === undefined
-          ? chunks.reduce((n, c) => n + c.length, 0)
-          : Number(totalLength);
-
-      const out = Buffer.alloc(size);
-      let offset = 0;
-      for (const chunk of chunks) {
-        if (offset >= out.length) break;
-        const writable = Math.min(chunk.length, out.length - offset);
-        out.set(chunk.subarray(0, writable), offset);
-        offset += writable;
-      }
-      return out;
-    }
-
-    static byteLength(input, encoding = "utf8") {
-      if (typeof input === "string") {
-        const enc = String(encoding).toLowerCase();
-        if (enc !== "utf8" && enc !== "utf-8") {
-          throw new TypeError(`不支持的编码: ${encoding}`);
-        }
-        return encodeUtf8(input).length;
-      }
-      return Buffer.from(input).length;
-    }
-
-    toString(encoding = "utf8") {
-      const enc = String(encoding).toLowerCase();
-      if (enc !== "utf8" && enc !== "utf-8") {
-        throw new TypeError(`不支持的编码: ${encoding}`);
-      }
-      return decodeUtf8(this);
-    }
-
-    slice(start, end) {
-      const view = super.slice(start, end);
-      return new Buffer(view);
-    }
-  }
-
   function normalizeEncoding(encoding, defaultEncoding = "utf8") {
     const enc = String(encoding || defaultEncoding).toLowerCase();
     if (enc === "utf8" || enc === "utf-8") return "utf8";
@@ -735,7 +468,10 @@
   }
 
   function bytesFromBase64(text) {
-    const raw = atobImpl(String(text));
+    if (typeof globalThis.atob !== "function") {
+      throw new TypeError("atob 不可用");
+    }
+    const raw = globalThis.atob(String(text));
     const out = new Uint8Array(raw.length);
     for (let i = 0; i < raw.length; i += 1) {
       out[i] = raw.charCodeAt(i) & 0xff;
@@ -925,6 +661,24 @@
     return new Hmac(algorithm, key);
   }
 
+  function normalizeDigestAlgorithm(digest) {
+    const alg = String(digest || "").toLowerCase();
+    if (alg === "sha256" || alg === "sha-256") return "sha256";
+    throw new TypeError(`不支持的 digest 算法: ${digest}`);
+  }
+
+  function normalizePositiveInt(value, name) {
+    const n = Number(value);
+    if (!Number.isInteger(n) || n <= 0) {
+      throw new TypeError(`${name} 必须是正整数`);
+    }
+    return n;
+  }
+
+  function normalizeToBuffer(value, inputEncoding = "utf8") {
+    return Buffer.from(toBytes(value, inputEncoding));
+  }
+
   function randomBytes(size) {
     const n = Number(size);
     if (!Number.isInteger(n) || n < 0) {
@@ -937,10 +691,73 @@
     return Buffer.from(bytesFromBase64(out.base64));
   }
 
+  function randomUUID() {
+    const out = parseHostCryptoResult(
+      globalThis.__crypto_random_uuid_v4(),
+      "randomUUID",
+    );
+    return String(out.uuid || "");
+  }
+
+  function timingSafeEqual(a, b) {
+    const left = normalizeToBuffer(a);
+    const right = normalizeToBuffer(b);
+    const out = parseHostCryptoResult(
+      globalThis.__crypto_timing_safe_equal_b64(
+        bytesToBase64(left),
+        bytesToBase64(right),
+      ),
+      "timingSafeEqual",
+    );
+    return out.equal === true;
+  }
+
+  function pbkdf2Sync(password, salt, iterations, keyLen, digest = "sha256") {
+    normalizeDigestAlgorithm(digest);
+    const rounds = normalizePositiveInt(iterations, "iterations");
+    const outLen = normalizePositiveInt(keyLen, "keyLen");
+    const passwordBytes = normalizeToBuffer(password);
+    const saltBytes = normalizeToBuffer(salt);
+    const out = parseHostCryptoResult(
+      globalThis.__crypto_pbkdf2_sha256_b64(
+        bytesToBase64(passwordBytes),
+        bytesToBase64(saltBytes),
+        rounds,
+        outLen,
+      ),
+      "pbkdf2",
+    );
+    return Buffer.from(bytesFromBase64(out.base64));
+  }
+
+  function pbkdf2(password, salt, iterations, keyLen, digest, callback) {
+    let cb = callback;
+    let dg = digest;
+    if (typeof dg === "function") {
+      cb = dg;
+      dg = "sha256";
+    }
+    if (typeof cb !== "function") {
+      throw new TypeError("pbkdf2 callback 必须是函数");
+    }
+    __web.nextTick(() => {
+      try {
+        const derived = pbkdf2Sync(password, salt, iterations, keyLen, dg);
+        cb(null, derived);
+      } catch (err) {
+        cb(err);
+      }
+    });
+  }
+
   const cryptoModule = {
     createHash,
     createHmac,
     randomBytes,
+    randomUUID,
+    timingSafeEqual,
+    pbkdf2Sync,
+    pbkdf2,
   };
 
   const BASE64_TABLE =
@@ -993,438 +810,21 @@
     return out;
   }
 
-  const HEX = "0123456789abcdef";
-
-  function randomByte() {
-    return Math.floor(Math.random() * 256) & 0xff;
-  }
-
-  function formatUuid(bytes) {
-    let out = "";
-    for (let i = 0; i < bytes.length; i += 1) {
-      if (i === 4 || i === 6 || i === 8 || i === 10) out += "-";
-      const b = bytes[i];
-      out += HEX[(b >> 4) & 0x0f];
-      out += HEX[b & 0x0f];
-    }
-    return out;
-  }
-
   function uuidv4() {
-    const bytes = new Uint8Array(16);
-    for (let i = 0; i < bytes.length; i += 1) {
-      bytes[i] = randomByte();
+    const raw = globalThis.__crypto_random_uuid_v4();
+    let payload = null;
+    try {
+      payload = JSON.parse(String(raw || ""));
+    } catch (_error) {
+      throw new TypeError("uuidv4 返回结果无效");
     }
-    bytes[6] = (bytes[6] & 0x0f) | 0x40;
-    bytes[8] = (bytes[8] & 0x3f) | 0x80;
-    return formatUuid(bytes);
-  }
-
-  function formEncodeComponent(input) {
-    return encodeURIComponent(String(input)).replace(/%20/g, "+");
-  }
-
-  function formDecodeComponent(input) {
-    return decodeURIComponent(String(input).replace(/\+/g, "%20"));
-  }
-
-  class URLSearchParams {
-    constructor(init = "") {
-      this._pairs = [];
-      this._onUpdate = null;
-
-      if (typeof init === "string") {
-        const text = init.startsWith("?") ? init.slice(1) : init;
-        if (text.length > 0) {
-          const segs = text.split("&");
-          for (const seg of segs) {
-            if (!seg) continue;
-            const idx = seg.indexOf("=");
-            const k = idx >= 0 ? seg.slice(0, idx) : seg;
-            const v = idx >= 0 ? seg.slice(idx + 1) : "";
-            this._pairs.push([formDecodeComponent(k), formDecodeComponent(v)]);
-          }
-        }
-      } else if (Array.isArray(init)) {
-        for (const item of init) {
-          if (!item || item.length < 2)
-            throw new TypeError("URLSearchParams 初始化项必须是 [name, value]");
-          this.append(item[0], item[1]);
-        }
-      } else if (init && typeof init[Symbol.iterator] === "function") {
-        for (const item of init) {
-          if (!item || item.length < 2)
-            throw new TypeError("URLSearchParams 初始化项必须是 [name, value]");
-          this.append(item[0], item[1]);
-        }
-      } else if (init && typeof init === "object") {
-        for (const key of Object.keys(init)) {
-          this.append(key, init[key]);
-        }
-      }
+    if (!payload || payload.ok !== true) {
+      throw new TypeError("uuidv4 失败");
     }
-
-    _notify() {
-      if (typeof this._onUpdate === "function") this._onUpdate();
+    if (typeof payload.uuid !== "string" || !payload.uuid) {
+      throw new TypeError("uuidv4 返回结果无效");
     }
-
-    append(name, value) {
-      this._pairs.push([String(name), String(value)]);
-      this._notify();
-    }
-
-    set(name, value) {
-      const key = String(name);
-      const val = String(value);
-      this._pairs = this._pairs.filter((p) => p[0] !== key);
-      this._pairs.push([key, val]);
-      this._notify();
-    }
-
-    get(name) {
-      const key = String(name);
-      for (const p of this._pairs) {
-        if (p[0] === key) return p[1];
-      }
-      return null;
-    }
-
-    getAll(name) {
-      const key = String(name);
-      return this._pairs.filter((p) => p[0] === key).map((p) => p[1]);
-    }
-
-    has(name) {
-      const key = String(name);
-      if (arguments.length >= 2) {
-        const val = String(arguments[1]);
-        return this._pairs.some((p) => p[0] === key && p[1] === val);
-      }
-      return this._pairs.some((p) => p[0] === key);
-    }
-
-    delete(name) {
-      const key = String(name);
-      if (arguments.length >= 2) {
-        const val = String(arguments[1]);
-        this._pairs = this._pairs.filter(
-          (p) => !(p[0] === key && p[1] === val),
-        );
-      } else {
-        this._pairs = this._pairs.filter((p) => p[0] !== key);
-      }
-      this._notify();
-    }
-
-    sort() {
-      this._pairs.sort((a, b) => {
-        if (a[0] < b[0]) return -1;
-        if (a[0] > b[0]) return 1;
-        return 0;
-      });
-      this._notify();
-    }
-
-    get size() {
-      return this._pairs.length;
-    }
-
-    _clonePairs() {
-      return this._pairs.map((p) => [p[0], p[1]]);
-    }
-
-    _replacePairs(pairs) {
-      this._pairs = pairs;
-      this._notify();
-    }
-
-    toString() {
-      return this._pairs
-        .map((p) => `${formEncodeComponent(p[0])}=${formEncodeComponent(p[1])}`)
-        .join("&");
-    }
-
-    forEach(callback, thisArg) {
-      for (const p of this._pairs) callback.call(thisArg, p[1], p[0], this);
-    }
-
-    *entries() {
-      for (const p of this._pairs) yield [p[0], p[1]];
-    }
-
-    *keys() {
-      for (const p of this._pairs) yield p[0];
-    }
-
-    *values() {
-      for (const p of this._pairs) yield p[1];
-    }
-
-    [Symbol.iterator]() {
-      return this.entries();
-    }
-
-    get [Symbol.toStringTag]() {
-      return "URLSearchParams";
-    }
-  }
-
-  function parseAbsoluteUrl(input) {
-    const text = String(input);
-    const m = text.match(
-      /^(https?):\/\/(?:([^:@/?#]*)(?::([^@/?#]*))?@)?([^/?#:]*)(?::(\d+))?([^?#]*)(\?[^#]*)?(#.*)?$/i,
-    );
-    if (!m) throw new TypeError(`无效的 URL: ${text}`);
-    const protocol = `${m[1].toLowerCase()}:`;
-    const username = m[2] ? decodeURIComponent(m[2]) : "";
-    const password = m[3] ? decodeURIComponent(m[3]) : "";
-    const hostname = m[4] || "";
-    const port = m[5] || "";
-    const pathname = m[6] || "/";
-    const search = m[7] || "";
-    const hash = m[8] || "";
-    const host = port ? `${hostname}:${port}` : hostname;
-    const auth = username
-      ? `${encodeURIComponent(username)}${password ? `:${encodeURIComponent(password)}` : ""}@`
-      : "";
-    return {
-      protocol,
-      host,
-      hostname,
-      port,
-      username,
-      password,
-      pathname: pathname.startsWith("/") ? pathname : `/${pathname}`,
-      search,
-      hash,
-      origin: `${protocol}//${host}`,
-      authority: `${auth}${host}`,
-    };
-  }
-
-  function normalizeUrlPath(pathname) {
-    const absolute = String(pathname || "").startsWith("/");
-    const parts = String(pathname || "").split("/");
-    const stack = [];
-    for (const part of parts) {
-      if (!part || part === ".") continue;
-      if (part === "..") {
-        if (stack.length > 0) stack.pop();
-      } else {
-        stack.push(part);
-      }
-    }
-    const joined = stack.join("/");
-    if (absolute) return `/${joined}` || "/";
-    return joined || "/";
-  }
-
-  function resolveUrl(input, base) {
-    const text = String(input);
-    if (/^https?:\/\//i.test(text)) return text;
-    if (/^\/\//.test(text)) {
-      if (!base) throw new TypeError(`无效的 URL: ${text}`);
-      const b = parseAbsoluteUrl(base);
-      return `${b.protocol}${text}`;
-    }
-    if (!base) throw new TypeError(`无效的 URL: ${text}`);
-    const b = parseAbsoluteUrl(base);
-    if (!text)
-      return `${b.protocol}//${b.authority}${b.pathname}${b.search}${b.hash}`;
-    if (text.startsWith("#"))
-      return `${b.protocol}//${b.authority}${b.pathname}${b.search}${text}`;
-    if (text.startsWith("?"))
-      return `${b.protocol}//${b.authority}${b.pathname}${text}`;
-
-    let body = text;
-    let hash = "";
-    const hashIdx = body.indexOf("#");
-    if (hashIdx >= 0) {
-      hash = body.slice(hashIdx);
-      body = body.slice(0, hashIdx);
-    }
-    let search = "";
-    let pathInput = body;
-    const qIdx = body.indexOf("?");
-    if (qIdx >= 0) {
-      search = body.slice(qIdx);
-      pathInput = body.slice(0, qIdx);
-    }
-
-    let path;
-    if (pathInput.startsWith("/")) {
-      path = normalizeUrlPath(pathInput);
-    } else {
-      const baseDir = b.pathname.replace(/\/[^/]*$/, "/");
-      path = normalizeUrlPath(`${baseDir}${pathInput}`);
-    }
-    return `${b.protocol}//${b.authority}${path}${search}${hash}`;
-  }
-
-  class URL {
-    constructor(input, base) {
-      this._setHref(resolveUrl(input, base));
-    }
-
-    _syncFromSearchParams() {
-      const s = this.searchParams.toString();
-      this._search = s ? `?${s}` : "";
-      this._refreshHref();
-    }
-
-    _refreshHref() {
-      const auth = this._username
-        ? `${encodeURIComponent(this._username)}${this._password ? `:${encodeURIComponent(this._password)}` : ""}@`
-        : "";
-      this._href = `${this._protocol}//${auth}${this._host}${this._pathname}${this._search}${this._hash}`;
-    }
-
-    _setHref(href) {
-      const p = parseAbsoluteUrl(href);
-      this._protocol = p.protocol;
-      this._host = p.host;
-      this._hostname = p.hostname;
-      this._port = p.port;
-      this._username = p.username;
-      this._password = p.password;
-      this._pathname = p.pathname;
-      this._search = p.search;
-      this._hash = p.hash;
-      this._origin = p.origin;
-      this.searchParams = new URLSearchParams(this._search);
-      this.searchParams._onUpdate = () => this._syncFromSearchParams();
-      this._refreshHref();
-    }
-
-    get href() {
-      return this._href;
-    }
-    set href(v) {
-      this._setHref(String(v));
-    }
-
-    get protocol() {
-      return this._protocol;
-    }
-    set protocol(v) {
-      const p = String(v).replace(/:$/, "").toLowerCase();
-      this._protocol = `${p}:`;
-      this._origin = `${this._protocol}//${this._host}`;
-      this._refreshHref();
-    }
-
-    get host() {
-      return this._host;
-    }
-    set host(v) {
-      this._host = String(v);
-      const p = this._host.split(":");
-      this._hostname = p[0] || "";
-      this._port = p[1] || "";
-      this._origin = `${this._protocol}//${this._host}`;
-      this._refreshHref();
-    }
-
-    get hostname() {
-      return this._hostname;
-    }
-    set hostname(v) {
-      this._hostname = String(v);
-      this._host = this._port
-        ? `${this._hostname}:${this._port}`
-        : this._hostname;
-      this._origin = `${this._protocol}//${this._host}`;
-      this._refreshHref();
-    }
-
-    get port() {
-      return this._port;
-    }
-    set port(v) {
-      this._port = String(v || "");
-      this._host = this._port
-        ? `${this._hostname}:${this._port}`
-        : this._hostname;
-      this._origin = `${this._protocol}//${this._host}`;
-      this._refreshHref();
-    }
-
-    get pathname() {
-      return this._pathname;
-    }
-    set pathname(v) {
-      const p = String(v || "");
-      this._pathname = normalizeUrlPath(p.startsWith("/") ? p : `/${p}`);
-      this._refreshHref();
-    }
-
-    get search() {
-      return this._search;
-    }
-    set search(v) {
-      const s = String(v || "");
-      this._search = s ? (s.startsWith("?") ? s : `?${s}`) : "";
-      this.searchParams = new URLSearchParams(this._search);
-      this.searchParams._onUpdate = () => this._syncFromSearchParams();
-      this._refreshHref();
-    }
-
-    get hash() {
-      return this._hash;
-    }
-    set hash(v) {
-      const h = String(v || "");
-      this._hash = h ? (h.startsWith("#") ? h : `#${h}`) : "";
-      this._refreshHref();
-    }
-
-    get origin() {
-      return this._origin;
-    }
-    get username() {
-      return this._username;
-    }
-    set username(v) {
-      this._username = String(v || "");
-      this._refreshHref();
-    }
-
-    get password() {
-      return this._password;
-    }
-    set password(v) {
-      this._password = String(v || "");
-      this._refreshHref();
-    }
-
-    toString() {
-      return this.href;
-    }
-    toJSON() {
-      return this.href;
-    }
-
-    get [Symbol.toStringTag]() {
-      return "URL";
-    }
-
-    static canParse(input, base) {
-      try {
-        // eslint-disable-next-line no-new
-        new URL(input, base);
-        return true;
-      } catch (_err) {
-        return false;
-      }
-    }
-
-    static parse(input, base) {
-      try {
-        return new URL(input, base);
-      } catch (_err) {
-        return null;
-      }
-    }
+    return payload.uuid;
   }
 
   function normalizePath(path) {
@@ -1499,33 +899,39 @@
     },
   };
 
-  __web.TextEncoder = TextEncoder;
-  __web.TextDecoder = TextDecoder;
-  __web.Blob = Blob;
-  __web.File = File;
-  __web.URLSearchParams = URLSearchParams;
-  __web.URL = URL;
+  if (typeof globalThis.TextEncoder !== "function") {
+    globalThis.TextEncoder = TextEncoder;
+  }
+  if (typeof globalThis.TextDecoder !== "function") {
+    globalThis.TextDecoder = TextDecoder;
+  }
+
+  __web.TextEncoder = globalThis.TextEncoder;
+  __web.TextDecoder = globalThis.TextDecoder;
+  const RuntimeBuffer = globalThis.Buffer;
+  if (typeof RuntimeBuffer !== "function") {
+    throw new TypeError("Buffer polyfill 不可用");
+  }
+
+  __web.Blob = globalThis.Blob;
+  __web.File = globalThis.File;
+  __web.FormData = globalThis.FormData;
   __web.path = path;
-  __web.Buffer = Buffer;
-  __web.bufferModule = { Buffer };
+  __web.Buffer = RuntimeBuffer;
+  __web.bufferModule = { Buffer: RuntimeBuffer };
   __web.crypto = cryptoModule;
   __web.cryptoModule = cryptoModule;
   __web.uuidv4 = uuidv4;
   __web.uuidv4Module = { uuidv4 };
 
-  if (!globalThis.TextEncoder) globalThis.TextEncoder = TextEncoder;
-  if (!globalThis.TextDecoder) globalThis.TextDecoder = TextDecoder;
-  if (!globalThis.Blob) globalThis.Blob = Blob;
-  if (!globalThis.File) globalThis.File = File;
-  if (!globalThis.FormData) globalThis.FormData = FormData;
-  if (!globalThis.URLSearchParams) globalThis.URLSearchParams = URLSearchParams;
-  if (!globalThis.URL) globalThis.URL = URL;
+  if (!globalThis.Blob) throw new TypeError("Blob 不可用");
+  if (!globalThis.File) throw new TypeError("File 不可用");
+  if (!globalThis.FormData) throw new TypeError("FormData 不可用");
   if (!globalThis.path) globalThis.path = path;
-  if (!globalThis.Buffer) globalThis.Buffer = Buffer;
+  if (!globalThis.Buffer) globalThis.Buffer = RuntimeBuffer;
   if (!globalThis.crypto) globalThis.crypto = cryptoModule;
   if (!globalThis.uuidv4) globalThis.uuidv4 = uuidv4;
   if (!globalThis.btoa) globalThis.btoa = btoaImpl;
   if (!globalThis.atob) globalThis.atob = atobImpl;
-
   globalThis.__web = __web;
 })();

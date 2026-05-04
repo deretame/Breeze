@@ -30,6 +30,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use getrandom::fill as random_fill;
 use hmac::{Hmac, Mac};
+use pbkdf2::pbkdf2_hmac;
 use reqwest::multipart::{Form as MultipartForm, Part as MultipartPart};
 use reqwest::{Client, Method, Proxy};
 use sha2::{Digest, Sha256};
@@ -43,13 +44,20 @@ use tokio::sync::Semaphore;
 use tokio::task::JoinHandle;
 use tokio::net::lookup_host;
 use tokio::time::timeout;
+use uuid::Uuid;
 #[cfg(feature = "wasi")]
 use wasmtime::{Engine, Linker, Module, Store};
 #[cfg(feature = "wasi")]
 use wasmtime_wasi::WasiCtxBuilder;
 
 const WEB_POLYFILL_CORE: &str = concat!(
+    include_str!("../js/04_runtime_base_polyfills.js"),
+    "\n",
     include_str!("../js/00_bootstrap.js"),
+    "\n",
+    include_str!("../js/05_structured_clone.js"),
+    "\n",
+    include_str!("../js/06_url.js"),
     "\n",
     include_str!("../js/10_headers.js"),
     "\n",
@@ -69,7 +77,13 @@ const WEB_POLYFILL_CORE: &str = concat!(
 const WEB_FS_POLYFILL: &str = concat!(include_str!("../js/50_fs.js"), "\n");
 
 pub const WEB_POLYFILL: &str = concat!(
+    include_str!("../js/04_runtime_base_polyfills.js"),
+    "\n",
     include_str!("../js/00_bootstrap.js"),
+    "\n",
+    include_str!("../js/05_structured_clone.js"),
+    "\n",
+    include_str!("../js/06_url.js"),
     "\n",
     include_str!("../js/10_headers.js"),
     "\n",
@@ -194,6 +208,18 @@ pub fn install_host_bindings(
     globals.set(
         "__crypto_random_bytes_b64",
         Func::from(crypto_random_bytes_b64),
+    )?;
+    globals.set(
+        "__crypto_pbkdf2_sha256_b64",
+        Func::from(crypto_pbkdf2_sha256_b64),
+    )?;
+    globals.set(
+        "__crypto_timing_safe_equal_b64",
+        Func::from(crypto_timing_safe_equal_b64),
+    )?;
+    globals.set(
+        "__crypto_random_uuid_v4",
+        Func::from(crypto_random_uuid_v4),
     )?;
     #[cfg(feature = "host-fs")]
     if options.fs {
@@ -859,6 +885,81 @@ fn crypto_random_bytes_b64(size: i32) -> String {
         Ok(json!({
             "ok": true,
             "base64": BASE64_STANDARD.encode(bytes)
+        })
+        .to_string())
+    })();
+
+    match result {
+        Ok(v) => v,
+        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
+    }
+}
+
+fn crypto_pbkdf2_sha256_b64(
+    password_b64: String,
+    salt_b64: String,
+    iterations: i32,
+    key_len: i32,
+) -> String {
+    let result: AnyResult<String> = (|| {
+        if iterations <= 0 {
+            return Err(anyhow!("iterations 必须大于 0"));
+        }
+        if key_len < 0 {
+            return Err(anyhow!("keyLen 必须是非负整数"));
+        }
+
+        let password = decode_host_base64(&password_b64).context("解析 pbkdf2 password 失败")?;
+        let salt = decode_host_base64(&salt_b64).context("解析 pbkdf2 salt 失败")?;
+        let rounds = u32::try_from(iterations).context("iterations 超出范围")?;
+        let out_len = usize::try_from(key_len).context("keyLen 超出范围")?;
+        let mut out = vec![0u8; out_len];
+        pbkdf2_hmac::<Sha256>(&password, &salt, rounds, &mut out);
+
+        Ok(json!({
+            "ok": true,
+            "hex": out.iter().map(|b| format!("{:02x}", b)).collect::<String>(),
+            "base64": BASE64_STANDARD.encode(out)
+        })
+        .to_string())
+    })();
+
+    match result {
+        Ok(v) => v,
+        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
+    }
+}
+
+fn crypto_timing_safe_equal_b64(left_b64: String, right_b64: String) -> String {
+    let result: AnyResult<String> = (|| {
+        let left = decode_host_base64(&left_b64).context("解析 timingSafeEqual left 失败")?;
+        let right = decode_host_base64(&right_b64).context("解析 timingSafeEqual right 失败")?;
+        let max_len = left.len().max(right.len());
+        let mut diff = left.len() ^ right.len();
+        for i in 0..max_len {
+            let l = left.get(i).copied().unwrap_or(0);
+            let r = right.get(i).copied().unwrap_or(0);
+            diff |= usize::from(l ^ r);
+        }
+        Ok(json!({
+            "ok": true,
+            "equal": diff == 0
+        })
+        .to_string())
+    })();
+
+    match result {
+        Ok(v) => v,
+        Err(err) => json!({ "ok": false, "error": format!("{err:#}") }).to_string(),
+    }
+}
+
+fn crypto_random_uuid_v4() -> String {
+    let result: AnyResult<String> = (|| {
+        let uuid = Uuid::new_v4().to_string();
+        Ok(json!({
+            "ok": true,
+            "uuid": uuid
         })
         .to_string())
     })();

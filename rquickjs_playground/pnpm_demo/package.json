@@ -7,6 +7,9 @@
   "scripts": {
     "typecheck": "pnpm exec tsc --noEmit",
     "build": "pnpm run typecheck && pnpm exec esbuild src/index.ts --bundle --platform=browser --format=cjs --outfile=dist/bundle.cjs",
+    "build:runtime-base-polyfills": "pnpm exec esbuild src/runtime-base-polyfills.entry.js --bundle --platform=browser --format=iife --target=es2020 --minify --legal-comments=none --outfile=../js/04_runtime_base_polyfills.js",
+    "build:structured-clone": "pnpm exec esbuild src/structured-clone-polyfill.entry.js --bundle --platform=browser --format=iife --target=es2020 --minify --legal-comments=none --outfile=../js/05_structured_clone.js",
+    "build:url": "pnpm exec esbuild src/url-polyfill.entry.js --bundle --platform=browser --format=iife --target=es2020 --minify --legal-comments=none --outfile=../js/06_url.js",
     "build:cases": "node build-cases.mjs",
     "run:node": "node dist/bundle.cjs",
     "test:cases:node": "pnpm run build:cases && node run-cases-node.mjs"
@@ -21,6 +24,15 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "axios": "^1.13.6"
+    "abab": "^2.0.6",
+    "axios": "^1.13.6",
+    "blob-polyfill": "^9.0.20240710",
+    "buffer": "^6.0.3",
+    "core-js": "^3.49.0",
+    "core-js-pure": "^3.49.0",
+    "fast-text-encoding": "^1.0.6",
+    "formdata-polyfill": "^4.0.10",
+    "process": "^0.11.10",
+    "queue-microtask": "^1.2.3"
   }
 }

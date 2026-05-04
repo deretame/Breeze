@@ -429,8 +429,13 @@ fn fetch_abort_controller() {
     assert!(result.starts_with("AbortError:"));
 }
 
+// 说明：
+// 这些用例会显式修改全局 HTTP client 配置（allow_private_network）。
+// 在并发全量测试下可能与其它 fetch 用例竞争同一全局状态，导致偶发失败。
+// 若出现抖动，优先单独执行本用例，或使用 --test-threads=1 串行执行 fetch 测试集。
 #[test]
 fn fetch_block_private_network_by_default() {
+    let previous = current_http_client_config();
     let mut config = current_http_client_config();
     config.allow_private_network = false;
     configure_http_client(config).expect("更新 HTTP 配置失败");
@@ -453,8 +458,14 @@ fn fetch_block_private_network_by_default() {
         .expect("执行脚本失败");
     let result = task.wait().expect("等待脚本结果失败");
     assert!(result.contains("已拦截内网请求"));
+
+    configure_http_client(previous).expect("恢复 HTTP 配置失败");
 }
 
+// 说明：
+// 这些用例会显式修改全局 HTTP client 配置（allow_private_network）。
+// 在并发全量测试下可能与其它 fetch 用例竞争同一全局状态，导致偶发失败。
+// 若出现抖动，优先单独执行本用例，或使用 --test-threads=1 串行执行 fetch 测试集。
 #[test]
 fn fetch_allow_private_network_when_config_enabled() {
     let previous = current_http_client_config();

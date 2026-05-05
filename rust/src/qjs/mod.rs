@@ -3,7 +3,8 @@ use dashmap::DashMap;
 use ferrous_opencc::{OpenCC, config::BuiltinConfig};
 use flutter_rust_bridge::DartFnFuture;
 use rquickjs_playground::{
-    AsyncHostRuntime, AsyncHostRuntimeBuilder, HttpClientConfig, WebRuntimeOptions,
+    AsyncHostRuntime, AsyncHostRuntimeBuilder, BridgeRuntimeConfig, HttpClientConfig,
+    WebRuntimeOptions, configure_bridge_runtime as configure_bridge_runtime_global,
     configure_http_client, configure_js_error_stack, configure_log_http_endpoint,
     js_error_stack_enabled, register_bridge_route_async_handler,
     register_bridge_route_blocking_handler, register_bridge_route_sync_handler,
@@ -1376,6 +1377,24 @@ pub fn set_socks5_proxy(proxy: String) -> Result<()> {
 pub fn set_qjs_error_stack_enabled(enabled: bool) -> Result<()> {
     configure_js_error_stack(enabled);
     Ok(())
+}
+
+pub fn configure_bridge_runtime(
+    allowed_route_prefixes: Vec<String>,
+    max_args_json_bytes: u64,
+    max_return_binary_bytes: u64,
+) -> Result<()> {
+    let max_args_json_bytes =
+        usize::try_from(max_args_json_bytes).context("max_args_json_bytes 超出 usize 范围")?;
+    let max_return_binary_bytes = usize::try_from(max_return_binary_bytes)
+        .context("max_return_binary_bytes 超出 usize 范围")?;
+
+    configure_bridge_runtime_global(BridgeRuntimeConfig {
+        allowed_route_prefixes,
+        max_args_json_bytes,
+        max_return_binary_bytes,
+    })
+    .map_err(|err| anyhow!("配置 bridge runtime 失败: {err}"))
 }
 
 pub fn register_load_plugin_config(

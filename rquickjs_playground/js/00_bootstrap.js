@@ -47,7 +47,7 @@
       const entry = active.get(localId);
       if (!entry) return;
 
-      const raw = globalThis.__timer_start_evented(entry.delayMs);
+      const raw = globalThis.__timer_start_evented(entry.delayMs, entry.kind === "interval");
       const started = JSON.parse(raw);
       if (!started || started.ok !== true) {
         throw new TypeError((started && started.error) || "timer start 失败");
@@ -73,26 +73,29 @@
         const hId = Number(hostId);
         const localId = hostToLocal.get(hId);
         if (localId === undefined) return;
-
-        hostToLocal.delete(hId);
         const entry = active.get(localId);
         if (!entry) return;
 
-        entry.hostId = null;
+        let payload = null;
+        try {
+          payload = JSON.parse(String(payloadRaw || "{}"));
+        } catch (_err) {}
+
         if (entry.kind === "timeout") {
+          hostToLocal.delete(hId);
+          entry.hostId = null;
           active.delete(localId);
           runCallback(entry);
           return;
         }
 
-        runCallback(entry);
-        if (!active.has(localId) || !hasHostTimer()) return;
-
-        try {
-          scheduleHostTimer(localId);
-        } catch (_err) {
-          active.delete(localId);
+        if (payload && payload.kind === "interval") {
+          entry.hostId = hId;
+        } else {
+          hostToLocal.delete(hId);
+          entry.hostId = null;
         }
+        runCallback(entry);
       };
 
     globalThis.setTimeout = function setTimeout(cb, ms, ...args) {

@@ -429,6 +429,48 @@ fn fetch_abort_controller() {
     assert!(result.starts_with("AbortError:"));
 }
 
+#[test]
+fn fetch_abort_concurrent_requests_do_not_leave_pending_http_tasks() {
+    let (base_url, tx, handle) = spawn_test_server(64);
+    let script = format!(
+        r#"
+      (async () => {{
+        const total = 20;
+        const tasks = [];
+        for (let i = 0; i < total; i += 1) {{
+          const controller = new AbortController();
+          const p = fetch("{}/slow?i=" + i, {{ signal: controller.signal }})
+            .then(() => "resolved")
+            .catch((err) => String(err && err.name ? err.name : err));
+          tasks.push(p);
+          setTimeout(() => controller.abort("cancel"), 0);
+        }}
+        const settled = await Promise.all(tasks);
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        const stats = JSON.parse(__runtime_stats());
+        const aborts = settled.filter((x) => x === "AbortError").length;
+        return JSON.stringify({{
+          total,
+          aborts,
+          httpPending: stats && stats.pending ? Number(stats.pending.http || 0) : -1,
+          eventCanceled: stats && stats.httpEvented ? Number(stats.httpEvented.canceled || 0) : -1
+        }});
+      }})()
+    "#,
+        base_url
+    );
+
+    let result = run_async_script(&script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    assert_eq!(parsed["total"], 20);
+    assert!(parsed["aborts"].as_i64().unwrap_or(0) >= 1);
+    assert_eq!(parsed["httpPending"], 0);
+    assert!(parsed["eventCanceled"].as_i64().unwrap_or(0) >= 1);
+
+    let _ = tx.send(());
+    let _ = handle.join();
+}
+
 // 说明：
 // 这些用例会显式修改全局 HTTP client 配置（allow_private_network）。
 // 在并发全量测试下可能与其它 fetch 用例竞争同一全局状态，导致偶发失败。
@@ -578,6 +620,46 @@ fn fetch_offload_binary_to_native_buffer() {
     assert_eq!(parsed["emptyText"], "");
     assert!(parsed["offloadedBytes"].as_u64().unwrap_or(0) > 0);
     assert_eq!(parsed["hasPayload"], true);
+
+    let _ = tx.send(());
+    let _ = handle.join();
+}
+
+#[test]
+fn fetch_offloaded_body_cannot_be_reconsumed_even_if_bodyused_is_tampered() {
+    let (base_url, tx, handle) = spawn_test_server(2);
+    let script = format!(
+        r#"
+          (async () => {{
+            const res = await fetch("{}/hello?img=1", {{
+              headers: {{
+                "x-rquickjs-host-offload-binary-v1": "true"
+              }}
+            }});
+
+            const first = await res.takeOffloadedBody();
+            res.bodyUsed = false;
+
+            let secondError = "";
+            try {{
+              await res.takeOffloadedBody();
+            }} catch (err) {{
+              secondError = String(err && err.message ? err.message : err);
+            }}
+
+            return JSON.stringify({{
+              firstLen: first.length,
+              secondError
+            }});
+          }})()
+        "#,
+        base_url
+    );
+
+    let result = run_async_script(&script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    assert!(parsed["firstLen"].as_u64().unwrap_or(0) > 0);
+    assert!(parsed["secondError"].as_str().unwrap_or("").contains("Body 已被读取"));
 
     let _ = tx.send(());
     let _ = handle.join();
@@ -756,6 +838,43 @@ fn fetch_offload_with_wasi_transform_failure_fails_request() {
 
     assert_eq!(parsed["ok"], true);
     assert_eq!(parsed["name"], "TypeError");
+
+    let _ = tx.send(());
+    let _ = handle.join();
+}
+
+#[test]
+fn fetch_post_binary_body_via_native_buffer_channel() {
+    let (base_url, tx, handle) = spawn_test_server(2);
+    let script = format!(
+        r#"
+          (async () => {{
+            const bytes = new Uint8Array(2048);
+            for (let i = 0; i < bytes.length; i += 1) {{
+              bytes[i] = 65 + (i % 26);
+            }}
+            const res = await fetch("{}/echo", {{
+              method: "POST",
+              headers: {{ "content-type": "application/octet-stream" }},
+              body: bytes
+            }});
+            const data = await res.json();
+            return JSON.stringify({{
+              method: data.method,
+              contentType: data.headers["content-type"] || "",
+              bodyLen: (data.body || "").length
+            }});
+          }})()
+        "#,
+        base_url
+    );
+
+    let result = run_async_script(&script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+
+    assert_eq!(parsed["method"], "POST");
+    assert_eq!(parsed["contentType"], "application/octet-stream");
+    assert_eq!(parsed["bodyLen"], 2048);
 
     let _ = tx.send(());
     let _ = handle.join();

@@ -44,6 +44,7 @@ use tokio::sync::Semaphore;
 use tokio::task::JoinHandle;
 use tokio::net::lookup_host;
 use tokio::time::timeout;
+use url::form_urlencoded;
 use uuid::Uuid;
 #[cfg(feature = "wasi")]
 use wasmtime::{Engine, Linker, Module, Store};
@@ -161,6 +162,20 @@ pub fn install_host_bindings(
     globals.set("__http_request_start", Func::from(http_request_start))?;
     globals.set("__http_request_try_take", Func::from(http_request_try_take))?;
     globals.set("__http_request_drop", Func::from(http_request_drop))?;
+    globals.set("__urlsp_rewrite", Func::from(urlsp_rewrite))?;
+    globals.set("__urlsp_query", Func::from(urlsp_query))?;
+    globals.set("__headers_rewrite", Func::from(headers_rewrite))?;
+    globals.set("__headers_query", Func::from(headers_query))?;
+    globals.set("__fetch_state_register", Func::from(fetch_state_register))?;
+    globals.set("__fetch_state_try_consume", Func::from(fetch_state_try_consume))?;
+    globals.set("__fetch_state_can_clone", Func::from(fetch_state_can_clone))?;
+    globals.set(
+        "__fetch_state_take_offloaded",
+        Func::from(fetch_state_take_offloaded),
+    )?;
+    globals.set("__body_state_register", Func::from(body_state_register))?;
+    globals.set("__body_state_try_consume", Func::from(body_state_try_consume))?;
+    globals.set("__body_state_is_consumed", Func::from(body_state_is_consumed))?;
     globals.set("__native_buffer_put", Func::from(native_buffer_put))?;
     globals.set("__native_buffer_put_raw", Func::from(native_buffer_put_raw))?;
     globals.set("__native_buffer_take", Func::from(native_buffer_take))?;
@@ -251,6 +266,8 @@ pub fn install_host_bindings(
 }
 
 static HTTP_REQ_ID: AtomicU64 = AtomicU64::new(1);
+static BODY_STATE_ID: AtomicU64 = AtomicU64::new(1);
+static FETCH_STATE_ID: AtomicU64 = AtomicU64::new(1);
 static HTTP_REQ_POOL: OnceLock<Mutex<HashMap<u64, PendingTask>>> = OnceLock::new();
 static BRIDGE_REQ_ID: AtomicU64 = AtomicU64::new(1);
 static BRIDGE_REQ_POOL: OnceLock<Mutex<HashMap<u64, PendingTask>>> = OnceLock::new();
@@ -287,6 +304,9 @@ static FS_IO_SEM: OnceLock<Arc<Semaphore>> = OnceLock::new();
 #[cfg(feature = "wasi")]
 static WASI_IO_SEM: OnceLock<Arc<Semaphore>> = OnceLock::new();
 static HTTP_STALE_DROPS: AtomicU64 = AtomicU64::new(0);
+static HTTP_EVENT_COMPLETED: AtomicU64 = AtomicU64::new(0);
+static HTTP_EVENT_CANCELED: AtomicU64 = AtomicU64::new(0);
+static HTTP_EVENT_SUPPRESSED: AtomicU64 = AtomicU64::new(0);
 static BRIDGE_STALE_DROPS: AtomicU64 = AtomicU64::new(0);
 static FS_STALE_DROPS: AtomicU64 = AtomicU64::new(0);
 static TIMER_STALE_DROPS: AtomicU64 = AtomicU64::new(0);
@@ -300,9 +320,21 @@ static LOG_WRITTEN: AtomicU64 = AtomicU64::new(0);
 static LOG_DROPPED: AtomicU64 = AtomicU64::new(0);
 static LOG_ERRORS: AtomicU64 = AtomicU64::new(0);
 static LOG_PENDING: AtomicU64 = AtomicU64::new(0);
+static BRIDGE_BYTES_IN: AtomicU64 = AtomicU64::new(0);
+static BRIDGE_BYTES_OUT: AtomicU64 = AtomicU64::new(0);
+static BRIDGE_DENIED: AtomicU64 = AtomicU64::new(0);
+static BRIDGE_LIMIT_HITS: AtomicU64 = AtomicU64::new(0);
 static NATIVE_BUF_GC_TTL_SECS: AtomicU64 = AtomicU64::new(DEFAULT_NATIVE_BUFFER_GC_TTL_SECS);
 static NATIVE_BUF_GC_DROPS: AtomicU64 = AtomicU64::new(0);
 static NATIVE_BUF_GC_LOOP_STARTED: OnceLock<()> = OnceLock::new();
+static BODY_STATE_POOL: OnceLock<Mutex<HashMap<u64, BodyStateEntry>>> = OnceLock::new();
+static BODY_CONSUME_REJECTS: AtomicU64 = AtomicU64::new(0);
+static BODY_STATE_GC_DROPS: AtomicU64 = AtomicU64::new(0);
+static FETCH_STATE_POOL: OnceLock<Mutex<HashMap<u64, FetchStateEntry>>> = OnceLock::new();
+static FETCH_STATE_REJECTS: AtomicU64 = AtomicU64::new(0);
+static FETCH_STATE_GC_DROPS: AtomicU64 = AtomicU64::new(0);
+static BODY_STATE_OP_SEQ: AtomicU64 = AtomicU64::new(0);
+static FETCH_STATE_OP_SEQ: AtomicU64 = AtomicU64::new(0);
 type BridgeRouteFuture = Pin<Box<dyn Future<Output = AnyResult<Value>> + Send + 'static>>;
 type BridgeRouteSyncHandler =
     Arc<dyn Fn(String, Vec<Value>) -> AnyResult<Value> + Send + Sync + 'static>;
@@ -318,6 +350,9 @@ static BRIDGE_ROUTE_BLOCKING_HANDLERS: OnceLock<
     Mutex<HashMap<String, BridgeRouteBlockingHandler>>,
 > = OnceLock::new();
 const HTTP_SYSTEM_PROXY_REFRESH_INTERVAL: Duration = Duration::from_secs(3);
+const BRIDGE_BINARY_PROTOCOL: &str = "bridge-binary-v1";
+const BRIDGE_ARGS_JSON_MAX_BYTES_DEFAULT: usize = 8 * 1024 * 1024;
+const BRIDGE_RETURN_BINARY_MAX_BYTES_DEFAULT: usize = 32 * 1024 * 1024;
 
 struct PendingTask {
     rx: mpsc::Receiver<String>,
@@ -334,6 +369,30 @@ struct NativeBufferEntry {
     bytes: Vec<u8>,
     created_at: Instant,
 }
+
+#[derive(Debug, Clone, Default)]
+struct FetchObjectState {
+    consumed: bool,
+    offloaded: bool,
+    offload_taken: bool,
+    native_body: bool,
+}
+
+#[derive(Debug, Clone)]
+struct BodyStateEntry {
+    consumed: bool,
+    created_at: Instant,
+}
+
+#[derive(Debug, Clone)]
+struct FetchStateEntry {
+    state: FetchObjectState,
+    created_at: Instant,
+}
+
+const FETCH_STATE_TTL: Duration = Duration::from_secs(30 * 60);
+const BODY_STATE_TTL: Duration = Duration::from_secs(30 * 60);
+const STATE_GC_EVERY_OPS: u64 = 256;
 
 impl NativeBufferEntry {
     fn new(bytes: Vec<u8>) -> Self {
@@ -393,6 +452,25 @@ struct LogEvent {
     ts_ms: u128,
 }
 
+#[derive(Debug, Clone)]
+pub struct BridgeRuntimeConfig {
+    pub allowed_route_prefixes: Vec<String>,
+    pub max_args_json_bytes: usize,
+    pub max_return_binary_bytes: usize,
+}
+
+impl Default for BridgeRuntimeConfig {
+    fn default() -> Self {
+        Self {
+            allowed_route_prefixes: Vec::new(),
+            max_args_json_bytes: BRIDGE_ARGS_JSON_MAX_BYTES_DEFAULT,
+            max_return_binary_bytes: BRIDGE_RETURN_BINARY_MAX_BYTES_DEFAULT,
+        }
+    }
+}
+
+static BRIDGE_RUNTIME_CONFIG: OnceLock<Mutex<BridgeRuntimeConfig>> = OnceLock::new();
+
 fn http_req_pool() -> &'static Mutex<HashMap<u64, PendingTask>> {
     HTTP_REQ_POOL.get_or_init(|| Mutex::new(HashMap::new()))
 }
@@ -412,6 +490,411 @@ fn bridge_route_async_handler_cell() -> &'static Mutex<HashMap<String, BridgeRou
 fn bridge_route_blocking_handler_cell()
 -> &'static Mutex<HashMap<String, BridgeRouteBlockingHandler>> {
     BRIDGE_ROUTE_BLOCKING_HANDLERS.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+fn bridge_runtime_config_cell() -> &'static Mutex<BridgeRuntimeConfig> {
+    BRIDGE_RUNTIME_CONFIG.get_or_init(|| Mutex::new(BridgeRuntimeConfig::default()))
+}
+
+fn body_state_pool() -> &'static Mutex<HashMap<u64, BodyStateEntry>> {
+    BODY_STATE_POOL.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+fn fetch_state_pool() -> &'static Mutex<HashMap<u64, FetchStateEntry>> {
+    FETCH_STATE_POOL.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+fn cleanup_stale_body_state(pool: &mut HashMap<u64, BodyStateEntry>) {
+    let now = Instant::now();
+    let before = pool.len();
+    pool.retain(|_, entry| now.duration_since(entry.created_at) <= BODY_STATE_TTL);
+    let removed = before.saturating_sub(pool.len());
+    if removed > 0 {
+        BODY_STATE_GC_DROPS.fetch_add(removed as u64, Ordering::Relaxed);
+    }
+}
+
+fn cleanup_stale_fetch_state(pool: &mut HashMap<u64, FetchStateEntry>) {
+    let now = Instant::now();
+    let before = pool.len();
+    pool.retain(|_, entry| now.duration_since(entry.created_at) <= FETCH_STATE_TTL);
+    let removed = before.saturating_sub(pool.len());
+    if removed > 0 {
+        FETCH_STATE_GC_DROPS.fetch_add(removed as u64, Ordering::Relaxed);
+    }
+}
+
+fn maybe_cleanup_body_state_on_op() {
+    let seq = BODY_STATE_OP_SEQ.fetch_add(1, Ordering::Relaxed);
+    if seq % STATE_GC_EVERY_OPS != 0 {
+        return;
+    }
+    if let Ok(mut pool) = body_state_pool().lock() {
+        cleanup_stale_body_state(&mut pool);
+    }
+}
+
+fn maybe_cleanup_fetch_state_on_op() {
+    let seq = FETCH_STATE_OP_SEQ.fetch_add(1, Ordering::Relaxed);
+    if seq % STATE_GC_EVERY_OPS != 0 {
+        return;
+    }
+    if let Ok(mut pool) = fetch_state_pool().lock() {
+        cleanup_stale_fetch_state(&mut pool);
+    }
+}
+
+fn parse_query_pairs(query: &str) -> Vec<(String, String)> {
+    let raw = query.strip_prefix('?').unwrap_or(query);
+    form_urlencoded::parse(raw.as_bytes())
+        .map(|(k, v)| (k.into_owned(), v.into_owned()))
+        .collect()
+}
+
+fn serialize_query_pairs(pairs: &[(String, String)]) -> String {
+    let mut serializer = form_urlencoded::Serializer::new(String::new());
+    for (k, v) in pairs {
+        serializer.append_pair(k, v);
+    }
+    serializer.finish()
+}
+
+pub fn urlsp_rewrite(
+    op: String,
+    query: String,
+    key: Option<String>,
+    value: Option<String>,
+) -> String {
+    let mut pairs = parse_query_pairs(&query);
+    match op.as_str() {
+        "append" => {
+            if let (Some(k), Some(v)) = (key, value) {
+                pairs.push((k, v));
+            }
+        }
+        "set" => {
+            if let (Some(k), Some(v)) = (key, value) {
+                pairs.retain(|(ek, _)| ek != &k);
+                pairs.push((k, v));
+            }
+        }
+        "delete" => {
+            if let Some(k) = key {
+                if let Some(v) = value {
+                    pairs.retain(|(ek, ev)| !(ek == &k && ev == &v));
+                } else {
+                    pairs.retain(|(ek, _)| ek != &k);
+                }
+            }
+        }
+        "sort" => {
+            pairs.sort_by(|(ak, _), (bk, _)| ak.cmp(bk));
+        }
+        _ => {}
+    }
+    serialize_query_pairs(&pairs)
+}
+
+pub fn urlsp_query(op: String, query: String, key: Option<String>, value: Option<String>) -> String {
+    let pairs = parse_query_pairs(&query);
+    match op.as_str() {
+        "toString" => json!({ "ok": true, "data": serialize_query_pairs(&pairs) }).to_string(),
+        "get" => {
+            if let Some(k) = key {
+                let val = pairs.iter().find(|(ek, _)| ek == &k).map(|(_, ev)| ev.clone());
+                json!({ "ok": true, "data": val }).to_string()
+            } else {
+                json!({ "ok": true, "data": Value::Null }).to_string()
+            }
+        }
+        "getAll" => {
+            if let Some(k) = key {
+                let vals: Vec<String> = pairs
+                    .iter()
+                    .filter(|(ek, _)| ek == &k)
+                    .map(|(_, ev)| ev.clone())
+                    .collect();
+                json!({ "ok": true, "data": vals }).to_string()
+            } else {
+                json!({ "ok": true, "data": Vec::<String>::new() }).to_string()
+            }
+        }
+        "has" => {
+            if let Some(k) = key {
+                let has = if let Some(v) = value {
+                    pairs.iter().any(|(ek, ev)| ek == &k && ev == &v)
+                } else {
+                    pairs.iter().any(|(ek, _)| ek == &k)
+                };
+                json!({ "ok": true, "data": has }).to_string()
+            } else {
+                json!({ "ok": true, "data": false }).to_string()
+            }
+        }
+        _ => json!({ "ok": false, "error": "unsupported urlsp query op" }).to_string(),
+    }
+}
+
+fn parse_headers_json(headers_json: &str) -> Map<String, Value> {
+    match serde_json::from_str::<Value>(headers_json) {
+        Ok(Value::Object(obj)) => obj,
+        _ => Map::new(),
+    }
+}
+
+fn headers_to_json(map: &Map<String, Value>) -> String {
+    Value::Object(map.clone()).to_string()
+}
+
+pub fn headers_rewrite(
+    op: String,
+    headers_json: String,
+    name: Option<String>,
+    value: Option<String>,
+) -> String {
+    let mut map = parse_headers_json(&headers_json);
+    let key = name.map(|n| n.to_ascii_lowercase());
+    match op.as_str() {
+        "append" => {
+            if let (Some(k), Some(v)) = (key, value) {
+                if let Some(existing) = map.get(&k).and_then(Value::as_str) {
+                    map.insert(k, Value::String(format!("{existing}, {v}")));
+                } else {
+                    map.insert(k, Value::String(v));
+                }
+            }
+        }
+        "set" => {
+            if let (Some(k), Some(v)) = (key, value) {
+                map.insert(k, Value::String(v));
+            }
+        }
+        "delete" => {
+            if let Some(k) = key {
+                map.remove(&k);
+            }
+        }
+        _ => {}
+    }
+    headers_to_json(&map)
+}
+
+pub fn headers_query(op: String, headers_json: String, name: Option<String>) -> String {
+    let map = parse_headers_json(&headers_json);
+    let key = name.map(|n| n.to_ascii_lowercase());
+    match op.as_str() {
+        "get" => {
+            let val = key
+                .as_ref()
+                .and_then(|k| map.get(k))
+                .and_then(Value::as_str)
+                .map(|s| s.to_string());
+            json!({ "ok": true, "data": val }).to_string()
+        }
+        "has" => {
+            let has = key.as_ref().map(|k| map.contains_key(k)).unwrap_or(false);
+            json!({ "ok": true, "data": has }).to_string()
+        }
+        "entries" => {
+            let mut entries: Vec<(String, String)> = Vec::new();
+            for (k, v) in map {
+                if let Some(s) = v.as_str() {
+                    entries.push((k, s.to_string()));
+                }
+            }
+            json!({ "ok": true, "data": entries }).to_string()
+        }
+        _ => json!({ "ok": false, "error": "unsupported headers query op" }).to_string(),
+    }
+}
+
+pub fn body_state_register() -> u64 {
+    let id = BODY_STATE_ID.fetch_add(1, Ordering::Relaxed);
+    if let Ok(mut pool) = body_state_pool().lock() {
+        cleanup_stale_body_state(&mut pool);
+        pool.insert(
+            id,
+            BodyStateEntry {
+                consumed: false,
+                created_at: Instant::now(),
+            },
+        );
+    }
+    id
+}
+
+pub fn body_state_try_consume(id: u64) -> bool {
+    maybe_cleanup_body_state_on_op();
+    let mut pool = match body_state_pool().lock() {
+        Ok(guard) => guard,
+        Err(_) => {
+            BODY_CONSUME_REJECTS.fetch_add(1, Ordering::Relaxed);
+            return false;
+        }
+    };
+    match pool.get_mut(&id) {
+        Some(entry) if !entry.consumed => {
+            entry.consumed = true;
+            true
+        }
+        _ => {
+            BODY_CONSUME_REJECTS.fetch_add(1, Ordering::Relaxed);
+            false
+        }
+    }
+}
+
+pub fn body_state_is_consumed(id: u64) -> bool {
+    maybe_cleanup_body_state_on_op();
+    match body_state_pool().lock() {
+        Ok(pool) => pool.get(&id).map(|e| e.consumed).unwrap_or(true),
+        Err(_) => true,
+    }
+}
+
+pub fn fetch_state_register(offloaded: bool, native_body: bool) -> u64 {
+    let id = FETCH_STATE_ID.fetch_add(1, Ordering::Relaxed);
+    if let Ok(mut pool) = fetch_state_pool().lock() {
+        cleanup_stale_fetch_state(&mut pool);
+        pool.insert(
+            id,
+            FetchStateEntry {
+                state: FetchObjectState {
+                    consumed: false,
+                    offloaded,
+                    offload_taken: false,
+                    native_body,
+                },
+                created_at: Instant::now(),
+            },
+        );
+    }
+    id
+}
+
+pub fn fetch_state_try_consume(id: u64) -> bool {
+    maybe_cleanup_fetch_state_on_op();
+    let mut pool = match fetch_state_pool().lock() {
+        Ok(guard) => guard,
+        Err(_) => {
+            FETCH_STATE_REJECTS.fetch_add(1, Ordering::Relaxed);
+            return false;
+        }
+    };
+    match pool.get_mut(&id) {
+        Some(entry) if !entry.state.consumed => {
+            entry.state.consumed = true;
+            true
+        }
+        _ => {
+            FETCH_STATE_REJECTS.fetch_add(1, Ordering::Relaxed);
+            false
+        }
+    }
+}
+
+pub fn fetch_state_can_clone(id: u64) -> bool {
+    maybe_cleanup_fetch_state_on_op();
+    let pool = match fetch_state_pool().lock() {
+        Ok(guard) => guard,
+        Err(_) => return false,
+    };
+    match pool.get(&id) {
+        Some(entry) => {
+            let state = &entry.state;
+            !state.consumed && !state.offloaded && !state.native_body
+        }
+        None => false,
+    }
+}
+
+pub fn fetch_state_take_offloaded(id: u64) -> bool {
+    maybe_cleanup_fetch_state_on_op();
+    let mut pool = match fetch_state_pool().lock() {
+        Ok(guard) => guard,
+        Err(_) => {
+            FETCH_STATE_REJECTS.fetch_add(1, Ordering::Relaxed);
+            return false;
+        }
+    };
+    match pool.get_mut(&id) {
+        Some(entry)
+            if entry.state.offloaded && !entry.state.offload_taken && !entry.state.consumed =>
+        {
+            entry.state.offload_taken = true;
+            entry.state.consumed = true;
+            true
+        }
+        _ => {
+            FETCH_STATE_REJECTS.fetch_add(1, Ordering::Relaxed);
+            false
+        }
+    }
+}
+
+pub fn configure_bridge_runtime(config: BridgeRuntimeConfig) -> AnyResult<()> {
+    let mut guard = bridge_runtime_config_cell()
+        .lock()
+        .map_err(|_| anyhow!("bridge 运行时配置锁已损坏"))?;
+    *guard = config;
+    Ok(())
+}
+
+pub fn current_bridge_runtime_config() -> BridgeRuntimeConfig {
+    bridge_runtime_config_cell()
+        .lock()
+        .map(|guard| guard.clone())
+        .unwrap_or_default()
+}
+
+fn bridge_error_value(code: &str, message: impl Into<String>, details: Option<Value>) -> Value {
+    let mut obj = Map::new();
+    obj.insert("code".to_string(), Value::String(code.to_string()));
+    obj.insert("message".to_string(), Value::String(message.into()));
+    if let Some(details) = details {
+        obj.insert("details".to_string(), details);
+    }
+    Value::Object(obj)
+}
+
+fn bridge_error_json(code: &str, message: impl Into<String>, details: Option<Value>) -> String {
+    let info = bridge_error_value(code, message, details);
+    let fallback = info
+        .get("message")
+        .and_then(Value::as_str)
+        .unwrap_or("bridge 调用失败")
+        .to_string();
+    json!({
+        "ok": false,
+        "error": fallback,
+        "errorInfo": info
+    })
+    .to_string()
+}
+
+fn is_bridge_route_allowed(name: &str) -> bool {
+    if matches!(
+        name,
+        "math.add"
+            | "native.put"
+            | "native.take"
+            | "native.exec"
+            | "crypto.md5_hex"
+            | "crypto.aes_ecb_pkcs7_decrypt_b64"
+            | "compression.gzip_decompress"
+            | "compression.gzip_compress"
+    ) {
+        return true;
+    }
+
+    let config = current_bridge_runtime_config();
+    if config.allowed_route_prefixes.is_empty() {
+        return true;
+    }
+    config
+        .allowed_route_prefixes
+        .iter()
+        .any(|prefix| !prefix.is_empty() && name.starts_with(prefix))
 }
 
 fn normalize_bridge_route_name(name: impl Into<String>) -> AnyResult<String> {
@@ -1446,7 +1929,7 @@ pub fn http_request_start(
                 return;
             }
         };
-        let payload = match http_request_inner_async(method, url, headers_json, body).await {
+        let payload = match http_request_inner_async(method, url, headers_json, body, None).await {
             Ok(payload) => payload,
             Err(error) => json!({ "ok": false, "error": format!("{error}") }).to_string(),
         };
@@ -1505,6 +1988,7 @@ pub fn http_request_start_evented<F>(
     url: String,
     headers_json: String,
     body: Option<String>,
+    body_native_buffer_id: Option<u64>,
     on_complete: F,
 ) -> String
 where
@@ -1524,32 +2008,43 @@ where
     let sem = Arc::clone(http_io_sem());
 
     let task = host_async_runtime().spawn(async move {
+        let finish = |payload: String| {
+            let should_callback = http_req_event_pool()
+                .lock()
+                .map(|mut pool| pool.remove(&id).is_some())
+                .unwrap_or(false);
+            if should_callback {
+                HTTP_EVENT_COMPLETED.fetch_add(1, Ordering::Relaxed);
+                on_complete(id, payload);
+            } else {
+                HTTP_EVENT_SUPPRESSED.fetch_add(1, Ordering::Relaxed);
+            }
+        };
         let permit = match timeout(Duration::from_secs(15), sem.acquire_owned()).await {
             Ok(Ok(permit)) => permit,
             Ok(Err(_)) => {
-                on_complete(
-                    id,
-                    json!({ "ok": false, "error": "http 并发控制器不可用" }).to_string(),
-                );
+                finish(json!({ "ok": false, "error": "http 并发控制器不可用" }).to_string());
                 return;
             }
             Err(_) => {
-                on_complete(
-                    id,
-                    json!({ "ok": false, "error": "http 等待并发许可超时" }).to_string(),
-                );
+                finish(json!({ "ok": false, "error": "http 等待并发许可超时" }).to_string());
                 return;
             }
         };
-        let payload = match http_request_inner_async(method, url, headers_json, body).await {
+        let payload = match http_request_inner_async(
+            method,
+            url,
+            headers_json,
+            body,
+            body_native_buffer_id,
+        )
+        .await
+        {
             Ok(payload) => payload,
             Err(error) => json!({ "ok": false, "error": format!("{error}") }).to_string(),
         };
         drop(permit);
-        on_complete(id, payload);
-        let _ = http_req_event_pool()
-            .lock()
-            .map(|mut pool| pool.remove(&id));
+        finish(payload);
     });
 
     {
@@ -1574,6 +2069,7 @@ pub fn http_request_drop_evented(id: u64) -> String {
         .expect("http event 请求池加锁失败");
     let existed = if let Some(pending) = pool.remove(&id) {
         pending.task.abort();
+        HTTP_EVENT_CANCELED.fetch_add(1, Ordering::Relaxed);
         true
     } else {
         false
@@ -1581,9 +2077,9 @@ pub fn http_request_drop_evented(id: u64) -> String {
     json!({ "ok": true, "dropped": existed }).to_string()
 }
 
-pub fn timer_start_evented<F>(delay_ms: i64, on_complete: F) -> String
+pub fn timer_start_kind_evented<F>(delay_ms: i64, repeat: bool, on_complete: F) -> String
 where
-    F: FnOnce(u64, String) + Send + 'static,
+    F: Fn(u64, String) + Send + Sync + 'static,
 {
     {
         let mut pool = timer_req_event_pool()
@@ -1597,13 +2093,31 @@ where
 
     let id = TIMER_REQ_ID.fetch_add(1, Ordering::Relaxed);
     let normalized_delay_ms = delay_ms.clamp(0, 24 * 60 * 60 * 1000) as u64;
+    let on_complete = Arc::new(on_complete);
 
     let task = host_async_runtime().spawn(async move {
-        tokio::time::sleep(Duration::from_millis(normalized_delay_ms)).await;
-        on_complete(id, json!({ "ok": true }).to_string());
-        let _ = timer_req_event_pool()
-            .lock()
-            .map(|mut pool| pool.remove(&id));
+        if repeat {
+            let mut tick: u64 = 0;
+            loop {
+                tokio::time::sleep(Duration::from_millis(normalized_delay_ms)).await;
+                tick = tick.saturating_add(1);
+                on_complete(
+                    id,
+                    json!({ "ok": true, "kind": "interval", "tick": tick }).to_string(),
+                );
+                let alive = timer_req_event_pool()
+                    .lock()
+                    .map(|pool| pool.contains_key(&id))
+                    .unwrap_or(false);
+                if !alive {
+                    break;
+                }
+            }
+        } else {
+            tokio::time::sleep(Duration::from_millis(normalized_delay_ms)).await;
+            on_complete(id, json!({ "ok": true, "kind": "timeout" }).to_string());
+            let _ = timer_req_event_pool().lock().map(|mut pool| pool.remove(&id));
+        }
     });
 
     {
@@ -2013,6 +2527,12 @@ pub fn runtime_stats() -> String {
         cleanup_stale_pending(&mut pool, &FS_STALE_DROPS);
         fs_pending = pool.len();
     }
+    if let Ok(mut pool) = body_state_pool().lock() {
+        cleanup_stale_body_state(&mut pool);
+    }
+    if let Ok(mut pool) = fetch_state_pool().lock() {
+        cleanup_stale_fetch_state(&mut pool);
+    }
     #[cfg(feature = "wasi")]
     if let Ok(mut pool) = wasi_req_pool().lock() {
         cleanup_stale_pending(&mut pool, &WASI_STALE_DROPS);
@@ -2058,6 +2578,7 @@ pub fn runtime_stats() -> String {
     let wasi_cache_evictions = WASI_CACHE_EVICTIONS.load(Ordering::Relaxed);
     #[cfg(not(feature = "wasi"))]
     let wasi_cache_evictions = 0_u64;
+    let bridge_config = current_bridge_runtime_config();
 
     json!({
         "ok": true,
@@ -2088,6 +2609,11 @@ pub fn runtime_stats() -> String {
             "fs": FS_STALE_DROPS.load(Ordering::Relaxed),
             "wasi": wasi_stale_drops,
         },
+        "httpEvented": {
+            "completed": HTTP_EVENT_COMPLETED.load(Ordering::Relaxed),
+            "canceled": HTTP_EVENT_CANCELED.load(Ordering::Relaxed),
+            "suppressedCallbacks": HTTP_EVENT_SUPPRESSED.load(Ordering::Relaxed),
+        },
         "logs": {
             "pending": LOG_PENDING.load(Ordering::Relaxed),
             "pendingCapacity": LOG_MAX_PENDING,
@@ -2102,6 +2628,30 @@ pub fn runtime_stats() -> String {
             "gcTtlSeconds": current_native_buffer_gc_ttl_seconds(),
             "gcIntervalSeconds": NATIVE_BUFFER_GC_INTERVAL.as_secs(),
             "gcDrops": NATIVE_BUF_GC_DROPS.load(Ordering::Relaxed),
+        },
+        "bodyState": {
+            "poolSize": body_state_pool().lock().map(|m| m.len()).unwrap_or_default(),
+            "consumeRejects": BODY_CONSUME_REJECTS.load(Ordering::Relaxed),
+            "ttlSeconds": BODY_STATE_TTL.as_secs(),
+            "gcDrops": BODY_STATE_GC_DROPS.load(Ordering::Relaxed),
+        },
+        "fetchState": {
+            "poolSize": fetch_state_pool().lock().map(|m| m.len()).unwrap_or_default(),
+            "rejects": FETCH_STATE_REJECTS.load(Ordering::Relaxed),
+            "ttlSeconds": FETCH_STATE_TTL.as_secs(),
+            "gcDrops": FETCH_STATE_GC_DROPS.load(Ordering::Relaxed),
+        },
+        "bridge": {
+            "protocol": BRIDGE_BINARY_PROTOCOL,
+            "bytesIn": BRIDGE_BYTES_IN.load(Ordering::Relaxed),
+            "bytesOut": BRIDGE_BYTES_OUT.load(Ordering::Relaxed),
+            "denied": BRIDGE_DENIED.load(Ordering::Relaxed),
+            "limitHits": BRIDGE_LIMIT_HITS.load(Ordering::Relaxed),
+            "config": {
+                "maxArgsJsonBytes": bridge_config.max_args_json_bytes,
+                "maxReturnBinaryBytes": bridge_config.max_return_binary_bytes,
+                "allowedRoutePrefixes": bridge_config.allowed_route_prefixes,
+            }
         },
         "wasi": {
             "cacheSize": wasi_cache_size,
@@ -2119,6 +2669,7 @@ async fn http_request_inner_async(
     url: String,
     headers_json: String,
     body: Option<String>,
+    body_native_buffer_id: Option<u64>,
 ) -> AnyResult<String> {
     let method = Method::from_bytes(method.as_bytes()).context("解析 HTTP method 失败")?;
     ensure_http_target_allowed(&url).await?;
@@ -2171,6 +2722,10 @@ async fn http_request_inner_async(
         let plan = parse_host_formdata_plan(&raw_plan)?;
         let form = build_multipart_form(plan)?;
         builder = builder.multipart(form);
+    } else if let Some(native_buffer_id) = body_native_buffer_id {
+        let bytes = native_buffer_take_raw(native_buffer_id)
+            .ok_or_else(|| anyhow!("request body nativeBufferId 不存在: {native_buffer_id}"))?;
+        builder = builder.body(bytes);
     } else if let Some(content) = body {
         builder = builder.body(content);
     }
@@ -2988,6 +3543,17 @@ fn parse_host_ok_payload(raw: String) -> AnyResult<Value> {
 }
 
 fn parse_bridge_args(args_json: Option<String>) -> AnyResult<Vec<Value>> {
+    let config = current_bridge_runtime_config();
+    if let Some(raw) = args_json.as_ref() {
+        if raw.len() > config.max_args_json_bytes {
+            BRIDGE_LIMIT_HITS.fetch_add(1, Ordering::Relaxed);
+            return Err(anyhow!(
+                "bridge 参数过大: {} > {}",
+                raw.len(),
+                config.max_args_json_bytes
+            ));
+        }
+    }
     let Some(raw) = args_json else {
         return Ok(Vec::new());
     };
@@ -2995,10 +3561,48 @@ fn parse_bridge_args(args_json: Option<String>) -> AnyResult<Vec<Value>> {
         return Ok(Vec::new());
     }
     let value: Value = serde_json::from_str(&raw).context("解析 bridge args JSON 失败")?;
-    value
+    let mut args = value
         .as_array()
         .cloned()
-        .ok_or_else(|| anyhow!("args 必须是数组"))
+        .ok_or_else(|| anyhow!("args 必须是数组"))?;
+    for arg in &mut args {
+        decode_bridge_arg_value(arg)?;
+    }
+    Ok(args)
+}
+
+fn decode_bridge_arg_value(value: &mut Value) -> AnyResult<()> {
+    match value {
+        Value::Array(items) => {
+            for item in items {
+                decode_bridge_arg_value(item)?;
+            }
+            Ok(())
+        }
+        Value::Object(map) => {
+            if map
+                .get("__hostArgKind")
+                .and_then(Value::as_str)
+                .map(|kind| kind == "bytes")
+                .unwrap_or(false)
+            {
+                let id = map
+                    .get("nativeBufferId")
+                    .and_then(Value::as_u64)
+                    .ok_or_else(|| anyhow!("bridge bytes 参数缺少 nativeBufferId"))?;
+                let bytes = native_buffer_take_raw(id)
+                    .ok_or_else(|| anyhow!("bridge bytes 参数 nativeBufferId 不存在: {id}"))?;
+                BRIDGE_BYTES_IN.fetch_add(bytes.len() as u64, Ordering::Relaxed);
+                *value = Value::Array(bytes.into_iter().map(Value::from).collect());
+                return Ok(());
+            }
+            for item in map.values_mut() {
+                decode_bridge_arg_value(item)?;
+            }
+            Ok(())
+        }
+        _ => Ok(()),
+    }
 }
 
 pub fn call_js_global_function(
@@ -3126,6 +3730,37 @@ fn compression_gzip_compress(input: Vec<u8>) -> AnyResult<Value> {
     encoder.write_all(&input).context("gzip 压缩失败")?;
     let out = encoder.finish().context("gzip 压缩失败")?;
     Ok(json!(out))
+}
+
+fn encode_bridge_return_value(value: Value) -> Value {
+    let bytes = match parse_u8_json_value(&value) {
+        Ok(v) => v,
+        Err(_) => return value,
+    };
+    let config = current_bridge_runtime_config();
+    if bytes.len() > config.max_return_binary_bytes {
+        BRIDGE_LIMIT_HITS.fetch_add(1, Ordering::Relaxed);
+        return bridge_error_value(
+            "BRIDGE_RETURN_TOO_LARGE",
+            format!(
+                "bridge 返回二进制过大: {} > {}",
+                bytes.len(),
+                config.max_return_binary_bytes
+            ),
+            Some(json!({
+                "size": bytes.len(),
+                "max": config.max_return_binary_bytes
+            })),
+        );
+    }
+
+    BRIDGE_BYTES_OUT.fetch_add(bytes.len() as u64, Ordering::Relaxed);
+    let id = native_buffer_put_raw(bytes);
+    json!({
+        "__hostProtocol": BRIDGE_BINARY_PROTOCOL,
+        "__hostReturnKind": "bytes",
+        "nativeBufferId": id
+    })
 }
 
 fn bridge_call_inner(
@@ -3259,27 +3894,59 @@ async fn bridge_call_inner_async(
 }
 
 pub fn host_call(runtime_name: String, name: String, args_json: Option<String>) -> String {
-    match bridge_call_inner(runtime_name, name, args_json) {
-        Ok(data) => json!({ "ok": true, "data": data }).to_string(),
-        Err(error) => json!({ "ok": false, "error": format!("{error:#}") }).to_string(),
+    let call_name = name.clone();
+    if !is_bridge_route_allowed(&name) {
+        BRIDGE_DENIED.fetch_add(1, Ordering::Relaxed);
+        return bridge_error_json(
+            "BRIDGE_ROUTE_DENIED",
+            format!("bridge 路由已被拒绝: {name}"),
+            Some(json!({ "name": name })),
+        );
+    }
+    match bridge_call_inner(runtime_name, call_name, args_json) {
+        Ok(data) => json!({ "ok": true, "data": encode_bridge_return_value(data) }).to_string(),
+        Err(error) => bridge_error_json(
+            "BRIDGE_CALL_FAILED",
+            format!("{error:#}"),
+            Some(json!({"name": name})),
+        ),
     }
 }
 
 pub fn host_call_start(runtime_name: String, name: String, args_json: Option<String>) -> String {
+    if !is_bridge_route_allowed(&name) {
+        BRIDGE_DENIED.fetch_add(1, Ordering::Relaxed);
+        return bridge_error_json(
+            "BRIDGE_ROUTE_DENIED",
+            format!("bridge 路由已被拒绝: {name}"),
+            Some(json!({ "name": name })),
+        );
+    }
     {
         let mut pool = bridge_req_pool().lock().expect("bridge 请求池加锁失败");
         cleanup_stale_pending(&mut pool, &BRIDGE_STALE_DROPS);
         if pool.len() >= BRIDGE_MAX_PENDING {
-            return json!({ "ok": false, "error": "bridge pending 队列已满" }).to_string();
+            return bridge_error_json(
+                "BRIDGE_PENDING_FULL",
+                "bridge pending 队列已满",
+                Some(json!({"maxPending": BRIDGE_MAX_PENDING})),
+            );
         }
     }
 
     let id = BRIDGE_REQ_ID.fetch_add(1, Ordering::Relaxed);
     let (tx, rx) = mpsc::channel::<String>();
+    let call_name = name.clone();
     let task = host_async_runtime().spawn(async move {
-        let payload = match bridge_call_inner_async(runtime_name, name, args_json).await {
-            Ok(data) => json!({ "ok": true, "data": data }).to_string(),
-            Err(error) => json!({ "ok": false, "error": format!("{error:#}") }).to_string(),
+        let payload = match bridge_call_inner_async(runtime_name, call_name, args_json).await {
+            Ok(data) => {
+                json!({ "ok": true, "data": encode_bridge_return_value(data) }).to_string()
+            }
+            Err(error) => bridge_error_json(
+                "BRIDGE_CALL_FAILED",
+                format!("{error:#}"),
+                Some(json!({"name": name})),
+            ),
         };
         let _ = tx.send(payload);
     });

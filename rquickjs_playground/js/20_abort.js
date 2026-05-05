@@ -1,4 +1,22 @@
 (() => {
+  const HOST_TIMEOUT_PENDING = new Map();
+  const prevTimerComplete = globalThis.__host_runtime_timer_complete;
+
+  globalThis.__host_runtime_timer_complete = function __host_runtime_timer_complete(hostId, payloadRaw) {
+    if (typeof prevTimerComplete === "function") {
+      try {
+        prevTimerComplete(hostId, payloadRaw);
+      } catch (_err) {
+      }
+    }
+
+    const id = Number(hostId);
+    const complete = HOST_TIMEOUT_PENDING.get(id);
+    if (!complete) return;
+    HOST_TIMEOUT_PENDING.delete(id);
+    complete();
+  };
+
   class AbortSignal {
     constructor() {
       this.aborted = false;
@@ -41,11 +59,31 @@
       const delay = Number(ms);
       const timeoutMs = Number.isFinite(delay) && delay >= 0 ? Math.floor(delay) : 0;
       const controller = new AbortController();
-      setTimeout(() => {
+      const timeoutAbort = () => {
         const err = new Error(`signal timed out (${timeoutMs}ms)`);
         err.name = "TimeoutError";
         controller.abort(err);
-      }, timeoutMs);
+      };
+
+      if (
+        typeof globalThis.__timer_start_evented === "function" &&
+        typeof globalThis.__timer_drop_evented === "function"
+      ) {
+        try {
+          const startedRaw = globalThis.__timer_start_evented(timeoutMs, false);
+          const started = JSON.parse(String(startedRaw || "{}"));
+          if (started && started.ok === true) {
+            const hostId = Number(started.id);
+            if (Number.isFinite(hostId) && hostId > 0) {
+              HOST_TIMEOUT_PENDING.set(hostId, timeoutAbort);
+              return controller.signal;
+            }
+          }
+        } catch (_err) {
+        }
+      }
+
+      setTimeout(timeoutAbort, timeoutMs);
       return controller.signal;
     }
 

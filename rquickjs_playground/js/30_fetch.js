@@ -56,13 +56,79 @@
   } = globalThis.__web;
 
   class BodyMixin {
-    _initBody(bodyText) {
+    _initBody(bodyText, meta = {}) {
       this._bodyText = bodyText || "";
       this.bodyUsed = false;
+      this.__fetchStateId = null;
+      if (typeof globalThis.__fetch_state_register === "function") {
+        try {
+          this.__fetchStateId = Number(
+            globalThis.__fetch_state_register(
+              Boolean(meta.offloaded),
+              Boolean(meta.nativeBody),
+            ),
+          );
+        } catch (_err) {
+          this.__fetchStateId = null;
+        }
+      }
+      if (typeof globalThis.__body_state_register === "function") {
+        try {
+          this.__bodyStateId = Number(globalThis.__body_state_register());
+        } catch (_err) {
+          this.__bodyStateId = null;
+        }
+      } else {
+        this.__bodyStateId = null;
+      }
+    }
+
+    _tryConsumeBodyState() {
+      if (this.__fetchStateId !== null && this.__fetchStateId !== undefined) {
+        if (typeof globalThis.__fetch_state_try_consume === "function") {
+          try {
+            if (globalThis.__fetch_state_try_consume(Number(this.__fetchStateId)) !== true) {
+              return false;
+            }
+          } catch (_err) {
+            return false;
+          }
+        }
+      }
+      if (this.__bodyStateId === null || this.__bodyStateId === undefined) return true;
+      if (typeof globalThis.__body_state_try_consume !== "function") return true;
+      try {
+        return globalThis.__body_state_try_consume(Number(this.__bodyStateId)) === true;
+      } catch (_err) {
+        return false;
+      }
+    }
+
+    _isBodyStateConsumed() {
+      if (this.__fetchStateId !== null && this.__fetchStateId !== undefined) {
+        if (typeof globalThis.__fetch_state_can_clone === "function") {
+          try {
+            return globalThis.__fetch_state_can_clone(Number(this.__fetchStateId)) !== true;
+          } catch (_err) {
+            return true;
+          }
+        }
+      }
+      if (this.__bodyStateId === null || this.__bodyStateId === undefined) return this.bodyUsed === true;
+      if (typeof globalThis.__body_state_is_consumed !== "function") return this.bodyUsed === true;
+      try {
+        return globalThis.__body_state_is_consumed(Number(this.__bodyStateId)) === true;
+      } catch (_err) {
+        return true;
+      }
     }
 
     _consumeBody() {
       if (this.bodyUsed) {
+        return Promise.reject(new TypeError("Body 已被读取"));
+      }
+      if (!this._tryConsumeBodyState()) {
+        this.bodyUsed = true;
         return Promise.reject(new TypeError("Body 已被读取"));
       }
       this.bodyUsed = true;
@@ -100,6 +166,10 @@
         if (!globalThis.native || typeof globalThis.native.take !== "function") {
           return Promise.reject(new TypeError("native.take 不可用，无法读取 offload 二进制数据"));
         }
+        if (!this._tryConsumeBodyState()) {
+          this.bodyUsed = true;
+          return Promise.reject(new TypeError("Body 已被读取"));
+        }
         this.bodyUsed = true;
         const id = Number(this.nativeBufferId);
         this.nativeBufferId = null;
@@ -129,20 +199,28 @@
     constructor(input, init = {}) {
       super();
       this._hasBody = false;
+      this._bodyNativeBufferId = null;
 
       if (input instanceof Request) {
         this.url = input.url;
         this.method = input.method;
         this.headers = new Headers(input.headers);
-        this._initBody(input._bodyText);
+        this._initBody(input._bodyText, {
+          offloaded: false,
+          nativeBody: Boolean(input._bodyNativeBufferId !== null && input._bodyNativeBufferId !== undefined),
+        });
         this._hasBody = Boolean(input._hasBody);
+        this._bodyNativeBufferId =
+          input._bodyNativeBufferId === undefined || input._bodyNativeBufferId === null
+            ? null
+            : Number(input._bodyNativeBufferId);
         this.timeout = input.timeout;
         this.signal = input.signal || null;
       } else {
         this.url = String(input);
         this.method = "GET";
         this.headers = new Headers();
-        this._initBody("");
+        this._initBody("", { offloaded: false, nativeBody: false });
         this.timeout = null;
         this.signal = null;
       }
@@ -172,7 +250,7 @@
         if (this.method === "GET" || this.method === "HEAD") {
           throw new TypeError("GET/HEAD 请求不能带 body");
         }
-        this._initBody(syncBodyInit.bodyText);
+        this._initBody(syncBodyInit.bodyText, { offloaded: false, nativeBody: false });
         this._hasBody = true;
         if (!this.headers.has("content-type") && syncBodyInit.contentType) {
           this.headers.set("content-type", syncBodyInit.contentType);
@@ -189,7 +267,7 @@
         if (this.method === "GET" || this.method === "HEAD") {
           throw new TypeError("GET/HEAD 请求不能带 body");
         }
-        this._initBody(bodyInit.bodyText);
+        this._initBody(bodyInit.bodyText, { offloaded: false, nativeBody: false });
         this._hasBody = true;
         if (!this.headers.has("content-type") && bodyInit.contentType) {
           this.headers.set("content-type", bodyInit.contentType);
@@ -199,10 +277,38 @@
         }
         });
       }
+
+      const maybeBinaryBody = init.body;
+      const canUseNativeBinaryBody =
+        globalThis.native &&
+        typeof globalThis.native.put === "function" &&
+        !(maybeBinaryBody instanceof FormData);
+      if (
+        canUseNativeBinaryBody &&
+        (maybeBinaryBody instanceof ArrayBuffer ||
+          ArrayBuffer.isView(maybeBinaryBody) ||
+          maybeBinaryBody instanceof Blob)
+      ) {
+        this._bodyInitPromise = this._bodyInitPromise.then(async () => {
+          this._bodyNativeBufferId = await globalThis.native.put(maybeBinaryBody);
+          this._initBody("", { offloaded: false, nativeBody: true });
+          this._hasBody = true;
+          if (maybeBinaryBody instanceof Blob) {
+            const contentType = maybeBinaryBody.type || "";
+            if (contentType && !this.headers.has("content-type")) {
+              this.headers.set("content-type", contentType);
+            }
+          }
+        });
+      }
     }
 
     clone() {
       if (this.bodyUsed) {
+        throw new TypeError("Body 已被读取，无法 clone");
+      }
+      if (this._isBodyStateConsumed()) {
+        this.bodyUsed = true;
         throw new TypeError("Body 已被读取，无法 clone");
       }
       const clonedInit = {
@@ -220,6 +326,9 @@
         cache: this.cache,
       };
       if (this._hasBody) {
+        if (this._bodyNativeBufferId !== null && this._bodyNativeBufferId !== undefined) {
+          throw new TypeError("native buffer body 暂不支持 clone");
+        }
         clonedInit.body = this._bodyText;
       }
       return new Request(this, {
@@ -231,7 +340,10 @@
   class Response extends BodyMixin {
     constructor(body = "", init = {}) {
       super();
-      this._initBody(String(body));
+      this._initBody(String(body), {
+        offloaded: Boolean(init.offloaded),
+        nativeBody: false,
+      });
       this.status = init.status || 200;
       this.statusText = init.statusText || "OK";
       this.headers = new Headers(init.headers || {});
@@ -250,6 +362,10 @@
 
     clone() {
       if (this.bodyUsed) {
+        throw new TypeError("Body 已被读取，无法 clone");
+      }
+      if (this._isBodyStateConsumed()) {
+        this.bodyUsed = true;
         throw new TypeError("Body 已被读取，无法 clone");
       }
       if (this.offloaded && this.nativeBufferId !== null) {
@@ -273,6 +389,26 @@
     async takeOffloadedBody() {
       if (this.bodyUsed) {
         throw new TypeError("Body 已被读取");
+      }
+      if (this.__fetchStateId !== null && this.__fetchStateId !== undefined) {
+        if (typeof globalThis.__fetch_state_take_offloaded === "function") {
+          let accepted = false;
+          try {
+            accepted = globalThis.__fetch_state_take_offloaded(Number(this.__fetchStateId)) === true;
+          } catch (_err) {
+            accepted = false;
+          }
+          if (!accepted) {
+            this.bodyUsed = true;
+            throw new TypeError("Body 已被读取");
+          }
+        }
+      }
+      if (!this._tryConsumeBodyState()) {
+        if (this.__fetchStateId === null || this.__fetchStateId === undefined) {
+          this.bodyUsed = true;
+          throw new TypeError("Body 已被读取");
+        }
       }
       this.bodyUsed = true;
 
@@ -438,6 +574,9 @@
           request.url,
           JSON.stringify(request.headers.toObject()),
           request._bodyText || null,
+          request._bodyNativeBufferId === null || request._bodyNativeBufferId === undefined
+            ? null
+            : Number(request._bodyNativeBufferId),
         );
         const started = JSON.parse(startedRaw);
         if (!started.ok) {

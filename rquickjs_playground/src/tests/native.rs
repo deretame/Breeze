@@ -2,7 +2,8 @@ use crate::tests::run_async_script;
 #[cfg(feature = "wasi")]
 use crate::tests::run_async_script_with_wasi;
 use crate::{
-    register_bridge_route_async_handler, register_bridge_route_blocking_handler,
+    BridgeRuntimeConfig, configure_bridge_runtime, register_bridge_route_async_handler,
+    register_bridge_route_blocking_handler,
     register_bridge_route_sync_handler, unregister_bridge_route_handler,
 };
 use serde_json::{Value, json};
@@ -575,7 +576,7 @@ fn bridge_call_by_function_name_with_args() {
         const sum = await bridge.call("math.add", 1.5, 2);
 
         return JSON.stringify({
-          out,
+          out: Array.from(out),
           sum
         });
       })()
@@ -587,6 +588,24 @@ fn bridge_call_by_function_name_with_args() {
     assert_eq!(parsed["out"][1], 253);
     assert_eq!(parsed["out"][2], 252);
     assert_eq!(parsed["sum"], 3.5);
+}
+
+#[test]
+fn bridge_call_accepts_typed_array_as_binary_arg() {
+    let script = r#"
+      (async () => {
+        const inputId = await bridge.call("native.put", new Uint8Array([1, 2, 3]));
+        const outId = await bridge.call("native.exec", "invert", inputId, null, null);
+        const out = await bridge.call("native.take", outId);
+        return JSON.stringify({ out: Array.from(out) });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    assert_eq!(parsed["out"][0], 254);
+    assert_eq!(parsed["out"][1], 253);
+    assert_eq!(parsed["out"][2], 252);
 }
 
 #[test]
@@ -788,4 +807,87 @@ fn bridge_call_gzip_compress_and_decompress() {
     let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
     assert_eq!(parsed["text"], "hello gzip");
     assert_eq!(parsed["gzipMagic"], true);
+}
+
+#[test]
+fn bridge_call_native_take_returns_uint8array() {
+    let script = r#"
+      (async () => {
+        const inputId = await bridge.call("native.put", [1, 2, 3]);
+        const outId = await bridge.call("native.exec", "invert", inputId, null, null);
+        const out = await bridge.call("native.take", outId);
+        return JSON.stringify({
+          isUint8Array: out instanceof Uint8Array,
+          out: Array.from(out),
+        });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    assert_eq!(parsed["isUint8Array"], true);
+    assert_eq!(parsed["out"][0], 254);
+    assert_eq!(parsed["out"][1], 253);
+    assert_eq!(parsed["out"][2], 252);
+}
+
+#[test]
+fn bridge_route_allowlist_denies_non_allowed_routes() {
+    let _ = configure_bridge_runtime(BridgeRuntimeConfig {
+        allowed_route_prefixes: vec![
+            "native.".to_string(),
+            "compression.".to_string(),
+            "math.".to_string(),
+            "crypto.".to_string(),
+            "test.".to_string(),
+            "bridge.".to_string(),
+        ],
+        max_args_json_bytes: 8 * 1024 * 1024,
+        max_return_binary_bytes: 32 * 1024 * 1024,
+    });
+
+    let route_json = serde_json::to_string("forbidden.route").expect("序列化路由名失败");
+    let script = format!(
+        r#"
+      (async () => {{
+        let code = "";
+        let message = "";
+        try {{
+          await bridge.call({route_json});
+        }} catch (err) {{
+          code = String(err.code || "");
+          message = String(err.message || err);
+        }}
+        return JSON.stringify({{ code, message }});
+      }})()
+    "#
+    );
+    let result = run_async_script(&script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    assert_eq!(parsed["code"], "BRIDGE_ROUTE_DENIED");
+    assert!(parsed["message"].as_str().unwrap_or("").contains("BRIDGE_ROUTE_DENIED"));
+
+    let _ = configure_bridge_runtime(BridgeRuntimeConfig::default());
+}
+
+#[test]
+fn bridge_args_size_limit_returns_structured_error() {
+    let script = r#"
+      (async () => {
+        const big = "x".repeat(9 * 1024 * 1024);
+        let code = "";
+        let message = "";
+        try {
+          await bridge.call("math.add", big, 1);
+        } catch (err) {
+          code = String(err.code || "");
+          message = String(err.message || err);
+        }
+        return JSON.stringify({ code, message });
+      })()
+    "#;
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    assert_eq!(parsed["code"], "BRIDGE_CALL_FAILED");
+    assert!(parsed["message"].as_str().unwrap_or("").contains("BRIDGE_CALL_FAILED"));
 }

@@ -71,3 +71,5 @@ rust/js/jm_http_bundle/package-lock.json
 
 .opencode/
 .you/
+# Third-party local clones
+third_party/llrt/

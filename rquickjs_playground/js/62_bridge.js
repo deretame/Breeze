@@ -1,10 +1,48 @@
 (() => {
-  function parseHost(raw) {
+  async function decodeHostData(data) {
+    if (
+      data
+      && typeof data === "object"
+      && (data.__hostProtocol === undefined || data.__hostProtocol === "bridge-binary-v1")
+      && data.__hostReturnKind === "bytes"
+      && data.nativeBufferId !== undefined
+      && data.nativeBufferId !== null
+    ) {
+      if (!globalThis.native || typeof globalThis.native.take !== "function") {
+        throw new Error("native.take 不可用，无法读取 bridge 二进制返回值");
+      }
+      const id = Number(data.nativeBufferId);
+      return globalThis.native.take(id);
+    }
+    return data;
+  }
+
+  async function parseHost(raw) {
     const payload = JSON.parse(raw);
     if (!payload.ok) {
-      throw new Error(payload.error || "bridge 调用失败");
+      const errInfo = payload.errorInfo;
+      if (errInfo && typeof errInfo === "object") {
+        const code = String(errInfo.code || "BRIDGE_CALL_FAILED");
+        const message = String(errInfo.message || "bridge 调用失败");
+        const details = errInfo.details;
+        const out = new Error(`[${code}] ${message}`);
+        out.code = code;
+        out.details = details;
+        throw out;
+      }
+      const err = payload.error;
+      if (err && typeof err === "object") {
+        const code = String(err.code || "BRIDGE_CALL_FAILED");
+        const message = String(err.message || "bridge 调用失败");
+        const details = err.details;
+        const out = new Error(`[${code}] ${message}`);
+        out.code = code;
+        out.details = details;
+        throw out;
+      }
+      throw new Error(String(err || "bridge 调用失败"));
     }
-    return payload.data;
+    return decodeHostData(payload.data);
   }
 
   function toByteArray(input) {
@@ -20,7 +58,37 @@
 
   function normalizeArg(input) {
     const bytes = toByteArray(input);
-    if (bytes) return Array.from(bytes);
+    if (bytes) {
+      if (
+        typeof globalThis.__native_buffer_put_raw === "function"
+        || typeof globalThis.__native_buffer_put === "function"
+      ) {
+        let id = null;
+        if (typeof globalThis.__native_buffer_put_raw === "function") {
+          try {
+            id = globalThis.__native_buffer_put_raw(bytes);
+          } catch (_) {
+          }
+        }
+        if ((id === null || id === undefined) && typeof globalThis.__native_buffer_put === "function") {
+          const raw = globalThis.__native_buffer_put(JSON.stringify(Array.from(bytes)));
+          const payload = JSON.parse(raw);
+          if (!payload || payload.ok !== true) {
+            throw new Error(payload && payload.error ? String(payload.error) : "native put failed");
+          }
+          id = payload.id;
+        }
+        if (id !== null && id !== undefined) {
+          return {
+            __hostProtocol: "bridge-binary-v1",
+            __hostArgKind: "bytes",
+            nativeBufferId: Number(id),
+            byteLength: Number(bytes.byteLength || 0),
+          };
+        }
+      }
+      return Array.from(bytes);
+    }
 
     if (Array.isArray(input)) {
       return input.map((item) => normalizeArg(item));
@@ -43,7 +111,7 @@
       typeof globalThis.__host_call_start === "function"
       && typeof globalThis.__host_call_try_take === "function"
     ) {
-      const started = parseHost(
+      const started = await parseHost(
         globalThis.__host_call_start(String(name), JSON.stringify(normalizedArgs)),
       );
       const id = Number(started && started.id);
@@ -79,11 +147,17 @@
 
   async function gzipDecompress(input) {
     const out = await call("compression.gzip_decompress", input);
+    if (out instanceof Uint8Array) return out;
+    if (ArrayBuffer.isView(out)) return new Uint8Array(out.buffer, out.byteOffset, out.byteLength);
+    if (out instanceof ArrayBuffer) return new Uint8Array(out);
     return Uint8Array.from(Array.isArray(out) ? out : []);
   }
 
   async function gzipCompress(input) {
     const out = await call("compression.gzip_compress", input);
+    if (out instanceof Uint8Array) return out;
+    if (ArrayBuffer.isView(out)) return new Uint8Array(out.buffer, out.byteOffset, out.byteLength);
+    if (out instanceof ArrayBuffer) return new Uint8Array(out);
     return Uint8Array.from(Array.isArray(out) ? out : []);
   }
 

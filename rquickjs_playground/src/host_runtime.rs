@@ -14,7 +14,7 @@ use tokio::sync::oneshot;
 
 use crate::web_runtime::{
     WebRuntimeOptions, http_request_drop_evented, http_request_start_evented,
-    install_host_bindings, polyfill_script, timer_drop_evented, timer_start_evented,
+    install_host_bindings, polyfill_script, timer_drop_evented, timer_start_kind_evented,
     wasi_run_drop_evented, wasi_run_start_evented, native_buffer_take_raw,
 };
 
@@ -1495,14 +1495,25 @@ fn install_evented_host_bindings_worker(
         "__http_request_start_evented",
         Function::new(
             ctx.clone(),
-            move |method: String, url: String, headers_json: String, body: Option<String>| {
+            move |method: String,
+                  url: String,
+                  headers_json: String,
+                  body: Option<String>,
+                  body_native_buffer_id: Option<u64>| {
                 let tx = http_tx.clone();
-                http_request_start_evented(method, url, headers_json, body, move |id, payload| {
-                    let _ = tx.send(WorkerSignal::HostEvent(HostEvent::HttpCompleted {
-                        id,
-                        payload,
-                    }));
-                })
+                http_request_start_evented(
+                    method,
+                    url,
+                    headers_json,
+                    body,
+                    body_native_buffer_id,
+                    move |id, payload| {
+                        let _ = tx.send(WorkerSignal::HostEvent(HostEvent::HttpCompleted {
+                            id,
+                            payload,
+                        }));
+                    },
+                )
             },
         )?,
     )?;
@@ -1514,9 +1525,9 @@ fn install_evented_host_bindings_worker(
     let timer_tx = signal_tx.clone();
     globals.set(
         "__timer_start_evented",
-        Function::new(ctx.clone(), move |delay_ms: i64| {
+        Function::new(ctx.clone(), move |delay_ms: i64, repeat: Option<bool>| {
             let tx = timer_tx.clone();
-            timer_start_evented(delay_ms, move |id, payload| {
+            timer_start_kind_evented(delay_ms, repeat.unwrap_or(false), move |id, payload| {
                 let _ = tx.send(WorkerSignal::HostEvent(HostEvent::TimerCompleted {
                     id,
                     payload,

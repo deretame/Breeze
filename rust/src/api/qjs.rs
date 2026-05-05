@@ -192,6 +192,19 @@ pub fn set_qjs_error_stack_enabled(enabled: bool) -> Result<()> {
 }
 
 #[frb(sync)]
+pub fn configure_bridge_runtime(
+    allowed_route_prefixes: Vec<String>,
+    max_args_json_bytes: u64,
+    max_return_binary_bytes: u64,
+) -> Result<()> {
+    crate::qjs::configure_bridge_runtime(
+        allowed_route_prefixes,
+        max_args_json_bytes,
+        max_return_binary_bytes,
+    )
+}
+
+#[frb(sync)]
 pub fn set_host_cache_gc_enabled(enabled: bool) -> Result<()> {
     crate::qjs::set_host_cache_gc_enabled(enabled);
     Ok(())

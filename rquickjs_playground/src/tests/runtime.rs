@@ -29,7 +29,7 @@ fn runtime_timers_and_microtask() {
           if (count >= 2) clearInterval(intervalId);
         }, 1);
 
-        await new Promise((resolve) => setTimeout(resolve, 20));
+        await new Promise((resolve) => setTimeout(resolve, 80));
 
         return JSON.stringify({ events });
       })()
@@ -43,6 +43,36 @@ fn runtime_timers_and_microtask() {
     assert!(events.iter().any(|v| v == "interval-1"));
     assert!(events.iter().any(|v| v == "interval-2"));
     assert!(!events.iter().any(|v| v == "timeout-cancelled"));
+}
+
+#[test]
+fn runtime_interval_repeats_from_host_scheduler() {
+    let script = r#"
+      (async () => {
+        const events = [];
+        let count = 0;
+        const intervalId = setInterval(() => {
+          count += 1;
+          events.push(`tick-${count}`);
+          if (count >= 3) clearInterval(intervalId);
+        }, 1);
+
+        await new Promise((resolve) => setTimeout(resolve, 80));
+        return JSON.stringify({
+          count,
+          has1: events.includes("tick-1"),
+          has2: events.includes("tick-2"),
+          has3: events.includes("tick-3"),
+        });
+      })()
+    "#;
+
+    let result = run_async_script_without_wasi(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    assert_eq!(parsed["has1"], true);
+    assert_eq!(parsed["has2"], true);
+    assert_eq!(parsed["has3"], true);
+    assert_eq!(parsed["count"], 3);
 }
 
 #[test]
@@ -108,6 +138,32 @@ fn runtime_url_and_search_params() {
     assert_eq!(parsed["allLen"], 2);
     assert_eq!(parsed["sp"], "b=3");
     assert!(parsed["href"].as_str().unwrap_or("").contains("lang=zh-CN"));
+}
+
+#[test]
+fn runtime_urlsearchparams_rust_rewrite_paths_work() {
+    let script = r#"
+      (async () => {
+        const sp = new URLSearchParams("a=1&a=2&b=3");
+        sp.delete("a", "1");
+        sp.append("c", "9");
+        sp.set("b", "7");
+        sp.sort();
+        return JSON.stringify({
+          text: sp.toString(),
+          hasA1: sp.has("a", "1"),
+          hasA2: sp.has("a", "2"),
+          rustBacked: sp.__rustBacked === true
+        });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    assert_eq!(parsed["text"], "a=2&b=7&c=9");
+    assert_eq!(parsed["hasA1"], false);
+    assert_eq!(parsed["hasA2"], true);
+    assert_eq!(parsed["rustBacked"], true);
 }
 
 #[test]
@@ -354,6 +410,48 @@ fn runtime_abort_signal_static_methods() {
 }
 
 #[test]
+fn runtime_abort_signal_any_edge_cases() {
+    let script = r#"
+      (async () => {
+        const empty = AbortSignal.any([]);
+
+        const c1 = new AbortController();
+        c1.abort("already");
+        const early = AbortSignal.any([c1.signal]);
+
+        let invalidErr = "";
+        try {
+          AbortSignal.any([{}]);
+        } catch (err) {
+          invalidErr = String(err && err.message ? err.message : err);
+        }
+
+        const timed = AbortSignal.timeout(1);
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        const timedReasonName = timed.reason && timed.reason.name
+          ? String(timed.reason.name)
+          : "";
+
+        return JSON.stringify({
+          emptyAborted: empty.aborted,
+          earlyAborted: early.aborted,
+          earlyReason: String(early.reason),
+          invalidErrHasHint: invalidErr.includes("AbortSignal"),
+          timedReasonName
+        });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    assert_eq!(parsed["emptyAborted"], false);
+    assert_eq!(parsed["earlyAborted"], true);
+    assert_eq!(parsed["earlyReason"], "already");
+    assert_eq!(parsed["invalidErrHasHint"], true);
+    assert_eq!(parsed["timedReasonName"], "TimeoutError");
+}
+
+#[test]
 fn runtime_request_clone_available() {
     let script = r#"
       (async () => {
@@ -384,6 +482,37 @@ fn runtime_request_clone_available() {
 }
 
 #[test]
+fn runtime_headers_rust_backed_paths_work() {
+    let script = r#"
+      (async () => {
+        const h = new Headers({ A: "1" });
+        h.append("a", "2");
+        h.set("b", "3");
+        const hasA = h.has("A");
+        const getA = h.get("a");
+        h.delete("b");
+        const hasB = h.has("b");
+        const entries = Array.from(h.entries());
+        return JSON.stringify({
+          hasA,
+          getA,
+          hasB,
+          entriesLen: entries.length,
+          first: entries[0] ? entries[0].join(":") : ""
+        });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    assert_eq!(parsed["hasA"], true);
+    assert_eq!(parsed["getA"], "1, 2");
+    assert_eq!(parsed["hasB"], false);
+    assert_eq!(parsed["entriesLen"], 1);
+    assert_eq!(parsed["first"], "a:1, 2");
+}
+
+#[test]
 fn runtime_request_clone_get_without_body() {
     let script = r#"
       (async () => {
@@ -405,6 +534,56 @@ fn runtime_request_clone_get_without_body() {
     assert_eq!(parsed["url"], "https://example.com/a?x=1");
     assert_eq!(parsed["bodyUsed"], false);
     assert_eq!(parsed["text"], "");
+}
+
+#[test]
+fn runtime_response_body_cannot_be_reconsumed_even_if_bodyused_is_tampered() {
+    let script = r#"
+      (async () => {
+        const res = new Response("hello");
+        const first = await res.text();
+        res.bodyUsed = false;
+        let secondError = "";
+        try {
+          await res.text();
+        } catch (err) {
+          secondError = String(err && err.message ? err.message : err);
+        }
+        return JSON.stringify({ first, secondError });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    assert_eq!(parsed["first"], "hello");
+    assert!(parsed["secondError"].as_str().unwrap_or("").contains("Body 已被读取"));
+}
+
+#[test]
+fn runtime_request_clone_rejected_for_native_binary_body() {
+    let script = r#"
+      (async () => {
+        const req = new Request("https://example.com/native", {
+          method: "POST",
+          body: new Uint8Array([1, 2, 3, 4])
+        });
+        if (req._bodyInitPromise) {
+          await req._bodyInitPromise;
+        }
+        let errMsg = "";
+        try {
+          req.clone();
+        } catch (err) {
+          errMsg = String(err && err.message ? err.message : err);
+        }
+        return JSON.stringify({ errMsg });
+      })()
+    "#;
+
+    let result = run_async_script(script).expect("执行脚本失败");
+    let parsed: Value = serde_json::from_str(&result).expect("解析结果失败");
+    let msg = parsed["errMsg"].as_str().unwrap_or("");
+    assert!(msg.contains("无法 clone") || msg.contains("Body 已被读取"));
 }
 
 #[test]
@@ -623,6 +802,8 @@ fn runtime_stats_exposed() {
           hasLimits: typeof s.limits === "object",
           hasPermits: typeof s.permits === "object",
           hasStale: typeof s.staleDrops === "object",
+          hasBridge: typeof s.bridge === "object",
+          bridgeProtocol: s.bridge ? s.bridge.protocol : "",
           hasWasi: typeof s.wasi === "object",
           hasCap: typeof s.wasi.cacheCapacity === "number"
         });
@@ -636,6 +817,8 @@ fn runtime_stats_exposed() {
     assert_eq!(parsed["hasLimits"], true);
     assert_eq!(parsed["hasPermits"], true);
     assert_eq!(parsed["hasStale"], true);
+    assert_eq!(parsed["hasBridge"], true);
+    assert_eq!(parsed["bridgeProtocol"], "bridge-binary-v1");
     assert_eq!(parsed["hasWasi"], true);
     assert_eq!(parsed["hasCap"], true);
 }

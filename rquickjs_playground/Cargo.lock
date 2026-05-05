@@ -2195,6 +2195,7 @@ dependencies = [
  "tiny_http",
  "tokio",
  "tracing",
+ "url",
  "uuid",
  "wasmtime",
  "wasmtime-wasi",

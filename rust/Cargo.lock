@@ -2377,6 +2377,7 @@ dependencies = [
  "sha2",
  "tokio",
  "tracing",
+ "url",
  "uuid",
  "windows-registry",
 ]

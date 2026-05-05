@@ -74,6 +74,9 @@ pub fn spawn_test_server_with_headers(
             }
             match server.recv_timeout(Duration::from_millis(100)) {
                 Ok(Some(mut request)) => {
+                    if request.url().starts_with("/slow") {
+                        thread::sleep(Duration::from_millis(120));
+                    }
                     if request.url() == "/axios-binary" {
                         let resp =
                             Response::from_data(vec![0, 1, 2, 3, 250, 251, 252, 253, 254, 255])

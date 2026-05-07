@@ -18,10 +18,15 @@ void onSearch(
       pluginExtern == null
           ? Map<String, dynamic>.from(searchCubit.state.pluginExtern)
           : Map<String, dynamic>.from(pluginExtern);
+  final nextAggregateSources =
+      aggregateSources == null
+          ? Map<String, bool>.from(searchCubit.state.aggregateSources)
+          : Map<String, bool>.from(aggregateSources);
   searchCubit.update(
     searchCubit.state.copyWith(
       searchKeyword: keyword,
       pluginExtern: nextExtern,
+      aggregateSources: nextAggregateSources,
     ),
   );
 
@@ -33,9 +38,9 @@ void onSearch(
         .where((plugin) => plugin.isEnabled && !plugin.isDeleted)
         .map((plugin) => plugin.uuid)
         .toList();
-    final selected =
-        aggregateSources ??
-        {for (final source in availableSources) source: true};
+    final selected = nextAggregateSources.isNotEmpty
+        ? nextAggregateSources
+        : {for (final source in availableSources) source: true};
     context.pushRoute(
       SearchAggregateResultRoute(
         searchEvent: event,

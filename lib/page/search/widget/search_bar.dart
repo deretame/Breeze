@@ -41,7 +41,9 @@ class _SearchBarState extends State<SearchBar> {
   @override
   void initState() {
     super.initState();
-    final initialKeyword = context.read<SearchCubit>().state.searchKeyword;
+    final initialState = context.read<SearchCubit>().state;
+    final initialKeyword = initialState.searchKeyword;
+    _aggregateSources = Map<String, bool>.from(initialState.aggregateSources);
     if (initialKeyword.isNotEmpty) {
       _controller.text = initialKeyword;
     }
@@ -148,6 +150,7 @@ class _SearchBarState extends State<SearchBar> {
             IconButton(
               icon: const Icon(Icons.tune),
               onPressed: () async {
+                final searchCubit = context.read<SearchCubit>();
                 if (widget.aggregateMode) {
                   final options = _sourceOptions(context);
                   if (_aggregateSources.isEmpty) {
@@ -161,6 +164,11 @@ class _SearchBarState extends State<SearchBar> {
                     sourceOptions: options,
                   );
                   if (selected != null && mounted) {
+                    searchCubit.update(
+                      searchCubit.state.copyWith(
+                        aggregateSources: Map<String, bool>.from(selected),
+                      ),
+                    );
                     setState(() {
                       _aggregateSources = selected;
                     });

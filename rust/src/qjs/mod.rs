@@ -37,6 +37,8 @@ const BRIDGE_ROUTE_SAVE_PLUGIN_CONFIG: &str = "save_plugin_config";
 const BRIDGE_ROUTE_LOAD_PLUGIN_CONFIG: &str = "load_plugin_config";
 const BRIDGE_ROUTE_CACHE_GET: &str = "cache.get";
 const BRIDGE_ROUTE_CACHE_SET: &str = "cache.set";
+const BRIDGE_ROUTE_CACHE_GET_SYNC: &str = "cache.get.sync";
+const BRIDGE_ROUTE_CACHE_SET_SYNC: &str = "cache.set.sync";
 const BRIDGE_ROUTE_CACHE_SET_IF_ABSENT: &str = "cache.set_if_absent";
 const BRIDGE_ROUTE_CACHE_COMPARE_AND_SET: &str = "cache.compare_and_set";
 const BRIDGE_ROUTE_CACHE_DELETE: &str = "cache.delete";
@@ -295,6 +297,45 @@ fn new_host_cache_entry(value: Value) -> HostCacheEntry {
         value,
         expires_at: Instant::now() + Duration::from_secs(30 * 60),
     }
+}
+
+fn handle_cache_get(runtime: &str, args: &[Value]) -> Result<Value> {
+    let key = args
+        .first()
+        .and_then(Value::as_str)
+        .ok_or_else(|| anyhow!("cache.get 参数无效: 缺少 key"))?;
+    let fallback = args.get(1).cloned().unwrap_or(Value::Null);
+    let scoped_key = scoped_route_key(runtime, key);
+    let cache = host_cache_store_cell();
+    let out = match cache.get(&scoped_key) {
+        Some(entry) if entry.expires_at > Instant::now() => entry.value.clone(),
+        Some(_) => {
+            cache.remove(&scoped_key);
+            fallback
+        }
+        None => fallback,
+    };
+    Ok(out)
+}
+
+fn handle_cache_set(runtime: &str, args: &[Value]) -> Result<Value> {
+    let key = args
+        .first()
+        .and_then(Value::as_str)
+        .ok_or_else(|| anyhow!("cache.set 参数无效: 缺少 key"))?;
+    let value = args.get(1).cloned().unwrap_or(Value::Null);
+    if cache_value_size_exceeds_limit(&value) {
+        tracing::warn!(
+            "cache.set 跳过超限写入: runtime={}, key={}, max_bytes={}",
+            runtime,
+            key,
+            HOST_CACHE_VALUE_MAX_BYTES
+        );
+        return Ok(json!(false));
+    }
+    let scoped_key = scoped_route_key(runtime, key);
+    host_cache_store_cell().insert(scoped_key, new_host_cache_entry(value));
+    Ok(json!(true))
 }
 
 fn ensure_host_cache_gc_started() {
@@ -1539,42 +1580,19 @@ pub fn init_rust_functions() -> Result<()> {
     })?;
 
     register_bridge_route_sync_handler(BRIDGE_ROUTE_CACHE_GET, |runtime, args| {
-        let key = args
-            .first()
-            .and_then(Value::as_str)
-            .ok_or_else(|| anyhow!("cache.get 参数无效: 缺少 key"))?;
-        let fallback = args.get(1).cloned().unwrap_or(Value::Null);
-        let scoped_key = scoped_route_key(&runtime, key);
-        let cache = host_cache_store_cell();
-        let out = match cache.get(&scoped_key) {
-            Some(entry) if entry.expires_at > Instant::now() => entry.value.clone(),
-            Some(_) => {
-                cache.remove(&scoped_key);
-                fallback
-            }
-            None => fallback,
-        };
-        Ok(out)
+        handle_cache_get(&runtime, &args)
+    })?;
+
+    register_bridge_route_sync_handler(BRIDGE_ROUTE_CACHE_GET_SYNC, |runtime, args| {
+        handle_cache_get(&runtime, &args)
     })?;
 
     register_bridge_route_sync_handler(BRIDGE_ROUTE_CACHE_SET, |runtime, args| {
-        let key = args
-            .first()
-            .and_then(Value::as_str)
-            .ok_or_else(|| anyhow!("cache.set 参数无效: 缺少 key"))?;
-        let value = args.get(1).cloned().unwrap_or(Value::Null);
-        if cache_value_size_exceeds_limit(&value) {
-            tracing::warn!(
-                "cache.set 跳过超限写入: runtime={}, key={}, max_bytes={}",
-                runtime,
-                key,
-                HOST_CACHE_VALUE_MAX_BYTES
-            );
-            return Ok(json!(false));
-        }
-        let scoped_key = scoped_route_key(&runtime, key);
-        host_cache_store_cell().insert(scoped_key, new_host_cache_entry(value));
-        Ok(json!(true))
+        handle_cache_set(&runtime, &args)
+    })?;
+
+    register_bridge_route_sync_handler(BRIDGE_ROUTE_CACHE_SET_SYNC, |runtime, args| {
+        handle_cache_set(&runtime, &args)
     })?;
 
     register_bridge_route_sync_handler(BRIDGE_ROUTE_CACHE_SET_IF_ABSENT, |runtime, args| {

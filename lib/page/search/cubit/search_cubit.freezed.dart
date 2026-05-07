@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SearchStates {
 
- String get from; String get searchKeyword; int get sortBy; Map<String, dynamic> get pluginExtern;
+ String get from; String get searchKeyword; int get sortBy; Map<String, dynamic> get pluginExtern; Map<String, bool> get aggregateSources;
 /// Create a copy of SearchStates
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SearchStatesCopyWith<SearchStates> get copyWith => _$SearchStatesCopyWithImpl<S
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchStates&&(identical(other.from, from) || other.from == from)&&(identical(other.searchKeyword, searchKeyword) || other.searchKeyword == searchKeyword)&&(identical(other.sortBy, sortBy) || other.sortBy == sortBy)&&const DeepCollectionEquality().equals(other.pluginExtern, pluginExtern));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchStates&&(identical(other.from, from) || other.from == from)&&(identical(other.searchKeyword, searchKeyword) || other.searchKeyword == searchKeyword)&&(identical(other.sortBy, sortBy) || other.sortBy == sortBy)&&const DeepCollectionEquality().equals(other.pluginExtern, pluginExtern)&&const DeepCollectionEquality().equals(other.aggregateSources, aggregateSources));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,from,searchKeyword,sortBy,const DeepCollectionEquality().hash(pluginExtern));
+int get hashCode => Object.hash(runtimeType,from,searchKeyword,sortBy,const DeepCollectionEquality().hash(pluginExtern),const DeepCollectionEquality().hash(aggregateSources));
 
 @override
 String toString() {
-  return 'SearchStates(from: $from, searchKeyword: $searchKeyword, sortBy: $sortBy, pluginExtern: $pluginExtern)';
+  return 'SearchStates(from: $from, searchKeyword: $searchKeyword, sortBy: $sortBy, pluginExtern: $pluginExtern, aggregateSources: $aggregateSources)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SearchStatesCopyWith<$Res>  {
   factory $SearchStatesCopyWith(SearchStates value, $Res Function(SearchStates) _then) = _$SearchStatesCopyWithImpl;
 @useResult
 $Res call({
- String from, String searchKeyword, int sortBy, Map<String, dynamic> pluginExtern
+ String from, String searchKeyword, int sortBy, Map<String, dynamic> pluginExtern, Map<String, bool> aggregateSources
 });
 
 
@@ -65,13 +65,14 @@ class _$SearchStatesCopyWithImpl<$Res>
 
 /// Create a copy of SearchStates
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? from = null,Object? searchKeyword = null,Object? sortBy = null,Object? pluginExtern = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? from = null,Object? searchKeyword = null,Object? sortBy = null,Object? pluginExtern = null,Object? aggregateSources = null,}) {
   return _then(_self.copyWith(
 from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as String,searchKeyword: null == searchKeyword ? _self.searchKeyword : searchKeyword // ignore: cast_nullable_to_non_nullable
 as String,sortBy: null == sortBy ? _self.sortBy : sortBy // ignore: cast_nullable_to_non_nullable
 as int,pluginExtern: null == pluginExtern ? _self.pluginExtern : pluginExtern // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>,
+as Map<String, dynamic>,aggregateSources: null == aggregateSources ? _self.aggregateSources : aggregateSources // ignore: cast_nullable_to_non_nullable
+as Map<String, bool>,
   ));
 }
 
@@ -156,10 +157,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String from,  String searchKeyword,  int sortBy,  Map<String, dynamic> pluginExtern)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String from,  String searchKeyword,  int sortBy,  Map<String, dynamic> pluginExtern,  Map<String, bool> aggregateSources)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SearchStates() when $default != null:
-return $default(_that.from,_that.searchKeyword,_that.sortBy,_that.pluginExtern);case _:
+return $default(_that.from,_that.searchKeyword,_that.sortBy,_that.pluginExtern,_that.aggregateSources);case _:
   return orElse();
 
 }
@@ -177,10 +178,10 @@ return $default(_that.from,_that.searchKeyword,_that.sortBy,_that.pluginExtern);
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String from,  String searchKeyword,  int sortBy,  Map<String, dynamic> pluginExtern)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String from,  String searchKeyword,  int sortBy,  Map<String, dynamic> pluginExtern,  Map<String, bool> aggregateSources)  $default,) {final _that = this;
 switch (_that) {
 case _SearchStates():
-return $default(_that.from,_that.searchKeyword,_that.sortBy,_that.pluginExtern);case _:
+return $default(_that.from,_that.searchKeyword,_that.sortBy,_that.pluginExtern,_that.aggregateSources);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -197,10 +198,10 @@ return $default(_that.from,_that.searchKeyword,_that.sortBy,_that.pluginExtern);
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String from,  String searchKeyword,  int sortBy,  Map<String, dynamic> pluginExtern)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String from,  String searchKeyword,  int sortBy,  Map<String, dynamic> pluginExtern,  Map<String, bool> aggregateSources)?  $default,) {final _that = this;
 switch (_that) {
 case _SearchStates() when $default != null:
-return $default(_that.from,_that.searchKeyword,_that.sortBy,_that.pluginExtern);case _:
+return $default(_that.from,_that.searchKeyword,_that.sortBy,_that.pluginExtern,_that.aggregateSources);case _:
   return null;
 
 }
@@ -212,7 +213,7 @@ return $default(_that.from,_that.searchKeyword,_that.sortBy,_that.pluginExtern);
 @JsonSerializable()
 
 class _SearchStates implements SearchStates {
-  const _SearchStates({this.from = '', this.searchKeyword = "", this.sortBy = 1, final  Map<String, dynamic> pluginExtern = const <String, dynamic>{}}): _pluginExtern = pluginExtern;
+  const _SearchStates({this.from = '', this.searchKeyword = "", this.sortBy = 1, final  Map<String, dynamic> pluginExtern = const <String, dynamic>{}, final  Map<String, bool> aggregateSources = const <String, bool>{}}): _pluginExtern = pluginExtern,_aggregateSources = aggregateSources;
   factory _SearchStates.fromJson(Map<String, dynamic> json) => _$SearchStatesFromJson(json);
 
 @override@JsonKey() final  String from;
@@ -223,6 +224,13 @@ class _SearchStates implements SearchStates {
   if (_pluginExtern is EqualUnmodifiableMapView) return _pluginExtern;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableMapView(_pluginExtern);
+}
+
+ final  Map<String, bool> _aggregateSources;
+@override@JsonKey() Map<String, bool> get aggregateSources {
+  if (_aggregateSources is EqualUnmodifiableMapView) return _aggregateSources;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_aggregateSources);
 }
 
 
@@ -239,16 +247,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchStates&&(identical(other.from, from) || other.from == from)&&(identical(other.searchKeyword, searchKeyword) || other.searchKeyword == searchKeyword)&&(identical(other.sortBy, sortBy) || other.sortBy == sortBy)&&const DeepCollectionEquality().equals(other._pluginExtern, _pluginExtern));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchStates&&(identical(other.from, from) || other.from == from)&&(identical(other.searchKeyword, searchKeyword) || other.searchKeyword == searchKeyword)&&(identical(other.sortBy, sortBy) || other.sortBy == sortBy)&&const DeepCollectionEquality().equals(other._pluginExtern, _pluginExtern)&&const DeepCollectionEquality().equals(other._aggregateSources, _aggregateSources));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,from,searchKeyword,sortBy,const DeepCollectionEquality().hash(_pluginExtern));
+int get hashCode => Object.hash(runtimeType,from,searchKeyword,sortBy,const DeepCollectionEquality().hash(_pluginExtern),const DeepCollectionEquality().hash(_aggregateSources));
 
 @override
 String toString() {
-  return 'SearchStates(from: $from, searchKeyword: $searchKeyword, sortBy: $sortBy, pluginExtern: $pluginExtern)';
+  return 'SearchStates(from: $from, searchKeyword: $searchKeyword, sortBy: $sortBy, pluginExtern: $pluginExtern, aggregateSources: $aggregateSources)';
 }
 
 
@@ -259,7 +267,7 @@ abstract mixin class _$SearchStatesCopyWith<$Res> implements $SearchStatesCopyWi
   factory _$SearchStatesCopyWith(_SearchStates value, $Res Function(_SearchStates) _then) = __$SearchStatesCopyWithImpl;
 @override @useResult
 $Res call({
- String from, String searchKeyword, int sortBy, Map<String, dynamic> pluginExtern
+ String from, String searchKeyword, int sortBy, Map<String, dynamic> pluginExtern, Map<String, bool> aggregateSources
 });
 
 
@@ -276,13 +284,14 @@ class __$SearchStatesCopyWithImpl<$Res>
 
 /// Create a copy of SearchStates
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? from = null,Object? searchKeyword = null,Object? sortBy = null,Object? pluginExtern = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? from = null,Object? searchKeyword = null,Object? sortBy = null,Object? pluginExtern = null,Object? aggregateSources = null,}) {
   return _then(_SearchStates(
 from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as String,searchKeyword: null == searchKeyword ? _self.searchKeyword : searchKeyword // ignore: cast_nullable_to_non_nullable
 as String,sortBy: null == sortBy ? _self.sortBy : sortBy // ignore: cast_nullable_to_non_nullable
 as int,pluginExtern: null == pluginExtern ? _self._pluginExtern : pluginExtern // ignore: cast_nullable_to_non_nullable
-as Map<String, dynamic>,
+as Map<String, dynamic>,aggregateSources: null == aggregateSources ? _self._aggregateSources : aggregateSources // ignore: cast_nullable_to_non_nullable
+as Map<String, bool>,
   ));
 }
 

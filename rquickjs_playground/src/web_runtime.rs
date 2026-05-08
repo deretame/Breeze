@@ -2,7 +2,7 @@ use aes::{Aes128, Aes192, Aes256};
 use anyhow::{Context as AnyhowContext, Result as AnyResult, anyhow};
 use base64::Engine as Base64Engine;
 use base64::engine::general_purpose::{STANDARD as BASE64_STANDARD, URL_SAFE as BASE64_URL_SAFE};
-use ecb::cipher::{BlockDecryptMut, KeyInit, block_padding::Pkcs7};
+use ecb::cipher::{BlockModeDecrypt, KeyInit, block_padding::Pkcs7};
 use flate2::Compression;
 use flate2::read::GzDecoder;
 use flate2::write::GzEncoder;
@@ -39,10 +39,10 @@ use windows_registry::CURRENT_USER;
 
 use filetime::{FileTime, set_file_times};
 use rquickjs::{Ctx, Function, Promise, function::Func};
+use tokio::net::lookup_host;
 use tokio::runtime::{Builder as TokioRuntimeBuilder, Runtime as TokioRuntime};
 use tokio::sync::Semaphore;
 use tokio::task::JoinHandle;
-use tokio::net::lookup_host;
 use tokio::time::timeout;
 use url::form_urlencoded;
 use uuid::Uuid;
@@ -167,15 +167,24 @@ pub fn install_host_bindings(
     globals.set("__headers_rewrite", Func::from(headers_rewrite))?;
     globals.set("__headers_query", Func::from(headers_query))?;
     globals.set("__fetch_state_register", Func::from(fetch_state_register))?;
-    globals.set("__fetch_state_try_consume", Func::from(fetch_state_try_consume))?;
+    globals.set(
+        "__fetch_state_try_consume",
+        Func::from(fetch_state_try_consume),
+    )?;
     globals.set("__fetch_state_can_clone", Func::from(fetch_state_can_clone))?;
     globals.set(
         "__fetch_state_take_offloaded",
         Func::from(fetch_state_take_offloaded),
     )?;
     globals.set("__body_state_register", Func::from(body_state_register))?;
-    globals.set("__body_state_try_consume", Func::from(body_state_try_consume))?;
-    globals.set("__body_state_is_consumed", Func::from(body_state_is_consumed))?;
+    globals.set(
+        "__body_state_try_consume",
+        Func::from(body_state_try_consume),
+    )?;
+    globals.set(
+        "__body_state_is_consumed",
+        Func::from(body_state_is_consumed),
+    )?;
     globals.set("__native_buffer_put", Func::from(native_buffer_put))?;
     globals.set("__native_buffer_put_raw", Func::from(native_buffer_put_raw))?;
     globals.set("__native_buffer_take", Func::from(native_buffer_take))?;
@@ -232,10 +241,7 @@ pub fn install_host_bindings(
         "__crypto_timing_safe_equal_b64",
         Func::from(crypto_timing_safe_equal_b64),
     )?;
-    globals.set(
-        "__crypto_random_uuid_v4",
-        Func::from(crypto_random_uuid_v4),
-    )?;
+    globals.set("__crypto_random_uuid_v4", Func::from(crypto_random_uuid_v4))?;
     #[cfg(feature = "host-fs")]
     if options.fs {
         globals.set("__fs_read_file", Func::from(fs_read_file))?;
@@ -595,13 +601,21 @@ pub fn urlsp_rewrite(
     serialize_query_pairs(&pairs)
 }
 
-pub fn urlsp_query(op: String, query: String, key: Option<String>, value: Option<String>) -> String {
+pub fn urlsp_query(
+    op: String,
+    query: String,
+    key: Option<String>,
+    value: Option<String>,
+) -> String {
     let pairs = parse_query_pairs(&query);
     match op.as_str() {
         "toString" => json!({ "ok": true, "data": serialize_query_pairs(&pairs) }).to_string(),
         "get" => {
             if let Some(k) = key {
-                let val = pairs.iter().find(|(ek, _)| ek == &k).map(|(_, ev)| ev.clone());
+                let val = pairs
+                    .iter()
+                    .find(|(ek, _)| ek == &k)
+                    .map(|(_, ev)| ev.clone());
                 json!({ "ok": true, "data": val }).to_string()
             } else {
                 json!({ "ok": true, "data": Value::Null }).to_string()
@@ -2031,18 +2045,13 @@ where
                 return;
             }
         };
-        let payload = match http_request_inner_async(
-            method,
-            url,
-            headers_json,
-            body,
-            body_native_buffer_id,
-        )
-        .await
-        {
-            Ok(payload) => payload,
-            Err(error) => json!({ "ok": false, "error": format!("{error}") }).to_string(),
-        };
+        let payload =
+            match http_request_inner_async(method, url, headers_json, body, body_native_buffer_id)
+                .await
+            {
+                Ok(payload) => payload,
+                Err(error) => json!({ "ok": false, "error": format!("{error}") }).to_string(),
+            };
         drop(permit);
         finish(payload);
     });
@@ -2116,7 +2125,9 @@ where
         } else {
             tokio::time::sleep(Duration::from_millis(normalized_delay_ms)).await;
             on_complete(id, json!({ "ok": true, "kind": "timeout" }).to_string());
-            let _ = timer_req_event_pool().lock().map(|mut pool| pool.remove(&id));
+            let _ = timer_req_event_pool()
+                .lock()
+                .map(|mut pool| pool.remove(&id));
         }
     });
 
@@ -2819,8 +2830,7 @@ async fn ensure_http_target_allowed(url: &str) -> AnyResult<()> {
         .ok_or_else(|| anyhow!("URL 缺少 host: {url}"))?
         .trim();
 
-    if host.eq_ignore_ascii_case("localhost") || host.to_ascii_lowercase().ends_with(".localhost")
-    {
+    if host.eq_ignore_ascii_case("localhost") || host.to_ascii_lowercase().ends_with(".localhost") {
         return Err(anyhow!("已拦截内网请求: {host}"));
     }
 
@@ -3693,17 +3703,17 @@ fn crypto_aes_ecb_pkcs7_decrypt_b64(payload_b64: String, key_raw: String) -> Any
     let plain = match key.len() {
         16 => ecb::Decryptor::<Aes128>::new_from_slice(&key)
             .map_err(|_| anyhow!("AES-128 密钥长度无效"))?
-            .decrypt_padded_mut::<Pkcs7>(&mut payload)
+            .decrypt_padded::<Pkcs7>(&mut payload)
             .map_err(|_| anyhow!("AES-128 ECB 解密失败"))?
             .to_vec(),
         24 => ecb::Decryptor::<Aes192>::new_from_slice(&key)
             .map_err(|_| anyhow!("AES-192 密钥长度无效"))?
-            .decrypt_padded_mut::<Pkcs7>(&mut payload)
+            .decrypt_padded::<Pkcs7>(&mut payload)
             .map_err(|_| anyhow!("AES-192 ECB 解密失败"))?
             .to_vec(),
         32 => ecb::Decryptor::<Aes256>::new_from_slice(&key)
             .map_err(|_| anyhow!("AES-256 密钥长度无效"))?
-            .decrypt_padded_mut::<Pkcs7>(&mut payload)
+            .decrypt_padded::<Pkcs7>(&mut payload)
             .map_err(|_| anyhow!("AES-256 ECB 解密失败"))?
             .to_vec(),
         _ => {
@@ -3939,9 +3949,7 @@ pub fn host_call_start(runtime_name: String, name: String, args_json: Option<Str
     let call_name = name.clone();
     let task = host_async_runtime().spawn(async move {
         let payload = match bridge_call_inner_async(runtime_name, call_name, args_json).await {
-            Ok(data) => {
-                json!({ "ok": true, "data": encode_bridge_return_value(data) }).to_string()
-            }
+            Ok(data) => json!({ "ok": true, "data": encode_bridge_return_value(data) }).to_string(),
             Err(error) => bridge_error_json(
                 "BRIDGE_CALL_FAILED",
                 format!("{error:#}"),

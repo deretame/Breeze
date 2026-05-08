@@ -221,6 +221,8 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
     setQjsErrorStackEnabled(enabled: true);
     // 配置http代理，方便开发测试
     await _tryApplyHttpProxyFromEnv();
+  } else {
+    setQjsErrorStackEnabled(enabled: false);
   }
 
   // 初始化前台任务
@@ -286,6 +288,7 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
       );
     }
     setLogHttpForward(url: logAddress);
+    setQjsErrorStackEnabled(enabled: true);
   }
 
   // 关掉缓存定时清理

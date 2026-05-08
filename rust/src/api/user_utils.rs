@@ -83,7 +83,7 @@ fn setup_log_to_console() {
 
 fn default_log_level() -> String {
     if cfg!(debug_assertions) {
-        "debug,hyper_util=warn,reqwest=warn".to_string()
+        "debug,hyper_util=warn,reqwest=warn,h2=warn".to_string()
     } else {
         "warn".to_string()
     }

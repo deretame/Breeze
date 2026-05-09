@@ -175,9 +175,15 @@ Future<void> main(List<String> args) async {
       // ignore: experimental_member_use
       options.profilesSampleRate = 1.0;
 
-      // 会话回放设置：平时抽样 10%，遇到错误时 100% 录制
-      options.replay.sessionSampleRate = 0.1;
-      options.replay.onErrorSampleRate = 1.0;
+      // Android 上暂时关闭 Replay，规避原生侧生命周期卡顿/ANR 风险。
+      if (Platform.isAndroid) {
+        options.replay.sessionSampleRate = 0.0;
+        options.replay.onErrorSampleRate = 0.0;
+      } else {
+        // 会话回放设置：平时抽样 10%，遇到错误时 100% 录制
+        options.replay.sessionSampleRate = 0.1;
+        options.replay.onErrorSampleRate = 1.0;
+      }
 
       // 附加线程信息和堆栈，增强原生层（Rust/C++）错误分析
       options.attachThreads = true;

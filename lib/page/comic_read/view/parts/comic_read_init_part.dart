@@ -107,6 +107,8 @@ extension _ComicReadInitPart on _ComicReadPageState {
       isMenuVisible,
       comicInfo,
       widget.order,
+      widget.chapterId,
+      Map<String, dynamic>.from(widget.chapterExtern),
       widget.epsNumber,
       comicId,
       widget.from,

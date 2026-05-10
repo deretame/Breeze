@@ -38,6 +38,8 @@ part 'parts/comic_read_seamless_part.dart';
 class ComicReadPage extends StatelessWidget {
   final String comicId;
   final int order;
+  final String chapterId;
+  final Map<String, dynamic> chapterExtern;
   final int epsNumber;
   final String from;
   final ComicEntryType type;
@@ -48,6 +50,8 @@ class ComicReadPage extends StatelessWidget {
     super.key,
     required this.comicId,
     required this.order,
+    this.chapterId = '',
+    this.chapterExtern = const <String, dynamic>{},
     required this.epsNumber,
     required this.from,
     required this.stringSelectCubit,
@@ -61,7 +65,17 @@ class ComicReadPage extends StatelessWidget {
       providers: [
         BlocProvider(
           create: (_) => PageBloc()
-            ..add(PageEvent(comicId, order, from, type, comicInfo: comicInfo)),
+            ..add(
+              PageEvent(
+                comicId,
+                order,
+                chapterId,
+                chapterExtern,
+                from,
+                type,
+                comicInfo: comicInfo,
+              ),
+            ),
         ),
         BlocProvider.value(value: stringSelectCubit),
         BlocProvider(create: (_) => ReaderCubit()),
@@ -69,6 +83,8 @@ class ComicReadPage extends StatelessWidget {
       child: _ComicReadPage(
         comicId: comicId,
         order: order,
+        chapterId: chapterId,
+        chapterExtern: chapterExtern,
         epsNumber: epsNumber,
         from: from,
         type: type,
@@ -81,6 +97,8 @@ class ComicReadPage extends StatelessWidget {
 class _ComicReadPage extends StatefulWidget {
   final String comicId;
   final int order;
+  final String chapterId;
+  final Map<String, dynamic> chapterExtern;
   final int epsNumber; // 这个的意思是一共有多少章
   final String from;
   final ComicEntryType type;
@@ -89,6 +107,8 @@ class _ComicReadPage extends StatefulWidget {
   const _ComicReadPage({
     required this.comicId,
     required this.order,
+    this.chapterId = '',
+    this.chapterExtern = const <String, dynamic>{},
     required this.epsNumber,
     required this.from,
     required this.type,
@@ -193,6 +213,8 @@ class _ComicReadPageState extends State<_ComicReadPage>
               event: PageEvent(
                 comicId,
                 widget.order,
+                widget.chapterId,
+                widget.chapterExtern,
                 widget.from,
                 widget.type,
                 comicInfo: comicInfo,

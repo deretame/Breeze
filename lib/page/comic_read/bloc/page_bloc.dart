@@ -49,6 +49,8 @@ class PageBloc extends Bloc<PageEvent, PageState> {
           event.epsId,
           event.from,
           event.comicInfo,
+          event.chapterId,
+          event.chapterExtern,
         );
       }
 

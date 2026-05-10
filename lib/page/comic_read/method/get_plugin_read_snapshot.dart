@@ -8,22 +8,35 @@ Future<NormalComicEpInfo> getPluginReadSnapshot(
   int order,
   String from,
   dynamic comicInfo,
+  String? selectedChapterId,
+  Map<String, dynamic> chapterExtern,
 ) async {
-  final chapterRef = _resolveChapterRef(comicInfo, from, order);
-  final chapterId = chapterRef?.id.isNotEmpty == true
+  final chapterRef = chapterExtern.isNotEmpty
+      ? null
+      : resolveUnifiedComicChapterRef(
+          comicInfo,
+          from,
+          chapterId: selectedChapterId,
+          order: order,
+        );
+  final resolvedChapterId = chapterRef?.id.isNotEmpty == true
       ? chapterRef!.id
       : order.toString();
 
-  final extern = <String, dynamic>{'order': order};
+  final extern = <String, dynamic>{
+    ...chapterExtern,
+    ...?chapterRef?.extern,
+    'order': order,
+  };
 
   final candidates = <String>[];
   final preferComicIdFirst =
-      chapterId == order.toString() && chapterId != comicId;
+      resolvedChapterId == order.toString() && resolvedChapterId != comicId;
   if (preferComicIdFirst) {
     candidates.add(comicId);
   }
-  candidates.add(chapterId);
-  if (comicId != chapterId) {
+  candidates.add(resolvedChapterId);
+  if (comicId != resolvedChapterId) {
     candidates.add(comicId);
   }
   candidates.add('');
@@ -52,7 +65,7 @@ Future<NormalComicEpInfo> getPluginReadSnapshot(
 
   final fallbackChapterId = snapshot.chapter.id.isNotEmpty
       ? snapshot.chapter.id
-      : chapterId;
+      : resolvedChapterId;
   return snapshot.toNormalEpInfo(fallbackChapterId: fallbackChapterId);
 }
 
@@ -75,28 +88,4 @@ Future<ComicReadSnapshot> _fetchSnapshot({
     extern: extern,
   );
   return ComicReadSnapshot.fromMap(response);
-}
-
-UnifiedComicChapterRef? _resolveChapterRef(
-  dynamic comicInfo,
-  String from,
-  int order,
-) {
-  final chapters = resolveUnifiedComicChapters(comicInfo, from);
-  if (chapters.isEmpty) {
-    return null;
-  }
-  for (final chapter in chapters) {
-    if (chapter.order == order) {
-      return chapter;
-    }
-  }
-
-  for (final chapter in chapters) {
-    if (chapter.id == order.toString()) {
-      return chapter;
-    }
-  }
-
-  return null;
 }

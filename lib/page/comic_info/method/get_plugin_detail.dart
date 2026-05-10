@@ -50,6 +50,43 @@ class UnifiedComicChapterRef {
   final Map<String, dynamic> extern;
 }
 
+UnifiedComicChapterRef? resolveUnifiedComicChapterRef(
+  dynamic comicInfo,
+  String from, {
+  String? chapterId,
+  int? order,
+}) {
+  final chapters = resolveUnifiedComicChapters(comicInfo, from);
+  if (chapters.isEmpty) {
+    return null;
+  }
+
+  final normalizedChapterId = (chapterId ?? '').trim();
+  if (normalizedChapterId.isNotEmpty) {
+    for (final chapter in chapters) {
+      if (chapter.id == normalizedChapterId) {
+        return chapter;
+      }
+    }
+  }
+
+  if (order != null) {
+    for (final chapter in chapters) {
+      if (chapter.order == order) {
+        return chapter;
+      }
+    }
+
+    for (final chapter in chapters) {
+      if (chapter.id == order.toString()) {
+        return chapter;
+      }
+    }
+  }
+
+  return chapters.first;
+}
+
 Future<PluginComicDetail> getComicDetailByPlugin(
   String comicId,
   String from, {

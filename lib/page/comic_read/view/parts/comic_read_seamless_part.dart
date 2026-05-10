@@ -631,7 +631,21 @@ extension _ComicReadSeamlessPart on _ComicReadPageState {
     if (_isDownloadEntryType) {
       return getPluginInfoFromLocal(widget.from, comicId, order);
     }
-    return getPluginReadSnapshot(comicId, order, widget.from, comicInfo);
+    final chapterRef = resolveUnifiedComicChapterRef(
+      comicInfo,
+      widget.from,
+      order: order,
+    );
+    return getPluginReadSnapshot(
+      comicId,
+      order,
+      widget.from,
+      comicInfo,
+      chapterRef?.id,
+      Map<String, dynamic>.from(
+        chapterRef?.extern ?? const <String, dynamic>{},
+      ),
+    );
   }
 
   void _onSeamlessGlobalSlotObserved(int globalSlot) {

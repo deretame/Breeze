@@ -41,11 +41,21 @@ void goToComicRead(
   final orderVal = hasHistory
       ? _resolveHistoryOrder(allInfo, from, history)
       : _resolveInitialOrder(allInfo, from);
+  final chapterRef = resolveUnifiedComicChapterRef(
+    allInfo,
+    from,
+    chapterId: history?.chapterId,
+    order: orderVal,
+  );
 
   context.pushRoute(
     ComicReadRoute(
       comicId: resolvedComicId,
       order: orderVal,
+      chapterId: chapterRef?.id ?? '',
+      chapterExtern: Map<String, dynamic>.from(
+        chapterRef?.extern ?? const <String, dynamic>{},
+      ),
       epsNumber: epsCount,
       from: from,
       type: typeVal,

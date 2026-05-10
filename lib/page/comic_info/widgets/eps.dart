@@ -45,6 +45,8 @@ class EpButtonWidget extends StatelessWidget {
             comicId: comicId,
             type: resolvedType,
             order: doc.order,
+            chapterId: doc.id,
+            chapterExtern: Map<String, dynamic>.from(doc.extern),
             epsNumber: epsLength,
             from: from,
             stringSelectCubit: context.read<StringSelectCubit>(),

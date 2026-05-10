@@ -305,6 +305,8 @@ class ComicReadRoute extends _i30.PageRouteInfo<ComicReadRouteArgs> {
     _i34.Key? key,
     required String comicId,
     required int order,
+    String chapterId = '',
+    Map<String, dynamic> chapterExtern = const <String, dynamic>{},
     required int epsNumber,
     required String from,
     required _i35.StringSelectCubit stringSelectCubit,
@@ -317,6 +319,8 @@ class ComicReadRoute extends _i30.PageRouteInfo<ComicReadRouteArgs> {
            key: key,
            comicId: comicId,
            order: order,
+           chapterId: chapterId,
+           chapterExtern: chapterExtern,
            epsNumber: epsNumber,
            from: from,
            stringSelectCubit: stringSelectCubit,
@@ -336,6 +340,8 @@ class ComicReadRoute extends _i30.PageRouteInfo<ComicReadRouteArgs> {
         key: args.key,
         comicId: args.comicId,
         order: args.order,
+        chapterId: args.chapterId,
+        chapterExtern: args.chapterExtern,
         epsNumber: args.epsNumber,
         from: args.from,
         stringSelectCubit: args.stringSelectCubit,
@@ -351,6 +357,8 @@ class ComicReadRouteArgs {
     this.key,
     required this.comicId,
     required this.order,
+    this.chapterId = '',
+    this.chapterExtern = const <String, dynamic>{},
     required this.epsNumber,
     required this.from,
     required this.stringSelectCubit,
@@ -364,6 +372,10 @@ class ComicReadRouteArgs {
 
   final int order;
 
+  final String chapterId;
+
+  final Map<String, dynamic> chapterExtern;
+
   final int epsNumber;
 
   final String from;
@@ -376,7 +388,7 @@ class ComicReadRouteArgs {
 
   @override
   String toString() {
-    return 'ComicReadRouteArgs{key: $key, comicId: $comicId, order: $order, epsNumber: $epsNumber, from: $from, stringSelectCubit: $stringSelectCubit, type: $type, comicInfo: $comicInfo}';
+    return 'ComicReadRouteArgs{key: $key, comicId: $comicId, order: $order, chapterId: $chapterId, chapterExtern: $chapterExtern, epsNumber: $epsNumber, from: $from, stringSelectCubit: $stringSelectCubit, type: $type, comicInfo: $comicInfo}';
   }
 
   @override
@@ -386,6 +398,8 @@ class ComicReadRouteArgs {
     return key == other.key &&
         comicId == other.comicId &&
         order == other.order &&
+        chapterId == other.chapterId &&
+        chapterExtern == other.chapterExtern &&
         epsNumber == other.epsNumber &&
         from == other.from &&
         stringSelectCubit == other.stringSelectCubit &&
@@ -398,6 +412,8 @@ class ComicReadRouteArgs {
       key.hashCode ^
       comicId.hashCode ^
       order.hashCode ^
+      chapterId.hashCode ^
+      chapterExtern.hashCode ^
       epsNumber.hashCode ^
       from.hashCode ^
       stringSelectCubit.hashCode ^

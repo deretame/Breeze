@@ -14,6 +14,8 @@ class JumpChapter {
   String from;
   List<UnifiedComicChapterRef> chapters;
   int order;
+  String chapterId;
+  Map<String, dynamic> chapterExtern;
   dynamic comicInfo;
   String comicId;
   ComicEntryType tempType;
@@ -26,6 +28,8 @@ class JumpChapter {
     required this.from,
     required this.chapters,
     required this.order,
+    required this.chapterId,
+    required this.chapterExtern,
     required this.comicInfo,
     required this.comicId,
     required this.tempType,
@@ -34,21 +38,25 @@ class JumpChapter {
 
   void jumpToChapter(BuildContext context, bool isPrev) {
     final router = AutoRouter.of(context);
-    final index = chapters.indexWhere((chapter) => chapter.order == order);
+    final index = chapters.indexWhere((chapter) => chapter.id == chapterId);
     if (index < 0) {
       return;
     }
+    UnifiedComicChapterRef target;
     if (isPrev) {
       if (index == 0) {
         return;
       }
-      order = chapters[index - 1].order;
+      target = chapters[index - 1];
     } else {
       if (index >= chapters.length - 1) {
         return;
       }
-      order = chapters[index + 1].order;
+      target = chapters[index + 1];
     }
+    order = target.order;
+    chapterId = target.id;
+    chapterExtern = Map<String, dynamic>.from(target.extern);
 
     router.replace(
       ComicReadRoute(
@@ -57,6 +65,8 @@ class JumpChapter {
         comicId: comicId,
         type: tempType,
         order: order,
+        chapterId: chapterId,
+        chapterExtern: chapterExtern,
         epsNumber: epsNumber,
         from: from,
         stringSelectCubit: context.read<StringSelectCubit>(),
@@ -69,6 +79,8 @@ class JumpChapter {
     bool isVisible,
     dynamic comicInfo,
     int order,
+    String chapterId,
+    Map<String, dynamic> chapterExtern,
     int epsNumber,
     String comicId,
     String from,
@@ -85,12 +97,19 @@ class JumpChapter {
 
     bool havePrev = true;
     bool haveNext = true;
+    final resolvedRef = resolveUnifiedComicChapterRef(
+      comicInfo,
+      from,
+      chapterId: chapterId,
+      order: order,
+    );
+    final currentId = resolvedRef?.id ?? '';
     if (chapters.isEmpty) {
       havePrev = false;
       haveNext = false;
     } else {
       final chapterIndex = chapters.indexWhere(
-        (chapter) => chapter.order == order,
+        (chapter) => chapter.id == currentId,
       );
       if (chapterIndex <= 0) {
         havePrev = false;
@@ -107,6 +126,12 @@ class JumpChapter {
       from: from,
       chapters: chapters,
       order: order,
+      chapterId: currentId,
+      chapterExtern: Map<String, dynamic>.from(
+        chapterExtern.isNotEmpty
+            ? chapterExtern
+            : (resolvedRef?.extern ?? const <String, dynamic>{}),
+      ),
       comicInfo: comicInfo,
       comicId: comicId,
       tempType: tempType,

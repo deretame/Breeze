@@ -225,7 +225,7 @@ class _BottomWidgetState extends State<BottomWidget> {
 
   Future<void> _selectJumpChapter() async {
     final router = AutoRouter.of(context);
-    final result = await showDialog<int?>(
+    final result = await showDialog<UnifiedComicChapterRef?>(
       context: context,
       barrierDismissible: false, // 不允许点击外部区域关闭对话框
       builder: (BuildContext context) {
@@ -250,7 +250,9 @@ class _BottomWidgetState extends State<BottomWidget> {
           comicInfo: widget.comicInfo,
           comicId: comicId,
           type: tempType,
-          order: result,
+          order: result.order,
+          chapterId: result.id,
+          chapterExtern: Map<String, dynamic>.from(result.extern),
           epsNumber: widget.epsNumber,
           from: widget.from,
           stringSelectCubit: context.read<StringSelectCubit>(),
@@ -266,7 +268,7 @@ class _BottomWidgetState extends State<BottomWidget> {
           TextButton(
             child: Text(ep.name),
             onPressed: () =>
-                Navigator.of(context, rootNavigator: false).pop(ep.order),
+                Navigator.of(context, rootNavigator: false).pop(ep),
           ),
       ],
     );

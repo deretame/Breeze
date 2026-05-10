@@ -14,14 +14,12 @@ void onSearch(
   Map<String, bool>? aggregateSources,
 }) async {
   final searchCubit = context.read<SearchCubit>();
-  final nextExtern =
-      pluginExtern == null
-          ? Map<String, dynamic>.from(searchCubit.state.pluginExtern)
-          : Map<String, dynamic>.from(pluginExtern);
-  final nextAggregateSources =
-      aggregateSources == null
-          ? Map<String, bool>.from(searchCubit.state.aggregateSources)
-          : Map<String, bool>.from(aggregateSources);
+  final nextExtern = pluginExtern == null
+      ? Map<String, dynamic>.from(searchCubit.state.pluginExtern)
+      : Map<String, dynamic>.from(pluginExtern);
+  final nextAggregateSources = aggregateSources == null
+      ? Map<String, bool>.from(searchCubit.state.aggregateSources)
+      : Map<String, bool>.from(aggregateSources);
   searchCubit.update(
     searchCubit.state.copyWith(
       searchKeyword: keyword,

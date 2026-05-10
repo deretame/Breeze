@@ -1762,11 +1762,7 @@ fn normalize_socks5_proxy_url(raw: &str) -> String {
 }
 
 fn supports_auto_system_proxy() -> bool {
-    cfg!(any(
-        target_os = "windows",
-        target_os = "macos",
-        target_os = "linux"
-    ))
+    cfg!(any(target_os = "windows", target_os = "macos", target_os = "linux"))
 }
 
 fn build_http_client(config: &HttpClientConfig) -> AnyResult<(Client, bool)> {
@@ -1800,11 +1796,7 @@ fn build_http_client(config: &HttpClientConfig) -> AnyResult<(Client, bool)> {
     }
 
     if config.disable_tls_verify {
-        if cfg!(debug_assertions) {
-            builder = builder.danger_accept_invalid_certs(true);
-        } else {
-            tracing::warn!("disable_tls_verify 已设置，但 release 模式下强制保持证书校验开启");
-        }
+        builder = builder.danger_accept_invalid_certs(true);
     }
 
     let auto_system_proxy = !has_explicit_proxy && supports_auto_system_proxy();
@@ -1878,6 +1870,7 @@ fn http_client() -> AnyResult<Client> {
         .map_err(|_| anyhow!("HTTP client 状态锁已损坏"))?;
     let config = state.config.clone();
     let mut need_rebuild = state.client.is_none();
+
     if state.auto_system_proxy {
         let need_check = state
             .last_system_proxy_check_at
@@ -1892,6 +1885,7 @@ fn http_client() -> AnyResult<Client> {
             state.last_system_proxy_check_at = Some(now);
         }
     }
+
     if need_rebuild {
         let (client, auto_system_proxy) = build_http_client(&config)?;
         state.client = Some(client);
@@ -1905,6 +1899,7 @@ fn http_client() -> AnyResult<Client> {
             state.last_system_proxy_check_at = None;
         }
     }
+
     match state.client.clone() {
         Some(client) => Ok(client),
         None => Err(anyhow!("HTTP client 不可用")),
@@ -1945,7 +1940,7 @@ pub fn http_request_start(
         };
         let payload = match http_request_inner_async(method, url, headers_json, body, None).await {
             Ok(payload) => payload,
-            Err(error) => json!({ "ok": false, "error": format!("{error}") }).to_string(),
+            Err(error) => json!({ "ok": false, "error": format!("{error:#}") }).to_string(),
         };
         drop(permit);
         let _ = tx.send(payload);
@@ -2050,7 +2045,7 @@ where
                 .await
             {
                 Ok(payload) => payload,
-                Err(error) => json!({ "ok": false, "error": format!("{error}") }).to_string(),
+                Err(error) => json!({ "ok": false, "error": format!("{error:#}") }).to_string(),
             };
         drop(permit);
         finish(payload);

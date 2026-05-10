@@ -7,7 +7,7 @@ import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/comic_list/models/comic_list_scene.dart';
 import 'package:zephyr/page/comic_list/view/plugin_paged_comic_list_view.dart';
 import 'package:zephyr/type/enum.dart';
-import 'package:zephyr/page/home/view/home_scheme_renderer.dart';
+import 'package:zephyr/page/discover/view/discover_scheme_renderer.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/util/json/json_value.dart';
@@ -545,7 +545,7 @@ class _FunctionSection extends StatefulWidget {
 class _FunctionSectionState extends State<_FunctionSection>
     with AutomaticKeepAliveClientMixin {
   static final Map<String, Future<UnifiedPluginEnvelope>> _futureCache = {};
-  final HomeSchemeRenderer _renderer = const HomeSchemeRenderer();
+  final DiscoverSchemeRenderer _renderer = const DiscoverSchemeRenderer();
 
   late Future<UnifiedPluginEnvelope> _future;
 
@@ -679,7 +679,7 @@ class _PluginFunctionDialogContent extends StatefulWidget {
 
 class _PluginFunctionDialogContentState
     extends State<_PluginFunctionDialogContent> {
-  final HomeSchemeRenderer _renderer = const HomeSchemeRenderer();
+  final DiscoverSchemeRenderer _renderer = const DiscoverSchemeRenderer();
   bool _loading = true;
   String _error = '';
   Map<String, dynamic> _scheme = const <String, dynamic>{};

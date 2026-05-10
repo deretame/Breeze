@@ -6,6 +6,7 @@ use rquickjs_playground::{
     AsyncHostRuntime, AsyncHostRuntimeBuilder, BridgeRuntimeConfig, HttpClientConfig,
     WebRuntimeOptions, configure_bridge_runtime as configure_bridge_runtime_global,
     configure_http_client, configure_js_error_stack, configure_log_http_endpoint,
+    current_http_client_config,
     js_error_stack_enabled, register_bridge_route_async_handler,
     register_bridge_route_blocking_handler, register_bridge_route_sync_handler,
 };
@@ -1413,6 +1414,16 @@ pub fn set_socks5_proxy(proxy: String) -> Result<()> {
         allow_private_network: false,
     })
     .map_err(|err| anyhow!("设置 socks5 代理失败: {err}"))
+}
+
+pub fn set_tls_verify_enabled(enabled: bool) -> Result<()> {
+    let mut config = current_http_client_config();
+    config.disable_tls_verify = !enabled;
+    configure_http_client(config).map_err(|err| anyhow!("设置 TLS 校验开关失败: {err}"))
+}
+
+pub fn is_tls_verify_enabled() -> bool {
+    !current_http_client_config().disable_tls_verify
 }
 
 pub fn set_qjs_error_stack_enabled(enabled: bool) -> Result<()> {

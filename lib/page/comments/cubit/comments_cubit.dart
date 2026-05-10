@@ -73,10 +73,7 @@ class CommentsCubit extends Cubit<CommentsViewState> {
       );
     } catch (e) {
       _safeEmit(
-        state.copyWith(
-          loading: false,
-          error: normalizeSearchErrorMessage(e),
-        ),
+        state.copyWith(loading: false, error: normalizeSearchErrorMessage(e)),
       );
     }
   }
@@ -139,8 +136,9 @@ class CommentsCubit extends Cubit<CommentsViewState> {
       }
       final replyItems = Map<String, List<CommentItem>>.from(state.replyItems)
         ..[item.id] = item.replies;
-      final replyHasReachedMax = Map<String, bool>.from(state.replyHasReachedMax)
-        ..[item.id] = true;
+      final replyHasReachedMax = Map<String, bool>.from(
+        state.replyHasReachedMax,
+      )..[item.id] = true;
       _safeEmit(
         state.copyWith(
           replyItems: replyItems,
@@ -245,7 +243,10 @@ class CommentsCubit extends Cubit<CommentsViewState> {
     return state.copyWith(items: <CommentItem>[created, ...state.items]);
   }
 
-  List<CommentItem> _bumpReplyCount(List<CommentItem> source, String commentId) {
+  List<CommentItem> _bumpReplyCount(
+    List<CommentItem> source,
+    String commentId,
+  ) {
     final next = List<CommentItem>.from(source);
     for (var i = 0; i < next.length; i++) {
       if (next[i].id == commentId) {
@@ -295,8 +296,9 @@ class CommentsCubit extends Cubit<CommentsViewState> {
         ..[item.id] = <CommentItem>[...current, ...items];
       final nextReplyLoading = Map<String, bool>.from(state.replyLoading)
         ..[item.id] = false;
-      final replyHasReachedMax = Map<String, bool>.from(state.replyHasReachedMax)
-        ..[item.id] = hasReachedMax;
+      final replyHasReachedMax = Map<String, bool>.from(
+        state.replyHasReachedMax,
+      )..[item.id] = hasReachedMax;
       final replyPage = Map<String, int>.from(state.replyPage)
         ..[item.id] = page + 1;
 

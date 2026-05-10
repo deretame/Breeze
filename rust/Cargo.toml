@@ -57,6 +57,8 @@ sea-orm-migration = { version = "1.1", default-features = false, features = [
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.15.1"
 tracing-logcat = "0.1.0"
+jni = "0.22.4"
+rustls-platform-verifier = "0.7.0"
 
 [target.'cfg(any(target_os = "ios", target_os = "macos"))'.dependencies]
 oslog = "0.2.0"

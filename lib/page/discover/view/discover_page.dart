@@ -12,18 +12,18 @@ import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/toast.dart';
 
-import 'home_scheme_renderer.dart';
+import 'discover_scheme_renderer.dart';
 import 'package:zephyr/util/error_filter.dart';
 
 @RoutePage()
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class DiscoverPage extends StatefulWidget {
+  const DiscoverPage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<DiscoverPage> createState() => _DiscoverPageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _DiscoverPageState extends State<DiscoverPage> {
   final Map<String, Future<Map<String, dynamic>>> _pluginInfoFutures = {};
   final Map<String, String> _pluginInfoCacheKeyByUuid = {};
 
@@ -367,6 +367,7 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ListTile(
+            isThreeLine: true,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 20,
               vertical: 8,
@@ -380,8 +381,7 @@ class _HomePageState extends State<HomePage> {
             ),
             subtitle: Text(
               description,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              softWrap: true,
               style: TextStyle(
                 color: colorScheme.onSurfaceVariant,
                 fontSize: 13,
@@ -754,7 +754,7 @@ class _PluginFunctionDialogContent extends StatefulWidget {
 
 class _PluginFunctionDialogContentState
     extends State<_PluginFunctionDialogContent> {
-  final HomeSchemeRenderer _renderer = const HomeSchemeRenderer();
+  final DiscoverSchemeRenderer _renderer = const DiscoverSchemeRenderer();
   bool _loading = true;
   String _error = '';
   Map<String, dynamic> _scheme = const <String, dynamic>{};

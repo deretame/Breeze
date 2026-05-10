@@ -29,18 +29,20 @@ import 'package:zephyr/page/comic_read/view/comic_read.dart' as _i7;
 import 'package:zephyr/page/comments/view/comments.dart' as _i8;
 import 'package:zephyr/page/comments/view/plugin_comments_scaffold.dart'
     as _i19;
-import 'package:zephyr/page/donwload_task/view/download_task.dart' as _i10;
+import 'package:zephyr/page/discover/view/discover_page.dart' as _i9;
+import 'package:zephyr/page/donwload_task/view/download_task.dart' as _i11;
 import 'package:zephyr/page/download/models/unified_comic_download.dart'
     as _i36;
-import 'package:zephyr/page/download/view/download.dart' as _i9;
-import 'package:zephyr/page/home/view/home.dart' as _i13;
-import 'package:zephyr/page/home/view/plugin_function_page.dart' as _i20;
-import 'package:zephyr/page/home/view/plugin_settings_page.dart' as _i21;
+import 'package:zephyr/page/download/view/download.dart' as _i10;
 import 'package:zephyr/page/image_crop.dart' as _i14;
 import 'package:zephyr/page/login_page.dart' as _i15;
 import 'package:zephyr/page/navigation_bar.dart' as _i16;
 import 'package:zephyr/page/old_page/old_home/old_home_page.dart' as _i17;
 import 'package:zephyr/page/old_page/old_ranking/old_ranking_page.dart' as _i18;
+import 'package:zephyr/page/plugin_function/view/plugin_function_page.dart'
+    as _i20;
+import 'package:zephyr/page/plugin_settings/view/plugin_settings_page.dart'
+    as _i21;
 import 'package:zephyr/page/plugin_store/view/plugin_store_page.dart' as _i22;
 import 'package:zephyr/page/search/cubit/search_cubit.dart' as _i41;
 import 'package:zephyr/page/search/view/search_page.dart' as _i24;
@@ -49,12 +51,12 @@ import 'package:zephyr/page/search_aggregate/view/search_aggregate_result_page.d
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart' as _i40;
 import 'package:zephyr/page/search_result/search_result.dart' as _i42;
 import 'package:zephyr/page/search_result/view/search_result_page.dart' as _i25;
-import 'package:zephyr/page/setting/global/global_setting.dart' as _i12;
+import 'package:zephyr/page/setting/global/global_setting.dart' as _i13;
 import 'package:zephyr/page/theme_color/view/theme_color_page.dart' as _i27;
 import 'package:zephyr/page/webdav_sync/view/webdav_sync_page.dart' as _i28;
 import 'package:zephyr/page/webview_page.dart' as _i29;
 import 'package:zephyr/type/enum.dart' as _i32;
-import 'package:zephyr/widgets/full_screen_image_view.dart' as _i11;
+import 'package:zephyr/widgets/full_screen_image_view.dart' as _i12;
 
 /// generated route for
 /// [_i1.AboutPage]
@@ -468,7 +470,23 @@ class CommentsRouteArgs {
 }
 
 /// generated route for
-/// [_i9.DownloadPage]
+/// [_i9.DiscoverPage]
+class DiscoverRoute extends _i30.PageRouteInfo<void> {
+  const DiscoverRoute({List<_i30.PageRouteInfo>? children})
+    : super(DiscoverRoute.name, initialChildren: children);
+
+  static const String name = 'DiscoverRoute';
+
+  static _i30.PageInfo page = _i30.PageInfo(
+    name,
+    builder: (data) {
+      return const _i9.DiscoverPage();
+    },
+  );
+}
+
+/// generated route for
+/// [_i10.DownloadPage]
 class DownloadRoute extends _i30.PageRouteInfo<DownloadRouteArgs> {
   DownloadRoute({
     _i31.Key? key,
@@ -486,7 +504,7 @@ class DownloadRoute extends _i30.PageRouteInfo<DownloadRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<DownloadRouteArgs>();
-      return _i9.DownloadPage(key: args.key, downloadInfo: args.downloadInfo);
+      return _i10.DownloadPage(key: args.key, downloadInfo: args.downloadInfo);
     },
   );
 }
@@ -515,7 +533,7 @@ class DownloadRouteArgs {
 }
 
 /// generated route for
-/// [_i10.DownloadTaskPage]
+/// [_i11.DownloadTaskPage]
 class DownloadTaskRoute extends _i30.PageRouteInfo<void> {
   const DownloadTaskRoute({List<_i30.PageRouteInfo>? children})
     : super(DownloadTaskRoute.name, initialChildren: children);
@@ -525,13 +543,13 @@ class DownloadTaskRoute extends _i30.PageRouteInfo<void> {
   static _i30.PageInfo page = _i30.PageInfo(
     name,
     builder: (data) {
-      return const _i10.DownloadTaskPage();
+      return const _i11.DownloadTaskPage();
     },
   );
 }
 
 /// generated route for
-/// [_i11.FullScreenImagePage]
+/// [_i12.FullScreenImagePage]
 class FullRouteImageRoute extends _i30.PageRouteInfo<FullRouteImageRouteArgs> {
   FullRouteImageRoute({
     _i31.Key? key,
@@ -549,7 +567,7 @@ class FullRouteImageRoute extends _i30.PageRouteInfo<FullRouteImageRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<FullRouteImageRouteArgs>();
-      return _i11.FullScreenImagePage(key: args.key, imagePath: args.imagePath);
+      return _i12.FullScreenImagePage(key: args.key, imagePath: args.imagePath);
     },
   );
 }
@@ -578,7 +596,7 @@ class FullRouteImageRouteArgs {
 }
 
 /// generated route for
-/// [_i12.GlobalSettingPage]
+/// [_i13.GlobalSettingPage]
 class GlobalSettingRoute extends _i30.PageRouteInfo<void> {
   const GlobalSettingRoute({List<_i30.PageRouteInfo>? children})
     : super(GlobalSettingRoute.name, initialChildren: children);
@@ -588,23 +606,7 @@ class GlobalSettingRoute extends _i30.PageRouteInfo<void> {
   static _i30.PageInfo page = _i30.PageInfo(
     name,
     builder: (data) {
-      return const _i12.GlobalSettingPage();
-    },
-  );
-}
-
-/// generated route for
-/// [_i13.HomePage]
-class HomeRoute extends _i30.PageRouteInfo<void> {
-  const HomeRoute({List<_i30.PageRouteInfo>? children})
-    : super(HomeRoute.name, initialChildren: children);
-
-  static const String name = 'HomeRoute';
-
-  static _i30.PageInfo page = _i30.PageInfo(
-    name,
-    builder: (data) {
-      return const _i13.HomePage();
+      return const _i13.GlobalSettingPage();
     },
   );
 }

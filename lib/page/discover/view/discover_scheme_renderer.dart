@@ -11,8 +11,8 @@ import 'package:zephyr/widgets/comic_simplify_entry/cover.dart';
 import 'package:zephyr/widgets/section_header.dart';
 import 'package:zephyr/type/enum.dart';
 
-class HomeSchemeRenderer {
-  const HomeSchemeRenderer();
+class DiscoverSchemeRenderer {
+  const DiscoverSchemeRenderer();
 
   String title(Map<String, dynamic> scheme, String fallback) {
     return scheme['title']?.toString() ?? fallback;

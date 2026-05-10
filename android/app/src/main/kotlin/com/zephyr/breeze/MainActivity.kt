@@ -3,6 +3,7 @@ package com.zephyr.breeze
 import android.app.ActivityManager
 import android.content.Context
 import android.os.Debug
+import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
 import io.flutter.embedding.android.FlutterFragment
@@ -18,6 +19,13 @@ class MainActivity: FlutterFragmentActivity() {
         private const val IMPELLER_CHANNEL = "impeller_config"
         private const val PREFS_NAME = "flutter_engine_config"
         private const val KEY_FORCE_ENABLE_IMPELLER = "force_enable_impeller"
+
+        init {
+            System.loadLibrary("windcore")
+        }
+
+        @JvmStatic
+        private external fun initRustlsPlatformVerifier(context: Context)
     }
 
     private val CHANNEL = "memory_monitor"
@@ -26,6 +34,11 @@ class MainActivity: FlutterFragmentActivity() {
     
     private var volumeKeyInterceptionEnabled = false
     private var volumeEventSink: EventChannel.EventSink? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        initRustlsPlatformVerifier(applicationContext)
+        super.onCreate(savedInstanceState)
+    }
 
     override fun createFlutterFragment(): FlutterFragment {
         val shellArgs = FlutterShellArgs.fromIntent(intent)

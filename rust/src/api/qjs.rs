@@ -187,6 +187,16 @@ pub fn set_socks5_proxy(proxy: String) -> Result<()> {
 }
 
 #[frb(sync)]
+pub fn set_tls_verify_enabled(enabled: bool) -> Result<()> {
+    crate::qjs::set_tls_verify_enabled(enabled)
+}
+
+#[frb(sync)]
+pub fn is_tls_verify_enabled() -> Result<bool> {
+    Ok(crate::qjs::is_tls_verify_enabled())
+}
+
+#[frb(sync)]
 pub fn set_qjs_error_stack_enabled(enabled: bool) -> Result<()> {
     crate::qjs::set_qjs_error_stack_enabled(enabled)
 }

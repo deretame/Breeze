@@ -148,6 +148,28 @@ Future<Uint8List> qjsFetchImageBytesOnce({
   argsJson: argsJson,
 );
 
+Future<Uint8List> qjsFetchBytesAuto({
+  required String runtimeName,
+  required String fnPath,
+  required String argsJson,
+}) => RustLib.instance.api.crateApiQjsQjsFetchBytesAuto(
+  runtimeName: runtimeName,
+  fnPath: fnPath,
+  argsJson: argsJson,
+);
+
+Future<Uint8List> qjsFetchBytesAutoOnce({
+  required String runtimeName,
+  required String bundleJs,
+  required String fnPath,
+  required String argsJson,
+}) => RustLib.instance.api.crateApiQjsQjsFetchBytesAutoOnce(
+  runtimeName: runtimeName,
+  bundleJs: bundleJs,
+  fnPath: fnPath,
+  argsJson: argsJson,
+);
+
 Future<BigInt> qjsFetchImageBytesOnceTaskStart({
   required String runtimeName,
   required String bundleJs,
@@ -176,8 +198,24 @@ Future<void> setHttpProxy({required String proxy}) =>
 Future<void> setSocks5Proxy({required String proxy}) =>
     RustLib.instance.api.crateApiQjsSetSocks5Proxy(proxy: proxy);
 
+void setTlsVerifyEnabled({required bool enabled}) =>
+    RustLib.instance.api.crateApiQjsSetTlsVerifyEnabled(enabled: enabled);
+
+bool isTlsVerifyEnabled() =>
+    RustLib.instance.api.crateApiQjsIsTlsVerifyEnabled();
+
 void setQjsErrorStackEnabled({required bool enabled}) =>
     RustLib.instance.api.crateApiQjsSetQjsErrorStackEnabled(enabled: enabled);
+
+void configureBridgeRuntime({
+  required List<String> allowedRoutePrefixes,
+  required BigInt maxArgsJsonBytes,
+  required BigInt maxReturnBinaryBytes,
+}) => RustLib.instance.api.crateApiQjsConfigureBridgeRuntime(
+  allowedRoutePrefixes: allowedRoutePrefixes,
+  maxArgsJsonBytes: maxArgsJsonBytes,
+  maxReturnBinaryBytes: maxReturnBinaryBytes,
+);
 
 void setHostCacheGcEnabled({required bool enabled}) =>
     RustLib.instance.api.crateApiQjsSetHostCacheGcEnabled(enabled: enabled);

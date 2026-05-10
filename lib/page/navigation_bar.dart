@@ -23,7 +23,7 @@ import '../util/debouncer.dart';
 import '../util/dialog.dart';
 import '../util/event/event.dart';
 import 'bookshelf/bookshelf.dart';
-import 'home/view/home.dart';
+import 'discover/view/discover_page.dart';
 import 'old_page/old_home/old_home_page.dart';
 import 'old_page/old_ranking/old_ranking_page.dart';
 import 'package:zephyr/util/error_filter.dart';
@@ -283,7 +283,7 @@ class _NavigationBarState extends State<NavigationBar> {
   }
 
   List<Widget> _buildPageList(bool oldPageRollbackEnabled) {
-    final pages = <Widget>[const BookshelfPage(), const HomePage()];
+    final pages = <Widget>[const BookshelfPage(), const DiscoverPage()];
     if (!oldPageRollbackEnabled) {
       return pages;
     }

@@ -300,6 +300,8 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
   // 关掉缓存定时清理
   setHostCacheGcEnabled(enabled: false);
 
+  setTlsVerifyEnabled(enabled: false);
+
   return (globalSettingCubit, pluginRegistryCubit);
 }
 

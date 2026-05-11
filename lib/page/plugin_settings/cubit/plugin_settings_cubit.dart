@@ -102,6 +102,9 @@ class PluginSettingsCubit extends Cubit<PluginSettingsState> {
         ),
       );
     } catch (e) {
+      if (isClosed) {
+        return;
+      }
       emit(
         state.copyWith(loading: false, error: normalizeSearchErrorMessage(e)),
       );
@@ -129,6 +132,9 @@ class PluginSettingsCubit extends Cubit<PluginSettingsState> {
         ),
       );
     } catch (_) {
+      if (isClosed) {
+        return;
+      }
       emit(state.copyWith(loadingUserInfo: false, userInfoError: '用户信息加载失败'));
     }
   }

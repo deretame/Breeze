@@ -3,9 +3,10 @@ pub mod fetch;
 pub mod fs;
 pub mod native;
 pub mod runtime;
+pub mod support;
 pub mod task_runtime;
 
-pub use crate::web_runtime::{
+pub use support::{
     run_async_script, run_async_script_with_fs, run_async_script_with_wasi,
     run_async_script_with_wasi_and_fs, run_async_script_without_wasi,
 };

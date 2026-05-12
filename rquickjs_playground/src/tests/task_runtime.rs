@@ -1,4 +1,5 @@
 use crate::AsyncHostRuntime;
+use crate::web_runtime::{configure_http_client, current_http_client_config};
 use axum::{Json, Router, extract::State, routing::get};
 use serde::Deserialize;
 use serde_json::json;
@@ -7,6 +8,26 @@ use std::sync::mpsc;
 use std::thread;
 use std::time::{Duration, Instant};
 use tokio::sync::oneshot;
+
+struct HttpPrivateNetworkGuard {
+    previous: crate::web_runtime::HttpClientConfig,
+}
+
+impl HttpPrivateNetworkGuard {
+    fn allow() -> Self {
+        let previous = current_http_client_config();
+        let mut config = previous.clone();
+        config.allow_private_network = true;
+        configure_http_client(config).expect("更新 HTTP 配置失败");
+        Self { previous }
+    }
+}
+
+impl Drop for HttpPrivateNetworkGuard {
+    fn drop(&mut self) {
+        configure_http_client(self.previous.clone()).expect("恢复 HTTP 配置失败");
+    }
+}
 
 #[test]
 fn async_runtime_spawn_is_non_blocking() {
@@ -53,6 +74,7 @@ fn async_runtime_runs_multiple_io_tasks_concurrently() {
     const TOTAL: usize = 20;
     const DELAY_MS: u64 = 40;
 
+    let _http_guard = HttpPrivateNetworkGuard::allow();
     let (addr, shutdown_tx, handle) = spawn_delay_server(DELAY_MS);
     let runtime =
         AsyncHostRuntime::new("task-runtime-concurrent-io").expect("创建 AsyncHostRuntime 失败");
@@ -96,6 +118,7 @@ fn async_runtime_supports_many_independent_rust_async_waiters() {
     const TOTAL: usize = 24;
     const DELAY_MS: u64 = 35;
 
+    let _http_guard = HttpPrivateNetworkGuard::allow();
     let (addr, shutdown_tx, handle) = spawn_delay_server(DELAY_MS);
     let runtime = Arc::new(
         AsyncHostRuntime::new("task-runtime-many-waiters").expect("创建 AsyncHostRuntime 失败"),
@@ -156,6 +179,7 @@ fn async_runtime_wait_handle_avoids_polling() {
     const TOTAL: usize = 200;
     const DELAY_MS: u64 = 20;
 
+    let _http_guard = HttpPrivateNetworkGuard::allow();
     let (addr, shutdown_tx, handle) = spawn_delay_server(DELAY_MS);
     let runtime =
         AsyncHostRuntime::new("task-runtime-wait-handle").expect("创建 AsyncHostRuntime 失败");
@@ -241,9 +265,9 @@ fn async_runtime_handle_drop_cleans_pending_state() {
 }
 
 #[test]
-fn bundle_call_once_is_serialized_per_runtime() {
+fn bundle_call_once_can_overlap_within_runtime() {
     let runtime = Arc::new(
-        AsyncHostRuntime::new("task-runtime-bundle-call-once-serialized")
+        AsyncHostRuntime::new("task-runtime-bundle-call-once-overlap")
             .expect("创建 AsyncHostRuntime 失败"),
     );
     let rt = tokio::runtime::Builder::new_multi_thread()
@@ -260,6 +284,27 @@ fn bundle_call_once_is_serialized_per_runtime() {
         }
       };
     "#;
+
+    rt.block_on(async {
+        let rt1 = Arc::clone(&runtime);
+        let rt2 = Arc::clone(&runtime);
+        let warm1 = tokio::spawn(async move {
+            rt1.bundle_call_once(bundle_source, "debugTask", &json!(["warmup-a", 1]))
+                .await
+        });
+        let warm2 = tokio::spawn(async move {
+            rt2.bundle_call_once(bundle_source, "debugTask", &json!(["warmup-b", 1]))
+                .await
+        });
+        warm1
+            .await
+            .expect("warmup task1 join 失败")
+            .expect("warmup task1 执行失败");
+        warm2
+            .await
+            .expect("warmup task2 join 失败")
+            .expect("warmup task2 执行失败");
+    });
 
     let elapsed = rt.block_on(async {
         let t0 = Instant::now();
@@ -291,8 +336,8 @@ fn bundle_call_once_is_serialized_per_runtime() {
     });
 
     assert!(
-        elapsed >= Duration::from_millis(140),
-        "bundle_call_once 未被串行化，耗时={}ms",
+        elapsed < Duration::from_millis(140),
+        "bundle_call_once 仍然被串行化，耗时={}ms",
         elapsed.as_millis()
     );
 }

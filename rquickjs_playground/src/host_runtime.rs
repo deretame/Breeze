@@ -1,21 +1,20 @@
-use rquickjs::{Context, Function, Runtime, function::Func};
 use base64::Engine as _;
+use rquickjs::{Context, Function, Runtime, function::Func};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::future::IntoFuture;
 use std::marker::PhantomData;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex, OnceLock};
 use std::thread;
-use tokio::sync::OwnedMutexGuard;
 use tokio::sync::oneshot;
 
 use crate::web_runtime::{
     WebRuntimeOptions, http_request_drop_evented, http_request_start_evented,
-    install_host_bindings, polyfill_script, timer_drop_evented, timer_start_kind_evented,
-    wasi_run_drop_evented, wasi_run_start_evented, native_buffer_take_raw,
+    install_host_bindings, native_buffer_take_raw, polyfill_script, timer_drop_evented,
+    timer_start_kind_evented, wasi_run_drop_evented, wasi_run_start_evented,
 };
 
 #[cfg(feature = "host-fs")]
@@ -277,9 +276,30 @@ const BUNDLE_DISPATCHER_JS: &str = r#"(async () => {
   }
 })()"#;
 
+const MAX_BUNDLE_CALL_ONCE_CONTEXTS: usize = 20;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ContextRoute {
+    Primary,
+    Once(usize),
+}
+
+struct ContextSlot {
+    context: Context,
+    busy_task_id: Option<u64>,
+}
+
+struct PendingOnceSubmission {
+    id: u64,
+    script: String,
+}
+
 pub struct HostRuntime {
     runtime: Runtime,
     context: Context,
+    once_contexts: Vec<ContextSlot>,
+    pending_once_submissions: VecDeque<PendingOnceSubmission>,
+    worker_signal_tx: Option<mpsc::Sender<WorkerSignal>>,
     cache_scope_id: String,
     options: WebRuntimeOptions,
 }
@@ -299,7 +319,6 @@ pub struct AsyncHostRuntime {
     tx: mpsc::Sender<WorkerSignal>,
     states: Arc<Mutex<HashMap<u64, TaskState>>>,
     waiters: Arc<Mutex<HashMap<u64, oneshot::Sender<Result<String, String>>>>>,
-    bundle_call_once_lock: Arc<tokio::sync::Mutex<()>>,
     next_id: AtomicU64,
 }
 
@@ -343,7 +362,6 @@ pub struct RuntimeTaskHandle {
     waiters: Arc<Mutex<HashMap<u64, oneshot::Sender<Result<String, String>>>>>,
     tx: mpsc::Sender<WorkerSignal>,
     drop_cleanup: bool,
-    bundle_call_once_guard: Option<OwnedMutexGuard<()>>,
 }
 
 pub struct RuntimeJsonTaskHandle<T> {
@@ -353,6 +371,10 @@ pub struct RuntimeJsonTaskHandle<T> {
 
 enum AsyncCommand {
     Submit {
+        id: u64,
+        script: String,
+    },
+    SubmitOnce {
         id: u64,
         script: String,
     },
@@ -370,19 +392,23 @@ enum AsyncCommand {
 
 enum HostEvent {
     HttpCompleted {
+        route: ContextRoute,
         id: u64,
         payload: String,
     },
     #[cfg(feature = "host-fs")]
     FsCompleted {
+        route: ContextRoute,
         id: u64,
         payload: String,
     },
     WasiCompleted {
+        route: ContextRoute,
         id: u64,
         payload: String,
     },
     TimerCompleted {
+        route: ContextRoute,
         id: u64,
         payload: String,
     },
@@ -391,6 +417,7 @@ enum HostEvent {
 enum WorkerSignal {
     Command(AsyncCommand),
     HostEvent(HostEvent),
+    TaskCompleted { id: u64 },
 }
 
 #[derive(Debug, Clone)]
@@ -416,9 +443,25 @@ pub fn js_error_stack_enabled() -> bool {
 struct RuntimeShared {
     states: Arc<Mutex<HashMap<u64, TaskState>>>,
     waiters: Arc<Mutex<HashMap<u64, oneshot::Sender<Result<String, String>>>>>,
+    worker_signal_tx: mpsc::Sender<WorkerSignal>,
 }
 
 impl HostRuntime {
+    fn init_context(
+        runtime: &Runtime,
+        cache_scope_id: &str,
+        options: WebRuntimeOptions,
+    ) -> Result<Context, rquickjs::Error> {
+        let context = Context::full(runtime)?;
+        let polyfill = polyfill_script(options);
+        context.with(|ctx| {
+            install_host_bindings(&ctx, cache_scope_id, options)?;
+            ctx.eval::<(), _>(polyfill.as_str())?;
+            Ok::<(), rquickjs::Error>(())
+        })?;
+        Ok(context)
+    }
+
     pub fn new(cache_scope_id: String) -> Result<Self, rquickjs::Error> {
         Self::new_with_options(cache_scope_id, WebRuntimeOptions::default())
     }
@@ -442,18 +485,14 @@ impl HostRuntime {
             ));
         }
         let runtime = Runtime::new()?;
-        let context = Context::full(&runtime)?;
-        let polyfill = polyfill_script(options);
-
-        context.with(|ctx| {
-            install_host_bindings(&ctx, &cache_scope_id, options)?;
-            ctx.eval::<(), _>(polyfill.as_str())?;
-            Ok::<(), rquickjs::Error>(())
-        })?;
+        let context = Self::init_context(&runtime, &cache_scope_id, options)?;
 
         Ok(Self {
             runtime,
             context,
+            once_contexts: Vec::new(),
+            pending_once_submissions: VecDeque::new(),
+            worker_signal_tx: None,
             cache_scope_id,
             options,
         })
@@ -472,6 +511,238 @@ impl HostRuntime {
                 dispatch.call::<_, ()>((runtime_id, task_id, script))
             })
             .map_err(|e| format!("任务提交到 JS 失败: {e}"))
+    }
+
+    fn set_worker_signal_tx(&mut self, tx: mpsc::Sender<WorkerSignal>) {
+        self.worker_signal_tx = Some(tx);
+    }
+
+    fn ensure_async_runtime_bindings_on_context(&self, context: &Context) -> Result<(), String> {
+        let Some(signal_tx) = self.worker_signal_tx.clone() else {
+            return Err("AsyncHostRuntime worker 信号通道不可用".to_string());
+        };
+        context
+            .with(|ctx| {
+                let globals = ctx.globals();
+                globals.set(
+                    "__host_runtime_task_complete",
+                    Func::from(async_runtime_task_complete),
+                )?;
+                install_evented_host_bindings_worker(
+                    &ctx,
+                    signal_tx.clone(),
+                    self.options(),
+                    ContextRoute::Primary,
+                )?;
+                ctx.eval::<(), _>(ASYNC_TASK_DISPATCHER_JS)?;
+                ctx.eval::<(), _>(BUNDLE_DISPATCHER_JS)?;
+                Ok::<(), rquickjs::Error>(())
+            })
+            .map_err(|e| format!("安装 AsyncHostRuntime 上下文绑定失败: {e}"))
+    }
+
+    fn ensure_once_context_pool_capacity(&mut self, max_contexts: usize) -> Result<(), String> {
+        while self.once_contexts.len() < max_contexts {
+            let context = Self::init_context(&self.runtime, &self.cache_scope_id, self.options)
+                .map_err(|e| format!("初始化一次性 Context 失败: {e}"))?;
+            let slot_index = self.once_contexts.len();
+            context
+                .with(|ctx| {
+                    let globals = ctx.globals();
+                    globals.set(
+                        "__host_runtime_task_complete",
+                        Func::from(async_runtime_task_complete),
+                    )?;
+                    install_evented_host_bindings_worker(
+                        &ctx,
+                        self.worker_signal_tx.clone().ok_or_else(|| {
+                            rquickjs::Error::new_from_js_message(
+                                "rust",
+                                "runtime",
+                                "worker signal channel unavailable",
+                            )
+                        })?,
+                        self.options(),
+                        ContextRoute::Once(slot_index),
+                    )?;
+                    ctx.eval::<(), _>(ASYNC_TASK_DISPATCHER_JS)?;
+                    ctx.eval::<(), _>(BUNDLE_DISPATCHER_JS)?;
+                    Ok::<(), rquickjs::Error>(())
+                })
+                .map_err(|e| format!("安装一次性 Context 绑定失败: {e}"))?;
+            self.once_contexts.push(ContextSlot {
+                context,
+                busy_task_id: None,
+            });
+        }
+        Ok(())
+    }
+
+    fn acquire_once_slot_for_task(
+        &mut self,
+        task_id: u64,
+        max_contexts: usize,
+    ) -> Result<Option<usize>, String> {
+        if let Some((index, slot)) = self
+            .once_contexts
+            .iter_mut()
+            .enumerate()
+            .find(|(_, slot)| slot.busy_task_id.is_none())
+        {
+            slot.busy_task_id = Some(task_id);
+            return Ok(Some(index));
+        }
+
+        if self.once_contexts.len() < max_contexts {
+            self.ensure_once_context_pool_capacity(self.once_contexts.len() + 1)?;
+            let index = self.once_contexts.len() - 1;
+            self.once_contexts[index].busy_task_id = Some(task_id);
+            return Ok(Some(index));
+        }
+
+        Ok(None)
+    }
+
+    fn submit_async_task_on_route(
+        &self,
+        route: ContextRoute,
+        runtime_id: u64,
+        task_id: u64,
+        script: &str,
+    ) -> Result<(), String> {
+        match route {
+            ContextRoute::Primary => self.submit_async_task(runtime_id, task_id, script),
+            ContextRoute::Once(slot_index) => {
+                let Some(slot) = self.once_contexts.get(slot_index) else {
+                    return Err(format!("一次性 Context slot 不存在: {slot_index}"));
+                };
+                slot.context
+                    .with(|ctx| {
+                        let globals = ctx.globals();
+                        let dispatch: Function = globals.get("__host_runtime_dispatch_task")?;
+                        dispatch.call::<_, ()>((runtime_id, task_id, script))
+                    })
+                    .map_err(|e| format!("一次性任务提交到 JS 失败: {e}"))
+            }
+        }
+    }
+
+    fn with_context_route<R>(
+        &self,
+        route: ContextRoute,
+        f: impl for<'js> FnOnce(rquickjs::Ctx<'js>) -> Result<R, rquickjs::Error>,
+    ) -> Result<R, rquickjs::Error> {
+        match route {
+            ContextRoute::Primary => self.context.with(f),
+            ContextRoute::Once(slot_index) => self
+                .once_contexts
+                .get(slot_index)
+                .ok_or_else(|| {
+                    rquickjs::Error::new_from_js_message(
+                        "rust",
+                        "runtime",
+                        &format!("once context slot not found: {slot_index}"),
+                    )
+                })?
+                .context
+                .with(f),
+        }
+    }
+
+    fn queue_pending_once_submission(&mut self, id: u64, script: String) {
+        self.pending_once_submissions
+            .push_back(PendingOnceSubmission { id, script });
+    }
+
+    fn remove_pending_once_submission(&mut self, id: u64) -> bool {
+        let before = self.pending_once_submissions.len();
+        self.pending_once_submissions.retain(|item| item.id != id);
+        before != self.pending_once_submissions.len()
+    }
+
+    fn release_once_slot(&mut self, task_id: u64) -> Result<bool, String> {
+        let Some((slot_index, _)) = self
+            .once_contexts
+            .iter()
+            .enumerate()
+            .find(|(_, slot)| slot.busy_task_id == Some(task_id))
+        else {
+            return Ok(false);
+        };
+
+        let fresh = Self::init_context(&self.runtime, &self.cache_scope_id, self.options)
+            .map_err(|e| format!("重建一次性 Context 失败: {e}"))?;
+        fresh
+            .with(|ctx| {
+                let globals = ctx.globals();
+                globals.set(
+                    "__host_runtime_task_complete",
+                    Func::from(async_runtime_task_complete),
+                )?;
+                install_evented_host_bindings_worker(
+                    &ctx,
+                    self.worker_signal_tx.clone().ok_or_else(|| {
+                        rquickjs::Error::new_from_js_message(
+                            "rust",
+                            "runtime",
+                            "worker signal channel unavailable",
+                        )
+                    })?,
+                    self.options(),
+                    ContextRoute::Once(slot_index),
+                )?;
+                ctx.eval::<(), _>(ASYNC_TASK_DISPATCHER_JS)?;
+                ctx.eval::<(), _>(BUNDLE_DISPATCHER_JS)?;
+                Ok::<(), rquickjs::Error>(())
+            })
+            .map_err(|e| format!("重装一次性 Context 绑定失败: {e}"))?;
+
+        self.once_contexts[slot_index] = ContextSlot {
+            context: fresh,
+            busy_task_id: None,
+        };
+        Ok(true)
+    }
+
+    fn try_schedule_pending_once_submissions(
+        &mut self,
+        runtime_id: u64,
+        states: &Arc<Mutex<HashMap<u64, TaskState>>>,
+        waiters: &Arc<Mutex<HashMap<u64, oneshot::Sender<Result<String, String>>>>>,
+    ) {
+        loop {
+            let Some(pending) = self.pending_once_submissions.pop_front() else {
+                break;
+            };
+
+            if !is_task_active(states, pending.id) {
+                remove_waiter(waiters, pending.id);
+                clear_task_state(states, pending.id);
+                continue;
+            }
+
+            match self.acquire_once_slot_for_task(pending.id, MAX_BUNDLE_CALL_ONCE_CONTEXTS) {
+                Ok(Some(slot_index)) => {
+                    if let Err(err) = self.submit_async_task_on_route(
+                        ContextRoute::Once(slot_index),
+                        runtime_id,
+                        pending.id,
+                        &pending.script,
+                    ) {
+                        let _ = self.release_once_slot(pending.id);
+                        finalize_task_with_waiter(states, waiters, pending.id, Err(err));
+                        continue;
+                    }
+                }
+                Ok(None) => {
+                    self.pending_once_submissions.push_front(pending);
+                    break;
+                }
+                Err(err) => {
+                    finalize_task_with_waiter(states, waiters, pending.id, Err(err));
+                }
+            }
+        }
     }
 
     pub fn pump_jobs(&self, max_jobs: usize) -> Result<usize, String> {
@@ -546,12 +817,13 @@ impl AsyncHostRuntime {
             Arc::new(RuntimeShared {
                 states: Arc::clone(&states),
                 waiters: Arc::clone(&waiters),
+                worker_signal_tx: tx.clone(),
             }),
         );
         let (init_tx, init_rx) = mpsc::channel::<Result<(), String>>();
 
         thread::spawn(move || {
-            let host = match HostRuntime::new_with_options(
+            let mut host = match HostRuntime::new_with_options(
                 cache_scope_id_for_worker,
                 options_for_worker,
             ) {
@@ -561,6 +833,8 @@ impl AsyncHostRuntime {
                     return;
                 }
             };
+
+            host.set_worker_signal_tx(tx_for_worker.clone());
 
             if let Err(err) = install_async_runtime_bindings(&host, tx_for_worker.clone()) {
                 let _ = init_tx.send(Err(err));
@@ -576,7 +850,7 @@ impl AsyncHostRuntime {
                         Ok(signal) => {
                             running = handle_worker_signal(
                                 signal,
-                                &host,
+                                &mut host,
                                 runtime_id,
                                 &states_for_worker,
                                 &waiters_for_worker,
@@ -614,7 +888,7 @@ impl AsyncHostRuntime {
                     Ok(signal) => {
                         running = handle_worker_signal(
                             signal,
-                            &host,
+                            &mut host,
                             runtime_id,
                             &states_for_worker,
                             &waiters_for_worker,
@@ -633,7 +907,6 @@ impl AsyncHostRuntime {
                 tx,
                 states,
                 waiters,
-                bundle_call_once_lock: Arc::new(tokio::sync::Mutex::new(())),
                 next_id: AtomicU64::new(1),
             }),
             Ok(Err(err)) => {
@@ -691,7 +964,6 @@ impl AsyncHostRuntime {
             waiters: Arc::clone(&self.waiters),
             tx: self.tx.clone(),
             drop_cleanup: true,
-            bundle_call_once_guard: None,
         })
     }
 
@@ -897,17 +1169,14 @@ impl AsyncHostRuntime {
         fn_path: &str,
         args: &Value,
     ) -> Result<RuntimeTaskHandle, String> {
-        let once_guard = self.bundle_call_once_lock.clone().lock_owned().await;
-        self.bundle_ensure_dispatcher().await?;
         if !args.is_array() {
             return Err("调用参数必须是 JSON 数组".to_string());
         }
 
         let script = build_bundle_call_once_script(source, fn_path, args)?;
-        let mut handle = self
-            .spawn(script)
+        let handle = self
+            .spawn_once(script)
             .map_err(|e| format!("执行一次性 bundle 调用失败: {e}"))?;
-        handle.bundle_call_once_guard = Some(once_guard);
         Ok(handle)
     }
 
@@ -991,6 +1260,53 @@ impl AsyncHostRuntime {
             .map_err(|e| format!("初始化 bundle dispatcher 失败: {e}"))?;
         let _ = parse_ok_json_payload(&raw)?;
         Ok(())
+    }
+
+    fn spawn_once(&self, script: impl Into<String>) -> Result<RuntimeTaskHandle, String> {
+        let id = self.next_id.fetch_add(1, Ordering::SeqCst);
+        let (result_tx, result_rx) = oneshot::channel::<Result<String, String>>();
+
+        {
+            let mut guard = self
+                .states
+                .lock()
+                .map_err(|_| "提交任务失败: 状态锁已损坏".to_string())?;
+            guard.insert(id, TaskState::Pending);
+        }
+
+        {
+            let mut guard = self
+                .waiters
+                .lock()
+                .map_err(|_| "提交任务失败: 等待器锁已损坏".to_string())?;
+            guard.insert(id, result_tx);
+        }
+
+        if self
+            .tx
+            .send(WorkerSignal::Command(AsyncCommand::SubmitOnce {
+                id,
+                script: script.into(),
+            }))
+            .is_err()
+        {
+            if let Ok(mut guard) = self.states.lock() {
+                guard.remove(&id);
+            }
+            if let Ok(mut guard) = self.waiters.lock() {
+                guard.remove(&id);
+            }
+            return Err("提交任务失败: worker 不可用".to_string());
+        }
+
+        Ok(RuntimeTaskHandle {
+            id,
+            rx: Some(result_rx),
+            states: Arc::clone(&self.states),
+            waiters: Arc::clone(&self.waiters),
+            tx: self.tx.clone(),
+            drop_cleanup: true,
+        })
     }
 }
 
@@ -1303,7 +1619,11 @@ fn parse_ok_json_payload(raw: &str) -> Result<Value, String> {
             .get("debug_scope")
             .and_then(Value::as_str)
             .unwrap_or("");
-        Err(format_js_error_with_stack(raw_error, raw_stack, debug_scope))
+        Err(format_js_error_with_stack(
+            raw_error,
+            raw_stack,
+            debug_scope,
+        ))
     }
 }
 
@@ -1462,7 +1782,10 @@ where
 fn async_runtime_task_complete(runtime_id: u64, task_id: u64, ok: bool, payload: String) {
     let outcome = if ok { Ok(payload) } else { Err(payload) };
     with_runtime_shared(runtime_id, |shared| {
-        finalize_task_and_notify(shared, task_id, outcome)
+        finalize_task_and_notify(shared, task_id, outcome);
+        let _ = shared
+            .worker_signal_tx
+            .send(WorkerSignal::TaskCompleted { id: task_id });
     });
 }
 
@@ -1470,23 +1793,16 @@ fn install_async_runtime_bindings(
     host: &HostRuntime,
     signal_tx: mpsc::Sender<WorkerSignal>,
 ) -> Result<(), String> {
-    host.with_context(|ctx| {
-        let globals = ctx.globals();
-        globals.set(
-            "__host_runtime_task_complete",
-            Func::from(async_runtime_task_complete),
-        )?;
-        install_evented_host_bindings_worker(&ctx, signal_tx.clone(), host.options())?;
-        ctx.eval::<(), _>(ASYNC_TASK_DISPATCHER_JS)?;
-        Ok::<(), rquickjs::Error>(())
-    })
-    .map_err(|e| format!("安装 AsyncHostRuntime 绑定失败: {e}"))
+    let _ = signal_tx;
+    host.ensure_async_runtime_bindings_on_context(&host.context)
+        .map_err(|e| format!("安装 AsyncHostRuntime 绑定失败: {e}"))
 }
 
 fn install_evented_host_bindings_worker(
     ctx: &rquickjs::Ctx<'_>,
     signal_tx: mpsc::Sender<WorkerSignal>,
     options: WebRuntimeOptions,
+    route: ContextRoute,
 ) -> Result<(), rquickjs::Error> {
     let globals = ctx.globals();
 
@@ -1509,6 +1825,7 @@ fn install_evented_host_bindings_worker(
                     body_native_buffer_id,
                     move |id, payload| {
                         let _ = tx.send(WorkerSignal::HostEvent(HostEvent::HttpCompleted {
+                            route,
                             id,
                             payload,
                         }));
@@ -1529,6 +1846,7 @@ fn install_evented_host_bindings_worker(
             let tx = timer_tx.clone();
             timer_start_kind_evented(delay_ms, repeat.unwrap_or(false), move |id, payload| {
                 let _ = tx.send(WorkerSignal::HostEvent(HostEvent::TimerCompleted {
+                    route,
                     id,
                     payload,
                 }));
@@ -1546,6 +1864,7 @@ fn install_evented_host_bindings_worker(
                 let tx = fs_tx.clone();
                 fs_task_start_evented(op, args_json, move |id, payload| {
                     let _ = tx.send(WorkerSignal::HostEvent(HostEvent::FsCompleted {
+                        route,
                         id,
                         payload,
                     }));
@@ -1573,6 +1892,7 @@ fn install_evented_host_bindings_worker(
                         consume_module,
                         move |id, payload| {
                             let _ = tx.send(WorkerSignal::HostEvent(HostEvent::WasiCompleted {
+                                route,
                                 id,
                                 payload,
                             }));
@@ -1589,7 +1909,7 @@ fn install_evented_host_bindings_worker(
 
 fn handle_worker_signal(
     signal: WorkerSignal,
-    host: &HostRuntime,
+    host: &mut HostRuntime,
     runtime_id: u64,
     states: &Arc<Mutex<HashMap<u64, TaskState>>>,
     waiters: &Arc<Mutex<HashMap<u64, oneshot::Sender<Result<String, String>>>>>,
@@ -1600,12 +1920,16 @@ fn handle_worker_signal(
             handle_host_event(host, event);
             true
         }
+        WorkerSignal::TaskCompleted { id } => {
+            handle_task_completed(host, runtime_id, states, waiters, id);
+            true
+        }
     }
 }
 
 fn handle_worker_command(
     cmd: AsyncCommand,
-    host: &HostRuntime,
+    host: &mut HostRuntime,
     runtime_id: u64,
     states: &Arc<Mutex<HashMap<u64, TaskState>>>,
     waiters: &Arc<Mutex<HashMap<u64, oneshot::Sender<Result<String, String>>>>>,
@@ -1621,14 +1945,54 @@ fn handle_worker_command(
             }
             true
         }
+        AsyncCommand::SubmitOnce { id, script } => {
+            if !mark_running_if_available(states, id) {
+                return true;
+            }
+
+            match host.acquire_once_slot_for_task(id, MAX_BUNDLE_CALL_ONCE_CONTEXTS) {
+                Ok(Some(slot_index)) => {
+                    if let Err(err) = host.submit_async_task_on_route(
+                        ContextRoute::Once(slot_index),
+                        runtime_id,
+                        id,
+                        &script,
+                    ) {
+                        let _ = host.release_once_slot(id);
+                        finalize_task_with_waiter(states, waiters, id, Err(err));
+                    }
+                }
+                Ok(None) => {
+                    host.queue_pending_once_submission(id, script);
+                }
+                Err(err) => {
+                    finalize_task_with_waiter(states, waiters, id, Err(err));
+                }
+            }
+            true
+        }
         AsyncCommand::Drop { id } => {
+            if host.remove_pending_once_submission(id) {
+                clear_task_state(states, id);
+                remove_waiter(waiters, id);
+                return true;
+            }
             mark_dropped_and_notify(states, waiters, id);
+            let _ = host.release_once_slot(id);
+            host.try_schedule_pending_once_submissions(runtime_id, states, waiters);
             true
         }
         AsyncCommand::DropMany { ids } => {
             for id in ids {
-                mark_dropped_and_notify(states, waiters, id);
+                if host.remove_pending_once_submission(id) {
+                    clear_task_state(states, id);
+                    remove_waiter(waiters, id);
+                } else {
+                    mark_dropped_and_notify(states, waiters, id);
+                    let _ = host.release_once_slot(id);
+                }
             }
+            host.try_schedule_pending_once_submissions(runtime_id, states, waiters);
             true
         }
         AsyncCommand::RunGc { tx } => {
@@ -1641,7 +2005,14 @@ fn handle_worker_command(
 }
 
 fn handle_host_event(host: &HostRuntime, event: HostEvent) {
-    let result = host.with_context(|ctx| handle_host_event_in_ctx(ctx, event));
+    let route = match &event {
+        HostEvent::HttpCompleted { route, .. } => *route,
+        #[cfg(feature = "host-fs")]
+        HostEvent::FsCompleted { route, .. } => *route,
+        HostEvent::WasiCompleted { route, .. } => *route,
+        HostEvent::TimerCompleted { route, .. } => *route,
+    };
+    let result = host.with_context_route(route, |ctx| handle_host_event_in_ctx(ctx, event));
 
     let _ = result;
 }
@@ -1652,24 +2023,35 @@ fn handle_host_event_in_ctx(
 ) -> Result<(), rquickjs::Error> {
     let globals = ctx.globals();
     match event {
-        HostEvent::HttpCompleted { id, payload } => {
+        HostEvent::HttpCompleted { id, payload, .. } => {
             let func: Function = globals.get("__host_runtime_http_complete")?;
             func.call::<_, ()>((id, payload))
         }
         #[cfg(feature = "host-fs")]
-        HostEvent::FsCompleted { id, payload } => {
+        HostEvent::FsCompleted { id, payload, .. } => {
             let func: Function = globals.get("__host_runtime_fs_complete")?;
             func.call::<_, ()>((id, payload))
         }
-        HostEvent::WasiCompleted { id, payload } => {
+        HostEvent::WasiCompleted { id, payload, .. } => {
             let func: Function = globals.get("__host_runtime_wasi_complete")?;
             func.call::<_, ()>((id, payload))
         }
-        HostEvent::TimerCompleted { id, payload } => {
+        HostEvent::TimerCompleted { id, payload, .. } => {
             let func: Function = globals.get("__host_runtime_timer_complete")?;
             func.call::<_, ()>((id, payload))
         }
     }
+}
+
+fn handle_task_completed(
+    host: &mut HostRuntime,
+    runtime_id: u64,
+    states: &Arc<Mutex<HashMap<u64, TaskState>>>,
+    waiters: &Arc<Mutex<HashMap<u64, oneshot::Sender<Result<String, String>>>>>,
+    id: u64,
+) {
+    let _ = host.release_once_slot(id);
+    host.try_schedule_pending_once_submissions(runtime_id, states, waiters);
 }
 
 fn fail_all_active_tasks(

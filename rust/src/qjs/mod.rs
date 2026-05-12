@@ -6,8 +6,7 @@ use rquickjs_playground::{
     AsyncHostRuntime, AsyncHostRuntimeBuilder, BridgeRuntimeConfig, HttpClientConfig,
     WebRuntimeOptions, configure_bridge_runtime as configure_bridge_runtime_global,
     configure_http_client, configure_js_error_stack, configure_log_http_endpoint,
-    current_http_client_config,
-    js_error_stack_enabled, register_bridge_route_async_handler,
+    current_http_client_config, js_error_stack_enabled, register_bridge_route_async_handler,
     register_bridge_route_blocking_handler, register_bridge_route_sync_handler,
 };
 use serde_json::{Value, json};

@@ -625,7 +625,9 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                   child: content,
                 );
 
-                if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+                if (Platform.isWindows ||
+                    Platform.isLinux ||
+                    Platform.isMacOS) {
                   return Column(
                     children: [
                       const CustomTitleBar(),
@@ -638,10 +640,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
               locale: globalSettingState.locale,
               title: appName,
               themeMode: globalSettingState.themeMode,
-              supportedLocales: const [
-                Locale('en', 'US'),
-                Locale('zh', 'CN'),
-              ],
+              supportedLocales: const [Locale('en', 'US'), Locale('zh', 'CN')],
               localizationsDelegates: const [
                 GlobalMaterialLocalizations.delegate,
                 GlobalWidgetsLocalizations.delegate,

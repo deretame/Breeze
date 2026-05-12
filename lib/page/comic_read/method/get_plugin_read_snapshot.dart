@@ -19,13 +19,16 @@ Future<NormalComicEpInfo> getPluginReadSnapshot(
           chapterId: selectedChapterId,
           order: order,
         );
-  final resolvedChapterId = chapterRef?.id.isNotEmpty == true
-      ? chapterRef!.id
-      : order.toString();
+  final resolvedChapterId = _resolveReadSnapshotChapterId(
+    chapterRef,
+    selectedChapterId,
+    order,
+  );
 
   final extern = <String, dynamic>{
     ...chapterExtern,
     ...?chapterRef?.extern,
+    if (resolvedChapterId.trim().isNotEmpty) 'chapterId': resolvedChapterId,
     'order': order,
   };
 
@@ -67,6 +70,30 @@ Future<NormalComicEpInfo> getPluginReadSnapshot(
       ? snapshot.chapter.id
       : resolvedChapterId;
   return snapshot.toNormalEpInfo(fallbackChapterId: fallbackChapterId);
+}
+
+String _resolveReadSnapshotChapterId(
+  UnifiedComicChapterRef? chapterRef,
+  String? selectedChapterId,
+  int order,
+) {
+  final explicitRequestId = chapterRef?.requestId.trim() ?? '';
+  if (explicitRequestId.isNotEmpty) {
+    return explicitRequestId;
+  }
+
+  final normalizedSelectedChapterId = (selectedChapterId ?? '').trim();
+  if (normalizedSelectedChapterId.isNotEmpty &&
+      int.tryParse(normalizedSelectedChapterId) != null) {
+    return normalizedSelectedChapterId;
+  }
+
+  final rawChapterId = chapterRef?.id.trim() ?? '';
+  if (rawChapterId.isNotEmpty && int.tryParse(rawChapterId) != null) {
+    return rawChapterId;
+  }
+
+  return order.toString();
 }
 
 Future<ComicReadSnapshot> _fetchSnapshot({

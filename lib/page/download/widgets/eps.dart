@@ -4,7 +4,7 @@ import 'package:zephyr/page/download/models/unified_comic_download.dart';
 class EpsWidget extends StatefulWidget {
   final UnifiedComicDownloadChapter chapter;
   final bool downloaded;
-  final Function(int order) onUpdateDownloadInfo; // 用来更新观看按钮信息
+  final Function(String selectionKey) onUpdateDownloadInfo; // 用来更新观看按钮信息
 
   const EpsWidget({
     super.key,
@@ -42,7 +42,7 @@ class _EpsWidgetState extends State<EpsWidget> {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: () {
-        widget.onUpdateDownloadInfo(widget.chapter.order);
+        widget.onUpdateDownloadInfo(_resolveSelectionKey(widget.chapter));
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -87,5 +87,17 @@ class _EpsWidgetState extends State<EpsWidget> {
         ),
       ),
     );
+  }
+
+  String _resolveSelectionKey(UnifiedComicDownloadChapter chapter) {
+    final logicalKey = chapter.logicalKey.trim();
+    if (logicalKey.isNotEmpty) {
+      return logicalKey;
+    }
+    final chapterId = chapter.id.trim();
+    if (chapterId.isNotEmpty) {
+      return chapterId;
+    }
+    return chapter.order.toString();
   }
 }

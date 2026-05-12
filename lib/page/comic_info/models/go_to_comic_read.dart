@@ -6,10 +6,10 @@ import 'package:zephyr/main.dart';
 import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/router/router.gr.dart' show ComicReadRoute;
 
 import 'read_launch_adapter.dart';
-import 'package:zephyr/type/enum.dart';
 
 void goToComicRead(
   BuildContext context,
@@ -52,7 +52,9 @@ void goToComicRead(
     ComicReadRoute(
       comicId: resolvedComicId,
       order: orderVal,
-      chapterId: chapterRef?.id ?? '',
+      chapterId: chapterRef != null
+          ? resolveUnifiedComicChapterKey(chapterRef)
+          : '',
       chapterExtern: Map<String, dynamic>.from(
         chapterRef?.extern ?? const <String, dynamic>{},
       ),
@@ -87,7 +89,12 @@ int _resolveHistoryOrder(
   }
 
   final byChapterId = chapters
-      .where((chapter) => chapter.id == history.chapterId)
+      .where(
+        (chapter) =>
+            resolveUnifiedComicChapterKey(chapter) == history.chapterId ||
+            chapter.requestId.trim() == history.chapterId ||
+            chapter.id == history.chapterId,
+      )
       .toList();
   if (byChapterId.isNotEmpty) {
     return byChapterId.first.order;

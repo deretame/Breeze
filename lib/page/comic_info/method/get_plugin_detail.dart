@@ -41,13 +41,33 @@ class UnifiedComicChapterRef {
     required this.id,
     required this.name,
     required this.order,
+    this.requestId = '',
+    this.storageChapterId = '',
+    this.logicalKey = '',
     this.extern = const <String, dynamic>{},
   });
 
   final String id;
   final String name;
   final int order;
+  final String requestId;
+  final String storageChapterId;
+  final String logicalKey;
   final Map<String, dynamic> extern;
+}
+
+String resolveUnifiedComicChapterKey(UnifiedComicChapterRef chapter) {
+  final logicalKey = chapter.logicalKey.trim();
+  if (logicalKey.isNotEmpty) {
+    return logicalKey;
+  }
+
+  final chapterId = chapter.id.trim();
+  if (chapterId.isNotEmpty) {
+    return chapterId;
+  }
+
+  return chapter.order.toString();
 }
 
 UnifiedComicChapterRef? resolveUnifiedComicChapterRef(
@@ -64,7 +84,7 @@ UnifiedComicChapterRef? resolveUnifiedComicChapterRef(
   final normalizedChapterId = (chapterId ?? '').trim();
   if (normalizedChapterId.isNotEmpty) {
     for (final chapter in chapters) {
-      if (chapter.id == normalizedChapterId) {
+      if (_matchesChapterRef(chapter, normalizedChapterId)) {
         return chapter;
       }
     }
@@ -153,14 +173,18 @@ List<UnifiedComicChapterRef> resolveUnifiedComicChapters(
 ) {
   if (comicInfo is PluginComicDetailSource) {
     return comicInfo.eps
-        .map(
-          (ep) => UnifiedComicChapterRef(
+        .map((ep) {
+          final extern = Map<String, dynamic>.from(ep.extern);
+          return UnifiedComicChapterRef(
             id: ep.id,
             name: ep.name,
             order: ep.order,
-            extern: Map<String, dynamic>.from(ep.extern),
-          ),
-        )
+            requestId: _readString(extern, 'requestId'),
+            storageChapterId: _readString(extern, 'storageChapterId'),
+            logicalKey: _readString(extern, 'logicalKey'),
+            extern: extern,
+          );
+        })
         .toList();
   }
 
@@ -171,6 +195,9 @@ List<UnifiedComicChapterRef> resolveUnifiedComicChapters(
             id: ep['id']?.toString() ?? '',
             name: ep['name']?.toString() ?? '',
             order: _toInt(ep['order'], 0),
+            requestId: ep['taskChapterId']?.toString() ?? '',
+            storageChapterId: ep['id']?.toString() ?? '',
+            logicalKey: ep['logicalKey']?.toString() ?? '',
             extern: asMap(ep['extern']),
           ),
         )
@@ -200,4 +227,15 @@ List<Map<String, dynamic>> _decodeListOfMaps(String raw) {
 
 int _toInt(Object? value, int fallback) {
   return int.tryParse(value?.toString() ?? '') ?? fallback;
+}
+
+String _readString(Map<String, dynamic> map, String key) {
+  return map[key]?.toString().trim() ?? '';
+}
+
+bool _matchesChapterRef(UnifiedComicChapterRef chapter, String candidate) {
+  if (resolveUnifiedComicChapterKey(chapter) == candidate) {
+    return true;
+  }
+  return chapter.id == candidate;
 }

@@ -10,6 +10,7 @@ class DownloadImageJob {
     required this.path,
     required this.cartoonId,
     required this.chapterId,
+    this.storageChapterId = '',
     this.extern = const <String, dynamic>{},
   });
 
@@ -17,6 +18,7 @@ class DownloadImageJob {
   final String path;
   final String cartoonId;
   final String chapterId;
+  final String storageChapterId;
   final Map<String, dynamic> extern;
 }
 
@@ -116,7 +118,9 @@ Future<void> _downloadSingleJob({
       url: job.url,
       path: job.path,
       cartoonId: job.cartoonId,
-      chapterId: job.chapterId,
+      chapterId: job.storageChapterId.trim().isNotEmpty
+          ? job.storageChapterId
+          : job.chapterId,
       pictureType: pictureType,
       retry: true,
       qjsName: qjsRuntimeName,

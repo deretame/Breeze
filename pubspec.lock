@@ -109,10 +109,10 @@ packages:
     dependency: "direct main"
     description:
       name: bloc
-      sha256: a48653a82055a900b88cd35f92429f068c5a8057ae9b136d197b3d56c57efb81
+      sha256: e03b235924e4f509c27b5d6b2f949200e0a91149a9818b4f65eeb56662b75413
       url: "https://pub.dev"
     source: hosted
-    version: "9.2.0"
+    version: "9.2.1"
   bloc_concurrency:
     dependency: "direct main"
     description:
@@ -1671,10 +1671,10 @@ packages:
     dependency: transitive
     description:
       name: sentry
-      sha256: "1f78300740739ff4b4920802687879231554350eab73eb229778f463aabda440"
+      sha256: f04095a25ff02b202a914174c73ec309570aa93d61098cb4a0a9e715b4aaa465
       url: "https://pub.dev"
     source: hosted
-    version: "9.19.0"
+    version: "9.20.0"
   sentry_dart_plugin:
     dependency: "direct dev"
     description:
@@ -1687,10 +1687,10 @@ packages:
     dependency: "direct main"
     description:
       name: sentry_flutter
-      sha256: "168bbb120f7684dee6c0e100817f56ee1925bc2eb7fa55a71253337640c7e241"
+      sha256: "4f0a914d8c37e5015d7b86dd42b92dd265948fd31875b43e62ddfc2e7bea0e41"
       url: "https://pub.dev"
     source: hosted
-    version: "9.19.0"
+    version: "9.20.0"
   shared_preferences:
     dependency: "direct main"
     description:
@@ -2060,10 +2060,10 @@ packages:
     dependency: "direct main"
     description:
       name: win32
-      sha256: ba7d5750e3441caa1bbe31d9e516348fcf8dfcb32aa29ef87a844a59f4d1f1d0
+      sha256: a1fc9eb9248baa05dfc12ed5b66e377b3e23f095eec078e0371622b9033810d9
       url: "https://pub.dev"
     source: hosted
-    version: "6.1.0"
+    version: "6.2.0"
   win32_registry:
     dependency: transitive
     description:

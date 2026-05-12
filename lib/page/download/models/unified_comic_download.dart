@@ -44,12 +44,16 @@ class UnifiedComicDownloadStoredChapter {
     required this.id,
     required this.name,
     required this.order,
+    this.logicalKey = '',
+    this.taskChapterId = '',
     this.images = const [],
   });
 
   final String id;
   final String name;
   final int order;
+  final String logicalKey;
+  final String taskChapterId;
   final List<UnifiedComicDownloadImage> images;
 
   factory UnifiedComicDownloadStoredChapter.fromMap(Map<String, dynamic> map) {
@@ -58,6 +62,8 @@ class UnifiedComicDownloadStoredChapter {
       id: map['id']?.toString() ?? '',
       name: map['name']?.toString() ?? '',
       order: _toInt(map['order']?.toString() ?? '', 1),
+      logicalKey: map['logicalKey']?.toString() ?? '',
+      taskChapterId: map['taskChapterId']?.toString() ?? '',
       images: rawImages
           .whereType<Map>()
           .map(
@@ -67,6 +73,15 @@ class UnifiedComicDownloadStoredChapter {
           .toList(),
     );
   }
+
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'name': name,
+    'order': order,
+    'logicalKey': logicalKey,
+    'taskChapterId': taskChapterId,
+    'images': images.map((image) => image.toMap()).toList(),
+  };
 }
 
 class UnifiedComicDownloadChapter {
@@ -74,6 +89,9 @@ class UnifiedComicDownloadChapter {
     required this.id,
     required this.title,
     required this.order,
+    this.requestId = '',
+    this.storageChapterId = '',
+    this.logicalKey = '',
     this.images = const [],
     this.extern = const <String, dynamic>{},
   });
@@ -81,6 +99,9 @@ class UnifiedComicDownloadChapter {
   final String id;
   final String title;
   final int order;
+  final String requestId;
+  final String storageChapterId;
+  final String logicalKey;
   final List<UnifiedComicDownloadImage> images;
   final Map<String, dynamic> extern;
 
@@ -93,6 +114,9 @@ class UnifiedComicDownloadChapter {
       id: id,
       title: map['name']?.toString() ?? map['title']?.toString() ?? '',
       order: order,
+      requestId: map['requestId']?.toString() ?? '',
+      storageChapterId: map['storageChapterId']?.toString() ?? '',
+      logicalKey: map['logicalKey']?.toString() ?? '',
       images: ((map['images'] as List?) ?? const [])
           .whereType<Map>()
           .map(
@@ -108,6 +132,9 @@ class UnifiedComicDownloadChapter {
     'id': id,
     'name': title,
     'order': order,
+    'requestId': requestId,
+    'storageChapterId': storageChapterId,
+    'logicalKey': logicalKey,
     'extern': extern,
   };
 }
@@ -131,12 +158,16 @@ class UnifiedComicDownloadInfo {
     ) {
       final id = chapter.id.trim();
       final order = chapter.order;
+      final extern = Map<String, dynamic>.from(chapter.extern);
       return UnifiedComicDownloadChapter(
         id: id.isNotEmpty ? id : source.comicId,
         title: chapter.name,
         order: order,
+        requestId: _readString(extern, 'requestId'),
+        storageChapterId: _readString(extern, 'storageChapterId'),
+        logicalKey: _readString(extern, 'logicalKey'),
         images: const [],
-        extern: chapter.extern,
+        extern: extern,
       );
     }).toList();
 
@@ -190,6 +221,10 @@ UnifiedComicDownloadInfo resolveUnifiedDownloadInfo(
 
 int _toInt(String value, int fallback) {
   return int.tryParse(value) ?? fallback;
+}
+
+String _readString(Map<String, dynamic> map, String key) {
+  return map[key]?.toString().trim() ?? '';
 }
 
 List<UnifiedComicDownloadStoredChapter> resolveStoredDownloadChapters(

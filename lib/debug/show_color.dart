@@ -160,7 +160,9 @@ class _ShowColorPageState extends State<ShowColorPage> {
               runSpacing: 12,
               children: [
                 FilledButton.icon(
-                  onPressed: _loading ? null : () => _loadFontFromPath(_defaultFontPath),
+                  onPressed: _loading
+                      ? null
+                      : () => _loadFontFromPath(_defaultFontPath),
                   icon: const Icon(Icons.science_outlined),
                   label: const Text('加载推荐样本'),
                 ),
@@ -205,10 +207,8 @@ class _ShowColorPageState extends State<ShowColorPage> {
     return _buildWeightPreview(
       context,
       title: '系统默认字体对照',
-      builder: (weight) => TextStyle(
-        fontWeight: _asFontWeight(weight),
-        fontSize: 24,
-      ),
+      builder: (weight) =>
+          TextStyle(fontWeight: _asFontWeight(weight), fontSize: 24),
     );
   }
 
@@ -244,9 +244,7 @@ class _ShowColorPageState extends State<ShowColorPage> {
                     ),
                   ),
                 ),
-                Expanded(
-                  child: Text(_sampleText, style: builder(weight)),
-                ),
+                Expanded(child: Text(_sampleText, style: builder(weight))),
               ],
             ),
           ),
@@ -299,7 +297,11 @@ class _ShowColorPageState extends State<ShowColorPage> {
   }
 
   ByteData _toByteData(Uint8List bytes) {
-    return ByteData.view(bytes.buffer, bytes.offsetInBytes, bytes.lengthInBytes);
+    return ByteData.view(
+      bytes.buffer,
+      bytes.offsetInBytes,
+      bytes.lengthInBytes,
+    );
   }
 
   FontWeight _asFontWeight(int weight) {

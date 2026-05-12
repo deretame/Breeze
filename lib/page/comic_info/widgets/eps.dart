@@ -39,14 +39,15 @@ class EpButtonWidget extends StatelessWidget {
         final resolvedType = type == ComicEntryType.history
             ? ComicEntryType.normal
             : type;
+        final chapterExtern = Map<String, dynamic>.from(doc.extern);
         context.pushRoute(
           ComicReadRoute(
             comicInfo: allInfo,
             comicId: comicId,
             type: resolvedType,
             order: doc.order,
-            chapterId: doc.id,
-            chapterExtern: Map<String, dynamic>.from(doc.extern),
+            chapterId: resolveEpisodeChapterId(doc),
+            chapterExtern: enrichEpisodeChapterExtern(doc, chapterExtern),
             epsNumber: epsLength,
             from: from,
             stringSelectCubit: context.read<StringSelectCubit>(),
@@ -93,5 +94,33 @@ class EpButtonWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String resolveEpisodeChapterId(Ep episode) {
+    final chapterExtern = Map<String, dynamic>.from(episode.extern);
+    final logicalKey = chapterExtern['logicalKey']?.toString().trim() ?? '';
+    if (logicalKey.isNotEmpty) {
+      return logicalKey;
+    }
+
+    final requestId = chapterExtern['requestId']?.toString().trim() ?? '';
+    if (requestId.isNotEmpty) {
+      return requestId;
+    }
+
+    return episode.id;
+  }
+
+  Map<String, dynamic> enrichEpisodeChapterExtern(
+    Ep episode,
+    Map<String, dynamic> chapterExtern,
+  ) {
+    chapterExtern['logicalKey'] ??= chapterExtern['logicalKey']?.toString() ?? '';
+    chapterExtern['requestId'] ??= chapterExtern['requestId']?.toString() ?? '';
+    chapterExtern['storageChapterId'] ??=
+        chapterExtern['storageChapterId']?.toString() ?? '';
+    chapterExtern['chapterId'] ??= episode.id;
+    chapterExtern['order'] ??= episode.order;
+    return chapterExtern;
   }
 }

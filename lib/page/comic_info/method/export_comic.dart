@@ -243,6 +243,7 @@ Future<List<_ExportChapterEntry>> _collectChapterEntries(
   for (var chapterIndex = 0; chapterIndex < chapters.length; chapterIndex++) {
     final chapter = chapters[chapterIndex];
     final chapterId = chapter.id.trim();
+    final taskChapterId = chapter.taskChapterId.trim();
     final rawName = chapter.name.trim();
     final fallbackName = chapterId.isNotEmpty
         ? chapterId
@@ -258,6 +259,7 @@ Future<List<_ExportChapterEntry>> _collectChapterEntries(
       pluginId: download.source,
       comicId: download.comicId,
       chapterId: chapterId,
+      taskChapterId: taskChapterId,
       chapterRoot: chapterRoot,
       chapterRootLegacy: chapterRootLegacy,
       images: chapter.images,
@@ -287,6 +289,7 @@ Future<List<File>> _resolveChapterFiles({
   required String pluginId,
   required String comicId,
   required String chapterId,
+  required String taskChapterId,
   required String chapterRoot,
   required String chapterRootLegacy,
   required List<UnifiedComicDownloadImage> images,
@@ -345,7 +348,7 @@ Future<List<File>> _resolveChapterFiles({
     final path = await getStoredPicturePathById(
       from: pluginId,
       cartoonId: comicId,
-      chapterId: chapterId,
+      chapterId: chapterId.trim().isNotEmpty ? chapterId : taskChapterId,
       imageId: id,
     );
     if (path == null) return null;

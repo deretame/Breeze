@@ -43,11 +43,17 @@ Future<NormalComicEpInfo> getPluginInfoFromLocal(
   final chapterId = epInfo['id']?.toString().trim().isNotEmpty == true
       ? epInfo['id'].toString().trim()
       : '$epsId';
+  final logicalKey = epInfo['logicalKey']?.toString().trim() ?? '';
   final chapterName = epInfo['name']?.toString() ?? '';
+  final taskChapterId = epInfo['taskChapterId']?.toString().trim() ?? '';
 
   final storedChapters = resolveStoredDownloadChapters(download);
   final storedChapter = storedChapters.firstWhere(
-    (e) => e.id == chapterId || e.order == epsId,
+    (e) =>
+        (logicalKey.isNotEmpty && e.logicalKey == logicalKey) ||
+        (taskChapterId.isNotEmpty && e.taskChapterId == taskChapterId) ||
+        e.id == chapterId ||
+        e.order == epsId,
     orElse: () => UnifiedComicDownloadStoredChapter(
       id: chapterId,
       name: chapterName,
@@ -100,7 +106,9 @@ Future<NormalComicEpInfo> getPluginInfoFromLocal(
   final files = await _resolveOrderedFiles(
     pluginId: resolvedPluginId,
     comicId: comicId,
-    chapterId: chapterId,
+    chapterId: storedChapter.id.trim().isNotEmpty
+        ? storedChapter.id
+        : chapterId,
     imageIds: imageIds,
     imageNames: imageNames,
     fallbackDirs: chapterDirs,

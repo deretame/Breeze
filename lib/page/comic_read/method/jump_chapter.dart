@@ -38,7 +38,9 @@ class JumpChapter {
 
   void jumpToChapter(BuildContext context, bool isPrev) {
     final router = AutoRouter.of(context);
-    final index = chapters.indexWhere((chapter) => chapter.id == chapterId);
+    final index = chapters.indexWhere(
+      (chapter) => _matchesCurrentChapter(chapter, chapterId, chapterExtern),
+    );
     if (index < 0) {
       return;
     }
@@ -137,5 +139,27 @@ class JumpChapter {
       tempType: tempType,
       epsNumber: epsNumber,
     );
+  }
+
+  bool _matchesCurrentChapter(
+    UnifiedComicChapterRef chapter,
+    String currentChapterId,
+    Map<String, dynamic> currentChapterExtern,
+  ) {
+    final currentLogicalKey =
+        currentChapterExtern['logicalKey']?.toString().trim() ?? '';
+    if (currentLogicalKey.isNotEmpty &&
+        chapter.logicalKey.trim() == currentLogicalKey) {
+      return true;
+    }
+
+    final currentRequestId =
+        currentChapterExtern['requestId']?.toString().trim() ?? '';
+    if (currentRequestId.isNotEmpty &&
+        chapter.requestId.trim() == currentRequestId) {
+      return true;
+    }
+
+    return chapter.id == currentChapterId;
   }
 }

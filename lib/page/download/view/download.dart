@@ -5,12 +5,12 @@ import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/download/models/unified_comic_download.dart';
 import 'package:zephyr/page/download/widgets/eps.dart';
+import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/foreground_task/data/download_task_json.dart';
 import 'package:zephyr/util/foreground_task/init.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import '../../comments/widgets/title.dart';
-import 'package:zephyr/util/error_filter.dart';
 
 @RoutePage()
 class DownloadPage extends StatefulWidget {
@@ -27,13 +27,12 @@ class _DownloadPageState extends State<DownloadPage> {
   String get source =>
       (downloadInfo.source.trim().isEmpty ? '' : downloadInfo.source).trim();
 
-  late Map<int, bool> _downloadInfo;
-  late Map<String, Map<String, dynamic>> _chapterExternById;
+  late Map<String, bool> _downloadInfo;
   late UnifiedComicDownload? comicDownloadInfo;
 
-  void onUpdateDownloadInfo(int order) {
+  void onUpdateDownloadInfo(String selectionKey) {
     setState(() {
-      _downloadInfo[order] = !_downloadInfo[order]!;
+      _downloadInfo[selectionKey] = !(_downloadInfo[selectionKey] ?? false);
     });
   }
 
@@ -44,13 +43,8 @@ class _DownloadPageState extends State<DownloadPage> {
       throw StateError('download source pluginId is required');
     }
     _downloadInfo = {};
-    _chapterExternById = <String, Map<String, dynamic>>{};
     for (var ep in downloadInfo.chapters) {
-      _downloadInfo[ep.order] = false;
-      final chapterId = ep.id.trim();
-      if (chapterId.isNotEmpty) {
-        _chapterExternById[chapterId] = Map<String, dynamic>.from(ep.extern);
-      }
+      _downloadInfo[_resolveSelectionKey(ep)] = false;
     }
     final query = objectbox.unifiedDownloadBox.query(
       UnifiedComicDownload_.uniqueKey.equals('$source:${downloadInfo.comicId}'),
@@ -62,23 +56,35 @@ class _DownloadPageState extends State<DownloadPage> {
           .map((chapter) => chapter.id.trim())
           .where((id) => id.isNotEmpty)
           .toSet();
+      final downloadedLogicalKeys = storedChapters
+          .map((chapter) => chapter.logicalKey.trim())
+          .where((key) => key.isNotEmpty)
+          .toSet();
       final downloadedOrders = storedChapters
           .map((chapter) => chapter.order)
           .where((order) => order > 0)
           .toSet();
       for (var ep in downloadInfo.chapters) {
         final chapterId = ep.id.trim();
+        final logicalKey = ep.logicalKey.trim();
         final selectedById =
             chapterId.isNotEmpty && downloadedChapterIds.contains(chapterId);
+        final selectedByLogicalKey =
+            logicalKey.isNotEmpty && downloadedLogicalKeys.contains(logicalKey);
         final selectedByOrder = downloadedOrders.contains(ep.order);
-        _downloadInfo[ep.order] = selectedById || selectedByOrder;
+        _downloadInfo[_resolveSelectionKey(ep)] =
+            selectedByLogicalKey ||
+            selectedById ||
+            selectedByOrder;
       }
     }
   }
 
   // 判断是否所有章节都被选中
   bool get isAllSelected {
-    return downloadInfo.chapters.every((ep) => _downloadInfo[ep.order] == true);
+    return downloadInfo.chapters.every(
+      (ep) => _downloadInfo[_resolveSelectionKey(ep)] == true,
+    );
   }
 
   // 切换全选或取消全选
@@ -86,7 +92,7 @@ class _DownloadPageState extends State<DownloadPage> {
     setState(() {
       bool newState = !isAllSelected; // 如果当前是全选，则取消全选；反之亦然
       for (var ep in downloadInfo.chapters) {
-        _downloadInfo[ep.order] = newState;
+        _downloadInfo[_resolveSelectionKey(ep)] = newState;
       }
     });
   }
@@ -121,7 +127,8 @@ class _DownloadPageState extends State<DownloadPage> {
                 padding: const EdgeInsets.only(bottom: 8.0),
                 child: EpsWidget(
                   chapter: chapter,
-                  downloaded: _downloadInfo[chapter.order]!,
+                  downloaded:
+                      _downloadInfo[_resolveSelectionKey(chapter)] ?? false,
                   onUpdateDownloadInfo: onUpdateDownloadInfo,
                 ),
               );
@@ -141,12 +148,12 @@ class _DownloadPageState extends State<DownloadPage> {
   }
 
   Future<void> download() async {
-    final selectedChapters = downloadInfo.chapters
-        .where((chapter) => _downloadInfo[chapter.order] == true)
-        .map((chapter) => chapter.id.trim())
-        .where((chapterId) => chapterId.isNotEmpty)
+    final selectedChapterEntries = downloadInfo.chapters
+        .where(
+          (chapter) => _downloadInfo[_resolveSelectionKey(chapter)] == true,
+        )
         .toList();
-    if (selectedChapters.isEmpty) {
+    if (selectedChapterEntries.isEmpty) {
       showErrorToast("请选择要下载的章节");
       return;
     }
@@ -154,21 +161,23 @@ class _DownloadPageState extends State<DownloadPage> {
       from: source,
       comicId: downloadInfo.comicId,
       comicName: downloadInfo.title,
-      selectedChapters: selectedChapters,
-      chapterExternById: selectedChapters.fold<Map<String, dynamic>>(
-        <String, dynamic>{},
-        (acc, chapterId) {
-          final extern = _chapterExternById[chapterId];
-          if (extern != null && extern.isNotEmpty) {
-            acc[chapterId] = extern;
-          }
-          return acc;
-        },
-      ),
+      chapterRefs: selectedChapterEntries
+          .map(
+            (chapter) => DownloadChapterTaskRef(
+              chapterId: chapter.id.trim(),
+              requestId: chapter.requestId.trim(),
+              storageChapterId: chapter.storageChapterId.trim(),
+              logicalKey: _resolveSelectionKey(chapter),
+              title: chapter.title,
+              order: chapter.order,
+              extern: Map<String, dynamic>.from(chapter.extern),
+            ),
+          )
+          .toList(),
     );
     logger.d('download task payload=${task.toJson()}');
     logger.d(
-      'download chapter map=${downloadInfo.chapters.map((chapter) => {'order': chapter.order, 'id': chapter.id, 'selected': _downloadInfo[chapter.order] == true}).toList()}',
+      'download chapter map=${downloadInfo.chapters.map((chapter) => {'order': chapter.order, 'id': chapter.id, 'logicalKey': _resolveSelectionKey(chapter), 'selected': _downloadInfo[_resolveSelectionKey(chapter)] == true}).toList()}',
     );
     try {
       await startDownloadTask(task);
@@ -177,5 +186,17 @@ class _DownloadPageState extends State<DownloadPage> {
       logger.e(e, stackTrace: s);
       showErrorToast("下载任务启动失败，${normalizeSearchErrorMessage(e)}");
     }
+  }
+
+  String _resolveSelectionKey(UnifiedComicDownloadChapter chapter) {
+    final logicalKey = chapter.logicalKey.trim();
+    if (logicalKey.isNotEmpty) {
+      return logicalKey;
+    }
+    final chapterId = chapter.id.trim();
+    if (chapterId.isNotEmpty) {
+      return chapterId;
+    }
+    return chapter.order.toString();
   }
 }

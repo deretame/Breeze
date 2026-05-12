@@ -39,6 +39,7 @@ import 'package:zephyr/util/desktop/native_window.dart';
 import 'package:zephyr/util/desktop/system_tray.dart';
 import 'package:zephyr/util/desktop/window_logic.dart';
 import 'package:zephyr/util/error_filter.dart';
+import 'package:zephyr/util/font/font_profile.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/manage_cache.dart';
 import 'package:zephyr/util/router/router.dart';
@@ -269,6 +270,7 @@ Future<(GlobalSettingCubit, PluginRegistryCubit)> _initServices() async {
 
   final globalSettingCubit = GlobalSettingCubit();
   await globalSettingCubit.initBox();
+  await FontProfileController.instance.init();
 
   final pluginRegistryCubit = PluginRegistryCubit();
 
@@ -538,130 +540,145 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
 
   @override
   Widget build(BuildContext context) {
-    final globalSettingState = context.watch<GlobalSettingCubit>().state;
+    return AnimatedBuilder(
+      animation: FontProfileController.instance,
+      builder: (context, _) {
+        final globalSettingState = context.watch<GlobalSettingCubit>().state;
 
-    return DynamicColorBuilder(
-      builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-        ColorScheme lightColorScheme;
-        ColorScheme darkColorScheme;
+        return DynamicColorBuilder(
+          builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+            ColorScheme lightColorScheme;
+            ColorScheme darkColorScheme;
 
-        // 根据 dynamicColor 的值决定是否使用动态颜色
-        if (globalSettingState.dynamicColor == true) {
-          lightColorScheme =
-              lightDynamic ??
-              ColorScheme.fromSeed(
-                seedColor: globalSettingState.seedColor, // 默认颜色
+            if (globalSettingState.dynamicColor == true) {
+              lightColorScheme =
+                  lightDynamic ??
+                  ColorScheme.fromSeed(
+                    seedColor: globalSettingState.seedColor,
+                    brightness: Brightness.light,
+                  );
+              darkColorScheme =
+                  darkDynamic ??
+                  ColorScheme.fromSeed(
+                    seedColor: globalSettingState.seedColor,
+                    brightness: Brightness.dark,
+                  );
+            } else {
+              final primary = globalSettingState.seedColor;
+
+              lightColorScheme = ColorScheme.fromSeed(
+                seedColor: primary,
                 brightness: Brightness.light,
               );
-          darkColorScheme =
-              darkDynamic ??
-              ColorScheme.fromSeed(
-                seedColor: globalSettingState.seedColor, // 默认颜色
+              darkColorScheme = ColorScheme.fromSeed(
+                seedColor: primary,
                 brightness: Brightness.dark,
               );
-        } else {
-          var primary = globalSettingState.seedColor;
+            }
 
-          lightColorScheme = ColorScheme.fromSeed(
-            seedColor: primary,
-            brightness: Brightness.light,
-          );
-          darkColorScheme = ColorScheme.fromSeed(
-            seedColor: primary,
-            brightness: Brightness.dark,
-          );
-        }
-        final isLinuxDesktop = !kIsWeb && Platform.isLinux;
-        const linuxFontFamily = 'Noto Sans CJK SC';
-        const linuxFontFamilyFallback = <String>[
-          'WenQuanYi Micro Hei',
-          'Droid Sans Fallback',
-        ];
-        TextTheme withLinuxFont(TextTheme base) {
-          if (!isLinuxDesktop) return base;
-          return base.apply(
-            fontFamily: linuxFontFamily,
-            fontFamilyFallback: linuxFontFamilyFallback,
-          );
-        }
+            final isLinuxDesktop = !kIsWeb && Platform.isLinux;
+            const linuxFontFamily = 'Noto Sans CJK SC';
+            const linuxFontFamilyFallback = <String>[
+              'WenQuanYi Micro Hei',
+              'Droid Sans Fallback',
+            ];
 
-        return MaterialApp.router(
-          routerConfig: appRouter.config(),
-          scrollBehavior: const AppScrollBehavior(),
-          builder: (context, child) {
-            Widget content = Actions(
-              actions: <Type, Action<Intent>>{
-                EscapeIntent: CallbackAction<EscapeIntent>(
-                  onInvoke: (intent) {
-                    appRouter.maybePop();
-                    return null;
+            TextTheme withConfiguredFonts(TextTheme base) {
+              var themed = base;
+              if (isLinuxDesktop) {
+                themed = themed.apply(
+                  fontFamily: linuxFontFamily,
+                  fontFamilyFallback: linuxFontFamilyFallback,
+                );
+              }
+              return FontProfileController.instance.applyToTextTheme(themed);
+            }
+
+            return MaterialApp.router(
+              routerConfig: appRouter.config(),
+              scrollBehavior: const AppScrollBehavior(),
+              builder: (context, child) {
+                Widget content = Actions(
+                  actions: <Type, Action<Intent>>{
+                    EscapeIntent: CallbackAction<EscapeIntent>(
+                      onInvoke: (intent) {
+                        appRouter.maybePop();
+                        return null;
+                      },
+                    ),
                   },
-                ),
+                  child: Shortcuts(
+                    shortcuts: <ShortcutActivator, Intent>{
+                      const SingleActivator(LogicalKeyboardKey.escape):
+                          const EscapeIntent(),
+                    },
+                    child: Focus(autofocus: true, child: child!),
+                  ),
+                );
+
+                content = Listener(
+                  onPointerDown: (PointerDownEvent event) {
+                    if (event.buttons & kBackMouseButton != 0) {
+                      appRouter.maybePop();
+                    }
+                  },
+                  child: content,
+                );
+
+                if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+                  return Column(
+                    children: [
+                      const CustomTitleBar(),
+                      Expanded(child: content),
+                    ],
+                  );
+                }
+                return content;
               },
-              child: Shortcuts(
-                shortcuts: <ShortcutActivator, Intent>{
-                  const SingleActivator(LogicalKeyboardKey.escape):
-                      const EscapeIntent(),
-                },
-                child: Focus(autofocus: true, child: child!),
+              locale: globalSettingState.locale,
+              title: appName,
+              themeMode: globalSettingState.themeMode,
+              supportedLocales: const [
+                Locale('en', 'US'),
+                Locale('zh', 'CN'),
+              ],
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              theme: ThemeData.light().copyWith(
+                primaryColor: lightColorScheme.primary,
+                colorScheme: lightColorScheme,
+                scaffoldBackgroundColor: lightColorScheme.surface,
+                cardColor: lightColorScheme.surfaceContainer,
+                chipTheme: ChipThemeData(
+                  backgroundColor: lightColorScheme.surface,
+                ),
+                canvasColor: lightColorScheme.surfaceContainer,
+                dialogTheme: DialogThemeData(
+                  backgroundColor: lightColorScheme.surfaceContainer,
+                ),
+                textTheme: withConfiguredFonts(ThemeData.light().textTheme),
+                primaryTextTheme: withConfiguredFonts(
+                  ThemeData.light().primaryTextTheme,
+                ),
+              ),
+              darkTheme: ThemeData.dark().copyWith(
+                scaffoldBackgroundColor: globalSettingState.isAMOLED
+                    ? Colors.black
+                    : darkColorScheme.surface,
+                tabBarTheme: const TabBarThemeData(
+                  dividerColor: Colors.transparent,
+                ),
+                colorScheme: darkColorScheme,
+                textTheme: withConfiguredFonts(ThemeData.dark().textTheme),
+                primaryTextTheme: withConfiguredFonts(
+                  ThemeData.dark().primaryTextTheme,
+                ),
               ),
             );
-
-            content = Listener(
-              onPointerDown: (PointerDownEvent event) {
-                if (event.buttons & kBackMouseButton != 0) {
-                  appRouter.maybePop();
-                }
-              },
-              child: content,
-            );
-
-            // 桌面平台添加自定义标题栏
-            if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-              return Column(
-                children: [
-                  const CustomTitleBar(),
-                  Expanded(child: content),
-                ],
-              );
-            }
-            return content;
           },
-          locale: globalSettingState.locale,
-          title: appName,
-          themeMode: globalSettingState.themeMode,
-          supportedLocales: [
-            Locale('en', 'US'), // English
-            Locale('zh', 'CN'), // Chinese
-            // 其他支持的语言
-          ],
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          theme: ThemeData.light().copyWith(
-            primaryColor: lightColorScheme.primary,
-            colorScheme: lightColorScheme,
-            scaffoldBackgroundColor: lightColorScheme.surface,
-            cardColor: lightColorScheme.surfaceContainer,
-            chipTheme: ChipThemeData(backgroundColor: lightColorScheme.surface),
-            canvasColor: lightColorScheme.surfaceContainer,
-            dialogTheme: DialogThemeData(
-              backgroundColor: lightColorScheme.surfaceContainer,
-            ),
-            textTheme: withLinuxFont(ThemeData.light().textTheme),
-            primaryTextTheme: withLinuxFont(ThemeData.light().primaryTextTheme),
-          ),
-          darkTheme: ThemeData.dark().copyWith(
-            scaffoldBackgroundColor: globalSettingState.isAMOLED
-                ? Colors.black
-                : darkColorScheme.surface,
-            tabBarTheme: TabBarThemeData(dividerColor: Colors.transparent),
-            colorScheme: darkColorScheme,
-            textTheme: withLinuxFont(ThemeData.dark().textTheme),
-            primaryTextTheme: withLinuxFont(ThemeData.dark().primaryTextTheme),
-          ),
         );
       },
     );

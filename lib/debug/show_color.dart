@@ -1,20 +1,38 @@
+import 'dart:io';
+import 'dart:ui' as ui;
+
 import 'package:auto_route/annotations.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 
+const _defaultFontPath =
+    r'C:\Users\windy\Downloads\zip\03_NotoSerifCJK-TTF-VF\Variable\TTF\Subset\NotoSerifSC-VF.ttf';
+
 @RoutePage()
-class ShowColorPage extends StatelessWidget {
+class ShowColorPage extends StatefulWidget {
   const ShowColorPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // 使用种子颜色创建颜色方案
-    final allColors = context.theme.colorScheme;
+  State<ShowColorPage> createState() => _ShowColorPageState();
+}
 
+class _ShowColorPageState extends State<ShowColorPage> {
+  static const _sampleText = '风急天高猿啸哀 ABC123 漫画信息 标题粗体';
+  static const _weights = <int>[400, 500, 600, 700, 800, 900];
+
+  String? _fontFamily;
+  String? _fontPath;
+  String? _status;
+  bool _loading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final allColors = context.theme.colorScheme;
     final screenWidth = MediaQuery.of(context).size.width;
     final colorBoxSize = screenWidth / 3;
 
-    // 将所有颜色属性映射到一个列表中
     final colorEntries = [
       _ColorEntry('primary', allColors.primary),
       _ColorEntry('onPrimary', allColors.onPrimary),
@@ -66,43 +84,255 @@ class ShowColorPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Color Showcase')),
-      body: GridView.builder(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3, // 每行显示 3 个颜色块
-          childAspectRatio: 1, // 正方形
-        ),
-        itemCount: colorEntries.length,
-        itemBuilder: (context, index) {
-          final entry = colorEntries[index];
-          return Container(
-            width: colorBoxSize,
-            height: colorBoxSize,
-            color: entry.color,
-            child: Center(
-              child: Text(
-                entry.name,
-                style: TextStyle(
-                  color: _getContrastColor(entry.color), // 根据背景色选择对比色
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+        children: [
+          _buildFontTester(context),
+          const SizedBox(height: 16),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              childAspectRatio: 1,
             ),
-          );
-        },
+            itemCount: colorEntries.length,
+            itemBuilder: (context, index) {
+              final entry = colorEntries[index];
+              return Container(
+                width: colorBoxSize,
+                height: colorBoxSize,
+                color: entry.color,
+                child: Center(
+                  child: Text(
+                    entry.name,
+                    style: TextStyle(
+                      color: _getContrastColor(entry.color),
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
 
-  // 根据背景色选择对比色（黑色或白色）
+  Widget _buildFontTester(BuildContext context) {
+    final theme = Theme.of(context);
+    final hasFont = _fontFamily != null;
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Variable Font 测试',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              hasFont
+                  ? '已加载: ${_fontPath ?? _fontFamily}'
+                  : '还没加载字体，先试推荐样本或者手动选一个 TTF/OTF 文件。',
+              style: theme.textTheme.bodySmall,
+            ),
+            if (_status != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _status!,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ],
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                FilledButton.icon(
+                  onPressed: _loading ? null : () => _loadFontFromPath(_defaultFontPath),
+                  icon: const Icon(Icons.science_outlined),
+                  label: const Text('加载推荐样本'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _loading ? null : _pickFontFile,
+                  icon: const Icon(Icons.upload_file_outlined),
+                  label: const Text('选择字体文件'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildDefaultWeightPreview(context),
+            const SizedBox(height: 16),
+            if (hasFont) ...[
+              _buildWeightPreview(
+                context,
+                title: '按 fontWeight 渲染',
+                builder: (weight) => TextStyle(
+                  fontFamily: _fontFamily,
+                  fontWeight: _asFontWeight(weight),
+                  fontSize: 24,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildWeightPreview(
+                context,
+                title: '按 variable axis 渲染',
+                builder: (weight) => TextStyle(
+                  fontFamily: _fontFamily,
+                  fontSize: 24,
+                  fontVariations: [ui.FontVariation('wght', weight.toDouble())],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDefaultWeightPreview(BuildContext context) {
+    return _buildWeightPreview(
+      context,
+      title: '系统默认字体对照',
+      builder: (weight) => TextStyle(
+        fontWeight: _asFontWeight(weight),
+        fontSize: 24,
+      ),
+    );
+  }
+
+  Widget _buildWeightPreview(
+    BuildContext context, {
+    required String title,
+    required TextStyle Function(int weight) builder,
+  }) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        ..._weights.map(
+          (weight) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 48,
+                  child: Text(
+                    'w$weight',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontFamily: 'JetBrainsMonoNL-Regular',
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Text(_sampleText, style: builder(weight)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _pickFontFile() async {
+    const typeGroup = XTypeGroup(
+      label: 'font',
+      extensions: ['ttf', 'otf', 'ttc'],
+    );
+    final file = await openFile(acceptedTypeGroups: [typeGroup]);
+    if (file == null) return;
+    await _loadFontFromPath(file.path);
+  }
+
+  Future<void> _loadFontFromPath(String path) async {
+    setState(() {
+      _loading = true;
+      _status = '正在加载字体...';
+    });
+
+    try {
+      final bytes = await File(path).readAsBytes();
+      final family = 'debug-font-${DateTime.now().millisecondsSinceEpoch}';
+      final loader = FontLoader(family);
+      loader.addFont(Future.value(_toByteData(bytes)));
+      await loader.load();
+
+      if (!mounted) return;
+      setState(() {
+        _fontFamily = family;
+        _fontPath = path;
+        _status = '加载成功，可以直接对比不同字重。';
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _status = '加载失败: $e';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
+    }
+  }
+
+  ByteData _toByteData(Uint8List bytes) {
+    return ByteData.view(bytes.buffer, bytes.offsetInBytes, bytes.lengthInBytes);
+  }
+
+  FontWeight _asFontWeight(int weight) {
+    switch (weight) {
+      case 100:
+        return FontWeight.w100;
+      case 200:
+        return FontWeight.w200;
+      case 300:
+        return FontWeight.w300;
+      case 400:
+        return FontWeight.w400;
+      case 500:
+        return FontWeight.w500;
+      case 600:
+        return FontWeight.w600;
+      case 700:
+        return FontWeight.w700;
+      case 800:
+        return FontWeight.w800;
+      case 900:
+        return FontWeight.w900;
+      default:
+        return FontWeight.w400;
+    }
+  }
+
   Color _getContrastColor(Color backgroundColor) {
-    // 计算亮度
     final brightness = backgroundColor.computeLuminance();
     return brightness > 0.5 ? Colors.black : Colors.white;
   }
 }
 
-// 辅助类，用于存储颜色名称和颜色值
 class _ColorEntry {
   final String name;
   final Color color;

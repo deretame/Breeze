@@ -13,6 +13,7 @@ import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/permission.dart';
@@ -21,7 +22,6 @@ import 'package:zephyr/util/sundry.dart';
 import '../../../util/router/router.dart';
 import '../../../widgets/error_view.dart';
 import '../../../widgets/toast.dart';
-import 'package:zephyr/util/error_filter.dart';
 
 enum MenuOption { export, cloudCollect, reverseOrder }
 

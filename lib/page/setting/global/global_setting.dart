@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/sync/sync_service.dart';
+import 'package:zephyr/page/font_setting/view/font_setting_page.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/util/impeller_config.dart';
 import 'package:zephyr/widgets/toast.dart';
@@ -97,6 +98,7 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               if (!state.dynamicColor) changeThemeColor(context),
               _comicReadTopContainer(state, globalSettingCubit),
               _isAMOLED(state, globalSettingCubit),
+              _fontSettings(context),
 
               const SizedBox(height: 8),
               const Divider(height: 1, thickness: 0.3),
@@ -227,6 +229,20 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
       value: state.dynamicColor,
       onChanged: (bool value) {
         cubit.updateState((current) => current.copyWith(dynamicColor: value));
+      },
+    );
+  }
+
+  Widget _fontSettings(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.font_download_outlined),
+      title: const Text('字体设置'),
+      subtitle: const Text('自定义显示字体'),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () {
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const FontSettingPage()));
       },
     );
   }

@@ -97,29 +97,33 @@ class EpButtonWidget extends StatelessWidget {
   }
 
   String resolveEpisodeChapterId(Ep episode) {
-    final chapterExtern = Map<String, dynamic>.from(episode.extern);
-    final logicalKey = chapterExtern['logicalKey']?.toString().trim() ?? '';
+    final logicalKey = episode.logicalKey.trim();
     if (logicalKey.isNotEmpty) {
       return logicalKey;
     }
 
-    final requestId = chapterExtern['requestId']?.toString().trim() ?? '';
+    final requestId = episode.requestId.trim();
     if (requestId.isNotEmpty) {
       return requestId;
     }
 
-    return episode.id;
+    if (episode.id.trim().isNotEmpty) {
+      return episode.id.trim();
+    }
+
+    return episode.order.toString();
   }
 
   Map<String, dynamic> enrichEpisodeChapterExtern(
     Ep episode,
     Map<String, dynamic> chapterExtern,
   ) {
-    chapterExtern['logicalKey'] ??= chapterExtern['logicalKey']?.toString() ?? '';
-    chapterExtern['requestId'] ??= chapterExtern['requestId']?.toString() ?? '';
-    chapterExtern['storageChapterId'] ??=
-        chapterExtern['storageChapterId']?.toString() ?? '';
-    chapterExtern['chapterId'] ??= episode.id;
+    chapterExtern['logicalKey'] ??= episode.logicalKey.trim();
+    chapterExtern['requestId'] ??= episode.requestId.trim();
+    chapterExtern['storageChapterId'] ??= episode.storageChapterId.trim();
+    chapterExtern['chapterId'] ??= episode.requestId.trim().isNotEmpty
+        ? episode.requestId.trim()
+        : episode.id.trim();
     chapterExtern['order'] ??= episode.order;
     return chapterExtern;
   }

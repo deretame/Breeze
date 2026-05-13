@@ -73,9 +73,7 @@ class _DownloadPageState extends State<DownloadPage> {
             logicalKey.isNotEmpty && downloadedLogicalKeys.contains(logicalKey);
         final selectedByOrder = downloadedOrders.contains(ep.order);
         _downloadInfo[_resolveSelectionKey(ep)] =
-            selectedByLogicalKey ||
-            selectedById ||
-            selectedByOrder;
+            selectedByLogicalKey || selectedById || selectedByOrder;
       }
     }
   }
@@ -192,6 +190,10 @@ class _DownloadPageState extends State<DownloadPage> {
     final logicalKey = chapter.logicalKey.trim();
     if (logicalKey.isNotEmpty) {
       return logicalKey;
+    }
+    final requestId = chapter.requestId.trim();
+    if (requestId.isNotEmpty) {
+      return requestId;
     }
     final chapterId = chapter.id.trim();
     if (chapterId.isNotEmpty) {

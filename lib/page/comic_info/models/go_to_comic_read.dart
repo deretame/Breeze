@@ -108,7 +108,10 @@ int _resolveHistoryOrder(
   }
 
   final byLegacyOrderAsChapterId = chapters
-      .where((chapter) => chapter.id == history.chapterOrder.toString())
+      .where(
+        (chapter) => resolveUnifiedComicChapterKey(chapter) ==
+            history.chapterOrder.toString(),
+      )
       .toList();
   if (byLegacyOrderAsChapterId.isNotEmpty) {
     return byLegacyOrderAsChapterId.first.order;

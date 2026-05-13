@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
+import 'package:zephyr/object_box/model.dart';
 import 'package:zephyr/page/comic_info/json/normal/normal_comic_all_info.dart'
     as normal;
-import 'package:zephyr/object_box/model.dart';
 
 class PluginComicDetail {
   const PluginComicDetail({required this.normalInfo, required this.source});
@@ -62,6 +62,11 @@ String resolveUnifiedComicChapterKey(UnifiedComicChapterRef chapter) {
     return logicalKey;
   }
 
+  final requestId = chapter.requestId.trim();
+  if (requestId.isNotEmpty) {
+    return requestId;
+  }
+
   final chapterId = chapter.id.trim();
   if (chapterId.isNotEmpty) {
     return chapterId;
@@ -98,7 +103,7 @@ UnifiedComicChapterRef? resolveUnifiedComicChapterRef(
     }
 
     for (final chapter in chapters) {
-      if (chapter.id == order.toString()) {
+      if (resolveUnifiedComicChapterKey(chapter) == order.toString()) {
         return chapter;
       }
     }
@@ -172,20 +177,18 @@ List<UnifiedComicChapterRef> resolveUnifiedComicChapters(
   String from,
 ) {
   if (comicInfo is PluginComicDetailSource) {
-    return comicInfo.eps
-        .map((ep) {
-          final extern = Map<String, dynamic>.from(ep.extern);
-          return UnifiedComicChapterRef(
-            id: ep.id,
-            name: ep.name,
-            order: ep.order,
-            requestId: _readString(extern, 'requestId'),
-            storageChapterId: _readString(extern, 'storageChapterId'),
-            logicalKey: _readString(extern, 'logicalKey'),
-            extern: extern,
-          );
-        })
-        .toList();
+    return comicInfo.eps.map((ep) {
+      final extern = Map<String, dynamic>.from(ep.extern);
+      return UnifiedComicChapterRef(
+        id: ep.id,
+        name: ep.name,
+        order: ep.order,
+        requestId: ep.requestId.trim(),
+        storageChapterId: ep.storageChapterId.trim(),
+        logicalKey: ep.logicalKey.trim(),
+        extern: extern,
+      );
+    }).toList();
   }
 
   if (comicInfo is UnifiedComicDownload) {
@@ -229,13 +232,15 @@ int _toInt(Object? value, int fallback) {
   return int.tryParse(value?.toString() ?? '') ?? fallback;
 }
 
-String _readString(Map<String, dynamic> map, String key) {
-  return map[key]?.toString().trim() ?? '';
-}
-
 bool _matchesChapterRef(UnifiedComicChapterRef chapter, String candidate) {
   if (resolveUnifiedComicChapterKey(chapter) == candidate) {
     return true;
   }
-  return chapter.id == candidate;
+  if (chapter.requestId.trim() == candidate) {
+    return true;
+  }
+  if (chapter.id.trim() == candidate) {
+    return true;
+  }
+  return chapter.order.toString() == candidate;
 }

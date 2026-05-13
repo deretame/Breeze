@@ -82,17 +82,6 @@ String _resolveReadSnapshotChapterId(
     return explicitRequestId;
   }
 
-  final normalizedSelectedChapterId = (selectedChapterId ?? '').trim();
-  if (normalizedSelectedChapterId.isNotEmpty &&
-      int.tryParse(normalizedSelectedChapterId) != null) {
-    return normalizedSelectedChapterId;
-  }
-
-  final rawChapterId = chapterRef?.id.trim() ?? '';
-  if (rawChapterId.isNotEmpty && int.tryParse(rawChapterId) != null) {
-    return rawChapterId;
-  }
-
   return order.toString();
 }
 

@@ -119,9 +119,12 @@ abstract class ComicInfo with _$ComicInfo {
 @freezed
 abstract class Ep with _$Ep {
   const factory Ep({
-    @JsonKey(name: 'id') required String id,
+    @JsonKey(name: 'id') @Default('') String id,
     @JsonKey(name: 'name') required String name,
     @JsonKey(name: 'order') required int order,
+    @JsonKey(name: 'requestId') @Default('') String requestId,
+    @JsonKey(name: 'storageChapterId') @Default('') String storageChapterId,
+    @JsonKey(name: 'logicalKey') @Default('') String logicalKey,
     @JsonKey(name: 'extern') @Default({}) Map<String, dynamic> extern,
   }) = _Ep;
 

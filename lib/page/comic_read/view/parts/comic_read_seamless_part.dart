@@ -641,7 +641,7 @@ extension _ComicReadSeamlessPart on _ComicReadPageState {
       order,
       widget.from,
       comicInfo,
-      chapterRef?.id,
+      chapterRef != null ? resolveUnifiedComicChapterKey(chapterRef) : null,
       Map<String, dynamic>.from(
         chapterRef?.extern ?? const <String, dynamic>{},
       ),

@@ -136,9 +136,12 @@ Map<String, dynamic> _$ComicInfoToJson(_ComicInfo instance) =>
     };
 
 _Ep _$EpFromJson(Map<String, dynamic> json) => _Ep(
-  id: json['id'] as String,
+  id: json['id'] as String? ?? '',
   name: json['name'] as String,
   order: (json['order'] as num).toInt(),
+  requestId: json['requestId'] as String? ?? '',
+  storageChapterId: json['storageChapterId'] as String? ?? '',
+  logicalKey: json['logicalKey'] as String? ?? '',
   extern: json['extern'] as Map<String, dynamic>? ?? const {},
 );
 
@@ -146,6 +149,9 @@ Map<String, dynamic> _$EpToJson(_Ep instance) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
   'order': instance.order,
+  'requestId': instance.requestId,
+  'storageChapterId': instance.storageChapterId,
+  'logicalKey': instance.logicalKey,
   'extern': instance.extern,
 };
 

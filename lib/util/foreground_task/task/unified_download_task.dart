@@ -233,11 +233,6 @@ String _resolveChapterRequestId(_ResolvedDownloadChapter chapter) {
     return requestId;
   }
 
-  final rawChapterId = chapter.chapterId.trim();
-  if (rawChapterId.isNotEmpty && int.tryParse(rawChapterId) != null) {
-    return rawChapterId;
-  }
-
   final order = chapter.order <= 0 ? 1 : chapter.order;
   return order.toString();
 }
@@ -357,8 +352,14 @@ Future<void> _saveUnifiedDownload({
 
   final eps = storedChapters
       .map(
-        (chapter) =>
-            normal.Ep(id: chapter.id, name: chapter.name, order: chapter.order),
+        (chapter) => normal.Ep(
+          id: chapter.id,
+          name: chapter.name,
+          order: chapter.order,
+          requestId: chapter.taskChapterId,
+          storageChapterId: chapter.id,
+          logicalKey: chapter.logicalKey,
+        ),
       )
       .toList();
 
@@ -585,6 +586,11 @@ String _resolveSelectionKey(UnifiedComicDownloadChapter chapter) {
   final logicalKey = chapter.logicalKey.trim();
   if (logicalKey.isNotEmpty) {
     return logicalKey;
+  }
+
+  final requestId = chapter.requestId.trim();
+  if (requestId.isNotEmpty) {
+    return requestId;
   }
 
   final chapterId = chapter.id.trim();

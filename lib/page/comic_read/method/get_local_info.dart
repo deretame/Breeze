@@ -35,17 +35,18 @@ Future<NormalComicEpInfo> getPluginInfoFromLocal(
   final epInfo = rawChapters.firstWhere(
     (e) =>
         (e['order'] as num?)?.toInt() == epsId ||
-        e['id']?.toString() == '$epsId',
+        e['logicalKey']?.toString() == '$epsId' ||
+        e['taskChapterId']?.toString() == '$epsId',
     orElse: () =>
         rawChapters.isNotEmpty ? rawChapters.first : <String, dynamic>{},
   );
 
-  final chapterId = epInfo['id']?.toString().trim().isNotEmpty == true
-      ? epInfo['id'].toString().trim()
-      : '$epsId';
   final logicalKey = epInfo['logicalKey']?.toString().trim() ?? '';
   final chapterName = epInfo['name']?.toString() ?? '';
   final taskChapterId = epInfo['taskChapterId']?.toString().trim() ?? '';
+  final chapterId = logicalKey.isNotEmpty
+      ? logicalKey
+      : (taskChapterId.isNotEmpty ? taskChapterId : '$epsId');
 
   final storedChapters = resolveStoredDownloadChapters(download);
   final storedChapter = storedChapters.firstWhere(

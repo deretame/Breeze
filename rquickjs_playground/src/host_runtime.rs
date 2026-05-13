@@ -4,6 +4,7 @@ use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::collections::{HashMap, VecDeque};
 use std::future::IntoFuture;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::marker::PhantomData;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::mpsc;
@@ -231,6 +232,26 @@ const BUNDLE_DISPATCHER_JS: &str = r#"(async () => {
           throw withInvokeContextError(err, { name, fnPath, argc: args.length, sourceName: `${sanitizeSourceName(name)}.cjs` });
         }
       },
+      async invokeOnceLoaded(payload) {
+        const registry = ensureRegistry();
+        const name = String(payload?.name || "");
+        const fnPath = String(payload?.fnPath || "");
+        const args = Array.isArray(payload?.args) ? payload.args : [];
+        const debugName = String(payload?.debugName || "__once__");
+        const sourceName = String(payload?.sourceName || "__bundle_once__.cjs");
+
+        const api = registry.get(name);
+        if (!api) {
+          throw new Error(`bundle not found: ${name}`);
+        }
+
+        try {
+          const { owner, fn } = resolveCallable(api, fnPath);
+          return await fn.apply(owner, args);
+        } catch (err) {
+          throw withInvokeContextError(err, { name: debugName, fnPath, argc: args.length, sourceName });
+        }
+      },
       unloadBundle(name) {
         const registry = ensureRegistry();
         return registry.delete(String(name));
@@ -244,26 +265,6 @@ const BUNDLE_DISPATCHER_JS: &str = r#"(async () => {
       listBundles() {
         const registry = ensureRegistry();
         return Array.from(registry.keys()).map((v) => String(v));
-      },
-      async callOnce(payload) {
-        const source = String(payload?.source || "");
-        const fnPath = String(payload?.fnPath || "");
-        const args = Array.isArray(payload?.args) ? payload.args : [];
-        const sourceName = "__bundle_once__.cjs";
-
-        const module = { exports: {} };
-        const exports = module.exports;
-        const requireFn = typeof require === "function" ? require.bind(globalThis) : undefined;
-        try {
-          const runner = new Function("module", "exports", "require", appendSourceUrl(source, "__bundle_once__"));
-          runner(module, exports, requireFn);
-
-          const api = normalizeApi(module.exports);
-          const { owner, fn } = resolveCallable(api, fnPath);
-          return await fn.apply(owner, args);
-        } catch (err) {
-          throw withInvokeContextError(err, { name: "__once__", fnPath, argc: args.length, sourceName });
-        }
       },
     };
 
@@ -287,11 +288,20 @@ enum ContextRoute {
 struct ContextSlot {
     context: Context,
     busy_task_id: Option<u64>,
+    last_bundle_source_hash: Option<u64>,
+    last_bundle_name: Option<String>,
 }
 
 struct PendingOnceSubmission {
     id: u64,
-    script: String,
+    submission: OnceTaskSubmission,
+}
+
+struct OnceTaskSubmission {
+    source: String,
+    source_hash: u64,
+    fn_path: String,
+    args_json: String,
 }
 
 pub struct HostRuntime {
@@ -376,7 +386,7 @@ enum AsyncCommand {
     },
     SubmitOnce {
         id: u64,
-        script: String,
+        submission: OnceTaskSubmission,
     },
     Drop {
         id: u64,
@@ -573,6 +583,8 @@ impl HostRuntime {
             self.once_contexts.push(ContextSlot {
                 context,
                 busy_task_id: None,
+                last_bundle_source_hash: None,
+                last_bundle_name: None,
             });
         }
         Ok(())
@@ -604,7 +616,7 @@ impl HostRuntime {
     }
 
     fn submit_async_task_on_route(
-        &self,
+        &mut self,
         route: ContextRoute,
         runtime_id: u64,
         task_id: u64,
@@ -625,6 +637,38 @@ impl HostRuntime {
                     .map_err(|e| format!("一次性任务提交到 JS 失败: {e}"))
             }
         }
+    }
+
+    fn submit_once_task_on_slot(
+        &mut self,
+        runtime_id: u64,
+        task_id: u64,
+        slot_index: usize,
+        submission: &OnceTaskSubmission,
+    ) -> Result<(), String> {
+        let last_hash = self
+            .once_contexts
+            .get(slot_index)
+            .and_then(|slot| slot.last_bundle_source_hash);
+        let bundle_name = format!("__bundle_once__{:016x}", submission.source_hash);
+        let script = build_bundle_call_once_script(
+            if last_hash == Some(submission.source_hash) {
+                None
+            } else {
+                Some(submission.source.as_str())
+            },
+            &bundle_name,
+            &submission.fn_path,
+            &submission.args_json,
+        )?;
+
+        self.submit_async_task_on_route(ContextRoute::Once(slot_index), runtime_id, task_id, &script)?;
+
+        if let Some(slot) = self.once_contexts.get_mut(slot_index) {
+            slot.last_bundle_source_hash = Some(submission.source_hash);
+            slot.last_bundle_name = Some(bundle_name);
+        }
+        Ok(())
     }
 
     fn with_context_route<R>(
@@ -649,9 +693,9 @@ impl HostRuntime {
         }
     }
 
-    fn queue_pending_once_submission(&mut self, id: u64, script: String) {
+    fn queue_pending_once_submission(&mut self, id: u64, submission: OnceTaskSubmission) {
         self.pending_once_submissions
-            .push_back(PendingOnceSubmission { id, script });
+            .push_back(PendingOnceSubmission { id, submission });
     }
 
     fn remove_pending_once_submission(&mut self, id: u64) -> bool {
@@ -670,37 +714,7 @@ impl HostRuntime {
             return Ok(false);
         };
 
-        let fresh = Self::init_context(&self.runtime, &self.cache_scope_id, self.options)
-            .map_err(|e| format!("重建一次性 Context 失败: {e}"))?;
-        fresh
-            .with(|ctx| {
-                let globals = ctx.globals();
-                globals.set(
-                    "__host_runtime_task_complete",
-                    Func::from(async_runtime_task_complete),
-                )?;
-                install_evented_host_bindings_worker(
-                    &ctx,
-                    self.worker_signal_tx.clone().ok_or_else(|| {
-                        rquickjs::Error::new_from_js_message(
-                            "rust",
-                            "runtime",
-                            "worker signal channel unavailable",
-                        )
-                    })?,
-                    self.options(),
-                    ContextRoute::Once(slot_index),
-                )?;
-                ctx.eval::<(), _>(ASYNC_TASK_DISPATCHER_JS)?;
-                ctx.eval::<(), _>(BUNDLE_DISPATCHER_JS)?;
-                Ok::<(), rquickjs::Error>(())
-            })
-            .map_err(|e| format!("重装一次性 Context 绑定失败: {e}"))?;
-
-        self.once_contexts[slot_index] = ContextSlot {
-            context: fresh,
-            busy_task_id: None,
-        };
+        self.once_contexts[slot_index].busy_task_id = None;
         Ok(true)
     }
 
@@ -723,11 +737,11 @@ impl HostRuntime {
 
             match self.acquire_once_slot_for_task(pending.id, MAX_BUNDLE_CALL_ONCE_CONTEXTS) {
                 Ok(Some(slot_index)) => {
-                    if let Err(err) = self.submit_async_task_on_route(
-                        ContextRoute::Once(slot_index),
+                    if let Err(err) = self.submit_once_task_on_slot(
                         runtime_id,
                         pending.id,
-                        &pending.script,
+                        slot_index,
+                        &pending.submission,
                     ) {
                         let _ = self.release_once_slot(pending.id);
                         finalize_task_with_waiter(states, waiters, pending.id, Err(err));
@@ -1173,9 +1187,9 @@ impl AsyncHostRuntime {
             return Err("调用参数必须是 JSON 数组".to_string());
         }
 
-        let script = build_bundle_call_once_script(source, fn_path, args)?;
         let handle = self
-            .spawn_once(script)
+            .spawn_once(source, fn_path, args)
+            .await
             .map_err(|e| format!("执行一次性 bundle 调用失败: {e}"))?;
         Ok(handle)
     }
@@ -1262,9 +1276,28 @@ impl AsyncHostRuntime {
         Ok(())
     }
 
-    fn spawn_once(&self, script: impl Into<String>) -> Result<RuntimeTaskHandle, String> {
+    async fn spawn_once(
+        &self,
+        source: &str,
+        fn_path: &str,
+        args: &Value,
+    ) -> Result<RuntimeTaskHandle, String> {
         let id = self.next_id.fetch_add(1, Ordering::SeqCst);
         let (result_tx, result_rx) = oneshot::channel::<Result<String, String>>();
+        let source_owned = source.to_string();
+        let source_hash = tokio::task::spawn_blocking({
+            let source_for_hash = source_owned.clone();
+            move || fast_u64_hash(&source_for_hash)
+        })
+        .await
+        .map_err(|e| format!("计算一次性 bundle 哈希失败: {e}"))?;
+        let submission = OnceTaskSubmission {
+            source: source_owned,
+            source_hash,
+            fn_path: fn_path.to_string(),
+            args_json: serde_json::to_string(args)
+                .map_err(|e| format!("序列化调用参数失败: {e}"))?,
+        };
 
         {
             let mut guard = self
@@ -1284,10 +1317,7 @@ impl AsyncHostRuntime {
 
         if self
             .tx
-            .send(WorkerSignal::Command(AsyncCommand::SubmitOnce {
-                id,
-                script: script.into(),
-            }))
+            .send(WorkerSignal::Command(AsyncCommand::SubmitOnce { id, submission }))
             .is_err()
         {
             if let Ok(mut guard) = self.states.lock() {
@@ -1504,16 +1534,22 @@ fn bytes_from_value(data: &Value) -> Result<Vec<u8>, String> {
 }
 
 fn build_bundle_call_once_script(
-    source: &str,
+    source: Option<&str>,
+    bundle_name: &str,
     fn_path: &str,
-    args: &Value,
+    args_json: &str,
 ) -> Result<String, String> {
-    let source_literal =
-        serde_json::to_string(source).map_err(|e| format!("序列化 bundle 脚本失败: {e}"))?;
+    let name_literal =
+        serde_json::to_string(bundle_name).map_err(|e| format!("序列化 bundle 名称失败: {e}"))?;
+    let source_clause = if let Some(source) = source {
+        let source_literal =
+            serde_json::to_string(source).map_err(|e| format!("序列化 bundle 脚本失败: {e}"))?;
+        format!("host.loadBundle({name_literal}, {source_literal});")
+    } else {
+        String::new()
+    };
     let fn_path_literal =
         serde_json::to_string(fn_path).map_err(|e| format!("序列化函数路径失败: {e}"))?;
-    let args_literal =
-        serde_json::to_string(args).map_err(|e| format!("序列化调用参数失败: {e}"))?;
 
     Ok(format!(
         r#"
@@ -1561,47 +1597,35 @@ fn build_bundle_call_once_script(
             }}
             return value;
           }};
-          const clearBundles = () => {{
-            const host = globalThis.__host_bundle_runtime;
-            if (!host) {{
-              throw new Error("bundle dispatcher unavailable");
-            }}
-
-            if (typeof host.clearBundles === "function") {{
-              host.clearBundles();
-              return;
-            }}
-
-            if (typeof host.listBundles === "function" && typeof host.unloadBundle === "function") {{
-              const names = host.listBundles();
-              for (const name of names) host.unloadBundle(name);
-              return;
-            }}
-
-            throw new Error("bundle clear unavailable");
-          }};
-
           try {{
             const host = globalThis.__host_bundle_runtime;
-            if (!host || typeof host.callOnce !== "function") {{
+            if (!host || typeof host.loadBundle !== "function" || typeof host.invokeOnceLoaded !== "function") {{
               throw new Error("bundle dispatcher unavailable");
             }}
-            clearBundles();
-            const data = await host.callOnce({{ source: {source_literal}, fnPath: {fn_path_literal}, args: {args_literal} }});
+            {source_clause}
+            const data = await host.invokeOnceLoaded({{
+              name: {name_literal},
+              debugName: "__once__",
+              sourceName: "__bundle_once__.cjs",
+              fnPath: {fn_path_literal},
+              args: {args_json}
+            }});
             return JSON.stringify({{ ok: true, data: encodeHostData(data) }});
           }} catch (err) {{
             const base = String(err && err.message ? err.message : err || "执行失败");
             const stack = String(err && err.stack ? err.stack : "");
             const debugScope = String(err && err.__bundle_scope ? err.__bundle_scope : "");
             return JSON.stringify({{ ok: false, error: base, stack, debug_scope: debugScope }});
-          }} finally {{
-            try {{
-              clearBundles();
-            }} catch (_err) {{}}
           }}
         }})()
         "#
     ))
+}
+
+fn fast_u64_hash(text: &str) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    text.hash(&mut hasher);
+    hasher.finish()
 }
 
 fn parse_ok_json_payload(raw: &str) -> Result<Value, String> {
@@ -1945,25 +1969,25 @@ fn handle_worker_command(
             }
             true
         }
-        AsyncCommand::SubmitOnce { id, script } => {
+        AsyncCommand::SubmitOnce { id, submission } => {
             if !mark_running_if_available(states, id) {
                 return true;
             }
 
             match host.acquire_once_slot_for_task(id, MAX_BUNDLE_CALL_ONCE_CONTEXTS) {
                 Ok(Some(slot_index)) => {
-                    if let Err(err) = host.submit_async_task_on_route(
-                        ContextRoute::Once(slot_index),
+                    if let Err(err) = host.submit_once_task_on_slot(
                         runtime_id,
                         id,
-                        &script,
+                        slot_index,
+                        &submission,
                     ) {
                         let _ = host.release_once_slot(id);
                         finalize_task_with_waiter(states, waiters, id, Err(err));
                     }
                 }
                 Ok(None) => {
-                    host.queue_pending_once_submission(id, script);
+                    host.queue_pending_once_submission(id, submission);
                 }
                 Err(err) => {
                     finalize_task_with_waiter(states, waiters, id, Err(err));

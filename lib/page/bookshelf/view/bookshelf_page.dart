@@ -322,20 +322,10 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
     final searchCubit = context.read<BookshelfSearchCubit>();
     final currentMode = _currentMode();
     final current = searchCubit.state.stateOf(currentMode);
-    final pluginStates = context.read<PluginRegistryCubit>().state;
-    final sourceOptions =
-        pluginStates.values
-            .where((plugin) => plugin.isEnabled && !plugin.isDeleted)
-            .toList()
-          ..sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
+    final sourceOptions = _buildFilterSourceOptions();
     final availableSources = sourceOptions
-        .map((plugin) => plugin.uuid)
+        .map((source) => source.pluginId)
         .toList();
-    String sourceTitle(String pluginId) {
-      final info = PluginRegistryService.I.getCachedPluginInfo(pluginId);
-      final name = info?['name']?.toString().trim() ?? '';
-      return name.isNotEmpty ? name : pluginId;
-    }
 
     if (availableSources.isEmpty && currentMode != ShelfPageMode.favorite) {
       ScaffoldMessenger.of(
@@ -344,11 +334,9 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
       return;
     }
 
-    var selectedSort = current.sort == 'da' ? 'da' : 'dd';
     final currentFolderKey =
         FavoriteFolderService.parseFolderKeyFromSources(current.sources) ??
         kFavoriteFolderAllKey;
-    var selectedFolderKey = currentFolderKey;
     var selectedSources = FavoriteFolderService.stripFolderSourceTokens(
       current.sources,
     ).where(availableSources.contains).toSet();
@@ -356,220 +344,110 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
       selectedSources = availableSources.toSet();
     }
 
-    final applied = await showDialog<bool>(
+    final result = await showDialog<_BookshelfFilterResult>(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) {
-          return AlertDialog(
-            title: const Text('筛选'),
-            content: SizedBox(
-              width: 420,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('排序', style: Theme.of(context).textTheme.titleSmall),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      ChoiceChip(
-                        showCheckmark: false,
-                        label: const Text('时间(晚→早)'),
-                        selected: selectedSort == 'dd',
-                        onSelected: (_) =>
-                            setModalState(() => selectedSort = 'dd'),
-                      ),
-                      ChoiceChip(
-                        showCheckmark: false,
-                        label: const Text('时间(早→晚)'),
-                        selected: selectedSort == 'da',
-                        onSelected: (_) =>
-                            setModalState(() => selectedSort = 'da'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  if (currentMode == ShelfPageMode.favorite) ...[
-                    Row(
-                      children: [
-                        Text(
-                          '收藏夹',
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                        const Spacer(),
-                        TextButton(
-                          onPressed: () async {
-                            final created = await _showCreateFolderDialog(
-                              context,
-                            );
-                            if (created == null || created.trim().isEmpty) {
-                              return;
-                            }
-                            try {
-                              final folder = FavoriteFolderService.createFolder(
-                                created,
-                              );
-                              setModalState(
-                                () => selectedFolderKey = folder.key,
-                              );
-                            } catch (e) {
-                              if (!context.mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(e.toString())),
-                              );
-                            }
-                          },
-                          child: const Text('新建'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        for (final folder
-                            in FavoriteFolderService.listFolders())
-                          GestureDetector(
-                            onLongPress: folder.isAll
-                                ? null
-                                : () async {
-                                    if (!mounted) return;
-                                    final rootContext = this.context;
-                                    final action =
-                                        await _showFolderActionDialog(
-                                          rootContext,
-                                          folder.name,
-                                        );
-                                    if (action == null) return;
-                                    if (action == _FolderAction.delete) {
-                                      if (!rootContext.mounted) return;
-                                      final ok = await _confirmDeleteFolder(
-                                        rootContext,
-                                        folder.name,
-                                      );
-                                      if (ok != true) return;
-                                      if (!mounted) return;
-                                      FavoriteFolderService.deleteFolder(
-                                        folder.key,
-                                      );
-                                      setModalState(() {
-                                        selectedFolderKey =
-                                            kFavoriteFolderAllKey;
-                                      });
-                                      return;
-                                    }
-                                    if (!rootContext.mounted) return;
-                                    final renamed =
-                                        await _showRenameFolderDialog(
-                                          rootContext,
-                                          initialName: folder.name,
-                                        );
-                                    if (renamed == null ||
-                                        renamed.trim().isEmpty) {
-                                      return;
-                                    }
-                                    if (!mounted) return;
-                                    try {
-                                      FavoriteFolderService.renameFolder(
-                                        folder.key,
-                                        renamed.trim(),
-                                      );
-                                      setModalState(() {});
-                                    } catch (e) {
-                                      if (!rootContext.mounted) return;
-                                      ScaffoldMessenger.of(
-                                        rootContext,
-                                      ).showSnackBar(
-                                        SnackBar(content: Text(e.toString())),
-                                      );
-                                    }
-                                  },
-                            child: ChoiceChip(
-                              showCheckmark: false,
-                              label: Text(folder.name),
-                              selected: selectedFolderKey == folder.key,
-                              onSelected: (_) => setModalState(
-                                () => selectedFolderKey = folder.key,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  Row(
-                    children: [
-                      Text(
-                        '漫画源',
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                      const SizedBox(width: 8),
-                      TextButton(
-                        onPressed: () => setModalState(() {
-                          if (selectedSources.length ==
-                              availableSources.length) {
-                            selectedSources.clear();
-                          } else {
-                            selectedSources = availableSources.toSet();
-                          }
-                        }),
-                        child: Text(
-                          selectedSources.length == availableSources.length
-                              ? '取消全选'
-                              : '全选',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final source in sourceOptions)
-                        FilterChip(
-                          showCheckmark: false,
-                          label: Text(sourceTitle(source.uuid)),
-                          selected: selectedSources.contains(source.uuid),
-                          onSelected: (selected) => setModalState(() {
-                            if (selected) {
-                              selectedSources.add(source.uuid);
-                            } else {
-                              selectedSources.remove(source.uuid);
-                            }
-                          }),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('取消'),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('应用'),
-              ),
-            ],
-          );
-        },
+      builder: (dialogContext) => _BookshelfFilterDialog(
+        mode: currentMode,
+        initialSort: current.sort == 'da' ? 'da' : 'dd',
+        initialFolderKey: currentFolderKey,
+        initialSources: selectedSources,
+        availableSources: availableSources,
+        sourceOptions: sourceOptions,
+        onCreateFolder: () => _showCreateFolderDialog(dialogContext),
+        onRequestFolderAction: (folder) =>
+            _handleFolderAction(dialogContext, folder),
       ),
     );
 
-    if (applied != true) return;
+    if (result == null) return;
 
-    searchCubit.setSort(currentMode, selectedSort);
-    final nextSources = selectedSources.toList();
+    searchCubit.setSort(currentMode, result.sort);
+    final nextSources = result.sources.toList();
     if (currentMode == ShelfPageMode.favorite) {
-      nextSources.add(FavoriteFolderService.sourceToken(selectedFolderKey));
+      nextSources.add(FavoriteFolderService.sourceToken(result.folderKey));
     }
     searchCubit.setSources(currentMode, nextSources);
     _triggerRefresh(goTop: true);
+  }
+
+  List<_FilterSourceOption> _buildFilterSourceOptions() {
+    final pluginStates = context.read<PluginRegistryCubit>().state;
+    final sourceOptions =
+        pluginStates.values
+            .where((plugin) => plugin.isEnabled && !plugin.isDeleted)
+            .toList()
+          ..sort((a, b) => a.insertedAt.compareTo(b.insertedAt));
+    return sourceOptions
+        .map(
+          (plugin) => _FilterSourceOption(
+            pluginId: plugin.uuid,
+            title: _sourceTitle(plugin.uuid),
+          ),
+        )
+        .toList();
+  }
+
+  String _sourceTitle(String pluginId) {
+    final info = PluginRegistryService.I.getCachedPluginInfo(pluginId);
+    final name = info?['name']?.toString().trim() ?? '';
+    return name.isNotEmpty ? name : pluginId;
+  }
+
+  Future<_FolderDialogOutcome?> _handleFolderAction(
+    BuildContext dialogContext,
+    FavoriteFolderView folder,
+  ) async {
+    if (!mounted) {
+      return null;
+    }
+
+    final action = await _showFolderActionDialog(context, folder.name);
+    if (!mounted) {
+      return null;
+    }
+    if (action == null) {
+      return null;
+    }
+
+    if (action == _FolderAction.delete) {
+      final ok = await _confirmDeleteFolder(context, folder.name);
+      if (!mounted) {
+        return null;
+      }
+      if (ok != true) {
+        return null;
+      }
+      FavoriteFolderService.deleteFolder(folder.key);
+      return _FolderDialogOutcome(
+        shouldRefreshFolders: true,
+        selectedFolderKey: kFavoriteFolderAllKey,
+      );
+    }
+
+    final renamed = await _showRenameFolderDialog(
+      context,
+      initialName: folder.name,
+    );
+    if (!mounted) {
+      return null;
+    }
+    if (renamed == null || renamed.trim().isEmpty) {
+      return null;
+    }
+    try {
+      FavoriteFolderService.renameFolder(folder.key, renamed.trim());
+      return _FolderDialogOutcome(
+        shouldRefreshFolders: true,
+        selectedFolderKey: folder.key,
+      );
+    } catch (e) {
+      if (dialogContext.mounted) {
+        ScaffoldMessenger.of(
+          dialogContext,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+      return null;
+    }
   }
 
   Future<bool?> _confirmDeleteFolder(BuildContext context, String name) {
@@ -711,6 +589,257 @@ class _BookshelfPageContentState extends State<_BookshelfPageContent>
           ..sort();
     return entries.join('|');
   }
+}
+
+class _BookshelfFilterDialog extends StatefulWidget {
+  const _BookshelfFilterDialog({
+    required this.mode,
+    required this.initialSort,
+    required this.initialFolderKey,
+    required this.initialSources,
+    required this.availableSources,
+    required this.sourceOptions,
+    required this.onCreateFolder,
+    required this.onRequestFolderAction,
+  });
+
+  final ShelfPageMode mode;
+  final String initialSort;
+  final String initialFolderKey;
+  final Set<String> initialSources;
+  final List<String> availableSources;
+  final List<_FilterSourceOption> sourceOptions;
+  final Future<String?> Function() onCreateFolder;
+  final Future<_FolderDialogOutcome?> Function(FavoriteFolderView folder)
+  onRequestFolderAction;
+
+  @override
+  State<_BookshelfFilterDialog> createState() => _BookshelfFilterDialogState();
+}
+
+class _BookshelfFilterDialogState extends State<_BookshelfFilterDialog> {
+  late String _selectedSort;
+  late String _selectedFolderKey;
+  late Set<String> _selectedSources;
+
+  bool get _isFavoriteMode => widget.mode == ShelfPageMode.favorite;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedSort = widget.initialSort;
+    _selectedFolderKey = widget.initialFolderKey;
+    _selectedSources = Set<String>.from(widget.initialSources);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('筛选'),
+      content: SizedBox(
+        width: 420,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSortSection(context),
+            const SizedBox(height: 16),
+            if (_isFavoriteMode) ...[
+              _buildFolderSection(context),
+              const SizedBox(height: 16),
+            ],
+            _buildSourceSection(context),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('取消'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(
+            _BookshelfFilterResult(
+              sort: _selectedSort,
+              folderKey: _selectedFolderKey,
+              sources: _selectedSources,
+            ),
+          ),
+          child: const Text('应用'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSortSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('排序', style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: [
+            ChoiceChip(
+              showCheckmark: false,
+              label: const Text('时间(晚→早)'),
+              selected: _selectedSort == 'dd',
+              onSelected: (_) => setState(() => _selectedSort = 'dd'),
+            ),
+            ChoiceChip(
+              showCheckmark: false,
+              label: const Text('时间(早→晚)'),
+              selected: _selectedSort == 'da',
+              onSelected: (_) => setState(() => _selectedSort = 'da'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFolderSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text('收藏夹', style: Theme.of(context).textTheme.titleSmall),
+            const Spacer(),
+            TextButton(onPressed: _createFolder, child: const Text('新建')),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final folder in FavoriteFolderService.listFolders())
+              GestureDetector(
+                onLongPress: folder.isAll
+                    ? null
+                    : () => _handleFolderLongPress(folder),
+                child: ChoiceChip(
+                  showCheckmark: false,
+                  label: Text(folder.name),
+                  selected: _selectedFolderKey == folder.key,
+                  onSelected: (_) =>
+                      setState(() => _selectedFolderKey = folder.key),
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSourceSection(BuildContext context) {
+    final isAllSelected =
+        _selectedSources.length == widget.availableSources.length;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text('漫画源', style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(width: 8),
+            TextButton(
+              onPressed: () => setState(() {
+                if (isAllSelected) {
+                  _selectedSources.clear();
+                } else {
+                  _selectedSources = widget.availableSources.toSet();
+                }
+              }),
+              child: Text(isAllSelected ? '取消全选' : '全选'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final source in widget.sourceOptions)
+              FilterChip(
+                showCheckmark: false,
+                label: Text(source.title),
+                selected: _selectedSources.contains(source.pluginId),
+                onSelected: (selected) => setState(() {
+                  if (selected) {
+                    _selectedSources.add(source.pluginId);
+                  } else {
+                    _selectedSources.remove(source.pluginId);
+                  }
+                }),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> _createFolder() async {
+    final created = await widget.onCreateFolder();
+    if (created == null || created.trim().isEmpty) {
+      return;
+    }
+    try {
+      final folder = FavoriteFolderService.createFolder(created.trim());
+      if (!mounted) {
+        return;
+      }
+      setState(() => _selectedFolderKey = folder.key);
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+  }
+
+  Future<void> _handleFolderLongPress(FavoriteFolderView folder) async {
+    final outcome = await widget.onRequestFolderAction(folder);
+    if (!mounted || outcome == null) {
+      return;
+    }
+    setState(() {
+      if (outcome.selectedFolderKey != null) {
+        _selectedFolderKey = outcome.selectedFolderKey!;
+      }
+    });
+  }
+}
+
+class _BookshelfFilterResult {
+  _BookshelfFilterResult({
+    required this.sort,
+    required this.folderKey,
+    required Set<String> sources,
+  }) : sources = Set<String>.from(sources);
+
+  final String sort;
+  final String folderKey;
+  final Set<String> sources;
+}
+
+class _FilterSourceOption {
+  const _FilterSourceOption({required this.pluginId, required this.title});
+
+  final String pluginId;
+  final String title;
+}
+
+class _FolderDialogOutcome {
+  const _FolderDialogOutcome({
+    required this.shouldRefreshFolders,
+    this.selectedFolderKey,
+  });
+
+  final bool shouldRefreshFolders;
+  final String? selectedFolderKey;
 }
 
 enum _FolderAction { rename, delete }

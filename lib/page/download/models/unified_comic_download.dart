@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/object_box/model.dart';
+import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 
 class UnifiedComicDownloadImage {
   const UnifiedComicDownloadImage({
@@ -163,9 +163,9 @@ class UnifiedComicDownloadInfo {
         id: id.isNotEmpty ? id : source.comicId,
         title: chapter.name,
         order: order,
-        requestId: _readString(extern, 'requestId'),
-        storageChapterId: _readString(extern, 'storageChapterId'),
-        logicalKey: _readString(extern, 'logicalKey'),
+        requestId: chapter.requestId.trim(),
+        storageChapterId: chapter.storageChapterId.trim(),
+        logicalKey: chapter.logicalKey.trim(),
         images: const [],
         extern: extern,
       );
@@ -221,10 +221,6 @@ UnifiedComicDownloadInfo resolveUnifiedDownloadInfo(
 
 int _toInt(String value, int fallback) {
   return int.tryParse(value) ?? fallback;
-}
-
-String _readString(Map<String, dynamic> map, String key) {
-  return map[key]?.toString().trim() ?? '';
 }
 
 List<UnifiedComicDownloadStoredChapter> resolveStoredDownloadChapters(

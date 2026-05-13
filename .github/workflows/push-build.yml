@@ -202,7 +202,7 @@ jobs:
   # 3. Windows 构建
   # ══════════════════════════════════════════
   build-windows:
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
     steps:
       - name: 关闭 Git CRLF 转换
         run: git config --global core.autocrlf false

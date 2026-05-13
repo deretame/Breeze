@@ -6,12 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/config/global/global_setting.dart';
+import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_read/cubit/image_size_cubit.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
-
-import 'package:zephyr/main.dart';
 
 class SliderWidget extends StatefulWidget {
   final ListObserverController observerController;
@@ -192,13 +191,12 @@ class _SliderWidgetState extends State<SliderWidget> {
 
                       try {
                         if (globalSettingState.readSetting.readMode == 0) {
-                          _jumpColumnWithSecondCorrection(targetGlobalSlot);
-                        } else {
-                          widget.pageController.animateToPage(
+                          _jumpColumnWithOffsetThenCorrection(
                             targetGlobalSlot,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
+                            globalSettingState.readSetting,
                           );
+                        } else {
+                          widget.pageController.jumpToPage(targetGlobalSlot);
                         }
                       } catch (e) {
                         logger.e(e);
@@ -228,7 +226,6 @@ class _SliderWidgetState extends State<SliderWidget> {
       builder: (context) {
         return Stack(
           children: [
-            // 提示信息
             Center(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8.0),
@@ -265,6 +262,44 @@ class _SliderWidgetState extends State<SliderWidget> {
 
     // 插入 Overlay
     Overlay.of(context).insert(_overlayEntry!);
+  }
+
+  void _jumpColumnWithOffsetThenCorrection(
+    int targetGlobalSlot,
+    ReadSettingState readSetting,
+  ) {
+    var jumpedByOffset = false;
+    final scrollController = widget.observerController.controller;
+    if (scrollController != null && scrollController.hasClients) {
+      try {
+        final viewportWidth = MediaQuery.sizeOf(context).width;
+        final contentWidth = getConstrainedImageWidth(
+          containerWidth: viewportWidth,
+          enableSidePadding: readSetting.sidePaddingEnabled,
+          sidePaddingPercent: readSetting.sidePaddingPercent,
+        );
+        final roughOffset = getOffset(
+          context,
+          targetGlobalSlot,
+          imageWidth: contentWidth,
+        );
+        final maxScrollExtent = scrollController.position.maxScrollExtent;
+        scrollController.jumpTo(roughOffset.clamp(0.0, maxScrollExtent));
+        jumpedByOffset = true;
+      } catch (e) {
+        logger.e(e);
+      }
+    }
+
+    if (!jumpedByOffset) {
+      _jumpColumnWithSecondCorrection(targetGlobalSlot);
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _jumpColumnWithSecondCorrection(targetGlobalSlot);
+    });
   }
 
   void _jumpColumnWithSecondCorrection(int targetGlobalSlot) {

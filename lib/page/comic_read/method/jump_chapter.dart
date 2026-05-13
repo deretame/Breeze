@@ -57,7 +57,7 @@ class JumpChapter {
       target = chapters[index + 1];
     }
     order = target.order;
-    chapterId = target.id;
+    chapterId = resolveUnifiedComicChapterKey(target);
     chapterExtern = Map<String, dynamic>.from(target.extern);
 
     router.replace(
@@ -105,13 +105,15 @@ class JumpChapter {
       chapterId: chapterId,
       order: order,
     );
-    final currentId = resolvedRef?.id ?? '';
+    final currentId = resolvedRef != null
+        ? resolveUnifiedComicChapterKey(resolvedRef)
+        : '';
     if (chapters.isEmpty) {
       havePrev = false;
       haveNext = false;
     } else {
       final chapterIndex = chapters.indexWhere(
-        (chapter) => chapter.id == currentId,
+        (chapter) => resolveUnifiedComicChapterKey(chapter) == currentId,
       );
       if (chapterIndex <= 0) {
         havePrev = false;
@@ -160,6 +162,7 @@ class JumpChapter {
       return true;
     }
 
-    return chapter.id == currentChapterId;
+    return resolveUnifiedComicChapterKey(chapter) == currentChapterId ||
+        chapter.id == currentChapterId;
   }
 }

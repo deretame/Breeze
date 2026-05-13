@@ -170,6 +170,18 @@ Future<Uint8List> qjsFetchBytesAutoOnce({
   argsJson: argsJson,
 );
 
+Future<Uint8List> qjsFetchBytesAutoOnceByUrl({
+  required String runtimeName,
+  required String bundleUrl,
+  required String fnPath,
+  required String argsJson,
+}) => RustLib.instance.api.crateApiQjsQjsFetchBytesAutoOnceByUrl(
+  runtimeName: runtimeName,
+  bundleUrl: bundleUrl,
+  fnPath: fnPath,
+  argsJson: argsJson,
+);
+
 Future<BigInt> qjsFetchImageBytesOnceTaskStart({
   required String runtimeName,
   required String bundleJs,
@@ -179,6 +191,20 @@ Future<BigInt> qjsFetchImageBytesOnceTaskStart({
 }) => RustLib.instance.api.crateApiQjsQjsFetchImageBytesOnceTaskStart(
   runtimeName: runtimeName,
   bundleJs: bundleJs,
+  fnPath: fnPath,
+  argsJson: argsJson,
+  taskGroupKey: taskGroupKey,
+);
+
+Future<BigInt> qjsFetchImageBytesOnceTaskStartByUrl({
+  required String runtimeName,
+  required String bundleUrl,
+  required String fnPath,
+  required String argsJson,
+  required String taskGroupKey,
+}) => RustLib.instance.api.crateApiQjsQjsFetchImageBytesOnceTaskStartByUrl(
+  runtimeName: runtimeName,
+  bundleUrl: bundleUrl,
   fnPath: fnPath,
   argsJson: argsJson,
   taskGroupKey: taskGroupKey,

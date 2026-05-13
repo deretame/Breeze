@@ -109,7 +109,8 @@ int _resolveHistoryOrder(
 
   final byLegacyOrderAsChapterId = chapters
       .where(
-        (chapter) => resolveUnifiedComicChapterKey(chapter) ==
+        (chapter) =>
+            resolveUnifiedComicChapterKey(chapter) ==
             history.chapterOrder.toString(),
       )
       .toList();

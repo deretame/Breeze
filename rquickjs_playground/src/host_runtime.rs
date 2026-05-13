@@ -277,7 +277,7 @@ const BUNDLE_DISPATCHER_JS: &str = r#"(async () => {
   }
 })()"#;
 
-const MAX_BUNDLE_CALL_ONCE_CONTEXTS: usize = 20;
+const MAX_BUNDLE_CALL_ONCE_CONTEXTS: usize = 10;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ContextRoute {
@@ -662,7 +662,12 @@ impl HostRuntime {
             &submission.args_json,
         )?;
 
-        self.submit_async_task_on_route(ContextRoute::Once(slot_index), runtime_id, task_id, &script)?;
+        self.submit_async_task_on_route(
+            ContextRoute::Once(slot_index),
+            runtime_id,
+            task_id,
+            &script,
+        )?;
 
         if let Some(slot) = self.once_contexts.get_mut(slot_index) {
             slot.last_bundle_source_hash = Some(submission.source_hash);
@@ -1317,7 +1322,10 @@ impl AsyncHostRuntime {
 
         if self
             .tx
-            .send(WorkerSignal::Command(AsyncCommand::SubmitOnce { id, submission }))
+            .send(WorkerSignal::Command(AsyncCommand::SubmitOnce {
+                id,
+                submission,
+            }))
             .is_err()
         {
             if let Ok(mut guard) = self.states.lock() {
@@ -1976,12 +1984,9 @@ fn handle_worker_command(
 
             match host.acquire_once_slot_for_task(id, MAX_BUNDLE_CALL_ONCE_CONTEXTS) {
                 Ok(Some(slot_index)) => {
-                    if let Err(err) = host.submit_once_task_on_slot(
-                        runtime_id,
-                        id,
-                        slot_index,
-                        &submission,
-                    ) {
+                    if let Err(err) =
+                        host.submit_once_task_on_slot(runtime_id, id, slot_index, &submission)
+                    {
                         let _ = host.release_once_slot(id);
                         finalize_task_with_waiter(states, waiters, id, Err(err));
                     }

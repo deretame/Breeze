@@ -1055,6 +1055,115 @@ async fn call_bundle_once_bytes_auto_by_json(
         .map_err(|err| anyhow!(err))
 }
 
+async fn load_bundle_js_from_url(bundle_url: &str) -> Result<String> {
+    let bundle_url = bundle_url.trim();
+    if bundle_url.is_empty() {
+        return Err(anyhow!("bundle_url 不能为空"));
+    }
+
+    let response = reqwest::get(bundle_url)
+        .await
+        .with_context(|| format!("下载 bundle 失败: {bundle_url}"))?
+        .error_for_status()
+        .with_context(|| format!("下载 bundle 返回非成功状态: {bundle_url}"))?;
+
+    if bundle_url.ends_with(".br") {
+        let compressed = response
+            .bytes()
+            .await
+            .with_context(|| format!("读取 Brotli bundle 响应失败: {bundle_url}"))?
+            .to_vec();
+        let decompressed = crate::compressed::compressed::decompress_extreme(compressed)
+            .await
+            .with_context(|| format!("解压 Brotli bundle 失败: {bundle_url}"))?;
+        return String::from_utf8(decompressed)
+            .with_context(|| format!("bundle 不是合法 UTF-8: {bundle_url}"));
+    }
+
+    response
+        .text()
+        .await
+        .with_context(|| format!("读取 bundle 文本失败: {bundle_url}"))
+}
+
+fn is_bundle_url(value: &str) -> bool {
+    let value = value.trim();
+    value.starts_with("http://") || value.starts_with("https://")
+}
+
+async fn call_bundle_once_bytes_auto_by_url(
+    runtime_name: &str,
+    bundle_url: &str,
+    fn_path: &str,
+    args_json: &str,
+) -> Result<Vec<u8>> {
+    let bundle_js = load_bundle_js_from_url(bundle_url).await?;
+    call_bundle_once_bytes_auto_by_json(runtime_name, &bundle_js, fn_path, args_json).await
+}
+
+async fn call_bundle_once_bytes_auto_by_input(
+    runtime_name: &str,
+    bundle_input: &str,
+    fn_path: &str,
+    args_json: &str,
+) -> Result<Vec<u8>> {
+    if is_bundle_url(bundle_input) {
+        return call_bundle_once_bytes_auto_by_url(runtime_name, bundle_input, fn_path, args_json)
+            .await;
+    }
+    call_bundle_once_bytes_auto_by_json(runtime_name, bundle_input, fn_path, args_json).await
+}
+
+async fn call_bundle_once_start_by_url(
+    runtime_name: &str,
+    bundle_url: &str,
+    fn_path: &str,
+    args_json: &str,
+    task_group_key: &str,
+    kind: TrackedQjsTaskKind,
+) -> Result<u64> {
+    let bundle_js = load_bundle_js_from_url(bundle_url).await?;
+    call_bundle_once_start_by_json(
+        runtime_name,
+        &bundle_js,
+        fn_path,
+        args_json,
+        task_group_key,
+        kind,
+    )
+    .await
+}
+
+async fn call_bundle_once_start_by_input(
+    runtime_name: &str,
+    bundle_input: &str,
+    fn_path: &str,
+    args_json: &str,
+    task_group_key: &str,
+    kind: TrackedQjsTaskKind,
+) -> Result<u64> {
+    if is_bundle_url(bundle_input) {
+        return call_bundle_once_start_by_url(
+            runtime_name,
+            bundle_input,
+            fn_path,
+            args_json,
+            task_group_key,
+            kind,
+        )
+        .await;
+    }
+    call_bundle_once_start_by_json(
+        runtime_name,
+        bundle_input,
+        fn_path,
+        args_json,
+        task_group_key,
+        kind,
+    )
+    .await
+}
+
 async fn current_bundle_name(runtime: &AsyncHostRuntime) -> Result<Option<String>> {
     let mut names = runtime
         .bundle_list()
@@ -1359,7 +1468,16 @@ pub async fn qjs_fetch_bytes_auto_once(
     fn_path: String,
     args_json: String,
 ) -> Result<Vec<u8>> {
-    call_bundle_once_bytes_auto_by_json(&runtime_name, &bundle_js, &fn_path, &args_json).await
+    call_bundle_once_bytes_auto_by_input(&runtime_name, &bundle_js, &fn_path, &args_json).await
+}
+
+pub async fn qjs_fetch_bytes_auto_once_by_url(
+    runtime_name: String,
+    bundle_url: String,
+    fn_path: String,
+    args_json: String,
+) -> Result<Vec<u8>> {
+    call_bundle_once_bytes_auto_by_url(&runtime_name, &bundle_url, &fn_path, &args_json).await
 }
 
 pub async fn qjs_fetch_image_bytes_once_task_start(
@@ -1370,9 +1488,28 @@ pub async fn qjs_fetch_image_bytes_once_task_start(
     task_group_key: String,
 ) -> Result<u64> {
     clear_task_group_cancelled(&runtime_name, &task_group_key);
-    call_bundle_once_start_by_json(
+    call_bundle_once_start_by_input(
         &runtime_name,
         &bundle_js,
+        &fn_path,
+        &args_json,
+        &task_group_key,
+        TrackedQjsTaskKind::CallBytes,
+    )
+    .await
+}
+
+pub async fn qjs_fetch_image_bytes_once_task_start_by_url(
+    runtime_name: String,
+    bundle_url: String,
+    fn_path: String,
+    args_json: String,
+    task_group_key: String,
+) -> Result<u64> {
+    clear_task_group_cancelled(&runtime_name, &task_group_key);
+    call_bundle_once_start_by_url(
+        &runtime_name,
+        &bundle_url,
         &fn_path,
         &args_json,
         &task_group_key,

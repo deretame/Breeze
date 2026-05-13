@@ -151,6 +151,17 @@ pub async fn qjs_fetch_bytes_auto_once(
 }
 
 #[frb]
+pub async fn qjs_fetch_bytes_auto_once_by_url(
+    runtime_name: String,
+    bundle_url: String,
+    fn_path: String,
+    args_json: String,
+) -> Result<Vec<u8>> {
+    crate::qjs::qjs_fetch_bytes_auto_once_by_url(runtime_name, bundle_url, fn_path, args_json)
+        .await
+}
+
+#[frb]
 pub async fn qjs_fetch_image_bytes_once_task_start(
     runtime_name: String,
     bundle_js: String,
@@ -161,6 +172,24 @@ pub async fn qjs_fetch_image_bytes_once_task_start(
     crate::qjs::qjs_fetch_image_bytes_once_task_start(
         runtime_name,
         bundle_js,
+        fn_path,
+        args_json,
+        task_group_key,
+    )
+    .await
+}
+
+#[frb]
+pub async fn qjs_fetch_image_bytes_once_task_start_by_url(
+    runtime_name: String,
+    bundle_url: String,
+    fn_path: String,
+    args_json: String,
+    task_group_key: String,
+) -> Result<u64> {
+    crate::qjs::qjs_fetch_image_bytes_once_task_start_by_url(
+        runtime_name,
+        bundle_url,
         fn_path,
         args_json,
         task_group_key,

@@ -244,17 +244,28 @@ Future<Uint8List> executeQjsFetchImageBytes({
     throw StateError('fnPath 不能为空: pluginId=$resolvedPluginId');
   }
   final useCallOnce = _shouldUseQjsCallOnce(resolvedPluginId);
-  final bundleJs = useCallOnce ? await loadQjsBundleJs(resolvedPluginId) : null;
-
   final taskId = useCallOnce
-      ? await qjsFetchImageBytesOnceTaskStart(
-          runtimeName: resolvedRuntimeName,
-          bundleJs: bundleJs!,
-          fnPath: resolvedFnPath,
-          argsJson: argsJson,
-          taskGroupKey: taskGroupKey ?? '',
-        )
-      : await () async {
+      ? await (() async {
+          final bundleUrl = loadQjsDebugBundleUrl(resolvedPluginId);
+          if (bundleUrl != null) {
+            return qjsFetchImageBytesOnceTaskStartByUrl(
+              runtimeName: resolvedRuntimeName,
+              bundleUrl: bundleUrl,
+              fnPath: resolvedFnPath,
+              argsJson: argsJson,
+              taskGroupKey: taskGroupKey ?? '',
+            );
+          }
+          final bundleJs = await loadQjsBundleJs(resolvedPluginId);
+          return qjsFetchImageBytesOnceTaskStart(
+            runtimeName: resolvedRuntimeName,
+            bundleJs: bundleJs,
+            fnPath: resolvedFnPath,
+            argsJson: argsJson,
+            taskGroupKey: taskGroupKey ?? '',
+          );
+        })()
+      : await (() async {
           await ensureQjsRuntimeReady(pluginId: resolvedPluginId);
           return qjsFetchImageBytesTaskStart(
             runtimeName: resolvedRuntimeName,
@@ -262,7 +273,7 @@ Future<Uint8List> executeQjsFetchImageBytes({
             fnPath: resolvedFnPath,
             argsJson: argsJson,
           );
-        }();
+        })();
 
   final taskRef = _TrackedQjsTaskRef(
     runtimeName: resolvedRuntimeName,
@@ -317,6 +328,22 @@ bool _shouldUseQjsCallOnce(String pluginId) {
   final normalized = normalizePluginId(pluginId);
   final state = PluginRegistryService.I.getByUuid(normalized);
   return state?.debug == true;
+}
+
+String? loadQjsDebugBundleUrl(String pluginId) {
+  final normalizedPluginId = normalizePluginId(pluginId);
+  if (normalizedPluginId.isEmpty) {
+    throw StateError('pluginId 不能为空');
+  }
+  final runtimeState = PluginRegistryService.I.getByUuid(normalizedPluginId);
+  if (runtimeState == null || runtimeState.isDeleted) {
+    throw StateError('plugin_not_found:$normalizedPluginId');
+  }
+  if (!runtimeState.debug) {
+    return null;
+  }
+  final bundleUrl = runtimeState.debugUrl?.trim() ?? '';
+  return bundleUrl.isEmpty ? null : bundleUrl;
 }
 
 Future<void> cancelTrackedQjsTasks({

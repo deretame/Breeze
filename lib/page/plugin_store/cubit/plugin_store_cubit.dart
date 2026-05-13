@@ -370,9 +370,7 @@ class PluginStoreCubit extends Cubit<PluginStoreState> {
       await PluginRegistryService.I.setEnabled(resolvedUuid, true);
 
       final action = existing == null ? '安装成功' : '更新成功';
-      _reportInstallSuccess(
-        '$action: uuid=$resolvedUuid, version=$version（$sourceLabel）',
-      );
+      _reportInstallSuccess(action);
     } catch (e) {
       _reportInstallFailure('安装失败（$sourceLabel）: $e');
     }

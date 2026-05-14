@@ -57,14 +57,12 @@ Future<String> getCachePicture({
 
   final cachePath = await getCachePath();
   final downloadPath = await getDownloadPath();
-  final storedChapterId = _resolveStoredChapterId(chapterId, pictureType);
-
   final cacheFilePath = _buildStoredFilePath(
     cachePath,
     resolvedFrom,
     path,
     cartoonId,
-    storedChapterId,
+    pictureType == PictureType.cover ? '' : chapterId,
   );
 
   final downloadFilePath = _buildStoredFilePath(
@@ -72,13 +70,13 @@ Future<String> getCachePicture({
     resolvedFrom,
     path,
     cartoonId,
-    storedChapterId,
+    pictureType == PictureType.cover ? '' : chapterId,
     rootFolder: 'original',
   );
 
-  // logger.d(
-  //   'getCachePicture: cacheFilePath=$cacheFilePath, downloadFilePath=$downloadFilePath',
-  // );
+  logger.d(
+    'getCachePicture: cacheFilePath=$cacheFilePath, downloadFilePath=$downloadFilePath',
+  );
 
   final existingFilePath = await checkFileExists(
     cacheFilePath,
@@ -181,14 +179,12 @@ Future<String> downloadPicture({
 
   final downloadPath = await getDownloadPath();
   final cachePath = await getCachePath();
-  final storedChapterId = _resolveStoredChapterId(chapterId, pictureType);
-
   final cacheFilePath = _buildStoredFilePath(
     cachePath,
     resolvedFrom,
     path,
     cartoonId,
-    storedChapterId,
+    pictureType == PictureType.cover ? '' : chapterId,
     rootFolder: 'original',
   );
 
@@ -197,7 +193,7 @@ Future<String> downloadPicture({
     resolvedFrom,
     path,
     cartoonId,
-    storedChapterId,
+    pictureType == PictureType.cover ? '' : chapterId,
     rootFolder: 'original',
   );
 
@@ -287,13 +283,6 @@ Future<String> downloadPicture({
   } else {
     return '404';
   }
-}
-
-String _resolveStoredChapterId(String chapterId, PictureType pictureType) {
-  if (pictureType == PictureType.cover) {
-    return '';
-  }
-  return chapterId;
 }
 
 String _buildStoredFilePath(

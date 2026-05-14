@@ -9,25 +9,21 @@ Breeze 插件管理页支持：
 
 当 `debug=true` 且 `debugUrl` 可访问时，客户端会优先加载远端 bundle。
 
-调试模式下可实现：
+注意：
 
-- 本地起一个静态服务
-- 每次构建后直接刷新 App 验证最新代码
+- 调试模式下，如果 `cjs` 文件发生变更，宿主会重建 QJS 实例
+- 插件内的内存状态不会保留
+- 如果需要保留短期数据，放入 `cache`
+- 如果需要保留长期数据，放入 `config`
 
-联调流程：
+## 2) 发布流程
 
-1. `pnpm build`
-2. 把 bundle 放到本地静态服务目录
-3. 在 Breeze 设置 `debugUrl`
-4. 进入搜索/详情/阅读链路做回归
+推荐发布流程：
 
-## 2) 构建
-
-常见脚本：
-
-- `pnpm typecheck`
-- `rspack build`
-- 产物输出为单文件 bundle（如 `xxx.bundle.cjs`）
+1. 先执行 `pnpm run build`
+2. 确认本地构建成功，`manifest.json` 已更新
+3. 把代码和发布产物更新到 GitHub 仓库
+4. 基于 GitHub Release 发布新版本
 
 发布前至少做：
 
@@ -35,19 +31,45 @@ Breeze 插件管理页支持：
 - 登录过期流程校验
 - 图片下载与阅读翻页校验
 
-## 3) 插件注册信息
+## 3) 自动更新
+
+后续客户端会通过 `manifest.json` 里的 `version` 自动检测是否存在更新版本，并执行自动更新。
+
+`updateUrl` 推荐使用 GitHub 最新 Release API：
+
+```text
+https://api.github.com/repos/<owner>/Breeze-plugin-<name>/releases/latest
+```
+
+例如：
+
+```text
+https://api.github.com/repos/deretame/Breeze-plugin-example/releases/latest
+```
+
+如果不使用 GitHub，目前将无法自动更新。
+
+后续会尝试补充非 GitHub 仓库的自动更新能力。
+
+## 4) 插件注册信息
 
 插件元数据至少应包含：
 
 - `name`
+- `uuid`
+- `describe`
 - `version`
-- `id`
-- `url`
-- `main`
+- `home`
+- `updateUrl`
 
-其中 `id` 需要与插件内部声明的 UUID 保持一致。
+其中 `uuid` 需要与插件内部声明的 UUID 保持一致。
 
-## 4) 常见故障定位
+其中：
+
+- `version` 用于后续自动更新检测
+- `updateUrl` 用于获取最新版本发布信息
+
+## 5) 常见故障定位
 
 ### `target is not function: xxx`
 

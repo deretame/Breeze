@@ -64,7 +64,7 @@
       "comicInfo": {
         "id": "c-001",
         "title": "示例漫画",
-        "titleMeta": [{ "name": "浏览：456", "onTap": {}, "extension": {} }],
+        "titleMeta": [{ "name": "浏览：456", "onTap": {}, "extern": {} }],
         "creator": {
           "id": "u-001",
           "name": "作者A",
@@ -73,10 +73,10 @@
             "url": "https://cdn.example.com/avatar/u-001.jpg",
             "name": "u-001.jpg",
             "path": "avatar/u-001.jpg",
-            "extension": {}
+            "extern": {}
           },
           "onTap": {},
-          "extension": {}
+          "extern": {}
         },
         "description": "详情描述",
         "cover": {
@@ -84,12 +84,22 @@
           "url": "https://cdn.example.com/cover/c-001.jpg",
           "name": "c-001.jpg",
           "path": "cover/c-001.jpg",
-          "extension": {}
+          "extern": {}
         },
         "metadata": [],
-        "extension": {}
+        "extern": {}
       },
-      "eps": [{ "id": "ep-1", "name": "第1话", "order": 1, "extension": {} }],
+      "eps": [
+        {
+          "id": "ep-1",
+          "requestId": "ep-1",
+          "logicalKey": "ep-1",
+          "storageChapterId": "ep-1",
+          "name": "第1话",
+          "order": 1,
+          "extern": {}
+        }
+      ],
       "recommend": [],
       "totalViews": 456,
       "totalLikes": 123,
@@ -100,48 +110,124 @@
       "allowLike": true,
       "allowCollected": true,
       "allowDownload": true,
-      "extension": {}
+      "extern": {}
     },
     "raw": {}
   }
 }
 ```
 
-## 3) `getChapter` 样例
+## 3) `getReadSnapshot` 样例
 
 ```json
 {
   "source": "demo-plugin-id",
-  "comicId": "c-001",
-  "chapterId": "ep-1",
   "extern": {},
-  "scheme": { "version": "1.0.0", "type": "chapterContent" },
   "data": {
+    "comic": {
+      "id": "c-001",
+      "source": "demo-plugin-id",
+      "title": "示例漫画",
+      "description": "详情描述",
+      "cover": {
+        "id": "c-001",
+        "url": "https://cdn.example.com/cover/c-001.jpg",
+        "path": "cover/c-001.jpg",
+        "extern": {}
+      },
+      "creator": {
+        "id": "u-001",
+        "name": "作者A",
+        "avatar": {
+          "id": "u-001",
+          "url": "https://cdn.example.com/avatar/u-001.jpg",
+          "path": "avatar/u-001.jpg",
+          "extern": {}
+        },
+        "extern": {}
+      },
+      "titleMeta": [],
+      "metadata": [],
+      "extern": {}
+    },
     "chapter": {
-      "epId": "ep-1",
-      "epName": "第1话",
-      "length": 2,
-      "epPages": "2",
-      "docs": [
+      "id": "ep-1",
+      "requestId": "ep-1",
+      "logicalKey": "ep-1",
+      "storageChapterId": "ep-1",
+      "name": "第1话",
+      "order": 1,
+      "pages": [
         {
           "id": "p-1",
           "name": "001.jpg",
           "path": "001.jpg",
-          "url": "https://cdn.example.com/pages/ep-1/001.jpg"
+          "url": "https://cdn.example.com/pages/ep-1/001.jpg",
+          "extern": {}
         },
         {
           "id": "p-2",
           "name": "002.jpg",
           "path": "002.jpg",
-          "url": "https://cdn.example.com/pages/ep-1/002.jpg"
+          "url": "https://cdn.example.com/pages/ep-1/002.jpg",
+          "extern": {}
         }
-      ]
+      ],
+      "extern": {}
+    },
+    "chapters": [
+      {
+        "id": "ep-1",
+        "requestId": "ep-1",
+        "logicalKey": "ep-1",
+        "storageChapterId": "ep-1",
+        "name": "第1话",
+        "order": 1,
+        "extern": {}
+      }
+    ]
+  }
+}
+```
+
+## 4) `getChapter` 样例
+
+```json
+{
+  "source": "demo-plugin-id",
+  "extern": {},
+  "scheme": { "version": "1.0.0", "type": "chapterContent" },
+  "data": {
+    "chapter": {
+      "id": "ep-1",
+      "requestId": "ep-1",
+      "logicalKey": "ep-1",
+      "storageChapterId": "ep-1",
+      "name": "第1话",
+      "order": 1,
+      "pages": [
+        {
+          "id": "p-1",
+          "name": "001.jpg",
+          "path": "001.jpg",
+          "url": "https://cdn.example.com/pages/ep-1/001.jpg",
+          "extern": {}
+        },
+        {
+          "id": "p-2",
+          "name": "002.jpg",
+          "path": "002.jpg",
+          "url": "https://cdn.example.com/pages/ep-1/002.jpg",
+          "extern": {}
+        }
+      ],
+      "extern": {}
     }
   }
 }
 ```
 
-## 4) `getCommentFeed` 样例（`replyMode = lazy`）
+## 5) `getCommentFeed` 样例（`replyMode = lazy`）
 
 ```json
 {
@@ -172,7 +258,7 @@
 }
 ```
 
-## 5) `postComment` 样例
+## 6) `postComment` 样例
 
 ```json
 {
@@ -198,7 +284,7 @@
 }
 ```
 
-## 6) `getComicListSceneBundle` 样例
+## 7) `getComicListSceneBundle` 样例
 
 ```json
 {

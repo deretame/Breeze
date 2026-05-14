@@ -1,6 +1,7 @@
 import { defineConfig } from "vitepress";
 
 export default defineConfig({
+  base: "/plugin-dev-docs/",
   lang: "zh-CN",
   title: "Breeze 插件开发文档",
   description: "面向第三方作者的 Breeze 插件开发手册",

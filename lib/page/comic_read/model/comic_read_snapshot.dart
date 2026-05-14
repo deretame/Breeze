@@ -31,27 +31,26 @@ class ComicReadSnapshot {
     );
   }
 
-  NormalComicEpInfo toNormalEpInfo({required String fallbackChapterId}) {
+  NormalComicEpInfo toNormalEpInfo({required String logicalChapterId}) {
     final docs = chapter.pages
         .map(
           (page) => Doc(
             originalName: page.name,
             path: page.path,
             fileServer: page.url,
-            id: page.id.isNotEmpty ? page.id : fallbackChapterId,
+            id: page.id.isNotEmpty ? page.id : logicalChapterId,
             extern: page.extern,
           ),
         )
         .toList();
 
-    final chapterId = chapter.id.isNotEmpty ? chapter.id : fallbackChapterId;
     final epName = chapter.name.trim().isNotEmpty ? chapter.name : comic.title;
 
     return NormalComicEpInfo(
       length: docs.length,
       epPages: docs.length.toString(),
       docs: docs,
-      epId: chapterId,
+      epId: logicalChapterId,
       epName: epName,
     );
   }

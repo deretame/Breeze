@@ -46,16 +46,29 @@ type PluginEnvelope = {
 - `data`：业务数据
 - `extern`：透传上下文
 
-## 4) Runtime 常用能力
+## 4) Runtime 封装
 
-插件环境通常提供宿主 API（名称可能因模板而异），常见有：
+运行时能力、类型定义和工具封装，直接参考示例仓库：
 
-- `runtime.native.put(bytes)`：把图片二进制交给宿主
-- `runtime.pluginConfig.*`：保存/读取插件配置
-- `runtime.cache.*`：内存缓存
-- `runtime.bridge.call(...)`：桥接能力（加解密等）
+- `types/runtime-api.ts`
+- `types/runtime-globals.d.ts`
+- `src/tools.ts`
 
-工程建议：为这些 API 增加 `requireApi` 封装，缺失时抛出明确错误。
+新插件建议直接沿用示例仓库里的封装方式，不在文档里重复维护另一套说明。
+
+调试模式下，如果 `cjs` 文件发生变更，宿主会重建 QJS 实例。
+
+这意味着：
+
+- 插件内的内存状态不会保留
+- 模块级变量会重新初始化
+
+如果需要存储数据，建议按生命周期拆分：
+
+- 短期数据放 `cache`
+- 长期数据放 `config`
+
+其中 `cache` 的生命周期跟随软件进程存在，适合运行期缓存；`config` 适合需要跨重启保留的数据。
 
 ## 5) 未登录错误（推荐）
 

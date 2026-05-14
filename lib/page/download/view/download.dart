@@ -52,7 +52,7 @@ class _DownloadPageState extends State<DownloadPage> {
     comicDownloadInfo = query.build().findFirst();
     if (comicDownloadInfo != null) {
       final storedChapters = resolveStoredDownloadChapters(comicDownloadInfo!);
-      final downloadedChapterIds = storedChapters
+      final downloadedStorageChapterIds = storedChapters
           .map((chapter) => chapter.id.trim())
           .where((id) => id.isNotEmpty)
           .toSet();
@@ -65,15 +65,18 @@ class _DownloadPageState extends State<DownloadPage> {
           .where((order) => order > 0)
           .toSet();
       for (var ep in downloadInfo.chapters) {
-        final chapterId = ep.id.trim();
+        final storageChapterId = ep.storageChapterId.trim();
         final logicalKey = ep.logicalKey.trim();
-        final selectedById =
-            chapterId.isNotEmpty && downloadedChapterIds.contains(chapterId);
+        final selectedByStorageChapterId =
+            storageChapterId.isNotEmpty &&
+            downloadedStorageChapterIds.contains(storageChapterId);
         final selectedByLogicalKey =
             logicalKey.isNotEmpty && downloadedLogicalKeys.contains(logicalKey);
         final selectedByOrder = downloadedOrders.contains(ep.order);
         _downloadInfo[_resolveSelectionKey(ep)] =
-            selectedByLogicalKey || selectedById || selectedByOrder;
+            selectedByLogicalKey ||
+            selectedByStorageChapterId ||
+            selectedByOrder;
       }
     }
   }
@@ -190,10 +193,6 @@ class _DownloadPageState extends State<DownloadPage> {
     final logicalKey = chapter.logicalKey.trim();
     if (logicalKey.isNotEmpty) {
       return logicalKey;
-    }
-    final requestId = chapter.requestId.trim();
-    if (requestId.isNotEmpty) {
-      return requestId;
     }
     final chapterId = chapter.id.trim();
     if (chapterId.isNotEmpty) {

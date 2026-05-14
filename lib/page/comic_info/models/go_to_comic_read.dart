@@ -55,6 +55,9 @@ void goToComicRead(
       chapterId: chapterRef != null
           ? resolveUnifiedComicChapterKey(chapterRef)
           : '',
+      requestId: chapterRef?.requestId.trim() ?? '',
+      storageChapterId: chapterRef?.storageChapterId.trim() ?? '',
+      logicalKey: chapterRef?.logicalKey.trim() ?? '',
       chapterExtern: Map<String, dynamic>.from(
         chapterRef?.extern ?? const <String, dynamic>{},
       ),
@@ -93,6 +96,7 @@ int _resolveHistoryOrder(
         (chapter) =>
             resolveUnifiedComicChapterKey(chapter) == history.chapterId ||
             chapter.requestId.trim() == history.chapterId ||
+            chapter.logicalKey.trim() == history.chapterId ||
             chapter.id == history.chapterId,
       )
       .toList();

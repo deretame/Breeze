@@ -94,10 +94,6 @@ class _EpsWidgetState extends State<EpsWidget> {
     if (logicalKey.isNotEmpty) {
       return logicalKey;
     }
-    final requestId = chapter.requestId.trim();
-    if (requestId.isNotEmpty) {
-      return requestId;
-    }
     final chapterId = chapter.id.trim();
     if (chapterId.isNotEmpty) {
       return chapterId;

@@ -15,6 +15,9 @@ class JumpChapter {
   List<UnifiedComicChapterRef> chapters;
   int order;
   String chapterId;
+  String requestId;
+  String storageChapterId;
+  String logicalKey;
   Map<String, dynamic> chapterExtern;
   dynamic comicInfo;
   String comicId;
@@ -29,6 +32,9 @@ class JumpChapter {
     required this.chapters,
     required this.order,
     required this.chapterId,
+    required this.requestId,
+    required this.storageChapterId,
+    required this.logicalKey,
     required this.chapterExtern,
     required this.comicInfo,
     required this.comicId,
@@ -39,7 +45,7 @@ class JumpChapter {
   void jumpToChapter(BuildContext context, bool isPrev) {
     final router = AutoRouter.of(context);
     final index = chapters.indexWhere(
-      (chapter) => _matchesCurrentChapter(chapter, chapterId, chapterExtern),
+      (chapter) => _matchesCurrentChapter(chapter),
     );
     if (index < 0) {
       return;
@@ -58,6 +64,9 @@ class JumpChapter {
     }
     order = target.order;
     chapterId = resolveUnifiedComicChapterKey(target);
+    requestId = target.requestId.trim();
+    storageChapterId = target.storageChapterId.trim();
+    logicalKey = target.logicalKey.trim();
     chapterExtern = Map<String, dynamic>.from(target.extern);
 
     router.replace(
@@ -68,6 +77,9 @@ class JumpChapter {
         type: tempType,
         order: order,
         chapterId: chapterId,
+        requestId: requestId,
+        storageChapterId: storageChapterId,
+        logicalKey: logicalKey,
         chapterExtern: chapterExtern,
         epsNumber: epsNumber,
         from: from,
@@ -82,6 +94,9 @@ class JumpChapter {
     dynamic comicInfo,
     int order,
     String chapterId,
+    String requestId,
+    String storageChapterId,
+    String logicalKey,
     Map<String, dynamic> chapterExtern,
     int epsNumber,
     String comicId,
@@ -131,6 +146,10 @@ class JumpChapter {
       chapters: chapters,
       order: order,
       chapterId: currentId,
+      requestId: resolvedRef?.requestId.trim() ?? requestId,
+      storageChapterId:
+          resolvedRef?.storageChapterId.trim() ?? storageChapterId,
+      logicalKey: resolvedRef?.logicalKey.trim() ?? logicalKey,
       chapterExtern: Map<String, dynamic>.from(
         chapterExtern.isNotEmpty
             ? chapterExtern
@@ -145,24 +164,20 @@ class JumpChapter {
 
   bool _matchesCurrentChapter(
     UnifiedComicChapterRef chapter,
-    String currentChapterId,
-    Map<String, dynamic> currentChapterExtern,
   ) {
-    final currentLogicalKey =
-        currentChapterExtern['logicalKey']?.toString().trim() ?? '';
-    if (currentLogicalKey.isNotEmpty &&
-        chapter.logicalKey.trim() == currentLogicalKey) {
+    if (logicalKey.isNotEmpty && chapter.logicalKey.trim() == logicalKey) {
       return true;
     }
 
-    final currentRequestId =
-        currentChapterExtern['requestId']?.toString().trim() ?? '';
-    if (currentRequestId.isNotEmpty &&
-        chapter.requestId.trim() == currentRequestId) {
+    if (requestId.isNotEmpty && chapter.requestId.trim() == requestId) {
       return true;
     }
 
-    return resolveUnifiedComicChapterKey(chapter) == currentChapterId ||
-        chapter.id == currentChapterId;
+    if (chapterId.isNotEmpty) {
+      return resolveUnifiedComicChapterKey(chapter) == chapterId ||
+          chapter.id == chapterId;
+    }
+
+    return false;
   }
 }

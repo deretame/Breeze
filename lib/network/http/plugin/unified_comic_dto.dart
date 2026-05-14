@@ -105,34 +105,59 @@ class UnifiedPluginChapterDoc {
       extern: _readExternFirst(map),
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {'name': name, 'path': path, 'url': url, 'id': id, 'extern': extern};
+  }
 }
 
 class UnifiedPluginChapter {
   const UnifiedPluginChapter({
     required this.epId,
     required this.epName,
+    required this.order,
     required this.length,
     required this.epPages,
     required this.docs,
+    required this.extern,
   });
 
   final String epId;
   final String epName;
+  final int order;
   final int length;
   final String epPages;
   final List<UnifiedPluginChapterDoc> docs;
+  final Map<String, dynamic> extern;
 
   factory UnifiedPluginChapter.fromMap(Map<String, dynamic> map) {
-    final docs = asList(
-      map['docs'],
-    ).map((item) => UnifiedPluginChapterDoc.fromMap(asMap(item))).toList();
+    final rawDocs = asList(map['docs']);
+    final rawPages = asList(map['pages']);
+    final docsSource = rawPages.isNotEmpty ? rawPages : rawDocs;
+    final docs = docsSource
+        .map((item) => UnifiedPluginChapterDoc.fromMap(asMap(item)))
+        .toList();
     return UnifiedPluginChapter(
-      epId: map['epId']?.toString() ?? '',
-      epName: map['epName']?.toString() ?? '',
+      epId: map['id']?.toString() ?? map['epId']?.toString() ?? '',
+      epName: map['name']?.toString() ?? map['epName']?.toString() ?? '',
+      order: _toInt(map['order'], 0),
       length: _toInt(map['length'], docs.length),
       epPages: map['epPages']?.toString() ?? docs.length.toString(),
       docs: docs,
+      extern: _readExternFirst(map),
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'epId': epId,
+      'epName': epName,
+      'order': order,
+      'length': length,
+      'epPages': epPages,
+      'docs': docs.map((doc) => doc.toMap()).toList(),
+      'extern': extern,
+    };
   }
 }
 
@@ -166,6 +191,17 @@ class UnifiedPluginChapterResponse {
       scheme: asMap(map['scheme']),
       chapter: UnifiedPluginChapter.fromMap(chapterMap),
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'source': source,
+      'comicId': comicId,
+      'chapterId': chapterId,
+      'extern': extern,
+      'scheme': scheme,
+      'chapter': chapter.toMap(),
+    };
   }
 }
 

@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:zephyr/main.dart';
@@ -46,7 +46,9 @@ Future<NormalComicEpInfo> getPluginInfoFromLocal(
   final taskChapterId = epInfo['taskChapterId']?.toString().trim() ?? '';
   final chapterId = logicalKey.isNotEmpty
       ? logicalKey
-      : (taskChapterId.isNotEmpty ? taskChapterId : '$epsId');
+      : (epInfo['id']?.toString().trim().isNotEmpty == true
+            ? epInfo['id']!.toString().trim()
+            : '$epsId');
 
   final storedChapters = resolveStoredDownloadChapters(download);
   final storedChapter = storedChapters.firstWhere(
@@ -70,6 +72,10 @@ Future<NormalComicEpInfo> getPluginInfoFromLocal(
           path: image.path,
           fileServer: image.url,
           id: image.id.isNotEmpty ? image.id : chapterId,
+          storageChapterId: storedChapter.id.trim().isNotEmpty
+              ? storedChapter.id
+              : '',
+          extern: Map<String, dynamic>.from(image.extern),
         ),
       )
       .toList();
@@ -85,9 +91,18 @@ Future<NormalComicEpInfo> getPluginInfoFromLocal(
   }
 
   final downloadRoot = await getDownloadPath();
+  final resolvedStoredChapterId = storedChapter.id.trim().isNotEmpty
+      ? storedChapter.id
+      : chapterId;
   final chapterDirs = <Directory>[
     Directory(
-      p.join(downloadRoot, resolvedPluginId, 'original', comicId, chapterId),
+      p.join(
+        downloadRoot,
+        resolvedPluginId,
+        'original',
+        comicId,
+        resolvedStoredChapterId,
+      ),
     ),
     Directory(
       p.join(
@@ -96,7 +111,7 @@ Future<NormalComicEpInfo> getPluginInfoFromLocal(
         'original',
         comicId,
         'comic',
-        chapterId,
+        resolvedStoredChapterId,
       ),
     ),
   ];
@@ -107,9 +122,7 @@ Future<NormalComicEpInfo> getPluginInfoFromLocal(
   final files = await _resolveOrderedFiles(
     pluginId: resolvedPluginId,
     comicId: comicId,
-    chapterId: storedChapter.id.trim().isNotEmpty
-        ? storedChapter.id
-        : chapterId,
+    chapterId: resolvedStoredChapterId,
     imageIds: imageIds,
     imageNames: imageNames,
     fallbackDirs: chapterDirs,
@@ -125,6 +138,9 @@ Future<NormalComicEpInfo> getPluginInfoFromLocal(
         path: fileName,
         fileServer: '',
         id: chapterId,
+        storageChapterId: storedChapter.id.trim().isNotEmpty
+            ? storedChapter.id
+            : '',
       );
     }).toList(),
     epId: chapterId,

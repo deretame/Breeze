@@ -39,6 +39,9 @@ class ComicReadPage extends StatelessWidget {
   final String comicId;
   final int order;
   final String chapterId;
+  final String requestId;
+  final String storageChapterId;
+  final String logicalKey;
   final Map<String, dynamic> chapterExtern;
   final int epsNumber;
   final String from;
@@ -51,6 +54,9 @@ class ComicReadPage extends StatelessWidget {
     required this.comicId,
     required this.order,
     this.chapterId = '',
+    this.requestId = '',
+    this.storageChapterId = '',
+    this.logicalKey = '',
     this.chapterExtern = const <String, dynamic>{},
     required this.epsNumber,
     required this.from,
@@ -70,6 +76,9 @@ class ComicReadPage extends StatelessWidget {
                 comicId,
                 order,
                 chapterId,
+                requestId,
+                storageChapterId,
+                logicalKey,
                 chapterExtern,
                 from,
                 type,
@@ -84,6 +93,9 @@ class ComicReadPage extends StatelessWidget {
         comicId: comicId,
         order: order,
         chapterId: chapterId,
+        requestId: requestId,
+        storageChapterId: storageChapterId,
+        logicalKey: logicalKey,
         chapterExtern: chapterExtern,
         epsNumber: epsNumber,
         from: from,
@@ -98,6 +110,9 @@ class _ComicReadPage extends StatefulWidget {
   final String comicId;
   final int order;
   final String chapterId;
+  final String requestId;
+  final String storageChapterId;
+  final String logicalKey;
   final Map<String, dynamic> chapterExtern;
   final int epsNumber; // 这个的意思是一共有多少章
   final String from;
@@ -108,6 +123,9 @@ class _ComicReadPage extends StatefulWidget {
     required this.comicId,
     required this.order,
     this.chapterId = '',
+    this.requestId = '',
+    this.storageChapterId = '',
+    this.logicalKey = '',
     this.chapterExtern = const <String, dynamic>{},
     required this.epsNumber,
     required this.from,
@@ -214,6 +232,9 @@ class _ComicReadPageState extends State<_ComicReadPage>
                 comicId,
                 widget.order,
                 widget.chapterId,
+                widget.requestId,
+                widget.storageChapterId,
+                widget.logicalKey,
                 widget.chapterExtern,
                 widget.from,
                 widget.type,

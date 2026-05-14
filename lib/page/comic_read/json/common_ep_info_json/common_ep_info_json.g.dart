@@ -31,6 +31,7 @@ _Doc _$DocFromJson(Map<String, dynamic> json) => _Doc(
   path: json['path'] as String,
   fileServer: json['fileServer'] as String,
   id: json['id'] as String,
+  storageChapterId: json['storageChapterId'] as String? ?? '',
   extern: json['extern'] as Map<String, dynamic>? ?? const <String, dynamic>{},
 );
 
@@ -39,6 +40,7 @@ Map<String, dynamic> _$DocToJson(_Doc instance) => <String, dynamic>{
   'path': instance.path,
   'fileServer': instance.fileServer,
   'id': instance.id,
+  'storageChapterId': instance.storageChapterId,
   'extern': instance.extern,
 };
 

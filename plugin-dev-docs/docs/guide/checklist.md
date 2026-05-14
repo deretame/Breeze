@@ -3,14 +3,16 @@
 ## 代码契约
 
 - [ ] `export default` 包含所有宿主会调用的 `fnPath`
-- [ ] 核心五件套已实现：`getInfo/searchComic/getComicDetail/getChapter/fetchImageBytes`
-- [ ] 需要兼容命名的函数已提供别名导出
+- [ ] 阅读主链路已实现：`searchComic/getComicDetail/getReadSnapshot/fetchImageBytes`
+- [ ] 如支持下载，已实现 `getChapter`
+- [ ] 已基于示例仓库整理插件信息、目录结构和构建脚本
 
 ## 数据结构
 
 - [ ] 搜索列表 `data.items[]` 的字段完整（`id/title/cover/metadata/raw`）
 - [ ] 详情页 `data.normal.comicInfo + data.normal.eps` 结构完整
-- [ ] 章节 `data.chapter.docs[]` 提供 `id/name/path/url`
+- [ ] 章节列表与章节详情使用统一章节字段：`id/requestId/logicalKey/storageChapterId/name/order`
+- [ ] 章节图片 `data.chapter.pages[]` 提供 `id/name/path/url`
 - [ ] 所有 `extern` 透传逻辑闭环
 
 ## 业务流程
@@ -32,4 +34,4 @@
 - [ ] bundle 与插件 UUID 对齐
 - [ ] 版本号已更新
 - [ ] 至少完成一次真实设备完整回归（首页 -> 搜索 -> 详情 -> 阅读）
-- [ ] 变更记录已写清楚（新增能力、兼容性影响、已知限制）
+- [ ] 变更记录已写清楚（新增能力、行为变化、已知限制）

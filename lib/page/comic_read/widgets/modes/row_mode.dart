@@ -395,13 +395,16 @@ class _RowModeWidgetState extends State<RowModeWidget> {
     }
 
     final chapterLocalPageIndex = entry.chapterLocalPageIndex ?? 0;
+    final resolvedChapterId = entry.doc!.storageChapterId.trim().isNotEmpty
+        ? entry.doc!.storageChapterId
+        : entry.chapterId!;
     return ReadImageWidget(
       pictureInfo: PictureInfo(
         from: widget.from,
         url: entry.doc!.fileServer,
         path: entry.doc!.path,
         cartoonId: widget.comicId,
-        chapterId: entry.chapterId!,
+        chapterId: resolvedChapterId,
         pictureType: PictureType.page,
         extern: entry.doc!.extern,
       ),

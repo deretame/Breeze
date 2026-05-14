@@ -307,6 +307,9 @@ class ComicReadRoute extends _i31.PageRouteInfo<ComicReadRouteArgs> {
     required String comicId,
     required int order,
     String chapterId = '',
+    String requestId = '',
+    String storageChapterId = '',
+    String logicalKey = '',
     Map<String, dynamic> chapterExtern = const {},
     required int epsNumber,
     required String from,
@@ -321,6 +324,9 @@ class ComicReadRoute extends _i31.PageRouteInfo<ComicReadRouteArgs> {
            comicId: comicId,
            order: order,
            chapterId: chapterId,
+           requestId: requestId,
+           storageChapterId: storageChapterId,
+           logicalKey: logicalKey,
            chapterExtern: chapterExtern,
            epsNumber: epsNumber,
            from: from,
@@ -342,6 +348,9 @@ class ComicReadRoute extends _i31.PageRouteInfo<ComicReadRouteArgs> {
         comicId: args.comicId,
         order: args.order,
         chapterId: args.chapterId,
+        requestId: args.requestId,
+        storageChapterId: args.storageChapterId,
+        logicalKey: args.logicalKey,
         chapterExtern: args.chapterExtern,
         epsNumber: args.epsNumber,
         from: args.from,
@@ -359,6 +368,9 @@ class ComicReadRouteArgs {
     required this.comicId,
     required this.order,
     this.chapterId = '',
+    this.requestId = '',
+    this.storageChapterId = '',
+    this.logicalKey = '',
     this.chapterExtern = const {},
     required this.epsNumber,
     required this.from,
@@ -375,6 +387,12 @@ class ComicReadRouteArgs {
 
   final String chapterId;
 
+  final String requestId;
+
+  final String storageChapterId;
+
+  final String logicalKey;
+
   final Map<String, dynamic> chapterExtern;
 
   final int epsNumber;
@@ -389,7 +407,7 @@ class ComicReadRouteArgs {
 
   @override
   String toString() {
-    return 'ComicReadRouteArgs{key: $key, comicId: $comicId, order: $order, chapterId: $chapterId, chapterExtern: $chapterExtern, epsNumber: $epsNumber, from: $from, stringSelectCubit: $stringSelectCubit, type: $type, comicInfo: $comicInfo}';
+    return 'ComicReadRouteArgs{key: $key, comicId: $comicId, order: $order, chapterId: $chapterId, requestId: $requestId, storageChapterId: $storageChapterId, logicalKey: $logicalKey, chapterExtern: $chapterExtern, epsNumber: $epsNumber, from: $from, stringSelectCubit: $stringSelectCubit, type: $type, comicInfo: $comicInfo}';
   }
 
   @override
@@ -400,6 +418,9 @@ class ComicReadRouteArgs {
         comicId == other.comicId &&
         order == other.order &&
         chapterId == other.chapterId &&
+        requestId == other.requestId &&
+        storageChapterId == other.storageChapterId &&
+        logicalKey == other.logicalKey &&
         const _i37.MapEquality<String, dynamic>().equals(
           chapterExtern,
           other.chapterExtern,
@@ -417,6 +438,9 @@ class ComicReadRouteArgs {
       comicId.hashCode ^
       order.hashCode ^
       chapterId.hashCode ^
+      requestId.hashCode ^
+      storageChapterId.hashCode ^
+      logicalKey.hashCode ^
       const _i37.MapEquality<String, dynamic>().hash(chapterExtern) ^
       epsNumber.hashCode ^
       from.hashCode ^

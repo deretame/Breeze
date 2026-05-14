@@ -47,6 +47,9 @@ class EpButtonWidget extends StatelessWidget {
             type: resolvedType,
             order: doc.order,
             chapterId: resolveEpisodeChapterId(doc),
+            requestId: doc.requestId.trim(),
+            storageChapterId: doc.storageChapterId.trim(),
+            logicalKey: doc.logicalKey.trim(),
             chapterExtern: enrichEpisodeChapterExtern(doc, chapterExtern),
             epsNumber: epsLength,
             from: from,
@@ -102,11 +105,6 @@ class EpButtonWidget extends StatelessWidget {
       return logicalKey;
     }
 
-    final requestId = episode.requestId.trim();
-    if (requestId.isNotEmpty) {
-      return requestId;
-    }
-
     if (episode.id.trim().isNotEmpty) {
       return episode.id.trim();
     }
@@ -118,13 +116,6 @@ class EpButtonWidget extends StatelessWidget {
     Ep episode,
     Map<String, dynamic> chapterExtern,
   ) {
-    chapterExtern['logicalKey'] ??= episode.logicalKey.trim();
-    chapterExtern['requestId'] ??= episode.requestId.trim();
-    chapterExtern['storageChapterId'] ??= episode.storageChapterId.trim();
-    chapterExtern['chapterId'] ??= episode.requestId.trim().isNotEmpty
-        ? episode.requestId.trim()
-        : episode.id.trim();
-    chapterExtern['order'] ??= episode.order;
     return chapterExtern;
   }
 }

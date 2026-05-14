@@ -62,11 +62,6 @@ String resolveUnifiedComicChapterKey(UnifiedComicChapterRef chapter) {
     return logicalKey;
   }
 
-  final requestId = chapter.requestId.trim();
-  if (requestId.isNotEmpty) {
-    return requestId;
-  }
-
   final chapterId = chapter.id.trim();
   if (chapterId.isNotEmpty) {
     return chapterId;
@@ -194,15 +189,21 @@ List<UnifiedComicChapterRef> resolveUnifiedComicChapters(
   if (comicInfo is UnifiedComicDownload) {
     return _decodeListOfMaps(comicInfo.chapters)
         .map(
-          (ep) => UnifiedComicChapterRef(
-            id: ep['id']?.toString() ?? '',
-            name: ep['name']?.toString() ?? '',
-            order: _toInt(ep['order'], 0),
-            requestId: ep['taskChapterId']?.toString() ?? '',
-            storageChapterId: ep['id']?.toString() ?? '',
-            logicalKey: ep['logicalKey']?.toString() ?? '',
-            extern: asMap(ep['extern']),
-          ),
+          (ep) {
+            final storageChapterId =
+                ep['storageChapterId']?.toString().trim() ??
+                ep['id']?.toString().trim() ??
+                '';
+            return UnifiedComicChapterRef(
+              id: ep['id']?.toString() ?? '',
+              name: ep['name']?.toString() ?? '',
+              order: _toInt(ep['order'], 0),
+              requestId: ep['taskChapterId']?.toString() ?? '',
+              storageChapterId: storageChapterId,
+              logicalKey: ep['logicalKey']?.toString() ?? '',
+              extern: asMap(ep['extern']),
+            );
+          },
         )
         .toList();
   }
@@ -234,6 +235,9 @@ int _toInt(Object? value, int fallback) {
 
 bool _matchesChapterRef(UnifiedComicChapterRef chapter, String candidate) {
   if (resolveUnifiedComicChapterKey(chapter) == candidate) {
+    return true;
+  }
+  if (chapter.logicalKey.trim() == candidate) {
     return true;
   }
   if (chapter.requestId.trim() == candidate) {

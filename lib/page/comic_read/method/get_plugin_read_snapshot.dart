@@ -9,26 +9,28 @@ Future<NormalComicEpInfo> getPluginReadSnapshot(
   String from,
   dynamic comicInfo,
   String? selectedChapterId,
+  String requestId,
+  String logicalKey,
   Map<String, dynamic> chapterExtern,
 ) async {
-  final chapterRef = chapterExtern.isNotEmpty
-      ? null
-      : resolveUnifiedComicChapterRef(
-          comicInfo,
-          from,
-          chapterId: selectedChapterId,
-          order: order,
-        );
+  final chapterRef =
+      requestId.trim().isNotEmpty || logicalKey.trim().isNotEmpty
+          ? null
+          : resolveUnifiedComicChapterRef(
+              comicInfo,
+              from,
+              chapterId: selectedChapterId,
+              order: order,
+            );
   final resolvedChapterId = _resolveReadSnapshotChapterId(
     chapterRef,
-    selectedChapterId,
+    requestId,
     order,
   );
 
   final extern = <String, dynamic>{
     ...chapterExtern,
     ...?chapterRef?.extern,
-    if (resolvedChapterId.trim().isNotEmpty) 'chapterId': resolvedChapterId,
     'order': order,
   };
 
@@ -69,17 +71,58 @@ Future<NormalComicEpInfo> getPluginReadSnapshot(
   final fallbackChapterId = snapshot.chapter.id.isNotEmpty
       ? snapshot.chapter.id
       : resolvedChapterId;
-  return snapshot.toNormalEpInfo(fallbackChapterId: fallbackChapterId);
+  final logicalChapterId = _resolveLogicalChapterId(
+    chapterRef,
+    selectedChapterId,
+    logicalKey,
+    order,
+    fallbackChapterId,
+  );
+  return snapshot.toNormalEpInfo(logicalChapterId: logicalChapterId);
 }
 
 String _resolveReadSnapshotChapterId(
   UnifiedComicChapterRef? chapterRef,
-  String? selectedChapterId,
+  String requestId,
   int order,
 ) {
-  final explicitRequestId = chapterRef?.requestId.trim() ?? '';
+  final explicitRequestId = requestId.trim();
   if (explicitRequestId.isNotEmpty) {
     return explicitRequestId;
+  }
+
+  final requestIdFromRef = chapterRef?.requestId.trim() ?? '';
+  if (requestIdFromRef.isNotEmpty) {
+    return requestIdFromRef;
+  }
+
+  return order.toString();
+}
+
+String _resolveLogicalChapterId(
+  UnifiedComicChapterRef? chapterRef,
+  String? selectedChapterId,
+  String logicalKey,
+  int order,
+  String fallbackChapterId,
+) {
+  final explicitLogicalKey = logicalKey.trim();
+  if (explicitLogicalKey.isNotEmpty) {
+    return explicitLogicalKey;
+  }
+
+  final logicalKeyFromRef = chapterRef?.logicalKey.trim() ?? '';
+  if (logicalKeyFromRef.isNotEmpty) {
+    return logicalKeyFromRef;
+  }
+
+  final explicitSelectedChapterId = (selectedChapterId ?? '').trim();
+  if (explicitSelectedChapterId.isNotEmpty) {
+    return explicitSelectedChapterId;
+  }
+
+  if (fallbackChapterId.trim().isNotEmpty) {
+    return fallbackChapterId.trim();
   }
 
   return order.toString();

@@ -47,7 +47,7 @@ type PluginEnvelope = {
 - 建议始终返回 `source` 字段，便于排障
 - 抛出的错误字符串会直接显示在客户端
 
-### 0.4 `init` 是可选但推荐实现
+### 0.4 `init` 是可选接口
 
 - 客户端可能在 runtime 启动后调用 `init`
 - 如果没实现，客户端会跳过
@@ -62,7 +62,8 @@ type PluginEnvelope = {
 | `getInfo` | 返回插件基本信息和首页功能入口 | 主页加载插件卡片时 |
 | `searchComic` | 按关键词/筛选返回漫画列表 | 用户在搜索页点击搜索 |
 | `getComicDetail` | 返回漫画详情与章节目录 | 用户打开漫画详情页 |
-| `getChapter` | 返回某一章节的图片列表 | 用户进入阅读页后 |
+| `getReadSnapshot` | 返回“漫画+当前章节+页面+章节列表”快照 | 阅读页初始化或切章 |
+| `getChapter` | 返回某一章节的图片列表 | 下载章节内容时 |
 | `fetchImageBytes` | 把图片 URL 转成可下载二进制缓冲 | 阅读/下载图片时 |
 | `getLoginBundle` | 返回登录表单结构 | 进入插件登录页或登录过期 |
 | `loginWithPassword` | 执行账号密码登录并保存会话 | 用户点登录按钮 |
@@ -70,11 +71,11 @@ type PluginEnvelope = {
 | `getSettingsBundle` | 返回插件设置项结构和值 | 打开插件设置页 |
 | `getCapabilitiesBundle` | 返回设置页“操作按钮”列表 | 打开插件设置页 |
 | `getUserInfoBundle` | 返回用户头像与信息摘要 | 设置页显示用户卡片 |
-| `getFunctionPage` / `get_function_page` | 返回某个“插件功能页”的页面方案 | 主页功能入口 `openPluginFunction` |
+| `getFunctionPage` | 返回某个“插件功能页”的页面方案 | 主页功能入口 `openPluginFunction` |
 | `getComicListSceneBundle` | 返回默认漫画列表场景定义 | 列表页按 source 自动加载时 |
-| `getCloudFavoriteSceneBundle` / `get_cloud_favorite_scene_bundle` | 返回“云端收藏”列表场景 | 点击云端收藏入口 |
+| `getCloudFavoriteSceneBundle` | 返回“云端收藏”列表场景 | 点击云端收藏入口 |
 | `getRankingFilterBundle` 等 filter bundle | 返回列表筛选项与默认值 | 列表页点筛选按钮 |
-| `getAdvancedSearchScheme` / `get_advanced_search_scheme` | 返回高级搜索选项结构 | 搜索页点高级筛选 |
+| `getAdvancedSearchScheme` | 返回高级搜索选项结构 | 搜索页点高级筛选 |
 | `toggleLike` | 切换点赞状态 | 详情页点点赞 |
 | `toggleFavorite` | 切换收藏状态 | 详情页点收藏 |
 | `listFavoriteFolders` | 返回收藏夹列表 | 收藏后需选择收藏夹时 |
@@ -83,9 +84,8 @@ type PluginEnvelope = {
 | `loadCommentReplies` | 分页加载某条评论的回复 | 评论展开回复时 |
 | `postComment` | 发布主评论 | 用户发主评论 |
 | `postCommentReply` | 发布回复评论 | 用户回复某条评论 |
-| `getReadSnapshot` | 返回“漫画+当前章节+页面+章节列表”快照 | 阅读页初始化或切章 |
 
-## 1. 必需 API（推荐实现）
+## 1. 必需 API
 
 ## `getInfo()`
 
@@ -99,6 +99,7 @@ type PluginEnvelope = {
   "uuid": "插件ID",
   "describe": "描述",
   "version": "1.0.0",
+  "updateUrl": "https://api.github.com/repos/<owner>/Breeze-plugin-<name>/releases/latest",
   "function": []
 }
 ```
@@ -145,6 +146,8 @@ type PluginAction =
     };
 ```
 
+`getInfo` 用于插件展示和功能入口，不是阅读主链路的优先接口。
+
 ## `searchComic(payload)`
 
 请求：
@@ -157,7 +160,7 @@ type SearchComicPayload = {
 };
 ```
 
-返回最小结构（推荐放在 `data` 下，同时可双写顶层兼容）：
+返回最小结构：
 
 ```json
 {
@@ -235,10 +238,10 @@ type ComicDetailPayload = {
             "url": "",
             "name": "",
             "path": "",
-            "extension": {}
+            "extern": {}
           },
           "onTap": {},
-          "extension": {}
+          "extern": {}
         },
         "description": "",
         "cover": {
@@ -246,12 +249,22 @@ type ComicDetailPayload = {
           "url": "",
           "name": "",
           "path": "",
-          "extension": {}
+          "extern": {}
         },
         "metadata": [],
-        "extension": {}
+        "extern": {}
       },
-      "eps": [],
+      "eps": [
+        {
+          "id": "chapter-id",
+          "requestId": "chapter-id",
+          "logicalKey": "chapter-id",
+          "storageChapterId": "chapter-id",
+          "name": "第1话",
+          "order": 1,
+          "extern": {}
+        }
+      ],
       "recommend": [],
       "totalViews": 0,
       "totalLikes": 0,
@@ -262,7 +275,7 @@ type ComicDetailPayload = {
       "allowLike": true,
       "allowCollected": true,
       "allowDownload": true,
-      "extension": {}
+      "extern": {}
     },
     "raw": {}
   }
@@ -271,15 +284,38 @@ type ComicDetailPayload = {
 
 说明：`normal` 建议完整返回，详情页依赖字段较多。
 
-## `getChapter(payload)`
+## 1.0 章节字段说明
+
+章节相关数据统一使用下面这些字段：
+
+- `id`：章节自身标识
+- `requestId`：宿主调用 `getReadSnapshot`、`getChapter` 时用来请求章节
+- `logicalKey`：宿主内部用来识别“这是哪一个章节”
+- `storageChapterId`：下载到本地后，这个章节对应的目录名
+- `name`：章节名
+- `order`：章节顺序
+- `pages`：当前章节的图片列表
+- `extern`：插件自己需要继续透传的补充数据
+
+这些字段会同时出现在：
+
+- `getComicDetail().data.normal.eps[]`
+- `getReadSnapshot().data.chapter`
+- `getReadSnapshot().data.chapters[]`
+- `getChapter().data.chapter`
+
+## `getReadSnapshot(payload)`
 
 请求：
 
 ```ts
-type ChapterPayload = {
+type ReadSnapshotPayload = {
   comicId?: string;
   chapterId?: string | number;
-  extern?: Record<string, unknown>;
+  extern?: {
+    order?: number;
+    [k: string]: unknown;
+  };
 };
 ```
 
@@ -288,29 +324,53 @@ type ChapterPayload = {
 ```json
 {
   "source": "plugin-id",
-  "comicId": "comic-id",
-  "chapterId": "chapter-id",
   "extern": {},
   "data": {
+    "comic": {
+      "id": "comic-id",
+      "source": "plugin-id",
+      "title": "标题",
+      "description": "",
+      "cover": { "id": "", "url": "", "path": "", "extern": {} },
+      "creator": { "id": "", "name": "", "avatar": { "url": "", "path": "", "extern": {} }, "extern": {} },
+      "titleMeta": [],
+      "metadata": [],
+      "extern": {}
+    },
     "chapter": {
-      "epId": "chapter-id",
-      "epName": "第1话",
-      "length": 2,
-      "epPages": "2",
-      "docs": [
+      "id": "chapter-id",
+      "requestId": "chapter-id",
+      "logicalKey": "chapter-id",
+      "storageChapterId": "chapter-id",
+      "name": "第1话",
+      "order": 1,
+      "pages": [
         {
           "id": "p1",
           "name": "001.jpg",
           "path": "001.jpg",
-          "url": "https://example.com/001.jpg"
+          "url": "https://example.com/001.jpg",
+          "extern": {}
         }
-      ]
-    }
+      ],
+      "extern": {}
+    },
+    "chapters": [
+      {
+        "id": "chapter-id",
+        "requestId": "chapter-id",
+        "logicalKey": "chapter-id",
+        "storageChapterId": "chapter-id",
+        "name": "第1话",
+        "order": 1,
+        "extern": {}
+      }
+    ]
   }
 }
 ```
 
-兼容建议：可额外在顶层返回 `chapter`，用于兼容旧调用链。
+`getReadSnapshot` 是阅读主链路必需接口。
 
 ## `fetchImageBytes(payload)`
 
@@ -335,6 +395,54 @@ type FetchImageBytesPayload = {
 2. 转 `Uint8Array`
 3. `runtime.native.put(bytes)`
 4. 返回 `nativeBufferId`
+
+## 1.1 下载相关 API
+
+如果插件支持下载，需要实现以下接口。
+
+## `getChapter(payload)`
+
+请求：
+
+```ts
+type ChapterPayload = {
+  comicId?: string;
+  chapterId?: string | number;
+  extern?: Record<string, unknown>;
+};
+```
+
+这里的 `chapterId` 应理解为章节请求标识，通常使用 `requestId`。
+
+返回最小结构：
+
+```json
+{
+  "source": "plugin-id",
+  "comicId": "comic-id",
+  "extern": {},
+  "data": {
+    "chapter": {
+      "id": "chapter-id",
+      "requestId": "chapter-id",
+      "logicalKey": "chapter-id",
+      "storageChapterId": "chapter-id",
+      "name": "第1话",
+      "order": 1,
+      "pages": [
+        {
+          "id": "p1",
+          "name": "001.jpg",
+          "path": "001.jpg",
+          "url": "https://example.com/001.jpg",
+          "extern": {}
+        }
+      ],
+      "extern": {}
+    }
+  }
+}
+```
 
 ## 2. 登录与会话 API
 
@@ -506,7 +614,7 @@ type UserInfoData = {
 
 ## 4. 页面与场景 API
 
-## `getFunctionPage(payload)` / `get_function_page(payload)`
+## `getFunctionPage(payload)`
 
 用途：
 
@@ -587,7 +695,7 @@ type ComicListScene = {
 };
 ```
 
-## `getCloudFavoriteSceneBundle()` / `get_cloud_favorite_scene_bundle()`
+## `getCloudFavoriteSceneBundle()`
 
 结构同上，差异在于默认 scene 指向云端收藏列表函数。
 
@@ -631,7 +739,7 @@ type ComicListScene = {
 - `result.extern` 会并入列表请求 `extern`
 - `result` 的其他字段用于 UI 参数（如 `params.bodyType`）
 
-## `getAdvancedSearchScheme()` / `get_advanced_search_scheme()`
+## `getAdvancedSearchScheme()`
 
 返回结构：
 
@@ -809,67 +917,15 @@ type CommentItem = {
 - `prependAfterTop`
 - `prepend`
 
-## 6. 阅读快照 API
+## 6. fnPath 速查（客户端会直接调用）
 
-## `getReadSnapshot(payload)`
-
-请求：
-
-```ts
-type ReadSnapshotPayload = {
-  comicId?: string;
-  chapterId?: string | number;
-  extern?: {
-    order?: number;
-    [k: string]: unknown;
-  };
-};
-```
-
-返回最小结构：
-
-```json
-{
-  "source": "plugin-id",
-  "extern": {},
-  "data": {
-    "comic": {
-      "id": "comic-id",
-      "source": "plugin-id",
-      "title": "标题",
-      "description": "",
-      "cover": { "id": "", "url": "", "path": "", "extern": {} },
-      "creator": { "id": "", "name": "", "avatar": { "url": "", "path": "", "extern": {} }, "extern": {} },
-      "titleMeta": [],
-      "metadata": [],
-      "extern": {}
-    },
-    "chapter": {
-      "id": "chapter-id",
-      "name": "第1话",
-      "order": 1,
-      "pages": [
-        { "id": "p1", "name": "001.jpg", "path": "001.jpg", "url": "https://...", "extern": {} }
-      ],
-      "extern": {}
-    },
-    "chapters": [
-      { "id": "chapter-id", "name": "第1话", "order": 1, "extern": {} }
-    ]
-  }
-}
-```
-
-## 7. fnPath 速查（客户端会直接调用）
-
-- 基础：`init` `getInfo` `searchComic` `getComicDetail` `getChapter` `fetchImageBytes`
+- 基础：`init` `getInfo`
+- 阅读主链路：`searchComic` `getComicDetail` `getReadSnapshot` `fetchImageBytes`
+- 下载：`getChapter`
 - 登录：`getLoginBundle` `loginWithPassword`
 - 设置：`getSettingsBundle` `getCapabilitiesBundle` `getUserInfoBundle`
-- 页面：`getFunctionPage` `get_function_page`
-- 列表场景：`getComicListSceneBundle` `getCloudFavoriteSceneBundle` `get_cloud_favorite_scene_bundle`
-- 搜索扩展：`getAdvancedSearchScheme` `get_advanced_search_scheme`
+- 页面：`getFunctionPage`
+- 列表场景：`getComicListSceneBundle` `getCloudFavoriteSceneBundle`
+- 搜索扩展：`getAdvancedSearchScheme`
 - 收藏点赞：`toggleFavorite` `toggleLike` `listFavoriteFolders` `moveFavoriteToFolder`
 - 评论：`getCommentFeed` `loadCommentReplies` `postComment` `postCommentReply`
-- 阅读：`getReadSnapshot`
-
-若仅实现最小可用集，建议先完成第 1 节五件套，再逐步补齐可选能力。

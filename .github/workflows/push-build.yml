@@ -296,6 +296,25 @@ jobs:
         with:
           targets: aarch64-apple-darwin, x86_64-apple-darwin
 
+      - name: 校验并修复 rustup
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.cargo/bin:$PATH"
+
+          echo "which rustup: $(which rustup || true)"
+          ls -l "$HOME/.cargo/bin"/rustup* || true
+
+          if ! rustup --version || ! rustup toolchain list; then
+            echo "Detected invalid rustup binary, reinstalling..."
+            rm -f "$HOME/.cargo/bin/rustup" "$HOME/.cargo/bin/rustup-init"
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+            export PATH="$HOME/.cargo/bin:$PATH"
+            rustup --version
+            rustup toolchain list
+          fi
+
       - name: 缓存 Rust 构建产物
         uses: Swatinem/rust-cache@v2
         with:
@@ -383,6 +402,25 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-ios
+
+      - name: 校验并修复 rustup
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/.cargo/bin:$PATH"
+
+          echo "which rustup: $(which rustup || true)"
+          ls -l "$HOME/.cargo/bin"/rustup* || true
+
+          if ! rustup --version || ! rustup toolchain list; then
+            echo "Detected invalid rustup binary, reinstalling..."
+            rm -f "$HOME/.cargo/bin/rustup" "$HOME/.cargo/bin/rustup-init"
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+            export PATH="$HOME/.cargo/bin:$PATH"
+            rustup --version
+            rustup toolchain list
+          fi
 
       - name: 缓存 Rust 构建产物
         uses: Swatinem/rust-cache@v2

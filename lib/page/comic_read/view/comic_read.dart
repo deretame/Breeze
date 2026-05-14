@@ -19,7 +19,9 @@ import 'package:zephyr/page/comic_read/model/normal_comic_ep_info.dart';
 import 'package:zephyr/page/comic_read/model/seamless_transition_state.dart';
 import 'package:zephyr/page/comic_info/method/get_plugin_detail.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
+import 'package:zephyr/util/desktop/desktop_fullscreen_controller.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:window_manager/window_manager.dart';
 
 // 自动阅读相关：计时器、暂停/继续、悬浮按钮。
 part 'parts/comic_read_auto_read_part.dart';
@@ -169,6 +171,7 @@ class _ComicReadPageState extends State<_ComicReadPage>
   int _lastAutoReadIntervalMs = 0;
   int _lastAutoReadMode = -1;
   bool _hasBootstrappedReadState = false;
+  bool _isDesktopFullscreen = false;
   late List<UnifiedComicChapterRef> _chapterRefs;
   late Map<int, int> _chapterOrderToCatalogIndex;
   final List<_LoadedChapterData> _loadedChapters = <_LoadedChapterData>[];

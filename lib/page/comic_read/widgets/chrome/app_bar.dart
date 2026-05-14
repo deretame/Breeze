@@ -9,11 +9,15 @@ import 'package:zephyr/util/context/context_extensions.dart';
 class ComicReadAppBar extends StatelessWidget {
   final String title;
   final ValueChanged<int> changePageIndex;
+  final bool isDesktopFullscreen;
+  final VoidCallback? onToggleFullscreen;
 
   const ComicReadAppBar({
     super.key,
     required this.title,
     required this.changePageIndex,
+    this.isDesktopFullscreen = false,
+    this.onToggleFullscreen,
   });
 
   @override
@@ -43,6 +47,18 @@ class ComicReadAppBar extends StatelessWidget {
               child: AppBar(
                 title: ScrollableTitle(text: title),
                 titleSpacing: 6,
+                actions: [
+                  if (onToggleFullscreen != null)
+                    IconButton(
+                      tooltip: isDesktopFullscreen ? '退出全屏' : '全屏（f11）',
+                      onPressed: onToggleFullscreen,
+                      icon: Icon(
+                        isDesktopFullscreen
+                            ? Icons.fullscreen_exit_rounded
+                            : Icons.fullscreen_rounded,
+                      ),
+                    ),
+                ],
                 backgroundColor: colorScheme.surface.withValues(alpha: 0.78),
                 surfaceTintColor: Colors.transparent,
                 elevation: isMenuVisible ? 4.0 : 0.0,

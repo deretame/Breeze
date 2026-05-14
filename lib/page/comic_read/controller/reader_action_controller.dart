@@ -1,42 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
+import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
 import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
 
 class ReaderActionController {
+  final BuildContext context;
   final ScrollController scrollController;
   final ListObserverController observerController;
   final PageController pageController;
-  final int Function() getReadMode; // 0: 竖向, 其他: 横向
-  final BuildContext Function() getContext; // 需要 Context 来获取屏幕高度(用于整页翻页)
-  final int Function() getPageIndex;
-  final int Function() getTotalSlots;
-  final bool Function() getNoAnimation;
-  final int Function() getAutoScrollColumnDistancePercent;
-  final bool Function() getVolumeKeyPageTurnEnabled;
-  final int Function() getVolumeKeyPageTurnDistancePercent;
   final bool Function(bool isNext)? onBeforeTurnPage;
 
   ReaderActionController({
+    required this.context,
     required this.scrollController,
     required this.observerController,
     required this.pageController,
-    required this.getReadMode,
-    required this.getContext,
-    required this.getPageIndex,
-    required this.getTotalSlots,
-    required this.getNoAnimation,
-    required this.getAutoScrollColumnDistancePercent,
-    required this.getVolumeKeyPageTurnEnabled,
-    required this.getVolumeKeyPageTurnDistancePercent,
     this.onBeforeTurnPage,
   });
+
+  ReadSettingState get _readSetting =>
+      context.read<GlobalSettingCubit>().state.readSetting;
+
+  int get _readMode => _readSetting.readMode;
+
+  int get _pageIndex => context.read<ReaderCubit>().state.pageIndex;
+
+  int get _totalSlots => context.read<ReaderCubit>().state.totalSlots;
+
+  bool get _noAnimation => _readSetting.noAnimation;
+
+  int get _autoScrollColumnDistancePercent =>
+      _readSetting.autoScrollColumnDistancePercent;
+
+  bool get _volumeKeyPageTurnEnabled => _readSetting.volumeKeyPageTurn;
+
+  int get _volumeKeyPageTurnDistancePercent =>
+      _readSetting.volumeKeyPageTurnDistancePercent;
+
+  BuildContext get _activeContext => context;
 
   // ================= 1. 键盘专用逻辑 (桌面体验) =================
   // 特点：竖向模式下是“微调/平滑滚动”，模拟滚轮效果
 
   void onKeyScrollNext() {
-    final mode = getReadMode();
+    final mode = _readMode;
     if (mode == 0) {
       // 竖向：只滚 200px (平滑小步)
       _scrollVertical(offset: 200.0, durationMs: 100);
@@ -47,7 +57,7 @@ class ReaderActionController {
   }
 
   void onKeyScrollPrev() {
-    final mode = getReadMode();
+    final mode = _readMode;
     if (mode == 0) {
       // 竖向：回滚 200px
       _scrollVertical(offset: -200.0, durationMs: 100);
@@ -61,7 +71,7 @@ class ReaderActionController {
   // 特点：竖向模式下是“整页/大幅跳转”，保持快速阅读体验
 
   void onPageActionNext() {
-    final mode = getReadMode();
+    final mode = _readMode;
     if (mode == 0) {
       _scrollVertical(page: true, next: true);
     } else {
@@ -70,7 +80,7 @@ class ReaderActionController {
   }
 
   void onPageActionPrev() {
-    final mode = getReadMode();
+    final mode = _readMode;
     if (mode == 0) {
       _scrollVertical(page: true, next: false);
     } else {
@@ -79,11 +89,11 @@ class ReaderActionController {
   }
 
   void onVolumeActionNext() {
-    if (!getVolumeKeyPageTurnEnabled()) return;
-    final mode = getReadMode();
+    if (!_volumeKeyPageTurnEnabled) return;
+    final mode = _readMode;
     if (mode == 0) {
       _scrollVerticalByPercent(
-        percent: getVolumeKeyPageTurnDistancePercent(),
+        percent: _volumeKeyPageTurnDistancePercent,
         next: true,
       );
     } else {
@@ -92,11 +102,11 @@ class ReaderActionController {
   }
 
   void onVolumeActionPrev() {
-    if (!getVolumeKeyPageTurnEnabled()) return;
-    final mode = getReadMode();
+    if (!_volumeKeyPageTurnEnabled) return;
+    final mode = _readMode;
     if (mode == 0) {
       _scrollVerticalByPercent(
-        percent: getVolumeKeyPageTurnDistancePercent(),
+        percent: _volumeKeyPageTurnDistancePercent,
         next: false,
       );
     } else {
@@ -105,7 +115,7 @@ class ReaderActionController {
   }
 
   void onAutoReadTick() {
-    final mode = getReadMode();
+    final mode = _readMode;
     if (mode == 0) {
       _scrollVerticalAuto();
     } else {
@@ -122,28 +132,28 @@ class ReaderActionController {
     bool next = true,
   }) {
     if (page) {
-      final totalSlots = getTotalSlots();
+      final totalSlots = _totalSlots;
       if (totalSlots <= 0 || !scrollController.hasClients) return;
 
-      final currentPage = getPageIndex() + (next ? 1 : -1);
+      final currentPage = _pageIndex + (next ? 1 : -1);
 
       final targetPage = currentPage.clamp(0, totalSlots - 1);
 
       logger.d(
-        'index: ${getPageIndex()} currentPage: $currentPage targetPage: $targetPage',
+        'index: $_pageIndex currentPage: $currentPage targetPage: $targetPage',
       );
 
-      if (getNoAnimation()) {
+      if (_noAnimation) {
         observerController.jumpTo(
           index: targetPage,
-          offset: (offset) => (MediaQuery.of(getContext()).padding.top + 5.0),
+          offset: (offset) => (MediaQuery.of(_activeContext).padding.top + 5.0),
         );
       } else {
         observerController.animateTo(
           index: targetPage,
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
-          offset: (offset) => (MediaQuery.of(getContext()).padding.top + 5.0),
+          offset: (offset) => (MediaQuery.of(_activeContext).padding.top + 5.0),
         );
       }
     } else {
@@ -166,9 +176,8 @@ class ReaderActionController {
   void _scrollVerticalAuto() {
     if (!scrollController.hasClients) return;
 
-    final context = getContext();
-    final viewportHeight = MediaQuery.of(context).size.height;
-    final distancePercent = getAutoScrollColumnDistancePercent().clamp(10, 100);
+    final viewportHeight = MediaQuery.of(_activeContext).size.height;
+    final distancePercent = _autoScrollColumnDistancePercent.clamp(10, 100);
     final targetOffset =
         scrollController.offset + viewportHeight * (distancePercent / 100);
     final clamped = targetOffset.clamp(
@@ -176,7 +185,7 @@ class ReaderActionController {
       scrollController.position.maxScrollExtent,
     );
 
-    if (getNoAnimation()) {
+    if (_noAnimation) {
       scrollController.jumpTo(clamped);
     } else {
       scrollController.animateTo(
@@ -190,8 +199,7 @@ class ReaderActionController {
   void _scrollVerticalByPercent({required int percent, required bool next}) {
     if (!scrollController.hasClients) return;
 
-    final context = getContext();
-    final viewportHeight = MediaQuery.of(context).size.height;
+    final viewportHeight = MediaQuery.of(_activeContext).size.height;
     final distancePercent = percent.clamp(10, 100);
     final direction = next ? 1.0 : -1.0;
     final targetOffset =
@@ -202,7 +210,7 @@ class ReaderActionController {
       scrollController.position.maxScrollExtent,
     );
 
-    if (getNoAnimation()) {
+    if (_noAnimation) {
       scrollController.jumpTo(clamped);
     } else {
       scrollController.animateTo(
@@ -217,15 +225,15 @@ class ReaderActionController {
     if (onBeforeTurnPage?.call(isNext) ?? false) return;
     if (!pageController.hasClients) return;
 
-    final readMode = getReadMode();
+    final readMode = _readMode;
     final shouldGoForward = isReverseRowReadMode(readMode) ? !isNext : isNext;
-    final noAnimation = getNoAnimation();
+    final noAnimation = _noAnimation;
 
     if (noAnimation) {
-      final totalSlots = getTotalSlots();
+      final totalSlots = _totalSlots;
       if (totalSlots <= 0) return;
 
-      final currentPage = getPageIndex();
+      final currentPage = _pageIndex;
       final targetPage = (currentPage + (shouldGoForward ? 1 : -1)).clamp(
         0,
         totalSlots - 1,

@@ -14,6 +14,11 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
       focusNode: _readerFocusNode,
       autofocus: true,
       onKeyEvent: (node, event) {
+        if (event is KeyDownEvent &&
+            event.logicalKey == LogicalKeyboardKey.f11) {
+          unawaited(_toggleDesktopFullscreen());
+          return KeyEventResult.handled;
+        }
         final handled = handleGlobalKeyEvent(event, _actionController);
         return handled ? KeyEventResult.handled : KeyEventResult.ignored;
       },

@@ -264,6 +264,9 @@ jobs:
   # ══════════════════════════════════════════
   build-macos:
     runs-on: macos-latest
+    env:
+      CARGO_HOME: ${{ github.workspace }}/.cargo
+      RUSTUP_HOME: ${{ github.workspace }}/.rustup
     steps:
       - uses: actions/checkout@v4
         with:
@@ -300,17 +303,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          export PATH="$HOME/.cargo/bin:$PATH"
+          mkdir -p "$CARGO_HOME" "$RUSTUP_HOME"
+          echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
+          export PATH="$CARGO_HOME/bin:$PATH"
 
           echo "which rustup: $(which rustup || true)"
-          ls -l "$HOME/.cargo/bin"/rustup* || true
+          ls -l "$CARGO_HOME/bin"/rustup* || true
 
           if ! rustup --version || ! rustup toolchain list; then
             echo "Detected invalid rustup binary, reinstalling..."
-            rm -f "$HOME/.cargo/bin/rustup" "$HOME/.cargo/bin/rustup-init"
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
-            export PATH="$HOME/.cargo/bin:$PATH"
+            rm -f "$CARGO_HOME/bin/rustup" "$CARGO_HOME/bin/rustup-init"
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --no-modify-path
+            export PATH="$CARGO_HOME/bin:$PATH"
             rustup --version
             rustup toolchain list
           fi
@@ -345,6 +349,8 @@ jobs:
 
       - name: 编译 macOS 产物
         run: |
+          export PATH="$CARGO_HOME/bin:$PATH"
+          rustup toolchain list
           fvm flutter build macos --release --split-debug-info=build/symbols
 
       - name: 制作 DMG
@@ -374,6 +380,9 @@ jobs:
   # ══════════════════════════════════════════
   build-ios:
     runs-on: macos-latest
+    env:
+      CARGO_HOME: ${{ github.workspace }}/.cargo
+      RUSTUP_HOME: ${{ github.workspace }}/.rustup
     steps:
       - uses: actions/checkout@v4
         with:
@@ -407,17 +416,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-          export PATH="$HOME/.cargo/bin:$PATH"
+          mkdir -p "$CARGO_HOME" "$RUSTUP_HOME"
+          echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
+          export PATH="$CARGO_HOME/bin:$PATH"
 
           echo "which rustup: $(which rustup || true)"
-          ls -l "$HOME/.cargo/bin"/rustup* || true
+          ls -l "$CARGO_HOME/bin"/rustup* || true
 
           if ! rustup --version || ! rustup toolchain list; then
             echo "Detected invalid rustup binary, reinstalling..."
-            rm -f "$HOME/.cargo/bin/rustup" "$HOME/.cargo/bin/rustup-init"
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
-            export PATH="$HOME/.cargo/bin:$PATH"
+            rm -f "$CARGO_HOME/bin/rustup" "$CARGO_HOME/bin/rustup-init"
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --no-modify-path
+            export PATH="$CARGO_HOME/bin:$PATH"
             rustup --version
             rustup toolchain list
           fi
@@ -440,6 +450,8 @@ jobs:
 
       - name: 编译 iOS (无签)
         run: |
+          export PATH="$CARGO_HOME/bin:$PATH"
+          rustup toolchain list
           fvm flutter precache --ios
           fvm flutter pub get
           # 动态修改 pbxcproj，关闭整个项目的强签名要求：

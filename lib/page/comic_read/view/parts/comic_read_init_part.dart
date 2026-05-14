@@ -1,6 +1,9 @@
 part of '../comic_read.dart';
 
 extension _ComicReadInitPart on _ComicReadPageState {
+  bool get _isDesktopPlatform =>
+      !kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
+
   // 监听菜单显隐，并同步系统状态栏/导航栏。
   void _initMenuVisibilitySubscription(ReaderCubit cubit) {
     _menuVisibleSubscription = cubit.stream
@@ -14,31 +17,10 @@ extension _ComicReadInitPart on _ComicReadPageState {
   // 初始化阅读动作控制器：键盘、点击、自动阅读、音量键共用入口。
   void _initActionController() {
     _actionController = ReaderActionController(
+      context: context,
       scrollController: scrollController,
       observerController: observerController,
       pageController: _pageController,
-      getReadMode: () =>
-          context.read<GlobalSettingCubit>().state.readSetting.readMode,
-      getPageIndex: () => context.read<ReaderCubit>().state.pageIndex,
-      getTotalSlots: () => context.read<ReaderCubit>().state.totalSlots,
-      getNoAnimation: () =>
-          context.read<GlobalSettingCubit>().state.readSetting.noAnimation,
-      getAutoScrollColumnDistancePercent: () => context
-          .read<GlobalSettingCubit>()
-          .state
-          .readSetting
-          .autoScrollColumnDistancePercent,
-      getVolumeKeyPageTurnEnabled: () => context
-          .read<GlobalSettingCubit>()
-          .state
-          .readSetting
-          .volumeKeyPageTurn,
-      getVolumeKeyPageTurnDistancePercent: () => context
-          .read<GlobalSettingCubit>()
-          .state
-          .readSetting
-          .volumeKeyPageTurnDistancePercent,
-      getContext: () => _imageSizeContext ?? context,
       onBeforeTurnPage: _restoreScaleBeforeTurnPage,
     );
   }
@@ -93,6 +75,13 @@ extension _ComicReadInitPart on _ComicReadPageState {
   void _postFrameBootstrap(ReaderCubit cubit) {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
+      if (_isDesktopPlatform) {
+        final isFullscreen = await windowManager.isFullScreen();
+        _refreshState(() {
+          _isDesktopFullscreen = isFullscreen;
+        });
+        setDesktopReaderFullscreen(isFullscreen);
+      }
       _syncSystemUi(force: true);
       await Future.delayed(const Duration(milliseconds: 200));
       cubit.updateMenuVisible(visible: false);
@@ -137,6 +126,9 @@ extension _ComicReadInitPart on _ComicReadPageState {
     _systemUiSyncTimer?.cancel();
 
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    if (_isDesktopPlatform) {
+      unawaited(_restoreDesktopFullscreen());
+    }
     _pageController.dispose();
     _historyManager.stop();
     _volumeController.dispose();
@@ -144,5 +136,25 @@ extension _ComicReadInitPart on _ComicReadPageState {
     _transformationController
       ..removeListener(_onTransformationChanged)
       ..dispose();
+  }
+
+  Future<void> _toggleDesktopFullscreen() async {
+    if (!_isDesktopPlatform) return;
+    final target = !_isDesktopFullscreen;
+    await windowManager.setFullScreen(target);
+    if (!mounted) return;
+    _refreshState(() {
+      _isDesktopFullscreen = target;
+    });
+    setDesktopReaderFullscreen(target);
+    _scheduleSystemUiSync();
+  }
+
+  Future<void> _restoreDesktopFullscreen() async {
+    setDesktopReaderFullscreen(false);
+    if (!_isDesktopPlatform) return;
+    if (_isDesktopFullscreen) {
+      await windowManager.setFullScreen(false);
+    }
   }
 }

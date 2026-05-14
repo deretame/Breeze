@@ -5,6 +5,10 @@ extension _ComicReadViewPart on _ComicReadPageState {
     final cubit = context.read<ReaderCubit>();
     return ComicReadAppBar(
       title: epInfo.epName,
+      isDesktopFullscreen: _isDesktopFullscreen,
+      onToggleFullscreen: _isDesktopPlatform
+          ? () => unawaited(_toggleDesktopFullscreen())
+          : null,
       changePageIndex: (int value) {
         cubit.updatePageIndex(value);
         cubit.updateSliderChanged(0.0);

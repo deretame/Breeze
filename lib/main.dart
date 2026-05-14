@@ -34,6 +34,7 @@ import 'package:zephyr/src/rust/api/system.dart' as rust_system;
 import 'package:zephyr/src/rust/frb_generated.dart';
 import 'package:zephyr/util/debouncer.dart';
 import 'package:zephyr/util/desktop/custom_title_bar.dart';
+import 'package:zephyr/util/desktop/desktop_fullscreen_controller.dart';
 import 'package:zephyr/util/desktop/intent.dart';
 import 'package:zephyr/util/desktop/native_window.dart';
 import 'package:zephyr/util/desktop/system_tray.dart';
@@ -628,11 +629,16 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                 if (Platform.isWindows ||
                     Platform.isLinux ||
                     Platform.isMacOS) {
-                  return Column(
-                    children: [
-                      const CustomTitleBar(),
-                      Expanded(child: content),
-                    ],
+                  return ValueListenableBuilder<bool>(
+                    valueListenable: desktopReaderFullscreenNotifier,
+                    builder: (context, isReaderFullscreen, _) {
+                      return Column(
+                        children: [
+                          if (!isReaderFullscreen) const CustomTitleBar(),
+                          Expanded(child: content),
+                        ],
+                      );
+                    },
                   );
                 }
                 return content;

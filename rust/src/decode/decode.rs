@@ -3,11 +3,12 @@ use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
 
+const SCRAMBLE_ID: i32 = 220980;
+
 pub struct ImageInfo {
     pub img_data: Vec<u8>,
     pub chapter_id: i32,
     pub url: String,
-    pub scramble_id: i32,
     pub file_name: String,
 }
 
@@ -17,13 +18,10 @@ pub fn segmentation_picture_to_disk(image_info: ImageInfo) -> Result<()> {
         img_data,
         chapter_id,
         url,
-        scramble_id,
         file_name,
     } = image_info;
 
-    tracing::debug!("{} origin {}", img_data.len(), file_name);
-    let bytes = super::segmentation::segmentation_picture(img_data, chapter_id, scramble_id, &url)?;
-    tracing::debug!("{} after {}", bytes.len(), file_name);
+    let bytes = super::segmentation::segmentation_picture(img_data, chapter_id, SCRAMBLE_ID, &url)?;
     save_image(&bytes, &file_name)?;
     Ok(())
 }

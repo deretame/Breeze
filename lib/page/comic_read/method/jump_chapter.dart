@@ -162,9 +162,7 @@ class JumpChapter {
     );
   }
 
-  bool _matchesCurrentChapter(
-    UnifiedComicChapterRef chapter,
-  ) {
+  bool _matchesCurrentChapter(UnifiedComicChapterRef chapter) {
     if (logicalKey.isNotEmpty && chapter.logicalKey.trim() == logicalKey) {
       return true;
     }

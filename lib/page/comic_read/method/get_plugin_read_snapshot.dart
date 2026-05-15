@@ -13,15 +13,14 @@ Future<NormalComicEpInfo> getPluginReadSnapshot(
   String logicalKey,
   Map<String, dynamic> chapterExtern,
 ) async {
-  final chapterRef =
-      requestId.trim().isNotEmpty || logicalKey.trim().isNotEmpty
-          ? null
-          : resolveUnifiedComicChapterRef(
-              comicInfo,
-              from,
-              chapterId: selectedChapterId,
-              order: order,
-            );
+  final chapterRef = requestId.trim().isNotEmpty || logicalKey.trim().isNotEmpty
+      ? null
+      : resolveUnifiedComicChapterRef(
+          comicInfo,
+          from,
+          chapterId: selectedChapterId,
+          order: order,
+        );
   final resolvedChapterId = _resolveReadSnapshotChapterId(
     chapterRef,
     requestId,

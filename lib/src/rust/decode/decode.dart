@@ -10,24 +10,18 @@ class ImageInfo {
   final Uint8List imgData;
   final int chapterId;
   final String url;
-  final int scrambleId;
   final String fileName;
 
   const ImageInfo({
     required this.imgData,
     required this.chapterId,
     required this.url,
-    required this.scrambleId,
     required this.fileName,
   });
 
   @override
   int get hashCode =>
-      imgData.hashCode ^
-      chapterId.hashCode ^
-      url.hashCode ^
-      scrambleId.hashCode ^
-      fileName.hashCode;
+      imgData.hashCode ^ chapterId.hashCode ^ url.hashCode ^ fileName.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -37,6 +31,5 @@ class ImageInfo {
           imgData == other.imgData &&
           chapterId == other.chapterId &&
           url == other.url &&
-          scrambleId == other.scrambleId &&
           fileName == other.fileName;
 }

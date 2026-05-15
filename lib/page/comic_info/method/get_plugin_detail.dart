@@ -187,25 +187,21 @@ List<UnifiedComicChapterRef> resolveUnifiedComicChapters(
   }
 
   if (comicInfo is UnifiedComicDownload) {
-    return _decodeListOfMaps(comicInfo.chapters)
-        .map(
-          (ep) {
-            final storageChapterId =
-                ep['storageChapterId']?.toString().trim() ??
-                ep['id']?.toString().trim() ??
-                '';
-            return UnifiedComicChapterRef(
-              id: ep['id']?.toString() ?? '',
-              name: ep['name']?.toString() ?? '',
-              order: _toInt(ep['order'], 0),
-              requestId: ep['taskChapterId']?.toString() ?? '',
-              storageChapterId: storageChapterId,
-              logicalKey: ep['logicalKey']?.toString() ?? '',
-              extern: asMap(ep['extern']),
-            );
-          },
-        )
-        .toList();
+    return _decodeListOfMaps(comicInfo.chapters).map((ep) {
+      final storageChapterId =
+          ep['storageChapterId']?.toString().trim() ??
+          ep['id']?.toString().trim() ??
+          '';
+      return UnifiedComicChapterRef(
+        id: ep['id']?.toString() ?? '',
+        name: ep['name']?.toString() ?? '',
+        order: _toInt(ep['order'], 0),
+        requestId: ep['taskChapterId']?.toString() ?? '',
+        storageChapterId: storageChapterId,
+        logicalKey: ep['logicalKey']?.toString() ?? '',
+        extern: asMap(ep['extern']),
+      );
+    }).toList();
   }
 
   return const <UnifiedComicChapterRef>[];

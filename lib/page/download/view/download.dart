@@ -177,9 +177,9 @@ class _DownloadPageState extends State<DownloadPage> {
           .toList(),
     );
     logger.d('download task payload=${task.toJson()}');
-    logger.d(
-      'download chapter map=${downloadInfo.chapters.map((chapter) => {'order': chapter.order, 'id': chapter.id, 'logicalKey': _resolveSelectionKey(chapter), 'selected': _downloadInfo[_resolveSelectionKey(chapter)] == true}).toList()}',
-    );
+    // logger.d(
+    //   'download chapter map=${downloadInfo.chapters.map((chapter) => {'order': chapter.order, 'id': chapter.id, 'logicalKey': _resolveSelectionKey(chapter), 'selected': _downloadInfo[_resolveSelectionKey(chapter)] == true}).toList()}',
+    // );
     try {
       await startDownloadTask(task);
       showInfoToast("下载任务已启动");

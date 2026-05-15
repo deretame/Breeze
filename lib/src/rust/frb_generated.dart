@@ -2324,14 +2324,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ImageInfo dco_decode_image_info(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 5)
-      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
     return ImageInfo(
       imgData: dco_decode_list_prim_u_8_strict(arr[0]),
       chapterId: dco_decode_i_32(arr[1]),
       url: dco_decode_String(arr[2]),
-      scrambleId: dco_decode_i_32(arr[3]),
-      fileName: dco_decode_String(arr[4]),
+      fileName: dco_decode_String(arr[3]),
     );
   }
 
@@ -2573,13 +2572,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_imgData = sse_decode_list_prim_u_8_strict(deserializer);
     var var_chapterId = sse_decode_i_32(deserializer);
     var var_url = sse_decode_String(deserializer);
-    var var_scrambleId = sse_decode_i_32(deserializer);
     var var_fileName = sse_decode_String(deserializer);
     return ImageInfo(
       imgData: var_imgData,
       chapterId: var_chapterId,
       url: var_url,
-      scrambleId: var_scrambleId,
       fileName: var_fileName,
     );
   }
@@ -2907,7 +2904,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_list_prim_u_8_strict(self.imgData, serializer);
     sse_encode_i_32(self.chapterId, serializer);
     sse_encode_String(self.url, serializer);
-    sse_encode_i_32(self.scrambleId, serializer);
     sse_encode_String(self.fileName, serializer);
   }
 

@@ -5,13 +5,11 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/picture/picture.dart';
-import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
+import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/type/pipe.dart';
 
 import '../../../util/get_path.dart';
-import 'package:zephyr/type/enum.dart';
-
-const _kJmScrambleId = 220980;
 
 /// 使用 background_downloader 下载图片（iOS 后台 URLSession）
 ///
@@ -165,7 +163,6 @@ Future<String> downloadPictureIOS({
     await decodeAndSaveImage(
       imageData,
       chapterId.let(toInt),
-      _kJmScrambleId,
       downloadFilePath,
       url,
     );

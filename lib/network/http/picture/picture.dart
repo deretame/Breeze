@@ -17,7 +17,6 @@ import '../../../util/get_path.dart';
 final pictureDio = Dio();
 const _kQjsRuntimeCancelled = '__QJS_RUNTIME_CANCELLED__';
 const _kDownloadTaskCancelled = '__DOWNLOAD_TASK_CANCELLED__';
-const _kJmScrambleId = 220980;
 const _kJmPluginUuid = 'bf99008d-010b-4f17-ac7c-61a9b57dc3d9';
 
 void _throwIfDownloadCancelled(String taskGroupKey) {
@@ -74,9 +73,9 @@ Future<String> getCachePicture({
     rootFolder: 'original',
   );
 
-  logger.d(
-    'getCachePicture: cacheFilePath=$cacheFilePath, downloadFilePath=$downloadFilePath',
-  );
+  // logger.d(
+  //   'getCachePicture: cacheFilePath=$cacheFilePath, downloadFilePath=$downloadFilePath',
+  // );
 
   final existingFilePath = await checkFileExists(
     cacheFilePath,
@@ -126,8 +125,7 @@ Future<String> getCachePicture({
   if (resolvedFrom == _kJmPluginUuid && pictureType == PictureType.page) {
     await decodeAndSaveImage(
       imageData,
-      int.tryParse(chapterId) ?? 0,
-      _kJmScrambleId,
+      int.tryParse(cartoonId) ?? 0,
       cacheFilePath,
       url,
     );
@@ -257,8 +255,7 @@ Future<String> downloadPicture({
   if (resolvedFrom == _kJmPluginUuid && pictureType == PictureType.page) {
     await decodeAndSaveImage(
       imageData,
-      int.tryParse(chapterId) ?? 0,
-      _kJmScrambleId,
+      int.tryParse(cartoonId) ?? 0,
       downloadFilePath,
       url,
     );
@@ -596,7 +593,6 @@ Future<void> ensureDirectoryExists(String filePath) async {
 Future<void> decodeAndSaveImage(
   Uint8List imgData,
   int chapterId,
-  int scrambleId,
   String fileName,
   String url,
 ) async {
@@ -609,7 +605,6 @@ Future<void> decodeAndSaveImage(
       imageInfo: ImageInfo(
         imgData: imgData,
         chapterId: chapterId,
-        scrambleId: scrambleId,
         fileName: fileName,
         url: url,
       ),

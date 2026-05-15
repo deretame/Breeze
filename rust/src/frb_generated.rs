@@ -27,7 +27,7 @@
 // Section: imports
 
 use flutter_rust_bridge::for_generated::byteorder::{NativeEndian, ReadBytesExt, WriteBytesExt};
-use flutter_rust_bridge::for_generated::{transform_result_dco, Lifetimeable, Lockable};
+use flutter_rust_bridge::for_generated::{Lifetimeable, Lockable, transform_result_dco};
 use flutter_rust_bridge::{Handler, IntoIntoDart};
 
 // Section: boilerplate
@@ -2333,13 +2333,11 @@ impl SseDecode for crate::decode::decode::ImageInfo {
         let mut var_imgData = <Vec<u8>>::sse_decode(deserializer);
         let mut var_chapterId = <i32>::sse_decode(deserializer);
         let mut var_url = <String>::sse_decode(deserializer);
-        let mut var_scrambleId = <i32>::sse_decode(deserializer);
         let mut var_fileName = <String>::sse_decode(deserializer);
         return crate::decode::decode::ImageInfo {
             img_data: var_imgData,
             chapter_id: var_chapterId,
             url: var_url,
-            scramble_id: var_scrambleId,
             file_name: var_fileName,
         };
     }
@@ -2702,7 +2700,6 @@ impl flutter_rust_bridge::IntoDart for crate::decode::decode::ImageInfo {
             self.img_data.into_into_dart().into_dart(),
             self.chapter_id.into_into_dart().into_dart(),
             self.url.into_into_dart().into_dart(),
-            self.scramble_id.into_into_dart().into_dart(),
             self.file_name.into_into_dart().into_dart(),
         ]
         .into_dart()
@@ -2928,7 +2925,6 @@ impl SseEncode for crate::decode::decode::ImageInfo {
         <Vec<u8>>::sse_encode(self.img_data, serializer);
         <i32>::sse_encode(self.chapter_id, serializer);
         <String>::sse_encode(self.url, serializer);
-        <i32>::sse_encode(self.scramble_id, serializer);
         <String>::sse_encode(self.file_name, serializer);
     }
 }
@@ -3089,7 +3085,7 @@ mod io {
     use flutter_rust_bridge::for_generated::byteorder::{
         NativeEndian, ReadBytesExt, WriteBytesExt,
     };
-    use flutter_rust_bridge::for_generated::{transform_result_dco, Lifetimeable, Lockable};
+    use flutter_rust_bridge::for_generated::{Lifetimeable, Lockable, transform_result_dco};
     use flutter_rust_bridge::{Handler, IntoIntoDart};
 
     // Section: boilerplate
@@ -3113,7 +3109,7 @@ mod web {
     };
     use flutter_rust_bridge::for_generated::wasm_bindgen;
     use flutter_rust_bridge::for_generated::wasm_bindgen::prelude::*;
-    use flutter_rust_bridge::for_generated::{transform_result_dco, Lifetimeable, Lockable};
+    use flutter_rust_bridge::for_generated::{Lifetimeable, Lockable, transform_result_dco};
     use flutter_rust_bridge::{Handler, IntoIntoDart};
 
     // Section: boilerplate

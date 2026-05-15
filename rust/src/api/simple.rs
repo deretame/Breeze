@@ -6,14 +6,17 @@ use flutter_rust_bridge::frb;
 use rquickjs_playground::{configure_http_client, current_http_client_config};
 use std::sync::Once;
 
-static INIT: Once = Once::new();
+static ENABLE_STACKTRACE: Once = Once::new();
+static INIT_ONCE: Once = Once::new();
 
 #[frb(init)]
 pub fn init_app() {
-    crate::api::user_utils::setup_default_user_utils();
-    let mut config = current_http_client_config();
-    config.allow_private_network = true;
-    configure_http_client(config).expect("更新 HTTP 配置失败");
+    INIT_ONCE.call_once(|| {
+        crate::api::user_utils::setup_default_user_utils();
+        let mut config = current_http_client_config();
+        config.allow_private_network = true;
+        configure_http_client(config).expect("更新 HTTP 配置失败");
+    });
 }
 
 #[frb]
@@ -73,7 +76,7 @@ pub fn stream_test(stream: StreamSink<String>) -> Result<()> {
 
 #[frb(sync)]
 pub fn enable_stacktrace(enabled: bool) {
-    INIT.call_once(|| unsafe {
+    ENABLE_STACKTRACE.call_once(|| unsafe {
         std::env::set_var("RUST_LIB_BACKTRACE", if enabled { "1" } else { "0" });
     });
 }

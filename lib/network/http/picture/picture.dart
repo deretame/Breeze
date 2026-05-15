@@ -8,6 +8,7 @@ import 'package:path/path.dart' as file_path;
 import 'package:zephyr/main.dart';
 import 'package:zephyr/network/http/plugin/qjs_download_runtime.dart';
 import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/type/pipe.dart';
 import 'package:zephyr/util/download/download_cancel_signal.dart';
 
 import '../../../src/rust/api/simple.dart';
@@ -125,7 +126,7 @@ Future<String> getCachePicture({
   if (resolvedFrom == _kJmPluginUuid && pictureType == PictureType.page) {
     await decodeAndSaveImage(
       imageData,
-      int.tryParse(cartoonId) ?? 0,
+      chapterId.let(toInt),
       cacheFilePath,
       url,
     );
@@ -255,7 +256,7 @@ Future<String> downloadPicture({
   if (resolvedFrom == _kJmPluginUuid && pictureType == PictureType.page) {
     await decodeAndSaveImage(
       imageData,
-      int.tryParse(cartoonId) ?? 0,
+      chapterId.let(toInt),
       downloadFilePath,
       url,
     );

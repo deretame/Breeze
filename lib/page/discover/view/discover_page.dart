@@ -8,12 +8,12 @@ import 'package:zephyr/page/comic_list/models/comic_list_scene.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
 import 'package:zephyr/plugin/plugin_registry_service.dart';
+import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 import 'discover_scheme_renderer.dart';
-import 'package:zephyr/util/error_filter.dart';
 
 @RoutePage()
 class DiscoverPage extends StatefulWidget {
@@ -775,21 +775,12 @@ class _PluginFunctionDialogContentState
 
     try {
       Map<String, dynamic> response;
-      try {
-        response = await callUnifiedComicPlugin(
-          from: widget.from,
-          fnPath: 'getFunctionPage',
-          core: {'id': widget.functionId},
-          extern: const <String, dynamic>{},
-        );
-      } catch (_) {
-        response = await callUnifiedComicPlugin(
-          from: widget.from,
-          fnPath: 'get_function_page',
-          core: {'id': widget.functionId},
-          extern: const <String, dynamic>{},
-        );
-      }
+      response = await callUnifiedComicPlugin(
+        from: widget.from,
+        fnPath: 'getFunctionPage',
+        core: {'id': widget.functionId},
+        extern: const <String, dynamic>{},
+      );
 
       if (!mounted) return;
       final envelope = UnifiedPluginEnvelope.fromMap(response);

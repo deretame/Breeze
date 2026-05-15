@@ -6,16 +6,16 @@ import 'package:zephyr/network/http/plugin/unified_comic_dto.dart';
 import 'package:zephyr/network/http/plugin/unified_comic_plugin.dart';
 import 'package:zephyr/page/comic_list/models/comic_list_scene.dart';
 import 'package:zephyr/page/comic_list/view/plugin_paged_comic_list_view.dart';
-import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/page/discover/view/discover_scheme_renderer.dart';
 import 'package:zephyr/page/search/cubit/search_cubit.dart';
 import 'package:zephyr/page/search_result/bloc/search_bloc.dart';
+import 'package:zephyr/type/enum.dart';
+import 'package:zephyr/util/error_filter.dart';
 import 'package:zephyr/util/json/json_value.dart';
 import 'package:zephyr/util/router/router.gr.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_grid.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 import 'package:zephyr/widgets/toast.dart';
-import 'package:zephyr/util/error_filter.dart';
 
 @RoutePage()
 class OldHomePage extends StatefulWidget {
@@ -562,21 +562,12 @@ class _FunctionSectionState extends State<_FunctionSection>
 
   Future<UnifiedPluginEnvelope> _loadEnvelope() async {
     Map<String, dynamic> response;
-    try {
-      response = await callUnifiedComicPlugin(
-        pluginId: widget.pluginId,
-        fnPath: 'getFunctionPage',
-        core: {'id': widget.functionId},
-        extern: const <String, dynamic>{},
-      );
-    } catch (_) {
-      response = await callUnifiedComicPlugin(
-        pluginId: widget.pluginId,
-        fnPath: 'get_function_page',
-        core: {'id': widget.functionId},
-        extern: const <String, dynamic>{},
-      );
-    }
+    response = await callUnifiedComicPlugin(
+      pluginId: widget.pluginId,
+      fnPath: 'getFunctionPage',
+      core: {'id': widget.functionId},
+      extern: const <String, dynamic>{},
+    );
     return UnifiedPluginEnvelope.fromMap(response);
   }
 
@@ -700,21 +691,12 @@ class _PluginFunctionDialogContentState
 
     try {
       Map<String, dynamic> response;
-      try {
-        response = await callUnifiedComicPlugin(
-          from: widget.from,
-          fnPath: 'getFunctionPage',
-          core: {'id': widget.functionId},
-          extern: const <String, dynamic>{},
-        );
-      } catch (_) {
-        response = await callUnifiedComicPlugin(
-          from: widget.from,
-          fnPath: 'get_function_page',
-          core: {'id': widget.functionId},
-          extern: const <String, dynamic>{},
-        );
-      }
+      response = await callUnifiedComicPlugin(
+        from: widget.from,
+        fnPath: 'getFunctionPage',
+        core: {'id': widget.functionId},
+        extern: const <String, dynamic>{},
+      );
 
       if (!mounted) return;
       final envelope = UnifiedPluginEnvelope.fromMap(response);

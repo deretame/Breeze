@@ -16,11 +16,13 @@ class OldRankingPage extends StatefulWidget {
 class _OldRankingPageState extends State<OldRankingPage> {
   static const String _bikaPluginId = '0a0e5858-a467-4702-994a-79e608a4589d';
   static const String _jmPluginId = 'bf99008d-010b-4f17-ac7c-61a9b57dc3d9';
+  static bool _hasDelayedInitialLoad = false;
 
   late final ComicListScene _bikaRankingScene;
   late final ComicListScene _jmRankingScene;
 
   int _panelIndex = 0;
+  bool _isWaitingInitialLoad = true;
 
   @override
   void initState() {
@@ -54,10 +56,35 @@ class _OldRankingPageState extends State<OldRankingPage> {
         'extern': {'source': 'ranking'},
       },
     });
+
+    _waitBeforeInitialLoad();
+  }
+
+  Future<void> _waitBeforeInitialLoad() async {
+    if (_hasDelayedInitialLoad) {
+      _finishInitialLoad();
+      return;
+    }
+    await Future<void>.delayed(const Duration(seconds: 2));
+    _hasDelayedInitialLoad = true;
+    _finishInitialLoad();
+  }
+
+  void _finishInitialLoad() {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _isWaitingInitialLoad = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isWaitingInitialLoad) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     final pluginStates = context.watch<PluginRegistryCubit>().state;
     final hasBika = pluginStates[_bikaPluginId]?.isActive == true;
     final hasJm = pluginStates[_jmPluginId]?.isActive == true;

@@ -28,8 +28,35 @@ class OldHomePage extends StatefulWidget {
 class _OldHomePageState extends State<OldHomePage> {
   static const String _pluginA = '0a0e5858-a467-4702-994a-79e608a4589d';
   static const String _pluginB = 'bf99008d-010b-4f17-ac7c-61a9b57dc3d9';
+  static bool _hasDelayedInitialLoad = false;
 
   int _tabIndex = 0;
+  bool _isWaitingInitialLoad = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _waitBeforeInitialLoad();
+  }
+
+  Future<void> _waitBeforeInitialLoad() async {
+    if (_hasDelayedInitialLoad) {
+      _finishInitialLoad();
+      return;
+    }
+    await Future<void>.delayed(const Duration(seconds: 2));
+    _hasDelayedInitialLoad = true;
+    _finishInitialLoad();
+  }
+
+  void _finishInitialLoad() {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _isWaitingInitialLoad = false;
+    });
+  }
 
   String get _currentFrom {
     final pluginStates = context.read<PluginRegistryCubit>().state;
@@ -52,6 +79,10 @@ class _OldHomePageState extends State<OldHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isWaitingInitialLoad) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     final pluginStates = context.watch<PluginRegistryCubit>().state;
     final hasPluginA = pluginStates[_pluginA]?.isActive == true;
     final hasPluginB = pluginStates[_pluginB]?.isActive == true;

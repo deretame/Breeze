@@ -17,30 +17,56 @@
     return data;
   }
 
+  function buildHostError(payload) {
+    const errInfo = payload.errorInfo;
+    if (errInfo && typeof errInfo === "object") {
+      const code = String(errInfo.code || "BRIDGE_CALL_FAILED");
+      const message = String(errInfo.message || "bridge 调用失败");
+      const details = errInfo.details;
+      const out = new Error(`[${code}] ${message}`);
+      out.code = code;
+      out.details = details;
+      return out;
+    }
+    const err = payload.error;
+    if (err && typeof err === "object") {
+      const code = String(err.code || "BRIDGE_CALL_FAILED");
+      const message = String(err.message || "bridge 调用失败");
+      const details = err.details;
+      const out = new Error(`[${code}] ${message}`);
+      out.code = code;
+      out.details = details;
+      return out;
+    }
+    return new Error(String(err || "bridge 调用失败"));
+  }
+
+  function decodeHostDataSync(data) {
+    if (
+      data
+      && typeof data === "object"
+      && (data.__hostProtocol === undefined || data.__hostProtocol === "bridge-binary-v1")
+      && data.__hostReturnKind === "bytes"
+      && data.nativeBufferId !== undefined
+      && data.nativeBufferId !== null
+    ) {
+      throw new Error("bridge 返回了二进制数据，请使用异步版 bridge.call()");
+    }
+    return data;
+  }
+
+  function parseHostSync(raw) {
+    const payload = JSON.parse(raw);
+    if (!payload.ok) {
+      throw buildHostError(payload);
+    }
+    return decodeHostDataSync(payload.data);
+  }
+
   async function parseHost(raw) {
     const payload = JSON.parse(raw);
     if (!payload.ok) {
-      const errInfo = payload.errorInfo;
-      if (errInfo && typeof errInfo === "object") {
-        const code = String(errInfo.code || "BRIDGE_CALL_FAILED");
-        const message = String(errInfo.message || "bridge 调用失败");
-        const details = errInfo.details;
-        const out = new Error(`[${code}] ${message}`);
-        out.code = code;
-        out.details = details;
-        throw out;
-      }
-      const err = payload.error;
-      if (err && typeof err === "object") {
-        const code = String(err.code || "BRIDGE_CALL_FAILED");
-        const message = String(err.message || "bridge 调用失败");
-        const details = err.details;
-        const out = new Error(`[${code}] ${message}`);
-        out.code = code;
-        out.details = details;
-        throw out;
-      }
-      throw new Error(String(err || "bridge 调用失败"));
+      throw buildHostError(payload);
     }
     return decodeHostData(payload.data);
   }
@@ -145,6 +171,12 @@
     return parseHost(raw);
   }
 
+  function callSync(name, ...args) {
+    const normalizedArgs = args.map((arg) => normalizeArg(arg));
+    const raw = globalThis.__host_call(String(name), JSON.stringify(normalizedArgs));
+    return parseHostSync(raw);
+  }
+
   async function gzipDecompress(input) {
     const out = await call("compression.gzip_decompress", input);
     if (out instanceof Uint8Array) return out;
@@ -163,6 +195,7 @@
 
   globalThis.__web.bridge = {
     call,
+    callSync,
     gzipDecompress,
     gzipCompress,
   };

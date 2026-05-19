@@ -209,6 +209,9 @@ Map<String, dynamic> _buildSettingsPayload(
     syncSetting: globalSetting.syncSetting.copyWith(settingsSyncTime: 0),
   );
 
+  final globalSettingJson = sanitizedGlobal.toJson();
+  globalSettingJson.remove('customExportPath');
+
   final pluginBlock = snapshot.blocks[_pluginsBlockName];
   final pluginConfigs = pluginBlock == null
       ? <Map<String, dynamic>>[]
@@ -221,7 +224,7 @@ Map<String, dynamic> _buildSettingsPayload(
     'version': syncDataVersion,
     'schemaVersion': _settingsSyncSchemaVersion,
     'syncTime': snapshot.syncTime,
-    'globalSetting': sanitizedGlobal.toJson(),
+    'globalSetting': globalSettingJson,
     'pluginConfigs': pluginConfigs,
     'pluginInfos': pluginInfos,
     'blocks': {

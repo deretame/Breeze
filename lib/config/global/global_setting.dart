@@ -92,6 +92,7 @@ abstract class GlobalSettingState with _$GlobalSettingState {
     @Default(0) double windowX,
     @Default(0) double windowY,
     @Default(ReadSettingState()) ReadSettingState readSetting,
+    @Default('') String customExportPath,
     @Default("") String compatibleVersion,
   }) = _GlobalSettingState;
 

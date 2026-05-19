@@ -5,7 +5,8 @@ import 'package:zephyr/util/router/router.gr.dart';
 @AutoRouterConfig(replaceInRouteName: 'Screen|Page,Route')
 class AppRouter extends RootStackRouter {
   @override
-  RouteType get defaultRouteType => RouteType.material();
+  RouteType get defaultRouteType =>
+      RouteType.material(enablePredictiveBackGesture: false);
 
   @override
   List<AutoRoute> get routes => [

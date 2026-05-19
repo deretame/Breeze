@@ -51,6 +51,7 @@ _GlobalSettingState _$GlobalSettingStateFromJson(
   readSetting: json['readSetting'] == null
       ? const ReadSettingState()
       : ReadSettingState.fromJson(json['readSetting'] as Map<String, dynamic>),
+  customExportPath: json['customExportPath'] as String? ?? '',
   compatibleVersion: json['compatibleVersion'] as String? ?? "",
 );
 
@@ -80,6 +81,7 @@ Map<String, dynamic> _$GlobalSettingStateToJson(_GlobalSettingState instance) =>
       'windowX': instance.windowX,
       'windowY': instance.windowY,
       'readSetting': instance.readSetting,
+      'customExportPath': instance.customExportPath,
       'compatibleVersion': instance.compatibleVersion,
     };
 

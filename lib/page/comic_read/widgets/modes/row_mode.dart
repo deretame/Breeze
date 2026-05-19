@@ -246,6 +246,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
                   pageWidth: pageWidth,
                   contentWidth: contentWidth,
                   backgroundColor: backgroundColor,
+                  isRtl: isReverseRowReadMode(readMode),
                 );
               },
             );
@@ -330,6 +331,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
     required double pageWidth,
     required double contentWidth,
     required Color backgroundColor,
+    required bool isRtl,
   }) {
     if (slot.transition != null) {
       final transition = slot.transition!.entry;
@@ -356,6 +358,23 @@ class _RowModeWidgetState extends State<RowModeWidget> {
     const double panelGap = 6;
     final panelWidth = ((contentWidth - panelGap) / 2).clamp(1.0, contentWidth);
 
+    final leftChild = SizedBox(
+      width: panelWidth,
+      child: slot.left != null
+          ? _buildReadImage(slotItem: slot.left!, slotIndex: slotIndex)
+          : const SizedBox.shrink(),
+    );
+    final rightChild = SizedBox(
+      width: panelWidth,
+      child: slot.right != null
+          ? _buildReadImage(slotItem: slot.right!, slotIndex: slotIndex)
+          : const SizedBox.shrink(),
+    );
+
+    final children = isRtl
+        ? [rightChild, const SizedBox(width: panelGap), leftChild]
+        : [leftChild, const SizedBox(width: panelGap), rightChild];
+
     return Container(
       color: backgroundColor,
       width: pageWidth,
@@ -363,21 +382,7 @@ class _RowModeWidgetState extends State<RowModeWidget> {
       child: SizedBox(
         width: contentWidth,
         child: Row(
-          children: [
-            SizedBox(
-              width: panelWidth,
-              child: slot.left != null
-                  ? _buildReadImage(slotItem: slot.left!, slotIndex: slotIndex)
-                  : const SizedBox.shrink(),
-            ),
-            const SizedBox(width: panelGap),
-            SizedBox(
-              width: panelWidth,
-              child: slot.right != null
-                  ? _buildReadImage(slotItem: slot.right!, slotIndex: slotIndex)
-                  : const SizedBox.shrink(),
-            ),
-          ],
+          children: children,
         ),
       ),
     );

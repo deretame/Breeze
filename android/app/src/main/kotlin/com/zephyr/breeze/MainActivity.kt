@@ -2,10 +2,14 @@ package com.zephyr.breeze
 
 import android.app.ActivityManager
 import android.content.Context
+import android.os.Build
 import android.os.Debug
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
+import android.view.View
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import io.flutter.embedding.android.FlutterFragment
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterShellArgs
@@ -31,6 +35,7 @@ class MainActivity: FlutterFragmentActivity() {
     private val CHANNEL = "memory_monitor"
     private val VOLUME_CHANNEL = "volume_key_handler"
     private val VOLUME_EVENT_CHANNEL = "volume_key_events"
+    private val SYSTEM_UI_CHANNEL = "system_ui_control"
     
     private var volumeKeyInterceptionEnabled = false
     private var volumeEventSink: EventChannel.EventSink? = null
@@ -133,6 +138,20 @@ class MainActivity: FlutterFragmentActivity() {
                 else -> result.notImplemented()
             }
         }
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, SYSTEM_UI_CHANNEL).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "hideSystemBars" -> {
+                    setInstantSystemUiVisibility(immersive = true)
+                    result.success(null)
+                }
+                "showSystemBars" -> {
+                    setInstantSystemUiVisibility(immersive = false)
+                    result.success(null)
+                }
+                else -> result.notImplemented()
+            }
+        }
     }
 
     private fun saveForceEnableImpeller(enable: Boolean) {
@@ -229,5 +248,42 @@ class MainActivity: FlutterFragmentActivity() {
             }
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    @Suppress("DEPRECATION")
+    private fun setInstantSystemUiVisibility(immersive: Boolean) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val controller = window.decorView.windowInsetsController ?: run {
+                fallbackSystemUiVisibility(immersive)
+                return
+            }
+            if (immersive) {
+                controller.systemBarsBehavior =
+                    WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+            } else {
+                controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_DEFAULT
+                controller.show(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+            }
+            return
+        }
+        fallbackSystemUiVisibility(immersive)
+    }
+
+    @Suppress("DEPRECATION")
+    private fun fallbackSystemUiVisibility(immersive: Boolean) {
+        var flags = (
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+        )
+        if (immersive) {
+            flags = flags or (
+                View.SYSTEM_UI_FLAG_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_IMMERSIVE
+            )
+        }
+        window.decorView.systemUiVisibility = flags
     }
 }

@@ -562,6 +562,19 @@ jobs:
         with:
           path: release-assets
 
+      - name: 重命名产物文件（追加版本后缀）
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          find release-assets -type f | while IFS= read -r file; do
+            dir="$(dirname "$file")"
+            name="$(basename "$file")"
+            ext="${name##*.}"
+            base="${name%.*}"
+            newname="${base}-${VERSION}.${ext}"
+            mv "$file" "$dir/$newname"
+            echo "Renamed: $name -> $newname"
+          done
+
       - name: 提取日志并准备 Release 内容
         id: prepare
         run: |
@@ -580,11 +593,11 @@ jobs:
           echo "### 📦 推荐下载" >> release_body.md
           echo "| 平台 | 下载链接 |" >> release_body.md
           echo "| :--- | :--- |" >> release_body.md
-          echo "| **Windows** | [windows-installer.exe](https://github.com/$REPO/releases/download/$VERSION/windows-installer.exe) |" >> release_body.md
-          echo "| **macOS** | [Breeze-macOS.dmg](https://github.com/$REPO/releases/download/$VERSION/Breeze-macOS.dmg) |" >> release_body.md
-          echo "| **Android** | [app-arm64-v8a-release.apk](https://github.com/$REPO/releases/download/$VERSION/app-arm64-v8a-release.apk) |" >> release_body.md
-          echo "| **iOS** | [Breeze-iOS.ipa](https://github.com/$REPO/releases/download/$VERSION/Breeze-iOS.ipa) |" >> release_body.md
-          echo "| **Linux** | [breeze.flatpak](https://github.com/$REPO/releases/download/$VERSION/breeze.flatpak) |" >> release_body.md
+          echo "| **Windows** | [windows-installer-${VERSION}.exe](https://github.com/$REPO/releases/download/$VERSION/windows-installer-${VERSION}.exe) |" >> release_body.md
+          echo "| **macOS** | [Breeze-macOS-${VERSION}.dmg](https://github.com/$REPO/releases/download/$VERSION/Breeze-macOS-${VERSION}.dmg) |" >> release_body.md
+          echo "| **Android** | [app-arm64-v8a-release-${VERSION}.apk](https://github.com/$REPO/releases/download/$VERSION/app-arm64-v8a-release-${VERSION}.apk) |" >> release_body.md
+          echo "| **iOS** | [Breeze-iOS-${VERSION}.ipa](https://github.com/$REPO/releases/download/$VERSION/Breeze-iOS-${VERSION}.ipa) |" >> release_body.md
+          echo "| **Linux** | [breeze-${VERSION}.flatpak](https://github.com/$REPO/releases/download/$VERSION/breeze-${VERSION}.flatpak) |" >> release_body.md
           echo -e "\n> 💡 **不知道该下载哪个文件？**\n> 请查看 [详细安装指南](https://github.com/$REPO#-%E5%A6%82%E4%BD%95%E5%AE%89%E8%A3%85)。" >> release_body.md
 
       - name: 创建 GitHub Release
@@ -596,9 +609,9 @@ jobs:
           files: |
             release-assets/android-apks/**/*.apk
             release-assets/linux-flatpak/*.flatpak
-            release-assets/windows-exe/windows-installer.exe
-            release-assets/macos-dmg/Breeze-macOS.dmg
-            release-assets/ios-ipa/Breeze-iOS.ipa
+            release-assets/windows-exe/*.exe
+            release-assets/macos-dmg/*.dmg
+            release-assets/ios-ipa/*.ipa
 
       - name: 发送 Release 消息到 Telegram
         env:
@@ -673,9 +686,9 @@ jobs:
           CLEAN_VERSION="${VERSION#v}"
           echo "CLEAN_VERSION=$CLEAN_VERSION" >> $GITHUB_ENV
 
-          gh release download "$VERSION" --repo "${{ github.repository }}" --pattern "Breeze-macOS.dmg"
+          gh release download "$VERSION" --repo "${{ github.repository }}" --pattern "Breeze-macOS-${VERSION}.dmg"
 
-          DMG_SHA256=$(sha256sum Breeze-macOS.dmg | awk '{ print $1 }')
+          DMG_SHA256=$(sha256sum Breeze-macOS-${VERSION}.dmg | awk '{ print $1 }')
           echo "DMG_SHA256: $DMG_SHA256"
           echo "DMG_SHA256=$DMG_SHA256" >> $GITHUB_ENV
 

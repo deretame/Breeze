@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -105,6 +108,8 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
               _buildSectionTitle(context, '内容与网络', Icons.tune_outlined),
               editMaskedKeywords(context),
               socks5ProxyEdit(context, state.socks5Proxy),
+              if (!Platform.isIOS)
+                _customExportPath(state, globalSettingCubit),
               _updateAccelerate(state, globalSettingCubit),
 
               const SizedBox(height: 8),
@@ -519,6 +524,48 @@ class _GlobalSettingPageState extends State<GlobalSettingPage> {
         );
         await ImpellerConfig.setForceEnableImpeller(value);
         showSuccessToast('设置成功，重启生效');
+      },
+    );
+  }
+
+  Widget _customExportPath(
+    GlobalSettingState state,
+    GlobalSettingCubit cubit,
+  ) {
+    final exportPath = state.customExportPath.trim();
+    return ListTile(
+      leading: const Icon(Icons.folder_outlined),
+      title: const Text('自定义导出路径'),
+      subtitle: Text(
+        exportPath.isEmpty ? '未设置，默认导出到下载目录' : exportPath,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (exportPath.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.clear, size: 20),
+              tooltip: '清除',
+              onPressed: () {
+                cubit.updateState(
+                  (current) => current.copyWith(customExportPath: ''),
+                );
+                showSuccessToast('已清除自定义导出路径');
+              },
+            ),
+          const Icon(Icons.chevron_right),
+        ],
+      ),
+      onTap: () async {
+        final selected = await getDirectoryPath();
+        if (selected != null && selected.trim().isNotEmpty) {
+          cubit.updateState(
+            (current) => current.copyWith(customExportPath: selected),
+          );
+          showSuccessToast('自定义导出路径已设置');
+        }
       },
     );
   }

@@ -4,7 +4,6 @@ import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/page/comic_read/cubit/reader_cubit.dart';
-import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
 
 class ReaderActionController {
   final BuildContext context;
@@ -225,8 +224,7 @@ class ReaderActionController {
     if (onBeforeTurnPage?.call(isNext) ?? false) return;
     if (!pageController.hasClients) return;
 
-    final readMode = _readMode;
-    final shouldGoForward = isReverseRowReadMode(readMode) ? !isNext : isNext;
+    final shouldGoForward = isNext;
     final noAnimation = _noAnimation;
 
     if (noAnimation) {

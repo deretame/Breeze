@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:zephyr/config/global/global_setting.dart';
@@ -12,9 +13,9 @@ import 'package:zephyr/page/comic_read/model/seamless_transition_state.dart';
 import 'package:zephyr/page/comic_read/widgets/image/read_image_widget.dart';
 import 'package:zephyr/page/comic_read/widgets/layout/read_layout.dart';
 import 'package:zephyr/page/comic_read/widgets/transition/chapter_transition_card.dart';
+import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/context/context_extensions.dart';
 import 'package:zephyr/widgets/picture_bloc/models/picture_info.dart';
-import 'package:zephyr/type/enum.dart';
 
 enum ColumnModeEntryType { image, transition }
 
@@ -84,6 +85,7 @@ class ColumnModeEntry {
 class ColumnModeWidget extends StatefulWidget {
   final List<ColumnModeEntry> entries;
   final bool enableDoublePage;
+  final bool isRtl;
   final String comicId;
   final ListObserverController observerController;
   final ScrollController scrollController;
@@ -98,6 +100,7 @@ class ColumnModeWidget extends StatefulWidget {
     super.key,
     required this.entries,
     required this.enableDoublePage,
+    required this.isRtl,
     required this.comicId,
     required this.observerController,
     required this.scrollController,
@@ -180,7 +183,7 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
             backgroundColor,
             doublePageSlots: _isDoublePage ? doublePageSlots : null,
           ),
-          cacheExtent: context.screenHeight * 2,
+          scrollCacheExtent: ScrollCacheExtent.pixels(context.screenHeight * 2),
           controller: widget.scrollController,
         );
 
@@ -359,6 +362,23 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
         final rowHeight = (leftHeight > rightHeight ? leftHeight : rightHeight)
             .clamp(1.0, double.infinity);
 
+        final leftChild = SizedBox(
+          width: panelWidth,
+          height: rowHeight,
+          child: _buildColumnImage(index: left.entryIndex, entry: leftEntry),
+        );
+        final rightChild = SizedBox(
+          width: panelWidth,
+          height: rowHeight,
+          child: rightEntry != null
+              ? _buildColumnImage(index: right!.entryIndex, entry: rightEntry)
+              : const SizedBox.shrink(),
+        );
+
+        final children = widget.isRtl
+            ? [rightChild, const SizedBox(width: panelGap), leftChild]
+            : [leftChild, const SizedBox(width: panelGap), rightChild];
+
         return Container(
           color: backgroundColor,
           width: containerWidth,
@@ -368,27 +388,7 @@ class _ColumnModeWidgetState extends State<ColumnModeWidget> {
             width: contentWidth,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: panelWidth,
-                  height: rowHeight,
-                  child: _buildColumnImage(
-                    index: left.entryIndex,
-                    entry: leftEntry,
-                  ),
-                ),
-                const SizedBox(width: panelGap),
-                SizedBox(
-                  width: panelWidth,
-                  height: rowHeight,
-                  child: rightEntry != null
-                      ? _buildColumnImage(
-                          index: right!.entryIndex,
-                          entry: rightEntry,
-                        )
-                      : const SizedBox.shrink(),
-                ),
-              ],
+              children: children,
             ),
           ),
         );

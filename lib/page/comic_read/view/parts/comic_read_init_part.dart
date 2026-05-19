@@ -85,6 +85,7 @@ extension _ComicReadInitPart on _ComicReadPageState {
       _syncSystemUi(force: true);
       await Future.delayed(const Duration(milliseconds: 200));
       cubit.updateMenuVisible(visible: false);
+      _applySystemUiVisibility(false, force: true);
       _syncVolumeInterception();
     });
   }
@@ -118,14 +119,21 @@ extension _ComicReadInitPart on _ComicReadPageState {
   }
 
   // 集中释放资源，避免退出后残留订阅和计时器。
-  void _disposeReaderResources() {
+  Future<void> _disposeReaderResources() async {
     _cleanTimer?.cancel();
     _autoReadTimer?.cancel();
     _menuVisibleSubscription?.cancel();
     _volumeKeyPageTurnSubscription?.cancel();
     _systemUiSyncTimer?.cancel();
 
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    if (_isAndroid) {
+      await const MethodChannel('system_ui_control').invokeMethod('showSystemBars');
+    } else {
+      await SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
+      );
+    }
     if (_isDesktopPlatform) {
       unawaited(_restoreDesktopFullscreen());
     }

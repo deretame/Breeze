@@ -5,11 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/main.dart';
 import 'package:zephyr/model/unified_comic_list_item.dart';
 import 'package:zephyr/model/unified_comic_list_item_mapper.dart';
-import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/object_box/model.dart';
+import 'package:zephyr/object_box/objectbox.g.dart';
 import 'package:zephyr/page/bookshelf/bookshelf.dart';
 import 'package:zephyr/page/bookshelf/service/favorite_folder_service.dart';
 import 'package:zephyr/page/comic_info/method/export_comic.dart';
@@ -17,8 +18,8 @@ import 'package:zephyr/page/comic_list/view/plugin_comic_grid_sliver.dart';
 import 'package:zephyr/type/enum.dart';
 import 'package:zephyr/util/get_path.dart';
 import 'package:zephyr/util/permission.dart';
-import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_info.dart';
+import 'package:zephyr/widgets/comic_simplify_entry/comic_simplify_entry_mapper.dart';
 import 'package:zephyr/widgets/toast.dart';
 
 class LocalShelfPage extends StatefulWidget {
@@ -432,42 +433,51 @@ class _LocalShelfPageState extends State<LocalShelfPage>
                       elevation: 4,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
+                          horizontal: 4,
                           vertical: 6,
                         ),
-                        child: Row(
-                          children: [
-                            IconButton(
-                              tooltip: '取消',
-                              onPressed: _cancelSelectionMode,
-                              icon: const Icon(Icons.close),
-                            ),
-                            Text('已选择 ${_selectedKeys.length} 项'),
-                            const Spacer(),
-                            TextButton(
-                              onPressed: () => _selectAll(entries),
-                              child: const Text('全选'),
-                            ),
-                            if (widget.mode == ShelfPageMode.favorite)
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
                               IconButton(
-                                tooltip: '加入收藏夹',
-                                onPressed: () => _addSelectedToFolder(entries),
-                                icon: const Icon(
-                                  Icons.create_new_folder_outlined,
+                                visualDensity: VisualDensity.compact,
+                                tooltip: '取消',
+                                onPressed: _cancelSelectionMode,
+                                icon: const Icon(Icons.close),
+                              ),
+                              Text('已选择 ${_selectedKeys.length} 项'),
+                              const SizedBox(width: 8),
+                              TextButton(
+                                onPressed: () => _selectAll(entries),
+                                child: const Text('全选'),
+                              ),
+                              if (widget.mode == ShelfPageMode.favorite)
+                                IconButton(
+                                  visualDensity: VisualDensity.compact,
+                                  tooltip: '加入收藏夹',
+                                  onPressed: () =>
+                                      _addSelectedToFolder(entries),
+                                  icon: const Icon(
+                                    Icons.create_new_folder_outlined,
+                                  ),
                                 ),
-                              ),
-                            if (widget.mode == ShelfPageMode.download)
+                              if (widget.mode == ShelfPageMode.download)
+                                IconButton(
+                                  visualDensity: VisualDensity.compact,
+                                  tooltip: '批量导出',
+                                  onPressed: () =>
+                                      _batchExportSelected(entries),
+                                  icon: const Icon(Icons.file_upload_outlined),
+                                ),
                               IconButton(
-                                tooltip: '批量导出',
-                                onPressed: () => _batchExportSelected(entries),
-                                icon: const Icon(Icons.file_upload_outlined),
+                                visualDensity: VisualDensity.compact,
+                                tooltip: '删除选中',
+                                onPressed: () => _confirmBatchDelete(entries),
+                                icon: const Icon(Icons.delete_outline),
                               ),
-                            IconButton(
-                              tooltip: '删除选中',
-                              onPressed: () => _confirmBatchDelete(entries),
-                              icon: const Icon(Icons.delete_outline),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -550,6 +560,13 @@ class _LocalShelfPageState extends State<LocalShelfPage>
   }
 
   Future<String?> _resolveBatchExportDirectory() async {
+    if (Platform.isIOS) {
+      return getDirectoryPath();
+    }
+    final customPath = globalSetting.customExportPath.trim();
+    if (customPath.isNotEmpty) {
+      return customPath;
+    }
     if (Platform.isAndroid) {
       final granted = await requestExportPermission();
       if (!granted) {

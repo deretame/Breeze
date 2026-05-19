@@ -34,7 +34,7 @@
         android:label="Breeze"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:enableOnBackInvokedCallback="true"
+        android:enableOnBackInvokedCallback="false"
         android:extractNativeLibs="true">
         <activity
             android:name=".MainActivity"

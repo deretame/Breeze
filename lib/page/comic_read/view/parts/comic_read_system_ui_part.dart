@@ -3,15 +3,15 @@ part of '../comic_read.dart';
 extension _ComicReadSystemUiPart on _ComicReadPageState {
   bool get _isAndroid => !kIsWeb && Platform.isAndroid;
 
-  // 菜单显隐时同时处理系统 UI 与音量键拦截状态。
+  static const _systemUiChannel = MethodChannel('system_ui_control');
+
   void _toggleVisibility() {
     final cubit = context.read<ReaderCubit>();
     cubit.updateMenuVisible();
     _syncVolumeInterception();
-    _applySystemUiVisibility(cubit.state.isMenuVisible);
+    _applySystemUiVisibility(cubit.state.isMenuVisible, force: true);
   }
 
-  // Android 下仅在菜单隐藏时拦截音量键用于翻页。
   void _syncVolumeInterception() {
     if (!_isAndroid) return;
     final globalSettingState = context.read<GlobalSettingCubit>().state;
@@ -26,7 +26,6 @@ extension _ComicReadSystemUiPart on _ComicReadPageState {
     }
   }
 
-  // 防抖同步，处理系统栏变化导致的 UI 抢焦问题。
   void _scheduleSystemUiSync({
     Duration delay = const Duration(milliseconds: 24),
   }) {
@@ -42,7 +41,6 @@ extension _ComicReadSystemUiPart on _ComicReadPageState {
     _applySystemUiVisibility(isMenuVisible, force: force);
   }
 
-  // 根据菜单显隐切换不同平台的系统 UI 模式。
   Future<void> _applySystemUiVisibility(
     bool isMenuVisible, {
     bool force = false,
@@ -50,22 +48,21 @@ extension _ComicReadSystemUiPart on _ComicReadPageState {
     if (!force && _lastMenuVisible == isMenuVisible) return;
     _lastMenuVisible = isMenuVisible;
 
-    if (_isAndroid) {
-      if (isMenuVisible) {
-        await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    if (isMenuVisible) {
+      if (_isAndroid) {
+        await _systemUiChannel.invokeMethod('showSystemBars');
       } else {
         await SystemChrome.setEnabledSystemUIMode(
           SystemUiMode.manual,
-          overlays: <SystemUiOverlay>[],
+          overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
         );
       }
-      return;
-    }
-
-    if (isMenuVisible) {
-      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     } else {
-      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+      if (_isAndroid) {
+        await _systemUiChannel.invokeMethod('hideSystemBars');
+      } else {
+        await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+      }
     }
   }
 }

@@ -158,6 +158,7 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
 
   Widget _columnModeWidget({required bool enableDoublePage}) {
     final readSetting = context.read<GlobalSettingCubit>().state.readSetting;
+    final isRtl = isReverseRowReadMode(readSetting.readMode);
     final seamlessEnabled = _isSeamlessEnabled(readSetting);
     final entries = _buildColumnEntries(readSetting: readSetting);
     final canLoadPrev = seamlessEnabled
@@ -191,6 +192,7 @@ extension _ComicReadInteractionPart on _ComicReadPageState {
           comicId: comicId,
           entries: entries,
           enableDoublePage: enableDoublePage,
+          isRtl: isRtl,
           observerController: observerController,
           scrollController: scrollController,
           from: widget.from,

@@ -6,6 +6,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as p;
+import 'package:zephyr/config/global/global_setting.dart';
 import 'package:zephyr/cubit/string_select.dart';
 import 'package:zephyr/model/unified_comic_list_item.dart';
 import 'package:zephyr/page/comic_info/comic_info.dart';
@@ -461,6 +462,13 @@ class _ComicInfoState extends State<_ComicInfo>
   Future<String?> _pickExportDirectory() async => getDirectoryPath();
 
   Future<String?> _resolveExportDirectory() async {
+    if (Platform.isIOS) {
+      return _pickExportDirectory();
+    }
+    final customPath = globalSetting.customExportPath.trim();
+    if (customPath.isNotEmpty) {
+      return customPath;
+    }
     if (Platform.isAndroid) {
       final granted = await requestExportPermission();
       if (!granted) {

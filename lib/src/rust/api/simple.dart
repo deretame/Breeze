@@ -64,3 +64,6 @@ Future<Uint8List> compressExtreme({required List<int> data}) =>
 
 Future<Uint8List> decompressExtreme({required List<int> data}) =>
     RustLib.instance.api.crateApiSimpleDecompressExtreme(data: data);
+
+bool testHostAsyncSpawn({required BigInt timeoutMs}) =>
+    RustLib.instance.api.crateApiSimpleTestHostAsyncSpawn(timeoutMs: timeoutMs);

@@ -910,6 +910,10 @@ impl AsyncHostRuntime {
             while running {
                 loop_count += 1;
 
+                if loop_count % 1000 == 1 {
+                    debug!(runtime_id, loop_count, "worker loop iteration {}", loop_count);
+                }
+
                 // Phase 1: drain pending signals
                 let drain_start = Instant::now();
                 let mut signals_drained = 0u32;
@@ -994,17 +998,11 @@ impl AsyncHostRuntime {
                 // Phase 3: block waiting for next signal
                 idle_since = Some(Instant::now());
                 let recv_start = Instant::now();
+                debug!(runtime_id, loop_count, "worker: entering rx.recv() (Phase 3)");
                 match rx.recv() {
                     Ok(signal) => {
                         let waited = recv_start.elapsed();
-                        if waited.as_secs() > 5 {
-                            info!(
-                                runtime_id,
-                                loop_count,
-                                "rx.recv() unblocked after {:?}",
-                                waited
-                            );
-                        }
+                        debug!(runtime_id, loop_count, signal = ?std::mem::discriminant(&signal), "worker: rx.recv() returned in {:?}", waited);
                         running = handle_worker_signal(
                             signal,
                             &mut host,
